@@ -9,15 +9,16 @@ const z = require('zod');
 const fs = require('fs');
 const path = require('path');
 
-// Read SKILL.md from parent src/ directory
-const skillPath = path.join(__dirname, '..', 'src', 'SKILL.md');
-const skill = fs.readFileSync(skillPath, 'utf8');
-const body = skill.replace(/^[\s\S]*?---\n/, '');
+const { loadProfileSections } = require('../hooks/jiahao-profile');
 
-// Build instructions text (same as jiahao-activate.js)
-function buildInstructions(mode) {
+// Read SKILL.md and split by profile (ADR-0010)
+const sections = loadProfileSections(path.join(__dirname, '..'));
+
+// Build instructions text with profile selection
+function buildInstructions(mode, profile) {
   const m = mode || 'full';
-  return body + '\n---\nJIAHAO MODE ACTIVE — level: ' + m + '\n';
+  const p = profile === 'generator' ? 'generator' : 'verifier';
+  return sections[p] + '\n---\nJIAHAO MODE ACTIVE — level: ' + m + '\n';
 }
 
 const server = new McpServer({
@@ -33,12 +34,13 @@ server.registerPrompt(
     description: 'Inject anti-false-completion iron laws for second-party verifier agents.',
     argsSchema: {
       mode: z.enum(['lite', 'full', 'ultra']).optional().describe('Intensity level (default: full)'),
+      profile: z.enum(['generator', 'verifier']).optional().describe('Agent profile (default: verifier)'),
     },
   },
-  ({ mode }) => ({
+  ({ mode, profile }) => ({
     messages: [{
       role: 'user',
-      content: { type: 'text', text: buildInstructions(mode) },
+      content: { type: 'text', text: buildInstructions(mode, profile) },
     }],
   })
 );
@@ -50,9 +52,11 @@ server.registerTool(
     description: 'Get jiahao verifier discipline instructions.',
     inputSchema: {
       mode: z.enum(['lite', 'full', 'ultra']).optional(),
+      profile: z.enum(['generator', 'verifier']).optional(),
     },
     outputSchema: {
       mode: z.string(),
+      profile: z.string(),
       instructions: z.string(),
     },
     annotations: {
@@ -60,11 +64,12 @@ server.registerTool(
       openWorldHint: false,
     },
   },
-  ({ mode }) => {
+  ({ mode, profile }) => {
     const m = mode || 'full';
+    const p = profile || 'verifier';
     return {
-      content: [{ type: 'text', text: buildInstructions(m) }],
-      structuredContent: { mode: m, instructions: buildInstructions(m) },
+      content: [{ type: 'text', text: buildInstructions(m, p) }],
+      structuredContent: { mode: m, profile: p, instructions: buildInstructions(m, p) },
     };
   }
 );
