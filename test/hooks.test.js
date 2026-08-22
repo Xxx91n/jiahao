@@ -6,6 +6,13 @@ const TMP = require('os').tmpdir().replace(/\\/g, '/');
 
 const hooksDir = path.join(__dirname, '..', 'hooks');
 
+// Clean slate before each hooks test to prevent profile/flag leakage
+beforeEach(() => {
+  ['.jiahao-profile', '.jiahao-active', '.jiahao-evidence'].forEach(f => {
+    try { fs.unlinkSync(TMP + '/' + f); } catch (e) {}
+  });
+});
+
 test('all 5 hook files exist', () => {
   ['jiahao-runtime.js', 'jiahao-activate.js', 'jiahao-subagent.js',
    'jiahao-mode-tracker.js', 'jiahao-verdict-gate.js'].forEach(f => {
@@ -77,6 +84,7 @@ test('verdict-gate blocks without evidence', () => {
   process.chdir(path.join(__dirname, '..'));
   fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
   try { fs.unlinkSync(TMP + '/.jiahao-evidence'); } catch (e) {}
+  try { fs.unlinkSync(TMP + '/.jiahao-profile'); } catch (e) {}
   try {
     const input = JSON.stringify({ stop_hook_active: false });
     const output = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
@@ -120,6 +128,7 @@ test('verdict-gate blocks with empty JSON array evidence', () => {
   process.chdir(path.join(__dirname, '..'));
   fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
   fs.writeFileSync(TMP + '/.jiahao-evidence', '[]', 'utf8');
+  try { fs.unlinkSync(TMP + '/.jiahao-profile'); } catch (e) {}
   try {
     const input = JSON.stringify({ stop_hook_active: false });
     const output = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
@@ -143,6 +152,7 @@ test('verdict-gate blocks with plain text evidence (not JSON)', () => {
   process.chdir(path.join(__dirname, '..'));
   fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
   fs.writeFileSync(TMP + '/.jiahao-evidence', 'test passed', 'utf8');
+  try { fs.unlinkSync(TMP + '/.jiahao-profile'); } catch (e) {}
   try {
     const input = JSON.stringify({ stop_hook_active: false });
     const output = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
