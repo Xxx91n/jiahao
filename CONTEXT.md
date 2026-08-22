@@ -80,3 +80,12 @@ adapter files and checking 4 distinctive fragments across instruction-tier
 adapters. Drift indicates someone edited SKILL.md without running
 build-adapters.js.
 _Avoid_: stale adapters, out-of-sync (use the canonical term)
+
+**Hash Chain (证据哈希链)**:
+A tamper-evident linked structure where each evidence record contains the
+SHA-256 hash of the previous record (prev_hash). Deletion, reordering, or
+modification of any record breaks the chain at that point. Uses canonical JSON
+(RFC 8785 inspired key sorting) for deterministic serialization before hashing.
+Does NOT require Merkle trees — linear prev_hash chaining is sufficient for
+single-file evidence logs where O(n) verification is acceptable.
+_Avoid_: merkle tree, block chain (those are different structures)
