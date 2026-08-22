@@ -64,3 +64,19 @@ In anysearch-cli: "搜够了没" (retrieval sufficiency). In jiahao: "任务真�
 (task completion verification). Two complementary gates — one governs input
 quality, one governs output authenticity.
 _Avoid_: quality gate, check gate
+
+**Evidence Contract**:
+The structured interface between gate.js (writer) and the verdict-gate hook
+(reader). The evidence file must be a JSON array of evidence records, not
+arbitrary non-empty text. An empty array `[]` is NOT evidence — this closes
+the false-completion vector where the gate writes structural emptiness and
+the hook passes on non-empty string length.
+_Avoid_: evidence file, evidence check (those describe the mechanism, not the contract)
+
+**Adapter Drift**:
+The state where generated adapter files diverge from the single source
+(src/SKILL.md). check-drift.js detects this by verifying existence of all 7
+adapter files and checking 4 distinctive fragments across instruction-tier
+adapters. Drift indicates someone edited SKILL.md without running
+build-adapters.js.
+_Avoid_: stale adapters, out-of-sync (use the canonical term)
