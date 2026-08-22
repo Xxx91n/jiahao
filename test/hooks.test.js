@@ -2,12 +2,13 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const TMP = require('os').tmpdir().replace(/\\/g, '/');
+const TMP = require('os').tmpdir().replace(/\\/g, '/') + '/jiahao-hooks-test';
 
 const hooksDir = path.join(__dirname, '..', 'hooks');
 
 // Clean slate before each hooks test to prevent profile/flag leakage
 beforeEach(() => {
+  fs.mkdirSync(TMP, { recursive: true });
   ['.jiahao-profile', '.jiahao-active', '.jiahao-evidence'].forEach(f => {
     try { fs.unlinkSync(TMP + '/' + f); } catch (e) {}
   });

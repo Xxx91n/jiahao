@@ -5,9 +5,11 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const root = path.join(__dirname, '..');
-const TMP = require('os').tmpdir().replace(/\\/g, '/');
+const TMP = require('os').tmpdir().replace(/\\/g, '/') + '/jiahao-dual-profile-test';
 
 const skillPath = path.join(root, 'src', 'SKILL.md');
+
+beforeAll(() => { fs.mkdirSync(TMP, { recursive: true }); });
 
 test('SKILL.md has both profile sections', () => {
   const content = fs.readFileSync(skillPath, 'utf8');
