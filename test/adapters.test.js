@@ -47,7 +47,7 @@ test('codex hooks.json is valid JSON with 4 events', () => {
   expect(config.hooks.SessionStart).toBeDefined();
   expect(config.hooks.UserPromptSubmit).toBeDefined();
   expect(config.hooks.Stop).toBeDefined();
-  expect(config.hooks.SubagentStop).toBeDefined();
+  expect(config.hooks.SubagentStart).toBeDefined();
 });
 
 test('cursor adapter has frontmatter', () => {

@@ -29,7 +29,7 @@ for (const rel of checks) {
   }
   const content = fs.readFileSync(full, 'utf8');
   // Check for a distinctive fragment from SKILL.md
-  const fragment = 'verification ladder';
+  const fragment = 'anti-false-completion iron laws';
   if (!content.includes(fragment)) {
     console.error('DRIFT: ' + rel + ' missing fragment: ' + fragment);
     drift = true;

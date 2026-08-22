@@ -76,7 +76,7 @@ function verify(claims, gates) {
           verdict: 'FAIL',
           tier: TIERS.MACHINE_VERIFIED,
           evidence_chain: evidenceChain,
-          unchecked: claims.filter(c => true), // all claims unchecked
+          unchecked: claims.slice(), // all claims unchecked
           reason: 'Deterministic gate ' + i + ' failed: ' + result.detail,
         };
       }
@@ -174,14 +174,14 @@ function verify(claims, gates) {
 
 // Write evidence to file (for Stop hook verdict gate)
 function writeEvidence(evidenceChain, configDir) {
-  const evidencePath = (configDir || '/tmp') + '/.jiahao-evidence';
+  const evidencePath = (configDir || require('os').tmpdir()) + '/.jiahao-evidence';
   const data = JSON.stringify(evidenceChain);
   fs.writeFileSync(evidencePath, data, 'utf8');
 }
 
 // Clear evidence file
 function clearEvidence(configDir) {
-  const evidencePath = (configDir || '/tmp') + '/.jiahao-evidence';
+  const evidencePath = (configDir || require('os').tmpdir()) + '/.jiahao-evidence';
   try { require('fs').unlinkSync(evidencePath); } catch (e) { /* gone */ }
 }
 
