@@ -45,7 +45,7 @@ const adapters = {
   'adapters/instruction-tier/AGENTS.md': '# Jiahao Verifier Discipline\n\n' + body,
 
   // MCP server (future): package.json for ponytail-mcp equivalent
-  'adapters/mcp/README.md': '# MCP Adapter (Future)\n\nWhen implemented, jiahao-mcp will expose the verification discipline\nvia an MCP server for any MCP-compatible agent host.\nDeferred until core distribution is stable.\n',
+  'adapters/mcp/README.md': '# MCP Adapter\n\njiahao-mcp/ is a stdio MCP server exposing jiahao verifier discipline\nvia registerPrompt + registerTool for MCP-only agent hosts.\n\nSee jiahao-mcp/index.js for the server implementation.\nDependencies: @modelcontextprotocol/sdk, zod.\n',
 };
 
 let count = 0;

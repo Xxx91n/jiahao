@@ -98,3 +98,11 @@ isotonic regression (upgrade path, needs 1000+ labeled samples). The static
 override it with data-driven thresholds at a target precision. Calibration
 logging is best-effort append-only JSONL.
 _Avoid_: probability calibration, score normalization (use the canonical term)
+
+**MCP Adapter (MCP 适配器)**:
+A stdio MCP server (jiahao-mcp/) exposing jiahao verifier discipline via
+registerPrompt + registerTool for MCP-only agent hosts that lack system-prompt
+injection hooks. Mirrors ponytail-mcp pattern. MCP prompts are user-controlled
+on-demand pull, not always-on injection — the MCP adapter is a fallback for
+hosts without hook capability, not a replacement for hook-based adapters.
+_Avoid_: MCP server, MCP plugin (those are generic; use the canonical term)
