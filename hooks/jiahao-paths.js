@@ -15,4 +15,8 @@ function evidencePath() {
   return path.join(configDir(), '.jiahao-evidence');
 }
 
-module.exports = { configDir, flagPath, evidencePath };
+function profilePath() {
+  return path.join(configDir(), '.jiahao-profile');
+}
+
+module.exports = { configDir, flagPath, evidencePath, profilePath };
