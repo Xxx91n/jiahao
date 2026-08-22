@@ -9,14 +9,25 @@ const path = require('path');
 const root = path.join(__dirname, '..');
 const skillPath = path.join(root, 'src', 'SKILL.md');
 const skill = fs.readFileSync(skillPath, 'utf8');
-const body = skill.replace(/^---[\s\S]*?---\n/, '');
+const body = skill.replace(/^[\s\S]*?---\n/, '');
 
-// Check that instruction-tier adapters contain the SKILL.md body
+// Distinctive fragments from different sections of SKILL.md
+const fragments = [
+  'anti-false-completion iron laws',
+  'verification ladder',
+  'The judge cannot be the author',
+  'NOT VERIFIED',
+];
+
+// All 7 adapter files to check
 const checks = [
   'adapters/cursor/jiahao.mdc',
   'adapters/windsurf/jiahao.md',
   'adapters/cline/jiahao.md',
   'adapters/instruction-tier/AGENTS.md',
+  'adapters/claude-code/README.md',
+  'adapters/codex/hooks.json',
+  'adapters/mcp/README.md',
 ];
 
 let drift = false;
@@ -28,11 +39,19 @@ for (const rel of checks) {
     continue;
   }
   const content = fs.readFileSync(full, 'utf8');
-  // Check for a distinctive fragment from SKILL.md
-  const fragment = 'anti-false-completion iron laws';
-  if (!content.includes(fragment)) {
-    console.error('DRIFT: ' + rel + ' missing fragment: ' + fragment);
-    drift = true;
+  // Instruction-tier adapters must contain all fragments
+  // Hook-tier and MCP adapters only need to exist (they reference SKILL.md, not embed it)
+  const isInstructionTier = rel.startsWith('adapters/cursor/') ||
+    rel.startsWith('adapters/windsurf/') ||
+    rel.startsWith('adapters/cline/') ||
+    rel.startsWith('adapters/instruction-tier/');
+  if (isInstructionTier) {
+    for (const frag of fragments) {
+      if (!content.includes(frag)) {
+        console.error('DRIFT: ' + rel + ' missing fragment: ' + frag);
+        drift = true;
+      }
+    }
   }
 }
 

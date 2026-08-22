@@ -4,14 +4,10 @@
 // Respect stop_hook_active to prevent infinite loop (8-cap guard).
 
 const fs = require('fs');
-const path = require('path');
-
-const configDir = process.env.CLAUDE_CONFIG_DIR || process.env.HOME || '/tmp';
-const flagPath = configDir + '/.jiahao-active';
-const evidencePath = configDir + '/.jiahao-evidence';
+const { flagPath, evidencePath } = require('./jiahao-paths');
 
 // If jiahao is off, pass through
-if (!fs.existsSync(flagPath)) {
+if (!fs.existsSync(flagPath())) {
   process.exit(0);
 }
 
@@ -27,24 +23,28 @@ process.stdin.on('end', () => {
     process.exit(0);
   }
 
-  // Check evidence file
+  // Check evidence file — parse JSON, reject empty arrays
   let hasEvidence = false;
   try {
-    const evidence = fs.readFileSync(evidencePath, 'utf8').trim();
-    hasEvidence = evidence.length > 0;
-  } catch (e) { /* no file = no evidence */ }
+    const raw = fs.readFileSync(evidencePath(), 'utf8').trim();
+    if (raw.length > 0) {
+      const parsed = JSON.parse(raw);
+      // Must be a non-empty array of evidence records
+      hasEvidence = Array.isArray(parsed) && parsed.length > 0;
+    }
+  } catch (e) { /* no file or invalid JSON = no evidence */ }
 
   if (!hasEvidence) {
     // Block: output decision:block JSON
     console.log(JSON.stringify({
       decision: 'block',
-      reason: 'Verification has no evidence: no test run, no state diff, no re-execution quoted. NOT VERIFIED — run rung 1-3 of the verification ladder first.',
+      reason: 'Verification has no evidence: no test run, no state diff, no re-execution quoted. NOT VERIFIED — run rung 1-3 of the verification ladder first. Evidence file empty or unparseable.',
     }));
     process.exit(2);
   }
 
   // Evidence exists — clear it for next round and pass
-  try { fs.unlinkSync(evidencePath); } catch (e) { /* already gone */ }
+  try { fs.unlinkSync(evidencePath()); } catch (e) { /* already gone */ }
   process.exit(0);
 });
 

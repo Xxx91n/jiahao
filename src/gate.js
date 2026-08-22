@@ -5,6 +5,7 @@
 
 const crypto = require('crypto');
 const fs = require('fs');
+const { evidencePath } = require('../hooks/jiahao-paths');
 
 // Trust tiers (match SKILL.md output format)
 const TIERS = {
@@ -57,7 +58,6 @@ function verify(claims, gates) {
   // Returns { verdict, tier, evidence_chain, unchecked }
 
   const evidenceChain = [];
-  const unchecked = [];
 
   // Level 1: Deterministic gates (short-circuit on failure)
   if (gates.deterministic && gates.deterministic.length > 0) {
@@ -76,7 +76,7 @@ function verify(claims, gates) {
           verdict: 'FAIL',
           tier: TIERS.MACHINE_VERIFIED,
           evidence_chain: evidenceChain,
-          unchecked: claims.slice(), // all claims unchecked
+          unchecked: claims.slice(),
           reason: 'Deterministic gate ' + i + ' failed: ' + result.detail,
         };
       }
@@ -155,34 +155,31 @@ function verify(claims, gates) {
     }
   }
 
-  // Level 5: Not verified
-  // Mark remaining claims as unchecked (they never enter the hash chain)
-  claims.forEach((c, i) => {
-    if (!evidenceChain.find(e => e.gate_id === 'claim-' + i)) {
-      unchecked.push(c);
-    }
-  });
-
+  // Level 5: Not verified — all claims unchecked (no per-claim matching)
   return {
     verdict: 'NOT VERIFIED',
     tier: TIERS.UNVERIFIED,
     evidence_chain: evidenceChain,
-    unchecked: unchecked,
+    unchecked: claims.slice(),
     reason: 'Could not verify: no ground truth, no deterministic check, LLM critic unavailable',
   };
 }
 
 // Write evidence to file (for Stop hook verdict gate)
-function writeEvidence(evidenceChain, configDir) {
-  const evidencePath = (configDir || require('os').tmpdir()) + '/.jiahao-evidence';
+function writeEvidence(evidenceChain, overrideConfigDir) {
+  const ep = overrideConfigDir
+    ? require('path').join(overrideConfigDir, '.jiahao-evidence')
+    : evidencePath();
   const data = JSON.stringify(evidenceChain);
-  fs.writeFileSync(evidencePath, data, 'utf8');
+  fs.writeFileSync(ep, data, 'utf8');
 }
 
 // Clear evidence file
-function clearEvidence(configDir) {
-  const evidencePath = (configDir || require('os').tmpdir()) + '/.jiahao-evidence';
-  try { require('fs').unlinkSync(evidencePath); } catch (e) { /* gone */ }
+function clearEvidence(overrideConfigDir) {
+  const ep = overrideConfigDir
+    ? require('path').join(overrideConfigDir, '.jiahao-evidence')
+    : evidencePath();
+  try { fs.unlinkSync(ep); } catch (e) { /* gone */ }
 }
 
 // ponytail: evidence chain is the minimal viable structure; hash chain + receipt

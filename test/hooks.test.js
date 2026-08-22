@@ -98,7 +98,7 @@ test('verdict-gate passes with evidence', () => {
   const origDir = process.cwd();
   process.chdir(path.join(__dirname, '..'));
   fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
-  fs.writeFileSync(TMP + '/.jiahao-evidence', 'test passed', 'utf8');
+  fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify([{gate_id: 'det-0', status: 'passed'}]), 'utf8');
   try {
     const input = JSON.stringify({ stop_hook_active: false });
     execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
@@ -113,6 +113,60 @@ test('verdict-gate passes with evidence', () => {
     try { fs.unlinkSync(TMP + '/.jiahao-evidence'); } catch (e) {}
     process.chdir(origDir);
   }
+});
+
+test('verdict-gate blocks with empty JSON array evidence', () => {
+  const origDir = process.cwd();
+  process.chdir(path.join(__dirname, '..'));
+  fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
+  fs.writeFileSync(TMP + '/.jiahao-evidence', '[]', 'utf8');
+  try {
+    const input = JSON.stringify({ stop_hook_active: false });
+    const output = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
+      encoding: 'utf8',
+      env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
+      timeout: 5000,
+      shell: 'bash',
+    });
+    const parsed = JSON.parse(output);
+    expect(parsed.decision).toBe('block');
+  } catch (e) {
+    expect(e.status).toBe(2);
+  } finally {
+    try { fs.unlinkSync(TMP + '/.jiahao-evidence'); } catch (e) {}
+    process.chdir(origDir);
+  }
+});
+
+test('verdict-gate blocks with plain text evidence (not JSON)', () => {
+  const origDir = process.cwd();
+  process.chdir(path.join(__dirname, '..'));
+  fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
+  fs.writeFileSync(TMP + '/.jiahao-evidence', 'test passed', 'utf8');
+  try {
+    const input = JSON.stringify({ stop_hook_active: false });
+    const output = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
+      encoding: 'utf8',
+      env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
+      timeout: 5000,
+      shell: 'bash',
+    });
+    const parsed = JSON.parse(output);
+    expect(parsed.decision).toBe('block');
+  } catch (e) {
+    expect(e.status).toBe(2);
+  } finally {
+    try { fs.unlinkSync(TMP + '/.jiahao-evidence'); } catch (e) {}
+    process.chdir(origDir);
+  }
+});
+
+test('jiahao-paths module exports flagPath and evidencePath', () => {
+  const { flagPath, evidencePath } = require(path.join(hooksDir, 'jiahao-paths.js'));
+  expect(typeof flagPath).toBe('function');
+  expect(typeof evidencePath).toBe('function');
+  expect(flagPath()).toContain('.jiahao-active');
+  expect(evidencePath()).toContain('.jiahao-evidence');
 });
 
 test('verdict-gate respects stop_hook_active', () => {
