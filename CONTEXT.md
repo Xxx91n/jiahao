@@ -89,3 +89,12 @@ modification of any record breaks the chain at that point. Uses canonical JSON
 Does NOT require Merkle trees — linear prev_hash chaining is sufficient for
 single-file evidence logs where O(n) verification is acceptable.
 _Avoid_: merkle tree, block chain (those are different structures)
+
+**Confidence Calibration (置信度校准)**:
+The process of mapping raw LLM confidence scores to calibrated probabilities
+via Platt sigmoid scaling (minimal viable, ~60 lines, zero-dependency) or
+isotonic regression (upgrade path, needs 1000+ labeled samples). The static
+0.4/0.7 escalation band is the uncalibrated default; deriveThresholds() can
+override it with data-driven thresholds at a target precision. Calibration
+logging is best-effort append-only JSONL.
+_Avoid_: probability calibration, score normalization (use the canonical term)
