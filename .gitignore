@@ -1,0 +1,5 @@
+.omx/
+.codex-tmp/
+node_modules/
+dist/
+*.log
