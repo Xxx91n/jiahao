@@ -1,0 +1,12 @@
+{
+  "name": "jiahao",
+  "version": "0.0.1",
+  "description": "Prompt-as-mental-model skill distribution for second-party agents",
+  "license": "MIT",
+  "scripts": {
+    "test": "jest --verbose"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
