@@ -227,10 +227,10 @@ function clearEvidence(overrideConfigDir) {
   try { fs.unlinkSync(ep); } catch (e) { /* gone */ }
 }
 
-// ponytail: evidence chain is the minimal viable structure; hash chain + receipt
-// pattern is the upgrade path when tamper-evidence is needed.
-// ponytail: no calibration curve yet; confidence thresholds are static (0.4/0.7).
-// Upgrade to isotonic regression calibration when sufficient data exists.
+// ponytail: hash chain tamper-evidence implemented (ADR-0007). Upgrade path:
+// Ed25519 signatures + Rekor anchoring for cross-organization audit.
+// ponytail: Platt sigmoid calibration implemented (ADR-0008). Upgrade path:
+// isotonic regression (PAVA) when 1000+ labeled samples exist.
 
 module.exports = {
   TIERS, LEVELS, ESCALATION_BAND,

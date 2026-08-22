@@ -28,9 +28,9 @@ process.stdin.on('end', () => {
   try {
     const raw = fs.readFileSync(evidencePath(), 'utf8').trim();
     if (raw.length > 0) {
-      const parsed = JSON.parse(raw);
+      const evidenceData = JSON.parse(raw);
       // Must be a non-empty array of evidence records
-      hasEvidence = Array.isArray(parsed) && parsed.length > 0;
+      hasEvidence = Array.isArray(evidenceData) && evidenceData.length > 0;
     }
   } catch (e) { /* no file or invalid JSON = no evidence */ }
 
