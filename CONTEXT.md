@@ -106,3 +106,58 @@ injection hooks. Mirrors ponytail-mcp pattern. MCP prompts are user-controlled
 on-demand pull, not always-on injection — the MCP adapter is a fallback for
 hosts without hook capability, not a replacement for hook-based adapters.
 _Avoid_: MCP server, MCP plugin (those are generic; use the canonical term)
+
+**Role-Tagged Profile (角色标记配置)**:
+The dual-profile architecture where jiahao ships two rule sets in a single
+distribution: a Generator Profile (lite, attacks surface signals) and a
+Verifier Profile (full, carries iron laws + verification gate + hash chain).
+Profile is selected at install time via a flag file (.jiahao-profile), not
+detected at runtime. No production plugin does runtime role detection —
+installation-time configuration is the industry consensus (LangGraph graph
+structure, AutoGen agent role assignment, Codex review workflow invocation).
+_Avoid_: dynamic role detection, runtime role switching (those are unproven;
+use the canonical term)
+
+**Generator Profile (生成器配置)**:
+The lite rule set installed in the primary agent. Targets the surface signals
+of False Completion Syndrome identified by Advani et al. (ICML 2026): confident
+closing language and no-state-change action sequences. Rules: "no evidence, no
+completion claim" and "list verified state changes when claiming done." Does NOT
+include the verification ladder or LLM critic — academic evidence (Huang 2024,
+Kamoi 2024) proves self-verification cannot improve error detection, only
+surface output. Verification here means calling a verification tool, not
+re-thinking.
+_Avoid_: lite mode, generator mode (those conflate intensity with role; use the
+canonical term)
+
+**Verifier Profile (验证器配置)**:
+The full rule set installed in the second-party verifier agent. Carries all 7
+iron laws, the 6-rung verification ladder, hash-chained evidence, structured
+verdict (machine-verified / independently-checked / unverified), and bias
+guards. The verifier must hold information the generator did not use — the
+information-theoretic requirement (Multigrid 2026). Identity independence
+(Panickssery 2024) recommends different model family or at minimum different
+context/prompt.
+_Avoid_: full mode, verifier mode (those conflate intensity with role; use the
+canonical term)
+
+**Tool-Grounded Verification (工具接地验证)**:
+The principle that verification must invoke external tools (test execution,
+state queries, search retrieval) rather than re-thinking in the same context.
+CRITIC (Gou et al. ICLR 2024) ablation proves removing tools collapses
+self-correction. Huang (ICLR 2024) proves intrinsic self-correction without
+external feedback degrades performance. Two tool categories: retrieval-type
+(search, docs, API specs — anysearch-cli domain) and state-type (test runs,
+DB diffs, command re-execution — AppWorld golden standard).
+_Avoid_: tool-assisted verification (too vague; use the canonical term)
+
+**Surface Signal Attack (表面信号攻击)**:
+The Generator Profile's strategy: directly target the observable patterns of
+false completion rather than trying to improve error detection (which is
+structurally impossible for self-verification). Advani et al. (ICML 2026)
+quantified that false success correlates with confident closing language
+(+0.27-0.36 score) and no-state-change action sequences. Lightweight
+TF-IDF/XGBoost detectors of these patterns achieve AUROC 0.83/0.95 vs LLM
+judges' <=0.65. The generator profile attacks these signals at zero cost.
+_Avoid_: signal detection, pattern matching (those are techniques; use the
+canonical term)
