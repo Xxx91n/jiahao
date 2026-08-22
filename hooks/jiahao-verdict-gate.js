@@ -2,14 +2,22 @@
 // jiahao-verdict-gate.js — Stop/SubagentStop hook
 // Block stop if no evidence exists in .jiahao-evidence file.
 // Respect stop_hook_active to prevent infinite loop (8-cap guard).
+// ADR-0010: generator profile uses advisory mode (warn, not block);
+// verifier profile maintains blocking behavior.
 
 const fs = require('fs');
-const { flagPath, evidencePath } = require('./jiahao-paths');
+const { flagPath, evidencePath, profilePath } = require('./jiahao-paths');
 
 // If jiahao is off, pass through
 if (!fs.existsSync(flagPath())) {
   process.exit(0);
 }
+
+// Read profile flag (default: verifier)
+const profile = fs.existsSync(profilePath())
+  ? fs.readFileSync(profilePath(), 'utf8').trim().toLowerCase()
+  : 'verifier';
+const isGenerator = profile === 'generator';
 
 let input = '';
 process.stdin.setEncoding('utf8');
@@ -36,6 +44,15 @@ process.stdin.on('end', () => {
 
   if (!hasEvidence) {
     // Block: output decision:block JSON
+    // Generator profile: advisory only (don't block primary agent)
+    if (isGenerator) {
+       console.log(JSON.stringify({
+         decision: 'allow', // don't block in generator mode
+         systemMessage: 'JIAHAO ADVISORY: Verification has no evidence — ' +
+           'run deterministic checks before claiming done.',
+       }));
+       process.exit(0);
+     }
     console.log(JSON.stringify({
       decision: 'block',
       reason: 'Verification has no evidence: no test run, no state diff, no re-execution quoted. NOT VERIFIED — run rung 1-3 of the verification ladder first. Evidence file empty or unparseable.',
