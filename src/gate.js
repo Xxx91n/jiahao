@@ -5,6 +5,7 @@
 
 const crypto = require('crypto');
 const fs = require('fs');
+const { evidencePath } = require('../hooks/jiahao-paths');
 
 // Trust tiers (match SKILL.md output format)
 const TIERS = {
@@ -24,9 +25,24 @@ const LEVELS = {
 // Escalation thresholds (from atomcode research: FutureAGI 0.4-0.7 band)
 const ESCALATION_BAND = { low: 0.4, high: 0.7 };
 
-// Create an evidence record
-function createEvidence(gateId, gateType, status, detail, confidence) {
-  return {
+// Canonical JSON serialization (RFC 8785 inspired): sort keys recursively.
+// Zero-dependency, ~10 lines. Required for deterministic hash chain.
+function canonicalJSON(obj) {
+  if (obj === null || typeof obj !== 'object') return JSON.stringify(obj);
+  if (Array.isArray(obj)) return '[' + obj.map(canonicalJSON).join(',') + ']';
+  const keys = Object.keys(obj).sort();
+  return '{' + keys.map(k => JSON.stringify(k) + ':' + canonicalJSON(obj[k])).join(',') + '}';
+}
+
+// Compute hash of a record (excluding prev_hash and event_hash fields)
+function recordHash(record) {
+  const { prev_hash, event_hash, ...rest } = record;
+  return crypto.createHash('sha256').update(canonicalJSON(rest)).digest('hex');
+}
+
+// Create an evidence record with hash chain linking
+function createEvidence(gateId, gateType, status, detail, confidence, prevHash) {
+  const record = {
     gate_id: gateId,
     gate_type: gateType,
     status: status, // checked | passed | failed | escalated
@@ -35,7 +51,10 @@ function createEvidence(gateId, gateType, status, detail, confidence) {
     confidence: confidence || null,
     threshold: ESCALATION_BAND,
     timestamp: new Date().toISOString(),
+    prev_hash: prevHash || null,
   };
+  record.event_hash = recordHash(record);
+  return record;
 }
 
 // Run a single gate check
@@ -57,7 +76,7 @@ function verify(claims, gates) {
   // Returns { verdict, tier, evidence_chain, unchecked }
 
   const evidenceChain = [];
-  const unchecked = [];
+  let prevHash = null; // genesis: no previous hash
 
   // Level 1: Deterministic gates (short-circuit on failure)
   if (gates.deterministic && gates.deterministic.length > 0) {
@@ -66,8 +85,9 @@ function verify(claims, gates) {
       const evidence = createEvidence(
         'det-' + i, LEVELS.DETERMINISTIC,
         result.passed ? 'passed' : 'failed',
-        result.detail, result.confidence
+        result.detail, result.confidence, prevHash
       );
+      prevHash = evidence.event_hash;
 
       if (!result.passed) {
         // Hard short-circuit: deterministic failure blocks
@@ -76,7 +96,7 @@ function verify(claims, gates) {
           verdict: 'FAIL',
           tier: TIERS.MACHINE_VERIFIED,
           evidence_chain: evidenceChain,
-          unchecked: claims.filter(c => true), // all claims unchecked
+          unchecked: claims.slice(),
           reason: 'Deterministic gate ' + i + ' failed: ' + result.detail,
         };
       }
@@ -92,8 +112,9 @@ function verify(claims, gates) {
       const evidence = createEvidence(
         'chk-' + i, LEVELS.CHECKLIST,
         result.passed ? 'passed' : 'failed',
-        result.detail, result.confidence
+        result.detail, result.confidence, prevHash
       );
+      prevHash = evidence.event_hash;
       evidenceChain.push(evidence);
       if (!result.passed) allPassed = false;
     }
@@ -132,8 +153,9 @@ function verify(claims, gates) {
     const evidence = createEvidence(
       'llm-0', LEVELS.LLM_CRITIC,
       result.passed ? 'passed' : 'failed',
-      result.detail, result.confidence
+      result.detail, result.confidence, prevHash
     );
+    prevHash = evidence.event_hash;
     evidenceChain.push(evidence);
 
     if (result.passed) {
@@ -155,34 +177,54 @@ function verify(claims, gates) {
     }
   }
 
-  // Level 5: Not verified
-  // Mark remaining claims as unchecked (they never enter the hash chain)
-  claims.forEach((c, i) => {
-    if (!evidenceChain.find(e => e.gate_id === 'claim-' + i)) {
-      unchecked.push(c);
-    }
-  });
-
+  // Level 5: Not verified — all claims unchecked (no per-claim matching)
   return {
     verdict: 'NOT VERIFIED',
     tier: TIERS.UNVERIFIED,
     evidence_chain: evidenceChain,
-    unchecked: unchecked,
+    unchecked: claims.slice(),
     reason: 'Could not verify: no ground truth, no deterministic check, LLM critic unavailable',
   };
 }
 
+// Verify hash chain integrity (tamper-evidence check)
+// Returns { valid: true } or { valid: false, broken_at: <index>, reason: <string> }
+function verifyChain(chain) {
+  if (!Array.isArray(chain) || chain.length === 0) {
+    return { valid: false, broken_at: -1, reason: 'empty or non-array chain' };
+  }
+  let expectedPrev = null;
+  for (let i = 0; i < chain.length; i++) {
+    const record = chain[i];
+    // Check prev_hash linkage
+    if (record.prev_hash !== expectedPrev) {
+      return { valid: false, broken_at: i, reason: 'prev_hash mismatch at index ' + i };
+    }
+    // Recompute event_hash and check
+    const recomputed = recordHash(record);
+    if (record.event_hash !== recomputed) {
+      return { valid: false, broken_at: i, reason: 'event_hash mismatch at index ' + i };
+    }
+    expectedPrev = record.event_hash;
+  }
+  return { valid: true };
+}
+
 // Write evidence to file (for Stop hook verdict gate)
-function writeEvidence(evidenceChain, configDir) {
-  const evidencePath = (configDir || '/tmp') + '/.jiahao-evidence';
+function writeEvidence(evidenceChain, overrideConfigDir) {
+  const ep = overrideConfigDir
+    ? require('path').join(overrideConfigDir, '.jiahao-evidence')
+    : evidencePath();
   const data = JSON.stringify(evidenceChain);
-  fs.writeFileSync(evidencePath, data, 'utf8');
+  fs.writeFileSync(ep, data, 'utf8');
 }
 
 // Clear evidence file
-function clearEvidence(configDir) {
-  const evidencePath = (configDir || '/tmp') + '/.jiahao-evidence';
-  try { require('fs').unlinkSync(evidencePath); } catch (e) { /* gone */ }
+function clearEvidence(overrideConfigDir) {
+  const ep = overrideConfigDir
+    ? require('path').join(overrideConfigDir, '.jiahao-evidence')
+    : evidencePath();
+  try { fs.unlinkSync(ep); } catch (e) { /* gone */ }
 }
 
 // ponytail: evidence chain is the minimal viable structure; hash chain + receipt
@@ -192,6 +234,7 @@ function clearEvidence(configDir) {
 
 module.exports = {
   TIERS, LEVELS, ESCALATION_BAND,
-  createEvidence, runGate, verify,
+  canonicalJSON, recordHash,
+  createEvidence, runGate, verify, verifyChain,
   writeEvidence, clearEvidence,
 };

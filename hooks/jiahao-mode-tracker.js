@@ -3,11 +3,8 @@
 // Track /jiahao [lite|full|ultra|off] commands + anti-drift reminder.
 
 const fs = require('fs');
-const path = require('path');
 const { writeHookOutput } = require('./jiahao-runtime');
-
-const configDir = process.env.CLAUDE_CONFIG_DIR || process.env.HOME || '/tmp';
-const flagPath = configDir + '/.jiahao-active';
+const { flagPath } = require('./jiahao-paths');
 
 let input = '';
 process.stdin.setEncoding('utf8');
@@ -23,18 +20,18 @@ process.stdin.on('end', () => {
   if (match) {
     const newMode = match[1].toLowerCase();
     if (newMode === 'off') {
-      try { fs.unlinkSync(flagPath); } catch (e) { /* already gone */ }
+      try { fs.unlinkSync(flagPath()); } catch (e) { /* already gone */ }
       writeHookOutput('JIAHAO MODE OFF — verification discipline disabled.', 'UserPromptSubmit');
     } else {
-      fs.writeFileSync(flagPath, newMode, 'utf8');
+      fs.writeFileSync(flagPath(), newMode, 'utf8');
       writeHookOutput('JIAHAO MODE CHANGED — level: ' + newMode, 'UserPromptSubmit');
     }
     return;
   }
 
   // Anti-drift reminder (lightweight, every turn)
-  if (fs.existsSync(flagPath)) {
-    const mode = fs.readFileSync(flagPath, 'utf8').trim();
+  if (fs.existsSync(flagPath())) {
+    const mode = fs.readFileSync(flagPath(), 'utf8').trim();
     const reminder = 'JIAHAO ACTIVE (' + mode + ') — default verdict: NOT VERIFIED. Check the 6-rung ladder before reporting.';
     writeHookOutput(reminder, 'UserPromptSubmit');
   }
