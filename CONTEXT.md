@@ -208,7 +208,57 @@ writing.
 _Avoid_: installer, setup wizard (those describe the mechanism; use the
 canonical tier framing)
 
-ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
+
+**Detector Verdict (检测判定)**:
+The deterministic local check `detect(text)` over a private bilingual
+jiahao-language wordlist (e.g. 搞定了 / 跑通了 / 没问题 / done / verified /
+all good). The output is seed metadata `{ suspicious, matched_phrases,
+severity }` written into the evidence record before hashing — never a
+standalone verdict that can block, never a phrase list exposed in the
+prompt. The information-theoretic invariant from SKILL.md applies: a check
+that uses only information the generator already used is verification
+theater. arXiv 2504.11168 shows exposed wordlists are evadable at 44-100%
+ASR, so the wordlist must never enter SKILL.md.
+_Avoid_: classifier, judge, filter (those describe mechanisms; Detector
+Verdict is the role it plays in the evidence chain)
+
+**Suspicion Escalation (可疑升级)**:
+The detector is a *triage* signal, never a final block. The 10% flag-rate
+precision of ~50% (ICML 2026 FAGEN workshop) means a hard block on wordlist
+hits manufactures a new false-completion theater. The policy gate reads
+`profile × severity`: Low severity is advisory-only; High severity can
+block only the Verifier Profile (independent instance). This is the
+IETF draft-sharif-agent-audit-trail role split in practice.
+_Avoid_: gating by detector alone, detector as gatekeeper (those are the  wrong shape; escalation is owned by the profile policy, not the detector)
+
+**Advisory vs Blocking Mode (咨询 vs 阻断模式)**:
+Generator Profile = advisory-only (warn via systemMessage, never block, and
+still record the advisory inside the hash chain so it is tamper-evident).
+Verifier Profile = blocking on no-evidence / high-severity suspicion,
+advisory on low-severity. This split *is* Iron Law 3 ("the judge cannot be
+the author") — it is not a UX nicety; it is the discipline that makes
+self-review structurally inert (Huang ICLR 2024; Kamoi TACL 2024).
+_Avoid_: fail-open, fail-closed (those are policy words; the generator is
+never blocked, the verifier may block)
+
+**Idempotent Evidence Round (幂等证据轮次)**:
+`.jiahao-evidence` is the record of *one* active turn. `writeEvidence` is
+replace-not-append (full overwrite of the file), so replays of the same
+turn do not accumulate phantom records. `verdict-gate` does NOT
+consume-on-read (no `unlinkSync`); records are idempotent and audit-grade
+over time. Turn identity is `session_id + turn_id` from the hook input;
+`idempotency_key` is not required by default, only when federating
+cross-session audits later.
+_Avoid_: consume-on-read, stop hook dedup (those defeat the audit chain or
+conflate integrity with idempotency)
+
+**SubagentStop Parity (SubagentStop 等价)**:
+Claude Code converts plugin-registered Stop hooks into SubagentStop events
+for subagent completions; register both events against
+`jiahao-verdict-gate.js` so the per-turn gate fires uniformly across the
+primary agent and any verifier subagents. Without parity, a subagent's
+completion slips past the gate the primary agent is held to.
+_Avoid_: stop-only registration (silently asymmetric)
 
 ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 
@@ -223,3 +273,4 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0009 MCP adapter
 - ADR-0010 dual-profile role-tagged distribution
 - ADR-0011 deployment discipline, install UX, drift automation
+- ADR-0012 detector verdict persistence + hook idempotency
