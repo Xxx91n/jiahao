@@ -6,17 +6,15 @@
 // verifier profile maintains blocking behavior.
 
 const fs = require('fs');
-const { flagPath, evidencePath, profilePath } = require('./jiahao-paths');
+const { flagPath, evidencePath } = require('./jiahao-paths');
+const { readProfile } = require('./jiahao-profile');
 
 // If jiahao is off, pass through
 if (!fs.existsSync(flagPath())) {
   process.exit(0);
 }
 
-// Read profile flag (default: verifier)
-const profile = fs.existsSync(profilePath())
-  ? fs.readFileSync(profilePath(), 'utf8').trim().toLowerCase()
-  : 'verifier';
+const profile = readProfile();
 const isGenerator = profile === 'generator';
 
 let input = '';

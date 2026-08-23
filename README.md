@@ -1,19 +1,27 @@
 # Jiahao (嘉豪)
 
-Prompt-as-mental-model skill distribution for second-party verifier agents.
+Prompt-as-mental-model skill distribution with **dual profiles** for LLM agents.
 
-Jiahao injects anti-false-completion iron laws into LLM agent runtimes via
-hooks, targeting the external verifier/critic — not the primary agent.
+Jiahao ships two install-time rule sets. Pick once at install:
+
+| Profile | Installed in | Behavior |
+|---------|--------------|----------|
+| **generator** | The primary Agent doing the work | 3 surface-signal rules (no evidence → no claim, list verified state changes, verification = calling a tool). **Advisory only** — never blocks. |
+| **verifier** (default) | The audit Agent reviewing the work | 7 iron laws + 6-rung verification ladder + hash chain + confidence calibration + bias guards. **Blocking** on missing evidence. |
 
 ## What it does
 
 LLM agents suffer from False Completion Syndrome: falsely claiming success,
 self-deceiving about completion, hallucinating self-evaluation. Jiahao makes
-this structurally impossible by injecting a 6-rung verification ladder and
-7 anti-false-completion iron laws as an always-on prompt.
+this structurally impossible. The **generator profile** attacks the surface
+signals inside the primary agent (you cannot self-verify — verified advice).
+The **verifier profile** runs in a separate audit agent, where
+independence theorems actually apply: an external verifier can find errors
+the generator itself is structurally blind to.
 
 The pattern mirrors [ponytail](https://github.com/DietrichGebert/ponytail)
-but specialized for second-party agents (verifiers) instead of primary agents.
+but specialized for the verifier role; for a primary agent, use the generator
+profile to keep tokens cheap while still blocking the worst self-deception.
 
 ## Verification Ladder
 
@@ -26,6 +34,20 @@ but specialized for second-party agents (verifiers) instead of primary agents.
 
 ## Install
 
+### Profile selection (install-time)
+
+Create a flag file in the config dir (default `$CLAUDE_CONFIG_DIR` or `$HOME`):
+
+```bash
+# Pick ONE — verifier is the default if the flag is absent.
+echo generator > ~/.jiahao-profile      # primary agent
+echo verifier > ~/.jiahao-profile       # audit agent
+```
+
+The `SessionStart` activate hook reads this flag and serves the matching
+rule set. The `Stop` verdict-gate hook blocks on missing evidence only in
+verifier mode; in generator mode it emits a `JIAHAO ADVISORY` system message.
+
 ### Claude Code
 
 Install as a Claude Code plugin. See `hooks/jiahao-hooks.json`.
@@ -37,7 +59,9 @@ Copy `adapters/codex/hooks.json` to `.codex/hooks.json` and hook scripts to
 
 ### Cursor / Windsurf / Cline
 
-Copy the respective file from `adapters/` to your editor's rules directory.
+Copy the verifier adapter (e.g. `adapters/cursor/jiahao.mdc`) for a verifier
+agent, or the `*-generator.*` variant for the primary agent. Both are
+generated from the same `src/SKILL.md`.
 
 ## Usage
 
@@ -49,19 +73,21 @@ Copy the respective file from `adapters/` to your editor's rules directory.
 ## Develop
 
 ```bash
-npm test                              # 36 tests
-node scripts/build-adapters.js        # regenerate adapters
-node scripts/check-drift.js           # CI drift check
+npm test                              # 90 tests across 8 suites
+node scripts/build-adapters.js        # regenerate 11 adapter files
+node scripts/check-drift.js           # CI drift check + profile purity
 ```
 
 ## Architecture
 
-- `src/SKILL.md` — single source of truth (iron laws)
+- `src/SKILL.md` — single source of truth (generator + verifier + shared Boundaries)
 - `src/gate.js` — verification gate combination ladder
-- `hooks/` — 5 hook scripts + hooks.json + runtime.js
-- `adapters/` — 7 host adapters (generated)
-- `docs/adr/` — 5 architecture decision records
-- `test/` — 4 test files, 36 tests
+- `hooks/jiahao-profile.js` — profile module (SSOT for split + select)
+- `hooks/` — 6 hook scripts + hooks.json + runtime.js
+- `adapters/` — 11 host adapters (generated)
+- `jiahao-mcp/` — MCP-only adapter (profile parameter)
+- `docs/adr/` — 10 architecture decision records (0010 = dual-profile)
+- `test/` — 8 test suites, 90 tests
 
 ## License
 

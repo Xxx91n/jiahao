@@ -8,8 +8,8 @@
 const fs = require('fs');
 const path = require('path');
 const { writeHookOutput } = require('./jiahao-runtime');
-const { flagPath, profilePath } = require('./jiahao-paths');
-const { loadProfileSections } = require('./jiahao-profile');
+const { flagPath } = require('./jiahao-paths');
+const { loadProfileSections, readProfile } = require('./jiahao-profile');
 
 // Write flag file (default intensity: full)
 const mode = fs.existsSync(flagPath())
@@ -19,10 +19,7 @@ if (!fs.existsSync(flagPath())) {
   fs.writeFileSync(flagPath(), 'full', 'utf8');
 }
 
-// Read profile flag (default: verifier for backward compat)
-const profile = fs.existsSync(profilePath())
-  ? fs.readFileSync(profilePath(), 'utf8').trim().toLowerCase()
-  : 'verifier';
+const profile = readProfile();
 
 // Load skill content and split by profile
 const sections = loadProfileSections(path.join(__dirname, '..'));

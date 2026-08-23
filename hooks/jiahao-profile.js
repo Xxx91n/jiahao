@@ -31,8 +31,18 @@ function loadProfileSections(root) {
   return splitByProfile(content);
 }
 
+// Read agent profile from .jiahao-profile (default: verifier for backward compat).
+// Single source of truth — used by jiahao-activate, jiahao-verdict-gate, MCP.
+function readProfile() {
+  const { profilePath } = require('./jiahao-paths');
+  const p = profilePath();
+  if (!fs.existsSync(p)) return 'verifier';
+  const v = fs.readFileSync(p, 'utf8').trim().toLowerCase();
+  return v === 'generator' ? 'generator' : 'verifier';
+}
+
 function getProfileRoot(profile) {
   return profile === 'generator' ? 'generator' : 'verifier';
 }
 
-module.exports = { splitByProfile, loadProfileSections, getProfileRoot };
+module.exports = { splitByProfile, loadProfileSections, readProfile, getProfileRoot };

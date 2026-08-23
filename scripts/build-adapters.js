@@ -7,41 +7,12 @@
 
 const fs = require('fs');
 const path = require('path');
+const { splitByProfile } = require('../hooks/jiahao-profile');
 
 const root = path.join(__dirname, '..');
 const skillPath = path.join(root, 'src', 'SKILL.md');
 const skill = fs.readFileSync(skillPath, 'utf8');
 
-// Strip frontmatter for instruction-tier adapters
-function stripFrontmatter(md) {
-  return md.replace(/^---[\s\S]*?---\n/, '');
-}
-
-// Split SKILL.md body by profile tags (ADR-0010 Option C)
-// Returns { generator, verifier } — each = preamble + its section + boundaries
-function splitByProfile(md) {
-  const body = stripFrontmatter(md);
-  const genIdx = body.indexOf('## Generator Profile');
-  const verIdx = body.indexOf('## Verifier Profile');
-  const bndIdx = body.indexOf('## Boundaries');
-
-  if (genIdx === -1 || verIdx === -1 || bndIdx === -1) {
-    // No profile tags — return full body for both profiles (single-profile mode)
-    return { generator: body, verifier: body };
-  }
-
-  const preamble = body.substring(0, genIdx).trim();
-  const genSection = body.substring(genIdx, verIdx).trim();
-  const verSection = body.substring(verIdx, bndIdx).trim();
-  const boundaries = body.substring(bndIdx).trim();
-
-  return {
-    generator: preamble + '\n\n' + genSection + '\n\n' + boundaries,
-    verifier: preamble + '\n\n' + verSection + '\n\n' + boundaries,
-  };
-}
-
-const body = stripFrontmatter(skill);
 const profiles = splitByProfile(skill);
 
 // Adapter definitions: host -> { path, content }

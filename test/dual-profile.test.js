@@ -107,14 +107,16 @@ test('verdict-gate advisory mode for generator profile', () => {
   process.chdir(root);
   try {
     const input = JSON.stringify({ stop_hook_active: false });
-    execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
+    const output = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
       encoding: 'utf8',
       env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
       timeout: 5000,
       shell: 'bash',
     });
-    // Generator mode: allow, not block
-    expect(true).toBe(true); // no error thrown = allow
+    // Generator mode: allow, not block — verify explicit advisory output
+    expect(output).toContain('"decision":"allow"');
+    expect(output).toContain('JIAHAO ADVISORY');
+    expect(output).not.toContain('"decision":"block"');
   } finally {
     process.chdir(origDir);
     try { fs.unlinkSync(path.join(TMP, '.jiahao-profile')); } catch(e) {}

@@ -161,3 +161,29 @@ TF-IDF/XGBoost detectors of these patterns achieve AUROC 0.83/0.95 vs LLM
 judges' <=0.65. The generator profile attacks these signals at zero cost.
 _Avoid_: signal detection, pattern matching (those are techniques; use the
 canonical term)
+
+**Profile Flag (`.jiahao-profile`)** (Profile Flag 文件):
+Install-time configuration file in the config directory (`$CLAUDE_CONFIG_DIR`
+or `$HOME`) containing `generator` or `verifier`. Read by `jiahao-activate`
+(which rule set to inject) and `jiahao-verdict-gate` (advisory vs blocking).
+Absent flag = `verifier` for backward compatibility. Industry precedent
+(Claude Code `defaultEnabled`, Cline rules toggle, Codex AGENTS.md sections)
+shows install-time selection is the dominant pattern; runtime role detection
+is unproven.
+_Avoid_: env-var toggles, runtime detection (those add complexity without
+evidence; use the canonical mechanism)
+
+## Decision Log
+
+ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
+
+- ADR-0001 prompt-as-mental-model for second-party agents
+- ADR-0002 jiahao iron laws design
+- ADR-0003 hook architecture
+- ADR-0004 verification gate ladder
+- ADR-0005 skill distribution adapter pattern
+- ADR-0006 architecture deepening (Evidence Contract, Adapter Drift)
+- ADR-0007 hash chain tamper evidence
+- ADR-0008 confidence calibration
+- ADR-0009 MCP adapter
+- ADR-0010 dual-profile role-tagged distribution
