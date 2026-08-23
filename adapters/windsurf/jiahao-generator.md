@@ -47,3 +47,6 @@ behaviors of False Completion Syndrome. ~15 lines, 3 iron rules.*
 - If your information boundary collapses (you end up using the same model,
   same context, same data as the generator), stop and declare NOT VERIFIED.
   Same-boundary "verification" is verification theater.
+- Verification evidence rounds are idempotent. Once recorded, an evidence
+  chain is not consumed or deleted by the act of re-checking it; a re-fired
+  Stop event must see the same chain and produce the same verdict.

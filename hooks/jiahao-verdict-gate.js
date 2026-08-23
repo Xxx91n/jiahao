@@ -1,9 +1,15 @@
 #!/usr/bin/env node
-// jiahao-verdict-gate.js — Stop/SubagentStop hook
-// Block stop if no evidence exists in .jiahao-evidence file.
-// Respect stop_hook_active to prevent infinite loop (8-cap guard).
-// ADR-0010: generator profile uses advisory mode (warn, not block);
-// verifier profile maintains blocking behavior.
+// jiahao-verdict-gate.js — Stop / SubagentStop hook
+//
+// ADR-0012 rewrite:
+//   D2  profile × severity decision branch (generator always advisory;
+//       verifier blocks only on no-evidence or high-severity suspicion).
+//   D4  idempotent rounds: NEVER unlinkSync the evidence file. The file is
+//       a replace-not-append overwrite per turn (see gate.js#writeEvidence),
+//       so the second Stop / SubagentStop fire sees the same chain and the
+//       same verdict.
+//   D5  registered for both Stop and SubagentStop in hooks.json — parity
+//       between primary and subagent finish events.
 
 const fs = require('fs');
 const { flagPath, evidencePath } = require('./jiahao-paths');
@@ -29,28 +35,30 @@ process.stdin.on('end', () => {
     process.exit(0);
   }
 
-  // Check evidence file — parse JSON, reject empty arrays
-  let hasEvidence = false;
+  // Read the evidence chain. We do NOT delete the file afterwards (D4);
+  // the chain has to survive SubagentStop and any repeat fire of Stop.
+  let evidenceChain = null;
   try {
     const raw = fs.readFileSync(evidencePath(), 'utf8').trim();
     if (raw.length > 0) {
-      const evidenceData = JSON.parse(raw);
-      // Must be a non-empty array of evidence records
-      hasEvidence = Array.isArray(evidenceData) && evidenceData.length > 0;
+      const data = JSON.parse(raw);
+      if (Array.isArray(data) && data.length > 0) {
+        evidenceChain = data;
+      }
     }
   } catch (e) { /* no file or invalid JSON = no evidence */ }
 
-  if (!hasEvidence) {
-    // Block: output decision:block JSON
-    // Generator profile: advisory only (don't block primary agent)
+  // ---- Case A: no evidence at all --------------------------------------
+  // Behaviour unchanged from ADR-0010: block verifier, advisory generator.
+  if (!evidenceChain) {
     if (isGenerator) {
-       console.log(JSON.stringify({
-         decision: 'allow', // don't block in generator mode
-         systemMessage: 'JIAHAO ADVISORY: Verification has no evidence — ' +
-           'run deterministic checks before claiming done.',
-       }));
-       process.exit(0);
-     }
+      console.log(JSON.stringify({
+        decision: 'allow',
+        systemMessage: 'JIAHAO ADVISORY: Verification has no evidence — ' +
+          'run deterministic checks before claiming done.',
+      }));
+      process.exit(0);
+    }
     console.log(JSON.stringify({
       decision: 'block',
       reason: 'Verification has no evidence: no test run, no state diff, no re-execution quoted. NOT VERIFIED — run rung 1-3 of the verification ladder first. Evidence file empty or unparseable.',
@@ -58,8 +66,71 @@ process.stdin.on('end', () => {
     process.exit(2);
   }
 
-  // Evidence exists — clear it for next round and pass
-  try { fs.unlinkSync(evidencePath()); } catch (e) { /* already gone */ }
+  // ---- Case B: evidence exists — apply profile × severity matrix (D2) --
+  // Find the highest severity on any record in the chain. Records without
+  // a detector field (or with severity === null) are not suspicious.
+  let highestSeverity = null;
+  let matchedPhrases = [];
+  for (const rec of evidenceChain) {
+    if (rec && rec.detector && rec.detector.suspicious) {
+      if (rec.detector.severity === 'high') {
+        highestSeverity = 'high';
+      } else if (rec.detector.severity === 'low' && highestSeverity !== 'high') {
+        highestSeverity = 'low';
+      }
+      if (Array.isArray(rec.detector.matched_phrases)) {
+        matchedPhrases = matchedPhrases.concat(rec.detector.matched_phrases);
+      }
+    }
+  }
+
+  // Generator profile: never blocks (D2). Advisory message carries the
+  // suspicion but no decision.
+  if (isGenerator) {
+    if (highestSeverity) {
+      console.log(JSON.stringify({
+        decision: 'allow',
+        systemMessage:
+          'JIAHAO ADVISORY (' + highestSeverity + '): completion language ' +
+          'matched [' + matchedPhrases.slice(0, 5).join(', ') + ']. ' +
+          'Detector is a triage signal, not proof — check that state ' +
+          'changes were actually observed.',
+      }));
+    }
+    process.exit(0);
+  }
+
+  // Verifier profile: high-severity + suspicious and no independently-checked
+  // evidence → block. Low severity → advisory only.
+  if (highestSeverity === 'high') {
+    // We do not try to be clever about "no independent evidence" here —
+    // the deterministic/checklist records are by definition self-reported.
+    // The block reason pins the location of the suspicion so escalations
+    // stay triage-able.
+    console.log(JSON.stringify({
+      decision: 'block',
+      reason:
+        'JIAHAO VERIFIER BLOCK (high severity): completion-language detector ' +
+        'matched [' + matchedPhrases.slice(0, 5).join(', ') + '] on the ' +
+        'evidence chain. Re-verify the underlying state changes with rung ' +
+        '1-3 of the ladder before allowing this stop.',
+    }));
+    process.exit(2);
+  }
+
+  if (highestSeverity === 'low') {
+    console.log(JSON.stringify({
+      decision: 'allow',
+      systemMessage:
+        'JIAHAO ADVISORY (low): soft completion language matched [' +
+        matchedPhrases.slice(0, 5).join(', ') + ']. Advisory only.',
+    }));
+    process.exit(0);
+  }
+
+// No suspicion on any record
+  // D4: do NOT consume the evidence file. Idempotent under repeat Stop /
+  // SubagentStop fire.
   process.exit(0);
 });
 

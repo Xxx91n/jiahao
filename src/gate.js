@@ -40,8 +40,10 @@ function recordHash(record) {
   return crypto.createHash('sha256').update(canonicalJSON(rest)).digest('hex');
 }
 
-// Create an evidence record with hash chain linking
-function createEvidence(gateId, gateType, status, detail, confidence, prevHash) {
+// Create an evidence record with hash chain linking.
+// ADR-0012 D1: optional `extras` ({ detector, session_id, turn_id }) are
+// attached BEFORE hashing so the detector verdict is tamper-evident too.
+function createEvidence(gateId, gateType, status, detail, confidence, prevHash, extras) {
   const record = {
     gate_id: gateId,
     gate_type: gateType,
@@ -53,6 +55,25 @@ function createEvidence(gateId, gateType, status, detail, confidence, prevHash) 
     timestamp: new Date().toISOString(),
     prev_hash: prevHash || null,
   };
+  if (extras && typeof extras === 'object') {
+    if (extras.detector && typeof extras.detector === 'object') {
+      // Keep only the D1 tuple { suspicious, matched_phrases, severity };
+      // drop family_hits so the on-chain shape stays stable across detector
+      // upgrades.
+      const d = extras.detector;
+      record.detector = {
+        suspicious: !!d.suspicious,
+        matched_phrases: Array.isArray(d.matched_phrases) ? d.matched_phrases.slice() : [],
+        severity: d.severity === 'high' || d.severity === 'low' ? d.severity : null,
+      };
+    }
+    if (typeof extras.session_id === 'string' && extras.session_id.length > 0) {
+      record.session_id = extras.session_id;
+    }
+    if (typeof extras.turn_id === 'string' && extras.turn_id.length > 0) {
+      record.turn_id = extras.turn_id;
+    }
+  }
   record.event_hash = recordHash(record);
   return record;
 }
