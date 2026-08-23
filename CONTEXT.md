@@ -173,6 +173,28 @@ is unproven.
 _Avoid_: env-var toggles, runtime detection (those add complexity without
 evidence; use the canonical mechanism)
 
+**Self-Preference Bias (自偏好偏差)**:
+The intrinsic tendency of an LLM judge to favor its own outputs even when
+unaware they are self-generated; the mechanism is perplexity/familiarity
+(Wataoka et al. 2024). Stronger same-family models can show more bias, not
+less (Yang et al. 2026). Consequence for jiahao: a verifier sharing the
+generator's model family is biased regardless of context or config
+separation — prefer a different model family for the verifier.
+_Avoid_: self-bias, self-serving bias (use the canonical term)
+
+**Verifier Deployment Discipline (验证器部署纪律)**:
+The three-layer separation that makes the Verifier Profile effective:
+(1) instance layer — separate context window (subagent / teammate session /
+independent process), never same-context self-review; (2) process layer —
+independent deployment for formal audit gates (CodeRabbit cloud sandbox,
+Copilot review on GitHub Actions); (3) model layer — prefer a different
+model family (self-preference bias guard). Config-file co-location is
+inert; independence lives at the deployment layer. This is why jiahao does
+not support co-installation of competing generator/verifier profiles in one
+project.
+_Avoid_: agent isolation, separate config (the first is vague; the second
+describes the wrong layer)
+
 ## Decision Log
 
 ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:

@@ -48,6 +48,22 @@ The `SessionStart` activate hook reads this flag and serves the matching
 rule set. The `Stop` verdict-gate hook blocks on missing evidence only in
 verifier mode; in generator mode it emits a `JIAHAO ADVISORY` system message.
 
+### Verifier deployment discipline
+
+Independence is enforced at the deployment layer, not the config layer:
+
+- Run the verifier in a **separate context window** — subagent, teammate
+  session, or independent process. Never same-context self-review.
+- Prefer a **different model family** for the verifier. Same-family judges
+  carry intrinsic self-preference bias that context isolation cannot fix
+  (Wataoka et al. 2024); stronger same-family models can show *more* bias
+  (Yang et al. 2026, "Machiavellian Judges").
+
+One installation per machine is enough — generator and verifier are not meant
+to coexist as competing auto-loaded profiles in one project (industry
+consensus: role differences live at the agent instance layer, not in
+parallel config files). See ADR-0010.
+
 ### Claude Code
 
 Install as a Claude Code plugin. See `hooks/jiahao-hooks.json`.
