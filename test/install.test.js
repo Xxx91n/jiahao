@@ -71,6 +71,18 @@ test('--dry-run prints target without writing', () => {
   expect(fs.existsSync(target)).toBe(false);
 });
 
+test('unknown subcommand exits 1 with message', () => {
+  const r = run(['frobnicate'], { CLAUDE_CONFIG_DIR: TMP });
+  expect(r.status).toBe(1);
+  expect(r.stderr).toContain("unknown command 'frobnicate'");
+});
+
+test('--profile without value exits 1 with argument-missing message', () => {
+  const r = run(['init', '--profile'], { CLAUDE_CONFIG_DIR: TMP });
+  expect(r.status).toBe(1);
+  expect(r.stderr).toContain("option '--profile <value>' argument missing");
+});
+
 test('--help exits 0 and documents usage', () => {
   const r = run(['--help'], { CLAUDE_CONFIG_DIR: TMP });
   expect(r.status).toBe(0);

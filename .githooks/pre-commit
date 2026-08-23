@@ -1,4 +1,5 @@
 #!/bin/sh
-# Optional local convenience layer (ADR-0011 §3). CI remains the gate,
-# which also covers web/IDE/bot commits.
-node scripts/check-drift.js && npm test
+# Optional local convenience layer (ADR-0011 §3). One fast script only;
+# npm test stays in CI, which remains the gate and also covers
+# web/IDE/bot commits.
+node scripts/check-drift.js

@@ -23,24 +23,45 @@ function resolveProfile(arg) {
   process.exit(2);
 }
 
+function usage() {
+  return [
+    pkg.name + ' v' + pkg.version + ' — install .jiahao-profile flag',
+    '',
+    'Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]',
+    '',
+    'Writes ONLY ' + profilePath(),
+    'Tier 0 manual: echo "verifier" > ' + profilePath(),
+  ].join('\n');
+}
+
 async function main() {
   const args = process.argv.slice(2);
   if (args.includes('--help') || args.includes('-h')) {
-    console.log([
-      pkg.name + ' v' + pkg.version + ' — install .jiahao-profile flag',
-      '',
-      'Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]',
-      '',
-      'Writes ONLY ' + profilePath(),
-      'Tier 0 manual: echo "verifier" > ' + profilePath(),
-    ].join('\n'));
+    console.log(usage());
     return;
+  }
+
+  // commander convention (atomcode-cli-ux): unknown bare subcommand -> exit 1.
+  const sub = args.find(a => !a.startsWith('-'));
+  if (sub && sub !== 'init') {
+    console.error("error: unknown command '" + sub + "'");
+    console.error(usage());
+    process.exit(1);
   }
 
   const dryRun = args.includes('--dry-run');
   const yes = args.includes('-y') || args.includes('--yes');
   const pIdx = args.findIndex(a => a === '--profile' || a === '-p');
-  let profile = pIdx !== -1 ? resolveProfile(args[pIdx + 1]) : null;
+  let profile = null;
+  if (pIdx !== -1) {
+    const v = args[pIdx + 1];
+    if (v === undefined || v.startsWith('-')) {
+      // commander/cac convention: required-value flag without value -> exit 1.
+      console.error("error: option '--profile <value>' argument missing");
+      process.exit(1);
+    }
+    profile = resolveProfile(v);
+  }
 
   if (!profile) {
     if (yes) {

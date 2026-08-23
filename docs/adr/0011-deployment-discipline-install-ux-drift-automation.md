@@ -140,6 +140,11 @@ independence cannot come from configuration.
 - **No CLI (rejected):** leaves the flag-write step entirely manual; the
   `init` script exists primarily to print the deployment-discipline
   reminder at the moment of choice (research-identified failure mode).
+- **commander / cac for the install CLI parser (rejected):** the 2026-08
+  atomcode-cli-ux round verified their behavioral conventions (unknown
+  subcommand -> exit 1, missing option value -> exit 1, CI fail fast)
+  directly in install.js; a single-command CLI does not justify the
+  parser dependency.
 
 ## References
 
