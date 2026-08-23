@@ -1,0 +1,4 @@
+#!/bin/sh
+# Optional local convenience layer (ADR-0011 §3). CI remains the gate,
+# which also covers web/IDE/bot commits.
+node scripts/check-drift.js && npm test

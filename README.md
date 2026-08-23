@@ -34,6 +34,19 @@ profile to keep tokens cheap while still blocking the worst self-deception.
 
 ## Install
 
+### CLI installer (Tier 1, recommended)
+
+```sh
+npx jiahao init                      # interactive profile prompt
+npx jiahao init --profile verifier   # non-interactive (CI-safe)
+npx jiahao init -y                   # accept default (verifier)
+npx jiahao init --dry-run            # print, do not write
+```
+
+The CLI writes only `.jiahao-profile`. Adapter files are distributed by
+`scripts/build-adapters.js`, never copied by the installer (drift guardrail).
+
+The manual `echo` below remains Tier 0 (zero-dependency fallback).
 ### Profile selection (install-time)
 
 Create a flag file in the config dir (default `$CLAUDE_CONFIG_DIR` or `$HOME`):
