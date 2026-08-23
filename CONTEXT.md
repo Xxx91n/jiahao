@@ -175,6 +175,41 @@ evidence; use the canonical mechanism)
 
 ## Decision Log
 
+**Self-Preference Bias (自偏好偏差)**:
+An LLM judge's intrinsic tendency to favor its own outputs even when unaware
+it generated them; the mechanism is perplexity/familiarity, not recognition
+(Wataoka et al., arXiv:2410.21819). Stronger same-family models can exhibit
+*more* bias (Yang et al., arXiv:2604.22891). Consequence for jiahao: a
+verifier in the same model family as the generator is biased regardless of
+context-window separation; prefer a different model family.
+_Avoid_: self-verification bias, judge bias (use the canonical term)
+
+**Verifier Deployment Discipline (验证器部署纪律)**:
+The three-layer separation that makes the Verifier Profile effective:
+(1) instance — separate context window (subagent / teammate session /
+independent process), never same-context self-review; (2) process —
+independent deployment for formal audit (CodeRabbit cloud sandbox, Copilot
+review on GitHub Actions); (3) model layer — prefer a different model family
+as the self-preference bias guard. Config-file co-location is inert;
+independence lives at the deployment layer. This is why jiahao does not
+support co-installation of competing generator/verifier profiles.
+_Avoid_: agent isolation, verifier isolation (those name the symptom, not
+the discipline)
+
+**Two-Tier Install UX (双层安装 UX)**:
+Tier 0 is the documented manual path: one `echo "verifier" > $CONFIG_DIR/.jiahao-profile`
+line — the strongest precedent in pure-prompt distribution (shadcn manual
+tab, anthropics/skills, awesome-cursorrules). Tier 1 is `npx jiahao init`
+(or `jiahao init --profile <name>`): a single-question CLI using `prompts`,
+supporting `--profile`, `-y`, and auto-detecting CI / non-TTY with an
+informative failure. The CLI writes only the flag file — not the SKILL
+content — and prints the Verifier Deployment Discipline reminder after
+writing.
+_Avoid_: installer, setup wizard (those describe the mechanism; use the
+canonical tier framing)
+
+ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
+
 ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 
 - ADR-0001 prompt-as-mental-model for second-party agents
@@ -187,3 +222,4 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0008 confidence calibration
 - ADR-0009 MCP adapter
 - ADR-0010 dual-profile role-tagged distribution
+- ADR-0011 deployment discipline, install UX, drift automation
