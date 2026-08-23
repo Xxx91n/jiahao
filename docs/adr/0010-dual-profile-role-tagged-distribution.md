@@ -143,17 +143,6 @@ selection is simpler, testable, and matches industry practice.
 - Install instructions must explain profile selection.
 - Tests must cover both profiles.
 
-### Amendment 2026-08-23 (co-installation semantics resolved)
-
-Co-installation of generator + verifier in one project is **not supported by
-design**: independence requires separation at the context-window, process,
-and preferably model-family layer, not parallel profile files. Verified by
-industry research (Claude Code subagents, CodeRabbit, Copilot review all
-separate at instance/process layer; no mainstream system uses competing
-auto-loaded role profiles) and academic evidence (self-preference bias is
-model-intrinsic; context isolation alone does not remove it). One flag file
-per installation remains the only selection mechanism.
-
 ### Upgrade Path
 
 - anysearch-cli integration: verifier profile's LLM critic rung calls
