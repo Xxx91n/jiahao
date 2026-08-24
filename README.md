@@ -114,7 +114,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `hooks/` — 6 hook scripts + hooks.json + runtime.js
 - `adapters/` — 11 host adapters (generated)
 - `jiahao-mcp/` — MCP-only adapter (profile parameter)
-- `docs/adr/` — 11 architecture decision records (0010 = dual-profile; 0011 = verifier deployment discipline + two-tier install UX + drift automation)
+- `docs/adr/` — 15 architecture decision records (0010 = dual-profile; 0011 = deployment discipline; 0012 = detector verdict + hook idempotency; 0013 = cross-turn chain + idempotency key; 0014 = wordlist migration + structural signals; 0015 = benchmark adoption + citation calibration)
 - `test/` — 8 test suites, 90 tests
 
 ## License

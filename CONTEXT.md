@@ -173,6 +173,61 @@ is unproven.
 _Avoid_: env-var toggles, runtime detection (those add complexity without
 evidence; use the canonical mechanism)
 
+**Structural Signal Detection (结构化信号检测)**:
+The detector's primary evidence mode: scoring false completion from
+execution structure, not surface phrases. Three channels (agent-polygraph
+L1-L3 shape): L1 error_concealment (tool error + success claim), L2
+completion_vs_evidence (completion claim with no evidence record), L3
+narrative_vs_assertion (files edited, no verification run, "works"
+asserted). Structural signals stay effective even when fully public —
+detection power rides on evidence the generator cannot fake without doing
+the work.
+_Avoid_: keyword detection, phrase matching (those are the demoted triage
+layer; use the canonical term)
+
+**Wordlist Triage Layer (词表分诊层)**:
+The demoted role of the detector wordlist after ADR-0014: a low-confidence
+feature feeding suspicion scoring, never the primary detector. Industry
+baseline status confirmed by polygraph-bench (b1_regex "naive keyword
+floor") and the 2026-07-09 archival of protectai/llm-guard (string-list
+layer superseded by behavioral platforms).
+_Avoid_: primary detector, magic word list
+
+**Phrase File Integrity (词表文件完整性)**:
+The practice of shipping the detector wordlist outside the audited agent's
+working directory (${CLAUDE_PLUGIN_ROOT}/private/phrases.json or
+JIAHAO_WORDLIST env) with a SHA-256 fingerprint checked at hook startup.
+This is cost-raising and rule-tamper detection, NOT secrecy — declared
+honestly per CWE-656 (security through obscurity is not a boundary) and
+agentguard's threat-model precedent.
+_Avoid_: secret wordlist, encrypted rules (implying cryptographic
+guarantees jiahao does not make)
+
+**Cross-Turn Hash Chain (跨轮哈希链)**:
+The evidence-chain upgrade from ADR-0013: `.jiahao-evidence` is append-only
+across turns, each turn opens with a `turn_init` record chained onto the
+previous tail hash, and `prev_hash` is INSIDE the hashed body
+(`H(canonical(record) || prev_hash)`, Crosby & Wallach 2009) — closing the
+tail-truncate-and-relink hole left by ADR-0007's hash-input exclusion.
+Linear chain only; Merkle trees and signatures remain deferred upgrades.
+_Avoid_: blockchain, Merkle log (different structures)
+
+**Composite Idempotency Key (复合幂等键)**:
+`SHA256(session_id | turn_id | tool_seq)` per evidence record; on write,
+same key = skip (first-writer-wins, Stripe/BackendBytes pattern via
+ON CONFLICT DO NOTHING semantics). Hooks re-firing within a turn
+(Stop + SubagentStop parity, double-fire) become no-ops instead of
+phantom records. Distinct from a UUID: derived from stable business fields,
+recomputable, collision-safe for dedup.
+_Avoid_: request id, uuid (not stable across legitimate retries)
+
+**Chain Verification Duty (链验证义务)**:
+Every read of `.jiahao-evidence` runs `verifyChain()` — "a chain you never
+verify is just a log" (hasp). A chain break is treated as corruption:
+blocking severity in verifier profile, advisory in generator profile.
+O(n) per read is trivially cheap at expected log sizes.
+_Avoid_: lazy verification, verify-on-export (leave the chain unchecked)
+
 ## Decision Log
 
 **Self-Preference Bias (自偏好偏差)**:
@@ -274,3 +329,6 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0010 dual-profile role-tagged distribution
 - ADR-0011 deployment discipline, install UX, drift automation
 - ADR-0012 detector verdict persistence + hook idempotency
+- ADR-0013 cross-turn hash chain + composite idempotency key
+- ADR-0014 wordlist migration out of cwd + structural-signal primary
+- ADR-0015 benchmark adoption (polygraph-bench) + FAGEN citation calibration
