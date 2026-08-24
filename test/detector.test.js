@@ -82,9 +82,68 @@ test('D3: SKILL.md does NOT leak the private wordlist', () => {
   }
 });
 
-test('detector (D3 privacy) — detector module itself contains the wordlist', () => {
-  // Sanity: the file we're keeping private actually is a wordlist module.
+test('ADR-0014 D2: detector.js does NOT embed the private wordlist', () => {
+  // ADR-0014 把词表移到 private/phrases.json,detector.js 只剩 loader + 指纹。
+  // 所以 detector.js 源码中不应出现真实短语字面量(防御 SKILL.md 侧泄漏)。
   const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'detector.js'), 'utf8');
-  expect(src).toContain('搞定了');
-  expect(src).toContain('probably fine');
+  expect(src).not.toContain('搞定了');
+  expect(src).not.toContain('probably fine');
+  expect(src).toContain('EXPECTED_PHRASES_SHA256');
+});
+
+test('ADR-0014 D2: loadPhrases verifies sha256 fingerprint of phrases.json', () => {
+  // 好指纹:此时指纹与 private/phrases.json 匹配。
+  const r = require(path.join(__dirname, '..', 'src', 'detector.js')).loadPhrases();
+  expect(r.ok).toBe(true);
+  expect(r.sha256).toBe(require(path.join(__dirname, '..', 'src', 'detector.js')).EXPECTED_PHRASES_SHA256);
+  expect(Array.isArray(r.phrases.high)).toBe(true);
+});
+
+test('ADR-0014 D2: loadPhrases rejects tampered phrases.json file', () => {
+  const det = require(path.join(__dirname, '..', 'src', 'detector.js'));
+  const { path: p } = det.resolvePhrasesPath();
+  // 覆盖内容(同时保持合法 JSON):如果 fingerprint 不匹配,ok 必须 false
+  const tmp = p + '.tampered';
+  fs.copyFileSync(p, tmp);
+  const parsed = JSON.parse(fs.readFileSync(tmp, 'utf8'));
+  parsed.high.push('tamper-canary'); // 修改后 hash 会变
+  fs.writeFileSync(tmp, JSON.stringify(parsed), 'utf8');
+  // 直接改 resolverenv 覆盖
+  process.env.JIAHAO_WORDLIST = tmp;
+  const modPath = require.resolve(path.join(__dirname, '..', 'src', 'detector.js'));
+  delete require.cache[modPath];
+  const det2 = require(path.join(__dirname, '..', 'src', 'detector.js'));
+  expect(det2.loadPhrases().ok).toBe(false);
+  expect(det2.loadPhrases().error).toMatch(/sha256 mismatch/);
+  // 还原
+  delete process.env.JIAHAO_WORDLIST;
+  delete require.cache[modPath];
+  require(path.join(__dirname, '..', 'src', 'detector.js')); // re-warm
+  fs.unlinkSync(tmp);
+});
+
+test('ADR-0014 D1: structural signals L1/L2/L3 win when wordlist yields nothing', () => {
+  const det = require(path.join(__dirname, '..', 'src', 'detector.js'));
+  const r = det.detectFull({
+    toolResults: [{ is_error: true }],
+    closingText: 'done',   // success claim without acknowledging error
+    evidenceRecords: [],
+    turn: undefined,
+  });
+  expect(r.structural_hits.L1_error_concealment).toBe(true);
+  expect(r.severity).toBe('high');           // 结构化信号覆盖 severity
+  expect(r.wordlist_degraded).toBe(false);   // 词表仍加载
+});
+
+test('ADR-0014 D1: wordlist-only detection degrades to triage(low), never high', () => {
+  const det = require(path.join(__dirname, '..', 'src', 'detector.js'));
+  const r = det.detectFull({
+    toolResults: [],
+    closingText: '很快搞定了的第一步',       // 只有词表命中,无结构化触发
+    evidenceRecords: [],
+    turn: undefined,
+  });
+  expect(r.structural_any).toBe(false);
+  expect(r.matched_phrases).toContain('搞定了');
+  expect(r.severity).toBe('low');            // 词表单独不再升 high
 });

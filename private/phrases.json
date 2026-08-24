@@ -1,0 +1,38 @@
+{
+  "high": [
+    "搞定了",
+    "完成了",
+    "跑通了",
+    "已修复",
+    "都好了",
+    "全做完了",
+    "done",
+    "all done",
+    "fixed",
+    "verified",
+    "all good",
+    "works now",
+    "should be fixed",
+    "should work",
+    "everything works",
+    "it's fixed"
+  ],
+  "low": [
+    "应该没问题",
+    "差不多了",
+    "基本ok",
+    "基本可以",
+    "大概率是好的",
+    "应该可以",
+    "理论上可以",
+    "看起来没问题",
+    "应该是好的",
+    "probably fine",
+    "seems fine",
+    "looks good",
+    "should be ok",
+    "mostly works",
+    "seems to work",
+    "appears to work"
+  ]
+}

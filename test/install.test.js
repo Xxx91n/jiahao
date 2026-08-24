@@ -23,6 +23,11 @@ afterAll(() => {
   ['.jiahao-profile'].forEach(f => {
     try { fs.unlinkSync(path.join(TMP, f)); } catch (e) {}
   });
+  // ADR-0014 D2 cleanup for wordlist planted by install.js
+  ['phrases.json'].forEach(f => {
+    try { fs.unlinkSync(path.join(TMP, 'private', f)); } catch (e) {}
+  });
+  try { fs.rmdirSync(path.join(TMP, 'private')); } catch (e) {}
 });
 
 test('--profile verifier writes flag and matches readProfile', () => {
@@ -87,4 +92,24 @@ test('--help exits 0 and documents usage', () => {
   const r = run(['--help'], { CLAUDE_CONFIG_DIR: TMP });
   expect(r.status).toBe(0);
   expect(r.stdout).toContain('--profile generator|verifier');
+});
+
+// ADR-0014 D2 — the installed wordlist lives outside the cwd,
+// and detector.loadPhrases can resolve it via CLAUDE_CONFIG_DIR.
+test('ADR-0014 D2: install plants private wordlist outside cwd', () => {
+  const r = run(['init', '--profile', 'verifier'], { CLAUDE_CONFIG_DIR: TMP });
+  expect(r.status).toBe(0);
+  const planted = path.join(TMP, 'private', 'phrases.json');
+  expect(fs.existsSync(planted)).toBe(true);
+
+  // Detector must be able to resolve it when CLAUDE_CONFIG_DIR is set.
+  process.env.CLAUDE_CONFIG_DIR = TMP;
+  const detPath = require.resolve(path.join(root, 'src', 'detector.js'));
+  delete require.cache[detPath];
+  const det = require(detPath);
+  const { path: phrasesPath, source } = det.resolvePhrasesPath();
+  expect(phrasesPath).toBe(planted);
+  expect(source).toBe('config-private');  // planted at <config>/private/phrases.json
+  delete require.cache[detPath];
+  delete process.env.CLAUDE_CONFIG_DIR;
 });

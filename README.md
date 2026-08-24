@@ -76,6 +76,26 @@ Verifier independence is enforced at the deployment layer, not by config:
 
 See ADR-0011 for the full deployment discipline.
 
+### Threat model (mandatory, ADR-0014 D3)
+
+Jiahao's wordlist and detection logic are **not hidden secrets**. Anything
+running in the same working directory with file-read access (the audited
+agent itself, its Bash tool, its peers) can read them. The system's actual
+defenses are:
+
+1. **L1-L3 structural signals** that are public by design — they key on
+   tool-output evidence the agent does not control, and do not improve
+   from disclosure.
+2. **Wordlist privacy as cost-raising only** — phrases.json lives in a
+   private directory and is fingerprint-checked (SHA-256). It is not
+   ciphertext; an attacker with read access can read it. This matches
+   CWE-656's definition of obscurity: useful, never a security boundary.
+
+Jiahao is effective against *drift-prone-not-hostile* agents — the LLM
+that optimistically says "搞定了" without checking — and is not a
+containment control against a truly hostile actor. If the agent needs to
+be sandboxed, use harness/OS-level isolation in addition to jiahao.
+
 ### Claude Code
 
 Install as a Claude Code plugin. See `hooks/jiahao-hooks.json`.

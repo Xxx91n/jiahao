@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-// scripts/install.js — Tier 1 installer (ADR-0011 §2)
+// scripts/install.js — Tier 1 installer (ADR-0011 §2, ADR-0014 D2)
 // Writes ONLY .jiahao-profile. Does not copy SKILL.md/adapters
 // (build-adapters.js is the sole distributor — silent-drift guardrail).
+// ADR-0014: also plants private/phrases.json into ~/.jiahao/private/ so the
+// wordlist is NOT inside the shared cwd anymore.
 
 const fs = require('fs');
 const { profilePath, configDir } = require('../hooks/jiahao-paths');
@@ -97,6 +99,19 @@ async function main() {
   fs.mkdirSync(configDir(), { recursive: true });
   fs.writeFileSync(target, profile + '\n', 'utf8');
   console.log('Wrote "' + profile + '" to ' + target);
+
+  // ADR-0014 D2: plant the private wordlist into the config dir, outside the cwd.
+  const srcPhrases = require('path').join(__dirname, '..', 'private', 'phrases.json');
+  const destDir = require('path').join(configDir(), 'private');
+  const destPhrases = require('path').join(destDir, 'phrases.json');
+  try {
+    if (fs.existsSync(srcPhrases)) {
+      fs.mkdirSync(destDir, { recursive: true });
+      fs.copyFileSync(srcPhrases, destPhrases);
+      console.log('Planted private wordlist at ' + destPhrases);
+    }
+  } catch (e) { console.warn('wordlist plant skipped: ' + e.message); }
+
   console.log(REMINDER);
 }
 

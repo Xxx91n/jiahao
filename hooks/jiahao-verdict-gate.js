@@ -14,6 +14,7 @@
 const fs = require('fs');
 const { flagPath, evidencePath } = require('./jiahao-paths');
 const { readProfile } = require('./jiahao-profile');
+const { verifyChain } = require('../src/gate');
 
 // If jiahao is off, pass through
 if (!fs.existsSync(flagPath())) {
@@ -47,6 +48,24 @@ process.stdin.on('end', () => {
       }
     }
   } catch (e) { /* no file or invalid JSON = no evidence */ }
+
+  // ADR-0013 D4: chain-corruption detection runs BEFORE any severity case.
+  // A broken chain is treated as missing evidence in verifier profile
+  // (block, exit 2); advisory-only in generator profile.
+  if (evidenceChain) {
+    const chainCheck = verifyChain(evidenceChain);
+    if (!chainCheck.valid) {
+      const msg = 'JIAHAO CHAIN CORRUPTION: evidence chain invalid at ' +
+        'index ' + chainCheck.broken_at + ' (' + chainCheck.reason + '). ' +
+        'Possible tamper or truncation — do not trust this chain.';
+      if (isGenerator) {
+        console.log(JSON.stringify({ decision: 'allow', systemMessage: msg }));
+        process.exit(0);
+      }
+      console.log(JSON.stringify({ decision: 'block', reason: msg }));
+      process.exit(2);
+    }
+  }
 
   // ---- Case A: no evidence at all --------------------------------------
   // Behaviour unchanged from ADR-0010: block verifier, advisory generator.

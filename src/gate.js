@@ -1,11 +1,13 @@
 // jiahao gate.js — verification gate combination ladder
+// ADR-0013: recordHash includes prev_hash (Crosby-Wallach 2009);
+// cross-turn append-only chain; composite idempotency key; verify-on-read.
 // Short-circuit + escalate pattern: deterministic layer blocks/passes first,
 // only underdetermined cases escalate to LLM critic, then self-eval.
 // Evidence recorded as hash-chained entries (unchecked records never enter chain).
 
 const crypto = require('crypto');
 const fs = require('fs');
-const { evidencePath } = require('../hooks/jiahao-paths');
+const { evidencePath, evidenceKeysPath } = require('../hooks/jiahao-paths');
 
 // Trust tiers (match SKILL.md output format)
 const TIERS = {
@@ -34,10 +36,40 @@ function canonicalJSON(obj) {
   return '{' + keys.map(k => JSON.stringify(k) + ':' + canonicalJSON(obj[k])).join(',') + '}';
 }
 
-// Compute hash of a record (excluding prev_hash and event_hash fields)
+// ADR-0013 D1: hash input now INCLUDES prev_hash.
+// hash = H( canonicalJSON(record minus event_hash) )
+// where record already carries prev_hash as a field. Excluding event_hash
+// from the input avoids the circular dependency; prev_hash is known before
+// hashing (it is exactly the previous record's event_hash).
 function recordHash(record) {
-  const { prev_hash, event_hash, ...rest } = record;
+  const { event_hash, ...rest } = record;
   return crypto.createHash('sha256').update(canonicalJSON(rest)).digest('hex');
+}
+
+// ADR-0013 D3: composite idempotency key = SHA256(session|turn|tool_seq).
+// Stripe/BackendBytes pattern: first-writer-wins, retry returns stored result.
+function idempotencyKey(sessionId, turnId, toolSeq) {
+  const raw = String(sessionId || '') + '|' + String(turnId || '') + '|' + String(toolSeq || '');
+  return crypto.createHash('sha256').update(raw).digest('hex');
+}
+
+// ADR-0013 D2: turn_init boundary record — chained onto the previous turn's
+// tail hash. Carries session_id/turn_id so single-global-chain consumers can
+// segment by session without walking the whole file.
+function createTurnInit(sessionId, turnId, prevHash) {
+  return {
+    kind: 'turn_init',
+    session_id: sessionId,
+    turn_id: turnId,
+    first_prev_hash: prevHash || null,
+    timestamp: new Date().toISOString(),
+    prev_hash: prevHash || null,
+    event_hash: null, // filled below
+  };
+}
+function finalizeTurnInit(init) {
+  init.event_hash = recordHash(init);
+  return init;
 }
 
 // Create an evidence record with hash chain linking.
@@ -231,7 +263,51 @@ function verifyChain(chain) {
   return { valid: true };
 }
 
-// Write evidence to file (for Stop hook verdict gate)
+// ADR-0013 D2/D3: append-only cross-turn chain with composite-idempotency
+// dedup. Sidecar .jiahao-evidence.keys stores one key per line so a process
+// restart can rebuild the in-memory dedup set without re-hashing the chain.
+// Each new record must already carry the correct prev_hash (the chain tail).
+// Idempotency: records carrying `_idem` (composite key) that already exist in
+// the file are skipped (first-writer-wins); the chain is never re-written.
+function appendEvidence(newRecords, overrideConfigDir) {
+  if (!Array.isArray(newRecords) || newRecords.length === 0) return;
+  const ep = overrideConfigDir
+    ? require('path').join(overrideConfigDir, '.jiahao-evidence')
+    : evidencePath();
+  let existing = [];
+  try {
+    const raw = fs.readFileSync(ep, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) existing = parsed;
+  } catch (e) { /* no file or invalid — treated as empty genesis */ }
+  // Seed the dedup set from the on-disk sidecar (crash-recovery), then union
+  // with whatever we parse out of the chain itself.
+  const kp = overrideConfigDir
+    ? require('path').join(overrideConfigDir, '.jiahao-evidence.keys')
+    : evidenceKeysPath();
+  const seen = new Set();
+  try {
+    fs.readFileSync(kp, 'utf8').split('\n').forEach(k => { if (k.trim()) seen.add(k.trim()); });
+  } catch (e) { /* no sidecar yet */ }
+  existing.filter(r => r && r._idem).forEach(r => seen.add(r._idem));
+
+  const merged = existing.slice();
+  const appendedKeys = [];
+  for (const rec of newRecords) {
+    if (rec && rec._idem && seen.has(rec._idem)) continue; // idempotent skip
+    if (rec && rec._idem) seen.add(rec._idem);
+    if (rec && rec._idem) appendedKeys.push(rec._idem);
+    merged.push(rec);
+  }
+  fs.writeFileSync(ep, JSON.stringify(merged), 'utf8');
+  // Full-rewrite sidecar with the union set (bounded by unique turn keys —
+  // one line per (session, turn, tool) triple, O(k) bytes not O(chain)).
+  const allKeys = merged.filter(r => r && r._idem).map(r => r._idem);
+  fs.writeFileSync(kp, allKeys.join('\n') + '\n', 'utf8');
+}
+
+// Write evidence to file (for Stop hook verdict gate) — legacy replace mode,
+// retained for compat; new code should use appendEvidence.
 function writeEvidence(evidenceChain, overrideConfigDir) {
   const ep = overrideConfigDir
     ? require('path').join(overrideConfigDir, '.jiahao-evidence')
@@ -240,12 +316,16 @@ function writeEvidence(evidenceChain, overrideConfigDir) {
   fs.writeFileSync(ep, data, 'utf8');
 }
 
-// Clear evidence file
+// Clear evidence file (aligned idempotency-key sidecar too when present)
 function clearEvidence(overrideConfigDir) {
   const ep = overrideConfigDir
     ? require('path').join(overrideConfigDir, '.jiahao-evidence')
     : evidencePath();
   try { fs.unlinkSync(ep); } catch (e) { /* gone */ }
+  const kp = overrideConfigDir
+    ? require('path').join(overrideConfigDir, '.jiahao-evidence.keys')
+    : evidenceKeysPath();
+  try { fs.unlinkSync(kp); } catch (e) { /* gone */ }
 }
 
 // ponytail: hash chain tamper-evidence implemented (ADR-0007). Upgrade path:
@@ -256,6 +336,8 @@ function clearEvidence(overrideConfigDir) {
 module.exports = {
   TIERS, LEVELS, ESCALATION_BAND,
   canonicalJSON, recordHash,
+  idempotencyKey, appendEvidence,
+  createTurnInit, finalizeTurnInit,
   createEvidence, runGate, verify, verifyChain,
   writeEvidence, clearEvidence,
 };

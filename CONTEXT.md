@@ -228,6 +228,16 @@ blocking severity in verifier profile, advisory in generator profile.
 O(n) per read is trivially cheap at expected log sizes.
 _Avoid_: lazy verification, verify-on-export (leave the chain unchecked)
 
+**Structural Signal Coverage (结构化信号覆盖)**:
+ADR-0014 imposed a coverage gap: tool activity must EXIST for L2/L3 to fire.
+If a turn has no tool calls and no evidence, structural signal detection
+passes even when the wordlist hits — this is intentional triage-only falloff.
+The remedy is that verdict-gate's advisory still surfaces the wordlist signal
+even when L1-L3 yield nothing. Coverage and conservatism are not contradictory
+here: an audit agent producing NO tool calls and NO evidence was not the
+target jiahao is aimed at (that's an idle agent, not a false-completion case).
+_Avoid_: chasing zero-FP on L2 (the cost was leaked to L3/wordlist; ponytail)
+
 ## Decision Log
 
 **Self-Preference Bias (自偏好偏差)**:
@@ -305,7 +315,9 @@ over time. Turn identity is `session_id + turn_id` from the hook input;
 `idempotency_key` is not required by default, only when federating
 cross-session audits later.
 _Avoid_: consume-on-read, stop hook dedup (those defeat the audit chain or
-conflate integrity with idempotency)
+conflate integrity with idempotency). Superseded partially by ADR-0013:
+the file now supports an append-only, cross-turn hash chain with a
+composite idempotency key (prevents replacement-hack truncation).
 
 **SubagentStop Parity (SubagentStop 等价)**:
 Claude Code converts plugin-registered Stop hooks into SubagentStop events

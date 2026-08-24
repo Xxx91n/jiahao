@@ -119,7 +119,8 @@ test('verdict-gate passes with evidence', () => {
   const origDir = process.cwd();
   process.chdir(path.join(__dirname, '..'));
   fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
-  fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify([{gate_id: 'det-0', status: 'passed'}]), 'utf8');
+  const rec = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null);
+  fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify([rec]), 'utf8');
   try {
     const input = JSON.stringify({ stop_hook_active: false });
     execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
@@ -185,11 +186,13 @@ test('verdict-gate blocks with plain text evidence (not JSON)', () => {
 });
 
 test('jiahao-paths module exports flagPath and evidencePath', () => {
-  const { flagPath, evidencePath } = require(path.join(hooksDir, 'jiahao-paths.js'));
+  const { flagPath, evidencePath, evidenceKeysPath } = require(path.join(hooksDir, 'jiahao-paths.js'));
   expect(typeof flagPath).toBe('function');
   expect(typeof evidencePath).toBe('function');
+  expect(typeof evidenceKeysPath).toBe('function');
   expect(flagPath()).toContain('.jiahao-active');
   expect(evidencePath()).toContain('.jiahao-evidence');
+  expect(evidenceKeysPath()).toContain('.jiahao-evidence.keys');
 });
 
 test('verdict-gate respects stop_hook_active', () => {
@@ -216,7 +219,8 @@ test('D4: verdict-gate with evidence is idempotent (file NOT consumed, second fi
   const origDir = process.cwd();
   process.chdir(path.join(__dirname, '..'));
   fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
-  fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify([{gate_id: 'det-0', status: 'passed'}]), 'utf8');
+  const recD4 = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null);
+  fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify([recD4]), 'utf8');
   const input = JSON.stringify({ stop_hook_active: false });
   try {
     execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
@@ -323,6 +327,71 @@ test('D2: verifier profile with clean evidence (no detector field) passes silent
     });
   } catch (e) {
     throw new Error('verifier profile should pass with clean evidence, got ' + e.status);
+  } finally {
+    try { fs.unlinkSync(TMP + '/.jiahao-profile'); } catch (e_) {}
+    try { fs.unlinkSync(TMP + '/.jiahao-evidence'); } catch (e_) {}
+    process.chdir(origDir);
+  }
+});
+
+// ADR-0013 D1: recordHash covers prev_hash — the tail-truncate-relink hole
+// (delete middle record, repoint next.prev_hash, event_hash still verifies
+// under the old formula) is closed when the hash body includes prev_hash.
+test('ADR-0013 D1: recordHash hashes the prev_hash field', () => {
+  const { recordHash, createEvidence } = require(path.join(__dirname, '..', 'src', 'gate.js'));
+  const a = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null);
+  const b1 = createEvidence('det-1', 'deterministic', 'passed', 'ok', 0.9, a.event_hash);
+  const b2 = createEvidence('det-1', 'deterministic', 'passed', 'ok', 0.9, 'f'.repeat(64));
+  expect(recordHash(a)).toBe(a.event_hash);
+  expect(recordHash(b1)).toBe(b1.event_hash);
+  expect(recordHash(b2)).toBe(b2.event_hash);
+  expect(b1.event_hash).not.toBe(b2.event_hash); // prev_hash changes the hash
+});
+
+// ADR-0013 D3: composite idempotency key = SHA256(session|turn|tool_seq).
+test('ADR-0013 D3: idempotency key is deterministic composite', () => {
+  const { idempotencyKey } = require(path.join(__dirname, '..', 'src', 'gate.js'));
+  const k1 = idempotencyKey('s1', 't1', 'det-0');
+  const k2 = idempotencyKey('s1', 't1', 'det-0');
+  const k3 = idempotencyKey('s1', 't1', 'det-1');
+  expect(k1).toBe(k2);
+  expect(k1).not.toBe(k3);
+  expect(k1).toMatch(/^[0-9a-f]{64}$/);
+});
+
+// ADR-0013 D3: appendEvidence dedups on _idem (same Stop re-fire → no-op).
+test('ADR-0013 D3: appendEvidence idempotent skip on duplicate _idem', () => {
+  const { appendEvidence } = require(path.join(__dirname, '..', 'src', 'gate.js'));
+  const file = TMP + '/.jiahao-evidence';
+  try { fs.unlinkSync(file); } catch (e) {}
+  const rec = (i) => ({ gate_id: 'det-' + i, status: 'passed', prev_hash: null, _idem: 'k' + i });
+  appendEvidence([rec(0)], TMP);
+  appendEvidence([rec(0), rec(1)], TMP); // k0 replayed, k1 new
+  const chain = JSON.parse(fs.readFileSync(file, 'utf8'));
+  expect(chain).toHaveLength(2);
+  expect(chain.map(r => r.gate_id)).toEqual(['det-0', 'det-1']);
+});
+
+// ADR-0013 D4: verdict-gate BLOCKS when the on-disk chain is tampered.
+test('ADR-0013 D4: verdict-gate blocks on broken chain (verifier)', () => {
+  const origDir = process.cwd();
+  process.chdir(path.join(__dirname, '..'));
+  fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
+  fs.writeFileSync(TMP + '/.jiahao-profile', 'verifier', 'utf8');
+  const { createEvidence } = require(path.join(__dirname, '..', 'src', 'gate.js'));
+  const rec = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null);
+  rec.prev_hash = 'f'.repeat(64); // tamper: repoint genesis prev_hash
+  fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify([rec]), 'utf8');
+  try {
+    const input = JSON.stringify({ stop_hook_active: false });
+    execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
+      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 5000, shell: 'bash',
+    });
+    throw new Error('verdict-gate should have blocked on broken chain');
+  } catch (e) {
+    expect(e.status).toBe(2);
+    const parsed = JSON.parse((e.stdout || '').toString());
+    expect(parsed.reason).toMatch(/CHAIN CORRUPTION/);
   } finally {
     try { fs.unlinkSync(TMP + '/.jiahao-profile'); } catch (e_) {}
     try { fs.unlinkSync(TMP + '/.jiahao-evidence'); } catch (e_) {}
