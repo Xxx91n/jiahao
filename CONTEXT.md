@@ -327,6 +327,23 @@ primary agent and any verifier subagents. Without parity, a subagent's
 completion slips past the gate the primary agent is held to.
 _Avoid_: stop-only registration (silently asymmetric)
 
+**EvidenceLog**:
+The append-only, hash-chained evidence store: the single writer/reader
+surface for all verification evidence, with tamper-evident persistence fully
+hidden behind a small module interface.
+_Avoid_: evidence store, event store, evidence file (mechanism, not module)
+
+**GateLadder**:
+The pure, fs-free verification business logic: trust-tier assignment and the
+deterministic-to-critic escalation decision over claims and gates.
+_Avoid_: gate module (the old monolith), verifier core
+
+**Shared Core (src/shared)**:
+Carrier-neutral shared modules depended on by every distribution carrier
+(hooks, scripts, MCP) and by core modules alike; dependencies in this project
+point inward, toward this core.
+_Avoid_: utils, common, lib
+
 ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 
 - ADR-0001 prompt-as-mental-model for second-party agents
@@ -344,3 +361,4 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0013 cross-turn hash chain + composite idempotency key
 - ADR-0014 wordlist migration out of cwd + structural-signal primary
 - ADR-0015 benchmark adoption (polygraph-bench) + FAGEN citation calibration
+- ADR-0016 EvidenceLog/GateLadder split + shared core relocation
