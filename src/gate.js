@@ -295,6 +295,26 @@ function appendEvidence(newRecords, overrideConfigDir) {
   const appendedKeys = [];
   for (const rec of newRecords) {
     if (rec && rec._idem && seen.has(rec._idem)) continue; // idempotent skip
+    // ADR-0013 D1: appended records must chain onto the current tail
+    // (prev_hash == tail.event_hash). Reject mismatched/tampered links here
+    // so the on-disk chain is never polluted mid-write.
+    const tail = merged.length > 0 ? merged[merged.length - 1] : null;
+    const tailHasAnchor = tail && typeof tail.event_hash === 'string' && tail.event_hash.length > 0;
+    const expectedPrev = tailHasAnchor ? tail.event_hash : undefined;
+    if (!tailHasAnchor) {
+      // Genesis / un-chained records: no anchors to compare against, pass through.
+      if (rec && rec._idem) seen.add(rec._idem);
+      if (rec && rec._idem) appendedKeys.push(rec._idem);
+      merged.push(rec);
+      continue;
+    }
+    if (rec && rec.prev_hash !== undefined && rec.prev_hash !== expectedPrev) {
+      try { process.stderr.write(
+        'jiahao gate: appendEvidence skipping record ' + JSON.stringify(rec && rec.gate_id) +
+        ' — prev_hash mismatch (expected ' + expectedPrev + ', got ' + rec.prev_hash + ')\n'
+      ); } catch (e) {}
+      continue;
+    }
     if (rec && rec._idem) seen.add(rec._idem);
     if (rec && rec._idem) appendedKeys.push(rec._idem);
     merged.push(rec);

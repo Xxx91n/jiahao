@@ -364,12 +364,28 @@ test('ADR-0013 D3: appendEvidence idempotent skip on duplicate _idem', () => {
   const { appendEvidence } = require(path.join(__dirname, '..', 'src', 'gate.js'));
   const file = TMP + '/.jiahao-evidence';
   try { fs.unlinkSync(file); } catch (e) {}
+  try { fs.unlinkSync(TMP + '/.jiahao-evidence.keys'); } catch (e) {}
   const rec = (i) => ({ gate_id: 'det-' + i, status: 'passed', prev_hash: null, _idem: 'k' + i });
   appendEvidence([rec(0)], TMP);
   appendEvidence([rec(0), rec(1)], TMP); // k0 replayed, k1 new
   const chain = JSON.parse(fs.readFileSync(file, 'utf8'));
   expect(chain).toHaveLength(2);
   expect(chain.map(r => r.gate_id)).toEqual(['det-0', 'det-1']);
+});
+
+test('ADR-0013 D3: appendEvidence rejects records whose prev_hash does not match the chain tail', () => {
+  const { appendEvidence } = require(path.join(__dirname, '..', 'src', 'gate.js'));
+  const file = TMP + '/.jiahao-evidence';
+  try { fs.unlinkSync(file); } catch (e) {}
+  try { fs.unlinkSync(TMP + '/.jiahao-evidence.keys'); } catch (e) {}
+  const tail = { gate_id: 'det-0', status: 'passed', prev_hash: null, event_hash: 'a'.repeat(64), _idem: 'k0' };
+  appendEvidence([tail], TMP);
+  // Record claims a different prev_hash than the current tail — must be skipped.
+  const bad = { gate_id: 'det-1', status: 'passed', prev_hash: 'b'.repeat(64), _idem: 'k1' };
+  appendEvidence([bad], TMP);
+  const chain = JSON.parse(fs.readFileSync(file, 'utf8'));
+  expect(chain).toHaveLength(1);
+  expect(chain[0].gate_id).toBe('det-0');
 });
 
 // ADR-0013 D4: verdict-gate BLOCKS when the on-disk chain is tampered.

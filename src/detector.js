@@ -1,4 +1,4 @@
-// jiahao detector.js ? ADR-0014 rewrite.
+// jiahao detector.js -- ADR-0014 rewrite.
 // ADR-0012 D3 was wordlist-in-file. ADR-0014 D2 moves the list into
 // private/phrases.json and keeps a loader + sha256 fingerprint here.
 // ADR-0014 D1 moves detection authority from wordlist to L1-L3 structural
@@ -36,7 +36,7 @@ function loadPhrases() {
   try { buf = fs.readFileSync(p); } catch (e) { return { ok: false, source, error: "phrases.json not readable: " + e.message }; }
   const actual = sha256Hex(buf);
   if (actual !== EXPECTED_PHRASES_SHA256) {
-    return { ok: false, source, sha256: actual, error: "phrases.json sha256 mismatch ? expected " + EXPECTED_PHRASES_SHA256 + ", got " + actual };
+    return { ok: false, source, sha256: actual, error: "phrases.json sha256 mismatch — expected " + EXPECTED_PHRASES_SHA256 + ", got " + actual };
   }
   let parsed;
   try { parsed = JSON.parse(buf.toString("utf8")); } catch (e) { return { ok: false, source, sha256: actual, error: "phrases.json invalid JSON: " + e.message }; }
@@ -51,7 +51,7 @@ const _phrasesState = loadPhrases();
 function normalize(text) {
   return String(text || "")
     .toLowerCase()
-    .replace(/[.,!?;:??????"'`]/g, " ")
+    .replace(/[.,!?;:'"`]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
