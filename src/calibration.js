@@ -10,7 +10,7 @@
 // 4. deriveThresholds(model, targetPrecision) — compute new band from calibrated curve
 
 const fs = require('fs');
-const { configDir } = require('../hooks/jiahao-paths');
+const { configDir } = require('./shared/paths');
 
 // Default static band (ADR-0004, from FutureAGI research)
 const STATIC_BAND = { low: 0.4, high: 0.7 };

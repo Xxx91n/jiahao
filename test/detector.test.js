@@ -2,7 +2,8 @@
 const path = require('path');
 const fs = require('fs');
 const { detect } = require(path.join(__dirname, '..', 'src', 'detector.js'));
-const { createEvidence, verifyChain } = require(path.join(__dirname, '..', 'src', 'gate.js'));
+const { createEvidenceLog, verifyChain } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
+const createEvidence = createEvidenceLog().createRecord;
 
 test('detects high-severity Chinese completion claims', () => {
   const r = detect('搞定了，全做完了');
@@ -57,7 +58,7 @@ test('D1: detector verdict rides the same hash chain (tamper-evident)', () => {
   // And they participate in the hash — changing severity must break event_hash
   const e1clone = JSON.parse(JSON.stringify(e1));
   e1clone.detector.severity = 'low';
-  const recomputed = require('../src/gate.js').recordHash(e1clone);
+  const recomputed = require('../src/evidence-log.js').recordHash(e1clone);
   expect(recomputed).not.toBe(e1.event_hash);
 });
 

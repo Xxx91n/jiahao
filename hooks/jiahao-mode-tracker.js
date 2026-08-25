@@ -4,7 +4,7 @@
 
 const fs = require('fs');
 const { writeHookOutput } = require('./jiahao-runtime');
-const { flagPath } = require('./jiahao-paths');
+const { flagPath } = require('../src/shared/paths');
 
 let input = '';
 process.stdin.setEncoding('utf8');

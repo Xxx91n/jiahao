@@ -6,7 +6,7 @@
 // wordlist is NOT inside the shared cwd anymore.
 
 const fs = require('fs');
-const { profilePath, configDir } = require('../hooks/jiahao-paths');
+const { profilePath, configDir } = require('../src/shared/paths');
 const pkg = require('../package.json');
 
 const REMINDER = [

@@ -8,7 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 const { writeHookOutput } = require('./jiahao-runtime');
-const { flagPath } = require('./jiahao-paths');
+const { flagPath } = require('../src/shared/paths');
 const { loadProfileSections, readProfile } = require('./jiahao-profile');
 
 // Write flag file (default intensity: full)

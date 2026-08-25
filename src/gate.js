@@ -1,13 +1,9 @@
-// jiahao gate.js — verification gate combination ladder
-// ADR-0013: recordHash includes prev_hash (Crosby-Wallach 2009);
-// cross-turn append-only chain; composite idempotency key; verify-on-read.
+// src/gate.js — GateLadder (ADR-0016 D1): pure, fs-free verification ladder.
 // Short-circuit + escalate pattern: deterministic layer blocks/passes first,
-// only underdetermined cases escalate to LLM critic, then self-eval.
-// Evidence recorded as hash-chained entries (unchecked records never enter chain).
+// only underdetermined cases escalate to LLM critic (band 0.4-0.7, ADR-0007).
+// Evidence persistence lives in src/evidence-log.js; paths in src/shared/paths.js.
 
-const crypto = require('crypto');
-const fs = require('fs');
-const { evidencePath, evidenceKeysPath } = require('../hooks/jiahao-paths');
+const { ESCALATION_BAND, createEvidenceLog } = require('./evidence-log');
 
 // Trust tiers (match SKILL.md output format)
 const TIERS = {
@@ -19,96 +15,14 @@ const TIERS = {
 // Gate levels (match SKILL.md 6-rung ladder)
 const LEVELS = {
   DETERMINISTIC: 'deterministic',   // rung 1-3: test, ground-truth, re-execute
-  CHECKLIST: 'checklist',            // rung 4: binary assertion decomposition
+  CHECKLIST: 'checklist',           // rung 4: binary assertion decomposition
   LLM_CRITIC: 'llm-critic',         // rung 5: independent LLM critic
-  NOT_VERIFIED: 'not-verified',      // rung 6: cannot verify
+  NOT_VERIFIED: 'not-verified',     // rung 6: cannot verify
 };
 
-// Escalation thresholds (from atomcode research: FutureAGI 0.4-0.7 band)
-const ESCALATION_BAND = { low: 0.4, high: 0.7 };
-
-// Canonical JSON serialization (RFC 8785 inspired): sort keys recursively.
-// Zero-dependency, ~10 lines. Required for deterministic hash chain.
-function canonicalJSON(obj) {
-  if (obj === null || typeof obj !== 'object') return JSON.stringify(obj);
-  if (Array.isArray(obj)) return '[' + obj.map(canonicalJSON).join(',') + ']';
-  const keys = Object.keys(obj).sort();
-  return '{' + keys.map(k => JSON.stringify(k) + ':' + canonicalJSON(obj[k])).join(',') + '}';
-}
-
-// ADR-0013 D1: hash input now INCLUDES prev_hash.
-// hash = H( canonicalJSON(record minus event_hash) )
-// where record already carries prev_hash as a field. Excluding event_hash
-// from the input avoids the circular dependency; prev_hash is known before
-// hashing (it is exactly the previous record's event_hash).
-function recordHash(record) {
-  const { event_hash, ...rest } = record;
-  return crypto.createHash('sha256').update(canonicalJSON(rest)).digest('hex');
-}
-
-// ADR-0013 D3: composite idempotency key = SHA256(session|turn|tool_seq).
-// Stripe/BackendBytes pattern: first-writer-wins, retry returns stored result.
-function idempotencyKey(sessionId, turnId, toolSeq) {
-  const raw = String(sessionId || '') + '|' + String(turnId || '') + '|' + String(toolSeq || '');
-  return crypto.createHash('sha256').update(raw).digest('hex');
-}
-
-// ADR-0013 D2: turn_init boundary record — chained onto the previous turn's
-// tail hash. Carries session_id/turn_id so single-global-chain consumers can
-// segment by session without walking the whole file.
-function createTurnInit(sessionId, turnId, prevHash) {
-  return {
-    kind: 'turn_init',
-    session_id: sessionId,
-    turn_id: turnId,
-    first_prev_hash: prevHash || null,
-    timestamp: new Date().toISOString(),
-    prev_hash: prevHash || null,
-    event_hash: null, // filled below
-  };
-}
-function finalizeTurnInit(init) {
-  init.event_hash = recordHash(init);
-  return init;
-}
-
-// Create an evidence record with hash chain linking.
-// ADR-0012 D1: optional `extras` ({ detector, session_id, turn_id }) are
-// attached BEFORE hashing so the detector verdict is tamper-evident too.
-function createEvidence(gateId, gateType, status, detail, confidence, prevHash, extras) {
-  const record = {
-    gate_id: gateId,
-    gate_type: gateType,
-    status: status, // checked | passed | failed | escalated
-    evidence_ref: crypto.createHash('sha256').update(detail).digest('hex').slice(0, 16),
-    detail: detail,
-    confidence: confidence || null,
-    threshold: ESCALATION_BAND,
-    timestamp: new Date().toISOString(),
-    prev_hash: prevHash || null,
-  };
-  if (extras && typeof extras === 'object') {
-    if (extras.detector && typeof extras.detector === 'object') {
-      // Keep only the D1 tuple { suspicious, matched_phrases, severity };
-      // drop family_hits so the on-chain shape stays stable across detector
-      // upgrades.
-      const d = extras.detector;
-      record.detector = {
-        suspicious: !!d.suspicious,
-        matched_phrases: Array.isArray(d.matched_phrases) ? d.matched_phrases.slice() : [],
-        severity: d.severity === 'high' || d.severity === 'low' ? d.severity : null,
-      };
-    }
-    if (typeof extras.session_id === 'string' && extras.session_id.length > 0) {
-      record.session_id = extras.session_id;
-    }
-    if (typeof extras.turn_id === 'string' && extras.turn_id.length > 0) {
-      record.turn_id = extras.turn_id;
-    }
-  }
-  record.event_hash = recordHash(record);
-  return record;
-}
+// Record construction/hashing is EvidenceLog's job; createRecord is pure (no fs),
+// so the ladder stays fs-free while emitting the same record shape as before.
+const createRecord = createEvidenceLog().createRecord;
 
 // Run a single gate check
 function runGate(check, gateType) {
@@ -135,7 +49,7 @@ function verify(claims, gates) {
   if (gates.deterministic && gates.deterministic.length > 0) {
     for (let i = 0; i < gates.deterministic.length; i++) {
       const result = runGate(gates.deterministic[i], LEVELS.DETERMINISTIC);
-      const evidence = createEvidence(
+      const evidence = createRecord(
         'det-' + i, LEVELS.DETERMINISTIC,
         result.passed ? 'passed' : 'failed',
         result.detail, result.confidence, prevHash
@@ -162,7 +76,7 @@ function verify(claims, gates) {
     let allPassed = true;
     for (let i = 0; i < gates.checklist.length; i++) {
       const result = runGate(gates.checklist[i], LEVELS.CHECKLIST);
-      const evidence = createEvidence(
+      const evidence = createRecord(
         'chk-' + i, LEVELS.CHECKLIST,
         result.passed ? 'passed' : 'failed',
         result.detail, result.confidence, prevHash
@@ -203,7 +117,7 @@ function verify(claims, gates) {
   // Level 4: LLM critic (only for escalated cases)
   if (needsEscalation && gates.llm_critic) {
     const result = runGate(gates.llm_critic, LEVELS.LLM_CRITIC);
-    const evidence = createEvidence(
+    const evidence = createRecord(
       'llm-0', LEVELS.LLM_CRITIC,
       result.passed ? 'passed' : 'failed',
       result.detail, result.confidence, prevHash
@@ -240,124 +154,4 @@ function verify(claims, gates) {
   };
 }
 
-// Verify hash chain integrity (tamper-evidence check)
-// Returns { valid: true } or { valid: false, broken_at: <index>, reason: <string> }
-function verifyChain(chain) {
-  if (!Array.isArray(chain) || chain.length === 0) {
-    return { valid: false, broken_at: -1, reason: 'empty or non-array chain' };
-  }
-  let expectedPrev = null;
-  for (let i = 0; i < chain.length; i++) {
-    const record = chain[i];
-    // Check prev_hash linkage
-    if (record.prev_hash !== expectedPrev) {
-      return { valid: false, broken_at: i, reason: 'prev_hash mismatch at index ' + i };
-    }
-    // Recompute event_hash and check
-    const recomputed = recordHash(record);
-    if (record.event_hash !== recomputed) {
-      return { valid: false, broken_at: i, reason: 'event_hash mismatch at index ' + i };
-    }
-    expectedPrev = record.event_hash;
-  }
-  return { valid: true };
-}
-
-// ADR-0013 D2/D3: append-only cross-turn chain with composite-idempotency
-// dedup. Sidecar .jiahao-evidence.keys stores one key per line so a process
-// restart can rebuild the in-memory dedup set without re-hashing the chain.
-// Each new record must already carry the correct prev_hash (the chain tail).
-// Idempotency: records carrying `_idem` (composite key) that already exist in
-// the file are skipped (first-writer-wins); the chain is never re-written.
-function appendEvidence(newRecords, overrideConfigDir) {
-  if (!Array.isArray(newRecords) || newRecords.length === 0) return;
-  const ep = overrideConfigDir
-    ? require('path').join(overrideConfigDir, '.jiahao-evidence')
-    : evidencePath();
-  let existing = [];
-  try {
-    const raw = fs.readFileSync(ep, 'utf8');
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) existing = parsed;
-  } catch (e) { /* no file or invalid — treated as empty genesis */ }
-  // Seed the dedup set from the on-disk sidecar (crash-recovery), then union
-  // with whatever we parse out of the chain itself.
-  const kp = overrideConfigDir
-    ? require('path').join(overrideConfigDir, '.jiahao-evidence.keys')
-    : evidenceKeysPath();
-  const seen = new Set();
-  try {
-    fs.readFileSync(kp, 'utf8').split('\n').forEach(k => { if (k.trim()) seen.add(k.trim()); });
-  } catch (e) { /* no sidecar yet */ }
-  existing.filter(r => r && r._idem).forEach(r => seen.add(r._idem));
-
-  const merged = existing.slice();
-  const appendedKeys = [];
-  for (const rec of newRecords) {
-    if (rec && rec._idem && seen.has(rec._idem)) continue; // idempotent skip
-    // ADR-0013 D1: appended records must chain onto the current tail
-    // (prev_hash == tail.event_hash). Reject mismatched/tampered links here
-    // so the on-disk chain is never polluted mid-write.
-    const tail = merged.length > 0 ? merged[merged.length - 1] : null;
-    const tailHasAnchor = tail && typeof tail.event_hash === 'string' && tail.event_hash.length > 0;
-    const expectedPrev = tailHasAnchor ? tail.event_hash : undefined;
-    if (!tailHasAnchor) {
-      // Genesis / un-chained records: no anchors to compare against, pass through.
-      if (rec && rec._idem) seen.add(rec._idem);
-      if (rec && rec._idem) appendedKeys.push(rec._idem);
-      merged.push(rec);
-      continue;
-    }
-    if (rec && rec.prev_hash !== undefined && rec.prev_hash !== expectedPrev) {
-      try { process.stderr.write(
-        'jiahao gate: appendEvidence skipping record ' + JSON.stringify(rec && rec.gate_id) +
-        ' — prev_hash mismatch (expected ' + expectedPrev + ', got ' + rec.prev_hash + ')\n'
-      ); } catch (e) {}
-      continue;
-    }
-    if (rec && rec._idem) seen.add(rec._idem);
-    if (rec && rec._idem) appendedKeys.push(rec._idem);
-    merged.push(rec);
-  }
-  fs.writeFileSync(ep, JSON.stringify(merged), 'utf8');
-  // Full-rewrite sidecar with the union set (bounded by unique turn keys —
-  // one line per (session, turn, tool) triple, O(k) bytes not O(chain)).
-  const allKeys = merged.filter(r => r && r._idem).map(r => r._idem);
-  fs.writeFileSync(kp, allKeys.join('\n') + '\n', 'utf8');
-}
-
-// Write evidence to file (for Stop hook verdict gate) — legacy replace mode,
-// retained for compat; new code should use appendEvidence.
-function writeEvidence(evidenceChain, overrideConfigDir) {
-  const ep = overrideConfigDir
-    ? require('path').join(overrideConfigDir, '.jiahao-evidence')
-    : evidencePath();
-  const data = JSON.stringify(evidenceChain);
-  fs.writeFileSync(ep, data, 'utf8');
-}
-
-// Clear evidence file (aligned idempotency-key sidecar too when present)
-function clearEvidence(overrideConfigDir) {
-  const ep = overrideConfigDir
-    ? require('path').join(overrideConfigDir, '.jiahao-evidence')
-    : evidencePath();
-  try { fs.unlinkSync(ep); } catch (e) { /* gone */ }
-  const kp = overrideConfigDir
-    ? require('path').join(overrideConfigDir, '.jiahao-evidence.keys')
-    : evidenceKeysPath();
-  try { fs.unlinkSync(kp); } catch (e) { /* gone */ }
-}
-
-// ponytail: hash chain tamper-evidence implemented (ADR-0007). Upgrade path:
-// Ed25519 signatures + Rekor anchoring for cross-organization audit.
-// ponytail: Platt sigmoid calibration implemented (ADR-0008). Upgrade path:
-// isotonic regression (PAVA) when 1000+ labeled samples exist.
-
-module.exports = {
-  TIERS, LEVELS, ESCALATION_BAND,
-  canonicalJSON, recordHash,
-  idempotencyKey, appendEvidence,
-  createTurnInit, finalizeTurnInit,
-  createEvidence, runGate, verify, verifyChain,
-  writeEvidence, clearEvidence,
-};
+module.exports = { runGate, verify, TIERS, LEVELS };

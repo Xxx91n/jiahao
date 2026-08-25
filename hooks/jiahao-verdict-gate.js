@@ -12,9 +12,10 @@
 //       between primary and subagent finish events.
 
 const fs = require('fs');
-const { flagPath, evidencePath } = require('./jiahao-paths');
+const { flagPath, evidencePath } = require('../src/shared/paths');
 const { readProfile } = require('./jiahao-profile');
-const { verifyChain } = require('../src/gate');
+const { createEvidenceLog } = require('../src/evidence-log');
+const evidenceLog = createEvidenceLog();
 
 // If jiahao is off, pass through
 if (!fs.existsSync(flagPath())) {
@@ -53,7 +54,7 @@ process.stdin.on('end', () => {
   // A broken chain is treated as missing evidence in verifier profile
   // (block, exit 2); advisory-only in generator profile.
   if (evidenceChain) {
-    const chainCheck = verifyChain(evidenceChain);
+    const chainCheck = evidenceLog.verify(evidenceChain);
     if (!chainCheck.valid) {
       const msg = 'JIAHAO CHAIN CORRUPTION: evidence chain invalid at ' +
         'index ' + chainCheck.broken_at + ' (' + chainCheck.reason + '). ' +

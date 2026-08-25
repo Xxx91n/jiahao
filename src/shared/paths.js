@@ -1,4 +1,4 @@
-// jiahao-paths.js — shared config path resolution
+// src/shared/paths.js — shared config path resolution
 // Single source of truth for flag/evidence file locations.
 
 const path = require('path');
