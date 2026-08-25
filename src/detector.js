@@ -50,8 +50,13 @@ const _phrasesState = loadPhrases();
 
 function normalize(text) {
   return String(text || "")
+    // ADR-0014 audit fix (industry standard per UTS#18/UAX#15):
+    // NFKC folds fullwidth compat chars (："！"？) to ASCII; \p{P} / \p{Pd}
+    // covers the remaining general + dash punctuation; explicit tail
+    // enumeration only for CJK-specific marks not covered above.
+    .normalize("NFKC")
     .toLowerCase()
-    .replace(/[.,!?;:'"`]/g, " ")
+    .replace(/[\p{P}\p{S}、。〃〈〉《》「」『』【】〔〕…—―]/gu, " ")
     .replace(/\s+/g, " ")
     .trim();
 }

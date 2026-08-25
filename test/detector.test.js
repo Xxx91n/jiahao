@@ -147,3 +147,18 @@ test('ADR-0014 D1: wordlist-only detection degrades to triage(low), never high',
   expect(r.matched_phrases).toContain('搞定了');
   expect(r.severity).toBe('low');            // 词表单独不再升 high
 });
+
+test('ADR-0014 audit: normalize covers CJK fullwidth punctuation (NFKC + \\p{P})', () => {
+  // 行业标准(UTS#18 / UAX#15):NFKC 折全角兼容字符,\p{P}/\p{Pd} 管通用标点,
+  // 只枚举 \p{P} 覆盖不到的 CJK 尾部字符(如 「」、——)。
+  const det = require(path.join(__dirname, '..', 'src', 'detector.js'));
+  // 全角冒号 :  + 顿号、 + 全角句号 。  都不能隔断词
+  const r1 = det.detect('搞定了:注:这是全角冒号');
+  expect(r1.matched_phrases).toContain('搞定了');
+  const r2 = det.detect('差不多了。应该可以');
+  expect(r2.matched_phrases).toContain('差不多了');
+  expect(r2.matched_phrases).toContain('应该可以');
+  const r3 = det.detect('搞定了——跑通了');
+  expect(r3.matched_phrases).toContain('搞定了');
+  expect(r3.matched_phrases).toContain('跑通了');
+});
