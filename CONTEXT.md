@@ -363,6 +363,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0015 benchmark adoption (polygraph-bench) + FAGEN citation calibration
 - ADR-0016 EvidenceLog/GateLadder split + shared core relocation
 - ADR-0017 ESCALATE verdict + human adjudication write-back
+- ADR-0018 calibration flywheel (threshold band + few-shot injection + kappa)
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -403,3 +404,41 @@ Record may overrule any machine verdict; every override is simultaneously an
 audit record and a calibration negative sample, so the detector learns from
 each overrule instead of the overrule disappearing.
 _Avoid_: admin override, force pass (those erase the contest history)
+
+**Calibration Flywheel (校准飞轮)**:
+The closed loop that reads Human Verdict Records back into the verifier
+(write path was closed by ADR-0017 D2; the read-back half is ADR-0018).
+Composed of Threshold Band (Layer 0) and Few-Shot Calibration Injection
+(Layer 2), measured by Kappa Governance. R5 on the verification maturity
+ladder.
+_Avoid_: feedback loop, self-learning verifier (no model weights are
+touched; write-back media are examples and decision boundaries, not
+gradients)
+
+**Threshold Band (阈值带)**:
+Dual boundary replacing a single confidence cut (maf-evals pattern): floor
+(blocking) + target (warning). Scores inside the band warn instead of
+verdicting — "a single cut-off turns anything near it into a coin flip".
+Derived from the Platt fit by deriveThresholds; recomputation is explicit,
+never silent (ADR-0018 D2).
+_Avoid_: auto-tuned threshold, single cut-off, hysteresis (a band is a
+decision boundary pair, not a dynamic feedback controller)
+
+**Few-Shot Calibration Injection (few-shot 校准注入)**:
+Read-back channel that injects up to 5 randomly sampled human-verdict
+examples (reason field mandatory — a correction without a stated reason is
+a wasted signal) into the Level-4 critic prompt per verify call
+(ADR-0018 D3; LangSmith Align Evals defaults). Omitted entirely below ~10
+eligible calibration points.
+_Avoid_: RAG retrieval, fine-tuning, rubric rewriting (injection is
+bounded example replay, not learned retrieval and not rubric auto-revision)
+
+**Kappa Governance (κ 一致性治理)**:
+Measurement layer of the Calibration Flywheel: Cohen's κ + confusion
+matrix + per-class precision/recall over paired machine/human verdicts from
+the chain; raw agreement is never reported alone (90% raw agreement can
+mean κ≈−0.05 under class imbalance). Drift alert RE-ALIGN fires when
+Δκ ≥ 0.05 vs last baseline or κ < 0.40. Advisory-only telemetry, never
+blocking (ADR-0018 D4).
+_Avoid_: accuracy target, raw agreement dashboard (both collapse under
+imbalanced verdict distributions)
