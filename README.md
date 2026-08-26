@@ -130,7 +130,7 @@ generated from the same `src/SKILL.md`.
 ## Develop
 
 ```bash
-npm test                              # 90 tests across 8 suites
+npm test                              # 134 tests across 12 suites
 node scripts/build-adapters.js        # regenerate 11 adapter files
 node scripts/check-drift.js           # CI drift check + profile purity
 ```
