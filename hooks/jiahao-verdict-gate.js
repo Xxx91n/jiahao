@@ -15,6 +15,7 @@ const fs = require('fs');
 const { flagPath, evidencePath } = require('../src/shared/paths');
 const { readProfile } = require('./jiahao-profile');
 const { createEvidenceLog } = require('../src/evidence-log');
+const { kappaAdvisory, loadKappaBaseline } = require('../src/calibration');
 const evidenceLog = createEvidenceLog();
 
 // If jiahao is off, pass through
@@ -82,6 +83,13 @@ process.stdin.on('end', () => {
       pendingText = ' Pending escalations: ' + pending +
         ' (advisory — resolve via: jiahao resolve --verdict pass|fail --reason <text> --reviewer <id>).';
     }
+  }
+
+  // ADR-0018 D4: κ governance RE-ALIGN advisory (never changes exit codes).
+  if (evidenceChain) {
+    try {
+      pendingText += kappaAdvisory(evidenceChain, loadKappaBaseline());
+    } catch (e) { /* advisory must never break the gate */ }
   }
 
   // ---- Case A: no evidence at all --------------------------------------

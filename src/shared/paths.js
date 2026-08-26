@@ -25,4 +25,10 @@ function profilePath() {
   return path.join(configDir(), '.jiahao-profile');
 }
 
-module.exports = { configDir, flagPath, evidencePath, evidenceKeysPath, profilePath };
+// ADR-0018 D4: κ governance baseline (written manually via scripts/kappa.js
+// --save-baseline; hooks only read it).
+function kappaBaselinePath() {
+  return path.join(configDir(), '.jiahao-kappa-baseline.json');
+}
+
+module.exports = { configDir, flagPath, evidencePath, evidenceKeysPath, profilePath, kappaBaselinePath };

@@ -83,8 +83,8 @@ function calibrateScore(score, model) {
 // Derive escalation band thresholds from calibrated model at target precision.
 // targetPrecision: desired P(pass|calibrated_score) at the high threshold.
 // Returns { low, high } calibrated thresholds, or STATIC_BAND if no model.
-function deriveThresholds(model, targetPrecision) {
-  if (!model) return { ...STATIC_BAND };
+function deriveThresholds(model, targetPrecision, floorPrecision) {
+  if (!model) return { ...STATIC_BAND, floor: STATIC_BAND.low, target: STATIC_BAND.high };
 
   // High threshold: solve calibrateScore(s, model) = targetPrecision
   // 1/(1+exp(a*s+b)) = targetPrecision => a*s+b = ln(1/targetPrecision - 1)
@@ -96,11 +96,18 @@ function deriveThresholds(model, targetPrecision) {
   const logitLow = Math.log(1 / (1 - tp) - 1);
   const low = (logitLow - model.b) / model.a;
 
-  // Clamp to [0, 1]
-  return {
-    low: Math.max(0, Math.min(1, Math.min(low, high))),
-    high: Math.max(0, Math.min(1, Math.max(low, high))),
-  };
+  // ADR-0018 D2: floor/target dual boundary (maf-evals pattern).
+  // floor = blocking boundary (calibrated P(pass) < floorPrec -> block),
+  // target = warning boundary; scores inside the band are warnings.
+  const fp_ = floorPrecision || 0.5;
+  const logitFloor = Math.log(1 / fp_ - 1);
+  const floor = (logitFloor - model.b) / model.a;
+
+  // Clamp to [0, 1]; low/high kept = floor/target for back-compat
+  const lo = Math.max(0, Math.min(1, Math.min(low, high)));
+  const hi = Math.max(0, Math.min(1, Math.max(low, high)));
+  const fl = Math.max(0, Math.min(1, Math.min(floor, high)));
+  return { low: lo, high: hi, floor: fl, target: hi };
 }
 
 // Compute Expected Calibration Error (ECE) for monitoring.
@@ -132,6 +139,142 @@ function computeECE(points, model, nBins) {
   return ece;
 }
 
+
+// ---- ADR-0018: calibration flywheel (read path) ----
+
+const crypto = require('crypto');
+
+// Judge version: bump when the critic prompt changes; kappa reports are
+// versioned per judge prompt hash (maf-evals: recalibrate after judge change).
+const JUDGE_VERSION = 'critic-v1';
+
+// Fraction of eligible human-verdict points required before few-shot
+// injection is allowed (fail-open below this, same posture as fitPlatt's
+// >=10 guard).
+const FEWSHOT_MIN_POINTS = 10;
+const FEWSHOT_TOP_K = 5;
+
+// Select up to k human adjudications with a stated reason, random sample.
+// Source = the evidence chain (human_verdict records carry reason +
+// corrected_output; the calibration JSONL points do not).
+function selectFewShotExamples(chain, opts) {
+  const k = (opts && opts.k) || FEWSHOT_TOP_K;
+  const rng = (opts && opts.rng) || Math.random;
+  const eligible = (chain || []).filter(r =>
+    r && r.kind === 'human_verdict' && typeof r.reason === 'string' && r.reason.trim().length > 0);
+  if (eligible.length < FEWSHOT_MIN_POINTS) return []; // fail-open: omit section entirely
+  const pool = eligible.slice();
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    const tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
+  }
+  return pool.slice(0, k);
+}
+
+// Format the calibration-example injection section for the Level-4 critic
+// prompt. Returns '' when there is nothing to inject (fail-open).
+function formatFewShotSection(examples) {
+  if (!examples || examples.length === 0) return '';
+  const lines = ['## Calibration examples (human adjudications of prior verdicts)'];
+  for (const ex of examples) {
+    lines.push('- verdict: ' + ex.verdict + ' | reason: ' + ex.reason +
+      (ex.corrected_output ? ' | corrected: ' + ex.corrected_output : ''));
+  }
+  return lines.join('\n');
+}
+
+// Fingerprint of the current critic prompt family (judge versioning).
+function judgePromptHash(section) {
+  return crypto.createHash('sha256')
+    .update(JUDGE_VERSION + '\n' + (section || ''))
+    .digest('hex').slice(0, 16);
+}
+
+// Extract paired machine/human verdicts from a chain: each human_verdict is
+// paired with the latest preceding machine record (status passed/failed).
+function extractKappaPairs(chain) {
+  const pairs = [];
+  let lastMachine = null;
+  for (const rec of chain || []) {
+    if (!rec || typeof rec !== 'object') continue;
+    if (rec.kind === 'human_verdict') {
+      if (lastMachine) {
+        pairs.push({ machine: lastMachine.status, human: rec.verdict });
+        // lastMachine is NOT consumed: resolve.js pairs every adjudication
+        // with the latest machine record in the chain; κ sees all pairs.
+      }
+      continue;
+    }
+    if (rec.status === 'passed' || rec.status === 'failed') lastMachine = rec;
+  }
+  return pairs;
+}
+
+// Cohen's kappa over binary verdict pairs (machine pass vs human pass).
+// Cohen 1960; zero-dependency, mirrors fitPlatt precedent.
+function computeKappa(pairs) {
+  if (!pairs || pairs.length === 0) return null;
+  let a = 0, b = 0, c = 0, d = 0;
+  for (const p of pairs) {
+    const mPass = p.machine === 'passed';
+    const hPass = p.human === 'pass';
+    if (mPass && hPass) a++;        // agree pass
+    else if (!mPass && !hPass) d++; // agree fail
+    else if (mPass && !hPass) b++;  // machine pass, human fail
+    else c++;                       // machine fail, human pass
+  }
+  const n = a + b + c + d;
+  const po = (a + d) / n;
+  const pMachine = (a + b) / n, pHuman = (a + c) / n;
+  const pe = pMachine * pHuman + (1 - pMachine) * (1 - pHuman);
+  const kappa = pe >= 1 ? null : (po - pe) / (1 - pe); // undefined if only one class
+  return {
+    n: n,
+    agreement: po,
+    kappa: kappa,
+    confusion: { agree_pass: a, machine_pass_human_fail: b, machine_fail_human_pass: c, agree_fail: d },
+    precision: a + b > 0 ? a / (a + b) : null,  // of machine 'passed'
+    recall: a + c > 0 ? a / (a + c) : null,     // of human 'pass' accepted by machine
+  };
+}
+
+// ADR-0018 D4: RE-ALIGN triggers (advisory only, never blocking):
+//   kappa < 0.40                     (below governance floor)
+//   baseline.kappa - current >= 0.05 (drift vs last recorded baseline)
+function kappaAlert(report, baseline) {
+  if (!report || report.kappa === null) return null;
+  if (report.kappa < 0.40) {
+    return 'RE-ALIGN: kappa ' + report.kappa.toFixed(3) + ' < 0.40 floor' +
+      ' (n=' + report.n + '). Recalibrate the critic (jiahao calibrate / human review).';
+  }
+  if (baseline && typeof baseline.kappa === 'number') {
+    const delta = baseline.kappa - report.kappa;
+    if (delta >= 0.05) {
+      return 'RE-ALIGN: kappa dropped ' + delta.toFixed(3) + ' vs baseline ' +
+        baseline.kappa.toFixed(3) + ' (judge ' + (baseline.judge_hash || '?') + ').';
+    }
+  }
+  return null;
+}
+
+// Load the manually-saved κ baseline (see scripts/kappa.js). Never written
+// from hooks — baseline updates are explicit, per ADR-0018 D2 governance.
+function loadKappaBaseline() {
+  try {
+    return JSON.parse(fs.readFileSync(
+      require('./shared/paths').kappaBaselinePath(), 'utf8'));
+  } catch (e) { return null; }
+}
+
+// One-shot advisory line for the verdict-gate hook: extract pairs from the
+// chain, compute kappa, compare to baseline. Advisory string or ''.
+function kappaAdvisory(chain, baseline) {
+  const report = computeKappa(extractKappaPairs(chain));
+  if (!report) return '';
+  const alert = kappaAlert(report, baseline);
+  return alert ? ' ' + alert : '';
+}
+
 module.exports = {
   STATIC_BAND,
   calibrationLogPath,
@@ -141,4 +284,15 @@ module.exports = {
   calibrateScore,
   deriveThresholds,
   computeECE,
+  JUDGE_VERSION,
+  FEWSHOT_MIN_POINTS,
+  FEWSHOT_TOP_K,
+  selectFewShotExamples,
+  formatFewShotSection,
+  judgePromptHash,
+  extractKappaPairs,
+  computeKappa,
+  kappaAlert,
+  kappaAdvisory,
+  loadKappaBaseline,
 };

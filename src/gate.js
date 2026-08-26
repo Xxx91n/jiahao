@@ -24,12 +24,12 @@ const LEVELS = {
 // so the ladder stays fs-free while emitting the same record shape as before.
 
 // Run a single gate check
-function runGate(check, gateType) {
+function runGate(check, gateType, context) {
   if (typeof check !== 'function') {
     return { passed: false, detail: 'no check function', confidence: 0 };
   }
   try {
-    const result = check();
+    const result = check(context);
     return result;
   } catch (e) {
     return { passed: false, detail: e.message, confidence: 0, decisive: false };
@@ -37,8 +37,16 @@ function runGate(check, gateType) {
 }
 
 // The combination ladder: short-circuit + escalate
-function verify(claims, gates) {
+function verify(claims, gates, opts) {
   // gates = { deterministic: [fn, ...], checklist: [fn, ...], llm_critic: fn }
+  // opts.band (ADR-0018 D2): { floor, target } — calibrated escalation band
+  //   overrides ESCALATION_BAND when present (floor->low, target->high).
+  // opts.fewShotSection (ADR-0018 D3): pre-formatted calibration-example
+  //   section injected into the llm_critic call context (construction-point
+  //   injection; gate.js stays fs-free — selection/format is calibration.js).
+  const band = (opts && opts.band)
+    ? { low: opts.band.floor, high: opts.band.target }
+    : ESCALATION_BAND;
   // Returns { verdict, tier, evidence_chain, unchecked }
 
   const evidenceChain = [];
@@ -103,10 +111,10 @@ function verify(claims, gates) {
   if (evidenceChain.length > 0) {
     const lastConfidence = evidenceChain[evidenceChain.length - 1].confidence;
     if (lastConfidence !== null && lastConfidence !== undefined) {
-      if (lastConfidence < ESCALATION_BAND.low) {
+      if (lastConfidence < band.low) {
         // Low confidence but passed = still uncertain, escalate
         needsEscalation = true;
-      } else if (lastConfidence > ESCALATION_BAND.high) {
+      } else if (lastConfidence > band.high) {
         // High confidence pass = no escalation needed
         needsEscalation = false;
       }
@@ -115,7 +123,11 @@ function verify(claims, gates) {
 
   // Level 4: LLM critic (only for escalated cases)
   if (needsEscalation && gates.llm_critic) {
-    const result = runGate(gates.llm_critic, LEVELS.LLM_CRITIC);
+    const criticContext = {
+      claims: claims.slice(),
+      few_shot_section: (opts && opts.fewShotSection) || '',
+    };
+    const result = runGate(gates.llm_critic, LEVELS.LLM_CRITIC, criticContext);
     // ADR-0017 D1: an exercised-but-indecisive critic (returns
     // decisive:false, or threw) emits ESCALATE, never NOT VERIFIED.
     const indecisive = result.decisive === false;
