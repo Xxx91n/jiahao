@@ -114,3 +114,33 @@ test('verify produces hash-chained evidence', () => {
   const chainResult = verifyChain(result.evidence_chain);
   expect(chainResult.valid).toBe(true);
 });
+
+
+test('ADR-0017: indecisive LLM critic (decisive:false) = ESCALATE', () => {
+  const result = verify(
+    ['claim1'],
+    {
+      deterministic: [() => ({ passed: true, detail: 'weak signal', confidence: 0.5 })],
+      llm_critic: () => ({ passed: false, detail: 'conflicting evidence', confidence: null, decisive: false }),
+    }
+  );
+  expect(result.verdict).toBe('ESCALATE');
+  expect(result.tier).toBe(TIERS.UNVERIFIED);
+  expect(result.reason).toContain('jiahao resolve');
+  const last = result.evidence_chain[result.evidence_chain.length - 1];
+  expect(last.status).toBe('inconclusive');
+  expect(last.gate_type).toBe('llm-critic');
+});
+
+
+test('ADR-0017: LLM critic throwing = ESCALATE (error counts as indecisive)', () => {
+  const result = verify(
+    ['claim1'],
+    {
+      deterministic: [() => ({ passed: true, detail: 'weak signal', confidence: 0.5 })],
+      llm_critic: () => { throw new Error('critic timeout'); },
+    }
+  );
+  expect(result.verdict).toBe('ESCALATE');
+  expect(result.evidence_chain[result.evidence_chain.length - 1].status).toBe('inconclusive');
+});

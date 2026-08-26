@@ -30,6 +30,7 @@ function usage() {
     pkg.name + ' v' + pkg.version + ' — install .jiahao-profile flag',
     '',
     'Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]',
+    '       jiahao resolve [--verdict pass|fail --reason <text> --reviewer <id>]',
     '',
     'Writes ONLY ' + profilePath(),
     'Tier 0 manual: echo "verifier" > ' + profilePath(),
@@ -45,6 +46,10 @@ async function main() {
 
   // commander convention (atomcode-cli-ux): unknown bare subcommand -> exit 1.
   const sub = args.find(a => !a.startsWith('-'));
+  if (sub === 'resolve') {
+    // ADR-0017 D2: human adjudication write-back (see scripts/resolve.js)
+    return require('./resolve.js').run(args.slice(args.indexOf('resolve') + 1));
+  }
   if (sub && sub !== 'init') {
     console.error("error: unknown command '" + sub + "'");
     console.error(usage());

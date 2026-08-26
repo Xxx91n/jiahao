@@ -68,6 +68,22 @@ process.stdin.on('end', () => {
     }
   }
 
+
+  // ADR-0017 D4: count inconclusive llm_critic records not yet covered
+  // by a later human_verdict record. Advisory only — never changes exit codes.
+  let pendingText = '';
+  if (evidenceChain) {
+    let pending = 0;
+    for (const rec of evidenceChain) {
+      if (rec && rec.kind === 'human_verdict') { pending = 0; continue; }
+      if (rec && rec.gate_type === 'llm-critic' && rec.status === 'inconclusive') pending++;
+    }
+    if (pending > 0) {
+      pendingText = ' Pending escalations: ' + pending +
+        ' (advisory — resolve via: jiahao resolve --verdict pass|fail --reason <text> --reviewer <id>).';
+    }
+  }
+
   // ---- Case A: no evidence at all --------------------------------------
   // Behaviour unchanged from ADR-0010: block verifier, advisory generator.
   if (!evidenceChain) {
@@ -114,7 +130,7 @@ process.stdin.on('end', () => {
           'JIAHAO ADVISORY (' + highestSeverity + '): completion language ' +
           'matched [' + matchedPhrases.slice(0, 5).join(', ') + ']. ' +
           'Detector is a triage signal, not proof — check that state ' +
-          'changes were actually observed.',
+          'changes were actually observed.' + pendingText,
       }));
     }
     process.exit(0);
@@ -133,7 +149,7 @@ process.stdin.on('end', () => {
         'JIAHAO VERIFIER BLOCK (high severity): completion-language detector ' +
         'matched [' + matchedPhrases.slice(0, 5).join(', ') + '] on the ' +
         'evidence chain. Re-verify the underlying state changes with rung ' +
-        '1-3 of the ladder before allowing this stop.',
+        '1-3 of the ladder before allowing this stop.' + pendingText,
     }));
     process.exit(2);
   }
@@ -143,7 +159,7 @@ process.stdin.on('end', () => {
       decision: 'allow',
       systemMessage:
         'JIAHAO ADVISORY (low): soft completion language matched [' +
-        matchedPhrases.slice(0, 5).join(', ') + ']. Advisory only.',
+        matchedPhrases.slice(0, 5).join(', ') + '].' + pendingText,
     }));
     process.exit(0);
   }
@@ -151,6 +167,10 @@ process.stdin.on('end', () => {
 // No suspicion on any record
   // D4: do NOT consume the evidence file. Idempotent under repeat Stop /
   // SubagentStop fire.
+  // ADR-0017 D4: pending escalations surface even on the quiet path.
+  if (pendingText) {
+    console.log(JSON.stringify({ decision: 'allow', systemMessage: 'JIAHAO:' + pendingText }));
+  }
   process.exit(0);
 });
 

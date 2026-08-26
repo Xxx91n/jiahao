@@ -32,6 +32,13 @@ profile to keep tokens cheap while still blocking the worst self-deception.
 5. Independent LLM critic (weakest rung — triage signal only)
 6. NOT VERIFIED (honest, complete verdict)
 
+If rung 5 runs but ends indecisive (error, timeout, contradictory), the
+gate emits **ESCALATE** instead of passing silently — an advisory-only
+fourth verdict routing the claims to human adjudication via
+`jiahao resolve --verdict pass|fail --reason <text> --reviewer <id>`
+(ADR-0017). Human verdicts write back as append-only `human_verdict`
+records in the same hash chain and feed the calibration loop.
+
 ## Install
 
 ### CLI installer (Tier 1, recommended)
@@ -41,6 +48,8 @@ npx jiahao init                      # interactive profile prompt
 npx jiahao init --profile verifier   # non-interactive (CI-safe)
 npx jiahao init -y                   # accept default (verifier)
 npx jiahao init --dry-run            # print, do not write
+npx jiahao resolve                   # phase 1: preview evidence (no machine verdict shown)
+npx jiahao resolve --verdict pass --reason "tests re-run green" --reviewer alice
 ```
 
 The CLI writes only `.jiahao-profile`. Adapter files are distributed by
@@ -129,13 +138,14 @@ node scripts/check-drift.js           # CI drift check + profile purity
 ## Architecture
 
 - `src/SKILL.md` — single source of truth (generator + verifier + shared Boundaries)
-- `src/gate.js` — verification gate combination ladder
+- `src/gate.js` — verification gate combination ladder (PASS / FAIL / ESCALATE / NOT VERIFIED)
+- `scripts/resolve.js` — human adjudication CLI (two-phase anti-anchoring write-back)
 - `hooks/jiahao-profile.js` — profile module (SSOT for split + select)
 - `hooks/` — 6 hook scripts + hooks.json + runtime.js
 - `adapters/` — 11 host adapters (generated)
 - `jiahao-mcp/` — MCP-only adapter (profile parameter)
-- `docs/adr/` — 15 architecture decision records (0010 = dual-profile; 0011 = deployment discipline; 0012 = detector verdict + hook idempotency; 0013 = cross-turn chain + idempotency key; 0014 = wordlist migration + structural signals; 0015 = benchmark adoption + citation calibration)
-- `test/` — 8 test suites, 90 tests
+- `docs/adr/` — 17 architecture decision records (0010 = dual-profile; 0011 = deployment discipline; 0012 = detector verdict + hook idempotency; 0013 = cross-turn chain + idempotency key; 0014 = wordlist migration + structural signals; 0015 = benchmark adoption + citation calibration; 0016 = evidence-log/gate split; 0017 = escalate verdict + human adjudication)
+- `test/` — 12 test suites, 134 tests
 
 ## License
 

@@ -32,7 +32,7 @@ function runGate(check, gateType) {
     const result = check();
     return result;
   } catch (e) {
-    return { passed: false, detail: e.message, confidence: 0 };
+    return { passed: false, detail: e.message, confidence: 0, decisive: false };
   }
 }
 
@@ -116,13 +116,27 @@ function verify(claims, gates) {
   // Level 4: LLM critic (only for escalated cases)
   if (needsEscalation && gates.llm_critic) {
     const result = runGate(gates.llm_critic, LEVELS.LLM_CRITIC);
+    // ADR-0017 D1: an exercised-but-indecisive critic (returns
+    // decisive:false, or threw) emits ESCALATE, never NOT VERIFIED.
+    const indecisive = result.decisive === false;
     const evidence = createRecord(
       'llm-0', LEVELS.LLM_CRITIC,
-      result.passed ? 'passed' : 'failed',
+      indecisive ? 'inconclusive' : (result.passed ? 'passed' : 'failed'),
       result.detail, result.confidence, prevHash
     );
     prevHash = evidence.event_hash;
     evidenceChain.push(evidence);
+
+    if (indecisive) {
+      return {
+        verdict: 'ESCALATE',
+        tier: TIERS.UNVERIFIED,
+        evidence_chain: evidenceChain,
+        unchecked: claims.slice(),
+        reason: 'LLM critic exercised but indecisive: ' + result.detail +
+                ' — route to human adjudication (jiahao resolve)',
+      };
+    }
 
     if (result.passed) {
       return {

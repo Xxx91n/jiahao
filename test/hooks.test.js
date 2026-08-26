@@ -385,3 +385,19 @@ test('ADR-0013 D4: verdict-gate blocks on broken chain (verifier)', () => {
     process.chdir(origDir);
   }
 });
+
+
+test('ADR-0017: verifier gate surfaces pending escalation count (advisory, exit 0)', () => {
+  fs.writeFileSync(TMP + '/.jiahao-profile', 'verifier\n', 'utf8');
+  fs.writeFileSync(TMP + '/.jiahao-active', 'on\n', 'utf8');
+  const det = createEvidence('det-0', 'deterministic', 'passed', 'tests ok', 0.5, null);
+  const llm = createEvidence('llm-0', 'llm-critic', 'inconclusive', 'critic timed out', null, det.event_hash);
+  fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify([det, llm]), 'utf8');
+
+  const input = JSON.stringify({});
+  const output = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
+    encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 5000, shell: 'bash',
+  });
+  expect(output).toContain('Pending escalations: 1');
+  expect(output).toContain('jiahao resolve');
+});

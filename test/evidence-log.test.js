@@ -160,3 +160,32 @@ test('ADR-0013 D3: appendEvidence rejects records whose prev_hash does not match
   expect(chain[0].gate_id).toBe('det-0');
 });
 
+
+
+test('ADR-0017: human_verdict record appends and chain stays valid', () => {
+  const dir = TMP + '/hv-' + Date.now();
+  fs.mkdirSync(dir, { recursive: true });
+  const log = createEvidenceLog(dir);
+  const det = createEvidence('det-0', 'deterministic', 'passed', 'tests ok', 0.9);
+  log.append([det]);
+
+  const hv = {
+    kind: 'human_verdict',
+    reviewer_id: 'alice',
+    verdict: 'fail',
+    reason: 'critic timed out; diff shows missing migration',
+    corrected_output: null,
+    second_reviewer: null,
+    overturn: true,
+    timestamp: new Date().toISOString(),
+    prev_hash: det.event_hash,
+  };
+  hv.event_hash = recordHash(hv);
+  log.append([hv]);
+
+  const chain = log.readAll();
+  expect(chain).toHaveLength(2);
+  expect(chain[1].kind).toBe('human_verdict');
+  expect(chain[1].reviewer_id).toBe('alice');
+  expect(verifyChain(chain).valid).toBe(true);
+});
