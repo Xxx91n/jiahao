@@ -362,3 +362,44 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0014 wordlist migration out of cwd + structural-signal primary
 - ADR-0015 benchmark adoption (polygraph-bench) + FAGEN citation calibration
 - ADR-0016 EvidenceLog/GateLadder split + shared core relocation
+- ADR-0017 ESCALATE verdict + human adjudication write-back
+
+**Escalate Verdict (升级裁决)**:
+Fourth ladder verdict emitted when the llm_critic rung is exercised but
+cannot produce a decisive answer. Advisory-only: it never blocks, but the
+verdict-gate hook surfaces a pronounced warning and counts it as a Pending
+Escalation. NOT VERIFIED is removed as the escape hatch for an exercised-
+but-inconclusive critic (ADR-0017 D1).
+_Avoid_: soft fail, warning verdict, inconclusive (Escalate Verdict is a
+routing decision to a human, not a weaker failure)
+
+**Human Verdict Record (人审裁决记录)**:
+Append-only EvidenceLog record (kind 'human_verdict') written by
+`jiahao resolve`; carries reviewer_id, enum-validated verdict, reason,
+optional corrected_output assertion, and a reserved second_reviewer field.
+It is both audit evidence and an ADR-0008 calibration training point, and it
+may overturn a machine verdict (the overturned verdict becomes a calibration
+negative sample).
+_Avoid_: edit in place, sidecar annotation, approval comment (rewriting
+trips the hash chain; side-by-side storage breaks auditability)
+
+**Pending Escalation (未决升级)**:
+Count of Escalate Verdict records in the chain that have no matching Human
+Verdict Record yet. Advisory state only — surfaced in hook output, never a
+blocking condition (ADR-0017 D4).
+_Avoid_: escalation debt queue, review backlog SLA (no threshold-based
+blocking exists; see D5)
+
+**Anti-Anchoring Two-Phase (防锚定两阶段)**:
+The resolve CLI flow mandated by ADR-0017 D2: phase 1 shows raw evidence
+records and the critic's stated reasons; phase 2 collects the human verdict.
+The machine never pre-shows a conclusion, because shown machine answers
+induce rubber-stamping even when wrong (arXiv:2606.29033).
+_Avoid_: confirm dialog, default suggestion, verify-and-correct UI
+
+**Human Override (人审覆盖)**:
+Convention (jihao-original, no industry precedent) that a Human Verdict
+Record may overrule any machine verdict; every override is simultaneously an
+audit record and a calibration negative sample, so the detector learns from
+each overrule instead of the overrule disappearing.
+_Avoid_: admin override, force pass (those erase the contest history)
