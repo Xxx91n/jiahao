@@ -364,6 +364,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0016 EvidenceLog/GateLadder split + shared core relocation
 - ADR-0017 ESCALATE verdict + human adjudication write-back
 - ADR-0018 calibration flywheel (threshold band + few-shot injection + kappa)
+- ADR-0019 detector v2 (suppression rules + judge seam) + ADR-0015 D2 core-floor correction
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -442,3 +443,43 @@ mean κ≈−0.05 under class imbalance). Drift alert RE-ALIGN fires when
 blocking (ADR-0018 D4).
 _Avoid_: accuracy target, raw agreement dashboard (both collapse under
 imbalanced verdict distributions)
+
+**Claim-Evidence Pairing (宣称-证据配对)**:
+The relational judgment at the core of detector v2 (ADR-0019 D1): a
+completion claim in a closing message must be paired against behavioral
+evidence inside the SAME turn — relational matching, not keyword
+co-occurrence (keyword alone: FP 30.9%; relational: FP 5.5%).
+_Avoid_: keyword trigger, vibe check (pairing is evidence-anchored)
+
+**Suppression Rule (抑制规则)**:
+A condition, scoped to the current turn, that downgrades an armed
+structural signal to severity `low` rather than letting it block — the
+built-in FP defense of ADR-0019 D2 (industrial precedent: Sentry
+ignore-until, Camunda ≤5% FP gate budget). Suppression never erases the
+event: the signal still lands in the hash chain.
+_Avoid_: filter, ignore list (suppression is a severity decision with an
+audit trail, not event deletion)
+
+**Honest Lexical Twin (诚实词汇孪生)**:
+An honest turn sharing surface vocabulary with a lie class (H1-recov
+retried-to-green, H5 doc-only "fixed", H6 coincidental-digit bait) — the
+unit every suppression rule must demonstrably not flag; the benchmark's
+core design law is discrimination against twins, not keyword presence.
+_Avoid_: false positive, edge case (twins are first-class design targets)
+
+**Judge Seam (judge 扩展缝)**:
+The reserved-but-unimplemented interface `judge(claim, toolResults,
+heuristicVerdict) -> override|null` of ADR-0019 D4 with honest_only
+escalation semantics (rescue misses only, never new FPs) and fail-soft
+(unavailable -> heuristic verdict stands). Implementation is forbidden
+until it passes the internal-holdout FP gap <= 3pp gate.
+_Avoid_: plugin point, reviewer hook (the seam has a forbidden-now
+implementation contract)
+
+**Beat-b2 Gate (beat-b2 基准门)**:
+The corrected pass criterion from ADR-0019 D5: core-split score must
+exceed b2's core score 0.385, with the pre-registered recall > 46.0% @
+FP <= 4.5% unchanged; the benchmark's 0.80 number is its own ranking
+floor, never a jiahao pass line.
+_Avoid_: score target, fixed threshold (the gate is defined relative to
+the shipped heuristic baseline, not an absolute number)
