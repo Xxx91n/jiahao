@@ -2,8 +2,7 @@
 const path = require('path');
 const fs = require('fs');
 const { detect } = require(path.join(__dirname, '..', 'src', 'detector.js'));
-const { createEvidenceLog, verifyChain } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
-const createEvidence = createEvidenceLog().createRecord;
+const { createRecord: createEvidence, verifyChain } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
 
 test('detects high-severity Chinese completion claims', () => {
   const r = detect('搞定了，全做完了');

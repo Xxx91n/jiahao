@@ -5,8 +5,7 @@ const { execSync } = require('child_process');
 const TMP = require('os').tmpdir().replace(/\\/g, '/') + '/jiahao-hooks-test';
 
 const hooksDir = path.join(__dirname, '..', 'hooks');
-const { createEvidenceLog } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
-const createEvidence = createEvidenceLog().createRecord;
+const { createRecord: createEvidence } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
 const { detect } = require(path.join(__dirname, '..', 'src', 'detector.js'));
 
 // Clean slate before each hooks test to prevent profile/flag leakage
@@ -366,8 +365,7 @@ test('ADR-0013 D4: verdict-gate blocks on broken chain (verifier)', () => {
   process.chdir(path.join(__dirname, '..'));
   fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
   fs.writeFileSync(TMP + '/.jiahao-profile', 'verifier', 'utf8');
-  const { createEvidenceLog } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
-const createEvidence = createEvidenceLog().createRecord;
+  const { createRecord: createEvidence } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
   const rec = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null);
   rec.prev_hash = 'f'.repeat(64); // tamper: repoint genesis prev_hash
   fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify([rec]), 'utf8');

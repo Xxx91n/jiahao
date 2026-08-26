@@ -4,8 +4,8 @@
 // ADR-0012 rewrite:
 //   D2  profile × severity decision branch (generator always advisory;
 //       verifier blocks only on no-evidence or high-severity suspicion).
-//   D4  idempotent rounds: NEVER unlinkSync the evidence file. The file is
-//       a replace-not-append overwrite per turn (see gate.js#writeEvidence),
+//   D4  idempotent rounds: NEVER unlinkSync the evidence file. The chain is
+//       append-only with sidecar idempotency (see src/evidence-log.js),
 //       so the second Stop / SubagentStop fire sees the same chain and the
 //       same verdict.
 //   D5  registered for both Stop and SubagentStop in hooks.json — parity

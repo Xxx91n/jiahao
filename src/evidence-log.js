@@ -73,9 +73,46 @@ function finalizeTurnInit(init) {
 }
 
 module.exports = {
-  createEvidenceLog, ESCALATION_BAND, idempotencyKey,
+  createEvidenceLog, ESCALATION_BAND, idempotencyKey, createRecord,
   canonicalJSON, recordHash, verifyChain, createTurnInit, finalizeTurnInit,
 };
+
+// createRecord is pure (no fs, no closure state) — module-level per ADR-0016 double-track.
+
+function createRecord(gateId, gateType, status, detail, confidence, prevHash, extras) {
+  const record = {
+gate_id: gateId,
+gate_type: gateType,
+status: status,
+evidence_ref: crypto.createHash('sha256').update(detail).digest('hex').slice(0, 16),
+detail: detail,
+confidence: confidence || null,
+threshold: ESCALATION_BAND,
+timestamp: new Date().toISOString(),
+prev_hash: prevHash || null,
+  };
+  if (extras && typeof extras === 'object') {
+if (extras.detector && typeof extras.detector === 'object') {
+  // Keep only the D1 tuple { suspicious, matched_phrases, severity };
+  // drop family_hits so the on-chain shape stays stable across detector
+  // upgrades.
+  const d = extras.detector;
+  record.detector = {
+    suspicious: !!d.suspicious,
+    matched_phrases: Array.isArray(d.matched_phrases) ? d.matched_phrases.slice() : [],
+    severity: d.severity === 'high' || d.severity === 'low' ? d.severity : null,
+  };
+}
+if (typeof extras.session_id === 'string' && extras.session_id.length > 0) {
+  record.session_id = extras.session_id;
+}
+if (typeof extras.turn_id === 'string' && extras.turn_id.length > 0) {
+  record.turn_id = extras.turn_id;
+}
+  }
+  record.event_hash = recordHash(record);
+  return record;
+}
 
 function createEvidenceLog(overrideConfigDir) {
   const ep = overrideConfigDir
@@ -85,42 +122,6 @@ function createEvidenceLog(overrideConfigDir) {
     ? path.join(overrideConfigDir, '.jiahao-evidence.keys')
     : evidenceKeysPath();
 
-  // ADR-0012 D1: optional extras ({ detector, session_id, turn_id }) are
-  // attached BEFORE hashing so the detector verdict is tamper-evident too.
-  function createRecord(gateId, gateType, status, detail, confidence, prevHash, extras) {
-    const record = {
-      gate_id: gateId,
-      gate_type: gateType,
-      status: status,
-      evidence_ref: crypto.createHash('sha256').update(detail).digest('hex').slice(0, 16),
-      detail: detail,
-      confidence: confidence || null,
-      threshold: ESCALATION_BAND,
-      timestamp: new Date().toISOString(),
-      prev_hash: prevHash || null,
-    };
-    if (extras && typeof extras === 'object') {
-      if (extras.detector && typeof extras.detector === 'object') {
-        // Keep only the D1 tuple { suspicious, matched_phrases, severity };
-        // drop family_hits so the on-chain shape stays stable across detector
-        // upgrades.
-        const d = extras.detector;
-        record.detector = {
-          suspicious: !!d.suspicious,
-          matched_phrases: Array.isArray(d.matched_phrases) ? d.matched_phrases.slice() : [],
-          severity: d.severity === 'high' || d.severity === 'low' ? d.severity : null,
-        };
-      }
-      if (typeof extras.session_id === 'string' && extras.session_id.length > 0) {
-        record.session_id = extras.session_id;
-      }
-      if (typeof extras.turn_id === 'string' && extras.turn_id.length > 0) {
-        record.turn_id = extras.turn_id;
-      }
-    }
-    record.event_hash = recordHash(record);
-    return record;
-  }
 
   function readAll() {
     try {

@@ -10,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const { verify, TIERS } = require('../src/gate.js');
 const { createEvidenceLog } = require('../src/evidence-log.js');
+const evidenceLog = createEvidenceLog();
 
 // Fixture schema: { id, type, claims, gates, expected_verdict }
 // type: 'should-fail' (A) | 'should-pass' (B) | 'cannot-verify' (C)
@@ -34,7 +35,7 @@ function runFixture(fixture) {
     expected_verdict: fixture.expected_verdict,
     actual_verdict: result.verdict,
     actual_tier: result.tier,
-    chain_valid: createEvidenceLog().verify(result.evidence_chain).valid,
+    chain_valid: evidenceLog.verify(result.evidence_chain).valid,
     evidence_count: result.evidence_chain.length,
     // Classification
     false_completion: isFalseCompletion(fixture.expected_verdict, result.verdict),

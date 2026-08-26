@@ -3,7 +3,7 @@
 // only underdetermined cases escalate to LLM critic (band 0.4-0.7, ADR-0007).
 // Evidence persistence lives in src/evidence-log.js; paths in src/shared/paths.js.
 
-const { ESCALATION_BAND, createEvidenceLog } = require('./evidence-log');
+const { ESCALATION_BAND, createRecord } = require('./evidence-log');
 
 // Trust tiers (match SKILL.md output format)
 const TIERS = {
@@ -22,7 +22,6 @@ const LEVELS = {
 
 // Record construction/hashing is EvidenceLog's job; createRecord is pure (no fs),
 // so the ladder stays fs-free while emitting the same record shape as before.
-const createRecord = createEvidenceLog().createRecord;
 
 // Run a single gate check
 function runGate(check, gateType) {

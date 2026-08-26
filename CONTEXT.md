@@ -307,9 +307,9 @@ _Avoid_: fail-open, fail-closed (those are policy words; the generator is
 never blocked, the verifier may block)
 
 **Idempotent Evidence Round (幂等证据轮次)**:
-`.jiahao-evidence` is the record of *one* active turn. `writeEvidence` is
-replace-not-append (full overwrite of the file), so replays of the same
-turn do not accumulate phantom records. `verdict-gate` does NOT
+`.jiahao-evidence` holds the turn's hash-chained records. `EvidenceLog.append`
+dedups on the sidecar `_idem` key set (append-only, first-writer-wins),
+so replays of the same turn do not accumulate phantom records. `verdict-gate` does NOT
 consume-on-read (no `unlinkSync`); records are idempotent and audit-grade
 over time. Turn identity is `session_id + turn_id` from the hook input;
 `idempotency_key` is not required by default, only when federating
