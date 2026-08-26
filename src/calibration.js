@@ -103,10 +103,18 @@ function deriveThresholds(model, targetPrecision, floorPrecision) {
   const logitFloor = Math.log(1 / fp_ - 1);
   const floor = (logitFloor - model.b) / model.a;
 
-  // Clamp to [0, 1]; low/high kept = floor/target for back-compat
+  // Degenerate fit (constant-score points -> a === 0): no calibrated signal;
+  // fall back to the static band instead of emitting non-finite thresholds
+  // (input health-check posture, ADR-0018 D2).
+  if (!Number.isFinite(model.a) || model.a === 0) {
+    return { ...STATIC_BAND, floor: STATIC_BAND.low, target: STATIC_BAND.high };
+  }
+
+  // Clamp to [0, 1]. low/high keep ADR-0008 semantics for back-compat;
+  // floor/target are the ADR-0018 D2 band (floor clamped to <= target).
   const lo = Math.max(0, Math.min(1, Math.min(low, high)));
   const hi = Math.max(0, Math.min(1, Math.max(low, high)));
-  const fl = Math.max(0, Math.min(1, Math.min(floor, high)));
+  const fl = Math.max(0, Math.min(1, Math.min(floor, hi)));
   return { low: lo, high: hi, floor: fl, target: hi };
 }
 

@@ -29,6 +29,12 @@ describe('D2 threshold band (floor/target)', () => {
     expect(b.floor).toBeLessThanOrEqual(b.target);
     expect(b.target).toBe(b.high);
   });
+  test('degenerate model (a=0, constant scores) falls back to static band', () => {
+    const b = cal.deriveThresholds({ a: 0, b: 0.3, n: 20 }, 0.85);
+    for (const k of ['floor', 'target', 'low', 'high']) expect(Number.isFinite(b[k])).toBe(true);
+    expect(b.floor).toBe(0.4);
+    expect(b.target).toBe(0.7);
+  });
 });
 
 describe('D3 few-shot calibration injection', () => {

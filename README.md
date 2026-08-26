@@ -130,7 +130,7 @@ generated from the same `src/SKILL.md`.
 ## Develop
 
 ```bash
-npm test                              # 149 tests across 13 suites
+npm test                              # 150 tests across 13 suites
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 11 adapter files
 node scripts/check-drift.js           # CI drift check + profile purity
@@ -146,7 +146,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `adapters/` — 11 host adapters (generated)
 - `jiahao-mcp/` — MCP-only adapter (profile parameter)
 - `docs/adr/` — 18 architecture decision records (0010 = dual-profile; 0011 = deployment discipline; 0012 = detector verdict + hook idempotency; 0013 = cross-turn chain + idempotency key; 0014 = wordlist migration + structural signals; 0015 = benchmark adoption + citation calibration; 0016 = evidence-log/gate split; 0017 = escalate verdict + human adjudication; 0018 = calibration flywheel: threshold band + few-shot injection + kappa)
-- `test/` — 13 test suites, 149 tests
+- `test/` — 13 test suites, 150 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split baseline (FAIL vs pre-registered thresholds; see its README)
 
 ## License
