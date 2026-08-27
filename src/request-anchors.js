@@ -49,7 +49,7 @@ function extractQuad(args) {
   let url = null;
   if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
     for (const k of PARAM_KEYS) {
-      if (obj[k] != null && typeof obj[k] !== 'object') quad[k === 'per_page' ? 'per_page' : k] = String(obj[k]);
+      if (obj[k] != null && typeof obj[k] !== 'object') quad[k] = String(obj[k]);
     }
     if (typeof obj.url === 'string') url = obj.url;
   } else if (typeof obj === 'string' && /^(https?:)?\/\//.test(obj.trim())) {
@@ -61,7 +61,7 @@ function extractQuad(args) {
       const u = new URL(url.startsWith('//') ? 'https:' + url : url);
       for (const k of PARAM_KEYS) {
         const v = u.searchParams.get(k);
-        if (v != null && quad[k === 'per_page' ? 'per_page' : k] == null) quad[k === 'per_page' ? 'per_page' : k] = v;
+        if (v != null && quad[k] == null) quad[k] = v;
       }
     } catch (e) { /* fail-soft: URL unparseable, keep named keys already found */ }
   }
