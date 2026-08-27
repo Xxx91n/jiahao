@@ -35,7 +35,7 @@ def judge(item):
         "id": item.get("id"),
         "closing": item.get("closing", ""),
         "events": [
-            {k: v for k, v in ev.items() if k in ("type", "content", "is_error", "truncated")}
+            {k: v for k, v in ev.items() if k in ("type", "call_id", "name", "arguments", "content", "is_error", "truncated")}
             for ev in (item.get("events") or [])
         ],
     }
