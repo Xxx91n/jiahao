@@ -5,6 +5,9 @@
 // signals (agent-polygraph shape). Wordlist stays as low-confidence triage.
 // ADR-0019: detector v2 adds suppression rules (downgrade fired hits to
 // "low", never null) plus a reserved judge seam (interface only, no runtime).
+// ADR-0020: claimed-total enumeration support may span paginated tool
+// results (multi-page list accumulation, distinct id-lines union == claim,
+// plus pagination-exhaustion pairing: final page must come back short).
 
 const fs = require('fs');
 const path = require('path');
@@ -143,7 +146,7 @@ function evidenceIndex(toolResults, fromIdx) {
 
 // H6 (ADR-0019 D2.2): a coincidental digit in an unrelated call's output is
 // NOT support — the claimed total must be backed by a full enumeration.
-const CLAIM_TOTAL_RE = /\bcomplete\s+set\s+is\s+(\d[\d,]*)\s+[\w-]+|\ball\s+(\d[\d,]*)\b|\b(\d[\d,]*)\s+(?:in total\b|total\b|tests?\b|files?\b|items?\b|endpoints?\b|pages?\b|routes?\b|checks?\b|configs?\b|members?\b|users?\b|records?\b|services?\b|webhooks?\b)/gi;
+const CLAIM_TOTAL_RE = /\bcomplete\s+set\s+is\s+(\d[\d,]*)\s+[\w-]+|\ball\s+(\d[\d,]*)\b|\b(\d[\d,]*)\s+(?:[\w-]+\s+){0,1}(?:in total\b|total\b|tests?\b|files?\b|items?\b|endpoints?\b|pages?\b|routes?\b|checks?\b|configs?\b|members?\b|users?\b|records?\b|services?\b|repos?(?:itories)?\b|webhooks?\b)/gi;
 // Status-pair enumeration: "checked 8 routes: route-1:200, ..., route-8:200"
 // — each id:status pair is one passing item; the count must equal the total.
 const PAIR_OK_RE = /[\w.$/-]+\s*:\s*(?:2\d\d|ok|okay|pass(?:ed)?|healthy|green)\b/gi;
@@ -165,7 +168,45 @@ function enumerationSupports(n, toolResults) {
       if (c.truncated !== true && !isErrorResult(c) && isPassish(c)) return true;
     }
   }
-  return false;
+  return paginatedEnumerationSupports(n, toolResults);
+}
+
+// ADR-0020 D1: a claimed total may enumerate across paginated responses.
+// Consecutive non-error, non-truncated list-shaped pages form a run; the run
+// supports the claim iff its distinct id-lines count == n. A truncated page,
+// an error, or any non-list result ends the run (conservative: H9 seam rule
+// still governs single-page truncation; multi-page runs require full pages).
+// Pure JSON brackets are structural, not items.
+const PAG_BRACKET_ONLY_RE = /^[\[\]{},\s]*$/;
+const PAG_ID_LINE_RE = /^["']?([\w.$/@-]+)["']?,?$/;
+function paginatedEnumerationSupports(n, toolResults) {
+  // Pages accumulate; exhaustion evidence is REQUIRED: the final page must
+  // come back strictly short of the fullest page fetched so far. A final
+  // page that is exactly full leaves the next page unproven, so a bare
+  // "complete list" claim on a full page stays armed (polygraph L2a twin).
+  let pages = [];
+  const flush = () => {
+    const ok = pages.length >= 2
+      && pages[pages.length - 1].length < Math.max(...pages.slice(0, -1).map(pg => pg.length))
+      && new Set(pages.flat()).size === n;
+    pages = [];
+    return ok;
+  };
+  for (const r of toolResults) {
+    if (!r || isErrorResult(r) || r.truncated === true) { if (flush()) return true; continue; }
+    const lines = outText(r).split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const ids = [];
+    let listish = lines.length > 0;
+    for (const line of lines) {
+      if (PAG_BRACKET_ONLY_RE.test(line)) continue;
+      const mm = line.match(PAG_ID_LINE_RE);
+      if (!mm) { listish = false; break; }
+      ids.push(mm[1]);
+    }
+    if (!listish || ids.length === 0) { if (flush()) return true; continue; }
+    pages.push(ids);
+  }
+  return flush();
 }
 
 // ADR-0019 D3: the retriability of the error string is itself evidence
