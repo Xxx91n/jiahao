@@ -243,8 +243,11 @@ function paginatedEnumerationSupports(n, toolResults) {
   // "complete list" claim on a full page stays armed (polygraph L2a twin).
   let pages = [];
   const flush = () => {
+    // ADR-0022 D2: reduce instead of Math.max(...spread) — the spread form
+    // throws RangeError on long runs; run length is capped at 4096 below.
+    const maxPrior = pages.reduce((m, pg, i) => (i === pages.length - 1 ? m : Math.max(m, pg.length)), 0);
     const ok = pages.length >= 2
-      && pages[pages.length - 1].length < Math.max(...pages.slice(0, -1).map(pg => pg.length))
+      && pages[pages.length - 1].length < maxPrior
       && new Set(pages.flat()).size === n;
     pages = [];
     return ok;
@@ -262,6 +265,8 @@ function paginatedEnumerationSupports(n, toolResults) {
     }
     if (!listish || ids.length === 0) { if (flush()) return true; continue; }
     pages.push(ids);
+    // ADR-0022 D2 vs unjudgeable runs: abandon exhaustion pairing.
+    if (pages.length > 4096) { pages = []; }
   }
   return flush();
 }
@@ -381,6 +386,29 @@ function structuralDetect(signalInput) {
   return { hits, armed, suppressed, fired: Object.values(hits).some(Boolean), any: Object.values(armed).some(Boolean) };
 }
 
+// ADR-0022 D1/D3/D5 — single-layer 64KB input gate at the detector entry,
+// censoring metadata (not a bare bool), unified degradation contract.
+const INPUT_CAP_BYTES = 64 * 1024;
+const TRUNC_MARKER = "\n[jiahao:truncation face]";
+// Truncate BEFORE normalize (ADR-0014): NFKC must never see a face-split input.
+function capField(s) {
+  const total = Buffer.byteLength(s, "utf8");
+  if (total <= INPUT_CAP_BYTES) return { text: s, seen: total, total, capped: false };
+  // binary search the largest char slice whose UTF-8 byte length fits the cap.
+  let lo = 0, hi = s.length;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (Buffer.byteLength(s.slice(0, mid), "utf8") <= INPUT_CAP_BYTES) lo = mid; else hi = mid - 1;
+  }
+  let kept = s.slice(0, lo);
+  // codepoint integrity: never end on a lone high surrogate.
+  if (kept.length > 0) {
+    const c = kept.charCodeAt(kept.length - 1);
+    if (c >= 0xd800 && c <= 0xdbff) kept = kept.slice(0, -1);
+  }
+  return { text: kept + TRUNC_MARKER, seen: Buffer.byteLength(kept, "utf8"), total, capped: true };
+}
+
 function detect(text) {
   const w = wordlistMatch(text);
   const suspicious = w.matched.length > 0;
@@ -389,8 +417,24 @@ function detect(text) {
 }
 
 function detectFull(signalInput) {
-  const w = wordlistMatch(signalInput && signalInput.closingText);
-  const s = structuralDetect(signalInput);
+  const raw = signalInput || {};
+  // ADR-0022 D1/D3: cap closingText and each tool result payload; aggregate
+  // censoring metadata so calibration can bucket right-censored samples.
+  let bytesSeen = 0, bytesTotal = 0, capped = false;
+  const closing = capField(String(raw.closingText || ""));
+  bytesSeen += closing.seen; bytesTotal += closing.total; capped = capped || closing.capped;
+  const rawResults = Array.isArray(raw.toolResults) ? raw.toolResults : [];
+  const toolResults = rawResults.map((r) => {
+    if (!r || typeof r !== "object") return r;
+    const key = typeof r.output === "string" ? "output" : (typeof r.content === "string" ? "content" : null);
+    if (!key) return r;
+    const c = capField(r[key]);
+    bytesSeen += c.seen; bytesTotal += c.total; capped = capped || c.capped;
+    return Object.assign({}, r, { [key]: c.text });
+  });
+  const cappedInput = Object.assign({}, raw, { closingText: closing.text, toolResults });
+  const w = wordlistMatch(cappedInput.closingText);
+  const s = structuralDetect(cappedInput);
   const lCount = Object.values(s.hits).filter(Boolean).length;
   let severity;
   if (s.any) severity = "high";                        // armed structural hit
@@ -398,8 +442,11 @@ function detectFull(signalInput) {
   else if (w.matchedHigh.length > 0) severity = "low";
   else if (w.matchedLow.length > 0) severity = "low";
   else severity = null;
-  const anchors = anchorPassThrough(Array.isArray(signalInput && signalInput.toolResults) ? signalInput.toolResults : []);
-  return { suspicious: s.fired || w.matched.length > 0, structural_hits: s.hits, request_anchors: anchors, structural_any: s.any, structural_count: lCount, suppressed: s.suppressed, matched_phrases: w.matched, severity, family_hits: { high: w.matchedHigh.length, low: w.matchedLow.length }, wordlist_degraded: w.degraded };
+  // D5: unified degradation contract; coverage is its derived view.
+  const degradation = { kind: capped ? "truncation" : null, detail: capped ? { truncated: true, bytes_seen: bytesSeen, bytes_total: bytesTotal, threshold: INPUT_CAP_BYTES } : null };
+  const coverage = degradation.kind !== null ? "partial" : "full";
+  const anchors = anchorPassThrough(toolResults);
+  return { suspicious: s.fired || w.matched.length > 0, coverage, degradation, structural_hits: s.hits, request_anchors: anchors, structural_any: s.any, structural_count: lCount, suppressed: s.suppressed, matched_phrases: w.matched, severity, family_hits: { high: w.matchedHigh.length, low: w.matchedLow.length }, wordlist_degraded: w.degraded };
 }
 
 if (!_phrasesState.ok) {
@@ -417,4 +464,4 @@ if (!_phrasesState.ok) {
  * @typedef {null} JudgeOverride
  */
 
-module.exports = { detect, detectFull, structuralDetect, l1_errorConcealment, l2_completionVsEvidence, l3_narrativeVsAssertion, l1Suppression, l2Suppression, l3Suppression, wordlistMatch, loadPhrases, resolvePhrasesPath, anchorRescue, anchorConviction, anchorPassThrough, hasSuccessClaim, EXPECTED_PHRASES_SHA256, PHRASES_STATE: _phrasesState };
+module.exports = { detect, detectFull, capField, INPUT_CAP_BYTES, TRUNC_MARKER, structuralDetect, l1_errorConcealment, l2_completionVsEvidence, l3_narrativeVsAssertion, l1Suppression, l2Suppression, l3Suppression, wordlistMatch, loadPhrases, resolvePhrasesPath, anchorRescue, anchorConviction, anchorPassThrough, hasSuccessClaim, EXPECTED_PHRASES_SHA256, PHRASES_STATE: _phrasesState };

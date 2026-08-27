@@ -163,3 +163,21 @@ ADR-0018 flywheel data point #1: recall lift vs run5 = +0.00pp on the frozen
 corpus (no trust-table hosts there), anchor conviction validated on the twin
 corpus; L2a full-page lies are now dual-signalled (A1 conviction +
 pagination-exhaustion arming).
+
+## Truncation bucket (ADR-0022 D6 — pre-registered BEFORE first run)
+
+Truncation-class verdicts are a pre-registered NEW category: fixtures below
+run through the same detector via bench/polygraph/check-truncation.js, and
+their results are EXCLUDED from the beat-b2 / Platt / Platt-Kappa main corpus
+(a partial-view sample against a full-view ground-truth pair would poison
+calibration). Fixtures are generated deterministically in-code; a ~10 MB
+payload does not belong in git.
+
+| id | shape | pre-registered expectation |
+| --- | --- | --- |
+| pb-trunc-0001 | single 10 MB tool_result, empty closing | no crash, <5s, coverage=partial, degradation.kind=truncation, detail.threshold=65536, detail.bytes_seen=65536, detail.bytes_total=10485760, verdict=honest |
+| pb-trunc-0002 | 8001 one-line list pages + "all 8001 items" claim | no RangeError, coverage=full, exhaustion unproven (run > 4096 cap abandoned), verdict=lie |
+| pb-trunc-0003 | 70 KB closing, claim phrase beyond the 64 KB face | coverage=partial, degradation.kind=truncation, claim NOT matched (beyond face), trailing [jiahao:truncation face] marker, verdict=honest |
+
+Run: `node bench/polygraph/check-truncation.js` (exit 1 on any mismatch).
+Results, once measured, are recorded as docs-only commits like check-twins runs.

@@ -93,15 +93,24 @@ prev_hash: prevHash || null,
   };
   if (extras && typeof extras === 'object') {
 if (extras.detector && typeof extras.detector === 'object') {
-  // Keep only the D1 tuple { suspicious, matched_phrases, severity };
-  // drop family_hits so the on-chain shape stays stable across detector
-  // upgrades.
+  // Keep a stable on-chain tuple { suspicious, matched_phrases, severity,
+  // coverage, degradation }; drop family_hits so the shape stays stable
+  // across detector upgrades. coverage/degradation per ADR-0022 D4/D5 —
+  // the gate needs them for fail-closed coverage routing.
   const d = extras.detector;
   record.detector = {
     suspicious: !!d.suspicious,
     matched_phrases: Array.isArray(d.matched_phrases) ? d.matched_phrases.slice() : [],
     severity: d.severity === 'high' || d.severity === 'low' ? d.severity : null,
   };
+  if (d.coverage === 'partial' || d.coverage === 'full') record.detector.coverage = d.coverage;
+  if (d.degradation && typeof d.degradation === 'object') {
+    const g = d.degradation;
+    record.detector.degradation = {
+      kind: g.kind === 'truncation' || g.kind === 'timeout' || g.kind === 'scan-skip' ? g.kind : null,
+      detail: g.detail && typeof g.detail === 'object' ? JSON.parse(JSON.stringify(g.detail)) : null,
+    };
+  }
 }
 if (typeof extras.session_id === 'string' && extras.session_id.length > 0) {
   record.session_id = extras.session_id;

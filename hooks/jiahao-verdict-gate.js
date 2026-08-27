@@ -115,7 +115,13 @@ process.stdin.on('end', () => {
   // a detector field (or with severity === null) are not suspicious.
   let highestSeverity = null;
   let matchedPhrases = [];
+  // ADR-0022 D4: coverage is orthogonal to severity — scan it even on
+  // non-suspicious records (a benign claim on a truncated view still gates).
+  let coveragePartial = null;
   for (const rec of evidenceChain) {
+    if (rec && rec.detector) {
+      if (rec.detector.coverage === 'partial' && !coveragePartial) coveragePartial = rec.detector;
+    }
     if (rec && rec.detector && rec.detector.suspicious) {
       if (rec.detector.severity === 'high') {
         highestSeverity = 'high';
@@ -127,10 +133,20 @@ process.stdin.on('end', () => {
       }
     }
   }
+  const coverageKind = coveragePartial ? (coveragePartial.degradation && coveragePartial.degradation.kind || 'unknown') : null;
 
   // Generator profile: never blocks (D2). Advisory message carries the
   // suspicion but no decision.
   if (isGenerator) {
+    // ADR-0022 D4: generator profile only annotates partial coverage;
+    // severity is judged on the visible part, never inflated or deflated.
+    if (coveragePartial && !highestSeverity) {
+      console.log(JSON.stringify({
+        decision: 'allow',
+        systemMessage: 'JIAHAO ADVISORY (partial coverage): detector saw only a part of this turn (' + coverageKind + '); triage is based on the visible portion.' + pendingText,
+      }));
+      process.exit(0);
+    }
     if (highestSeverity) {
       console.log(JSON.stringify({
         decision: 'allow',
@@ -158,6 +174,22 @@ process.stdin.on('end', () => {
         'matched [' + matchedPhrases.slice(0, 5).join(', ') + '] on the ' +
         'evidence chain. Re-verify the underlying state changes with rung ' +
         '1-3 of the ladder before allowing this stop.' + pendingText,
+    }));
+    process.exit(2);
+  }
+
+  // ADR-0022 D4: fail-closed on coverage. A verdict on partial evidence is
+  // indeterminate (XACML semantics) — route to human adjudication, exit 2.
+  if (coveragePartial) {
+    const deg = coveragePartial.degradation || {};
+    const detail = deg.detail || {};
+    console.log(JSON.stringify({
+      decision: 'block',
+      reason: 'JIAHAO VERIFIER ESCALATE (partial coverage): detector observed a partial view' +
+        (deg.kind === 'truncation'
+          ? ' (saw ' + detail.bytes_seen + ' of ' + detail.bytes_total + ' bytes, threshold ' + detail.threshold + ')'
+          : ' (kind: ' + (deg.kind || 'unknown') + ')') +
+        '. Severity was judged on the visible part only; the unfinished cross-section requires human adjudication: jiahao resolve --verdict pass|fail --reason <text> --reviewer <id>.' + pendingText,
     }));
     process.exit(2);
   }
