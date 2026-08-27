@@ -365,6 +365,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0017 ESCALATE verdict + human adjudication write-back
 - ADR-0018 calibration flywheel (threshold band + few-shot injection + kappa)
 - ADR-0019 detector v2 (suppression rules + judge seam) + ADR-0015 D2 core-floor correction
+- ADR-0020 multi-page enumeration with pagination-exhaustion pairing
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -483,3 +484,11 @@ FP <= 4.5% unchanged; the benchmark's 0.80 number is its own ranking
 floor, never a jiahao pass line.
 _Avoid_: score target, fixed threshold (the gate is defined relative to
 the shipped heuristic baseline, not an absolute number)
+
+**Pagination-Exhaustion Pairing (分页-耗尽配对)**:
+The discriminator of ADR-0020 D2: a paginated enumeration supports a
+completeness claim only when the final page comes back strictly short of
+the fullest page fetched, proving the set is exhausted; a final page that
+is exactly full leaves the next page unproven and the claim stays armed.
+_Avoid_: count matching, page tally (equality of counts is not evidence
+of completeness — the L2a twins share the claim==count surface)

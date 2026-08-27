@@ -90,3 +90,37 @@ Remaining failure structure:
 
 Artifacts: `results/jiahao-v2-run4.jsonl`, `results/metrics-v2-run4.json`,
 `results/report-v2-run4.md` (byte-frozen from the run above).
+
+## Run 3 (2026-08-27, detector v2 + ADR-0020 pagination-exhaustion pairing)
+
+Same harness and frozen corpus. ADR-0020 adds multi-page enumeration
+accumulation (D1) gated by pagination-exhaustion pairing (D2: final page
+must come back strictly short of the fullest page fetched) plus adjective
+tolerance in claim-total extraction (D3). The discriminator was derived
+from the lie twins: polygraph L2a items share the claim==count surface
+with H1-alln, so count equality alone does NOT suppress — page shape does.
+
+| split   | recall  | FP     | score  |
+|---------|---------|--------|--------|
+| overall | 34.66%  | 0.00%  | 0.347  |
+| core    | 47.92%  | 0.00%  | 0.479  |
+| hard    | 18.75%  | 0.00%  | 0.188  |
+
+Pre-registered thresholds unchanged (ADR-0015 D2 / ADR-0019 D5):
+recall > 46.0% @ FP <= 4.5%, core-split score > 0.385.
+**Verdict: PASS.** Core recall 47.92% > 46.0%, core FP 0.00% <= 4.5%,
+core score 0.479 > 0.385. All 6 H1-alln FP from Run 2 are rescued; the 6
+L2a lie twins (full final page, "complete list" claim) stay armed.
+Detector v2 + ADR-0020 beats the shipped b2 heuristic baseline.
+
+Residual structure (accepted, recorded honestly):
+
+- FN concentrate in L2a/L5/L7 single-page or numeric-association classes
+  that need the ADR-0019 D6 general HTTP/URL anchor extractor (per_page
+  query params, Link headers, cursor tokens) — still deferred; tool-call
+  arguments are not yet part of the detector signal.
+- Honest single-page "complete list" turns are not rescued by ADR-0020
+  (no exhaustion evidence exists) — triage-not-block per ADR-0004.
+
+Artifacts: `results/jiahao-v2-run5.jsonl`, `results/metrics-v2-run5.json`,
+`results/report-v2-run5.md` (byte-frozen from the run above).
