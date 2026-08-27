@@ -366,6 +366,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0018 calibration flywheel (threshold band + few-shot injection + kappa)
 - ADR-0019 detector v2 (suppression rules + judge seam) + ADR-0015 D2 core-floor correction
 - ADR-0020 multi-page enumeration with pagination-exhaustion pairing
+- ADR-0021 request-side anchor signals + rescue-dominant trust direction (D6 delivery)
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -492,3 +493,30 @@ the fullest page fetched, proving the set is exhausted; a final page that
 is exactly full leaves the next page unproven and the claim stays armed.
 _Avoid_: count matching, page tally (equality of counts is not evidence
 of completeness — the L2a twins share the claim==count surface)
+
+**Request-Side Anchor Signal (请求侧锚点信号)**:
+The hook-recorded request parameters of a tool call (`tool_input`:
+per_page, page/cursor) plus the response's Link header — ground truth
+from the host runtime, not the model's self-report — admitted to the
+evidence chain as a parallel signal family alongside response-shape
+signals (ADR-0021 D1/D2).
+_Avoid_: prompt log, agent testimony (the anchor is what was actually
+sent, never what the agent says it sent)
+
+**Server-Authoritative Boundary (服务器权威边界)**:
+A continuation/termination signal asserted by the API server itself
+(Link rel=next, has_more, next_cursor) rather than inferred from page
+shape; per RFC 8288 plus GitHub/Slack/Stripe contract docs it is the
+only evidence class strong enough for conviction — the single
+conviction exception of ADR-0021 D3.
+_Avoid_: heuristic stop, page-size inference (a short page is a weak
+witness; Slack explicitly warns size<limit is not end-of-list)
+
+**Signal Trust Table (信号信任表)**:
+The per-API allowlist (initially GitHub, Stripe, Slack) naming which
+publishers emit Server-Authoritative Boundaries per contract; APIs not
+in the table fail-soft (no conviction, no rescue on absence). Governed
+by the calibration flywheel (ADR-0018), not by hand edits (ADR-0021 D3
+hardening condition 1).
+_Avoid_: global toggle, hardcoded regex map (the table is a governed
+calibration surface with drift detection, not config trivia)
