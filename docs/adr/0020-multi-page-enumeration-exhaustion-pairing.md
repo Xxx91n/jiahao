@@ -69,3 +69,30 @@ of comparing against per_page. Judge seam remains interface-only.
 - Honest single-page "complete list" turns remain unrescuable without
   per_page/URL anchors (ADR-0019 D6 scope) — accepted residual FN risk
   (triage, not sole block, per ADR-0004/0012).
+
+## Addendum (2026-08-27): post-acceptance research validation
+
+Web research (atomcode, 17+ primary sources: GitHub REST pagination docs,
+Stripe pagination docs, Slack Web-API pagination + engineering blog,
+Discord message resource, MS Graph paging, AWS ListObjectsV2, RFC 8288)
+confirms the shape of D2 while bounding its strength:
+
+- Industry consensus: server-authoritative termination signals win (Link
+  rel=next / has_more / next_cursor / nextLink / IsTruncated); NO major SDK
+  uses short-page as its termination rule (octokit, Stripe auto_paging,
+  Slack, MS Graph, AWS paginators all key on server signals). Short-page
+  termination is valid only where a contract explicitly defines it
+  (openreplay: "unless the contract explicitly defines that as terminal").
+- Under the information constraint of this project (no request params, no
+  headers — response bodies only), "final page strictly short of the
+  fullest page fetched" is the best short-page variant available (needs no
+  per_page; fails conservative), but it is a WEAK WITNESS, not a proof.
+- D2 uses the rule on the safe side only: it can only SUPPORT an honest
+  completeness claim, never refute one; full-page endings and single pages
+  stay armed. Residual exposure: if the collection is concurrently
+  mutated or server-truncated mid-traversal and a middle page comes back
+  short, the rule could wrongly support a lie. Mitigation guidance for the
+  future anchor extractor (ADR-0019 D6): uniform full non-final pages are
+  the stable case (higher weight); irregular page sizes (e.g. 100, 60,
+  100, 25) are noisy and should be downweighted or require an empty-page
+  confirmation.
