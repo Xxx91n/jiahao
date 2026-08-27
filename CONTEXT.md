@@ -367,6 +367,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0019 detector v2 (suppression rules + judge seam) + ADR-0015 D2 core-floor correction
 - ADR-0020 multi-page enumeration with pagination-exhaustion pairing
 - ADR-0021 request-side anchor signals + rescue-dominant trust direction (D6 delivery)
+- ADR-0022 detector hardening: length caps + censoring metadata + degradation contract
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -520,3 +521,34 @@ by the calibration flywheel (ADR-0018), not by hand edits (ADR-0021 D3
 hardening condition 1).
 _Avoid_: global toggle, hardcoded regex map (the table is a governed
 calibration surface with drift detection, not config trivia)
+
+**Censoring Metadata (删失元数据)**:
+The structured payload `{ truncated, bytes_seen, bytes_total, threshold }` that
+replaces a bare boolean when jiahao truncates an oversized input (ADR-0022 D3).
+It upgrades a truncation event into a right-censored observation (U_i, delta_i),
+so the calibration flywheel (ADR-0018) can route it into its own bucket instead
+of letting a partial view poison Platt/ECE/kappa fitting with full-view
+ground truth.
+_Avoid_: truncation flag, bool (a bare flag declares the event but not the
+amount — half-censored data cannot be bucketed or excluded correctly)
+
+**Coverage Severity Orthogonality (覆盖与严重度正交)**:
+The ADR-0022 D4 rule that detector reports facts (`coverage: full|partial`)
+while policy decides what partial coverage means: verifier (blocking) profile
+fails closed on coverage (route ESCALATE), generator (advisory) profile only
+annotates. Severity is judged on the visible part alone and never inflated by
+coverage.
+_Avoid_: severity upgrade on truncation (escalating review tier, not
+severity — XACML Indeterminate forbids an adverse opinion on missing
+evidence)
+
+**Degradation Contract (感知降级契约)**:
+The single top-level detector output field
+`degradation: { kind: truncation|timeout|scan-skip|null, detail }` of
+ADR-0022 D5. All perception-degradation sources (truncation today; timeout and
+host-side payload clipping later) project into this one taxonomy; `coverage`
+is its derived view. New degradation kinds extend the enum, never the schema.
+_Avoid_: per-source top-level fields, silent pass-through (per-source fields
+force O(N) edits across gate/calibration/tests; silent pass-through is the
+ADR-0006 Fix1 locality breach reborn)
+

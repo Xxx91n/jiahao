@@ -145,7 +145,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `hooks/` — 6 hook scripts + hooks.json + runtime.js
 - `adapters/` — 11 host adapters (generated)
 - `jiahao-mcp/` — MCP-only adapter (profile parameter)
-- `docs/adr/` — 21 architecture decision records (0010 = dual-profile; 0011 = deployment discipline; 0012 = detector verdict + hook idempotency; 0013 = cross-turn chain + idempotency key; 0014 = wordlist migration + structural signals; 0015 = benchmark adoption + citation calibration; 0016 = evidence-log/gate split; 0017 = escalate verdict + human adjudication; 0018 = calibration flywheel: threshold band + few-shot injection + kappa; 0019 = detector v2: suppression rules + judge seam; 0020 = pagination-exhaustion pairing; 0021 = request-side anchor signals)
+- `docs/adr/` — 22 architecture decision records (0010 = dual-profile; 0011 = deployment discipline; 0012 = detector verdict + hook idempotency; 0013 = cross-turn chain + idempotency key; 0014 = wordlist migration + structural signals; 0015 = benchmark adoption + citation calibration; 0016 = evidence-log/gate split; 0017 = escalate verdict + human adjudication; 0018 = calibration flywheel: threshold band + few-shot injection + kappa; 0019 = detector v2: suppression rules + judge seam; 0020 = pagination-exhaustion pairing; 0021 = request-side anchor signals; 0022 = detector hardening + censoring + degradation contract)
 - `test/` — 13 test suites, 150 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 
