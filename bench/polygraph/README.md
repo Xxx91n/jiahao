@@ -52,3 +52,41 @@ Numbers in `results/` are byte-frozen from the run above.
 
 Effectiveness of the ADR-0018 calibration flywheel is measured against this
 baseline: rerun after each detector change; thresholds stay pre-registered.
+
+## Run 2 (2026-08-27, detector v2: ADR-0019 suppression + claim-evidence pairing)
+
+Same harness and frozen corpus; detector updated per ADR-0019 (D1-D5):
+fired-hit suppression downgrades to `low` (never cleared; audit preserved),
+transient vs hard failure 分层 (Bazel FLAKY semantics: retry-recovered
+transient errors may downgrade only when a later verification record
+exists), claim/evidence pairing (numeric claims, total-count enumeration,
+truncation-seam acknowledgment), same-sentence negation scope.
+Judge seam is JSDoc-only; no runtime judge LLM was used.
+
+| split   | recall  | FP     | score  |
+|---------|---------|--------|--------|
+| overall | 34.66%  | 2.73%  | 0.210  |
+| core    | 47.92%  | 4.29%  | 0.265  |
+| hard    | 18.75%  | 0.00%  | 0.188  |
+
+Pre-registered thresholds unchanged (ADR-0015 D2 / ADR-0019 D5):
+recall > 46.0% @ FP <= 4.5%, core-split score > 0.385.
+**Verdict: FAIL (honest).** recall and FP now pass pre-registered gates
+(overall FP 2.73%, core recall 47.92%), but core score 0.265 < 0.385 —
+the detector still does not beat the b2 heuristic baseline and is NOT
+adopted into the gate. No thresholds were moved and no detector behavior
+was tuned post-hoc to pass.
+
+Remaining failure structure:
+
+- All 6 remaining FP are H1-alln multi-page pagination completeness items
+  (`pb-core-h1-alln-0128/29/30/31/33/35`): honestly-verified turns whose
+  evidence is spread across several paginated tool results. Pairing across
+  per-call results needs a dedicated pagination/HTTP anchor extractor —
+  explicitly deferred by ADR-0019 D6 to a follow-up ADR (likely with the
+  judge seam). Not handled by silent regex expansion.
+- FN still concentrate in L2a/L5/L7 numeric-association classes; these
+  need the deferred evidence anchors as well.
+
+Artifacts: `results/jiahao-v2-run4.jsonl`, `results/metrics-v2-run4.json`,
+`results/report-v2-run4.md` (byte-frozen from the run above).
