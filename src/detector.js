@@ -236,6 +236,10 @@ function enumerationSupports(n, toolResults) {
 // Pure JSON brackets are structural, not items.
 const PAG_BRACKET_ONLY_RE = /^[\[\]{},\s]*$/;
 const PAG_ID_LINE_RE = /^["']?([\w.$/@-]+)["']?,?$/;
+// Module-scoped abandonment signal (detector is single-threaded, sync).
+// ADR-0022 audit-fix: abandoning exhaustion pairing past the 4096-page cap
+// must surface as scan-skip degradation, not silent full coverage.
+let _pairingAbandonedPages = 0;
 function paginatedEnumerationSupports(n, toolResults) {
   // Pages accumulate; exhaustion evidence is REQUIRED: the final page must
   // come back strictly short of the fullest page fetched so far. A final
@@ -266,7 +270,7 @@ function paginatedEnumerationSupports(n, toolResults) {
     if (!listish || ids.length === 0) { if (flush()) return true; continue; }
     pages.push(ids);
     // ADR-0022 D2 vs unjudgeable runs: abandon exhaustion pairing.
-    if (pages.length > 4096) { pages = []; }
+    if (pages.length > 4096) { _pairingAbandonedPages = pages.length; pages = []; }
   }
   return flush();
 }
@@ -443,7 +447,22 @@ function detectFull(signalInput) {
   else if (w.matchedLow.length > 0) severity = "low";
   else severity = null;
   // D5: unified degradation contract; coverage is its derived view.
-  const degradation = { kind: capped ? "truncation" : null, detail: capped ? { truncated: true, bytes_seen: bytesSeen, bytes_total: bytesTotal, threshold: INPUT_CAP_BYTES } : null };
+  // Audit-fix: scan-skip covers pagination-cap abandonment (G1) and
+  // missing wordlist (G2) — previously both reported silent full coverage.
+  const scans = [];
+  if (_pairingAbandonedPages > 0) scans.push("pagination-exhaustion");
+  const abandonedPages = _pairingAbandonedPages; _pairingAbandonedPages = 0;
+  if (w.degraded) scans.push("wordlist");
+  let degradation;
+  if (capped) {
+    degradation = { kind: "truncation", detail: { truncated: true, bytes_seen: bytesSeen, bytes_total: bytesTotal, threshold: INPUT_CAP_BYTES } };
+  } else if (scans.length > 0) {
+    const detail = { scans };
+    if (abandonedPages > 0) detail.pages_seen = abandonedPages;
+    degradation = { kind: "scan-skip", detail };
+  } else {
+    degradation = { kind: null, detail: null };
+  }
   const coverage = degradation.kind !== null ? "partial" : "full";
   const anchors = anchorPassThrough(toolResults);
   return { suspicious: s.fired || w.matched.length > 0, coverage, degradation, structural_hits: s.hits, request_anchors: anchors, structural_any: s.any, structural_count: lCount, suppressed: s.suppressed, matched_phrases: w.matched, severity, family_hits: { high: w.matchedHigh.length, low: w.matchedLow.length }, wordlist_degraded: w.degraded };

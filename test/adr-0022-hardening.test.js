@@ -67,10 +67,35 @@ describe('ADR-0022 D2: pages cap', () => {
     const pages = [];
     for (let i = 1; i <= 8001; i++) pages.push({ output: 'item-' + i });
     const r = detectFull({ closingText: 'complete list, all 8001 items fetched.', toolResults: pages });
-    expect(r.coverage).toBe('full');
-    expect(r.degradation.kind).toBe(null);
+    // audit-fix G1: abandoned exhaustion pairing is scan-skip, not silent full coverage
+    expect(r.coverage).toBe('partial');
+    expect(r.degradation.kind).toBe('scan-skip');
+    expect(r.degradation.detail.scans).toContain('pagination-exhaustion');
+    expect(r.degradation.detail.pages_seen).toBeGreaterThan(4096);
     // claim unproven => stays armed => high severity
     expect(r.severity).toBe('high');
+  });
+});
+
+describe('ADR-0022 audit-fix G2: wordlist missing => scan-skip', () => {
+  test('isolated module with broken wordlist => degradation scan-skip + partial coverage', () => {
+    const path = require('path');
+    const os = require('os');
+    // JIAHAO_WORDLIST is the highest-priority wordlist override; pointing it at a
+    // missing file forces loadPhrases() into the degraded state deterministically.
+    const prev = process.env.JIAHAO_WORDLIST;
+    process.env.JIAHAO_WORDLIST = path.join(os.tmpdir(), 'jiahao-no-such-' + process.pid + '.json');
+    let det;
+    try {
+      jest.isolateModules(() => { det = require('../src/detector'); });
+    } finally {
+      if (prev === undefined) delete process.env.JIAHAO_WORDLIST; else process.env.JIAHAO_WORDLIST = prev;
+    }
+    const r = det.detectFull({ closingText: 'all items fetched', toolResults: [{ output: 'x' }] });
+    expect(r.wordlist_degraded).toBe(true);
+    expect(r.degradation.kind).toBe('scan-skip');
+    expect(r.degradation.detail.scans).toContain('wordlist');
+    expect(r.coverage).toBe('partial');
   });
 });
 
