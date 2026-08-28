@@ -379,6 +379,13 @@ function createEvidenceLog(overrideConfigDir, opts) {
               prev_hash: typeof tail === 'string' ? tail : null,
               event_hash: null,
             };
+            // Fail-closed carry-over: a `legacy_migration` marker means the
+            // pre-marker chain contains a verified break. Seal that fact on the
+            // anchor so verifyTail stays consistent with verifyChain/verifyFull
+            // after rotation — otherwise a rotation would silently flip a
+            // permanently-broken chain back to valid on the hot path.
+            const bp = existing.find(function (r) { return r && r.kind === 'legacy_migration'; });
+            if (bp) anchor.legacy_breakpoint = { broken_at: bp.broken_at, reason: bp.reason || null };
             anchor.event_hash = recordHash(anchor);
             activePath = path.join(ep, segmentName(total));
             fs.writeFileSync(activePath, JSON.stringify(anchor) + '\n', 'utf8');
@@ -435,6 +442,10 @@ function createEvidenceLog(overrideConfigDir, opts) {
       problems.push('segment_anchor missing');
       return problems;
     }
+    if (anchor.legacy_breakpoint) {
+      problems.push('segment carries a migrated legacy break (broken_at ' +
+        anchor.legacy_breakpoint.broken_at + ')');
+    }
     let prevBytes = null;
     let prevRecs = null;
     try { prevBytes = fs.statSync(prevSeg.path).size; } catch (e) { problems.push('previous segment unreadable: ' + e.message); }
@@ -479,7 +490,12 @@ function createEvidenceLog(overrideConfigDir, opts) {
     const problems = anchorProblems(recs[0], segs[segs.length - 2], null /* seq_start global check is verifyFull */);
     const seqOnly = problems.filter(p => p.indexOf('seq_start') === 0);
     const others = problems.filter(p => p.indexOf('seq_start') !== 0);
-    if (others.length > 0) return { valid: false, broken_at: -1, reason: others.join('; ') };
+    if (others.length > 0) {
+      // A carried legacy_breakpoint points back at the ORIGINAL break index,
+      // not at the anchor — the honest fault location (ADR-0026 D5).
+      const bp = recs[0] && recs[0].legacy_breakpoint;
+      return { valid: false, broken_at: bp ? bp.broken_at : -1, reason: others.join('; ') };
+    }
     void seqOnly; // global cumulative check belongs to verifyFull (ADR-0026 D4)
     return verifyLinks(recs, 0);
   }
@@ -507,7 +523,8 @@ function createEvidenceLog(overrideConfigDir, opts) {
       if (i > 0) {
         const problems = anchorProblems(recs[0], segs[i - 1], seg.seq);
         if (problems.length > 0) {
-          return { valid: false, broken_at: all.length, reason: problems.join('; ') };
+          const bp = recs[0] && recs[0].legacy_breakpoint;
+          return { valid: false, broken_at: bp ? bp.broken_at : all.length, reason: problems.join('; ') };
         }
       }
       for (const r of recs) all.push(r);

@@ -132,6 +132,32 @@ test('D5: broken legacy chain (>0) migrates with a legacy_migration marker', () 
   expect(full.broken_at).toBe(1);
 });
 
+test('D5: rotation must not flip a migrated broken chain back to valid', () => {
+  const dir = mktmp('broken-rotate');
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'generator', 'utf8');
+  const log = createEvidenceLog(dir);
+  const r1 = log.createRecord('a1', 'deterministic', 'passed', 'old', 0.9, null);
+  const r2 = log.createRecord('a2', 'deterministic', 'passed', 'older', 0.9, r1.event_hash);
+  fs.writeFileSync(segDir(dir),
+    JSON.stringify([r1, Object.assign({}, r2, { detail: 'X' })]), 'utf8');
+  log.commit((chain, prev) =>
+    [log.createRecord('b1', 'deterministic', 'passed', 'new', 0.9, prev)]);
+  // Genesis-only: verifyTail already sees the break via the marker chain.
+  expect(log.verifyTail().valid).toBe(false);
+
+  // Force rotation (small threshold) and append past the segment boundary.
+  const log2 = createEvidenceLog(dir, { rotateBytes: 8 });
+  log2.commit((chain, prev) =>
+    [log2.createRecord('b2', 'deterministic', 'passed', 'newer', 0.9, prev)]);
+
+  // Fail-closed carry-over: the anchor seals legacy_breakpoint, so the hot
+  // path stays consistent with verifyChain/verifyFull after rotation.
+  const tail = log2.verifyTail();
+  expect(tail.valid).toBe(false);
+  expect(tail.reason).toMatch(/legacy break/);
+  expect(log2.verifyFull().broken_at).toBe(1);
+});
+
 
 test('D5: chain broken at genesis + verifier profile = refuse migration (read-only)', () => {
   const dir = mktmp('refuse');
