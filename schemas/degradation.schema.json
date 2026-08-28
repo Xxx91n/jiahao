@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://jiahao.local/schemas/degradation.schema.json",
+  "title": "degradation (ADR-0023 D5 — test-time validation only, not runtime)",
+  "type": "object",
+  "required": [
+    "kind",
+    "detail"
+  ],
+  "properties": {
+    "kind": {
+      "enum": [
+        "truncation",
+        "scan-skip",
+        "timeout"
+      ]
+    },
+    "detail": {
+      "type": [
+        "object",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "properties": {
+        "kind": {
+          "const": "truncation"
+        },
+        "detail": {
+          "type": "object",
+          "required": [
+            "truncated"
+          ],
+          "properties": {
+            "truncated": {
+              "const": true
+            },
+            "bytes_seen": {
+              "type": "integer"
+            },
+            "bytes_total": {
+              "type": "integer"
+            },
+            "threshold": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "kind": {
+          "const": "scan-skip"
+        },
+        "detail": {
+          "type": "object",
+          "required": [
+            "scans"
+          ],
+          "properties": {
+            "scans": {
+              "type": "array"
+            },
+            "pages_seen": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "kind": {
+          "const": "timeout"
+        },
+        "detail": {
+          "type": "object",
+          "required": [
+            "hook",
+            "phase",
+            "orphaned_at"
+          ],
+          "properties": {
+            "hook": {
+              "type": "string"
+            },
+            "turn": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "phase": {
+              "enum": [
+                "stdin",
+                "scan",
+                "verify",
+                "write"
+              ]
+            },
+            "orphaned_at": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  ]
+}

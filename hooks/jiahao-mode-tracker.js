@@ -5,6 +5,7 @@
 const fs = require('fs');
 const { writeHookOutput } = require('./jiahao-runtime');
 const { flagPath } = require('../src/shared/paths');
+const sentinel = require('../src/sentinel').begin('jiahao-mode-tracker');
 
 let input = '';
 process.stdin.setEncoding('utf8');
@@ -12,6 +13,7 @@ process.stdin.on('data', chunk => input += chunk);
 process.stdin.on('end', () => {
   let parsed = {};
   try { parsed = JSON.parse(input); } catch (e) { /* fail-open */ }
+  sentinel.set('scan', parsed.session_id || null);
 
   const prompt = parsed.prompt || '';
 
@@ -21,9 +23,11 @@ process.stdin.on('end', () => {
     const newMode = match[1].toLowerCase();
     if (newMode === 'off') {
       try { fs.unlinkSync(flagPath()); } catch (e) { /* already gone */ }
-      writeHookOutput('JIAHAO MODE OFF — verification discipline disabled.', 'UserPromptSubmit');
+      sentinel.set('write');
+    writeHookOutput('JIAHAO MODE OFF — verification discipline disabled.', 'UserPromptSubmit');
     } else {
       fs.writeFileSync(flagPath(), newMode, 'utf8');
+      sentinel.set('write');
       writeHookOutput('JIAHAO MODE CHANGED — level: ' + newMode, 'UserPromptSubmit');
     }
     return;
@@ -33,6 +37,7 @@ process.stdin.on('end', () => {
   if (fs.existsSync(flagPath())) {
     const mode = fs.readFileSync(flagPath(), 'utf8').trim();
     const reminder = 'JIAHAO ACTIVE (' + mode + ') — default verdict: NOT VERIFIED. Check the 6-rung ladder before reporting.';
+    sentinel.set('write');
     writeHookOutput(reminder, 'UserPromptSubmit');
   }
 });

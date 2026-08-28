@@ -17,6 +17,7 @@ const { readProfile } = require('./jiahao-profile');
 const { createEvidenceLog } = require('../src/evidence-log');
 const { kappaAdvisory, loadKappaBaseline } = require('../src/calibration');
 const evidenceLog = createEvidenceLog();
+const sentinel = require('../src/sentinel').begin('jiahao-verdict-gate');
 
 // If jiahao is off, pass through
 if (!fs.existsSync(flagPath())) {
@@ -32,6 +33,7 @@ process.stdin.on('data', chunk => input += chunk);
 process.stdin.on('end', () => {
   let parsed = {};
   try { parsed = JSON.parse(input); } catch (e) { /* fail-open */ }
+  sentinel.set('verify', parsed.session_id || null);
 
   // stop_hook_active = host already forced pass once; let it through
   if (parsed.stop_hook_active === true) {

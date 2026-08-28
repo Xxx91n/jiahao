@@ -12,6 +12,12 @@ const path = require('path');
 const crypto = require('crypto');
 const { evidencePath, evidenceKeysPath } = require('./shared/paths');
 
+// ADR-0023 D5 registry: degradation kinds this contract understands.
+// Evolution rules: only add kinds; detail fields within a kind are
+// additive-optional only; never delete or rename. Machine-checked by
+// schemas/degradation.schema.json in tests.
+const KNOWN_DEGRADATION_KINDS = ['truncation', 'scan-skip', 'timeout'];
+
 // Escalation band stamped onto every record (FutureAGI 0.4-0.7, ADR-0007 research).
 // Also used by the ladder in gate.js for the escalation decision.
 const ESCALATION_BAND = { low: 0.4, high: 0.7 };
@@ -75,6 +81,7 @@ function finalizeTurnInit(init) {
 module.exports = {
   createEvidenceLog, ESCALATION_BAND, idempotencyKey, createRecord,
   canonicalJSON, recordHash, verifyChain, createTurnInit, finalizeTurnInit,
+  KNOWN_DEGRADATION_KINDS,
 };
 
 // createRecord is pure (no fs, no closure state) — module-level per ADR-0016 double-track.
@@ -106,10 +113,18 @@ if (extras.detector && typeof extras.detector === 'object') {
   if (d.coverage === 'partial' || d.coverage === 'full') record.detector.coverage = d.coverage;
   if (d.degradation && typeof d.degradation === 'object') {
     const g = d.degradation;
+    const known = KNOWN_DEGRADATION_KINDS.indexOf(g.kind) >= 0 ? g.kind : null;
     record.detector.degradation = {
-      kind: g.kind === 'truncation' || g.kind === 'timeout' || g.kind === 'scan-skip' ? g.kind : null,
+      kind: known,
       detail: g.detail && typeof g.detail === 'object' ? JSON.parse(JSON.stringify(g.detail)) : null,
     };
+    // ADR-0023 D4: fail-closed fallback — unknown kind is never silently
+    // dropped; the original value is preserved for attribution while coverage
+    // = partial (set by producers) still routes the verifier to ESCALATE.
+    if (known === null && typeof g.kind === 'string' && g.kind.length > 0) {
+      if (!record.detector.degradation.detail) record.detector.degradation.detail = {};
+      record.detector.degradation.detail.unrecognized_kind = g.kind;
+    }
   }
 }
 if (typeof extras.session_id === 'string' && extras.session_id.length > 0) {

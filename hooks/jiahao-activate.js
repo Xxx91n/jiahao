@@ -9,6 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const { writeHookOutput } = require('./jiahao-runtime');
 const { flagPath } = require('../src/shared/paths');
+const sentinel = require('../src/sentinel').begin('jiahao-activate');
 const { loadProfileSections, readProfile } = require('./jiahao-profile');
 
 // Write flag file (default intensity: full)
@@ -22,10 +23,13 @@ if (!fs.existsSync(flagPath())) {
 const profile = readProfile();
 
 // Load skill content and split by profile
+sentinel.set('scan');
 const sections = loadProfileSections(path.join(__dirname, '..'));
 const body = sections[profile === 'generator' ? 'generator' : 'verifier'];
 
 // Build injection text: profile-specific body + statusline
 const injection = body + '\n---\nJIAHAO MODE ACTIVE — level: ' + mode + '\n';
 
+sentinel.set('write');
 writeHookOutput(injection, 'SessionStart');
+sentinel.end();

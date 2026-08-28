@@ -1,0 +1,50 @@
+[
+  {
+    "name": "truncation-min",
+    "expected": {
+      "kind": "truncation",
+      "detail": {
+        "truncated": true,
+        "bytes_seen": 10,
+        "bytes_total": 200000,
+        "threshold": 65536
+      }
+    }
+  },
+  {
+    "name": "scan-skip-min",
+    "expected": {
+      "kind": "scan-skip",
+      "detail": {
+        "scans": [
+          "wordlist-absent"
+        ],
+        "pages_seen": 3
+      }
+    }
+  },
+  {
+    "name": "timeout-min",
+    "expected": {
+      "kind": "timeout",
+      "detail": {
+        "hook": "jiahao-verdict-gate",
+        "turn": "t-1",
+        "phase": "verify",
+        "orphaned_at": "2026-08-28T00:00:01.000Z"
+      }
+    }
+  },
+  {
+    "name": "timeout-no-turn",
+    "expected": {
+      "kind": "timeout",
+      "detail": {
+        "hook": "jiahao-activate",
+        "turn": null,
+        "phase": "stdin",
+        "orphaned_at": "2026-08-28T00:00:01.000Z"
+      }
+    }
+  }
+]
