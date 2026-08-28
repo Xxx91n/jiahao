@@ -371,6 +371,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0023 timeout sentinel reconciliation + degradation schema evolution discipline
 - ADR-0024 sentinel ownership lock + reconcile hardening + session-end sweep
 - ADR-0025 judge form convergence (scoring-mode verifier contract) + honest-twin corpus + seam telemetry contract
+- ADR-0026 segmented evidence log: rotation + cross-segment anchoring + base-seq naming + verifyTail/verifyFull + transparent legacy migration
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -651,3 +652,35 @@ older than 6 months are stale pending re-validation (eval-rot rule). The
 corpus is the acceptance asset for any future scoring-mode verifier and must
 never be used to tune thresholds (METR do-not-tune-on-eval discipline).
 _Avoid_: tune-on-corpus, undated eval data, vibe evals
+
+**Segment Anchor (段锚点)**:
+The first record of every non-genesis segment in the segmented evidence log
+(ADR-0026 D1/D3). It carries prev_segment_hash (SHA-256 of the previous
+segment file, CloudTrail digest precedent) plus successor-anchored
+prev_segment_count/bytes statistics, and links the hash chain via
+prev_hash = previous segment tail event_hash. Bytes/count are pre-check
+hints (O(1) statSync fail-fast); the hash chain remains the only integrity
+authority.
+_Avoid_: segment header mutation (journald anti-pattern), seal marker
+embedded mid-file
+
+**Base-Seq Naming (基准序号命名)**:
+Segment files are named `%020d.jsonl` where the number equals the global
+sequence of the segment's first record (Kafka base-offset style), allocated
+by in-lock directory rescan of max+1 (ADR-0026 D3). Directory listing is the
+only allocation source of truth -- no CURRENT/pointer file (RocksDB
+counter-example). Filename vs anchor.seq_start cross-check catches rename
+or copy tampering without hashing content. Timestamps never appear in
+filenames (clock rollback, Windows 15 ms resolution collision).
+_Avoid_: timestamped filenames, UUID names, allocation outside the narrow
+lock, silent fallback to seq 0 on scan error
+
+**VerifyTail Hot Path (尾段热路校验)**:
+The default on-read integrity check for the segmented evidence log
+(ADR-0026 D4): read only the active segment + statSync the previous one,
+verify the segment anchor chain step and the in-segment hash chain. Full
+verifyFull() walks every segment and filename/seq cross-checks; it is a
+cold path, exposed via `scripts/verify-evidence.js --full`, never wired
+into the per-turn verdict gate (ADR-0019 hook latency budget).
+_Avoid_: full O(n) verification per turn, silent degrade to in-segment-only
+when the anchor is missing
