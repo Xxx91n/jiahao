@@ -372,6 +372,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0024 sentinel ownership lock + reconcile hardening + session-end sweep
 - ADR-0025 judge form convergence (scoring-mode verifier contract) + honest-twin corpus + seam telemetry contract
 - ADR-0026 segmented evidence log: rotation + cross-segment anchoring + base-seq naming + verifyTail/verifyFull + transparent legacy migration
+- ADR-0027 bench gate: executable pre-registered thresholds (D1 real re-run, D2 derived config + guard, D3 0/1 + aggregated warning, D4 milestone archive)
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -684,3 +685,37 @@ cold path, exposed via `scripts/verify-evidence.js --full`, never wired
 into the per-turn verdict gate (ADR-0019 hook latency budget).
 _Avoid_: full O(n) verification per turn, silent degrade to in-segment-only
 when the anchor is missing
+
+**Threshold Registry (阈值登记册)**:
+The two-layer pre-registration structure of ADR-0027 D2: the ADR is the
+registry (authoritative, immutable), bench/polygraph/thresholds.json is the
+derived machine-readable config, and scripts/check-bench-thresholds.js is the
+link-integrity guard (content anchor into source_adr plus same-commit ADR
+coupling). The guard requires every threshold change to be accompanied by an
+ADR but never judges direction; raising a threshold is a legitimate
+ADR-led change (benchmark saturation, arXiv 2602.16763), only silent change
+is forbidden. Parsing thresholds out of ADR prose is rejected (the same
+number has different roles across ADRs).
+_Avoid_: prose parsing as source of truth, guard rules that judge the
+direction of a threshold change
+
+**Bench Gate (基准门禁)**:
+The single zero-dependency entrypoint npm run bench:gate (ADR-0027 D1/D3):
+re-runs the deterministic corpus in-process to produce fresh metrics and
+compares them against the Threshold Registry, exiting 1 below the floor and
+0 otherwise, with in-band results expressed as exactly one aggregated
+::warning:: annotation (never blocking; GitHub's native warning surface).
+Comparing against stale metrics files is rejected -- the green check must
+witness current code.
+_Avoid_: three-exit-code gates, continue-on-error masking, reading old
+metrics artifacts
+
+**Band-Hit Telemetry (带内命中遥测)**:
+The ADR-0027 D4 persistence shape: local bench:gate runs write
+bench/polygraph/results/metrics-<date>.json committed by a human (extending
+the byte-frozen run4-run6 archive convention); CI emits JSON/JUnit artifacts
+as per-run evidence only (public-repo 90-day retention makes artifacts
+useless as trend storage). Band-hit rates are aggregated at ADR-0018 flywheel
+review points from results/*.json; no auto-commit bot, no SaaS.
+_Avoid_: auto-commit bots to main, artifact-only trendkeeping, cloud
+benchmark services
