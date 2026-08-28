@@ -6,6 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 const { writeHookOutput } = require('./jiahao-runtime');
+const sentinel = require('../src/sentinel').begin('jiahao-subagent');
 
 // Read stdin (hook input JSON)
 let input = '';
@@ -14,6 +15,7 @@ process.stdin.on('data', chunk => input += chunk);
 process.stdin.on('end', () => {
   let parsed = {};
   try { parsed = JSON.parse(input); } catch (e) { /* fail-open */ }
+  sentinel.set('scan', parsed.session_id || null);
 
   const agentType = parsed.agent_type || parsed.agentType || '';
   const matcher = process.env.JIAHAO_SUBAGENT_MATCHER || 'verify|review|critic|check';
@@ -22,6 +24,7 @@ process.stdin.on('end', () => {
   const shouldInject = !agentType || new RegExp(matcher, 'i').test(agentType);
 
   if (!shouldInject) {
+    sentinel.end();
     process.exit(0);
   }
 
@@ -37,7 +40,9 @@ process.stdin.on('end', () => {
 
   const injection = body + '\n---\nJIAHAO MODE ACTIVE (subagent) — level: ' + mode + '\n';
 
+  sentinel.set('write');
   writeHookOutput(injection, 'SubagentStart');
+  sentinel.end();
 });
 
 // Windows stdin hang guard (ponytail #443 lesson)

@@ -1,5 +1,7 @@
-# MCP Adapter (Future)
+# MCP Adapter
 
-When implemented, jiahao-mcp will expose the verification discipline
-via an MCP server for any MCP-compatible agent host.
-Deferred until core distribution is stable.
+jiahao-mcp/ is a stdio MCP server exposing jiahao verifier discipline
+via registerPrompt + registerTool for MCP-only agent hosts.
+
+See jiahao-mcp/index.js for the server implementation.
+Dependencies: @modelcontextprotocol/sdk, zod.

@@ -16,7 +16,7 @@ const TMP = require('os').tmpdir().replace(/\\/g, '/');
 
 // Clean calibration log before tests
 beforeEach(() => {
-  try { fs.unlinkSync(calibrationLogPath()); } catch (e) { /* gone */ }
+    try { fs.unlinkSync(calibrationLogPath()); } catch (e) { /* gone */ }
 });
 
 test('STATIC_BAND is 0.4-0.7', () => {
@@ -26,8 +26,7 @@ test('STATIC_BAND is 0.4-0.7', () => {
 
 test('recordCalibrationPoint appends to log', () => {
   // Set CLAUDE_CONFIG_DIR to temp for isolation
-  process.env.CLAUDE_CONFIG_DIR = TMP;
-  recordCalibrationPoint(0.9, true);
+    recordCalibrationPoint(0.9, true);
   recordCalibrationPoint(0.3, false);
   const points = loadCalibrationPoints();
   expect(points.length).toBe(2);
@@ -38,8 +37,7 @@ test('recordCalibrationPoint appends to log', () => {
 });
 
 test('loadCalibrationPoints returns empty array when no log', () => {
-  process.env.CLAUDE_CONFIG_DIR = TMP;
-  try { fs.unlinkSync(calibrationLogPath()); } catch (e) {}
+    try { fs.unlinkSync(calibrationLogPath()); } catch (e) {}
   const points = loadCalibrationPoints();
   expect(points).toEqual([]);
 });
@@ -107,8 +105,7 @@ test('computeECE returns a number for valid data', () => {
 });
 
 test('end-to-end: record -> fit -> calibrate -> derive thresholds', () => {
-  process.env.CLAUDE_CONFIG_DIR = TMP;
-  // Record 30 synthetic points
+    // Record 30 synthetic points
   for (let i = 0; i < 30; i++) {
     const score = Math.random();
     const passed = score > 0.5;

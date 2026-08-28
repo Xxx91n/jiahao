@@ -9,22 +9,46 @@ const path = require('path');
 const root = path.join(__dirname, '..');
 const skillPath = path.join(root, 'src', 'SKILL.md');
 const skill = fs.readFileSync(skillPath, 'utf8');
-const body = skill.replace(/^[\s\S]*?---\n/, '');
 
-// Distinctive fragments from different sections of SKILL.md
-const fragments = [
+// Check if SKILL.md has profile tags
+const body = skill.replace(/^---[\s\S]*?---\n/, '');
+const hasProfiles = body.includes('## Generator Profile') && body.includes('## Verifier Profile');
+
+// Core fragments:in verifier profile adapters
+const verifierFragments = [
   'anti-false-completion iron laws',
   'verification ladder',
   'The judge cannot be the author',
   'NOT VERIFIED',
 ];
 
-// All 7 adapter files to check
+// Generator profile must NOT contain these
+const generatorForbidden = [
+  'verification ladder',
+  'second-party verifier',
+  'The judge cannot be the author',
+  'hash chain',
+  'confidence calibration',
+  'independent LLM critic',
+];
+
+// Generator profile must contain these
+const generatorRequired = [
+  'No evidence, no completion claim',
+  'state changes',
+  'calling a tool',
+];
+
+// Adapter files to check
 const checks = [
   'adapters/cursor/jiahao.mdc',
+  'adapters/cursor/jiahao-generator.mdc',
   'adapters/windsurf/jiahao.md',
+  'adapters/windsurf/jiahao-generator.md',
   'adapters/cline/jiahao.md',
+  'adapters/cline/jiahao-generator.md',
   'adapters/instruction-tier/AGENTS.md',
+  'adapters/instruction-tier/AGENTS-generator.md',
   'adapters/claude-code/README.md',
   'adapters/codex/hooks.json',
   'adapters/mcp/README.md',
@@ -39,17 +63,31 @@ for (const rel of checks) {
     continue;
   }
   const content = fs.readFileSync(full, 'utf8');
-  // Instruction-tier adapters must contain all fragments
-  // Hook-tier and MCP adapters only need to exist (they reference SKILL.md, not embed it)
   const isInstructionTier = rel.startsWith('adapters/cursor/') ||
     rel.startsWith('adapters/windsurf/') ||
     rel.startsWith('adapters/cline/') ||
     rel.startsWith('adapters/instruction-tier/');
   if (isInstructionTier) {
-    for (const frag of fragments) {
-      if (!content.includes(frag)) {
-        console.error('DRIFT: ' + rel + ' missing fragment: ' + frag);
-        drift = true;
+    const isGenerator = rel.includes('-generator');
+    if (isGenerator) {
+      for (const term of generatorForbidden) {
+        if (content.includes(term)) {
+          console.error('PROFILE DRIFT: ' + rel + ' (generator) must NOT contain: ' + term);
+          drift = true;
+        }
+      }
+      for (const term of generatorRequired) {
+        if (!content.includes(term)) {
+          console.error('PROFILE DRIFT: ' + rel + ' (generator) must contain: ' + term);
+          drift = true;
+        }
+      }
+    } else {
+      for (const frag of verifierFragments) {
+        if (!content.includes(frag)) {
+          console.error('DRIFT: ' + rel + ' (verifier) missing fragment: ' + frag);
+          drift = true;
+        }
       }
     }
   }

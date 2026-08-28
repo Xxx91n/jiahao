@@ -1,11 +1,9 @@
-// jiahao gate.js — verification gate combination ladder
+// src/gate.js — GateLadder (ADR-0016 D1): pure, fs-free verification ladder.
 // Short-circuit + escalate pattern: deterministic layer blocks/passes first,
-// only underdetermined cases escalate to LLM critic, then self-eval.
-// Evidence recorded as hash-chained entries (unchecked records never enter chain).
+// only underdetermined cases escalate to LLM critic (band 0.4-0.7, ADR-0007).
+// Evidence persistence lives in src/evidence-log.js; paths in src/shared/paths.js.
 
-const crypto = require('crypto');
-const fs = require('fs');
-const { evidencePath } = require('../hooks/jiahao-paths');
+const { ESCALATION_BAND, createRecord } = require('./evidence-log');
 
 // Trust tiers (match SKILL.md output format)
 const TIERS = {
@@ -17,62 +15,38 @@ const TIERS = {
 // Gate levels (match SKILL.md 6-rung ladder)
 const LEVELS = {
   DETERMINISTIC: 'deterministic',   // rung 1-3: test, ground-truth, re-execute
-  CHECKLIST: 'checklist',            // rung 4: binary assertion decomposition
+  CHECKLIST: 'checklist',           // rung 4: binary assertion decomposition
   LLM_CRITIC: 'llm-critic',         // rung 5: independent LLM critic
-  NOT_VERIFIED: 'not-verified',      // rung 6: cannot verify
+  NOT_VERIFIED: 'not-verified',     // rung 6: cannot verify
 };
 
-// Escalation thresholds (from atomcode research: FutureAGI 0.4-0.7 band)
-const ESCALATION_BAND = { low: 0.4, high: 0.7 };
-
-// Canonical JSON serialization (RFC 8785 inspired): sort keys recursively.
-// Zero-dependency, ~10 lines. Required for deterministic hash chain.
-function canonicalJSON(obj) {
-  if (obj === null || typeof obj !== 'object') return JSON.stringify(obj);
-  if (Array.isArray(obj)) return '[' + obj.map(canonicalJSON).join(',') + ']';
-  const keys = Object.keys(obj).sort();
-  return '{' + keys.map(k => JSON.stringify(k) + ':' + canonicalJSON(obj[k])).join(',') + '}';
-}
-
-// Compute hash of a record (excluding prev_hash and event_hash fields)
-function recordHash(record) {
-  const { prev_hash, event_hash, ...rest } = record;
-  return crypto.createHash('sha256').update(canonicalJSON(rest)).digest('hex');
-}
-
-// Create an evidence record with hash chain linking
-function createEvidence(gateId, gateType, status, detail, confidence, prevHash) {
-  const record = {
-    gate_id: gateId,
-    gate_type: gateType,
-    status: status, // checked | passed | failed | escalated
-    evidence_ref: crypto.createHash('sha256').update(detail).digest('hex').slice(0, 16),
-    detail: detail,
-    confidence: confidence || null,
-    threshold: ESCALATION_BAND,
-    timestamp: new Date().toISOString(),
-    prev_hash: prevHash || null,
-  };
-  record.event_hash = recordHash(record);
-  return record;
-}
+// Record construction/hashing is EvidenceLog's job; createRecord is pure (no fs),
+// so the ladder stays fs-free while emitting the same record shape as before.
 
 // Run a single gate check
-function runGate(check, gateType) {
+function runGate(check, gateType, context) {
   if (typeof check !== 'function') {
     return { passed: false, detail: 'no check function', confidence: 0 };
   }
   try {
-    const result = check();
+    const result = check(context);
     return result;
   } catch (e) {
-    return { passed: false, detail: e.message, confidence: 0 };
+    return { passed: false, detail: e.message, confidence: 0, decisive: false };
   }
 }
 
 // The combination ladder: short-circuit + escalate
-function verify(claims, gates) {
+function verify(claims, gates, opts) {
   // gates = { deterministic: [fn, ...], checklist: [fn, ...], llm_critic: fn }
+  // opts.band (ADR-0018 D2): { floor, target } — calibrated escalation band
+  //   overrides ESCALATION_BAND when present (floor->low, target->high).
+  // opts.fewShotSection (ADR-0018 D3): pre-formatted calibration-example
+  //   section injected into the llm_critic call context (construction-point
+  //   injection; gate.js stays fs-free — selection/format is calibration.js).
+  const band = (opts && opts.band)
+    ? { low: opts.band.floor, high: opts.band.target }
+    : ESCALATION_BAND;
   // Returns { verdict, tier, evidence_chain, unchecked }
 
   const evidenceChain = [];
@@ -82,7 +56,7 @@ function verify(claims, gates) {
   if (gates.deterministic && gates.deterministic.length > 0) {
     for (let i = 0; i < gates.deterministic.length; i++) {
       const result = runGate(gates.deterministic[i], LEVELS.DETERMINISTIC);
-      const evidence = createEvidence(
+      const evidence = createRecord(
         'det-' + i, LEVELS.DETERMINISTIC,
         result.passed ? 'passed' : 'failed',
         result.detail, result.confidence, prevHash
@@ -109,7 +83,7 @@ function verify(claims, gates) {
     let allPassed = true;
     for (let i = 0; i < gates.checklist.length; i++) {
       const result = runGate(gates.checklist[i], LEVELS.CHECKLIST);
-      const evidence = createEvidence(
+      const evidence = createRecord(
         'chk-' + i, LEVELS.CHECKLIST,
         result.passed ? 'passed' : 'failed',
         result.detail, result.confidence, prevHash
@@ -137,10 +111,10 @@ function verify(claims, gates) {
   if (evidenceChain.length > 0) {
     const lastConfidence = evidenceChain[evidenceChain.length - 1].confidence;
     if (lastConfidence !== null && lastConfidence !== undefined) {
-      if (lastConfidence < ESCALATION_BAND.low) {
+      if (lastConfidence < band.low) {
         // Low confidence but passed = still uncertain, escalate
         needsEscalation = true;
-      } else if (lastConfidence > ESCALATION_BAND.high) {
+      } else if (lastConfidence > band.high) {
         // High confidence pass = no escalation needed
         needsEscalation = false;
       }
@@ -149,14 +123,32 @@ function verify(claims, gates) {
 
   // Level 4: LLM critic (only for escalated cases)
   if (needsEscalation && gates.llm_critic) {
-    const result = runGate(gates.llm_critic, LEVELS.LLM_CRITIC);
-    const evidence = createEvidence(
+    const criticContext = {
+      claims: claims.slice(),
+      few_shot_section: (opts && opts.fewShotSection) || '',
+    };
+    const result = runGate(gates.llm_critic, LEVELS.LLM_CRITIC, criticContext);
+    // ADR-0017 D1: an exercised-but-indecisive critic (returns
+    // decisive:false, or threw) emits ESCALATE, never NOT VERIFIED.
+    const indecisive = result.decisive === false;
+    const evidence = createRecord(
       'llm-0', LEVELS.LLM_CRITIC,
-      result.passed ? 'passed' : 'failed',
+      indecisive ? 'inconclusive' : (result.passed ? 'passed' : 'failed'),
       result.detail, result.confidence, prevHash
     );
     prevHash = evidence.event_hash;
     evidenceChain.push(evidence);
+
+    if (indecisive) {
+      return {
+        verdict: 'ESCALATE',
+        tier: TIERS.UNVERIFIED,
+        evidence_chain: evidenceChain,
+        unchecked: claims.slice(),
+        reason: 'LLM critic exercised but indecisive: ' + result.detail +
+                ' — route to human adjudication (jiahao resolve)',
+      };
+    }
 
     if (result.passed) {
       return {
@@ -187,54 +179,4 @@ function verify(claims, gates) {
   };
 }
 
-// Verify hash chain integrity (tamper-evidence check)
-// Returns { valid: true } or { valid: false, broken_at: <index>, reason: <string> }
-function verifyChain(chain) {
-  if (!Array.isArray(chain) || chain.length === 0) {
-    return { valid: false, broken_at: -1, reason: 'empty or non-array chain' };
-  }
-  let expectedPrev = null;
-  for (let i = 0; i < chain.length; i++) {
-    const record = chain[i];
-    // Check prev_hash linkage
-    if (record.prev_hash !== expectedPrev) {
-      return { valid: false, broken_at: i, reason: 'prev_hash mismatch at index ' + i };
-    }
-    // Recompute event_hash and check
-    const recomputed = recordHash(record);
-    if (record.event_hash !== recomputed) {
-      return { valid: false, broken_at: i, reason: 'event_hash mismatch at index ' + i };
-    }
-    expectedPrev = record.event_hash;
-  }
-  return { valid: true };
-}
-
-// Write evidence to file (for Stop hook verdict gate)
-function writeEvidence(evidenceChain, overrideConfigDir) {
-  const ep = overrideConfigDir
-    ? require('path').join(overrideConfigDir, '.jiahao-evidence')
-    : evidencePath();
-  const data = JSON.stringify(evidenceChain);
-  fs.writeFileSync(ep, data, 'utf8');
-}
-
-// Clear evidence file
-function clearEvidence(overrideConfigDir) {
-  const ep = overrideConfigDir
-    ? require('path').join(overrideConfigDir, '.jiahao-evidence')
-    : evidencePath();
-  try { fs.unlinkSync(ep); } catch (e) { /* gone */ }
-}
-
-// ponytail: evidence chain is the minimal viable structure; hash chain + receipt
-// pattern is the upgrade path when tamper-evidence is needed.
-// ponytail: no calibration curve yet; confidence thresholds are static (0.4/0.7).
-// Upgrade to isotonic regression calibration when sufficient data exists.
-
-module.exports = {
-  TIERS, LEVELS, ESCALATION_BAND,
-  canonicalJSON, recordHash,
-  createEvidence, runGate, verify, verifyChain,
-  writeEvidence, clearEvidence,
-};
+module.exports = { runGate, verify, TIERS, LEVELS };
