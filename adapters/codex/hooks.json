@@ -43,6 +43,17 @@
           }
         ]
       }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/hooks/jiahao-sweep.js",
+            "timeout": 3
+          }
+        ]
+      }
     ]
   }
 }

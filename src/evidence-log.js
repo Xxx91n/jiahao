@@ -11,6 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { evidencePath, evidenceKeysPath } = require('./shared/paths');
+const { withLockSync } = require('./file-lock'); // ADR-0024 D2a
 
 // ADR-0023 D5 registry: degradation kinds this contract understands.
 // Evolution rules: only add kinds; detail fields within a kind are
@@ -146,7 +147,6 @@ function createEvidenceLog(overrideConfigDir) {
     ? path.join(overrideConfigDir, '.jiahao-evidence.keys')
     : evidenceKeysPath();
 
-
   function readAll() {
     try {
       const raw = fs.readFileSync(ep, 'utf8').trim();
@@ -164,41 +164,54 @@ function createEvidenceLog(overrideConfigDir) {
   // Each new record must already carry the correct prev_hash (chain tail).
   // Idempotency: records carrying `_idem` that already exist are skipped
   // (first-writer-wins); the chain is never rewritten.
-  function append(newRecords) {
-    if (!Array.isArray(newRecords) || newRecords.length === 0) return;
-    let existing = [];
-    try {
-      const parsed = JSON.parse(fs.readFileSync(ep, 'utf8'));
-      if (Array.isArray(parsed)) existing = parsed;
-    } catch (e) { /* no file or invalid — empty genesis */ }
-    const seen = new Set();
-    try {
-      fs.readFileSync(kp, 'utf8').split('\n').forEach(k => { if (k.trim()) seen.add(k.trim()); });
-    } catch (e) { /* no sidecar yet */ }
-    existing.filter(r => r && r._idem).forEach(r => seen.add(r._idem));
+  function append(newRecords) { commit(() => newRecords); }
 
-    const merged = existing.slice();
-    for (const rec of newRecords) {
-      if (rec && rec._idem && seen.has(rec._idem)) continue; // idempotent skip
-      // ADR-0013 D1: appended records must chain onto the current tail
-      // (prev_hash == tail.event_hash). Reject mismatched links here so the
-      // on-disk chain is never polluted mid-write.
-      const tail = merged.length > 0 ? merged[merged.length - 1] : null;
-      const tailHasAnchor = tail && typeof tail.event_hash === 'string' && tail.event_hash.length > 0;
-      if (tailHasAnchor && rec && rec.prev_hash !== undefined && rec.prev_hash !== tail.event_hash) {
-        try { process.stderr.write(
-          'jiahao evidence-log: skipping record ' + JSON.stringify(rec && rec.gate_id) +
-          ' — prev_hash mismatch (expected ' + tail.event_hash + ', got ' + rec.prev_hash + ')\n'
-        ); } catch (e) {}
-        continue;
+  // ADR-0024 D2a: read-chain -> build-record -> write lives inside ONE
+  // narrow lock (ep + '.lock'), so two reconcilers can never interleave a
+  // read/build pair and lose an update. make(chain, prevHash) returns the
+  // records to append ([] = no-op). Lock failure degrades to the unlocked
+  // write (best-effort invariant: hooks never block), same as pre-ADR-0024.
+  function commit(make) {
+    const run = () => {
+      let existing = [];
+      try {
+        const parsed = JSON.parse(fs.readFileSync(ep, 'utf8'));
+        if (Array.isArray(parsed)) existing = parsed;
+      } catch (e) { /* no file or invalid — empty genesis */ }
+      // records are produced inside the lock with an authoritative prev_hash
+      const newRecords = make(existing, existing.length > 0 ? existing[existing.length - 1].event_hash : null) || [];
+      if (!Array.isArray(newRecords) || newRecords.length === 0) return;
+      const seen = new Set();
+      try {
+        fs.readFileSync(kp, 'utf8').split('\n').forEach(k => { if (k.trim()) seen.add(k.trim()); });
+      } catch (e) { /* no sidecar yet */ }
+      existing.filter(r => r && r._idem).forEach(r => seen.add(r._idem));
+
+      const merged = existing.slice();
+      for (const rec of newRecords) {
+        if (rec && rec._idem && seen.has(rec._idem)) continue; // idempotent skip
+        // ADR-0013 D1: appended records must chain onto the current tail
+        // (prev_hash == tail.event_hash). Reject mismatched links here so the
+        // on-disk chain is never polluted mid-write.
+        const tail = merged.length > 0 ? merged[merged.length - 1] : null;
+        const tailHasAnchor = tail && typeof tail.event_hash === 'string' && tail.event_hash.length > 0;
+        if (tailHasAnchor && rec && rec.prev_hash !== undefined && rec.prev_hash !== tail.event_hash) {
+          try { process.stderr.write(
+            'jiahao evidence-log: skipping record ' + JSON.stringify(rec && rec.gate_id) +
+            ' — prev_hash mismatch (expected ' + tail.event_hash + ', got ' + rec.prev_hash + ')\n'
+          ); } catch (e) {}
+          continue;
+        }
+        if (rec && rec._idem) seen.add(rec._idem);
+        merged.push(rec);
       }
-      if (rec && rec._idem) seen.add(rec._idem);
-      merged.push(rec);
-    }
-    fs.writeFileSync(ep, JSON.stringify(merged), 'utf8');
-    // Full-rewrite sidecar with the union set (bounded by unique turn keys).
-    const allKeys = merged.filter(r => r && r._idem).map(r => r._idem);
-    fs.writeFileSync(kp, allKeys.join('\n') + '\n', 'utf8');
+      fs.writeFileSync(ep, JSON.stringify(merged), 'utf8');
+      // Full-rewrite sidecar with the union set (bounded by unique turn keys).
+      const allKeys = merged.filter(r => r && r._idem).map(r => r._idem);
+      fs.writeFileSync(kp, allKeys.join('\n') + '\n', 'utf8');
+    };
+    try { withLockSync(ep, run, { retries: 40, retrySleepMs: 10 }); }
+    catch (e) { try { run(); } catch (e2) { /* sink broken — drop */ } }
   }
 
   // Chain integrity check: { valid: true } or { valid, broken_at, reason }
@@ -209,5 +222,15 @@ function createEvidenceLog(overrideConfigDir) {
     try { fs.unlinkSync(kp); } catch (e) { /* gone */ }
   }
 
-  return { append, readAll, verify, clear, createRecord };
+  return { append, commit, readAll, verify, clear, createRecord };
 }
+
+module.exports = {
+  createEvidenceLog, ESCALATION_BAND, idempotencyKey, createRecord,
+  canonicalJSON, recordHash, verifyChain, createTurnInit, finalizeTurnInit,
+  KNOWN_DEGRADATION_KINDS,
+};
+
+// createRecord is pure (no fs, no closure state) — module-level per ADR-0016 double-track.
+
+
