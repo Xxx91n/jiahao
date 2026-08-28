@@ -22,6 +22,12 @@ jobs:
       - run: npm install --ignore-scripts
       - run: npm test
       - run: node scripts/check-drift.js
+      # ADR-0028 D2: golden regen-diff must be byte-clean
+      - run: node scripts/build-adapters.js --check
+      # ADR-0028 D4: host-contract registry guard (same-commit ADR/CONTEXT coupling on PRs)
+      - if: github.event_name == 'pull_request'
+        run: node scripts/check-host-contracts.js ${{ github.event.pull_request.base.sha }}
+      - run: node scripts/check-host-contracts.js
       # ADR-0027: pre-registered bench gate (real re-run over pinned corpus)
       - if: github.event_name == 'pull_request'
         run: node scripts/check-bench-thresholds.js ${{ github.event.pull_request.base.sha }}

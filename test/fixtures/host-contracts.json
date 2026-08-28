@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0028 D4 pre-registered host behavior contract registry. Consumed by tests only; hooks never read it at runtime (R4). Entry fields: {id, host, event, exit_codes, decision_keys, decision_values, fail_soft, term, source_adr}. Executable entries add hook (single script) or hooks (script list), spawned by test/host-contracts.test.js with fixture stdin. Config entries add config + expect_events. Instruction entries add files. term must anchor a CONTEXT.md glossary term (existence anchor, not prose parsing). lifecycle: per-adapter state (active|deprecated|eol); retirement triggers: official shutdown announcement, repository archival, or consecutive protocol-breaking versions without docs (ADR-0028 D6). Change governance: editing this file requires a docs/adr/*.md or CONTEXT.md change in the same commit range (scripts/check-host-contracts.js reuses the ADR-0027 coupling rule).",
+  "contracts": [
+    {
+      "id": "claude-verdict-gate",
+      "host": "claude-code",
+      "event": "Stop|SubagentStop",
+      "hook": "hooks/jiahao-verdict-gate.js",
+      "exit_codes": { "flag_off": 0, "allow": 0, "block": 2 },
+      "decision_keys": ["decision", "reason"],
+      "decision_values": { "decision": ["allow", "block"] },
+      "fail_soft": false,
+      "term": "Verification Gate",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+    },
+    {
+      "id": "claude-failsoft",
+      "host": "claude-code",
+      "event": "SessionStart|SubagentStart|UserPromptSubmit|SessionEnd",
+      "hooks": [
+        "hooks/jiahao-activate.js",
+        "hooks/jiahao-subagent.js",
+        "hooks/jiahao-mode-tracker.js",
+        "hooks/jiahao-sweep.js"
+      ],
+      "exit_codes": { "any": 0 },
+      "decision_keys": [],
+      "decision_values": {},
+      "fail_soft": true,
+      "term": "Session-End Sweep",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+    },
+    {
+      "id": "claude-config",
+      "host": "claude-code",
+      "event": "config",
+      "config": "hooks/jiahao-hooks.json",
+      "expect_events": ["SessionStart", "SubagentStart", "UserPromptSubmit", "Stop", "SubagentStop", "SessionEnd"],
+      "exit_codes": {},
+      "decision_keys": [],
+      "decision_values": {},
+      "fail_soft": true,
+      "term": "Host Contract",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+    },
+    {
+      "id": "codex-verdict-gate",
+      "host": "codex",
+      "event": "Stop",
+      "hook": "hooks/jiahao-verdict-gate.js",
+      "exit_codes": { "flag_off": 0, "allow": 0, "block": 2 },
+      "decision_keys": ["decision", "reason"],
+      "decision_values": { "decision": ["allow", "block"] },
+      "fail_soft": false,
+      "term": "Verification Gate",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+    },
+    {
+      "id": "codex-failsoft",
+      "host": "codex",
+      "event": "SessionStart|SubagentStart|UserPromptSubmit|SessionEnd",
+      "hooks": [
+        "hooks/jiahao-activate.js",
+        "hooks/jiahao-subagent.js",
+        "hooks/jiahao-mode-tracker.js",
+        "hooks/jiahao-sweep.js"
+      ],
+      "exit_codes": { "any": 0 },
+      "decision_keys": [],
+      "decision_values": {},
+      "fail_soft": true,
+      "term": "Session-End Sweep",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+    },
+    {
+      "id": "codex-config",
+      "host": "codex",
+      "event": "config",
+      "config": "adapters/codex/hooks.json",
+      "expect_events": ["SessionStart", "SubagentStart", "UserPromptSubmit", "Stop", "SessionEnd"],
+      "exit_codes": {},
+      "decision_keys": [],
+      "decision_values": {},
+      "fail_soft": true,
+      "term": "Host Contract",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+    },
+    {
+      "id": "cursor-instruction",
+      "host": "cursor",
+      "event": "instruction-injection",
+      "files": ["adapters/cursor/jiahao.mdc", "adapters/cursor/jiahao-generator.mdc"],
+      "exit_codes": {},
+      "decision_keys": [],
+      "decision_values": {},
+      "fail_soft": true,
+      "term": "Protection Tier",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+    },
+    {
+      "id": "windsurf-instruction",
+      "host": "windsurf",
+      "event": "instruction-injection",
+      "files": ["adapters/windsurf/jiahao.md", "adapters/windsurf/jiahao-generator.md"],
+      "exit_codes": {},
+      "decision_keys": [],
+      "decision_values": {},
+      "fail_soft": true,
+      "term": "Protection Tier",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+    },
+    {
+      "id": "cline-instruction",
+      "host": "cline",
+      "event": "instruction-injection",
+      "files": ["adapters/cline/jiahao.md", "adapters/cline/jiahao-generator.md"],
+      "exit_codes": {},
+      "decision_keys": [],
+      "decision_values": {},
+      "fail_soft": true,
+      "term": "Protection Tier",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+    },
+    {
+      "id": "instruction-tier-injection",
+      "host": "instruction-tier",
+      "event": "instruction-injection",
+      "files": ["adapters/instruction-tier/AGENTS.md", "adapters/instruction-tier/AGENTS-generator.md"],
+      "exit_codes": {},
+      "decision_keys": [],
+      "decision_values": {},
+      "fail_soft": true,
+      "term": "Protection Tier",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+    },
+    {
+      "id": "mcp-stub",
+      "host": "mcp",
+      "event": "stdio-future",
+      "files": ["adapters/mcp/README.md"],
+      "exit_codes": {},
+      "decision_keys": [],
+      "decision_values": {},
+      "fail_soft": true,
+      "term": "MCP Adapter",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+    }
+  ],
+  "lifecycle": {
+    "claude-code": { "state": "active" },
+    "codex": { "state": "active" },
+    "cursor": { "state": "active" },
+    "windsurf": { "state": "active" },
+    "cline": { "state": "active" },
+    "instruction-tier": { "state": "active" },
+    "mcp": { "state": "active", "note": "stdio server not yet shipped; README stub documents the planned surface" }
+  }
+}

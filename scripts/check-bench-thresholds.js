@@ -94,12 +94,18 @@ function checkSameCommitCoupling(baseRef) {
 }
 
 // Pure core of the coupling rule, exported for testing both polarities.
-function couplingViolation(changed, baseRef) {
+// opts (ADR-0028 D4 reuse): { cfgRel, allowContextMd, reason } lets the
+// host-contracts guard share this rule against a different watched file.
+function couplingViolation(changed, baseRef, opts) {
+  const o = opts || {};
+  const cfgRel = (o.cfgRel || CFG_REL).split(path.sep).join('/').replace(/\\/g, '/');
   const errors = [];
-  const cfgChanged = changed.includes(CFG_REL.split(path.sep).join('/'));
+  const cfgChanged = changed.includes(cfgRel);
   const adrChanged = changed.some(f => /^docs\/adr\/\d+.*\.md$/.test(f));
-  if (cfgChanged && !adrChanged) {
-    errors.push(`coupling: ${CFG_REL.replace(/\\/g, '/')} changed without any docs/adr/*.md change in ${baseRef}...HEAD — threshold changes require an ADR (ADR-0027 D2)`);
+  const ctxChanged = o.allowContextMd ? changed.includes('CONTEXT.md') : false;
+  if (cfgChanged && !adrChanged && !ctxChanged) {
+    const docs = o.allowContextMd ? 'docs/adr/*.md or CONTEXT.md' : 'docs/adr/*.md';
+    errors.push(`coupling: ${cfgRel} changed without any ${docs} change in ${baseRef}...HEAD — ${o.reason || 'threshold changes require an ADR (ADR-0027 D2)'}`);
   }
   return errors;
 }
