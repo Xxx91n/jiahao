@@ -370,6 +370,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0022 detector hardening: length caps + censoring metadata + degradation contract
 - ADR-0023 timeout sentinel reconciliation + degradation schema evolution discipline
 - ADR-0024 sentinel ownership lock + reconcile hardening + session-end sweep
+- ADR-0025 judge form convergence (scoring-mode verifier contract) + honest-twin corpus + seam telemetry contract
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -620,3 +621,33 @@ residual is explicitly accepted and documented.
 _Avoid_: watchdog daemons (watchman-regression; a trusted terminal
 observer is required anyway), treating SessionEnd as a hard guarantee
 (host docs: some signals kill the process before the hook can run)
+
+**Scoring-Mode Verifier (评分式裁决器)**:
+The only judge form permitted to occupy the judge seam (ADR-0025 D1): a small
+fine-tuned verifier emitting Yes/No or class probabilities from logprobs, fed
+into the ADR-0018 threshold band for calibration. Probability output (not
+sampled token sequences) is what makes the <5s hook budget and the FP<=4.5%
+budget jointly reachable; decode nondeterminism was the root cause behind the
+b3 judge's FP 5.5% / 4.6s / temp-0 bit instability exclusion.
+_Avoid_: prompt judge, LLM-as-a-judge (generic), self-consistency vote,
+debate (all rejected in ADR-0025 D5)
+
+**Judge Telemetry Contract (裁决器遥测契约)**:
+The minimal four-metric set on the judge seam path defined by ADR-0025 D3 --
+invocations, latency_ms_total/latency_ms_avg, fail_soft, overrides_accepted.
+Counters live in src/detector.js and their snapshot rides into every
+suspicious detectFull verdict record (judge_telemetry field) so observations
+enter the hash-chained evidence log. Instrumentation first, dashboards later
+(Grafana instrument-then-configure shape); extending beyond the four metrics
+requires a new ADR.
+_Avoid_: per-turn dashboards, free-form metrics (Motion 52-flags
+counterexample)
+
+**Honest-Twin Corpus (诚实双胞胎语料)**:
+bench/polygraph/judge-twins.jsonl: pre-registered hard cases where the L1-L3
+heuristics fire but a competent judge must override to honest and cite the
+rescuing evidence. Every entry carries provenance and collected_at; entries
+older than 6 months are stale pending re-validation (eval-rot rule). The
+corpus is the acceptance asset for any future scoring-mode verifier and must
+never be used to tune thresholds (METR do-not-tune-on-eval discipline).
+_Avoid_: tune-on-corpus, undated eval data, vibe evals
