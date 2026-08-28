@@ -465,22 +465,69 @@ function detectFull(signalInput) {
   }
   const coverage = degradation.kind !== null ? "partial" : "full";
   const anchors = anchorPassThrough(toolResults);
-  return { suspicious: s.fired || w.matched.length > 0, coverage, degradation, structural_hits: s.hits, request_anchors: anchors, structural_any: s.any, structural_count: lCount, suppressed: s.suppressed, matched_phrases: w.matched, severity, family_hits: { high: w.matchedHigh.length, low: w.matchedLow.length }, wordlist_degraded: w.degraded };
+  const verdict = { suspicious: s.fired || w.matched.length > 0, coverage, degradation, structural_hits: s.hits, request_anchors: anchors, structural_any: s.any, structural_count: lCount, suppressed: s.suppressed, matched_phrases: w.matched, severity, family_hits: { high: w.matchedHigh.length, low: w.matchedLow.length }, wordlist_degraded: w.degraded };
+  // ADR-0025 D2/D3: seam routing -- the seam is exercised only on
+  // suspicious turns (k8s matchConditions shape: judge never sees clean
+  // traffic, so the p95 of honest turns is untouched). judge_override is
+  // null until a scoring-mode verifier lands; the telemetry snapshot
+  // rides into the evidence chain with this verdict record.
+  if (verdict.suspicious) {
+    verdict.judge_override = judgeSeam(closing.text, toolResults, verdict);
+    verdict.judge_telemetry = judgeTelemetry();
+  }
+  return verdict;
 }
 
 if (!_phrasesState.ok) {
   try { process.stderr.write("jiahao detector: wordlist degraded (" + _phrasesState.error + "); L1-L3 structural detection remains active.\n"); } catch (e) {}
 }
 
-// ADR-0019 D4 — Judge seam (interface reserved; implementation forbidden).
-// Future judge signature: judge(claim, toolResults, heuristicVerdict) ->
-// override|null, escalate = "honest_only" (may only rescue heuristic misses,
-// never produce a new FP), fail-soft (judge unavailable/timeout/malformed ->
-// the heuristic verdict stands, counted honest). Any implementation must
-// first pass the ADR-0015 D3 internal-holdout FP gap <= 3pp gate; a runtime
-// judge function existing in this module is a spec violation this round.
+// ADR-0019 D4 + ADR-0025 -- Judge seam (signature locked; runtime forbidden).
+// Locked signature (ADR-0025 D2):
+//   judgeSeam(claim, toolResults, heuristicVerdict) ->
+//     { verdict: "override" | "uphold", confidence: <number 0..1>,
+//       evidence: <string[]> } | null
+// Semantics unchanged from ADR-0019 D4: escalate = "honest_only" (may only
+// rescue heuristic misses, never produce a new FP), fail-soft (judge
+// unavailable/timeout/malformed -> the heuristic verdict stands, counted
+// honest). Form convergence (ADR-0025 D1): the only acceptable future
+// runtime is a scoring-mode small verifier (probability output + calibrated
+// threshold band, sized for the <5s hook budget); a prompt-style generic LLM
+// judge is rejected (b3: FP 5.5% > 4.5% budget, 4.6s latency, temp-0 bit
+// instability -- FAGEN concurs: judges AUROC <= 0.65 on false success).
+// The ADR-0015 D3 internal-holdout FP gap <= 3pp gate must pass before any
+// runtime lands.
+//
+// Telemetry contract (ADR-0025 D3): four metrics live on this seam path --
+// invocations (suspicious-route rate numerator), latency total (ms),
+// fail_soft count, overrides_accepted -- exposed via judgeTelemetry() and
+// snapshotted into every suspicious detectFull record so observations ride
+// the evidence chain. Minimal set only (Motion 52-flags counterexample).
+//
 /**
- * @typedef {null} JudgeOverride
+ * @typedef {{ verdict: "override" | "uphold", confidence: number, evidence: string[] }} JudgeOverride
  */
+const _judgeTelemetry = { invocations: 0, latencyMsTotal: 0, failSoft: 0, overridesAccepted: 0 };
+function judgeSeam(claim, toolResults, heuristicVerdict) {
+  const t0 = Date.now();
+  _judgeTelemetry.invocations++;
+  try {
+    // No runtime judge this round; ADR-0019 D4 stands.
+    return null;
+  } finally {
+    _judgeTelemetry.latencyMsTotal += Date.now() - t0;
+  }
+}
+function judgeTelemetry() {
+  return {
+    invocations: _judgeTelemetry.invocations,
+    fail_soft: _judgeTelemetry.failSoft,
+    overrides_accepted: _judgeTelemetry.overridesAccepted,
+    latency_ms_total: _judgeTelemetry.latencyMsTotal,
+    latency_ms_avg: _judgeTelemetry.invocations > 0
+      ? Math.round((_judgeTelemetry.latencyMsTotal / _judgeTelemetry.invocations) * 1000) / 1000
+      : 0
+  };
+}
 
-module.exports = { detect, detectFull, capField, INPUT_CAP_BYTES, TRUNC_MARKER, structuralDetect, l1_errorConcealment, l2_completionVsEvidence, l3_narrativeVsAssertion, l1Suppression, l2Suppression, l3Suppression, wordlistMatch, loadPhrases, resolvePhrasesPath, anchorRescue, anchorConviction, anchorPassThrough, hasSuccessClaim, EXPECTED_PHRASES_SHA256, PHRASES_STATE: _phrasesState };
+module.exports = { detect, detectFull, capField, INPUT_CAP_BYTES, TRUNC_MARKER, structuralDetect, l1_errorConcealment, l2_completionVsEvidence, l3_narrativeVsAssertion, l1Suppression, l2Suppression, l3Suppression, wordlistMatch, loadPhrases, resolvePhrasesPath, anchorRescue, anchorConviction, anchorPassThrough, hasSuccessClaim, EXPECTED_PHRASES_SHA256, PHRASES_STATE: _phrasesState, judgeSeam, judgeTelemetry };
