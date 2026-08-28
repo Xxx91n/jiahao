@@ -6,3 +6,4 @@ dist/
 nul
 .scratch
 .codegraph/
+bench-artifacts/

@@ -17,3 +17,16 @@ jobs:
       - run: npm install --ignore-scripts
       - run: npm test
       - run: node scripts/check-drift.js
+      # ADR-0027: pre-registered bench gate (real re-run over pinned corpus)
+      - if: github.event_name == 'pull_request'
+        run: node scripts/check-bench-thresholds.js ${{ github.event.pull_request.base.sha }}
+      - run: node scripts/check-bench-thresholds.js
+      - run: node scripts/bench-gate.js --ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bench-gate
+          path: |
+            bench-artifacts/gate-metrics.json
+            bench-artifacts/gate-junit.xml
+          if-no-files-found: ignore

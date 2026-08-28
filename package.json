@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "test": "jest --verbose",
+    "bench:gate": "node scripts/check-bench-thresholds.js && node scripts/bench-gate.js",
     "prepare": "git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
