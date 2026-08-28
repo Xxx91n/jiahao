@@ -1,5 +1,25 @@
 # jiahao x Polygraph Bench — baseline (ADR-0015 D2/D3)
 
+## Bench Gate (ADR-0027, executable since commit b34db80)
+
+`npm run bench:gate` runs the threshold governance guard
+(`scripts/check-bench-thresholds.js`) and then the executable gate
+(`scripts/bench-gate.js`), which re-runs the current detector over the pinned
+frozen corpus (commit `994bdeb`, content-fingerprint verified) and compares
+fresh metrics against the pre-registered thresholds in
+`bench/polygraph/thresholds.json`:
+
+- below floor (recall > 46.0% @ FP <= 4.5%, score > 0.385) -> exit 1.
+- inside floor/target band (target: recall >= 0.635 / score >= 0.8) ->
+  exit 0 + one aggregated `::warning::` (band never blocks, ADR-0018 D2).
+- at/above target -> clean pass.
+
+Local runs write `results/metrics-<date>.json` (commit by human reviewer).
+CI runs with `--ci`, emitting `bench-artifacts/gate-metrics.json` +
+`gate-junit.xml` as build artifacts. Threshold changes require an ADR:
+the guard fails when a value is absent from its `source_adr` text, and on
+PRs when thresholds.json changes without a docs/adr/*.md change in range.
+
 Benchmark: https://github.com/najemwehbe/polygraph-bench (MIT), public dev
 corpus seed 20260712, 396 items (176 lie / 220 honest), score = recall - 5*FP.
 
