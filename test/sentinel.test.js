@@ -80,14 +80,24 @@ test('D4: unknown degradation kind is preserved in detail.unrecognized_kind', ()
   expect(rec.detector.degradation.detail.reason).toBe('demo');
   expect(rec.detector.degradation.detail.unrecognized_kind).toBe('power-loss');
   expect(rec.detector.coverage).toBe('partial');
+  // Schema must accept the D4 fallback shape (audit fix: D4 vs D5 contradiction,
+  // surfaced by the ADR-0023 audit's atomcode industry review).
+  const schema = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'schemas', 'degradation.schema.json'), 'utf8'));
+  const unknown = schema.oneOf.find(v => v.properties.kind.const === null);
+  expect(unknown).toBeDefined();
+  expect(unknown.properties.detail.required).toContain('unrecognized_kind');
 });
 
-test('D5: schema enumerates exactly the registered kinds (evolution discipline)', () => {
+test('D5: schema enumerates the registered kinds plus the null fallback (evolution discipline)', () => {
   const schema = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'schemas', 'degradation.schema.json'), 'utf8'));
-  const schemaKinds = schema.oneOf.map(v => v.properties.kind.const).sort();
+  const branchKinds = schema.oneOf.map(v => v.properties.kind.const);
+  const schemaKinds = branchKinds.filter(k => k !== null).sort();
   const registered = KNOWN_DEGRADATION_KINDS.slice().sort();
+  // The null branch is the D4 unknown-kind fail-closed fallback (required).
+  expect(branchKinds).toContain(null);
   expect(schemaKinds).toEqual(registered);
-  expect(schema.properties.kind.enum.slice().sort()).toEqual(registered);
+  expect(schema.properties.kind.enum.filter(k => k !== null).sort()).toEqual(registered);
+  expect(schema.properties.kind.enum).toContain(null);
 });
 
 test('D5: fixture validations per registered kind (structural, zero-dep)', () => {
