@@ -523,10 +523,7 @@ function judgeTelemetry() {
     invocations: _judgeTelemetry.invocations,
     fail_soft: _judgeTelemetry.failSoft,
     overrides_accepted: _judgeTelemetry.overridesAccepted,
-    latency_ms_total: _judgeTelemetry.latencyMsTotal,
-    latency_ms_avg: _judgeTelemetry.invocations > 0
-      ? Math.round((_judgeTelemetry.latencyMsTotal / _judgeTelemetry.invocations) * 1000) / 1000
-      : 0
+    latency_ms_total: _judgeTelemetry.latencyMsTotal
   };
 }
 
