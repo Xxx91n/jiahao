@@ -55,6 +55,63 @@ const adapters = {
   'adapters/instruction-tier/AGENTS.md': '# Jiahao Verifier Discipline\n\n' + profiles.verifier,
   'adapters/instruction-tier/AGENTS-generator.md': '# Jiahao Generator Discipline\n\n' + profiles.generator,
 
+  // Copilot CLI: repo-level .github/hooks/jiahao.json, flat {version,hooks}
+  // schema. agentStop is the verdict-gate mapping; userPromptSubmitted is the
+  // attested injection path (repo-level sessionStart has known non-firing
+  // bugs: copilot-cli #1730 open, #2415; additionalContext fixed in 1.0.11 per
+  // #2142). Verified against docs.github.com/en/copilot hooks docs, 2026-08.
+  'adapters/copilot/hooks.json': JSON.stringify({
+    version: 1,
+    hooks: {
+      sessionStart: [{ type: 'command', command: 'node .github/jiahao/hooks/jiahao-activate.js', timeoutSec: 10 }],
+      userPromptSubmitted: [{ type: 'command', command: 'node .github/jiahao/hooks/jiahao-mode-tracker.js', timeoutSec: 10 }],
+      subagentStart: [{ type: 'command', command: 'node .github/jiahao/hooks/jiahao-subagent.js', timeoutSec: 10 }],
+      agentStop: [{ type: 'command', command: 'node .github/jiahao/hooks/jiahao-verdict-gate.js', timeoutSec: 30 }],
+      sessionEnd: [{ type: 'command', command: 'node .github/jiahao/hooks/jiahao-sweep.js', timeoutSec: 10 }],
+    },
+  }, null, 2) + '\n',
+
+  'adapters/copilot/README.md': '# GitHub Copilot CLI Adapter\n\nRepo-level hook config for GitHub Copilot CLI: copy hooks.json to\n`.github/hooks/jiahao.json` and the hook scripts (hooks/*.js from this\npackage) to `.github/jiahao/hooks/`. Flat schema `{version: 1, hooks:\n{event: [entry]}}` per the official hooks reference.\n\nEvent mapping:\n- sessionStart -> jiahao-activate.js (additionalContext injection)\n- userPromptSubmitted -> jiahao-mode-tracker.js (mode commands + reminder;\n  attested injection path)\n- subagentStart -> jiahao-subagent.js\n- agentStop -> jiahao-verdict-gate.js (block forces continuation; the CLI\n  force-ends after 8 consecutive blocks)\n- sessionEnd -> jiahao-sweep.js (sentinel sweep)\n\nKnown degradations (verified against copilot-cli issues, 2026-08):\n- #1730 (open): repo-level `.github/hooks/` sessionStart may not fire;\n  userPromptSubmitted is the attested injection path.\n- #2142: sessionStart additionalContext was dropped until CLI 1.0.11.\n- Copilot exit codes default to warn/fail-open outside\n  preToolUse/permissionRequest; the agentStop block follows the CLI\'s own\n  continuation semantics, not Claude\'s exit-2 stderr convention (ADR-0028\n  R6: differences are recorded, not shimmed).\n',
+
+  // Qoder (international CLI): project-level .qoder/settings.json fragment.
+  // Contract homologous to Claude Code: hookSpecificOutput.hookEventName,
+  // exit 2 blocks on Stop/UserPromptSubmit (docs.qoder.com/cli/hooks and
+  // hooks-reference, verified 2026-08). SessionStart exists (matcher
+  // startup|resume|clear, non-blocking). SessionEnd is NOT registered: not
+  // verified in the official event list at research time.
+  'adapters/qoder/settings.json': JSON.stringify({
+    hooks: {
+      SessionStart: [{ matcher: 'startup|resume', hooks: [{ type: 'command', command: 'node .qoder/hooks/jiahao-activate.js', timeout: 10 }] }],
+      SubagentStart: [{ hooks: [{ type: 'command', command: 'node .qoder/hooks/jiahao-subagent.js', timeout: 10 }] }],
+      UserPromptSubmit: [{ hooks: [{ type: 'command', command: 'node .qoder/hooks/jiahao-mode-tracker.js', timeout: 10 }] }],
+      Stop: [{ hooks: [{ type: 'command', command: 'node .qoder/hooks/jiahao-verdict-gate.js', timeout: 30 }] }],
+      SubagentStop: [{ hooks: [{ type: 'command', command: 'node .qoder/hooks/jiahao-verdict-gate.js', timeout: 30 }] }],
+    },
+  }, null, 2) + '\n',
+
+  'adapters/qoder/README.md': '# Qoder Adapter (international CLI)\n\nMerge settings.json into your project `.qoder/settings.json` (or install\nuser-level at `~/.qoder/settings.json`) and copy the hook scripts\n(hooks/*.js of this package) to `.qoder/hooks/`. The contract is homologous\nto Claude Code: `hookSpecificOutput.hookEventName` + `additionalContext`,\nexit 2 blocks on Stop/UserPromptSubmit (docs.qoder.com/cli/hooks and\ncli/hooks-reference, verified 2026-08).\n\nEvent mapping: SessionStart (matcher startup|resume; non-blocking) ->\njiahao-activate.js; SubagentStart -> jiahao-subagent.js; UserPromptSubmit ->\njiahao-mode-tracker.js; Stop/SubagentStop -> jiahao-verdict-gate.js\n(exit-2 blocking verifier gate).\n\nHonest notes:\n- SessionStart IS supported (matcher startup/resume/clear); the old runtime\n  comment "Qoder has no SessionStart" was wrong and has been corrected.\n- SessionEnd is not registered because it was not verified in the official\n  event list at research time; the next session\'s first hook reconcile\n  remains the sweep baseline (ADR-0024 D3).\n- CN fork (Lingma / Qoder CN): 5 events only, no SessionStart, Stop cannot\n  block, config under `~/.lingma/` — this adapter targets the international\n  CLI. Do not assume parity.\n',
+
+  // opencode: instruction tier, advisory-only. No lifecycle hooks and no
+  // exit-2 contract exist (opencode#12472 open; #14551 closed not-planned).
+  // Primary channel: AGENTS.md (project root + ~/.config/opencode/AGENTS.md,
+  // merged). opencode.json instructions field is V1-only (accepted but not
+  // loaded in V2 beta) — shipped as a supplementary channel, documented.
+  'adapters/opencode/jiahao-verifier.md': '# Jiahao Verifier Discipline\n\n' + profiles.verifier,
+  'adapters/opencode/jiahao-generator.md': '# Jiahao Generator Discipline\n\n' + profiles.generator,
+  'adapters/opencode/opencode.json': JSON.stringify({
+    instructions: ['jiahao-verifier.md'],
+  }, null, 2) + '\n',
+  'adapters/opencode/README.md': '# opencode Adapter (instruction tier, advisory-only)\n\nopencode has no lifecycle hooks and no exit-2 contract (issue #12472 open;\n#14551 closed as not-planned), so jiahao runs advisory-only here.\n\nTwo injection channels:\n1. AGENTS.md (primary; V1 and V2): paste the profile content into your\n   project-root AGENTS.md or `~/.config/opencode/AGENTS.md` (both are\n   merged by opencode).\n2. opencode.json `instructions` (V1 only; accepted but NOT loaded in the V2\n   beta): place jiahao-verifier.md next to the provided opencode.json, which\n   references it via `"instructions": ["jiahao-verifier.md"]`.\n\nClaude Code compatibility paths (~/.claude/skills) also work.\n',
+
+  // aider: instruction tier, advisory-only. No hooks (issue #2557 closed
+  // stale). Loader is explicit configuration, not discovery: read: list in
+  // .aider.conf.yml (search order git root, cwd, home). Default installs do
+  // NOT inject anything — the opt-in is the honest contract.
+  'adapters/aider/CONVENTIONS.md': profiles.verifier,
+  'adapters/aider/CONVENTIONS-generator.md': profiles.generator,
+  'adapters/aider/.aider.conf.yml': '# Jiahao discipline injection (advisory-only; aider has no hooks)\n# Loader is explicit configuration, not discovery\n# (aider.chat/docs/config/aider_conf.html; conventions guide recommends\n# read: over the stale read-only: spelling).\nread:\n  - CONVENTIONS.md\n',
+  'adapters/aider/README.md': '# aider Adapter (instruction tier, advisory-only)\n\naider has no hooks (issue #2557 closed by stale bot, never implemented), so\njiahao is advisory-only plain-text injection here. The loader is explicit\nconfiguration, not discovery: nothing is injected unless you opt in.\n\nInstall: copy CONVENTIONS.md and .aider.conf.yml to your project git root\n(config search order: git root, cwd, home). The `read:` key takes a list;\nswap in CONVENTIONS-generator.md for the generator profile.\n',
+
   // MCP server (future): package.json for ponytail-mcp equivalent
   'adapters/mcp/README.md': '# MCP Adapter\n\njiahao-mcp/ is a stdio MCP server exposing jiahao verifier discipline\nvia registerPrompt + registerTool for MCP-only agent hosts.\n\nSee jiahao-mcp/index.js for the server implementation.\nDependencies: @modelcontextprotocol/sdk, zod.\n',
 };

@@ -22,10 +22,12 @@ function writeHookOutput(text, event) {
       },
     }));
   } else if (host === 'copilot') {
-    // Copilot only accepts SessionStart output
+    // Copilot flat output: additionalContext (multi-event since CLI 1.0.11, #2142)
     console.log(JSON.stringify({ additionalContext: trimmed }));
   } else if (host === 'qoder') {
-    // Qoder has no SessionStart; injection happens on UserPromptSubmit
+    // Qoder HAS SessionStart (matcher startup/resume/clear, non-blocking);
+    // hookSpecificOutput.hookEventName contract is homologous to Claude Code
+    // (docs.qoder.com/cli/hooks-reference, verified 2026-08; ADR-0028 D5)
     console.log(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: event,

@@ -1,15 +1,27 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0028 D4 pre-registered host behavior contract registry. Consumed by tests only; hooks never read it at runtime (R4). Entry fields: {id, host, event, exit_codes, decision_keys, decision_values, fail_soft, term, source_adr}. Executable entries add hook (single script) or hooks (script list), spawned by test/host-contracts.test.js with fixture stdin. Config entries add config + expect_events. Instruction entries add files. term must anchor a CONTEXT.md glossary term (existence anchor, not prose parsing). lifecycle: per-adapter state (active|deprecated|eol); retirement triggers: official shutdown announcement, repository archival, or consecutive protocol-breaking versions without docs (ADR-0028 D6). Change governance: editing this file requires a docs/adr/*.md or CONTEXT.md change in the same commit range (scripts/check-host-contracts.js reuses the ADR-0027 coupling rule).",
+  "_doc": "ADR-0028 D4 pre-registered host behavior contract registry. Consumed by tests only; hooks never read it at runtime (R4). Entry fields: {id, host, event, exit_codes, decision_keys, decision_values, fail_soft, term, source_adr}. Executable entries add hook (single script) or hooks (script list), spawned by test/host-contracts.test.js with fixture stdin. Config entries add config + expect_events. Instruction entries add files. Optional note field records known degradations honestly (R6). term must anchor a CONTEXT.md glossary term (existence anchor, not prose parsing). lifecycle: per-adapter state (active|deprecated|eol); retirement triggers: official shutdown announcement, repository archival, or consecutive protocol-breaking versions without docs (ADR-0028 D6). Change governance: editing this file requires a docs/adr/*.md or CONTEXT.md change in the same commit range (scripts/check-host-contracts.js reuses the ADR-0027 coupling rule).",
   "contracts": [
     {
       "id": "claude-verdict-gate",
       "host": "claude-code",
       "event": "Stop|SubagentStop",
       "hook": "hooks/jiahao-verdict-gate.js",
-      "exit_codes": { "flag_off": 0, "allow": 0, "block": 2 },
-      "decision_keys": ["decision", "reason"],
-      "decision_values": { "decision": ["allow", "block"] },
+      "exit_codes": {
+        "flag_off": 0,
+        "allow": 0,
+        "block": 2
+      },
+      "decision_keys": [
+        "decision",
+        "reason"
+      ],
+      "decision_values": {
+        "decision": [
+          "allow",
+          "block"
+        ]
+      },
       "fail_soft": false,
       "term": "Verification Gate",
       "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
@@ -24,7 +36,9 @@
         "hooks/jiahao-mode-tracker.js",
         "hooks/jiahao-sweep.js"
       ],
-      "exit_codes": { "any": 0 },
+      "exit_codes": {
+        "any": 0
+      },
       "decision_keys": [],
       "decision_values": {},
       "fail_soft": true,
@@ -36,7 +50,14 @@
       "host": "claude-code",
       "event": "config",
       "config": "hooks/jiahao-hooks.json",
-      "expect_events": ["SessionStart", "SubagentStart", "UserPromptSubmit", "Stop", "SubagentStop", "SessionEnd"],
+      "expect_events": [
+        "SessionStart",
+        "SubagentStart",
+        "UserPromptSubmit",
+        "Stop",
+        "SubagentStop",
+        "SessionEnd"
+      ],
       "exit_codes": {},
       "decision_keys": [],
       "decision_values": {},
@@ -49,9 +70,21 @@
       "host": "codex",
       "event": "Stop",
       "hook": "hooks/jiahao-verdict-gate.js",
-      "exit_codes": { "flag_off": 0, "allow": 0, "block": 2 },
-      "decision_keys": ["decision", "reason"],
-      "decision_values": { "decision": ["allow", "block"] },
+      "exit_codes": {
+        "flag_off": 0,
+        "allow": 0,
+        "block": 2
+      },
+      "decision_keys": [
+        "decision",
+        "reason"
+      ],
+      "decision_values": {
+        "decision": [
+          "allow",
+          "block"
+        ]
+      },
       "fail_soft": false,
       "term": "Verification Gate",
       "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
@@ -66,7 +99,9 @@
         "hooks/jiahao-mode-tracker.js",
         "hooks/jiahao-sweep.js"
       ],
-      "exit_codes": { "any": 0 },
+      "exit_codes": {
+        "any": 0
+      },
       "decision_keys": [],
       "decision_values": {},
       "fail_soft": true,
@@ -78,7 +113,13 @@
       "host": "codex",
       "event": "config",
       "config": "adapters/codex/hooks.json",
-      "expect_events": ["SessionStart", "SubagentStart", "UserPromptSubmit", "Stop", "SessionEnd"],
+      "expect_events": [
+        "SessionStart",
+        "SubagentStart",
+        "UserPromptSubmit",
+        "Stop",
+        "SessionEnd"
+      ],
       "exit_codes": {},
       "decision_keys": [],
       "decision_values": {},
@@ -90,7 +131,10 @@
       "id": "cursor-instruction",
       "host": "cursor",
       "event": "instruction-injection",
-      "files": ["adapters/cursor/jiahao.mdc", "adapters/cursor/jiahao-generator.mdc"],
+      "files": [
+        "adapters/cursor/jiahao.mdc",
+        "adapters/cursor/jiahao-generator.mdc"
+      ],
       "exit_codes": {},
       "decision_keys": [],
       "decision_values": {},
@@ -102,7 +146,10 @@
       "id": "windsurf-instruction",
       "host": "windsurf",
       "event": "instruction-injection",
-      "files": ["adapters/windsurf/jiahao.md", "adapters/windsurf/jiahao-generator.md"],
+      "files": [
+        "adapters/windsurf/jiahao.md",
+        "adapters/windsurf/jiahao-generator.md"
+      ],
       "exit_codes": {},
       "decision_keys": [],
       "decision_values": {},
@@ -114,7 +161,10 @@
       "id": "cline-instruction",
       "host": "cline",
       "event": "instruction-injection",
-      "files": ["adapters/cline/jiahao.md", "adapters/cline/jiahao-generator.md"],
+      "files": [
+        "adapters/cline/jiahao.md",
+        "adapters/cline/jiahao-generator.md"
+      ],
       "exit_codes": {},
       "decision_keys": [],
       "decision_values": {},
@@ -126,7 +176,10 @@
       "id": "instruction-tier-injection",
       "host": "instruction-tier",
       "event": "instruction-injection",
-      "files": ["adapters/instruction-tier/AGENTS.md", "adapters/instruction-tier/AGENTS-generator.md"],
+      "files": [
+        "adapters/instruction-tier/AGENTS.md",
+        "adapters/instruction-tier/AGENTS-generator.md"
+      ],
       "exit_codes": {},
       "decision_keys": [],
       "decision_values": {},
@@ -138,22 +191,181 @@
       "id": "mcp-stub",
       "host": "mcp",
       "event": "stdio-future",
-      "files": ["adapters/mcp/README.md"],
+      "files": [
+        "adapters/mcp/README.md"
+      ],
       "exit_codes": {},
       "decision_keys": [],
       "decision_values": {},
       "fail_soft": true,
       "term": "MCP Adapter",
       "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+    },
+    {
+      "id": "copilot-verdict-gate",
+      "host": "copilot",
+      "event": "agentStop",
+      "hook": "hooks/jiahao-verdict-gate.js",
+      "exit_codes": {
+        "flag_off": 0,
+        "allow": 0,
+        "block": 2
+      },
+      "decision_keys": [
+        "decision",
+        "reason"
+      ],
+      "decision_values": {
+        "decision": [
+          "allow",
+          "block"
+        ]
+      },
+      "fail_soft": false,
+      "term": "Verification Gate",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "note": "agentStop maps the verdict gate; block forces continuation, CLI force-ends after 8 consecutive blocks. exit-2 on Copilot defaults to warn/fail-open outside preToolUse/permissionRequest — block channel follows Copilot continuation semantics, not Claude stderr (R6 honest record)."
+    },
+    {
+      "id": "copilot-config",
+      "host": "copilot",
+      "event": "config",
+      "config": "adapters/copilot/hooks.json",
+      "expect_events": [
+        "sessionStart",
+        "userPromptSubmitted",
+        "subagentStart",
+        "agentStop",
+        "sessionEnd"
+      ],
+      "exit_codes": {},
+      "decision_keys": [],
+      "decision_values": {},
+      "fail_soft": true,
+      "term": "Host Contract",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "note": "Flat {version:1, hooks:{event:[entry]}} schema. Known degradation: repo-level sessionStart may not fire (copilot-cli #1730 open; #2415); userPromptSubmitted is the attested injection path; additionalContext fixed in CLI 1.0.11 (#2142)."
+    },
+    {
+      "id": "qoder-verdict-gate",
+      "host": "qoder",
+      "event": "Stop|SubagentStop",
+      "hook": "hooks/jiahao-verdict-gate.js",
+      "exit_codes": {
+        "flag_off": 0,
+        "allow": 0,
+        "block": 2
+      },
+      "decision_keys": [
+        "decision",
+        "reason"
+      ],
+      "decision_values": {
+        "decision": [
+          "allow",
+          "block"
+        ]
+      },
+      "fail_soft": false,
+      "term": "Verification Gate",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "note": "Exit-2 blocking confirmed on Stop/UserPromptSubmit (docs.qoder.com/cli/hooks-reference, 2026-08). International CLI only; CN fork (Lingma) has 5 events, no SessionStart, Stop cannot block."
+    },
+    {
+      "id": "qoder-config",
+      "host": "qoder",
+      "event": "config",
+      "config": "adapters/qoder/settings.json",
+      "expect_events": [
+        "SessionStart",
+        "SubagentStart",
+        "UserPromptSubmit",
+        "Stop",
+        "SubagentStop"
+      ],
+      "exit_codes": {},
+      "decision_keys": [],
+      "decision_values": {},
+      "fail_soft": true,
+      "term": "Host Contract",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "note": "SessionEnd intentionally not registered: not verified in the official event list at research time; ADR-0024 first-hook reconcile remains the sweep baseline."
+    },
+    {
+      "id": "opencode-instruction",
+      "host": "opencode",
+      "event": "instruction-injection",
+      "files": [
+        "adapters/opencode/jiahao-verifier.md",
+        "adapters/opencode/jiahao-generator.md",
+        "adapters/opencode/opencode.json",
+        "adapters/opencode/README.md"
+      ],
+      "exit_codes": {},
+      "decision_keys": [],
+      "decision_values": {},
+      "fail_soft": true,
+      "term": "Protection Tier",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "note": "Advisory-only: no lifecycle hooks, no exit-2 contract (opencode#12472 open; #14551 closed not-planned). AGENTS.md is the primary channel; opencode.json instructions is V1-only (accepted but not loaded in V2 beta)."
+    },
+    {
+      "id": "aider-instruction",
+      "host": "aider",
+      "event": "instruction-injection",
+      "files": [
+        "adapters/aider/CONVENTIONS.md",
+        "adapters/aider/CONVENTIONS-generator.md",
+        "adapters/aider/.aider.conf.yml",
+        "adapters/aider/README.md"
+      ],
+      "exit_codes": {},
+      "decision_keys": [],
+      "decision_values": {},
+      "fail_soft": true,
+      "term": "Protection Tier",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "note": "Advisory-only: no hooks (#2557 closed stale). Loader is explicit configuration (read: list in .aider.conf.yml; git root/cwd/home search order); default installs inject nothing — the opt-in is the honest contract."
     }
   ],
   "lifecycle": {
-    "claude-code": { "state": "active" },
-    "codex": { "state": "active" },
-    "cursor": { "state": "active" },
-    "windsurf": { "state": "active" },
-    "cline": { "state": "active" },
-    "instruction-tier": { "state": "active" },
-    "mcp": { "state": "active", "note": "stdio server not yet shipped; README stub documents the planned surface" }
+    "claude-code": {
+      "state": "active"
+    },
+    "codex": {
+      "state": "active"
+    },
+    "cursor": {
+      "state": "active"
+    },
+    "windsurf": {
+      "state": "active"
+    },
+    "cline": {
+      "state": "active"
+    },
+    "instruction-tier": {
+      "state": "active"
+    },
+    "mcp": {
+      "state": "active",
+      "note": "stdio server not yet shipped; README stub documents the planned surface"
+    },
+    "copilot": {
+      "state": "active",
+      "note": "GA 2026-02; sessionStart repo-level non-firing bug (#1730) recorded as degradation"
+    },
+    "qoder": {
+      "state": "active",
+      "note": "international CLI only; CN Lingma fork differs (5 events, no blocking Stop)"
+    },
+    "opencode": {
+      "state": "active",
+      "note": "instruction tier; instructions field V1-only until V2 GA restores it"
+    },
+    "aider": {
+      "state": "active",
+      "note": "instruction tier; explicit-config loader, no auto-discovery"
+    }
   }
 }
