@@ -758,12 +758,15 @@ _Avoid_: adapters for retired hosts kept as if current, new hosts added
 from memory instead of researched protocol docs
 
 **Protection Tier (保护层级)**:
-The disclosure of enforcement asymmetry (ADR-0028 D6): hook-tier hosts
-(claude, codex, copilot-cli, qoder, opencode) can enforce verifier
-exit-2 blocking semantics; instruction-tier hosts (cursor, windsurf,
-cline, aider, instruction-tier AGENTS.md) deliver advisory-only soft
-injection. README states the tier table explicitly so users never assume
-all 11 hosts are equal. Copilot CLI's broken sessionStart is recorded as
-a degradation: userPromptSubmitted is the attested injection path.
+  The disclosure of enforcement asymmetry (ADR-0028 D6): hook-tier hosts
+  (claude-code, codex, copilot, qoder) can enforce verifier exit-2 blocking
+  semantics; instruction-tier hosts (cursor, windsurf, cline, opencode, aider,
+  instruction-tier AGENTS.md) deliver advisory-only soft injection. opencode
+  is instruction-tier, not hook-tier: it has no hook or exit-2 mechanism
+  (upstream #12472 open, #14551 not-planned, verified by atomcode research
+  2026-08). README states the tier table explicitly so users never assume
+  all 11 hosts are equal. Copilot's broken repo-level sessionStart (#1730)
+  is recorded as a degradation: userPromptSubmitted is the attested
+  injection path.
 _Avoid_: uniform protection claims across hosts, hiding advisory-only
 hosts behind hook-tier marketing
