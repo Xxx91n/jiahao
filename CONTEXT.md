@@ -369,6 +369,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0021 request-side anchor signals + rescue-dominant trust direction (D6 delivery)
 - ADR-0022 detector hardening: length caps + censoring metadata + degradation contract
 - ADR-0023 timeout sentinel reconciliation + degradation schema evolution discipline
+- ADR-0024 sentinel ownership lock + reconcile hardening + session-end sweep
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -582,3 +583,40 @@ time via schemas/degradation.schema.json; unknown kinds fail-closed into
 detail.unrecognized_kind instead of being silently coerced to null.
 _Avoid_: in-place breaking edits, silent null coercion (silent schema
 drift is the ADR-0006 locality breach reappearing at the contract layer)
+**Sentinel Ownership Lock (哨兵归属锁)**:
+The kernel-arbitrated ownership model of ADR-0024 D1: sentinel.begin
+holds an exclusive lock on the sentinel file for its whole lifetime, and
+reconcile() try-locks each residue before acting — acquired lock means
+the owner is provably dead (kernel-released on any exit incl. SIGKILL),
+a failed try-lock means a parallel live session owns it and it must be
+left untouched. Same family as the SQLite hot-rollback-journal and
+etcd ephemeral-node models; it eliminates pid-reuse, clock-skew, and
+suspended-process false positives at once.
+_Avoid_: pid liveness probes (pid reuse makes them unreliable), pidfile
+conventions (yakking: use a lock on the file instead), heartbeat-based
+judgement (no consumer; ADR-0023 D2 stands)
+
+**Append Critical Section (追加临界区)**:
+The narrow lock introduced by ADR-0024 D2 around the evidence-log
+append critical section (read chain, idempotency-key dedup, append,
+write-back) — millisecond scope, reconciliation path only, released
+automatically on process death. It fixes the whole-file
+read-modify-write lost update when two reconcilers heal different
+residues concurrently; per-residue races on the same residue stay
+covered by the idempotency key instead.
+_Avoid_: global sweep/reconcile exclusion (serializes every hook start
+for no benefit once consumers are idempotent), rename-to-.processing
+markers (redundant under fd/inode locking; non-atomic on Windows)
+
+**Session-End Sweep (会话终局扫掠)**:
+The defense-in-depth addition of ADR-0024 D3: a SessionEnd hook (Codex
+3s / Claude Code 1.5-60s budget) that runs reconcile() so a normally
+ending session reconciles its own final residues instead of waiting for
+the next session's first hook. The blind spot is theoretically
+uneliminatable (crash = cessation of execution; failure detection must
+be external per Chandra-Toueg) — the sweep merely shrinks it; a host
+SIGKILL still defers evidence to next-session reconciliation, and that
+residual is explicitly accepted and documented.
+_Avoid_: watchdog daemons (watchman-regression; a trusted terminal
+observer is required anyway), treating SessionEnd as a hard guarantee
+(host docs: some signals kill the process before the hook can run)
