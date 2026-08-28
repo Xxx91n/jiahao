@@ -373,6 +373,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0025 judge form convergence (scoring-mode verifier contract) + honest-twin corpus + seam telemetry contract
 - ADR-0026 segmented evidence log: rotation + cross-segment anchoring + base-seq naming + verifyTail/verifyFull + transparent legacy migration
 - ADR-0027 bench gate: executable pre-registered thresholds (D1 real re-run, D2 derived config + guard, D3 0/1 + aggregated warning, D4 milestone archive)
+- ADR-0028 multi-host L0 closure: regen-diff golden (--check) + host-contracts.json registry (term-anchored coupling guard) + 4 new research-gated adapters (copilot/qoder/opencode/aider) + lifecycle register
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -719,3 +720,50 @@ useless as trend storage). Band-hit rates are aggregated at ADR-0018 flywheel
 review points from results/*.json; no auto-commit bot, no SaaS.
 _Avoid_: auto-commit bots to main, artifact-only trendkeeping, cloud
 benchmark services
+
+
+**Host Contract (宿主行为契约)**:
+The pre-registered registry test/fixtures/host-contracts.json (ADR-0028 D4):
+per-entry {id, host, event, exit_codes, decision_keys, decision_values,
+fail_soft, term, source_adr}. Tests are table-driven from it; the file is
+consumed by tests only and never shipped or read by hooks at runtime.
+Change governance reuses the ADR-0027 coupling guard with a term anchor:
+every entry's `term` must name a glossary term present in CONTEXT.md
+(existence check, never prose parsing), and editing the registry without
+an ADR or CONTEXT.md change in the same commit range fails CI.
+_Avoid_: inline exit-code assertions as the only record of behavior,
+runtime consumption of the contract file, prose-parsed anchors
+
+**Golden Regen-Diff (重生成比对黄金层)**:
+The golden-master mechanism of ADR-0028 D2: build-adapters.js --check
+regenerates every adapter file in memory from src/SKILL.md and
+byte-compares against committed files, printing a unified diff and
+exiting 1 on mismatch. The update path is the existing explicit command
+node scripts/build-adapters.js -- the approval act stays human. Layered
+with check-drift.js: regen-diff catches unintended byte changes,
+check-drift catches profile-fragment violations.
+_Avoid_: jest .snap dual review surfaces, opaque hash manifests, any
+auto-bless update path
+
+**Adapter Lifecycle (适配器生命周期)**:
+The per-host state register of ADR-0028 D6: each host adapter carries
+active / deprecated / eol, with retirement triggers being official
+shutdown announcements, repository archival, or consecutive
+protocol-breaking versions without documentation updates. Host extinction
+is an operating condition (Roo Code EOL 2026-05-15, Gemini CLI retired
+2026-06-18), so the 11-host inventory is a living register, not a fixed
+list. New hosts are added only after a serial atomcode research pass
+against current official protocol docs.
+_Avoid_: adapters for retired hosts kept as if current, new hosts added
+from memory instead of researched protocol docs
+
+**Protection Tier (保护层级)**:
+The disclosure of enforcement asymmetry (ADR-0028 D6): hook-tier hosts
+(claude, codex, copilot-cli, qoder, opencode) can enforce verifier
+exit-2 blocking semantics; instruction-tier hosts (cursor, windsurf,
+cline, aider, instruction-tier AGENTS.md) deliver advisory-only soft
+injection. README states the tier table explicitly so users never assume
+all 11 hosts are equal. Copilot CLI's broken sessionStart is recorded as
+a degradation: userPromptSubmitted is the attested injection path.
+_Avoid_: uniform protection claims across hosts, hiding advisory-only
+hosts behind hook-tier marketing
