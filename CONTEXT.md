@@ -368,6 +368,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0020 multi-page enumeration with pagination-exhaustion pairing
 - ADR-0021 request-side anchor signals + rescue-dominant trust direction (D6 delivery)
 - ADR-0022 detector hardening: length caps + censoring metadata + degradation contract
+- ADR-0023 timeout sentinel reconciliation + degradation schema evolution discipline
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -552,3 +553,32 @@ _Avoid_: per-source top-level fields, silent pass-through (per-source fields
 force O(N) edits across gate/calibration/tests; silent pass-through is the
 ADR-0006 Fix1 locality breach reborn)
 
+
+
+**Sentinel Reconciliation (哨兵对账补写)**:
+The crash-only pattern of ADR-0023 D1: every hook writes a sentinel file
+at start and deletes it at completion; the next hook invocation, finding a
+residue, appends a degradation record (kind 'timeout') into the
+EvidenceLog so a host-killed hook can never die silently. Follows the
+SQLite hot-rollback-journal precedent (file existence IS the evidence)
+and stays WAL-free by construction.
+_Avoid_: heartbeat, watchdog process (the host's hard timeout already owns
+liveness; a heartbeat has no consumer — ADR-0023 D2)
+
+**Phase Intent (阶段意图)**:
+The in-place-updated phase field on the sentinel (stdin|scan|verify|write)
+of ADR-0023 D2; on reclaim it pins down which stage died and feeds three
+registered consumers (scan-skip affinity, partial-output trust boundary,
+calibration bucketing — ADR-0023 D3). New detail fields are admitted only
+with a registered consumer rule; telemetry without a consumer rots.
+_Avoid_: telemetry-first field addition, per-phase fsync (the durability
+budget is decided once at creation, not per transition)
+
+**Schema Evolution Discipline (契约演进纪律)**:
+The three additive rules for the Degradation Contract (ADR-0023 D5): only
+add kind enum values; per-kind detail only gains optional fields; never
+delete, rename, or restructure a recognized kind. Machine-checked at test
+time via schemas/degradation.schema.json; unknown kinds fail-closed into
+detail.unrecognized_kind instead of being silently coerced to null.
+_Avoid_: in-place breaking edits, silent null coercion (silent schema
+drift is the ADR-0006 locality breach reappearing at the contract layer)
