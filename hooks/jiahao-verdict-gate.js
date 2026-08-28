@@ -12,7 +12,7 @@
 //       between primary and subagent finish events.
 
 const fs = require('fs');
-const { flagPath, evidencePath } = require('../src/shared/paths');
+const { flagPath } = require('../src/shared/paths');
 const { readProfile } = require('./jiahao-profile');
 const { createEvidenceLog } = require('../src/evidence-log');
 const { kappaAdvisory, loadKappaBaseline } = require('../src/calibration');
@@ -40,24 +40,22 @@ process.stdin.on('end', () => {
     process.exit(0);
   }
 
-  // Read the evidence chain. We do NOT delete the file afterwards (D4);
-  // the chain has to survive SubagentStop and any repeat fire of Stop.
-  let evidenceChain = null;
-  try {
-    const raw = fs.readFileSync(evidencePath(), 'utf8').trim();
-    if (raw.length > 0) {
-      const data = JSON.parse(raw);
-      if (Array.isArray(data) && data.length > 0) {
-        evidenceChain = data;
-      }
-    }
-  } catch (e) { /* no file or invalid JSON = no evidence */ }
+  // Read the evidence chain through the EvidenceLog factory (ADR-0026 D1/D5):
+  // storage is a segmented log directory; legacy single-file arrays remain
+  // readable in read-only legacy mode until the first write migrates them.
+  // We never delete the log (D4); the chain has to survive SubagentStop
+  // and any repeat fire of Stop.
+  const evidenceChain = evidenceLog.readAll();
 
   // ADR-0013 D4: chain-corruption detection runs BEFORE any severity case.
   // A broken chain is treated as missing evidence in verifier profile
   // (block, exit 2); advisory-only in generator profile.
   if (evidenceChain) {
-    const chainCheck = evidenceLog.verify(evidenceChain);
+    // ADR-0013 D4 + ADR-0026 D4: verifyTail hot path — active segment plus
+    // previous-segment anchor prechecks. Legacy files are whole-chain
+    // verified inside verifyTail. Cold full verification lives in
+    // scripts/verify-evidence.js and is deliberately NOT in the per-turn path.
+    const chainCheck = evidenceLog.verifyTail();
     if (!chainCheck.valid) {
       const msg = 'JIAHAO CHAIN CORRUPTION: evidence chain invalid at ' +
         'index ' + chainCheck.broken_at + ' (' + chainCheck.reason + '). ' +

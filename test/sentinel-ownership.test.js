@@ -9,8 +9,9 @@ const { tryLockSync } = require('../src/file-lock');
 const REPO = path.join(__dirname, '..');
 const DIR = path.join(os.tmpdir(), 'jiahao-adr24-test');
 
+// ADR-0026: evidence is a segmented log directory — read via the factory.
 function readEvidence() {
-  try { return JSON.parse(fs.readFileSync(path.join(DIR, '.jiahao-evidence'), 'utf8')); }
+  try { return require('../src/evidence-log').createEvidenceLog(DIR).readAll(); }
   catch (e) { return null; }
 }
 

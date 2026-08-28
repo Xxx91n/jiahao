@@ -13,8 +13,9 @@ beforeEach(() => {
 });
 afterAll(() => { fs.rmSync(DIR, { recursive: true, force: true }); });
 
+// ADR-0026: evidence is a segmented log directory — read via the factory.
 function readEvidence() {
-  try { return JSON.parse(fs.readFileSync(path.join(DIR, '.jiahao-evidence'), 'utf8')); }
+  try { return require('../src/evidence-log').createEvidenceLog(DIR).readAll(); }
   catch (e) { return null; }
 }
 
