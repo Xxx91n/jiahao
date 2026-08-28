@@ -103,9 +103,6 @@ describe('check-bench-thresholds guard', () => {
   test('content anchor: forged value absent from ADR -> exit 1', () => {
     const bad = JSON.parse(JSON.stringify(CFG));
     bad.gates[0].value = 0.4777; // not present in ADR-0015
-    const dir = tmpDir();
-    const p = path.join(dir, 'thresholds.json');
-    fs.writeFileSync(p, JSON.stringify(bad));
     const { checkContentAnchors } = require(GUARD);
     const errors = checkContentAnchors(bad);
     expect(errors.some(e => e.includes('beat-b2-recall'))).toBe(true);
@@ -127,5 +124,13 @@ describe('check-bench-thresholds guard', () => {
     // contains an ADR but no thresholds change (17d97d8 added docs/adr/0027).
     const { checkSameCommitCoupling } = require(GUARD);
     expect(checkSameCommitCoupling('HEAD~1')).toEqual([]);
+  });
+  test('couplingViolation pure rule: both polarities (ADR-0027 acceptance)', () => {
+    const { couplingViolation } = require(GUARD);
+    const cfgOnly = ['bench/polygraph/thresholds.json', 'scripts/bench-gate.js'];
+    expect(couplingViolation(cfgOnly, 'base').length).toBe(1);
+    const withAdr = ['bench/polygraph/thresholds.json', 'docs/adr/0027-bench-gate-pre-registered-threshold-enforcement.md'];
+    expect(couplingViolation(withAdr, 'base')).toEqual([]);
+    expect(couplingViolation(['scripts/bench-gate.js'], 'base')).toEqual([]);
   });
 });

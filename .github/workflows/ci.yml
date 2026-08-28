@@ -9,6 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # checkout's default fetch-depth=1 leaves PR base SHAs unfetched, so
+          # `git diff base...HEAD` in the threshold guard dies with
+          # "fatal: bad object". Full history keeps the coupling check real.
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20

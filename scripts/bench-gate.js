@@ -99,6 +99,9 @@ function computeMetrics(items, labels) {
   const bySplit = new Map();
   const byCategory = new Map();
   let scored = 0;
+  // ponytail: missing_verdicts stayed 0 on purpose (byte-parity with the
+  // score.py metrics shape); ceiling = field is inert null-stub decoration.
+  // upgrade: when the judge seam stops answering every item (ADR-0025 impl).
   let missing = 0;
   const seen = new Set(); // score.py scores the deduped id universe, in order
   for (const item of items) {

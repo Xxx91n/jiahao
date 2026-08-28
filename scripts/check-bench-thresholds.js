@@ -90,6 +90,12 @@ function checkSameCommitCoupling(baseRef) {
     return errors;
   }
   const changed = diff.split('\n').map(s => s.trim()).filter(Boolean);
+  return couplingViolation(changed, baseRef);
+}
+
+// Pure core of the coupling rule, exported for testing both polarities.
+function couplingViolation(changed, baseRef) {
+  const errors = [];
   const cfgChanged = changed.includes(CFG_REL.split(path.sep).join('/'));
   const adrChanged = changed.some(f => /^docs\/adr\/\d+.*\.md$/.test(f));
   if (cfgChanged && !adrChanged) {
@@ -116,4 +122,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { checkContentAnchors, checkSameCommitCoupling, valueAnchored };
+module.exports = { checkContentAnchors, checkSameCommitCoupling, couplingViolation, valueAnchored };
