@@ -7,7 +7,7 @@ to Claude Code: `hookSpecificOutput.hookEventName` + `additionalContext`,
 exit 2 blocks on Stop/UserPromptSubmit (docs.qoder.com/cli/hooks and
 cli/hooks-reference, verified 2026-08).
 
-Event mapping: SessionStart (matcher startup|resume; non-blocking) ->
+Event mapping: SessionStart (matcher startup|resume|clear; non-blocking) ->
 jiahao-activate.js; SubagentStart -> jiahao-subagent.js; UserPromptSubmit ->
 jiahao-mode-tracker.js; Stop/SubagentStop -> jiahao-verdict-gate.js
 (exit-2 blocking verifier gate).
