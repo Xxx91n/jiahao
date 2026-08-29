@@ -376,6 +376,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0028 multi-host L0 closure: regen-diff golden (--check) + host-contracts.json registry (term-anchored coupling guard) + 4 new research-gated adapters (copilot/qoder/opencode/aider) + lifecycle register
 - ADR-0029 behavioral probe gate: per-iron-law paired probes (7+7 zero-miss smoke gate) + probe-recall/probe-fp registry + pre-registered growth + advisory upgrade channel + signing rejection log
 - ADR-0030 probe corpus growth: interval coverage gate (law-dup dropped) + deferred edition/git-history gates with unfreeze conditions + judge re-verification runbook/ledger/dead-man switch + generator advisory disposition
+- ADR-0031 wiring assertions (D1 mandatory per wiring-touching ADR) + judge bias calibration corpus (style/length-control + bias-probe, 3 metrics) + gate tier taxonomy (confirmatory/observational/deferred-with-unfreeze) + judge-input certificate isolation + optional evidence provenance (SLSA additive) + debt pack (F4/F5/S2/S3/S4)
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -852,3 +853,55 @@ deleting state files to silence the switch is itself caught
 _Avoid_: reminder-only deadlines (Node EOL evidence says they
 change nothing), blocking instruction-tier hosts, removable state
 files
+
+**Gate Tier (门档位)**:
+The three-tier machine-readable taxonomy of ADR-0031 D3 (K8s
+admission-mode naming): confirmatory (fail-closed, thresholds
+pre-registered; default for integrity-critical gates),
+observational (record-only, must pre-register review_at and
+promote_if; overdue review = STALE violation), and
+deferred-with-unfreeze (withheld implementation, must carry
+unfreeze_if). Tier is a mandatory thresholds.json field; tier
+migrations ride the ADR amendment path, and demotion requires
+written Goodhart-contamination evidence.
+_Avoid_: per-ADR ad-hoc strictness statements, defaulting
+integrity gates to observational, MISRA full deviation ceremony
+
+**Second-Line Independence (组件级第二线独立性)**:
+The component-scoped form of SR 11-7's second line, applied in
+ADR-0031 D4: where the auditor and judge are the same deployable
+component, independence is enforced as an INPUT whitelist — the
+judge seam reads only the certificate triple {claim, toolResults,
+heuristicVerdict}; auditor intermediate verdicts, probe/pressure
+history, prior judge outputs, and heuristic reasoning chains are
+forbidden in judge input, enforced by a fail-closed wiring test.
+Distinct from Verifier Deployment Discipline (instance/process/
+model separation), which this complements, not replaces.
+_Avoid_: person-level separation theater, conversational-pressure
+defenses on a non-conversational scorer
+
+**Evidence Provenance (证据来源三元组)**:
+The optional additive record field of ADR-0031 D5 (in-toto/SLSA
+link semantics): builder (profile, rules_version, thresholds_fp),
+recipe (gate_id, ladder_rung, degradation_kind), materials
+(input digests). Absent == unrecognized (SLSA extension-field
+rule); verification checks only present-but-invalid. It makes
+"who produced this, under which discipline version, from which
+inputs" replayable for ADR-0017 human adjudication. It does NOT
+prevent forgery — that remains the hash chain plus second-party
+verification; the builder and writer share one trust domain.
+Signatures, Rekor, and SLSA L2+ machinery are explicit non-goals
+until evidence leaves this trust domain.
+_Avoid_: treating provenance as forgery protection, signature/
+transparency-log additions inside the zero-dependency package
+
+**Replayability Duty (可重放义务)**:
+The audit-record obligation that an independent reviewer (second-
+party agent or human arbitrator) can reconstruct actor, action,
+and inputs from the record alone (NIST SP 800-92 / audit-log
+consensus). Operationalized by Evidence Provenance and Chain
+Verification Duty together: the chain proves integrity,
+provenance proves context.
+_Avoid_: "we can grep the log later" answers, provenance-free
+records reaching ADR-0017 adjudication
+
