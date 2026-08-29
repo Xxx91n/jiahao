@@ -29,7 +29,8 @@ const ROOT = path.join(__dirname, '..');
 const TWINS = path.join(ROOT, 'bench', 'polygraph', 'judge-twins.jsonl');
 const LEDGER = path.join(ROOT, 'bench', 'polygraph', 'reverify-ledger.json');
 const RESULTS = path.join(ROOT, 'bench', 'polygraph', 'results');
-const ROT_MS = 6 * 30 * 24 * 3600 * 1000; // 6 months, coarse (matches corpus gates)
+const { MONTH_MS } = require('../src/reverify-schedule');
+const ROT_MS = 6 * MONTH_MS; // 6 months, coarse - single source: src/reverify-schedule.js
 const GENESIS = 'GENESIS'; // fixed, documented, verified on append (hash-chain trap: empty string is indistinguishable from a missing field)
 const ADR_REF = '0030';
 

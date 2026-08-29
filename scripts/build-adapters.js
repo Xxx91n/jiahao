@@ -7,7 +7,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { splitByProfile } = require('../hooks/jiahao-profile');
+const { splitByProfile, validateGsrHeaders } = require('../hooks/jiahao-profile');
 
 const root = path.join(__dirname, '..');
 
@@ -19,6 +19,13 @@ function buildAdapters() {
   const skill = fs.readFileSync(skillPath, 'utf8');
 
   const profiles = splitByProfile(skill);
+
+  // ADR-0032 D2: gsr rule headers are the structural latch for the generator
+  // profile; fail the build (and the --check golden layer) on malformed rules.
+  const gsrErrors = validateGsrHeaders(profiles.generator);
+  if (gsrErrors.length > 0) {
+    throw new Error('gsr header validation failed:' + String.fromCharCode(10) + gsrErrors.map(e => '  - ' + e).join(String.fromCharCode(10)));
+  }
 
 // Adapter definitions: host -> { path, content }
 // Instruction-tier adapters: generate both profiles
