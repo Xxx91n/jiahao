@@ -8,7 +8,8 @@
     "bench:gate": "node scripts/check-bench-thresholds.js && node scripts/bench-gate.js",
     "prepare": "git config core.hooksPath .githooks || true",
     "probes:gate": "node bench/polygraph/check-probe-corpus.js && node scripts/check-probes.js",
-    "reverify": "node scripts/reverify.js"
+    "reverify": "node scripts/reverify.js",
+    "judge:bias": "node bench/polygraph/check-judge-bias.js"
   },
   "devDependencies": {
     "jest": "^29.7.0"

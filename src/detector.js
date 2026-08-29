@@ -474,7 +474,10 @@ function detectFull(signalInput) {
   // null until a scoring-mode verifier lands; the telemetry snapshot
   // rides into the evidence chain with this verdict record.
   if (verdict.suspicious) {
-    verdict.judge_override = judgeSeam(closing.text, toolResults, verdict);
+    // ADR-0031 D4: judge input is built through the whitelist builder;
+    // heuristic internals stay out of hands with no reasoning chain.
+    const jin = buildJudgeInput(closing.text, toolResults, verdict);
+    verdict.judge_override = judgeSeam(jin.claim, jin.toolResults, jin.heuristicVerdict);
     verdict.judge_telemetry = judgeTelemetry();
   }
   return verdict;
@@ -509,6 +512,50 @@ if (!_phrasesState.ok) {
 /**
  * @typedef {{ verdict: "override" | "uphold", confidence: number, evidence: string[] }} JudgeOverride
  */
+// ADR-0031 D4 judge certificate isolation: the judge input is EXACTLY the
+// whitelist triple { claim, toolResults, heuristicVerdict }. Forbidden in the
+// triple: auditor intermediate verdicts, probe/pressure history, prior judge
+// outputs (judge_override / judge_telemetry), heuristic reasoning chains
+// (matched_phrases / structural_hits / escalation internals). heuristicVerdict
+// is reduced to the final-pointer reduction { suspicious, severity }.
+const JUDGE_INPUT_KEYS = ['claim', 'toolResults', 'heuristicVerdict'];
+const JUDGE_INPUT_FORBIDDEN = ['auditor', 'pressure', 'probe', 'probes', 'judge_override', 'judge_telemetry', 'matched_phrases', 'structural_hits', 'severity_band', 'reasoning'];
+function buildJudgeInput(claim, toolResults, heuristicVerdict) {
+  const v = heuristicVerdict && typeof heuristicVerdict === 'object' ? heuristicVerdict : {};
+  return {
+    claim: typeof claim === 'string' ? claim : '',
+    toolResults: Array.isArray(toolResults) ? toolResults.slice() : [],
+    heuristicVerdict: {
+      suspicious: v.suspicious === true,
+      severity: v.severity === 'high' || v.severity === 'low' ? v.severity : null,
+    },
+  };
+}
+// validateJudgeInput(obj) -> problems[]; [] = schema-clean whitelist triple.
+// Fail-closed on wrong types and on any injected extra key, including the
+// ADR-0031 D4 forbidden-lexicon ("auditor*" keys are rejected outright).
+function validateJudgeInput(obj) {
+  const problems = [];
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return ['root:not-object'];
+  const keys = Object.keys(obj);
+  for (const k of keys) {
+    if (JUDGE_INPUT_KEYS.indexOf(k) < 0) problems.push('extra-key:' + k);
+    if (JUDGE_INPUT_FORBIDDEN.some(f => k === f || k.startsWith(f))) problems.push('forbidden-key:' + k);
+  }
+  for (const k of JUDGE_INPUT_KEYS) if (keys.indexOf(k) < 0) problems.push('missing-key:' + k);
+  if (typeof obj.claim !== 'string') problems.push('claim:not-string');
+  if (!Array.isArray(obj.toolResults)) problems.push('toolResults:not-array');
+  const hv = obj.heuristicVerdict;
+  if (!hv || typeof hv !== 'object' || Array.isArray(hv)) {
+    problems.push('heuristicVerdict:not-object');
+  } else {
+    const hk = Object.keys(hv);
+    for (const k of hk) if (k !== 'suspicious' && k !== 'severity') problems.push('heuristicVerdict:poisoned:' + k);
+    if (typeof hv.suspicious !== 'boolean') problems.push('heuristicVerdict.suspicious:not-boolean');
+  }
+  return problems;
+}
+
 const _judgeTelemetry = { invocations: 0, latencyMsTotal: 0, failSoft: 0, overridesAccepted: 0 };
 function judgeSeam(claim, toolResults, heuristicVerdict) {
   const t0 = Date.now();
@@ -529,4 +576,4 @@ function judgeTelemetry() {
   };
 }
 
-module.exports = { detect, detectFull, capField, INPUT_CAP_BYTES, TRUNC_MARKER, structuralDetect, l1_errorConcealment, l2_completionVsEvidence, l3_narrativeVsAssertion, l1Suppression, l2Suppression, l3Suppression, wordlistMatch, loadPhrases, resolvePhrasesPath, anchorRescue, anchorConviction, anchorPassThrough, hasSuccessClaim, EXPECTED_PHRASES_SHA256, PHRASES_STATE: _phrasesState, judgeSeam, judgeTelemetry };
+module.exports = { detect, detectFull, capField, INPUT_CAP_BYTES, TRUNC_MARKER, structuralDetect, l1_errorConcealment, l2_completionVsEvidence, l3_narrativeVsAssertion, l1Suppression, l2Suppression, l3Suppression, wordlistMatch, loadPhrases, resolvePhrasesPath, anchorRescue, anchorConviction, anchorPassThrough, hasSuccessClaim, EXPECTED_PHRASES_SHA256, PHRASES_STATE: _phrasesState, judgeSeam, judgeTelemetry, buildJudgeInput, validateJudgeInput, JUDGE_INPUT_KEYS };

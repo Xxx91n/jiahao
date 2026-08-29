@@ -33,6 +33,8 @@ jobs:
         run: node scripts/check-bench-thresholds.js ${{ github.event.pull_request.base.sha }}
       - run: node scripts/check-bench-thresholds.js
       - run: node scripts/bench-gate.js --ci
+      # ADR-0031 D2/D3: judge bias calibration gate (corpus pairs; confirmatory tier fail-closed)
+      - run: node bench/polygraph/check-judge-bias.js
       # ADR-0029 D4: zero-miss behavioral probe gate as its own CI step
       # (independent of bench:gate; artifacts never enter runtime evidence)
       - run: node scripts/check-probes.js --ci --artifacts-dir probe-artifacts

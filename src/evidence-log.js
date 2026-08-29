@@ -83,6 +83,11 @@ function verifyChain(chain) {
     if (record.event_hash !== recordHash(record)) {
       return { valid: false, broken_at: i, reason: 'event_hash mismatch at index ' + i };
     }
+    // ADR-0031 D5: present-but-invalid provenance fails the record.
+    const pp = provenanceProblems(record);
+    if (pp.length) {
+      return { valid: false, broken_at: i, reason: 'provenance invalid at index ' + i + ' (' + pp.join(',') + ')' };
+    }
     expectedPrev = record.event_hash;
   }
   return { valid: true };
@@ -101,8 +106,56 @@ function verifyLinks(records, offset) {
     if (r.event_hash !== recordHash(r)) {
       return { valid: false, broken_at: base + i, reason: 'event_hash mismatch at index ' + (base + i) };
     }
+    const pp = provenanceProblems(r);
+    if (pp.length) {
+      return { valid: false, broken_at: base + i, reason: 'provenance invalid at index ' + (base + i) + ' (' + pp.join(',') + ')' };
+    }
   }
   return { valid: true };
+}
+
+// ADR-0031 D5 evidence provenance (optional additive, SLSA extension-field
+// semantics): absent on old records and semantically identical to an
+// unrecognized field. Verification adds a PRESENT-BUT-INVALID check only —
+// absent is never an error. Shape:
+//   provenance.builder   { profile, rules_version, thresholds_fp, hook }
+//   provenance.recipe    { gate_id, gate_type, ladder_rung?, degradation_kind? }
+//   provenance.materials { claim_sha256, tool_results_digest, session_anchors?, prev_hash }
+// Hex fields (fp/digest/sha256) must be lowercase hex when present.
+const HEX_RE = /^[0-9a-f]{4,128}$/;
+function _provShape(o, fields, hexFields, label, problems) {
+  if (o === undefined) return;
+  if (!o || typeof o !== 'object' || Array.isArray(o)) { problems.push(label + ':not-object'); return; }
+  for (const k of Object.keys(o)) {
+    if (fields.indexOf(k) < 0) { problems.push(label + '.extra:' + k); continue; }
+    const v = o[k];
+    if (hexFields.indexOf(k) >= 0) {
+      if (typeof v !== 'string' || !HEX_RE.test(v)) problems.push(label + '.' + k + ':not-hex');
+    } else if (k === 'session_anchors') {
+      if (!Array.isArray(v) || v.some(a => typeof a !== 'string')) problems.push(label + '.session_anchors:not-string-array');
+    } else if (k !== 'ladder_rung' && typeof v !== 'string') {
+      problems.push(label + '.' + k + ':not-string');
+    } else if (k === 'ladder_rung' && typeof v !== 'string' && typeof v !== 'number') {
+      problems.push(label + '.ladder_rung:bad-type');
+    }
+  }
+}
+// provenanceProblems(record) -> string[] ([] = ok). Only fires when the
+// record actually carries provenance; the hash chain stays byte-identical
+// for records without it.
+function provenanceProblems(record) {
+  const problems = [];
+  if (!record) return problems;
+  if (record.provenance === undefined) return problems;
+  const p = record.provenance;
+  if (!p || typeof p !== 'object' || Array.isArray(p)) { return ['provenance:not-object']; }
+  for (const k of Object.keys(p)) {
+    if (k !== 'builder' && k !== 'recipe' && k !== 'materials') problems.push('provenance.extra:' + k);
+  }
+  _provShape(p.builder, ['profile', 'rules_version', 'thresholds_fp', 'hook'], ['thresholds_fp'], 'builder', problems);
+  _provShape(p.recipe, ['gate_id', 'gate_type', 'ladder_rung', 'degradation_kind'], [], 'recipe', problems);
+  _provShape(p.materials, ['claim_sha256', 'tool_results_digest', 'session_anchors', 'prev_hash'], ['claim_sha256', 'tool_results_digest', 'prev_hash'], 'materials', problems);
+  return problems;
 }
 
 // ADR-0013 D2: turn_init boundary record (moved from gate.js, ADR-0016 D1).
@@ -597,6 +650,14 @@ function createRecord(gateId, gateType, status, detail, confidence, prevHash, ex
     if (typeof extras.turn_id === 'string' && extras.turn_id.length > 0) {
       record.turn_id = extras.turn_id;
     }
+    // ADR-0031 D5: provenance is passed through verbatim (never normalized) so
+    // that a malformed underspecified block still fails verifyChain; the writer
+    // does not get to launder its own shape errors.
+    if (extras.provenance !== undefined) {
+      record.provenance = (extras.provenance && typeof extras.provenance === 'object')
+        ? JSON.parse(JSON.stringify(extras.provenance))
+        : extras.provenance;
+    }
   }
   record.event_hash = recordHash(record);
   return record;
@@ -604,6 +665,6 @@ function createRecord(gateId, gateType, status, detail, confidence, prevHash, ex
 
 module.exports = {
   createEvidenceLog, ESCALATION_BAND, idempotencyKey, createRecord,
-  canonicalJSON, recordHash, verifyChain, createTurnInit, finalizeTurnInit,
+  canonicalJSON, recordHash, verifyChain, createTurnInit, finalizeTurnInit, provenanceProblems,
   KNOWN_DEGRADATION_KINDS, SEGMENT_BYTES,
 };
