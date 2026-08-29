@@ -81,12 +81,9 @@ function computeMetrics(entries, judgeFn, now) {
   };
 }
 
-// Canonical JSON: recursively sorted keys, no whitespace (RFC 8785/JCS shape).
-function canonical(v) {
-  if (v === null || typeof v !== 'object') return JSON.stringify(v);
-  if (Array.isArray(v)) return '[' + v.map(canonical).join(',') + ']';
-  return '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + canonical(v[k])).join(',') + '}';
-}
+// Canonical JSON is shared with the evidence chain (Shared Core discipline):
+// RFC 8785/JCS-shaped sorted-keys serialization, single implementation.
+const { canonicalJSON: canonical } = require('../src/evidence-log');
 
 function eventHash(entrySansHash) {
   return crypto.createHash('sha256').update(canonical(entrySansHash) + '|' + entrySansHash.prev_hash, 'utf8').digest('hex');
