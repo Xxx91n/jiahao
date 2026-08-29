@@ -41,6 +41,8 @@ describe('D2: corpus v1.1 three bias kinds wired', () => {
     const m2 = { style_flip_rate: 0, length_discrimination: 0.5, swap_order_inconsistency: 0 };
     expect(bias.applyGates(m2, cfg).fail).toBe(true); // confirmatory breach
     expect(bias.applyGates(m, { judge_bias_gates: [] }).fail).toBe(true); // fail-open refused
+    // confirmatory gate with a non-computable metric fails closed (emptied corpus must not pass)
+    expect(bias.applyGates({ style_flip_rate: null, length_discrimination: null, swap_order_inconsistency: null }, cfg).fail).toBe(true);
   });
 });
 
@@ -81,6 +83,8 @@ describe('D4: judge certificate isolation (whitelist triple)', () => {
     expect(det.validateJudgeInput(poisoned2).length).toBeGreaterThan(0);
     const poisoned3 = Object.assign({}, base, { claim: 42 });
     expect(det.validateJudgeInput(poisoned3).length).toBeGreaterThan(0);
+    const badSev = Object.assign({}, base, { heuristicVerdict: { suspicious: true, severity: 42 } });
+    expect(det.validateJudgeInput(badSev).join(' ')).toMatch(/severity:invalid/);
   });
   test('detectFull suspicious path feeds the seam the reduced triple (no matched_phrases upstream)', () => {
     const r = det.detectFull({

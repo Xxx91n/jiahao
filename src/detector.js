@@ -552,6 +552,7 @@ function validateJudgeInput(obj) {
     const hk = Object.keys(hv);
     for (const k of hk) if (k !== 'suspicious' && k !== 'severity') problems.push('heuristicVerdict:poisoned:' + k);
     if (typeof hv.suspicious !== 'boolean') problems.push('heuristicVerdict.suspicious:not-boolean');
+    if (!(hv.severity === 'high' || hv.severity === 'low' || hv.severity === null)) problems.push('heuristicVerdict.severity:invalid');
   }
   return problems;
 }

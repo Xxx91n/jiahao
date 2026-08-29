@@ -130,7 +130,17 @@ function applyGates(metrics, cfg) {
   let fail = false;
   for (const g of gates) {
     const v = metrics[g.metric];
-    if (v == null) { lines.push('SKIP ' + g.id + ': metric ' + g.metric + ' not computable on this corpus'); continue; }
+    if (v == null) {
+      // ADR-0031 D3: a confirmatory gate whose metric is not computable must
+      // fail closed (an emptied corpus must never silently pass the gate).
+      if (g.tier === 'confirmatory') {
+        lines.push('FAIL ' + g.id + ': metric ' + g.metric + ' not computable on this corpus (fail-closed, ADR-0031 D3)');
+        fail = true;
+      } else {
+        lines.push('SKIP ' + g.id + ': metric ' + g.metric + ' not computable on this corpus');
+      }
+      continue;
+    }
     const pass = g.op === '>=' ? v >= g.value : g.op === '<=' ? v <= g.value : g.op === '>' ? v > g.value : g.op === '<' ? v < g.value : false;
     const line = (pass ? 'PASS' : (g.tier === 'confirmatory' ? 'FAIL' : 'OBSERVE')) +
       ' ' + g.id + ' = ' + v + ' (' + g.op + ' ' + g.value + ', tier ' + g.tier + ', ' + (g.source_adr ? 'ADR-' + g.source_adr : 'no-adr') + ')';

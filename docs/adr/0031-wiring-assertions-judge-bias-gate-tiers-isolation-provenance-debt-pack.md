@@ -192,3 +192,10 @@ registered and may ride any subsequent audit round.
 - R7 Conversational-pressure defenses on the judge seam: the scoring-
   mode judge has no conversational surface; building one would be
   defense against a non-existent threat (ponytail).
+
+## Errata (audit round 2026-08-29)
+
+- The D2/D3 prose names the third bias metric `swap_order_consistency`;
+  the machine layer (thresholds.json gate key, `computeBias`) implements it
+  as `swap_order_inconsistency`. Same metric; the code name is the normative
+  one for scripts, the prose name retained above for historical fidelity.
