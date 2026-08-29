@@ -378,6 +378,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0030 probe corpus growth: interval coverage gate (law-dup dropped) + deferred edition/git-history gates with unfreeze conditions + judge re-verification runbook/ledger/dead-man switch + generator advisory disposition
 - ADR-0031 wiring assertions (D1 mandatory per wiring-touching ADR) + judge bias calibration corpus (style/length-control + bias-probe, 3 metrics) + gate tier taxonomy (confirmatory/observational/deferred-with-unfreeze) + judge-input certificate isolation + optional evidence provenance (SLSA additive) + debt pack (F4/F5/S2/S3/S4)
 - ADR-0032 generator surface rules deepening: inline gsr header (id/signal-domain/status, git-as-version) + coverage-map.json registry + check-coverage.js four-state gate + pre-registered equivalence statement (no statistical gate) + rule lifecycle triad admission / 6-8 active cap / six-reason retirement
+- ADR-0033 deferred/unfreeze registry: docs/deferred-registry.json fact-source + confirmatory fail-closed + pending-evaluation + expiry-forces-action + coupling guard (seeds: sigstore / L1-L2 golden / Merkle)
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -947,3 +948,37 @@ stay with the verifier side's probe/regression gates
 carry 3-10-task human sampling in release notes only.
 _Avoid_: statistical gates on 14-probe/396-corpus scales, offline
 A/B runs under cold-chain, "no difference found" treated as defect
+
+
+**Deferred Registry (挂起登记册)**:
+The fourth machine fact-source `docs/deferred-registry.json`
+(ADR-0033), sibling to thresholds.json / coverage-map.json /
+host-contracts.json. It registers only chosen-to-defer items with a
+structured unfreeze_if predicate and a review_at expiry; confirmatory
+gates can never be entries; enforcement is fail-closed via
+`scripts/check-deferred.js` with the ADR-0027 couplingViolation guard
+(registry diff requires a same-commit ADR change). Anchoring is
+existence-based (source_adr exists + entry id appears in ADR text or
+CONTEXT.md), never value-anchored.
+_Avoid_: parsing ADR prose to derive deferrals, observational tier for
+registry violations, a second registry file for rejected items
+
+**Pending-Evaluation (待判定态)**:
+The explicit status of ADR-0033 D3 for entries whose unfreeze_if
+predicate cannot be evaluated machine-side: not a violation and not an
+automatic grace — the entry carries its own review_at, expiry of which
+is still STALE fail (FedRAMP VD/OR channel pattern). Renewal is a
+re-assessment action with rationale through the ADR amendment channel,
+never an automatic extension.
+_Avoid_: treating un-evaluable as failed, treating un-evaluable as
+silently extended
+
+**Expiry Forces Action (到期强制动作)**:
+The k8s-feature-gate expiry semantics of ADR-0033 D4: review_at expiry
+is STALE fail-closed and clears only through an explicit act —
+activate, re-defer with new review_at + rationale, or remove — all via
+ADR amendment. No automatic grace period, no silent persistence
+(FedRAMP "acceptance is not forgetting"; security-exceptions
+literature: failure to enforce expiry is the top failure).
+_Avoid_: grace-period soft landing, reminder-only expiry,
+keep-the-item-but-keep-waiting
