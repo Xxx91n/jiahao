@@ -12,6 +12,7 @@
 //       between primary and subagent finish events.
 
 const fs = require('fs');
+const path = require('path');
 const { flagPath } = require('../src/shared/paths');
 const { readProfile } = require('./jiahao-profile');
 const { createEvidenceLog } = require('../src/evidence-log');
@@ -26,6 +27,14 @@ if (!fs.existsSync(flagPath())) {
 
 const profile = readProfile();
 const isGenerator = profile === 'generator';
+
+// ADR-0030 D4 dead-man switch (hook-tier hosts): the judge seam re-verification
+// deadline is machine-readable. The state is DERIVED from the content-anchored
+// deadline constants + the append-only reverify ledger tail, never stored --
+// deleting a state file cannot silence it (missing ledger = degraded). When the
+// bench assets are absent entirely, load() returns null and behavior is unchanged.
+let reverifyDeg = null;
+try { reverifyDeg = require('../src/reverify-schedule').load(path.join(__dirname, '..')); } catch (e) { reverifyDeg = null; }
 
 let input = '';
 process.stdin.setEncoding('utf8');
@@ -91,6 +100,10 @@ process.stdin.on('end', () => {
       pendingText += kappaAdvisory(evidenceChain, loadKappaBaseline());
     } catch (e) { /* advisory must never break the gate */ }
   }
+
+  // ADR-0030 D4: soft-deadline banner rides pendingText (advisory only,
+  // never changes exit codes -- same discipline as the kappa advisory).
+  if (reverifyDeg && reverifyDeg.state === 'warn' && reverifyDeg.banner) pendingText += ' ' + reverifyDeg.banner;
 
   // ---- Case A: no evidence at all --------------------------------------
   // Behaviour unchanged from ADR-0010: block verifier, advisory generator.
@@ -163,6 +176,16 @@ process.stdin.on('end', () => {
   // Verifier profile: high-severity + suspicious and no independently-checked
   // evidence → block. Low severity → advisory only.
   if (highestSeverity === 'high') {
+    // ADR-0030 D4: past the hard deadline the judge seam is advisory-only.
+    // Suspicion blocking degrades to advisory; chain-corruption, no-evidence
+    // and coverage fail-closed paths stay blocking (different invariants).
+    if (reverifyDeg && reverifyDeg.state === 'degraded') {
+      console.log(JSON.stringify({
+        decision: 'allow',
+        systemMessage: reverifyDeg.banner + ' Original finding (high severity, unblocked): completion-language detector matched [' + matchedPhrases.slice(0, 5).join(', ') + '].' + pendingText,
+      }));
+      process.exit(0);
+    }
     // We do not try to be clever about "no independent evidence" here —
     // the deterministic/checklist records are by definition self-reported.
     // The block reason pins the location of the suspicion so escalations

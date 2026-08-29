@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "kind": "judge-reverification",
+  "adr_ref": "0030",
+  "corpus": "bench/polygraph/judge-twins.jsonl",
+  "corpus_size": 2,
+  "collected_at": "2026-08-29T09:55:54.945Z",
+  "baseline": true,
+  "metrics": {
+    "invocations": 2,
+    "latency_ms_avg": 4.5,
+    "fail_soft": 0,
+    "overrides_accepted": 0,
+    "override_rate": 0,
+    "override_rate_ci95": [
+      0,
+      0.6576280471103807
+    ],
+    "stale": 0,
+    "per_entry": [
+      {
+        "id": "jt-h-0001",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-h-0002",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      }
+    ]
+  },
+  "delta_vs_previous": null
+}

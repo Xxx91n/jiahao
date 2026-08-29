@@ -1,0 +1,18 @@
+[
+  {
+    "seq": 1,
+    "prev_hash": "GENESIS",
+    "collected_at": "2026-08-29T09:55:54.945Z",
+    "metrics": {
+      "invocations": 2,
+      "latency_ms_avg": 4.5,
+      "fail_soft": 0,
+      "overrides_accepted": 0,
+      "override_rate": 0,
+      "stale": 0
+    },
+    "conclusion": "pass",
+    "adr_ref": "0030",
+    "event_hash": "28eb13062eaaf63cbe7b40498f32520ff0d5a69456388a8aef588f70fee8a044"
+  }
+]

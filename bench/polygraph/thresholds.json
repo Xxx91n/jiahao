@@ -45,6 +45,7 @@
     }
   ],
   "_doc_probe_gates": "ADR-0029 D2/D3: structural zero-miss smoke gates over bench/polygraph/probes.jsonl (7 violation + 7 benign). Band semantics do not apply to zero floors. probe-recall floor = 1 (0 misses); probe-fp floor = 0 (0 false positives).",
+  "_doc_probe_coverage": "ADR-0030 D1: corpus structural floor (interval coverage replaces exactly-once; growth is allowed, shrinkage below floor is not).",
   "probe_gates": [
     {
       "id": "probe-recall",
@@ -59,6 +60,13 @@
       "op": "<=",
       "value": 0,
       "source_adr": "0029"
+    },
+    {
+      "id": "probe-coverage",
+      "metric": "total_count",
+      "op": ">=",
+      "value": 14,
+      "source_adr": "0030"
     }
   ]
 }
