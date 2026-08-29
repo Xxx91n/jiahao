@@ -377,6 +377,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0029 behavioral probe gate: per-iron-law paired probes (7+7 zero-miss smoke gate) + probe-recall/probe-fp registry + pre-registered growth + advisory upgrade channel + signing rejection log
 - ADR-0030 probe corpus growth: interval coverage gate (law-dup dropped) + deferred edition/git-history gates with unfreeze conditions + judge re-verification runbook/ledger/dead-man switch + generator advisory disposition
 - ADR-0031 wiring assertions (D1 mandatory per wiring-touching ADR) + judge bias calibration corpus (style/length-control + bias-probe, 3 metrics) + gate tier taxonomy (confirmatory/observational/deferred-with-unfreeze) + judge-input certificate isolation + optional evidence provenance (SLSA additive) + debt pack (F4/F5/S2/S3/S4)
+- ADR-0032 generator surface rules deepening: inline gsr header (id/signal-domain/status, git-as-version) + coverage-map.json registry + check-coverage.js four-state gate + pre-registered equivalence statement (no statistical gate) + rule lifecycle triad admission / 6-8 active cap / six-reason retirement
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -905,3 +906,44 @@ provenance proves context.
 _Avoid_: "we can grep the log later" answers, provenance-free
 records reaching ADR-0017 adjudication
 
+
+**Generator Surface Rule Header (gsr 规则头)**:
+The one-line inline metadata each generator-side rule carries in
+SKILL.md (ADR-0032 D2): `<!-- gsr:N | signal-domain: <domain> |
+status: active|superseded|deprecated -->`, with optional `check:`
+naming the wiring assertion that binds it (jiahao's analogue of
+garak's primary_detector). The header rides inside the exact prose
+fragment that build-adapters.js slices into host adapters, so the
+metadata is cold-chain self-describing and covered by regen-diff
+for free. Version is git commit, never a SemVer field.
+_Avoid_: sibling manifest.json (ADR-0028 D2 opaque-manifest
+precedent), rules-as-JSON-schema rendered prose (double review
+surface)
+
+**Coverage Map Registry (覆盖率登记册)**:
+The machine fact-source `docs/coverage-map.json` (same family as
+thresholds.json and host-contracts.json) that declares, per iron
+law L1..L7, one of four states — covered / declared-gap /
+needs-adr / undecidable (MISRA analogue: human judgment written
+down, never a silently empty cell) — with gsr targets for the
+covered and rationale + source_adr + review_at for the rest
+(ADR-0032 D3). `scripts/check-coverage.js` asserts existence,
+reference integrity, unidirectional lifecycle, and STALE review_at;
+the derived matrix is a print artifact, never checked in. Basis:
+Tian 2021 — hand-maintained trace links are traceability's first
+cost; links must be generated from the source of truth.
+_Avoid_: hand-maintained markdown mapping tables, CONTEXT.md
+appendix tables, auto-generated rules to fill gaps
+
+**Pre-Registered Equivalence Statement (预注册等效声明)**:
+ADR-0032 D4's pre-committed criterion for the generator side:
+because paired-sample power for a behavioral effect needs ~1200
+observations (LREC 2026 / llm-power) and garak itself disclaims
+scientific validity for probe scores, "no measured behavioral
+difference" is a pre-registered CONCLUSION (acceptance duty returns
+to the injection layer), not a failure state. Statistical duties
+stay with the verifier side's probe/regression gates
+(ADR-0029 advisory-don't-gate principle); generator-side releases
+carry 3-10-task human sampling in release notes only.
+_Avoid_: statistical gates on 14-probe/396-corpus scales, offline
+A/B runs under cold-chain, "no difference found" treated as defect
