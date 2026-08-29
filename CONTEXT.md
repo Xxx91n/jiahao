@@ -375,6 +375,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0027 bench gate: executable pre-registered thresholds (D1 real re-run, D2 derived config + guard, D3 0/1 + aggregated warning, D4 milestone archive)
 - ADR-0028 multi-host L0 closure: regen-diff golden (--check) + host-contracts.json registry (term-anchored coupling guard) + 4 new research-gated adapters (copilot/qoder/opencode/aider) + lifecycle register
 - ADR-0029 behavioral probe gate: per-iron-law paired probes (7+7 zero-miss smoke gate) + probe-recall/probe-fp registry + pre-registered growth + advisory upgrade channel + signing rejection log
+- ADR-0030 probe corpus growth: interval coverage gate (law-dup dropped) + deferred edition/git-history gates with unfreeze conditions + judge re-verification runbook/ledger/dead-man switch + generator advisory disposition
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -805,3 +806,49 @@ accumulated, benign near-miss assets exist for FP calibration, and
 the promotion passes the ADR-0027 coupling guard.
 _Avoid_: hard-gating advisory SHOULDs, reopening the promotion
 question without the three registered conditions
+
+**Interval Coverage Gate (区间覆盖门)**:
+The post-ADR-0030 corpus constraint: every (kind, law) pair needs at
+least one probe (count >= 1); the ADR-0029 law-dup exactly-once
+invariant is dropped so the pre-registered growth rule (ADR-0029
+D3) is mechanically executable. New probes for a covered law carry
+a variant suffix (IL3-v2-*), mirroring MISRA amendment numbering.
+Global id uniqueness and a thresholds.json structural floor
+(source_adr: 0030) remain. schema_version describes the data
+format, not checker policy; policy changes are ADR-witnessed.
+_Avoid_: re-introducing exactly-once, mutating schema_version for
+policy-only changes, building edition-dispatch before any
+out-of-repo consumer exists
+
+**Reverification Runbook (judge 重验证 runbook)**:
+The operationalization of ADR-0025 D3 (ADR-0030 D3):
+npm run reverify executes scripts/reverify.js (thin CLI + pure
+core), recomputes the 4 telemetry metrics with Wilson intervals
+and STALE counts over the frozen judge-twins corpus, and emits
+bench/polygraph/results/reverify-<date>.json; results that change
+thresholds/frequency anchor their numbers to ADR text via the
+ADR-0027 content-anchor and ship with a same-commit ADR
+amendment. Append-only bench/polygraph/reverify-ledger.json
+chained by prev_hash reuses the ADR-0013/0026 hash-chain
+discipline. Deadlines are calendar events (Rust release train):
+no silent extension; a pre-commit local hook warns (never blocks)
+when judge/bench files change with a stale ledger entry.
+_Avoid_: cron/CI scheduling with no trusted remote executor,
+profile-embedded meta-checks, audit-sprint evidence produced only
+after the fact
+
+**Dead-Man Degradation (死人开关降级)**:
+ADR-0030 D4: the judge seam degrades on schedule breach, in the
+Python __future__ MandatoryRelease pattern (machine-readable,
+append-only, programmatically checked) and the CA/B Forum
+certificate-expiry precedent (deadlines need structural
+consequences). 6 months past re-verification: warning banner
+(runbook + hook). 9 months: hook-tier verdict gates return
+advisory-only semantics with a banner naming the recovery
+condition; instruction-tier hosts were already advisory-only
+(ADR-0028 D6). The state lives in a content-anchored artifact so
+deleting state files to silence the switch is itself caught
+(K8s PDB bypass-closure semantics).
+_Avoid_: reminder-only deadlines (Node EOL evidence says they
+change nothing), blocking instruction-tier hosts, removable state
+files
