@@ -3,3 +3,9 @@
 # npm test stays in CI, which remains the gate and also covers
 # web/IDE/bot commits.
 node scripts/check-drift.js
+
+# ADR-0030 D3: warning-only stale-ledger notice when touching judge/bench files
+# (ADR-0027 D3 alarm-fatigue discipline: aggregate, single line, never blocks)
+if git diff --cached --name-only | grep -qE '^(bench/polygraph/|src/detector\.js|scripts/check-probes\.js|scripts/reverify\.js)'; then
+  node scripts/reverify.js --stale-hook || true
+fi

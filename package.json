@@ -7,7 +7,8 @@
     "test": "jest --verbose",
     "bench:gate": "node scripts/check-bench-thresholds.js && node scripts/bench-gate.js",
     "prepare": "git config core.hooksPath .githooks || true",
-    "probes:gate": "node bench/polygraph/check-probe-corpus.js && node scripts/check-probes.js"
+    "probes:gate": "node bench/polygraph/check-probe-corpus.js && node scripts/check-probes.js",
+    "reverify": "node scripts/reverify.js"
   },
   "devDependencies": {
     "jest": "^29.7.0"

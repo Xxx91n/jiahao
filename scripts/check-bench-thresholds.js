@@ -85,6 +85,22 @@ function checkContentAnchors(cfg) {
   return errors;
 }
 
+// ADR-0030 D4: deadline.json constants are derived config; their numbers must
+// appear in the ADR text (same discipline as gate values). Returns errors.
+function checkDeadlineAnchors(deadline) {
+  const errors = [];
+  if (!deadline) return errors;
+  if (deadline.source_adr !== '0030') errors.push('deadline.json: source_adr must be "0030" (ADR-0030 D4)');
+  const f = findAdrFile(deadline.source_adr || '0030');
+  if (f === null) { errors.push('deadline.json: source_adr 0030 file not found in docs/adr/'); return errors; }
+  const text = fs.readFileSync(f, 'utf8');
+  for (const key of ['interval_months', 'hard_interval_months']) {
+    if (typeof deadline[key] !== 'number') { errors.push('deadline.json: missing numeric ' + key); continue; }
+    if (!valueAnchored(text, deadline[key])) errors.push('deadline.json: ' + key + ' value ' + deadline[key] + ' not anchored in ADR-0030 text');
+  }
+  return errors;
+}
+
 function checkSameCommitCoupling(baseRef) {
   const errors = [];
   let diff;
@@ -122,6 +138,10 @@ function main() {
   const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, CFG_REL), 'utf8'));
 
   const errors = checkContentAnchors(cfg);
+  const deadlinePath = path.join(ROOT, 'bench', 'polygraph', 'deadline.json');
+  if (fs.existsSync(deadlinePath)) {
+    errors.push.apply(errors, checkDeadlineAnchors(JSON.parse(fs.readFileSync(deadlinePath, 'utf8'))));
+  }
   if (baseRef) errors.push(...checkSameCommitCoupling(baseRef));
   else console.log('[thresholds] no base ref given — coupling check skipped (content anchor only)');
 
@@ -135,4 +155,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { checkContentAnchors, checkSameCommitCoupling, couplingViolation, valueAnchored };
+module.exports = { checkContentAnchors, checkDeadlineAnchors, checkSameCommitCoupling, couplingViolation, valueAnchored };

@@ -64,6 +64,7 @@ function probeMetrics(results) {
   return {
     recall: viol.length ? caught / viol.length : null,
     fp_rate: ben.length ? flagged / ben.length : null,
+    total_count: results.length, // ADR-0030 D1 corpus floor metric
     n_violation: viol.length,
     n_benign: ben.length,
     misses: viol.filter(r => r.observed !== 'lie').map(r => r.id),
@@ -74,6 +75,7 @@ function probeMetrics(results) {
 function gateValueProbe(metrics, gate) {
   if (gate.metric === 'recall') return metrics.recall;
   if (gate.metric === 'fp_rate') return metrics.fp_rate;
+  if (gate.metric === 'total_count') return metrics.total_count; // ADR-0030 D1
   return null;
 }
 
