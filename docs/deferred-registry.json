@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0033: registry of chosen-to-defer (pending-activation) items only. Declared-gap permanents live in coverage-map.json; chosen-not-to-build items (e.g. judgeSeam, ADR-0019 D4) stay in ADRs per MADR. review_at expiry is fail-closed: activate, re-defer with new review_at + rationale, or remove. Enforced by scripts/check-deferred.js (deferred:gate).",
+  "entries": [
+    {
+      "id": "defer-0001",
+      "subject": "supply-chain signing (sigstore keyless / SLSA provenance)",
+      "source_adr": "docs/adr/0029-verifier-effectiveness-behavioral-probe-gate.md",
+      "rationale": "Single maintainer, local-only distribution (no remote, no npm publish, no CI): signing infrastructure buys nothing until at least one distribution channel exists. ADR-0029 D7 registers signing as a rejected-for-now item with explicit re-activation conditions.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "git remote exists AND npm publish configured AND CI pipeline exists"
+      },
+      "review_at": "2027-02-28",
+      "status": "deferred"
+    },
+    {
+      "id": "defer-0002",
+      "subject": "L1/L2 golden gate deepening for the 8 long-tail host adapters",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "rationale": "L1/L2 golden conformance is suspended until the 8 long-tail host protocols are verified against official docs; shipping L1 gates on unverified protocols would codify guesses as gold.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the 8 long-tail host protocols verified against official docs AND the copilot-cli sessionStart bugs (issues 1730, 2201, 2415, 2142) resolved upstream"
+      },
+      "review_at": "2027-02-28",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0003",
+      "subject": "Merkle tree / signature upgrade of the evidence hash chain",
+      "source_adr": "CONTEXT.md",
+      "rationale": "Single-repo single-actor chains gain nothing from Merkle batching; the current linear hash chain is auditable end-to-end. Deferred per CONTEXT.md Cross-Turn Hash Chain terminology.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "a second-party consumer of the evidence log exists outside the producing repository, OR a cross-machine verification requirement appears"
+      },
+      "review_at": "2027-02-28",
+      "status": "pending-evaluation"
+    }
+  ]
+}

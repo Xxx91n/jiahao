@@ -10,7 +10,8 @@
     "probes:gate": "node bench/polygraph/check-probe-corpus.js && node scripts/check-probes.js",
     "reverify": "node scripts/reverify.js",
     "judge:bias": "node bench/polygraph/check-judge-bias.js",
-    "coverage:gate": "node scripts/check-coverage.js"
+    "coverage:gate": "node scripts/check-coverage.js",
+    "deferred:gate": "node scripts/check-deferred.js"
   },
   "devDependencies": {
     "jest": "^29.7.0"

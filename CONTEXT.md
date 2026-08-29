@@ -209,7 +209,7 @@ across turns, each turn opens with a `turn_init` record chained onto the
 previous tail hash, and `prev_hash` is INSIDE the hashed body
 (`H(canonical(record) || prev_hash)`, Crosby & Wallach 2009) — closing the
 tail-truncate-and-relink hole left by ADR-0007's hash-input exclusion.
-Linear chain only; Merkle trees and signatures remain deferred upgrades.
+Linear chain only; Merkle trees and signatures remain deferred upgrades. Registered as defer-0003 in docs/deferred-registry.json (ADR-0033).
 _Avoid_: blockchain, Merkle log (different structures)
 
 **Composite Idempotency Key (复合幂等键)**:
