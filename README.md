@@ -146,7 +146,7 @@ instruction tier, and aider loads the rules only via opt-in `read:` config.
 ## Develop
 
 ```bash
-npm test                              # 347 tests across 25 suites
+npm test                              # 358 tests across 26 suites
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
@@ -162,7 +162,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `adapters/` — generated per-host adapters (11 host directories / 23 generated files; ADR-0028 D5)
 - `jiahao-mcp/` — MCP-only adapter (profile parameter)
 - `docs/adr/` — 32 architecture decision records (0010 = dual-profile; 0011 = deployment discipline; 0012 = detector verdict + hook idempotency; 0013 = cross-turn chain + idempotency key; 0014 = wordlist migration + structural signals; 0015 = benchmark adoption + citation calibration; 0016 = evidence-log/gate split; 0017 = escalate verdict + human adjudication; 0018 = calibration flywheel: threshold band + few-shot injection + kappa; 0019 = detector v2: suppression rules + judge seam; 0020 = pagination-exhaustion pairing; 0021 = request-side anchor signals; 0022 = detector hardening + censoring + degradation contract; 0023 = timeout sentinel reconciliation + schema evolution discipline; 0024 = sentinel ownership lock + reconcile hardening + session-end sweep; 0025 = judge form convergence (scoring-mode verifier) + honest-twin corpus + telemetry contract; 0026 = segmented evidence log: rotation + cross-segment anchoring + base-seq naming; 0027 = executable bench gate + pre-registered thresholds; 0028 = multi-host L0 test closure: regen-diff golden + host contracts + lifecycle; 0029 = behavioral probe gate: paired per-law probes + zero-miss smoke gate + advisory upgrade channel; 0030 = probe corpus growth: interval coverage gate + judge re-verification runbook/dead-man switch + advisory disposition; 0031 = wiring assertions + judge bias calibration (style/length/bias-probe corpus) + gate tier taxonomy + judge certificate isolation + evidence provenance + debt pack; 0032 = generator surface rules deepening: gsr header + coverage map registry + pre-registered equivalence + rule lifecycle)
-- `test/` — 25 test suites, 347 tests
+- `test/` — 26 test suites, 358 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 
 ## License
