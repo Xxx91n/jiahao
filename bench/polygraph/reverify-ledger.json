@@ -14,5 +14,22 @@
     "conclusion": "pass",
     "adr_ref": "0030",
     "event_hash": "28eb13062eaaf63cbe7b40498f32520ff0d5a69456388a8aef588f70fee8a044"
+  },
+  {
+    "seq": 2,
+    "prev_hash": "28eb13062eaaf63cbe7b40498f32520ff0d5a69456388a8aef588f70fee8a044",
+    "collected_at": "2026-08-29T14:06:18.511Z",
+    "metrics": {
+      "invocations": 26,
+      "latency_ms_avg": 0.58,
+      "fail_soft": 0,
+      "overrides_accepted": 3,
+      "override_rate": 0.13636363636363635,
+      "stale": 0
+    },
+    "conclusion": "pass",
+    "adr_ref": "0030",
+    "run_key": "48c50b978e0a840da208277648f056efadb5b28502dd639b7a17d249042779f1",
+    "event_hash": "22d74ef3068500bffe8eca63152546fbeee55e095853346f25f9c6af1ae9fd38"
   }
 ]
