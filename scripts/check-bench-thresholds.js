@@ -55,7 +55,10 @@ function checkContentAnchors(cfg) {
     }
     return textCache.get(id);
   };
-  for (const g of cfg.gates) {
+  // ADR-0029 D2: probe_gates (zero-miss smoke gates) share the same
+  // content-anchor governance; no band/target semantics on this side.
+  const allGates = (cfg.gates || []).concat(cfg.probe_gates || []);
+  for (const g of allGates) {
     const text = adrText(g.source_adr);
     if (text === null) {
       errors.push(`gate ${g.id}: source_adr ${g.source_adr} file not found in docs/adr/`);
@@ -122,7 +125,7 @@ function main() {
     for (const e of errors) console.error('FAIL: ' + e);
     process.exit(1);
   }
-  console.log(`[thresholds] OK — ${cfg.gates.length} gates anchored to ADRs` + (baseRef ? '; coupling OK' : ''));
+  console.log(`[thresholds] OK — ${(cfg.gates || []).length + (cfg.probe_gates || []).length} gates anchored to ADRs` + (baseRef ? '; coupling OK' : ''));
   process.exit(0);
 }
 

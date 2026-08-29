@@ -98,7 +98,7 @@ describe('check-bench-thresholds guard', () => {
   test('real thresholds.json anchors -> exit 0', () => {
     const { code, out } = run(GUARD, []);
     expect(code).toBe(0);
-    expect(out).toContain('3 gates anchored');
+    expect(out).toContain('5 gates anchored');
   });
   test('content anchor: forged value absent from ADR -> exit 1', () => {
     const bad = JSON.parse(JSON.stringify(CFG));
