@@ -57,6 +57,10 @@ function checkContentAnchors(cfg) {
   };
   // ADR-0029 D2: probe_gates (zero-miss smoke gates) share the same
   // content-anchor governance; no band/target semantics on this side.
+  // S-1 fail-closed: probe_gates removal must fail here too, not only in check-probes.js.
+  if (!Array.isArray(cfg.probe_gates) || cfg.probe_gates.length === 0) {
+    errors.push('probe_gates missing or empty (ADR-0029 D2): zero-miss probe gates must not fail open');
+  }
   const allGates = (cfg.gates || []).concat(cfg.probe_gates || []);
   for (const g of allGates) {
     const text = adrText(g.source_adr);

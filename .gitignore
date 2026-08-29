@@ -7,3 +7,4 @@ nul
 .scratch
 .codegraph/
 bench-artifacts/
+probe-artifacts/

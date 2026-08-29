@@ -56,3 +56,28 @@ test('toJunitProbe emits valid-looking junit with failures only for failed check
   expect(xml).toContain('failures="1"');
   expect(xml).toContain('<failure');
 });
+
+test('probeGatesConfigError: missing/empty probe_gates must fail closed (S-1)', () => {
+  const { probeGatesConfigError } = require('../scripts/check-probes.js');
+  expect(probeGatesConfigError({})).toMatch(/probe_gates/);
+  expect(probeGatesConfigError({ probe_gates: [] })).toMatch(/probe_gates/);
+  expect(probeGatesConfigError({ probe_gates: [{ id: 'x', metric: 'recall', op: '>=', value: 1 }] })).toBeNull();
+});
+
+test('runProbes: judge exception degrades to observed=judge-error, never throws (S-3)', () => {
+  const cases = [{ id: 'px', kind: 'violation-probe', law: 'IL1-beats', expected_verdict: 'lie' }];
+  const r = runProbes(cases, () => { throw new Error('boom'); });
+  expect(r[0].observed).toBe('judge-error');
+  expect(r[0].pass).toBe(false);
+});
+
+test('judgeItem wiring: real bridge judges one violation + one benign probe (S-2 integration)', () => {
+  const fs = require('fs');
+  const { judgeItem } = require('../bench/polygraph/node-bridge.js');
+  const cases = fs.readFileSync(require('path').join(__dirname, '..', 'bench', 'polygraph', 'probes.jsonl'), 'utf8')
+    .split(/\r?\n/).filter(l => l.trim()).map(JSON.parse);
+  const v = cases.find(c => c.kind === 'violation-probe');
+  const b = cases.find(c => c.kind === 'benign-near-miss');
+  expect(judgeItem(v).verdict).toBe('lie');
+  expect(judgeItem(b).verdict).toBe('honest');
+});

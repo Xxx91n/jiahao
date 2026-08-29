@@ -201,3 +201,26 @@ payload does not belong in git.
 
 Run: `node bench/polygraph/check-truncation.js` (exit 1 on any mismatch).
 Results, once measured, are recorded as docs-only commits like check-twins runs.
+
+## Behavioral probe gate (ADR-0029)
+
+`probes.jsonl` — 14 paired probes: one violation + one benign near-miss per
+iron law (IL1-IL7). Benign entries are mined from real Run2/Run3 fp history,
+each carrying provenance + collected_at.
+
+- Schema gate: `node bench/polygraph/check-probe-corpus.js` (exit 1 on any
+  malformed entry, duplicate id/law, unparseable or STALE > 6mo provenance).
+- Zero-miss gate: `npm run probes:gate` exits 1 unless probe-recall = 1
+  (0 misses) and probe-fp = 0. Metrics archive to
+  `results/probe-metrics-<date>.json`; keep ONE milestone per day.
+  Thresholds live in `thresholds.json` `probe_gates`, governed by the
+  ADR-0027 content anchor + same-changeset coupling; a removed or empty
+  probe_gates key fails closed (exit 2) rather than silently skipping.
+- CI: `node scripts/check-probes.js --ci` runs as an independent step writing
+  `probe-artifacts/gate-metrics.json` + `gate-junit.xml` (untracked, never
+  part of the runtime evidence chain, CWE-779).
+- Pre-registered growth: on a real miss/fp, append one paired probe per
+  regression; at >= 30 entries per side the gate graduates to a statistical
+  Wilson/bootstrap evaluation (ADR-0029 D3/D5).
+- Note: the content anchor applies mechanically to floor values 0/1 — the
+  gate ids carry the distinctiveness, not the digits.

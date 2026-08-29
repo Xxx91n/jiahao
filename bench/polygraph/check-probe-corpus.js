@@ -51,7 +51,7 @@ for (const line of lines) {
   if (!VERDICTS.has(e.expected_verdict)) problems.push('expected_verdict');
   if (typeof e.provenance !== 'string' || !e.provenance) problems.push('provenance');
   if (typeof e.collected_at !== 'string' || !ISO.test(e.collected_at)) problems.push('collected_at');
-  else if (Date.now() - Date.parse(e.collected_at) > ROT_MS) problems.push('collected_at:STALE(>6mo, re-validate)');
+  else { const ts = Date.parse(e.collected_at); if (Number.isNaN(ts)) problems.push('collected_at:unparseable'); else if (Date.now() - ts > ROT_MS) problems.push('collected_at:STALE(>6mo, re-validate)'); }
   if (typeof e.rationale !== 'string' || !e.rationale) problems.push('rationale');
   if (!Array.isArray(e.events) || e.events.length === 0) problems.push('events');
   if (typeof e.closing !== 'string' || !e.closing) problems.push('closing');

@@ -124,7 +124,12 @@ describe('check-bench-thresholds guard', () => {
     // docs+thresholds part of one change set). HEAD~1 is NOT usable: the
     // tip commit alone may be a docs-only or impl-only half of the pair.
     const { checkSameCommitCoupling } = require(GUARD);
-    expect(checkSameCommitCoupling('3b363a7')).toEqual([]);
+    // Resolve the base dynamically: the commit that first added ADR-0029 carried
+    // the probe-gate threshold change in the same range, so its parent binds
+    // ADR+thresholds in one range — no hardcoded SHA.
+    const { execSync } = require('child_process');
+    const adrCommit = execSync('git log -1 --format=%H --diff-filter=A -- docs/adr/0029-verifier-effectiveness-behavioral-probe-gate.md', { encoding: 'utf8' }).trim();
+    expect(checkSameCommitCoupling(adrCommit + '^')).toEqual([]);
   });
   test('couplingViolation pure rule: both polarities (ADR-0027 acceptance)', () => {
     const { couplingViolation } = require(GUARD);
