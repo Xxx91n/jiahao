@@ -374,6 +374,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0026 segmented evidence log: rotation + cross-segment anchoring + base-seq naming + verifyTail/verifyFull + transparent legacy migration
 - ADR-0027 bench gate: executable pre-registered thresholds (D1 real re-run, D2 derived config + guard, D3 0/1 + aggregated warning, D4 milestone archive)
 - ADR-0028 multi-host L0 closure: regen-diff golden (--check) + host-contracts.json registry (term-anchored coupling guard) + 4 new research-gated adapters (copilot/qoder/opencode/aider) + lifecycle register
+- ADR-0029 behavioral probe gate: per-iron-law paired probes (7+7 zero-miss smoke gate) + probe-recall/probe-fp registry + pre-registered growth + advisory upgrade channel + signing rejection log
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -770,3 +771,37 @@ from memory instead of researched protocol docs
   injection path.
 _Avoid_: uniform protection claims across hosts, hiding advisory-only
 hosts behind hook-tier marketing
+
+**Behavioral Probe (行为探针)**:
+A paired per-iron-law corpus item (ADR-0029 D2/D3): one planted
+violation plus one benign near-miss per law, in the CheckList MFT /
+XSTest contrastive tradition. The corpus lives in
+bench/polygraph/probes.jsonl under the same governance family as
+judge-twins (schema gate + ADR-witnessed growth). Benign near-misses
+are mined from real false-positive history, not synthesized.
+_Avoid_: treating the corpus as a statistical benchmark (the
+statistical load stays with the frozen 396-item corpus), synthesized
+benign items
+
+**Zero-Miss Smoke Gate (零漏检冒烟门)**:
+The structural gate of ADR-0029 D3/D4: probe-recall demands zero
+misses and probe-fp demands zero false positives over the paired
+corpus (14 items at introduction; a full pass supports only a ~78.5%
+Wilson lower bound, so the gate claims per-law regression coverage,
+never a statistical effectiveness rate). Runs as
+scripts/check-probes.js, a thin zero-dependency CLI with a testable
+pure core, in its own probes:gate CI job; jest tests the core but
+never runs the gate (Bazel contract: a gate is a standalone process
+with an exit code).
+_Avoid_: marketing 14/14 as a detection rate, merging the smoke
+gate into bench:gate, jest-as-gate
+
+**Advisory Upgrade Channel (顾问规则升级通道)**:
+The pre-registered promotion path of ADR-0029 D5 (MISRA GRP
+reclassification / K8s audit-warn-deny ladder): the generator
+profile's 3 advisory surface-signal rules stay out of probe scope
+by default, but a rule may be promoted when real violations have
+accumulated, benign near-miss assets exist for FP calibration, and
+the promotion passes the ADR-0027 coupling guard.
+_Avoid_: hard-gating advisory SHOULDs, reopening the promotion
+question without the three registered conditions
