@@ -61,7 +61,11 @@ function checkContentAnchors(cfg) {
   if (!Array.isArray(cfg.probe_gates) || cfg.probe_gates.length === 0) {
     errors.push('probe_gates missing or empty (ADR-0029 D2): zero-miss probe gates must not fail open');
   }
-  const allGates = (cfg.gates || []).concat(cfg.probe_gates || []);
+  // ADR-0031 D2/D3: judge_bias_gates share the same content anchoring.
+  if (!Array.isArray(cfg.judge_bias_gates) || cfg.judge_bias_gates.length === 0) {
+    errors.push('judge_bias_gates missing or empty (ADR-0031 D3): bias gates must not fail open');
+  }
+  const allGates = (cfg.gates || []).concat(cfg.probe_gates || []).concat(cfg.judge_bias_gates || []);
   for (const g of allGates) {
     const text = adrText(g.source_adr);
     if (text === null) {
@@ -117,6 +121,42 @@ function checkSameCommitCoupling(baseRef) {
 }
 
 // Pure core of the coupling rule, exported for testing both polarities.
+// ---- ADR-0031 D3 gate tier taxonomy ----
+// Machine layer over the three K8s-admission-shaped tiers:
+//   confirmatory            fail-closed immediately (default for integrity-critical gates)
+//   observational           record-only; MUST pre-register review_at + promote_if;
+//                           overdue review = STALE violation (fail this guard)
+//   deferred-with-unfreeze  implementation withheld; MUST carry unfreeze_if
+const TIERS = new Set(['confirmatory', 'observational', 'deferred-with-unfreeze']);
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+// Returns errors ([] = pass). now is injectable for deterministic tests.
+function checkTiers(cfg, now) {
+  const errors = [];
+  const all = (cfg.gates || []).concat(cfg.probe_gates || []).concat(cfg.judge_bias_gates || []);
+  const t = typeof now === 'number' ? now : Date.now();
+  for (const g of all) {
+    if (typeof g.tier !== 'string' || !TIERS.has(g.tier)) {
+      errors.push('gate ' + g.id + ': missing or unknown tier (ADR-0031 D3) — every gate must declare tier');
+      continue;
+    }
+    if (g.tier === 'observational') {
+      if (typeof g.review_at !== 'string' || !ISO_DATE.test(g.review_at) || Number.isNaN(Date.parse(g.review_at))) {
+        errors.push('gate ' + g.id + ': observational tier requires review_at (ISO date)');
+      } else if (t > Date.parse(g.review_at) + 24 * 3600 * 1000) {
+        errors.push('gate ' + g.id + ': STALE — observational review overdue since ' + g.review_at + ' (ADR-0031 D3)');
+      }
+      if (typeof g.promote_if !== 'string' || !g.promote_if) {
+        errors.push('gate ' + g.id + ': observational tier requires promote_if');
+      }
+    }
+    if (g.tier === 'deferred-with-unfreeze' && (typeof g.unfreeze_if !== 'string' || !g.unfreeze_if)) {
+      errors.push('gate ' + g.id + ': deferred-with-unfreeze tier requires unfreeze_if');
+    }
+  }
+  return errors;
+}
+
 // opts (ADR-0028 D4 reuse): { cfgRel, allowContextMd, reason } lets the
 // host-contracts guard share this rule against a different watched file.
 function couplingViolation(changed, baseRef, opts) {
@@ -138,6 +178,7 @@ function main() {
   const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, CFG_REL), 'utf8'));
 
   const errors = checkContentAnchors(cfg);
+  errors.push.apply(errors, checkTiers(cfg));
   const deadlinePath = path.join(ROOT, 'bench', 'polygraph', 'deadline.json');
   // ADR-0030 D4 bypass closure: deleting deadline.json must not silently
   // disable the dead-man switch — absence is reported, never skipped.
@@ -150,10 +191,10 @@ function main() {
     for (const e of errors) console.error('FAIL: ' + e);
     process.exit(1);
   }
-  console.log(`[thresholds] OK — ${(cfg.gates || []).length + (cfg.probe_gates || []).length} gates anchored to ADRs` + (baseRef ? '; coupling OK' : ''));
+  console.log(`[thresholds] OK — ${(cfg.gates || []).length + (cfg.probe_gates || []).length + (cfg.judge_bias_gates || []).length} gates anchored to ADRs` + (baseRef ? '; coupling OK' : ''));
   process.exit(0);
 }
 
 if (require.main === module) main();
 
-module.exports = { checkContentAnchors, checkDeadlineAnchors, checkSameCommitCoupling, couplingViolation, valueAnchored };
+module.exports = { checkContentAnchors, checkDeadlineAnchors, checkSameCommitCoupling, couplingViolation, valueAnchored, checkTiers, TIERS };

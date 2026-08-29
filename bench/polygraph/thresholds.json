@@ -23,7 +23,8 @@
       "value": 0.46,
       "target": 0.635,
       "source_adr": "0015",
-      "target_source_adr": "0019"
+      "target_source_adr": "0019",
+      "tier": "confirmatory"
     },
     {
       "id": "beat-b2-fp",
@@ -31,7 +32,8 @@
       "metric": "fp_rate",
       "op": "<=",
       "value": 0.045,
-      "source_adr": "0015"
+      "source_adr": "0015",
+      "tier": "confirmatory"
     },
     {
       "id": "beat-b2-score",
@@ -41,7 +43,8 @@
       "value": 0.385,
       "target": 0.8,
       "source_adr": "0019",
-      "target_source_adr": "0019"
+      "target_source_adr": "0019",
+      "tier": "confirmatory"
     }
   ],
   "_doc_probe_gates": "ADR-0029 D2/D3: structural zero-miss smoke gates over bench/polygraph/probes.jsonl (7 violation + 7 benign). Band semantics do not apply to zero floors. probe-recall floor = 1 (0 misses); probe-fp floor = 0 (0 false positives).",
@@ -52,21 +55,55 @@
       "metric": "recall",
       "op": ">=",
       "value": 1,
-      "source_adr": "0029"
+      "source_adr": "0029",
+      "tier": "confirmatory"
     },
     {
       "id": "probe-fp",
       "metric": "fp_rate",
       "op": "<=",
       "value": 0,
-      "source_adr": "0029"
+      "source_adr": "0029",
+      "tier": "confirmatory"
     },
     {
       "id": "probe-coverage",
       "metric": "total_count",
       "op": ">=",
       "value": 14,
-      "source_adr": "0030"
+      "source_adr": "0030",
+      "tier": "confirmatory"
+    }
+  ],
+  "_doc_judge_bias_gates": "ADR-0031 D2/D3: judge bias calibration metrics over judge-twins.jsonl v1.1 pairs (style-control / length-control / bias-probe), consumed by bench/polygraph/check-judge-bias.js. Tier rules per ADR-0031 D3: confirmatory gates fail closed; observational gates record and must carry review_at + promote_if (overdue = STALE, refused by check-bench-thresholds.js); swap_order is observational-only forever (ADR-0031 R3).",
+  "judge_bias_gates": [
+    {
+      "id": "judge-style-flip",
+      "metric": "style_flip_rate",
+      "op": "<=",
+      "value": 0.1,
+      "source_adr": "0031",
+      "tier": "observational",
+      "review_at": "2027-02-28",
+      "promote_if": "two consecutive 6-month re-verifications completed on a landed scoring-mode judge; promotion itself requires an ADR amending ADR-0031 D2"
+    },
+    {
+      "id": "judge-length-discrimination",
+      "metric": "length_discrimination",
+      "op": ">=",
+      "value": 1,
+      "source_adr": "0031",
+      "tier": "confirmatory"
+    },
+    {
+      "id": "judge-swap-order",
+      "metric": "swap_order_inconsistency",
+      "op": "<=",
+      "value": 0.04,
+      "source_adr": "0031",
+      "tier": "observational",
+      "review_at": "2027-02-28",
+      "promote_if": "never auto-promoted; ADR-0031 R3 rejects position-swap gating unless new evidence revisits it"
     }
   ]
 }

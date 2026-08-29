@@ -98,7 +98,10 @@ describe('check-bench-thresholds guard', () => {
   test('real thresholds.json anchors -> exit 0', () => {
     const { code, out } = run(GUARD, []);
     expect(code).toBe(0);
-    expect(out).toContain('6 gates anchored');
+    // Count is derived from the live config (ADR-0031 D3 adds judge_bias_gates).
+    const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'bench', 'polygraph', 'thresholds.json'), 'utf8'));
+    const n = (cfg.gates || []).length + (cfg.probe_gates || []).length + (cfg.judge_bias_gates || []).length;
+    expect(out).toContain(String(n) + ' gates anchored');
   });
   test('content anchor: forged value absent from ADR -> exit 1', () => {
     const bad = JSON.parse(JSON.stringify(CFG));

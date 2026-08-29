@@ -74,6 +74,7 @@ function computeMetrics(entries, judgeFn, now) {
     latency_ms_avg: entries.length ? Math.round((latencyTotal / entries.length) * 100) / 100 : 0,
     fail_soft: failSoft,
     overrides_accepted: overrides,
+    need_override: needOverride,
     override_rate: needOverride ? overrides / needOverride : null,
     override_rate_ci95: wilson95(overrides, needOverride),
     stale,
@@ -114,6 +115,9 @@ function appendEntry(ledger, entry) {
     conclusion: entry.conclusion,
     adr_ref: ADR_REF,
   };
+  // ADR-0031 D6/F5: idempotent re-run key — same (corpus, metric outcome,
+  // day) is appended once; the key rides the hash chain itself.
+  if (entry.run_key) sans.run_key = entry.run_key;
   sans.event_hash = eventHash(sans);
   return ledger.concat([sans]);
 }
@@ -128,7 +132,35 @@ function staleWarning(ledger, now) {
   return null;
 }
 
-module.exports = { computeMetrics, wilson95, canonical, eventHash, verifyLedger, appendEntry, staleWarning, GENESIS, ADR_REF, ROT_MS };
+module.exports = { computeMetrics, wilson95, canonical, eventHash, verifyLedger, appendEntry, staleWarning, GENESIS, ADR_REF, ROT_MS, conclude, runKey };
+
+// ADR-0031 D6/F4 (fix): the re-verification conclusion reads more than
+// fail_soft. A wiped-out judge that crashes zero times but never rescues a
+// single override-eligible twin, or returns fewer invocations than the corpus,
+// must conclude "fail" — fail_soft-only reporting false-reports healthy.
+// Signals: (a) fail_soft > 0; (b) invocations !== corpus size;
+// (c) override-eligible > 0 && overrides_accepted === 0 (dead judge);
+// (d) vs the previous ledger entry: overrides_accepted strictly regressed.
+function conclude(metrics, corpusSize, previousEntry) {
+  const reasons = [];
+  if (metrics.fail_soft > 0) reasons.push('fail_soft=' + metrics.fail_soft);
+  if (metrics.invocations !== corpusSize) reasons.push('invocations ' + metrics.invocations + ' != corpus ' + corpusSize);
+  const eligible = metrics.need_override != null ? metrics.need_override : corpusSize; // old metric sets lack need_override
+  if (eligible > 0 && metrics.overrides_accepted === 0) reasons.push('overrides_accepted=0 over ' + eligible + ' eligible (dead judge?)');
+  if (previousEntry && previousEntry.metrics && metrics.overrides_accepted < previousEntry.metrics.overrides_accepted) {
+    reasons.push('overrides_accepted regressed ' + previousEntry.metrics.overrides_accepted + ' -> ' + metrics.overrides_accepted);
+  }
+  return { conclusion: reasons.length === 0 ? 'pass' : 'fail', reasons };
+}
+
+// ADR-0031 D6/F5 (fix): same-day re-run idempotency. Keyed on the
+// (schema_pinned) metric outcome + collector day, not on wall-clock: an
+// identical re-run inside a day yields the same key and appends nothing.
+function runKey(metrics, collectedAtISO) {
+  const day = String(collectedAtISO).slice(0, 10);
+  const canon = canonical({ day, invocations: metrics.invocations, fail_soft: metrics.fail_soft, overrides_accepted: metrics.overrides_accepted, stale: metrics.stale, override_rate: metrics.override_rate });
+  return crypto.createHash('sha256').update(canon, 'utf8').digest('hex');
+}
 
 // ---- thin CLI ----
 
@@ -146,7 +178,7 @@ function main() {
   const metrics = computeMetrics(entries, judgeItem);
   const now = new Date();
   const stamp = now.toISOString().slice(0, 10).replace(/-/g, '');
-  const outPath = path.join(RESULTS, 'reverify-' + stamp + '.json');
+  let outPath = null; // computed after metrics (F5 same-day dedup)
 
   let ledger = [];
   if (fs.existsSync(LEDGER)) ledger = JSON.parse(fs.readFileSync(LEDGER, 'utf8'));
@@ -154,7 +186,37 @@ function main() {
   if (chainErr) { console.error('FAIL: ledger chain broken: ' + chainErr); process.exit(1); }
 
   const baseline = ledger.length === 0;
-  const conclusion = metrics.fail_soft === 0 ? 'pass' : 'fail';
+  const c = conclude(metrics, entries.length, baseline ? null : ledger[ledger.length - 1]);
+  const conclusion = c.conclusion;
+  const runKeyHex = runKey(metrics, now.toISOString());
+  // F5: identical same-day re-run is a no-op for the ledger (the artifact is
+  // still overwritten deterministically below — same inputs, same bytes). If
+  // the same-day artifact was meanwhile renamed, pick a fresh -N name.
+  if (!baseline && ledger[ledger.length - 1].run_key === runKeyHex) {
+    console.log('[reverify] idempotent: same-day run with identical metric outcome (run_key ' + runKeyHex.slice(0, 12) + ') — ledger not appended');
+    fs.mkdirSync(RESULTS, { recursive: true });
+    const samePath = path.join(RESULTS, 'reverify-' + stamp + '.json');
+    const art = { schema_version: '1.0', kind: 'judge-reverification', adr_ref: ADR_REF, corpus: 'bench/polygraph/judge-twins.jsonl', corpus_size: entries.length, collected_at: now.toISOString(), baseline, conclusion, conclusion_reasons: c.reasons, run_key: runKeyHex, metrics };
+    fs.writeFileSync(samePath, JSON.stringify(art, null, 2) + '\n', 'utf8');
+    console.log('[reverify] artifact refreshed: ' + path.relative(ROOT, samePath));
+    process.exit(conclusion === 'pass' ? 0 : 1);
+  }
+  // F5: compute the artifact path *after* metrics so same-day re-runs with a
+  // different outcome land in a -N sibling instead of overwriting; identical
+  // outcomes overwrite deterministically (idempotent refresh).
+  outPath = path.join(RESULTS, 'reverify-' + stamp + '.json');
+  if (fs.existsSync(outPath)) {
+    let prevMetrics = null;
+    try { prevMetrics = JSON.parse(fs.readFileSync(outPath, 'utf8')).metrics; } catch (e) {}
+    const same = prevMetrics && prevMetrics.invocations === metrics.invocations
+      && prevMetrics.overrides_accepted === metrics.overrides_accepted
+      && prevMetrics.fail_soft === metrics.fail_soft;
+    if (!same) {
+      let n = 2;
+      while (fs.existsSync(path.join(RESULTS, 'reverify-' + stamp + '-' + n + '.json'))) n++;
+      outPath = path.join(RESULTS, 'reverify-' + stamp + '-' + n + '.json');
+    }
+  }
   const artifact = {
     schema_version: '1.0',
     kind: 'judge-reverification',
@@ -163,6 +225,9 @@ function main() {
     corpus_size: entries.length,
     collected_at: now.toISOString(),
     baseline,
+    conclusion,
+    conclusion_reasons: c.reasons,
+    run_key: runKeyHex,
     metrics,
     delta_vs_previous: baseline ? null : {
       invocations: metrics.invocations - ledger[ledger.length - 1].metrics.invocations,
@@ -180,7 +245,7 @@ function main() {
     overrides_accepted: metrics.overrides_accepted,
     override_rate: metrics.override_rate,
     stale: metrics.stale,
-  }, conclusion });
+  }, conclusion, run_key: runKeyHex });
   fs.writeFileSync(LEDGER, JSON.stringify(next, null, 2) + '\n', 'utf8');
 
   console.log('[reverify] corpus=' + entries.length +
@@ -192,7 +257,8 @@ function main() {
   console.log('[reverify] artifact: ' + path.relative(ROOT, outPath));
   console.log('[reverify] ledger seq=' + next[next.length - 1].seq + ' hash=' + next[next.length - 1].event_hash.slice(0, 12));
   console.log('[reverify] human: review the artifact and commit it (LLVM release-qualification shape).');
-  process.exit(0);
+  // F4: conclusion=fail is a loud exit code now, not a quiet artifact field.
+  process.exit(conclusion === 'pass' ? 0 : 1);
 }
 
 if (require.main === module) main();
