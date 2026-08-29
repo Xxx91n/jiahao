@@ -868,7 +868,7 @@ _Avoid_: per-ADR ad-hoc strictness statements, defaulting
 integrity gates to observational, MISRA full deviation ceremony
 
 **Second-Line Independence (组件级第二线独立性)**:
-The component-scoped form of SR 11-7's second line, applied in
+The component-scoped form of SR 11-7's second line (SR 11-7 was superseded by SR 26-2 on 2026-04-17; the principle survives), applied in
 ADR-0031 D4: where the auditor and judge are the same deployable
 component, independence is enforced as an INPUT whitelist — the
 judge seam reads only the certificate triple {claim, toolResults,

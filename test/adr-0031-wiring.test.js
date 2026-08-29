@@ -120,6 +120,9 @@ describe('D6: reverify F4/F5 debt fixes', () => {
     expect(reverify.conclude({ fail_soft: 0, invocations: 2, overrides_accepted: 0, need_override: 2 }, 2, null).conclusion).toBe('fail');
     expect(reverify.conclude({ fail_soft: 0, invocations: 0, overrides_accepted: 0, need_override: 2 }, 2, null).conclusion).toBe('fail');
     expect(reverify.conclude({ fail_soft: 1, invocations: 2, overrides_accepted: 1, need_override: 2 }, 2, null).conclusion).toBe('fail');
+    // 4th arm: override regression vs previous ledger entry forces fail
+    expect(reverify.conclude({ fail_soft: 0, invocations: 2, overrides_accepted: 1, need_override: 2 }, 2, { metrics: { overrides_accepted: 2 } }).conclusion).toBe('fail');
+    expect(reverify.conclude({ fail_soft: 0, invocations: 2, overrides_accepted: 3, need_override: 2 }, 2, { metrics: { overrides_accepted: 2 } }).conclusion).toBe('pass');
   });
   test('runKey: same-day identical outcome idempotent, changed outcome distinct', () => {
     const m = { invocations: 2, fail_soft: 0, overrides_accepted: 1, stale: 0, override_rate: 0.5 };
