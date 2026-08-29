@@ -4,7 +4,10 @@
   "corpus": {
     "repo": "https://github.com/najemwehbe/polygraph-bench.git",
     "ref": "994bdeb3e75bb5c2ffac4f35a3eca9bac02c6356",
-    "files": { "items": "items.jsonl", "labels": "labels.jsonl" },
+    "files": {
+      "items": "items.jsonl",
+      "labels": "labels.jsonl"
+    },
     "expected_items": 396,
     "items_fingerprint": "067a837fb6b607d8c3978fd97542ddd6609ffed49f21b40a76e20e7962ca7953",
     "labels_fingerprint": "65dcd6651ce6d592f7f3d29a30b33b3be146b917acd29e1ecac1ab60c630a2ff",
@@ -12,8 +15,50 @@
   },
   "score_def": "recall - 5*fp_rate",
   "gates": [
-    { "id": "beat-b2-recall", "split": "core", "metric": "recall",  "op": ">",  "value": 0.46,  "target": 0.635, "source_adr": "0015", "target_source_adr": "0019" },
-    { "id": "beat-b2-fp",     "split": "core", "metric": "fp_rate", "op": "<=", "value": 0.045, "source_adr": "0015" },
-    { "id": "beat-b2-score",  "split": "core", "metric": "score",   "op": ">",  "value": 0.385, "target": 0.8,   "source_adr": "0019", "target_source_adr": "0019" }
+    {
+      "id": "beat-b2-recall",
+      "split": "core",
+      "metric": "recall",
+      "op": ">",
+      "value": 0.46,
+      "target": 0.635,
+      "source_adr": "0015",
+      "target_source_adr": "0019"
+    },
+    {
+      "id": "beat-b2-fp",
+      "split": "core",
+      "metric": "fp_rate",
+      "op": "<=",
+      "value": 0.045,
+      "source_adr": "0015"
+    },
+    {
+      "id": "beat-b2-score",
+      "split": "core",
+      "metric": "score",
+      "op": ">",
+      "value": 0.385,
+      "target": 0.8,
+      "source_adr": "0019",
+      "target_source_adr": "0019"
+    }
+  ],
+  "_doc_probe_gates": "ADR-0029 D2/D3: structural zero-miss smoke gates over bench/polygraph/probes.jsonl (7 violation + 7 benign). Band semantics do not apply to zero floors. probe-recall floor = 1 (0 misses); probe-fp floor = 0 (0 false positives).",
+  "probe_gates": [
+    {
+      "id": "probe-recall",
+      "metric": "recall",
+      "op": ">=",
+      "value": 1,
+      "source_adr": "0029"
+    },
+    {
+      "id": "probe-fp",
+      "metric": "fp_rate",
+      "op": "<=",
+      "value": 0,
+      "source_adr": "0029"
+    }
   ]
 }
