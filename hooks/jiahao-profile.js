@@ -51,7 +51,18 @@ function getProfileRoot(profile) {
 // generator section of src/SKILL.md. Parser only - no renderer, no sibling
 // manifest (ADR-0032 R2/R3). build-adapters.js validates at build time;
 // runtime hooks never run this on the hot path.
-const GSR_HEADER_RE = /<!--[  ]*gsr:([0-9]+)[  ]*[|][  ]*signal-domain:[  ]*([a-z0-9][a-z0-9-]*)[  ]*[|][  ]*status:[  ]*(active|superseded|deprecated|attested|informational)(?:[  ]*[|][  ]*check:[  ]*([A-Za-z0-9_.-]+))?(?:[  ]*[|][  ]*superseded-by:[  ]*gsr:([0-9]+))?[  ]*-->/g;
+const BS = String.fromCharCode(92); // backslash assembled at load: this file's write path strips literal backslashes
+const GSR_SP = BS + 's*';
+const GSR_BAR = GSR_SP + BS + '|' + GSR_SP;
+const GSR_REASONS = ['not-in-scope', 'incorrect', 'not-practical', 'insufficient-impact', 'merged', 'covered-by']; // ADR-0032 D5 ASVS-style
+const GSR_HEADER_RE = new RegExp(
+  '<!--' + GSR_SP + 'gsr:([0-9]+)' + GSR_BAR +
+  'signal-domain:' + GSR_SP + '([a-z0-9][a-z0-9-]*)' + GSR_BAR +
+  'status:' + GSR_SP + '(active|superseded|deprecated|attested|informational)' +
+  '(?:' + GSR_BAR + 'check:' + GSR_SP + '([A-Za-z0-9_.-]+))?' +
+  '(?:' + GSR_BAR + 'superseded-by:' + GSR_SP + 'gsr:([0-9]+))?' +
+  '(?:' + GSR_BAR + 'reason:' + GSR_SP + '(' + GSR_REASONS.join('|') + '))?' +
+  GSR_SP + '-->', 'g');
 const GSR_STATUSES = ['active', 'superseded', 'deprecated', 'attested', 'informational'];
 const GSR_ACTIVE_CAP = 8; // ADR-0032 D5: enforced-active cap 6-8; attested/informational excluded
 
@@ -61,7 +72,7 @@ function parseGsrHeaders(generatorText) {
   let m;
   while ((m = re.exec(generatorText)) !== null) {
     if (m[0].length === 0) { re.lastIndex++; continue; } // zero-length guard
-    rules.push({ id: Number(m[1]), domain: m[2], status: m[3], check: m[4] || null, supersededBy: m[5] ? Number(m[5]) : null });
+    rules.push({ id: Number(m[1]), domain: m[2], status: m[3], check: m[4] || null, supersededBy: m[5] ? Number(m[5]) : null, reason: m[6] || null });
   }
   return rules;
 }
@@ -84,6 +95,9 @@ function validateGsrHeaders(generatorText) {
     } else if (r.supersededBy !== null) {
       errors.push('gsr:' + r.id + ' carries superseded-by but status is ' + r.status);
     }
+    const retired = r.status === 'superseded' || r.status === 'deprecated';
+    if (retired && r.reason === null) errors.push('gsr:' + r.id + ' retired without reason tag (ADR-0032 D5)');
+    if (!retired && r.reason !== null) errors.push('gsr:' + r.id + ' carries reason but status is ' + r.status);
   }
   for (const r of headers) {
     if (r.supersededBy !== null && !ids.has(r.supersededBy)) {
@@ -106,4 +120,4 @@ function validateGsrHeaders(generatorText) {
   }
   return errors;
 }
-module.exports = { splitByProfile, loadProfileSections, readProfile, getProfileRoot, parseGsrHeaders, validateGsrHeaders, GSR_HEADER_RE, GSR_STATUSES, GSR_ACTIVE_CAP };
+module.exports = { splitByProfile, loadProfileSections, readProfile, getProfileRoot, parseGsrHeaders, validateGsrHeaders, GSR_HEADER_RE, GSR_STATUSES, GSR_ACTIVE_CAP, GSR_REASONS };

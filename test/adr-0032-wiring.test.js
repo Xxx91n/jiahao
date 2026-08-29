@@ -24,6 +24,7 @@ function synthGen(rules) {
     let h = '<!-- gsr:' + r.id + ' | signal-domain: ' + (r.domain || 'x') + ' | status: ' + (r.status || 'active');
     if (r.check) h += ' | check: ' + r.check;
     if (r.supersededBy) h += ' | superseded-by: gsr:' + r.supersededBy;
+    if (r.reason) h += ' | reason: ' + r.reason;
     h += ' -->';
     parts.push(h);
     parts.push('- **' + r.bullet + '.** body');
@@ -68,7 +69,16 @@ describe('ADR-0032 D2 gsr headers', () => {
     expect(validateGsrHeaders(missing).some(e => e.includes('without superseded-by'))).toBe(true);
     const dangling = synthGen([{ id: 1, bullet: 'A', status: 'superseded', supersededBy: 9 }]);
     expect(validateGsrHeaders(dangling).some(e => e.includes('does not resolve'))).toBe(true);
-    const ok = synthGen([{ id: 1, bullet: 'A', status: 'superseded', supersededBy: 2 }, { id: 2, bullet: 'B' }]);
+    const ok = synthGen([{ id: 1, bullet: 'A', status: 'superseded', supersededBy: 2, reason: 'merged' }, { id: 2, bullet: 'B' }]);
+    expect(validateGsrHeaders(ok)).toEqual([]);
+  });
+
+  test('lifecycle: retirement requires exactly one reason tag (ADR-0032 D5)', () => {
+    const noReason = synthGen([{ id: 1, bullet: 'A', status: 'deprecated' }]);
+    expect(validateGsrHeaders(noReason).some(e => e.includes('without reason tag'))).toBe(true);
+    const activeWithReason = synthGen([{ id: 1, bullet: 'A', reason: 'merged' }]);
+    expect(validateGsrHeaders(activeWithReason).some(e => e.includes('carries reason'))).toBe(true);
+    const ok = synthGen([{ id: 1, bullet: 'A', status: 'deprecated', reason: 'not-in-scope' }]);
     expect(validateGsrHeaders(ok)).toEqual([]);
   });
 
