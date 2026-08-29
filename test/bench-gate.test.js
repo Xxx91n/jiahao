@@ -119,11 +119,12 @@ describe('check-bench-thresholds guard', () => {
     expect(checkSameCommitCoupling('no-such-ref-9999').length).toBeGreaterThan(0);
   });
   test('coupling semantic (function-level): thresholds change without ADR fails, with ADR passes', () => {
-    // Direct semantic check via module internals on a fabricated diff summary:
-    // tested here by calling the exported helper with a real ref whose range
-    // contains an ADR but no thresholds change (17d97d8 added docs/adr/0027).
+    // Range-anchored semantic check: use a real base whose range to HEAD
+    // contains the ADR and the threshold change TOGETHER (ADR-0027 made
+    // docs+thresholds part of one change set). HEAD~1 is NOT usable: the
+    // tip commit alone may be a docs-only or impl-only half of the pair.
     const { checkSameCommitCoupling } = require(GUARD);
-    expect(checkSameCommitCoupling('HEAD~1')).toEqual([]);
+    expect(checkSameCommitCoupling('3b363a7')).toEqual([]);
   });
   test('couplingViolation pure rule: both polarities (ADR-0027 acceptance)', () => {
     const { couplingViolation } = require(GUARD);
