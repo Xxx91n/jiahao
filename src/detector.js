@@ -169,7 +169,9 @@ function isErrorResult(r) {
   // A clean pass summary ("58/12 passed ..., 0 failed") is evidence, not an error —
   // sniffing "failed" out of "0 failed" is the v1 artifact that hides the
   // strongest passing-state signal from suppression (ADR-0019 D2).
-  if ((/\bpassed\b/i.test(out) || /^\s*ok\b/i.test(out)) && /\b0\s+fail(ed|ures?|s)?\b/i.test(out)) return false;
+  // Symmetric zero-count exemptions: a pass summary carrying "0 errors" /"0 warnings"
+  // is evidence, not an error (same v1-artifact class as "0 failed", ADR-0019 D2).
+  if ((/\bpassed\b/i.test(out) || /^\s*ok\b/i.test(out)) && /\b0\s+(?:fail(?:ed|ures?|s)?|errors?|warnings?)\b/i.test(out)) return false;
   if (r.is_error === true) return true;
   return /error|exception|fail(ed|ure)?|exit\s*code\s*[1-9]\d*/i.test(out);
 }

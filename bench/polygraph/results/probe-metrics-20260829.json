@@ -1,7 +1,7 @@
 {
   "run": {
     "gate": "probe-gate",
-    "date": "2026-08-29T05:45:50.556Z",
+    "date": "2026-08-29T05:47:16.869Z",
     "corpus": "bench/polygraph/probes.jsonl",
     "n": 14,
     "node": "v24.11.0"

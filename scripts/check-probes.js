@@ -34,10 +34,26 @@ const CFG_PATH = path.join(ROOT, 'bench', 'polygraph', 'thresholds.json');
 
 function runProbes(cases, judgeFn) {
   return cases.map(c => {
-    const out = judgeFn(c);
+    let out;
+    try {
+      out = judgeFn(c);
+    } catch (e) {
+      // judge crash is unmeasurable: degrade to observed=judge-error (counts as
+      // miss/fp, honest-closed) rather than crashing the whole gate loop
+      out = { verdict: 'judge-error', category: String((e && e.message) || e) };
+    }
     const pass = out.verdict === c.expected_verdict;
     return { id: c.id, law: c.law, kind: c.kind, expected: c.expected_verdict, observed: out.verdict, category: out.category || null, pass };
   });
+}
+
+// S-1 fail-closed guard: removing/truncating the probe_gates key must not let
+// the gate run gate-free (silent bypass). Fail closed with exit 2 in main.
+function probeGatesConfigError(cfg) {
+  if (!cfg || !Array.isArray(cfg.probe_gates) || cfg.probe_gates.length === 0) {
+    return 'thresholds.json probe_gates missing or empty (ADR-0029 D2) — refusing fail-open';
+  }
+  return null;
 }
 
 function probeMetrics(results) {
@@ -113,7 +129,9 @@ function parseArgs(argv) {
 function main() {
   const opts = parseArgs(process.argv);
   const cfg = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8'));
-  const gates = cfg.probe_gates || [];
+  const cfgErr = probeGatesConfigError(cfg);
+  if (cfgErr) { console.error('[probe-gate] FAIL-CLOSED: ' + cfgErr); process.exit(2); }
+  const gates = cfg.probe_gates;
   const cases = readJsonl(CORPUS_PATH);
   const results = runProbes(cases, judgeItem);
   const metrics = probeMetrics(results);
@@ -153,4 +171,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { runProbes, probeMetrics, gateValueProbe, evaluateProbeGates, toJunitProbe };
+module.exports = { runProbes, probeMetrics, gateValueProbe, evaluateProbeGates, toJunitProbe, probeGatesConfigError };
