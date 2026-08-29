@@ -141,3 +141,43 @@ describe('D4 dead-man degradation', () => {
     expect(loaded.state.state).toBe('fresh');
   });
 });
+
+describe('audit fixes (2026-08-29): F2/F3/T2', () => {
+  const fs2 = require('fs');
+  const os = require('os');
+  const { gateValueProbe } = require('../scripts/check-probes.js');
+
+  test('F2: missing deadline.json is a gate error, not a skip', () => {
+    expect(checkDeadlineAnchors(null).join('\n')).toMatch(/deadline\.json missing/);
+  });
+
+  test('F3: load() treats a tampered ledger tail as broken chain -> degraded', () => {
+    const tmpRoot = path.join(os.tmpdir(), 'jiahao-adr0030-f3').replace(/\\/g, '/');
+    fs2.rmSync(tmpRoot, { recursive: true, force: true });
+    fs2.mkdirSync(tmpRoot + '/bench/polygraph', { recursive: true });
+    fs2.writeFileSync(tmpRoot + '/bench/polygraph/deadline.json', fs2.readFileSync(path.join(__dirname, '..', 'bench', 'polygraph', 'deadline.json'), 'utf8'), 'utf8');
+    const ledger = reverify.appendEntry([], { collected_at: new Date().toISOString(), metrics: {}, conclusion: 'pass' });
+    ledger[0].collected_at = new Date(Date.now() - 10 * 30 * 24 * 3600 * 1000).toISOString(); // mutate tail without re-hash
+    fs2.writeFileSync(tmpRoot + '/bench/polygraph/reverify-ledger.json', JSON.stringify(ledger), 'utf8');
+    const r = sched.load(tmpRoot);
+    expect(r.state.state).toBe('degraded');
+    expect(r.banner).toMatch(/DEGRADED/);
+    fs2.rmSync(tmpRoot, { recursive: true, force: true });
+  });
+
+  test('F3: a valid fresh ledger stays fresh through load()', () => {
+    const tmpRoot = path.join(os.tmpdir(), 'jiahao-adr0030-f3b').replace(/\\/g, '/');
+    fs2.rmSync(tmpRoot, { recursive: true, force: true });
+    fs2.mkdirSync(tmpRoot + '/bench/polygraph', { recursive: true });
+    fs2.writeFileSync(tmpRoot + '/bench/polygraph/deadline.json', fs2.readFileSync(path.join(__dirname, '..', 'bench', 'polygraph', 'deadline.json'), 'utf8'), 'utf8');
+    const ledger = reverify.appendEntry([], { collected_at: new Date().toISOString(), metrics: {}, conclusion: 'pass' });
+    fs2.writeFileSync(tmpRoot + '/bench/polygraph/reverify-ledger.json', JSON.stringify(ledger), 'utf8');
+    expect(sched.load(tmpRoot).state.state).toBe('fresh');
+    fs2.rmSync(tmpRoot, { recursive: true, force: true });
+  });
+
+  test('T2: gateValueProbe total_count branch is directly unit-tested', () => {
+    expect(gateValueProbe({ total_count: 14 }, { metric: 'total_count' })).toBe(14);
+    expect(gateValueProbe({ total_count: 1 }, { metric: 'unknown_metric' })).toBeNull();
+  });
+});

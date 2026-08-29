@@ -89,7 +89,7 @@ function checkContentAnchors(cfg) {
 // appear in the ADR text (same discipline as gate values). Returns errors.
 function checkDeadlineAnchors(deadline) {
   const errors = [];
-  if (!deadline) return errors;
+  if (!deadline) { errors.push('bench/polygraph/deadline.json missing — dead-man switch has no anchored deadlines (ADR-0030 D4 bypass closure)'); return errors; }
   if (deadline.source_adr !== '0030') errors.push('deadline.json: source_adr must be "0030" (ADR-0030 D4)');
   const f = findAdrFile(deadline.source_adr || '0030');
   if (f === null) { errors.push('deadline.json: source_adr 0030 file not found in docs/adr/'); return errors; }
@@ -139,9 +139,10 @@ function main() {
 
   const errors = checkContentAnchors(cfg);
   const deadlinePath = path.join(ROOT, 'bench', 'polygraph', 'deadline.json');
-  if (fs.existsSync(deadlinePath)) {
-    errors.push.apply(errors, checkDeadlineAnchors(JSON.parse(fs.readFileSync(deadlinePath, 'utf8'))));
-  }
+  // ADR-0030 D4 bypass closure: deleting deadline.json must not silently
+  // disable the dead-man switch — absence is reported, never skipped.
+  errors.push.apply(errors, checkDeadlineAnchors(
+    fs.existsSync(deadlinePath) ? JSON.parse(fs.readFileSync(deadlinePath, 'utf8')) : null));
   if (baseRef) errors.push(...checkSameCommitCoupling(baseRef));
   else console.log('[thresholds] no base ref given — coupling check skipped (content anchor only)');
 

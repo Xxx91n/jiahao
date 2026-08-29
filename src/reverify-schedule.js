@@ -60,6 +60,13 @@ function load(hostRoot) {
   try { schedule = JSON.parse(fs.readFileSync(deadlinePath, 'utf8')); } catch (e) { return null; }
   let ledger = null;
   try { ledger = JSON.parse(fs.readFileSync(ledgerPath, 'utf8')); } catch (e) { ledger = null; }
+  // Audit F3: the gate path must not trust a tampered ledger tail. Broken
+  // hash chain = never verified -> degraded (fail toward degradation).
+  if (ledger) {
+    try {
+      if (require('../scripts/reverify').verifyLedger(ledger)) ledger = null;
+    } catch (e) { ledger = null; }
+  }
   const state = degradationState(schedule, ledger, Date.now());
   return { schedule, state, banner: banner(state.state, schedule) };
 }
