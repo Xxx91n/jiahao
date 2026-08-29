@@ -120,6 +120,22 @@ Copy the verifier adapter (e.g. `adapters/cursor/jiahao.mdc`) for a verifier
 agent, or the `*-generator.*` variant for the primary agent. Both are
 generated from the same `src/SKILL.md`.
 
+### Protection tiers (ADR-0028 D6)
+
+Not all hosts are equal. Enforcement capability is disclosed, not assumed:
+
+| Tier | Hosts | Enforcement |
+| --- | --- | --- |
+| Hook tier | claude-code, codex, copilot, qoder | Verifier exit-2 blocking semantics |
+| Instruction tier | cursor, windsurf, cline, opencode, aider, instruction-tier (AGENTS.md) | Advisory-only soft injection |
+| MCP | jiahao-mcp | Profile parameter; relies on client policy |
+
+Known degradations are recorded per adapter README: copilot's repo-level
+`sessionStart` does not fire (upstream issue #1730; `userPromptSubmitted` is
+the attested injection path), opencode has no hook/exit-2 mechanism yet
+(upstream #12472 open, #14551 not-planned) and therefore sits in the
+instruction tier, and aider loads the rules only via opt-in `read:` config.
+
 ## Usage
 
 - `/jiahao lite` — rungs 1-2 only, skip LLM critic
@@ -130,9 +146,9 @@ generated from the same `src/SKILL.md`.
 ## Develop
 
 ```bash
-npm test                              # 244 tests across 20 suites
+npm test                              # 299 tests across 21 suites
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
-node scripts/build-adapters.js        # regenerate 11 adapter files
+node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
 ```
 
@@ -143,10 +159,10 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `scripts/resolve.js` — human adjudication CLI (two-phase anti-anchoring write-back)
 - `hooks/jiahao-profile.js` — profile module (SSOT for split + select)
 - `hooks/` — 6 hook scripts + hooks.json + runtime.js
-- `adapters/` — generated per-host adapters (7 host directories / 11 files today; expanding to 11 hosts under ADR-0028 D5)
+- `adapters/` — generated per-host adapters (11 host directories / 23 generated files; ADR-0028 D5)
 - `jiahao-mcp/` — MCP-only adapter (profile parameter)
 - `docs/adr/` — 28 architecture decision records (0010 = dual-profile; 0011 = deployment discipline; 0012 = detector verdict + hook idempotency; 0013 = cross-turn chain + idempotency key; 0014 = wordlist migration + structural signals; 0015 = benchmark adoption + citation calibration; 0016 = evidence-log/gate split; 0017 = escalate verdict + human adjudication; 0018 = calibration flywheel: threshold band + few-shot injection + kappa; 0019 = detector v2: suppression rules + judge seam; 0020 = pagination-exhaustion pairing; 0021 = request-side anchor signals; 0022 = detector hardening + censoring + degradation contract; 0023 = timeout sentinel reconciliation + schema evolution discipline; 0024 = sentinel ownership lock + reconcile hardening + session-end sweep; 0025 = judge form convergence (scoring-mode verifier) + honest-twin corpus + telemetry contract; 0026 = segmented evidence log: rotation + cross-segment anchoring + base-seq naming; 0027 = executable bench gate + pre-registered thresholds; 0028 = multi-host L0 test closure: regen-diff golden + host contracts + lifecycle)
-- `test/` — 13 test suites, 150 tests
+- `test/` — 21 test suites, 299 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 
 ## License

@@ -52,6 +52,19 @@ const checks = [
   'adapters/claude-code/README.md',
   'adapters/codex/hooks.json',
   'adapters/mcp/README.md',
+  // ADR-0028 D5: four research-gated hosts
+  'adapters/copilot/hooks.json',
+  'adapters/copilot/README.md',
+  'adapters/qoder/settings.json',
+  'adapters/qoder/README.md',
+  'adapters/opencode/jiahao-verifier.md',
+  'adapters/opencode/jiahao-generator.md',
+  'adapters/opencode/opencode.json',
+  'adapters/opencode/README.md',
+  'adapters/aider/CONVENTIONS.md',
+  'adapters/aider/CONVENTIONS-generator.md',
+  'adapters/aider/.aider.conf.yml',
+  'adapters/aider/README.md',
 ];
 
 let drift = false;
@@ -63,10 +76,13 @@ for (const rel of checks) {
     continue;
   }
   const content = fs.readFileSync(full, 'utf8');
-  const isInstructionTier = rel.startsWith('adapters/cursor/') ||
+  const isInstructionTier = (rel.startsWith('adapters/cursor/') ||
     rel.startsWith('adapters/windsurf/') ||
     rel.startsWith('adapters/cline/') ||
-    rel.startsWith('adapters/instruction-tier/');
+    rel.startsWith('adapters/instruction-tier/') ||
+    rel.startsWith('adapters/opencode/') ||
+    rel.startsWith('adapters/aider/')) &&
+    !rel.endsWith('README.md') && !rel.endsWith('.json') && !rel.endsWith('.yml');
   if (isInstructionTier) {
     const isGenerator = rel.includes('-generator');
     if (isGenerator) {
