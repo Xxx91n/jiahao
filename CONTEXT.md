@@ -379,6 +379,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0031 wiring assertions (D1 mandatory per wiring-touching ADR) + judge bias calibration corpus (style/length-control + bias-probe, 3 metrics) + gate tier taxonomy (confirmatory/observational/deferred-with-unfreeze) + judge-input certificate isolation + optional evidence provenance (SLSA additive) + debt pack (F4/F5/S2/S3/S4)
 - ADR-0032 generator surface rules deepening: inline gsr header (id/signal-domain/status, git-as-version) + coverage-map.json registry + check-coverage.js four-state gate + pre-registered equivalence statement (no statistical gate) + rule lifecycle triad admission / 6-8 active cap / six-reason retirement
 - ADR-0033 deferred/unfreeze registry: docs/deferred-registry.json fact-source + confirmatory fail-closed + pending-evaluation + expiry-forces-action + coupling guard (seeds: sigstore / L1-L2 golden / Merkle)
+- ADR-0034 gate registry: docs/gates.json fact-source + gate:all single entrypoint + run-all-aggregate with --fail-fast opt-in + CRTM-as-entry ordering contract + three-face alignment (ci.yml wiring assertion) + pre-commit untouched
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -982,3 +983,51 @@ ADR amendment. No automatic grace period, no silent persistence
 literature: failure to enforce expiry is the top failure).
 _Avoid_: grace-period soft landing, reminder-only expiry,
 keep-the-item-but-keep-waiting
+
+**Gate Registry (门注册表)**:
+The fifth machine fact-source docs/gates.json (ADR-0034 D1), sibling to
+thresholds.json / coverage-map.json / host-contracts.json /
+deferred-registry.json: every quality gate is a first-class, enumerable
+entry {name, command, tier, source_adr, order}; tier reuses the ADR-0031
+D3 vocabulary verbatim; changes require a same-commit ADR via the reused
+couplingViolation guard. scripts/run-gates.js is the single entrypoint
+(npm run gate:all); CI calls it exactly once and the D5 wiring assertion
+fails closed otherwise.
+_Avoid_: gates as bespoke npm scripts and hand-wired CI run lines,
+orchestrator dependencies (wireit/nx/turbo), YAML parsing for the CI
+contract
+
+**CRTM-as-Entry Ordering Contract (门序契约)**:
+ADR-0034 D4's ordering rule: every registry entry carries a required
+integer order (no default; omission is a schema violation), and the
+runner's schema asserts that meta-check entries — three-face alignment
+(gates.json/package.json/ci.yml) plus the coupling guard — exist and
+hold the minimal orders. Structural preconditioning is hard-coded in the
+runner; content is declared in the registry: the minimal common form of
+Bazel's analysis phase, Terraform validate-before-plan, Kubernetes
+initContainers, and systemd After=. Order bands: 0-99 meta, 100+
+functional. Ordering is unconditional; --fail-fast governs what happens
+after a failure, never the schedule.
+_Avoid_: implicit array ordering, meta-checks hard-coded outside the
+registry, tier semantics mixed into scheduling
+
+**Decision/Evidence Separation (判定与证据分离)**:
+ADR-0034 D3's split of what a failing gate terminates: a confirmatory
+failure terminates the decision (exit code) but not evidence collection
+— gate:all defaults to run-all-then-aggregate so that one invocation
+yields a complete breach inventory (DO-178C-style evidence
+completeness); --fail-fast is explicit opt-in (pytest -x / jest --bail /
+Nx --nxBail alignment) and short-circuits confirmatory entries only.
+_Avoid_: partial runs read as clean audits, fail-fast as default,
+treating sibling independent checks as a DAG
+
+**Rung-Internal vs Cross-Gate Orthogonality (阶梯内短路·门链间全跑)**:
+ADR-0034 D3's guard-rail against category error: ADR-0004's
+short-circuit lives *inside* one verification ladder rung (cheaper
+mechanism first for one target); gate:all is a family of independent
+sibling checks with no task-dependency graph, so complete-run is the
+correct default (industrial independent-check family: pre-commit
+fail_fast=false, jest/pytest default full runs). Neither semantics may
+be invoked to justify the other.
+_Avoid_: porting rung-internal short-circuit to gate orchestration,
+porting cross-gate full-run into the verification ladder
