@@ -2,6 +2,7 @@
 
 Status: Accepted
 Date: 2026-08-30
+Amended by: ADR-0035 (cadence ladder, residency SLA, check-in discipline, verified-by enforcement, entry corrections)
 
 ## Context
 

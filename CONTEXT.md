@@ -380,6 +380,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0032 generator surface rules deepening: inline gsr header (id/signal-domain/status, git-as-version) + coverage-map.json registry + check-coverage.js four-state gate + pre-registered equivalence statement (no statistical gate) + rule lifecycle triad admission / 6-8 active cap / six-reason retirement
 - ADR-0033 deferred/unfreeze registry: docs/deferred-registry.json fact-source + confirmatory fail-closed + pending-evaluation + expiry-forces-action + coupling guard (seeds: sigstore / L1-L2 golden / Merkle)
 - ADR-0034 gate registry: docs/gates.json fact-source + gate:all single entrypoint + run-all-aggregate with --fail-fast opt-in + CRTM-as-entry ordering contract + three-face alignment (ci.yml wiring assertion) + pre-commit untouched; generated-ci.yml uplift registered as defer-0004 in docs/deferred-registry.json
+- ADR-0035 deferred registry maturation: review cadence ladder (quarterly/half-yearly/yearly by type x likelihood x exposure) + pending-evaluation residency SLA min(2 cycles, 12 months) + weak-form check_in discipline (warn-level) + defer-0002 split (0002 external-event narrowed / new defer-0005 free-text protocol-verification) + defer-0004 honest presence-condition via real verified_by assertion script + check-deferred.js verified_by enforcement (unverified claim auto-downgrades to pending-evaluation)
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -1031,3 +1032,42 @@ fail_fast=false, jest/pytest default full runs). Neither semantics may
 be invoked to justify the other.
 _Avoid_: porting rung-internal short-circuit to gate orchestration,
 porting cross-gate full-run into the verification ladder
+
+
+**Review Cadence Ladder (评审阶梯)**:
+ADR-0035 D1's normative tiering for deferred-registry review_at:
+quarterly (external-event with an actively changing upstream),
+half-yearly (presence-condition, zero holding cost, high trigger
+impact), yearly (rare external event or low-drift internal condition),
+keyed by unfreeze_if.type x trigger likelihood x residual exposure.
+Every new entry takes a tier at creation; off-ladder dates are invalid.
+Grounded in deadline-spacing evidence (Ariely & Wertenbroch 2002:
+evenly spaced external deadlines beat clustered self-set ones) and
+real-options waiting value for rare events.
+_Avoid_: batch-assigned identical dates, per-entry ad hoc dates, ladder
+changes outside the ADR amendment channel
+
+**Check-In Discipline (核验签到纪律)**:
+ADR-0035 D3's weak-form governance for external-event entries: a
+last_check_in {date, note} record at least once per review cycle,
+mirroring FedRAMP POA&M Column R. Violations warn (pre-commit parity);
+only review_at expiry fails. A check-in records that verification
+HAPPENED, never that the condition is FULFILLED — machine-assertable is
+the discipline of checking, not the state of the external world; this is
+the only dimension that can be fail-closed without fabricating
+certainty (FedRAMP VD; alarm-fatigue evidence demands warn/fail split).
+_Avoid_: monthly cadence for OR-class items, blocking on check-in,
+conflating 'checked, nothing changed' with fulfillment
+
+**Verified-By Enforcement (验证者强制)**:
+ADR-0035 D6's structural rule in check-deferred.js: an entry typed
+presence-condition or count-threshold MUST carry verified_by pointing
+to an existing script; otherwise it is treated as non-evaluable and
+forced into pending-evaluation (FedRAMP Validated-vs-Pending: a
+classification claim without a verification channel defaults to
+Pending). A satisfied assertion only SUGGESTS activation in gate
+output; disposition stays human (Azure exemption expiry semantics;
+stale-bot auto-close rejected). Kills false-evaluable classification
+mechanically, not ceremonially.
+_Avoid_: decorative grep assertions, auto-activation of satisfied
+conditions, prose presence-condition without a verifier
