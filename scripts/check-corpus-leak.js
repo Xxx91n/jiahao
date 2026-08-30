@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 // scripts/check-corpus-leak.js - ADR-0036 D6: private-corpus leak detection gate
-// (gitleaks ruleset shape: fingerprint rules over the worktree, fail-closed).
+// (gitleaks ruleset shape: fingerprint rules over the worktree AND the evidence
+// log, fail-closed).
 //
 // Rules: (a) whole-file sha256 of each corpus file; (b) per-line sha256 of every
-// corpus line (catches copy-pasted corpus content anywhere in the tree);
+// corpus line, exact trimmed-line match (Deviation D6a: n-gram shards were tried
+// and rejected - corpus lines legitimately quote profile rule text that the
+// adapters/docs also contain, so shard windows false-positive; the honest scope
+// is whole-line + whole-file fingerprints);
 // (c) optional canary GUID via env JIAHAO_CORPUS_CANARY (detection-only,
 // defense-in-depth - BIG-bench canary is known-bypassable, so it is optional).
 // Fingerprints are read from bench/polygraph/thresholds.json private_corpus
@@ -17,7 +21,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { requireCorpus } = require('../src/shared/paths');
+const { requireCorpus, evidencePath, evidenceKeysPath } = require('../src/shared/paths');
 
 const ROOT = path.join(__dirname, '..');
 const CFG_REL = path.join('bench', 'polygraph', 'thresholds.json');
@@ -94,27 +98,45 @@ function checkLeaks(root, rules, canary) {
   return hits;
 }
 
-module.exports = { walk, buildRules, scanFile, checkLeaks, CORPORA, SKIP_DIRS };
+// Pure anchor validation: null = ok, otherwise { code, message } (fail-closed).
+// Checks the anchor id SET (not just the count) and the sha256 of each corpus.
+function validateAnchors(anchors, corpusFiles) {
+  if (!Array.isArray(anchors) || anchors.length !== CORPORA.length) {
+    return { code: 2, message: 'FAIL-CLOSED: thresholds.json private_corpus must list ' + CORPORA.length + ' fingerprints (ADR-0036 D2)' };
+  }
+  const byId = new Map(anchors.map(a => [a.id, a.sha256]));
+  for (const name of CORPORA) {
+    if (!byId.has(name) || typeof byId.get(name) !== 'string') {
+      return { code: 2, message: 'FAIL-CLOSED: thresholds.json private_corpus missing anchor for ' + name + ' (ADR-0036 D2)' };
+    }
+    const actual = crypto.createHash('sha256').update(fs.readFileSync(corpusFiles[name])).digest('hex');
+    if (byId.get(name) !== actual) {
+      return { code: 1, message: 'FAIL: fingerprint mismatch for ' + name + ' (anchor ' + byId.get(name).slice(0, 12) + ' vs actual ' + actual.slice(0, 12) + ')' };
+    }
+  }
+  return null;
+}
+
+module.exports = { walk, buildRules, scanFile, checkLeaks, validateAnchors, CORPORA, SKIP_DIRS };
 
 if (require.main === module) {
   const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, CFG_REL), 'utf8'));
   const anchors = Array.isArray(cfg.private_corpus) ? cfg.private_corpus : [];
-  if (anchors.length !== CORPORA.length) {
-    console.error('FAIL-CLOSED: thresholds.json private_corpus must list ' + CORPORA.length + ' fingerprints (ADR-0036 D2)');
-    process.exit(2);
-  }
   // Fail-closed corpus availability: requireCorpus exits 2 with run-install hint.
   const corpusFiles = Object.fromEntries(CORPORA.map(n => [n, requireCorpus(n)]));
-  // Public anchor must match the local corpus bytes (tamper / drift detection).
-  for (const a of anchors) {
-    const actual = crypto.createHash('sha256').update(fs.readFileSync(corpusFiles[a.id])).digest('hex');
-    if (a.sha256 !== actual) {
-      console.error('FAIL: fingerprint mismatch for ' + a.id + ' (anchor ' + a.sha256.slice(0, 12) + ' vs actual ' + actual.slice(0, 12) + ')');
-      process.exit(1);
+  // Public anchors (id-set + sha256) must match the local corpus bytes.
+  const bad = validateAnchors(anchors, corpusFiles);
+  if (bad) { console.error(bad.message); process.exit(bad.code); }
+  const rules = buildRules(corpusFiles);
+  const canaryEnv = process.env.JIAHAO_CORPUS_CANARY || null;
+  const hits = checkLeaks(ROOT, rules, canaryEnv);
+  // The evidence log lives outside the worktree; D6 names it a leak surface,
+  // so scan it explicitly (audit follow-up: it was declared but not scanned).
+  for (const ev of [evidencePath(), evidenceKeysPath()]) {
+    if (fs.existsSync(ev)) {
+      for (const h of scanFile(ev, ev, rules, canaryEnv)) hits.push('evidence-log ' + h);
     }
   }
-  const rules = buildRules(corpusFiles);
-  const hits = checkLeaks(ROOT, rules, process.env.JIAHAO_CORPUS_CANARY || null);
   for (const h of hits) console.error('LEAK: ' + h);
   if (hits.length) process.exit(1);
   console.log('[corpus-leak] clean: ' + CORPORA.length + ' corpora, ' + rules.lineSha.size + ' line fingerprints, ' + walk(ROOT, '').length + ' files scanned (ADR-0036 D6)');

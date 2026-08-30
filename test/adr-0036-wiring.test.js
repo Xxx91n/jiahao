@@ -29,17 +29,22 @@ describe('D2 corpus resolution', () => {
     expect(fs.existsSync(paths.repoCorpusPath('probes.jsonl'))).toBe(true);
   });
 
-  test('requireCorpus exits 2 with run-install hint (fail closed, missing, env pointed at empty dir)', () => {
-    const empty = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-empty-'));
-    const r = spawnSync(process.execPath, ['-e',
-      "process.env.JIAHAO_CORPUS_DIR=process.argv[1]; const p=require(process.argv[2]); p.requireCorpus('probes.jsonl'); console.log('NO-EXIT');",
-      empty, path.join(ROOT, 'src', 'shared', 'paths.js')], { encoding: 'utf8' });
-    // NOTE: repo-private fallback still resolves for the maintainer tree, so a
-    // missing install dir alone does not exit 2 — only a truly-absent corpus does.
-    // Simulate by overriding BOTH candidates: env set AND repo file renamed away is
-    // not possible in test; assert the env override path contract instead.
-    expect(r.status === 0 || /run: jiahao init/.test(r.stderr)).toBe(true);
-    fs.rmSync(empty, { recursive: true, force: true });
+  test('requireCorpus exits 2 with run-install hint when the corpus is truly absent', () => {
+    // Relocate the module out of the repo so its repo-private fallback also
+    // resolves to nothing; env points at an empty dir. Assert the real exit 2.
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-absent-'));
+    try {
+      const modPath = path.join(tmp, 'paths.js');
+      fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'paths.js'), modPath);
+      const empty = path.join(tmp, 'empty');
+      fs.mkdirSync(empty);
+      const r = spawnSync(process.execPath, ['-e',
+        "process.env.JIAHAO_CORPUS_DIR=process.argv[1]; require(process.argv[2]).requireCorpus('probes.jsonl'); console.log('NO-EXIT');",
+        empty, modPath], { encoding: 'utf8' });
+      expect(r.status).toBe(2);
+      expect(r.stderr).toMatch(/run: jiahao init/);
+      expect(r.stdout).not.toMatch(/NO-EXIT/);
+    } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
   });
 });
 
@@ -130,5 +135,60 @@ describe('D5 corpus freshness ladder', () => {
   test('the CLI is green against the current corpus + ledger', () => {
     const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'check-corpus-freshness.js')], { cwd: ROOT, encoding: 'utf8' });
     expect(r.status).toBe(0);
+  });
+});
+
+describe('ADR-0036 audit follow-ups (2026-08-31)', () => {
+  const corpusDirA = path.join(ROOT, 'private', 'bench-corpus');
+  const NAMES = ['probes.jsonl', 'judge-twins.jsonl', 'twins.jsonl'];
+
+  test('freshness: a future timestamp fails closed (stale, never fresh)', () => {
+    const NOW = Date.parse('2026-08-30T00:00:00Z');
+    expect(fresh.freshnessState(NOW + 60 * 1000, 6, NOW, 1.5)).toBe('stale');
+    expect(fresh.freshnessState(NOW + 200 * 24 * 3600 * 1000, 6, NOW, 1.5)).toBe('stale');
+  });
+
+  test('leak gate D6 scope: whole-line match only (Deviation D6a locks the semantics)', () => {
+    const line = fs.readFileSync(path.join(corpusDirA, 'probes.jsonl'), 'utf8')
+      .split(/\r?\n/).map(l => l.trim()).find(l => l.length >= 24);
+    expect(line).toBeTruthy();
+    const rules = leak.buildRules(Object.fromEntries(NAMES.map(n => [n, path.join(corpusDirA, n)])));
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-scope-'));
+    try {
+      // the corpus line as its own line inside another file IS a hit
+      fs.writeFileSync(path.join(tmp, 'a.txt'), 'prefix line\n' + line + '\nsuffix line\n', 'utf8');
+      expect(leak.checkLeaks(tmp, rules, null)).toHaveLength(1);
+      // the same text embedded inline on a longer line is intentionally out of
+      // scope (Deviation D6a: shard n-grams false-positive on rule text the repo
+      // legitimately shares - the whole-line fingerprint is the honest boundary)
+      fs.rmSync(path.join(tmp, 'a.txt'));
+      fs.writeFileSync(path.join(tmp, 'b.txt'), 'xx inline: ' + line + ' done\n', 'utf8');
+      expect(leak.checkLeaks(tmp, rules, null)).toEqual([]);
+    } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+  });
+
+  test('anchor validation checks the id set, not just the count (fail closed)', () => {
+    const files = Object.fromEntries(NAMES.map(n => [n, path.join(corpusDirA, n)]));
+    const sha = n => crypto.createHash('sha256').update(fs.readFileSync(files[n])).digest('hex');
+    const good = NAMES.map(n => ({ id: n, sha256: sha(n) }));
+    expect(leak.validateAnchors(good, files)).toBeNull();
+    const missingId = good.filter(a => a.id !== 'twins.jsonl').concat([{ id: 'evil.jsonl', sha256: sha('twins.jsonl') }]);
+    expect(leak.validateAnchors(missingId, files).code).toBe(2);
+    const badSha = good.map(a => (a.id === 'twins.jsonl' ? Object.assign({}, a, { sha256: '0'.repeat(64) }) : a));
+    expect(leak.validateAnchors(badSha, files).code).toBe(1);
+  });
+
+  test('leak CLI also scans the evidence log outside the worktree', () => {
+    const line = fs.readFileSync(path.join(corpusDirA, 'probes.jsonl'), 'utf8')
+      .split(/\r?\n/).map(l => l.trim()).find(l => l.length >= 24);
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-ev-'));
+    try {
+      fs.writeFileSync(path.join(home, '.jiahao-evidence'), 'gate log tail\n' + line + '\n', 'utf8');
+      const env = Object.assign({}, process.env, { CLAUDE_CONFIG_DIR: home });
+      delete env.JIAHAO_CORPUS_DIR;
+      const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'check-corpus-leak.js')], { cwd: ROOT, encoding: 'utf8', env });
+      expect(r.status).toBe(1);
+      expect(r.stderr).toMatch(/evidence-log/);
+    } finally { fs.rmSync(home, { recursive: true, force: true }); }
   });
 });

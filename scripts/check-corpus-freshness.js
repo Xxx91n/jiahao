@@ -29,6 +29,7 @@ const LEDGER_REL = path.join('bench', 'polygraph', 'reverify-ledger.json');
 // fresh | warn | stale; tierMonths 6 with mult 1.5 -> warn >= 6mo, stale >= 9mo.
 function freshnessState(lastAtMs, tierMonths, now, mult) {
   if (lastAtMs === null || Number.isNaN(lastAtMs)) return 'stale'; // no fact = fail closed
+  if (lastAtMs > now) return 'stale'; // future timestamp = fail closed (a time you cannot verify is not fresh)
   const age = now - lastAtMs;
   if (age >= tierMonths * mult * MONTH_MS) return 'stale';
   if (age >= tierMonths * MONTH_MS) return 'warn';
