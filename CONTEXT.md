@@ -381,6 +381,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0033 deferred/unfreeze registry: docs/deferred-registry.json fact-source + confirmatory fail-closed + pending-evaluation + expiry-forces-action + coupling guard (seeds: sigstore / L1-L2 golden / Merkle)
 - ADR-0034 gate registry: docs/gates.json fact-source + gate:all single entrypoint + run-all-aggregate with --fail-fast opt-in + CRTM-as-entry ordering contract + three-face alignment (ci.yml wiring assertion) + pre-commit untouched; generated-ci.yml uplift registered as defer-0004 in docs/deferred-registry.json
 - ADR-0035 deferred registry maturation: review cadence ladder (quarterly/half-yearly/yearly by type x likelihood x exposure) + pending-evaluation residency SLA min(2 cycles, 12 months) + weak-form check_in discipline (warn-level) + defer-0002 split (0002 external-event narrowed / new defer-0005 free-text protocol-verification) + defer-0004 honest presence-condition via real verified_by assertion script + check-deferred.js verified_by enforcement (unverified claim auto-downgrades to pending-evaluation)
+- ADR-0036 anti-gaming audit: NIST CAISI boundary (contamination vs grader gaming, A-2+A-3 subset) + answer-corpus migration to private/bench-corpus (probes/judge-twins/twins; thresholds stays public with private_corpus sha256 anchors) + known-exposed history handling (probes refresh now, twins on cycle) + gate-defaults params consistency assertion + corpus-freshness gate (cadence-tiered, tier warn / 1.5x fail-closed, event trigger) + check-corpus-leak fingerprint gate
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -1071,3 +1072,43 @@ stale-bot auto-close rejected). Kills false-evaluable classification
 mechanically, not ceremonially.
 _Avoid_: decorative grep assertions, auto-activation of satisfied
 conditions, prose presence-condition without a verifier
+
+
+**Answer Corpus vs Scoring Standard (答案语料与评分标准分离)**:
+ADR-0036 D2's partition of evaluation assets. Answer corpora (probes.jsonl,
+judge-twins.jsonl, twins.jsonl) must live outside the audited agent's
+readable surface (private/bench-corpus/); the scoring standard
+(thresholds.json) must stay public because hiding it would destroy
+pre-registration transparency and the public integrity-anchor semantics.
+NIST CAISI form: private tasks + public affordances declarations; Kaggle
+private labels + public metric. Obscurity is one legal layer of
+defense-in-depth, never the sole protection (Kerckhoffs boundary).
+_Avoid_: hiding thresholds, canary-only defense, security-through-obscurity
+claims for the whole system
+
+**Soft-Hard Freshness Ladder (软硬双层保质期)**:
+ADR-0036 D5's corpus freshness semantics on the ADR-0035 cadence ladder:
+warn + evidence entry at tier expiry, fail-closed at 1.5x tier. ADR-0030's
+6/9-month judge dead-man is the half-yearly x 1.5 instance. Event trigger
+(PCI after-significant-change): non-append corpus change obligates
+same-commit reverify or an exemption note.
+_Avoid_: single global TTL, pure fail-closed at tier boundary (NIST
+800-63B ritualization lesson), warn-only with no hard stop
+
+**Gate-Defaults Consistency (门默认值一致性)**:
+ADR-0036 D4's declaration-execution assertion: docs/gates.json gate entries
+carry a params block (e.g. --check on, coverage floor, exemption words),
+and a script verifies the runtime-effective parameters match. Defends the
+silent-degradation class (SWE-bench+ weak-test suspicious passes) without
+duplicating the behavioral probe gates.
+_Avoid_: asserting gate behavior outcomes here (probes:gate owns that),
+params drift between gates.json and scripts
+
+**Capable-Optimizer Threat Model (有能力型优化者威胁模型)**:
+ADR-0036 D1's upgraded adversary: a generator that can read anything in the
+repo and optimizes for passing gates rather than doing the work. Auditing
+scope = NIST CAISI bisection (solution contamination vs grader gaming),
+covering corpus/environment leakage and process-layer bypass with gate
+mechanics as the already-covered layer. Stays cost-raising, not
+impossible-to-bypass (CWE-656 honesty).
+_Avoid_: careless-generator-only threat model, claims of un-gameability
