@@ -6,7 +6,7 @@
 // (b) semantics (D3): confirmatory fail-closed; external-event and free-text
 //     predicates are not machine-evaluable -> status must be pending-evaluation
 //     (tracked, time-boxed, never silently whitelisted); presence-condition and
-//     count-threshold keep status deferred.
+//     count-threshold keep status deferred ONLY with verified_by (ADR-0035 D6).
 // (c) freshness (D4): review_at expiry = STALE fail-closed (k8s feature-gate
 //     semantics: activate / re-defer with new review_at / remove; no 4th exit).
 // (d) anchors: existence-based - source_adr file must exist and the entry id
@@ -16,6 +16,11 @@
 //     reservation; current tier set is empty).
 // (f) coupling (ADR-0027 D2 shared rule): registry diff without a same-range
 //     ADR/CONTEXT change fails (only when a base ref is available).
+// (g) ADR-0035: cadence_tier + registered_at on every entry; D2 residency SLA
+//     (pending-evaluation outstaying min(2 cycles, 12 months) fails); D3
+//     check-in discipline (external-event last_check_in per cycle, warn-level,
+//     never shifts exit code); D6 verified_by enforcement (evaluable type
+//     without an existing assertion script is forced to pending-evaluation).
 //
 // Usage: node scripts/check-deferred.js [BASE_REF]
 
@@ -33,13 +38,39 @@ const ID_RE = new RegExp('^defer-[0-9]{4}$');
 const ISO_DATE = new RegExp('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
 const TYPES = ['presence-condition', 'count-threshold', 'external-event', 'free-text'];
 const NON_EVALUABLE = ['external-event', 'free-text'];
+const EVALUABLE = ['presence-condition', 'count-threshold'];
 const STATUSES = ['deferred', 'pending-evaluation'];
+const TIERS = ['quarterly', 'half-yearly', 'yearly'];
+const TIER_DAYS = { quarterly: 92, 'half-yearly': 183, yearly: 365 };
+const DAY_MS = 86400000;
 
 function loadRegistry() {
   return JSON.parse(fs.readFileSync(path.join(ROOT, CFG_REL), 'utf8'));
 }
 
 function isRealDate(s) { const d = new Date(s + String.fromCharCode(84,48,48,58,48,48,58,48,48,90)); return !isNaN(d) && d.toISOString().slice(0,10) === s; }
+
+function daysBetween(fromISO, toISO) {
+  return Math.floor((new Date(toISO) - new Date(fromISO)) / DAY_MS);
+}
+
+// Shape of one ADR-0035 field group; returns error strings (tag-prefixed).
+function shapeExtras(e, tag, errors) {
+  if (!TIERS.includes(e.cadence_tier)) errors.push(tag + ': cadence_tier must be one of ' + TIERS.join('|') + ' (ADR-0035 D1)');
+  if (typeof e.registered_at !== 'string' || !ISO_DATE.test(e.registered_at)) errors.push(tag + ': registered_at must be an ISO date YYYY-MM-DD (ADR-0035 D2)');
+  else if (!isRealDate(e.registered_at)) errors.push(tag + ': registered_at is not a real calendar date');
+  if (e.last_check_in !== undefined) {
+    const c = e.last_check_in;
+    if (!c || typeof c !== 'object' || typeof c.date !== 'string' || !ISO_DATE.test(c.date) || !isRealDate(c.date) || typeof c.note !== 'string' || c.note.length < 5) {
+      errors.push(tag + ': last_check_in must be {date: YYYY-MM-DD, note: string} (ADR-0035 D3)');
+    }
+  }
+  if (e.unfreeze_if && e.unfreeze_if.verified_by !== undefined) {
+    const v = e.unfreeze_if.verified_by;
+    if (typeof v !== 'string' || !v) errors.push(tag + ': verified_by must be a non-empty path string (ADR-0035 D6)');
+    else if (!fs.existsSync(path.join(ROOT, v.split('/').join(path.sep)))) errors.push(tag + ': verified_by script missing: ' + v + ' (ADR-0035 D6)');
+  }
+}
 
 function validateShape(cfg) {
   const errors = [];
@@ -67,6 +98,7 @@ function validateShape(cfg) {
     }
     if (typeof e.review_at !== 'string' || !ISO_DATE.test(e.review_at)) { errors.push(tag + ': review_at must be an ISO date YYYY-MM-DD'); } else if (!isRealDate(e.review_at)) { errors.push(tag + ': review_at is not a real calendar date'); }
     if (!STATUSES.includes(e.status)) errors.push(tag + ': status must be one of ' + STATUSES.join('|') + ', got ' + e.status);
+    shapeExtras(e, tag, errors);
   }
   return errors;
 }
@@ -81,13 +113,26 @@ function validateEntries(cfg, sources, thresholds, now) {
     if (typeof e.review_at === 'string' && ISO_DATE.test(e.review_at) && e.review_at < now) {
       errors.push(tag + ': STALE - review_at ' + e.review_at + ' is before ' + now + ' (ADR-0033 D4: activate, re-defer with new review_at + rationale, or remove)');
     }
-    // D3 status semantics
+    // D3 status semantics + ADR-0035 D6 verified-by enforcement
     if (e.unfreeze_if && TYPES.includes(e.unfreeze_if.type)) {
       if (NON_EVALUABLE.indexOf(e.unfreeze_if.type) !== -1 && e.status !== 'pending-evaluation') {
         errors.push(tag + ': ' + e.unfreeze_if.type + ' is not machine-evaluable; status must be pending-evaluation (ADR-0033 D3)');
       }
-      if (NON_EVALUABLE.indexOf(e.unfreeze_if.type) === -1 && e.status === 'pending-evaluation') {
-        errors.push(tag + ': ' + e.unfreeze_if.type + ' is evaluable; status must be deferred, not pending-evaluation (ADR-0033 D3)');
+      if (EVALUABLE.indexOf(e.unfreeze_if.type) !== -1) {
+        const hasVerifier = typeof e.unfreeze_if.verified_by === 'string' && e.unfreeze_if.verified_by;
+        if (!hasVerifier && e.status === 'deferred') {
+          errors.push(tag + ': ' + e.unfreeze_if.type + ' without verified_by is not evaluable; forced to pending-evaluation (ADR-0035 D6)');
+        }
+        if (hasVerifier && e.status === 'pending-evaluation') {
+          errors.push(tag + ': ' + e.unfreeze_if.type + ' with verified_by is evaluable; status must be deferred, not pending-evaluation (ADR-0035 D6)');
+        }
+      }
+    }
+    // ADR-0035 D2 residency SLA: pending-evaluation outstays min(2 cycles, 12 months) -> fail
+    if (e.status === 'pending-evaluation' && typeof e.registered_at === 'string' && isRealDate(e.registered_at) && TIER_DAYS[e.cadence_tier]) {
+      const cap = Math.min(2 * TIER_DAYS[e.cadence_tier], 365);
+      if (daysBetween(e.registered_at, now) > cap) {
+        errors.push(tag + ': pending-evaluation residency SLA breached (' + daysBetween(e.registered_at, now) + 'd > ' + cap + 'd cap; ADR-0035 D2: activate, re-defer with new review_at + rationale, or remove)');
       }
     }
     // existence anchors
@@ -111,6 +156,41 @@ function validateEntries(cfg, sources, thresholds, now) {
     }
   }
   return errors;
+}
+
+// ADR-0035 D3 check-in discipline (warn-level): external-event entries record
+// last_check_in at least once per cadence cycle. Violations are warnings; they
+// never affect the exit code (alarm-fatigue evidence in ADR-0035 D3).
+function validateDiscipline(cfg, now) {
+  const warnings = [];
+  for (const e of cfg.entries || []) {
+    if (!e || typeof e.id !== 'string' || !e.unfreeze_if) continue;
+    if (e.unfreeze_if.type !== 'external-event') continue;
+    const cyc = TIER_DAYS[e.cadence_tier];
+    if (!e.last_check_in || !isRealDate(e.last_check_in.date || '')) {
+      warnings.push(e.id + ': external-event entry has no valid last_check_in (ADR-0035 D3: record one check-in per cycle)');
+    } else if (cyc && daysBetween(e.last_check_in.date, now) > cyc) {
+      warnings.push(e.id + ': last_check_in ' + e.last_check_in.date + ' is older than one ' + e.cadence_tier + ' cycle (' + cyc + 'd) (ADR-0035 D3)');
+    }
+  }
+  return warnings;
+}
+
+// ADR-0035 D6 second half: a satisfied verified_by assertion only SUGGESTS
+// activation; it never auto-activates or auto-removes an entry.
+function evalSuggestions(cfg) {
+  const suggestions = [];
+  for (const e of cfg.entries || []) {
+    if (!e || typeof e.id !== 'string' || !e.unfreeze_if) continue;
+    if (e.status !== 'deferred' || typeof e.unfreeze_if.verified_by !== 'string') continue;
+    const script = path.join(ROOT, e.unfreeze_if.verified_by.split('/').join(path.sep));
+    if (!fs.existsSync(script)) continue; // shape check owns this error
+    try {
+      execFileSync(process.execPath, [script], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
+      suggestions.push(e.id + ': verified_by ' + e.unfreeze_if.verified_by + ' reports the condition SATISFIED - a human should review activation (ADR-0035 D6)');
+    } catch (err) { /* condition not satisfied or script failed; no suggestion */ }
+  }
+  return suggestions;
 }
 
 
@@ -156,6 +236,8 @@ function main() {
     for (const e of errors) console.error('FAIL: ' + e);
     process.exit(1);
   }
+  for (const w of validateDiscipline(cfg, now)) console.warn('WARN: ' + w);
+  for (const s of evalSuggestions(cfg)) console.log('SUGGEST: ' + s);
   console.log('[deferred] OK - ' + cfg.entries.length + ' deferred entries' + (baseRef ? '' : ' (no base ref: coupling skipped)'));
   if (baseRef) {
     const c = checkCoupling(baseRef);
@@ -167,4 +249,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { validateShape, validateEntries, checkCoupling, loadSources, TYPES, NON_EVALUABLE, STATUSES };
+module.exports = { validateShape, validateEntries, validateDiscipline, evalSuggestions, checkCoupling, loadSources, TYPES, NON_EVALUABLE, EVALUABLE, STATUSES, TIERS, TIER_DAYS, daysBetween };

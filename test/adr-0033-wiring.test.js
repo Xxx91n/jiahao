@@ -22,11 +22,10 @@ describe('ADR-0033 D2 entry schema', () => {
     expect(checkDeferred.validateEntries(registry, sources, thresholds, today)).toEqual([]);
   });
 
-  test('seed inventory matches ADR-0033 D5', () => {
-    expect(registry.entries.map(e => e.id)).toEqual(['defer-0001', 'defer-0002', 'defer-0003', 'defer-0004']);
-    expect(registry.entries[0].status).toBe('deferred');
-    expect(registry.entries[1].status).toBe('pending-evaluation');
-    expect(registry.entries[2].status).toBe('pending-evaluation');
+  test('seed inventory matches ADR-0033 D5 + ADR-0035 D4/D6 corrections', () => {
+    expect(registry.entries.map(e => e.id)).toEqual(['defer-0001', 'defer-0002', 'defer-0003', 'defer-0004', 'defer-0005']);
+    // ADR-0035 D6: no verified_by -> pending-evaluation; only defer-0004 (real assertion) stays deferred
+    expect(registry.entries.map(e => e.status)).toEqual(['pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'deferred', 'pending-evaluation']);
     for (const e of registry.entries) expect(e.review_at >= today).toBe(true);
   });
 
@@ -62,11 +61,11 @@ describe('ADR-0033 D3 pending-evaluation discipline', () => {
     expect(errs.some(m => m.indexOf('pending-evaluation') !== -1)).toBe(true);
   });
 
-  test('negative: presence-condition with pending-evaluation status is rejected', () => {
+  test('negative: presence-condition with verified_by but pending-evaluation status is rejected (ADR-0035 D6)', () => {
     const bad = clone(registry);
-    bad.entries[0].status = 'pending-evaluation';
+    bad.entries.find(e => e.id === 'defer-0004').status = 'pending-evaluation';
     const errs = checkDeferred.validateEntries(bad, sources, thresholds, today);
-    expect(errs.some(m => m.indexOf('evaluable') !== -1)).toBe(true);
+    expect(errs.some(m => m.indexOf('evaluable') !== -1 && m.indexOf('defer-0004') !== -1)).toBe(true);
   });
 });
 

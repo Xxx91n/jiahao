@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0033: registry of chosen-to-defer (pending-activation) items only. Declared-gap permanents live in coverage-map.json; chosen-not-to-build items (e.g. judgeSeam, ADR-0019 D4) stay in ADRs per MADR. review_at expiry is fail-closed: activate, re-defer with new review_at + rationale, or remove. Anchors are existence-based: source_adr file must exist and the entry id must appear in any docs/adr/*.md or CONTEXT.md (typically the registering ADR). Enforced by scripts/check-deferred.js (deferred:gate).",
+  "_doc": "ADR-0033: registry of chosen-to-defer (pending-activation) items only. Declared-gap permanents live in coverage-map.json; chosen-not-to-build items (e.g. judgeSeam, ADR-0019 D4) stay in ADRs per MADR. review_at expiry is fail-closed: activate, re-defer with new review_at + rationale, or remove. Anchors are existence-based: source_adr file must exist and the entry id must appear in any docs/adr/*.md or CONTEXT.md (typically the registering ADR). Enforced by scripts/check-deferred.js (deferred:gate). ADR-0035 additions: every entry carries cadence_tier (quarterly|half-yearly|yearly, review cadence ladder D1) and registered_at (D2 residency SLA: pending-evaluation may not outstay min(2 cycles, 12 months)); external-event entries carry last_check_in{date,note} with at least one check-in per cycle (warn-level, D3); presence-condition/count-threshold entries must carry verified_by pointing to an existing assertion script or be downgraded to pending-evaluation (D6, fail-closed).",
   "entries": [
     {
       "id": "defer-0001",
@@ -12,18 +12,26 @@
         "check": "the project gains a publish pipeline AND a remote + GitHub Actions (or equivalent OIDC issuer) exists AND artifact inventory (tarball, adapters manifest) is formalized"
       },
       "review_at": "2027-02-28",
-      "status": "deferred"
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-08-30",
+      "status": "pending-evaluation"
     },
     {
       "id": "defer-0002",
-      "subject": "L1/L2 golden gate deepening for the 8 long-tail host adapters",
+      "subject": "L1/L2 golden gate deepening for the 8 long-tail host adapters (upstream copilot-cli bugs)",
       "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
-      "rationale": "L1/L2 golden conformance is suspended until the 8 long-tail host protocols are verified against official docs; shipping L1 gates on unverified protocols would codify guesses as gold.",
+      "rationale": "L1/L2 golden conformance is suspended while upstream copilot-cli sessionStart bugs are unresolved; shipping L1 gates on buggy session semantics would codify breakage as gold. Partial fulfillment as of 2026-08-30: issues 2415/2142 closed, 1730/2201 still open (ADR-0035 D4 narrows this entry to the pure external-event; the host-protocol verification moved to defer-0005).",
       "unfreeze_if": {
         "type": "external-event",
-        "check": "the 8 long-tail host protocols verified against official docs AND the copilot-cli sessionStart bugs (issues 1730, 2201, 2415, 2142) resolved upstream"
+        "check": "the copilot-cli sessionStart bugs (issues 1730, 2201, 2415, 2142) resolved upstream"
       },
-      "review_at": "2027-02-28",
+      "review_at": "2026-11-30",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-08-30",
+      "last_check_in": {
+        "date": "2026-08-30",
+        "note": "upstream verified via atomcode research: 2415/2142 closed, 1730/2201 open; condition not yet fulfilled"
+      },
       "status": "pending-evaluation"
     },
     {
@@ -35,7 +43,13 @@
         "type": "external-event",
         "check": "a second-party consumer of the evidence log exists outside the producing repository, OR a cross-machine verification requirement appears"
       },
-      "review_at": "2027-02-28",
+      "review_at": "2027-08-31",
+      "cadence_tier": "yearly",
+      "registered_at": "2026-08-30",
+      "last_check_in": {
+        "date": "2026-08-30",
+        "note": "checked, nothing changed: no second-party evidence-log consumer, no cross-machine verification requirement"
+      },
       "status": "pending-evaluation"
     },
     {
@@ -45,10 +59,27 @@
       "rationale": "ADR-0034 R4: ci.yml is a single-consumer ~30-line file; a renderer would hide intent drift behind a build step (ADR-0032 D2 anti-precedent). The D5 line-level wiring assertion (scripts/check-ci-wiring.js) covers the drift risk at zero build-layer cost.",
       "unfreeze_if": {
         "type": "presence-condition",
-        "check": "ci.yml becomes multi-job / multi-workflow / matrixed"
+        "check": "ci.yml declares more than one top-level job (multi-job / matrixed workflow)",
+        "verified_by": "scripts/check-ci-jobs.js"
       },
-      "review_at": "2027-02-28",
+      "review_at": "2027-08-31",
+      "cadence_tier": "yearly",
+      "registered_at": "2026-08-30",
       "status": "deferred"
+    },
+    {
+      "id": "defer-0005",
+      "subject": "verify the 8 long-tail host protocols against official documentation",
+      "source_adr": "docs/adr/0035-deferred-registry-cadence-checkin-verifiedby-honesty-corrections.md",
+      "rationale": "Split out of defer-0002 by ADR-0035 D4 (one entry, one condition type). L1/L2 golden conformance for the 8 long-tail hosts must not ship until each protocol is verified against its official documentation; serial atomcode research per host is the verification channel. Stays in this registry, not coverage-map.json (ADR-0035 R5: different namespace).",
+      "unfreeze_if": {
+        "type": "free-text",
+        "check": "all 8 long-tail host protocols (incl. copilot, qoder, opencode, aider) verified against official docs and recorded in host-contracts.json"
+      },
+      "review_at": "2026-11-30",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-08-30",
+      "status": "pending-evaluation"
     }
   ]
 }
