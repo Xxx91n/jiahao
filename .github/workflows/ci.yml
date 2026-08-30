@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           # checkout's default fetch-depth=1 leaves PR base SHAs unfetched, so
-          # `git diff base...HEAD` in the threshold guard dies with
+          # `git diff base...HEAD` in the coupling guards dies with
           # "fatal: bad object". Full history keeps the coupling check real.
           fetch-depth: 0
       - uses: actions/setup-node@v4
@@ -20,24 +20,14 @@ jobs:
           cache: npm
       # --ignore-scripts: keep prepare (hooksPath) off CI runners
       - run: npm install --ignore-scripts
-      - run: npm test
-      - run: node scripts/check-drift.js
-      # ADR-0028 D2: golden regen-diff must be byte-clean
-      - run: node scripts/build-adapters.js --check
-      # ADR-0028 D4: host-contract registry guard (same-commit ADR/CONTEXT coupling on PRs)
-      - if: github.event_name == 'pull_request'
-        run: node scripts/check-host-contracts.js ${{ github.event.pull_request.base.sha }}
-      - run: node scripts/check-host-contracts.js
-      # ADR-0027: pre-registered bench gate (real re-run over pinned corpus)
-      - if: github.event_name == 'pull_request'
-        run: node scripts/check-bench-thresholds.js ${{ github.event.pull_request.base.sha }}
-      - run: node scripts/check-bench-thresholds.js
-      - run: node scripts/bench-gate.js --ci
-      # ADR-0031 D2/D3: judge bias calibration gate (corpus pairs; confirmatory tier fail-closed)
-      - run: node bench/polygraph/check-judge-bias.js
-      # ADR-0029 D4: zero-miss behavioral probe gate as its own CI step
-      # (independent of bench:gate; artifacts never enter runtime evidence)
-      - run: node scripts/check-probes.js --ci --artifacts-dir probe-artifacts
+      # ADR-0034 D2/D5: exactly one gate entrypoint. The gate inventory lives
+      # in docs/gates.json; registry<->ci wiring is machine-asserted by
+      # scripts/check-ci-wiring.js, which runs first as a meta-check (order 0-99).
+      - run: npm run gate:all
+        env:
+          # PR base for the same-commit coupling guards (ADR-0027 D2);
+          # empty on push events, which the guards treat as "no base".
+          CI_BASE_REF: ${{ github.event.pull_request.base.sha }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:

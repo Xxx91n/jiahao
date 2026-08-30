@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0034: machine registry of the CI gate family (fifth fact-source, sibling to thresholds.json / coverage-map.json / host-contracts.json / deferred-registry.json). One entry per gate: {name, command, tier, source_adr, order}. order is a required integer with no default; bands: 0-99 meta-checks (gates-alignment, ci-wiring, gates-coupling - names structurally asserted by scripts/run-gates.js, CRTM-as-entry), 100+ functional gates. tier reuses the ADR-0031 D3 vocabulary: confirmatory fails the run; observational records and never blocks; deferred-with-unfreeze is registered but skipped. Execution: default complete-run aggregates all breaches; --fail-fast is opt-in and short-circuits confirmatory failures only (ADR-0034 D3). Advisory band warnings aggregate into one ::warning:: annotation (ADR-0027 D3). Changes to this file require a same-commit ADR via the shared ADR-0027 couplingViolation guard (gates-coupling entry, CI_BASE_REF). CI invokes exactly one entrypoint: npm run gate:all (D2/D5); per-gate npm aliases remain for debugging (D6).",
+  "entries": [
+    {
+      "name": "gates-alignment",
+      "command": "node scripts/run-gates.js --check-alignment",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0034-gate-registry-single-entrypoint-orchestration.md",
+      "order": 0
+    },
+    {
+      "name": "ci-wiring",
+      "command": "node scripts/check-ci-wiring.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0034-gate-registry-single-entrypoint-orchestration.md",
+      "order": 1
+    },
+    {
+      "name": "gates-coupling",
+      "command": "node scripts/run-gates.js --check-coupling",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0034-gate-registry-single-entrypoint-orchestration.md",
+      "order": 2
+    },
+    {
+      "name": "test",
+      "command": "npm test",
+      "tier": "confirmatory",
+      "source_adr": "CONTEXT.md",
+      "order": 100
+    },
+    {
+      "name": "drift",
+      "command": "node scripts/check-drift.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "order": 110
+    },
+    {
+      "name": "adapters-golden",
+      "command": "node scripts/build-adapters.js --check",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "order": 120
+    },
+    {
+      "name": "host-contracts",
+      "command": "node scripts/check-host-contracts.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "order": 130
+    },
+    {
+      "name": "bench-thresholds",
+      "command": "node scripts/check-bench-thresholds.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0027-bench-gate-pre-registered-threshold-enforcement.md",
+      "order": 140
+    },
+    {
+      "name": "bench-gate",
+      "command": "node scripts/bench-gate.js --ci",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0027-bench-gate-pre-registered-threshold-enforcement.md",
+      "order": 150
+    },
+    {
+      "name": "probe-corpus",
+      "command": "node bench/polygraph/check-probe-corpus.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0029-verifier-effectiveness-behavioral-probe-gate.md",
+      "order": 155
+    },
+    {
+      "name": "probes",
+      "command": "node scripts/check-probes.js --ci --artifacts-dir probe-artifacts",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0029-verifier-effectiveness-behavioral-probe-gate.md",
+      "order": 160
+    },
+    {
+      "name": "judge-bias",
+      "command": "node bench/polygraph/check-judge-bias.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0031-wiring-assertions-judge-bias-gate-tiers-isolation-provenance-debt-pack.md",
+      "order": 170
+    },
+    {
+      "name": "coverage",
+      "command": "node scripts/check-coverage.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0032-generator-surface-rules-deepening-gsr-coverage-lifecycle.md",
+      "order": 180
+    },
+    {
+      "name": "deferred",
+      "command": "node scripts/check-deferred.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0033-deferred-unfreeze-registry-pending-evaluation-expiry-forces-action.md",
+      "order": 190
+    }
+  ]
+}

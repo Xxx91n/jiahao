@@ -379,7 +379,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0031 wiring assertions (D1 mandatory per wiring-touching ADR) + judge bias calibration corpus (style/length-control + bias-probe, 3 metrics) + gate tier taxonomy (confirmatory/observational/deferred-with-unfreeze) + judge-input certificate isolation + optional evidence provenance (SLSA additive) + debt pack (F4/F5/S2/S3/S4)
 - ADR-0032 generator surface rules deepening: inline gsr header (id/signal-domain/status, git-as-version) + coverage-map.json registry + check-coverage.js four-state gate + pre-registered equivalence statement (no statistical gate) + rule lifecycle triad admission / 6-8 active cap / six-reason retirement
 - ADR-0033 deferred/unfreeze registry: docs/deferred-registry.json fact-source + confirmatory fail-closed + pending-evaluation + expiry-forces-action + coupling guard (seeds: sigstore / L1-L2 golden / Merkle)
-- ADR-0034 gate registry: docs/gates.json fact-source + gate:all single entrypoint + run-all-aggregate with --fail-fast opt-in + CRTM-as-entry ordering contract + three-face alignment (ci.yml wiring assertion) + pre-commit untouched
+- ADR-0034 gate registry: docs/gates.json fact-source + gate:all single entrypoint + run-all-aggregate with --fail-fast opt-in + CRTM-as-entry ordering contract + three-face alignment (ci.yml wiring assertion) + pre-commit untouched; generated-ci.yml uplift registered as defer-0004 in docs/deferred-registry.json
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but

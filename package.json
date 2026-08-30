@@ -11,7 +11,8 @@
     "reverify": "node scripts/reverify.js",
     "judge:bias": "node bench/polygraph/check-judge-bias.js",
     "coverage:gate": "node scripts/check-coverage.js",
-    "deferred:gate": "node scripts/check-deferred.js"
+    "deferred:gate": "node scripts/check-deferred.js",
+    "gate:all": "node scripts/run-gates.js"
   },
   "devDependencies": {
     "jest": "^29.7.0"

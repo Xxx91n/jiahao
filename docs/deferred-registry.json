@@ -37,6 +37,18 @@
       },
       "review_at": "2027-02-28",
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0004",
+      "subject": "generated ci.yml from docs/gates.json (C-style render + regen-diff uplift)",
+      "source_adr": "docs/adr/0034-gate-registry-single-entrypoint-orchestration.md",
+      "rationale": "ADR-0034 R4: ci.yml is a single-consumer ~30-line file; a renderer would hide intent drift behind a build step (ADR-0032 D2 anti-precedent). The D5 line-level wiring assertion (scripts/check-ci-wiring.js) covers the drift risk at zero build-layer cost.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "ci.yml becomes multi-job / multi-workflow / matrixed"
+      },
+      "review_at": "2027-02-28",
+      "status": "deferred"
     }
   ]
 }

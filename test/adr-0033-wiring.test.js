@@ -23,7 +23,7 @@ describe('ADR-0033 D2 entry schema', () => {
   });
 
   test('seed inventory matches ADR-0033 D5', () => {
-    expect(registry.entries.map(e => e.id)).toEqual(['defer-0001', 'defer-0002', 'defer-0003']);
+    expect(registry.entries.map(e => e.id)).toEqual(['defer-0001', 'defer-0002', 'defer-0003', 'defer-0004']);
     expect(registry.entries[0].status).toBe('deferred');
     expect(registry.entries[1].status).toBe('pending-evaluation');
     expect(registry.entries[2].status).toBe('pending-evaluation');
