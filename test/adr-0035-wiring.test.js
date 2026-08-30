@@ -138,6 +138,20 @@ describe('ADR-0035 D5/D6 verified_by semantics', () => {
       fs.unlinkSync(tmp);
     }
   });
+
+  test('audit fix: crashing verifier surfaces as WARN, not silent "not satisfied"', () => {
+    const tmp = path.join(ROOT, 'scripts', '.tmp-adr0035-crash.js');
+    fs.writeFileSync(tmp, 'process.exit(2);\n'); // node crashes also exit 1; contract: >1 = broken verifier
+    try {
+      const fake = clone(registry);
+      fake.entries[3].unfreeze_if.verified_by = 'scripts/.tmp-adr0035-crash.js';
+      const s = checkDeferred.evalSuggestions(fake);
+      expect(s.some(m => m.indexOf('WARN') !== -1 && m.indexOf('defer-0004') !== -1)).toBe(true);
+      expect(s.some(m => m.indexOf('SATISFIED') !== -1)).toBe(false);
+    } finally {
+      fs.unlinkSync(tmp);
+    }
+  });
 });
 
 describe('ADR-0035 D4 defer-0002 split', () => {

@@ -146,7 +146,7 @@ instruction tier, and aider loads the rules only via opt-in `read:` config.
 ## Develop
 
 ```bash
-npm test                              # 410 tests across 29 suites
+npm test                              # 411 tests across 29 suites
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity

@@ -177,7 +177,9 @@ function validateDiscipline(cfg, now) {
 }
 
 // ADR-0035 D6 second half: a satisfied verified_by assertion only SUGGESTS
-// activation; it never auto-activates or auto-removes an entry.
+// activation; it never auto-activates or auto-removes an entry. Verifier
+// contract: exit 0 = satisfied, exit 1 = not satisfied, exit >1 = the
+// verifier itself is broken (WARN, must not masquerade as "not satisfied").
 function evalSuggestions(cfg) {
   const suggestions = [];
   for (const e of cfg.entries || []) {
@@ -187,8 +189,14 @@ function evalSuggestions(cfg) {
     if (!fs.existsSync(script)) continue; // shape check owns this error
     try {
       execFileSync(process.execPath, [script], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
-      suggestions.push(e.id + ': verified_by ' + e.unfreeze_if.verified_by + ' reports the condition SATISFIED - a human should review activation (ADR-0035 D6)');
-    } catch (err) { /* condition not satisfied or script failed; no suggestion */ }
+      suggestions.push('SUGGEST: ' + e.id + ': verified_by ' + e.unfreeze_if.verified_by + ' reports the condition SATISFIED - a human should review activation (ADR-0035 D6)');
+    } catch (err) {
+      // exit 1 = condition not satisfied (silent); anything else = the
+      // verifier itself is broken, which must not look like "not satisfied"
+      if (err && typeof err.status === 'number' && err.status > 1) {
+        suggestions.push('WARN: ' + e.id + ': verified_by ' + e.unfreeze_if.verified_by + ' exited ' + err.status + ' - the verifier is broken, not "condition unsatisfied"; fix the script (ADR-0035 R2 honesty)');
+      }
+    }
   }
   return suggestions;
 }
@@ -237,7 +245,7 @@ function main() {
     process.exit(1);
   }
   for (const w of validateDiscipline(cfg, now)) console.warn('WARN: ' + w);
-  for (const s of evalSuggestions(cfg)) console.log('SUGGEST: ' + s);
+  for (const s of evalSuggestions(cfg)) console.log(s);
   console.log('[deferred] OK - ' + cfg.entries.length + ' deferred entries' + (baseRef ? '' : ' (no base ref: coupling skipped)'));
   if (baseRef) {
     const c = checkCoupling(baseRef);
