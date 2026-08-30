@@ -11,17 +11,7 @@ const checkDeferred = require('../scripts/check-deferred');
 const registry = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'deferred-registry.json'), 'utf8'));
 const thresholds = JSON.parse(fs.readFileSync(path.join(ROOT, 'bench', 'polygraph', 'thresholds.json'), 'utf8'));
 
-function loadSources() {
-  const sources = {};
-  const dir = path.join(ROOT, 'docs', 'adr');
-  for (const f of fs.readdirSync(dir)) {
-    if (f.endsWith('.md')) sources['docs/adr/' + f] = fs.readFileSync(path.join(dir, f), 'utf8');
-  }
-  sources['CONTEXT.md'] = fs.readFileSync(path.join(ROOT, 'CONTEXT.md'), 'utf8');
-  return sources;
-}
-
-const sources = loadSources();
+const sources = checkDeferred.loadSources();
 const today = new Date().toISOString().slice(0, 10);
 
 function clone(o) { return JSON.parse(JSON.stringify(o)); }
@@ -38,6 +28,14 @@ describe('ADR-0033 D2 entry schema', () => {
     expect(registry.entries[1].status).toBe('pending-evaluation');
     expect(registry.entries[2].status).toBe('pending-evaluation');
     for (const e of registry.entries) expect(e.review_at >= today).toBe(true);
+  });
+
+  test('negative: review_at with impossible calendar date is rejected (audit 2026-08-30)', () => {
+    const bad = clone(registry);
+    bad.entries[0].review_at = '2027-13-99';
+    expect(checkDeferred.validateShape(bad).some(m => m.indexOf('calendar') !== -1)).toBe(true);
+    bad.entries[0].review_at = '2027-02-30';
+    expect(checkDeferred.validateShape(bad).some(m => m.indexOf('calendar') !== -1)).toBe(true);
   });
 
   test('negative: missing mandatory field and bad id are caught', () => {

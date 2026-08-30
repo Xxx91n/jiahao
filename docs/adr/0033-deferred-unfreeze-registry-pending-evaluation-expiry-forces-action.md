@@ -102,9 +102,11 @@ implemented.
 ### D5 Seed inventory
 
 - defer-0001 supply-chain signing (sigstore keyless / SLSA provenance)
-  — source ADR-0029 D7; unfreeze_if presence-condition: git remote
-  exists AND npm publish configured AND CI pipeline exists, verbatim
-  from D7's three re-activation conditions.
+  — source ADR-0029 D7; unfreeze_if presence-condition, verbatim
+  D7's three re-activation conditions: (1) the project gains a publish
+  pipeline; (2) a remote + GitHub Actions (or equivalent OIDC issuer)
+  exists; (3) artifact inventory (tarball, adapters manifest) is
+  formalized.
 - defer-0002 L1/L2 golden gate deepening — source ADR-0028 D1;
   unfreeze_if external-event: the 8 long-tail host protocols verified
   against official docs AND the copilot-cli sessionStart bugs

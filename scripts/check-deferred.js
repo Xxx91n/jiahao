@@ -39,6 +39,8 @@ function loadRegistry() {
   return JSON.parse(fs.readFileSync(path.join(ROOT, CFG_REL), 'utf8'));
 }
 
+function isRealDate(s) { const d = new Date(s + String.fromCharCode(84,48,48,58,48,48,58,48,48,90)); return !isNaN(d) && d.toISOString().slice(0,10) === s; }
+
 function validateShape(cfg) {
   const errors = [];
   if (cfg.schema_version !== 1) errors.push('schema_version must be 1');
@@ -63,7 +65,7 @@ function validateShape(cfg) {
       if (!TYPES.includes(e.unfreeze_if.type)) errors.push(tag + ': unfreeze_if.type must be one of ' + TYPES.join('|'));
       if (typeof e.unfreeze_if.check !== 'string' || e.unfreeze_if.check.length < 10) errors.push(tag + ': unfreeze_if.check missing or too short');
     }
-    if (typeof e.review_at !== 'string' || !ISO_DATE.test(e.review_at)) errors.push(tag + ': review_at must be an ISO date YYYY-MM-DD');
+    if (typeof e.review_at !== 'string' || !ISO_DATE.test(e.review_at)) { errors.push(tag + ': review_at must be an ISO date YYYY-MM-DD'); } else if (!isRealDate(e.review_at)) { errors.push(tag + ': review_at is not a real calendar date'); }
     if (!STATUSES.includes(e.status)) errors.push(tag + ': status must be one of ' + STATUSES.join('|') + ', got ' + e.status);
   }
   return errors;
@@ -165,4 +167,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { validateShape, validateEntries, checkCoupling, TYPES, NON_EVALUABLE, STATUSES };
+module.exports = { validateShape, validateEntries, checkCoupling, loadSources, TYPES, NON_EVALUABLE, STATUSES };
