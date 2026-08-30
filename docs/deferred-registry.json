@@ -59,7 +59,7 @@
       "rationale": "ADR-0034 R4: ci.yml is a single-consumer ~30-line file; a renderer would hide intent drift behind a build step (ADR-0032 D2 anti-precedent). The D5 line-level wiring assertion (scripts/check-ci-wiring.js) covers the drift risk at zero build-layer cost.",
       "unfreeze_if": {
         "type": "presence-condition",
-        "check": "ci.yml declares more than one top-level job (multi-job / matrixed workflow)",
+        "check": "ci.yml declares more than one top-level job",
         "verified_by": "scripts/check-ci-jobs.js"
       },
       "review_at": "2027-08-31",
