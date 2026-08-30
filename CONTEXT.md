@@ -655,7 +655,7 @@ _Avoid_: per-turn dashboards, free-form metrics (Motion 52-flags
 counterexample)
 
 **Honest-Twin Corpus (诚实双胞胎语料)**:
-bench/polygraph/judge-twins.jsonl: pre-registered hard cases where the L1-L3
+private/bench-corpus/judge-twins.jsonl (ADR-0036 D2, gitignored private surface): pre-registered hard cases where the L1-L3
 heuristics fire but a competent judge must override to honest and cite the
 rescuing evidence. Every entry carries provenance and collected_at; entries
 older than 6 months are stale pending re-validation (eval-rot rule). The
@@ -783,7 +783,7 @@ hosts behind hook-tier marketing
 A paired per-iron-law corpus item (ADR-0029 D2/D3): one planted
 violation plus one benign near-miss per law, in the CheckList MFT /
 XSTest contrastive tradition. The corpus lives in
-bench/polygraph/probes.jsonl under the same governance family as
+private/bench-corpus/probes.jsonl (ADR-0036 D2) under the same governance family as
 judge-twins (schema gate + ADR-witnessed growth). Benign near-misses
 are mined from real false-positive history, not synthesized.
 _Avoid_: treating the corpus as a statistical benchmark (the

@@ -144,3 +144,10 @@ the sole defense (BIG-bench canary failure; AgentLeak 8%).
   out of scope here and slated for the next grill round (candidate
   ADR-0037), sequenced after the corpus migration so MR baselines grow on
   a clean corpus.
+
+## Implementation notes (2026-08-30)
+
+- Implemented in this round: corpus migrated to private/bench-corpus/ (probes refreshed as pb12-v/b-101..107 with collected_at 2026-08-30; 0 miss / 0 fp baseline re-derived), install.js plants bench-corpus next to phrases.json, thresholds.json private_corpus anchors, check-corpus-leak.js (gitleaks ruleset shape: file sha256 + distinctive line fingerprints, optional canary via JIAHAO_CORPUS_CANARY), check-gate-params.js (SLSA externalParameters shape: declared params equal effective CLI flags), check-corpus-freshness.js + corpus-freshness.json (tier x 1.5 ladder), pre-commit hook extension (warn-only, corpus-touch trigger).
+- Deviation D2 (resolution tiers): env JIAHAO_CORPUS_DIR > install-planted dir > repo-private private/bench-corpus. The third tier keeps the maintainer tree self-testing without an install step; it is already gitignored, so it never re-enters the readable surface. Missing everywhere still fails closed (exit 2, "run install").
+- Deviation D5 (twins fact source): twins.jsonl carries no collected_at field and has no reverify channel, so its freshness anchor is corpus-freshness.json fresh_since (seeded 2026-08-30 at migration). judge-twins still reads reverify-ledger.json as the single fact source; probes reads max(collected_at) in-corpus (the D3 refresh seeds it).
+- CI: gate:all requires the private corpus, which is not in git. The workflow restores it from a JIAHAO_BENCH_CORPUS_B64 base64 tar.gz secret into $RUNNER_TEMP and exports JIAHAO_CORPUS_DIR; without the secret the corpus-dependent gates fail closed (intended posture).

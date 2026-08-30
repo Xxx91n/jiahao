@@ -56,7 +56,7 @@ describe('D1 interval coverage gate', () => {
   });
   test('real corpus + real thresholds: 14 entries pass the floor', () => {
     const fs = require('fs');
-    const lines = fs.readFileSync(path.join(__dirname, '..', 'bench', 'polygraph', 'probes.jsonl'), 'utf8').split('\n').filter(s => s.trim());
+    const lines = fs.readFileSync(path.join(__dirname, '..', 'private', 'bench-corpus', 'probes.jsonl'), 'utf8').split('\n').filter(s => s.trim());
     const floor = corpus.coverageFloor(JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'bench', 'polygraph', 'thresholds.json'), 'utf8')));
     expect(corpus.checkCorpus(lines, floor, NOW)).toEqual([]);
   });

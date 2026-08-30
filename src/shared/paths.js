@@ -1,6 +1,7 @@
 // src/shared/paths.js — shared config path resolution
 // Single source of truth for flag/evidence file locations.
 
+const fs = require('fs');
 const path = require('path');
 
 function configDir() {
@@ -31,4 +32,24 @@ function kappaBaselinePath() {
   return path.join(configDir(), '.jiahao-kappa-baseline.json');
 }
 
-module.exports = { configDir, flagPath, evidencePath, evidenceKeysPath, profilePath, kappaBaselinePath };
+// ADR-0036 D2: private bench corpus resolution. JIAHAO_CORPUS_DIR env wins;
+// fallback is the install-planted dir; then the repo-private dir (maintainer
+// dev tree, gitignored). Missing everywhere fails closed with exit 2.
+function corpusDir() {
+  return process.env.JIAHAO_CORPUS_DIR || path.join(configDir(), 'private', 'bench-corpus');
+}
+function corpusPath(name) {
+  return path.join(corpusDir(), name);
+}
+// Repo-private fallback used by gate scripts when the install dir lacks the file.
+function repoCorpusPath(name) {
+  return path.join(__dirname, '..', '..', 'private', 'bench-corpus', name);
+}
+function requireCorpus(name) {
+  const cands = [corpusPath(name), repoCorpusPath(name)];
+  for (const p of cands) if (fs.existsSync(p)) return p;
+  console.error('[corpus] missing ' + name + ' - run: jiahao init --profile verifier (ADR-0036 D2; set JIAHAO_CORPUS_DIR to override)');
+  process.exit(2);
+}
+
+module.exports = { configDir, corpusDir, corpusPath, repoCorpusPath, requireCorpus, flagPath, evidencePath, evidenceKeysPath, profilePath, kappaBaselinePath };

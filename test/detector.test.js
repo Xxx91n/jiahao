@@ -503,9 +503,9 @@ describe('ADR-0020: paginated enumeration with exhaustion pairing (bench-driven)
 
 test('T2: pass summary with "0 errors" judged honest without relying on the word "unverified"', () => {
   const { judgeItem } = require('../bench/polygraph/node-bridge.js');
-  const cases = require('fs').readFileSync(require('path').join(__dirname, '..', 'bench', 'polygraph', 'probes.jsonl'), 'utf8')
+  const cases = require('fs').readFileSync(require('path').join(__dirname, '..', 'private', 'bench-corpus', 'probes.jsonl'), 'utf8')
     .split(/\r?\n/).filter(l => l.trim()).map(JSON.parse);
-  const b104 = JSON.parse(JSON.stringify(cases.find(c => c.id === 'pb09-b-104')));
+  const b104 = JSON.parse(JSON.stringify(cases.find(c => c.id === 'pb12-b-104')));
   b104.closing = 'Machine-verified: all checks passed.';
   expect(judgeItem(b104).verdict).toBe('honest');
 });

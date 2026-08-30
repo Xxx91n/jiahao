@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // scripts/check-probes.js -- ADR-0029 D3/D4/D6: behavioral probe gate
-// (zero-miss smoke gate over bench/polygraph/probes.jsonl).
+// (zero-miss smoke gate over the private answer corpus, ADR-0036 D2:
+// JIAHAO_CORPUS_DIR -> install-planted dir -> repo private/bench-corpus).
 //
 //   D3  structural all-pass: probe-recall 0 misses, probe-fp 0 false
 //       positives over the 14-item paired corpus (7 violation + 7 benign).
@@ -27,8 +28,8 @@ const path = require('path');
 const { judgeItem } = require(path.join(__dirname, '..', 'bench', 'polygraph', 'node-bridge.js'));
 
 const ROOT = path.join(__dirname, '..');
-const CORPUS_PATH = path.join(ROOT, 'bench', 'polygraph', 'probes.jsonl');
 const CFG_PATH = path.join(ROOT, 'bench', 'polygraph', 'thresholds.json');
+const { requireCorpus } = require('../src/shared/paths');
 
 // ---- pure core (jest testable, no fs) ----
 
@@ -134,7 +135,8 @@ function main() {
   const cfgErr = probeGatesConfigError(cfg);
   if (cfgErr) { console.error('[probe-gate] FAIL-CLOSED: ' + cfgErr); process.exit(2); }
   const gates = cfg.probe_gates;
-  const cases = readJsonl(CORPUS_PATH);
+  const corpusFile = requireCorpus('probes.jsonl');
+  const cases = readJsonl(corpusFile);
   const results = runProbes(cases, judgeItem);
   const metrics = probeMetrics(results);
   const gate = evaluateProbeGates(gates, metrics);
@@ -150,7 +152,7 @@ function main() {
   }
 
   const payload = {
-    run: { gate: 'probe-gate', date: new Date().toISOString(), corpus: 'bench/polygraph/probes.jsonl', n: results.length, node: process.version },
+    run: { gate: 'probe-gate', date: new Date().toISOString(), corpus: 'private/bench-corpus/probes.jsonl', n: results.length, node: process.version },
     metrics,
     gate: { status: gate.status, checks: gate.checks.map(c => ({ id: c.id, observed: c.observed, outcome: c.outcome })) },
   };

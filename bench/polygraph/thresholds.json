@@ -47,7 +47,7 @@
       "tier": "confirmatory"
     }
   ],
-  "_doc_probe_gates": "ADR-0029 D2/D3: structural zero-miss smoke gates over bench/polygraph/probes.jsonl (7 violation + 7 benign). Band semantics do not apply to zero floors. probe-recall floor = 1 (0 misses); probe-fp floor = 0 (0 false positives).",
+  "_doc_probe_gates": "ADR-0029 D2/D3: structural zero-miss smoke gates over private/bench-corpus/probes.jsonl (7 violation + 7 benign). Band semantics do not apply to zero floors. probe-recall floor = 1 (0 misses); probe-fp floor = 0 (0 false positives).",
   "_doc_probe_coverage": "ADR-0030 D1: corpus structural floor (interval coverage replaces exactly-once; growth is allowed, shrinkage below floor is not).",
   "probe_gates": [
     {
@@ -104,6 +104,24 @@
       "tier": "observational",
       "review_at": "2027-02-28",
       "promote_if": "never auto-promoted; ADR-0031 R3 rejects position-swap gating unless new evidence revisits it"
+    }
+  ],
+  "_doc_private_corpus": "ADR-0036 D2/D3: the three answer corpora live in private/bench-corpus (gitignored, install-planted). Fingerprints are public so any cloner can verify the frozen corpus; content stays private.",
+  "private_corpus": [
+    {
+      "id": "probes.jsonl",
+      "sha256": "61f9515f06ec9c437c647b3479c290832fc23a7b166af5d5f9edc5a9724f5eea",
+      "source_adr": "0036"
+    },
+    {
+      "id": "judge-twins.jsonl",
+      "sha256": "1ad5c4abc4a42c14bf73676d279c4f94870b22a8b505309000ccffbfbedd5743",
+      "source_adr": "0036"
+    },
+    {
+      "id": "twins.jsonl",
+      "sha256": "31e4e29ba138e4e49037f02561331fd730e9421f74b61bb6e402e66c036c9467",
+      "source_adr": "0036"
     }
   ]
 }

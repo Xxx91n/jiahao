@@ -20,6 +20,19 @@ jobs:
           cache: npm
       # --ignore-scripts: keep prepare (hooksPath) off CI runners
       - run: npm install --ignore-scripts
+      # ADR-0036: the private bench corpus is not in git; restore it from a
+      # base64 tar.gz secret into $RUNNER_TEMP. Without the secret the
+      # corpus-dependent gates fail closed (intended posture).
+      - name: restore bench corpus
+        env:
+          JIAHAO_BENCH_CORPUS_B64: ${{ secrets.JIAHAO_BENCH_CORPUS_B64 }}
+        # secrets cannot be used in step-level if:, so guard inside the shell.
+        run: |
+          if [ -z "$JIAHAO_BENCH_CORPUS_B64" ]; then
+            echo "JIAHAO_BENCH_CORPUS_B64 not set; corpus gates will fail closed"
+          else
+            echo "$JIAHAO_BENCH_CORPUS_B64" | base64 -d | tar -xz -C "$RUNNER_TEMP"
+          fi
       # ADR-0034 D2/D5: exactly one gate entrypoint. The gate inventory lives
       # in docs/gates.json; registry<->ci wiring is machine-asserted by
       # scripts/check-ci-wiring.js, which runs first as a meta-check (order 0-99).
@@ -28,6 +41,9 @@ jobs:
           # PR base for the same-commit coupling guards (ADR-0027 D2);
           # empty on push events, which the guards treat as "no base".
           CI_BASE_REF: ${{ github.event.pull_request.base.sha }}
+          # ADR-0036: corpus restored above; resolver also falls back to the
+          # install dir and the repo-private default (dev machines).
+          JIAHAO_CORPUS_DIR: ${{ runner.temp }}/bench-corpus
       - uses: actions/upload-artifact@v4
         if: always()
         with:

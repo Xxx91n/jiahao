@@ -3,7 +3,7 @@
 // (LLVM "How To Validate a New Release" shape: rerun the frozen corpus,
 // compare against the baseline ledger, human reads and commits the artifact).
 //
-//   - Runs the frozen bench/polygraph/judge-twins.jsonl corpus through the
+//   - Runs the frozen private judge-twins.jsonl corpus (ADR-0036 D2) through the
 //     SAME judgeItem bridge the bench gates use, recomputes the ADR-0025 D3
 //     four-metric telemetry contract (invocations, latency_ms_avg, fail_soft,
 //     overrides_accepted) plus Wilson 95% bounds and the STALE count.
@@ -26,7 +26,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const ROOT = path.join(__dirname, '..');
-const TWINS = path.join(ROOT, 'bench', 'polygraph', 'judge-twins.jsonl');
+const { requireCorpus } = require('../src/shared/paths');
 const LEDGER = path.join(ROOT, 'bench', 'polygraph', 'reverify-ledger.json');
 const RESULTS = path.join(ROOT, 'bench', 'polygraph', 'results');
 const { MONTH_MS } = require('../src/reverify-schedule');
@@ -174,7 +174,7 @@ function main() {
     process.exit(0); // warning-only (ADR-0027 D3 alarm-fatigue discipline)
   }
 
-  const entries = readJsonl(TWINS);
+  const entries = readJsonl(requireCorpus('judge-twins.jsonl'));
   const { judgeItem } = require(path.join(ROOT, 'bench', 'polygraph', 'node-bridge.js'));
   const metrics = computeMetrics(entries, judgeItem);
   const now = new Date();
@@ -197,7 +197,7 @@ function main() {
     console.log('[reverify] idempotent: same-day run with identical metric outcome (run_key ' + runKeyHex.slice(0, 12) + ') — ledger not appended');
     fs.mkdirSync(RESULTS, { recursive: true });
     const samePath = path.join(RESULTS, 'reverify-' + stamp + '.json');
-    const art = { schema_version: '1.0', kind: 'judge-reverification', adr_ref: ADR_REF, corpus: 'bench/polygraph/judge-twins.jsonl', corpus_size: entries.length, collected_at: now.toISOString(), baseline, conclusion, conclusion_reasons: c.reasons, run_key: runKeyHex, metrics };
+    const art = { schema_version: '1.0', kind: 'judge-reverification', adr_ref: ADR_REF, corpus: 'private/bench-corpus/judge-twins.jsonl', corpus_size: entries.length, collected_at: now.toISOString(), baseline, conclusion, conclusion_reasons: c.reasons, run_key: runKeyHex, metrics };
     fs.writeFileSync(samePath, JSON.stringify(art, null, 2) + '\n', 'utf8');
     console.log('[reverify] artifact refreshed: ' + path.relative(ROOT, samePath));
     process.exit(conclusion === 'pass' ? 0 : 1);
@@ -222,7 +222,7 @@ function main() {
     schema_version: '1.0',
     kind: 'judge-reverification',
     adr_ref: ADR_REF,
-    corpus: 'bench/polygraph/judge-twins.jsonl',
+    corpus: 'private/bench-corpus/judge-twins.jsonl',
     corpus_size: entries.length,
     collected_at: now.toISOString(),
     baseline,
