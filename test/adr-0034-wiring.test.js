@@ -112,7 +112,18 @@ describe('ADR-0034 D5 registry to ci.yml wiring', () => {
     const bad = 'jobs:\n  j:\n    steps:\n      - run: |\n          npm run gate:all\n          node scripts/check-deferred.js\n';
     expect(wiring.checkWiring(bad, blocked).some(m => /direct gate invocation/.test(m))).toBe(true);
   });
+
+  test('negative: direct run-gates.js invocation is a second entrypoint (S1)', () => {
+    const bad2 = 'jobs:\n  j:\n    steps:\n      - run: npm run gate:all\n      - run: node scripts/run-gates.js --fail-fast\n';
+    expect(wiring.checkWiring(bad2, blocked).some(m => /direct gate invocation/.test(m))).toBe(true);
+  });
+
+  test('negative: npm alias wrapping a gate command fails closed even without :gate suffix (S2)', () => {
+    const bad2 = 'jobs:\n  j:\n    steps:\n      - run: npm run gate:all\n      - run: npm run judge:bias\n';
+    expect(wiring.checkWiring(bad2, blocked).some(m => /direct gate invocation/.test(m))).toBe(true);
+  });
 });
+
 
 describe('ADR-0034 D3 execution semantics (stubbed exec)', () => {
   function fakeRegistry() {

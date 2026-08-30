@@ -51,13 +51,19 @@ function blockedTokens(reg, pkg) {
   reg.entries.forEach(function (e) {
     const toks = e.command.split(/\s+/);
     toks.forEach(function (tk) {
-      if (/\.js$/.test(tk) && tk !== 'scripts/run-gates.js') set.add(tk);
+      if (/\.js$/.test(tk)) set.add(tk);
     });
     if (toks[0] === 'npm') set.add(toks.slice(0, 2).join(' ')); // e.g. 'npm test'
   });
   const scripts = (pkg && pkg.scripts) || {};
   Object.keys(scripts).forEach(function (k) {
-    if (/:gate$/.test(k)) set.add('npm run ' + k);
+    if (k === 'gate:all') return;
+    const toks = scripts[k].split(/\s+/);
+    const isGate = reg.entries.some(function (e) {
+      const cmd = e.command.split(/\s+/);
+      return toks.length <= cmd.length && toks.every(function (t, i) { return t === cmd[i]; });
+    });
+    if (/:gate$/.test(k) || isGate) set.add('npm run ' + k);
   });
   return Array.from(set);
 }
