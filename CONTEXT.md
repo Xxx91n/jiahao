@@ -382,6 +382,8 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0034 gate registry: docs/gates.json fact-source + gate:all single entrypoint + run-all-aggregate with --fail-fast opt-in + CRTM-as-entry ordering contract + three-face alignment (ci.yml wiring assertion) + pre-commit untouched; generated-ci.yml uplift registered as defer-0004 in docs/deferred-registry.json
 - ADR-0035 deferred registry maturation: review cadence ladder (quarterly/half-yearly/yearly by type x likelihood x exposure) + pending-evaluation residency SLA min(2 cycles, 12 months) + weak-form check_in discipline (warn-level) + defer-0002 split (0002 external-event narrowed / new defer-0005 free-text protocol-verification) + defer-0004 honest presence-condition via real verified_by assertion script + check-deferred.js verified_by enforcement (unverified claim auto-downgrades to pending-evaluation)
 - ADR-0036 anti-gaming audit: NIST CAISI boundary (contamination vs grader gaming, A-2+A-3 subset) + answer-corpus migration to private/bench-corpus (probes/judge-twins/twins; thresholds stays public with private_corpus sha256 anchors) + known-exposed history handling (probes refresh now, twins on cycle) + gate-defaults params consistency assertion + corpus-freshness gate (cadence-tiered, tier warn / 1.5x fail-closed, event trigger) + check-corpus-leak fingerprint gate
+- ADR-0037 metamorphic relations third corpus family: staged hybrid (v1 hand-authored selected MR specs, v2 deferred LLM+judge pipeline) + <=3 pre-registered families (claim negation / equivalence restatement / evidence flip) + IL5/IL6 declared-gap + deterministic check-mr-probes.js zero-violation gate + Wilson honest annotation / McNemar at v2
+- ADR-0038 npm runtime-artifact surface: files whitelist tarball-as-wheel (~50KB prompt-installer) + corpus gates maintainer/CI-only fail-closed by design (git clone also carries no corpus) + honest missing-corpus message + private-registry-only future corpus channel (deferred)
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -1112,3 +1114,33 @@ covering corpus/environment leakage and process-layer bypass with gate
 mechanics as the already-covered layer. Stays cost-raising, not
 impossible-to-bypass (CWE-656 honesty).
 _Avoid_: careless-generator-only threat model, claims of un-gameability
+
+**Metamorphic Relation (蜕变关系)**:
+A necessary property of the verifier's judgment function across transformed
+inputs: transforms that provably preserve case semantics must produce the
+same verdict (preserve-type); transforms that provably flip semantics must
+flip the verdict (flip-type). Third corpus family per ADR-0037, testing
+judgment *symmetry* where probes test fixed judgments. Source formats are
+selected from the LLMorph/MT4NLP catalog (191 MRs), not invented.
+_Avoid_: mutation testing (bug-seeding), self-consistency resampling
+(not an MR; repeats the same hallucination per MetaQA)
+
+**Transform Validity Layer (变换有效性验证层)**:
+The mandatory human (v1) or independent-judge (v2) check that a metamorphic
+transform actually preserves or flips semantics as designed, before the pair
+enters the corpus. Without it, corpus entries carry ~40% false ground truth
+(LLMorph measured ~60% true-positive ceiling for unverified transforms),
+which structurally breaks the zero-fp smoke gate. v1 = human review recorded
+in provenance; v2 = independent model-family semantic-preservation judge
+(ASE'26 two-layer design).
+_Avoid_: skipping validation on "obviously equivalent" rewrites
+
+**Runtime-Artifact Surface (运行时工件面)**:
+ADR-0038's dual-surface distribution model, isomorphic to Python's
+wheel/sdist: the npm tarball is the runtime artifact (prompt-installer only,
+files-whitelisted, ~50KB); the git tree is the development surface (tests,
+fixtures, integrity anchors, ADRs). Answer corpora appear on neither public
+surface; they resolve only via JIAHAO_CORPUS_DIR / install-planted /
+maintainer-tree tiers (ADR-0036).
+_Avoid_: tests-in-tarball, .npmignore blacklist reliance (npm: whitelist is
+"by far the safest way")
