@@ -29,7 +29,7 @@ describe('D2 corpus resolution', () => {
     expect(fs.existsSync(paths.repoCorpusPath('probes.jsonl'))).toBe(true);
   });
 
-  test('requireCorpus exits 2 with run-install hint when the corpus is truly absent', () => {
+  test('requireCorpus exits 2 with the ADR-0038 D3 env-override hint when the corpus is truly absent', () => {
     // Relocate the module out of the repo so its repo-private fallback also
     // resolves to nothing; env points at an empty dir. Assert the real exit 2.
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-absent-'));
@@ -42,7 +42,7 @@ describe('D2 corpus resolution', () => {
         "process.env.JIAHAO_CORPUS_DIR=process.argv[1]; require(process.argv[2]).requireCorpus('probes.jsonl'); console.log('NO-EXIT');",
         empty, modPath], { encoding: 'utf8' });
       expect(r.status).toBe(2);
-      expect(r.stderr).toMatch(/run: jiahao init/);
+      expect(r.stderr).toMatch(/JIAHAO_CORPUS_DIR/);
       expect(r.stdout).not.toMatch(/NO-EXIT/);
     } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
   });
@@ -50,9 +50,9 @@ describe('D2 corpus resolution', () => {
 
 describe('D2 thresholds.json private_corpus anchors', () => {
   const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'bench', 'polygraph', 'thresholds.json'), 'utf8'));
-  test('private_corpus lists the three corpora with sha256', () => {
+  test('private_corpus lists the four corpora with sha256', () => {
     expect(Array.isArray(cfg.private_corpus)).toBe(true);
-    expect(cfg.private_corpus).toHaveLength(3);
+    expect(cfg.private_corpus).toHaveLength(4);
     for (const e of cfg.private_corpus) expect(e.sha256).toMatch(/^[0-9a-f]{64}$/);
   });
   test('public anchors match the local corpus bytes', () => {
@@ -65,7 +65,7 @@ describe('D2 thresholds.json private_corpus anchors', () => {
 
 describe('D6 check-corpus-leak', () => {
   const corpusDir = path.join(ROOT, 'private', 'bench-corpus');
-  const rules = leak.buildRules({ 'probes.jsonl': path.join(corpusDir, 'probes.jsonl'), 'judge-twins.jsonl': path.join(corpusDir, 'judge-twins.jsonl'), 'twins.jsonl': path.join(corpusDir, 'twins.jsonl') });
+  const rules = leak.buildRules({ 'probes.jsonl': path.join(corpusDir, 'probes.jsonl'), 'judge-twins.jsonl': path.join(corpusDir, 'judge-twins.jsonl'), 'twins.jsonl': path.join(corpusDir, 'twins.jsonl'), 'mr-probes.jsonl': path.join(corpusDir, 'mr-probes.jsonl') });
 
   test('real worktree scan is clean', () => {
     expect(leak.checkLeaks(ROOT, rules, null)).toEqual([]);
@@ -130,7 +130,7 @@ describe('D5 corpus freshness ladder', () => {
   test('config tiers and multiplier as declared (half-yearly 6, yearly 12, mult 1.5)', () => {
     const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'bench', 'polygraph', 'corpus-freshness.json'), 'utf8'));
     expect(cfg.fail_multiplier).toBe(1.5);
-    expect(cfg.tiers).toEqual({ 'probes.jsonl': 6, 'judge-twins.jsonl': 6, 'twins.jsonl': 12 });
+    expect(cfg.tiers).toEqual({ 'probes.jsonl': 6, 'judge-twins.jsonl': 6, 'mr-probes.jsonl': 6, 'twins.jsonl': 12 });
   });
   test('the CLI is green against the current corpus + ledger', () => {
     const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'check-corpus-freshness.js')], { cwd: ROOT, encoding: 'utf8' });
@@ -140,7 +140,7 @@ describe('D5 corpus freshness ladder', () => {
 
 describe('ADR-0036 audit follow-ups (2026-08-31)', () => {
   const corpusDirA = path.join(ROOT, 'private', 'bench-corpus');
-  const NAMES = ['probes.jsonl', 'judge-twins.jsonl', 'twins.jsonl'];
+  const NAMES = ['probes.jsonl', 'judge-twins.jsonl', 'mr-probes.jsonl', 'twins.jsonl'];
 
   test('freshness: a future timestamp fails closed (stale, never fresh)', () => {
     const NOW = Date.parse('2026-08-30T00:00:00Z');

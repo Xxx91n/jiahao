@@ -12,7 +12,8 @@
     "judge:bias": "node bench/polygraph/check-judge-bias.js",
     "coverage:gate": "node scripts/check-coverage.js",
     "deferred:gate": "node scripts/check-deferred.js",
-    "gate:all": "node scripts/run-gates.js"
+    "gate:all": "node scripts/run-gates.js",
+    "mr:gate": "node scripts/check-mr-probes.js"
   },
   "devDependencies": {
     "jest": "^29.7.0"
@@ -23,5 +24,18 @@
   },
   "bin": {
     "jiahao": "scripts/install.js"
-  }
+  },
+  "files": [
+    "src/",
+    "scripts/",
+    "adapters/",
+    "schemas/",
+    "hooks/",
+    "jiahao-mcp/",
+    "docs/",
+    "bench/polygraph/thresholds.json",
+    "CONTEXT.md",
+    "README.md",
+    "AGENTS.md"
+  ]
 }

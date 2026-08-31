@@ -148,6 +148,17 @@
       "source_adr": "docs/adr/0036-anti-gaming-audit-corpus-migration-freshness-gate-defaults.md",
       "order": 195,
       "params": {}
+    },
+    {
+      "name": "mr-probes",
+      "command": "node scripts/check-mr-probes.js --ci --artifacts-dir mr-artifacts",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0037-metamorphic-relations-third-corpus-family-staged-hybrid.md",
+      "order": 175,
+      "params": {
+        "ci": true,
+        "artifacts-dir": "mr-artifacts"
+      }
     }
   ]
 }

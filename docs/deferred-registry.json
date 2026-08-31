@@ -80,6 +80,34 @@
       "cadence_tier": "quarterly",
       "registered_at": "2026-08-30",
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0006",
+      "subject": "MR corpus v2 pipeline: LLM-generated candidate transforms + independent semantic-preservation judge (ASE 2026 two-layer, different model family) + paired McNemar (Amazon LLM-Accuracy-Stats) + FWER control",
+      "source_adr": "docs/adr/0037-metamorphic-relations-third-corpus-family-staged-hybrid.md",
+      "rationale": "v1 is hand-authored because judge-validated machine generation cannot feed a zero-false-positive corpus (LLMorph: unverified transforms are only ~42-60% true positives). Scaling past ~12 pairs needs the two-layer pipeline and paired statistics; both are buildable on demand, so v1 is frozen instead of pre-built.",
+      "unfreeze_if": {
+        "type": "count-threshold",
+        "check": "any single MR family accumulates >= 30 real cases (the ADR-0029 D3 graduation line), OR a freshness cycle demands corpus regeneration at a scale hand-authoring cannot carry"
+      },
+      "review_at": "2027-02-28",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-08-31",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0007",
+      "subject": "private-registry corpus distribution channel (publish=false / access-controlled npm registry package, Cargo/Turborepo internal-package pattern)",
+      "source_adr": "docs/adr/0038-npm-runtime-artifact-surface-corpus-distribution-boundary.md",
+      "rationale": "No external consumer demand exists today; the maintainer/CI channel (CI secret tar) covers all real reproduction needs. Building the channel now would pay the two-package version-sync cost for zero demand (ADR-0038 R1 reasoning).",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a real external consumer of the benchmark corpus exists (an external team attempting reproduction) AND an access-controlled private channel is provisioned"
+      },
+      "review_at": "2027-02-28",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-08-31",
+      "status": "pending-evaluation"
     }
   ]
 }

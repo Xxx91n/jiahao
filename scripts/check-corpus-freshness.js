@@ -4,7 +4,8 @@
 // warn at tier expiry, fail-closed at tier x fail_multiplier).
 //
 // Fact sources (no duplicated state): judge-twins reads the reverify-ledger
-// tail (ADR-0030 single fact source); probes reads max(collected_at) inside
+// tail (ADR-0030 single fact source); probes and mr-probes (ADR-0037: same
+// half-yearly tier) read max(collected_at) inside
 // the corpus (the ADR-0036 D3 refresh seeds it); twins reads fresh_since in
 // bench/polygraph/corpus-freshness.json - it has no reverify channel and no
 // collected_at field, the registry entry is the bootstrap anchor.
@@ -73,7 +74,7 @@ function resolveFacts(cfg) {
   for (const name of Object.keys(cfg.tiers)) {
     if (name === 'judge-twins.jsonl') { facts[name] = ledgerTail(ledger); continue; }
     const file = requireCorpus(name); // exit 2 + run-install hint when absent
-    if (name === 'probes.jsonl') {
+    if (name === 'probes.jsonl' || name === 'mr-probes.jsonl') {
       const entries = fs.readFileSync(file, 'utf8').split(/\r?\n/).filter(x => x.trim()).map(JSON.parse);
       facts[name] = maxCollectedAt(entries);
     } else {

@@ -112,10 +112,10 @@ metric shopping).
 
 ### D6 v2 trigger (deferred-registry entry, pending-evaluation)
 
-A new deferred-registry entry registers the v2 pipeline: unfreeze_if =
+A new deferred-registry entry (defer-0006) registers the v2 pipeline: unfreeze_if =
 any single MR family accumulates >= 30 real cases (the ADR-0029 D3 graduation
 line) OR a freshness cycle demands corpus regeneration at scale; cadence_tier
-half-yearly; verified_by points at the check-mr-probes.js wiring test. On
+half-yearly; verified_by is intentionally absent: the trigger is not machine-evaluable by an existing exit-code script, so per ADR-0035 D6 the entry carries no verified_by and stays pending-evaluation; the jest wiring test for check-mr-probes.js asserts the registration exists. On
 activation, the v2 pipeline MUST adopt the ASE'26 two-layer design: LLM
 generation candidates -> independent semantic-preservation judge of a
 *different model family* (Self-Preference Bias record) -> refusal-treats-as-

@@ -71,7 +71,7 @@ principle applied to error strings.
 
 The only legitimate future form of a corpus distribution channel is a
 `publish=false` / access-controlled private-registry package (Cargo/Turborepo
-internal-package pattern). It is registered as a deferred-registry entry
+internal-package pattern). It is registered as deferred-registry entry defer-0007
 (pending-evaluation, presence-condition: a real external consumer demand AND
 an access-controlled channel existing), not built.
 
@@ -97,3 +97,18 @@ an access-controlled channel existing), not built.
 - The npm artifact shrinks to roughly 50 KB and becomes honest about what it
   is: a prompt-installer. Benchmark reproduction moves entirely to the
   maintainer/CI channel.
+
+## Implementation note (2026-08-31, impl round)
+
+- Measured tarball after the D1 whitelist: 237,590 bytes compressed / 118 files
+  (uncompressed 725 KB). The ~50 KB estimate was computed against a stale tree
+  and is unreachable with the D1 whitelist intact: docs/adr alone is 228 KB
+  uncompressed (38 ADRs are developer docs) and CONTEXT.md adds 65 KB. The
+  wiring test asserts < 256 KB (measured + headroom). If a hard cap is wanted,
+  a follow-up ADR should move docs/adr out of the npm artifact (archive
+  channel), not weaken the files-whitelist boundary.
+- npm always-includes `README.md` in every packed directory (unconditional);
+  `bench/polygraph/README.md` is therefore present and is allowed by the
+  wiring assertion alongside thresholds.json.
+- `jiahao-mcp/package-lock.json` is excluded via `jiahao-mcp/.npmignore`
+  (install-time lock, not a runtime artifact).

@@ -25,7 +25,7 @@ const { requireCorpus, evidencePath, evidenceKeysPath } = require('../src/shared
 
 const ROOT = path.join(__dirname, '..');
 const CFG_REL = path.join('bench', 'polygraph', 'thresholds.json');
-const CORPORA = ['probes.jsonl', 'judge-twins.jsonl', 'twins.jsonl'];
+const CORPORA = ['probes.jsonl', 'judge-twins.jsonl', 'twins.jsonl', 'mr-probes.jsonl'];
 
 const SKIP_DIRS = new Set(['.git', 'node_modules', 'private', 'results', 'probe-artifacts', 'bench-artifacts', 'coverage', 'dist', '.codegraph', '.codex-tmp', '.scratch']);
 const BINARY_EXT = new Set(['.png', '.ico', '.icns', '.jpg', '.jpeg', '.gif', '.webp', '.exe', '.dll', '.node', '.pdb', '.msi', '.so', '.dylib', '.bin', '.zip', '.gz', '.tar', '.7z', '.db']);

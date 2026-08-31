@@ -136,6 +136,20 @@ the attested injection path), opencode has no hook/exit-2 mechanism yet
 (upstream #12472 open, #14551 not-planned) and therefore sits in the
 instruction tier, and aider loads the rules only via opt-in `read:` config.
 
+## Distribution boundary (ADR-0038)
+
+The npm tarball is a runtime artifact: it installs the prompt profiles and the
+gate scripts, nothing more. The benchmark answer corpora
+(`probes.jsonl` / `judge-twins.jsonl` / `twins.jsonl` / `mr-probes.jsonl`)
+are a maintainer/CI asset and are **not distributed** — neither in the npm
+package, nor in a public git clone (a fresh clone of the public repo also
+carries no corpus). Scripts that need a corpus resolve
+`JIAHAO_CORPUS_DIR` -> the install-planted dir -> the repo-private
+`private/bench-corpus/` dir, and fail closed (exit 2) with an honest message
+when the corpus legitimately does not exist. Reproducing the benchmark gates
+is a maintainer/CI-channel operation; third-party installs are a
+prompt-installer surface only.
+
 ## Usage
 
 - `/jiahao lite` — rungs 1-2 only, skip LLM critic
