@@ -383,7 +383,8 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0035 deferred registry maturation: review cadence ladder (quarterly/half-yearly/yearly by type x likelihood x exposure) + pending-evaluation residency SLA min(2 cycles, 12 months) + weak-form check_in discipline (warn-level) + defer-0002 split (0002 external-event narrowed / new defer-0005 free-text protocol-verification) + defer-0004 honest presence-condition via real verified_by assertion script + check-deferred.js verified_by enforcement (unverified claim auto-downgrades to pending-evaluation)
 - ADR-0036 anti-gaming audit: NIST CAISI boundary (contamination vs grader gaming, A-2+A-3 subset) + answer-corpus migration to private/bench-corpus (probes/judge-twins/twins; thresholds stays public with private_corpus sha256 anchors) + known-exposed history handling (probes refresh now, twins on cycle) + gate-defaults params consistency assertion + corpus-freshness gate (cadence-tiered, tier warn / 1.5x fail-closed, event trigger) + check-corpus-leak fingerprint gate
 - ADR-0037 metamorphic relations third corpus family: staged hybrid (v1 hand-authored selected MR specs, v2 deferred LLM+judge pipeline) + <=3 pre-registered families (claim negation / equivalence restatement / evidence flip) + IL5/IL6 declared-gap + deterministic check-mr-probes.js zero-violation gate + Wilson honest annotation / McNemar at v2
-- ADR-0038 npm runtime-artifact surface: files whitelist tarball-as-wheel (~50KB prompt-installer) + corpus gates maintainer/CI-only fail-closed by design (git clone also carries no corpus) + honest missing-corpus message + private-registry-only future corpus channel (deferred)
+- ADR-0038 npm runtime-artifact surface: files whitelist tarball-as-wheel (prompt-installer, measured budget per ADR-0039) + corpus gates maintainer/CI-only fail-closed by design (git clone also carries no corpus) + honest missing-corpus message + private-registry-only future corpus channel (deferred)
+- ADR-0039 tarball runtime surface narrowing: docs/adr + docs/agents leave the npm artifact (archive channel = the git tree itself; no Releases/sparse-checkout infrastructure), whitelist keeps docs/gates.json + coverage-map.json + deferred-registry.json machine fact-sources + CONTEXT.md vocabulary asset; measured-anchor budget 200,000 bytes with ADR-text content anchor, single confirmatory tier, no warn band
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -1138,7 +1139,7 @@ _Avoid_: skipping validation on "obviously equivalent" rewrites
 **Runtime-Artifact Surface (运行时工件面)**:
 ADR-0038's dual-surface distribution model, isomorphic to Python's
 wheel/sdist: the npm tarball is the runtime artifact (prompt-installer only,
-files-whitelisted, ~50KB); the git tree is the development surface (tests,
+files-whitelisted, measured-anchor budget 200,000 bytes per ADR-0039); the git tree is the development surface (tests,
 fixtures, integrity anchors, ADRs). Answer corpora appear on neither public
 surface; they resolve only via JIAHAO_CORPUS_DIR / install-planted /
 maintainer-tree tiers (ADR-0036).

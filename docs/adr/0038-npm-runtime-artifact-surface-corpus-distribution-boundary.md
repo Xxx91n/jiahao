@@ -2,6 +2,7 @@
 
 Status: Accepted
 Date: 2026-08-31
+Amended by: ADR-0039 (narrows D1: docs/adr leaves the tarball; measured 200,000-byte budget)
 
 Amends: ADR-0036 (clarifies distribution boundary now that the corpus is
 private; adds the missing artifact-surface decision)
