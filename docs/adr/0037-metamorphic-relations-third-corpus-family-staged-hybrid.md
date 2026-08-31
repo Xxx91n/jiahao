@@ -105,7 +105,7 @@ with the IL5/IL6 declared-gap rows.
 ### D5 Statistical honesty
 
 v1 is a structural smoke gate: zero miss / zero fp with a Wilson 95% lower
-bound honestly annotated, exactly mirroring ADR-0029 D3 (the statistical load
+bound honestly annotated (12/12 observed pairs, Wilson lower bound 75.8%), exactly mirroring ADR-0029 D3 (the statistical load
 stays with the 396-item frozen corpus). No per-family tuned thresholds:
 MR-related thresholds, if ever needed, are global (ASE'26 rejects per-family
 metric shopping).

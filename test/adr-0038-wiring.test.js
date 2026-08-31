@@ -10,17 +10,18 @@ const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'))
 const { corpusMissingMessage } = require('../src/shared/paths.js');
 
 describe('D1: files whitelist = runtime artifact surface', () => {
-  test('files whitelist matches the ADR-0038 D1 set', () => {
-    expect(pkg.files).toEqual(['src/', 'scripts/', 'adapters/', 'schemas/', 'hooks/', 'jiahao-mcp/', 'docs/', 'bench/polygraph/thresholds.json', 'CONTEXT.md', 'README.md', 'AGENTS.md']);
+  test('files whitelist matches the ADR-0039 D1 narrowed set', () => {
+    expect(pkg.files).toEqual(['src/', 'scripts/', 'adapters/', 'schemas/', 'hooks/', 'jiahao-mcp/', 'docs/gates.json', 'docs/coverage-map.json', 'docs/deferred-registry.json', 'bench/polygraph/thresholds.json', 'CONTEXT.md', 'README.md', 'AGENTS.md']);
   });
 
-  test('npm pack dry-run tarball: no test/, no bench fixtures, thresholds.json present, <256KB (see size-cap deviation note)', () => {
+  test('npm pack dry-run tarball: no test/, no docs/adr, no bench fixtures, thresholds.json present, <200,000 bytes (ADR-0039 D3)', () => {
     // shell: true on win32 - Node >=18.20 refuses to spawn .cmd/.bat without it (EINVAL)
     const res = spawnSync('npm', ['pack', '--dry-run', '--json'], { cwd: ROOT, encoding: 'utf8', shell: process.platform === 'win32' });
     expect(res.status).toBe(0);
     const out = JSON.parse(res.stdout.trim())[0];
     const names = out.files.map(f => f.path);
     expect(names.some(f => f.startsWith('test/'))).toBe(false);
+    expect(names.some(f => f.startsWith('docs/adr'))).toBe(false);
     expect(names.some(f => f.startsWith('private/'))).toBe(false);
     // npm always-includes README.md in any directory it packs (unconditional, cannot be overridden);
     // thresholds.json is the only bench file we whitelist. README.md in bench/polygraph is public docs, no fixture data.
@@ -30,12 +31,18 @@ describe('D1: files whitelist = runtime artifact surface', () => {
     for (const must of ['package.json', 'src/SKILL.md', 'src/shared/paths.js', 'scripts/install.js', 'scripts/check-mr-probes.js', 'docs/gates.json', 'bench/polygraph/thresholds.json', 'CONTEXT.md', 'README.md', 'AGENTS.md']) {
       expect(names).toContain(must);
     }
-    // Deviation (impl round 2026-08-31): ADR-0038 estimated ~50KB; measured 233KB with the
-    // mandated D1 whitelist intact (docs/adr 228KB + CONTEXT.md 65KB uncompressed dominate).
-    // 60KB is unreachable without violating the D1 whitelist; cap set to measured + headroom,
-    // deviation recorded in the handoff and flagged for an ADR-0038 cap amendment.
-    expect(out.size).toBeLessThan(256 * 1024);
+    // ADR-0039 D3 (2026-08-31 impl round): measured-anchor budget. 256KB provisional cap
+    // replaced by 200,000 bytes (npm decimal display unit); docs/adr left the tarball, so the.
+    // Cap value is content-anchored in ADR-0039 (see D3 anchor test below).
+    expect(out.size).toBeLessThan(200_000);
   }, 60000);
+});
+
+describe('ADR-0039 D3: cap content anchor', () => {
+  test('the 200,000-byte cap appears verbatim in ADR-0039', () => {
+    const adr = fs.readFileSync(path.join(ROOT, 'docs', 'adr', '0039-tarball-runtime-surface-narrowing-docs-adr-archive-channel.md'), 'utf8');
+    expect(adr).toContain('200,000');
+  });
 });
 
 describe('D3: honest three-state missing-corpus message', () => {

@@ -148,7 +148,12 @@ function toJunitMr(result) {
 // ---- thin CLI ----
 
 function readJsonl(file) {
-  return fs.readFileSync(file, 'utf8').split(/\r?\n/).filter(x => x.trim()).map(JSON.parse);
+  try {
+    return fs.readFileSync(file, 'utf8').split(/\r?\n/).filter(x => x.trim()).map(JSON.parse);
+  } catch (e) {
+    console.error('[mr-gate] FAIL-CLOSED: corpus file is not valid JSONL (' + e.message + ')');
+    process.exit(2);
+  }
 }
 
 function parseArgs(argv) {
@@ -173,7 +178,9 @@ function main() {
     for (const e of schemaErrs) console.error('[mr-gate] FAIL-CLOSED: ' + e);
     process.exit(2);
   }
-  const cfg = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8'));
+  let cfg;
+  try { cfg = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8')); }
+  catch (e) { console.error('[mr-gate] FAIL-CLOSED: thresholds.json is invalid JSON (' + e.message + ')'); process.exit(2); }
   const cfgErr = mrGatesConfigError(cfg);
   if (cfgErr) { console.error('[mr-gate] FAIL-CLOSED: ' + cfgErr); process.exit(2); }
   const gates = cfg.mr_gates;

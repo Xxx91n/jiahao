@@ -174,4 +174,20 @@ describe('registration wiring (ADR-0031 D1: assert the state the gates actually 
     expect(run.stderr).toMatch(/missing mr-probes\.jsonl/);
     expect(run.stderr).toMatch(/not distributed/);
   });
+
+  test('corrupted corpus JSONL fails closed with exit 2 (audit F1/F8 regression lock)', () => {
+    // Maintainer-shaped tree: private/bench-corpus present, mr-probes.jsonl has
+    // a bad line. Malformed JSONL must fail closed (exit 2), never stack-trace.
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-mr-badjson-'));
+    fs.mkdirSync(path.join(tmp, 'scripts'));
+    fs.mkdirSync(path.join(tmp, 'src', 'shared'), { recursive: true });
+    fs.mkdirSync(path.join(tmp, 'private', 'bench-corpus'), { recursive: true });
+    fs.copyFileSync(path.join(ROOT, 'scripts', 'check-mr-probes.js'), path.join(tmp, 'scripts', 'check-mr-probes.js'));
+    fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'paths.js'), path.join(tmp, 'src', 'shared', 'paths.js'));
+    fs.writeFileSync(path.join(tmp, 'private', 'bench-corpus', 'mr-probes.jsonl'), '{"id":"IL1-mr-v1"}\n{not json}\n');
+    const run = spawnSync(process.execPath, [path.join(tmp, 'scripts', 'check-mr-probes.js')], { cwd: tmp, encoding: 'utf8' });
+    expect(run.status).toBe(2);
+    expect(run.stderr).toMatch(/FAIL-CLOSED/);
+    expect(run.stderr).toMatch(/not valid JSONL/);
+  });
 });

@@ -58,7 +58,11 @@ function corpusMissingMessage(name, envOverride, maintainerTree) {
 function requireCorpus(name) {
   const cands = [corpusPath(name), repoCorpusPath(name)];
   for (const p of cands) if (fs.existsSync(p)) return p;
-  const maintainerTree = fs.existsSync(path.join(__dirname, '..', '..', '.git'));
+  // ADR-0038 D2: .git also exists in a public clone, so it cannot identify the
+  // maintainer tier; private/bench-corpus is gitignored and present only in a
+  // maintainer tree. Everything else (public clone, npm artifact) gets the
+  // honest third-party message.
+  const maintainerTree = fs.existsSync(path.join(__dirname, '..', '..', 'private', 'bench-corpus'));
   console.error(corpusMissingMessage(name, process.env.JIAHAO_CORPUS_DIR || null, maintainerTree));
   process.exit(2);
 }

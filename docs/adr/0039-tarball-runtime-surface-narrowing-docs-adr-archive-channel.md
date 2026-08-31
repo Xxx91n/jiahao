@@ -108,3 +108,14 @@ Exa/Tavily/AnySearch, 17 primary-source fetches, cross-verified):
 - Implementation (next round): package.json files edit, README boundary
   sentence, wiring test cap 256,000 -> 200,000 with dated comment, jest
   green, npm pack --dry-run measured M recorded back into this ADR.
+
+## Implementation note (2026-08-31, impl round)
+
+- Measured tarball after the D1 narrowing: 140,778 bytes compressed / 75 files
+  (uncompressed ~172 KB). docs/adr, docs/agents, and the other developer docs
+  are out; the only remaining docs/ entries are the three machine fact-sources
+  (gates.json 6,025 B, deferred-registry.json 7,774 B, coverage-map.json
+  2,727 B) plus the unconditionally included README.md.
+- 140,778 < 160,000, so no cap recomputation: the 200,000-byte budget stands
+  (D3). The adr-0038-wiring test asserts out.size < 200,000 and anchors
+  200,000 verbatim against this ADR (content anchor, ADR-0027 D2(a) pattern).
