@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0034: machine registry of the CI gate family (fifth fact-source, sibling to thresholds.json / coverage-map.json / host-contracts.json / deferred-registry.json). One entry per gate: {name, command, tier, source_adr, order}. order is a required integer with no default; bands: 0-99 meta-checks (gates-alignment, ci-wiring, gates-coupling - names structurally asserted by scripts/run-gates.js, CRTM-as-entry), 100+ functional gates. tier reuses the ADR-0031 D3 vocabulary: confirmatory fails the run; observational records and never blocks; deferred-with-unfreeze is registered but skipped. Execution: default complete-run aggregates all breaches; --fail-fast is opt-in and short-circuits confirmatory failures only (ADR-0034 D3). Advisory band warnings aggregate into one ::warning:: annotation (ADR-0027 D3). Changes to this file require a same-commit ADR via the shared ADR-0027 couplingViolation guard (gates-coupling entry, CI_BASE_REF). CI invokes exactly one entrypoint: npm run gate:all (D2/D5); per-gate npm aliases remain for debugging (D6).",
+  "_doc": "ADR-0034: machine registry of the CI gate family (fifth fact-source, sibling to thresholds.json / coverage-map.json / host-contracts.json / deferred-registry.json). One entry per gate: {name, command, tier, source_adr, order}. order is a required integer with no default; bands: 0-99 meta-checks (gates-alignment, ci-wiring, gates-coupling - names structurally asserted by scripts/run-gates.js, CRTM-as-entry), 100+ functional gates. tier reuses the ADR-0031 D3 vocabulary: confirmatory fails the run; observational records and never blocks; deferred-with-unfreeze is registered but skipped. Execution: default complete-run aggregates all breaches; --fail-fast is opt-in and short-circuits confirmatory failures only (ADR-0034 D3). Advisory band warnings aggregate into one ::warning:: annotation (ADR-0027 D3). Changes to this file require a same-commit ADR via the shared ADR-0027 couplingViolation guard (gates-coupling entry, CI_BASE_REF). CI invokes exactly one entrypoint: npm run gate:all (D2/D5); per-gate npm aliases remain for debugging (D6). ADR-0040 D1: every entry declares requires, drawn from the closed enum repo-tree/bench-corpus/docs-adr/ci-mode (src/shared/capability.js); gates probe capabilities before loading runtime dependencies - a deterministically absent capability exits 2 (UNVERIFIABLE), an unknown name is a registry violation.",
   "entries": [
     {
       "name": "gates-alignment",
@@ -10,7 +10,8 @@
       "order": 0,
       "params": {
         "check-alignment": true
-      }
+      },
+      "requires": []
     },
     {
       "name": "ci-wiring",
@@ -18,7 +19,10 @@
       "tier": "confirmatory",
       "source_adr": "docs/adr/0034-gate-registry-single-entrypoint-orchestration.md",
       "order": 1,
-      "params": {}
+      "params": {},
+      "requires": [
+        "ci-mode"
+      ]
     },
     {
       "name": "gates-coupling",
@@ -28,7 +32,11 @@
       "order": 2,
       "params": {
         "check-coupling": true
-      }
+      },
+      "requires": [
+        "repo-tree",
+        "docs-adr"
+      ]
     },
     {
       "name": "test",
@@ -36,7 +44,8 @@
       "tier": "confirmatory",
       "source_adr": "CONTEXT.md",
       "order": 100,
-      "params": {}
+      "params": {},
+      "requires": []
     },
     {
       "name": "drift",
@@ -44,7 +53,10 @@
       "tier": "confirmatory",
       "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
       "order": 110,
-      "params": {}
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ]
     },
     {
       "name": "adapters-golden",
@@ -54,7 +66,10 @@
       "order": 120,
       "params": {
         "check": true
-      }
+      },
+      "requires": [
+        "repo-tree"
+      ]
     },
     {
       "name": "host-contracts",
@@ -62,7 +77,10 @@
       "tier": "confirmatory",
       "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
       "order": 130,
-      "params": {}
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ]
     },
     {
       "name": "bench-thresholds",
@@ -70,7 +88,11 @@
       "tier": "confirmatory",
       "source_adr": "docs/adr/0027-bench-gate-pre-registered-threshold-enforcement.md",
       "order": 140,
-      "params": {}
+      "params": {},
+      "requires": [
+        "repo-tree",
+        "docs-adr"
+      ]
     },
     {
       "name": "bench-gate",
@@ -80,7 +102,11 @@
       "order": 150,
       "params": {
         "ci": true
-      }
+      },
+      "requires": [
+        "repo-tree",
+        "ci-mode"
+      ]
     },
     {
       "name": "probe-corpus",
@@ -88,7 +114,10 @@
       "tier": "confirmatory",
       "source_adr": "docs/adr/0029-verifier-effectiveness-behavioral-probe-gate.md",
       "order": 155,
-      "params": {}
+      "params": {},
+      "requires": [
+        "bench-corpus"
+      ]
     },
     {
       "name": "probes",
@@ -99,7 +128,11 @@
       "params": {
         "ci": true,
         "artifacts-dir": "probe-artifacts"
-      }
+      },
+      "requires": [
+        "bench-corpus",
+        "ci-mode"
+      ]
     },
     {
       "name": "judge-bias",
@@ -107,7 +140,10 @@
       "tier": "confirmatory",
       "source_adr": "docs/adr/0031-wiring-assertions-judge-bias-gate-tiers-isolation-provenance-debt-pack.md",
       "order": 170,
-      "params": {}
+      "params": {},
+      "requires": [
+        "bench-corpus"
+      ]
     },
     {
       "name": "coverage",
@@ -115,7 +151,8 @@
       "tier": "confirmatory",
       "source_adr": "docs/adr/0032-generator-surface-rules-deepening-gsr-coverage-lifecycle.md",
       "order": 180,
-      "params": {}
+      "params": {},
+      "requires": []
     },
     {
       "name": "deferred",
@@ -123,7 +160,8 @@
       "tier": "confirmatory",
       "source_adr": "docs/adr/0033-deferred-unfreeze-registry-pending-evaluation-expiry-forces-action.md",
       "order": 190,
-      "params": {}
+      "params": {},
+      "requires": []
     },
     {
       "name": "corpus-leak",
@@ -131,7 +169,11 @@
       "tier": "confirmatory",
       "source_adr": "docs/adr/0036-anti-gaming-audit-corpus-migration-freshness-gate-defaults.md",
       "order": 145,
-      "params": {}
+      "params": {},
+      "requires": [
+        "repo-tree",
+        "bench-corpus"
+      ]
     },
     {
       "name": "corpus-freshness",
@@ -139,7 +181,10 @@
       "tier": "confirmatory",
       "source_adr": "docs/adr/0036-anti-gaming-audit-corpus-migration-freshness-gate-defaults.md",
       "order": 165,
-      "params": {}
+      "params": {},
+      "requires": [
+        "bench-corpus"
+      ]
     },
     {
       "name": "gate-params",
@@ -147,7 +192,8 @@
       "tier": "confirmatory",
       "source_adr": "docs/adr/0036-anti-gaming-audit-corpus-migration-freshness-gate-defaults.md",
       "order": 195,
-      "params": {}
+      "params": {},
+      "requires": []
     },
     {
       "name": "mr-probes",
@@ -158,7 +204,11 @@
       "params": {
         "ci": true,
         "artifacts-dir": "mr-artifacts"
-      }
+      },
+      "requires": [
+        "bench-corpus",
+        "ci-mode"
+      ]
     }
   ]
 }

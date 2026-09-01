@@ -32,9 +32,15 @@ describe('D1: files whitelist = runtime artifact surface', () => {
       expect(names).toContain(must);
     }
     // ADR-0039 D3 (2026-08-31 impl round): measured-anchor budget. 256KB provisional cap
-    // replaced by 200,000 bytes (npm decimal display unit); docs/adr left the tarball, so the.
-    // Cap value is content-anchored in ADR-0039 (see D3 anchor test below).
-    expect(out.size).toBeLessThan(200_000);
+    // replaced by 200,000 bytes (npm decimal display unit); docs/adr left the tarball, so the
+    // measured base (~141 kB) sits comfortably under a tight cap. The cap is
+    // parsed from ADR-0039 (F3: no magic number duplicated in test).
+    const adr39 = fs.readFileSync(path.join(ROOT, 'docs', 'adr', '0039-tarball-runtime-surface-narrowing-docs-adr-archive-channel.md'), 'utf8');
+    const capM = adr39.match(/out\.size < ([\d,]+) bytes/);
+    expect(capM).not.toBeNull();
+    const cap = Number(capM[1].replace(/,/g, ''));
+    expect(cap).toBe(200000);
+    expect(out.size).toBeLessThan(cap);
   }, 60000);
 });
 

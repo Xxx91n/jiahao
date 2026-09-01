@@ -20,6 +20,7 @@ const fs = require('fs');
 const path = require('path');
 const { MONTH_MS } = require('../src/reverify-schedule');
 const { requireCorpus } = require('../src/shared/paths');
+const { requireCapabilities } = require('../src/shared/capability');
 
 const ROOT = path.join(__dirname, '..');
 const CFG_REL = path.join('bench', 'polygraph', 'corpus-freshness.json');
@@ -85,6 +86,7 @@ function resolveFacts(cfg) {
 }
 
 function main(argv) {
+  requireCapabilities('corpus-freshness');
   const hook = argv.includes('--hook');
   const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, CFG_REL), 'utf8'));
   if (!cfg.fail_multiplier || cfg.fail_multiplier <= 1) { console.error('FAIL-CLOSED: fail_multiplier must be > 1 (ADR-0036 D5)'); process.exit(2); }

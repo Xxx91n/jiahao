@@ -25,11 +25,11 @@
 
 const fs = require('fs');
 const path = require('path');
-const { judgeItem } = require(path.join(__dirname, '..', 'bench', 'polygraph', 'node-bridge.js'));
 
 const ROOT = path.join(__dirname, '..');
 const CFG_PATH = path.join(ROOT, 'bench', 'polygraph', 'thresholds.json');
 const { requireCorpus } = require('../src/shared/paths');
+const { requireCapabilities } = require('../src/shared/capability');
 
 // ---- pure core (jest testable, no fs) ----
 
@@ -136,6 +136,7 @@ function parseArgs(argv) {
 
 function main() {
   const opts = parseArgs(process.argv);
+  requireCapabilities('probes');
   let cfg;
   try { cfg = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8')); }
   catch (e) { console.error('[probe-gate] FAIL-CLOSED: thresholds.json is invalid JSON (' + e.message + ')'); process.exit(2); }
@@ -144,7 +145,9 @@ function main() {
   const gates = cfg.probe_gates;
   const corpusFile = requireCorpus('probes.jsonl');
   const cases = readJsonl(corpusFile);
-  const results = runProbes(cases, judgeItem);
+  // audit F5: empty corpus fails closed, symmetric with mr-gate validateMrCorpus.
+  if (!cases.length) { console.error('[probe-gate] FAIL-CLOSED: corpus is empty (fail-closed, symmetric with mr-gate)'); process.exit(2); }
+  const results = runProbes(cases, require(path.join(ROOT, 'bench', 'polygraph', 'node-bridge.js')).judgeItem); // ADR-0040 D2: deferred require - after capability probing
   const metrics = probeMetrics(results);
   const gate = evaluateProbeGates(gates, metrics);
 

@@ -5,6 +5,9 @@
 
 const fs = require('fs');
 const path = require('path');
+const { requireCapabilities } = require('../src/shared/capability');
+
+requireCapabilities('drift'); // ADR-0040 D2: needs a git worktree
 
 const root = path.join(__dirname, '..');
 const skillPath = path.join(root, 'src', 'SKILL.md');

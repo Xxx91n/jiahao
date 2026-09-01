@@ -20,6 +20,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
+const { requireCapabilities } = require('../src/shared/capability');
 
 const ROOT = path.join(__dirname, '..');
 const CFG_REL = path.join('bench', 'polygraph', 'thresholds.json');
@@ -178,6 +179,7 @@ function couplingViolation(changed, baseRef, opts) {
 }
 
 function main() {
+  requireCapabilities('bench-thresholds');
   const baseRef = process.argv[2] || process.env.CI_BASE_REF || null;
   const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, CFG_REL), 'utf8'));
 

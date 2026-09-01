@@ -10,6 +10,7 @@
 'use strict';
 
 const { loadRegistry } = require('./run-gates');
+const { requireCapabilities, validateRequires } = require('../src/shared/capability');
 
 // Parse the flag tail of a command string: --flag (bool true) / --key value.
 function parseFlags(command) {
@@ -52,8 +53,9 @@ function checkParams(registry) {
 module.exports = { parseFlags, checkParams };
 
 if (require.main === module) {
+  requireCapabilities('gate-params');
   const reg = loadRegistry();
-  const errors = checkParams(reg);
+  const errors = validateRequires(reg.entries).concat(checkParams(reg)); // ADR-0040 D1: assert the requires field set
   for (const e of errors) console.error('FAIL: ' + e);
   if (errors.length) process.exit(1);
   console.log('[gate-params] OK: ' + reg.entries.length + ' entries, declared params match effective commands (ADR-0036 D4)');

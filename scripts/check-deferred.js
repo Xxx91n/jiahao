@@ -30,6 +30,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const { couplingViolation } = require('./check-bench-thresholds');
+const { requireCapabilities } = require('../src/shared/capability');
 
 const ROOT = path.join(__dirname, '..');
 const CFG_REL = path.join('docs', 'deferred-registry.json');
@@ -235,6 +236,7 @@ function checkCoupling(baseRef) {
 }
 
 function main() {
+  requireCapabilities('deferred');
   const baseRef = process.argv[2] || process.env.CI_BASE_REF || null;
   const now = process.env.DEFERRED_NOW || new Date().toISOString().slice(0, 10);
   const cfg = loadRegistry();

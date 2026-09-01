@@ -22,6 +22,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { requireCorpus, evidencePath, evidenceKeysPath } = require('../src/shared/paths');
+const { requireCapabilities } = require('../src/shared/capability');
 
 const ROOT = path.join(__dirname, '..');
 const CFG_REL = path.join('bench', 'polygraph', 'thresholds.json');
@@ -120,6 +121,7 @@ function validateAnchors(anchors, corpusFiles) {
 module.exports = { walk, buildRules, scanFile, checkLeaks, validateAnchors, CORPORA, SKIP_DIRS };
 
 if (require.main === module) {
+  requireCapabilities('corpus-leak');
   const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, CFG_REL), 'utf8'));
   const anchors = Array.isArray(cfg.private_corpus) ? cfg.private_corpus : [];
   // Fail-closed corpus availability: requireCorpus exits 2 with run-install hint.

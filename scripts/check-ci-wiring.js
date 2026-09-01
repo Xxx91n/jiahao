@@ -15,6 +15,7 @@
 const fs = require('fs');
 const path = require('path');
 const { loadRegistry } = require('./run-gates');
+const { requireCapabilities, validateRequires } = require('../src/shared/capability');
 
 const ROOT = path.join(__dirname, '..');
 const CI_REL = path.join('.github', 'workflows', 'ci.yml');
@@ -86,11 +87,12 @@ function checkWiring(yml, blocked) {
 }
 
 function main(argv) {
+  requireCapabilities('ci-wiring');
   const ciPath = argv[2] || path.join(ROOT, CI_REL);
   const reg = loadRegistry();
   const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
   const yml = fs.readFileSync(ciPath, 'utf8');
-  const errors = checkWiring(yml, blockedTokens(reg, pkg));
+  const errors = checkWiring(yml, blockedTokens(reg, pkg)).concat(validateRequires(reg.entries)); // ADR-0040 D1: assert the requires field set
   errors.forEach(function (e) { console.error('FAIL: ' + e); });
   if (errors.length) process.exit(1);
   console.log('ci wiring OK (1x gate:all, blocklist ' + blockedTokens(reg, pkg).length + ' tokens from registry)');

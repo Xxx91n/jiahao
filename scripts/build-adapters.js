@@ -8,6 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 const { splitByProfile, validateGsrHeaders } = require('../hooks/jiahao-profile');
+const { requireCapabilities } = require('../src/shared/capability');
 
 const root = path.join(__dirname, '..');
 
@@ -209,6 +210,7 @@ function writeAll() {
 
 function main() {
   if (process.argv.includes('--check')) {
+    requireCapabilities('adapters-golden'); // ADR-0040 D2
     const failures = checkAll();
     if (failures.length > 0) {
       for (const f of failures) {

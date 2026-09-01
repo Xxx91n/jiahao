@@ -29,6 +29,7 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const CFG_PATH = path.join(ROOT, 'bench', 'polygraph', 'thresholds.json');
 const { requireCorpus } = require('../src/shared/paths');
+const { requireCapabilities } = require('../src/shared/capability');
 
 const MR_FAMILIES = ['claim-negation', 'equivalence-restatement', 'evidence-flip'];
 const FAMILY_RELATION = { 'claim-negation': 'flip', 'equivalence-restatement': 'preserve', 'evidence-flip': 'flip' };
@@ -168,6 +169,9 @@ function parseArgs(argv) {
 
 function main() {
   const opts = parseArgs(process.argv);
+  // ADR-0040 D2: capability probing runs before corpus checks and before
+  // the judge bridge loads (deferred require below).
+  requireCapabilities('mr-probes');
   // Corpus resolution + corpus schema gate run BEFORE loading the judge, so a
   // third-party tree (no bench/ adapter chain) still fails closed with exit 2
   // on the honest missing-corpus message (ADR-0038 D3).

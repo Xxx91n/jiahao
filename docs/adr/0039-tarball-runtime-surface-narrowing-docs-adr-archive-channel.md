@@ -61,7 +61,7 @@ Exa/Tavily/AnySearch, 17 primary-source fetches, cross-verified):
   `out.size < 200,000 bytes` (200 kB, npm's decimal display unit). The cap
   value must appear verbatim in this ADR's text (content anchor, reusing
   the ADR-0027 D2(a) mechanism: every gate value appears in its source_adr
-  file). Single confirmatory tier, no warn band. Impl round records the
+  file). Single confirmatory tier, no warn band. The metric is npm pack's `size` field (packed tarball bytes), not `unpackedSize`. Impl round records the
   measured M of the narrowed tarball (expected ~140-150 kB) in an
   Implementation note; if M > 160 kB, the cap is recomputed as
   max(200,000, M * 1.25) and the formula and the new value are written into

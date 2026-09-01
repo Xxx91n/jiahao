@@ -169,9 +169,15 @@ describe('registration wiring (ADR-0031 D1: assert the state the gates actually 
     fs.mkdirSync(path.join(tmp, 'src', 'shared'), { recursive: true });
     fs.copyFileSync(path.join(ROOT, 'scripts', 'check-mr-probes.js'), path.join(tmp, 'scripts', 'check-mr-probes.js'));
     fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'paths.js'), path.join(tmp, 'src', 'shared', 'paths.js'));
+    fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'capability.js'), path.join(tmp, 'src', 'shared', 'capability.js'));
+    fs.mkdirSync(path.join(tmp, 'docs'));
+    fs.copyFileSync(path.join(ROOT, 'docs', 'gates.json'), path.join(tmp, 'docs', 'gates.json'));
     const run = spawnSync(process.execPath, [path.join(tmp, 'scripts', 'check-mr-probes.js')], { cwd: tmp, encoding: 'utf8' });
+    // ADR-0040: the capability probe fires before requireCorpus; a copied tree
+    // can never satisfy bench-corpus, so the honest answer is UNVERIFIABLE.
     expect(run.status).toBe(2);
-    expect(run.stderr).toMatch(/missing mr-probes\.jsonl/);
+    expect(run.stderr).toMatch(/UNVERIFIABLE gate=mr-probes requires=bench-corpus/);
+    expect(run.stderr).toMatch(/not distributed/);
     expect(run.stderr).toMatch(/not distributed/);
   });
 
@@ -184,8 +190,13 @@ describe('registration wiring (ADR-0031 D1: assert the state the gates actually 
     fs.mkdirSync(path.join(tmp, 'private', 'bench-corpus'), { recursive: true });
     fs.copyFileSync(path.join(ROOT, 'scripts', 'check-mr-probes.js'), path.join(tmp, 'scripts', 'check-mr-probes.js'));
     fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'paths.js'), path.join(tmp, 'src', 'shared', 'paths.js'));
+    fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'capability.js'), path.join(tmp, 'src', 'shared', 'capability.js'));
+    fs.mkdirSync(path.join(tmp, 'docs'));
+    fs.copyFileSync(path.join(ROOT, 'docs', 'gates.json'), path.join(tmp, 'docs', 'gates.json'));
     fs.writeFileSync(path.join(tmp, 'private', 'bench-corpus', 'mr-probes.jsonl'), '{"id":"IL1-mr-v1"}\n{not json}\n');
-    const run = spawnSync(process.execPath, [path.join(tmp, 'scripts', 'check-mr-probes.js')], { cwd: tmp, encoding: 'utf8' });
+    const env = Object.assign({}, process.env, { CI: 'true', HOME: tmp, USERPROFILE: tmp });
+    delete env.JIAHAO_CORPUS_DIR;
+    const run = spawnSync(process.execPath, [path.join(tmp, 'scripts', 'check-mr-probes.js')], { cwd: tmp, encoding: 'utf8', env });
     expect(run.status).toBe(2);
     expect(run.stderr).toMatch(/FAIL-CLOSED/);
     expect(run.stderr).toMatch(/not valid JSONL/);

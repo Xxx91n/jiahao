@@ -183,7 +183,7 @@ describe('ADR-0034 smoke (real child processes)', () => {
     expect(() => execFileSync('node', ['scripts/run-gates.js', '--check-alignment'], { cwd: ROOT })).not.toThrow();
   });
   test('check-ci-wiring exits 0 on the real ci.yml', () => {
-    expect(() => execFileSync('node', ['scripts/check-ci-wiring.js'], { cwd: ROOT })).not.toThrow();
+    expect(() => execFileSync('node', ['scripts/check-ci-wiring.js'], { cwd: ROOT, env: Object.assign({}, process.env, { CI: 'true' }) })).not.toThrow();
   });
   test('--check-coupling without a base ref skips green', () => {
     expect(() => execFileSync('node', ['scripts/run-gates.js', '--check-coupling'], { cwd: ROOT })).not.toThrow();

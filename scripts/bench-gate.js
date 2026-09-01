@@ -30,7 +30,8 @@ const path = require('path');
 const os = require('os');
 const crypto = require('crypto');
 const { execFileSync } = require('child_process');
-const { judgeItem } = require(path.join(__dirname, '..', 'bench', 'polygraph', 'node-bridge.js'));
+const { requireCapabilities } = require('../src/shared/capability');
+let judgeItem; // ADR-0040 D2: deferred - loaded in main after capability probing
 
 const ROOT = path.join(__dirname, '..');
 const CFG_PATH = path.join(ROOT, 'bench', 'polygraph', 'thresholds.json');
@@ -206,7 +207,9 @@ function parseArgs(argv) {
 }
 
 function main() {
+  requireCapabilities('bench-gate');
   const opts = parseArgs(process.argv);
+  judgeItem = require(path.join(__dirname, '..', 'bench', 'polygraph', 'node-bridge.js')).judgeItem;
   const cfg = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8'));
 
   const corpus = resolveCorpus(cfg, opts.corpusDir);

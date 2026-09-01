@@ -13,7 +13,7 @@ const FIX = (name) => path.join(__dirname, 'fixtures', 'bench-gate', name);
 function run(script, args) {
   try {
     const out = execFileSync(process.execPath, [script, ...args], {
-      cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+      cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], env: Object.assign({}, process.env, { CI: 'true' }),
     });
     return { code: 0, out };
   } catch (e) {

@@ -20,6 +20,10 @@
 // (e) --check-coupling [BASE_REF]: docs/gates.json same-commit ADR guard via
 //     the shared ADR-0027 couplingViolation (BASE_REF arg or CI_BASE_REF;
 //     absent base = skip, repo convention).
+// (f) ADR-0040: per-entry requires capability precheck via
+//     src/shared/capability.js; a deterministic absence yields status
+//     'unverifiable' (exit 2 gate-side), listed separately and never
+//     blocking; unknown capability names are registry violations.
 //
 // Usage: node scripts/run-gates.js [--fail-fast]
 //        node scripts/run-gates.js --check-alignment
@@ -30,7 +34,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync, execFileSync } = require('child_process');
-const { couplingViolation } = require('./check-bench-thresholds');
+const { probe, requireCapabilities, validateRequires } = require('../src/shared/capability');
 
 const ROOT = path.join(__dirname, '..');
 const REGISTRY_REL = path.join('docs', 'gates.json');
@@ -75,7 +79,7 @@ function validateRegistry(reg, root) {
     if (meta && e.order >= 100) errors.push(e.name + ': meta-check order must be < 100 (band contract)');
     if (!meta && e.order < 100) errors.push(e.name + ': functional gate order must be >= 100 (band contract)');
   });
-  return errors;
+  return errors.concat(validateRequires(reg.entries));
 }
 
 function tokenPrefix(aliasTokens, cmdTokens) {
@@ -117,6 +121,14 @@ function runGates(reg, opts) {
     if (e.tier === 'deferred-with-unfreeze') return skip('skipped-deferred');
     if (o.failFast && e.tier === 'observational') return skip('skipped-observational');
     if (o.failFast && confirmFailed) return skip('skipped-fail-fast');
+    // ADR-0040 D2/D5: capability precheck - a deterministically absent
+    // capability degrades the gate to UNVERIFIABLE, never pass/fail.
+    const probeFn = o.probe || probe;
+    const missing = (e.requires || []).filter(function (c) { return !probeFn(c); });
+    if (missing.length) {
+      results.push({ name: e.name, order: e.order, tier: e.tier, status: 'unverifiable', code: 2, missing: missing, warnings: 0, output: '' });
+      return;
+    }
     const r = exec(e.command);
     const lines = String(r.output || '').split(/\r?\n/);
     const warnLines = lines.filter(function (l) { return /^::warning/.test(l); });
@@ -133,6 +145,7 @@ function runGates(reg, opts) {
 }
 
 function checkCoupling(baseRef) {
+  const { couplingViolation } = require('./check-bench-thresholds'); // ADR-0040 D2: deferred require - probes run before runtime deps load
   const base = baseRef || process.env.CI_BASE_REF || null;
   if (!base) return []; // no base available -> skip (repo convention, ADR-0027 D2)
   let diff;
@@ -155,6 +168,7 @@ function main(argv) {
   const schemaErrors = validateRegistry(reg);
 
   if (args.indexOf('--check-alignment') !== -1) {
+    requireCapabilities('gates-alignment');
     const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, PACKAGE_REL), 'utf8'));
     const errors = schemaErrors.concat(checkAlignment(reg, pkg));
     errors.forEach(function (e) { console.error('FAIL: ' + e); });
@@ -165,6 +179,7 @@ function main(argv) {
 
   const ci = args.indexOf('--check-coupling');
   if (ci !== -1) {
+    requireCapabilities('gates-coupling');
     const next = args[ci + 1];
     const baseRef = next && next.indexOf('--') !== 0 ? next : null;
     const errors = checkCoupling(baseRef);
@@ -189,7 +204,13 @@ function main(argv) {
     const n = warned.reduce(function (a, r) { return a + r.warnings; }, 0);
     console.log('::warning title=gate:all::' + n + ' advisory/band warning(s) from gates: ' + warned.map(function (r) { return r.name; }).join(', '));
   }
-  console.log('gate:all exit ' + res.exitCode + ' (' + res.results.length + ' entries, fail-fast ' + (failFast ? 'on' : 'off') + ')');
+  const unverifiable = res.results.filter(function (r) { return r.status === 'unverifiable'; });
+  if (unverifiable.length) {
+    // ADR-0040 D4/D5: ONE aggregated annotation (GitHub caps 10/step); the
+    // per-gate rows above carry the detail in plain log lines.
+    console.log('::error title=UNVERIFIABLE::' + unverifiable.length + ' gate(s) unverifiable: ' + unverifiable.map(function (r) { return r.name + ' requires ' + r.missing.join('+'); }).join(', '));
+  }
+  console.log('gate:all exit ' + res.exitCode + ' (' + res.results.length + ' entries, ' + unverifiable.length + ' unverifiable, fail-fast ' + (failFast ? 'on' : 'off') + ')');
   process.exit(res.exitCode);
 }
 
