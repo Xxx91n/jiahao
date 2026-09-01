@@ -1158,8 +1158,51 @@ probing
 **UNVERIFIABLE (exit 2)** (ADR-0040): the gate three-state contract - 0 pass / 1 violation
 / 2 cannot-verify because a declared capability is deterministically absent. Exit 2 may
 occur ONLY on a probed-and-negated path; crashes, IO errors and helper bugs stay exit 1
-and expose themselves. Surfaced as a two-line stderr message (a ::error title=UNVERIFIABLE
-annotation line + a human line) and listed as its own column by run-gates. Never recorded
+and expose themselves. Surfaced as a two-line message (a ::error annotation line on stdout with
+comma-separated properties + a human line on stderr; channel corrected by ADR-0041 D5)
+and listed as its own column by run-gates. Never recorded
 in degradation.schema.json (that vocabulary means "ran but degraded").
 _Avoid_: folding infrastructure failures into the verdict vocabulary (Bazel
 TEST_INFRASTRUCTURE_FAILURE_FILE precedent)
+
+**Primary/Secondary Channel Separation (主/辅通道分离)** (ADR-0041 D3): exit code is the
+primary machine channel (three codes only); stderr structured prefixes ([usage]: /
+[config]: / [internal]:) are the auxiliary channel for machine-matchable sub-classification.
+Precedent: Bazel TEST_INFRASTRUCTURE_FAILURE_FILE - auxiliary channels are themselves closed
+enums and purpose-scoped, never a general mechanism.
+_Avoid_: exit-code subclass proliferation (sysexits 64-78), free-form stderr parsing
+
+**Consumer-Driven Constructor Granularity (消费者驱动构造子粒度)** (ADR-0041 D3): the number
+of constructors in a result type equals the match arms its consumers actually have, not the
+taxonomy of its error sources. jiahao's two consumers (run-gates + CI) need 3 bits; all finer
+distinction belongs in the auxiliary channel. Go sentinel-vs-anyhow decision rule applied.
+_Avoid_: error taxonomy mirroring, speculative code spaces
+
+**Domain-Scoped Exit Contracts (域契约隔离)** (ADR-0041 D2, extends ADR-0028): the same exit
+code may carry different meanings in different execution domains (hook domain exit 2 = block;
+gate domain exit 2 = capability-absent-unverifiable; free CLI scripts follow Click/argparse
+usage-error conventions). Contracts bind the orchestrated surface only; free scripts promise
+nothing until they join the registry via a pre-registered channel (ADR-0029 D5).
+_Avoid_: repo-global exit-code unification, implicit cross-domain meaning transfer
+
+**Order-Preserving Cumulative Validation (保序累积验证)** (ADR-0041 D6): dependency-chained
+lanes merge in dependency order, each step validating the cumulative state of everything
+before it plus itself; failure evicts from the queue. GitHub Merge Queue FIFO + GitLab merge
+trains (parallelism is cumulative-state validation run in parallel, never skipped steps) +
+stacked-PR bottom-to-top.
+_Avoid_: batched merge of dependency chains, reverse-order merges, octopus merges on chains
+
+**Internal Toolchain No Grace Period (内部工具链无宽限期)** (ADR-0041 D7): when every consumer
+of a contract lives in the same repo and upgrades in the same commit, breaking changes happen
+by hard cutover with wiring assertions, without deprecation windows. Grace-period machinery
+(K8s 3 releases, Terraform MINOR->MAJOR, Go GODEBUG, Rust editions) exists for external
+ecosystems that cannot upgrade in lockstep. golang.org/x/tools internal-package precedent.
+_Avoid_: dual-track transitions, feature-flagged semantics on registry-internal scripts
+
+**Hyrum Sufficient-Users Premise (Hyrum 定律充分用户前提)** (ADR-0041 D7): Hyrum's Law binds
+only when an API has a sufficient number of external users; an internal toolchain with two
+in-repo consumers is outside its scope - but silent in-repo dependencies on observable
+behavior (test assertions matching old exit codes) are the internal Hyrum list and must be
+updated in the same commit as the semantic change.
+_Avoid_: cargo-culting public-API migration discipline onto internal toolchains (and vice
+versa)

@@ -3,6 +3,9 @@
 Status: Accepted
 Date: 2026-09-01
 
+Amended by: ADR-0041 (D4 message specification corrected: the ::error annotation line
+moves from stderr to stdout with comma-separated properties; see ADR-0041 D5).
+
 References: ADR-0023 (degradation vocabulary scope), ADR-0027 (pre-registered coupling guard),
 ADR-0031 (tier vocabulary reserved for decision severity), ADR-0034 (gates.json registry,
 decision-evidence separation), ADR-0038/0039 (runtime-artifact surface boundary).
@@ -71,8 +74,8 @@ internal vs 36/38 environment; sysexits 69/70/75 distinct; Rust panic-vs-Result;
 abandonment-for-bugs). There is no "transient" bucket: existence probing is boolean; an
 error that prevents even asking is crash-surface.
 
-D4 Two-line degradation message. On exit 2 the gate writes to stderr, in order:
-  line 1 (machine): ::error title=UNVERIFIABLE gate=<name> requires=<capability>::msg
+D4 (DEFECTIVE SPEC - corrected by ADR-0041 D5) Two-line degradation message. On exit 2 the gate writes to stderr, in order:
+  line 1 (machine) [amended, ADR-0041 D5]: stdout ::error title=UNVERIFIABLE,gate=<name>,requires=<capability>::msg
 for GitHub-Actions annotations, isomorphic to the existing ADR-0034 D2 ::warning
 discipline. Rationale: at the GitHub step layer exit codes collapse to zero/nonzero —
 the annotation is the primary visibility channel for exit 2. run-gates aggregates to a
