@@ -108,6 +108,20 @@
       "cadence_tier": "half-yearly",
       "registered_at": "2026-08-31",
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0008",
+      "subject": "local-file:<path> escape form for gate capability probing (one-off custom gates)",
+      "source_adr": "docs/adr/0040-gate-runtime-capability-declaration-three-state-exit-honest-unverifiable.md",
+      "rationale": "The four-capability closed enum covers all 18 current gates; an unconstrained escape slides toward an expression language. systemd precedent: X- prefix is a reserved namespace, not an open verb; if built, it must be prefix-scoped, relative-path-only, and inside the coupling guard's scan range.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a real gate needs an arbitrary-path capability outside the closed enum"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-01",
+      "status": "pending-evaluation"
     }
   ]
 }

@@ -385,6 +385,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0037 metamorphic relations third corpus family: staged hybrid (v1 hand-authored selected MR specs, v2 deferred LLM+judge pipeline) + <=3 pre-registered families (claim negation / equivalence restatement / evidence flip) + IL5/IL6 declared-gap + deterministic check-mr-probes.js zero-violation gate + Wilson honest annotation / McNemar at v2
 - ADR-0038 npm runtime-artifact surface: files whitelist tarball-as-wheel (prompt-installer, measured budget per ADR-0039) + corpus gates maintainer/CI-only fail-closed by design (git clone also carries no corpus) + honest missing-corpus message + private-registry-only future corpus channel (deferred)
 - ADR-0039 tarball runtime surface narrowing: docs/adr + docs/agents leave the npm artifact (archive channel = the git tree itself; no Releases/sparse-checkout infrastructure), whitelist keeps docs/gates.json + coverage-map.json + deferred-registry.json machine fact-sources + CONTEXT.md vocabulary asset; measured-anchor budget 200,000 bytes with ADR-text content anchor, single confirmatory tier, no warn band
+- ADR-0040 gate runtime capability declaration: gates.json gains a closed `requires` enum (repo-tree/bench-corpus/docs-adr/ci-mode), three-state exit 0/1/2 with narrow exit 2 = UNVERIFIABLE, two-line ::error honest-degradation message, run-gates UNVERIFIABLE column, degradation schema explicitly unchanged, regression = helper jest + 4 spawn representatives + static wiring anchor
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -1145,3 +1146,20 @@ surface; they resolve only via JIAHAO_CORPUS_DIR / install-planted /
 maintainer-tree tiers (ADR-0036).
 _Avoid_: tests-in-tarball, .npmignore blacklist reliance (npm: whitelist is
 "by far the safest way")
+
+**Gate Capability Declaration (requires)** (ADR-0040): a per-gate closed-enum array in
+docs/gates.json naming the environment capabilities a gate needs before it may run -
+repo-tree / bench-corpus / docs-adr / ci-mode. Probing is existence-only, never content
+correctness; an unregistered name is a registry violation (closed-world), not a degraded
+run. Vocabulary is orthogonal to ADR-0031's tier (decision severity).
+_Avoid_: open capability vocabularies, inline per-gate sniffing, content checks inside
+probing
+
+**UNVERIFIABLE (exit 2)** (ADR-0040): the gate three-state contract - 0 pass / 1 violation
+/ 2 cannot-verify because a declared capability is deterministically absent. Exit 2 may
+occur ONLY on a probed-and-negated path; crashes, IO errors and helper bugs stay exit 1
+and expose themselves. Surfaced as a two-line stderr message (a ::error title=UNVERIFIABLE
+annotation line + a human line) and listed as its own column by run-gates. Never recorded
+in degradation.schema.json (that vocabulary means "ran but degraded").
+_Avoid_: folding infrastructure failures into the verdict vocabulary (Bazel
+TEST_INFRASTRUCTURE_FAILURE_FILE precedent)
