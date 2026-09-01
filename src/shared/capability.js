@@ -12,9 +12,11 @@
 //       returned a deterministic negative. Probe exceptions, IO errors and
 //       helper bugs are NOT translated — Node crashes as exit 1 and exposes
 //       the bug honestly (no catch around probe bodies; no transient bucket).
-//   D4  two-line degraduation message on stderr: line 1 is the machine
-//       ::error annotation (GitHub workflow-command format), line 2 is the
-//       human remediation hint.
+//   D4  two-line degradation message (amended by ADR-0041 D5): line 1 is the
+//       machine ::error annotation on STDOUT (GitHub workflow-command
+//       format: comma-separated properties, %/%0D/%0A escaped); line 2 is
+//       the human remediation hint on stderr. ADR-0040 D4's stderr+space
+//       form was a spec-level protocol defect (annotation never renders).
 
 'use strict';
 
@@ -75,10 +77,15 @@ function loadEntry(gateName, root) {
   return entry;
 }
 
-// D4: the exact two lines, pure for unit tests.
+// ADR-0041 D5: workflow-command escaping (order matters: % first).
+function escWf(s) {
+  return String(s).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+}
+
+// D4/D5: the exact two lines, pure for unit tests.
 function unverifiableLines(gate, cap) {
   return [
-    '::error title=UNVERIFIABLE gate=' + gate + ' requires=' + cap + '::capability ' + cap + ' deterministically absent',
+    '::error title=UNVERIFIABLE,gate=' + escWf(gate) + ',requires=' + escWf(cap) + '::' + escWf('capability ' + cap + ' deterministically absent'),
     '[' + gate + '] UNVERIFIABLE: declared capability ' + cap + ' is absent — ' + HINTS[cap],
   ];
 }
@@ -92,7 +99,8 @@ function requireCapabilities(gateName, opts) {
   const missing = requires.filter(function (c) { return !probe(c, opts); });
   for (const cap of missing) {
     const lines = unverifiableLines(gateName, cap);
-    process.stderr.write(lines[0] + '\n' + lines[1] + '\n');
+    process.stdout.write(lines[0] + '\n');
+    process.stderr.write(lines[1] + '\n');
   }
   if (missing.length) process.exit(2);
   return requires;
@@ -117,4 +125,4 @@ function validateRequires(entries) {
   return errors;
 }
 
-module.exports = { CAPABILITIES, HINTS, probe, requireCapabilities, unverifiableLines, validateRequires };
+module.exports = { CAPABILITIES, HINTS, probe, requireCapabilities, unverifiableLines, validateRequires, escWf };

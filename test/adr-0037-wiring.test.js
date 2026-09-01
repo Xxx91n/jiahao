@@ -176,14 +176,13 @@ describe('registration wiring (ADR-0031 D1: assert the state the gates actually 
     // ADR-0040: the capability probe fires before requireCorpus; a copied tree
     // can never satisfy bench-corpus, so the honest answer is UNVERIFIABLE.
     expect(run.status).toBe(2);
-    expect(run.stderr).toMatch(/UNVERIFIABLE gate=mr-probes requires=bench-corpus/);
-    expect(run.stderr).toMatch(/not distributed/);
+    expect(run.stdout).toMatch(/UNVERIFIABLE,gate=mr-probes,requires=bench-corpus::/);
     expect(run.stderr).toMatch(/not distributed/);
   });
 
-  test('corrupted corpus JSONL fails closed with exit 2 (audit F1/F8 regression lock)', () => {
+  test('corrupted corpus JSONL fails closed exit 1 [config]: (audit F1/F8 regression lock; ADR-0041 D3)', () => {
     // Maintainer-shaped tree: private/bench-corpus present, mr-probes.jsonl has
-    // a bad line. Malformed JSONL must fail closed (exit 2), never stack-trace.
+    // a bad line. Malformed JSONL must fail closed (exit 1 [config]:), never stack-trace.
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-mr-badjson-'));
     fs.mkdirSync(path.join(tmp, 'scripts'));
     fs.mkdirSync(path.join(tmp, 'src', 'shared'), { recursive: true });
@@ -197,8 +196,9 @@ describe('registration wiring (ADR-0031 D1: assert the state the gates actually 
     const env = Object.assign({}, process.env, { CI: 'true', HOME: tmp, USERPROFILE: tmp });
     delete env.JIAHAO_CORPUS_DIR;
     const run = spawnSync(process.execPath, [path.join(tmp, 'scripts', 'check-mr-probes.js')], { cwd: tmp, encoding: 'utf8', env });
-    expect(run.status).toBe(2);
+    expect(run.status).toBe(1);
     expect(run.stderr).toMatch(/FAIL-CLOSED/);
     expect(run.stderr).toMatch(/not valid JSONL/);
+    expect(run.stderr).toMatch(/^\[config\]:/m);
   });
 });

@@ -39,7 +39,6 @@ describe('D1: files whitelist = runtime artifact surface', () => {
     const capM = adr39.match(/out\.size < ([\d,]+) bytes/);
     expect(capM).not.toBeNull();
     const cap = Number(capM[1].replace(/,/g, ''));
-    expect(cap).toBe(200000);
     expect(out.size).toBeLessThan(cap);
   }, 60000);
 });

@@ -119,8 +119,8 @@ function readJsonl(p) {
   try {
     return fs.readFileSync(p, 'utf8').split(/\r?\n/).filter(l => l.trim()).map(JSON.parse);
   } catch (e) {
-    console.error('[probe-gate] FAIL-CLOSED: corpus file is not valid JSONL (' + e.message + ')');
-    process.exit(2);
+    console.error('[config]: [probe-gate] FAIL-CLOSED: corpus file is not valid JSONL (' + e.message + ')');
+    process.exit(1);
   }
 }
 
@@ -129,7 +129,7 @@ function parseArgs(argv) {
   for (let i = 2; i < argv.length; i++) {
     if (argv[i] === '--ci') o.ci = true;
     else if (argv[i] === '--artifacts-dir') o.artifactsDir = argv[++i];
-    else { console.error('unknown arg: ' + argv[i]); process.exit(2); }
+    else { console.error('[usage]: unknown arg: ' + argv[i]); process.exit(1); }
   }
   return o;
 }
@@ -139,14 +139,14 @@ function main() {
   requireCapabilities('probes');
   let cfg;
   try { cfg = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8')); }
-  catch (e) { console.error('[probe-gate] FAIL-CLOSED: thresholds.json is invalid JSON (' + e.message + ')'); process.exit(2); }
+  catch (e) { console.error('[config]: [probe-gate] FAIL-CLOSED: thresholds.json is invalid JSON (' + e.message + ')'); process.exit(1); }
   const cfgErr = probeGatesConfigError(cfg);
-  if (cfgErr) { console.error('[probe-gate] FAIL-CLOSED: ' + cfgErr); process.exit(2); }
+  if (cfgErr) { console.error('[config]: [probe-gate] FAIL-CLOSED: ' + cfgErr); process.exit(1); }
   const gates = cfg.probe_gates;
   const corpusFile = requireCorpus('probes.jsonl');
   const cases = readJsonl(corpusFile);
   // audit F5: empty corpus fails closed, symmetric with mr-gate validateMrCorpus.
-  if (!cases.length) { console.error('[probe-gate] FAIL-CLOSED: corpus is empty (fail-closed, symmetric with mr-gate)'); process.exit(2); }
+  if (!cases.length) { console.error('[config]: [probe-gate] FAIL-CLOSED: corpus is empty (fail-closed, symmetric with mr-gate)'); process.exit(1); }
   const results = runProbes(cases, require(path.join(ROOT, 'bench', 'polygraph', 'node-bridge.js')).judgeItem); // ADR-0040 D2: deferred require - after capability probing
   const metrics = probeMetrics(results);
   const gate = evaluateProbeGates(gates, metrics);

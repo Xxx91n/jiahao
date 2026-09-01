@@ -103,12 +103,12 @@ function checkLeaks(root, rules, canary) {
 // Checks the anchor id SET (not just the count) and the sha256 of each corpus.
 function validateAnchors(anchors, corpusFiles) {
   if (!Array.isArray(anchors) || anchors.length !== CORPORA.length) {
-    return { code: 2, message: 'FAIL-CLOSED: thresholds.json private_corpus must list ' + CORPORA.length + ' fingerprints (ADR-0036 D2)' };
+    return { code: 1, message: '[config]: FAIL-CLOSED: thresholds.json private_corpus must list ' + CORPORA.length + ' fingerprints (ADR-0036 D2)' };
   }
   const byId = new Map(anchors.map(a => [a.id, a.sha256]));
   for (const name of CORPORA) {
     if (!byId.has(name) || typeof byId.get(name) !== 'string') {
-      return { code: 2, message: 'FAIL-CLOSED: thresholds.json private_corpus missing anchor for ' + name + ' (ADR-0036 D2)' };
+      return { code: 1, message: '[config]: FAIL-CLOSED: thresholds.json private_corpus missing anchor for ' + name + ' (ADR-0036 D2)' };
     }
     const actual = crypto.createHash('sha256').update(fs.readFileSync(corpusFiles[name])).digest('hex');
     if (byId.get(name) !== actual) {
@@ -124,7 +124,8 @@ if (require.main === module) {
   requireCapabilities('corpus-leak');
   const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, CFG_REL), 'utf8'));
   const anchors = Array.isArray(cfg.private_corpus) ? cfg.private_corpus : [];
-  // Fail-closed corpus availability: requireCorpus exits 2 with run-install hint.
+  // Fail-closed corpus availability: requireCorpus exits 1 ([config]:) with the
+  // honest hint; corpus-dir absence exits 2 earlier via requireCapabilities.
   const corpusFiles = Object.fromEntries(CORPORA.map(n => [n, requireCorpus(n)]));
   // Public anchors (id-set + sha256) must match the local corpus bytes.
   const bad = validateAnchors(anchors, corpusFiles);

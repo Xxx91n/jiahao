@@ -11,7 +11,8 @@
 // collected_at field, the registry entry is the bootstrap anchor.
 // Exit 0 when all fresh; warn prints ::warning:: and still exits 0
 // (ADR-0027 D3 alarm-fatigue discipline); stale (tier x multiplier) exits 1;
-// missing corpus / unparseable fact fails closed (exit 2 or stale).
+// missing corpus / unparseable fact fails closed (exit 1 [config]:, or stale).
+// ADR-0041 D3: exit 2 is reserved for probed-capability-absence only.
 // --hook: warn-only variant for .githooks/pre-commit-user (never fails).
 
 'use strict';
@@ -89,7 +90,7 @@ function main(argv) {
   requireCapabilities('corpus-freshness');
   const hook = argv.includes('--hook');
   const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, CFG_REL), 'utf8'));
-  if (!cfg.fail_multiplier || cfg.fail_multiplier <= 1) { console.error('FAIL-CLOSED: fail_multiplier must be > 1 (ADR-0036 D5)'); process.exit(2); }
+  if (!cfg.fail_multiplier || cfg.fail_multiplier <= 1) { console.error('[config]: FAIL-CLOSED: fail_multiplier must be > 1 (ADR-0036 D5)'); process.exit(1); }
   const now = Date.now();
   const facts = resolveFacts(cfg);
   let hasStale = false;

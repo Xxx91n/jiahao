@@ -201,14 +201,14 @@ function parseArgs(argv) {
     if (argv[i] === '--ci') o.ci = true;
     else if (argv[i] === '--corpus-dir') o.corpusDir = argv[++i];
     else if (argv[i] === '--artifacts-dir') o.artifactsDir = argv[++i];
-    else { console.error('unknown arg: ' + argv[i]); process.exit(2); }
+    else { console.error('[usage]: unknown arg: ' + argv[i]); process.exit(1); }
   }
   return o;
 }
 
 function main() {
+  const opts = parseArgs(process.argv); // ADR-0041 D3: usage errors answer with exit 1 even when capabilities are absent
   requireCapabilities('bench-gate');
-  const opts = parseArgs(process.argv);
   judgeItem = require(path.join(__dirname, '..', 'bench', 'polygraph', 'node-bridge.js')).judgeItem;
   const cfg = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8'));
 

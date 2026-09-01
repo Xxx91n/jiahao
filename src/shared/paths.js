@@ -34,7 +34,9 @@ function kappaBaselinePath() {
 
 // ADR-0036 D2: private bench corpus resolution. JIAHAO_CORPUS_DIR env wins;
 // fallback is the install-planted dir; then the repo-private dir (maintainer
-// dev tree, gitignored). Missing everywhere fails closed with exit 2.
+// dev tree, gitignored). Missing everywhere fails closed with exit 1 and a
+// [config]: prefix (ADR-0041 D3: exit 2 is capability-absence-only; the
+// directory-level probe in capability.js fires before this).
 function corpusDir() {
   return process.env.JIAHAO_CORPUS_DIR || path.join(configDir(), 'private', 'bench-corpus');
 }
@@ -50,7 +52,7 @@ function repoCorpusPath(name) {
 // it; third party (npm tarball / public clone) => corpus is a maintainer/CI
 // asset, do not pretend an init command can conjure it.
 function corpusMissingMessage(name, envOverride, maintainerTree) {
-  const head = '[corpus] missing ' + name;
+  const head = '[config]: [corpus] missing ' + name; // ADR-0041 D3 closed-enum fail-path prefix
   if (envOverride) return head + ' - JIAHAO_CORPUS_DIR=' + envOverride + ' has no such file; fix the path or unset the override (ADR-0038 D3)';
   if (maintainerTree) return head + ' - run: jiahao init --profile verifier (ADR-0036 D2; set JIAHAO_CORPUS_DIR to override)';
   return head + ' - the benchmark corpus is a maintainer/CI asset and is not distributed in the npm package or a public git clone (ADR-0038 D2); if you legitimately hold it, set JIAHAO_CORPUS_DIR (ADR-0038 D3)';
@@ -64,7 +66,7 @@ function requireCorpus(name) {
   // honest third-party message.
   const maintainerTree = fs.existsSync(path.join(__dirname, '..', '..', 'private', 'bench-corpus'));
   console.error(corpusMissingMessage(name, process.env.JIAHAO_CORPUS_DIR || null, maintainerTree));
-  process.exit(2);
+  process.exit(1);
 }
 
 module.exports = { configDir, corpusDir, corpusPath, repoCorpusPath, requireCorpus, corpusMissingMessage, flagPath, evidencePath, evidenceKeysPath, profilePath, kappaBaselinePath };

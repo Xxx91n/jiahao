@@ -55,9 +55,9 @@ describe('ADR-0040 D1/D3 capability helper', () => {
     expect(() => cap.probe('bogus-cap', { env: {} })).toThrow(/unregistered capability/);
   });
 
-  test('message assembly: machine line, then human line', () => {
+  test('message assembly: machine line, then human line (ADR-0041 D5 format)', () => {
     const lines = cap.unverifiableLines('probes', 'bench-corpus');
-    expect(lines[0]).toBe('::error title=UNVERIFIABLE gate=probes requires=bench-corpus::capability bench-corpus deterministically absent');
+    expect(lines[0]).toBe('::error title=UNVERIFIABLE,gate=probes,requires=bench-corpus::capability bench-corpus deterministically absent');
     expect(lines[1]).toMatch(/\[probes\] UNVERIFIABLE/);
     expect(lines[1]).toContain('JIAHAO_CORPUS_DIR');
   });
@@ -133,8 +133,10 @@ describe('ADR-0040 D7b exit-2 spawn locks', () => {
     const tmp = mkTmp(baseFiles.concat(['scripts/run-gates.js']));
     const r = spawnSync(process.execPath, ['scripts/run-gates.js', '--check-coupling'], { cwd: tmp, encoding: 'utf8' });
     expect(r.status).toBe(2);
-    expect(r.stderr).toContain('::error title=UNVERIFIABLE gate=gates-coupling requires=repo-tree::');
+    // ADR-0041 D5: annotation on stdout, human hint on stderr.
+    expect(r.stdout).toContain('::error title=UNVERIFIABLE,gate=gates-coupling,requires=repo-tree::');
     expect(r.stderr).toMatch(/UNVERIFIABLE/);
+    expect(r.stderr).not.toMatch(/^::error/m);
   });
 
   test('docs-adr via bench-thresholds', () => {
@@ -142,7 +144,7 @@ describe('ADR-0040 D7b exit-2 spawn locks', () => {
     fs.mkdirSync(path.join(tmp, '.git')); // repo-tree present; only docs-adr absent
     const r = spawnSync(process.execPath, ['scripts/check-bench-thresholds.js'], { cwd: tmp, encoding: 'utf8' });
     expect(r.status).toBe(2);
-    expect(r.stderr).toContain('requires=docs-adr::');
+    expect(r.stdout).toContain('requires=docs-adr::');
   });
 
   test('bench-corpus via probes', () => {
@@ -152,7 +154,7 @@ describe('ADR-0040 D7b exit-2 spawn locks', () => {
     delete env.JIAHAO_CORPUS_DIR;
     const r = spawnSync(process.execPath, ['scripts/check-probes.js'], { cwd: tmp, encoding: 'utf8', env });
     expect(r.status).toBe(2);
-    expect(r.stderr).toContain('requires=bench-corpus::');
+    expect(r.stdout).toContain('requires=bench-corpus::');
   });
 
   test('ci-mode via ci-wiring', () => {
@@ -161,11 +163,11 @@ describe('ADR-0040 D7b exit-2 spawn locks', () => {
     delete env.CI; delete env.GITHUB_ACTIONS;
     const r = spawnSync(process.execPath, ['scripts/check-ci-wiring.js'], { cwd: tmp, encoding: 'utf8', env });
     expect(r.status).toBe(2);
-    expect(r.stderr).toContain('requires=ci-mode::');
+    expect(r.stdout).toContain('requires=ci-mode::');
     expect(r.stderr).toMatch(/UNVERIFIABLE/);
   });
 
-  test('audit F5/F2 companion: empty corpus fails closed exit 2 (probes)', () => {
+  test('audit F5/F2 companion: empty corpus fails closed exit 1 [config]: (probes; ADR-0041 D3 cutover)', () => {
     const tmp = mkTmp(baseFiles.concat(['scripts/check-probes.js', 'src/shared/paths.js', 'bench/polygraph/thresholds.json']));
     fs.mkdirSync(path.join(tmp, '.git'));
     fs.mkdirSync(path.join(tmp, 'private', 'bench-corpus'), { recursive: true });
@@ -173,8 +175,9 @@ describe('ADR-0040 D7b exit-2 spawn locks', () => {
     const env = Object.assign({}, process.env, { CI: 'true', HOME: tmp });
     delete env.JIAHAO_CORPUS_DIR;
     const r = spawnSync(process.execPath, ['scripts/check-probes.js'], { cwd: tmp, encoding: 'utf8', env });
-    expect(r.status).toBe(2);
+    expect(r.status).toBe(1);
     expect(r.stderr).toMatch(/corpus is empty/);
+    expect(r.stderr).toMatch(/^\[config\]:/m);
   });
 });
 

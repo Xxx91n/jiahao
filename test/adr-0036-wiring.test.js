@@ -29,9 +29,9 @@ describe('D2 corpus resolution', () => {
     expect(fs.existsSync(paths.repoCorpusPath('probes.jsonl'))).toBe(true);
   });
 
-  test('requireCorpus exits 2 with the ADR-0038 D3 env-override hint when the corpus is truly absent', () => {
+  test('requireCorpus exits 1 [config]: with the ADR-0038 D3 env-override hint when the corpus is truly absent (ADR-0041 D3 cutover)', () => {
     // Relocate the module out of the repo so its repo-private fallback also
-    // resolves to nothing; env points at an empty dir. Assert the real exit 2.
+    // resolves to nothing; env points at an empty dir. Assert the real exit 1.
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-absent-'));
     try {
       const modPath = path.join(tmp, 'paths.js');
@@ -41,7 +41,8 @@ describe('D2 corpus resolution', () => {
       const r = spawnSync(process.execPath, ['-e',
         "process.env.JIAHAO_CORPUS_DIR=process.argv[1]; require(process.argv[2]).requireCorpus('probes.jsonl'); console.log('NO-EXIT');",
         empty, modPath], { encoding: 'utf8' });
-      expect(r.status).toBe(2);
+      expect(r.status).toBe(1);
+      expect(r.stderr).toMatch(/^\[config\]:/m);
       expect(r.stderr).toMatch(/JIAHAO_CORPUS_DIR/);
       expect(r.stdout).not.toMatch(/NO-EXIT/);
     } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
@@ -173,7 +174,7 @@ describe('ADR-0036 audit follow-ups (2026-08-31)', () => {
     const good = NAMES.map(n => ({ id: n, sha256: sha(n) }));
     expect(leak.validateAnchors(good, files)).toBeNull();
     const missingId = good.filter(a => a.id !== 'twins.jsonl').concat([{ id: 'evil.jsonl', sha256: sha('twins.jsonl') }]);
-    expect(leak.validateAnchors(missingId, files).code).toBe(2);
+    expect(leak.validateAnchors(missingId, files).code).toBe(1); // ADR-0041 D3: config failure is exit 1, never 2
     const badSha = good.map(a => (a.id === 'twins.jsonl' ? Object.assign({}, a, { sha256: '0'.repeat(64) }) : a));
     expect(leak.validateAnchors(badSha, files).code).toBe(1);
   });

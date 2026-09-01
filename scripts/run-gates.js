@@ -121,8 +121,9 @@ function runGates(reg, opts) {
     if (e.tier === 'deferred-with-unfreeze') return skip('skipped-deferred');
     if (o.failFast && e.tier === 'observational') return skip('skipped-observational');
     if (o.failFast && confirmFailed) return skip('skipped-fail-fast');
-    // ADR-0040 D2/D5: capability precheck - a deterministically absent
-    // capability degrades the gate to UNVERIFIABLE, never pass/fail.
+    // ADR-0040 D2/D5 + ADR-0041 D2: capability precheck - a deterministically
+    // absent capability degrades the gate to UNVERIFIABLE, never pass/fail;
+    // a child's exit 2 aggregates into the same column below.
     const probeFn = o.probe || probe;
     const missing = (e.requires || []).filter(function (c) { return !probeFn(c); });
     if (missing.length) {
@@ -132,6 +133,17 @@ function runGates(reg, opts) {
     const r = exec(e.command);
     const lines = String(r.output || '').split(/\r?\n/);
     const warnLines = lines.filter(function (l) { return /^::warning/.test(l); });
+    // ADR-0041 D2/D3: exit 2 has exactly one meaning - probed capability
+    // absence. A child that exits 2 never ran its check; it lands in the
+    // UNVERIFIABLE column, never in fail.
+    if (r.code === 2) {
+      results.push({
+        name: e.name, order: e.order, tier: e.tier, status: 'unverifiable', code: 2,
+        missing: null, warnings: 0,
+        output: lines.filter(function (l) { return !/^::warning/.test(l); }).join('\n'),
+      });
+      return;
+    }
     const fail = r.code !== 0;
     if (fail && e.tier === 'confirmatory') confirmFailed = true;
     results.push({
@@ -208,7 +220,7 @@ function main(argv) {
   if (unverifiable.length) {
     // ADR-0040 D4/D5: ONE aggregated annotation (GitHub caps 10/step); the
     // per-gate rows above carry the detail in plain log lines.
-    console.log('::error title=UNVERIFIABLE::' + unverifiable.length + ' gate(s) unverifiable: ' + unverifiable.map(function (r) { return r.name + ' requires ' + r.missing.join('+'); }).join(', '));
+    console.log('::error title=UNVERIFIABLE::' + unverifiable.length + ' gate(s) unverifiable: ' + unverifiable.map(function (r) { return r.name + ' requires ' + (r.missing ? r.missing.join('+') : '(child exit 2)'); }).join(', '));
   }
   console.log('gate:all exit ' + res.exitCode + ' (' + res.results.length + ' entries, ' + unverifiable.length + ' unverifiable, fail-fast ' + (failFast ? 'on' : 'off') + ')');
   process.exit(res.exitCode);

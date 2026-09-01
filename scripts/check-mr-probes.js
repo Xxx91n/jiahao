@@ -2,7 +2,8 @@
 // scripts/check-mr-probes.js -- ADR-0037 D2/D4: metamorphic-relation corpus gate
 // (third corpus family; verdict-symmetry oracle over private/bench-corpus/
 // mr-probes.jsonl, ADR-0036 D2 resolution: JIAHAO_CORPUS_DIR -> install-planted
-// dir -> repo private dir; missing fails closed with exit 2).
+// dir -> repo private dir; missing fails closed (ADR-0041: capability absence
+// exits 2, everything else exits 1 with a closed-enum stderr prefix)).
 //
 //   D2  three pre-registered families: claim-negation, equivalence-restatement,
 //       evidence-flip. Preserve pairs require verdict(source) == verdict(followup);
@@ -119,7 +120,7 @@ function evaluateMrGates(gates, metrics) {
 }
 
 // S-1 fail-closed guard: removing/truncating mr_gates must not let the gate
-// run gate-free (silent bypass). Fail closed with exit 2 in main.
+// run gate-free (silent bypass). Fail closed exit 1 [config]: in main (ADR-0041 D3).
 function mrGatesConfigError(cfg) {
   if (!cfg || !Array.isArray(cfg.mr_gates) || cfg.mr_gates.length === 0) {
     return 'thresholds.json mr_gates missing or empty (ADR-0037 D4) - refusing fail-open';
@@ -152,8 +153,8 @@ function readJsonl(file) {
   try {
     return fs.readFileSync(file, 'utf8').split(/\r?\n/).filter(x => x.trim()).map(JSON.parse);
   } catch (e) {
-    console.error('[mr-gate] FAIL-CLOSED: corpus file is not valid JSONL (' + e.message + ')');
-    process.exit(2);
+    console.error('[config]: [mr-gate] FAIL-CLOSED: corpus file is not valid JSONL (' + e.message + ')');
+    process.exit(1);
   }
 }
 
@@ -162,7 +163,7 @@ function parseArgs(argv) {
   for (let i = 2; i < argv.length; i++) {
     if (argv[i] === '--ci') o.ci = true;
     else if (argv[i] === '--artifacts-dir') o.artifactsDir = argv[++i];
-    else { console.error('unknown arg: ' + argv[i]); process.exit(2); }
+    else { console.error('[usage]: unknown arg: ' + argv[i]); process.exit(1); }
   }
   return o;
 }
@@ -179,14 +180,14 @@ function main() {
   const pairs = readJsonl(corpusFile);
   const schemaErrs = validateMrCorpus(pairs);
   if (schemaErrs.length) {
-    for (const e of schemaErrs) console.error('[mr-gate] FAIL-CLOSED: ' + e);
-    process.exit(2);
+    for (const e of schemaErrs) console.error('[config]: [mr-gate] FAIL-CLOSED: ' + e);
+    process.exit(1);
   }
   let cfg;
   try { cfg = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8')); }
-  catch (e) { console.error('[mr-gate] FAIL-CLOSED: thresholds.json is invalid JSON (' + e.message + ')'); process.exit(2); }
+  catch (e) { console.error('[config]: [mr-gate] FAIL-CLOSED: thresholds.json is invalid JSON (' + e.message + ')'); process.exit(1); }
   const cfgErr = mrGatesConfigError(cfg);
-  if (cfgErr) { console.error('[mr-gate] FAIL-CLOSED: ' + cfgErr); process.exit(2); }
+  if (cfgErr) { console.error('[config]: [mr-gate] FAIL-CLOSED: ' + cfgErr); process.exit(1); }
   const gates = cfg.mr_gates;
 
   const { judgeItem } = require(path.join(ROOT, 'bench', 'polygraph', 'node-bridge.js'));
