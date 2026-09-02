@@ -66,6 +66,30 @@ Q7 glossary curation (B with promotion rule).
   ("only for testing infrastructure, not a general mechanism" - auxiliary channels are
   closed and purpose-scoped too). sysexits 64-78 subclassing stays rejected (ADR-0040 R6,
   reinforced by grep/git-diff/tar/k8s-probe/SLSA-VSA two-three-code minimalism).
+  Clarification (grill round 2026-09-02, audit Medium-1 ruling; atomcode researches
+  verbatim-concluded Q1=B collect-config-only, Q2=A strip the stray prefix): the
+  MUST above governs displaced/operational fail-path stderr only - the gate did not
+  deliver a verdict. Verdict violation detail lines (the gate ran to completion and
+  caught a violation; exit 1 already carries the verdict on the primary channel) are
+  adjudication evidence (ADR-0034 decision/evidence separation) and carry NO prefix.
+  Accordingly run-gates gates.json load/schema errors (the three config-class sites)
+  MUST be prefixed [config]: in the impl round, while the eight check-* verdict detail
+  sites and the bench-gate/corpus-leak/judge-corpus/reverify detail lines stay bare
+  by design; the non-enum token [corpus-freshness] is removed, not grandfathered.
+  Precedents: Bazel TIFF is purpose-scoped ("not a general mechanism"); SARIF result
+  vs notification (SS3.20.21: a completed run's finding is a result, never a
+  notification); TAP verdict line vs YAML diagnostics; MISRA deviation records; grep's
+  unlabelled match lines - every one separates the verdict from its evidence. Two
+  lenses recorded here pending the D8 promotion rule: (a) identity is not a category
+  token - a gate's name lives in the registry, stdout informational headers, and
+  structured artifacts (gate-junit.xml / gate-metrics.json), never as a bracketed
+  token on the syntax-governed stderr line; (b) TAP-style structure vs free text -
+  the closed enum governs only the leading category word of displaced failures;
+  everything after it, and every verdict detail line, is a free-text channel.
+  Mechanical lock (impl round): the adr-0041 wiring test asserts registry-gate verdict
+  lines do not begin with ^\[[a-z-]+\]: and that the three registry-load error sites
+  carry [config]:.
+
 - D4 Registry wiring is a consumer-side duty (Q4-A). gates.json is the orchestration-side
   single fact-source (ADR-0034 D1); registration and ci.yml wiring belong to the
   orchestration side, while script implementers remain stewards (consulted, may review).
@@ -113,6 +137,8 @@ Q7 glossary curation (B with promotion rule).
   in-session (grill discipline: capture as it happens), but research-background terms
   wait for a second ADR to reference them.
 
+
+
 ## Consequences
 
 - One contract, one meaning: exit 2 becomes unambiguous at the aggregation surface.
@@ -147,3 +173,11 @@ Q7 glossary curation (B with promotion rule).
   glossary (+9% bulk on 1166 lines, Gruber minimal-commitment violation); zero-import
   contradicts the grill/domain-modeling discipline of capturing terms as they are
   sharpened.
+- R8 prefixing verdict violation detail lines (collect-all ruling) - pollutes
+  [internal]: from "infrastructure failure" to "any failure" and would spawn a
+  consumerless fourth constructor [violation]:, violating consumer-driven granularity
+  (D3); no industrial precedent labels verdict detail lines (grep/TAP/JUnit/SARIF/
+  MISRA all keep them unlabelled free text).
+- R9 normalizing [corpus-freshness] to [config]: - reports a result as a
+  notification (SARIF SS3.20.21); machine consumers would misclassify a caught
+  violation as an infrastructure skip, the exact category confusion R2 rejected.
