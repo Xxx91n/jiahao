@@ -78,6 +78,10 @@ function loadEntry(gateName, root) {
 }
 
 // ADR-0041 D5: workflow-command escaping (order matters: % first).
+// Escaping only %/CR/LF is complete here by charset: gate names and
+// capabilities come from closed enums of [a-z-] (docs/gates.json, ADR-0040 D1),
+// so the workflow-command separators ':' and ',' can never occur in the
+// escaped values, and the message body sits after '::' where they are literal.
 function escWf(s) {
   return String(s).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
 }
@@ -125,4 +129,4 @@ function validateRequires(entries) {
   return errors;
 }
 
-module.exports = { CAPABILITIES, HINTS, probe, requireCapabilities, unverifiableLines, validateRequires, escWf };
+module.exports = { CAPABILITIES, probe, requireCapabilities, unverifiableLines, validateRequires, escWf };

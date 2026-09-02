@@ -33,6 +33,7 @@ const path = require('path');
 
 const CFG = path.join(__dirname, 'thresholds.json');
 const { requireCorpus } = require('../../src/shared/paths');
+const { requireCapabilities } = require('../../src/shared/capability');
 
 // ---- pure core ----
 
@@ -155,6 +156,7 @@ module.exports = { computeBias, applyGates, expectedVerdict, pairEval };
 // ---- thin CLI ----
 
 function main() {
+  requireCapabilities('judge-bias');
   const entries = fs.readFileSync(requireCorpus('judge-twins.jsonl'), 'utf8').split('\n').filter(x => x.trim()).map(JSON.parse);
   const cfg = JSON.parse(fs.readFileSync(CFG, 'utf8'));
   const { judgeItem } = require(path.join(__dirname, 'node-bridge.js'));

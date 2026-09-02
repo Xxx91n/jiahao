@@ -386,6 +386,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0038 npm runtime-artifact surface: files whitelist tarball-as-wheel (prompt-installer, measured budget per ADR-0039) + corpus gates maintainer/CI-only fail-closed by design (git clone also carries no corpus) + honest missing-corpus message + private-registry-only future corpus channel (deferred)
 - ADR-0039 tarball runtime surface narrowing: docs/adr + docs/agents leave the npm artifact (archive channel = the git tree itself; no Releases/sparse-checkout infrastructure), whitelist keeps docs/gates.json + coverage-map.json + deferred-registry.json machine fact-sources + CONTEXT.md vocabulary asset; measured-anchor budget 200,000 bytes with ADR-text content anchor, single confirmatory tier, no warn band
 - ADR-0040 gate runtime capability declaration: gates.json gains a closed `requires` enum (repo-tree/bench-corpus/docs-adr/ci-mode), three-state exit 0/1/2 with narrow exit 2 = UNVERIFIABLE, two-line ::error honest-degradation message, run-gates UNVERIFIABLE column, degradation schema explicitly unchanged, regression = helper jest + 4 spawn representatives + static wiring anchor
+- ADR-0043 fact-source spine deepening: README ADR index as derived artifact (sentinel region + scripts/build-adr-index.js --check, gate order 115) + stderr prefix vocabulary single source (src/shared/prefix-vocab.js) + run-gates choke check
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -1206,3 +1207,36 @@ behavior (test assertions matching old exit codes) are the internal Hyrum list a
 updated in the same commit as the semantic change.
 _Avoid_: cargo-culting public-API migration discipline onto internal toolchains (and vice
 versa)
+
+**Warning Rule Code (告警规则码)** (ADR-0042 D2): the controlled identity of an advisory
+warning. The machine surface is a GitHub workflow-command annotation with `title=<code>` on
+stdout; the message body remains free text. Initial codes: `corpus-freshness`, `judge-stale`.
+Warn-only paths exit 0 and do not use the ADR-0041 `[usage]:/[config]:/[internal]:` stderr
+enum.
+_Avoid_: free identity tokens (e.g. `[jiahao]`), locking warning body text in regression tests
+
+**Lane Atomic Dependency (泳道原子依赖)** (ADR-0042 D4): a wiring hunk is its own bottom
+commit on the lane that depends on the parent. It does not ride along with unrelated hook,
+result, or artifact residue, so attribution is preserved and merge gates stay green.
+_Avoid_: ride-along hunk bundles that span more than one decision's worth of residue
+
+**Contract Locking (契约锁)** (ADR-0042 D3): the regression lock verifies the executable
+contract - the closed prefix vocabulary, a spawned category contract (config-load failure),
+reference integrity of registry commands and ADR source paths, and controlled warning rule
+codes - rather than scanning single-quoted source literals. Locking only the executable
+surface keeps the test resilient to formatting refactors.
+_Avoid_: literal-pattern locks that test the source instead of the behavior
+
+**Derived Artifact (派生产物)** (ADR-0043 D-B): a view whose entire content is
+rebuilt by a generator from a fact source and guarded by a fail-closed
+regen-and-diff gate; hand edits inside it are wrong by construction. README's
+ADR index is the first instance (fact source: docs/adr file names + H1 titles).
+Distinct from Adapter Drift, which names the failure mode (stale generated
+adapters), not the artifact class.
+_Avoid_: generated copy, manually maintained index
+
+**Sentinel Region (哨兵区间)** (ADR-0043 D-B): the marker pair
+(`<!-- adr-index:start -->` / `<!-- adr-index:end -->`) delimiting the part of
+a prose document that a generator owns wholesale. Everything between the
+markers is machine-authored; anything human-written belongs outside.
+_Avoid_: template block, magic comment region

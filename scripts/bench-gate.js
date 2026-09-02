@@ -31,6 +31,7 @@ const os = require('os');
 const crypto = require('crypto');
 const { execFileSync } = require('child_process');
 const { requireCapabilities } = require('../src/shared/capability');
+const { PREFIXES } = require('../src/shared/prefix-vocab'); // ADR-0043 D-E: prefix vocabulary fact source
 let judgeItem; // ADR-0040 D2: deferred - loaded in main after capability probing
 
 const ROOT = path.join(__dirname, '..');
@@ -201,7 +202,7 @@ function parseArgs(argv) {
     if (argv[i] === '--ci') o.ci = true;
     else if (argv[i] === '--corpus-dir') o.corpusDir = argv[++i];
     else if (argv[i] === '--artifacts-dir') o.artifactsDir = argv[++i];
-    else { console.error('[usage]: unknown arg: ' + argv[i]); process.exit(1); }
+    else { console.error(PREFIXES.usage + ' unknown arg: ' + argv[i]); process.exit(1); }
   }
   return o;
 }

@@ -209,6 +209,19 @@
         "bench-corpus",
         "ci-mode"
       ]
+    },
+    {
+      "name": "adr-index",
+      "command": "node scripts/build-adr-index.js --check",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0043-fact-source-derived-artifact-discipline-prefix-vocabulary.md",
+      "order": 115,
+      "params": {
+        "check": true
+      },
+      "requires": [
+        "docs-adr"
+      ]
     }
   ]
 }

@@ -127,7 +127,7 @@ describe('ADR-0040 D7b exit-2 spawn locks', () => {
     files.forEach(add);
     return tmp;
   }
-  const baseFiles = ['docs/gates.json', 'src/shared/capability.js'];
+  const baseFiles = ['docs/gates.json', 'src/shared/capability.js', 'src/shared/prefix-vocab.js']; // ADR-0043: run-gates dep
 
   test('repo-tree via gates-coupling', () => {
     const tmp = mkTmp(baseFiles.concat(['scripts/run-gates.js']));
@@ -148,7 +148,7 @@ describe('ADR-0040 D7b exit-2 spawn locks', () => {
   });
 
   test('bench-corpus via probes', () => {
-    const tmp = mkTmp(baseFiles.concat(['scripts/check-probes.js', 'src/shared/paths.js', 'bench/polygraph/thresholds.json']));
+    const tmp = mkTmp(baseFiles.concat(['scripts/check-probes.js', 'src/shared/paths.js', 'src/shared/prefix-vocab.js', 'bench/polygraph/thresholds.json']));
     fs.mkdirSync(path.join(tmp, '.git'));
     const env = Object.assign({}, process.env, { CI: 'true', HOME: tmp });
     delete env.JIAHAO_CORPUS_DIR;
@@ -168,7 +168,7 @@ describe('ADR-0040 D7b exit-2 spawn locks', () => {
   });
 
   test('audit F5/F2 companion: empty corpus fails closed exit 1 [config]: (probes; ADR-0041 D3 cutover)', () => {
-    const tmp = mkTmp(baseFiles.concat(['scripts/check-probes.js', 'src/shared/paths.js', 'bench/polygraph/thresholds.json']));
+    const tmp = mkTmp(baseFiles.concat(['scripts/check-probes.js', 'src/shared/paths.js', 'src/shared/prefix-vocab.js', 'bench/polygraph/thresholds.json']));
     fs.mkdirSync(path.join(tmp, '.git'));
     fs.mkdirSync(path.join(tmp, 'private', 'bench-corpus'), { recursive: true });
     fs.writeFileSync(path.join(tmp, 'private', 'bench-corpus', 'probes.jsonl'), '');

@@ -6,6 +6,9 @@ Date: 2026-09-02
 Amends: ADR-0040 (D4 message specification corrected: the ::error annotation line moves
 to stdout with comma-separated properties; see D5)
 
+Amended by: ADR-0042 (Q1/Q2/Q4 grill-round closure: checked ConfigLoadError, controlled
+warning rule codes, contract locking, lane atomic dependency)
+
 References: ADR-0027 (pre-registered coupling guard), ADR-0028 (hook-domain exit-2 = block
 precedent), ADR-0029 D5 (pre-registered upgrade channel), ADR-0031 (wiring assertion
 discipline), ADR-0033 (deferred registry semantics), ADR-0034 (gates.json registry,
@@ -121,7 +124,7 @@ Q7 glossary curation (B with promotion rule).
   runbook) lives in this repo and upgrades in the same commit (ADR-0034 D5 three-face
   alignment). Grace-period mechanisms (K8s 3 releases, Terraform MINOR->MAJOR, Go GODEBUG,
   Rust editions) exist for external ecosystems that cannot upgrade in lockstep; with zero
-  external consumers, a grace period is pure cost and literaly preserves the defect
+  external consumers, a grace period is pure cost and literally preserves the defect
   (Postel critique). Dual-track and feature-flag compromises keep three-meaning exit-2
   alive one more round and violate D2 (registry scripts' behavior class must not be
   environment-variable-dependent). wiring assertions lock the new semantics in the same

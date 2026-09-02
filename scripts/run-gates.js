@@ -35,6 +35,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync, execFileSync } = require('child_process');
 const { probe, requireCapabilities, validateRequires } = require('../src/shared/capability');
+const { PREFIXES } = require('../src/shared/prefix-vocab'); // ADR-0043 D-E: prefix vocabulary fact source
 
 const ROOT = path.join(__dirname, '..');
 const REGISTRY_REL = path.join('docs', 'gates.json');
@@ -42,8 +43,21 @@ const PACKAGE_REL = 'package.json';
 const TIERS = ['confirmatory', 'observational', 'deferred-with-unfreeze'];
 const META_ENTRIES = ['gates-alignment', 'ci-wiring', 'gates-coupling'];
 
+class ConfigLoadError extends Error {
+  constructor(message, cause) {
+    super(message);
+    this.name = 'ConfigLoadError';
+    this.cause = cause;
+  }
+}
+
 function loadRegistry(regPath) {
-  return JSON.parse(fs.readFileSync(regPath || path.join(ROOT, REGISTRY_REL), 'utf8'));
+  const file = regPath || path.join(ROOT, REGISTRY_REL);
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch (err) {
+    throw new ConfigLoadError('cannot load registry ' + file + ': ' + err.message, err);
+  }
 }
 
 function validateRegistry(reg, root) {
@@ -144,7 +158,18 @@ function runGates(reg, opts) {
       });
       return;
     }
-    const fail = r.code !== 0;
+    // ADR-0043 D-G: choke check - every gate's output funnels through here,
+    // so one rule covers all children: a '[<word>]:' line outside the closed
+    // enum (src/shared/prefix-vocab.js) is a contract breach. Second line of
+    // defense; per-gate spawn contract tests remain the first.
+    const badPrefix = lines.filter(function (l) {
+      const m = /^\[[a-z][a-z-]*\]:/.exec(l);
+      return m && Object.keys(PREFIXES).every(function (k) { return PREFIXES[k] !== m[0]; });
+    });
+    if (badPrefix.length) {
+      lines.push('PREFIX-VOCAB violation: unknown prefix(es) ' + badPrefix.map(function (l) { return l.split(':')[0] + ':'; }).join(', ') + ' (ADR-0043 D-G; closed enum: src/shared/prefix-vocab.js)');
+    }
+    const fail = r.code !== 0 || badPrefix.length > 0;
     if (fail && e.tier === 'confirmatory') confirmFailed = true;
     results.push({
       name: e.name, order: e.order, tier: e.tier,
@@ -176,14 +201,20 @@ function checkCoupling(baseRef) {
 function main(argv) {
   const args = argv.slice(2);
   const failFast = args.indexOf('--fail-fast') !== -1;
-  const reg = loadRegistry();
+  let reg;
+  try {
+    reg = loadRegistry();
+  } catch (err) {
+    console.error(PREFIXES.config + ' FAIL: ' + err.message);
+    process.exit(1);
+  }
   const schemaErrors = validateRegistry(reg);
 
   if (args.indexOf('--check-alignment') !== -1) {
     requireCapabilities('gates-alignment');
     const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, PACKAGE_REL), 'utf8'));
     const errors = schemaErrors.concat(checkAlignment(reg, pkg));
-    errors.forEach(function (e) { console.error('FAIL: ' + e); });
+    errors.forEach(function (e) { console.error(PREFIXES.config + ' FAIL: ' + e); });
     if (errors.length) process.exit(1);
     console.log('gates alignment OK (' + reg.entries.length + ' entries, ' + META_ENTRIES.length + ' meta-checks)');
     process.exit(0);
@@ -195,14 +226,14 @@ function main(argv) {
     const next = args[ci + 1];
     const baseRef = next && next.indexOf('--') !== 0 ? next : null;
     const errors = checkCoupling(baseRef);
-    errors.forEach(function (e) { console.error('FAIL: ' + e); });
+    errors.forEach(function (e) { console.error(PREFIXES.config + ' FAIL: ' + e); });
     if (errors.length) process.exit(1);
     console.log('gates coupling OK (base: ' + (baseRef || process.env.CI_BASE_REF || 'none - skipped') + ')');
     process.exit(0);
   }
 
   if (schemaErrors.length) {
-    schemaErrors.forEach(function (e) { console.error('FAIL: ' + e); });
+    schemaErrors.forEach(function (e) { console.error(PREFIXES.config + ' FAIL: ' + e); });
     process.exit(1);
   }
 
@@ -228,4 +259,4 @@ function main(argv) {
 
 if (require.main === module) main(process.argv);
 
-module.exports = { loadRegistry, validateRegistry, checkAlignment, checkCoupling, runGates, tokenPrefix, META_ENTRIES, TIERS, REGISTRY_REL };
+module.exports = { ConfigLoadError, loadRegistry, validateRegistry, checkAlignment, checkCoupling, runGates, tokenPrefix, META_ENTRIES, TIERS, REGISTRY_REL };

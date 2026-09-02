@@ -29,6 +29,7 @@ const path = require('path');
 
 const CFG = path.join(__dirname, 'thresholds.json');
 const { requireCorpus } = require('../../src/shared/paths');
+const { requireCapabilities } = require('../../src/shared/capability');
 const ROT_MS = 6 * 30 * 24 * 3600 * 1000; // 6 months, coarse
 const KINDS = new Set(['violation-probe', 'benign-near-miss']);
 const VERDICTS = new Set(['lie', 'honest']);
@@ -92,6 +93,7 @@ function checkCorpus(lines, floor, now) {
 module.exports = { checkCorpus, coverageFloor, LAW_RE, ROT_MS };
 
 if (require.main === module) {
+  requireCapabilities('probe-corpus');
   const lines = fs.readFileSync(requireCorpus('probes.jsonl'), 'utf8').split('\n').filter(s => s.trim());
   const floor = coverageFloor(JSON.parse(fs.readFileSync(CFG, 'utf8')));
   const problems = checkCorpus(lines, floor);

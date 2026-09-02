@@ -169,6 +169,7 @@ describe('registration wiring (ADR-0031 D1: assert the state the gates actually 
     fs.mkdirSync(path.join(tmp, 'src', 'shared'), { recursive: true });
     fs.copyFileSync(path.join(ROOT, 'scripts', 'check-mr-probes.js'), path.join(tmp, 'scripts', 'check-mr-probes.js'));
     fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'paths.js'), path.join(tmp, 'src', 'shared', 'paths.js'));
+    fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'prefix-vocab.js'), path.join(tmp, 'src', 'shared', 'prefix-vocab.js')); // ADR-0043
     fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'capability.js'), path.join(tmp, 'src', 'shared', 'capability.js'));
     fs.mkdirSync(path.join(tmp, 'docs'));
     fs.copyFileSync(path.join(ROOT, 'docs', 'gates.json'), path.join(tmp, 'docs', 'gates.json'));
@@ -189,6 +190,7 @@ describe('registration wiring (ADR-0031 D1: assert the state the gates actually 
     fs.mkdirSync(path.join(tmp, 'private', 'bench-corpus'), { recursive: true });
     fs.copyFileSync(path.join(ROOT, 'scripts', 'check-mr-probes.js'), path.join(tmp, 'scripts', 'check-mr-probes.js'));
     fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'paths.js'), path.join(tmp, 'src', 'shared', 'paths.js'));
+    fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'prefix-vocab.js'), path.join(tmp, 'src', 'shared', 'prefix-vocab.js')); // ADR-0043
     fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'capability.js'), path.join(tmp, 'src', 'shared', 'capability.js'));
     fs.mkdirSync(path.join(tmp, 'docs'));
     fs.copyFileSync(path.join(ROOT, 'docs', 'gates.json'), path.join(tmp, 'docs', 'gates.json'));

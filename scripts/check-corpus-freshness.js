@@ -22,6 +22,7 @@ const path = require('path');
 const { MONTH_MS } = require('../src/reverify-schedule');
 const { requireCorpus } = require('../src/shared/paths');
 const { requireCapabilities } = require('../src/shared/capability');
+const { PREFIXES } = require('../src/shared/prefix-vocab'); // ADR-0043 D-E: prefix vocabulary fact source
 
 const ROOT = path.join(__dirname, '..');
 const CFG_REL = path.join('bench', 'polygraph', 'corpus-freshness.json');
@@ -75,7 +76,7 @@ function resolveFacts(cfg) {
   } catch (e) { ledger = null; }
   for (const name of Object.keys(cfg.tiers)) {
     if (name === 'judge-twins.jsonl') { facts[name] = ledgerTail(ledger); continue; }
-    const file = requireCorpus(name); // exit 2 + run-install hint when absent
+    const file = requireCorpus(name); // exit 1 + [config]: run-install hint when absent (ADR-0041 D3)
     if (name === 'probes.jsonl' || name === 'mr-probes.jsonl') {
       const entries = fs.readFileSync(file, 'utf8').split(/\r?\n/).filter(x => x.trim()).map(JSON.parse);
       facts[name] = maxCollectedAt(entries);
@@ -90,7 +91,7 @@ function main(argv) {
   requireCapabilities('corpus-freshness');
   const hook = argv.includes('--hook');
   const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, CFG_REL), 'utf8'));
-  if (!cfg.fail_multiplier || cfg.fail_multiplier <= 1) { console.error('[config]: FAIL-CLOSED: fail_multiplier must be > 1 (ADR-0036 D5)'); process.exit(1); }
+  if (!cfg.fail_multiplier || cfg.fail_multiplier <= 1) { console.error(PREFIXES.config + ' FAIL-CLOSED: fail_multiplier must be > 1 (ADR-0036 D5)'); process.exit(1); }
   const now = Date.now();
   const facts = resolveFacts(cfg);
   let hasStale = false;
@@ -101,15 +102,15 @@ function main(argv) {
     if (st === 'stale') hasStale = true;
     const msg = name + ': ' + st + ' (tier ' + lad.warnMonthly + 'mo, fail at ' + lad.failMonthly + 'mo, last=' + (Number.isFinite(facts[name]) ? new Date(facts[name]).toISOString().slice(0, 10) : 'unknown') + ')';
     if (st === 'warn') warnLines.push(msg);
-    console.log('[corpus-freshness] ' + msg);
+    console.log(msg);
   }
   if (hook) {
-    if (warnLines.length || hasStale) console.error('[jiahao] WARNING: corpus freshness: ' + (warnLines[0] || 'stale corpus - reverify before relying on gate verdicts'));
+    if (warnLines.length || hasStale) console.log('::warning title=corpus-freshness::' + (warnLines[0] || 'stale corpus - reverify before relying on gate verdicts'));
     process.exit(0); // warn-only; a blocked commit train is the runbook's call (ADR-0027 D3)
   }
-  if (hasStale) { console.error('[corpus-freshness] FAIL: a corpus exceeded tier x ' + cfg.fail_multiplier + ' (ADR-0036 D5)'); process.exit(1); }
+  if (hasStale) { console.error('FAIL: a corpus exceeded tier x ' + cfg.fail_multiplier + ' (ADR-0036 D5)'); process.exit(1); }
   for (const w of warnLines) console.log('::warning title=corpus-freshness::' + w + ' - reverify via the ADR-0030 channel or declare exemption');
-  console.log('[corpus-freshness] OK (ADR-0036 D5)');
+  console.log('OK (ADR-0036 D5)');
   process.exit(0);
 }
 

@@ -31,6 +31,7 @@ const ROOT = path.join(__dirname, '..');
 const CFG_PATH = path.join(ROOT, 'bench', 'polygraph', 'thresholds.json');
 const { requireCorpus } = require('../src/shared/paths');
 const { requireCapabilities } = require('../src/shared/capability');
+const { PREFIXES } = require('../src/shared/prefix-vocab'); // ADR-0043 D-E: prefix vocabulary fact source
 
 const MR_FAMILIES = ['claim-negation', 'equivalence-restatement', 'evidence-flip'];
 const FAMILY_RELATION = { 'claim-negation': 'flip', 'equivalence-restatement': 'preserve', 'evidence-flip': 'flip' };
@@ -153,7 +154,7 @@ function readJsonl(file) {
   try {
     return fs.readFileSync(file, 'utf8').split(/\r?\n/).filter(x => x.trim()).map(JSON.parse);
   } catch (e) {
-    console.error('[config]: [mr-gate] FAIL-CLOSED: corpus file is not valid JSONL (' + e.message + ')');
+    console.error(PREFIXES.config + ' [mr-gate] FAIL-CLOSED: corpus file is not valid JSONL (' + e.message + ')');
     process.exit(1);
   }
 }
@@ -163,7 +164,7 @@ function parseArgs(argv) {
   for (let i = 2; i < argv.length; i++) {
     if (argv[i] === '--ci') o.ci = true;
     else if (argv[i] === '--artifacts-dir') o.artifactsDir = argv[++i];
-    else { console.error('[usage]: unknown arg: ' + argv[i]); process.exit(1); }
+    else { console.error(PREFIXES.usage + ' unknown arg: ' + argv[i]); process.exit(1); }
   }
   return o;
 }
@@ -180,14 +181,14 @@ function main() {
   const pairs = readJsonl(corpusFile);
   const schemaErrs = validateMrCorpus(pairs);
   if (schemaErrs.length) {
-    for (const e of schemaErrs) console.error('[config]: [mr-gate] FAIL-CLOSED: ' + e);
+    for (const e of schemaErrs) console.error(PREFIXES.config + ' [mr-gate] FAIL-CLOSED: ' + e);
     process.exit(1);
   }
   let cfg;
   try { cfg = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8')); }
-  catch (e) { console.error('[config]: [mr-gate] FAIL-CLOSED: thresholds.json is invalid JSON (' + e.message + ')'); process.exit(1); }
+  catch (e) { console.error(PREFIXES.config + ' [mr-gate] FAIL-CLOSED: thresholds.json is invalid JSON (' + e.message + ')'); process.exit(1); }
   const cfgErr = mrGatesConfigError(cfg);
-  if (cfgErr) { console.error('[config]: [mr-gate] FAIL-CLOSED: ' + cfgErr); process.exit(1); }
+  if (cfgErr) { console.error(PREFIXES.config + ' [mr-gate] FAIL-CLOSED: ' + cfgErr); process.exit(1); }
   const gates = cfg.mr_gates;
 
   const { judgeItem } = require(path.join(ROOT, 'bench', 'polygraph', 'node-bridge.js'));

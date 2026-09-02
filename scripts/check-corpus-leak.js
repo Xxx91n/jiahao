@@ -12,8 +12,8 @@
 // defense-in-depth - BIG-bench canary is known-bypassable, so it is optional).
 // Fingerprints are read from bench/polygraph/thresholds.json private_corpus
 // (public anchors; ADR-0027 content-anchor discipline). Corpus content is read
-// via the ADR-0036 D2 resolver (requireCorpus -> exit 2 "run install" when
-// absent). Excludes the corpus home (private/), results dirs, .git,
+// via the ADR-0036 D2 resolver (requireCorpus -> exit 1 with a [config]:
+// "run install" message when absent, per ADR-0041 D3). Excludes the corpus home (private/), results dirs, .git,
 // node_modules and binary blobs. One hit = exit 1.
 
 'use strict';
@@ -23,6 +23,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { requireCorpus, evidencePath, evidenceKeysPath } = require('../src/shared/paths');
 const { requireCapabilities } = require('../src/shared/capability');
+const { PREFIXES } = require('../src/shared/prefix-vocab'); // ADR-0043 D-E: prefix vocabulary fact source
 
 const ROOT = path.join(__dirname, '..');
 const CFG_REL = path.join('bench', 'polygraph', 'thresholds.json');
@@ -103,12 +104,12 @@ function checkLeaks(root, rules, canary) {
 // Checks the anchor id SET (not just the count) and the sha256 of each corpus.
 function validateAnchors(anchors, corpusFiles) {
   if (!Array.isArray(anchors) || anchors.length !== CORPORA.length) {
-    return { code: 1, message: '[config]: FAIL-CLOSED: thresholds.json private_corpus must list ' + CORPORA.length + ' fingerprints (ADR-0036 D2)' };
+    return { code: 1, message: PREFIXES.config + ' FAIL-CLOSED: thresholds.json private_corpus must list ' + CORPORA.length + ' fingerprints (ADR-0036 D2)' };
   }
   const byId = new Map(anchors.map(a => [a.id, a.sha256]));
   for (const name of CORPORA) {
     if (!byId.has(name) || typeof byId.get(name) !== 'string') {
-      return { code: 1, message: '[config]: FAIL-CLOSED: thresholds.json private_corpus missing anchor for ' + name + ' (ADR-0036 D2)' };
+      return { code: 1, message: PREFIXES.config + ' FAIL-CLOSED: thresholds.json private_corpus missing anchor for ' + name + ' (ADR-0036 D2)' };
     }
     const actual = crypto.createHash('sha256').update(fs.readFileSync(corpusFiles[name])).digest('hex');
     if (byId.get(name) !== actual) {

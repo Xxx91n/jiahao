@@ -36,6 +36,7 @@ describe('D2 corpus resolution', () => {
     try {
       const modPath = path.join(tmp, 'paths.js');
       fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'paths.js'), modPath);
+      fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'prefix-vocab.js'), path.join(tmp, 'prefix-vocab.js')); // ADR-0043: paths.js dep
       const empty = path.join(tmp, 'empty');
       fs.mkdirSync(empty);
       const r = spawnSync(process.execPath, ['-e',

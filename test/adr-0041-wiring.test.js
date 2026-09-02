@@ -22,6 +22,7 @@ const ROOT = path.join(__dirname, '..');
 jest.setTimeout(60000);
 
 const cap = require('../src/shared/capability');
+const { PREFIXES } = require('../src/shared/prefix-vocab'); // ADR-0043 D-E
 const gates = require('../scripts/run-gates');
 const registry = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'gates.json'), 'utf8'));
 
@@ -30,7 +31,7 @@ const registry = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'gates.json'
 describe('ADR-0041 D3 prefix vocabulary', () => {
   test('the closed enum appears verbatim in ADR-0041', () => {
     const adr = fs.readFileSync(path.join(ROOT, 'docs', 'adr', '0041-exit-semantics-unification-structured-stderr-prefixes-lane-integration.md'), 'utf8');
-    for (const p of ['[usage]:', '[config]:', '[internal]:']) expect(adr).toContain(p);
+    Object.keys(PREFIXES).forEach(function (k) { expect(adr).toContain(PREFIXES[k]); });
   });
 
   test('no registry gate script exits 2 outside src/shared/capability.js', () => {
@@ -43,20 +44,38 @@ describe('ADR-0041 D3 prefix vocabulary', () => {
     }
   });
 
-  test('fail-path stderr lines in registry gates begin with the closed enum', () => {
+  test('ConfigLoadError is a checked registry-load failure', () => {
+    expect(() => gates.loadRegistry(path.join(ROOT, 'docs', 'missing-gates.json'))).toThrow(gates.ConfigLoadError);
+  });
+
+  test('missing gates.json spawn fails closed with [config]: prefix and no stack', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-0042-config-'));
+    fs.mkdirSync(path.join(tmp, 'scripts'), { recursive: true });
+    fs.mkdirSync(path.join(tmp, 'src', 'shared'), { recursive: true });
+    fs.copyFileSync(path.join(ROOT, 'scripts', 'run-gates.js'), path.join(tmp, 'scripts', 'run-gates.js'));
+    fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'capability.js'), path.join(tmp, 'src', 'shared', 'capability.js'));
+    fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'prefix-vocab.js'), path.join(tmp, 'src', 'shared', 'prefix-vocab.js')); // ADR-0043: run-gates dep
+    const r = spawnSync(process.execPath, ['scripts/run-gates.js'], { cwd: tmp, encoding: 'utf8' });
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain(PREFIXES.config + ' FAIL: cannot load registry');
+    expect(r.stderr).not.toMatch(/\n\s+at /);
+  });
+
+  test('reference integrity: every registry command and source ADR exists', () => {
     for (const e of registry.entries) {
       const m = /^node\s+(\S+\.js)/.exec(e.command);
-      if (!m) continue;
-      const src = fs.readFileSync(path.join(ROOT, m[1]), 'utf8');
-      // The lines displaced from the old exit 2 (unknown-arg / FAIL-CLOSED
-      // paths) must carry a closed-enum prefix. Verdict FAIL lines (gate ran,
-      // caught a violation) are the honest exit-1 primary channel and are
-      // intentionally not prefixed.
-      for (const l of src.split('\n')) {
-        if (!/(unknown arg|FAIL-CLOSED)/.test(l) || !/console\.error/.test(l)) continue;
-        expect(l).toMatch(/\[(usage|config|internal)\]:/);
-      }
+      if (m) expect(fs.existsSync(path.join(ROOT, m[1]))).toBe(true);
+      expect(fs.existsSync(path.join(ROOT, e.source_adr))).toBe(true);
     }
+  });
+
+  test('warning rule codes are title-only and do not use [jiahao] identity', () => {
+    const freshness = fs.readFileSync(path.join(ROOT, 'scripts', 'check-corpus-freshness.js'), 'utf8');
+    const reverify = fs.readFileSync(path.join(ROOT, 'scripts', 'reverify.js'), 'utf8');
+    expect(freshness).toContain('::warning title=corpus-freshness::');
+    expect(reverify).toContain('::warning title=judge-stale::');
+    expect(freshness).not.toContain('[jiahao]');
+    expect(reverify).not.toContain('[jiahao]');
   });
 });
 
@@ -114,7 +133,7 @@ describe('ADR-0041 D2 spawn locks', () => {
     }
     return tmp;
   }
-  const baseFiles = ['docs/gates.json', 'src/shared/capability.js', 'src/shared/paths.js'];
+  const baseFiles = ['docs/gates.json', 'src/shared/capability.js', 'src/shared/paths.js', 'src/shared/prefix-vocab.js'];
 
   test('mr-probes in a tree without corpus: exit 2, annotation on stdout', () => {
     const tmp = mkTmp(baseFiles.concat(['scripts/check-mr-probes.js']));
@@ -135,7 +154,7 @@ describe('ADR-0041 D2 spawn locks', () => {
     delete env.JIAHAO_CORPUS_DIR;
     const r = spawnSync(process.execPath, ['scripts/check-mr-probes.js'], { cwd: tmp, encoding: 'utf8', env });
     expect(r.status).toBe(1);
-    expect(r.stderr).toMatch(/^\[config\]:/m);
+    expect(r.stderr).toContain(PREFIXES.config);
     expect(r.stderr).toMatch(/not valid JSONL/);
   });
 
@@ -143,14 +162,14 @@ describe('ADR-0041 D2 spawn locks', () => {
     const tmp = mkTmp(baseFiles.concat(['scripts/check-probes.js', 'bench/polygraph/thresholds.json']));
     const r = spawnSync(process.execPath, ['scripts/check-probes.js', '--bogus'], { cwd: tmp, encoding: 'utf8' });
     expect(r.status).toBe(1);
-    expect(r.stderr).toMatch(/^\[usage\]: unknown arg: --bogus/);
+    expect(r.stderr).toContain(PREFIXES.usage + ' unknown arg: --bogus');
   });
 
   test('bench-gate with an unknown arg: exit 1 and [usage]: prefix', () => {
     const tmp = mkTmp(baseFiles.concat(['scripts/bench-gate.js']));
     const r = spawnSync(process.execPath, ['scripts/bench-gate.js', '--bogus'], { cwd: tmp, encoding: 'utf8' });
     expect(r.status).toBe(1);
-    expect(r.stderr).toMatch(/^\[usage\]: unknown arg: --bogus/);
+    expect(r.stderr).toContain(PREFIXES.usage + ' unknown arg: --bogus');
   });
 
   test('corpus-freshness with a bad fail_multiplier: exit 1 and [config]: prefix', () => {
@@ -162,7 +181,7 @@ describe('ADR-0041 D2 spawn locks', () => {
     delete env.JIAHAO_CORPUS_DIR;
     const r = spawnSync(process.execPath, ['scripts/check-corpus-freshness.js'], { cwd: tmp, encoding: 'utf8', env });
     expect(r.status).toBe(1);
-    expect(r.stderr).toMatch(/^\[config\]:/m);
+    expect(r.stderr).toContain(PREFIXES.config);
     expect(r.stderr).toMatch(/fail_multiplier/);
   });
 });

@@ -13,6 +13,7 @@
     "coverage:gate": "node scripts/check-coverage.js",
     "deferred:gate": "node scripts/check-deferred.js",
     "gate:all": "node scripts/run-gates.js",
+    "adr:gate": "node scripts/build-adr-index.js --check",
     "mr:gate": "node scripts/check-mr-probes.js"
   },
   "devDependencies": {

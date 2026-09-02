@@ -170,7 +170,7 @@ function main() {
     let ledger = [];
     try { ledger = JSON.parse(fs.readFileSync(LEDGER, 'utf8')); } catch (e) { ledger = []; }
     const w = staleWarning(ledger, Date.now());
-    if (w) console.error('[jiahao] WARNING: ' + w);
+    if (w) console.log('::warning title=judge-stale::' + w);
     process.exit(0); // warning-only (ADR-0027 D3 alarm-fatigue discipline)
   }
 
