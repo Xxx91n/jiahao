@@ -387,6 +387,7 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0039 tarball runtime surface narrowing: docs/adr + docs/agents leave the npm artifact (archive channel = the git tree itself; no Releases/sparse-checkout infrastructure), whitelist keeps docs/gates.json + coverage-map.json + deferred-registry.json machine fact-sources + CONTEXT.md vocabulary asset; measured-anchor budget 200,000 bytes with ADR-text content anchor, single confirmatory tier, no warn band
 - ADR-0040 gate runtime capability declaration: gates.json gains a closed `requires` enum (repo-tree/bench-corpus/docs-adr/ci-mode), three-state exit 0/1/2 with narrow exit 2 = UNVERIFIABLE, two-line ::error honest-degradation message, run-gates UNVERIFIABLE column, degradation schema explicitly unchanged, regression = helper jest + 4 spawn representatives + static wiring anchor
 - ADR-0043 fact-source spine deepening: README ADR index as derived artifact (sentinel region + scripts/build-adr-index.js --check, gate order 115) + stderr prefix vocabulary single source (src/shared/prefix-vocab.js) + run-gates choke check
+- ADR-0044 claim-directed falsification: mechanical falsifiability rule, five-tuple falsification_record, evidence tri-state, 12-twin structural first batch, 0/1/2 falsification gate reuse (document round only; implementation deferred)
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -1240,3 +1241,50 @@ _Avoid_: generated copy, manually maintained index
 a prose document that a generator owns wholesale. Everything between the
 markers is machine-authored; anything human-written belongs outside.
 _Avoid_: template block, magic comment region
+
+**Claim-Directed Falsification (宣称导向证伪)** (ADR-0044 D-A):
+The incremental mental model that binds every load-bearing claim to an
+executable falsification attempt. It reuses gates.json, capability probing,
+run-gates.js, and EvidenceLog instead of introducing a new verification
+runtime.
+_Avoid_: claim checking, self-verification, eval-driven scoring
+
+**Mechanical Falsifiability Rule (机械可证伪规则)** (ADR-0044 D-C):
+A load-bearing claim is accepted only when it has a deterministic
+`falsification_cmd` and a deterministic exit contract. A claim without that
+command is explicitly classified, never implicitly trusted.
+_Avoid_: prose-only verification, unexecutable falsification criteria
+
+**Claim Classification (宣称分类)** (ADR-0044 D-D):
+The three-way boundary for key claims: `mechanically-falsifiable`,
+`declared-unverifiable`, or `deferred`. The first class enters the
+falsification gate; the latter two use existing UNVERIFIABLE/deferred
+channels rather than masquerading as verified.
+_Avoid_: pass/fail claim taxonomy, unclassified capability claims
+
+**Falsification Record (证伪记录)** (ADR-0044 D-F):
+The five-tuple evidence shape `{claim_id, claim_type, falsification_cmd,
+exit_code, falsified}` written to the append-only, hash-chained evidence
+store. It records the executable attempt, not the claim text.
+_Avoid_: provenance document, eval report, claim annotation
+
+**Evidence Tri-State (证据三态)** (ADR-0044 D-G):
+The `falsified` value domain `valid | invalid | missing`. `valid` means the
+claim survived the attempt; `invalid` means it was falsified; `missing` means
+no evidence was produced.
+_Avoid_: boolean pass/fail only, conflating missing with invalid
+
+**Falsification Twin (证伪孪生)** (ADR-0044 D-J):
+A paired fixture that makes one claim survive and another structurally fail
+the same deterministic falsification command. The first implementation batch
+is 12 pairs selected for structural killing power before statistical coverage.
+_Avoid_: statistical pair, property-based corpus, adversarial probe only
+
+**Falsification Gate (证伪门)** (ADR-0044 D-I):
+The future registered gate that executes falsification commands and reuses
+the ADR-0040 `0/1/2` exit contract: green, deterministic breach, or
+capability-absent UNVERIFIABLE. It joins gates.json through the single
+gate:all entrypoint; ci.yml remains untouched.
+_Avoid_: bespoke exit code, direct ci.yml wiring, judge-as-primary gate
+
+*End of Glossary*
