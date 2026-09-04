@@ -62,5 +62,14 @@
       "source_adr": "docs/adr/0037-metamorphic-relations-third-corpus-family-staged-hybrid.md",
       "review_at": "2027-02-28"
     }
+  ],
+  "falsification_gaps": [
+    {
+      "id": "falsification-statistics",
+      "state": "declared-gap",
+      "rationale": "Statistical falsification metrics and threshold enforcement are deferred until the structural twin gate has a stable operational history (ADR-0044 defer-0011).",
+      "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
+      "review_at": "2027-03-01"
+    }
   ]
 }

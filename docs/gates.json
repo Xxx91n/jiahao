@@ -168,6 +168,17 @@
       "requires": []
     },
     {
+      "name": "falsification",
+      "command": "node scripts/check-falsify.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
+      "order": 185,
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ]
+    },
+    {
       "name": "deferred",
       "command": "node scripts/check-deferred.js",
       "tier": "confirmatory",
