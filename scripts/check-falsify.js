@@ -12,13 +12,19 @@ const { createEvidenceLog } = require('../src/evidence-log');
 const { configDir } = require('../src/shared/paths');
 const { TWINS, makeRecord } = require('../src/shared/falsify');
 
-function runTwin(entry, side) {
+// Windows cold-start and CI contention can exceed the original 2s budget,
+// manufacturing `missing` evidence for a check that would otherwise be
+// deterministic. Keep the timeout wide and let timeout mean missing, not
+// falsified (ADR-0044 D-G).
+const TWIN_TIMEOUT_MS = 10000;
+
+function runTwin(entry, side, timeoutMs) {
   const twin = entry[side];
   const r = spawnSync(twin.argv[0], twin.argv.slice(1), {
     cwd: process.cwd(),
     encoding: 'utf8',
     shell: false,
-    timeout: 2000,
+    timeout: typeof timeoutMs === 'number' ? timeoutMs : TWIN_TIMEOUT_MS,
   });
   const claim_id = entry.claim_id + '-' + side;
   return makeRecord(claim_id, entry.claim_type, twin.falsification_cmd, r.status);
@@ -61,4 +67,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { runTwin, main };
+module.exports = { TWIN_TIMEOUT_MS, runTwin, main };

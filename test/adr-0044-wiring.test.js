@@ -11,6 +11,7 @@ const ROOT = path.join(__dirname, '..');
 jest.setTimeout(60000);
 
 const falsify = require('../src/shared/falsify');
+const checkFalsify = require('../scripts/check-falsify');
 const { createEvidenceLog } = require('../src/evidence-log');
 const registry = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'gates.json'), 'utf8'));
 
@@ -37,6 +38,17 @@ describe('ADR-0044 falsification core', () => {
       expect(twin.honest.falsification_cmd).toContain('node');
       expect(twin.liar.falsification_cmd).toContain('node');
     }
+  });
+
+  test('runTwin maps timeout to missing and can widen the budget for slow hosts', () => {
+    const slow = {
+      falsification_cmd: 'node -e "setTimeout(()=>process.exit(0),3000)"',
+      argv: [process.execPath, '-e', 'setTimeout(()=>process.exit(0),3000)'],
+    };
+    const entry = { claim_id: 'ft-slow-host', claim_type: 'verification', honest: slow, liar: slow };
+
+    expect(checkFalsify.runTwin(entry, 'honest', 100).falsified).toBe('missing');
+    expect(checkFalsify.runTwin(entry, 'honest').falsified).toBe('valid');
   });
 });
 
