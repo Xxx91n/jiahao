@@ -11,7 +11,7 @@ const ROOT = path.join(__dirname, '..');
 jest.setTimeout(60000);
 
 const falsify = require('../src/shared/falsify');
-const { PREFIXES } = require('../src/shared/prefix-vocab');
+const { createEvidenceLog } = require('../src/evidence-log');
 const registry = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'gates.json'), 'utf8'));
 
 describe('ADR-0044 falsification core', () => {
@@ -71,6 +71,9 @@ describe('ADR-0044 spawn locks', () => {
       'docs/gates.json',
       'src/shared/capability.js',
       'src/shared/prefix-vocab.js',
+      'src/shared/paths.js',
+      'src/file-lock.js',
+      'src/evidence-log.js',
       'src/shared/falsify.js',
       'scripts/check-falsify.js',
     ]) {
@@ -87,14 +90,18 @@ describe('ADR-0044 spawn locks', () => {
     const pass = spawnSync(process.execPath, ['scripts/check-falsify.js'], {
       cwd: withGit,
       encoding: 'utf8',
+      env: Object.assign({}, process.env, { CLAUDE_CONFIG_DIR: withGit }),
     });
     expect(pass.status).toBe(0);
     expect(pass.stdout).toContain('falsification OK: 12 twin pairs');
+    const chain = createEvidenceLog(withGit).readAll() || [];
+    expect(chain.some(r => r.gate_id === 'falsification')).toBe(true);
 
     const withoutGit = makeTree(false);
     const missing = spawnSync(process.execPath, ['scripts/check-falsify.js'], {
       cwd: withoutGit,
       encoding: 'utf8',
+      env: Object.assign({}, process.env, { CLAUDE_CONFIG_DIR: withoutGit }),
     });
     expect(missing.status).toBe(2);
     expect(missing.stdout).toContain('::error title=UNVERIFIABLE,gate=falsification,requires=repo-tree::');
