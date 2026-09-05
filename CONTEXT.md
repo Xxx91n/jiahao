@@ -1387,4 +1387,27 @@ staircase adjustment deferred until cycles, samples, and the anchor set qualify
 (ADR-0047 D-F).
 _Avoid_: fixed-only interval with no feedback, regression-fit interval, drift-alarm-as-interval
 
+**Metrological Ledger (计量台账)**:
+The reverify record as a calibration ledger with as-found/as-left double
+columns: as-found is the judge's observed distribution on the frozen gold-set
+before adjustment, as-left is the same gold-set re-scored after a rebaseline or
+criteria change, and observed delta is the difference. Each row anchors the
+instrument identity triple and records sample size with a Wilson 95% flip-rate
+interval (ADR-0048 D-A).
+_Avoid_: telemetry snapshot, single-column run log, delta-less ledger
+
+**Record-Only Change (只记录变更)**:
+A schedule/gate-list change recorded as an append-only `record_only_change`
+audit event on the evidence chain. It does not enter the
+`authoritative <-> quarantined` state machine; its lifecycle is the record
+layer's `pending_signoff -> certified` projection (ADR-0048 D-B).
+_Avoid_: recorded third state, quarantine-on-schedule-change, unsigned record
+
+**Vocabulary Anchor (词表锚定)**:
+The machine fact-source discipline that each controlled token of a structured
+config (surface, response, attestation) must appear verbatim in its source
+ADR's machine-anchored vocabulary block; it asserts whole-word existence, never
+parses semantics (ADR-0048 D-C).
+_Avoid_: prose parsing, same-commit-only coupling, free-form vocabulary
+
 *End of Glossary*
