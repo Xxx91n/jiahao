@@ -4,8 +4,9 @@
 //
 // Instrument identity is the immutable triple:
 //   { rulesVersion + promptHash, model checkpoint digest, inferenceConfigHash }
-// The pin lives in src/instrument-identity.json. Gate time resolves each
-// alias/source to a content digest and compares it with the pin; there is no
+// The pin lives in src/instrument-identity.json. Gate time resolves the
+// rules_alias to a content digest and compares it with the pin; model and
+// inference axes are content-addressed descriptors in the pin. There is no
 // per-run self-reported fingerprint check.
 //
 // Quarantine state is append-only and hash-chained. The state file is a fact
@@ -23,6 +24,10 @@ const GENESIS = 'GENESIS';
 
 function sha256Text(text) {
   return crypto.createHash('sha256').update(String(text), 'utf8').digest('hex');
+}
+
+function isHex64(value) {
+  return typeof value === 'string' && /^[0-9a-f]{64}$/.test(value);
 }
 
 function readJsonFile(file, label, readFile) {
@@ -80,7 +85,7 @@ function verifyPin(resolved, pin) {
   const mismatches = [];
   if (resolved.rules_digest !== pin.rules_digest) mismatches.push('rules');
   if (resolved.model_checkpoint_digest !== pin.model_checkpoint_digest) mismatches.push('model-checkpoint');
-  if (resolved.inference_config_hash !== pin.inference_config_digest) mismatches.push('inference-config');
+  if (resolved.inference_config_hash !== pin.inference_config_hash) mismatches.push('inference-config');
   return { ok: mismatches.length === 0, mismatches };
 }
 
@@ -142,7 +147,7 @@ function transition(state, event, opts) {
     if (next.quarantined_identity_digest !== event.identity_digest) {
       throw new Error('signoff fingerprint does not match quarantined identity');
     }
-    if (!event.reviewer_id || !event.reverify_ledger_hash || !event.bias_probe_hash) {
+    if (!event.reviewer_id || !isHex64(event.reverify_ledger_hash) || !isHex64(event.bias_probe_hash)) {
       throw new Error('signoff requires reviewer_id, reverify_ledger_hash, and bias_probe_hash');
     }
     next.state = 'authoritative';
@@ -178,6 +183,7 @@ module.exports = {
   STATE_REL,
   GENESIS,
   sha256Text,
+  isHex64,
   loadPin,
   loadState,
   resolveInstrumentIdentity,

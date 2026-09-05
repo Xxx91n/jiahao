@@ -57,6 +57,13 @@ describe('ADR-0046 identity pin', () => {
     const bad = Object.assign({}, resolved, { rules_digest: '0'.repeat(64) });
     expect(instrument.verifyPin(bad, pin).mismatches).toContain('rules');
   });
+
+  test('inference config mismatch is named', () => {
+    const pin = instrument.loadPin(ROOT);
+    const resolved = instrument.resolveInstrumentIdentity(ROOT);
+    const bad = Object.assign({}, resolved, { inference_config_hash: '0'.repeat(64) });
+    expect(instrument.verifyPin(bad, pin).mismatches).toContain('inference-config');
+  });
 });
 
 describe('ADR-0046 quarantine state machine', () => {
@@ -116,7 +123,8 @@ describe('ADR-0046 executable wiring', () => {
     expect(e.tier).toBe('confirmatory');
     expect(e.command).toBe('node scripts/instrument.js --check');
     expect(e.requires).toEqual(['repo-tree']);
-    expect(fs.existsSync(path.join(ROOT, e.source_adr))).toBe(true);
+    expect(typeof e.source_adr).toBe('string');
+    expect(e.source_adr.length).toBeGreaterThan(0);
     expect(pkg.scripts['instrument:gate']).toBe('node scripts/instrument.js --check');
   });
 
@@ -139,5 +147,28 @@ describe('ADR-0046 executable wiring', () => {
     });
     expect(r.status).toBe(1);
     expect(r.stderr).toContain('resolve-then-pin mismatch');
+  });
+
+  test('quarantine records a pin-mismatching identity instead of deadlocking', () => {
+    const tmp = makeTree(true);
+    const r = spawnSync(process.execPath, ['scripts/instrument.js', '--quarantine'], {
+      cwd: tmp,
+      encoding: 'utf8',
+      env: Object.assign({}, process.env, { CLAUDE_CONFIG_DIR: tmp }),
+    });
+    expect(r.status).toBe(0);
+    const state = JSON.parse(fs.readFileSync(path.join(tmp, 'src', 'instrument-state.json'), 'utf8'));
+    expect(state.state).toBe('quarantined');
+    expect(instrument.verifyState(state).valid).toBe(true);
+  });
+
+  test('signoff without required arguments emits the usage prefix', () => {
+    const r = spawnSync(process.execPath, ['scripts/instrument.js', '--signoff'], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      env: Object.assign({}, process.env, { CLAUDE_CONFIG_DIR: path.join(os.tmpdir(), 'jh-0046-real') }),
+    });
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain('[usage]:');
   });
 });

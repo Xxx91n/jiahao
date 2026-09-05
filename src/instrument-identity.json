@@ -3,14 +3,12 @@
   "rules_version": "critic-v1",
   "rules_alias": "src/SKILL.md",
   "rules_digest": "46f1d53637ed6a8dd8524bfe9b9421bff664648a5c06ebb8dd853687efe93439",
-  "model_alias": "jiahao-judge:critic-v1",
   "model_checkpoint": {
     "checkpoint": "jiahao-judge-critic-v1"
   },
   "model_checkpoint_digest": "db3377dd648c042802d8f40b02f0f44be20220560090a794db50da45e2eb261d",
-  "inference_alias": "deterministic-judge@v1",
   "inference_config": {
     "temperature": 0
   },
-  "inference_config_digest": "e4ff491169b8a9ea78518a7972422b5a24d5e3790e0d9a9e5cbfb384d9b621e0"
+  "inference_config_hash": "e4ff491169b8a9ea78518a7972422b5a24d5e3790e0d9a9e5cbfb384d9b621e0"
 }

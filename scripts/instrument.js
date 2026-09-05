@@ -15,6 +15,8 @@
 const fs = require('fs');
 const path = require('path');
 const { requireCapabilities } = require('../src/shared/capability');
+const { PREFIXES } = require('../src/shared/prefix-vocab');
+const { verifyLedger } = require('./reverify');
 const {
   loadPin,
   loadState,
@@ -23,6 +25,7 @@ const {
   verifyState,
   transition,
   effectiveState,
+  isHex64,
 } = require('../src/instrument-identity');
 const reverifySchedule = require('../src/reverify-schedule');
 
@@ -56,6 +59,19 @@ function writeState(state) {
   fs.writeFileSync(path.join(ROOT, 'src', 'instrument-state.json'), JSON.stringify(state, null, 2) + '\n', 'utf8');
 }
 
+function currentReverifyLedgerHash() {
+  const ledgerPath = path.join(ROOT, 'bench', 'polygraph', 'reverify-ledger.json');
+  let ledger;
+  try {
+    ledger = JSON.parse(fs.readFileSync(ledgerPath, 'utf8'));
+  } catch (e) {
+    return null;
+  }
+  if (verifyLedger(ledger)) return null;
+  const tail = ledger[ledger.length - 1];
+  return tail && tail.event_hash || null;
+}
+
 function check() {
   const rt = readRuntime();
   console.log('[instrument] rules ' + rt.resolved.rules_digest.slice(0, 16));
@@ -64,25 +80,25 @@ function check() {
   console.log('[instrument] state ' + rt.state.state);
 
   if (!rt.stateCheck.valid) {
-    console.error('[instrument] FAIL: ' + rt.stateCheck.reason);
+    console.error(PREFIXES.config + ' FAIL: ' + rt.stateCheck.reason);
     process.exit(1);
   }
 
   if (!rt.pinCheck.ok) {
-    console.error('[instrument] FAIL: resolve-then-pin mismatch on ' + rt.pinCheck.mismatches.join(', '));
-    console.error('[instrument] required: node scripts/instrument.js --quarantine; npm run reverify; npm run judge:bias');
+    console.error('resolve-then-pin mismatch on ' + rt.pinCheck.mismatches.join(', '));
+    console.error('required: node scripts/instrument.js --quarantine; npm run reverify; npm run judge:bias');
     process.exit(1);
   }
 
   const rev = reverifySchedule.load(ROOT);
   const effective = effectiveState(rt.state, rev);
   if (effective === 'quarantined') {
-    console.error('[instrument] FAIL: judge is quarantined; human sign-off required');
-    console.error('[instrument] required: node scripts/instrument.js --signoff --reviewer <id> --reverify-ledger-hash <hash> --bias-probe-hash <hash>');
+    console.error('judge is quarantined; human sign-off required');
+    console.error('required: node scripts/instrument.js --signoff --reviewer <id> --reverify-ledger-hash <hash> --bias-probe-hash <hash>');
     process.exit(1);
   }
   if (effective === 'advisory-only') {
-    console.error('[instrument] FAIL: dead-man switch is uncleared; verdict gate is advisory-only');
+    console.error('dead-man switch is uncleared; verdict gate is advisory-only');
     process.exit(1);
   }
 
@@ -91,19 +107,30 @@ function check() {
 
 function quarantine() {
   const rt = readRuntime();
-  if (!rt.pinCheck.ok) {
-    console.error('[instrument] FAIL: resolve-then-pin mismatch on ' + rt.pinCheck.mismatches.join(', '));
+  try {
+    const next = transition(rt.state, { type: 'identity-change', identity_digest: rt.resolved.triple_hash });
+    writeState(next);
+    console.log('[instrument] quarantined identity ' + rt.resolved.triple_hash.slice(0, 16));
+    console.log('[instrument] required: npm run reverify; npm run judge:bias; then human sign-off');
+  } catch (e) {
+    console.error(PREFIXES.internal + ' FAIL: ' + e.message);
     process.exit(1);
   }
-  const next = transition(rt.state, { type: 'identity-change', identity_digest: rt.resolved.triple_hash });
-  writeState(next);
-  console.log('[instrument] quarantined identity ' + rt.resolved.triple_hash.slice(0, 16));
-  console.log('[instrument] required: npm run reverify; npm run judge:bias; then human sign-off');
 }
 
 function signoff(args) {
+  if (!args.reviewer || !isHex64(args['reverify-ledger-hash']) || !isHex64(args['bias-probe-hash'])) {
+    console.error(PREFIXES.usage + ' FAIL: --signoff requires --reviewer, --reverify-ledger-hash, and --bias-probe-hash');
+    process.exit(1);
+  }
+  // ponytail: bias-probe has no committed machine artifact in P0; compare when judge:bias emits a digest.
+  const ledgerHash = currentReverifyLedgerHash();
+  if (!ledgerHash || ledgerHash !== args['reverify-ledger-hash']) {
+    console.error(PREFIXES.config + ' FAIL: reverify ledger hash does not match the current verified ledger tail');
+    process.exit(1);
+  }
   const rt = readRuntime();
-  if (args.reviewer && args['reverify-ledger-hash'] && args['bias-probe-hash']) {
+  try {
     const next = transition(rt.state, {
       type: 'signoff',
       identity_digest: rt.resolved.triple_hash,
@@ -113,17 +140,22 @@ function signoff(args) {
     });
     writeState(next);
     console.log('[instrument] sign-off recorded for identity ' + rt.resolved.triple_hash.slice(0, 16));
-    return;
+  } catch (e) {
+    console.error(PREFIXES.internal + ' FAIL: ' + e.message);
+    process.exit(1);
   }
-  console.error('[instrument] FAIL: --signoff requires --reviewer, --reverify-ledger-hash, and --bias-probe-hash');
-  process.exit(1);
 }
 
 function rollback() {
   const rt = readRuntime();
-  const next = transition(rt.state, { type: 'rollback' });
-  writeState(next);
-  console.log('[instrument] rolled back to authoritative identity ' + next.authoritative_identity_digest.slice(0, 16));
+  try {
+    const next = transition(rt.state, { type: 'rollback' });
+    writeState(next);
+    console.log('[instrument] rolled back to authoritative identity ' + next.authoritative_identity_digest.slice(0, 16));
+  } catch (e) {
+    console.error(PREFIXES.internal + ' FAIL: ' + e.message);
+    process.exit(1);
+  }
 }
 
 function main() {
