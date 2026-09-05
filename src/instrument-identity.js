@@ -5,9 +5,9 @@
 // Instrument identity is the immutable triple:
 //   { rulesVersion + promptHash, model checkpoint digest, inferenceConfigHash }
 // The pin lives in src/instrument-identity.json. Gate time resolves the
-// rules_alias to a content digest and compares it with the pin; model and
-// inference axes are content-addressed descriptors in the pin. There is no
-// per-run self-reported fingerprint check.
+// rules_alias to a content digest and compares it with the pin. The model axis
+// is three-layer and may be UNRESOLVED until an immutable snapshot/weights are
+// supplied; the inference hash covers only authoritative decode fields.
 //
 // Quarantine state is append-only and hash-chained. The state file is a fact
 // source in src, not an unversioned runtime file, so a pin/state change must
@@ -21,6 +21,8 @@ const { canonicalJSON } = require('./evidence-log');
 const FACT_REL = path.join('src', 'instrument-identity.json');
 const STATE_REL = path.join('src', 'instrument-state.json');
 const GENESIS = 'GENESIS';
+const UNRESOLVED = 'UNRESOLVED';
+const ATTESTATIONS = ['certify', 'approve'];
 
 function sha256Text(text) {
   return crypto.createHash('sha256').update(String(text), 'utf8').digest('hex');
@@ -66,11 +68,33 @@ function resolveInstrumentIdentity(root, opts) {
     rules_version: pin.rules_version,
     prompt_hash: promptHash,
     rules_digest: sha256Text(pin.rules_version + '\n' + promptHash),
-    model_checkpoint_digest: sha256Text(canonicalJSON(pin.model_checkpoint)),
-    inference_config_hash: sha256Text(canonicalJSON(pin.inference_config)),
+    model_checkpoint_digest: resolveModelIdentity(pin.model_identity || pin.model_checkpoint),
+    inference_config_hash: inferenceConfigHash(pin.inference_config),
   };
   resolved.triple_hash = tripleHash(resolved);
   return resolved;
+}
+
+function resolveModelIdentity(modelIdentity) {
+  if (!modelIdentity || typeof modelIdentity !== 'object') return UNRESOLVED;
+  const snapshot = modelIdentity.provider_snapshot;
+  const commit = modelIdentity.revision_commit;
+  const weights = modelIdentity.weights_sha256;
+  if (!isHex64(weights) || (snapshot !== UNRESOLVED && typeof snapshot !== 'string') ||
+      (commit !== UNRESOLVED && typeof commit !== 'string') ||
+      (snapshot === UNRESOLVED && commit === UNRESOLVED)) {
+    return UNRESOLVED;
+  }
+  return sha256Text([snapshot, commit, weights].join('\n'));
+}
+
+function inferenceConfigHash(config) {
+  const decode = (config && config.decode_parameters) || {};
+  return sha256Text(canonicalJSON({
+    decode_parameters: decode,
+    decode_policy: config && config.decode_policy,
+    provider_contract: config && config.provider_contract,
+  }));
 }
 
 function tripleHash(identity) {
@@ -102,9 +126,18 @@ function stateEvent(seq, kind, identityDigest, prevHash, extra) {
     reverify_ledger_hash: (extra && extra.reverify_ledger_hash) || null,
     bias_probe_hash: (extra && extra.bias_probe_hash) || null,
     reviewer_id: (extra && extra.reviewer_id) || null,
+    second_reviewer: (extra && extra.second_reviewer) || null,
+    attestation_type: (extra && extra.attestation_type) || null,
     timestamp: (extra && extra.timestamp) || new Date().toISOString(),
     prev_hash: prevHash,
   };
+  if (extra && extra.corpus_ref !== undefined) ev.corpus_ref = extra.corpus_ref;
+  if (extra && extra.previous_corpus_ref !== undefined) ev.previous_corpus_ref = extra.previous_corpus_ref;
+  if (extra && extra.outcome !== undefined) ev.outcome = extra.outcome;
+  if (extra && extra.rollback_available !== undefined) ev.rollback_available = extra.rollback_available;
+  if (extra && extra.criteria_version !== undefined) ev.criteria_version = extra.criteria_version;
+  if (extra && extra.previous_criteria_version !== undefined) ev.previous_criteria_version = extra.previous_criteria_version;
+  if (extra && extra.restatement_of !== undefined) ev.restatement_of = extra.restatement_of;
   ev.event_hash = eventHash(ev);
   return ev;
 }
@@ -147,14 +180,19 @@ function transition(state, event, opts) {
     if (next.quarantined_identity_digest !== event.identity_digest) {
       throw new Error('signoff fingerprint does not match quarantined identity');
     }
+    if (!ATTESTATIONS.includes(event.attestation_type)) {
+      throw new Error('signoff requires attestation_type certify|approve');
+    }
     if (!event.reviewer_id || !isHex64(event.reverify_ledger_hash) || !isHex64(event.bias_probe_hash)) {
-      throw new Error('signoff requires reviewer_id, reverify_ledger_hash, and bias_probe_hash');
+      throw new Error('signoff requires reviewer_id, reverify_ledger_hash, bias_probe_hash, and attestation_type');
     }
     next.state = 'authoritative';
     next.authoritative_identity_digest = event.identity_digest;
     next.quarantined_identity_digest = null;
     next.history.push(stateEvent(tail.seq + 1, 'signoff', event.identity_digest, tail.event_hash, {
       reviewer_id: event.reviewer_id,
+      second_reviewer: event.second_reviewer || null,
+      attestation_type: event.attestation_type,
       reverify_ledger_hash: event.reverify_ledger_hash,
       bias_probe_hash: event.bias_probe_hash,
       timestamp: now,
@@ -170,6 +208,61 @@ function transition(state, event, opts) {
     return next;
   }
 
+  if (event.type === 'corpus_rebaseline') {
+    if (next.state !== 'authoritative') throw new Error('corpus_rebaseline requires authoritative state');
+    if (next.authoritative_identity_digest !== event.identity_digest) {
+      throw new Error('corpus_rebaseline identity does not match authoritative identity');
+    }
+    if (!ATTESTATIONS.includes(event.attestation_type) || !event.reviewer_id) {
+      throw new Error('corpus_rebaseline requires attestation_type and reviewer_id');
+    }
+    if (!event.corpus_ref || !event.previous_corpus_ref || !['pass', 'fail'].includes(event.outcome)) {
+      throw new Error('corpus_rebaseline requires corpus_ref, previous_corpus_ref, and outcome pass|fail');
+    }
+    next.history.push(stateEvent(tail.seq + 1, 'corpus_rebaseline', event.identity_digest, tail.event_hash, {
+      corpus_ref: event.corpus_ref,
+      previous_corpus_ref: event.previous_corpus_ref,
+      outcome: event.outcome,
+      rollback_available: event.rollback_available === true,
+      reviewer_id: event.reviewer_id,
+      second_reviewer: event.second_reviewer || null,
+      attestation_type: event.attestation_type,
+      timestamp: now,
+    }));
+    if (event.outcome === 'fail' && event.rollback_available !== true) {
+      const tailAfterRebaseline = next.history[next.history.length - 1];
+      next.state = 'quarantined';
+      next.quarantined_identity_digest = event.identity_digest;
+      next.history.push(stateEvent(tailAfterRebaseline.seq + 1, 'quarantine', event.identity_digest, tailAfterRebaseline.event_hash, {
+        timestamp: now,
+      }));
+    }
+    return next;
+  }
+
+  if (event.type === 'criteria_change') {
+    if (next.state !== 'authoritative') throw new Error('criteria_change requires authoritative state');
+    if (next.authoritative_identity_digest !== event.identity_digest) {
+      throw new Error('criteria_change identity does not match authoritative identity');
+    }
+    if (!ATTESTATIONS.includes(event.attestation_type) || !event.reviewer_id) {
+      throw new Error('criteria_change requires attestation_type and reviewer_id');
+    }
+    if (!event.criteria_version || !event.previous_criteria_version) {
+      throw new Error('criteria_change requires criteria_version and previous_criteria_version');
+    }
+    next.history.push(stateEvent(tail.seq + 1, 'criteria_change', event.identity_digest, tail.event_hash, {
+      criteria_version: event.criteria_version,
+      previous_criteria_version: event.previous_criteria_version,
+      restatement_of: event.restatement_of || null,
+      reviewer_id: event.reviewer_id,
+      second_reviewer: event.second_reviewer || null,
+      attestation_type: event.attestation_type,
+      timestamp: now,
+    }));
+    return next;
+  }
+
   throw new Error('unknown instrument state event: ' + event.type);
 }
 
@@ -182,11 +275,15 @@ module.exports = {
   FACT_REL,
   STATE_REL,
   GENESIS,
+  UNRESOLVED,
+  ATTESTATIONS,
   sha256Text,
   isHex64,
   loadPin,
   loadState,
   resolveInstrumentIdentity,
+  resolveModelIdentity,
+  inferenceConfigHash,
   tripleHash,
   verifyPin,
   verifyState,

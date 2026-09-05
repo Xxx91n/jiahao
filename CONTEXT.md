@@ -388,6 +388,9 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0040 gate runtime capability declaration: gates.json gains a closed `requires` enum (repo-tree/bench-corpus/docs-adr/ci-mode), three-state exit 0/1/2 with narrow exit 2 = UNVERIFIABLE, two-line ::error honest-degradation message, run-gates UNVERIFIABLE column, degradation schema explicitly unchanged, regression = helper jest + 4 spawn representatives + static wiring anchor
 - ADR-0043 fact-source spine deepening: README ADR index as derived artifact (sentinel region + scripts/build-adr-index.js --check, gate order 115) + stderr prefix vocabulary single source (src/shared/prefix-vocab.js) + run-gates choke check
 - ADR-0044 claim-directed falsification: mechanical falsifiability rule, five-tuple falsification_record, evidence tri-state, 12-twin structural first batch, 0/1/2 falsification gate reuse (implementation round: src/shared/falsify.js + scripts/check-falsify.js + order-185 gate + wiring test)
+- ADR-0045 stochastic-deterministic boundary + evidence-path verification: Candidate-Verification Loop parent model; SDB proposer/verifier/commit/reject mapping; reject = typed evidence only, no semantic auto-retry; Evidence-Path Verification stays outside claim_type/gates/falsification_record; scoring-function isolation and Lyft prompt linting deferred as defer-0012/0013 (document round)
+- ADR-0046 instrument-drift recalibration: dual-axis judge identity (rules+prompt hash, model checkpoint, inference params), resolve-then-pin event trigger, layered quarantine semantics (deterministic re-run / stochastic quarantine / telemetry re-baseline), delta-gated revalidation, two-state + human sign-off state machine (document round)
+- ADR-0047 impact-tiered instrument change control: tiered change classification (identity / corpus / threshold / schedule), rebaseline + criteria-change event types (authoritative), three-layer model identity with UNRESOLVED, inference-config metadata column + determinism envelope, silent-drift e-process deferred, data-driven calibration interval deferred (implementation round)
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -668,6 +671,37 @@ older than 6 months are stale pending re-validation (eval-rot rule). The
 corpus is the acceptance asset for any future scoring-mode verifier and must
 never be used to tune thresholds (METR do-not-tune-on-eval discipline).
 _Avoid_: tune-on-corpus, undated eval data, vibe evals
+
+**Instrument Identity (仪器身份)**:
+The immutable judge identity triple `{ rulesVersion + promptHash, model
+checkpoint identity, inferenceConfigHash }` that pins which instrument is doing
+the measuring. The model axis is three-layer: registered name (tag) -> provider
+dated snapshot / revision commit sha -> weights sha256; a tag without a resolved
+snapshot is `UNRESOLVED` and never counts as evidence. The alias/endpoint name
+is a mutable pointer and is never evidence; only the resolved content digest is
+evidence identity (ADR-0046 D-A, ADR-0047 D-C).
+_Avoid_: endpoint name, alias-as-version, model-family name, self-referential descriptor hash
+
+**Resolve-then-Pin (解析后钉死)**:
+Gate-time resolution of a mutable alias to an immutable digest, compared
+against a repository pin; a mismatch fails the gate so a rollover becomes a
+recorded pin change (ADR-0046 D-B).
+_Avoid_: latest alias, runtime fingerprint comparison, tag pinning
+
+**Instrument Quarantine (仪器隔离)**:
+The two-state `authoritative <-> quarantined` lifecycle: an identity-axis change
+enters quarantine, and restoring authority requires a revalidation pass plus a
+human sign-off bound to the new fingerprint (ADR-0046 D-E). Corpus and threshold
+changes stay `authoritative` and append human-signed rebaseline / criteria-change
+records instead; only a failed rebaseline with no rollback escalates to
+quarantine (ADR-0047 D-B).
+_Avoid_: auto-promote, suspected state, self-certified upgrade
+
+**Lot-to-Lot Verification (换批验证)**:
+New-old judge parallel scoring on the frozen anchor set with a pre-registered
+delta band and bias probes; the clinical precedent that a new reagent batch is
+validated on the same samples before use (ADR-0046 D-D).
+_Avoid_: absolute-threshold reuse, single-sided validation, drift-alarm-as-pass
 
 **Segment Anchor (段锚点)**:
 The first record of every non-genesis segment in the segmented evidence log
@@ -1286,5 +1320,71 @@ the ADR-0040 `0/1/2` exit contract: green, deterministic breach, or
 capability-absent UNVERIFIABLE. It joins gates.json through the single
 gate:all entrypoint; ci.yml remains untouched.
 _Avoid_: bespoke exit code, direct ci.yml wiring, judge-as-primary gate
+
+**Candidate-Verification Loop (候选验证循环)** (ADR-0045 D-A):
+The parent mental model in which generation and verification are connected
+by an explicit feedback signal. SDB and Evidence-Path Verification are
+concrete children of this loop, not separate verification runtimes.
+_Avoid_: self-verification loop, agent debate as primary evidence, open-ended retry loop
+
+**Stochastic-Deterministic Boundary (随机确定边界)** (ADR-0045 D-B):
+The canonical boundary between LLM sampling and deterministic evidence:
+`proposer -> verifier -> commit -> reject`. Verification remains terminal;
+reject does not automatically re-enter the proposer.
+_Avoid_: stochastic checker, deterministic generator, automatic semantic retry
+
+**Typed Rejection Evidence (类型化拒绝证据)** (ADR-0045 D-C):
+The `reject` semantics carried by a `falsification_record` when
+`falsified = invalid`. It must originate from a deterministic
+`falsification_cmd` with exit `1`; a direct `invalid` write without that
+command is forbidden. The five-tuple record is unchanged.
+_Avoid_: verdict field, reason-only rejection, transport retry policy
+
+**Evidence-Path Verification (证据路径验证)** (ADR-0045 D-D):
+An organizational mental model with three tracks: Silence, Perspective,
+Counterfactual. It does not enter `claim_type`, gates.json, or
+`falsification_record`; each track points to an existing mechanism.
+Silence maps to `missing`/UNVERIFIABLE, Perspective to judge whitelist and
+deployment independence, Counterfactual to metamorphic relations and
+falsification twins.
+_Avoid_: claim-type taxonomy, gate registry entry, separate verification runtime
+
+**Impact-Tiered Change Control (影响层分级变更控制)**:
+Classification of an explicit change by which validated object it touches, with
+a tiered response: identity axis -> quarantine, corpus batch -> re-baseline,
+threshold -> criteria replay, schedule/gate list -> record. Every tier ends in a
+human sign-off (ADR-0047 D-A).
+_Avoid_: trigger-narrowing, one-size quarantine, unattended revalidation
+
+**Change Surface (变更面)**:
+The machine fact-source mapping changed files to their change-control tier,
+analogous to the gate registry and protected by the coupling guard (ADR-0047 D-A).
+_Avoid_: inline path globs, hand-maintained tier prose
+
+**Rebaseline (语料重基准)**:
+A corpus/fingerprint batch change validated by old-new parallel scoring on a
+frozen input subset with a pre-registered delta band; it appends a human-signed
+evidence record while the instrument stays `authoritative` (ADR-0047 D-B).
+_Avoid_: corpus-as-identity-change, absolute-threshold comparison
+
+**Criteria Change (判定准则变更)**:
+A threshold change recorded as a versioned replay of affected verdicts plus a
+restatement mapping for overturned sign-offs; it never enters quarantine
+(ADR-0047 D-B).
+_Avoid_: silent threshold edit, in-place signoff rewrite
+
+**Determinism Envelope (确定性包络)**:
+The pin-side declaration that determinism is a measured property, not a config
+claim: decode policy, provider contract, and measured repeatability from
+same-input re-runs. `temperature=0` is a greedy decode request, never a
+guarantee (ADR-0047 D-D).
+_Avoid_: temperature-as-determinism, seed-as-determinism, untested determinism claim
+
+**Calibration Interval (校准间隔)**:
+The reverify cadence as a metrological interval: a fixed 6/9-month initial
+floor while the ledger accumulates as-found/as-left history, with data-driven
+staircase adjustment deferred until cycles, samples, and the anchor set qualify
+(ADR-0047 D-F).
+_Avoid_: fixed-only interval with no feedback, regression-fit interval, drift-alarm-as-interval
 
 *End of Glossary*

@@ -11,7 +11,7 @@ const { corpusMissingMessage } = require('../src/shared/paths.js');
 
 describe('D1: files whitelist = runtime artifact surface', () => {
   test('files whitelist matches the ADR-0039 D1 narrowed set', () => {
-    expect(pkg.files).toEqual(['src/', 'scripts/', 'adapters/', 'schemas/', 'hooks/', 'jiahao-mcp/', 'docs/gates.json', 'docs/coverage-map.json', 'docs/deferred-registry.json', 'bench/polygraph/thresholds.json', 'CONTEXT.md', 'README.md', 'AGENTS.md']);
+    expect(pkg.files).toEqual(['src/', 'scripts/', 'adapters/', 'schemas/', 'hooks/', 'jiahao-mcp/', 'docs/gates.json', 'docs/coverage-map.json', 'docs/deferred-registry.json', 'docs/change-surface.json', 'bench/polygraph/thresholds.json', 'CONTEXT.md', 'README.md', 'AGENTS.md']);
   });
 
   test('npm pack dry-run tarball: no test/, no docs/adr, no bench fixtures, thresholds.json present, <200,000 bytes (ADR-0039 D3)', () => {

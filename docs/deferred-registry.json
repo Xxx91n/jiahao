@@ -122,6 +122,118 @@
       "cadence_tier": "half-yearly",
       "registered_at": "2026-09-01",
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0009",
+      "subject": "implement check-falsify.js and register falsification in docs/gates.json",
+      "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
+      "rationale": "ADR-0044 is a document-round decision only. The executable falsification gate and registry wiring belong to the next implementation round.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the ADR-0044 implementation round opens"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-04",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0010",
+      "subject": "define and commit the first 12 falsification-twins with claim_id, claim_type, and falsification_cmd entries",
+      "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
+      "rationale": "The first twin batch is a structural killing-power check, not statistical coverage. Its fixtures are created in the implementation round once the record and gate contract are wired.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the ADR-0044 implementation round opens and check-falsify.js exists"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-04",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0011",
+      "subject": "add statistical falsification metrics and threshold enforcement after the structural gate is green",
+      "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
+      "rationale": "Statistics would pretend to measure what the first structural gate cannot yet support. It follows a green structural falsification gate and a larger twin corpus.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "defer-0009 is implemented and the structural falsification gate is green"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-04",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0012",
+      "subject": "scoring-function isolation for capable-optimizer defense",
+      "source_adr": "docs/adr/0045-stochastic-deterministic-boundary-evidence-path-verification.md",
+      "rationale": "ADR-0036 already isolates corpus data; ADR-0045 records the separate execution-boundary concern. Scoring code must not be readable or mutable by the generator before it runs, but there is no current score-bearing verifier implementation to protect.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a scoring-mode verifier or LLM-judge runtime exists and is reachable by the generator"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-05",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0013",
+      "subject": "Lyft-style prompt contradiction and dead-path linting",
+      "source_adr": "docs/adr/0045-stochastic-deterministic-boundary-evidence-path-verification.md",
+      "rationale": "Current adapter drift and structural checks catch shape drift, not contradictory or dead instruction paths. Adding an LLM-level prompt linter would introduce a new review dependency before the existing static gates demonstrate the need.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "adapter drift and structural gates have produced a reproducible missed contradiction case"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-05",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0015",
+      "subject": "Human-labeled anchor corpus and annotation manual for the judge revalidation admission gate",
+      "source_adr": "docs/adr/0046-instrument-drift-recalibration.md",
+      "rationale": "The human-anchor admission gate (ADR-0046 D-D) requires a frozen human-labeled corpus with a human-human kappa baseline, expert rotation, and a 60-90 day refresh; that asset does not exist yet.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the ADR-0046 implementation round opens and a frozen human-labeled anchor corpus with annotation manual is commissioned"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-05",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0018",
+      "subject": "silent-drift anytime-valid auto-detection: anchor e-process + guard-window attribution to {none, system, judge}",
+      "source_adr": "docs/adr/0047-impact-tiered-instrument-change-control.md",
+      "rationale": "ADR-0047 D-E defers silent provider drift detection behind its two prerequisites: the human-labeled anchor corpus (defer-0015) and a trustworthy scheduler carrier (CONTEXT.md Reverification Runbook rejects cron/CI without a trusted remote executor). Building before the anchor set exists would replicate the naive-z ~75% false-alarm failure.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "defer-0015's frozen human-labeled anchor corpus with annotation manual is committed and schema-valid, AND a trustworthy scheduler carrier exists (CI cron with a trusted remote executor, or equivalent), AND the reverify pipeline wires the ADR-0046 D-A identity triple"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-05",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0019",
+      "subject": "data-driven calibration interval and offset-band feedback (staircase / reliability-ratio + guard-band)",
+      "source_adr": "docs/adr/0047-impact-tiered-instrument-change-control.md",
+      "rationale": "ADR-0047 D-F keeps the 6/9-month dead-man clock as initial interval and floor while the reverify ledger accumulates as-found/as-left history. Data-driven interval adjustment needs enough same-identity cycles and flip-eligible samples plus the anchor set before a control decision is statistically honest.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the same identity has accumulated >= 2-3 complete reverify cycles AND >= 30 flip-eligible samples (ADR-0029 D3 graduation line) AND defer-0015's anchor set is available"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-05",
+      "status": "pending-evaluation"
     }
   ]
 }

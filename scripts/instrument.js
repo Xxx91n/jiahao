@@ -14,9 +14,11 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 const { requireCapabilities } = require('../src/shared/capability');
 const { PREFIXES } = require('../src/shared/prefix-vocab');
 const { verifyLedger } = require('./reverify');
+const { CHANGE_SURFACE_REL, ATTESTATIONS, loadChangeSurface, classify } = require('../src/change-surface');
 const {
   loadPin,
   loadState,
@@ -52,7 +54,8 @@ function readRuntime() {
   const pin = loadPin(ROOT);
   const resolved = resolveInstrumentIdentity(ROOT);
   const state = loadState(ROOT);
-  return { pin, resolved, state, pinCheck: verifyPin(resolved, pin), stateCheck: verifyState(state) };
+  const changeSurface = loadChangeSurface(ROOT);
+  return { pin, resolved, state, changeSurface, pinCheck: verifyPin(resolved, pin), stateCheck: verifyState(state) };
 }
 
 function writeState(state) {
@@ -72,10 +75,35 @@ function currentReverifyLedgerHash() {
   return tail && tail.event_hash || null;
 }
 
+function checkChangeSurfaceCoupling(baseRef) {
+  if (!baseRef) return [];
+  let diff;
+  try {
+    diff = execFileSync('git', ['diff', '--name-only', '-z', baseRef + '...HEAD'], {
+      cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  } catch (e) {
+    return ['change surface coupling check: git diff failed'];
+  }
+  const changed = diff.split('\0').map(s => s.trim()).filter(Boolean);
+  const cfgChanged = changed.indexOf(CHANGE_SURFACE_REL.split(path.sep).join('/')) !== -1;
+  const adrChanged = changed.some(f => /^docs\/adr\/\d+.*\.md$/.test(f));
+  const ctxChanged = changed.indexOf('CONTEXT.md') !== -1;
+  if (cfgChanged && !adrChanged && !ctxChanged) {
+    return ['coupling: docs/change-surface.json changed without ADR/CONTEXT change (ADR-0027 D2)'];
+  }
+  return [];
+}
+
 function check() {
   const rt = readRuntime();
+  const couplingErrors = checkChangeSurfaceCoupling(process.env.CI_BASE_REF || null);
+  if (couplingErrors.length) {
+    for (const e of couplingErrors) console.error(PREFIXES.config + ' FAIL: ' + e);
+    process.exit(1);
+  }
   console.log('[instrument] rules ' + rt.resolved.rules_digest.slice(0, 16));
-  console.log('[instrument] model ' + rt.resolved.model_checkpoint_digest.slice(0, 16));
+  console.log('[instrument] model ' + rt.resolved.model_checkpoint_digest);
   console.log('[instrument] inference ' + rt.resolved.inference_config_hash.slice(0, 16));
   console.log('[instrument] state ' + rt.state.state);
 
@@ -120,7 +148,11 @@ function quarantine() {
 
 function signoff(args) {
   if (!args.reviewer || !isHex64(args['reverify-ledger-hash']) || !isHex64(args['bias-probe-hash'])) {
-    console.error(PREFIXES.usage + ' FAIL: --signoff requires --reviewer, --reverify-ledger-hash, and --bias-probe-hash');
+    console.error(PREFIXES.usage + ' FAIL: --signoff requires --reviewer, --attestation certify|approve, --reverify-ledger-hash, and --bias-probe-hash');
+    process.exit(1);
+  }
+  if (!ATTESTATIONS.includes(args.attestation)) {
+    console.error(PREFIXES.usage + ' FAIL: --attestation must be certify or approve');
     process.exit(1);
   }
   // ponytail: bias-probe has no committed machine artifact in P0; compare when judge:bias emits a digest.
@@ -135,11 +167,76 @@ function signoff(args) {
       type: 'signoff',
       identity_digest: rt.resolved.triple_hash,
       reviewer_id: args.reviewer,
+      second_reviewer: args['second-reviewer'] || null,
+      attestation_type: args.attestation,
       reverify_ledger_hash: args['reverify-ledger-hash'],
       bias_probe_hash: args['bias-probe-hash'],
     });
     writeState(next);
     console.log('[instrument] sign-off recorded for identity ' + rt.resolved.triple_hash.slice(0, 16));
+  } catch (e) {
+    console.error(PREFIXES.internal + ' FAIL: ' + e.message);
+    process.exit(1);
+  }
+}
+
+function classifySurface(args) {
+  if (!args.surface) {
+    console.error(PREFIXES.usage + ' FAIL: --classify requires --surface identity|corpus|threshold|schedule_gate');
+    process.exit(1);
+  }
+  const cfg = loadChangeSurface(ROOT);
+  const mapped = classify(args.surface, cfg);
+  console.log('[instrument] ' + mapped.surface + ' -> ' + mapped.response);
+  console.log('[instrument] revalidation: ' + mapped.revalidation);
+  console.log('[instrument] attestations: ' + mapped.attestations.join(', '));
+}
+
+function rebaseline(args) {
+  if (!args.reviewer || !ATTESTATIONS.includes(args.attestation) || !args['corpus-ref'] || !args['previous-corpus-ref'] || !['pass', 'fail'].includes(args.outcome)) {
+    console.error(PREFIXES.usage + ' FAIL: --rebaseline requires --corpus-ref, --previous-corpus-ref, --outcome pass|fail, --reviewer, --attestation certify|approve, and --rollback-available true|false on fail');
+    process.exit(1);
+  }
+  const rt = readRuntime();
+  try {
+    const next = transition(rt.state, {
+      type: 'corpus_rebaseline',
+      identity_digest: rt.resolved.triple_hash,
+      corpus_ref: args['corpus-ref'],
+      previous_corpus_ref: args['previous-corpus-ref'],
+      outcome: args.outcome,
+      rollback_available: args['rollback-available'] === 'true',
+      reviewer_id: args.reviewer,
+      second_reviewer: args['second-reviewer'] || null,
+      attestation_type: args.attestation,
+    });
+    writeState(next);
+    console.log('[instrument] corpus rebaseline recorded; state ' + next.state);
+  } catch (e) {
+    console.error(PREFIXES.internal + ' FAIL: ' + e.message);
+    process.exit(1);
+  }
+}
+
+function criteriaChange(args) {
+  if (!args.reviewer || !ATTESTATIONS.includes(args.attestation) || !args['criteria-version'] || !args['previous-criteria-version']) {
+    console.error(PREFIXES.usage + ' FAIL: --criteria-change requires --criteria-version, --previous-criteria-version, --reviewer, and --attestation certify|approve');
+    process.exit(1);
+  }
+  const rt = readRuntime();
+  try {
+    const next = transition(rt.state, {
+      type: 'criteria_change',
+      identity_digest: rt.resolved.triple_hash,
+      criteria_version: args['criteria-version'],
+      previous_criteria_version: args['previous-criteria-version'],
+      restatement_of: args['restatement-of'] || null,
+      reviewer_id: args.reviewer,
+      second_reviewer: args['second-reviewer'] || null,
+      attestation_type: args.attestation,
+    });
+    writeState(next);
+    console.log('[instrument] criteria change recorded');
   } catch (e) {
     console.error(PREFIXES.internal + ' FAIL: ' + e.message);
     process.exit(1);
@@ -161,12 +258,15 @@ function rollback() {
 function main() {
   requireCapabilities('instrument-identity');
   const args = parseArgs(process.argv.slice(2));
+  if (args.classify) return classifySurface(args);
   if (args.quarantine) return quarantine();
   if (args.signoff) return signoff(args);
+  if (args.rebaseline) return rebaseline(args);
+  if (args['criteria-change']) return criteriaChange(args);
   if (args.rollback) return rollback();
   check();
 }
 
 if (require.main === module) main();
 
-module.exports = { parseArgs, readRuntime, check, quarantine, signoff, rollback, main };
+module.exports = { parseArgs, readRuntime, check, classifySurface, quarantine, signoff, rebaseline, criteriaChange, rollback, main };

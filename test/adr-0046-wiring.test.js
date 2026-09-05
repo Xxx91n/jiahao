@@ -20,7 +20,9 @@ function makeTree(tamper) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-0046-'));
   for (const rel of [
     'docs/gates.json',
+    'docs/change-surface.json',
     'scripts/instrument.js',
+    'src/change-surface.js',
     'src/evidence-log.js',
     'src/file-lock.js',
     'src/instrument-identity.js',
@@ -49,6 +51,7 @@ describe('ADR-0046 identity pin', () => {
     expect(instrument.verifyPin(resolved, pin).ok).toBe(true);
     expect(resolved.rules_version).toBe('critic-v1');
     expect(resolved.triple_hash).toHaveLength(64);
+    expect(resolved.model_checkpoint_digest).toBe('UNRESOLVED');
   });
 
   test('each identity axis mismatch is named and fails closed', () => {
@@ -86,6 +89,7 @@ describe('ADR-0046 quarantine state machine', () => {
       type: 'signoff',
       identity_digest: 'a'.repeat(64),
       reviewer_id: 'reviewer-a',
+      attestation_type: 'certify',
       reverify_ledger_hash: 'b'.repeat(64),
       bias_probe_hash: 'c'.repeat(64),
     });
@@ -109,6 +113,7 @@ describe('ADR-0046 quarantine state machine', () => {
       type: 'signoff',
       identity_digest: 'f'.repeat(64),
       reviewer_id: 'reviewer-a',
+      attestation_type: 'approve',
       reverify_ledger_hash: 'b'.repeat(64),
       bias_probe_hash: 'c'.repeat(64),
     })).toThrow(/fingerprint/);

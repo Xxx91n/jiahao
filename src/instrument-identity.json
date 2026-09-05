@@ -1,14 +1,32 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "rules_version": "critic-v1",
   "rules_alias": "src/SKILL.md",
   "rules_digest": "46f1d53637ed6a8dd8524bfe9b9421bff664648a5c06ebb8dd853687efe93439",
-  "model_checkpoint": {
-    "checkpoint": "jiahao-judge-critic-v1"
+  "model_identity": {
+    "tag": "jiahao-judge-critic-v1",
+    "provider_snapshot": "UNRESOLVED",
+    "revision_commit": "UNRESOLVED",
+    "weights_sha256": "UNRESOLVED"
   },
-  "model_checkpoint_digest": "db3377dd648c042802d8f40b02f0f44be20220560090a794db50da45e2eb261d",
+  "model_checkpoint_digest": "UNRESOLVED",
   "inference_config": {
-    "temperature": 0
+    "decode_parameters": {
+      "temperature": 0
+    },
+    "decode_policy": "greedy",
+    "provider_contract": "temperature-0-is-request-only",
+    "observation": {
+      "system_fingerprint": null,
+      "backend_version": null,
+      "timestamp": null,
+      "concurrency": 1
+    }
   },
-  "inference_config_hash": "e4ff491169b8a9ea78518a7972422b5a24d5e3790e0d9a9e5cbfb384d9b621e0"
+  "inference_config_hash": "41c7df6354424a59180ae855de4afc764b38b1ddfd2aec9312d9195342fecac7",
+  "measured_repeatability": {
+    "sample_size": 0,
+    "agreement": null,
+    "method": "same-input-reruns"
+  }
 }
