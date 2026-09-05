@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "state": "authoritative",
+  "authoritative_identity_digest": "ba2a59b86aa69a4ed0af34ee526b8d760a03f9470809bf0112f34ef6611fabb6",
+  "quarantined_identity_digest": null,
+  "history": [
+    {
+      "seq": 1,
+      "kind": "genesis",
+      "identity_digest": "ba2a59b86aa69a4ed0af34ee526b8d760a03f9470809bf0112f34ef6611fabb6",
+      "reverify_ledger_hash": null,
+      "bias_probe_hash": null,
+      "reviewer_id": null,
+      "timestamp": "2026-09-05T00:00:00.000Z",
+      "prev_hash": "GENESIS",
+      "event_hash": "f8333d2d354b3f9c30722b742b1443a7c088512de9825638e248feeafc7a0a3d"
+    }
+  ]
+}

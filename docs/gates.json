@@ -48,6 +48,19 @@
       "requires": []
     },
     {
+      "name": "instrument-identity",
+      "command": "node scripts/instrument.js --check",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0046-instrument-drift-recalibration.md",
+      "order": 105,
+      "params": {
+        "check": true
+      },
+      "requires": [
+        "repo-tree"
+      ]
+    },
+    {
       "name": "drift",
       "command": "node scripts/check-drift.js",
       "tier": "confirmatory",
