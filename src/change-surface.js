@@ -14,6 +14,12 @@ const CHANGE_SURFACE_REL = path.join('docs', 'change-surface.json');
 const SURFACES = ['identity', 'corpus', 'threshold', 'schedule_gate'];
 const RESPONSES = ['quarantine', 'rebaseline', 'criteria-change', 'record'];
 const ATTESTATIONS = ['certify', 'approve'];
+const SURFACE_ATTESTATIONS = {
+  identity: ['certify'],
+  corpus: ['approve', 'certify'],
+  threshold: ['approve'],
+  schedule_gate: ['approve'],
+};
 
 function loadChangeSurface(root, opts) {
   const readFile = (opts && opts.readFile) || fs.readFileSync;
@@ -33,8 +39,8 @@ function loadChangeSurface(root, opts) {
       throw new Error('change surface ' + surface + ' must have a response in ' + RESPONSES.join('|'));
     }
     if (!Array.isArray(entry.attestations) || !entry.attestations.length ||
-        entry.attestations.some(a => !ATTESTATIONS.includes(a))) {
-      throw new Error('change surface ' + surface + ' must have attestations from ' + ATTESTATIONS.join('|'));
+        entry.attestations.some(a => !SURFACE_ATTESTATIONS[surface].includes(a))) {
+      throw new Error('change surface ' + surface + ' must have attestations from ' + SURFACE_ATTESTATIONS[surface].join('|'));
     }
   }
   return cfg;
@@ -45,11 +51,18 @@ function classify(surface, cfg) {
   return Object.assign({ surface }, cfg.surfaces[surface]);
 }
 
+function attestationAllowed(surface, cfg, attestation) {
+  if (!cfg || !cfg.surfaces || !cfg.surfaces[surface]) return false;
+  return (cfg.surfaces[surface].attestations || []).includes(attestation);
+}
+
 module.exports = {
   CHANGE_SURFACE_REL,
   SURFACES,
   RESPONSES,
   ATTESTATIONS,
+  SURFACE_ATTESTATIONS,
   loadChangeSurface,
   classify,
+  attestationAllowed,
 };

@@ -8,7 +8,7 @@
 //
 // Mutating modes are explicit:
 //   node scripts/instrument.js --quarantine
-//   node scripts/instrument.js --signoff --reviewer <id> \
+//   node scripts/instrument.js --signoff --reviewer <id> --attestation certify \
 //     --reverify-ledger-hash <hash> --bias-probe-hash <hash>
 //   node scripts/instrument.js --rollback
 
@@ -18,7 +18,7 @@ const { execFileSync } = require('child_process');
 const { requireCapabilities } = require('../src/shared/capability');
 const { PREFIXES } = require('../src/shared/prefix-vocab');
 const { verifyLedger } = require('./reverify');
-const { CHANGE_SURFACE_REL, ATTESTATIONS, loadChangeSurface, classify } = require('../src/change-surface');
+const { CHANGE_SURFACE_REL, ATTESTATIONS, loadChangeSurface, classify, attestationAllowed } = require('../src/change-surface');
 const {
   loadPin,
   loadState,
@@ -88,9 +88,8 @@ function checkChangeSurfaceCoupling(baseRef) {
   const changed = diff.split('\0').map(s => s.trim()).filter(Boolean);
   const cfgChanged = changed.indexOf(CHANGE_SURFACE_REL.split(path.sep).join('/')) !== -1;
   const adrChanged = changed.some(f => /^docs\/adr\/\d+.*\.md$/.test(f));
-  const ctxChanged = changed.indexOf('CONTEXT.md') !== -1;
-  if (cfgChanged && !adrChanged && !ctxChanged) {
-    return ['coupling: docs/change-surface.json changed without ADR/CONTEXT change (ADR-0027 D2)'];
+  if (cfgChanged && !adrChanged) {
+    return ['coupling: docs/change-surface.json changed without ADR change (ADR-0027 D2)'];
   }
   return [];
 }
@@ -122,7 +121,7 @@ function check() {
   const effective = effectiveState(rt.state, rev);
   if (effective === 'quarantined') {
     console.error('judge is quarantined; human sign-off required');
-    console.error('required: node scripts/instrument.js --signoff --reviewer <id> --reverify-ledger-hash <hash> --bias-probe-hash <hash>');
+    console.error('required: node scripts/instrument.js --signoff --reviewer <id> --attestation certify --reverify-ledger-hash <hash> --bias-probe-hash <hash>');
     process.exit(1);
   }
   if (effective === 'advisory-only') {
@@ -148,11 +147,16 @@ function quarantine() {
 
 function signoff(args) {
   if (!args.reviewer || !isHex64(args['reverify-ledger-hash']) || !isHex64(args['bias-probe-hash'])) {
-    console.error(PREFIXES.usage + ' FAIL: --signoff requires --reviewer, --attestation certify|approve, --reverify-ledger-hash, and --bias-probe-hash');
+    console.error(PREFIXES.usage + ' FAIL: --signoff requires --reviewer, --attestation certify, --reverify-ledger-hash, and --bias-probe-hash');
     process.exit(1);
   }
   if (!ATTESTATIONS.includes(args.attestation)) {
     console.error(PREFIXES.usage + ' FAIL: --attestation must be certify or approve');
+    process.exit(1);
+  }
+  const signoffSurface = loadChangeSurface(ROOT);
+  if (!attestationAllowed('identity', signoffSurface, args.attestation)) {
+    console.error(PREFIXES.usage + ' FAIL: identity signoff requires --attestation certify');
     process.exit(1);
   }
   // ponytail: bias-probe has no committed machine artifact in P0; compare when judge:bias emits a digest.
@@ -197,6 +201,11 @@ function rebaseline(args) {
     console.error(PREFIXES.usage + ' FAIL: --rebaseline requires --corpus-ref, --previous-corpus-ref, --outcome pass|fail, --reviewer, --attestation certify|approve, and --rollback-available true|false on fail');
     process.exit(1);
   }
+  const rebaselineSurface = loadChangeSurface(ROOT);
+  if (!attestationAllowed('corpus', rebaselineSurface, args.attestation)) {
+    console.error(PREFIXES.usage + ' FAIL: corpus rebaseline requires --attestation certify|approve');
+    process.exit(1);
+  }
   const rt = readRuntime();
   try {
     const next = transition(rt.state, {
@@ -220,7 +229,12 @@ function rebaseline(args) {
 
 function criteriaChange(args) {
   if (!args.reviewer || !ATTESTATIONS.includes(args.attestation) || !args['criteria-version'] || !args['previous-criteria-version']) {
-    console.error(PREFIXES.usage + ' FAIL: --criteria-change requires --criteria-version, --previous-criteria-version, --reviewer, and --attestation certify|approve');
+    console.error(PREFIXES.usage + ' FAIL: --criteria-change requires --criteria-version, --previous-criteria-version, --reviewer, and --attestation approve');
+    process.exit(1);
+  }
+  const criteriaSurface = loadChangeSurface(ROOT);
+  if (!attestationAllowed('threshold', criteriaSurface, args.attestation)) {
+    console.error(PREFIXES.usage + ' FAIL: threshold criteria change requires --attestation approve');
     process.exit(1);
   }
   const rt = readRuntime();

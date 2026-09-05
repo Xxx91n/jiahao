@@ -125,4 +125,3 @@ This ADR changes documentation and terminology. It does not modify
 - `docs/deferred-registry.json` parses and `defer-0012`/`defer-0013` are
   anchored by this ADR.
 - `CONTEXT.md` is updated with the terms above.
-

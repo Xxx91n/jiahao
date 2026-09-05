@@ -23,6 +23,9 @@ describe('ADR-0047 change-surface fact source', () => {
     expect(changeSurface.classify('corpus', cfg)).toMatchObject({ response: 'rebaseline' });
     expect(changeSurface.classify('threshold', cfg)).toMatchObject({ response: 'criteria-change' });
     expect(changeSurface.classify('schedule_gate', cfg)).toMatchObject({ response: 'record' });
+    expect(changeSurface.attestationAllowed('identity', cfg, 'approve')).toBe(false);
+    expect(changeSurface.attestationAllowed('threshold', cfg, 'certify')).toBe(false);
+    expect(changeSurface.attestationAllowed('corpus', cfg, 'certify')).toBe(true);
   });
 });
 
@@ -94,7 +97,7 @@ describe('ADR-0047 authoritative state-machine event types', () => {
     expect(instrument.verifyState(next).valid).toBe(true);
   });
 
-  test('signoff requires certify or approve attestation', () => {
+  test('signoff requires certify attestation', () => {
     const base = instrument.loadState(ROOT);
     const q = instrument.transition(base, { type: 'identity-change', identity_digest: identity });
     expect(() => instrument.transition(q, {
@@ -104,6 +107,15 @@ describe('ADR-0047 authoritative state-machine event types', () => {
       reverify_ledger_hash: 'b'.repeat(64),
       bias_probe_hash: 'c'.repeat(64),
     })).toThrow(/attestation_type/);
+
+    expect(() => instrument.transition(q, {
+      type: 'signoff',
+      identity_digest: identity,
+      reviewer_id: 'reviewer-a',
+      reverify_ledger_hash: 'b'.repeat(64),
+      bias_probe_hash: 'c'.repeat(64),
+      attestation_type: 'approve',
+    })).toThrow(/signoff requires attestation_type certify/);
   });
 });
 

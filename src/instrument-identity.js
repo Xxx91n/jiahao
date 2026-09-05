@@ -17,6 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { canonicalJSON } = require('./evidence-log');
+const { SURFACE_ATTESTATIONS } = require('./change-surface');
 
 const FACT_REL = path.join('src', 'instrument-identity.json');
 const STATE_REL = path.join('src', 'instrument-state.json');
@@ -180,8 +181,8 @@ function transition(state, event, opts) {
     if (next.quarantined_identity_digest !== event.identity_digest) {
       throw new Error('signoff fingerprint does not match quarantined identity');
     }
-    if (!ATTESTATIONS.includes(event.attestation_type)) {
-      throw new Error('signoff requires attestation_type certify|approve');
+    if (!SURFACE_ATTESTATIONS.identity.includes(event.attestation_type)) {
+      throw new Error('signoff requires attestation_type certify');
     }
     if (!event.reviewer_id || !isHex64(event.reverify_ledger_hash) || !isHex64(event.bias_probe_hash)) {
       throw new Error('signoff requires reviewer_id, reverify_ledger_hash, bias_probe_hash, and attestation_type');
@@ -213,7 +214,7 @@ function transition(state, event, opts) {
     if (next.authoritative_identity_digest !== event.identity_digest) {
       throw new Error('corpus_rebaseline identity does not match authoritative identity');
     }
-    if (!ATTESTATIONS.includes(event.attestation_type) || !event.reviewer_id) {
+    if (!SURFACE_ATTESTATIONS.corpus.includes(event.attestation_type) || !event.reviewer_id) {
       throw new Error('corpus_rebaseline requires attestation_type and reviewer_id');
     }
     if (!event.corpus_ref || !event.previous_corpus_ref || !['pass', 'fail'].includes(event.outcome)) {
@@ -245,7 +246,7 @@ function transition(state, event, opts) {
     if (next.authoritative_identity_digest !== event.identity_digest) {
       throw new Error('criteria_change identity does not match authoritative identity');
     }
-    if (!ATTESTATIONS.includes(event.attestation_type) || !event.reviewer_id) {
+    if (!SURFACE_ATTESTATIONS.threshold.includes(event.attestation_type) || !event.reviewer_id) {
       throw new Error('criteria_change requires attestation_type and reviewer_id');
     }
     if (!event.criteria_version || !event.previous_criteria_version) {
