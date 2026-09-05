@@ -18,7 +18,7 @@ const { execFileSync } = require('child_process');
 const { requireCapabilities } = require('../src/shared/capability');
 const { PREFIXES } = require('../src/shared/prefix-vocab');
 const { verifyLedger } = require('./reverify');
-const { CHANGE_SURFACE_REL, ATTESTATIONS, loadChangeSurface, classify, attestationAllowed } = require('../src/change-surface');
+const { CHANGE_SURFACE_REL, ATTESTATIONS, loadChangeSurface, classify, attestationAllowed, vocabularyAnchorErrors } = require('../src/change-surface');
 const {
   loadPin,
   loadState,
@@ -50,6 +50,25 @@ function parseArgs(args) {
   return out;
 }
 
+function parseJsonArg(name, value) {
+  try { return JSON.parse(value); }
+  catch (e) { throw new Error(name + ' must be valid JSON: ' + e.message); }
+}
+
+// ADR-0048 D-E: parse the shared human-signoff payload once at the CLI boundary.
+// Surface-specific requirements stay on each command; this owns only the common fields.
+function parseSignoffArgs(args) {
+  if (!args.reviewer || !ATTESTATIONS.includes(args.attestation)) {
+    console.error(PREFIXES.usage + ' FAIL: missing --reviewer or invalid --attestation');
+    process.exit(1);
+  }
+  return {
+    reviewer: args.reviewer,
+    attestation: args.attestation,
+    second_reviewer: args['second-reviewer'] || null,
+  };
+}
+
 function readRuntime() {
   const pin = loadPin(ROOT);
   const resolved = resolveInstrumentIdentity(ROOT);
@@ -75,7 +94,7 @@ function currentReverifyLedgerHash() {
   return tail && tail.event_hash || null;
 }
 
-function checkChangeSurfaceCoupling(baseRef) {
+function checkChangeSurfaceCoupling(baseRef, cfg) {
   if (!baseRef) return [];
   let diff;
   try {
@@ -87,16 +106,27 @@ function checkChangeSurfaceCoupling(baseRef) {
   }
   const changed = diff.split('\0').map(s => s.trim()).filter(Boolean);
   const cfgChanged = changed.indexOf(CHANGE_SURFACE_REL.split(path.sep).join('/')) !== -1;
-  const adrChanged = changed.some(f => /^docs\/adr\/\d+.*\.md$/.test(f));
+  const sourceRel = String(cfg && cfg.source_adr || '').split(path.sep).join('/');
+  const adrChanged = changed.indexOf(sourceRel) !== -1;
   if (cfgChanged && !adrChanged) {
-    return ['coupling: docs/change-surface.json changed without ADR change (ADR-0027 D2)'];
+    return ['coupling: docs/change-surface.json changed without its source_adr change (' + sourceRel + ')'];
   }
   return [];
 }
 
+function checkChangeSurfaceAnchor(cfg) {
+  const sourceRel = String(cfg && cfg.source_adr || '');
+  if (!sourceRel) return ['change surface source_adr is required'];
+  const sourcePath = path.join(ROOT, sourceRel.split('/').join(path.sep));
+  let adrText;
+  try { adrText = fs.readFileSync(sourcePath, 'utf8'); }
+  catch (e) { return ['change surface source ADR unreadable: ' + e.message]; }
+  return vocabularyAnchorErrors(adrText, cfg.anchor && cfg.anchor.tokens);
+}
+
 function check() {
   const rt = readRuntime();
-  const couplingErrors = checkChangeSurfaceCoupling(process.env.CI_BASE_REF || null);
+  const couplingErrors = checkChangeSurfaceCoupling(process.env.CI_BASE_REF || null, rt.changeSurface);
   if (couplingErrors.length) {
     for (const e of couplingErrors) console.error(PREFIXES.config + ' FAIL: ' + e);
     process.exit(1);
@@ -129,6 +159,12 @@ function check() {
     process.exit(1);
   }
 
+  const anchorErrors = checkChangeSurfaceAnchor(rt.changeSurface);
+  if (anchorErrors.length) {
+    for (const e of anchorErrors) console.error(PREFIXES.config + ' FAIL: ' + e);
+    process.exit(1);
+  }
+
   console.log('[instrument] OK: identity pinned and authoritative');
 }
 
@@ -146,16 +182,13 @@ function quarantine() {
 }
 
 function signoff(args) {
-  if (!args.reviewer || !isHex64(args['reverify-ledger-hash']) || !isHex64(args['bias-probe-hash'])) {
-    console.error(PREFIXES.usage + ' FAIL: --signoff requires --reviewer, --attestation certify, --reverify-ledger-hash, and --bias-probe-hash');
-    process.exit(1);
-  }
-  if (!ATTESTATIONS.includes(args.attestation)) {
-    console.error(PREFIXES.usage + ' FAIL: --attestation must be certify or approve');
+  const signoffArgs = parseSignoffArgs(args);
+  if (!isHex64(args['reverify-ledger-hash']) || !isHex64(args['bias-probe-hash'])) {
+    console.error(PREFIXES.usage + ' FAIL: --signoff requires --reverify-ledger-hash and --bias-probe-hash');
     process.exit(1);
   }
   const signoffSurface = loadChangeSurface(ROOT);
-  if (!attestationAllowed('identity', signoffSurface, args.attestation)) {
+  if (!attestationAllowed('identity', signoffSurface, signoffArgs.attestation)) {
     console.error(PREFIXES.usage + ' FAIL: identity signoff requires --attestation certify');
     process.exit(1);
   }
@@ -170,9 +203,9 @@ function signoff(args) {
     const next = transition(rt.state, {
       type: 'signoff',
       identity_digest: rt.resolved.triple_hash,
-      reviewer_id: args.reviewer,
-      second_reviewer: args['second-reviewer'] || null,
-      attestation_type: args.attestation,
+      reviewer_id: signoffArgs.reviewer,
+      second_reviewer: signoffArgs.second_reviewer,
+      attestation_type: signoffArgs.attestation,
       reverify_ledger_hash: args['reverify-ledger-hash'],
       bias_probe_hash: args['bias-probe-hash'],
     });
@@ -197,12 +230,13 @@ function classifySurface(args) {
 }
 
 function rebaseline(args) {
-  if (!args.reviewer || !ATTESTATIONS.includes(args.attestation) || !args['corpus-ref'] || !args['previous-corpus-ref'] || !['pass', 'fail'].includes(args.outcome)) {
-    console.error(PREFIXES.usage + ' FAIL: --rebaseline requires --corpus-ref, --previous-corpus-ref, --outcome pass|fail, --reviewer, --attestation certify|approve, and --rollback-available true|false on fail');
+  const signoffArgs = parseSignoffArgs(args);
+  if (!args['corpus-ref'] || !args['previous-corpus-ref'] || !['pass', 'fail'].includes(args.outcome)) {
+    console.error(PREFIXES.usage + ' FAIL: --rebaseline requires --corpus-ref, --previous-corpus-ref, --outcome pass|fail, and --rollback-available true|false on fail');
     process.exit(1);
   }
   const rebaselineSurface = loadChangeSurface(ROOT);
-  if (!attestationAllowed('corpus', rebaselineSurface, args.attestation)) {
+  if (!attestationAllowed('corpus', rebaselineSurface, signoffArgs.attestation)) {
     console.error(PREFIXES.usage + ' FAIL: corpus rebaseline requires --attestation certify|approve');
     process.exit(1);
   }
@@ -215,9 +249,9 @@ function rebaseline(args) {
       previous_corpus_ref: args['previous-corpus-ref'],
       outcome: args.outcome,
       rollback_available: args['rollback-available'] === 'true',
-      reviewer_id: args.reviewer,
-      second_reviewer: args['second-reviewer'] || null,
-      attestation_type: args.attestation,
+      reviewer_id: signoffArgs.reviewer,
+      second_reviewer: signoffArgs.second_reviewer,
+      attestation_type: signoffArgs.attestation,
     });
     writeState(next);
     console.log('[instrument] corpus rebaseline recorded; state ' + next.state);
@@ -228,12 +262,13 @@ function rebaseline(args) {
 }
 
 function criteriaChange(args) {
-  if (!args.reviewer || !ATTESTATIONS.includes(args.attestation) || !args['criteria-version'] || !args['previous-criteria-version']) {
-    console.error(PREFIXES.usage + ' FAIL: --criteria-change requires --criteria-version, --previous-criteria-version, --reviewer, and --attestation approve');
+  const signoffArgs = parseSignoffArgs(args);
+  if (!args['criteria-version'] || !args['previous-criteria-version']) {
+    console.error(PREFIXES.usage + ' FAIL: --criteria-change requires --criteria-version and --previous-criteria-version');
     process.exit(1);
   }
   const criteriaSurface = loadChangeSurface(ROOT);
-  if (!attestationAllowed('threshold', criteriaSurface, args.attestation)) {
+  if (!attestationAllowed('threshold', criteriaSurface, signoffArgs.attestation)) {
     console.error(PREFIXES.usage + ' FAIL: threshold criteria change requires --attestation approve');
     process.exit(1);
   }
@@ -245,12 +280,86 @@ function criteriaChange(args) {
       criteria_version: args['criteria-version'],
       previous_criteria_version: args['previous-criteria-version'],
       restatement_of: args['restatement-of'] || null,
-      reviewer_id: args.reviewer,
-      second_reviewer: args['second-reviewer'] || null,
-      attestation_type: args.attestation,
+      reviewer_id: signoffArgs.reviewer,
+      second_reviewer: signoffArgs.second_reviewer,
+      attestation_type: signoffArgs.attestation,
     });
     writeState(next);
     console.log('[instrument] criteria change recorded');
+  } catch (e) {
+    console.error(PREFIXES.internal + ' FAIL: ' + e.message);
+    process.exit(1);
+  }
+}
+
+function record(args) {
+  if (!args.maker || !args.before || !args.after) {
+    console.error(PREFIXES.usage + ' FAIL: --record requires --maker, --before JSON, and --after JSON');
+    process.exit(1);
+  }
+  const rt = readRuntime();
+  let before, after;
+  try {
+    before = parseJsonArg('--before', args.before);
+    after = parseJsonArg('--after', args.after);
+  } catch (e) {
+    console.error(PREFIXES.usage + ' FAIL: ' + e.message);
+    process.exit(1);
+  }
+  try {
+    const escalate = args.escalate === true || args.escalate === 'true';
+    let next = transition(rt.state, {
+      type: 'record_only_change',
+      identity_digest: rt.resolved.triple_hash,
+      surface: 'schedule_gate',
+      before,
+      after,
+      identity_triple: {
+        rules_digest: rt.resolved.rules_digest,
+        model_checkpoint_digest: rt.resolved.model_checkpoint_digest,
+        inference_config_hash: rt.resolved.inference_config_hash,
+        triple_hash: rt.resolved.triple_hash,
+      },
+      maker_id: args.maker,
+      escalation: escalate ? 'quarantine-lane' : 'none',
+    });
+    if (escalate) {
+      next = transition(next, { type: 'identity-change', identity_digest: rt.resolved.triple_hash });
+    }
+    writeState(next);
+    const recordEvent = next.history.find(e => e.kind === 'record_only_change');
+    console.log('[instrument] record_only_change seq=' + (recordEvent ? recordEvent.seq : '?') + ' status=pending_signoff');
+    if (next.state === 'quarantined') console.log('[instrument] escalation promoted to quarantine-lane');
+  } catch (e) {
+    console.error(PREFIXES.internal + ' FAIL: ' + e.message);
+    process.exit(1);
+  }
+}
+
+function recordSignoff(args) {
+  const seq = Number(args['record-seq']);
+  const signoffArgs = parseSignoffArgs(args);
+  if (!Number.isInteger(seq) || !args.reason) {
+    console.error(PREFIXES.usage + ' FAIL: --record-signoff requires --record-seq <integer> and --reason');
+    process.exit(1);
+  }
+  const rt = readRuntime();
+  if (!attestationAllowed('schedule_gate', rt.changeSurface, signoffArgs.attestation)) {
+    console.error(PREFIXES.usage + ' FAIL: schedule_gate record signoff requires --attestation approve');
+    process.exit(1);
+  }
+  try {
+    const next = transition(rt.state, {
+      type: 'record_signoff',
+      identity_digest: rt.resolved.triple_hash,
+      record_seq: seq,
+      reviewer_id: signoffArgs.reviewer,
+      second_reviewer: signoffArgs.second_reviewer,
+      attestation_type: signoffArgs.attestation,
+      reason: args.reason,
+    });
+    writeState(next);
+    console.log('[instrument] record seq=' + seq + ' certified');
   } catch (e) {
     console.error(PREFIXES.internal + ' FAIL: ' + e.message);
     process.exit(1);
@@ -275,6 +384,8 @@ function main() {
   if (args.classify) return classifySurface(args);
   if (args.quarantine) return quarantine();
   if (args.signoff) return signoff(args);
+  if (args.record) return record(args);
+  if (args['record-signoff']) return recordSignoff(args);
   if (args.rebaseline) return rebaseline(args);
   if (args['criteria-change']) return criteriaChange(args);
   if (args.rollback) return rollback();
@@ -283,4 +394,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { parseArgs, readRuntime, check, classifySurface, quarantine, signoff, rebaseline, criteriaChange, rollback, main };
+module.exports = { parseArgs, readRuntime, check, classifySurface, quarantine, signoff, record, recordSignoff, rebaseline, criteriaChange, rollback, main };

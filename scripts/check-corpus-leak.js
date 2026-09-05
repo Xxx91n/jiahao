@@ -72,9 +72,17 @@ function buildRules(fileMap) {
 // Scan one file; returns hit strings ([] = clean).
 function scanFile(rel, abs, rules, canary) {
   const hits = [];
-  const st = fs.statSync(abs);
-  if (st.size > MAX_BYTES) return hits;
-  const buf = fs.readFileSync(abs);
+  let st, buf;
+  try {
+    st = fs.statSync(abs);
+    if (st.size > MAX_BYTES) return hits;
+    buf = fs.readFileSync(abs);
+  } catch (e) {
+    // Test suites can create and delete temp files during the scan. A raced
+    // ENOENT is a vanished file, not a leak and not scanner corruption.
+    if (e && e.code === 'ENOENT') return hits;
+    throw e;
+  }
   const fh = crypto.createHash('sha256').update(buf).digest('hex');
   if (rules.fileSha.has(fh)) {
     hits.push(rel + ': exact copy of corpus file ' + rules.fileSha.get(fh));
@@ -137,7 +145,15 @@ if (require.main === module) {
   // The evidence log lives outside the worktree; D6 names it a leak surface,
   // so scan it explicitly (audit follow-up: it was declared but not scanned).
   for (const ev of [evidencePath(), evidenceKeysPath()]) {
-    if (fs.existsSync(ev)) {
+    if (!fs.existsSync(ev)) continue;
+    const st = fs.statSync(ev);
+    if (st.isDirectory()) {
+      for (const name of fs.readdirSync(ev)) {
+        const abs = path.join(ev, name);
+        if (!fs.statSync(abs).isFile()) continue;
+        for (const h of scanFile('evidence-log/' + name, abs, rules, canaryEnv)) hits.push('evidence-log ' + h);
+      }
+    } else {
       for (const h of scanFile(ev, ev, rules, canaryEnv)) hits.push('evidence-log ' + h);
     }
   }

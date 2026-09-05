@@ -82,6 +82,22 @@ three-layer model identity with UNRESOLVED, and the inference-config metadata
 column with a measured determinism envelope. defer-0018 and defer-0019 remain
 pending-evaluation.
 
+
+### D-H — Machine-Anchored Change-Surface Vocabulary
+
+The following block is the machine fact-source anchor for
+`docs/change-surface.json`; it is not prose to be paraphrased.
+
+<!-- machine-anchored-vocabulary:start -->
+`identity` `corpus` `threshold` `schedule_gate`
+`quarantine` `rebaseline` `criteria-change` `record`
+`certify` `approve`
+<!-- machine-anchored-vocabulary:end -->
+
+Prose aliases: instrument identity axis = `identity`; corpus/fingerprint
+batch = `corpus`; threshold = `threshold`; calibration schedule and gate
+list = `schedule_gate`. Responses: `quarantine`, `rebaseline`,
+`criteria-change`, `record`. Attestations: `certify`, `approve`.
 ## Declared gaps (not pending-activation)
 
 - Replayability audit: whether per-verdict inputs are retained to replayable

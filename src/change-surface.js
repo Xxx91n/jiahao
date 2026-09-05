@@ -20,9 +20,38 @@ const SURFACE_ATTESTATIONS = {
   threshold: ['approve'],
   schedule_gate: ['approve'],
 };
+const ANCHOR_START = '<!-- machine-anchored-vocabulary:start -->';
+const ANCHOR_END = '<!-- machine-anchored-vocabulary:end -->';
+const ANCHOR_TOKENS = SURFACES.concat(RESPONSES).concat(ATTESTATIONS);
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function wholeWordContains(text, token) {
+  const re = new RegExp('(^|[^A-Za-z0-9_])' + escapeRegExp(token) + '($|[^A-Za-z0-9_])', 'm');
+  return re.test(String(text || ''));
+}
+
+function vocabularyBlock(adrText) {
+  const start = String(adrText || '').indexOf(ANCHOR_START);
+  const end = String(adrText || '').indexOf(ANCHOR_END);
+  if (start === -1 || end === -1 || end <= start) return '';
+  return String(adrText).slice(start + ANCHOR_START.length, end);
+}
+
+function vocabularyAnchorErrors(adrText, tokens) {
+  const list = tokens || ANCHOR_TOKENS;
+  if (!adrText) return ['source ADR text missing'];
+  const block = vocabularyBlock(adrText);
+  if (!block) return ['machine-anchored vocabulary block missing'];
+  const missing = list.filter(token => !wholeWordContains(block, token));
+  return missing.length ? missing.map(token => 'token not anchored: ' + token) : [];
+}
 
 function loadChangeSurface(root, opts) {
-  const readFile = (opts && opts.readFile) || fs.readFileSync;
+  const o = opts || {};
+  const readFile = o.readFile || fs.readFileSync;
   const file = path.join(root, CHANGE_SURFACE_REL);
   let cfg;
   try {
@@ -32,6 +61,12 @@ function loadChangeSurface(root, opts) {
   }
   if (!cfg || cfg.schema_version !== 1 || !cfg.surfaces || typeof cfg.surfaces !== 'object') {
     throw new Error('change surface shape must contain schema_version 1 and surfaces object');
+  }
+  if (!cfg.anchor || !Array.isArray(cfg.anchor.tokens)) {
+    throw new Error('change surface anchor must contain a tokens array');
+  }
+  for (const token of ANCHOR_TOKENS) {
+    if (!cfg.anchor.tokens.includes(token)) throw new Error('change surface anchor missing token ' + token);
   }
   for (const surface of SURFACES) {
     const entry = cfg.surfaces[surface];
@@ -43,6 +78,7 @@ function loadChangeSurface(root, opts) {
       throw new Error('change surface ' + surface + ' must have attestations from ' + SURFACE_ATTESTATIONS[surface].join('|'));
     }
   }
+  if (typeof cfg.source_adr !== 'string' || !cfg.source_adr) throw new Error('change surface source_adr is required');
   return cfg;
 }
 
@@ -62,6 +98,11 @@ module.exports = {
   RESPONSES,
   ATTESTATIONS,
   SURFACE_ATTESTATIONS,
+  ANCHOR_START,
+  ANCHOR_END,
+  ANCHOR_TOKENS,
+  vocabularyBlock,
+  vocabularyAnchorErrors,
   loadChangeSurface,
   classify,
   attestationAllowed,

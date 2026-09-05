@@ -139,6 +139,16 @@ function stateEvent(seq, kind, identityDigest, prevHash, extra) {
   if (extra && extra.criteria_version !== undefined) ev.criteria_version = extra.criteria_version;
   if (extra && extra.previous_criteria_version !== undefined) ev.previous_criteria_version = extra.previous_criteria_version;
   if (extra && extra.restatement_of !== undefined) ev.restatement_of = extra.restatement_of;
+  if (extra && extra.surface !== undefined) ev.surface = extra.surface;
+  if (extra && extra.maker_id !== undefined) ev.maker_id = extra.maker_id;
+  if (extra && extra.record_seq !== undefined) ev.record_seq = extra.record_seq;
+  if (extra && extra.before !== undefined) ev.before = JSON.parse(JSON.stringify(extra.before));
+  if (extra && extra.after !== undefined) ev.after = JSON.parse(JSON.stringify(extra.after));
+  if (extra && extra.identity_triple !== undefined) ev.identity_triple = JSON.parse(JSON.stringify(extra.identity_triple));
+  if (extra && extra.escalation !== undefined) ev.escalation = extra.escalation;
+  if (extra && extra.reason !== undefined) ev.reason = extra.reason;
+  if (extra && extra.event_timestamp !== undefined) ev.event_timestamp = extra.event_timestamp;
+  if (extra && extra.logging_timestamp !== undefined) ev.logging_timestamp = extra.logging_timestamp;
   ev.event_hash = eventHash(ev);
   return ev;
 }
@@ -159,6 +169,36 @@ function verifyState(state) {
     expected = ev.event_hash;
   }
   return { valid: true };
+}
+
+// Record-only changes are documentary events on the same hash chain. The
+// authoritative state machine never consumes them; this projection derives the
+// record-layer lifecycle from record_only_change + record_signoff events.
+function projectRecordStatus(history) {
+  const signoffs = new Map();
+  for (const ev of history || []) {
+    if (ev && ev.kind === 'record_signoff' && Number.isInteger(ev.record_seq)) signoffs.set(ev.record_seq, ev);
+  }
+  const records = [];
+  for (const ev of history || []) {
+    if (!ev || ev.kind !== 'record_only_change') continue;
+    const signoff = signoffs.get(ev.seq) || null;
+    records.push({
+      record_seq: ev.seq,
+      status: signoff ? 'certified' : 'pending_signoff',
+      surface: ev.surface || null,
+      maker_id: ev.maker_id || null,
+      before: ev.before,
+      after: ev.after,
+      escalation: ev.escalation || null,
+      reviewer_id: signoff ? signoff.reviewer_id : null,
+      second_reviewer: signoff ? signoff.second_reviewer : null,
+      attestation_type: signoff ? signoff.attestation_type : null,
+      reason: signoff ? signoff.reason : null,
+      certified_at: signoff ? signoff.timestamp : null,
+    });
+  }
+  return records;
 }
 
 function transition(state, event, opts) {
@@ -264,6 +304,57 @@ function transition(state, event, opts) {
     return next;
   }
 
+  if (event.type === 'record_only_change') {
+    if (next.state !== 'authoritative') throw new Error('record_only_change requires authoritative state');
+    if (next.authoritative_identity_digest !== event.identity_digest) {
+      throw new Error('record_only_change identity does not match authoritative identity');
+    }
+    if (event.surface !== 'schedule_gate') throw new Error('record_only_change requires surface schedule_gate');
+    if (!event.maker_id) throw new Error('record_only_change requires maker_id');
+    if (event.before === undefined || event.after === undefined) {
+      throw new Error('record_only_change requires before and after values');
+    }
+    next.history.push(stateEvent(tail.seq + 1, 'record_only_change', event.identity_digest, tail.event_hash, {
+      surface: event.surface,
+      before: event.before,
+      after: event.after,
+      identity_triple: event.identity_triple || null,
+      maker_id: event.maker_id,
+      escalation: event.escalation || 'none',
+      timestamp: now,
+      event_timestamp: now,
+      logging_timestamp: now,
+    }));
+    return next;
+  }
+
+  if (event.type === 'record_signoff') {
+    if (next.state !== 'authoritative') throw new Error('record_signoff requires authoritative state');
+    if (next.authoritative_identity_digest !== event.identity_digest) {
+      throw new Error('record_signoff identity does not match authoritative identity');
+    }
+    if (!Number.isInteger(event.record_seq)) throw new Error('record_signoff requires record_seq');
+    const target = next.history.find(e => e.seq === event.record_seq && e.kind === 'record_only_change');
+    if (!target) throw new Error('record_signoff references an unknown record');
+    const projection = projectRecordStatus(next.history);
+    const current = projection.find(r => r.record_seq === event.record_seq);
+    if (!current || current.status !== 'pending_signoff') throw new Error('record_signoff requires a pending_signoff record');
+    if (!SURFACE_ATTESTATIONS.schedule_gate.includes(event.attestation_type) || !event.reviewer_id || !event.reason) {
+      throw new Error('record_signoff requires schedule_gate attestation, reviewer_id, and reason');
+    }
+    next.history.push(stateEvent(tail.seq + 1, 'record_signoff', event.identity_digest, tail.event_hash, {
+      record_seq: event.record_seq,
+      reviewer_id: event.reviewer_id,
+      second_reviewer: event.second_reviewer || null,
+      attestation_type: event.attestation_type,
+      reason: event.reason,
+      timestamp: now,
+      event_timestamp: now,
+      logging_timestamp: now,
+    }));
+    return next;
+  }
+
   throw new Error('unknown instrument state event: ' + event.type);
 }
 
@@ -288,6 +379,7 @@ module.exports = {
   tripleHash,
   verifyPin,
   verifyState,
+  projectRecordStatus,
   transition,
   effectiveState,
 };
