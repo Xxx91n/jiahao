@@ -89,9 +89,17 @@ function _writeAnchorAtomic(file, obj) {
   fs.writeFileSync(tmp, JSON.stringify(obj) + String.fromCharCode(10), 'utf8');
   _fsyncFile(tmp);
   try { fs.renameSync(tmp, file); } catch (e) { try { fs.unlinkSync(tmp); } catch (e2) {} throw e; }
+  _fsyncDirectory(path.dirname(file));
 }
 function _fsyncFile(file) {
   const fd = fs.openSync(file, 'a');
+  try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+}
+// Windows cannot fsync a directory through Node (EPERM); anchor-behind is the
+// recoverable degraded state there. POSIX hosts make the rename durable.
+function _fsyncDirectory(dir) {
+  if (process.platform === 'win32') return;
+  const fd = fs.openSync(dir, 'r');
   try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
 }
 function readTailAnchor(file) {
@@ -564,6 +572,8 @@ function createEvidenceLog(overrideConfigDir, opts) {
     const state = _tailState(records);
     if (!state || state.head_hash === null) return;
     const genRead = readGenesisAnchor(genesisAnchorPath());
+    if (genRead.status === KNOWN_ANCHOR_STATUS.anchored &&
+        genRead.anchor.first_hash !== state.first_hash) return;
     if (_hasForwardSeal(records) || genRead.status === KNOWN_ANCHOR_STATUS.anchored) {
       writeTailAnchor(headAnchorPath(), state.latest_seq, state.total_count, state.head_hash);
     }

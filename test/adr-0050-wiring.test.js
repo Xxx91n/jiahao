@@ -151,6 +151,31 @@ describe('ADR-0050 D-D forward seal', () => {
     expect(result.reason).toContain('genesis anchor does not match chain first record');
     log.clear();
   });
+
+  test('append does not advance the tail anchor when genesis no longer matches', () => {
+    const dir = mktmp('dd-tamper-append');
+    const log = createEvidenceLog(dir);
+    seedAndSeal(log);
+    const before = readTailAnchor(log.headAnchorPath()).anchor;
+    const segmentDir = path.join(dir, '.jiahao-evidence');
+    const segmentFile = fs.readdirSync(segmentDir).find(name => name.endsWith('.jsonl'));
+    const segmentPath = path.join(segmentDir, segmentFile);
+    const lines = fs.readFileSync(segmentPath, 'utf8').split('\n').filter(Boolean);
+    const original = JSON.parse(lines[0]);
+    original.gate_id = 'tampered';
+    original.event_hash = 'not-the-original-hash';
+    lines[0] = JSON.stringify(original);
+    fs.writeFileSync(segmentPath, lines.join('\n') + '\n', 'utf8');
+    const tail = log.readAll()[log.readAll().length - 1].event_hash;
+    log.append([log.createRecord('next', 'deterministic', 'passed', 'next', 0.9, tail)]);
+
+    const after = readTailAnchor(log.headAnchorPath()).anchor;
+    expect(after.latest_seq).toBe(before.latest_seq);
+    expect(after.total_count).toBe(before.total_count);
+    expect(after.head_hash).toBe(before.head_hash);
+    expect(log.verifyFull().valid).toBe(false);
+    log.clear();
+  });
 });
 
 describe('ADR-0050 D-E failure and recovery states', () => {
@@ -215,6 +240,51 @@ describe('ADR-0050 D-E failure and recovery states', () => {
     expect(calls.length).toBeGreaterThan(0);
     expect(calls[0]).toBe(true);
     expect(fs.existsSync(segmentPath)).toBe(true);
+    log.clear();
+  });
+
+  test('anchor rename fsyncs its parent directory on non-Windows hosts', () => {
+    const dir = mktmp('de-dir-fsync');
+    const log = createEvidenceLog(dir);
+    const platform = Object.getOwnPropertyDescriptor(process, 'platform');
+    const realOpen = fs.openSync;
+    const realRename = fs.renameSync;
+    const realFsync = fs.fsyncSync;
+    const anchorPath = log.headAnchorPath();
+    const parent = path.dirname(anchorPath);
+    let renamed = false;
+    let dirFd = null;
+    let dirFsyncedAfterRename = false;
+    Object.defineProperty(process, 'platform', { value: 'linux' });
+    fs.renameSync = function (source, target) {
+      renamed = true;
+      return realRename.call(this, source, target);
+    };
+    fs.openSync = function (file, flags) {
+      if (file === parent && flags === 'r') {
+        dirFd = realOpen.call(this, __filename, 'r');
+        return dirFd;
+      }
+      return realOpen.call(this, file, flags);
+    };
+    fs.fsyncSync = function (fd) {
+      if (fd === dirFd && renamed) {
+        dirFsyncedAfterRename = true;
+        return;
+      }
+      return realFsync.call(this, fd);
+    };
+    try {
+      seedAndSeal(log);
+    } finally {
+      fs.fsyncSync = realFsync;
+      fs.openSync = realOpen;
+      fs.renameSync = realRename;
+      Object.defineProperty(process, 'platform', platform);
+    }
+
+    expect(renamed).toBe(true);
+    expect(dirFsyncedAfterRename).toBe(true);
     log.clear();
   });
 });
