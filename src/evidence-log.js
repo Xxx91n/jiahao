@@ -87,9 +87,12 @@ function _hashGenesis(firstHash) {
 function _writeAnchorAtomic(file, obj) {
   const tmp = file + '.tmp-' + process.pid + '-' + Date.now();
   fs.writeFileSync(tmp, JSON.stringify(obj) + String.fromCharCode(10), 'utf8');
-  const fd = fs.openSync(tmp, 'a');
-  try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+  _fsyncFile(tmp);
   try { fs.renameSync(tmp, file); } catch (e) { try { fs.unlinkSync(tmp); } catch (e2) {} throw e; }
+}
+function _fsyncFile(file) {
+  const fd = fs.openSync(file, 'a');
+  try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
 }
 function readTailAnchor(file) {
   let raw;
@@ -572,6 +575,19 @@ function createEvidenceLog(overrideConfigDir, opts) {
     try { existing = readConcat(); }
     catch (e) { return { status: 'corrupt', reason: e.message }; }
     if (existing.length === 0) return { status: 'empty' };
+    const first = existing[0];
+    const firstHash = first && typeof first.event_hash === 'string' ? first.event_hash : null;
+    if (firstHash === null) return { status: 'corrupt', reason: 'chain first record has no event_hash' };
+    const genRead = readGenesisAnchor(genesisAnchorPath());
+    if (genRead.status === KNOWN_ANCHOR_STATUS.unreadable) {
+      return { status: 'corrupt', reason: 'genesis anchor is unreadable' };
+    }
+    if (genRead.status === KNOWN_ANCHOR_STATUS.anchored && genRead.anchor.first_hash !== firstHash) {
+      return { status: 'corrupt', reason: 'genesis anchor does not match chain first record' };
+    }
+    if (genRead.status === KNOWN_ANCHOR_STATUS.never_anchored) {
+      writeGenesisAnchor(genesisAnchorPath(), firstHash);
+    }
     const wasSealed = _hasForwardSeal(existing);
     if (!wasSealed) {
       const head = existing[existing.length - 1];
@@ -587,10 +603,6 @@ function createEvidenceLog(overrideConfigDir, opts) {
       catch (e) { return { status: 'corrupt', reason: e.message }; }
       if (!_hasForwardSeal(existing)) return { status: 'corrupt', reason: 'forward seal append did not persist' };
     }
-    const first = existing[0];
-    const firstHash = first && typeof first.event_hash === 'string' ? first.event_hash : null;
-    if (firstHash === null) return { status: 'corrupt', reason: 'chain first record has no event_hash' };
-    writeGenesisAnchor(genesisAnchorPath(), firstHash);
     _writeTailAnchorForChain(existing);
     const state = _tailState(existing);
     return {
@@ -658,6 +670,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
           let size = 0;
           try { size = fs.statSync(activePath).size; } catch (e) {}
           if (size >= rotateBytes) {
+            _fsyncFile(activePath);
             const anchor = {
               kind: 'segment_anchor',
               segment_format_version: SEGMENT_VERSION,
@@ -704,6 +717,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
         total += 1;
       }
       if (applied.length === 0) return;
+      if (activePath) _fsyncFile(activePath);
       // Full-rewrite sidecar with the union set (bounded by unique turn keys).
       const allKeys = existing.concat(applied).filter(r => r && r._idem).map(r => r._idem);
       fs.writeFileSync(kp, allKeys.join('\n') + '\n', 'utf8');

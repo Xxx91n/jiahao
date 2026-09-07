@@ -129,6 +129,28 @@ describe('ADR-0050 D-D forward seal', () => {
     expect(log.readAll()).toHaveLength(2);
     log.clear();
   });
+
+  test('seal does not refresh a genesis anchor that no longer matches the first record', () => {
+    const dir = mktmp('dd-tamper');
+    const log = createEvidenceLog(dir);
+    const first = log.createRecord('seed', 'deterministic', 'passed', 'seed record', 0.9, null);
+    log.append([first]);
+    log.sealForwardIfNeeded();
+    const segmentDir = path.join(dir, '.jiahao-evidence');
+    const segmentFile = fs.readdirSync(segmentDir).find(name => name.endsWith('.jsonl'));
+    const segmentPath = path.join(segmentDir, segmentFile);
+    const lines = fs.readFileSync(segmentPath, 'utf8').split('\n').filter(Boolean);
+    const original = JSON.parse(lines[0]);
+    original.gate_id = 'tampered';
+    original.event_hash = 'not-the-original-hash';
+    lines[0] = JSON.stringify(original);
+    fs.writeFileSync(segmentPath, lines.join('\n') + '\n', 'utf8');
+
+    const result = log.sealForwardIfNeeded();
+    expect(result.status).toBe('corrupt');
+    expect(result.reason).toContain('genesis anchor does not match chain first record');
+    log.clear();
+  });
 });
 
 describe('ADR-0050 D-E failure and recovery states', () => {
@@ -155,6 +177,44 @@ describe('ADR-0050 D-E failure and recovery states', () => {
     const count = log.verifyFull();
     expect(count.valid).toBe(false);
     expect(count.reason).toContain('count_mismatch');
+    log.clear();
+  });
+
+  test('segment data is fsynced before the tail anchor is advanced', () => {
+    const dir = mktmp('de-fsync-order');
+    const log = createEvidenceLog(dir);
+    const first = log.createRecord('seed', 'deterministic', 'passed', 'seed record', 0.9, null);
+    log.append([first]);
+    log.sealForwardIfNeeded();
+
+    const segmentDir = path.join(dir, '.jiahao-evidence');
+    const segmentFile = fs.readdirSync(segmentDir).find(name => name.endsWith('.jsonl'));
+    const segmentPath = path.join(segmentDir, segmentFile);
+    const realFsync = fs.fsyncSync;
+    const realAppend = fs.appendFileSync;
+    const calls = [];
+    let segmentAppendPending = false;
+    fs.appendFileSync = function (file, data, options) {
+      if (file === segmentPath) segmentAppendPending = true;
+      return realAppend.call(this, file, data, options);
+    };
+    fs.fsyncSync = function (fd) {
+      calls.push(segmentAppendPending);
+      segmentAppendPending = false;
+      return realFsync.call(this, fd);
+    };
+    try {
+      const tail = log.readAll()[log.readAll().length - 1].event_hash;
+      const next = log.createRecord('next', 'deterministic', 'passed', 'next record', 0.9, tail);
+      log.append([next]);
+    } finally {
+      fs.fsyncSync = realFsync;
+      fs.appendFileSync = realAppend;
+    }
+
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls[0]).toBe(true);
+    expect(fs.existsSync(segmentPath)).toBe(true);
     log.clear();
   });
 });
