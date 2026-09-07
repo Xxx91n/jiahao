@@ -16,3 +16,10 @@ Local markdown issues under .scratch/. See docs/agents/issue-tracker.md.
 
 Single-context: CONTEXT.md at root, ADRs in docs/adr/. See
 docs/agents/domain.md.
+
+## Working agreement
+
+- After every documentation round, commit that round's doc artifacts (the new
+  ADR, `CONTEXT.md` glossary sync, `docs/deferred-registry.json` sync, README
+  ADR index rebuild, and wiring-test seed update) before the next
+  implementation round starts.
