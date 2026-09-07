@@ -1410,4 +1410,86 @@ ADR's machine-anchored vocabulary block; it asserts whole-word existence, never
 parses semantics (ADR-0048 D-C).
 _Avoid_: prose parsing, same-commit-only coupling, free-form vocabulary
 
+**No-Adjustment Path (无调整路径)**:
+A reverify whose as-found passes the registered decision rule records as-found
+once with an explicit `no_adjustment` declaration; `as-left` appears only on a
+rebaseline or criteria change as a paired, dated field. The as-left value is
+not duplicated from as-found (ADR-0049 D-A).
+_Avoid_: double-column copy, implicit no-adjustment, as-left-as-telemetry
+
+**Decision-Rule Anchor (决策规则锚)**:
+The conformity predicate that decides when a ledger row may declare pass or
+`no_adjustment`. It is the ILAC-G8:09/2019 spectrum plus JCGM 106:2012
+acceptance-limit/guard-band math, default guarded acceptance `w=1,k=2`
+(PFA approximately 2.5%); each row records
+`decision_rule {id, version, w, acceptance_limit, spec_ref}` (ADR-0049 D-B).
+_Avoid_: eyeball pass, undocumented rule, unversioned decision rule
+
+**Corpus Reference (语料基准锚)**:
+The per-row reference identity added beside the instrument identity triple:
+`corpus_ref` = content digest plus version semantics. A ledger row must identify
+the corpus/baseline its measurement was scored against (ADR-0049 D-C).
+_Avoid_: name-only corpus identity, reference left only on the rebaseline event
+
+**Baseline Re-Expression (基准再表达)**:
+The delta discipline that cross-cycle `observed delta` is directly comparable
+only between rows sharing the same `corpus_ref`; a rebaseline carries delta
+through the old-new overlap (ADR-0047 D-B) or declares non-comparability.
+Silent subtraction across `corpus_ref` is forbidden (ADR-0049 D-C).
+_Avoid_: cross-corpus subtraction, v1-to-v2 conversion, calendar-driven rebase
+
+**Criteria Replay Precondition (准则重放前置)**:
+The requirement that a criteria change may produce a genuine as-left
+re-projection only from pointwise replayable judge input
+(`claim`/`toolResults`/`heuristicVerdict`) plus criteria version and identity;
+otherwise it falls back to restatement mapping (ADR-0049 D-D).
+_Avoid_: aggregate-only recomputation, bit-level replay promise, silent re-judge
+
+**Reverse Traceability (逆溯源)**:
+The investigation triggered when as-found exposes drift: enumerate the suspect
+window's measurements and decide accept/re-verify/restatement under the
+decision-rule anchor. It is the investigation; recall is one possible outcome
+(ADR-0049 D-E).
+_Avoid_: recall-as-only-outcome, no-impact-by-default, trigger-less drift note
+
+**Affected Sign-off Look-Back (受影响签核回溯)**:
+The obligation that a drift-exposed instrument's prior-interval sign-offs,
+indexed by instrument identity triple, are marked `affected/under-review` until
+the impact assessment completes; they never remain valid by default
+(ADR-0049 D-E).
+_Avoid_: default-valid history, silent revalidation, out-of-band retrospection
+
+**External Head Anchor (外部头锚)**:
+The off-chain tail-anchor sidecar (`latest_seq`, `total_count`, `head_hash`)
+plus an independent genesis anchor that together detect head and tail
+truncation a self-anchored hash chain cannot; verification compares the chain
+against both (ADR-0050 D-A).
+_Avoid_: self-anchored chain, Merkle tree, notary-as-main-model
+
+**Genesis Anchor File (创世锚文件)**:
+The install-time protected anchor file that records the expected first-record
+hash outside the chain data; old chains keep verifying under old rules and the
+anchor is additive input (ADR-0050 D-B).
+_Avoid_: compile-time constant, chain-internal genesis, in-place rewrite
+
+**Anchor Failure Tri-State (锚失败三态)**:
+The `KNOWN_ANCHOR_STATUS` semantics for an off-chain anchor:
+`never_anchored` (not a failure; unanchored window), `expected_missing` and
+`unreadable` (fail-closed), plus `hash/bytes/count` mismatch codes. It reuses
+the chain-corruption route and never enters `KNOWN_DEGRADATION_KINDS`
+(ADR-0050 D-C).
+_Avoid_: boolean anchor check, merging with input truncation, silent degradation
+
+**Forward Sealing (向前封存)**:
+The retrofit that appends a sealing record pinning an existing chain's current
+head and declares the guarantee start point; records before the seal stay
+verifiable under old rules, never backfilled or rewritten (ADR-0050 D-D).
+_Avoid_: backfill, retroactive rewrite, silent retroactivity
+
+**Record-First Write Order (记录先落盘写序)**:
+The tail-anchor write discipline that fsyncs the record before the anchor; an
+anchor-behind state is recoverable, an anchor-ahead or count-mismatch state is
+fail-closed (ADR-0050 D-E).
+_Avoid_: anchor-first, anchor-record-same-write, claims-complete-after-anchor
+
 *End of Glossary*

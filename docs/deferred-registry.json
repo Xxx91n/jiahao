@@ -234,6 +234,38 @@
       "cadence_tier": "half-yearly",
       "registered_at": "2026-09-05",
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0023",
+      "subject": "criteria-change pointwise replay (as-left re-projection pipeline)",
+      "source_adr": "docs/adr/0049-decision-rule-anchor-and-metrological-ledger-completion.md",
+      "rationale": "ADR-0049 D-D requires pointwise replayable judge input before a criteria change can produce a genuine as-left re-projection. The current ledger retains aggregate values only, so criteria change must fall back to restatement mapping until input retention and the anchor set exist.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the metrological ledger is authoritative AND pointwise judge input retention (claim/toolResults/heuristicVerdict) is implemented AND defer-0015's anchor set is available"
+      },
+      "review_at": "2026-12-06",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-06",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0024",
+      "subject": "external witness / second-copy anchor for the evidence-log tip and genesis (independent-domain mirror: transparency log / timestamp / DNS TXT / second host)",
+      "source_adr": "docs/adr/0050-append-only-hardening-external-head-anchor-and-genesis-anchoring.md",
+      "rationale": "ADR-0050 D-B lands the install-time local genesis anchor and tail sidecar first. An external second copy raises detection strength from same-host to cross-domain (detection strength equals anchor independence) but requires network or a third-party trust domain; deferred until a cross-machine verification requirement or second-party consumer exists.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "a cross-machine verification requirement or a second-party consumer of the evidence log exists outside the producing host"
+      },
+      "review_at": "2027-09-01",
+      "cadence_tier": "yearly",
+      "registered_at": "2026-09-07",
+      "last_check_in": {
+        "date": "2026-09-07",
+        "note": "checked, nothing changed: no second-party evidence-log consumer, no cross-machine verification requirement"
+      },
+      "status": "pending-evaluation"
     }
   ]
 }
