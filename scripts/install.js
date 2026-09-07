@@ -118,6 +118,15 @@ async function main() {
   } catch (e) { console.warn('wordlist plant skipped: ' + e.message); }
 
   console.log(REMINDER);
+
+  // ADR-0050 D-B/D-D: retrofit the existing local chain with a forward seal
+  // and protected genesis anchor; a first install with no evidence is a no-op.
+  try {
+    const seal = require('../src/evidence-log').createEvidenceLog(configDir()).sealForwardIfNeeded();
+    if (seal.status === 'first_seal') console.log('Sealed existing evidence chain at ' + seal.sealed_seq);
+  } catch (e) {
+    console.warn('anchor seal skipped: ' + e.message);
+  }
 }
 
 main().catch(e => { console.error(e.message); process.exit(1); });

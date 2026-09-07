@@ -62,6 +62,106 @@ function recordHash(record) {
   return crypto.createHash('sha256').update(canonicalJSON(rest)).digest('hex');
 }
 
+const HEAD_ANCHOR_VERSION = 1;
+const GENESIS_ANCHOR_VERSION = 1;
+const FORWARD_SEAL_KIND = 'forward_seal';
+const TAIL_ANCHOR_FILENAME = 'evidence-head.json';
+const GENESIS_ANCHOR_FILENAME = 'evidence-genesis.json';
+const KNOWN_ANCHOR_STATUS = Object.freeze({
+  anchored: 'anchored',
+  never_anchored: 'never_anchored',
+  expected_missing: 'expected_missing',
+  unreadable: 'unreadable',
+  hash_mismatch: 'hash_mismatch',
+  bytes_mismatch: 'bytes_mismatch',
+  count_mismatch: 'count_mismatch',
+  anchor_behind: 'anchor_behind',
+  anchor_ahead: 'anchor_ahead',
+});
+function _hashAnchorTriple(latestSeq, totalCount, headHash) {
+  return crypto.createHash('sha256').update(String(latestSeq) + '|' + String(totalCount) + '|' + String(headHash)).digest('hex');
+}
+function _hashGenesis(firstHash) {
+  return crypto.createHash('sha256').update(String(firstHash)).digest('hex');
+}
+function _writeAnchorAtomic(file, obj) {
+  const tmp = file + '.tmp-' + process.pid + '-' + Date.now();
+  fs.writeFileSync(tmp, JSON.stringify(obj) + String.fromCharCode(10), 'utf8');
+  const fd = fs.openSync(tmp, 'a');
+  try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+  try { fs.renameSync(tmp, file); } catch (e) { try { fs.unlinkSync(tmp); } catch (e2) {} throw e; }
+}
+function readTailAnchor(file) {
+  let raw;
+  try { raw = fs.readFileSync(file, 'utf8'); }
+  catch (e) {
+    if (e && e.code === 'ENOENT') return { status: KNOWN_ANCHOR_STATUS.never_anchored, anchor: null };
+    return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null };
+  }
+  try {
+    const anchor = JSON.parse(raw);
+    const checksum = _hashAnchorTriple(anchor.latest_seq, anchor.total_count, anchor.head_hash);
+    if (!anchor || anchor.version !== HEAD_ANCHOR_VERSION ||
+        typeof anchor.latest_seq !== 'number' || typeof anchor.total_count !== 'number' ||
+        typeof anchor.head_hash !== 'string' || anchor.checksum !== checksum) {
+      return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null };
+    }
+    return { status: KNOWN_ANCHOR_STATUS.anchored, anchor: anchor };
+  } catch (e) { return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null }; }
+}
+function writeTailAnchor(file, latestSeq, totalCount, headHash) {
+  const checksum = _hashAnchorTriple(latestSeq, totalCount, headHash);
+  _writeAnchorAtomic(file, {
+    version: HEAD_ANCHOR_VERSION,
+    latest_seq: latestSeq,
+    total_count: totalCount,
+    head_hash: headHash,
+    checksum: checksum,
+    updated_at: new Date().toISOString(),
+  });
+}
+function readGenesisAnchor(file) {
+  let raw;
+  try { raw = fs.readFileSync(file, 'utf8'); }
+  catch (e) {
+    if (e && e.code === 'ENOENT') return { status: KNOWN_ANCHOR_STATUS.never_anchored, anchor: null };
+    return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null };
+  }
+  try {
+    const anchor = JSON.parse(raw);
+    const checksum = _hashGenesis(anchor.first_hash);
+    if (!anchor || anchor.version !== GENESIS_ANCHOR_VERSION ||
+        typeof anchor.first_hash !== 'string' || anchor.checksum !== checksum) {
+      return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null };
+    }
+    return { status: KNOWN_ANCHOR_STATUS.anchored, anchor: anchor };
+  } catch (e) { return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null }; }
+}
+function writeGenesisAnchor(file, firstHash) {
+  const checksum = _hashGenesis(firstHash);
+  _writeAnchorAtomic(file, {
+    version: GENESIS_ANCHOR_VERSION,
+    first_hash: firstHash,
+    checksum: checksum,
+    updated_at: new Date().toISOString(),
+  });
+}
+function _hasForwardSeal(records) {
+  return Array.isArray(records) && records.some(function (r) { return r && r.kind === FORWARD_SEAL_KIND; });
+}
+function _makeForwardSealRecord(sealed) {
+  const rec = {
+    kind: FORWARD_SEAL_KIND,
+    sealed_head_hash: sealed.sealed_head_hash,
+    sealed_seq: sealed.sealed_seq,
+    sealed_total_count: sealed.sealed_total_count,
+    timestamp: new Date().toISOString(),
+    prev_hash: sealed.sealed_head_hash,
+  };
+  rec.event_hash = recordHash(rec);
+  return rec;
+}
+
 // ADR-0013 D3: composite idempotency key SHA256(session|turn|tool_seq).
 function idempotencyKey(sessionId, turnId, toolSeq) {
   const raw = String(sessionId || '') + '|' + String(turnId || '') + '|' + String(toolSeq || '');
@@ -364,6 +464,143 @@ function createEvidenceLog(overrideConfigDir, opts) {
     return migrateLegacy();
   }
 
+  function headAnchorPath() { return path.join(path.dirname(ep), TAIL_ANCHOR_FILENAME); }
+  function genesisAnchorPath() { return path.join(path.dirname(ep), GENESIS_ANCHOR_FILENAME); }
+
+  function _tailState(records) {
+    if (!Array.isArray(records) || records.length === 0) return null;
+    const last = records[records.length - 1];
+    return {
+      latest_seq: records.length - 1,
+      total_count: records.length,
+      head_hash: last && typeof last.event_hash === 'string' ? last.event_hash : null,
+      first_hash: records[0] && typeof records[0].event_hash === 'string' ? records[0].event_hash : null,
+    };
+  }
+
+  function _tailStateFromSegments(segs, activeRecs) {
+    const last = segs[segs.length - 1];
+    const total = last.seq + activeRecs.length;
+    let firstHash = null;
+    if (segs.length === 1) {
+      firstHash = activeRecs.length > 0 && typeof activeRecs[0].event_hash === 'string' ? activeRecs[0].event_hash : null;
+    } else {
+      try {
+        const firstRecs = readSegment(segs[0].path, false);
+        firstHash = firstRecs.length > 0 && typeof firstRecs[0].event_hash === 'string' ? firstRecs[0].event_hash : null;
+      } catch (e) { firstHash = null; }
+    }
+    return {
+      latest_seq: total - 1,
+      total_count: total,
+      head_hash: activeRecs.length > 0 && typeof activeRecs[activeRecs.length - 1].event_hash === 'string' ? activeRecs[activeRecs.length - 1].event_hash : null,
+      first_hash: firstHash,
+    };
+  }
+
+  function _anchorProblem(code, field, expected, actual) {
+    return { code: code, field: field, expected: expected, actual: actual };
+  }
+
+  function _externalAnchorProblems(state) {
+    const out = [];
+    const tailRead = readTailAnchor(headAnchorPath());
+    const genRead = readGenesisAnchor(genesisAnchorPath());
+    const tailAnchored = tailRead.status === KNOWN_ANCHOR_STATUS.anchored;
+    const genAnchored = genRead.status === KNOWN_ANCHOR_STATUS.anchored;
+
+    if (tailRead.status === KNOWN_ANCHOR_STATUS.unreadable) {
+      out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.unreadable, 'tail_anchor', null, tailRead.status));
+    } else if (tailRead.status === KNOWN_ANCHOR_STATUS.never_anchored) {
+      if (genAnchored) out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.expected_missing, 'tail_anchor', null, 'missing'));
+      else out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.never_anchored, 'tail_anchor', null, null));
+    } else if (state) {
+      if (tailRead.anchor.total_count !== state.total_count) {
+        out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.count_mismatch, 'tail_anchor.total_count', state.total_count, tailRead.anchor.total_count));
+      } else {
+        if (tailRead.anchor.latest_seq < state.latest_seq) {
+          out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.anchor_behind, 'tail_anchor.latest_seq', state.latest_seq, tailRead.anchor.latest_seq));
+        } else if (tailRead.anchor.latest_seq > state.latest_seq) {
+          out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.anchor_ahead, 'tail_anchor.latest_seq', state.latest_seq, tailRead.anchor.latest_seq));
+        }
+      }
+      if (tailRead.anchor.head_hash !== state.head_hash) {
+        out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.hash_mismatch, 'tail_anchor.head_hash', state.head_hash, tailRead.anchor.head_hash));
+      }
+    }
+
+    if (genRead.status === KNOWN_ANCHOR_STATUS.unreadable) {
+      out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.unreadable, 'genesis_anchor', null, genRead.status));
+    } else if (genRead.status === KNOWN_ANCHOR_STATUS.never_anchored) {
+      if (tailAnchored) out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.expected_missing, 'genesis_anchor', null, 'missing'));
+      else out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.never_anchored, 'genesis_anchor', null, null));
+    } else if (state) {
+      if (genRead.anchor.first_hash !== state.first_hash) {
+        out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.hash_mismatch, 'genesis_anchor.first_hash', state.first_hash, genRead.anchor.first_hash));
+      }
+    }
+
+    return out;
+  }
+
+  function _formatAnchorProblems(problems) {
+    return problems.map(function (p) {
+      let s = p.field + ': ' + p.code;
+      if (p.expected !== undefined && p.actual !== undefined) s += ' (expected ' + p.expected + ', actual ' + p.actual + ')';
+      return s;
+    }).join('; ');
+  }
+
+  function _fatalAnchorProblems(problems) {
+    return problems.filter(function (p) {
+      return p.code !== KNOWN_ANCHOR_STATUS.never_anchored && p.code !== KNOWN_ANCHOR_STATUS.anchor_behind;
+    });
+  }
+
+  function _writeTailAnchorForChain(records) {
+    const state = _tailState(records);
+    if (!state || state.head_hash === null) return;
+    const genRead = readGenesisAnchor(genesisAnchorPath());
+    if (_hasForwardSeal(records) || genRead.status === KNOWN_ANCHOR_STATUS.anchored) {
+      writeTailAnchor(headAnchorPath(), state.latest_seq, state.total_count, state.head_hash);
+    }
+  }
+
+  function sealForwardIfNeeded() {
+    if (!ensureSegmented()) return { status: 'corrupt', reason: 'could not ensure segmented layout' };
+    let existing;
+    try { existing = readConcat(); }
+    catch (e) { return { status: 'corrupt', reason: e.message }; }
+    if (existing.length === 0) return { status: 'empty' };
+    const wasSealed = _hasForwardSeal(existing);
+    if (!wasSealed) {
+      const head = existing[existing.length - 1];
+      const headHash = head && typeof head.event_hash === 'string' ? head.event_hash : null;
+      if (headHash === null) return { status: 'corrupt', reason: 'chain tail has no event_hash' };
+      const rec = _makeForwardSealRecord({
+        sealed_head_hash: headHash,
+        sealed_seq: existing.length - 1,
+        sealed_total_count: existing.length,
+      });
+      commit(function () { return [rec]; });
+      try { existing = readConcat(); }
+      catch (e) { return { status: 'corrupt', reason: e.message }; }
+      if (!_hasForwardSeal(existing)) return { status: 'corrupt', reason: 'forward seal append did not persist' };
+    }
+    const first = existing[0];
+    const firstHash = first && typeof first.event_hash === 'string' ? first.event_hash : null;
+    if (firstHash === null) return { status: 'corrupt', reason: 'chain first record has no event_hash' };
+    writeGenesisAnchor(genesisAnchorPath(), firstHash);
+    _writeTailAnchorForChain(existing);
+    const state = _tailState(existing);
+    return {
+      status: wasSealed ? 'already_sealed' : 'first_seal',
+      sealed_total_count: state ? state.total_count : existing.length,
+      sealed_seq: state ? state.latest_seq : existing.length - 1,
+      sealed_head_hash: state ? state.head_hash : null,
+    };
+  }
+
   function append(newRecords) { commit(() => newRecords); }
 
   // ADR-0024 D2a: everything below runs inside ONE narrow lock (ep + '.lock').
@@ -470,6 +707,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
       // Full-rewrite sidecar with the union set (bounded by unique turn keys).
       const allKeys = existing.concat(applied).filter(r => r && r._idem).map(r => r._idem);
       fs.writeFileSync(kp, allKeys.join('\n') + '\n', 'utf8');
+      _writeTailAnchorForChain(existing.concat(applied));
     };
     try { withLockSync(ep, run, { retries: 40, retrySleepMs: 10 }); }
     catch (e) { try { run(); } catch (e2) { /* sink broken — drop */ } }
@@ -489,41 +727,42 @@ function createEvidenceLog(overrideConfigDir, opts) {
   }
 
   // Anchor field checks shared by verifyTail/verifyFull.
-  function anchorProblems(anchor, prevSeg, expectedSeq) {
+  function anchorProblems(anchor, prevSeg, expectedSeq, externalChecks) {
     const problems = [];
     if (!anchor || anchor.kind !== 'segment_anchor') {
-      problems.push('segment_anchor missing');
+      problems.push(_anchorProblem('segment_anchor_missing', 'kind', 'segment_anchor', anchor && anchor.kind));
+      if (Array.isArray(externalChecks)) problems.push.apply(problems, externalChecks);
       return problems;
     }
     if (anchor.legacy_breakpoint) {
-      problems.push('segment carries a migrated legacy break (broken_at ' +
-        anchor.legacy_breakpoint.broken_at + ')');
+      problems.push(_anchorProblem('legacy_breakpoint', 'legacy breakpoint', null, 'broken_at ' + anchor.legacy_breakpoint.broken_at));
     }
     let prevBytes = null;
     let prevRecs = null;
-    try { prevBytes = fs.statSync(prevSeg.path).size; } catch (e) { problems.push('previous segment unreadable: ' + e.message); }
+    try { prevBytes = fs.statSync(prevSeg.path).size; } catch (e) { problems.push(_anchorProblem(KNOWN_ANCHOR_STATUS.unreadable, 'prev_segment', null, e.message)); }
     if (prevBytes !== null && anchor.prev_segment_bytes !== prevBytes) {
-      problems.push('prev_segment_bytes mismatch (' + anchor.prev_segment_bytes + ' != ' + prevBytes + ')');
+      problems.push(_anchorProblem(KNOWN_ANCHOR_STATUS.bytes_mismatch, 'prev_segment_bytes', anchor.prev_segment_bytes, prevBytes));
     }
     try {
-      if (anchor.prev_segment_hash !== sha256File(prevSeg.path)) problems.push('prev_segment_hash mismatch for ' + prevSeg.name);
-    } catch (e) { problems.push('previous segment unhashable: ' + e.message); }
+      const actualHash = sha256File(prevSeg.path);
+      if (anchor.prev_segment_hash !== actualHash) problems.push(_anchorProblem(KNOWN_ANCHOR_STATUS.hash_mismatch, 'prev_segment_hash', anchor.prev_segment_hash, actualHash));
+    } catch (e) { problems.push(_anchorProblem(KNOWN_ANCHOR_STATUS.unreadable, 'prev_segment_hash', null, e.message)); }
     try {
-      prevRecs = readSegment(prevSeg.path, false); // sealed segment: strict
+      prevRecs = readSegment(prevSeg.path, false);
       if (anchor.prev_segment_count !== prevRecs.length) {
-        problems.push('prev_segment_count mismatch (' + anchor.prev_segment_count + ' != ' + prevRecs.length + ')');
+        problems.push(_anchorProblem(KNOWN_ANCHOR_STATUS.count_mismatch, 'prev_segment_count', anchor.prev_segment_count, prevRecs.length));
       }
-    } catch (e) { problems.push('previous segment corrupt: ' + e.message); }
-    if (anchor.seq_start !== expectedSeq) {
-      problems.push('seq_start ' + anchor.seq_start + ' != expected ' + expectedSeq);
+    } catch (e) { problems.push(_anchorProblem(KNOWN_ANCHOR_STATUS.unreadable, 'prev_segment_records', null, e.message)); }
+    if (expectedSeq !== null && anchor.seq_start !== expectedSeq) {
+      problems.push(_anchorProblem('seq_start_mismatch', 'seq_start', expectedSeq, anchor.seq_start));
     }
     if (prevRecs) {
       const prevTail = prevRecs.length > 0 ? prevRecs[prevRecs.length - 1].event_hash : null;
-      if (anchor.prev_hash !== prevTail) problems.push('anchor.prev_hash does not match previous segment tail');
+      if (anchor.prev_hash !== prevTail) problems.push(_anchorProblem(KNOWN_ANCHOR_STATUS.hash_mismatch, 'prev_hash', prevTail, anchor.prev_hash));
     }
+    if (Array.isArray(externalChecks)) problems.push.apply(problems, externalChecks);
     return problems;
   }
-
   // ADR-0026 D4 hot path: active segment + previous-segment anchor
   // prechecks (O(active segment) once the previous segment is hashed).
   function verifyTail() {
@@ -539,20 +778,23 @@ function createEvidenceLog(overrideConfigDir, opts) {
     try { recs = readSegment(active.path, true); }
     catch (e) { return { valid: false, broken_at: -1, reason: e.message }; }
     if (recs.length === 0) return { valid: false, broken_at: -1, reason: 'active segment empty' };
-    if (segs.length === 1) return verifyChain(recs); // genesis-only: whole chain
-    const problems = anchorProblems(recs[0], segs[segs.length - 2], null /* seq_start global check is verifyFull */);
-    const seqOnly = problems.filter(p => p.indexOf('seq_start') === 0);
-    const others = problems.filter(p => p.indexOf('seq_start') !== 0);
-    if (others.length > 0) {
-      // A carried legacy_breakpoint points back at the ORIGINAL break index,
-      // not at the anchor — the honest fault location (ADR-0026 D5).
-      const bp = recs[0] && recs[0].legacy_breakpoint;
-      return { valid: false, broken_at: bp ? bp.broken_at : -1, reason: others.join('; ') };
+    if (segs.length === 1) {
+      const chainResult = verifyChain(recs);
+      const fatal = _fatalAnchorProblems(_externalAnchorProblems(_tailStateFromSegments(segs, recs)));
+      if (fatal.length > 0) return { valid: false, broken_at: -1, reason: _formatAnchorProblems(fatal) };
+      return chainResult;
     }
-    void seqOnly; // global cumulative check belongs to verifyFull (ADR-0026 D4)
+    const problems = anchorProblems(recs[0], segs[segs.length - 2], null, _externalAnchorProblems(_tailStateFromSegments(segs, recs)));
+    const seqOnly = problems.filter(function (p) { return p.code === 'seq_start_mismatch'; });
+    const others = problems.filter(function (p) { return p.code !== 'seq_start_mismatch'; });
+    const fatal = _fatalAnchorProblems(others);
+    if (fatal.length > 0) {
+      const bp = recs[0] && recs[0].legacy_breakpoint;
+      return { valid: false, broken_at: bp ? bp.broken_at : -1, reason: _formatAnchorProblems(fatal) };
+    }
+    void seqOnly;
     return verifyLinks(recs, 0);
   }
-
   // ADR-0026 D4 cold path: every segment, every cross-link, filename/seq
   // cross-check. Exposed via scripts/verify-evidence.js --full.
   function verifyFull() {
@@ -569,25 +811,30 @@ function createEvidenceLog(overrideConfigDir, opts) {
       let recs;
       try { recs = readSegment(seg.path, i === segs.length - 1); }
       catch (e) { return { valid: false, broken_at: all.length, reason: e.message }; }
-      // ADR-0026 D3 cross-check: filename number == cumulative record count.
       if (seg.seq !== all.length) {
         return { valid: false, broken_at: all.length, reason: 'segment ' + seg.name + ' seq ' + seg.seq + ' != cumulative record count ' + all.length };
       }
       if (i > 0) {
         const problems = anchorProblems(recs[0], segs[i - 1], seg.seq);
-        if (problems.length > 0) {
+        const fatal = _fatalAnchorProblems(problems);
+        if (fatal.length > 0) {
           const bp = recs[0] && recs[0].legacy_breakpoint;
-          return { valid: false, broken_at: bp ? bp.broken_at : all.length, reason: problems.join('; ') };
+          return { valid: false, broken_at: bp ? bp.broken_at : all.length, reason: _formatAnchorProblems(fatal) };
         }
       }
       for (const r of recs) all.push(r);
     }
-    return verifyChain(all);
+    const chain = verifyChain(all);
+    if (!chain.valid) return chain;
+    const fatal = _fatalAnchorProblems(_externalAnchorProblems(_tailState(all)));
+    if (fatal.length > 0) return { valid: false, broken_at: chain.broken_at === undefined ? -1 : chain.broken_at, reason: _formatAnchorProblems(fatal) };
+    return chain;
   }
-
   function clear() {
     try { fs.rmSync(ep, { recursive: true, force: true }); } catch (e) {}
     try { fs.unlinkSync(kp); } catch (e) {}
+    try { fs.unlinkSync(headAnchorPath()); } catch (e) {}
+    try { fs.unlinkSync(genesisAnchorPath()); } catch (e) {}
     try { fs.rmSync(stagingDir, { recursive: true, force: true }); } catch (e) {}
     // clear() IS the explicit operator action; the D5 "never auto-deleted"
     // rule covers automatic paths only.
@@ -598,7 +845,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     }
   }
 
-  return { append, commit, readAll, verify, verifyTail, verifyFull, clear, createRecord };
+  return { append, commit, readAll, verify, verifyTail, verifyFull, clear, createRecord, sealForwardIfNeeded, headAnchorPath, genesisAnchorPath, KNOWN_ANCHOR_STATUS: KNOWN_ANCHOR_STATUS, readTailAnchor: readTailAnchor, writeTailAnchor: writeTailAnchor, readGenesisAnchor: readGenesisAnchor, writeGenesisAnchor: writeGenesisAnchor };
 }
 
 // createRecord is pure (no fs, no closure state) — module-level per ADR-0016 double-track.
