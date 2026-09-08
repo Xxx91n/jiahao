@@ -98,7 +98,24 @@ const KNOWN_ANCHOR_STATUS = Object.freeze({
   count_mismatch: 'count_mismatch',
   anchor_behind: 'anchor_behind',
   anchor_ahead: 'anchor_ahead',
+  // ADR-0052 D-A: self-consistent chain, local witness missing/unreadable/torn.
+  // Additive only — never rename or delete registry values.
+  witness_unavailable: 'witness_unavailable',
 });
+
+// ADR-0052 D-D: content-anchored witness-recovery constants — an independent
+// 'witness-recovery' domain, separate from the ADR-0030 judge 6/9-month
+// domain. Value changes require an ADR-0052 revision. Detection-latency
+// upper bound: max(access interval, patrol interval).
+const WITNESS_RECOVERY = Object.freeze({
+  soft_ms: 72 * 3600 * 1000,
+  hard_ms: 7 * 24 * 3600 * 1000,
+  consumer: 'human_auditor',
+  detection_latency_bound: 'max(access interval, patrol interval)',
+});
+const WITNESS_DEGRADED_KIND = 'witness_degraded';
+const WITNESS_RECOVERY_KIND = 'witness_recovery';
+const WITNESS_HARD_STOP_CODE = 'WITNESS_HARD_DEADLINE';
 function _hashAnchorTriple(latestSeq, totalCount, headHash) {
   return crypto.createHash('sha256').update(String(latestSeq) + '|' + String(totalCount) + '|' + String(headHash)).digest('hex');
 }
@@ -159,7 +176,8 @@ function readTailAnchor(file) {
   try { raw = fs.readFileSync(file, 'utf8'); }
   catch (e) {
     if (e && e.code === 'ENOENT') return { status: KNOWN_ANCHOR_STATUS.never_anchored, anchor: null };
-    return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null };
+    // ADR-0052 D-A: missing/unreadable witness is not corruption.
+    return { status: KNOWN_ANCHOR_STATUS.witness_unavailable, anchor: null };
   }
   try {
     const anchor = JSON.parse(raw);
@@ -170,7 +188,9 @@ function readTailAnchor(file) {
       return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null };
     }
     return { status: KNOWN_ANCHOR_STATUS.anchored, anchor: anchor };
-  } catch (e) { return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null }; }
+  // ADR-0052 D-A: a torn (unparseable) witness file is witness_unavailable;
+  // a present-but-wrong checksum/version stays in the corruption family above.
+  } catch (e) { return { status: KNOWN_ANCHOR_STATUS.witness_unavailable, anchor: null }; }
 }
 function writeTailAnchor(file, latestSeq, totalCount, headHash, capability) {
   capability = capability === undefined ? _defaultPersistenceCapability() : capability;
@@ -192,7 +212,8 @@ function readGenesisAnchor(file) {
   try { raw = fs.readFileSync(file, 'utf8'); }
   catch (e) {
     if (e && e.code === 'ENOENT') return { status: KNOWN_ANCHOR_STATUS.never_anchored, anchor: null };
-    return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null };
+    // ADR-0052 D-A: missing/unreadable witness is not corruption.
+    return { status: KNOWN_ANCHOR_STATUS.witness_unavailable, anchor: null };
   }
   try {
     const anchor = JSON.parse(raw);
@@ -202,11 +223,25 @@ function readGenesisAnchor(file) {
       return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null };
     }
     return { status: KNOWN_ANCHOR_STATUS.anchored, anchor: anchor };
-  } catch (e) { return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null }; }
+  // ADR-0052 D-A: a torn (unparseable) witness file is witness_unavailable;
+  // a present-but-wrong checksum/version stays in the corruption family above.
+  } catch (e) { return { status: KNOWN_ANCHOR_STATUS.witness_unavailable, anchor: null }; }
 }
-function writeGenesisAnchor(file, firstHash, capability) {
+function writeGenesisAnchor(file, firstHash, capability, generation) {
   capability = capability === undefined ? _defaultPersistenceCapability() : capability;
   const checksum = _hashGenesis(firstHash);
+  // ADR-0052 D-E: generation increments on every controlled rebuild.
+  if (generation !== undefined) {
+    _writeAnchorAtomic(file, {
+      version: GENESIS_ANCHOR_VERSION,
+      first_hash: firstHash,
+      generation: generation,
+      checksum: checksum,
+      persistence: capability,
+      updated_at: new Date().toISOString(),
+    }, capability);
+    return;
+  }
   _writeAnchorAtomic(file, {
     version: GENESIS_ANCHOR_VERSION,
     first_hash: firstHash,
@@ -389,6 +424,8 @@ function listSegments(dir) {
 function createEvidenceLog(overrideConfigDir, opts) {
   const o = opts || {};
   const rotateBytes = typeof o.rotateBytes === 'number' ? o.rotateBytes : SEGMENT_BYTES;
+  const now = typeof o.now === 'function' ? o.now : Date.now; // ADR-0052 D-D: injectable recovery clock
+  let witnessGateBusy = false; // breakpoint-record recursion guard
   const ep = overrideConfigDir
     ? path.join(overrideConfigDir, '.jiahao-evidence')
     : evidencePath();
@@ -581,17 +618,33 @@ function createEvidenceLog(overrideConfigDir, opts) {
     return { code: code, field: field, expected: expected, actual: actual };
   }
 
-  function _externalAnchorProblems(state) {
+  // ADR-0052 D-B: every machine-readable witness problem names its consumer
+  // (the human auditor in the current single-host deployment).
+  function _witnessProblem(field, actual) {
+    const p = _anchorProblem(KNOWN_ANCHOR_STATUS.witness_unavailable, field, null, actual);
+    p.consumer = WITNESS_RECOVERY.consumer;
+    return p;
+  }
+
+  function _chainHasSeal() {
+    try { return _hasForwardSeal(readConcat()); } catch (e) { return false; }
+  }
+
+  function _externalAnchorProblems(state, hasSealFn) {
     const out = [];
     const tailRead = readTailAnchor(headAnchorPath());
     const genRead = readGenesisAnchor(genesisAnchorPath());
     const tailAnchored = tailRead.status === KNOWN_ANCHOR_STATUS.anchored;
     const genAnchored = genRead.status === KNOWN_ANCHOR_STATUS.anchored;
 
-    if (tailRead.status === KNOWN_ANCHOR_STATUS.unreadable) {
+    if (tailRead.status === KNOWN_ANCHOR_STATUS.witness_unavailable) {
+      out.push(_witnessProblem('tail_anchor', tailRead.status));
+    } else if (tailRead.status === KNOWN_ANCHOR_STATUS.unreadable) {
       out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.unreadable, 'tail_anchor', null, tailRead.status));
     } else if (tailRead.status === KNOWN_ANCHOR_STATUS.never_anchored) {
-      if (genAnchored) out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.expected_missing, 'tail_anchor', null, 'missing'));
+      // ADR-0052: a missing tail witness on a sealed chain is witness loss
+      // (migrated from expected_missing; the value stays in the registry).
+      if (genAnchored || (hasSealFn && hasSealFn())) out.push(_witnessProblem('tail_anchor', 'missing'));
       else out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.never_anchored, 'tail_anchor', null, null));
     } else if (state) {
       if (tailRead.anchor.total_count !== state.total_count) {
@@ -608,10 +661,12 @@ function createEvidenceLog(overrideConfigDir, opts) {
       }
     }
 
-    if (genRead.status === KNOWN_ANCHOR_STATUS.unreadable) {
+    if (genRead.status === KNOWN_ANCHOR_STATUS.witness_unavailable) {
+      out.push(_witnessProblem('genesis_anchor', genRead.status));
+    } else if (genRead.status === KNOWN_ANCHOR_STATUS.unreadable) {
       out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.unreadable, 'genesis_anchor', null, genRead.status));
     } else if (genRead.status === KNOWN_ANCHOR_STATUS.never_anchored) {
-      if (tailAnchored) out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.expected_missing, 'genesis_anchor', null, 'missing'));
+      if (tailAnchored || (hasSealFn && hasSealFn())) out.push(_witnessProblem('genesis_anchor', 'missing'));
       else out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.never_anchored, 'genesis_anchor', null, null));
     } else if (state) {
       if (genRead.anchor.first_hash !== state.first_hash) {
@@ -660,10 +715,19 @@ function createEvidenceLog(overrideConfigDir, opts) {
     if (genRead.status === KNOWN_ANCHOR_STATUS.unreadable) {
       return { status: 'corrupt', reason: 'genesis anchor is unreadable' };
     }
+    // ADR-0052 D-A: a torn witness is never rewritten silently.
+    if (genRead.status === KNOWN_ANCHOR_STATUS.witness_unavailable) {
+      return { status: 'witness_unavailable', reason: 'genesis anchor torn — recover via the ADR-0052 rebuild command' };
+    }
     if (genRead.status === KNOWN_ANCHOR_STATUS.anchored && genRead.anchor.first_hash !== firstHash) {
       return { status: 'corrupt', reason: 'genesis anchor does not match chain first record' };
     }
     if (genRead.status === KNOWN_ANCHOR_STATUS.never_anchored) {
+      // ADR-0052 D-C: on a sealed chain a missing genesis anchor is witness
+      // loss, never an occasion for a silent rewrite (the pre-0052 hole).
+      if (_hasForwardSeal(existing)) {
+        return { status: 'witness_unavailable', reason: 'genesis anchor missing on a sealed chain — recover via the ADR-0052 rebuild command' };
+      }
       writeGenesisAnchor(genesisAnchorPath(), firstHash, persistenceCapability());
     }
     const wasSealed = _hasForwardSeal(existing);
@@ -693,12 +757,139 @@ function createEvidenceLog(overrideConfigDir, opts) {
 
   function append(newRecords) { commit(() => newRecords); }
 
+  // --- ADR-0052 D-B..D-D: witness-unavailable degraded-append policy --------
+  function _makeWitnessDegradedRecord(prevHash, witnesses, nowMs) {
+    const rec = {
+      kind: WITNESS_DEGRADED_KIND,
+      detected_at: new Date(nowMs).toISOString(),
+      witness: witnesses,
+      consumer: WITNESS_RECOVERY.consumer,
+      prev_hash: prevHash,
+    };
+    rec.event_hash = recordHash(rec);
+    return rec;
+  }
+
+  // The last witness_degraded breakpoint not yet answered by a
+  // witness_recovery record. The recovery clock starts at its detected_at.
+  function _activeBreakpoint(records) {
+    let bp = null, recovered = -1;
+    for (let i = 0; i < records.length; i++) {
+      if (records[i] && records[i].kind === WITNESS_DEGRADED_KIND) bp = { record: records[i], index: i };
+      if (records[i] && records[i].kind === WITNESS_RECOVERY_KIND) recovered = i;
+    }
+    if (!bp || recovered > bp.index) return null;
+    return bp;
+  }
+
+  // Witness state over a materialized chain. Down = missing or torn local
+  // witness on a sealed, self-consistent chain.
+  function _witnessScan(records) {
+    if (records.length === 0 || !_hasForwardSeal(records)) return null;
+    const firstHash = records[0] && typeof records[0].event_hash === 'string' ? records[0].event_hash : null;
+    const genRead = readGenesisAnchor(genesisAnchorPath());
+    if (genRead.status === KNOWN_ANCHOR_STATUS.anchored &&
+        genRead.anchor.first_hash !== firstHash) return null; // corruption family owns this
+    const genDown = genRead.status === KNOWN_ANCHOR_STATUS.witness_unavailable ||
+                    genRead.status === KNOWN_ANCHOR_STATUS.never_anchored;
+    const tailRead = readTailAnchor(headAnchorPath());
+    const tailDown = tailRead.status === KNOWN_ANCHOR_STATUS.witness_unavailable ||
+                     tailRead.status === KNOWN_ANCHOR_STATUS.never_anchored;
+    if (!genDown && !tailDown) return null;
+    return { tailDown: tailDown, genDown: genDown, bp: _activeBreakpoint(records), records: records };
+  }
+
+  // Pre-lock append policy: stop hard at the deadline, warn past the soft one
+  // (out-of-chain, stderr). Throws past the caller, never swallowed.
+  function _witnessPreCheck() {
+    if (witnessGateBusy || legacyReadOnly) return;
+    if (statKind() !== 'dir') return; // never-sealed / legacy paths unchanged
+    let scan = null;
+    try { scan = _witnessScan(readConcat()); } catch (e) { return; } // verify paths fail closed separately
+    if (!scan || !scan.bp) return;
+    const nowMs = now();
+    const detectedMs = Date.parse(scan.bp.record.detected_at);
+    const postDetectionAppends = scan.records.length - 1 - scan.bp.index;
+    const age = nowMs - detectedMs;
+    if (age > WITNESS_RECOVERY.hard_ms && postDetectionAppends >= 1) {
+      const err = new Error('witness unavailable past the hard deadline (' + WITNESS_RECOVERY.hard_ms + 'ms) with ' +
+        postDetectionAppends + ' unverified post-detection append(s) — stop and recover via the ADR-0052 rebuild command');
+      err.code = WITNESS_HARD_STOP_CODE;
+      throw err;
+    }
+    if (age > WITNESS_RECOVERY.soft_ms) {
+      note('WITNESS UNAVAILABLE for ' + Math.floor(age / 3600000) + 'h (soft deadline ' +
+        (WITNESS_RECOVERY.soft_ms / 3600000) + 'h) — explicit degraded write continues; consumer: ' +
+        WITNESS_RECOVERY.consumer + ' (ADR-0052)');
+    }
+  }
+
+  // ADR-0052 D-E: controlled genesis-anchor rotation behind the ADR-0017
+  // human review gate. Records the disposition in append-only evidence,
+  // increments the anchor generation, and forces full verification including
+  // the formerly degraded tail. Acknowledgment alone clears nothing.
+  function rebuildGenesisAnchor(options) {
+    const rb = options || {};
+    if (typeof rb.reviewer !== 'string' || rb.reviewer.length === 0 ||
+        typeof rb.reason !== 'string' || rb.reason.length === 0 ||
+        rb.approval !== true) {
+      const err = new Error('rebuild requires the human review gate: reviewer, reason, and explicit approval (ADR-0017 / ADR-0052)');
+      err.code = 'WITNESS_REBUILD_UNAUTHORIZED';
+      throw err;
+    }
+    if (!ensureSegmented()) {
+      const e0 = new Error('segmented layout unavailable — cannot rebuild');
+      e0.code = 'WITNESS_REBUILD_FAILED';
+      throw e0;
+    }
+    const records = readConcat();
+    if (records.length === 0) { const e1 = new Error('nothing to rebuild: empty chain'); e1.code = 'WITNESS_REBUILD_FAILED'; throw e1; }
+    const chainCheck = verifyChain(records);
+    if (!chainCheck.valid) {
+      const e2 = new Error('rebuild refused: chain is not self-consistent (' + chainCheck.reason + ') — witness rebuild never whitewashes corruption');
+      e2.code = 'WITNESS_REBUILD_FAILED';
+      throw e2;
+    }
+    const genRead = readGenesisAnchor(genesisAnchorPath());
+    const prevGen = genRead.status === KNOWN_ANCHOR_STATUS.anchored &&
+      typeof genRead.anchor.generation === 'number' ? genRead.anchor.generation : 0;
+    const generation = prevGen + 1;
+    const bp = _activeBreakpoint(records);
+    witnessGateBusy = true; // the audit disposition write must bypass the hard stop
+    try {
+      commit(function (chain, prevHash) {
+        const rec = {
+          kind: WITNESS_RECOVERY_KIND,
+          reviewer: rb.reviewer,
+          reason: rb.reason,
+          approval: true,
+          generation: generation,
+          detected_at: bp ? bp.record.detected_at : null,
+          recovered_at: new Date(now()).toISOString(),
+          prev_hash: prevHash,
+        };
+        rec.event_hash = recordHash(rec);
+        return [rec];
+      });
+    } finally { witnessGateBusy = false; }
+    writeGenesisAnchor(genesisAnchorPath(), records[0].event_hash, persistenceCapability(), generation);
+    _writeTailAnchorForChain(readConcat());
+    const full = verifyFull();
+    if (!full.valid) {
+      const e3 = new Error('rebuilt but forced full verification failed: ' + full.reason);
+      e3.code = 'WITNESS_REBUILD_VERIFY_FAILED';
+      throw e3;
+    }
+    return { status: 'rebuilt', generation: generation, verify: full };
+  }
+
   // ADR-0024 D2a: everything below runs inside ONE narrow lock (ep + '.lock').
   // make(chain, prevHash) receives the materialized concatenated records
   // (anchors included) plus the chain tail hash; it returns records to
   // append ([] = no-op). Lock failure degrades to an unlocked write
   // (best-effort invariant: hooks never block).
   function commit(make) {
+    _witnessPreCheck();
     const run = () => {
       if (legacyReadOnly) { note('read-only legacy mode — append dropped'); return; }
       if (!ensureSegmented()) return;
@@ -710,7 +901,22 @@ function createEvidenceLog(overrideConfigDir, opts) {
         return;
       }
       let tail = existing.length > 0 ? existing[existing.length - 1].event_hash : null;
-      const made = make(existing, tail) || [];
+      let made = make(existing, tail) || [];
+      // ADR-0052 D-C: first append after witness loss prepends the degraded
+      // breakpoint record inside the SAME locked write.
+      if (!witnessGateBusy && !legacyReadOnly) {
+        const scan = _witnessScan(existing);
+        if (scan && !scan.bp) {
+          const bpRec = _makeWitnessDegradedRecord(tail, { tail_anchor: scan.tailDown, genesis_anchor: scan.genDown }, now());
+          // The caller's first record still points at the old tail; re-link
+          // it onto the breakpoint (not yet persisted, re-hash is safe).
+          if (made.length > 0 && made[0] && made[0].prev_hash === tail) {
+            made[0].prev_hash = bpRec.event_hash;
+            made[0].event_hash = recordHash(made[0]);
+          }
+          made = [bpRec].concat(made);
+        }
+      }
       if (!Array.isArray(made) || made.length === 0) return;
 
       const seen = new Set();
@@ -872,11 +1078,11 @@ function createEvidenceLog(overrideConfigDir, opts) {
     if (recs.length === 0) return { valid: false, broken_at: -1, reason: 'active segment empty' };
     if (segs.length === 1) {
       const chainResult = verifyChain(recs);
-      const fatal = _fatalAnchorProblems(_externalAnchorProblems(_tailStateFromSegments(segs, recs)));
+      const fatal = _fatalAnchorProblems(_externalAnchorProblems(_tailStateFromSegments(segs, recs), _chainHasSeal));
       if (fatal.length > 0) return { valid: false, broken_at: -1, reason: _formatAnchorProblems(fatal) };
       return chainResult;
     }
-    const problems = anchorProblems(recs[0], segs[segs.length - 2], null, _externalAnchorProblems(_tailStateFromSegments(segs, recs)));
+    const problems = anchorProblems(recs[0], segs[segs.length - 2], null, _externalAnchorProblems(_tailStateFromSegments(segs, recs), _chainHasSeal));
     const seqOnly = problems.filter(function (p) { return p.code === 'seq_start_mismatch'; });
     const others = problems.filter(function (p) { return p.code !== 'seq_start_mismatch'; });
     const fatal = _fatalAnchorProblems(others);
@@ -918,7 +1124,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     }
     const chain = verifyChain(all);
     if (!chain.valid) return chain;
-    const fatal = _fatalAnchorProblems(_externalAnchorProblems(_tailState(all)));
+    const fatal = _fatalAnchorProblems(_externalAnchorProblems(_tailState(all), function () { return _hasForwardSeal(all); }));
     if (fatal.length > 0) return { valid: false, broken_at: chain.broken_at === undefined ? -1 : chain.broken_at, reason: _formatAnchorProblems(fatal) };
     return chain;
   }
@@ -937,7 +1143,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     }
   }
 
-  return { append, commit, readAll, verify, verifyTail, verifyFull, clear, createRecord, sealForwardIfNeeded, headAnchorPath, genesisAnchorPath, KNOWN_ANCHOR_STATUS: KNOWN_ANCHOR_STATUS, readTailAnchor: readTailAnchor, writeTailAnchor: writeTailAnchor, readGenesisAnchor: readGenesisAnchor, writeGenesisAnchor: writeGenesisAnchor, persistenceCapability: persistenceCapability };
+  return { append, commit, readAll, verify, verifyTail, verifyFull, clear, createRecord, sealForwardIfNeeded, headAnchorPath, genesisAnchorPath, KNOWN_ANCHOR_STATUS: KNOWN_ANCHOR_STATUS, readTailAnchor: readTailAnchor, writeTailAnchor: writeTailAnchor, readGenesisAnchor: readGenesisAnchor, writeGenesisAnchor: writeGenesisAnchor, persistenceCapability: persistenceCapability, rebuildGenesisAnchor: rebuildGenesisAnchor, WITNESS_RECOVERY: WITNESS_RECOVERY };
 }
 
 // createRecord is pure (no fs, no closure state) — module-level per ADR-0016 double-track.
@@ -1009,4 +1215,5 @@ module.exports = {
   PERSISTENCE_CAPABILITY, PERSISTENCE_DECLARATION_FILENAME,
   probePersistenceCapability, resolvePersistenceCapability,
   fsyncDirectory: _fsyncDirectory,
+  WITNESS_RECOVERY, WITNESS_DEGRADED_KIND, WITNESS_RECOVERY_KIND, WITNESS_HARD_STOP_CODE,
 };

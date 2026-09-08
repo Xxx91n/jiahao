@@ -96,6 +96,9 @@ describe('ADR-0050 D-C structured anchor tri-state', () => {
       'anchored', 'never_anchored', 'expected_missing', 'unreadable',
       'hash_mismatch', 'bytes_mismatch', 'count_mismatch',
       'anchor_behind', 'anchor_ahead',
+      // ADR-0052 additive: witness_unavailable (migration: a torn/missing
+      // witness is no longer 'unreadable' or 'expected_missing').
+      'witness_unavailable',
     ]);
 
     const dir = mktmp('dc');
@@ -105,7 +108,8 @@ describe('ADR-0050 D-C structured anchor tri-state', () => {
 
     log.sealForwardIfNeeded();
     fs.writeFileSync(log.headAnchorPath(), '{broken', 'utf8');
-    expect(readTailAnchor(log.headAnchorPath()).status).toBe(KNOWN_ANCHOR_STATUS.unreadable);
+    // ADR-0052 migration: torn witness -> witness_unavailable (fail-closed).
+    expect(readTailAnchor(log.headAnchorPath()).status).toBe(KNOWN_ANCHOR_STATUS.witness_unavailable);
     const full = log.verifyFull();
     expect(full.valid).toBe(false);
     expect(full.reason).toContain('tail_anchor');
