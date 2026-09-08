@@ -253,13 +253,23 @@ function writeGenesisAnchor(file, firstHash, capability, generation) {
 function _hasForwardSeal(records) {
   return Array.isArray(records) && records.some(function (r) { return r && r.kind === FORWARD_SEAL_KIND; });
 }
+
+// ADR-0053 D-A: with periodic re-anchoring there can be many seals; the last
+// one is the re-anchor reference point.
+function _lastForwardSealIndex(records) {
+  let idx = -1;
+  for (let i = 0; i < records.length; i++) {
+    if (records[i] && records[i].kind === FORWARD_SEAL_KIND) idx = i;
+  }
+  return idx;
+}
 function _makeForwardSealRecord(sealed) {
   const rec = {
     kind: FORWARD_SEAL_KIND,
     sealed_head_hash: sealed.sealed_head_hash,
     sealed_seq: sealed.sealed_seq,
     sealed_total_count: sealed.sealed_total_count,
-    timestamp: new Date().toISOString(),
+    timestamp: typeof sealed.timestamp === 'string' ? sealed.timestamp : new Date().toISOString(),
     prev_hash: sealed.sealed_head_hash,
   };
   rec.event_hash = recordHash(rec);
@@ -620,9 +630,13 @@ function createEvidenceLog(overrideConfigDir, opts) {
 
   // ADR-0052 D-B: every machine-readable witness problem names its consumer
   // (the human auditor in the current single-host deployment).
-  function _witnessProblem(field, actual) {
+  function _witnessProblem(field, actual, lastGoodSeal) {
     const p = _anchorProblem(KNOWN_ANCHOR_STATUS.witness_unavailable, field, null, actual);
     p.consumer = WITNESS_RECOVERY.consumer;
+    // ADR-0053 D-B: with a seal present, verification falls back to the last
+    // good seal; the recovery window is the post-seal tail, bounded by the
+    // re-anchor interval — not the whole chain. No new status (D-C).
+    if (lastGoodSeal) p.fallback = 'last_good_seal';
     return p;
   }
 
@@ -638,13 +652,13 @@ function createEvidenceLog(overrideConfigDir, opts) {
     const genAnchored = genRead.status === KNOWN_ANCHOR_STATUS.anchored;
 
     if (tailRead.status === KNOWN_ANCHOR_STATUS.witness_unavailable) {
-      out.push(_witnessProblem('tail_anchor', tailRead.status));
+      out.push(_witnessProblem('tail_anchor', tailRead.status, hasSealFn && hasSealFn()));
     } else if (tailRead.status === KNOWN_ANCHOR_STATUS.unreadable) {
       out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.unreadable, 'tail_anchor', null, tailRead.status));
     } else if (tailRead.status === KNOWN_ANCHOR_STATUS.never_anchored) {
       // ADR-0052: a missing tail witness on a sealed chain is witness loss
       // (migrated from expected_missing; the value stays in the registry).
-      if (genAnchored || (hasSealFn && hasSealFn())) out.push(_witnessProblem('tail_anchor', 'missing'));
+      if (genAnchored || (hasSealFn && hasSealFn())) out.push(_witnessProblem('tail_anchor', 'missing', hasSealFn && hasSealFn()));
       else out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.never_anchored, 'tail_anchor', null, null));
     } else if (state) {
       if (tailRead.anchor.total_count !== state.total_count) {
@@ -681,6 +695,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     return problems.map(function (p) {
       let s = p.field + ': ' + p.code;
       if (p.expected !== undefined && p.actual !== undefined) s += ' (expected ' + p.expected + ', actual ' + p.actual + ')';
+      if (p.fallback) s += ' [fallback: ' + p.fallback + ']';
       return s;
     }).join('; ');
   }
@@ -702,7 +717,13 @@ function createEvidenceLog(overrideConfigDir, opts) {
     }
   }
 
-  function sealForwardIfNeeded() {
+  // ADR-0053 D-A: opts.reanchorCommits — re-anchor after this many post-seal
+  // records; opts.reanchorMs — seal TTL, re-anchor once the last seal is
+  // older than this many ms (both optional, either may trigger). With a TTL
+  // trigger and no new data, the tail-anchor freshness timestamp renews
+  // without a new seal. Default (no opts) keeps the one-time seal behavior.
+  function sealForwardIfNeeded(opts) {
+    opts = opts || {};
     if (!ensureSegmented()) return { status: 'corrupt', reason: 'could not ensure segmented layout' };
     let existing;
     try { existing = readConcat(); }
@@ -731,6 +752,39 @@ function createEvidenceLog(overrideConfigDir, opts) {
       writeGenesisAnchor(genesisAnchorPath(), firstHash, persistenceCapability());
     }
     const wasSealed = _hasForwardSeal(existing);
+    let status = wasSealed ? 'already_sealed' : 'first_seal';
+    if (wasSealed) {
+      const reanchorCommits = typeof opts.reanchorCommits === 'number' ? opts.reanchorCommits : null;
+      const reanchorMs = typeof opts.reanchorMs === 'number' ? opts.reanchorMs : null;
+      const lastIdx = _lastForwardSealIndex(existing);
+      const appended = existing.length - 1 - lastIdx;
+      const sealTs = Date.parse(existing[lastIdx] && existing[lastIdx].timestamp);
+      const ageMs = isNaN(sealTs) ? Infinity : now() - sealTs;
+      const dueByCommits = reanchorCommits !== null && appended >= reanchorCommits;
+      const dueByTtl = reanchorMs !== null && ageMs >= reanchorMs;
+      if (dueByCommits || dueByTtl) {
+        if (appended > 0) {
+          const head = existing[existing.length - 1];
+          const headHash = head && typeof head.event_hash === 'string' ? head.event_hash : null;
+          if (headHash === null) return { status: 'corrupt', reason: 'chain tail has no event_hash' };
+          const rec = _makeForwardSealRecord({
+            sealed_head_hash: headHash,
+            sealed_seq: existing.length - 1,
+            sealed_total_count: existing.length,
+            timestamp: new Date(now()).toISOString(),
+          });
+          commit(function () { return [rec]; });
+          try { existing = readConcat(); }
+          catch (e) { return { status: 'corrupt', reason: e.message }; }
+          if (!_hasForwardSeal(existing)) return { status: 'corrupt', reason: 'forward seal append did not persist' };
+          status = 'reanchored';
+        } else {
+          // No new data: freshness renews via the tail-anchor rewrite below
+          // (updated_at refreshes); the chain itself stays untouched.
+          status = 'freshness_renewed';
+        }
+      }
+    }
     if (!wasSealed) {
       const head = existing[existing.length - 1];
       const headHash = head && typeof head.event_hash === 'string' ? head.event_hash : null;
@@ -739,6 +793,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
         sealed_head_hash: headHash,
         sealed_seq: existing.length - 1,
         sealed_total_count: existing.length,
+        timestamp: new Date(now()).toISOString(),
       });
       commit(function () { return [rec]; });
       try { existing = readConcat(); }
@@ -748,7 +803,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     _writeTailAnchorForChain(existing);
     const state = _tailState(existing);
     return {
-      status: wasSealed ? 'already_sealed' : 'first_seal',
+      status: status,
       sealed_total_count: state ? state.total_count : existing.length,
       sealed_seq: state ? state.latest_seq : existing.length - 1,
       sealed_head_hash: state ? state.head_hash : null,
