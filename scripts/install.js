@@ -127,6 +127,21 @@ async function main() {
   } catch (e) {
     console.warn('anchor seal skipped: ' + e.message);
   }
+
+  // ADR-0051 D-B: probe directory-fsync capability and record the observed
+  // class. An existing operator declaration stays authoritative.
+  try {
+    const el = require('../src/evidence-log');
+    const pth = require('path');
+    const declFile = pth.join(configDir(), el.PERSISTENCE_DECLARATION_FILENAME);
+    let decl = {};
+    try { decl = JSON.parse(fs.readFileSync(declFile, 'utf8')); } catch (e) { /* first install */ }
+    decl.probed = el.probePersistenceCapability(configDir());
+    decl.probed_at = new Date().toISOString();
+    fs.writeFileSync(declFile, JSON.stringify(decl, null, 2) + '\n', 'utf8');
+    console.log('Persistence capability: probed=' + decl.probed +
+      (decl.declared ? ' declared=' + decl.declared + ' (declaration wins)' : ''));
+  } catch (e) { console.warn('persistence probe skipped: ' + e.message); }
 }
 
 main().catch(e => { console.error(e.message); process.exit(1); });

@@ -62,6 +62,27 @@ function recordHash(record) {
   return crypto.createHash('sha256').update(canonicalJSON(rest)).digest('hex');
 }
 
+// ADR-0051 D-A: closed persistence capability class. The anchor write path
+// dispatches on this class, never on a platform string; adding a class is a
+// deliberate ADR-level event.
+const PERSISTENCE_CAPABILITY = Object.freeze({
+  dir_sync_durable: 'dir-sync-durable',
+  dir_sync_unsupported: 'dir-sync-unsupported',
+});
+// Operator declaration / probe record lives next to the profile flag in the
+// config dir (ADR-0051 D-B).
+const PERSISTENCE_DECLARATION_FILENAME = '.jiahao-persistence.json';
+function _declaredPersistenceCapability(configDirPath) {
+  try {
+    const decl = JSON.parse(fs.readFileSync(path.join(configDirPath, PERSISTENCE_DECLARATION_FILENAME), 'utf8'));
+    if (decl && (decl.declared === PERSISTENCE_CAPABILITY.dir_sync_durable ||
+                 decl.declared === PERSISTENCE_CAPABILITY.dir_sync_unsupported)) return decl.declared;
+    if (decl && (decl.probed === PERSISTENCE_CAPABILITY.dir_sync_durable ||
+                 decl.probed === PERSISTENCE_CAPABILITY.dir_sync_unsupported)) return decl.probed;
+  } catch (e) { /* no declaration file */ }
+  return null;
+}
+
 const HEAD_ANCHOR_VERSION = 1;
 const GENESIS_ANCHOR_VERSION = 1;
 const FORWARD_SEAL_KIND = 'forward_seal';
@@ -84,23 +105,54 @@ function _hashAnchorTriple(latestSeq, totalCount, headHash) {
 function _hashGenesis(firstHash) {
   return crypto.createHash('sha256').update(String(firstHash)).digest('hex');
 }
-function _writeAnchorAtomic(file, obj) {
+function _writeAnchorAtomic(file, obj, capability) {
   const tmp = file + '.tmp-' + process.pid + '-' + Date.now();
   fs.writeFileSync(tmp, JSON.stringify(obj) + String.fromCharCode(10), 'utf8');
   _fsyncFile(tmp);
   try { fs.renameSync(tmp, file); } catch (e) { try { fs.unlinkSync(tmp); } catch (e2) {} throw e; }
-  _fsyncDirectory(path.dirname(file));
+  _fsyncDirectory(path.dirname(file), capability);
 }
 function _fsyncFile(file) {
   const fd = fs.openSync(file, 'a');
   try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
 }
-// Windows cannot fsync a directory through Node (EPERM); anchor-behind is the
-// recoverable degraded state there. POSIX hosts make the rename durable.
-function _fsyncDirectory(dir) {
-  if (process.platform === 'win32') return;
+// ADR-0051 D-A: dispatch on the closed capability class. The current Windows
+// no-op remains a no-op under 'dir-sync-unsupported'; POSIX hosts declare
+// 'dir-sync-durable' and make the rename durable. An unknown class throws
+// instead of silently guessing a recipe.
+function _fsyncDirectory(dir, capability) {
+  capability = capability === undefined ? _defaultPersistenceCapability() : capability;
+  if (capability === PERSISTENCE_CAPABILITY.dir_sync_unsupported) return;
+  if (capability !== PERSISTENCE_CAPABILITY.dir_sync_durable) {
+    throw new Error('unknown persistence capability class: ' + String(capability));
+  }
   const fd = fs.openSync(dir, 'r');
   try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+}
+function _defaultPersistenceCapability() {
+  return process.platform === 'win32'
+    ? PERSISTENCE_CAPABILITY.dir_sync_unsupported
+    : PERSISTENCE_CAPABILITY.dir_sync_durable;
+}
+// ADR-0051 D-B: installation/upgrade probe. Records the OBSERVED class only;
+// a passing fsync is not proof the platform made the directory entry durable,
+// so an operator declaration stays authoritative when the probe is
+// inconclusive.
+function probePersistenceCapability(dir) {
+  try {
+    const fd = fs.openSync(dir, 'r');
+    try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+    return PERSISTENCE_CAPABILITY.dir_sync_durable;
+  } catch (e) {
+    return PERSISTENCE_CAPABILITY.dir_sync_unsupported;
+  }
+}
+// Resolution order: injected (test seam) > operator declaration > recorded
+// probe > platform default.
+function resolvePersistenceCapability(injected, configDirPath) {
+  if (injected === PERSISTENCE_CAPABILITY.dir_sync_durable ||
+      injected === PERSISTENCE_CAPABILITY.dir_sync_unsupported) return injected;
+  return _declaredPersistenceCapability(configDirPath) || _defaultPersistenceCapability();
 }
 function readTailAnchor(file) {
   let raw;
@@ -120,7 +172,8 @@ function readTailAnchor(file) {
     return { status: KNOWN_ANCHOR_STATUS.anchored, anchor: anchor };
   } catch (e) { return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null }; }
 }
-function writeTailAnchor(file, latestSeq, totalCount, headHash) {
+function writeTailAnchor(file, latestSeq, totalCount, headHash, capability) {
+  capability = capability === undefined ? _defaultPersistenceCapability() : capability;
   const checksum = _hashAnchorTriple(latestSeq, totalCount, headHash);
   _writeAnchorAtomic(file, {
     version: HEAD_ANCHOR_VERSION,
@@ -128,8 +181,11 @@ function writeTailAnchor(file, latestSeq, totalCount, headHash) {
     total_count: totalCount,
     head_hash: headHash,
     checksum: checksum,
+    // ADR-0051 D-C: audit annotation — the class explains crash semantics of
+    // this anchor write (e.g. why anchor_behind is expected on this host).
+    persistence: capability,
     updated_at: new Date().toISOString(),
-  });
+  }, capability);
 }
 function readGenesisAnchor(file) {
   let raw;
@@ -148,14 +204,16 @@ function readGenesisAnchor(file) {
     return { status: KNOWN_ANCHOR_STATUS.anchored, anchor: anchor };
   } catch (e) { return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null }; }
 }
-function writeGenesisAnchor(file, firstHash) {
+function writeGenesisAnchor(file, firstHash, capability) {
+  capability = capability === undefined ? _defaultPersistenceCapability() : capability;
   const checksum = _hashGenesis(firstHash);
   _writeAnchorAtomic(file, {
     version: GENESIS_ANCHOR_VERSION,
     first_hash: firstHash,
     checksum: checksum,
+    persistence: capability,
     updated_at: new Date().toISOString(),
-  });
+  }, capability);
 }
 function _hasForwardSeal(records) {
   return Array.isArray(records) && records.some(function (r) { return r && r.kind === FORWARD_SEAL_KIND; });
@@ -338,6 +396,16 @@ function createEvidenceLog(overrideConfigDir, opts) {
     ? path.join(overrideConfigDir, '.jiahao-evidence.keys')
     : evidenceKeysPath();
   const stagingDir = ep + '.migrating';
+  // ADR-0051: explicit configuration (test seam / operator declaration) is
+  // resolved once; otherwise the effective class is decided per anchor write
+  // so a platform change mid-process keeps ADR-0050 semantics.
+  const configuredCapability = (o.capability === PERSISTENCE_CAPABILITY.dir_sync_durable ||
+    o.capability === PERSISTENCE_CAPABILITY.dir_sync_unsupported)
+    ? o.capability
+    : _declaredPersistenceCapability(path.dirname(ep));
+  function persistenceCapability() {
+    return configuredCapability || _defaultPersistenceCapability();
+  }
   let legacyReadOnly = false; // ADR-0026 D5 refusal state (per instance)
 
   function note(msg) {
@@ -575,7 +643,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     if (genRead.status === KNOWN_ANCHOR_STATUS.anchored &&
         genRead.anchor.first_hash !== state.first_hash) return;
     if (_hasForwardSeal(records) || genRead.status === KNOWN_ANCHOR_STATUS.anchored) {
-      writeTailAnchor(headAnchorPath(), state.latest_seq, state.total_count, state.head_hash);
+      writeTailAnchor(headAnchorPath(), state.latest_seq, state.total_count, state.head_hash, persistenceCapability());
     }
   }
 
@@ -596,7 +664,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
       return { status: 'corrupt', reason: 'genesis anchor does not match chain first record' };
     }
     if (genRead.status === KNOWN_ANCHOR_STATUS.never_anchored) {
-      writeGenesisAnchor(genesisAnchorPath(), firstHash);
+      writeGenesisAnchor(genesisAnchorPath(), firstHash, persistenceCapability());
     }
     const wasSealed = _hasForwardSeal(existing);
     if (!wasSealed) {
@@ -869,7 +937,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     }
   }
 
-  return { append, commit, readAll, verify, verifyTail, verifyFull, clear, createRecord, sealForwardIfNeeded, headAnchorPath, genesisAnchorPath, KNOWN_ANCHOR_STATUS: KNOWN_ANCHOR_STATUS, readTailAnchor: readTailAnchor, writeTailAnchor: writeTailAnchor, readGenesisAnchor: readGenesisAnchor, writeGenesisAnchor: writeGenesisAnchor };
+  return { append, commit, readAll, verify, verifyTail, verifyFull, clear, createRecord, sealForwardIfNeeded, headAnchorPath, genesisAnchorPath, KNOWN_ANCHOR_STATUS: KNOWN_ANCHOR_STATUS, readTailAnchor: readTailAnchor, writeTailAnchor: writeTailAnchor, readGenesisAnchor: readGenesisAnchor, writeGenesisAnchor: writeGenesisAnchor, persistenceCapability: persistenceCapability };
 }
 
 // createRecord is pure (no fs, no closure state) — module-level per ADR-0016 double-track.
@@ -938,4 +1006,7 @@ module.exports = {
   createEvidenceLog, ESCALATION_BAND, idempotencyKey, createRecord,
   canonicalJSON, recordHash, verifyChain, createTurnInit, finalizeTurnInit, provenanceProblems,
   KNOWN_DEGRADATION_KINDS, SEGMENT_BYTES,
+  PERSISTENCE_CAPABILITY, PERSISTENCE_DECLARATION_FILENAME,
+  probePersistenceCapability, resolvePersistenceCapability,
+  fsyncDirectory: _fsyncDirectory,
 };

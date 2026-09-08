@@ -20,6 +20,9 @@ const result = full ? log.verifyFull() : log.verifyTail();
 const out = {
   mode: full ? 'verifyFull' : 'verifyTail',
   valid: result.valid,
+  // ADR-0051 D-C: the capability class must appear in verification output so
+  // an anchor_behind state can be read as the expected degraded state.
+  persistence: log.persistenceCapability(),
 };
 if (!result.valid) {
   if (typeof result.broken_at === 'number') out.broken_at = result.broken_at;
