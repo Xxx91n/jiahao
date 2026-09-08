@@ -1492,4 +1492,36 @@ anchor-behind state is recoverable, an anchor-ahead or count-mismatch state is
 fail-closed (ADR-0050 D-E).
 _Avoid_: anchor-first, anchor-record-same-write, claims-complete-after-anchor
 
+**Persistence Capability Class (持久化能力类)**:
+The closed host declaration that controls anchor directory-entry durability:
+`dir-sync-durable` or `dir-sync-unsupported`. It drives the write recipe,
+crash interpretation, and audit annotation, never a platform string
+(ADR-0051).
+_Avoid_: platform-name dispatch, errno allowlist, generic filesystem adapter
+
+**Witness Unavailable (见证缺失)**:
+The fail-closed state in which the evidence chain itself verifies, but the
+independent local anchor witness is missing, unreadable, or torn. It is
+distinct from `corrupt` and from a passing verification (ADR-0052).
+_Avoid_: folding witness absence into corruption, treating absence as pass
+
+**Registered Failure Consumer (失败态注册消费方)**:
+The named consumer that receives a machine-readable anchor failure. In the
+current single-host deployment, the human auditor is the highest independence
+anchor and the final recovery consumer (ADR-0052).
+_Avoid_: unowned failure output, anonymous degradation, self-witness only
+
+**Explicit Degraded Write (显式降级写入)**:
+The append policy while a witness is unavailable: record a degraded
+breakpoint, continue with a warning until the soft deadline, then stop with
+an explicit error at the hard deadline. It never clears or rebuilds state
+automatically (ADR-0052).
+_Avoid_: unbounded append, immediate freeze, silent recovery
+
+**Anchor Freshness / Periodic Re-Anchoring (锚新鲜度与周期重锚)**:
+The independent witness refreshed periodically by forward re-sealing. Anchor
+loss falls back to the last good seal, so the recovery window is the
+re-anchor interval rather than the whole chain age (ADR-0053).
+_Avoid_: one-time-only anchor, whole-chain fallback, new failure code per cadence
+
 *End of Glossary*

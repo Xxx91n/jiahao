@@ -262,9 +262,23 @@
       "cadence_tier": "yearly",
       "registered_at": "2026-09-07",
       "last_check_in": {
-        "date": "2026-09-07",
-        "note": "checked, nothing changed: no second-party evidence-log consumer, no cross-machine verification requirement"
+        "date": "2026-09-09",
+        "note": "local witness vocabulary is now decided by ADR-0052/0053; cross-host condition remains unchanged"
       },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0025",
+      "subject": "host-native directory synchronization capability upgrade",
+      "source_adr": "docs/adr/0051-closed-persistence-capability-class.md",
+      "rationale": "ADR-0051 records the closed persistence capability class. The current runtime uses dir-sync-unsupported on Windows; promoting it to dir-sync-durable requires a documented portable directory-fsync primitive from Node or Windows, not a local adapter or new dependency.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the target runtime exposes a documented and supported portable directory-fsync primitive"
+      },
+      "review_at": "2027-03-09",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-09",
       "status": "pending-evaluation"
     }
   ]
