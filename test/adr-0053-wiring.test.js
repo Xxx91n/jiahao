@@ -115,16 +115,21 @@ describe('ADR-0053 D-A anchor freshness', () => {
 });
 
 describe('ADR-0053 D-B last-good-seal fallback', () => {
-  test('lost tail witness on a sealed chain falls back to last good seal, no new status', () => {
+  test('lost tail witness on a sealed chain verifies against the last good seal', () => {
     const dir = mktmp('fallback');
     const { log } = makeClockedLog(dir);
     seedAndSeal(log);
     log.append([nextRecord(log, 'one')]);
     fs.unlinkSync(log.headAnchorPath());
-    const r = log.verifyTail();
-    expect(r.valid).toBe(false);
-    expect(r.reason).toContain(KNOWN_ANCHOR_STATUS.witness_unavailable);
-    expect(r.reason).toContain('fallback: last_good_seal');
+    const tail = log.verifyTail();
+    expect(tail.valid).toBe(true);
+    expect(tail.fallback).toBe('last_good_seal');
+    expect(tail.recovery_window).toEqual({ sealed_seq: 0, sealed_total_count: 1, post_seal_count: 1 });
+    const full = log.verifyFull();
+    expect(full.valid).toBe(true);
+    expect(full.fallback).toBe('last_good_seal');
+    expect(full.recovery_window).toEqual({ sealed_seq: 0, sealed_total_count: 1, post_seal_count: 1 });
+    expect(JSON.stringify(tail)).not.toContain(KNOWN_ANCHOR_STATUS.witness_unavailable);
   });
 
   test('never-sealed chains keep pre-0053 behavior (no witness problem, no fallback)', () => {
@@ -134,6 +139,36 @@ describe('ADR-0053 D-B last-good-seal fallback', () => {
     const r = log.verifyTail();
     expect(r.valid).toBe(true);
     expect(JSON.stringify(r)).not.toContain('last_good_seal');
+  });
+
+  test('unacceptable seal leaves witness loss fail-closed', () => {
+    const dir = mktmp('bad-seal');
+    const { log } = makeClockedLog(dir);
+    seedAndSeal(log);
+    log.append([nextRecord(log, 'one')]);
+    const segDir = path.join(dir, '.jiahao-evidence');
+    const seg = path.join(segDir, fs.readdirSync(segDir).find(f => f.endsWith('.jsonl')));
+    const lines = fs.readFileSync(seg, 'utf8').split('\n').filter(Boolean);
+    const seal = lines.findIndex(line => JSON.parse(line).kind === FORWARD_SEAL_KIND);
+    const rec = JSON.parse(lines[seal]);
+    rec.sealed_total_count += 1;
+    lines[seal] = JSON.stringify(rec);
+    fs.writeFileSync(seg, lines.join('\n') + '\n', 'utf8');
+    fs.unlinkSync(log.headAnchorPath());
+    const r = log.verifyTail();
+    expect(r.valid).toBe(false);
+    expect(r.reason).toContain(KNOWN_ANCHOR_STATUS.witness_unavailable);
+  });
+
+  test('lost genesis witness on a sealed chain also carries last-good-seal fallback', () => {
+    const dir = mktmp('genesis-fallback');
+    const { log } = makeClockedLog(dir);
+    seedAndSeal(log);
+    fs.unlinkSync(log.genesisAnchorPath());
+    const full = log.verifyFull();
+    expect(full.valid).toBe(true);
+    expect(full.fallback).toBe('last_good_seal');
+    expect(full.recovery_window).toEqual({ sealed_seq: 0, sealed_total_count: 1, post_seal_count: 0 });
   });
 });
 

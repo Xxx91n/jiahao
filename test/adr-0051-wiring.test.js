@@ -103,4 +103,17 @@ describe('ADR-0051 D-C audit annotation and unchanged platform baseline', () => 
     expect(log.verifyFull().valid).toBe(true);
     log.clear();
   });
+
+  test('constructor reuses the single resolution path for operator declarations', () => {
+    const d = mktmp('constructor-decl');
+    const declFile = path.join(d, el.PERSISTENCE_DECLARATION_FILENAME);
+    fs.writeFileSync(declFile, JSON.stringify({ declared: UNSUPPORTED }), 'utf8');
+    const log = createEvidenceLog(d);
+    expect(log.persistenceCapability()).toBe(UNSUPPORTED);
+    log.append([log.createRecord('c', 'deterministic', 'passed', 'c', 0.9, null)]);
+    log.sealForwardIfNeeded();
+    const tail = JSON.parse(fs.readFileSync(log.headAnchorPath(), 'utf8'));
+    expect(tail.persistence).toBe(UNSUPPORTED);
+    log.clear();
+  });
 });

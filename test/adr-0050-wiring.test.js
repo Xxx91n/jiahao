@@ -108,11 +108,13 @@ describe('ADR-0050 D-C structured anchor tri-state', () => {
 
     log.sealForwardIfNeeded();
     fs.writeFileSync(log.headAnchorPath(), '{broken', 'utf8');
-    // ADR-0052 migration: torn witness -> witness_unavailable (fail-closed).
+    // ADR-0052 migration: torn witness -> witness_unavailable. With the
+    // ADR-0053 last-good-seal fallback, verification passes against the seal
+    // on this sealed chain instead of failing outright.
     expect(readTailAnchor(log.headAnchorPath()).status).toBe(KNOWN_ANCHOR_STATUS.witness_unavailable);
     const full = log.verifyFull();
-    expect(full.valid).toBe(false);
-    expect(full.reason).toContain('tail_anchor');
+    expect(full.valid).toBe(true);
+    expect(full.fallback).toBe('last_good_seal');
     log.clear();
   });
 });

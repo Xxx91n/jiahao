@@ -79,9 +79,9 @@ describe('ADR-0052 status migration matrix', () => {
     seedAndSeal(log);
     fs.unlinkSync(log.genesisAnchorPath());
     const full = log.verifyFull();
-    expect(full.valid).toBe(false);
-    expect(full.reason).toContain('witness_unavailable');
-    expect(full.reason).toContain('genesis_anchor');
+    expect(full.valid).toBe(true);
+    expect(full.fallback).toBe('last_good_seal');
+    expect(full.recovery_window).toEqual({ sealed_seq: 0, sealed_total_count: 1, post_seal_count: 0 });
     log.clear();
   });
 });
@@ -98,14 +98,22 @@ describe('ADR-0052 no silent rewrite + fail-closed verify', () => {
 
     log.append([nextRecord(log, 'during-loss')]);
     expect(fs.existsSync(log.genesisAnchorPath())).toBe(false);
-    expect(log.verifyFull().valid).toBe(false);
+    expect(log.verifyFull().valid).toBe(true);
     log.clear();
   });
 
-  test('verify fails closed (never passes) while the witness is unavailable', () => {
+  test('verify fails closed when the last good seal is unacceptable', () => {
     const dir = mktmp('failclosed');
     const { log } = makeClockedLog(dir);
     seedAndSeal(log);
+    const segDir = path.join(dir, '.jiahao-evidence');
+    const seg = path.join(segDir, fs.readdirSync(segDir).find(f => f.endsWith('.jsonl')));
+    const lines = fs.readFileSync(seg, 'utf8').split('\n').filter(Boolean);
+    const idx = lines.findIndex(line => JSON.parse(line).kind === 'forward_seal');
+    const rec = JSON.parse(lines[idx]);
+    rec.sealed_total_count += 1;
+    lines[idx] = JSON.stringify(rec);
+    fs.writeFileSync(seg, lines.join('\n') + '\n', 'utf8');
     fs.unlinkSync(log.headAnchorPath());
     expect(log.verifyTail().valid).toBe(false);
     expect(log.verifyFull().valid).toBe(false);
@@ -167,6 +175,50 @@ describe('ADR-0052 degraded append policy with injected clock', () => {
     let err = null;
     try { log.append([nextRecord(log, 'second')]); } catch (e) { err = e; }
     expect(err && err.code).toBe(WITNESS_HARD_STOP_CODE);
+    log.clear();
+  });
+
+  test('bookkeeping records after detection do not count toward the hard stop', () => {
+    const dir = mktmp('bookkeeping-count');
+    const { log, advance } = makeClockedLog(dir);
+    seedAndSeal(log);
+    fs.unlinkSync(log.genesisAnchorPath());
+    // Detection without an evidence append: the degraded breakpoint is the
+    // only new record. The forward seal after it is bookkeeping.
+    log.append([]);
+    expect(log.readAll().some(r => r.kind === 'witness_degraded')).toBe(true);
+    log.sealForwardIfNeeded({ reanchorCommits: 1 });
+    advance(WITNESS_RECOVERY.hard_ms + HOUR);
+    // Zero real post-detection evidence appends: the spurious forward seal
+    // must not trip the hard stop.
+    let err = null;
+    try { log.append([nextRecord(log, 'allowed-by-seal')]); } catch (e) { err = e; }
+    expect(err).toBeNull();
+    log.clear();
+  });
+
+  test('a witness scan read failure is refused loudly, not silently continued', () => {
+    const dir = mktmp('scan-fail');
+    const { log } = makeClockedLog(dir);
+    seedAndSeal(log);
+    fs.unlinkSync(log.genesisAnchorPath());
+    const realRead = fs.readFileSync;
+    const realWrite = process.stderr.write;
+    const notes = [];
+    const rec = nextRecord(log, 'refused-scan');
+    const spy = jest.spyOn(fs, 'readFileSync').mockImplementation(function (p, ...args) {
+      if (typeof p === 'string' && p.endsWith('.jsonl')) throw new Error('scan boom');
+      return realRead(p, ...args);
+    });
+    process.stderr.write = function (msg) { notes.push(msg); return true; };
+    try {
+      log.append([rec]);
+    } finally {
+      spy.mockRestore();
+      process.stderr.write = realWrite;
+    }
+    expect(log.readAll().some(function (r) { return r.gate_id === 'refused-scan'; })).toBe(false);
+    expect(notes.some(function (m) { return /witness scan failed/.test(m); })).toBe(true);
     log.clear();
   });
 });

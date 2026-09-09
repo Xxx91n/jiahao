@@ -6,6 +6,7 @@
 // wordlist is NOT inside the shared cwd anymore.
 
 const fs = require('fs');
+const path = require('path');
 const { profilePath, configDir } = require('../src/shared/paths');
 const pkg = require('../package.json');
 
@@ -132,8 +133,7 @@ async function main() {
   // class. An existing operator declaration stays authoritative.
   try {
     const el = require('../src/evidence-log');
-    const pth = require('path');
-    const declFile = pth.join(configDir(), el.PERSISTENCE_DECLARATION_FILENAME);
+    const declFile = path.join(configDir(), el.PERSISTENCE_DECLARATION_FILENAME);
     let decl = {};
     try { decl = JSON.parse(fs.readFileSync(declFile, 'utf8')); } catch (e) { /* first install */ }
     decl.probed = el.probePersistenceCapability(configDir());

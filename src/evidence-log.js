@@ -69,16 +69,18 @@ const PERSISTENCE_CAPABILITY = Object.freeze({
   dir_sync_durable: 'dir-sync-durable',
   dir_sync_unsupported: 'dir-sync-unsupported',
 });
+function _isPersistenceCapability(value) {
+  return value === PERSISTENCE_CAPABILITY.dir_sync_durable ||
+    value === PERSISTENCE_CAPABILITY.dir_sync_unsupported;
+}
 // Operator declaration / probe record lives next to the profile flag in the
 // config dir (ADR-0051 D-B).
 const PERSISTENCE_DECLARATION_FILENAME = '.jiahao-persistence.json';
 function _declaredPersistenceCapability(configDirPath) {
   try {
     const decl = JSON.parse(fs.readFileSync(path.join(configDirPath, PERSISTENCE_DECLARATION_FILENAME), 'utf8'));
-    if (decl && (decl.declared === PERSISTENCE_CAPABILITY.dir_sync_durable ||
-                 decl.declared === PERSISTENCE_CAPABILITY.dir_sync_unsupported)) return decl.declared;
-    if (decl && (decl.probed === PERSISTENCE_CAPABILITY.dir_sync_durable ||
-                 decl.probed === PERSISTENCE_CAPABILITY.dir_sync_unsupported)) return decl.probed;
+    if (decl && _isPersistenceCapability(decl.declared)) return decl.declared;
+    if (decl && _isPersistenceCapability(decl.probed)) return decl.probed;
   } catch (e) { /* no declaration file */ }
   return null;
 }
@@ -167,8 +169,7 @@ function probePersistenceCapability(dir) {
 // Resolution order: injected (test seam) > operator declaration > recorded
 // probe > platform default.
 function resolvePersistenceCapability(injected, configDirPath) {
-  if (injected === PERSISTENCE_CAPABILITY.dir_sync_durable ||
-      injected === PERSISTENCE_CAPABILITY.dir_sync_unsupported) return injected;
+  if (_isPersistenceCapability(injected)) return injected;
   return _declaredPersistenceCapability(configDirPath) || _defaultPersistenceCapability();
 }
 function readTailAnchor(file) {
@@ -231,24 +232,15 @@ function writeGenesisAnchor(file, firstHash, capability, generation) {
   capability = capability === undefined ? _defaultPersistenceCapability() : capability;
   const checksum = _hashGenesis(firstHash);
   // ADR-0052 D-E: generation increments on every controlled rebuild.
-  if (generation !== undefined) {
-    _writeAnchorAtomic(file, {
-      version: GENESIS_ANCHOR_VERSION,
-      first_hash: firstHash,
-      generation: generation,
-      checksum: checksum,
-      persistence: capability,
-      updated_at: new Date().toISOString(),
-    }, capability);
-    return;
-  }
-  _writeAnchorAtomic(file, {
+  const anchor = {
     version: GENESIS_ANCHOR_VERSION,
     first_hash: firstHash,
     checksum: checksum,
     persistence: capability,
     updated_at: new Date().toISOString(),
-  }, capability);
+  };
+  if (generation !== undefined) anchor.generation = generation;
+  _writeAnchorAtomic(file, anchor, capability);
 }
 function _hasForwardSeal(records) {
   return Array.isArray(records) && records.some(function (r) { return r && r.kind === FORWARD_SEAL_KIND; });
@@ -262,6 +254,21 @@ function _lastForwardSealIndex(records) {
     if (records[i] && records[i].kind === FORWARD_SEAL_KIND) idx = i;
   }
   return idx;
+}
+// ADR-0053 D-B: a seal is an acceptable fallback witness only when its
+// in-chain coordinates match the record it pins. Otherwise there is no
+// "last good seal" and the ADR-0052 witness-unavailable path stays fail-closed.
+function _acceptableSeal(records) {
+  if (!Array.isArray(records)) return null;
+  const idx = _lastForwardSealIndex(records);
+  if (idx < 1) return null;
+  const seal = records[idx];
+  const pinned = records[idx - 1];
+  if (seal.sealed_seq !== idx - 1 ||
+      seal.sealed_total_count !== idx ||
+      !pinned || typeof pinned.event_hash !== 'string' ||
+      pinned.event_hash !== seal.sealed_head_hash) return null;
+  return { record: seal, index: idx, post_seal_count: records.length - 1 - idx };
 }
 function _makeForwardSealRecord(sealed) {
   const rec = {
@@ -446,8 +453,10 @@ function createEvidenceLog(overrideConfigDir, opts) {
   // ADR-0051: explicit configuration (test seam / operator declaration) is
   // resolved once; otherwise the effective class is decided per anchor write
   // so a platform change mid-process keeps ADR-0050 semantics.
-  const configuredCapability = (o.capability === PERSISTENCE_CAPABILITY.dir_sync_durable ||
-    o.capability === PERSISTENCE_CAPABILITY.dir_sync_unsupported)
+  // Resolution of an explicit or declared class is captured once; when
+  // neither exists the platform default stays dynamic per anchor write so a
+  // mid-process platform override keeps ADR-0050 semantics.
+  const configuredCapability = _isPersistenceCapability(o.capability)
     ? o.capability
     : _declaredPersistenceCapability(path.dirname(ep));
   function persistenceCapability() {
@@ -630,21 +639,25 @@ function createEvidenceLog(overrideConfigDir, opts) {
 
   // ADR-0052 D-B: every machine-readable witness problem names its consumer
   // (the human auditor in the current single-host deployment).
-  function _witnessProblem(field, actual, lastGoodSeal) {
+  function _witnessProblem(field, actual, seal) {
     const p = _anchorProblem(KNOWN_ANCHOR_STATUS.witness_unavailable, field, null, actual);
     p.consumer = WITNESS_RECOVERY.consumer;
     // ADR-0053 D-B: with a seal present, verification falls back to the last
     // good seal; the recovery window is the post-seal tail, bounded by the
     // re-anchor interval — not the whole chain. No new status (D-C).
-    if (lastGoodSeal) p.fallback = 'last_good_seal';
+    if (seal) {
+      p.fallback = 'last_good_seal';
+      p.recovery = { sealed_seq: seal.index - 1, sealed_total_count: seal.index, post_seal_count: seal.post_seal_count };
+    }
     return p;
   }
 
   function _chainHasSeal() {
-    try { return _hasForwardSeal(readConcat()); } catch (e) { return false; }
+    try { return _acceptableSeal(readConcat()); } catch (e) { return null; }
   }
 
-  function _externalAnchorProblems(state, hasSealFn) {
+  function _externalAnchorProblems(state, sealFn) {
+    const seal = sealFn ? sealFn() : null;
     const out = [];
     const tailRead = readTailAnchor(headAnchorPath());
     const genRead = readGenesisAnchor(genesisAnchorPath());
@@ -652,13 +665,13 @@ function createEvidenceLog(overrideConfigDir, opts) {
     const genAnchored = genRead.status === KNOWN_ANCHOR_STATUS.anchored;
 
     if (tailRead.status === KNOWN_ANCHOR_STATUS.witness_unavailable) {
-      out.push(_witnessProblem('tail_anchor', tailRead.status, hasSealFn && hasSealFn()));
+      out.push(_witnessProblem('tail_anchor', tailRead.status, seal));
     } else if (tailRead.status === KNOWN_ANCHOR_STATUS.unreadable) {
       out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.unreadable, 'tail_anchor', null, tailRead.status));
     } else if (tailRead.status === KNOWN_ANCHOR_STATUS.never_anchored) {
       // ADR-0052: a missing tail witness on a sealed chain is witness loss
       // (migrated from expected_missing; the value stays in the registry).
-      if (genAnchored || (hasSealFn && hasSealFn())) out.push(_witnessProblem('tail_anchor', 'missing', hasSealFn && hasSealFn()));
+      if (genAnchored || seal) out.push(_witnessProblem('tail_anchor', 'missing', seal));
       else out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.never_anchored, 'tail_anchor', null, null));
     } else if (state) {
       if (tailRead.anchor.total_count !== state.total_count) {
@@ -676,11 +689,11 @@ function createEvidenceLog(overrideConfigDir, opts) {
     }
 
     if (genRead.status === KNOWN_ANCHOR_STATUS.witness_unavailable) {
-      out.push(_witnessProblem('genesis_anchor', genRead.status));
+      out.push(_witnessProblem('genesis_anchor', genRead.status, seal));
     } else if (genRead.status === KNOWN_ANCHOR_STATUS.unreadable) {
       out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.unreadable, 'genesis_anchor', null, genRead.status));
     } else if (genRead.status === KNOWN_ANCHOR_STATUS.never_anchored) {
-      if (tailAnchored || (hasSealFn && hasSealFn())) out.push(_witnessProblem('genesis_anchor', 'missing'));
+      if (tailAnchored || seal) out.push(_witnessProblem('genesis_anchor', 'missing', seal));
       else out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.never_anchored, 'genesis_anchor', null, null));
     } else if (state) {
       if (genRead.anchor.first_hash !== state.first_hash) {
@@ -702,8 +715,21 @@ function createEvidenceLog(overrideConfigDir, opts) {
 
   function _fatalAnchorProblems(problems) {
     return problems.filter(function (p) {
+      // ADR-0053 D-B: a witness problem with an acceptable last-good seal
+      // degrades verification to the seal rather than failing it outright.
+      if (p.fallback === 'last_good_seal') return false;
       return p.code !== KNOWN_ANCHOR_STATUS.never_anchored && p.code !== KNOWN_ANCHOR_STATUS.anchor_behind;
     });
+  }
+
+  function _fallbackMeta(problems) {
+    for (let i = 0; i < problems.length; i++) {
+      const p = problems[i];
+      if (p && p.fallback === 'last_good_seal') {
+        return { fallback: 'last_good_seal', recovery_window: p.recovery };
+      }
+    }
+    return null;
   }
 
   function _writeTailAnchorForChain(records) {
@@ -860,11 +886,19 @@ function createEvidenceLog(overrideConfigDir, opts) {
     if (witnessGateBusy || legacyReadOnly) return;
     if (statKind() !== 'dir') return; // never-sealed / legacy paths unchanged
     let scan = null;
-    try { scan = _witnessScan(readConcat()); } catch (e) { return; } // verify paths fail closed separately
+    try {
+      scan = _witnessScan(readConcat());
+    } catch (e) {
+      // ADR-0052 D-C: a witness scan that cannot prove the witness is
+      // healthy is still witness-down; never let the degraded policy
+      // disappear on a read error.
+      note('witness scan failed: ' + e.message + '; appends are refused until the store is readable');
+      scan = { tailDown: true, genDown: true, bp: _activeBreakpointSafe(), records: [] };
+    }
     if (!scan || !scan.bp) return;
     const nowMs = now();
     const detectedMs = Date.parse(scan.bp.record.detected_at);
-    const postDetectionAppends = scan.records.length - 1 - scan.bp.index;
+    const postDetectionAppends = _postDetectionAppends(scan.records, scan.bp.index);
     const age = nowMs - detectedMs;
     if (age > WITNESS_RECOVERY.hard_ms && postDetectionAppends >= 1) {
       const err = new Error('witness unavailable past the hard deadline (' + WITNESS_RECOVERY.hard_ms + 'ms) with ' +
@@ -877,6 +911,21 @@ function createEvidenceLog(overrideConfigDir, opts) {
         (WITNESS_RECOVERY.soft_ms / 3600000) + 'h) — explicit degraded write continues; consumer: ' +
         WITNESS_RECOVERY.consumer + ' (ADR-0052)');
     }
+  }
+
+  function _activeBreakpointSafe() {
+    try { return _activeBreakpoint(readConcat()); } catch (e) { return null; }
+  }
+
+  function _postDetectionAppends(records, bpIndex) {
+    let count = 0;
+    for (let i = bpIndex + 1; i < records.length; i++) {
+      const r = records[i];
+      // Only ordinary evidence appends count toward the hard-stop. Seals,
+      // segment anchors, and recovery records are bookkeeping, not evidence.
+      if (r && !r.kind) count += 1;
+    }
+    return count;
   }
 
   // ADR-0052 D-E: controlled genesis-anchor rotation behind the ADR-0017
@@ -1133,11 +1182,16 @@ function createEvidenceLog(overrideConfigDir, opts) {
     if (recs.length === 0) return { valid: false, broken_at: -1, reason: 'active segment empty' };
     if (segs.length === 1) {
       const chainResult = verifyChain(recs);
-      const fatal = _fatalAnchorProblems(_externalAnchorProblems(_tailStateFromSegments(segs, recs), _chainHasSeal));
+      const external = _externalAnchorProblems(_tailStateFromSegments(segs, recs), _chainHasSeal);
+      const fatal = _fatalAnchorProblems(external);
       if (fatal.length > 0) return { valid: false, broken_at: -1, reason: _formatAnchorProblems(fatal) };
+      if (!chainResult.valid) return chainResult;
+      const fb = _fallbackMeta(external);
+      if (fb) return Object.assign({}, chainResult, fb);
       return chainResult;
     }
-    const problems = anchorProblems(recs[0], segs[segs.length - 2], null, _externalAnchorProblems(_tailStateFromSegments(segs, recs), _chainHasSeal));
+    const external = _externalAnchorProblems(_tailStateFromSegments(segs, recs), _chainHasSeal);
+    const problems = anchorProblems(recs[0], segs[segs.length - 2], null, external);
     const seqOnly = problems.filter(function (p) { return p.code === 'seq_start_mismatch'; });
     const others = problems.filter(function (p) { return p.code !== 'seq_start_mismatch'; });
     const fatal = _fatalAnchorProblems(others);
@@ -1146,7 +1200,10 @@ function createEvidenceLog(overrideConfigDir, opts) {
       return { valid: false, broken_at: bp ? bp.broken_at : -1, reason: _formatAnchorProblems(fatal) };
     }
     void seqOnly;
-    return verifyLinks(recs, 0);
+    const link = verifyLinks(recs, 0);
+    const fb = _fallbackMeta(others);
+    if (fb && link.valid) return Object.assign({}, link, fb);
+    return link;
   }
   // ADR-0026 D4 cold path: every segment, every cross-link, filename/seq
   // cross-check. Exposed via scripts/verify-evidence.js --full.
@@ -1179,8 +1236,11 @@ function createEvidenceLog(overrideConfigDir, opts) {
     }
     const chain = verifyChain(all);
     if (!chain.valid) return chain;
-    const fatal = _fatalAnchorProblems(_externalAnchorProblems(_tailState(all), function () { return _hasForwardSeal(all); }));
+    const external = _externalAnchorProblems(_tailState(all), function () { return _acceptableSeal(all); });
+    const fatal = _fatalAnchorProblems(external);
     if (fatal.length > 0) return { valid: false, broken_at: chain.broken_at === undefined ? -1 : chain.broken_at, reason: _formatAnchorProblems(fatal) };
+    const fb = _fallbackMeta(external);
+    if (fb) return Object.assign({}, chain, fb);
     return chain;
   }
   function clear() {
