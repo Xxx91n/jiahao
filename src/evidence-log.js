@@ -163,9 +163,11 @@ function _resolveAnchorConfig(configDirPath, opts) {
 
 const HEAD_ANCHOR_VERSION = 1;
 const GENESIS_ANCHOR_VERSION = 1;
+const SEAL_SIDECAR_VERSION = 1;
 const FORWARD_SEAL_KIND = 'forward_seal';
 const TAIL_ANCHOR_FILENAME = 'evidence-head.json';
 const GENESIS_ANCHOR_FILENAME = 'evidence-genesis.json';
+const SEAL_SIDECAR_FILENAME = 'evidence-seal.json';
 const KNOWN_ANCHOR_STATUS = Object.freeze({
   anchored: 'anchored',
   never_anchored: 'never_anchored',
@@ -269,10 +271,10 @@ function readTailAnchor(file) {
   // a present-but-wrong checksum/version stays in the corruption family above.
   } catch (e) { return { status: KNOWN_ANCHOR_STATUS.witness_unavailable, anchor: null }; }
 }
-function writeTailAnchor(file, latestSeq, totalCount, headHash, capability, updatedAt) {
+function writeTailAnchor(file, latestSeq, totalCount, headHash, capability, updatedAt, extras) {
   capability = capability === undefined ? _defaultPersistenceCapability() : capability;
   const checksum = _hashAnchorTriple(latestSeq, totalCount, headHash);
-  _writeAnchorAtomic(file, {
+  const anchor = {
     version: HEAD_ANCHOR_VERSION,
     latest_seq: latestSeq,
     total_count: totalCount,
@@ -282,7 +284,11 @@ function writeTailAnchor(file, latestSeq, totalCount, headHash, capability, upda
     // this anchor write (e.g. why anchor_behind is expected on this host).
     persistence: capability,
     updated_at: updatedAt || new Date().toISOString(),
-  }, capability);
+  };
+  if (extras && typeof extras === 'object') {
+    for (const key of Object.keys(extras)) anchor[key] = extras[key];
+  }
+  _writeAnchorAtomic(file, anchor, capability);
 }
 function readGenesisAnchor(file) {
   let raw;
@@ -681,6 +687,83 @@ function createEvidenceLog(overrideConfigDir, opts) {
 
   function headAnchorPath() { return path.join(path.dirname(ep), TAIL_ANCHOR_FILENAME); }
   function genesisAnchorPath() { return path.join(path.dirname(ep), GENESIS_ANCHOR_FILENAME); }
+  function sealSidecarPath() { return path.join(path.dirname(ep), SEAL_SIDECAR_FILENAME); }
+
+  function readSealSidecar() {
+    let raw;
+    try { raw = fs.readFileSync(sealSidecarPath(), 'utf8'); }
+    catch (e) { return null; }
+    try {
+      const sidecar = JSON.parse(raw);
+      if (!sidecar || sidecar.version !== SEAL_SIDECAR_VERSION ||
+          !Number.isInteger(sidecar.seal_index) || sidecar.seal_index < 1 ||
+          !Number.isInteger(sidecar.sealed_seq) || sidecar.sealed_total_count !== sidecar.seal_index ||
+          typeof sidecar.sealed_head_hash !== 'string' ||
+          typeof sidecar.seal_timestamp !== 'string' ||
+          !Number.isInteger(sidecar.post_seal_count) || sidecar.post_seal_count < 0) {
+        return null;
+      }
+      return {
+        record: {
+          sealed_head_hash: sidecar.sealed_head_hash,
+          timestamp: sidecar.seal_timestamp,
+        },
+        index: sidecar.seal_index,
+        post_seal_count: sidecar.post_seal_count,
+      };
+    } catch (e) { return null; }
+  }
+
+  function _sealForHotPath(segs, activeRecs) {
+    const seal = readSealSidecar();
+    if (!seal) return null;
+    if (segs.length === 0 || !activeRecs || activeRecs.length === 0) return null;
+    const activeSeq = segs[segs.length - 1].seq;
+    const localIndex = seal.index - activeSeq;
+    if (localIndex < 0) return seal;
+    if (localIndex === 0 && segs.length > 1) {
+      const sealRecord = activeRecs[0];
+      let previousRecs = null;
+      try { previousRecs = readSegment(segs[segs.length - 2].path, false); }
+      catch (e) { return null; }
+      const pinned = previousRecs.length > 0 ? previousRecs[previousRecs.length - 1] : null;
+      if (sealRecord.kind !== FORWARD_SEAL_KIND ||
+          sealRecord.sealed_seq !== seal.index - 1 ||
+          sealRecord.sealed_total_count !== seal.index ||
+          !pinned || pinned.event_hash !== seal.record.sealed_head_hash) {
+        return null;
+      }
+      return seal;
+    }
+    if (localIndex < activeRecs.length) {
+      const sealRecord = activeRecs[localIndex];
+      if (localIndex < 1 ||
+          sealRecord.kind !== FORWARD_SEAL_KIND ||
+          sealRecord.sealed_seq !== seal.index - 1 ||
+          sealRecord.sealed_total_count !== seal.index ||
+          !activeRecs[localIndex - 1] ||
+          activeRecs[localIndex - 1].event_hash !== seal.record.sealed_head_hash) {
+        return null;
+      }
+    }
+    return seal;
+  }
+
+  function writeSealSidecar(seal) {
+    if (!seal) {
+      try { fs.unlinkSync(sealSidecarPath()); } catch (e) {}
+      return;
+    }
+    _writeAnchorAtomic(sealSidecarPath(), {
+      version: SEAL_SIDECAR_VERSION,
+      seal_index: seal.index,
+      sealed_seq: seal.index - 1,
+      sealed_total_count: seal.index,
+      sealed_head_hash: seal.record.sealed_head_hash,
+      seal_timestamp: seal.record.timestamp,
+      post_seal_count: seal.post_seal_count,
+    }, persistenceCapability());
+  }
 
   function _tailState(records) {
     if (!Array.isArray(records) || records.length === 0) return null;
@@ -735,10 +818,6 @@ function createEvidenceLog(overrideConfigDir, opts) {
       };
     }
     return p;
-  }
-
-  function _chainHasSeal() {
-    try { return _acceptableSeal(readConcat()); } catch (e) { return null; }
   }
 
   function _externalAnchorProblems(state, sealFn) {
@@ -870,8 +949,15 @@ function createEvidenceLog(overrideConfigDir, opts) {
     if (genRead.status === KNOWN_ANCHOR_STATUS.anchored &&
         genRead.anchor.first_hash !== state.first_hash) return;
     if (_hasForwardSeal(records) || genRead.status === KNOWN_ANCHOR_STATUS.anchored) {
-      writeTailAnchor(headAnchorPath(), state.latest_seq, state.total_count, state.head_hash, persistenceCapability(), new Date(now()).toISOString());
+      const bp = _activeBreakpoint(records);
+      const extras = {
+        witness_breakpoint_index: bp ? bp.index : null,
+        witness_breakpoint_detected_at: bp ? bp.record.detected_at : null,
+        witness_post_detection_evidence_appends: bp ? _postDetectionAppends(records, bp.index) : 0,
+      };
+      writeTailAnchor(headAnchorPath(), state.latest_seq, state.total_count, state.head_hash, persistenceCapability(), new Date(now()).toISOString(), extras);
     }
+    writeSealSidecar(_acceptableSeal(records));
   }
 
   // ADR-0053 D-A: opts.reanchorCommits — re-anchor after this many post-seal
@@ -931,7 +1017,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
             sealed_total_count: existing.length,
             timestamp: new Date(now()).toISOString(),
           });
-          commit(function () { return [rec]; });
+          commit(function () { return [rec]; }, { skipRotation: true });
           try { existing = readConcat(); }
           catch (e) { return { status: 'corrupt', reason: e.message }; }
           if (!_hasForwardSeal(existing)) return { status: 'corrupt', reason: 'forward seal append did not persist' };
@@ -953,7 +1039,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
         sealed_total_count: existing.length,
         timestamp: new Date(now()).toISOString(),
       });
-      commit(function () { return [rec]; });
+      commit(function () { return [rec]; }, { skipRotation: true });
       try { existing = readConcat(); }
       catch (e) { return { status: 'corrupt', reason: e.message }; }
       if (!_hasForwardSeal(existing)) return { status: 'corrupt', reason: 'forward seal append did not persist' };
@@ -968,7 +1054,250 @@ function createEvidenceLog(overrideConfigDir, opts) {
     };
   }
 
-  function append(newRecords) { commit(() => newRecords); }
+  function _readBoundedActiveState() {
+    let segs;
+    try { segs = listSegments(ep); }
+    catch (e) {
+      note('segment scan failed — refusing bounded append: ' + e.message);
+      return null;
+    }
+    if (segs.length === 0) {
+      return { segs: segs, activePath: null, recs: [], total: 0, tail: null, firstHash: null };
+    }
+    const active = segs[segs.length - 1];
+    let recs;
+    try { recs = readSegment(active.path, true); }
+    catch (e) {
+      note('active segment read failed — refusing bounded append: ' + e.message);
+      return null;
+    }
+    const total = active.seq + recs.length;
+    const tail = recs.length > 0 && typeof recs[recs.length - 1].event_hash === 'string'
+      ? recs[recs.length - 1].event_hash
+      : null;
+    let firstHash = null;
+    if (segs.length === 1) {
+      firstHash = recs.length > 0 && typeof recs[0].event_hash === 'string' ? recs[0].event_hash : null;
+    } else {
+      try {
+        const firstRecs = readSegment(segs[0].path, false);
+        firstHash = firstRecs.length > 0 && typeof firstRecs[0].event_hash === 'string' ? firstRecs[0].event_hash : null;
+      } catch (e) { firstHash = null; }
+    }
+    return {
+      segs: segs,
+      activePath: active.path,
+      recs: recs,
+      total: total,
+      tail: tail,
+      firstHash: firstHash,
+    };
+  }
+
+  function _boundedWitnessScan(state, seal) {
+    if (!state || state.recs.length === 0 || !seal) return null;
+    const genRead = readGenesisAnchor(genesisAnchorPath());
+    if (genRead.status === KNOWN_ANCHOR_STATUS.anchored &&
+        genRead.anchor.first_hash !== state.firstHash) return null;
+    const genDown = genRead.status === KNOWN_ANCHOR_STATUS.witness_unavailable ||
+                    genRead.status === KNOWN_ANCHOR_STATUS.never_anchored;
+    const tailRead = readTailAnchor(headAnchorPath());
+    const tailDown = tailRead.status === KNOWN_ANCHOR_STATUS.witness_unavailable ||
+                     tailRead.status === KNOWN_ANCHOR_STATUS.never_anchored;
+    if (!genDown && !tailDown) return null;
+    let bp = null;
+    let post = 0;
+    if (tailRead.status === KNOWN_ANCHOR_STATUS.anchored && tailRead.anchor &&
+        Number.isInteger(tailRead.anchor.witness_breakpoint_index)) {
+      bp = {
+        record: { detected_at: tailRead.anchor.witness_breakpoint_detected_at },
+        index: tailRead.anchor.witness_breakpoint_index,
+      };
+      post = Number.isInteger(tailRead.anchor.witness_post_detection_evidence_appends)
+        ? tailRead.anchor.witness_post_detection_evidence_appends
+        : 0;
+    }
+    return { tailDown: tailDown, genDown: genDown, bp: bp, postDetectionAppends: post };
+  }
+
+  function _witnessPreCheckBounded(state, seal) {
+    if (witnessGateBusy || legacyReadOnly) return;
+    if (statKind() !== 'dir') return;
+    if (!state) {
+      note('witness scan failed: bounded append state is unavailable; appends are refused until the store is readable');
+      return;
+    }
+    let scan = null;
+    try { scan = _boundedWitnessScan(state, seal); }
+    catch (e) {
+      note('bounded witness scan failed: ' + e.message + '; appends are refused until the store is readable');
+      scan = { tailDown: true, genDown: true, bp: null, postDetectionAppends: 0 };
+    }
+    if (!scan || !scan.bp) return;
+    const nowMs = now();
+    const detectedMs = Date.parse(scan.bp.record.detected_at);
+    const postDetectionAppends = scan.postDetectionAppends;
+    const age = nowMs - detectedMs;
+    if (age > WITNESS_RECOVERY.hard_ms && postDetectionAppends >= 1) {
+      const err = new Error('witness unavailable past the hard deadline (' + WITNESS_RECOVERY.hard_ms + 'ms) with ' +
+        postDetectionAppends + ' unverified post-detection append(s) — stop and recover via the ADR-0052 rebuild command');
+      err.code = WITNESS_HARD_STOP_CODE;
+      throw err;
+    }
+    if (age > WITNESS_RECOVERY.soft_ms) {
+      note('WITNESS UNAVAILABLE for ' + Math.floor(age / 3600000) + 'h (soft deadline ' +
+        (WITNESS_RECOVERY.soft_ms / 3600000) + 'h) — explicit degraded write continues; consumer: ' +
+        WITNESS_RECOVERY.consumer + ' (ADR-0052)');
+    }
+  }
+
+  function _readKeysSidecar() {
+    const seen = new Set();
+    try {
+      fs.readFileSync(kp, 'utf8').split('\n').forEach(function (k) { if (k.trim()) seen.add(k.trim()); });
+    } catch (e) { /* no sidecar yet */ }
+    return seen;
+  }
+
+  function _updateSealSidecarPostCount(delta) {
+    const seal = readSealSidecar();
+    if (!seal || delta <= 0) return;
+    seal.post_seal_count += delta;
+    writeSealSidecar(seal);
+  }
+
+  function _writeBoundedTailAnchor(total, head, bp, postDetectionAppends) {
+    const genRead = readGenesisAnchor(genesisAnchorPath());
+    if (!readSealSidecar() && genRead.status !== KNOWN_ANCHOR_STATUS.anchored) return false;
+    if (genRead.status === KNOWN_ANCHOR_STATUS.anchored) {
+      const state = _readBoundedActiveState();
+      if (!state || state.firstHash !== genRead.anchor.first_hash) return false;
+    }
+    writeTailAnchor(headAnchorPath(), total - 1, total, head, persistenceCapability(),
+      new Date(now()).toISOString(), {
+        witness_breakpoint_index: bp ? bp.index : null,
+        witness_breakpoint_detected_at: bp ? bp.record.detected_at : null,
+        witness_post_detection_evidence_appends: bp ? postDetectionAppends : 0,
+      });
+    return true;
+  }
+
+  function appendBounded(newRecords) {
+    const initial = _readBoundedActiveState();
+    _witnessPreCheckBounded(initial, readSealSidecar());
+    const run = () => {
+      if (legacyReadOnly) { note('read-only legacy mode — append dropped'); return; }
+      if (!ensureSegmented()) return;
+      const state = _readBoundedActiveState();
+      if (!state) return;
+      const seal = readSealSidecar();
+      const scan = _boundedWitnessScan(state, seal);
+      let made = Array.isArray(newRecords) ? newRecords.slice() : [];
+      let bp = scan && scan.bp ? scan.bp : null;
+      let postDetectionAppends = scan && scan.bp ? scan.postDetectionAppends : 0;
+
+      if (!witnessGateBusy && !legacyReadOnly && scan && !scan.bp) {
+        const bpRec = _makeWitnessDegradedRecord(state.tail, {
+          tail_anchor: scan.tailDown,
+          genesis_anchor: scan.genDown,
+        }, now());
+        if (made.length > 0 && made[0] && made[0].prev_hash === state.tail) {
+          made[0].prev_hash = bpRec.event_hash;
+          made[0].event_hash = recordHash(made[0]);
+        }
+        made = [bpRec].concat(made);
+        bp = { record: bpRec, index: state.total };
+        postDetectionAppends = 0;
+      }
+
+      if (!Array.isArray(made) || made.length === 0) return;
+
+      const seen = _readKeysSidecar();
+      let total = state.total;
+      let tail = state.tail;
+      let segs = state.segs;
+      let activePath = state.activePath;
+      const relink = {};
+      const applied = [];
+
+      for (const rec of made) {
+        if (!rec) continue;
+        if (rec._idem && seen.has(rec._idem)) continue;
+        let tailIsAnchor = typeof tail === 'string' && tail.length > 0;
+        if (tailIsAnchor && typeof rec.prev_hash === 'string' &&
+            Object.prototype.hasOwnProperty.call(relink, rec.prev_hash)) {
+          rec.prev_hash = relink[rec.prev_hash];
+        }
+        if (tailIsAnchor && rec.prev_hash !== undefined && rec.prev_hash !== tail) {
+          note('skipping record ' + JSON.stringify(rec.gate_id) +
+            ' — prev_hash mismatch (expected ' + tail + ', got ' + rec.prev_hash + ')');
+          continue;
+        }
+
+        if (activePath && fs.existsSync(activePath)) {
+          let size = 0;
+          try { size = fs.statSync(activePath).size; } catch (e) {}
+          if (size >= rotateBytes) {
+            _fsyncFile(activePath);
+            const anchor = {
+              kind: 'segment_anchor',
+              segment_format_version: SEGMENT_VERSION,
+              seq_start: total,
+              prev_segment_hash: sha256File(activePath),
+              prev_segment_count: readSegment(activePath, true).length,
+              prev_segment_bytes: size,
+              created_at: new Date().toISOString(),
+              prev_hash: typeof tail === 'string' ? tail : null,
+              event_hash: null,
+            };
+            const bp = state.recs.find(function (r) { return r && r.kind === 'legacy_migration'; });
+            if (bp) anchor.legacy_breakpoint = { broken_at: bp.broken_at, reason: bp.reason || null };
+            anchor.event_hash = recordHash(anchor);
+            activePath = path.join(ep, segmentName(total));
+            fs.writeFileSync(activePath, JSON.stringify(anchor) + '\n', 'utf8');
+            tail = anchor.event_hash;
+            total += 1;
+            applied.push(anchor);
+            tailIsAnchor = true;
+            rec.prev_hash = anchor.event_hash;
+            if (Object.prototype.hasOwnProperty.call(rec, 'event_hash')) {
+              const oldHash = rec.event_hash;
+              rec.event_hash = recordHash(rec);
+              if (typeof oldHash === 'string') relink[oldHash] = rec.event_hash;
+            }
+          }
+        }
+
+        if (!activePath) {
+          fs.mkdirSync(ep, { recursive: true });
+          activePath = path.join(ep, segmentName(total));
+        }
+        fs.appendFileSync(activePath, JSON.stringify(rec) + '\n', 'utf8');
+        applied.push(rec);
+        if (rec._idem) seen.add(rec._idem);
+        tail = rec.event_hash;
+        total += 1;
+      }
+
+      if (applied.length === 0) return;
+      if (activePath) _fsyncFile(activePath);
+      const allKeys = Array.from(seen);
+      fs.writeFileSync(kp, allKeys.join('\n') + '\n', 'utf8');
+
+      if (bp) {
+        for (const rec of applied) {
+          if (rec && !rec.kind) postDetectionAppends += 1;
+        }
+      }
+      if (_writeBoundedTailAnchor(total, tail, bp, postDetectionAppends)) {
+        _updateSealSidecarPostCount(applied.length);
+      }
+    };
+    try { withLockSync(ep, run, { retries: 40, retrySleepMs: 10 }); }
+    catch (e) { try { run(); } catch (e2) { /* sink broken — drop */ } }
+  }
+
+  function append(newRecords) { appendBounded(newRecords); }
 
   // --- ADR-0052 D-B..D-D: witness-unavailable degraded-append policy --------
   function _makeWitnessDegradedRecord(prevHash, witnesses, nowMs) {
@@ -1141,7 +1470,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
   // (anchors included) plus the chain tail hash; it returns records to
   // append ([] = no-op). Lock failure degrades to an unlocked write
   // (best-effort invariant: hooks never block).
-  function commit(make) {
+  function commit(make, opts) {
     _witnessPreCheck();
     const run = () => {
       if (legacyReadOnly) { note('read-only legacy mode — append dropped'); return; }
@@ -1206,7 +1535,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
         if (activePath && fs.existsSync(activePath)) {
           let size = 0;
           try { size = fs.statSync(activePath).size; } catch (e) {}
-          if (size >= rotateBytes) {
+          if (size >= rotateBytes && !(opts && opts.skipRotation)) {
             _fsyncFile(activePath);
             const anchor = {
               kind: 'segment_anchor',
@@ -1321,7 +1650,6 @@ function createEvidenceLog(overrideConfigDir, opts) {
     const kind = statKind();
     if (kind === 'file') return verifyLegacyFile();
     if (kind === 'none') return { valid: false, broken_at: -1, reason: 'no evidence segments' };
-    const seal = _chainHasSeal();
     let segs;
     try { segs = listSegments(ep); }
     catch (e) { return { valid: false, broken_at: -1, reason: 'segment scan failed: ' + e.message }; }
@@ -1331,6 +1659,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     try { recs = readSegment(active.path, true); }
     catch (e) { return { valid: false, broken_at: -1, reason: e.message }; }
     if (recs.length === 0) return { valid: false, broken_at: -1, reason: 'active segment empty' };
+    const seal = _sealForHotPath(segs, recs);
     if (segs.length === 1) {
       const chainResult = verifyChain(recs);
       const external = _externalAnchorProblems(_tailStateFromSegments(segs, recs), function () { return seal; });
@@ -1397,6 +1726,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     try { fs.unlinkSync(kp); } catch (e) {}
     try { fs.unlinkSync(headAnchorPath()); } catch (e) {}
     try { fs.unlinkSync(genesisAnchorPath()); } catch (e) {}
+    try { fs.unlinkSync(sealSidecarPath()); } catch (e) {}
     try { fs.rmSync(stagingDir, { recursive: true, force: true }); } catch (e) {}
     // clear() IS the explicit operator action; the D5 "never auto-deleted"
     // rule covers automatic paths only.
