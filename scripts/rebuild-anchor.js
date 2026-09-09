@@ -40,7 +40,6 @@ function preview() {
     tail_anchor: tail.status,
     genesis_anchor: gen.status,
     generation: generation,
-    prev_generation: generation,
     last_good_seal: log.lastGoodSeal(),
     recovery_soft_deadline_ms: WITNESS_RECOVERY.soft_ms,
     recovery_hard_deadline_ms: WITNESS_RECOVERY.hard_ms,

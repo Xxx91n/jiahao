@@ -269,7 +269,7 @@ function readTailAnchor(file) {
   // a present-but-wrong checksum/version stays in the corruption family above.
   } catch (e) { return { status: KNOWN_ANCHOR_STATUS.witness_unavailable, anchor: null }; }
 }
-function writeTailAnchor(file, latestSeq, totalCount, headHash, capability) {
+function writeTailAnchor(file, latestSeq, totalCount, headHash, capability, updatedAt) {
   capability = capability === undefined ? _defaultPersistenceCapability() : capability;
   const checksum = _hashAnchorTriple(latestSeq, totalCount, headHash);
   _writeAnchorAtomic(file, {
@@ -281,7 +281,7 @@ function writeTailAnchor(file, latestSeq, totalCount, headHash, capability) {
     // ADR-0051 D-C: audit annotation — the class explains crash semantics of
     // this anchor write (e.g. why anchor_behind is expected on this host).
     persistence: capability,
-    updated_at: new Date().toISOString(),
+    updated_at: updatedAt || new Date().toISOString(),
   }, capability);
 }
 function readGenesisAnchor(file) {
@@ -821,12 +821,22 @@ function createEvidenceLog(overrideConfigDir, opts) {
     return null;
   }
 
-  function _freshnessMeta(records) {
+  function _freshnessMeta(records, seal) {
     const cfg = anchorConfig();
-    const seal = _acceptableSeal(records);
-    if (!seal) return { freshness: ANCHOR_FRESHNESS.fresh, verdict: 'pass' };
-    const sealTs = Date.parse(seal.record.timestamp);
-    const ageMs = Number.isNaN(sealTs) ? Infinity : now() - sealTs;
+    const basis = seal === undefined ? _acceptableSeal(records) : seal;
+    const tail = readTailAnchor(headAnchorPath());
+    let anchorTs = Number.NaN;
+    if (tail.status === KNOWN_ANCHOR_STATUS.anchored &&
+        tail.anchor && typeof tail.anchor.updated_at === 'string') {
+      anchorTs = Date.parse(tail.anchor.updated_at);
+    }
+    if (!Number.isFinite(anchorTs) && basis && basis.record) {
+      anchorTs = Date.parse(basis.record.timestamp);
+    }
+    if (!Number.isFinite(anchorTs)) {
+      return { freshness: ANCHOR_FRESHNESS.fresh, verdict: 'pass' };
+    }
+    const ageMs = now() - anchorTs;
     if (ageMs >= cfg.reanchorMs * ANCHOR_HARD_FACTOR) {
       return { freshness: ANCHOR_FRESHNESS.hard_stale, verdict: 'fail' };
     }
@@ -860,7 +870,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     if (genRead.status === KNOWN_ANCHOR_STATUS.anchored &&
         genRead.anchor.first_hash !== state.first_hash) return;
     if (_hasForwardSeal(records) || genRead.status === KNOWN_ANCHOR_STATUS.anchored) {
-      writeTailAnchor(headAnchorPath(), state.latest_seq, state.total_count, state.head_hash, persistenceCapability());
+      writeTailAnchor(headAnchorPath(), state.latest_seq, state.total_count, state.head_hash, persistenceCapability(), new Date(now()).toISOString());
     }
   }
 
@@ -1221,6 +1231,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
             fs.writeFileSync(activePath, JSON.stringify(anchor) + '\n', 'utf8');
             tail = anchor.event_hash;
             total += 1;
+            applied.push(anchor);
             tailIsAnchor = true;
             // Splice the pending record onto the new segment's anchor so the
             // concatenated chain stays valid across the boundary.
@@ -1310,6 +1321,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     const kind = statKind();
     if (kind === 'file') return verifyLegacyFile();
     if (kind === 'none') return { valid: false, broken_at: -1, reason: 'no evidence segments' };
+    const seal = _chainHasSeal();
     let segs;
     try { segs = listSegments(ep); }
     catch (e) { return { valid: false, broken_at: -1, reason: 'segment scan failed: ' + e.message }; }
@@ -1321,14 +1333,14 @@ function createEvidenceLog(overrideConfigDir, opts) {
     if (recs.length === 0) return { valid: false, broken_at: -1, reason: 'active segment empty' };
     if (segs.length === 1) {
       const chainResult = verifyChain(recs);
-      const external = _externalAnchorProblems(_tailStateFromSegments(segs, recs), _chainHasSeal);
+      const external = _externalAnchorProblems(_tailStateFromSegments(segs, recs), function () { return seal; });
       const fatal = _fatalAnchorProblems(external);
       if (fatal.length > 0) return { valid: false, broken_at: -1, reason: _formatAnchorProblems(fatal) };
       if (!chainResult.valid) return chainResult;
       const fb = _fallbackMeta(external);
-      return Object.assign({}, chainResult, fb || {}, _freshnessMeta(recs));
+      return Object.assign({}, chainResult, fb || {}, _freshnessMeta(recs, seal));
     }
-    const external = _externalAnchorProblems(_tailStateFromSegments(segs, recs), _chainHasSeal);
+    const external = _externalAnchorProblems(_tailStateFromSegments(segs, recs), function () { return seal; });
     const problems = anchorProblems(recs[0], segs[segs.length - 2], null, external);
     const seqOnly = problems.filter(function (p) { return p.code === 'seq_start_mismatch'; });
     const others = problems.filter(function (p) { return p.code !== 'seq_start_mismatch'; });
@@ -1340,7 +1352,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     void seqOnly;
     const link = verifyLinks(recs, 0);
     const fb = _fallbackMeta(others);
-    return Object.assign({}, link, fb || {}, _freshnessMeta(recs));
+    return Object.assign({}, link, fb || {}, _freshnessMeta(recs, seal));
   }
   // ADR-0026 D4 cold path: every segment, every cross-link, filename/seq
   // cross-check. Exposed via scripts/verify-evidence.js --full.
@@ -1373,11 +1385,12 @@ function createEvidenceLog(overrideConfigDir, opts) {
     }
     const chain = verifyChain(all);
     if (!chain.valid) return chain;
-    const external = _externalAnchorProblems(_tailState(all), function () { return _acceptableSeal(all); });
+    const seal = _acceptableSeal(all);
+    const external = _externalAnchorProblems(_tailState(all), function () { return seal; });
     const fatal = _fatalAnchorProblems(external);
     if (fatal.length > 0) return { valid: false, broken_at: chain.broken_at === undefined ? -1 : chain.broken_at, reason: _formatAnchorProblems(fatal) };
     const fb = _fallbackMeta(external);
-    return Object.assign({}, chain, fb || {}, _freshnessMeta(all));
+    return Object.assign({}, chain, fb || {}, _freshnessMeta(all, seal));
   }
   function clear() {
     try { fs.rmSync(ep, { recursive: true, force: true }); } catch (e) {}

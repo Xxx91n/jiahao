@@ -169,28 +169,48 @@ describe('ADR-0054 wiring', () => {
 
     expect(log.sealForwardIfNeeded().status).toBe('freshness_renewed');
     expect(log.readTailAnchor(log.headAnchorPath()).anchor.updated_at).not.toBe(before);
+    expect(log.verifyTail()).toMatchObject({ valid: true, freshness: ANCHOR_FRESHNESS.fresh, verdict: 'pass' });
+    cleanup(log, dir);
+  });
+
+  test('D-D freshness uses the tail anchor across a segment boundary', () => {
+    const dir = mktmp('freshness-segments');
+    const { log, advance } = makeClockedLog(dir, 1000000, { reanchorMs: 1000, rotateBytes: 10 });
+    seedAndSeal(log);
+    log.append([nextRecord(log, 'after-seal')]);
+
+    advance(1000);
+    expect(log.verifyTail()).toMatchObject({ valid: true, freshness: ANCHOR_FRESHNESS.stale, verdict: 'warn' });
+    advance(500);
+    expect(log.verifyTail()).toMatchObject({ valid: true, freshness: ANCHOR_FRESHNESS.hard_stale, verdict: 'fail' });
     cleanup(log, dir);
   });
 
   test('CLI maps warn to exit 0 and hard_stale to exit 1', () => {
     const warnDir = mktmp('cli-warn');
-    const warnSeed = makeClockedLog(warnDir, Date.now() - 1200, { reanchorMs: 1000 });
-    seedAndSeal(warnSeed.log);
-    fs.writeFileSync(path.join(warnDir, ANCHOR_CONFIG_FILENAME), JSON.stringify({ reanchorMs: 1000 }), 'utf8');
+    const warnLog = createEvidenceLog(warnDir, { reanchorMs: 10000 });
+    seedAndSeal(warnLog);
+    const warnAnchor = JSON.parse(fs.readFileSync(warnLog.headAnchorPath(), 'utf8'));
+    warnAnchor.updated_at = new Date(Date.now() - 11000).toISOString();
+    fs.writeFileSync(warnLog.headAnchorPath(), JSON.stringify(warnAnchor), 'utf8');
+    fs.writeFileSync(path.join(warnDir, ANCHOR_CONFIG_FILENAME), JSON.stringify({ reanchorMs: 10000 }), 'utf8');
     const warn = spawnSync(process.execPath, ['scripts/verify-evidence.js', '--dir', warnDir], { cwd: path.join(__dirname, '..'), encoding: 'utf8' });
     expect(warn.status).toBe(0);
     const warnOut = JSON.parse(warn.stdout);
     expect(warnOut).toMatchObject({ valid: true, freshness: ANCHOR_FRESHNESS.stale, verdict: 'warn' });
     expect(warn.stderr).toMatch(/stale/);
-    cleanup(warnSeed.log, warnDir);
+    cleanup(warnLog, warnDir);
 
     const hardDir = mktmp('cli-hard');
-    const hardSeed = makeClockedLog(hardDir, Date.now() - 2000, { reanchorMs: 1000 });
-    seedAndSeal(hardSeed.log);
-    fs.writeFileSync(path.join(hardDir, ANCHOR_CONFIG_FILENAME), JSON.stringify({ reanchorMs: 1000 }), 'utf8');
+    const hardLog = createEvidenceLog(hardDir, { reanchorMs: 10000 });
+    seedAndSeal(hardLog);
+    const hardAnchor = JSON.parse(fs.readFileSync(hardLog.headAnchorPath(), 'utf8'));
+    hardAnchor.updated_at = new Date(Date.now() - 16000).toISOString();
+    fs.writeFileSync(hardLog.headAnchorPath(), JSON.stringify(hardAnchor), 'utf8');
+    fs.writeFileSync(path.join(hardDir, ANCHOR_CONFIG_FILENAME), JSON.stringify({ reanchorMs: 10000 }), 'utf8');
     const hard = spawnSync(process.execPath, ['scripts/verify-evidence.js', '--dir', hardDir], { cwd: path.join(__dirname, '..'), encoding: 'utf8' });
     expect(hard.status).toBe(1);
     expect(JSON.parse(hard.stdout)).toMatchObject({ valid: true, freshness: ANCHOR_FRESHNESS.hard_stale, verdict: 'fail' });
-    cleanup(hardSeed.log, hardDir);
+    cleanup(hardLog, hardDir);
   });
 });
