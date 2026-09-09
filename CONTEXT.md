@@ -1524,4 +1524,44 @@ loss falls back to the last good seal, so the recovery window is the
 re-anchor interval rather than the whole chain age (ADR-0053).
 _Avoid_: one-time-only anchor, whole-chain fallback, new failure code per cadence
 
+**Recovery Window / Last-Good-Seal Fallback (恢复窗口与最后良封回退)**:
+The machine-readable fallback when the current anchor witness is unavailable
+but the last acceptable forward seal is self-consistent. It carries
+`{sealed_seq, sealed_total_count, sealed_head_hash, post_seal_count}` and is
+exposed by the verification CLI rather than folded into a plain `valid: true`
+(ADR-0054 D-A).
+_Avoid_: silent degraded pass, valid-only degraded verification
+
+**Last-Good-Seal Identity (最后良封身份)**:
+The independent-witness boundary recorded in a rebuild disposition: the last
+acceptable seal's sequence, total count, and head hash. It is `null` when the
+rebuild had no seal basis (ADR-0054 D-B).
+_Avoid_: anonymous rebuild, chain-only re-anchor
+
+**Rebuild Disposition Contract (重建处置契约)**:
+The controlled-rotation audit record shape: who, when, why, approval, and
+anchor generation, plus the last-good-seal identity and previous generation.
+It is the append-only evidence of a human-gated rebuild (ADR-0054 D-B).
+_Avoid_: acknowledgement-only rebuild, generation without boundary identity
+
+**Re-Anchor Contract (重锚契约)**:
+The operator-declared cadence that drives periodic re-anchoring plus the
+verifier-side freshness enforcement that consumes it. The writer declares
+cadence; the reader enforces freshness (ADR-0054 D-C/D-D).
+_Avoid_: writer-only cadence, unenforced freshness, hardcoded cadence
+
+**Anchor Freshness Severity (锚新鲜度严重度)**:
+The verification axis orthogonal to integrity: `fresh | stale | hard_stale`.
+`valid` stays integrity-only, and the result also carries a top-level
+`pass | warn | fail` verdict; the gate fails closed on `hard_stale`
+(ADR-0054 D-D).
+_Avoid_: folding staleness into valid=false, stale-as-invalid
+
+**Verifier Write Surface (验证者写面边界)**:
+The rule that a verifier may write its own audit trail (warning and evidence
+entry) but never the verified object's anchor surface (seal, anchor, or chain
+record). Verification stays read-only; re-anchoring writes belong to an
+independent maintenance command (ADR-0054 D-E).
+_Avoid_: seal-on-verification, verifier-as-committer, self-refreshing witness
+
 *End of Glossary*
