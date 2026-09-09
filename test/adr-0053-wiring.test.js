@@ -80,14 +80,14 @@ describe('ADR-0053 D-A re-anchor triggers', () => {
     expect(log.sealForwardIfNeeded({ reanchorCommits: 100, reanchorMs: REANCHOR_INTERVAL }).status).toBe('reanchored');
   });
 
-  test('default one-time seal behavior unchanged', () => {
+  test('default anchored re-anchor cadence activates after 72h', () => {
     const dir = mktmp('default');
     const { log, advance } = makeClockedLog(dir);
     seedAndSeal(log);
     advance(REANCHOR_INTERVAL * 10);
     log.append([nextRecord(log, 'one')]);
-    expect(log.sealForwardIfNeeded().status).toBe('already_sealed');
-    expect(sealCount(log)).toBe(1);
+    expect(log.sealForwardIfNeeded().status).toBe('reanchored');
+    expect(sealCount(log)).toBe(2);
   });
 });
 
@@ -121,14 +121,25 @@ describe('ADR-0053 D-B last-good-seal fallback', () => {
     seedAndSeal(log);
     log.append([nextRecord(log, 'one')]);
     fs.unlinkSync(log.headAnchorPath());
+    const seal = log.readAll().find(function (r) { return r.kind === FORWARD_SEAL_KIND; });
     const tail = log.verifyTail();
     expect(tail.valid).toBe(true);
     expect(tail.fallback).toBe('last_good_seal');
-    expect(tail.recovery_window).toEqual({ sealed_seq: 0, sealed_total_count: 1, post_seal_count: 1 });
+    expect(tail.recovery_window).toEqual({
+      sealed_seq: 0,
+      sealed_total_count: 1,
+      sealed_head_hash: seal.sealed_head_hash,
+      post_seal_count: 1,
+    });
     const full = log.verifyFull();
     expect(full.valid).toBe(true);
     expect(full.fallback).toBe('last_good_seal');
-    expect(full.recovery_window).toEqual({ sealed_seq: 0, sealed_total_count: 1, post_seal_count: 1 });
+    expect(full.recovery_window).toEqual({
+      sealed_seq: 0,
+      sealed_total_count: 1,
+      sealed_head_hash: seal.sealed_head_hash,
+      post_seal_count: 1,
+    });
     expect(JSON.stringify(tail)).not.toContain(KNOWN_ANCHOR_STATUS.witness_unavailable);
   });
 
@@ -165,10 +176,11 @@ describe('ADR-0053 D-B last-good-seal fallback', () => {
     const { log } = makeClockedLog(dir);
     seedAndSeal(log);
     fs.unlinkSync(log.genesisAnchorPath());
+    const seal = log.readAll().find(function (r) { return r.kind === FORWARD_SEAL_KIND; });
     const full = log.verifyFull();
     expect(full.valid).toBe(true);
     expect(full.fallback).toBe('last_good_seal');
-    expect(full.recovery_window).toEqual({ sealed_seq: 0, sealed_total_count: 1, post_seal_count: 0 });
+    expect(full.recovery_window).toEqual({ sealed_seq: 0, sealed_total_count: 1, sealed_head_hash: seal.sealed_head_hash, post_seal_count: 0 });
   });
 });
 

@@ -15,8 +15,18 @@ const full = args.indexOf('--full') >= 0;
 const dirIdx = args.indexOf('--dir');
 const dir = dirIdx >= 0 && args[dirIdx + 1] ? args[dirIdx + 1] : undefined;
 
-const log = createEvidenceLog(dir);
-const result = full ? log.verifyFull() : log.verifyTail();
+let log;
+let result;
+try {
+  log = createEvidenceLog(dir);
+  result = full ? log.verifyFull() : log.verifyTail();
+} catch (e) {
+  if (e && e.name === 'ConfigLoadError') {
+    console.error('[config]: FAIL: ' + e.message);
+    process.exit(1);
+  }
+  throw e;
+}
 const out = {
   mode: full ? 'verifyFull' : 'verifyTail',
   valid: result.valid,
@@ -24,9 +34,17 @@ const out = {
   // an anchor_behind state can be read as the expected degraded state.
   persistence: log.persistenceCapability(),
 };
+if (result.consumer) out.consumer = result.consumer;
+if (result.fallback) out.fallback = result.fallback;
+if (result.recovery_window) out.recovery_window = result.recovery_window;
+if (result.freshness) out.freshness = result.freshness;
+out.verdict = result.verdict || (result.valid ? 'pass' : 'fail');
 if (!result.valid) {
   if (typeof result.broken_at === 'number') out.broken_at = result.broken_at;
   if (result.reason) out.reason = result.reason;
 }
 console.log(JSON.stringify(out));
-process.exit(result.valid ? 0 : 1);
+if (out.verdict === 'warn') {
+  console.error('jiahao verify-evidence: anchor freshness is stale; run the maintenance re-anchor command');
+}
+process.exit(out.verdict === 'fail' ? 1 : 0);

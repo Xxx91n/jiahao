@@ -78,10 +78,11 @@ describe('ADR-0052 status migration matrix', () => {
     const { log } = makeClockedLog(dir);
     seedAndSeal(log);
     fs.unlinkSync(log.genesisAnchorPath());
+    const seal = log.readAll().find(function (r) { return r.kind === 'forward_seal'; });
     const full = log.verifyFull();
     expect(full.valid).toBe(true);
     expect(full.fallback).toBe('last_good_seal');
-    expect(full.recovery_window).toEqual({ sealed_seq: 0, sealed_total_count: 1, post_seal_count: 0 });
+    expect(full.recovery_window).toEqual({ sealed_seq: 0, sealed_total_count: 1, sealed_head_hash: seal.sealed_head_hash, post_seal_count: 0 });
     log.clear();
   });
 });

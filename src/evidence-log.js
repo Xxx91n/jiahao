@@ -85,6 +85,82 @@ function _declaredPersistenceCapability(configDirPath) {
   return null;
 }
 
+const ANCHOR_CONFIG_FILENAME = '.jiahao-anchor.json';
+const ANCHOR_DEFAULT_REANCHOR_MS = 72 * 3600 * 1000;
+const ANCHOR_HARD_FACTOR = 1.5;
+const ANCHOR_FRESHNESS = Object.freeze({
+  fresh: 'fresh',
+  stale: 'stale',
+  hard_stale: 'hard_stale',
+});
+class ConfigLoadError extends Error {
+  constructor(message, cause) {
+    super(message);
+    this.name = 'ConfigLoadError';
+    this.cause = cause;
+  }
+}
+function _isPositiveFiniteNumber(value) {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0;
+}
+function _isPositiveInteger(value) {
+  return Number.isInteger(value) && value > 0;
+}
+function _readAnchorConfig(configDirPath) {
+  let raw;
+  try {
+    raw = fs.readFileSync(path.join(configDirPath, ANCHOR_CONFIG_FILENAME), 'utf8');
+  } catch (e) {
+    if (e && e.code === 'ENOENT') return { reanchorMs: ANCHOR_DEFAULT_REANCHOR_MS };
+    throw new ConfigLoadError('cannot load anchor config: ' + e.message, e);
+  }
+  let declaration;
+  try {
+    declaration = JSON.parse(raw);
+  } catch (e) {
+    throw new ConfigLoadError('cannot parse anchor config: ' + e.message, e);
+  }
+  if (!declaration || typeof declaration !== 'object' || Array.isArray(declaration)) {
+    throw new ConfigLoadError('anchor config must be a JSON object');
+  }
+  const out = { reanchorMs: ANCHOR_DEFAULT_REANCHOR_MS };
+  if (declaration.reanchorMs !== undefined) {
+    if (!_isPositiveFiniteNumber(declaration.reanchorMs)) {
+      throw new ConfigLoadError('anchor config reanchorMs must be a positive finite number');
+    }
+    out.reanchorMs = declaration.reanchorMs;
+  }
+  if (declaration.reanchorCommits !== undefined) {
+    if (!_isPositiveInteger(declaration.reanchorCommits)) {
+      throw new ConfigLoadError('anchor config reanchorCommits must be a positive integer');
+    }
+    out.reanchorCommits = declaration.reanchorCommits;
+  }
+  return out;
+}
+
+function _applyAnchorInjection(base, opts) {
+  const resolved = Object.assign({}, base);
+  const injected = opts || {};
+  if (injected.reanchorMs !== undefined) {
+    if (!_isPositiveFiniteNumber(injected.reanchorMs)) {
+      throw new ConfigLoadError('injected reanchorMs must be a positive finite number');
+    }
+    resolved.reanchorMs = injected.reanchorMs;
+  }
+  if (injected.reanchorCommits !== undefined) {
+    if (!_isPositiveInteger(injected.reanchorCommits)) {
+      throw new ConfigLoadError('injected reanchorCommits must be a positive integer');
+    }
+    resolved.reanchorCommits = injected.reanchorCommits;
+  }
+  return resolved;
+}
+
+function _resolveAnchorConfig(configDirPath, opts) {
+  return _applyAnchorInjection(_readAnchorConfig(configDirPath), opts);
+}
+
 const HEAD_ANCHOR_VERSION = 1;
 const GENESIS_ANCHOR_VERSION = 1;
 const FORWARD_SEAL_KIND = 'forward_seal';
@@ -459,8 +535,12 @@ function createEvidenceLog(overrideConfigDir, opts) {
   const configuredCapability = _isPersistenceCapability(o.capability)
     ? o.capability
     : _declaredPersistenceCapability(path.dirname(ep));
+  const configuredAnchor = _resolveAnchorConfig(path.dirname(ep), o);
   function persistenceCapability() {
     return configuredCapability || _defaultPersistenceCapability();
+  }
+  function anchorConfig() {
+    return Object.assign({}, configuredAnchor);
   }
   let legacyReadOnly = false; // ADR-0026 D5 refusal state (per instance)
 
@@ -647,7 +727,12 @@ function createEvidenceLog(overrideConfigDir, opts) {
     // re-anchor interval — not the whole chain. No new status (D-C).
     if (seal) {
       p.fallback = 'last_good_seal';
-      p.recovery = { sealed_seq: seal.index - 1, sealed_total_count: seal.index, post_seal_count: seal.post_seal_count };
+      p.recovery = {
+        sealed_seq: seal.index - 1,
+        sealed_total_count: seal.index,
+        sealed_head_hash: seal.record.sealed_head_hash,
+        post_seal_count: seal.post_seal_count,
+      };
     }
     return p;
   }
@@ -726,10 +811,46 @@ function createEvidenceLog(overrideConfigDir, opts) {
     for (let i = 0; i < problems.length; i++) {
       const p = problems[i];
       if (p && p.fallback === 'last_good_seal') {
-        return { fallback: 'last_good_seal', recovery_window: p.recovery };
+        return {
+          fallback: 'last_good_seal',
+          consumer: p.consumer,
+          recovery_window: p.recovery,
+        };
       }
     }
     return null;
+  }
+
+  function _freshnessMeta(records) {
+    const cfg = anchorConfig();
+    const seal = _acceptableSeal(records);
+    if (!seal) return { freshness: ANCHOR_FRESHNESS.fresh, verdict: 'pass' };
+    const sealTs = Date.parse(seal.record.timestamp);
+    const ageMs = Number.isNaN(sealTs) ? Infinity : now() - sealTs;
+    if (ageMs >= cfg.reanchorMs * ANCHOR_HARD_FACTOR) {
+      return { freshness: ANCHOR_FRESHNESS.hard_stale, verdict: 'fail' };
+    }
+    if (ageMs >= cfg.reanchorMs) {
+      return { freshness: ANCHOR_FRESHNESS.stale, verdict: 'warn' };
+    }
+    return { freshness: ANCHOR_FRESHNESS.fresh, verdict: 'pass' };
+  }
+
+  function lastGoodSeal() {
+    let records;
+    try {
+      records = readConcat();
+    } catch (e) {
+      return null;
+    }
+    const seal = _acceptableSeal(records);
+    if (!seal) return null;
+    return {
+      sealed_seq: seal.index - 1,
+      sealed_total_count: seal.index,
+      sealed_head_hash: seal.record.sealed_head_hash,
+      post_seal_count: seal.post_seal_count,
+    };
   }
 
   function _writeTailAnchorForChain(records) {
@@ -751,6 +872,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
   function sealForwardIfNeeded(opts) {
     opts = opts || {};
     if (!ensureSegmented()) return { status: 'corrupt', reason: 'could not ensure segmented layout' };
+    const cfg = _applyAnchorInjection(configuredAnchor, opts);
     let existing;
     try { existing = readConcat(); }
     catch (e) { return { status: 'corrupt', reason: e.message }; }
@@ -780,8 +902,8 @@ function createEvidenceLog(overrideConfigDir, opts) {
     const wasSealed = _hasForwardSeal(existing);
     let status = wasSealed ? 'already_sealed' : 'first_seal';
     if (wasSealed) {
-      const reanchorCommits = typeof opts.reanchorCommits === 'number' ? opts.reanchorCommits : null;
-      const reanchorMs = typeof opts.reanchorMs === 'number' ? opts.reanchorMs : null;
+      const reanchorCommits = typeof cfg.reanchorCommits === 'number' ? cfg.reanchorCommits : null;
+      const reanchorMs = typeof cfg.reanchorMs === 'number' ? cfg.reanchorMs : null;
       const lastIdx = _lastForwardSealIndex(existing);
       const appended = existing.length - 1 - lastIdx;
       const sealTs = Date.parse(existing[lastIdx] && existing[lastIdx].timestamp);
@@ -958,6 +1080,15 @@ function createEvidenceLog(overrideConfigDir, opts) {
     const prevGen = genRead.status === KNOWN_ANCHOR_STATUS.anchored &&
       typeof genRead.anchor.generation === 'number' ? genRead.anchor.generation : 0;
     const generation = prevGen + 1;
+    const sealBasis = _acceptableSeal(records);
+    const lastGoodSeal = sealBasis
+      ? {
+          sealed_seq: sealBasis.index - 1,
+          sealed_total_count: sealBasis.index,
+          sealed_head_hash: sealBasis.record.sealed_head_hash,
+          post_seal_count: sealBasis.post_seal_count,
+        }
+      : null;
     const bp = _activeBreakpoint(records);
     witnessGateBusy = true; // the audit disposition write must bypass the hard stop
     try {
@@ -968,6 +1099,8 @@ function createEvidenceLog(overrideConfigDir, opts) {
           reason: rb.reason,
           approval: true,
           generation: generation,
+          last_good_seal: lastGoodSeal,
+          prev_generation: prevGen,
           detected_at: bp ? bp.record.detected_at : null,
           recovered_at: new Date(now()).toISOString(),
           prev_hash: prevHash,
@@ -984,7 +1117,13 @@ function createEvidenceLog(overrideConfigDir, opts) {
       e3.code = 'WITNESS_REBUILD_VERIFY_FAILED';
       throw e3;
     }
-    return { status: 'rebuilt', generation: generation, verify: full };
+    return {
+      status: 'rebuilt',
+      generation: generation,
+      last_good_seal: lastGoodSeal,
+      prev_generation: prevGen,
+      verify: full,
+    };
   }
 
   // ADR-0024 D2a: everything below runs inside ONE narrow lock (ep + '.lock').
@@ -1187,8 +1326,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
       if (fatal.length > 0) return { valid: false, broken_at: -1, reason: _formatAnchorProblems(fatal) };
       if (!chainResult.valid) return chainResult;
       const fb = _fallbackMeta(external);
-      if (fb) return Object.assign({}, chainResult, fb);
-      return chainResult;
+      return Object.assign({}, chainResult, fb || {}, _freshnessMeta(recs));
     }
     const external = _externalAnchorProblems(_tailStateFromSegments(segs, recs), _chainHasSeal);
     const problems = anchorProblems(recs[0], segs[segs.length - 2], null, external);
@@ -1202,8 +1340,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     void seqOnly;
     const link = verifyLinks(recs, 0);
     const fb = _fallbackMeta(others);
-    if (fb && link.valid) return Object.assign({}, link, fb);
-    return link;
+    return Object.assign({}, link, fb || {}, _freshnessMeta(recs));
   }
   // ADR-0026 D4 cold path: every segment, every cross-link, filename/seq
   // cross-check. Exposed via scripts/verify-evidence.js --full.
@@ -1240,8 +1377,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     const fatal = _fatalAnchorProblems(external);
     if (fatal.length > 0) return { valid: false, broken_at: chain.broken_at === undefined ? -1 : chain.broken_at, reason: _formatAnchorProblems(fatal) };
     const fb = _fallbackMeta(external);
-    if (fb) return Object.assign({}, chain, fb);
-    return chain;
+    return Object.assign({}, chain, fb || {}, _freshnessMeta(all));
   }
   function clear() {
     try { fs.rmSync(ep, { recursive: true, force: true }); } catch (e) {}
@@ -1258,7 +1394,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     }
   }
 
-  return { append, commit, readAll, verify, verifyTail, verifyFull, clear, createRecord, sealForwardIfNeeded, headAnchorPath, genesisAnchorPath, KNOWN_ANCHOR_STATUS: KNOWN_ANCHOR_STATUS, readTailAnchor: readTailAnchor, writeTailAnchor: writeTailAnchor, readGenesisAnchor: readGenesisAnchor, writeGenesisAnchor: writeGenesisAnchor, persistenceCapability: persistenceCapability, rebuildGenesisAnchor: rebuildGenesisAnchor, WITNESS_RECOVERY: WITNESS_RECOVERY };
+  return { append, commit, readAll, verify, verifyTail, verifyFull, clear, createRecord, sealForwardIfNeeded, headAnchorPath, genesisAnchorPath, anchorConfig: anchorConfig, lastGoodSeal: lastGoodSeal, ConfigLoadError: ConfigLoadError, ANCHOR_CONFIG_FILENAME: ANCHOR_CONFIG_FILENAME, ANCHOR_DEFAULT_REANCHOR_MS: ANCHOR_DEFAULT_REANCHOR_MS, ANCHOR_HARD_FACTOR: ANCHOR_HARD_FACTOR, ANCHOR_FRESHNESS: ANCHOR_FRESHNESS, KNOWN_ANCHOR_STATUS: KNOWN_ANCHOR_STATUS, readTailAnchor: readTailAnchor, writeTailAnchor: writeTailAnchor, readGenesisAnchor: readGenesisAnchor, writeGenesisAnchor: writeGenesisAnchor, persistenceCapability: persistenceCapability, rebuildGenesisAnchor: rebuildGenesisAnchor, WITNESS_RECOVERY: WITNESS_RECOVERY };
 }
 
 // createRecord is pure (no fs, no closure state) — module-level per ADR-0016 double-track.
