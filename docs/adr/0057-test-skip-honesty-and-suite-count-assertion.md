@@ -94,3 +94,23 @@ round does not re-litigate it.
 - No source or gate file is changed in this document round.
 - The handoff task book carries the implementation scope and verification
   closure for the next round.
+
+## Post-audit 2026-09-11 (two-axis review + industry research)
+
+- Found: `check-skip-reasons.js` exempted the reason-forcing choke point by
+  matching message text; rewording the message would silently disable the
+  exemption. Fixed: rules carry stable `id`s and the exemption keys on id.
+- Found: README suite/test counts were stale (35/36 suites, 518/527 tests);
+  updated to 48 suites / 647 tests so the committed metric matches the
+  suite-count gate.
+- Citation-strength note: the pytest precedent cited for skip reasons is a
+  *convention* (`reason` is optional there), not a hard gate; Jest itself has
+  no fail-on-skip (jest#8321, closed unimplemented). This gate fills a real
+  industry gap; the rationale stands, the citation strength is downgraded.
+- Industry check (atomcode research): the static `.skip/.only` scan overlaps
+  ~80% with eslint-plugin-jest `no-disabled-tests`/`no-focused-tests`, and a
+  40-line hand-rolled JUnit reporter overlaps jest-junit. Both swaps were
+  considered and rejected: this repo has no ESLint toolchain and keeps a
+  zero-extra-dependency, minimal-supply-chain constraint (same rationale as
+  rejecting alls-green in D-C). The reason-enforcing helper +
+  tier-required-skip semantics have no industry wheel at all.

@@ -98,3 +98,19 @@ Rejected. The defect is user-visible today; the CI topology question
 - No source or gate file is changed in this document round.
 - The handoff task book carries the implementation scope and verification
   closure for the next round.
+
+## Post-audit 2026-09-11 (two-axis review + industry research)
+
+- Found: `corpus-tier-drift.js` only compared counts and demoted an inverted
+  outcome (public passing more than full) to a log note. Fixed: an inverted
+  outcome is now DRIFT (exit 1), and the suite list is derived from every
+  test file requiring `test/helpers/corpus-gate`, so a newly tiered suite can
+  no longer escape the recurrence gate.
+- Found (scope creep, removed): the round accidentally committed maintainer
+  run artifacts (`bench/polygraph/results/metrics-*.json`,
+  `probe-metrics-*.json`, `mr-artifacts/*`); removed - the private corpus
+  contract (ADR-0038 D2) keeps run residue out of the published clone.
+- Industry check (atomcode research): no library provides corpus tiering +
+  SHA fingerprints + downgrade-only env override; the pattern is golden-file
+  culture (Jest snapshots, insta, cupaloy) applied to input corpora - the
+  hand-rolled resolution is the minimal correct shape.

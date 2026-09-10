@@ -140,3 +140,14 @@ borrowed from metrology.
 - `npm run deferred:gate`, `npm run adr:gate`, and the full Jest suite pass.
 - No source, gate, schema, or executable wiring surface changes in this
   document round.
+
+## Post-audit 2026-09-11 (two-axis review + industry research)
+
+- Found: D-B required a fixed decision-rule document before simple-acceptance
+  negotiation, but none existed; only the `rule.tur >= 4` code guard did.
+  Fixed: `docs/decision-rule-0049.md` now pins `TUR := spec_limit / u`; the
+  row-carried version `0049.1` is documented as ADR-0049-keyed (the external
+  ILAC G8 revision stays on the ADR-0035 cadence), resolving the ambiguous
+  anchor noted in audit.
+- Deferred: none within ADR-0049 scope; decision-rule doc content changes go
+  through an ADR round like any other spec change.

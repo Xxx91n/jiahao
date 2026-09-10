@@ -17,9 +17,9 @@ const TEST_DIR = path.join(ROOT, 'test');
 const ALLOWED = path.normalize(path.join('test', 'helpers', 'skip.js')); // the reason-forcing choke point
 
 const RULES = [
-  { re: /\b(?:describe|test|it)\.skip\s*\(/, msg: "reason-less skip - route through test/helpers/skip.js so the skip carries a reason (ADR-0057 D-A)" },
-  { re: /\bx(?:describe|it|test)\s*\(/, msg: "x-prefixed skip has no reason carrier (ADR-0057 D-A)" },
-  { re: /\b(?:describe|test|it)\.only\s*\(/, msg: ".only residue narrows the collected run silently (ADR-0057 D-C)" },
+  { id: 'skip', re: /\b(?:describe|test|it)\.skip\s*\(/, msg: "reason-less skip - route through test/helpers/skip.js so the skip carries a reason (ADR-0057 D-A)" },
+  { id: 'x-prefix', re: /\bx(?:describe|it|test)\s*\(/, msg: "x-prefixed skip has no reason carrier (ADR-0057 D-A)" },
+  { id: 'only', re: /\b(?:describe|test|it)\.only\s*\(/, msg: ".only residue narrows the collected run silently (ADR-0057 D-C)" },
 ];
 
 function listTestFiles(dir, acc) {
@@ -43,7 +43,7 @@ function scan() {
       const trimmed = line.trim();
       if (trimmed.indexOf('//') === 0 || trimmed.indexOf('*') === 0) return;
       for (const rule of RULES) {
-        const isHelperCall = rule.msg.indexOf('reason-less') === 0 && rel === ALLOWED;
+        const isHelperCall = rule.id === 'skip' && rel === ALLOWED; // exemption keyed on rule identity, not message text
         if (!isHelperCall && rule.re.test(line)) {
           violations.push(rel + ':' + (i + 1) + ': ' + rule.msg + ' -> ' + trimmed.slice(0, 80));
         }

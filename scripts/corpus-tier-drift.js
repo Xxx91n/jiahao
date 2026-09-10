@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // scripts/corpus-tier-drift.js -- ADR-0056 D-D maintainer full-tier recurrence.
-// On a host holding the private corpus, re-runs the eight corpus-tiered suites
-// on BOTH tiers and reports drift; verifies the committed fixture fingerprints
+// On a host holding the private corpus, re-runs the corpus-tiered suites
+// (derived: every test file requiring test/helpers/corpus-gate) on BOTH tiers
+// and reports drift; an inverted outcome (public passes more than full) is
+// DRIFT, not a note. verifies the committed fixture fingerprints
 // (ADR-0027 D9 discipline: a fixture change requires re-baselining the
 // fingerprint). Exit 1 on any fingerprint drift or tier-level failure.
 'use strict';
@@ -13,11 +15,12 @@ const { spawnSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const FIXTURE_DIR = path.join(ROOT, 'test', 'fixtures', 'corpus');
-const SUITES = [
-  'test/adr-0030.test.js', 'test/adr-0031-wiring.test.js', 'test/adr-0033-wiring.test.js',
-  'test/adr-0036-wiring.test.js', 'test/adr-0037-wiring.test.js',
-  'test/detector.test.js', 'test/probe-gate.test.js', 'test/judge-seam.test.js',
-];
+// Derived from who actually resolves the corpus, so a newly tiered suite can
+// never escape the recurrence gate silently (no manual list to keep in sync).
+const SUITES = fs.readdirSync(path.join(ROOT, 'test'))
+  .filter(f => /\.test\.js$/.test(f))
+  .filter(f => fs.readFileSync(path.join(ROOT, 'test', f), 'utf8').indexOf('helpers/corpus-gate') !== -1)
+  .map(f => 'test/' + f);
 const SUMMARY_RE = /Tests:\s+(?:(\d+) skipped,\s+)?(?:(\d+) failed,\s+)?(\d+) passed/;
 
 // 1. Fingerprint discipline: fingerprints.json must match fixture bytes.
@@ -44,7 +47,8 @@ function runTier(tier) {
   });
   const m = SUMMARY_RE.exec((r.stdout || '') + (r.stderr || ''));
   if (!m) return { failed: 1, passed: 0, skipped: 0, note: 'no summary; status=' + r.status };
-  return { failed: Number(m[2] || 0) + (r.status !== 0 && !m[2] ? 1 : 0), passed: Number(m[3]), skipped: Number(m[1] || 0) };
+  const failed = m[2] ? Number(m[2]) : (r.status !== 0 ? 1 : 0); // summary shows failures, else exit code is the truth
+  return { failed, passed: Number(m[3]), skipped: Number(m[1] || 0) };
 }
 
 const drift = verifyFingerprints();
@@ -60,7 +64,8 @@ let fail = drift.length > 0 || full.failed > 0 || pub.failed > 0;
 // Drift report: a fixture verdict differing from the full tier on the same
 // suite set is the signal the maintainer must re-baseline or fix the fixture.
 if (pub.passed > full.passed) {
-  console.log('[tier-drift] note: public tier passes more tests than full (expected: full-only tests are skipped on public)');
+  console.error('[tier-drift] DRIFT: public tier passes more tests than full-tier on the same suite set (verdict divergence; re-baseline or fix the fixture)');
+  fail = true;
 }
 console.log(fail ? '[tier-drift] FAIL' : '[tier-drift] OK');
 process.exit(fail ? 1 : 0);
