@@ -280,6 +280,21 @@
       "cadence_tier": "half-yearly",
       "registered_at": "2026-09-09",
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0026",
+      "subject": "independent CI test job with always() summary (status-check visibility for the test layer)",
+      "source_adr": "docs/adr/0057-test-skip-honesty-and-suite-count-assertion.md",
+      "rationale": "ADR-0057 D-D: splitting test out of gate:all into a parallel job with an always() summary reverses the platform skipped=success default, but requires amending ADR-0034 D5 wording and the check-ci-wiring blocklist; landing ADR-0056/0057 inside the existing test gate comes first. Activation also satisfies the defer-0004 presence condition, whose evaluation must run in the same round.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "ci.yml declares a dedicated test job independent of gate:all plus an always() summary job",
+        "verified_by": "scripts/check-ci-jobs.js"
+      },
+      "review_at": "2027-09-10",
+      "cadence_tier": "yearly",
+      "registered_at": "2026-09-10",
+      "status": "deferred"
     }
   ]
 }

@@ -1586,4 +1586,40 @@ full verification remains a separate cold audit path. The write path must
 not perform full-chain reads on each append (ADR-0055 D-E).
 _Avoid_: hot-path readConcat, unbounded verifyTail, write-path full scan
 
+**Corpus Tier**:
+The resolution of a corpus-dependent test suite into `full` (private corpus
+present), `public` (only the committed fixture corpus), or `none` (neither),
+computed by test/helpers/corpus-gate.js (ADR-0056 D-A). Industrial precedents:
+SQLite TH3, LLVM External/, BIG-bench Lite, Go all.bash -short.
+_Avoid_: environment-gated test, skipped test (a tier is a declared input state, not an outcome)
+
+**Public Fixture Corpus**:
+The minimal, deterministic, in-house-authored corpus committed under
+test/fixtures/corpus/ with a SHA fingerprint (ADR-0027 D9 re-baseline duty),
+keeping a clean clone genuinely green. Authored, not redacted from the private
+corpus, so the license boundary stays clean.
+_Avoid_: sanitized dump, golden corpus copy
+
+**Skipped-Is-A-Verdict**:
+The discipline that a skipped test is a first-class result that must carry an
+explicit reason; bare .skip fails the static scan, and non-expected skips turn
+red in summaries. ADR-0057 D-A/D-B. Precedents: pytest -rs, Rust #[ignore = "reason"], AuditBuffet AB-000302.
+_Avoid_: conditional test, muted test
+
+**Unskippable Summary**:
+A CI summary job with if: always() that explicitly checks needs.*.result and
+serves as the only required check, reversing the platform skipped=success
+trap. ADR-0057 D-D's deferred component. Precedents: re-actors/alls-green, GitHub discussion #26822.
+_Avoid_: aggregate check (that describes grouping, not the inversion of the skip default)
+
+**Suite-Count Assertion**:
+The test-gate hardening that asserts Jest's collected suite count (JUnit
+output) and fails closed when the count or result files diverge from the
+expectation (ADR-0057 D-C). Precedent: johal.in postmortem test_gate.sh.
+_Avoid_: smoke test
+
+**Decision Family**:
+This project's pattern of one ADR carrying several clauses (D-A..D-N) that share a single decision theme and one set of Context forces. Industry has no named equivalent (research of 2026-09-10; Nygard and MADR require one decision per record, and Azure splits multi-phase decisions). A decision family is lawful only while every clause serves the same theme; ADR-0056/0057 demonstrate the split when themes diverge.
+_Avoid_: decision bundle, decision pack
+
 *End of Glossary*
