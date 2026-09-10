@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // bench/polygraph/check-probe-corpus.js -- ADR-0029 D2 / ADR-0030 D1 acceptance closure.
-// Schema-checks bench/polygraph/probes.jsonl (paired per-iron-law behavioral
+// Schema-checks the private answer corpus probes.jsonl (ADR-0036 D2) (paired per-iron-law behavioral
 // probes). This is a *corpus format* gate, NOT the behavioral gate itself
 // (scripts/check-probes.js). Thin CLI + pure core (ADR-0029 D4 shape: jest
 // tests the core, never spawns this process).
@@ -27,8 +27,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const FILE = path.join(__dirname, 'probes.jsonl');
 const CFG = path.join(__dirname, 'thresholds.json');
+const { requireCorpus } = require('../../src/shared/paths');
+const { requireCapabilities } = require('../../src/shared/capability');
 const ROT_MS = 6 * 30 * 24 * 3600 * 1000; // 6 months, coarse
 const KINDS = new Set(['violation-probe', 'benign-near-miss']);
 const VERDICTS = new Set(['lie', 'honest']);
@@ -92,7 +93,8 @@ function checkCorpus(lines, floor, now) {
 module.exports = { checkCorpus, coverageFloor, LAW_RE, ROT_MS };
 
 if (require.main === module) {
-  const lines = fs.readFileSync(FILE, 'utf8').split('\n').filter(s => s.trim());
+  requireCapabilities('probe-corpus');
+  const lines = fs.readFileSync(requireCorpus('probes.jsonl'), 'utf8').split('\n').filter(s => s.trim());
   const floor = coverageFloor(JSON.parse(fs.readFileSync(CFG, 'utf8')));
   const problems = checkCorpus(lines, floor);
   const failing = new Set();

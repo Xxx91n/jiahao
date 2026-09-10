@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // scripts/check-probes.js -- ADR-0029 D3/D4/D6: behavioral probe gate
-// (zero-miss smoke gate over bench/polygraph/probes.jsonl).
+// (zero-miss smoke gate over the private answer corpus, ADR-0036 D2:
+// JIAHAO_CORPUS_DIR -> install-planted dir -> repo private/bench-corpus).
 //
 //   D3  structural all-pass: probe-recall 0 misses, probe-fp 0 false
 //       positives over the 14-item paired corpus (7 violation + 7 benign).
@@ -24,11 +25,12 @@
 
 const fs = require('fs');
 const path = require('path');
-const { judgeItem } = require(path.join(__dirname, '..', 'bench', 'polygraph', 'node-bridge.js'));
 
 const ROOT = path.join(__dirname, '..');
-const CORPUS_PATH = path.join(ROOT, 'bench', 'polygraph', 'probes.jsonl');
 const CFG_PATH = path.join(ROOT, 'bench', 'polygraph', 'thresholds.json');
+const { requireCorpus } = require('../src/shared/paths');
+const { requireCapabilities } = require('../src/shared/capability');
+const { PREFIXES } = require('../src/shared/prefix-vocab'); // ADR-0043 D-E: prefix vocabulary fact source
 
 // ---- pure core (jest testable, no fs) ----
 
@@ -48,7 +50,8 @@ function runProbes(cases, judgeFn) {
 }
 
 // S-1 fail-closed guard: removing/truncating the probe_gates key must not let
-// the gate run gate-free (silent bypass). Fail closed with exit 2 in main.
+// the gate run gate-free (silent bypass). Fail closed with exit 1 + [config]:
+// in main (ADR-0041 D3: exit 2 is reserved for probed-capability-absence).
 function probeGatesConfigError(cfg) {
   if (!cfg || !Array.isArray(cfg.probe_gates) || cfg.probe_gates.length === 0) {
     return 'thresholds.json probe_gates missing or empty (ADR-0029 D2) — refusing fail-open';
@@ -115,7 +118,12 @@ function toJunitProbe(result) {
 // ---- CLI shell ----
 
 function readJsonl(p) {
-  return fs.readFileSync(p, 'utf8').split(/\r?\n/).filter(l => l.trim()).map(JSON.parse);
+  try {
+    return fs.readFileSync(p, 'utf8').split(/\r?\n/).filter(l => l.trim()).map(JSON.parse);
+  } catch (e) {
+    console.error(PREFIXES.config + ' [probe-gate] FAIL-CLOSED: corpus file is not valid JSONL (' + e.message + ')');
+    process.exit(1);
+  }
 }
 
 function parseArgs(argv) {
@@ -123,19 +131,25 @@ function parseArgs(argv) {
   for (let i = 2; i < argv.length; i++) {
     if (argv[i] === '--ci') o.ci = true;
     else if (argv[i] === '--artifacts-dir') o.artifactsDir = argv[++i];
-    else { console.error('unknown arg: ' + argv[i]); process.exit(2); }
+    else { console.error(PREFIXES.usage + ' unknown arg: ' + argv[i]); process.exit(1); }
   }
   return o;
 }
 
 function main() {
   const opts = parseArgs(process.argv);
-  const cfg = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8'));
+  requireCapabilities('probes');
+  let cfg;
+  try { cfg = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8')); }
+  catch (e) { console.error(PREFIXES.config + ' [probe-gate] FAIL-CLOSED: thresholds.json is invalid JSON (' + e.message + ')'); process.exit(1); }
   const cfgErr = probeGatesConfigError(cfg);
-  if (cfgErr) { console.error('[probe-gate] FAIL-CLOSED: ' + cfgErr); process.exit(2); }
+  if (cfgErr) { console.error(PREFIXES.config + ' [probe-gate] FAIL-CLOSED: ' + cfgErr); process.exit(1); }
   const gates = cfg.probe_gates;
-  const cases = readJsonl(CORPUS_PATH);
-  const results = runProbes(cases, judgeItem);
+  const corpusFile = requireCorpus('probes.jsonl');
+  const cases = readJsonl(corpusFile);
+  // audit F5: empty corpus fails closed, symmetric with mr-gate validateMrCorpus.
+  if (!cases.length) { console.error(PREFIXES.config + ' [probe-gate] FAIL-CLOSED: corpus is empty (fail-closed, symmetric with mr-gate)'); process.exit(1); }
+  const results = runProbes(cases, require(path.join(ROOT, 'bench', 'polygraph', 'node-bridge.js')).judgeItem); // ADR-0040 D2: deferred require - after capability probing
   const metrics = probeMetrics(results);
   const gate = evaluateProbeGates(gates, metrics);
 
@@ -150,7 +164,7 @@ function main() {
   }
 
   const payload = {
-    run: { gate: 'probe-gate', date: new Date().toISOString(), corpus: 'bench/polygraph/probes.jsonl', n: results.length, node: process.version },
+    run: { gate: 'probe-gate', date: new Date().toISOString(), corpus: 'private/bench-corpus/probes.jsonl', n: results.length, node: process.version },
     metrics,
     gate: { status: gate.status, checks: gate.checks.map(c => ({ id: c.id, observed: c.observed, outcome: c.outcome })) },
   };

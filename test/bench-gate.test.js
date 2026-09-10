@@ -13,7 +13,7 @@ const FIX = (name) => path.join(__dirname, 'fixtures', 'bench-gate', name);
 function run(script, args) {
   try {
     const out = execFileSync(process.execPath, [script, ...args], {
-      cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+      cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], env: Object.assign({}, process.env, { CI: 'true' }),
     });
     return { code: 0, out };
   } catch (e) {
@@ -100,7 +100,7 @@ describe('check-bench-thresholds guard', () => {
     expect(code).toBe(0);
     // Count is derived from the live config (ADR-0031 D3 adds judge_bias_gates).
     const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'bench', 'polygraph', 'thresholds.json'), 'utf8'));
-    const n = (cfg.gates || []).length + (cfg.probe_gates || []).length + (cfg.judge_bias_gates || []).length;
+    const n = (cfg.gates || []).length + (cfg.probe_gates || []).length + (cfg.judge_bias_gates || []).length + (cfg.mr_gates || []).length;
     expect(out).toContain(String(n) + ' gates anchored');
   });
   test('content anchor: forged value absent from ADR -> exit 1', () => {

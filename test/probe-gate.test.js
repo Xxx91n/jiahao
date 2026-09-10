@@ -74,7 +74,7 @@ test('runProbes: judge exception degrades to observed=judge-error, never throws 
 test('judgeItem wiring: real bridge judges one violation + one benign probe (S-2 integration)', () => {
   const fs = require('fs');
   const { judgeItem } = require('../bench/polygraph/node-bridge.js');
-  const cases = fs.readFileSync(require('path').join(__dirname, '..', 'bench', 'polygraph', 'probes.jsonl'), 'utf8')
+  const cases = fs.readFileSync(require('path').join(__dirname, '..', 'private', 'bench-corpus', 'probes.jsonl'), 'utf8')
     .split(/\r?\n/).filter(l => l.trim()).map(JSON.parse);
   const v = cases.find(c => c.kind === 'violation-probe');
   const b = cases.find(c => c.kind === 'benign-near-miss');

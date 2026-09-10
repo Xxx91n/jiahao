@@ -30,7 +30,9 @@ const path = require('path');
 const os = require('os');
 const crypto = require('crypto');
 const { execFileSync } = require('child_process');
-const { judgeItem } = require(path.join(__dirname, '..', 'bench', 'polygraph', 'node-bridge.js'));
+const { requireCapabilities } = require('../src/shared/capability');
+const { PREFIXES } = require('../src/shared/prefix-vocab'); // ADR-0043 D-E: prefix vocabulary fact source
+let judgeItem; // ADR-0040 D2: deferred - loaded in main after capability probing
 
 const ROOT = path.join(__dirname, '..');
 const CFG_PATH = path.join(ROOT, 'bench', 'polygraph', 'thresholds.json');
@@ -200,13 +202,15 @@ function parseArgs(argv) {
     if (argv[i] === '--ci') o.ci = true;
     else if (argv[i] === '--corpus-dir') o.corpusDir = argv[++i];
     else if (argv[i] === '--artifacts-dir') o.artifactsDir = argv[++i];
-    else { console.error('unknown arg: ' + argv[i]); process.exit(2); }
+    else { console.error(PREFIXES.usage + ' unknown arg: ' + argv[i]); process.exit(1); }
   }
   return o;
 }
 
 function main() {
-  const opts = parseArgs(process.argv);
+  const opts = parseArgs(process.argv); // ADR-0041 D3: usage errors answer with exit 1 even when capabilities are absent
+  requireCapabilities('bench-gate');
+  judgeItem = require(path.join(__dirname, '..', 'bench', 'polygraph', 'node-bridge.js')).judgeItem;
   const cfg = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8'));
 
   const corpus = resolveCorpus(cfg, opts.corpusDir);

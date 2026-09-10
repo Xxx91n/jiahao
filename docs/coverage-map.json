@@ -1,13 +1,75 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0032 D3: machine fact-source for generator-rule coverage of the seven iron laws. Four states: covered | declared-gap | needs-adr | undecidable. declared-gap carries rationale + source_adr + review_at (ADR-0031 D3 stale rule). The derived matrix is printed by scripts/check-coverage.js, never committed (R4).",
+  "_doc": "ADR-0032 D3: machine fact-source for generator-rule coverage of the seven iron laws. Four states: covered | declared-gap | needs-adr | undecidable. declared-gap carries rationale + source_adr + review_at (ADR-0031 D3 stale rule). The derived matrix is printed by scripts/check-coverage.js, never committed (R4). ADR-0037 D2: mr_gaps registers the metamorphic-relation coverage axis of the verifier iron laws (declared-gap rows for IL5/IL6 — no natural textual flip transform; v2 structured transforms deferred).",
   "laws": {
-    "L1": { "state": "covered", "targets": ["gsr:1", "gsr:3"] },
-    "L2": { "state": "declared-gap", "rationale": "verifier-only responsibility: 'errors are found, not felt' is a detection-side duty with no surface-signal analogue on the generator side", "source_adr": "docs/adr/0032-generator-surface-rules-deepening-gsr-coverage-lifecycle.md", "review_at": "2026-11-30" },
-    "L3": { "state": "covered", "targets": ["gsr:1"] },
-    "L4": { "state": "declared-gap", "rationale": "verifier-only responsibility: three-tier epistemic honesty is a reporting discipline graded by the verifier profile", "source_adr": "docs/adr/0032-generator-surface-rules-deepening-gsr-coverage-lifecycle.md", "review_at": "2026-11-30" },
-    "L5": { "state": "covered", "targets": ["gsr:2"] },
-    "L6": { "state": "declared-gap", "rationale": "verifier-only responsibility: brevity/report-shape discipline is not a surface signal of false completion", "source_adr": "docs/adr/0032-generator-surface-rules-deepening-gsr-coverage-lifecycle.md", "review_at": "2026-11-30" },
-    "L7": { "state": "covered", "targets": ["gsr:1", "gsr:3"] }
-  }
+    "L1": {
+      "state": "covered",
+      "targets": [
+        "gsr:1",
+        "gsr:3"
+      ]
+    },
+    "L2": {
+      "state": "declared-gap",
+      "rationale": "verifier-only responsibility: 'errors are found, not felt' is a detection-side duty with no surface-signal analogue on the generator side",
+      "source_adr": "docs/adr/0032-generator-surface-rules-deepening-gsr-coverage-lifecycle.md",
+      "review_at": "2026-11-30"
+    },
+    "L3": {
+      "state": "covered",
+      "targets": [
+        "gsr:1"
+      ]
+    },
+    "L4": {
+      "state": "declared-gap",
+      "rationale": "verifier-only responsibility: three-tier epistemic honesty is a reporting discipline graded by the verifier profile",
+      "source_adr": "docs/adr/0032-generator-surface-rules-deepening-gsr-coverage-lifecycle.md",
+      "review_at": "2026-11-30"
+    },
+    "L5": {
+      "state": "covered",
+      "targets": [
+        "gsr:2"
+      ]
+    },
+    "L6": {
+      "state": "declared-gap",
+      "rationale": "verifier-only responsibility: brevity/report-shape discipline is not a surface signal of false completion",
+      "source_adr": "docs/adr/0032-generator-surface-rules-deepening-gsr-coverage-lifecycle.md",
+      "review_at": "2026-11-30"
+    },
+    "L7": {
+      "state": "covered",
+      "targets": [
+        "gsr:1",
+        "gsr:3"
+      ]
+    }
+  },
+  "mr_gaps": [
+    {
+      "law": "IL5-side-effects",
+      "state": "declared-gap",
+      "rationale": "evidence-chain mechanics (side-effect touch accounting) has no natural textual flip transform — presence/absence of the evidence record is already covered by the IL2/IL4 evidence-flip family",
+      "source_adr": "docs/adr/0037-metamorphic-relations-third-corpus-family-staged-hybrid.md",
+      "review_at": "2027-02-28"
+    },
+    {
+      "law": "IL6-no-showing-off",
+      "state": "declared-gap",
+      "rationale": "verbosity/report-shape signals have no claim-level symmetric transform; a length-based counterfactual is v2 material (structured transforms)",
+      "source_adr": "docs/adr/0037-metamorphic-relations-third-corpus-family-staged-hybrid.md",
+      "review_at": "2027-02-28"
+    }
+  ],
+  "falsification_gaps": [
+    {
+      "id": "falsification-statistics",
+      "state": "declared-gap",
+      "rationale": "Statistical falsification metrics and threshold enforcement are deferred until the structural twin gate has a stable operational history (ADR-0044 defer-0011).",
+      "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
+      "review_at": "2027-03-01"
+    }
+  ]
 }

@@ -80,6 +80,206 @@
       "cadence_tier": "quarterly",
       "registered_at": "2026-08-30",
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0006",
+      "subject": "MR corpus v2 pipeline: LLM-generated candidate transforms + independent semantic-preservation judge (ASE 2026 two-layer, different model family) + paired McNemar (Amazon LLM-Accuracy-Stats) + FWER control",
+      "source_adr": "docs/adr/0037-metamorphic-relations-third-corpus-family-staged-hybrid.md",
+      "rationale": "v1 is hand-authored because judge-validated machine generation cannot feed a zero-false-positive corpus (LLMorph: unverified transforms are only ~42-60% true positives). Scaling past ~12 pairs needs the two-layer pipeline and paired statistics; both are buildable on demand, so v1 is frozen instead of pre-built.",
+      "unfreeze_if": {
+        "type": "count-threshold",
+        "check": "any single MR family accumulates >= 30 real cases (the ADR-0029 D3 graduation line), OR a freshness cycle demands corpus regeneration at a scale hand-authoring cannot carry"
+      },
+      "review_at": "2027-02-28",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-08-31",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0007",
+      "subject": "private-registry corpus distribution channel (publish=false / access-controlled npm registry package, Cargo/Turborepo internal-package pattern)",
+      "source_adr": "docs/adr/0038-npm-runtime-artifact-surface-corpus-distribution-boundary.md",
+      "rationale": "No external consumer demand exists today; the maintainer/CI channel (CI secret tar) covers all real reproduction needs. Building the channel now would pay the two-package version-sync cost for zero demand (ADR-0038 R1 reasoning).",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a real external consumer of the benchmark corpus exists (an external team attempting reproduction) AND an access-controlled private channel is provisioned"
+      },
+      "review_at": "2027-02-28",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-08-31",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0008",
+      "subject": "local-file:<path> escape form for gate capability probing (one-off custom gates)",
+      "source_adr": "docs/adr/0040-gate-runtime-capability-declaration-three-state-exit-honest-unverifiable.md",
+      "rationale": "The four-capability closed enum covers all 18 current gates; an unconstrained escape slides toward an expression language. systemd precedent: X- prefix is a reserved namespace, not an open verb; if built, it must be prefix-scoped, relative-path-only, and inside the coupling guard's scan range.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a real gate needs an arbitrary-path capability outside the closed enum"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-01",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0009",
+      "subject": "implement check-falsify.js and register falsification in docs/gates.json",
+      "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
+      "rationale": "ADR-0044 is a document-round decision only. The executable falsification gate and registry wiring belong to the next implementation round.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the ADR-0044 implementation round opens"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-04",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0010",
+      "subject": "define and commit the first 12 falsification-twins with claim_id, claim_type, and falsification_cmd entries",
+      "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
+      "rationale": "The first twin batch is a structural killing-power check, not statistical coverage. Its fixtures are created in the implementation round once the record and gate contract are wired.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the ADR-0044 implementation round opens and check-falsify.js exists"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-04",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0011",
+      "subject": "add statistical falsification metrics and threshold enforcement after the structural gate is green",
+      "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
+      "rationale": "Statistics would pretend to measure what the first structural gate cannot yet support. It follows a green structural falsification gate and a larger twin corpus.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "defer-0009 is implemented and the structural falsification gate is green"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-04",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0012",
+      "subject": "scoring-function isolation for capable-optimizer defense",
+      "source_adr": "docs/adr/0045-stochastic-deterministic-boundary-evidence-path-verification.md",
+      "rationale": "ADR-0036 already isolates corpus data; ADR-0045 records the separate execution-boundary concern. Scoring code must not be readable or mutable by the generator before it runs, but there is no current score-bearing verifier implementation to protect.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a scoring-mode verifier or LLM-judge runtime exists and is reachable by the generator"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-05",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0013",
+      "subject": "Lyft-style prompt contradiction and dead-path linting",
+      "source_adr": "docs/adr/0045-stochastic-deterministic-boundary-evidence-path-verification.md",
+      "rationale": "Current adapter drift and structural checks catch shape drift, not contradictory or dead instruction paths. Adding an LLM-level prompt linter would introduce a new review dependency before the existing static gates demonstrate the need.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "adapter drift and structural gates have produced a reproducible missed contradiction case"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-05",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0015",
+      "subject": "Human-labeled anchor corpus and annotation manual for the judge revalidation admission gate",
+      "source_adr": "docs/adr/0046-instrument-drift-recalibration.md",
+      "rationale": "The human-anchor admission gate (ADR-0046 D-D) requires a frozen human-labeled corpus with a human-human kappa baseline, expert rotation, and a 60-90 day refresh; that asset does not exist yet.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the ADR-0046 implementation round opens and a frozen human-labeled anchor corpus with annotation manual is commissioned"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-05",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0018",
+      "subject": "silent-drift anytime-valid auto-detection: anchor e-process + guard-window attribution to {none, system, judge}",
+      "source_adr": "docs/adr/0047-impact-tiered-instrument-change-control.md",
+      "rationale": "ADR-0047 D-E defers silent provider drift detection behind its two prerequisites: the human-labeled anchor corpus (defer-0015) and a trustworthy scheduler carrier (CONTEXT.md Reverification Runbook rejects cron/CI without a trusted remote executor). Building before the anchor set exists would replicate the naive-z ~75% false-alarm failure.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "defer-0015's frozen human-labeled anchor corpus with annotation manual is committed and schema-valid, AND a trustworthy scheduler carrier exists (CI cron with a trusted remote executor, or equivalent), AND the reverify pipeline wires the ADR-0046 D-A identity triple"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-05",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0019",
+      "subject": "data-driven calibration interval and offset-band feedback (staircase / reliability-ratio + guard-band)",
+      "source_adr": "docs/adr/0047-impact-tiered-instrument-change-control.md",
+      "rationale": "ADR-0047 D-F keeps the 6/9-month dead-man clock as initial interval and floor while the reverify ledger accumulates as-found/as-left history. Data-driven interval adjustment needs enough same-identity cycles and flip-eligible samples plus the anchor set before a control decision is statistically honest.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the same identity has accumulated >= 2-3 complete reverify cycles AND >= 30 flip-eligible samples (ADR-0029 D3 graduation line) AND defer-0015's anchor set is available"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-05",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0023",
+      "subject": "criteria-change pointwise replay (as-left re-projection pipeline)",
+      "source_adr": "docs/adr/0049-decision-rule-anchor-and-metrological-ledger-completion.md",
+      "rationale": "ADR-0049 D-D requires pointwise replayable judge input before a criteria change can produce a genuine as-left re-projection. The current ledger retains aggregate values only, so criteria change must fall back to restatement mapping until input retention and the anchor set exist.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the metrological ledger is authoritative AND pointwise judge input retention (claim/toolResults/heuristicVerdict) is implemented AND defer-0015's anchor set is available"
+      },
+      "review_at": "2026-12-06",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-06",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0024",
+      "subject": "external witness / second-copy anchor for the evidence-log tip and genesis (independent-domain mirror: transparency log / timestamp / DNS TXT / second host)",
+      "source_adr": "docs/adr/0050-append-only-hardening-external-head-anchor-and-genesis-anchoring.md",
+      "rationale": "ADR-0050 D-B lands the install-time local genesis anchor and tail sidecar first. An external second copy raises detection strength from same-host to cross-domain (detection strength equals anchor independence) but requires network or a third-party trust domain; deferred until a cross-machine verification requirement or second-party consumer exists.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "a cross-machine verification requirement or a second-party consumer of the evidence log exists outside the producing host"
+      },
+      "review_at": "2027-09-01",
+      "cadence_tier": "yearly",
+      "registered_at": "2026-09-07",
+      "last_check_in": {
+        "date": "2026-09-09",
+        "note": "local witness vocabulary is now decided by ADR-0052/0053; cross-host condition remains unchanged"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0025",
+      "subject": "host-native directory synchronization capability upgrade",
+      "source_adr": "docs/adr/0051-closed-persistence-capability-class.md",
+      "rationale": "ADR-0051 records the closed persistence capability class. The current runtime uses dir-sync-unsupported on Windows; promoting it to dir-sync-durable requires a documented portable directory-fsync primitive from Node or Windows, not a local adapter or new dependency.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the target runtime exposes a documented and supported portable directory-fsync primitive"
+      },
+      "review_at": "2027-03-09",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-09",
+      "status": "pending-evaluation"
     }
   ]
 }

@@ -23,9 +23,18 @@ describe('ADR-0033 D2 entry schema', () => {
   });
 
   test('seed inventory matches ADR-0033 D5 + ADR-0035 D4/D6 corrections', () => {
-    expect(registry.entries.map(e => e.id)).toEqual(['defer-0001', 'defer-0002', 'defer-0003', 'defer-0004', 'defer-0005']);
+    // ADR-0040 grill round added defer-0008 (local-file escape); extend the seed inventory.
+    // ADR-0046 implementation round activates and removes defer-0014;
+    // defer-0015 remains the human-labeled anchor corpus prerequisite.
+    // ADR-0047 implementation round activates and removes defer-0016/0017;
+    // defer-0018/0019 remain pending-evaluation.
+    // ADR-0048 implementation round activates and removes defer-0020/0021/0022.
+    // ADR-0049 document round adds defer-0023 (criteria-change pointwise replay).
+    // ADR-0050 document round adds defer-0024 (external witness / second-copy anchor).
+    // ADR-0051/0052/0053 document round adds defer-0025 (host-native directory sync).
+    expect(registry.entries.map(e => e.id)).toEqual(['defer-0001', 'defer-0002', 'defer-0003', 'defer-0004', 'defer-0005', 'defer-0006', 'defer-0007', 'defer-0008', 'defer-0009', 'defer-0010', 'defer-0011', 'defer-0012', 'defer-0013', 'defer-0015', 'defer-0018', 'defer-0019', 'defer-0023', 'defer-0024', 'defer-0025']);
     // ADR-0035 D6: no verified_by -> pending-evaluation; only defer-0004 (real assertion) stays deferred
-    expect(registry.entries.map(e => e.status)).toEqual(['pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'deferred', 'pending-evaluation']);
+    expect(registry.entries.map(e => e.status)).toEqual(['pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'deferred', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation']);
     for (const e of registry.entries) expect(e.review_at >= today).toBe(true);
   });
 

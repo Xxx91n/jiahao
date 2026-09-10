@@ -382,6 +382,15 @@ ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
 - ADR-0034 gate registry: docs/gates.json fact-source + gate:all single entrypoint + run-all-aggregate with --fail-fast opt-in + CRTM-as-entry ordering contract + three-face alignment (ci.yml wiring assertion) + pre-commit untouched; generated-ci.yml uplift registered as defer-0004 in docs/deferred-registry.json
 - ADR-0035 deferred registry maturation: review cadence ladder (quarterly/half-yearly/yearly by type x likelihood x exposure) + pending-evaluation residency SLA min(2 cycles, 12 months) + weak-form check_in discipline (warn-level) + defer-0002 split (0002 external-event narrowed / new defer-0005 free-text protocol-verification) + defer-0004 honest presence-condition via real verified_by assertion script + check-deferred.js verified_by enforcement (unverified claim auto-downgrades to pending-evaluation)
 - ADR-0036 anti-gaming audit: NIST CAISI boundary (contamination vs grader gaming, A-2+A-3 subset) + answer-corpus migration to private/bench-corpus (probes/judge-twins/twins; thresholds stays public with private_corpus sha256 anchors) + known-exposed history handling (probes refresh now, twins on cycle) + gate-defaults params consistency assertion + corpus-freshness gate (cadence-tiered, tier warn / 1.5x fail-closed, event trigger) + check-corpus-leak fingerprint gate
+- ADR-0037 metamorphic relations third corpus family: staged hybrid (v1 hand-authored selected MR specs, v2 deferred LLM+judge pipeline) + <=3 pre-registered families (claim negation / equivalence restatement / evidence flip) + IL5/IL6 declared-gap + deterministic check-mr-probes.js zero-violation gate + Wilson honest annotation / McNemar at v2
+- ADR-0038 npm runtime-artifact surface: files whitelist tarball-as-wheel (prompt-installer, measured budget per ADR-0039) + corpus gates maintainer/CI-only fail-closed by design (git clone also carries no corpus) + honest missing-corpus message + private-registry-only future corpus channel (deferred)
+- ADR-0039 tarball runtime surface narrowing: docs/adr + docs/agents leave the npm artifact (archive channel = the git tree itself; no Releases/sparse-checkout infrastructure), whitelist keeps docs/gates.json + coverage-map.json + deferred-registry.json machine fact-sources + CONTEXT.md vocabulary asset; measured-anchor budget 200,000 bytes with ADR-text content anchor, single confirmatory tier, no warn band
+- ADR-0040 gate runtime capability declaration: gates.json gains a closed `requires` enum (repo-tree/bench-corpus/docs-adr/ci-mode), three-state exit 0/1/2 with narrow exit 2 = UNVERIFIABLE, two-line ::error honest-degradation message, run-gates UNVERIFIABLE column, degradation schema explicitly unchanged, regression = helper jest + 4 spawn representatives + static wiring anchor
+- ADR-0043 fact-source spine deepening: README ADR index as derived artifact (sentinel region + scripts/build-adr-index.js --check, gate order 115) + stderr prefix vocabulary single source (src/shared/prefix-vocab.js) + run-gates choke check
+- ADR-0044 claim-directed falsification: mechanical falsifiability rule, five-tuple falsification_record, evidence tri-state, 12-twin structural first batch, 0/1/2 falsification gate reuse (implementation round: src/shared/falsify.js + scripts/check-falsify.js + order-185 gate + wiring test)
+- ADR-0045 stochastic-deterministic boundary + evidence-path verification: Candidate-Verification Loop parent model; SDB proposer/verifier/commit/reject mapping; reject = typed evidence only, no semantic auto-retry; Evidence-Path Verification stays outside claim_type/gates/falsification_record; scoring-function isolation and Lyft prompt linting deferred as defer-0012/0013 (document round)
+- ADR-0046 instrument-drift recalibration: dual-axis judge identity (rules+prompt hash, model checkpoint, inference params), resolve-then-pin event trigger, layered quarantine semantics (deterministic re-run / stochastic quarantine / telemetry re-baseline), delta-gated revalidation, two-state + human sign-off state machine (document round)
+- ADR-0047 impact-tiered instrument change control: tiered change classification (identity / corpus / threshold / schedule), rebaseline + criteria-change event types (authoritative), three-layer model identity with UNRESOLVED, inference-config metadata column + determinism envelope, silent-drift e-process deferred, data-driven calibration interval deferred (implementation round)
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -655,13 +664,44 @@ _Avoid_: per-turn dashboards, free-form metrics (Motion 52-flags
 counterexample)
 
 **Honest-Twin Corpus (诚实双胞胎语料)**:
-bench/polygraph/judge-twins.jsonl: pre-registered hard cases where the L1-L3
+private/bench-corpus/judge-twins.jsonl (ADR-0036 D2, gitignored private surface): pre-registered hard cases where the L1-L3
 heuristics fire but a competent judge must override to honest and cite the
 rescuing evidence. Every entry carries provenance and collected_at; entries
 older than 6 months are stale pending re-validation (eval-rot rule). The
 corpus is the acceptance asset for any future scoring-mode verifier and must
 never be used to tune thresholds (METR do-not-tune-on-eval discipline).
 _Avoid_: tune-on-corpus, undated eval data, vibe evals
+
+**Instrument Identity (仪器身份)**:
+The immutable judge identity triple `{ rulesVersion + promptHash, model
+checkpoint identity, inferenceConfigHash }` that pins which instrument is doing
+the measuring. The model axis is three-layer: registered name (tag) -> provider
+dated snapshot / revision commit sha -> weights sha256; a tag without a resolved
+snapshot is `UNRESOLVED` and never counts as evidence. The alias/endpoint name
+is a mutable pointer and is never evidence; only the resolved content digest is
+evidence identity (ADR-0046 D-A, ADR-0047 D-C).
+_Avoid_: endpoint name, alias-as-version, model-family name, self-referential descriptor hash
+
+**Resolve-then-Pin (解析后钉死)**:
+Gate-time resolution of a mutable alias to an immutable digest, compared
+against a repository pin; a mismatch fails the gate so a rollover becomes a
+recorded pin change (ADR-0046 D-B).
+_Avoid_: latest alias, runtime fingerprint comparison, tag pinning
+
+**Instrument Quarantine (仪器隔离)**:
+The two-state `authoritative <-> quarantined` lifecycle: an identity-axis change
+enters quarantine, and restoring authority requires a revalidation pass plus a
+human sign-off bound to the new fingerprint (ADR-0046 D-E). Corpus and threshold
+changes stay `authoritative` and append human-signed rebaseline / criteria-change
+records instead; only a failed rebaseline with no rollback escalates to
+quarantine (ADR-0047 D-B).
+_Avoid_: auto-promote, suspected state, self-certified upgrade
+
+**Lot-to-Lot Verification (换批验证)**:
+New-old judge parallel scoring on the frozen anchor set with a pre-registered
+delta band and bias probes; the clinical precedent that a new reagent batch is
+validated on the same samples before use (ADR-0046 D-D).
+_Avoid_: absolute-threshold reuse, single-sided validation, drift-alarm-as-pass
 
 **Segment Anchor (段锚点)**:
 The first record of every non-genesis segment in the segmented evidence log
@@ -783,7 +823,7 @@ hosts behind hook-tier marketing
 A paired per-iron-law corpus item (ADR-0029 D2/D3): one planted
 violation plus one benign near-miss per law, in the CheckList MFT /
 XSTest contrastive tradition. The corpus lives in
-bench/polygraph/probes.jsonl under the same governance family as
+private/bench-corpus/probes.jsonl (ADR-0036 D2) under the same governance family as
 judge-twins (schema gate + ADR-witnessed growth). Benign near-misses
 are mined from real false-positive history, not synthesized.
 _Avoid_: treating the corpus as a statistical benchmark (the
@@ -1112,3 +1152,438 @@ covering corpus/environment leakage and process-layer bypass with gate
 mechanics as the already-covered layer. Stays cost-raising, not
 impossible-to-bypass (CWE-656 honesty).
 _Avoid_: careless-generator-only threat model, claims of un-gameability
+
+**Metamorphic Relation (蜕变关系)**:
+A necessary property of the verifier's judgment function across transformed
+inputs: transforms that provably preserve case semantics must produce the
+same verdict (preserve-type); transforms that provably flip semantics must
+flip the verdict (flip-type). Third corpus family per ADR-0037, testing
+judgment *symmetry* where probes test fixed judgments. Source formats are
+selected from the LLMorph/MT4NLP catalog (191 MRs), not invented.
+_Avoid_: mutation testing (bug-seeding), self-consistency resampling
+(not an MR; repeats the same hallucination per MetaQA)
+
+**Transform Validity Layer (变换有效性验证层)**:
+The mandatory human (v1) or independent-judge (v2) check that a metamorphic
+transform actually preserves or flips semantics as designed, before the pair
+enters the corpus. Without it, corpus entries carry ~40% false ground truth
+(LLMorph measured ~60% true-positive ceiling for unverified transforms),
+which structurally breaks the zero-fp smoke gate. v1 = human review recorded
+in provenance; v2 = independent model-family semantic-preservation judge
+(ASE'26 two-layer design).
+_Avoid_: skipping validation on "obviously equivalent" rewrites
+
+**Runtime-Artifact Surface (运行时工件面)**:
+ADR-0038's dual-surface distribution model, isomorphic to Python's
+wheel/sdist: the npm tarball is the runtime artifact (prompt-installer only,
+files-whitelisted, measured-anchor budget 200,000 bytes per ADR-0039); the git tree is the development surface (tests,
+fixtures, integrity anchors, ADRs). Answer corpora appear on neither public
+surface; they resolve only via JIAHAO_CORPUS_DIR / install-planted /
+maintainer-tree tiers (ADR-0036).
+_Avoid_: tests-in-tarball, .npmignore blacklist reliance (npm: whitelist is
+"by far the safest way")
+
+**Gate Capability Declaration (requires)** (ADR-0040): a per-gate closed-enum array in
+docs/gates.json naming the environment capabilities a gate needs before it may run -
+repo-tree / bench-corpus / docs-adr / ci-mode. Probing is existence-only, never content
+correctness; an unregistered name is a registry violation (closed-world), not a degraded
+run. Vocabulary is orthogonal to ADR-0031's tier (decision severity).
+_Avoid_: open capability vocabularies, inline per-gate sniffing, content checks inside
+probing
+
+**UNVERIFIABLE (exit 2)** (ADR-0040): the gate three-state contract - 0 pass / 1 violation
+/ 2 cannot-verify because a declared capability is deterministically absent. Exit 2 may
+occur ONLY on a probed-and-negated path; crashes, IO errors and helper bugs stay exit 1
+and expose themselves. Surfaced as a two-line message (a ::error annotation line on stdout with
+comma-separated properties + a human line on stderr; channel corrected by ADR-0041 D5)
+and listed as its own column by run-gates. Never recorded
+in degradation.schema.json (that vocabulary means "ran but degraded").
+_Avoid_: folding infrastructure failures into the verdict vocabulary (Bazel
+TEST_INFRASTRUCTURE_FAILURE_FILE precedent)
+
+**Primary/Secondary Channel Separation (主/辅通道分离)** (ADR-0041 D3): exit code is the
+primary machine channel (three codes only); stderr structured prefixes ([usage]: /
+[config]: / [internal]:) are the auxiliary channel for machine-matchable sub-classification.
+Precedent: Bazel TEST_INFRASTRUCTURE_FAILURE_FILE - auxiliary channels are themselves closed
+enums and purpose-scoped, never a general mechanism.
+_Avoid_: exit-code subclass proliferation (sysexits 64-78), free-form stderr parsing
+
+**Consumer-Driven Constructor Granularity (消费者驱动构造子粒度)** (ADR-0041 D3): the number
+of constructors in a result type equals the match arms its consumers actually have, not the
+taxonomy of its error sources. jiahao's two consumers (run-gates + CI) need 3 bits; all finer
+distinction belongs in the auxiliary channel. Go sentinel-vs-anyhow decision rule applied.
+_Avoid_: error taxonomy mirroring, speculative code spaces
+
+**Domain-Scoped Exit Contracts (域契约隔离)** (ADR-0041 D2, extends ADR-0028): the same exit
+code may carry different meanings in different execution domains (hook domain exit 2 = block;
+gate domain exit 2 = capability-absent-unverifiable; free CLI scripts follow Click/argparse
+usage-error conventions). Contracts bind the orchestrated surface only; free scripts promise
+nothing until they join the registry via a pre-registered channel (ADR-0029 D5).
+_Avoid_: repo-global exit-code unification, implicit cross-domain meaning transfer
+
+**Order-Preserving Cumulative Validation (保序累积验证)** (ADR-0041 D6): dependency-chained
+lanes merge in dependency order, each step validating the cumulative state of everything
+before it plus itself; failure evicts from the queue. GitHub Merge Queue FIFO + GitLab merge
+trains (parallelism is cumulative-state validation run in parallel, never skipped steps) +
+stacked-PR bottom-to-top.
+_Avoid_: batched merge of dependency chains, reverse-order merges, octopus merges on chains
+
+**Internal Toolchain No Grace Period (内部工具链无宽限期)** (ADR-0041 D7): when every consumer
+of a contract lives in the same repo and upgrades in the same commit, breaking changes happen
+by hard cutover with wiring assertions, without deprecation windows. Grace-period machinery
+(K8s 3 releases, Terraform MINOR->MAJOR, Go GODEBUG, Rust editions) exists for external
+ecosystems that cannot upgrade in lockstep. golang.org/x/tools internal-package precedent.
+_Avoid_: dual-track transitions, feature-flagged semantics on registry-internal scripts
+
+**Hyrum Sufficient-Users Premise (Hyrum 定律充分用户前提)** (ADR-0041 D7): Hyrum's Law binds
+only when an API has a sufficient number of external users; an internal toolchain with two
+in-repo consumers is outside its scope - but silent in-repo dependencies on observable
+behavior (test assertions matching old exit codes) are the internal Hyrum list and must be
+updated in the same commit as the semantic change.
+_Avoid_: cargo-culting public-API migration discipline onto internal toolchains (and vice
+versa)
+
+**Warning Rule Code (告警规则码)** (ADR-0042 D2): the controlled identity of an advisory
+warning. The machine surface is a GitHub workflow-command annotation with `title=<code>` on
+stdout; the message body remains free text. Initial codes: `corpus-freshness`, `judge-stale`.
+Warn-only paths exit 0 and do not use the ADR-0041 `[usage]:/[config]:/[internal]:` stderr
+enum.
+_Avoid_: free identity tokens (e.g. `[jiahao]`), locking warning body text in regression tests
+
+**Lane Atomic Dependency (泳道原子依赖)** (ADR-0042 D4): a wiring hunk is its own bottom
+commit on the lane that depends on the parent. It does not ride along with unrelated hook,
+result, or artifact residue, so attribution is preserved and merge gates stay green.
+_Avoid_: ride-along hunk bundles that span more than one decision's worth of residue
+
+**Contract Locking (契约锁)** (ADR-0042 D3): the regression lock verifies the executable
+contract - the closed prefix vocabulary, a spawned category contract (config-load failure),
+reference integrity of registry commands and ADR source paths, and controlled warning rule
+codes - rather than scanning single-quoted source literals. Locking only the executable
+surface keeps the test resilient to formatting refactors.
+_Avoid_: literal-pattern locks that test the source instead of the behavior
+
+**Derived Artifact (派生产物)** (ADR-0043 D-B): a view whose entire content is
+rebuilt by a generator from a fact source and guarded by a fail-closed
+regen-and-diff gate; hand edits inside it are wrong by construction. README's
+ADR index is the first instance (fact source: docs/adr file names + H1 titles).
+Distinct from Adapter Drift, which names the failure mode (stale generated
+adapters), not the artifact class.
+_Avoid_: generated copy, manually maintained index
+
+**Sentinel Region (哨兵区间)** (ADR-0043 D-B): the marker pair
+(`<!-- adr-index:start -->` / `<!-- adr-index:end -->`) delimiting the part of
+a prose document that a generator owns wholesale. Everything between the
+markers is machine-authored; anything human-written belongs outside.
+_Avoid_: template block, magic comment region
+
+**Claim-Directed Falsification (宣称导向证伪)** (ADR-0044 D-A):
+The incremental mental model that binds every load-bearing claim to an
+executable falsification attempt. It reuses gates.json, capability probing,
+run-gates.js, and EvidenceLog instead of introducing a new verification
+runtime.
+_Avoid_: claim checking, self-verification, eval-driven scoring
+
+**Mechanical Falsifiability Rule (机械可证伪规则)** (ADR-0044 D-C):
+A load-bearing claim is accepted only when it has a deterministic
+`falsification_cmd` and a deterministic exit contract. A claim without that
+command is explicitly classified, never implicitly trusted.
+_Avoid_: prose-only verification, unexecutable falsification criteria
+
+**Claim Classification (宣称分类)** (ADR-0044 D-D):
+The three-way boundary for key claims: `mechanically-falsifiable`,
+`declared-unverifiable`, or `deferred`. The first class enters the
+falsification gate; the latter two use existing UNVERIFIABLE/deferred
+channels rather than masquerading as verified.
+_Avoid_: pass/fail claim taxonomy, unclassified capability claims
+
+**Falsification Record (证伪记录)** (ADR-0044 D-F):
+The five-tuple evidence shape `{claim_id, claim_type, falsification_cmd,
+exit_code, falsified}` written to the append-only, hash-chained evidence
+store. It records the executable attempt, not the claim text.
+_Avoid_: provenance document, eval report, claim annotation
+
+**Evidence Tri-State (证据三态)** (ADR-0044 D-G):
+The `falsified` value domain `valid | invalid | missing`. `valid` means the
+claim survived the attempt; `invalid` means it was falsified; `missing` means
+no evidence was produced.
+_Avoid_: boolean pass/fail only, conflating missing with invalid
+
+**Falsification Twin (证伪孪生)** (ADR-0044 D-J):
+A paired fixture that makes one claim survive and another structurally fail
+the same deterministic falsification command. The first implementation batch
+is 12 pairs selected for structural killing power before statistical coverage.
+_Avoid_: statistical pair, property-based corpus, adversarial probe only
+
+**Falsification Gate (证伪门)** (ADR-0044 D-I):
+The future registered gate that executes falsification commands and reuses
+the ADR-0040 `0/1/2` exit contract: green, deterministic breach, or
+capability-absent UNVERIFIABLE. It joins gates.json through the single
+gate:all entrypoint; ci.yml remains untouched.
+_Avoid_: bespoke exit code, direct ci.yml wiring, judge-as-primary gate
+
+**Candidate-Verification Loop (候选验证循环)** (ADR-0045 D-A):
+The parent mental model in which generation and verification are connected
+by an explicit feedback signal. SDB and Evidence-Path Verification are
+concrete children of this loop, not separate verification runtimes.
+_Avoid_: self-verification loop, agent debate as primary evidence, open-ended retry loop
+
+**Stochastic-Deterministic Boundary (随机确定边界)** (ADR-0045 D-B):
+The canonical boundary between LLM sampling and deterministic evidence:
+`proposer -> verifier -> commit -> reject`. Verification remains terminal;
+reject does not automatically re-enter the proposer.
+_Avoid_: stochastic checker, deterministic generator, automatic semantic retry
+
+**Typed Rejection Evidence (类型化拒绝证据)** (ADR-0045 D-C):
+The `reject` semantics carried by a `falsification_record` when
+`falsified = invalid`. It must originate from a deterministic
+`falsification_cmd` with exit `1`; a direct `invalid` write without that
+command is forbidden. The five-tuple record is unchanged.
+_Avoid_: verdict field, reason-only rejection, transport retry policy
+
+**Evidence-Path Verification (证据路径验证)** (ADR-0045 D-D):
+An organizational mental model with three tracks: Silence, Perspective,
+Counterfactual. It does not enter `claim_type`, gates.json, or
+`falsification_record`; each track points to an existing mechanism.
+Silence maps to `missing`/UNVERIFIABLE, Perspective to judge whitelist and
+deployment independence, Counterfactual to metamorphic relations and
+falsification twins.
+_Avoid_: claim-type taxonomy, gate registry entry, separate verification runtime
+
+**Impact-Tiered Change Control (影响层分级变更控制)**:
+Classification of an explicit change by which validated object it touches, with
+a tiered response: identity axis -> quarantine, corpus batch -> re-baseline,
+threshold -> criteria replay, schedule/gate list -> record. Every tier ends in a
+human sign-off (ADR-0047 D-A).
+_Avoid_: trigger-narrowing, one-size quarantine, unattended revalidation
+
+**Change Surface (变更面)**:
+The machine fact-source mapping changed files to their change-control tier,
+analogous to the gate registry and protected by the coupling guard (ADR-0047 D-A).
+_Avoid_: inline path globs, hand-maintained tier prose
+
+**Rebaseline (语料重基准)**:
+A corpus/fingerprint batch change validated by old-new parallel scoring on a
+frozen input subset with a pre-registered delta band; it appends a human-signed
+evidence record while the instrument stays `authoritative` (ADR-0047 D-B).
+_Avoid_: corpus-as-identity-change, absolute-threshold comparison
+
+**Criteria Change (判定准则变更)**:
+A threshold change recorded as a versioned replay of affected verdicts plus a
+restatement mapping for overturned sign-offs; it never enters quarantine
+(ADR-0047 D-B).
+_Avoid_: silent threshold edit, in-place signoff rewrite
+
+**Determinism Envelope (确定性包络)**:
+The pin-side declaration that determinism is a measured property, not a config
+claim: decode policy, provider contract, and measured repeatability from
+same-input re-runs. `temperature=0` is a greedy decode request, never a
+guarantee (ADR-0047 D-D).
+_Avoid_: temperature-as-determinism, seed-as-determinism, untested determinism claim
+
+**Calibration Interval (校准间隔)**:
+The reverify cadence as a metrological interval: a fixed 6/9-month initial
+floor while the ledger accumulates as-found/as-left history, with data-driven
+staircase adjustment deferred until cycles, samples, and the anchor set qualify
+(ADR-0047 D-F).
+_Avoid_: fixed-only interval with no feedback, regression-fit interval, drift-alarm-as-interval
+
+**Metrological Ledger (计量台账)**:
+The reverify record as a calibration ledger with as-found/as-left double
+columns: as-found is the judge's observed distribution on the frozen gold-set
+before adjustment, as-left is the same gold-set re-scored after a rebaseline or
+criteria change, and observed delta is the difference. Each row anchors the
+instrument identity triple and records sample size with a Wilson 95% flip-rate
+interval (ADR-0048 D-A).
+_Avoid_: telemetry snapshot, single-column run log, delta-less ledger
+
+**Record-Only Change (只记录变更)**:
+A schedule/gate-list change recorded as an append-only `record_only_change`
+audit event on the evidence chain. It does not enter the
+`authoritative <-> quarantined` state machine; its lifecycle is the record
+layer's `pending_signoff -> certified` projection (ADR-0048 D-B).
+_Avoid_: recorded third state, quarantine-on-schedule-change, unsigned record
+
+**Vocabulary Anchor (词表锚定)**:
+The machine fact-source discipline that each controlled token of a structured
+config (surface, response, attestation) must appear verbatim in its source
+ADR's machine-anchored vocabulary block; it asserts whole-word existence, never
+parses semantics (ADR-0048 D-C).
+_Avoid_: prose parsing, same-commit-only coupling, free-form vocabulary
+
+**No-Adjustment Path (无调整路径)**:
+A reverify whose as-found passes the registered decision rule records as-found
+once with an explicit `no_adjustment` declaration; `as-left` appears only on a
+rebaseline or criteria change as a paired, dated field. The as-left value is
+not duplicated from as-found (ADR-0049 D-A).
+_Avoid_: double-column copy, implicit no-adjustment, as-left-as-telemetry
+
+**Decision-Rule Anchor (决策规则锚)**:
+The conformity predicate that decides when a ledger row may declare pass or
+`no_adjustment`. It is the ILAC-G8:09/2019 spectrum plus JCGM 106:2012
+acceptance-limit/guard-band math, default guarded acceptance `w=1,k=2`
+(PFA approximately 2.5%); each row records
+`decision_rule {id, version, w, acceptance_limit, spec_ref}` (ADR-0049 D-B).
+_Avoid_: eyeball pass, undocumented rule, unversioned decision rule
+
+**Corpus Reference (语料基准锚)**:
+The per-row reference identity added beside the instrument identity triple:
+`corpus_ref` = content digest plus version semantics. A ledger row must identify
+the corpus/baseline its measurement was scored against (ADR-0049 D-C).
+_Avoid_: name-only corpus identity, reference left only on the rebaseline event
+
+**Baseline Re-Expression (基准再表达)**:
+The delta discipline that cross-cycle `observed delta` is directly comparable
+only between rows sharing the same `corpus_ref`; a rebaseline carries delta
+through the old-new overlap (ADR-0047 D-B) or declares non-comparability.
+Silent subtraction across `corpus_ref` is forbidden (ADR-0049 D-C).
+_Avoid_: cross-corpus subtraction, v1-to-v2 conversion, calendar-driven rebase
+
+**Criteria Replay Precondition (准则重放前置)**:
+The requirement that a criteria change may produce a genuine as-left
+re-projection only from pointwise replayable judge input
+(`claim`/`toolResults`/`heuristicVerdict`) plus criteria version and identity;
+otherwise it falls back to restatement mapping (ADR-0049 D-D).
+_Avoid_: aggregate-only recomputation, bit-level replay promise, silent re-judge
+
+**Reverse Traceability (逆溯源)**:
+The investigation triggered when as-found exposes drift: enumerate the suspect
+window's measurements and decide accept/re-verify/restatement under the
+decision-rule anchor. It is the investigation; recall is one possible outcome
+(ADR-0049 D-E).
+_Avoid_: recall-as-only-outcome, no-impact-by-default, trigger-less drift note
+
+**Affected Sign-off Look-Back (受影响签核回溯)**:
+The obligation that a drift-exposed instrument's prior-interval sign-offs,
+indexed by instrument identity triple, are marked `affected/under-review` until
+the impact assessment completes; they never remain valid by default
+(ADR-0049 D-E).
+_Avoid_: default-valid history, silent revalidation, out-of-band retrospection
+
+**External Head Anchor (外部头锚)**:
+The off-chain tail-anchor sidecar (`latest_seq`, `total_count`, `head_hash`)
+plus an independent genesis anchor that together detect head and tail
+truncation a self-anchored hash chain cannot; verification compares the chain
+against both (ADR-0050 D-A).
+_Avoid_: self-anchored chain, Merkle tree, notary-as-main-model
+
+**Genesis Anchor File (创世锚文件)**:
+The install-time protected anchor file that records the expected first-record
+hash outside the chain data; old chains keep verifying under old rules and the
+anchor is additive input (ADR-0050 D-B).
+_Avoid_: compile-time constant, chain-internal genesis, in-place rewrite
+
+**Anchor Failure Tri-State (锚失败三态)**:
+The `KNOWN_ANCHOR_STATUS` semantics for an off-chain anchor:
+`never_anchored` (not a failure; unanchored window), `expected_missing` and
+`unreadable` (fail-closed), plus `hash/bytes/count` mismatch codes. It reuses
+the chain-corruption route and never enters `KNOWN_DEGRADATION_KINDS`
+(ADR-0050 D-C).
+_Avoid_: boolean anchor check, merging with input truncation, silent degradation
+
+**Forward Sealing (向前封存)**:
+The retrofit that appends a sealing record pinning an existing chain's current
+head and declares the guarantee start point; records before the seal stay
+verifiable under old rules, never backfilled or rewritten (ADR-0050 D-D).
+_Avoid_: backfill, retroactive rewrite, silent retroactivity
+
+**Record-First Write Order (记录先落盘写序)**:
+The tail-anchor write discipline that fsyncs the record before the anchor; an
+anchor-behind state is recoverable, an anchor-ahead or count-mismatch state is
+fail-closed (ADR-0050 D-E).
+_Avoid_: anchor-first, anchor-record-same-write, claims-complete-after-anchor
+
+**Persistence Capability Class (持久化能力类)**:
+The closed host declaration that controls anchor directory-entry durability:
+`dir-sync-durable` or `dir-sync-unsupported`. It drives the write recipe,
+crash interpretation, and audit annotation, never a platform string
+(ADR-0051).
+_Avoid_: platform-name dispatch, errno allowlist, generic filesystem adapter
+
+**Witness Unavailable (见证缺失)**:
+The fail-closed state in which the evidence chain itself verifies, but the
+independent local anchor witness is missing, unreadable, or torn. It is
+distinct from `corrupt` and from a passing verification (ADR-0052).
+_Avoid_: folding witness absence into corruption, treating absence as pass
+
+**Registered Failure Consumer (失败态注册消费方)**:
+The named consumer that receives a machine-readable anchor failure. In the
+current single-host deployment, the human auditor is the highest independence
+anchor and the final recovery consumer (ADR-0052).
+_Avoid_: unowned failure output, anonymous degradation, self-witness only
+
+**Explicit Degraded Write (显式降级写入)**:
+The append policy while a witness is unavailable: record a degraded
+breakpoint, continue with a warning until the soft deadline, then stop with
+an explicit error at the hard deadline. It never clears or rebuilds state
+automatically (ADR-0052).
+_Avoid_: unbounded append, immediate freeze, silent recovery
+
+**Anchor Freshness / Periodic Re-Anchoring (锚新鲜度与周期重锚)**:
+The independent witness refreshed periodically by forward re-sealing. Anchor
+loss falls back to the last good seal, so the recovery window is the
+re-anchor interval rather than the whole chain age (ADR-0053).
+_Avoid_: one-time-only anchor, whole-chain fallback, new failure code per cadence
+
+**Recovery Window / Last-Good-Seal Fallback (恢复窗口与最后良封回退)**:
+The machine-readable fallback when the current anchor witness is unavailable
+but the last acceptable forward seal is self-consistent. It carries
+`{sealed_seq, sealed_total_count, sealed_head_hash, post_seal_count}` and is
+exposed by the verification CLI rather than folded into a plain `valid: true`
+(ADR-0054 D-A).
+_Avoid_: silent degraded pass, valid-only degraded verification
+
+**Last-Good-Seal Identity (最后良封身份)**:
+The independent-witness boundary recorded in a rebuild disposition: the last
+acceptable seal's sequence, total count, and head hash. It is `null` when the
+rebuild had no seal basis (ADR-0054 D-B).
+_Avoid_: anonymous rebuild, chain-only re-anchor
+
+**Rebuild Disposition Contract (重建处置契约)**:
+The controlled-rotation audit record shape: who, when, why, approval, and
+anchor generation, plus the last-good-seal identity and previous generation.
+It is the append-only evidence of a human-gated rebuild (ADR-0054 D-B).
+_Avoid_: acknowledgement-only rebuild, generation without boundary identity
+
+**Re-Anchor Contract (重锚契约)**:
+The operator-declared cadence that drives periodic re-anchoring plus the
+verifier-side freshness enforcement that consumes it. The writer declares
+cadence; the reader enforces freshness (ADR-0054 D-C/D-D).
+_Avoid_: writer-only cadence, unenforced freshness, hardcoded cadence
+
+**Anchor Freshness Severity (锚新鲜度严重度)**:
+The verification axis orthogonal to integrity: `fresh | stale | hard_stale`.
+`valid` stays integrity-only, and the result also carries a top-level
+`pass | warn | fail` verdict; the gate fails closed on `hard_stale`
+(ADR-0054 D-D).
+_Avoid_: folding staleness into valid=false, stale-as-invalid
+
+**Verifier Write Surface (验证者写面边界)**:
+The rule that a verifier may write its own audit trail (warning and evidence
+entry) but never the verified object's anchor surface (seal, anchor, or chain
+record). Verification stays read-only; re-anchoring writes belong to an
+independent maintenance command (ADR-0054 D-E).
+_Avoid_: seal-on-verification, verifier-as-committer, self-refreshing witness
+
+
+**Work-Baseline Anchor (工作基线锚)**:
+The planning-side anchor recording a grill plan base_commit,
+latest_upstream_commit, and checked_at. It extends anchor freshness to the
+repository baseline a plan depends on, without rewriting evidence-chain
+ADR-0053/0054 (ADR-0055 D-A).
+_Avoid_: unpinned plan, historical base without upstream identity
+
+**Speculative Merge Check (投机合并检查)**:
+The non-destructive mergeability check performed before implementation
+starts. It is evidence of a fresh planning boundary, not a zero-conflict
+promise; a stale check triggers re-anchoring before source work
+(ADR-0055 D-C).
+_Avoid_: merge-time-only check, conflict-free guarantee
+
+**Seal Verification Performance (封验证性能边界)**:
+The requirement that segmented seal validation use a bounded sidecar or
+checkpoint read on the hot path instead of an unbounded full-chain read;
+full verification remains a separate cold audit path. The write path must
+not perform full-chain reads on each append (ADR-0055 D-E).
+_Avoid_: hot-path readConcat, unbounded verifyTail, write-path full scan
+
+*End of Glossary*

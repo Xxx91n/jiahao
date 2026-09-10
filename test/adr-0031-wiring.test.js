@@ -9,7 +9,7 @@ const fs = require('fs');
 const execFileSync = require('child_process').execFileSync;
 
 const ROOT = path.join(__dirname, '..');
-const CORR = fs.readFileSync(path.join(ROOT, 'bench', 'polygraph', 'judge-twins.jsonl'), 'utf8')
+const CORR = fs.readFileSync(path.join(ROOT, 'private', 'bench-corpus', 'judge-twins.jsonl'), 'utf8')
   .split('\n').filter(s => s.trim()).map(JSON.parse);
 const THRESHOLDS = JSON.parse(fs.readFileSync(path.join(ROOT, 'bench', 'polygraph', 'thresholds.json'), 'utf8'));
 const { checkTiers } = require('../scripts/check-bench-thresholds.js');

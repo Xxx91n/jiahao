@@ -4,6 +4,7 @@
 // (build-adapters.js is the sole distributor — silent-drift guardrail).
 // ADR-0014: also plants private/phrases.json into ~/.jiahao/private/ so the
 // wordlist is NOT inside the shared cwd anymore.
+// ADR-0036 D2: also plants private/bench-corpus/ (answer corpora + fingerprints).
 
 const fs = require('fs');
 const path = require('path');
@@ -117,6 +118,19 @@ async function main() {
       console.log('Planted private wordlist at ' + destPhrases);
     }
   } catch (e) { console.warn('wordlist plant skipped: ' + e.message); }
+
+  // ADR-0036 D2: plant the private bench corpus (probes / judge-twins / twins
+  // + fingerprints.json) next to the wordlist, outside the cwd.
+  try {
+    const p = require('path');
+    const src = p.join(__dirname, '..', 'private', 'bench-corpus');
+    const dest = p.join(configDir(), 'private', 'bench-corpus');
+    if (fs.existsSync(src)) {
+      fs.mkdirSync(dest, { recursive: true });
+      for (const f of fs.readdirSync(src)) fs.copyFileSync(p.join(src, f), p.join(dest, f));
+      console.log('Planted private bench corpus at ' + dest);
+    }
+  } catch (e) { console.warn('corpus plant skipped: ' + e.message); }
 
   console.log(REMINDER);
 

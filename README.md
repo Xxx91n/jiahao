@@ -136,6 +136,22 @@ the attested injection path), opencode has no hook/exit-2 mechanism yet
 (upstream #12472 open, #14551 not-planned) and therefore sits in the
 instruction tier, and aider loads the rules only via opt-in `read:` config.
 
+## Distribution boundary (ADR-0038)
+
+The npm tarball is a runtime artifact: it installs the prompt profiles and the
+gate scripts, nothing more. The benchmark answer corpora
+(`probes.jsonl` / `judge-twins.jsonl` / `twins.jsonl` / `mr-probes.jsonl`)
+are a maintainer/CI asset and are **not distributed** — neither in the npm
+package, nor in a public git clone (a fresh clone of the public repo also
+carries no corpus). Scripts that need a corpus resolve
+`JIAHAO_CORPUS_DIR` -> the install-planted dir -> the repo-private
+`private/bench-corpus/` dir; a deterministically absent corpus dir degrades
+the gate honestly to exit 2 (UNVERIFIABLE), while a present dir with broken
+content fails closed at exit 1 with a closed-enum `[usage]:`/`[config]:`/
+`[internal]:` stderr prefix (ADR-0041 D3). Reproducing the benchmark gates
+is a maintainer/CI-channel operation; third-party installs are a
+prompt-installer surface only. ADRs and developer docs live on the git tree (the development surface), not in the tarball — clone the repo to read them (ADR-0039).
+
 ## Usage
 
 - `/jiahao lite` — rungs 1-2 only, skip LLM critic
@@ -146,7 +162,7 @@ instruction tier, and aider loads the rules only via opt-in `read:` config.
 ## Develop
 
 ```bash
-npm test                              # 411 tests across 29 suites
+npm test                              # 518 tests across 35 suites
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
@@ -161,9 +177,69 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `hooks/` — 6 hook scripts + hooks.json + runtime.js
 - `adapters/` — generated per-host adapters (11 host directories / 23 generated files; ADR-0028 D5)
 - `jiahao-mcp/` — MCP-only adapter (profile parameter)
-- `docs/adr/` — 35 architecture decision records (0010 = dual-profile; 0011 = deployment discipline; 0012 = detector verdict + hook idempotency; 0013 = cross-turn chain + idempotency key; 0014 = wordlist migration + structural signals; 0015 = benchmark adoption + citation calibration; 0016 = evidence-log/gate split; 0017 = escalate verdict + human adjudication; 0018 = calibration flywheel: threshold band + few-shot injection + kappa; 0019 = detector v2: suppression rules + judge seam; 0020 = pagination-exhaustion pairing; 0021 = request-side anchor signals; 0022 = detector hardening + censoring + degradation contract; 0023 = timeout sentinel reconciliation + schema evolution discipline; 0024 = sentinel ownership lock + reconcile hardening + session-end sweep; 0025 = judge form convergence (scoring-mode verifier) + honest-twin corpus + telemetry contract; 0026 = segmented evidence log: rotation + cross-segment anchoring + base-seq naming; 0027 = executable bench gate + pre-registered thresholds; 0028 = multi-host L0 test closure: regen-diff golden + host contracts + lifecycle; 0029 = behavioral probe gate: paired per-law probes + zero-miss smoke gate + advisory upgrade channel; 0030 = probe corpus growth: interval coverage gate + judge re-verification runbook/dead-man switch + advisory disposition; 0031 = wiring assertions + judge bias calibration (style/length/bias-probe corpus) + gate tier taxonomy + judge certificate isolation + evidence provenance + debt pack; 0032 = generator surface rules deepening: gsr header + coverage map registry + pre-registered equivalence + rule lifecycle; 0033 = deferred/unfreeze registry: fact-source + pending-evaluation + expiry-forces-action; 0034 = gate registry + single-entrypoint gate:all + CRTM-as-entry ordering + three-face CI wiring assertion; 0035 = deferred registry maturation: cadence ladder + residency SLA + check-in discipline + verified-by enforcement + entry corrections; 0036 = anti-gaming audit: CAISI boundary + answer-corpus migration to private + corpus freshness soft-hard ladder + gate-defaults params consistency + fingerprint leak gate)
-- `test/` — 29 test suites, 411 tests
+- `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). The index below is a derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js` — do not hand-edit:
+
+<!-- adr-index:start -->
+- 55 architecture decision records:
+- [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
+- [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
+- [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
+- [ADR-0004](docs/adr/0004-verification-gate-ladder.md) — Verification Gate Ladder Design
+- [ADR-0005](docs/adr/0005-skill-distribution-adapter-pattern.md) — Skill Distribution Adapter Pattern
+- [ADR-0006](docs/adr/0006-architecture-deepening.md) — Architecture Deepening
+- [ADR-0007](docs/adr/0007-hash-chain-tamper-evidence.md) — Hash Chain Tamper-Evidence
+- [ADR-0008](docs/adr/0008-confidence-calibration.md) — Confidence Calibration
+- [ADR-0009](docs/adr/0009-mcp-adapter.md) — MCP Adapter
+- [ADR-0010](docs/adr/0010-dual-profile-role-tagged-distribution.md) — Dual-Profile Role-Tagged Distribution
+- [ADR-0011](docs/adr/0011-deployment-discipline-install-ux-drift-automation.md) — Verifier Deployment Discipline, Two-Tier Install UX, and Layered Drift Automation
+- [ADR-0012](docs/adr/0012-detector-verdict-persistence-hook-idempotency.md) — Detector Verdict Persistence + Hook Idempotency
+- [ADR-0013](docs/adr/0013-cross-turn-hash-chain.md) — Cross-Turn Hash Chain with Composite Idempotency Key
+- [ADR-0014](docs/adr/0014-wordlist-migration-structural-signals.md) — Wordlist Migration Out of cwd + Structural-Signal Primary Detection
+- [ADR-0015](docs/adr/0015-benchmark-adoption-citation-calibration.md) — Detector Benchmark Adoption + Citation Calibration
+- [ADR-0016](docs/adr/0016-evidencelog-gateladder-split-shared-core.md) — EvidenceLog/GateLadder Split and Shared Core Relocation
+- [ADR-0017](docs/adr/0017-escalate-verdict-human-adjudication.md) — ESCALATE Verdict and Human Adjudication Write-back
+- [ADR-0018](docs/adr/0018-calibration-flywheel-kappa.md) — Calibration Flywheel — Threshold Band + Few-shot Injection + Kappa Governance
+- [ADR-0019](docs/adr/0019-detector-v2-suppression-judge-seam.md) — Detector v2 — Suppression Rules + Judge Seam (+ADR-0015 D2 Core-Floor Correction)
+- [ADR-0020](docs/adr/0020-multi-page-enumeration-exhaustion-pairing.md) — Multi-Page Enumeration with Pagination-Exhaustion Pairing
+- [ADR-0021](docs/adr/0021-request-side-anchor-signals.md) — Request-Side Anchor Signals (D6 Extraction, Rescue-Dominant Trust Direction)
+- [ADR-0022](docs/adr/0022-detector-hardening-censoring-degradation.md) — Detector Hardening (Length Caps, Censoring Semantics, Degradation Contract)
+- [ADR-0023](docs/adr/0023-timeout-sentinel-reconciliation-degradation-evolution.md) — Timeout Degradation via Sentinel Reconciliation and Degradation Schema Evolution Discipline
+- [ADR-0024](docs/adr/0024-sentinel-ownership-lock-reconcile-hardening-session-sweep.md) — Sentinel Ownership via File-Lock Arbitration, Reconcile Hardening, and End-of-Session Sweep
+- [ADR-0025](docs/adr/0025-judge-form-convergence-corpus-telemetry.md) — Judge Form Convergence — Scoring-Mode Verifier Contract + Honest-Twin Corpus + Telemetry Contract
+- [ADR-0026](docs/adr/0026-segmented-evidence-log-rotation.md) — Segmented Evidence Log — Rotation + Cross-Segment Anchoring + Base-Seq Naming
+- [ADR-0027](docs/adr/0027-bench-gate-pre-registered-threshold-enforcement.md) — Bench Gate — Executable Pre-Registered Threshold Enforcement in CI
+- [ADR-0028](docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md) — Multi-Host L0 Test Closure — Regen-Diff Golden, Host Behavior Contracts, Adapter Lifecycle
+- [ADR-0029](docs/adr/0029-verifier-effectiveness-behavioral-probe-gate.md) — Verifier Effectiveness via Paired Behavioral Probes — Zero-Miss Smoke Gate + Pre-Registered Upgrade Channels
+- [ADR-0030](docs/adr/0030-corpus-growth-interval-gate-reverification-runbook.md) — Probe Corpus Growth Constraint — Interval Coverage Gate + Judge Reverification Runbook + Dead-Man Degradation
+- [ADR-0031](docs/adr/0031-wiring-assertions-judge-bias-gate-tiers-isolation-provenance-debt-pack.md) — Wiring Assertions + Judge Bias Calibration + Gate Tier Taxonomy + Judge Isolation + Evidence Provenance + Debt Pack
+- [ADR-0032](docs/adr/0032-generator-surface-rules-deepening-gsr-coverage-lifecycle.md) — Generator Surface Rules Deepening — gsr Header + Coverage Map Registry + Pre-Registered Equivalence + Rule Lifecycle
+- [ADR-0033](docs/adr/0033-deferred-unfreeze-registry-pending-evaluation-expiry-forces-action.md) — Deferred/Unfreeze Registry — Machine Fact-Source for Pending-Activation Deferrals
+- [ADR-0034](docs/adr/0034-gate-registry-single-entrypoint-orchestration.md) — Gate Registry & Single Entrypoint — gates.json, gate:all Aggregation Semantics, Three-Face Alignment
+- [ADR-0035](docs/adr/0035-deferred-registry-cadence-checkin-verifiedby-honesty-corrections.md) — Deferred Registry Cadence Ladder, Check-In Discipline, Verified-By Enforcement & Honesty Corrections
+- [ADR-0036](docs/adr/0036-anti-gaming-audit-corpus-migration-freshness-gate-defaults.md) — Anti-Gaming Audit Boundary, Answer-Corpus Migration, Corpus Freshness Tiering & Gate-Defaults Consistency
+- [ADR-0037](docs/adr/0037-metamorphic-relations-third-corpus-family-staged-hybrid.md) — Metamorphic Relations as Third Corpus Family (Staged Hybrid)
+- [ADR-0038](docs/adr/0038-npm-runtime-artifact-surface-corpus-distribution-boundary.md) — npm Runtime-Artifact Surface & Corpus Distribution Boundary
+- [ADR-0039](docs/adr/0039-tarball-runtime-surface-narrowing-docs-adr-archive-channel.md) — Tarball Runtime Surface Narrowing — docs/adr Archive Channel & Measured Size Budget
+- [ADR-0040](docs/adr/0040-gate-runtime-capability-declaration-three-state-exit-honest-unverifiable.md) — Gate Runtime Capability Declaration — requires Closed Enum, Three-State Exit, Honest UNVERIFIABLE Degradation
+- [ADR-0041](docs/adr/0041-exit-semantics-unification-structured-stderr-prefixes-lane-integration.md) — Exit-Semantics Unification — Narrowed Exit-2, Three-Code Space with Structured stderr Prefixes, Consumer-Side Registry Wiring, Order-Preserving Lane Integration
+- [ADR-0042](docs/adr/0042-config-load-warning-rule-code-contract-locking.md) — Checked Config-Load Failures, Warning Rule Codes, and Contract Locking
+- [ADR-0043](docs/adr/0043-fact-source-derived-artifact-discipline-prefix-vocabulary.md) — Fact-Source Spine Deepening — Derived-Artifact Discipline and Prefix Vocabulary Single Source
+- [ADR-0044](docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md) — Claim-Directed Falsification — Mechanical Falsifiability Core Rule and Falsification Record
+- [ADR-0045](docs/adr/0045-stochastic-deterministic-boundary-evidence-path-verification.md) — Stochastic-Deterministic Boundary and Evidence-Path Verification
+- [ADR-0046](docs/adr/0046-instrument-drift-recalibration.md) — Instrument-Drift Recalibration — Dual-Axis Judge Identity, Resolve-then-Pin, and Quarantine State Machine
+- [ADR-0047](docs/adr/0047-impact-tiered-instrument-change-control.md) — Impact-Tiered Instrument Change Control — Identity Refinement, Tiered Revalidation, and Calibration-Interval Governance
+- [ADR-0048](docs/adr/0048-metrological-ledger-record-tier-content-anchor-commit-discipline.md) — Metrological Ledger, Record Tier, Content Anchor, and Commit Discipline
+- [ADR-0049](docs/adr/0049-decision-rule-anchor-and-metrological-ledger-completion.md) — Decision-Rule Anchor and Metrological Ledger Completion
+- [ADR-0050](docs/adr/0050-append-only-hardening-external-head-anchor-and-genesis-anchoring.md) — Append-Only Hardening, External Head Anchor, and Genesis Anchoring
+- [ADR-0051](docs/adr/0051-closed-persistence-capability-class.md) — Closed Persistence Capability Class
+- [ADR-0052](docs/adr/0052-witness-unavailable-failure-state.md) — Witness-Unavailable Failure State
+- [ADR-0053](docs/adr/0053-periodic-re-anchoring-and-anchor-freshness.md) — Periodic Re-Anchoring and Anchor Freshness
+- [ADR-0054](docs/adr/0054-anchor-freshness-verification-and-re-anchoring-activation.md) — Anchor Freshness Verification and Re-Anchoring Activation
+- [ADR-0055](docs/adr/0055-work-baseline-anchoring-and-seal-verification-performance.md) — Work-Baseline Anchoring and Seal Verification Performance
+<!-- adr-index:end -->
+- `test/` — 36 test suites, 527 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
+- `private/bench-corpus/` — answer corpora (probes/judge-twins/twins + fingerprints; gitignored, ADR-0036 D2). Gate scripts resolve via JIAHAO_CORPUS_DIR, else the install-planted dir (`jiahao init` plants it from the package), else this repo-private dir in a maintainer tree; missing everywhere fails closed (exit 1: config; the capability probe degrades an absent corpus dir to exit 2 UNVERIFIABLE first, ADR-0041 D2). npm consumers and public git clones carry no corpus at all — corpus gates are a maintainer/CI-only contract, fail-closed by design (ADR-0038 D2).
 
 ## License
 
