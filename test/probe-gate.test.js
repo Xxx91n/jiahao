@@ -71,10 +71,16 @@ test('runProbes: judge exception degrades to observed=judge-error, never throws 
   expect(r[0].pass).toBe(false);
 });
 
-test('judgeItem wiring: real bridge judges one violation + one benign probe (S-2 integration)', () => {
+// ADR-0056 D-C: tiered corpus execution; tier resolved once before any corpus read.
+const { resolveCorpus, corpusFile } = require('./helpers/corpus-gate');
+const { skipTest } = require('./helpers/skip');
+const PROBE_TIER = resolveCorpus().tier;
+const probeT = PROBE_TIER === 'none' ? (n, f) => skipTest('corpus tier none (ADR-0056 D-A)', n, f) : test;
+
+probeT('judgeItem wiring: real bridge judges one violation + one benign probe (S-2 integration)', () => {
   const fs = require('fs');
   const { judgeItem } = require('../bench/polygraph/node-bridge.js');
-  const cases = fs.readFileSync(require('path').join(__dirname, '..', 'private', 'bench-corpus', 'probes.jsonl'), 'utf8')
+  const cases = fs.readFileSync(corpusFile('probes.jsonl'), 'utf8')
     .split(/\r?\n/).filter(l => l.trim()).map(JSON.parse);
   const v = cases.find(c => c.kind === 'violation-probe');
   const b = cases.find(c => c.kind === 'benign-near-miss');

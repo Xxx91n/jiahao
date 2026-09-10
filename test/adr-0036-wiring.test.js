@@ -14,6 +14,11 @@ const leak = require('../scripts/check-corpus-leak.js');
 const params = require('../scripts/check-gate-params.js');
 const fresh = require('../scripts/check-corpus-freshness.js');
 const { MONTH_MS } = require('../src/reverify-schedule.js');
+// ADR-0056 D-C: tier resolution happens once at collection, before any corpus read.
+const { resolveCorpus, FIXTURE_DIR } = require('./helpers/corpus-gate');
+const { skipTest } = require('./helpers/skip');
+const CORPUS_TIER = resolveCorpus().tier;
+const fullT = CORPUS_TIER === 'full' ? test : (n, f) => skipTest('full-tier private corpus absent on this host (ADR-0056 D-A)', n, f);
 
 describe('D2 corpus resolution', () => {
   test('corpusPath falls back to install dir; JIAHAO_CORPUS_DIR wins', () => {
@@ -25,7 +30,7 @@ describe('D2 corpus resolution', () => {
     if (prev === undefined) delete process.env.JIAHAO_CORPUS_DIR; else process.env.JIAHAO_CORPUS_DIR = prev;
   });
 
-  test('repo-private corpus is readable from the maintainer tree', () => {
+  fullT('repo-private corpus is readable from the maintainer tree', () => {
     expect(fs.existsSync(paths.repoCorpusPath('probes.jsonl'))).toBe(true);
   });
 
@@ -57,7 +62,7 @@ describe('D2 thresholds.json private_corpus anchors', () => {
     expect(cfg.private_corpus).toHaveLength(4);
     for (const e of cfg.private_corpus) expect(e.sha256).toMatch(/^[0-9a-f]{64}$/);
   });
-  test('public anchors match the local corpus bytes', () => {
+  fullT('public anchors match the local corpus bytes', () => {
     for (const e of cfg.private_corpus) {
       const buf = fs.readFileSync(paths.repoCorpusPath(e.id));
       expect(crypto.createHash('sha256').update(buf).digest('hex')).toBe(e.sha256);
@@ -66,17 +71,27 @@ describe('D2 thresholds.json private_corpus anchors', () => {
 });
 
 describe('D6 check-corpus-leak', () => {
-  const corpusDir = path.join(ROOT, 'private', 'bench-corpus');
-  const rules = leak.buildRules({ 'probes.jsonl': path.join(corpusDir, 'probes.jsonl'), 'judge-twins.jsonl': path.join(corpusDir, 'judge-twins.jsonl'), 'twins.jsonl': path.join(corpusDir, 'twins.jsonl'), 'mr-probes.jsonl': path.join(corpusDir, 'mr-probes.jsonl') });
+  // ADR-0056 D-C: rules follow the resolved tier (full: private corpus,
+  // public: committed fixtures). Tier none degrades via reason-carrying skip.
+  const rulesFrom = CORPUS_TIER === 'full' ? path.join(ROOT, 'private', 'bench-corpus') : FIXTURE_DIR;
+  const rules = CORPUS_TIER === 'none' ? null
+    : leak.buildRules({ 'probes.jsonl': path.join(rulesFrom, 'probes.jsonl'), 'judge-twins.jsonl': path.join(rulesFrom, 'judge-twins.jsonl'), 'twins.jsonl': path.join(rulesFrom, 'twins.jsonl'), 'mr-probes.jsonl': path.join(rulesFrom, 'mr-probes.jsonl') });
+  const leakT = CORPUS_TIER === 'none' ? (n, f) => skipTest('corpus tier none (ADR-0056 D-A)', n, f) : test;
 
-  test('real worktree scan is clean', () => {
-    expect(leak.checkLeaks(ROOT, rules, null)).toEqual([]);
+  leakT('real worktree scan carries no content beyond the committed fixture home', () => {
+    // ADR-0036 D6 hunts private-corpus leaks; corpus content under
+    // test/fixtures/corpus is the intentionally committed public tier
+    // (ADR-0056 D-B), never a leak.
+    const hits = CORPUS_TIER === 'full'
+      ? leak.checkLeaks(ROOT, rules, null)
+      : leak.checkLeaks(ROOT, rules, null).filter(h => h.indexOf('test' + path.sep + 'fixtures' + path.sep + 'corpus') !== 0 && h.indexOf('test/fixtures/corpus') !== 0);
+    expect(hits).toEqual([]);
   });
 
-  test('planted copy in a scanned dir is detected (line + whole file)', () => {
+  leakT('planted copy in a scanned dir is detected (line + whole file)', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-leak-'));
     try {
-      const src = fs.readFileSync(path.join(corpusDir, 'probes.jsonl'), 'utf8');
+      const src = fs.readFileSync(path.join(rulesFrom, 'probes.jsonl'), 'utf8');
       fs.writeFileSync(path.join(tmp, 'stash.txt'), src, 'utf8');
       const hits = leak.checkLeaks(tmp, rules, null);
       expect(hits.length).toBeGreaterThan(0);
@@ -90,11 +105,13 @@ describe('D6 check-corpus-leak', () => {
   });
 
   test('canary GUID is optional detection-only (env-driven)', () => {
+    // Canary detection requires no corpus rules; tier none still runs it.
+    const canaryRules = rules || { fileSha: new Map(), lineSha: new Map() };
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-canary-'));
     try {
       fs.writeFileSync(path.join(tmp, 'doc.md'), 'text\ncanary-12345-xyz\n', 'utf8');
-      expect(leak.checkLeaks(tmp, rules, 'canary-12345-xyz').length).toBe(1);
-      expect(leak.checkLeaks(tmp, rules, null)).toEqual([]);
+      expect(leak.checkLeaks(tmp, canaryRules, 'canary-12345-xyz').length).toBe(1);
+      expect(leak.checkLeaks(tmp, canaryRules, null)).toEqual([]);
     } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
   });
 });
@@ -134,23 +151,33 @@ describe('D5 corpus freshness ladder', () => {
     expect(cfg.fail_multiplier).toBe(1.5);
     expect(cfg.tiers).toEqual({ 'probes.jsonl': 6, 'judge-twins.jsonl': 6, 'mr-probes.jsonl': 6, 'twins.jsonl': 12 });
   });
-  test('the CLI is green against the current corpus + ledger', () => {
-    const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'check-corpus-freshness.js')], { cwd: ROOT, encoding: 'utf8' });
+  const freshT = CORPUS_TIER === 'none' ? (n, f) => skipTest('corpus tier none (ADR-0056 D-A)', n, f) : test;
+  freshT('the CLI is green against the current corpus + ledger', () => {
+    // ADR-0056 D-C: public tier points the CLI at the committed fixtures via
+    // the canonical JIAHAO_CORPUS_DIR override.
+    const env = CORPUS_TIER === 'public'
+      ? Object.assign({}, process.env, { JIAHAO_CORPUS_DIR: FIXTURE_DIR })
+      : process.env;
+    const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'check-corpus-freshness.js')], { cwd: ROOT, encoding: 'utf8', env });
     expect(r.status).toBe(0);
   });
 });
 
 describe('ADR-0036 audit follow-ups (2026-08-31)', () => {
-  const corpusDirA = path.join(ROOT, 'private', 'bench-corpus');
+  // ADR-0056 D-C: leak/freshness helper tests follow the resolved tier
+  // (full: private corpus, public: committed fixtures).
+  const corpusDirA = CORPUS_TIER === 'full' ? path.join(ROOT, 'private', 'bench-corpus') : FIXTURE_DIR;
+  // ADR-0057 D-A: tier none still registers every test, each reason-carrying.
+  const auditT = CORPUS_TIER === 'none' ? (n, f) => skipTest('corpus tier none (ADR-0056 D-A)', n, f) : test;
   const NAMES = ['probes.jsonl', 'judge-twins.jsonl', 'mr-probes.jsonl', 'twins.jsonl'];
 
-  test('freshness: a future timestamp fails closed (stale, never fresh)', () => {
+  auditT('freshness: a future timestamp fails closed (stale, never fresh)', () => {
     const NOW = Date.parse('2026-08-30T00:00:00Z');
     expect(fresh.freshnessState(NOW + 60 * 1000, 6, NOW, 1.5)).toBe('stale');
     expect(fresh.freshnessState(NOW + 200 * 24 * 3600 * 1000, 6, NOW, 1.5)).toBe('stale');
   });
 
-  test('leak gate D6 scope: whole-line match only (Deviation D6a locks the semantics)', () => {
+  auditT('leak gate D6 scope: whole-line match only (Deviation D6a locks the semantics)', () => {
     const line = fs.readFileSync(path.join(corpusDirA, 'probes.jsonl'), 'utf8')
       .split(/\r?\n/).map(l => l.trim()).find(l => l.length >= 24);
     expect(line).toBeTruthy();
@@ -169,7 +196,7 @@ describe('ADR-0036 audit follow-ups (2026-08-31)', () => {
     } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
   });
 
-  test('anchor validation checks the id set, not just the count (fail closed)', () => {
+  auditT('anchor validation checks the id set, not just the count (fail closed)', () => {
     const files = Object.fromEntries(NAMES.map(n => [n, path.join(corpusDirA, n)]));
     const sha = n => crypto.createHash('sha256').update(fs.readFileSync(files[n])).digest('hex');
     const good = NAMES.map(n => ({ id: n, sha256: sha(n) }));
@@ -180,7 +207,7 @@ describe('ADR-0036 audit follow-ups (2026-08-31)', () => {
     expect(leak.validateAnchors(badSha, files).code).toBe(1);
   });
 
-  test('leak CLI also scans the evidence log outside the worktree', () => {
+  fullT('leak CLI also scans the evidence log outside the worktree', () => {
     const line = fs.readFileSync(path.join(corpusDirA, 'probes.jsonl'), 'utf8')
       .split(/\r?\n/).map(l => l.trim()).find(l => l.length >= 24);
     const home = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-ev-'));

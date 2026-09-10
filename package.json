@@ -15,7 +15,8 @@
     "gate:all": "node scripts/run-gates.js",
     "adr:gate": "node scripts/build-adr-index.js --check",
     "instrument:gate": "node scripts/instrument.js --check",
-    "mr:gate": "node scripts/check-mr-probes.js"
+    "mr:gate": "node scripts/check-mr-probes.js",
+    "corpus:drift": "node scripts/corpus-tier-drift.js"
   },
   "devDependencies": {
     "jest": "^29.7.0"

@@ -11,6 +11,12 @@ const { spawnSync } = require('child_process');
 const ROOT = path.join(__dirname, '..');
 const mr = require('../scripts/check-mr-probes.js');
 const { requireCorpus } = require('../src/shared/paths.js');
+// ADR-0056 D-C: tier resolution happens once at collection, before any corpus read.
+const { resolveCorpus, corpusFile } = require('./helpers/corpus-gate');
+const { skipTest } = require('./helpers/skip');
+const CORPUS_TIER = resolveCorpus().tier;
+const fullT = CORPUS_TIER === 'full' ? test : (n, f) => skipTest('full-tier private corpus absent on this host (ADR-0056 D-A)', n, f);
+const corpusT = CORPUS_TIER === 'none' ? (n, f) => skipTest('corpus tier none (ADR-0056 D-A)', n, f) : test;
 
 const mkCase = (id, closing) => ({ id, events: [], closing });
 const mkPair = (id, relation) => ({ id, family: relation === 'preserve' ? 'equivalence-restatement' : 'claim-negation', relation, law: 'IL1-judge-not-author', collected_at: '2026-08-31', provenance: { transform: 't', validity_review: { reviewer: 'r', date: '2026-08-31', verdict: relation === 'preserve' ? 'preserving' : 'inverting' } }, source: mkCase(id + '/source', 'c'), followup: mkCase(id + '/followup', 'd') });
@@ -109,7 +115,7 @@ describe('registration wiring (ADR-0031 D1: assert the state the gates actually 
     expect(entry.params).toEqual({ ci: true, 'artifacts-dir': 'mr-artifacts' });
   });
 
-  test('corpus registered in leak anchors (private_corpus sha matches), freshness tier, fingerprints', () => {
+  fullT('corpus registered in leak anchors (private_corpus sha matches), freshness tier, fingerprints', () => {
     const crypto = require('crypto');
     const corpusFile = requireCorpus('mr-probes.jsonl');
     const sha = crypto.createHash('sha256').update(fs.readFileSync(corpusFile)).digest('hex');
@@ -146,9 +152,17 @@ describe('registration wiring (ADR-0031 D1: assert the state the gates actually 
     expect(d7.source_adr).toContain('0038');
   });
 
-  test('real corpus v1: 12 pairs, 3 families, per-IL preserve+flip, IL5/IL6 absent', () => {
-    const pairs = fs.readFileSync(requireCorpus('mr-probes.jsonl'), 'utf8').split(/\r?\n/).filter(Boolean).map(JSON.parse);
+  corpusT('resolved corpus: schema-valid MR pairs (full tier: 12 pairs, 3 families, per-IL preserve+flip)', () => {
+    const pairs = fs.readFileSync(corpusFile('mr-probes.jsonl'), 'utf8').split(/\r?\n/).filter(Boolean).map(JSON.parse);
     expect(mr.validateMrCorpus(pairs)).toEqual([]);
+    if (CORPUS_TIER === 'public') {
+      // Public fixtures: 1-2 pairs incl. preserve+flip coverage (ADR-0056 D-B).
+      expect(pairs.length).toBeGreaterThanOrEqual(2);
+      expect(pairs.some(p => p.relation === 'preserve' && p.relation === 'flip')).toBe(false);
+      expect(pairs.some(p => p.relation === 'preserve')).toBe(true);
+      expect(pairs.some(p => p.relation === 'flip')).toBe(true);
+      return;
+    }
     expect(pairs.length).toBe(12);
     const fams = new Set(pairs.map(p => p.family));
     expect([...fams].sort()).toEqual(['claim-negation', 'equivalence-restatement', 'evidence-flip']);

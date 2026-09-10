@@ -8,6 +8,11 @@ const corpus = require('../bench/polygraph/check-probe-corpus.js');
 const reverify = require('../scripts/reverify.js');
 const sched = require('../src/reverify-schedule.js');
 const { checkDeadlineAnchors } = require('../scripts/check-bench-thresholds.js');
+// ADR-0056 D-C: tiered corpus execution; tier resolved once before any corpus read.
+const { resolveCorpus, corpusFile } = require('./helpers/corpus-gate');
+const { skipTest } = require('./helpers/skip');
+const CORPUS_TIER = resolveCorpus().tier;
+const corpusT = CORPUS_TIER === 'none' ? (n, f) => skipTest('corpus tier none (ADR-0056 D-A)', n, f) : test;
 
 function probe(id, law, kind) {
   return JSON.stringify({
@@ -54,11 +59,19 @@ describe('D1 interval coverage gate', () => {
     expect(corpus.coverageFloor({ probe_gates: [{ source_adr: '0030', metric: 'total_count', op: '>=', value: 14 }] })).toBe(14);
     expect(corpus.coverageFloor({ probe_gates: [{ source_adr: '0029', metric: 'total_count', op: '>=', value: 14 }] })).toBeNull();
   });
-  test('real corpus + real thresholds: 14 entries pass the floor', () => {
+  corpusT('real corpus: full tier passes the registered floor; public tier is schema-clean', () => {
     const fs = require('fs');
-    const lines = fs.readFileSync(path.join(__dirname, '..', 'private', 'bench-corpus', 'probes.jsonl'), 'utf8').split('\n').filter(s => s.trim());
-    const floor = corpus.coverageFloor(JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'bench', 'polygraph', 'thresholds.json'), 'utf8')));
-    expect(corpus.checkCorpus(lines, floor, NOW)).toEqual([]);
+    const lines = fs.readFileSync(corpusFile('probes.jsonl'), 'utf8').split('\n').filter(s => s.trim());
+    if (CORPUS_TIER === 'full') {
+      const floor = corpus.coverageFloor(JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'bench', 'polygraph', 'thresholds.json'), 'utf8')));
+      expect(corpus.checkCorpus(lines, floor, NOW)).toEqual([]);
+    } else {
+      // Public fixtures are a minimal tier: schema per row must be clean, but
+      // law-coverage pairing and the structural floor belong to the full tier.
+      const problems = corpus.checkCorpus(lines, 0, NOW);
+      expect(problems.filter(p => p.indexOf('pairing:') !== 0)).toEqual([]);
+      expect(new Set(lines.map(l => JSON.parse(l).kind))).toEqual(new Set(['violation-probe', 'benign-near-miss']));
+    }
   });
 });
 

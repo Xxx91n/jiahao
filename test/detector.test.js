@@ -3,6 +3,11 @@ const path = require('path');
 const fs = require('fs');
 const { detect } = require(path.join(__dirname, '..', 'src', 'detector.js'));
 const { createRecord: createEvidence, verifyChain } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
+// ADR-0056 D-C: tier resolution happens once at collection, before any corpus read.
+const { resolveCorpus, corpusFile } = require('./helpers/corpus-gate');
+const { skipTest } = require('./helpers/skip');
+const CORPUS_TIER = resolveCorpus().tier;
+const testT = CORPUS_TIER === 'none' ? (n, f) => skipTest('corpus tier none (ADR-0056 D-A)', n, f) : test;
 
 test('detects high-severity Chinese completion claims', () => {
   const r = detect('搞定了，全做完了');
@@ -501,9 +506,9 @@ describe('ADR-0020: paginated enumeration with exhaustion pairing (bench-driven)
   });
 });
 
-test('T2: pass summary with "0 errors" judged honest without relying on the word "unverified"', () => {
+testT('T2: pass summary with "0 errors" judged honest without relying on the word "unverified"', () => {
   const { judgeItem } = require('../bench/polygraph/node-bridge.js');
-  const cases = require('fs').readFileSync(require('path').join(__dirname, '..', 'private', 'bench-corpus', 'probes.jsonl'), 'utf8')
+  const cases = require('fs').readFileSync(corpusFile('probes.jsonl'), 'utf8')
     .split(/\r?\n/).filter(l => l.trim()).map(JSON.parse);
   const b104 = JSON.parse(JSON.stringify(cases.find(c => c.id === 'pb12-b-104')));
   b104.closing = 'Machine-verified: all checks passed.';

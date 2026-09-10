@@ -9,8 +9,17 @@ const fs = require('fs');
 const execFileSync = require('child_process').execFileSync;
 
 const ROOT = path.join(__dirname, '..');
-const CORR = fs.readFileSync(path.join(ROOT, 'private', 'bench-corpus', 'judge-twins.jsonl'), 'utf8')
-  .split('\n').filter(s => s.trim()).map(JSON.parse);
+// ADR-0056 D-C: tier resolution happens once, before any corpus read.
+const { resolveCorpus, corpusFile } = require('./helpers/corpus-gate');
+const { skipTest } = require('./helpers/skip');
+const CORPUS_TIER = resolveCorpus().tier;
+const corpusT = CORPUS_TIER === 'none' ? (n, f) => skipTest('corpus tier none (ADR-0056 D-A)', n, f) : test;
+const CORR = CORPUS_TIER === 'none'
+  ? []
+  : fs.readFileSync(corpusFile('judge-twins.jsonl'), 'utf8').split('\n').filter(s => s.trim()).map(JSON.parse);
+// Full-tier minimums come from the private corpus; the public fixture tier
+// carries one pair per bias kind (ADR-0056 D-B).
+const MIN_PAIRS_PER_KIND = CORPUS_TIER === 'full' ? 4 : 1;
 const THRESHOLDS = JSON.parse(fs.readFileSync(path.join(ROOT, 'bench', 'polygraph', 'thresholds.json'), 'utf8'));
 const { checkTiers } = require('../scripts/check-bench-thresholds.js');
 const bias = require('../bench/polygraph/check-judge-bias.js');
@@ -19,13 +28,13 @@ const evlo = require('../src/evidence-log.js');
 const reverify = require('../scripts/reverify.js');
 
 describe('D2: corpus v1.1 three bias kinds wired', () => {
-  test('at least 4 pairs each of style-control / length-control / bias-probe', () => {
+  corpusT('each bias kind is wired with pairs (full: >=4 per kind; public fixture: >=1)', () => {
     for (const k of ['style-control', 'length-control', 'bias-probe']) {
       const pairs = new Set(CORR.filter(e => e.kind === k).map(e => e.pair_id));
-      expect(pairs.size).toBeGreaterThanOrEqual(4);
+      expect(pairs.size).toBeGreaterThanOrEqual(MIN_PAIRS_PER_KIND);
     }
   });
-  test('every pair has both roles', () => {
+  corpusT('every pair has both roles', () => {
     const byPair = new Map();
     for (const e of CORR) if (e.pair_id) {
       if (!byPair.has(e.pair_id)) byPair.set(e.pair_id, new Set());
@@ -135,8 +144,13 @@ describe('D6: reverify F4/F5 debt fixes', () => {
 });
 
 describe('D2/D3 gate live run', () => {
-  test('check-judge-bias CLI exits 0 on the real corpus', () => {
-    const out = execFileSync(process.execPath, [path.join(ROOT, 'bench', 'polygraph', 'check-judge-bias.js')], { encoding: 'utf8' });
+  corpusT('check-judge-bias CLI exits 0 on the resolved corpus tier', () => {
+    // Public tier runs the same CLI against the committed fixture corpus via
+    // the canonical JIAHAO_CORPUS_DIR override (ADR-0036 D2 resolution chain).
+    const env = CORPUS_TIER === 'public'
+      ? Object.assign({}, process.env, { JIAHAO_CORPUS_DIR: require('./helpers/corpus-gate').FIXTURE_DIR })
+      : process.env;
+    const out = execFileSync(process.execPath, [path.join(ROOT, 'bench', 'polygraph', 'check-judge-bias.js')], { encoding: 'utf8', env });
     expect(out).toMatch(/PASS judge-length-discrimination/);
     expect(out).toMatch(/\[judge-bias\] OK/);
   });
