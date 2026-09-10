@@ -38,6 +38,9 @@ const { withLockSync } = require('./file-lock'); // ADR-0024 D2a
 // additive-optional only; never delete or rename. Machine-checked by
 // schemas/degradation.schema.json in tests.
 const KNOWN_DEGRADATION_KINDS = ['truncation', 'scan-skip', 'timeout'];
+// ADR-0049 D-E: affected sign-off look-back evidence kinds. These enter the
+// hash chain as record fields and route through ESCALATE (see createRecord).
+const KNOWN_EVIDENCE_KINDS = ['reverse_traceability', 'oot_impact_assessment'];
 
 // Escalation band stamped onto every record (FutureAGI 0.4-0.7, ADR-0007 research).
 // Also used by the ladder in gate.js for the escalation decision.
@@ -1738,6 +1741,18 @@ function createRecord(gateId, gateType, status, detail, confidence, prevHash, ex
     if (typeof extras.turn_id === 'string' && extras.turn_id.length > 0) {
       record.turn_id = extras.turn_id;
     }
+    // ADR-0049 D-E: look-back evidence kinds route through ESCALATE (an
+    // affected-sign-off review is never quietly logged). Unknown kinds fail
+    // closed: the value is preserved for attribution and escalation is still
+    // forced; a known prefix is never silently accepted.
+    if (extras.evidence_kind !== undefined) {
+      if (KNOWN_EVIDENCE_KINDS.indexOf(extras.evidence_kind) >= 0) {
+        record.evidence_kind = extras.evidence_kind;
+      } else if (typeof extras.evidence_kind === 'string' && extras.evidence_kind.length > 0) {
+        record.unrecognized_evidence_kind = extras.evidence_kind;
+      }
+      record.requires_escalation = true;
+    }
     // ADR-0031 D5: provenance is passed through verbatim (never normalized) so
     // that a malformed underspecified block still fails verifyChain; the writer
     // does not get to launder its own shape errors.
@@ -1754,7 +1769,7 @@ function createRecord(gateId, gateType, status, detail, confidence, prevHash, ex
 module.exports = {
   createEvidenceLog, ESCALATION_BAND, idempotencyKey, createRecord,
   canonicalJSON, recordHash, verifyChain, createTurnInit, finalizeTurnInit, provenanceProblems,
-  KNOWN_DEGRADATION_KINDS, SEGMENT_BYTES,
+  KNOWN_DEGRADATION_KINDS, KNOWN_EVIDENCE_KINDS, SEGMENT_BYTES,
   PERSISTENCE_CAPABILITY, PERSISTENCE_DECLARATION_FILENAME,
   probePersistenceCapability, resolvePersistenceCapability,
   fsyncDirectory: _fsyncDirectory,

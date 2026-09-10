@@ -43,7 +43,7 @@ describe('ADR-0044 falsification core', () => {
   test('runTwin maps timeout to missing and can widen the budget for slow hosts', () => {
     const slow = {
       falsification_cmd: 'node -e "setTimeout(()=>process.exit(0),3000)"',
-      argv: [process.execPath, '-e', 'setTimeout(()=>process.exit(0),3000)'],
+      argv: ['node', '-e', 'setTimeout(()=>process.exit(0),3000)'],
     };
     const entry = { claim_id: 'ft-slow-host', claim_type: 'verification', honest: slow, liar: slow };
 

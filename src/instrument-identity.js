@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { canonicalJSON } = require('./evidence-log');
+const { canonicalJSON, KNOWN_EVIDENCE_KINDS } = require('./evidence-log');
 const { SURFACE_ATTESTATIONS } = require('./change-surface');
 
 const FACT_REL = path.join('src', 'instrument-identity.json');
@@ -139,6 +139,11 @@ function stateEvent(seq, kind, identityDigest, prevHash, extra) {
   if (extra && extra.criteria_version !== undefined) ev.criteria_version = extra.criteria_version;
   if (extra && extra.previous_criteria_version !== undefined) ev.previous_criteria_version = extra.previous_criteria_version;
   if (extra && extra.restatement_of !== undefined) ev.restatement_of = extra.restatement_of;
+  if (extra && extra.ledger_seq !== undefined) ev.ledger_seq = extra.ledger_seq;
+  if (extra && extra.exposure_seq !== undefined) ev.exposure_seq = extra.exposure_seq;
+  if (extra && extra.evidence_kind !== undefined) ev.evidence_kind = extra.evidence_kind;
+  if (extra && extra.disposition !== undefined) ev.disposition = extra.disposition;
+  if (extra && extra.reason !== undefined) ev.reason = extra.reason;
   if (extra && extra.surface !== undefined) ev.surface = extra.surface;
   if (extra && extra.maker_id !== undefined) ev.maker_id = extra.maker_id;
   if (extra && extra.record_seq !== undefined) ev.record_seq = extra.record_seq;
@@ -292,6 +297,14 @@ function transition(state, event, opts) {
     if (!event.criteria_version || !event.previous_criteria_version) {
       throw new Error('criteria_change requires criteria_version and previous_criteria_version');
     }
+    // ADR-0049 D-D: no genuine pointwise replay exists yet (defer-0023). A
+    // criteria change is a restatement mapping, never an as-left re-projection.
+    if (event.pointwise_replay) {
+      throw new Error('pointwise replay is deferred (defer-0023): criteria change must use restatement mapping (ADR-0049 D-D)');
+    }
+    if (!event.restatement_of) {
+      throw new Error('criteria_change requires restatement_of while pointwise replay is deferred (ADR-0049 D-D, defer-0023)');
+    }
     next.history.push(stateEvent(tail.seq + 1, 'criteria_change', event.identity_digest, tail.event_hash, {
       criteria_version: event.criteria_version,
       previous_criteria_version: event.previous_criteria_version,
@@ -355,7 +368,91 @@ function transition(state, event, opts) {
     return next;
   }
 
+  // ADR-0049 D-E: drift exposure from the reverify decision rule. Requires
+  // the authoritative identity; carries the offending ledger seq so reviewers
+  // can trace the evidence. Marks prior-interval sign-offs via the projection.
+  if (event.type === 'drift_exposure') {
+    if (next.state !== 'authoritative') throw new Error('drift_exposure requires authoritative state');
+    if (next.authoritative_identity_digest !== event.identity_digest) {
+      throw new Error('drift_exposure identity does not match authoritative identity');
+    }
+    if (!Number.isInteger(event.ledger_seq)) throw new Error('drift_exposure requires integer ledger_seq');
+    next.history.push(stateEvent(tail.seq + 1, 'drift_exposure', event.identity_digest, tail.event_hash, {
+      ledger_seq: event.ledger_seq,
+      timestamp: now,
+    }));
+    return next;
+  }
+
+  // ADR-0049 D-E: disposition of an open drift exposure. Routes through
+  // ESCALATE-shaped evidence kinds; 're-verify' dispositions reference the
+  // ADR-0045 deterministic channel. Fails closed without an open exposure.
+  if (event.type === 'lookback_disposition') {
+    if (next.state !== 'authoritative') throw new Error('lookback_disposition requires authoritative state');
+    if (next.authoritative_identity_digest !== event.identity_digest) {
+      throw new Error('lookback_disposition identity does not match authoritative identity');
+    }
+    if (KNOWN_EVIDENCE_KINDS.indexOf(event.evidence_kind) === -1) {
+      throw new Error('lookback_disposition requires evidence_kind in ' + KNOWN_EVIDENCE_KINDS.join(' | '));
+    }
+    if (['accept', 're-verify', 'restatement'].indexOf(event.disposition) === -1) {
+      throw new Error('lookback_disposition requires disposition accept | re-verify | restatement');
+    }
+    if (!event.reviewer_id || !event.reason) {
+      throw new Error('lookback_disposition requires reviewer_id and reason (ESCALATE-routed human adjudication)');
+    }
+    const target = next.history.find(e => e.seq === event.exposure_seq && e.kind === 'drift_exposure');
+    if (!target || openExposures(next.history).indexOf(target) === -1) {
+      throw new Error('lookback_disposition references a missing or already-disposed drift exposure');
+    }
+    next.history.push(stateEvent(tail.seq + 1, 'lookback_disposition', event.identity_digest, tail.event_hash, {
+      exposure_seq: event.exposure_seq,
+      evidence_kind: event.evidence_kind,
+      disposition: event.disposition,
+      reviewer_id: event.reviewer_id,
+      second_reviewer: event.second_reviewer || null,
+      reason: event.reason,
+      timestamp: now,
+    }));
+    return next;
+  }
+
   throw new Error('unknown instrument state event: ' + event.type);
+}
+
+// ---- ADR-0049 D-E: drift exposure look-back (projection, fail-closed) ----
+
+// Open exposures: drift_exposure events not yet closed by a disposition.
+function openExposures(history) {
+  const open = [];
+  for (const ev of history || []) {
+    if (ev && ev.kind === 'drift_exposure') open.push(ev);
+    if (ev && ev.kind === 'lookback_disposition') {
+      const i = open.findIndex(e => e.seq === ev.exposure_seq);
+      if (i !== -1) open.splice(i, 1);
+    }
+  }
+  return open;
+}
+
+// Prior-interval sign-offs (identity signoff + record_signoff kinds) anchored
+// to the same instrument identity become 'affected/under-review' while a drift
+// exposure is open. Fail-closed: an open exposure marks them; they are never
+// valid by default until an oot_impact_assessment / reverse_traceability
+// disposition lands (ISO/IEC 17025:2017 7.10 nonconforming work).
+function affectedSignoffs(history) {
+  const open = openExposures(history);
+  if (!open.length) return [];
+  const oldestExposureSeq = open[0].seq;
+  const affected = [];
+  for (const ev of history || []) {
+    if (!ev) continue;
+    if (ev.kind !== 'signoff' && ev.kind !== 'record_signoff') continue;
+    if (ev.seq < oldestExposureSeq) {
+      affected.push({ seq: ev.seq, kind: ev.kind, status: 'affected/under-review' });
+    }
+  }
+  return affected;
 }
 
 function effectiveState(state, reverifyState) {
@@ -382,4 +479,6 @@ module.exports = {
   projectRecordStatus,
   transition,
   effectiveState,
+  openExposures,
+  affectedSignoffs,
 };

@@ -71,6 +71,9 @@ describe('ADR-0047 authoritative state-machine event types', () => {
       identity_digest: rebaselined.authoritative_identity_digest,
       criteria_version: 'v2',
       previous_criteria_version: 'v1',
+      // ADR-0049 D-D: without pointwise replay (defer-0023) a criteria change
+      // is a restatement mapping; restatement_of is mandatory.
+      restatement_of: 'v1',
       reviewer_id: 'reviewer-b',
       attestation_type: 'approve',
     });

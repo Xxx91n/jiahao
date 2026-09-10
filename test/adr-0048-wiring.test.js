@@ -89,7 +89,7 @@ describe('ADR-0048 D-A metrological ledger', () => {
     expect(reverify.clopperPearson95(0, 10)[1]).toBeCloseTo(0.3085, 3);
   });
 
-  test('appendEntry writes as-found/as-left double columns without a third state', () => {
+  test('appendEntry declares no_adjustment once; as-left appears only on adjustment (ADR-0049 D-A)', () => {
     const identity = { rules_digest: 'rules', model_checkpoint_digest: 'model', inference_config_hash: 'inference', triple_hash: 'triple' };
     const perEntry = [];
     for (let i = 0; i < 10; i++) perEntry.push({ id: String(i), expected_judge: i % 3 === 0 ? 'override' : 'uphold', observed: i % 3 === 0 ? 'honest' : 'lie' });
@@ -98,9 +98,13 @@ describe('ADR-0048 D-A metrological ledger', () => {
     const ledger = reverify.appendEntry([], { collected_at: new Date().toISOString(), metrics: { invocations: 10 }, conclusion: 'pass', metrology });
     expect(ledger[0].as_found.override_rate).toBe(0.3);
     expect(ledger[0].as_found.score_distribution).toEqual({ honest: 4, lie: 6 });
-    expect(ledger[0].as_left).toEqual(ledger[0].as_found);
+    // ADR-0049 D-A supersedes the ADR-0048 placeholder: no adjustment records
+    // as-found once with an explicit no_adjustment declaration, no as-left copy.
+    expect(ledger[0].as_left).toBeUndefined();
+    expect(ledger[0].no_adjustment).toBe(false); // conformity is 'conditional' without a numeric spec_limit
+    expect(ledger[0].conformity).toBe('conditional');
     expect(ledger[0].observed_delta).toEqual({ overrides_accepted: 0, override_rate: 0, fail_soft: 0 });
-    expect(ledger[0].adjusted).toBe(false);
+    expect(ledger[0].adjusted).toBeUndefined(); // ADR-0049 D-A replaces the adjusted flag with no_adjustment
     expect(ledger[0].sample_size).toBe(10);
     expect(reverify.verifyLedger(ledger)).toBeNull();
   });
