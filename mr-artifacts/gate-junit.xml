@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="mr-gate" tests="2" failures="0" errors="0">
-  <testcase name="mr-symmetry" classname="mr-gate">
-  </testcase>
-  <testcase name="mr-coverage" classname="mr-gate">
-  </testcase>
-</testsuite>
