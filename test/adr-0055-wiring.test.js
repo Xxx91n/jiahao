@@ -40,6 +40,16 @@ function appendRecords(log, count) {
   return records;
 }
 
+function appendAfter(log, count, prev) {
+  let tail = prev;
+  for (let i = 0; i < count; i++) {
+    const rec = log.createRecord('post' + i, 'deterministic', 'passed', 'payload-' + i, 0.9, tail);
+    log.append([rec]);
+    tail = rec.event_hash;
+  }
+  return tail;
+}
+
 function segmentPaths(dir) {
   const segDir = path.join(dir, '.jiahao-evidence');
   return fs.readdirSync(segDir).filter((name) => name.endsWith('.jsonl'))
@@ -60,6 +70,22 @@ describe('ADR-0055 D-A plan anchor contract', () => {
       'latest_upstream_commit must be a 7-64 character hex commit',
       'checked_at must be a parseable timestamp',
     ]);
+  });
+
+  test('tail anchor writer only persists declared witness fields', () => {
+    const dir = mktmp('anchor-fields');
+    const log = makeLog(dir);
+    log.writeTailAnchor(log.headAnchorPath(), 0, 1, 'a'.repeat(64), undefined, '2026-09-09T00:00:00.000Z', {
+      witness_breakpoint_index: 0,
+      witness_breakpoint_detected_at: null,
+      witness_post_detection_evidence_appends: 0,
+      unexpected: 'must not persist',
+    });
+    const anchor = JSON.parse(fs.readFileSync(log.headAnchorPath(), 'utf8'));
+    expect(anchor.unexpected).toBeUndefined();
+    expect(anchor.witness_breakpoint_index).toBe(0);
+    log.clear();
+    fs.rmSync(dir, { recursive: true, force: true });
   });
 });
 
@@ -152,6 +178,45 @@ describe('ADR-0055 D-E bounded seal verification', () => {
     log.append([newRec]);
     spy.mockRestore();
     expect(new Set(reads).size).toBeLessThan(segs.length);
+    log.clear();
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  test('seal sidecar is validated against the segment containing an old seal', () => {
+    const dir = mktmp('old-seal');
+    const log = makeLog(dir);
+    appendRecords(log, 18);
+    const sealed = log.sealForwardIfNeeded();
+    expect(sealed.status).toBe('first_seal');
+    appendAfter(log, 60, sealed.sealed_head_hash);
+    const sidecarPath = path.join(dir, 'evidence-seal.json');
+    const good = JSON.parse(fs.readFileSync(sidecarPath, 'utf8'));
+    const activePath = segmentPaths(dir).slice(-1)[0];
+    const activeStart = JSON.parse(fs.readFileSync(activePath, 'utf8').trim().split('\n')[0]).seq_start;
+    expect(good.seal_index).toBeLessThan(activeStart);
+    fs.unlinkSync(log.headAnchorPath());
+    expect(log.verifyTail()).toMatchObject({ valid: true, fallback: 'last_good_seal' });
+
+    const tampered = Object.assign({}, good, { sealed_head_hash: '0'.repeat(64) });
+    fs.writeFileSync(sidecarPath, JSON.stringify(tampered), 'utf8');
+    expect(log.verifyTail().valid).toBe(false);
+    log.clear();
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  test('seal sidecar ahead of the chain is rejected', () => {
+    const dir = mktmp('ahead-seal');
+    const log = makeLog(dir);
+    appendRecords(log, 18);
+    expect(log.sealForwardIfNeeded().status).toBe('first_seal');
+    const sidecarPath = path.join(dir, 'evidence-seal.json');
+    const sidecar = JSON.parse(fs.readFileSync(sidecarPath, 'utf8'));
+    sidecar.seal_index += 5;
+    sidecar.sealed_seq = sidecar.seal_index - 1;
+    sidecar.sealed_total_count = sidecar.seal_index;
+    fs.writeFileSync(sidecarPath, JSON.stringify(sidecar), 'utf8');
+    fs.unlinkSync(log.headAnchorPath());
+    expect(log.verifyTail().valid).toBe(false);
     log.clear();
     fs.rmSync(dir, { recursive: true, force: true });
   });
