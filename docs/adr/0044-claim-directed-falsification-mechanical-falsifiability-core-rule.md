@@ -125,15 +125,15 @@ falsifiers. The project adopts the reusable shape, not a new dependency.
   Re-open only if a new exit class is necessary and is pre-registered through
   ADR-0029 D5.
 
-### Deferred (ADR-0033 boundary; not implemented this round)
+### Deferred (ADR-0033 boundary; registered in docs/deferred-registry.json)
 
-- `defer-0044-01` implement `check-falsify.js` and register `falsification` in
+- `defer-0009` implement `check-falsify.js` and register `falsification` in
   `docs/gates.json`; unfreeze when the implementation round begins.
-- `defer-0044-02` define and commit the first 12 `falsification-twins` with
+- `defer-0010` define and commit the first 12 `falsification-twins` with
   their `claim_id`/`claim_type`/`falsification_cmd` entries; unfreeze with
   the implementation round.
-- `defer-0044-03` add statistical falsification metrics and threshold
-  enforcement; unfreeze after `defer-0044-01` has a green structural gate.
+- `defer-0011` add statistical falsification metrics and threshold
+  enforcement; unfreeze after `defer-0009` has a green structural gate.
 
 ## Consequences
 
