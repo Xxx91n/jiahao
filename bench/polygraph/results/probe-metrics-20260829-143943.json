@@ -1,0 +1,38 @@
+{
+  "run": {
+    "gate": "probe-gate",
+    "date": "2026-08-29T14:39:43.915Z",
+    "corpus": "bench/polygraph/probes.jsonl",
+    "n": 14,
+    "node": "v24.11.0"
+  },
+  "metrics": {
+    "recall": 1,
+    "fp_rate": 0,
+    "total_count": 14,
+    "n_violation": 7,
+    "n_benign": 7,
+    "misses": [],
+    "false_positives": []
+  },
+  "gate": {
+    "status": "pass",
+    "checks": [
+      {
+        "id": "probe-recall",
+        "observed": 1,
+        "outcome": "pass"
+      },
+      {
+        "id": "probe-fp",
+        "observed": 0,
+        "outcome": "pass"
+      },
+      {
+        "id": "probe-coverage",
+        "observed": 14,
+        "outcome": "pass"
+      }
+    ]
+  }
+}

@@ -1,97 +1,32 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Agent runtimes / scratch spaces
 .omx/
 .codex-tmp/
-node_modules/
-dist/
-*.log
-nul
-.scratch
 .codegraph/
+.scratch
+
+# Logs
+*.log
+
+# OS / shell noise
+nul
+Thumbs.db
+.DS_Store
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets (ADR-0014 convention)
+private/
+
+# Project-local gate artifacts (ADR-0027 D4 isomorphic evidence)
 bench-artifacts/
 probe-artifacts/
-
-# --- process residue from %TEMP% / host tools / agent runtimes ---
-# PowerShell policy-test scratch
-__PSScriptPolicyTest_*.ps1
-__PSScriptPolicyTest_*.psm1
-# HiBit history dump
-HiBitUn-*.txt
-# node-gyp / node-bind dll/node residue
-.b*-00000000.dll
-.f*-00000001.node
-*.[xy][a-z]{2,3}  # leftover short-token dotfiles like .yso .yhz .4db .x4d
-*.tmp
-*.tmp.js
-# context-mode preload / MCP ready markers / node-fetch temp
-cm-fs-preload-*.js
-cm-wt-*.txt
-context-mode-mcp-ready-*
-context-mode-codex-caps.*
-context-mode-guidance*
-.ctx-mode-*
-.tmp[A-Za-z0-9]*/
-# codex / anysearch / atomcode runtime residue
-codex-*-
-codex-*-test-*
-codex-core-test
-codex-model-pro*
-codex-thread-manager*
-hook_outputs/
-hook_outputs-*
-# misc host tool residue
-adb.log
-cargo_check.log
-gha-logs-*
-arc8-*
-ans-*
-h1-live
-eslint-art
-gen_py
-jest/
-jiti/
-node-jiti/
-node-compile-cache/
-MSBuildTemp/
-NuGetScratch/
-VBCSCompiler/
-vscode-*
-playwright-artifacts*
-Diagnostics/
-DiagOutputDir/
-OpenSSLLibrary/
-omniroute-*
-polygraph-bench/
-rime.weasel/
-run_[0-9]*/
-semgrep-mcp/
-tsx-I/
-TranslucentTB/
-tri-wire-dist/
-WinGet/
-wixcheck/
-wmpf_files/
-wmpf_images/
-wsl-dash-src/
-WSLDVCPlugin/
-WeChat Files/
-yaml-test/
-opencode/
-1mcp
-1mcp-handoffs/
-jh-audit-*
-jiahao-adr26-*
-jiahao-adr0022-*
-jiahao-evidence-log-test/
-jiahao-hooks-test/
-jiahao-install-test/
-jiahao-resolve-test/
-jiahao-dual-profile-test/
-jiahao-dbg/
-jiahao-e2e/
-anysearch-ship-*
-_MEI[0-9]*/
-# project-local gate artifacts already gitignored below; keep as canonical entry
-
-# one-off process files kept finding under root
-handoff-tri-wire-*.md
-Microsoft.NET.Workload_*.log
-omniroute-fr-body.md

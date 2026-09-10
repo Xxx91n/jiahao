@@ -1,0 +1,29 @@
+{
+  "run": {
+    "gate": "mr-gate",
+    "date": "2026-08-31T09:22:34.799Z",
+    "corpus": "private/bench-corpus/mr-probes.jsonl",
+    "n": 12,
+    "node": "v24.11.0"
+  },
+  "metrics": {
+    "total_count": 12,
+    "violations": 0,
+    "violation_ids": []
+  },
+  "gate": {
+    "status": "pass",
+    "checks": [
+      {
+        "id": "mr-symmetry",
+        "observed": 0,
+        "outcome": "pass"
+      },
+      {
+        "id": "mr-coverage",
+        "observed": 12,
+        "outcome": "pass"
+      }
+    ]
+  }
+}
