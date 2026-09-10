@@ -1564,4 +1564,26 @@ record). Verification stays read-only; re-anchoring writes belong to an
 independent maintenance command (ADR-0054 D-E).
 _Avoid_: seal-on-verification, verifier-as-committer, self-refreshing witness
 
+
+**Work-Baseline Anchor (工作基线锚)**:
+The planning-side anchor recording a grill plan base_commit,
+latest_upstream_commit, and checked_at. It extends anchor freshness to the
+repository baseline a plan depends on, without rewriting evidence-chain
+ADR-0053/0054 (ADR-0055 D-A).
+_Avoid_: unpinned plan, historical base without upstream identity
+
+**Speculative Merge Check (投机合并检查)**:
+The non-destructive mergeability check performed before implementation
+starts. It is evidence of a fresh planning boundary, not a zero-conflict
+promise; a stale check triggers re-anchoring before source work
+(ADR-0055 D-C).
+_Avoid_: merge-time-only check, conflict-free guarantee
+
+**Seal Verification Performance (封验证性能边界)**:
+The requirement that segmented seal validation use a bounded sidecar or
+checkpoint read on the hot path instead of an unbounded full-chain read;
+full verification remains a separate cold audit path. The write path must
+not perform full-chain reads on each append (ADR-0055 D-E).
+_Avoid_: hot-path readConcat, unbounded verifyTail, write-path full scan
+
 *End of Glossary*
