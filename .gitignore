@@ -30,3 +30,4 @@ private/
 # Project-local gate artifacts (ADR-0027 D4 isomorphic evidence)
 bench-artifacts/
 probe-artifacts/
+test-artifacts/

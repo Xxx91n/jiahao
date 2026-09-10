@@ -40,11 +40,13 @@
     },
     {
       "name": "test",
-      "command": "npm test",
+      "command": "node scripts/run-test-gate.js --expected-suites 48",
       "tier": "confirmatory",
-      "source_adr": "CONTEXT.md",
+      "source_adr": "docs/adr/0057-test-skip-honesty-and-suite-count-assertion.md",
       "order": 100,
-      "params": {},
+      "params": {
+        "expected-suites": "48"
+      },
       "requires": []
     },
     {
@@ -245,6 +247,17 @@
       },
       "requires": [
         "docs-adr"
+      ]
+    },
+    {
+      "name": "skip-reasons",
+      "command": "node scripts/check-skip-reasons.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0057-test-skip-honesty-and-suite-count-assertion.md",
+      "order": 102,
+      "params": {},
+      "requires": [
+        "repo-tree"
       ]
     }
   ]
