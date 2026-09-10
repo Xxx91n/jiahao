@@ -180,7 +180,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). The index below is a derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js` — do not hand-edit:
 
 <!-- adr-index:start -->
-- 55 architecture decision records:
+- 57 architecture decision records:
 - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
 - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
 - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
@@ -236,6 +236,8 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - [ADR-0053](docs/adr/0053-periodic-re-anchoring-and-anchor-freshness.md) — Periodic Re-Anchoring and Anchor Freshness
 - [ADR-0054](docs/adr/0054-anchor-freshness-verification-and-re-anchoring-activation.md) — Anchor Freshness Verification and Re-Anchoring Activation
 - [ADR-0055](docs/adr/0055-work-baseline-anchoring-and-seal-verification-performance.md) — Work-Baseline Anchoring and Seal Verification Performance
+- [ADR-0056](docs/adr/0056-test-corpus-tiering-and-clean-clone-integrity.md) — Test Corpus Tiering and Clean-Clone Integrity
+- [ADR-0057](docs/adr/0057-test-skip-honesty-and-suite-count-assertion.md) — Test-Layer Skip Honesty and Suite-Count Assertion
 <!-- adr-index:end -->
 - `test/` — 36 test suites, 527 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
