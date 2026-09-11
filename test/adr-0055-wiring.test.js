@@ -92,7 +92,9 @@ describe('ADR-0055 D-A plan anchor contract', () => {
 describe('ADR-0055 D-C speculative merge checker', () => {
   test('current upstream produces clean merge evidence; stale upstream exits 1', () => {
     const dir = mktmp('plan-cli');
-    const current = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).stdout.trim();
+    // Deterministic stale instance: HEAD~1 always differs from the plan's origin/main tip,
+    // whereas HEAD equals origin/main right after a merge (post-push host state made this flaky).
+    const staleRef = spawnSync('git', ['rev-parse', 'HEAD~1'], { cwd: ROOT, encoding: 'utf8' }).stdout.trim();
     const latest = spawnSync('git', ['rev-parse', 'origin/main'], { cwd: ROOT, encoding: 'utf8' }).stdout.trim();
     const planPath = path.join(dir, 'plan.json');
     fs.writeFileSync(planPath, JSON.stringify({
@@ -108,7 +110,7 @@ describe('ADR-0055 D-C speculative merge checker', () => {
     expect(clean.status).toBe(0);
     expect(JSON.parse(clean.stdout)).toMatchObject({ stale: false, mergeable: true });
 
-    const stale = spawnSync(process.execPath, [path.join(ROOT, 'scripts/check-plan-baseline.js'), planPath, current], {
+    const stale = spawnSync(process.execPath, [path.join(ROOT, 'scripts/check-plan-baseline.js'), planPath, staleRef], {
       cwd: ROOT,
       encoding: 'utf8',
     });
