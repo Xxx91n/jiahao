@@ -58,6 +58,13 @@ updating the check-ci-wiring.js blocklist, and evaluating defer-0004 (whose
 presence condition a multi-job ci.yml would satisfy). defer-0026 is registered
 in docs/deferred-registry.json with scripts/check-ci-jobs.js as verified_by.
 
+Amended 2026-09-12 by ADR-0058 (D-F/D-G/D-H/D-I): D-D is activated. `npm test`
+is split out of `gate:all` into an independent CI test job
+(`JIAHAO_TEST_TIER=public`) with an `always()` success-only `summary` job
+(`needs: [gate-all, test]`); the test gate (order 100) is physically removed
+from `docs/gates.json` and the slot retired; ADR-0034 D5 is narrowed to the
+gate layer. See ADR-0058 for the nine grill-round decisions.
+
 ## Rejected Alternatives
 
 ### Folding skip honesty into ADR-0056

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // scripts/run-test-gate.js - ADR-0057 D-C: the test gate as a suite-count-
-// asserting wrapper over jest. Registered expectation lives in
-// docs/gates.json params (--expected-suites, ADR-0036 D4 declaration parity).
+// asserting wrapper over jest. Registered expectation lives on the ci.yml
+// test-job call line (--expected-suites, ADR-0036 D4 declaration parity).
 //
 // Fail-closed on every silent-green channel: jest exits non-zero on failure
 // AND on zero collected tests (no --passWithNoTests anywhere), the JUnit
@@ -29,7 +29,7 @@ function arg(name) {
 
 const expected = parseInt(arg('expected-suites'), 10);
 if (!Number.isInteger(expected) || expected <= 0) {
-  console.error('run-test-gate: --expected-suites <n> missing or invalid (registered in docs/gates.json params, ADR-0057 D-C)');
+  console.error('run-test-gate: --expected-suites <n> missing or invalid (registered on the ci.yml test-job call line, ADR-0057 D-C)');
   process.exit(64);
 }
 
@@ -57,7 +57,7 @@ const suites = (xml.match(/<testsuite /g) || []).length;
 const head = xml.match(/<testsuites tests="(\d+)" failures="\d+" skipped="(\d+)"/);
 if (suites !== expected) {
   console.error('FAIL: suite-count drift - collected ' + suites + ' suites, registered expectation ' + expected
-    + ' (ADR-0057 D-C). A silent collection failure or an intentional suite add/remove must update docs/gates.json params in the same change.');
+    + ' (ADR-0057 D-C). A silent collection failure or an intentional suite add/remove must update the ci.yml test-job call line in the same change.');
   process.exit(1);
 }
 console.log('[test] OK: ' + suites + ' suites, ' + (head ? head[1] + ' tests' : 'n/a tests') + (head ? ', ' + head[2] + ' skipped' : '') + ' (ADR-0057 D-C)');
