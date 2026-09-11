@@ -92,9 +92,12 @@ describe('ADR-0055 D-A plan anchor contract', () => {
 describe('ADR-0055 D-C speculative merge checker', () => {
   test('current upstream produces clean merge evidence; stale upstream exits 1', () => {
     const dir = mktmp('plan-cli');
-    // Deterministic stale instance: HEAD~1 always differs from the plan's origin/main tip,
-    // whereas HEAD equals origin/main right after a merge (post-push host state made this flaky).
-    const staleRef = spawnSync('git', ['rev-parse', 'HEAD~1'], { cwd: ROOT, encoding: 'utf8' }).stdout.trim();
+    // Deterministic stale instance: a commit GUARANTEED to differ from the plan's
+    // origin/main anchor. origin/main~1 (the upstream tip's parent) always differs
+    // from origin/main. HEAD~1 was wrong: it EQUALS origin/main whenever the branch
+    // sits exactly one commit ahead - the normal state right after a landing commit
+    // (this surfaced when the ADR-0058 round landed).
+    const staleRef = spawnSync('git', ['rev-parse', 'origin/main~1'], { cwd: ROOT, encoding: 'utf8' }).stdout.trim();
     const latest = spawnSync('git', ['rev-parse', 'origin/main'], { cwd: ROOT, encoding: 'utf8' }).stdout.trim();
     const planPath = path.join(dir, 'plan.json');
     fs.writeFileSync(planPath, JSON.stringify({

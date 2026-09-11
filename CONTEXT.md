@@ -1622,4 +1622,46 @@ _Avoid_: smoke test
 This project's pattern of one ADR carrying several clauses (D-A..D-N) that share a single decision theme and one set of Context forces. Industry has no named equivalent (research of 2026-09-10; Nygard and MADR require one decision per record, and Azure splits multi-phase decisions). A decision family is lawful only while every clause serves the same theme; ADR-0056/0057 demonstrate the split when themes diverge.
 _Avoid_: decision bundle, decision pack
 
+
+**Success-Only Aggregator (success-only 聚合器)**:
+An `always()` summary job whose green condition requires each needed job's
+result to strictly equal `success`; `failure`, `cancelled`, `skipped`,
+and unknown states are all red. The canonical richja pattern (success ||
+skipped) is forbidden because GitHub masks failed legs as `skipped` on
+partial re-run (ju-manns defect, #26822 2025-02). The only true fix for the
+false-green defect is `skipped = red` (ADR-0058 D-B).
+_Avoid_: skip-tolerant aggregator, cancelled-check add-on, continue-on-error
+disguise (those leave the ju-manns re-run hole open).
+
+**Two-Layer Entrypoint (两层入口)**:
+The separation of CI orchestration entrypoints by layer: gate:all is the
+single entrypoint for the gate layer (owns gates.json members exclusively);
+the test job is an independent CI-layer consumer that does not go through
+gate:all. The summary job aggregates both layers at the CI layer. This is the
+GoF Facade "entry point needed to each level of layered software" pattern
+applied to CI orchestration (ADR-0058 D-E, amending ADR-0034 D5).
+_Avoid_: gate:all as a god-facade absorbing non-gate concerns, test job as a
+"lane" of gate:all (semantic inflation breaks registry as fact-source).
+
+**Retired Order Slot (退役序号位)**:
+A gap in gates.json order numbering left by a removed gate entry. The slot is
+not renumbered, not reused, and not marked with a tombstone entry — it is
+simply absent. "Gaps are the expected steady state, not damage to repair"
+(GitHub spec-kit #4065, 2026-08). Order 100 is retired after the test gate
+migrated to the CI layer (ADR-0058 D-I).
+_Avoid_: renumbering for aesthetic compactness, tombstone entries in an
+executed runtime manifest (those break wiring-test assertions and require
+per-consumer special-casing).
+
+**Symmetric Tier Contract (对称语料分层契约)**:
+The explicit pairing of corpus tier with CI layer: gate:all job runs full
+tier (secret-injected private corpus, internal quality gate); test job runs
+public tier (`JIAHAO_TEST_TIER=public`, verifies clean-clone integrity).
+The contract is recorded in ADR prose even if gate:all code does not
+force-set the env, pinning the two-layer tier division against silent
+regression (ADR-0058 D-H).
+_Avoid_: auto-probe tier (environment drift then silent tier change), full tier
+in CI test job (fork PR has no secret then results incomparable across trigger
+contexts).
+
 *End of Glossary*

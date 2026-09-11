@@ -39,17 +39,6 @@
       ]
     },
     {
-      "name": "test",
-      "command": "node scripts/run-test-gate.js --expected-suites 48",
-      "tier": "confirmatory",
-      "source_adr": "docs/adr/0057-test-skip-honesty-and-suite-count-assertion.md",
-      "order": 100,
-      "params": {
-        "expected-suites": "48"
-      },
-      "requires": []
-    },
-    {
       "name": "instrument-identity",
       "command": "node scripts/instrument.js --check",
       "tier": "confirmatory",

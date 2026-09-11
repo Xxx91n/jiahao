@@ -1,10 +1,9 @@
 #!/usr/bin/env node
-// check-ci-jobs.js - ADR-0035 D5 assertion for defer-0004 (zero-dependency).
-// Evaluates the presence-condition "ci.yml declares more than one top-level
-// job". Exit 0 = condition SATISFIED (suggest activating defer-0004), exit 1 =
-// not satisfied (deferral remains valid). This script is an evaluator invoked
-// by check-deferred.js via verified_by; it is NOT a gate (ADR-0035 D6: a
-// satisfied assertion only suggests activation, never auto-activates).
+// check-ci-jobs.js - ADR-0035 D5 presence evaluator, expanded by ADR-0058 D-004.
+// Zero-dependency; exit 0 = SATISFIED (suggests human review, ADR-0035 D6),
+// exit 1 = not satisfied. Predicates: multi-job (defer-0004); dedicated test
+// job + summary job + summary always() (defer-0026). Anti-pattern assertions
+// live in test/adr-0058-wiring.test.js, not here (D-004 two-layer).
 //
 // Usage: node scripts/check-ci-jobs.js [ci.yml path]
 
@@ -16,30 +15,51 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const CI_REL = path.join('.github', 'workflows', 'ci.yml');
 
-// Count job keys: lines at exactly one indent level under a top-level "jobs:".
-function countJobs(yml) {
-  const lines = String(yml).split(/\r?\n/);
-  let inJobs = false, count = 0;
-  for (const line of lines) {
+// Top-level jobs: mapping -> { name: [content lines] }; comments are inert.
+function parseJobs(yml) {
+  const jobs = {};
+  let inJobs = false, current = null;
+  for (const line of String(yml).split(/\r?\n/)) {
     if (/^jobs:\s*(#.*)?$/.test(line)) { inJobs = true; continue; }
     if (!inJobs) continue;
-    if (/^\S/.test(line) && line.trim() !== '') break; // left jobs: block
-    if (/^  [A-Za-z0-9_-]+:\s*(#.*)?$/.test(line)) count++;
+    if (/^\S/.test(line) && line.trim() !== '') break; // left the jobs: block
+    const m = /^  ([A-Za-z0-9_-]+):\s*(#.*)?$/.exec(line);
+    if (m) { current = m[1]; jobs[current] = []; continue; }
+    if (current && !/^\s*#/.test(line)) jobs[current].push(line);
   }
-  return count;
+  return jobs;
+}
+
+function countJobs(yml) { return Object.keys(parseJobs(yml)).length; }
+
+// Pure: yml text in, predicate -> boolean out.
+function presence(yml) {
+  const jobs = parseJobs(yml);
+  const summary = (jobs.summary || []).join('\n');
+  const has = (k) => Object.prototype.hasOwnProperty.call(jobs, k);
+  return {
+    p1_multi_job: Object.keys(jobs).length > 1,
+    p2_test_job: has('test'),
+    p3_summary_job: has('summary'),
+    p4_summary_always: /^\s*if:\s*(\$\{\{\s*)?always\(\)\s*(\}\})?\s*$/m.test(summary),
+  };
+}
+
+function evaluate(yml) {
+  const predicates = presence(yml);
+  const unmet = Object.keys(predicates).filter(k => !predicates[k]);
+  return { predicates, satisfied: unmet.length === 0, unmet };
 }
 
 function main(argv) {
-  const ciPath = argv[2] || path.join(ROOT, CI_REL);
-  const n = countJobs(fs.readFileSync(ciPath, 'utf8'));
-  if (n > 1) {
-    console.log('ci jobs: ' + n + ' (>1) - defer-0004 presence-condition SATISFIED, human review suggested');
-    process.exit(0);
-  }
-  console.log('ci jobs: ' + n + ' (single-job) - defer-0004 stays deferred');
-  process.exit(1);
+  const res = evaluate(fs.readFileSync(argv[2] || path.join(ROOT, CI_REL), 'utf8'));
+  const tags = Object.keys(res.predicates).map(k => (res.predicates[k] ? '+' : '-') + k).join(' ');
+  console.log('ci jobs: ' + tags + (res.satisfied
+    ? ' - presence-condition SATISFIED, human review suggested (ADR-0035 D6)'
+    : ' - not met (' + res.unmet.join(', ') + '); the deferral remains valid'));
+  process.exit(res.satisfied ? 0 : 1);
 }
 
 if (require.main === module) main(process.argv);
 
-module.exports = { countJobs, CI_REL };
+module.exports = { parseJobs, countJobs, presence, evaluate, CI_REL };

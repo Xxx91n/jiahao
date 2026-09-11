@@ -33,9 +33,11 @@ describe('ADR-0033 D2 entry schema', () => {
     // ADR-0050 document round adds defer-0024 (external witness / second-copy anchor).
     // ADR-0051/0052/0053 document round adds defer-0025 (host-native directory sync).
     // ADR-0057 document round adds defer-0026 (independent CI test job + always() summary).
-    expect(registry.entries.map(e => e.id)).toEqual(['defer-0001', 'defer-0002', 'defer-0003', 'defer-0004', 'defer-0005', 'defer-0006', 'defer-0007', 'defer-0008', 'defer-0009', 'defer-0010', 'defer-0011', 'defer-0012', 'defer-0013', 'defer-0015', 'defer-0018', 'defer-0019', 'defer-0023', 'defer-0024', 'defer-0025', 'defer-0026']);
+    // ADR-0058 implementation round extends the seed inventory to 21 entries: defer-0027
+    // (ADR-0016 D4 sub-item (i) verifiable-log wheels, pending-evaluation / yearly).
+    expect(registry.entries.map(e => e.id)).toEqual(['defer-0001', 'defer-0002', 'defer-0003', 'defer-0004', 'defer-0005', 'defer-0006', 'defer-0007', 'defer-0008', 'defer-0009', 'defer-0010', 'defer-0011', 'defer-0012', 'defer-0013', 'defer-0015', 'defer-0018', 'defer-0019', 'defer-0023', 'defer-0024', 'defer-0025', 'defer-0026', 'defer-0027']);
     // ADR-0035 D6: no verified_by -> pending-evaluation; only defer-0004 (real assertion) stays deferred
-    expect(registry.entries.map(e => e.status)).toEqual(['pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'deferred', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'deferred']); // defer-0026 lands deferred (verified_by: check-ci-jobs.js, ADR-0057 D-D)
+    expect(registry.entries.map(e => e.status)).toEqual(['pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'deferred', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'deferred', 'pending-evaluation']); // defer-0026 deferred (ADR-0057 D-D); defer-0027 pending-evaluation (ADR-0016 D4)
     for (const e of registry.entries) expect(e.review_at >= today).toBe(true);
   });
 

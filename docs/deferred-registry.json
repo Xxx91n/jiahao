@@ -295,6 +295,24 @@
       "cadence_tier": "yearly",
       "registered_at": "2026-09-10",
       "status": "deferred"
+    },
+    {
+      "id": "defer-0027",
+      "subject": "verifiable-log wheels (hypercore/ssb/Rekor) for the evidence hash chain",
+      "source_adr": "docs/adr/0016-evidencelog-gateladder-split-shared-core.md",
+      "rationale": "ADR-0016 D4 sub-item (i): industrial verifiable-log wheels deferred because single-repo single-actor chains gain nothing from Merkle batching; the current linear hash chain (~100 lines, zero-dep) is auditable end-to-end. Trigger condition for activation remains cross-host audit per ADR-0013. Sub-items (ii) (profile.js relocation + configDir dedup) and (iii) (lint boundary) have no live trigger and stay in ADR prose.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "a second-party consumer of the evidence log exists outside the producing repository, OR a cross-machine verification requirement appears"
+      },
+      "review_at": "2027-09-01",
+      "cadence_tier": "yearly",
+      "registered_at": "2026-09-12",
+      "last_check_in": {
+        "date": "2026-09-12",
+        "note": "registered from ADR-0016 D4 prose; no second-party evidence-log consumer, no cross-machine verification requirement"
+      },
+      "status": "pending-evaluation"
     }
   ]
 }

@@ -18,6 +18,18 @@ const today = new Date().toISOString().slice(0, 10);
 
 function clone(o) { return JSON.parse(JSON.stringify(o)); }
 
+// ADR-0038 D1 coupling: the tarball assertion packs `scripts/`, so temp verifier
+// scripts must NOT be written there - a parallel jest worker made the measured
+// size race the ADR-0039 D3 cap. `.scratch/` is gitignored and not in
+// package.json `files`, so it never enters the packed surface.
+const SCRATCH = path.join(ROOT, '.scratch');
+function tmpScript(name, body) {
+  fs.mkdirSync(SCRATCH, { recursive: true });
+  const p = path.join(SCRATCH, name);
+  fs.writeFileSync(p, body);
+  return { path: p, rel: '.scratch/' + name };
+}
+
 describe('ADR-0035 D1 cadence ladder fields', () => {
   test('every entry carries a valid cadence_tier and registered_at', () => {
     for (const e of registry.entries) {
@@ -114,42 +126,47 @@ describe('ADR-0035 D5/D6 verified_by semantics', () => {
     expect(checkCiJobs.countJobs(multi)).toBe(2);
   });
 
-  test('check-ci-jobs on real ci.yml: single job today -> exit 1 (condition not met)', () => {
+  // ADR-0058 D-004: the presence predicates now hold on the real tree (three
+  // jobs: gate-all + test + summary with always()), so the evaluator reports
+  // SATISFIED. This test was the pre-landing characterization of the old
+  // single-job ci.yml; it is re-anchored, not deleted.
+  test('check-ci-jobs on real ci.yml: multi-job landed -> exit 0 (condition satisfied)', () => {
     let code = 0;
     try {
       execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'check-ci-jobs.js')], { stdio: 'pipe' });
     } catch (err) { code = err.status; }
-    expect(code).toBe(1);
+    expect(code).toBe(0);
   });
 
   test('evalSuggestions: satisfied assertion suggests, unsatisfied stays silent', () => {
-    // real registry: defer-0004 condition not met -> no suggestion
-    expect(checkDeferred.evalSuggestions(registry)).toEqual([]);
+    // real registry after ADR-0058 landed: both presence-coupled entries report
+    // SATISFIED -> one SUGGEST each, and never an auto-activation (ADR-0035 D6).
+    const real = checkDeferred.evalSuggestions(registry);
+    const suggested = real.filter(m => m.indexOf('SATISFIED') !== -1).map(m => m.match(/SUGGEST: (\S+):/)[1]);
+    expect(suggested).toEqual(['defer-0004', 'defer-0026']);
     // synthetic: verified_by script that always exits 0 -> SUGGEST
     // (repo-relative: evalSuggestions resolves verified_by against ROOT)
-    const tmp = path.join(ROOT, 'scripts', '.tmp-adr0035-satisfied.js');
-    fs.writeFileSync(tmp, 'process.exit(0);\n');
+    const t = tmpScript('.tmp-adr0035-satisfied.js', 'process.exit(0);\n');
     try {
       const fake = clone(registry);
-      fake.entries[3].unfreeze_if.verified_by = 'scripts/.tmp-adr0035-satisfied.js';
+      fake.entries[3].unfreeze_if.verified_by = t.rel;
       const s = checkDeferred.evalSuggestions(fake);
       expect(s.some(m => m.indexOf('defer-0004') !== -1 && m.indexOf('SATISFIED') !== -1)).toBe(true);
     } finally {
-      fs.unlinkSync(tmp);
+      fs.unlinkSync(t.path);
     }
   });
 
   test('audit fix: crashing verifier surfaces as WARN, not silent "not satisfied"', () => {
-    const tmp = path.join(ROOT, 'scripts', '.tmp-adr0035-crash.js');
-    fs.writeFileSync(tmp, 'process.exit(2);\n'); // node crashes also exit 1; contract: >1 = broken verifier
+    const t = tmpScript('.tmp-adr0035-crash.js', 'process.exit(2);\n'); // node crashes also exit 1; contract: >1 = broken verifier
     try {
       const fake = clone(registry);
-      fake.entries[3].unfreeze_if.verified_by = 'scripts/.tmp-adr0035-crash.js';
+      fake.entries[3].unfreeze_if.verified_by = t.rel;
       const s = checkDeferred.evalSuggestions(fake);
       expect(s.some(m => m.indexOf('WARN') !== -1 && m.indexOf('defer-0004') !== -1)).toBe(true);
-      expect(s.some(m => m.indexOf('SATISFIED') !== -1)).toBe(false);
+      expect(s.some(m => m.indexOf('defer-0004') !== -1 && m.indexOf('SATISFIED') !== -1)).toBe(false);
     } finally {
-      fs.unlinkSync(tmp);
+      fs.unlinkSync(t.path);
     }
   });
 });

@@ -134,6 +134,16 @@ a jest test proves the assertion's killing power). C-style generated
 ci.yml is registered in deferred-registry.json with unfreeze_if:
 ci.yml becomes multi-job / multi-workflow / matrixed.
 
+Amended 2026-09-12 by ADR-0058 D-E (D-005): the single-entrypoint rule is
+narrowed to the GATE LAYER. gate:all is the single entrypoint for the gate
+layer and owns the gates.json members exclusively; the independent test job
+is a CI-layer consumer that does not go through gate:all. The registry-to-ci
+assertion is unchanged in shape (exactly one run line invokes npm run
+gate:all; no run line invokes a gate command enumerated in gates.json). The
+multi-job unfreeze condition above is now satisfied, so the C-style ci.yml
+deferral (defer-0004) is evaluated by scripts/check-ci-jobs.js in the same
+round (ADR-0058 D-003/D-004).
+
 ### D6 Per-gate npm scripts stay as aliases
 
 bench:gate / probes:gate / coverage:gate / deferred:gate and friends

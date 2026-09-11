@@ -55,11 +55,15 @@ test('skip-reasons gate is registered in gates.json', () => {
   expect(e.source_adr).toContain('0057-test-skip-honesty');
 });
 
+// ADR-0058 D-F: the test gate (order 100) left gates.json; the suite-count
+// wrapper migrated into the independent CI-layer test job. The D-C anchor is
+// therefore NAME-based now (the ci.yml test job), not order-based.
 test('test gate runs through the suite-count wrapper (D-C)', () => {
-  const e = gates.entries.find((x) => x.name === 'test');
-  expect(e.command).toContain('scripts/run-test-gate.js');
-  expect(e.command).toContain('--expected-suites');
-  expect(e.params['expected-suites']).toBeTruthy();
+  const ci = read(path.join(__dirname, '..', '.github', 'workflows', 'ci.yml'));
+  const { parseJobs } = require('../scripts/check-ci-jobs');
+  const testJob = (parseJobs(ci)['test'] || []).join('\n');
+  expect(testJob).toContain('scripts/run-test-gate.js');
+  expect(testJob).toMatch(/--expected-suites\s+\d+/);
 });
 
 test('static skip scan ships and passes on the current tree (D-A)', () => {
