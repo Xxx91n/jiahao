@@ -1183,13 +1183,15 @@ maintainer-tree tiers (ADR-0036).
 _Avoid_: tests-in-tarball, .npmignore blacklist reliance (npm: whitelist is
 "by far the safest way")
 
-**Gate Capability Declaration (requires)** (ADR-0040): a per-gate closed-enum array in
-docs/gates.json naming the environment capabilities a gate needs before it may run -
-repo-tree / bench-corpus / docs-adr / ci-mode. Probing is existence-only, never content
-correctness; an unregistered name is a registry violation (closed-world), not a degraded
-run. Vocabulary is orthogonal to ADR-0031's tier (decision severity).
-_Avoid_: open capability vocabularies, inline per-gate sniffing, content checks inside
-probing
+**Gate Capability Declaration (requires)** (ADR-0040): the closed-enum capabilities a
+gate needs before it may run - repo-tree / bench-corpus / docs-adr / ci-mode. Carried
+either as a per-gate array in docs/gates.json (registered gates) or declared inline at
+the call site by a consumer with no registry entry (ADR-0058 R8). Probing is
+existence-only, never content correctness; an unregistered name is a registry violation
+(closed-world), not a degraded run. Orthogonal to ADR-0031's tier.
+_Avoid_: open capability vocabularies, ad-hoc inline per-gate sniffing (probing/guessing
+capabilities ad hoc; the sanctioned inline *declaration* is not sniffing), content
+checks inside probing
 
 **UNVERIFIABLE (exit 2)** (ADR-0040): the gate three-state contract - 0 pass / 1 violation
 / 2 cannot-verify because a declared capability is deterministically absent. Exit 2 may

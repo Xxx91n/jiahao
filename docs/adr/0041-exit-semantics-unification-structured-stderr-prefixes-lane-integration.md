@@ -59,6 +59,15 @@ Q7 glossary curation (B with promotion rule).
   Rationale anchors: ADR-0028's hook-domain/gate-domain isolation precedent; Bazel
   constrains test rules, not sh_binary; Python Click/argparse exit-2-is-usage CLI
   convention for free scripts; systemd per-unit SuccessExitStatus.
+  Amendment (audit-repair round 2026-09-12, ADR-0058 R8): "join the orchestration
+  surface" is an explicit act, not a registry-only state. A tool script outside the
+  registry MAY opt in to the three-state contract by declaring its capabilities INLINE
+  at the call site (`requireCapabilities([...])`, ADR-0058 R8) - that explicit
+  declaration IS the act of joining, and the script then honours exit 2 for
+  probed-capability-absence exactly as a registered gate does. A script that does not
+  opt in still makes no exit-code promise. The first such consumer is
+  `scripts/run-test-gate.js`, which D-F of ADR-0058 removed from the registry; see
+  ADR-0058 R8 for the decision and its regression locks.
 - D3 Three-code primary channel + structured-stderr auxiliary channel (Q3-C). The primary
   contract stays exactly three codes: 0 pass / 1 fail / 2 capability-absent-unverifiable.
   Everything displaced from the old over-loaded exit 2 (thresholds/parse failure, config

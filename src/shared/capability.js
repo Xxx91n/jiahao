@@ -78,12 +78,11 @@ function loadEntry(gateName, root) {
 }
 
 // ADR-0041 D5: workflow-command escaping (order matters: % first).
-// Escaping only %/CR/LF is complete here by charset: gate names and
-// capabilities come from closed enums of [a-z-] (docs/gates.json, ADR-0040 D1),
-// so the workflow-command separators ':' and ',' can never occur in the
-// escaped values, and the message body sits after '::' where they are literal.
+// Complete by construction, not by input charset: every property separator
+// (',' -> %2C, ':' -> %3A) is escaped alongside %/CR/LF, so no caller-supplied
+// value can break out of its property. The message body after '::' is literal.
 function escWf(s) {
-  return String(s).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+  return String(s).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A').replace(/,/g, '%2C').replace(/:/g, '%3A');
 }
 
 // D4/D5: the exact two lines, pure for unit tests.
@@ -96,12 +95,13 @@ function unverifiableLines(gate, cap) {
 
 // Probe declared requires: a gate NAME resolves through the registry (single
 // source of truth), an ARRAY declares inline (non-registry consumer, ADR-0058
-// R8); each deterministic miss degrades honestly, then exit 2.
+// R8); each deterministic miss degrades honestly, then exit 2. Inline arrays
+// are labelled 'a+b' (comma-free) - a raw ',' would be a property separator.
 function requireCapabilities(gateName, opts) {
   const requires = (Array.isArray(gateName) ? gateName : loadEntry(gateName, opts && opts.root).requires) || [];
   const missing = requires.filter(function (c) { return !probe(c, opts); });
   for (const cap of missing) {
-    const lines = unverifiableLines(gateName, cap);
+    const lines = unverifiableLines(Array.isArray(gateName) ? gateName.join('+') : gateName, cap);
     process.stdout.write(lines[0] + '\n');
     process.stderr.write(lines[1] + '\n');
   }

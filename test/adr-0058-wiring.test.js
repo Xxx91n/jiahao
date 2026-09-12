@@ -1,7 +1,7 @@
 'use strict';
 
 // ADR-0058 wiring assertions (ADR-0031 D1: every gate ships a wiring test).
-// Audit-repair round (2026-09-12) adds the A1/A3/A4/A5 locks (R8-R11).
+// Audit-repair round (2026-09-12) adds the A1/A3/A4/A5 locks (R8-R12).
 // Covers D-002 (success-only aggregator), D-004 (two-layer verification),
 // D-005 (gate-layer entrypoint narrowing), D-006 (test gate removed from
 // gates.json), D-007 (summary needs the full parallel set), D-008
@@ -124,7 +124,7 @@ describe('ADR-0058 R8 test-job capability declaration (audit A1)', () => {
   const probeScript = 'const c=require(process.argv[1]);c.requireCapabilities([process.argv[2]],{root:process.argv[3]});console.log("CAP-OK");';
 
   test('the wrapper no longer resolves a removed registry entry', () => {
-    expect(wrapper).not.toMatch(/requireCapabilities\(\'test\'\)/);
+    expect(wrapper).not.toMatch(/requireCapabilities\(\s*['"]test['"]\s*\)/);
   });
 
   test('the wrapper declares its capabilities inline, inside the closed enum', () => {
@@ -159,7 +159,8 @@ describe('ADR-0058 R8 test-job capability declaration (audit A1)', () => {
 describe('ADR-0058 R9 summary result-count guard (audit A3)', () => {
   test('the aggregator counts results and asserts seen == expected', () => {
     const s = body('summary');
-    expect(s).toMatch(/seen=/);
+    expect(s).toContain('seen=$((seen + 1))');
+    expect(s).toContain('if [ "$seen" -ne "$expected" ]');
     expect(s).toMatch(/expected=(\d+)/);
     expect(s).toMatch(/-ne\s+"[$]expected"/);
   });
@@ -175,7 +176,7 @@ describe('ADR-0058 R9 summary result-count guard (audit A3)', () => {
   });
 });
 
-describe('ADR-0058 R10 adjacent-doc truth (audit A4)', () => {
+describe('ADR-0058 R11 adjacent-doc truth (audit A4)', () => {
   test('ADR-0057 Context no longer claims the test gate is the current home', () => {
     const a = fs.readFileSync(path.join(ROOT, 'docs', 'adr', '0057-test-skip-honesty-and-suite-count-assertion.md'), 'utf8');
     expect(a).not.toMatch(/currently execute inside gate:all/);
@@ -183,7 +184,7 @@ describe('ADR-0058 R10 adjacent-doc truth (audit A4)', () => {
   });
 });
 
-describe('ADR-0058 R11 gitignore hygiene (audit A5)', () => {
+describe('ADR-0058 R12 gitignore hygiene (audit A5)', () => {
   test('mr-artifacts/ is ignored alongside its three siblings', () => {
     const gi = fs.readFileSync(path.join(ROOT, '.gitignore'), 'utf8');
     for (const d of ['bench-artifacts/', 'probe-artifacts/', 'test-artifacts/', 'mr-artifacts/']) {

@@ -41,6 +41,14 @@ jobs:
             echo "JIAHAO_BENCH_CORPUS_B64 not set; corpus gates will fail closed"
           else
             echo "$JIAHAO_BENCH_CORPUS_B64" | base64 -d | tar -xz -C "$RUNNER_TEMP"
+            # B7 diagnostics: make the next run self-explanatory. Every line is
+            # failure-proof (|| true / 2>/dev/null) so bash -e never trips here.
+            echo "corpus restored into $RUNNER_TEMP (JIAHAO_CORPUS_DIR=$RUNNER_TEMP/bench-corpus)"
+            ls -la "$RUNNER_TEMP" || true
+            ls -la "$RUNNER_TEMP/bench-corpus" 2>/dev/null || echo "(no $RUNNER_TEMP/bench-corpus directory)"
+            if [ ! -f "$RUNNER_TEMP/bench-corpus/mr-probes.jsonl" ]; then
+              echo "::warning title=corpus-restore::$RUNNER_TEMP/bench-corpus/mr-probes.jsonl is absent after extraction: either JIAHAO_BENCH_CORPUS_B64 is stale, or the tarball's top-level layout does not place the corpus under bench-corpus/"
+            fi
           fi
       - run: npm run gate:all
         env:

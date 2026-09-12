@@ -242,7 +242,7 @@ single fact source for it.
 ## Repair notes (audit-repair round, 2026-09-12)
 
 The independent final audit rejected the implementation round (blocking) and
-returned A1/A2/A3/A4/A5. R8-R10 record the three findings that touch this ADR.
+returned A1/A2/A3/A4/A5. R8-R12 record the five findings that touch this ADR.
 
 ### R8 - the test job's capability declaration (audit A1 / D-013)
 
@@ -262,7 +262,10 @@ capability is added. The public tier (D-H) means the wrapper must NOT declare
 `bench-corpus`. `test/adr-0058-wiring.test.js` locks the inline declaration,
 that every declared name is in the closed enum, that `bench-corpus` is absent,
 and both outcomes of the array form (present -> exit 0, absent -> exit 2 with
-the honest UNVERIFIABLE annotation).
+the honest UNVERIFIABLE annotation). ADR-0041 D2 now carries an inline amendment
+(audit-repair round 2, B2) recording that this explicit call-site declaration is
+itself the act of joining the orchestration surface, so the exit-2 domain stays
+coherent; R14 below records the comma-escaping hardening that came with it.
 
 ### R9 - the summary aggregator could zero-iterate into a false green (audit A3)
 
@@ -288,6 +291,67 @@ a repository-admin action (hard gate: external credential). Recorded here so
 the red CI channel is not mistaken for a regression of this ADR, and so the
 "summary is the only required check" carrier question (D-011) is not decided on
 a channel that cannot yet be green.
+
+### R11 - ADR-0057's Context still claimed the test gate was the current home (audit A4)
+
+ADR-0057's Context described `npm test` as executing "currently ... inside
+`gate:all`", which D-F/D-I of this ADR made false the moment the test gate left
+the registry. The sentence now reads in the past tense and names the independent
+CI test job as the current home. `test/adr-0058-wiring.test.js` asserts the stale
+phrase is gone and that "independent CI test job" is present, so the adjacent
+document cannot drift back.
+
+### R12 - `mr-artifacts/` was the only artifact dir not ignored (audit A5)
+
+The gate layer writes four artifact directories (`bench-artifacts/`,
+`probe-artifacts/`, `test-artifacts/`, `mr-artifacts/`); the first three were in
+`.gitignore` but `mr-artifacts/` was not, so a local run could leave untracked
+output that a careless `git add -A` would commit. `.gitignore` now lists
+`mr-artifacts/` alongside its three siblings, and
+`test/adr-0058-wiring.test.js` asserts all four entries are present.
+
+## Repair notes (audit-repair round 2, 2026-09-12)
+
+A second independent audit conditionally passed this branch and returned B1-B7.
+R13-R15 record the three fixes that touch this ADR; B3 and B6 were fixed in
+place (the R11/R12 sections above and the delivery report).
+
+### R13 - the CI corpus restore step now reports what it actually restored (audit B7)
+
+R10 dispositioned the red CI channel as an environment/secret condition without
+attempting the code-side branch. The restore step now, after extraction, lists
+`$RUNNER_TEMP` and `$RUNNER_TEMP/bench-corpus` and emits a `::warning` when
+`$RUNNER_TEMP/bench-corpus/mr-probes.jsonl` is absent, naming both hypotheses
+(a stale `JIAHAO_BENCH_CORPUS_B64` vs a tarball whose top-level layout does not
+place the corpus under `bench-corpus/`). The diagnostics are failure-proof
+(`|| true`, `2>/dev/null`) so `bash -e` cannot turn them into a new failure
+path; the step's existing semantics are unchanged. The secret-rotation branch
+still needs repository-admin credentials and remains open.
+
+### R14 - inline-array capability labels could inject a property separator (audit B1/B2)
+
+`unverifiableLines` joined an inline array into the `gate=` property with a raw
+comma, which is a workflow-command property separator: the label truncated and a
+bogus property appeared, contradicting the escaping comment's "complete by
+charset" claim. `requireCapabilities` now passes a comma-free `a+b` label, and
+`escWf` escapes `,` -> `%2C` and `:` -> `%3A` (after `%`/CR/LF), so completeness
+is by construction, not by input charset. ADR-0041 D2 gained an inline amendment
+recording that the explicit call-site declaration is the act of joining the
+orchestration surface (the exit-2 domain question, B2). The three exact-string
+tests (`adr-0040-wiring`, `adr-0041-wiring`) stay green, and
+`adr-0058-wiring` re-verifies both outcomes of the array form.
+
+### R15 - the CONTEXT.md term and two regression locks were non-exhaustive (audit B4/B5)
+
+`CONTEXT.md`'s Gate Capability Declaration term still defined the declaration as
+a registry-only array and listed "inline per-gate sniffing" under `_Avoid_`; it
+now covers both carriers (the registry array and the inline call-site
+declaration, R8) and distinguishes the forbidden ad-hoc sniffing from the
+sanctioned declaration. Two locks in `test/adr-0058-wiring.test.js` were
+strengthened: the "no `requireCapabilities('test')`" assertion now catches both
+quote styles and optional whitespace, and the summary-guard assertion checks the
+loop increment (`seen=$((seen + 1))`) and the comparison
+(`if [ "$seen" -ne "$expected" ]`) instead of the `seen=0` initialisation.
 
 ## Consequences
 
