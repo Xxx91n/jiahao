@@ -313,6 +313,78 @@
         "note": "registered from ADR-0016 D4 prose; no second-party evidence-log consumer, no cross-machine verification requirement"
       },
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0028",
+      "subject": "npm scoped publish channel (@<org>/jiahao) + name squat declaration",
+      "source_adr": "docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md",
+      "rationale": "The unprefixed npm name jiahao is a third-party 2019 test package; the project has never published (defer-0001). Tier 1 moves to a name-independent github: channel now; a scoped @<org>/jiahao identity is reserved so a future legitimate channel exists. Scoped and unprefixed names do not conflict; creating the npm user/org for the scope is cheap and time-sensitive (names are first-come, hard to transfer).",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a publish pipeline exists AND a remote exists AND an OIDC issuer (npm trusted publishing) is available AND an artifact inventory is formalized (all four defer-0001 conditions)"
+      },
+      "review_at": "2027-02-28",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-12",
+      "last_check_in": {
+        "date": "2026-09-12",
+        "note": "registered at ADR-0059; <org> placeholder unset — run a candidate-name availability scan (normalized variants) before any publication"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0029",
+      "subject": "MCP distribution channel revival (jiahao-mcp publishable as its own artifact)",
+      "source_adr": "docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md",
+      "rationale": "ADR-0059 D-B removes jiahao-mcp/ from the tarball to restore ADR-0009 opt-in intent (nested package.json deps are not installed from tarballs — npm by design). The component stays source-only in the git tree. Revival is deferred until a real channel exists, mirroring the defer-0007 presence-condition pattern.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a real external MCP-only consumer exists AND a working publish channel exists (defer-0001/defer-0028 conditions satisfiable)"
+      },
+      "review_at": "2027-09-01",
+      "cadence_tier": "yearly",
+      "registered_at": "2026-09-12",
+      "last_check_in": {
+        "date": "2026-09-12",
+        "note": "source-only tier active; no external MCP-only consumer on record"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0030",
+      "subject": "heterogeneous-model independent review channel (independent review layer)",
+      "source_adr": "docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md",
+      "rationale": "ADR-0059 D-D: wiring tests are coherence-tier limited assurance; same-author verification cannot claim IEEE 1012 independence. A cross-family model review channel converts the unfalsifiable same-boundary charge into a measurable, bookable engineering object. Honest bound: it provides partial technical independence only — managerial/financial independence is out of reach and labeled as such (cross-family confident errors partially shared, rho ~0.47).",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "at least one usable audit channel from a different model family exists AND a review-tasks.json schema is landed"
+      },
+      "review_at": "2026-12-12",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-12",
+      "last_check_in": {
+        "date": "2026-09-12",
+        "note": "MVP scope: reports stay inside the repository (defer-0024 external-event NOT triggered); must not merge into defer-0015 (ADR-0035 D4 single-condition discipline)"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0031",
+      "subject": "full-document polish pass over src/SKILL.md",
+      "source_adr": "docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md",
+      "rationale": "Prompt assets change via eval-carrying diffs (OpenAI/Braintrust prompt-versioning practice; RFC errata / camera-ready freeze patterns); a whole-document sweep has no industrial counterpart and would breach the 57-byte tarball margin plus trigger CONTEXT.md glossary ripple. Facts-correction edits (e.g. D-004 wording) remain licensed at any time; polish requires anchored defects.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the product round (D-C) or the hetero audit (defer-0030) has produced >=N falsifiable SKILL.md defects each anchored to bench/GSR/audit evidence AND the tarball-budget round (ADR-0058 R4) has landed"
+      },
+      "review_at": "2027-03-12",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-12",
+      "last_check_in": {
+        "date": "2026-09-12",
+        "note": "exit criteria pre-registered in ADR-0059 D-E (trigger-attributed commits, green GSR+wiring, pre/post bench verdict invariance, pack<200,000, glossary sync)"
+      },
+      "status": "pending-evaluation"
     }
   ]
 }
