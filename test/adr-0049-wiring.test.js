@@ -241,14 +241,16 @@ describe('ADR-0049 D-E affected sign-off look-back', () => {
       after: { a: 2 },
       maker_id: 'maker-a',
     });
+    const myRecordSeq = state.history[state.history.length - 1].seq;
     state = instrument.transition(state, {
       type: 'record_signoff',
       identity_digest: identityDigest,
-      record_seq: state.history[state.history.length - 1].seq,
+      record_seq: myRecordSeq,
       reviewer_id: 'reviewer-a',
       attestation_type: 'approve',
       reason: 'scheduled change accepted',
     });
+    const mySignoffSeq = state.history[state.history.length - 1].seq;
     expect(instrument.affectedSignoffs(state.history)).toEqual([]);
     state = instrument.transition(state, {
       type: 'drift_exposure',
@@ -256,9 +258,14 @@ describe('ADR-0049 D-E affected sign-off look-back', () => {
       ledger_seq: 7,
     });
     const affected = instrument.affectedSignoffs(state.history);
-    // The live chain may carry earlier sign-offs; every prior sign-off is marked.
-    expect(affected.length).toBeGreaterThanOrEqual(1);
-    expect(affected.some((x) => x.kind === 'record_signoff')).toBe(true);
+    // Exact assertion on THIS test's own record. The live chain may carry earlier
+    // sign-offs from other rounds; scoping to this test's own event keeps it exact
+    // instead of loosening it (FIX-DON'T-HIDE).
+    const mine = affected.filter((x) => x.seq === mySignoffSeq);
+    expect(mine.length).toBe(1);
+    expect(mine[0].kind).toBe('record_signoff');
+    expect(mine[0].status).toBe('affected/under-review');
+    // Every affected entry, whatever its origin, must carry the review marker.
     expect(affected.every((x) => x.status === 'affected/under-review')).toBe(true);
     expect(instrument.verifyState(state).valid).toBe(true);
   });

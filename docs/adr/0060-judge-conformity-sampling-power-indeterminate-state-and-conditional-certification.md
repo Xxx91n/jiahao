@@ -143,8 +143,10 @@ meaning what it says.
 ## Acceptance
 
 - `npm test`, `npm run gate:all`, `npm run corpus:drift`, `npm pack --dry-run`
-  under the ADR-0039 D3 cap (recomputed to 253,999 bytes by this round; see
-  ADR-0039's amendment), `git diff --check`.
+  under the 200,000-byte cap (ADR-0039 D3; no recompute fired — see ADR-0039's
+  budget-status note). **Currently breached: the tarball measures 205,741 bytes
+  (92 files); the resolution is an open ADR decision, so this Acceptance item is
+  NOT met.** `git diff --check`.
 - `evaluateConformity` returns `indeterminate` for n < min_n (unit + wiring
   assertions).
 - `instrument.js --check` exits 0 in `conditional` and exits 1 once expired

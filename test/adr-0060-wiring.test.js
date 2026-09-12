@@ -39,15 +39,17 @@ describe('ADR-0060 document + distribution anchors', () => {
     expect(t).toContain('90 days by default');
   });
 
-  test('ADR-0039 D3 recompute is recorded; CONTEXT.md stays in the tarball (D1 unchanged)', () => {
+  test('ADR-0039 D3 records no recompute (M=140,778); CONTEXT.md stays in the tarball (D1)', () => {
     const adr39 = fs.readFileSync(ADR39, 'utf8');
-    expect(adr39).toContain('out.size < 253,999 bytes');
+    expect(adr39).toContain('out.size < 200,000 bytes');
     expect(pkg.files).toContain('CONTEXT.md');
     expect(pkg.files).not.toContain('jiahao-mcp/');
     expect(pkg.scripts['pack:smoke']).toBe('node scripts/check-pack-smoke.js'); // ADR-0034 D6 alias
     // ADR-0060 Acceptance references the cap (no stale literal), and ADR-0059
     // carries the amendment rather than rewriting its frozen literal.
-    expect(fs.readFileSync(ADR, 'utf8')).toContain('under the ADR-0039 D3 cap');
+    const acc60 = fs.readFileSync(ADR, 'utf8');
+    expect(acc60).toContain('200,000-byte cap');
+    expect(acc60).toContain('NOT met'); // the breach is recorded, not hidden
     const adr59 = fs.readFileSync(path.join(ROOT, 'docs', 'adr', '0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md'), 'utf8');
     expect(adr59).toContain('Amended by: ADR-0060');
   });

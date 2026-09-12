@@ -14,7 +14,7 @@ describe('D1: files whitelist = runtime artifact surface', () => {
     expect(pkg.files).toEqual(['src/', 'scripts/', 'adapters/', 'schemas/', 'hooks/', 'docs/gates.json', 'docs/coverage-map.json', 'docs/deferred-registry.json', 'docs/change-surface.json', 'bench/polygraph/thresholds.json', 'CONTEXT.md', 'README.md', 'AGENTS.md']);
   });
 
-  test('npm pack dry-run tarball: no test/, no docs/adr, no bench fixtures, thresholds.json present, under the ADR-0039 D3 cap', () => {
+  test('npm pack dry-run tarball: no test/, no docs/adr, no bench fixtures, thresholds.json present, under the 200,000-byte ADR-0039 D3 cap', () => {
     // shell: true on win32 - Node >=18.20 refuses to spawn .cmd/.bat without it (EINVAL)
     const res = spawnSync('npm', ['pack', '--dry-run', '--json'], { cwd: ROOT, encoding: 'utf8', shell: process.platform === 'win32' });
     expect(res.status).toBe(0);
@@ -25,8 +25,11 @@ describe('D1: files whitelist = runtime artifact surface', () => {
     expect(names.some(f => f.startsWith('private/'))).toBe(false);
     // ADR-0059 D-B: the source-only MCP tier must be absent from the tarball.
     expect(names.some(f => f.startsWith('jiahao-mcp/'))).toBe(false);
-    // npm always-includes README.md in any directory it packs (unconditional, cannot be overridden);
-    // thresholds.json is the only bench file we whitelist. README.md in bench/polygraph is public docs, no fixture data.
+    // npm auto-includes a README from any directory that contributes a whitelisted
+    // file. Empirically verified 2026-09-12: a ROOT .npmignore does not subtract
+    // from the `files` whitelist, but a SUBDIRECTORY .npmignore does (so the
+    // inclusion is overridable after all). bench/polygraph/README.md is included
+    // by that rule; it is public docs, no fixture data.
     const benchAllowed = new Set(['bench/polygraph/thresholds.json', 'bench/polygraph/README.md']);
     expect(names.some(f => f.startsWith('bench/') && !benchAllowed.has(f))).toBe(false);
     expect(names.some(f => f.startsWith('.githooks/'))).toBe(false);
@@ -46,11 +49,16 @@ describe('D1: files whitelist = runtime artifact surface', () => {
 });
 
 describe('ADR-0039 D3: cap content anchor', () => {
-  test('the current cap value appears verbatim in ADR-0039 (D3 recompute)', () => {
+  test('the 200,000-byte cap appears verbatim in ADR-0039 (D3: no recompute fired)', () => {
     const adr = fs.readFileSync(path.join(ROOT, 'docs', 'adr', '0039-tarball-runtime-surface-narrowing-docs-adr-archive-channel.md'), 'utf8');
-    // ADR-0039 D3 recompute (2026-09-12): M=203,199 -> cap = 253,999.
-    expect(adr).toContain('253,999');
-    expect(adr).toContain('200,000'); // historical value retained in D3's text
+    // ADR-0039 D3 (2026-08-31 impl round): the narrowing round measured
+    // M = 140,778 bytes < 160 kB, so the recompute never fired and 200,000
+    // remains the cap (see ADR-0039's budget-status note).
+    expect(adr).toContain('200,000');
+    // The breach is recorded, not papered over: the budget-status note names the
+    // measured size and the escalation.
+    expect(adr).toContain('Budget status (2026-09-12');
+    expect(adr).toContain('withdrawn');
   });
 });
 

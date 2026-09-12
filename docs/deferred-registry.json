@@ -382,7 +382,7 @@
       "registered_at": "2026-09-12",
       "last_check_in": {
         "date": "2026-09-12",
-        "note": "exit criteria pre-registered in ADR-0059 D-E (trigger-attributed commits, green GSR+wiring, pre/post bench verdict invariance, pack under the ADR-0039 D3 cap (253,999), glossary sync)"
+        "note": "exit criteria pre-registered in ADR-0059 D-E (trigger-attributed commits, green GSR+wiring, pre/post bench verdict invariance, pack under the ADR-0039 D3 cap (200,000), glossary sync)"
       },
       "status": "pending-evaluation"
     },

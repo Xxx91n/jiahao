@@ -7,17 +7,26 @@ Amends: ADR-0038 (narrows the D1 files whitelist: docs/adr and other
 developer docs leave the npm artifact; replaces the falsified ~50 KB size
 estimate with a measured-anchor budget)
 
-Amendment (2026-09-12, ADR-0060 implementation round). D3’s recompute trigger
-fired: the measured M of the packed tarball is **203,199 bytes** (> 160 kB), so
-the cap is recomputed by D3’s own pre-registered formula,
-`max(200,000, M * 1.25) = max(200,000, ceil(203,199 * 1.25)) = 253,999 bytes`.
-The adr-0038-wiring test asserts `out.size < 253,999 bytes`. D3’s historical
-`out.size < 200,000 bytes` line is retained below as the record of the previous
-value. This is the formula D3 pre-registered (not a new loosening): the
-ADR-0039 implementation round recorded a measured M of ~199,943 bytes but never
-applied the recompute, so this amendment also closes that gap. CONTEXT.md
-remains in the tarball (D1’s ruling is unchanged; the glossary is part of what
-the prompt-installer delivers).
+Budget status (2026-09-12, ADR-0059/0060 implementation round). **D3’s
+recompute trigger did not fire.** D3 keys the recompute on the measured M of
+the *narrowed* tarball recorded at the narrowing round, and that note records
+M = 140,778 bytes (< 160 kB) with D3’s own conclusion "no cap
+recomputation: the 200,000-byte budget stands". The cap therefore remains
+**200,000 bytes**, and `out.size < 200,000 bytes` stays the asserted value
+below.
+
+The tarball has since grown past that cap: measured 205,741 bytes / 92 files at
+2026-09-12. D3 provides no recompute path for this situation — "Bumping the
+cap later is only ever an ADR" — so the breach is recorded here and
+**escalated**: the resolution is an ADR decision (raise the cap deliberately /
+move CONTEXT.md out under a D1 amendment / narrow the shipped surface). One
+measured lever: excluding the auto-included `bench/polygraph/README.md`
+recovers 4,764 bytes (to 200,977 bytes / 91 files), which is still over the cap.
+
+This note replaces an earlier amendment of the same date that (i) applied D3’s
+formula to the *current* size instead of the narrowing-round M, and (ii) cited
+a narrowing-round M of ~199,943 bytes that does not exist in this ADR. That
+amendment is **withdrawn**.
 
 ## Context
 

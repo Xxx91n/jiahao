@@ -5,10 +5,9 @@
 - Supersedes / amends: amends ADR-0038 D1 (jiahao-mcp/ leaves the tarball whitelist); relates to ADR-0001, ADR-0004, ADR-0009, ADR-0011, ADR-0027, ADR-0029, ADR-0031, ADR-0033, ADR-0035, ADR-0039 D3, ADR-0049, ADR-0056, ADR-0057, ADR-0058
 - New deferred entries: defer-0028, defer-0029, defer-0030, defer-0031
 - Ledger: .scratch/grill-adr0059/decision-ledger.md (D-001..D-005, all current)
-- Amended by: ADR-0060 (every pack-size budget literal in this ADR — the
-  Acceptance line and the D-E exit criteria — follows ADR-0039 D3’s
-  pre-registered recompute: M=203,199 -> cap 253,999 bytes; the literal
-  200,000 is the superseded prior value)
+- Amended by: ADR-0060 (budget: the 200,000-byte cap stands — ADR-0039 D3's
+  recompute never fired, since the narrowing round measured M = 140,778 bytes;
+  the tarball currently exceeds the cap. See ADR-0039's budget-status note.)
 - Amended by: ADR-0060 (the doc round also replaced CONTEXT.md’s ~49-line
   shared-ADR list with a pointer to the README ADR index — the authoritative
   derived inventory per ADR-0043 — to reclaim tarball budget; recorded here as
