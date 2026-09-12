@@ -67,4 +67,27 @@ describe('ADR-0059 external critique closure', () => {
     const e = reg.entries.find((x) => x.id === 'defer-0030');
     expect(e.last_check_in.note).toMatch(/inside the repository/);
   });
+
+  // ---- implementation round: the ADR-0059 edits landed on disk ----
+  test('implementation-round facts landed (README, files whitelist, SKILL.md, bench README)', () => {
+    const readme = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
+    // D-A: name-independent Tier 1 channel + naming declaration; no registry instruction.
+    expect(readme).toContain('npx --yes github:<org>/jiahao init');
+    expect(readme).toContain('Naming declaration (ADR-0059 D-A)');
+    expect(readme).not.toMatch(/npx\s+jiahao\b/);
+    expect(readme).not.toMatch(/npm\s+i(nstall)?\s+jiahao\b/);
+    // D-B: source-only MCP tier documented; the tarball whitelist drops it.
+    expect(readme).toContain('source-only');
+    const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+    expect(pkg.files).not.toContain('jiahao-mcp/');
+    // D-C: the research-round waiver note is recorded in the bench README.
+    const bench = fs.readFileSync(path.join(ROOT, 'bench/polygraph/README.md'), 'utf8');
+    expect(bench).toContain('Research-round waiver (ADR-0059 D-C)');
+    expect(bench).toContain('no metric commitment');
+    // D-D: SKILL.md same-boundary rule sharpened; README carries the slogan.
+    const skill = fs.readFileSync(path.join(ROOT, 'src/SKILL.md'), 'utf8');
+    expect(skill).toContain('Self-validation provides coherence evidence only, not independence evidence.');
+    expect(skill).not.toContain('is verification theater');
+    expect(readme).toContain('agreement is not accuracy');
+  });
 });

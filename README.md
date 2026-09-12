@@ -94,6 +94,12 @@ Verifier independence is enforced at the deployment layer, not by config:
 - One profile per installation — generator and verifier are not meant to
   coexist as competing auto-loaded rule sets in one project.
 
+Wiring tests guarantee document↔code agreement, not behavioral correctness —
+**agreement is not accuracy** (ADR-0059 D-D). They are a characterization /
+change-detector layer providing *coherence-tier limited assurance* (ISAE 3000
+vocabulary), not independent assurance; independence comes from a separate
+information boundary (see above), never from self-validation.
+
 See ADR-0011 for the full deployment discipline.
 
 ### Threat model (mandatory, ADR-0014 D3)
