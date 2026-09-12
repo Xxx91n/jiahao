@@ -255,8 +255,18 @@ function conditionalSignoff(args) {
     console.error(PREFIXES.usage + ' FAIL: --conditional-signoff requires --reverify-ledger-hash and --bias-probe-hash');
     process.exit(1);
   }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(args['expires-at'] || ''))) {
-    console.error(PREFIXES.usage + ' FAIL: --conditional-signoff requires --expires-at YYYY-MM-DD (ADR-0060 D-C)');
+  // ADR-0060 D-D: the conditional window is 90 days by default and is never
+  // open-ended. An explicit --expires-at must not exceed the default bound.
+  const DEFAULT_WINDOW_DAYS = 90;
+  const maxExpiry = new Date(Date.now() + DEFAULT_WINDOW_DAYS * 24 * 3600 * 1000).toISOString().slice(0, 10);
+  let expiresAt = args['expires-at'];
+  if (expiresAt === undefined) {
+    expiresAt = maxExpiry;
+  } else if (!/^\d{4}-\d{2}-\d{2}$/.test(String(expiresAt))) {
+    console.error(PREFIXES.usage + ' FAIL: --expires-at must be YYYY-MM-DD (ADR-0060 D-C)');
+    process.exit(1);
+  } else if (String(expiresAt) > maxExpiry) {
+    console.error(PREFIXES.usage + ' FAIL: --expires-at ' + expiresAt + ' exceeds the ' + DEFAULT_WINDOW_DAYS + '-day conditional window (ADR-0060 D-D: no open-ended concession)');
     process.exit(1);
   }
   if (!args['capa-ref']) {
@@ -288,13 +298,13 @@ function conditionalSignoff(args) {
       attestation_type: signoffArgs.attestation,
       reverify_ledger_hash: args['reverify-ledger-hash'],
       bias_probe_hash: args['bias-probe-hash'],
-      expires_at: args['expires-at'],
+      expires_at: expiresAt,
       capa_ref: args['capa-ref'],
     });
     writeState(next);
     console.log('[instrument] conditional sign-off recorded for identity ' + rt.resolved.triple_hash.slice(0, 16) +
 
-      ' (expires ' + args['expires-at'] + ', CAPA ' + args['capa-ref'] + ')');
+      ' (expires ' + expiresAt + ', CAPA ' + args['capa-ref'] + ')');
   } catch (e) {
     console.error(PREFIXES.internal + ' FAIL: ' + e.message);
     process.exit(1);

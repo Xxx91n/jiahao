@@ -184,7 +184,7 @@ source-only; ADR-0059 D-B). An MCP publish channel is deferred (defer-0029).
 ## Develop
 
 ```bash
-npm test                              # 692 tests across 51 suites (full corpus tier; the public tier skips 4 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 694 tests across 51 suites (full corpus tier; the public tier skips 4 corpus-bound tests with reasons, ADR-0056)
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
@@ -264,7 +264,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - [ADR-0059](docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md) — External Critique Closure — Name-Independent Distribution, Source-Only MCP, Triage-Layer Detector Semantics, Coherence-Tier Assurance, and Signal-Driven Polish
 - [ADR-0060](docs/adr/0060-judge-conformity-sampling-power-indeterminate-state-and-conditional-certification.md) — Judge Conformity Sampling Power, Indeterminate Conformity State, and Conditional Instrument Certification
 <!-- adr-index:end -->
-- `test/` — 51 test suites, 692 tests
+- `test/` — 51 test suites, 694 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 - `private/bench-corpus/` — answer corpora (probes/judge-twins/twins + fingerprints; gitignored, ADR-0036 D2). Gate scripts resolve via JIAHAO_CORPUS_DIR, else the install-planted dir (`jiahao init` plants it from the package), else this repo-private dir in a maintainer tree; missing everywhere fails closed (exit 1: config; the capability probe degrades an absent corpus dir to exit 2 UNVERIFIABLE first, ADR-0041 D2). npm consumers and public git clones carry no corpus at all — corpus gates are a maintainer/CI-only contract, fail-closed by design (ADR-0038 D2).
 

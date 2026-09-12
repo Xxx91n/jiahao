@@ -36,6 +36,7 @@ describe('ADR-0060 document + distribution anchors', () => {
     expect(t).toContain('min_n');
     expect(t).toContain('indeterminate');
     expect(t).toContain('certification_mode');
+    expect(t).toContain('90 days by default');
   });
 
   test('ADR-0039 D3 recompute is recorded; CONTEXT.md stays in the tarball (D1 unchanged)', () => {
@@ -144,7 +145,13 @@ describe('ADR-0060 D-C/D-E: conditional certification axis', () => {
     expect(r.stderr).toContain('pass conformity');
   });
 
-  test('the live CLI refuses a conditional sign-off without --expires-at / --capa-ref', () => {
+  test('ADR-0060 D-D: an open-ended conditional window is refused', () => {
+    const r = cli(['--conditional-signoff', '--reviewer', 'r', '--attestation', 'certify', '--reverify-ledger-hash', 'b'.repeat(64), '--bias-probe-hash', 'c'.repeat(64), '--expires-at', '2099-01-01', '--capa-ref', 'CAPA-X']);
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain('exceeds the 90-day conditional window');
+  });
+
+  test('the live CLI refuses a conditional sign-off without --capa-ref', () => {
     const r = cli(['--conditional-signoff', '--reviewer', 'r', '--attestation', 'certify', '--reverify-ledger-hash', 'b'.repeat(64), '--bias-probe-hash', 'c'.repeat(64)]);
     expect(r.status).toBe(1);
     expect(r.stderr).toContain('[usage]:');
