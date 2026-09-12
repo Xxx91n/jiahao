@@ -102,12 +102,22 @@ jobs:
           # The canonical richja pattern (success || skipped) is forbidden:
           # GitHub masks failed legs as skipped on a partial re-run
           # (#26822, ju-manns 2025-02-26), so skipped MUST read red.
+          # A3 (audit repair): the number of results actually seen is asserted
+          # against the needs count, so an empty/unknown expansion cannot
+          # zero-iterate into a false green.
           results="${{ needs.gate-all.result }} ${{ needs.test.result }}"
-          echo "needed job results: $results"
+          expected=2   # == length of the needs list above
+          echo "needed job results: [$results] (expected $expected)"
+          seen=0
           for r in $results; do
+            seen=$((seen + 1))
             if [ "$r" != "success" ]; then
               echo "::error::aggregate red - needed job result $r is not success (ADR-0058 D-B)"
               exit 1
             fi
           done
-          echo "aggregate green - all needed jobs report success"
+          if [ "$seen" -ne "$expected" ]; then
+            echo "::error::aggregate red - saw $seen results, expected $expected (ADR-0058 D-B: unknown/empty reads red)"
+            exit 1
+          fi
+          echo "aggregate green - all $expected needed jobs report success"

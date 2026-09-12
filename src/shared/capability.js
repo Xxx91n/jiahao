@@ -94,12 +94,11 @@ function unverifiableLines(gate, cap) {
   ];
 }
 
-// Probe a gate's declared requires (registry is the single source of truth);
-// every deterministic miss degrades the gate honestly: two-line message per
-// missing capability on stderr, then exit 2. Returns the requires array.
+// Probe declared requires: a gate NAME resolves through the registry (single
+// source of truth), an ARRAY declares inline (non-registry consumer, ADR-0058
+// R8); each deterministic miss degrades honestly, then exit 2.
 function requireCapabilities(gateName, opts) {
-  const entry = loadEntry(gateName, opts && opts.root);
-  const requires = Array.isArray(entry.requires) ? entry.requires : [];
+  const requires = (Array.isArray(gateName) ? gateName : loadEntry(gateName, opts && opts.root).requires) || [];
   const missing = requires.filter(function (c) { return !probe(c, opts); });
   for (const cap of missing) {
     const lines = unverifiableLines(gateName, cap);

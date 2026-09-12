@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// scripts/run-test-gate.js - ADR-0057 D-C: the test gate as a suite-count-
+// scripts/run-test-gate.js - ADR-0057 D-C: the CI test job as a suite-count-
 // asserting wrapper over jest. Registered expectation lives on the ci.yml
 // test-job call line (--expected-suites, ADR-0036 D4 declaration parity).
 //
@@ -13,7 +13,8 @@
 'use strict';
 
 const { requireCapabilities } = require('../src/shared/capability');
-requireCapabilities('test'); // ADR-0040 D1: capability declaration before any work
+// ADR-0058 R8: no gates.json entry, so the test job declares inline; public tier (D-H) -> no bench-corpus.
+requireCapabilities(['repo-tree']);
 
 const fs = require('fs');
 const path = require('path');

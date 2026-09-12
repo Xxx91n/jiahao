@@ -9,9 +9,10 @@ UNVERIFIABLE), ADR-0056 (the caller of this skip discipline).
 
 ## Context
 
-Jest suites currently execute inside gate:all as the `test` gate (gates.json
-order 100). They are running, but inside the aggregated gate output they have
-no independent visibility: no per-suite account of skipped counts, no assertion
+Jest suites executed inside gate:all as the `test` gate (gates.json order 100)
+until ADR-0058 (D-F/D-I) removed the gate and retired the slot; they now run in
+the independent CI test job. Inside the aggregated gate output they had no
+independent visibility: no per-suite account of skipped counts, no assertion
 that the expected number of suites was collected. Jest's describe.skip carries
 no reason parameter, and GitHub treats skipped jobs as Success (emmer.dev;
 GitHub docs, Troubleshooting required status checks), so a silently swallowed

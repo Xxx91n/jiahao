@@ -1,6 +1,7 @@
 'use strict';
 
 // ADR-0058 wiring assertions (ADR-0031 D1: every gate ships a wiring test).
+// Audit-repair round (2026-09-12) adds the A1/A3/A4/A5 locks (R8-R11).
 // Covers D-002 (success-only aggregator), D-004 (two-layer verification),
 // D-005 (gate-layer entrypoint narrowing), D-006 (test gate removed from
 // gates.json), D-007 (summary needs the full parallel set), D-008
@@ -16,7 +17,9 @@
 // syntax (property names allow -).
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
+const { spawnSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const ciPath = path.join(ROOT, '.github', 'workflows', 'ci.yml');
@@ -109,5 +112,82 @@ describe('ADR-0058 D-005/D-006 blocklist narrowing', () => {
     const blocked = wiring.blockedTokens(gates, pkg);
     expect(blocked.some(t => t.indexOf('run-test-gate') !== -1)).toBe(false);
     expect(blocked.some(t => /^npm (run )?test$/.test(t))).toBe(false);
+  });
+});
+
+// ---- audit-repair round (2026-09-12): A1 / A3 / A4 / A5 regression locks ----
+
+describe('ADR-0058 R8 test-job capability declaration (audit A1)', () => {
+  const cap = require('../src/shared/capability');
+  const wrapper = fs.readFileSync(path.join(ROOT, 'scripts', 'run-test-gate.js'), 'utf8');
+  const capPath = path.join(ROOT, 'src', 'shared', 'capability.js');
+  const probeScript = 'const c=require(process.argv[1]);c.requireCapabilities([process.argv[2]],{root:process.argv[3]});console.log("CAP-OK");';
+
+  test('the wrapper no longer resolves a removed registry entry', () => {
+    expect(wrapper).not.toMatch(/requireCapabilities\(\'test\'\)/);
+  });
+
+  test('the wrapper declares its capabilities inline, inside the closed enum', () => {
+    const m = wrapper.match(/requireCapabilities\(\[([^\]]*)\]\)/);
+    expect(m).toBeTruthy();
+    const declared = m[1].split(',').map(s => s.trim().replace(/['"]/g, '')).filter(Boolean);
+    expect(declared.length).toBeGreaterThan(0);
+    for (const c of declared) expect(cap.CAPABILITIES).toContain(c);
+  });
+
+  test('the public-tier test job does not declare bench-corpus', () => {
+    expect(wrapper).not.toMatch(/requireCapabilities\(\[[^\]]*bench-corpus/);
+  });
+
+  test('array form: present capability passes, absent one exits 2 honestly', () => {
+    const ok = spawnSync(process.execPath, ['-e', probeScript, capPath, 'repo-tree', ROOT], { cwd: ROOT, encoding: 'utf8' });
+    expect(ok.status).toBe(0);
+    expect(ok.stdout).toContain('CAP-OK');
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-0058-cap-'));
+    const bad = spawnSync(process.execPath, ['-e', probeScript, capPath, 'repo-tree', tmp], { cwd: tmp, encoding: 'utf8' });
+    expect(bad.status).toBe(2);
+    expect(bad.stdout).toContain('::error title=UNVERIFIABLE');
+  });
+
+  test('an unknown name in the array is still a registry violation, never exit 2', () => {
+    const r = spawnSync(process.execPath, ['-e', probeScript, capPath, 'nope-cap', ROOT], { cwd: ROOT, encoding: 'utf8' });
+    expect(r.status).toBe(1);
+    expect(r.stderr).toMatch(/unregistered capability/);
+  });
+});
+
+describe('ADR-0058 R9 summary result-count guard (audit A3)', () => {
+  test('the aggregator counts results and asserts seen == expected', () => {
+    const s = body('summary');
+    expect(s).toMatch(/seen=/);
+    expect(s).toMatch(/expected=(\d+)/);
+    expect(s).toMatch(/-ne\s+"[$]expected"/);
+  });
+
+  test('expected equals the parsed needs count (cannot drift)', () => {
+    const s = body('summary');
+    const m = s.match(/expected=(\d+)/);
+    expect(m).toBeTruthy();
+    const needsLine = s.match(/^\s*needs:\s*\[([^\]]*)\]/m);
+    expect(needsLine).toBeTruthy();
+    const needs = needsLine[1].split(',').map(x => x.trim()).filter(Boolean);
+    expect(Number(m[1])).toBe(needs.length);
+  });
+});
+
+describe('ADR-0058 R10 adjacent-doc truth (audit A4)', () => {
+  test('ADR-0057 Context no longer claims the test gate is the current home', () => {
+    const a = fs.readFileSync(path.join(ROOT, 'docs', 'adr', '0057-test-skip-honesty-and-suite-count-assertion.md'), 'utf8');
+    expect(a).not.toMatch(/currently execute inside gate:all/);
+    expect(a).toMatch(/independent CI test job/);
+  });
+});
+
+describe('ADR-0058 R11 gitignore hygiene (audit A5)', () => {
+  test('mr-artifacts/ is ignored alongside its three siblings', () => {
+    const gi = fs.readFileSync(path.join(ROOT, '.gitignore'), 'utf8');
+    for (const d of ['bench-artifacts/', 'probe-artifacts/', 'test-artifacts/', 'mr-artifacts/']) {
+      expect(gi).toContain(d);
+    }
   });
 });

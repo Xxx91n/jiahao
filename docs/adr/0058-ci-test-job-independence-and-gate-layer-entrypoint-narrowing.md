@@ -239,6 +239,56 @@ byte-identical to the backup before and after. This is a deviation from the
 `but` skill's rule 1 and from WORKFLOW 4.2, disclosed here so the ADR is the
 single fact source for it.
 
+## Repair notes (audit-repair round, 2026-09-12)
+
+The independent final audit rejected the implementation round (blocking) and
+returned A1/A2/A3/A4/A5. R8-R10 record the three findings that touch this ADR.
+
+### R8 - the test job's capability declaration (audit A1 / D-013)
+
+`scripts/run-test-gate.js` called `requireCapabilities('test')`, which resolves
+a gate through `docs/gates.json` (ADR-0040 D1). D-F removed that entry, so the
+wrapper threw `gate "test" missing from docs/gates.json (ADR-0034 D1)` and
+exited 1. Because the wrapper now runs ONLY in the CI test job, local
+acceptance stayed green while the CI test job was permanently red - the round's
+headline deliverable had never once executed.
+
+Fix (the audit's recommendation (i), ADR-gated per ADR-0040 D1): a consumer
+with no registry entry declares its capabilities INLINE at the call site -
+`requireCapabilities(['repo-tree'])`. `src/shared/capability.js` now accepts
+either a gate name (registry lookup, unchanged for every registered gate) or a
+literal array. `repo-tree` is inside the closed enum (ADR-0040 D1), so no new
+capability is added. The public tier (D-H) means the wrapper must NOT declare
+`bench-corpus`. `test/adr-0058-wiring.test.js` locks the inline declaration,
+that every declared name is in the closed enum, that `bench-corpus` is absent,
+and both outcomes of the array form (present -> exit 0, absent -> exit 2 with
+the honest UNVERIFIABLE annotation).
+
+### R9 - the summary aggregator could zero-iterate into a false green (audit A3)
+
+D-B requires "unknown -> red", but the aggregator iterated over the expanded
+result string; an empty expansion (an unknown or blank `needs.*.result`)
+produced zero iterations and printed "aggregate green" - a false-green surface
+in the very component built to remove one. The loop now counts what it saw and
+asserts `seen == expected`, where `expected` is the length of
+`needs: [gate-all, test]`; any mismatch is red.
+`test/adr-0058-wiring.test.js` asserts the count guard and that the literal
+`expected` equals the parsed needs length, so the two cannot drift.
+
+### R10 - the CI gate-all channel is red for a pre-existing environment reason (audit A2)
+
+`gh run list` shows every run since 2026-08-30 red, including runs that predate
+this ADR. The gate-all job's corpus-dependent gates fail closed because the
+corpus restored from the secret does not expose `mr-probes.jsonl` at the
+resolved `JIAHAO_CORPUS_DIR` (CI log: `[config]: [corpus] missing
+mr-probes.jsonl - JIAHAO_CORPUS_DIR=/home/runner/work/_temp/bench-corpus has no
+such file`). This is an environment/secret condition, not a code defect: no
+code change can conjure the file, and regenerating `JIAHAO_BENCH_CORPUS_B64` is
+a repository-admin action (hard gate: external credential). Recorded here so
+the red CI channel is not mistaken for a regression of this ADR, and so the
+"summary is the only required check" carrier question (D-011) is not decided on
+a channel that cannot yet be green.
+
 ## Consequences
 
 
