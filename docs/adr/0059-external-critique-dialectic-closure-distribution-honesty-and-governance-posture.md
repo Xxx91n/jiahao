@@ -5,6 +5,10 @@
 - Supersedes / amends: amends ADR-0038 D1 (jiahao-mcp/ leaves the tarball whitelist); relates to ADR-0001, ADR-0004, ADR-0009, ADR-0011, ADR-0027, ADR-0029, ADR-0031, ADR-0033, ADR-0035, ADR-0039 D3, ADR-0049, ADR-0056, ADR-0057, ADR-0058
 - New deferred entries: defer-0028, defer-0029, defer-0030, defer-0031
 - Ledger: .scratch/grill-adr0059/decision-ledger.md (D-001..D-005, all current)
+- Amended by: ADR-0060 (every pack-size budget literal in this ADR — the
+  Acceptance line and the D-E exit criteria — follows ADR-0039 D3’s
+  pre-registered recompute: M=203,199 -> cap 253,999 bytes; the literal
+  200,000 is the superseded prior value)
 
 ## Context
 

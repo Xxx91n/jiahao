@@ -143,7 +143,8 @@ meaning what it says.
 ## Acceptance
 
 - `npm test`, `npm run gate:all`, `npm run corpus:drift`, `npm pack --dry-run`
-  < 200,000 bytes, `git diff --check`.
+  under the ADR-0039 D3 cap (recomputed to 253,999 bytes by this round; see
+  ADR-0039's amendment), `git diff --check`.
 - `evaluateConformity` returns `indeterminate` for n < min_n (unit + wiring
   assertions).
 - `instrument.js --check` exits 0 in `conditional` and exits 1 once expired

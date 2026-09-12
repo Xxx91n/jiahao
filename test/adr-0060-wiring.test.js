@@ -44,6 +44,11 @@ describe('ADR-0060 document + distribution anchors', () => {
     expect(adr39).toContain('out.size < 253,999 bytes');
     expect(pkg.files).toContain('CONTEXT.md');
     expect(pkg.files).not.toContain('jiahao-mcp/');
+    // ADR-0060 Acceptance references the cap (no stale literal), and ADR-0059
+    // carries the amendment rather than rewriting its frozen literal.
+    expect(fs.readFileSync(ADR, 'utf8')).toContain('under the ADR-0039 D3 cap');
+    const adr59 = fs.readFileSync(path.join(ROOT, 'docs', 'adr', '0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md'), 'utf8');
+    expect(adr59).toContain('Amended by: ADR-0060');
   });
 
   test('the three ADR-0060 deferred work items are registered', () => {
