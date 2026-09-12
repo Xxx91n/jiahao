@@ -23,7 +23,8 @@ cap later is only ever an ADR" — so the breach is recorded here and
 **escalated**: the resolution is an ADR decision (raise the cap deliberately /
 move CONTEXT.md out under a D1 amendment / narrow the shipped surface). One
 measured lever: excluding the auto-included `bench/polygraph/README.md`
-recovers 4,764 bytes (to 200,977 bytes / 91 files), which is still over the cap.
+recovers 4,764 bytes (measured at the 205,741 baseline: 205,741 -> 200,977 bytes /
+91 files), which is still over the cap.
 
 This note replaces an earlier amendment of the same date that (i) applied D3’s
 formula to the *current* size instead of the narrowing-round M, and (ii) cited
