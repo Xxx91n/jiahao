@@ -44,6 +44,7 @@ describe('ADR-0060 document + distribution anchors', () => {
     expect(adr39).toContain('out.size < 253,999 bytes');
     expect(pkg.files).toContain('CONTEXT.md');
     expect(pkg.files).not.toContain('jiahao-mcp/');
+    expect(pkg.scripts['pack:smoke']).toBe('node scripts/check-pack-smoke.js'); // ADR-0034 D6 alias
     // ADR-0060 Acceptance references the cap (no stale literal), and ADR-0059
     // carries the amendment rather than rewriting its frozen literal.
     expect(fs.readFileSync(ADR, 'utf8')).toContain('under the ADR-0039 D3 cap');

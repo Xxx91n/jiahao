@@ -22,7 +22,11 @@ const ROOT = path.join(__dirname, '..');
 const WORK = path.join(ROOT, '.scratch', 'pack-smoke');
 const EXTRACT = path.join(WORK, 'extract');
 
-function fail(msg) { console.error('[pack-smoke] FAIL: ' + msg); process.exit(1); }
+function fail(msg) {
+  console.error('[pack-smoke] FAIL: ' + msg);
+  fs.rmSync(WORK, { recursive: true, force: true }); // never leave a partial tree
+  process.exit(1);
+}
 
 function main() {
   requireCapabilities('pack-smoke');
