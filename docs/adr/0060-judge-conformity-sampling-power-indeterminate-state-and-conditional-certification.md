@@ -131,11 +131,12 @@ meaning what it says.
   being swallowed by same-day idempotency.
 - The instrument can leave `quarantined` only via `authoritative` (clean pass)
   or `conditional` (expiry + CAPA). `rollback` remains available.
-- Registered work items (deferred): (a) expand `judge-twins.jsonl` to n>=100
-  flip-eligible (corpus rebaseline, ADR-0047 `corpus` surface); (b) judge-quality
-  CAPA to flip rate <= 0.05; (c) an eval surface that actually exercises the
-  SKILL.md prompt (the judge-twins path is deterministic; whether it exercises
-  the prompt is a declared gap).
+- Registered work items (deferred, defer-0032/0033/0034): (a) expand
+  `judge-twins.jsonl` to n>=100 flip-eligible (defer-0032; corpus rebaseline,
+  ADR-0047 `corpus` surface); (b) judge-quality CAPA to flip rate <= 0.05
+  (defer-0033; expiry 2026-12-11, fail-closed); (c) an eval surface that
+  actually exercises the SKILL.md prompt (defer-0034; the judge-twins path is
+  deterministic, so whether it exercises the prompt is a declared gap).
 - The ADR-0059 D-D wording edit itself is vindicated: it introduced zero
   measured regression (delta = 0 on every metric).
 

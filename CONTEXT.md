@@ -1660,5 +1660,30 @@ AND the tarball-budget round (ADR-0058 R4) lands (ADR-0059 D-E). _Avoid_:
 aesthetic rewrites under a tiny tarball margin; readability scores as
 acceptance criteria; conflating facts-correction with styling sweeps.
 
+**Sampling-Plan Power (min_n)** (采样功效下限):
+The pre-registered minimum flip-eligible sample (100) below which the
+guarded-acceptance rule is structurally inoperable — the guard band w*u
+consumes the spec limit, so no observation can yield `pass`. Below `min_n`
+the honest statement is `indeterminate`, never a confirmed non-conformity
+(ADR-0060 D-A/D-B; defer-0032 tracks the corpus expansion). _Avoid_: reading
+a small sample as `fail`; lowering spec_limit so a small sample passes.
+
+**Indeterminate Conformity (未定性符合)**:
+The fourth conformity outcome (after pass / conditional / fail): evidence
+insufficient because the sampling plan is not met. It is a look-back
+obligation and a conditional-certification trigger — not a pass, and not a
+confirmed non-conformity (ADR-0060 D-B). _Avoid_: collapsing it into `fail`;
+treating it as a pass.
+
+**Conditional Certification (条件性认证)**:
+A second-axis certification state (`certification_mode = conditional`) layered
+on ADR-0046’s two-state release gate: the instrument is usable under a
+mandatory expiry and a CAPA reference; on expiry `effectiveState` returns
+`quarantined` (fail-closed). Reached by `--conditional-signoff` when the
+revalidation is `indeterminate`/`conditional`; a hard `fail` may be neither
+signed off nor conditionally certified (ADR-0060 D-C/D-E; defer-0033 carries
+the CAPA). _Avoid_: open-ended concession; `--signoff` (certify) on a
+non-`pass` revalidation.
+
 
 *End of Glossary*

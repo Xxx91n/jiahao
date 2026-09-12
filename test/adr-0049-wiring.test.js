@@ -103,6 +103,13 @@ describe('ADR-0049 D-B decision-rule anchor', () => {
     expect(cInd.conclusion).toBe('indeterminate');
     const cHard = reverify.conclude({ fail_soft: 1, invocations: 22, need_override: 22, overrides_accepted: 3, stale: 0 }, 22, null, 'indeterminate');
     expect(cHard.conclusion).toBe('fail');
+    // ADR-0060 Consequences register the three deferred work items.
+    for (const id of ['defer-0032', 'defer-0033', 'defer-0034']) {
+      const e = REGISTRY.entries.find((x) => x.id === id);
+      expect(e).toBeDefined();
+      expect(e.source_adr).toContain('0060');
+      expect(e.status).toBe('pending-evaluation');
+    }
   });
 
   test('simple acceptance requires negotiated TUR >= 4:1', () => {

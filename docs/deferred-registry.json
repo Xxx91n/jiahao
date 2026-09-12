@@ -385,6 +385,60 @@
         "note": "exit criteria pre-registered in ADR-0059 D-E (trigger-attributed commits, green GSR+wiring, pre/post bench verdict invariance, pack<200,000, glossary sync)"
       },
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0032",
+      "subject": "judge-twins corpus expansion to n>=100 flip-eligible",
+      "source_adr": "docs/adr/0060-judge-conformity-sampling-power-indeterminate-state-and-conditional-certification.md",
+      "rationale": "ADR-0060 D-A pre-registers min_n=100: below it the guarded-acceptance rule is structurally inoperable (the guard band consumes the spec limit, so no observation can return pass). The frozen judge-twins corpus has 26 entries / 22 flip-eligible, so reaching the operable region requires expanding the corpus, which is a corpus rebaseline (ADR-0047 corpus surface) and therefore its own round.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a corpus authoring round has produced judge-twins.jsonl with >= 100 flip-eligible entries and a new frozen content fingerprint"
+      },
+      "review_at": "2027-03-12",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-12",
+      "last_check_in": {
+        "date": "2026-09-12",
+        "note": "registered at ADR-0060; current corpus has 22 flip-eligible entries (n < min_n=100)"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0033",
+      "subject": "judge-quality CAPA: flip rate to <= 0.05",
+      "source_adr": "docs/adr/0060-judge-conformity-sampling-power-indeterminate-state-and-conditional-certification.md",
+      "rationale": "The as-found revalidation measured a flip rate of 0.13636 (3/22) against spec_limit 0.10 - a real judge-quality gap, not a sampling artifact (at p=0.136 no sample size can pass). The conditional certification carries this CAPA; the spec limit is NOT loosened to make existing data pass (ADR-0060 D-D).",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a judge-quality round has driven the flip rate to <= 0.05 and a fresh revalidation records conformity=pass"
+      },
+      "review_at": "2026-12-11",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-12",
+      "last_check_in": {
+        "date": "2026-09-12",
+        "note": "conditional certification expires 2026-12-11 (fail-closed on expiry)"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0034",
+      "subject": "eval surface that actually exercises the src/SKILL.md prompt",
+      "source_adr": "docs/adr/0060-judge-conformity-sampling-power-indeterminate-state-and-conditional-certification.md",
+      "rationale": "The judge-twins evaluation path is deterministic (identical per-entry outcomes across runs; no provider call observed), so the TOST no-regression argument establishes \"no regression on the evaluated surface\", not \"the prompt has no behavioural effect\". A prompt-exercising eval surface is the declared gap.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "an eval harness exists whose inputs actually exercise the SKILL.md prompt and whose results are recorded in the reverify ledger"
+      },
+      "review_at": "2027-09-01",
+      "cadence_tier": "yearly",
+      "registered_at": "2026-09-12",
+      "last_check_in": {
+        "date": "2026-09-12",
+        "note": "declared gap in ADR-0060 Consequences"
+      },
+      "status": "pending-evaluation"
     }
   ]
 }
