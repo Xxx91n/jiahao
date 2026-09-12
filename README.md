@@ -167,7 +167,10 @@ the gate honestly to exit 2 (UNVERIFIABLE), while a present dir with broken
 content fails closed at exit 1 with a closed-enum `[usage]:`/`[config]:`/
 `[internal]:` stderr prefix (ADR-0041 D3). Reproducing the benchmark gates
 is a maintainer/CI-channel operation; third-party installs are a
-prompt-installer surface only. ADRs and developer docs live on the git tree (the development surface), not in the tarball — clone the repo to read them (ADR-0039).
+prompt-installer surface only. ADRs, the CONTEXT.md glossary, and other
+developer docs live on the git tree (the development surface), not in the
+tarball — clone the repo to read them (ADR-0039; CONTEXT.md moved out under
+ADR-0060).
 
 The MCP adapter (`jiahao-mcp/`) is a **source-only** git-tree component: it is
 not part of the tarball and is never distributed via npm. Run it from a clone
@@ -184,7 +187,7 @@ source-only; ADR-0059 D-B). An MCP publish channel is deferred (defer-0029).
 ## Develop
 
 ```bash
-npm test                              # 676 tests across 50 suites (full corpus tier; the public tier skips 4 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 677 tests across 50 suites (full corpus tier; the public tier skips 4 corpus-bound tests with reasons, ADR-0056)
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
@@ -202,7 +205,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). The index below is a derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js` — do not hand-edit:
 
 <!-- adr-index:start -->
-- 59 architecture decision records:
+- 60 architecture decision records:
 - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
 - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
 - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
@@ -262,8 +265,9 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - [ADR-0057](docs/adr/0057-test-skip-honesty-and-suite-count-assertion.md) — Test-Layer Skip Honesty and Suite-Count Assertion
 - [ADR-0058](docs/adr/0058-ci-test-job-independence-and-gate-layer-entrypoint-narrowing.md) — CI Test-Job Independence, Always() Success-Only Aggregation, and Gate-Layer Entrypoint Narrowing
 - [ADR-0059](docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md) — External Critique Closure — Name-Independent Distribution, Source-Only MCP, Triage-Layer Detector Semantics, Coherence-Tier Assurance, and Signal-Driven Polish
+- [ADR-0060](docs/adr/0060-judge-conformity-sampling-power-indeterminate-state-and-conditional-certification.md) — Judge Conformity Sampling Power, Indeterminate Conformity State, and Conditional Instrument Certification
 <!-- adr-index:end -->
-- `test/` — 50 test suites, 676 tests
+- `test/` — 50 test suites, 677 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 - `private/bench-corpus/` — answer corpora (probes/judge-twins/twins + fingerprints; gitignored, ADR-0036 D2). Gate scripts resolve via JIAHAO_CORPUS_DIR, else the install-planted dir (`jiahao init` plants it from the package), else this repo-private dir in a maintainer tree; missing everywhere fails closed (exit 1: config; the capability probe degrades an absent corpus dir to exit 2 UNVERIFIABLE first, ADR-0041 D2). npm consumers and public git clones carry no corpus at all — corpus gates are a maintainer/CI-only contract, fail-closed by design (ADR-0038 D2).
 

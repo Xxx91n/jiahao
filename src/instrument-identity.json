@@ -2,7 +2,7 @@
   "schema_version": 2,
   "rules_version": "critic-v1",
   "rules_alias": "src/SKILL.md",
-  "rules_digest": "46f1d53637ed6a8dd8524bfe9b9421bff664648a5c06ebb8dd853687efe93439",
+  "rules_digest": "f84a6c955ec5663ab3036d3229ecc9a343b6f993b9b5d3c4c3c502fb3b3ee95c",
   "model_identity": {
     "tag": "jiahao-judge-critic-v1",
     "provider_snapshot": "UNRESOLVED",

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "state": "authoritative",
-  "authoritative_identity_digest": "325ca7d9c22c58f7a37395468780389aa570d9bc2fd8324fb261c82268873d20",
+  "authoritative_identity_digest": "fb30005f0d0538126f33ad7b1b5a9ec6ff63e098a556a2ab0c45ca9a40e0a71c",
   "quarantined_identity_digest": null,
   "history": [
     {
@@ -16,6 +16,35 @@
       "timestamp": "2026-09-05T00:00:00.000Z",
       "prev_hash": "GENESIS",
       "event_hash": "ba9e18f8c865ce6e9e163df2bd81f66b9b243b18489ca3fe7edcff52b976f357"
+    },
+    {
+      "seq": 2,
+      "kind": "quarantine",
+      "identity_digest": "fb30005f0d0538126f33ad7b1b5a9ec6ff63e098a556a2ab0c45ca9a40e0a71c",
+      "reverify_ledger_hash": null,
+      "bias_probe_hash": null,
+      "reviewer_id": null,
+      "second_reviewer": null,
+      "attestation_type": null,
+      "timestamp": "2026-09-12T11:33:05.138Z",
+      "prev_hash": "ba9e18f8c865ce6e9e163df2bd81f66b9b243b18489ca3fe7edcff52b976f357",
+      "event_hash": "cc010774f93b424579b438621075130df4ff9511cbe42282620f4472624f8a7b"
+    },
+    {
+      "seq": 3,
+      "kind": "conditional_signoff",
+      "identity_digest": "fb30005f0d0538126f33ad7b1b5a9ec6ff63e098a556a2ab0c45ca9a40e0a71c",
+      "reverify_ledger_hash": "06b8215b540027d311b0fa053c4a2a59d369c2f519dae57c19e1f45b5903e7d1",
+      "bias_probe_hash": "99a20aaefb7c833a668126588681e0a01a51a5bfc453b0173b75bf8bccc39904",
+      "reviewer_id": "Euiop1",
+      "second_reviewer": null,
+      "attestation_type": "certify",
+      "timestamp": "2026-09-12T12:03:51.160Z",
+      "prev_hash": "cc010774f93b424579b438621075130df4ff9511cbe42282620f4472624f8a7b",
+      "event_hash": "3e6a2d3faf67e061e1e76966adcc4498a963776f2398da9c2c61990e0811c899"
     }
-  ]
+  ],
+  "certification_mode": "conditional",
+  "conditional_expires_at": "2026-12-11",
+  "conditional_capa_ref": "CAPA-0060-judge-flip-rate"
 }

@@ -233,6 +233,9 @@ function transition(state, event, opts) {
       throw new Error('signoff requires reviewer_id, reverify_ledger_hash, bias_probe_hash, and attestation_type');
     }
     next.state = 'authoritative';
+    next.certification_mode = 'full';
+    next.conditional_expires_at = null;
+    next.conditional_capa_ref = null;
     next.authoritative_identity_digest = event.identity_digest;
     next.quarantined_identity_digest = null;
     next.history.push(stateEvent(tail.seq + 1, 'signoff', event.identity_digest, tail.event_hash, {
@@ -246,9 +249,49 @@ function transition(state, event, opts) {
     return next;
   }
 
+  if (event.type === 'conditional_signoff') {
+    if (next.state !== 'quarantined') throw new Error('conditional_signoff requires quarantined state');
+    if (next.quarantined_identity_digest !== event.identity_digest) {
+      throw new Error('conditional_signoff fingerprint does not match quarantined identity');
+    }
+    if (!SURFACE_ATTESTATIONS.identity.includes(event.attestation_type)) {
+      throw new Error('conditional_signoff requires attestation_type certify');
+    }
+    if (!event.reviewer_id || !isHex64(event.reverify_ledger_hash) || !isHex64(event.bias_probe_hash)) {
+      throw new Error('conditional_signoff requires reviewer_id, reverify_ledger_hash, and bias_probe_hash');
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(event.expires_at || ''))) {
+      throw new Error('conditional_signoff requires expires_at (YYYY-MM-DD)');
+    }
+    if (!event.capa_ref) throw new Error('conditional_signoff requires capa_ref');
+    // ADR-0060 D-C (two-axis): the release-gate axis keeps ADR-0046's
+    // authoritative/quarantined contract; the assurance level rides a separate
+    // `certification_mode` axis with a mandatory expiry.
+    next.state = 'authoritative';
+    next.certification_mode = 'conditional';
+    next.authoritative_identity_digest = event.identity_digest;
+    next.quarantined_identity_digest = null;
+    next.conditional_expires_at = event.expires_at;
+    next.conditional_capa_ref = event.capa_ref;
+    next.history.push(stateEvent(tail.seq + 1, 'conditional_signoff', event.identity_digest, tail.event_hash, {
+      reviewer_id: event.reviewer_id,
+      second_reviewer: event.second_reviewer || null,
+      attestation_type: event.attestation_type,
+      reverify_ledger_hash: event.reverify_ledger_hash,
+      bias_probe_hash: event.bias_probe_hash,
+      expires_at: event.expires_at,
+      capa_ref: event.capa_ref,
+      timestamp: now,
+    }));
+    return next;
+  }
+
   if (event.type === 'rollback') {
     if (next.state !== 'quarantined') throw new Error('rollback requires quarantined state');
     next.state = 'authoritative';
+    next.certification_mode = 'full';
+    next.conditional_expires_at = null;
+    next.conditional_capa_ref = null;
     next.quarantined_identity_digest = null;
     next.history.push(stateEvent(tail.seq + 1, 'rollback', next.authoritative_identity_digest, tail.event_hash, { timestamp: now }));
     return next;
@@ -456,8 +499,14 @@ function affectedSignoffs(history) {
   return affected;
 }
 
-function effectiveState(state, reverifyState) {
+function effectiveState(state, reverifyState, nowMs) {
   if (reverifyState && reverifyState.state === 'degraded') return 'advisory-only';
+  // ADR-0060 D-C: an expired conditional certification is not a certification.
+  if (state && state.certification_mode === 'conditional') {
+    const exp = Date.parse(String(state.conditional_expires_at || '') + 'T23:59:59.999Z');
+    const now = typeof nowMs === 'number' ? nowMs : Date.now();
+    if (!Number.isFinite(exp) || now > exp) return 'quarantined';
+  }
   return state.state;
 }
 

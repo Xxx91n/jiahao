@@ -37,7 +37,8 @@ const { resolveInstrumentIdentity } = require('../src/instrument-identity');
 
 // ---- ADR-0049: decision-rule anchor + metrological ledger completion ----
 const DECISION_RULE_ID = 'ilac-g8-guarded-acceptance'; // ILAC-G8:09/2019 + JCGM 106:2012
-const DECISION_RULE_VERSION = '0049.1'; // row-carried; ILAC G8 revision sits on the ADR-0035 external-event review cadence
+const DECISION_RULE_VERSION = '0060.1'; // ADR-0060 D-A: min_n joins the rule identity (row-carried; ADR-0035 external-event cadence)
+const DECISION_RULE_MIN_N = 100; // ADR-0060 D-A: pre-registered minimum flip-eligible sample (power table in the ADR)
 const DECISION_RULE_SPEC_REF = 'bench/polygraph/thresholds.json#judge_bias_gates/judge-style-flip';
 const JUDGE_TWINS_CORPUS_ID = 'judge-twins.jsonl'; // ADR-0036 D2 frozen private corpus
 const JUDGE_TWINS_CORPUS_VERSION = '1.1';
@@ -52,6 +53,7 @@ function defaultDecisionRule(specLimit) {
     version: DECISION_RULE_VERSION,
     w: 1,
     k: 2,
+    min_n: DECISION_RULE_MIN_N,
     spec_limit: typeof specLimit === 'number' ? specLimit : null,
     spec_ref: DECISION_RULE_SPEC_REF,
     // ADR-0049 D-B: annotate the uncertainty input basis (not MPE-only).
@@ -65,9 +67,20 @@ function defaultDecisionRule(specLimit) {
 // Guarded acceptance: pass iff flip_rate <= spec_limit - w*u (u = CI half-width).
 // The guard-band conditional zone (acceptance_limit < x <= spec_limit) yields
 // NO pass statement (ADR-0049 D-B).
-function evaluateConformity(flipRate, flipCI, rule) {
+function evaluateConformity(flipRate, flipCI, rule, n) {
   if (!rule || typeof rule.spec_limit !== 'number' || typeof flipRate !== 'number' || !flipCI) {
     return { result: 'conditional', acceptance_limit: null, lookback: false }; // no numeric rule: no pass statement
+  }
+  // ADR-0060 D-A/D-B: the sampling plan is part of the rule identity. Below
+  // min_n the guard band consumes the spec limit and the rule cannot return
+  // `pass` for any observation, so the honest statement is "evidence
+  // insufficient" (indeterminate), never a confirmed non-conformity.
+  const minN = typeof rule.min_n === 'number' ? rule.min_n : null;
+  const nEligible = typeof n === 'number' ? n : null;
+  if (minN !== null && nEligible !== null && nEligible < minN) {
+    const uu = Math.max(0, (flipCI[1] - flipCI[0]) / 2);
+    const lb = flipCI[1] > rule.spec_limit || flipRate > rule.spec_limit;
+    return { result: 'indeterminate', acceptance_limit: rule.spec_limit - rule.w * uu, lookback: lb, min_n: minN, n: nEligible };
   }
   if (rule.w === 0) {
     if (!(rule.tur >= 4)) throw new Error('simple acceptance requires negotiated TUR >= 4:1 (ADR-0049 D-B)');
@@ -287,7 +300,7 @@ function computeMetrology(metrics, identity, opts) {
   // ADR-0049 D-B: pass / no_adjustment are conformity declarations under the
   // pre-registered decision-rule anchor.
   const rule = o.decisionRule || defaultDecisionRule(o.specLimit);
-  const conformity = evaluateConformity(flipRate, flipCI, rule);
+  const conformity = evaluateConformity(flipRate, flipCI, rule, flipEligible);
   const out = {
     identity_triple: {
       rules_digest: identity.rules_digest,
@@ -466,15 +479,24 @@ function conclude(metrics, corpusSize, previousEntry, conformity) {
   // affected sign-off look-back.
   if (conformity === 'conditional') reasons.push('decision-rule guard-band conditional zone: no pass statement (ADR-0049 D-B)');
   if (conformity === 'fail') reasons.push('decision-rule conformity fail: drift exposure, affected sign-off look-back required (ADR-0049 D-E)');
+  // ADR-0060 D-B: an under-powered run is "evidence insufficient", not a
+  // confirmed non-conformity. When it is the ONLY finding, the conclusion is
+  // `indeterminate` (a third value: not a pass and not a fail).
+  if (conformity === 'indeterminate') reasons.push('decision-rule indeterminate: sampling plan not met (n < min_n); evidence insufficient, no conformity statement (ADR-0060 D-B)');
+  const hardFinding = reasons.some(x => x.indexOf('decision-rule') !== 0);
+  if (!hardFinding && conformity === 'indeterminate') return { conclusion: 'indeterminate', reasons };
   return { conclusion: reasons.length === 0 ? 'pass' : 'fail', reasons };
 }
 
 // ADR-0031 D6/F5 (fix): same-day re-run idempotency. Keyed on the
 // (schema_pinned) metric outcome + collector day, not on wall-clock: an
 // identical re-run inside a day yields the same key and appends nothing.
-function runKey(metrics, collectedAtISO) {
+function runKey(metrics, collectedAtISO, rule) {
   const day = String(collectedAtISO).slice(0, 10);
-  const canon = canonical({ day, invocations: metrics.invocations, fail_soft: metrics.fail_soft, overrides_accepted: metrics.overrides_accepted, stale: metrics.stale, override_rate: metrics.override_rate });
+  // ADR-0060 D-A: the rule identity (version) is part of the run key, so a rule
+  // change appends a new ledger row instead of being swallowed by the
+  // same-day idempotency check.
+  const canon = canonical({ day, invocations: metrics.invocations, fail_soft: metrics.fail_soft, overrides_accepted: metrics.overrides_accepted, stale: metrics.stale, override_rate: metrics.override_rate, rule_version: (rule && rule.version) || null });
   return crypto.createHash('sha256').update(canon, 'utf8').digest('hex');
 }
 
@@ -514,7 +536,7 @@ function main() {
   });
   const c = conclude(metrics, entries.length, baseline ? null : ledger[ledger.length - 1], metrology.conformity);
   const conclusion = c.conclusion;
-  const runKeyHex = runKey(metrics, now.toISOString());
+  const runKeyHex = runKey(metrics, now.toISOString(), metrology.decision_rule);
   // F5: identical same-day re-run is a no-op for the ledger (the artifact is
   // still overwritten deterministically below — same inputs, same bytes). If
   // the same-day artifact was meanwhile renamed, pick a fresh -N name.
@@ -587,6 +609,9 @@ function main() {
   if (metrology.conformity === 'fail') {
     console.log('[reverify] ESCALATE: drift exposure over decision-rule acceptance limit;' +
       ' affected sign-off look-back required (' + LOOKBACK_EVIDENCE_KINDS.join('/') + ') per ADR-0049 D-E');
+  } else if (metrology.conformity === 'indeterminate') {
+    console.log('[reverify] INDETERMINATE: sampling plan not met (n < min_n=' + (metrology.decision_rule && metrology.decision_rule.min_n) + ');' +
+      ' no conformity statement; conditional certification + look-back path applies (ADR-0060 D-B/D-C)');
   } else if (metrology.lookback_required) {
     // ADR-0049 D-E: Wilson CI upper bound over the limit forces the look-back
     // even when the point estimate sits under it (documented negative finding

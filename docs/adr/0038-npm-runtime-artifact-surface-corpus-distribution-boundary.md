@@ -2,7 +2,7 @@
 
 Status: Accepted
 Date: 2026-08-31
-Amended by: ADR-0039 (narrows D1: docs/adr leaves the tarball; measured 200,000-byte budget); ADR-0059 D-B (drops `jiahao-mcp/` from the D1 files whitelist — source-only tier)
+Amended by: ADR-0039 (narrows D1: docs/adr leaves the tarball; measured 200,000-byte budget); ADR-0059 D-B (drops `jiahao-mcp/` from the D1 files whitelist — source-only tier); ADR-0060 (drops `CONTEXT.md` from the D1 files whitelist — development surface, ADR-0039 principle)
 
 Amends: ADR-0036 (clarifies distribution boundary now that the corpus is
 private; adds the missing artifact-surface decision)
@@ -123,3 +123,11 @@ an access-controlled channel existing), not built.
 - `jiahao-mcp/` left the tarball under ADR-0059 D-B (source-only tier);
   the former `jiahao-mcp/.npmignore` exclusion of `package-lock.json` is
   retired with it.
+- Amended 2026-09-12 by ADR-0060: `CONTEXT.md` (94,244 bytes unpacked) leaves
+  the tarball under ADR-0039’s own principle — the glossary is the git-tree
+  development surface, not a runtime artifact. The 200,000-byte cap (ADR-0039
+  D3) had fallen to a ~350-byte margin; this restores headroom without
+  weakening any check. The four maintainer gate scripts that read CONTEXT.md
+  (check-bench-thresholds / check-coverage / check-deferred / check-host-contracts)
+  are maintainer/CI-channel operations that cannot run from an installed
+  tarball anyway (no corpus -> honest exit 2).

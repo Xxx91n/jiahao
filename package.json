@@ -39,7 +39,6 @@
     "docs/deferred-registry.json",
     "docs/change-surface.json",
     "bench/polygraph/thresholds.json",
-    "CONTEXT.md",
     "README.md",
     "AGENTS.md"
   ]

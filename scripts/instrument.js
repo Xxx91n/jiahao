@@ -10,6 +10,8 @@
 //   node scripts/instrument.js --quarantine
 //   node scripts/instrument.js --signoff --reviewer <id> --attestation certify \
 //     --reverify-ledger-hash <hash> --bias-probe-hash <hash>
+//   node scripts/instrument.js --conditional-signoff --reviewer <id> --attestation certify \
+//     --reverify-ledger-hash <hash> --bias-probe-hash <hash> --expires-at YYYY-MM-DD --capa-ref <ref>
 //   node scripts/instrument.js --rollback
 
 const fs = require('fs');
@@ -94,6 +96,19 @@ function currentReverifyLedgerHash() {
   return tail && tail.event_hash || null;
 }
 
+// ADR-0060 D-E: the sign-off guard reads the ledger tail's conformity.
+function currentReverifyLedgerTail() {
+  const ledgerPath = path.join(ROOT, 'bench', 'polygraph', 'reverify-ledger.json');
+  let ledger;
+  try {
+    ledger = JSON.parse(fs.readFileSync(ledgerPath, 'utf8'));
+  } catch (e) {
+    return null;
+  }
+  if (verifyLedger(ledger)) return null;
+  return ledger[ledger.length - 1] || null;
+}
+
 function checkChangeSurfaceCoupling(baseRef, cfg) {
   if (!baseRef) return [];
   let diff;
@@ -158,6 +173,14 @@ function check() {
     console.error('dead-man switch is uncleared; verdict gate is advisory-only');
     process.exit(1);
   }
+  // ADR-0060 D-C: conditional is a legitimate certified state (exit 0), but it
+  // is loudly disclosed and its expiry is enforced by effectiveState.
+  if (rt.state.certification_mode === 'conditional') {
+    const exp = rt.state.conditional_expires_at || '?';
+    const capa = rt.state.conditional_capa_ref || '?';
+    console.log('[instrument] conditional certification: expires ' + exp + ', CAPA ' + capa);
+    console.log('::warning title=judge-conditional::conditional certification active (expires ' + exp + ', CAPA ' + capa + ')');
+  }
 
   const anchorErrors = checkChangeSurfaceAnchor(rt.changeSurface);
   if (anchorErrors.length) {
@@ -165,7 +188,8 @@ function check() {
     process.exit(1);
   }
 
-  console.log('[instrument] OK: identity pinned and authoritative');
+  // ADR-0060 D-C: the closing line names the actual certified state.
+  console.log('[instrument] OK: identity pinned and authoritative (certification: ' + (rt.state.certification_mode || 'full') + ')');
 }
 
 function quarantine() {
@@ -198,6 +222,14 @@ function signoff(args) {
     console.error(PREFIXES.config + ' FAIL: reverify ledger hash does not match the current verified ledger tail');
     process.exit(1);
   }
+  // ADR-0060 D-E: certify means the revalidation actually passed. An
+  // indeterminate/conditional tail must use --conditional-signoff; a hard fail
+  // must be dispositioned first.
+  const tailEntry = currentReverifyLedgerTail();
+  if (!tailEntry || tailEntry.conformity !== 'pass') {
+    console.error(PREFIXES.config + ' FAIL: --signoff requires a pass conformity in the reverify ledger tail (use --conditional-signoff for indeterminate|conditional)');
+    process.exit(1);
+  }
   const rt = readRuntime();
   try {
     const next = transition(rt.state, {
@@ -211,6 +243,58 @@ function signoff(args) {
     });
     writeState(next);
     console.log('[instrument] sign-off recorded for identity ' + rt.resolved.triple_hash.slice(0, 16));
+  } catch (e) {
+    console.error(PREFIXES.internal + ' FAIL: ' + e.message);
+    process.exit(1);
+  }
+}
+
+function conditionalSignoff(args) {
+  const signoffArgs = parseSignoffArgs(args);
+  if (!isHex64(args['reverify-ledger-hash']) || !isHex64(args['bias-probe-hash'])) {
+    console.error(PREFIXES.usage + ' FAIL: --conditional-signoff requires --reverify-ledger-hash and --bias-probe-hash');
+    process.exit(1);
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(args['expires-at'] || ''))) {
+    console.error(PREFIXES.usage + ' FAIL: --conditional-signoff requires --expires-at YYYY-MM-DD (ADR-0060 D-C)');
+    process.exit(1);
+  }
+  if (!args['capa-ref']) {
+    console.error(PREFIXES.usage + ' FAIL: --conditional-signoff requires --capa-ref (ADR-0060 D-D)');
+    process.exit(1);
+  }
+  const signoffSurface = loadChangeSurface(ROOT);
+  if (!attestationAllowed('identity', signoffSurface, signoffArgs.attestation)) {
+    console.error(PREFIXES.usage + ' FAIL: conditional signoff requires --attestation certify');
+    process.exit(1);
+  }
+  const ledgerHash = currentReverifyLedgerHash();
+  if (!ledgerHash || ledgerHash !== args['reverify-ledger-hash']) {
+    console.error(PREFIXES.config + ' FAIL: reverify ledger hash does not match the current verified ledger tail');
+    process.exit(1);
+  }
+  const tailEntry = currentReverifyLedgerTail();
+  if (!tailEntry || (tailEntry.conformity !== 'indeterminate' && tailEntry.conformity !== 'conditional')) {
+    console.error(PREFIXES.config + ' FAIL: --conditional-signoff requires an indeterminate|conditional conformity in the ledger tail (a pass uses --signoff; a hard fail must be dispositioned first)');
+    process.exit(1);
+  }
+  const rt = readRuntime();
+  try {
+    const next = transition(rt.state, {
+      type: 'conditional_signoff',
+      identity_digest: rt.resolved.triple_hash,
+      reviewer_id: signoffArgs.reviewer,
+      second_reviewer: signoffArgs.second_reviewer,
+      attestation_type: signoffArgs.attestation,
+      reverify_ledger_hash: args['reverify-ledger-hash'],
+      bias_probe_hash: args['bias-probe-hash'],
+      expires_at: args['expires-at'],
+      capa_ref: args['capa-ref'],
+    });
+    writeState(next);
+    console.log('[instrument] conditional sign-off recorded for identity ' + rt.resolved.triple_hash.slice(0, 16) +
+
+      ' (expires ' + args['expires-at'] + ', CAPA ' + args['capa-ref'] + ')');
   } catch (e) {
     console.error(PREFIXES.internal + ' FAIL: ' + e.message);
     process.exit(1);
@@ -383,6 +467,7 @@ function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.classify) return classifySurface(args);
   if (args.quarantine) return quarantine();
+  if (args['conditional-signoff']) return conditionalSignoff(args);
   if (args.signoff) return signoff(args);
   if (args.record) return record(args);
   if (args['record-signoff']) return recordSignoff(args);
@@ -394,4 +479,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { parseArgs, readRuntime, check, classifySurface, quarantine, signoff, record, recordSignoff, rebaseline, criteriaChange, rollback, main };
+module.exports = { parseArgs, readRuntime, check, classifySurface, quarantine, signoff, conditionalSignoff, record, recordSignoff, rebaseline, criteriaChange, rollback, main };

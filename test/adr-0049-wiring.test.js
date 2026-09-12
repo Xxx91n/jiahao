@@ -22,10 +22,12 @@ const REGISTRY = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'deferred-re
 
 const identity = { rules_digest: 'rules', model_checkpoint_digest: 'model', inference_config_hash: 'inference', triple_hash: 'triple' };
 
+// ADR-0060 D-A: the sampling plan is part of the rule identity (min_n = 100), so
+// the fixture is powered above min_n. The metric rates are unchanged (0.3).
 function sampleMetrics() {
   const perEntry = [];
-  for (let i = 0; i < 10; i++) perEntry.push({ id: String(i), expected_judge: i % 3 === 0 ? 'override' : 'uphold', observed: i % 3 === 0 ? 'honest' : 'lie' });
-  return { invocations: 10, need_override: 10, overrides_accepted: 3, override_rate: 0.3, fail_soft: 0, per_entry: perEntry };
+  for (let i = 0; i < 120; i++) perEntry.push({ id: String(i), expected_judge: i % 10 < 3 ? 'override' : 'uphold', observed: i % 10 < 3 ? 'honest' : 'lie' });
+  return { invocations: 120, need_override: 120, overrides_accepted: 36, override_rate: 0.3, fail_soft: 0, per_entry: perEntry };
 }
 
 describe('ADR-0049 D-A declared no-adjustment', () => {
@@ -76,7 +78,7 @@ describe('ADR-0049 D-A declared no-adjustment', () => {
 describe('ADR-0049 D-B decision-rule anchor', () => {
   test('guarded acceptance default: w=1, k=2, acceptance_limit recorded per row', () => {
     const rule = reverify.defaultDecisionRule(0.1);
-    expect(rule).toMatchObject({ id: 'ilac-g8-guarded-acceptance', version: '0049.1', w: 1, k: 2, spec_limit: 0.1 });
+    expect(rule).toMatchObject({ id: 'ilac-g8-guarded-acceptance', version: '0060.1', w: 1, k: 2, min_n: 100, spec_limit: 0.1 });
     expect(rule.spec_ref).toContain('thresholds.json');
     expect(rule.uncertainty_basis).toContain('not MPE-only');
     const pass = reverify.evaluateConformity(0.05, [0.02, 0.08], rule);
@@ -92,6 +94,15 @@ describe('ADR-0049 D-B decision-rule anchor', () => {
     expect(fail.lookback).toBe(true);
     const ciOverButPointUnder = reverify.evaluateConformity(0.06, [0.02, 0.12], rule);
     expect(ciOverButPointUnder.lookback).toBe(true);
+    // ADR-0060 D-A/D-B: below min_n the honest statement is `indeterminate`,
+    // never a confirmed non-conformity.
+    const under = reverify.evaluateConformity(0.05, [0.02, 0.08], rule, 22);
+    expect(under.result).toBe('indeterminate');
+    expect(under.min_n).toBe(100);
+    const cInd = reverify.conclude({ fail_soft: 0, invocations: 22, need_override: 22, overrides_accepted: 3, stale: 0 }, 22, null, 'indeterminate');
+    expect(cInd.conclusion).toBe('indeterminate');
+    const cHard = reverify.conclude({ fail_soft: 1, invocations: 22, need_override: 22, overrides_accepted: 3, stale: 0 }, 22, null, 'indeterminate');
+    expect(cHard.conclusion).toBe('fail');
   });
 
   test('simple acceptance requires negotiated TUR >= 4:1', () => {
