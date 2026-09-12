@@ -83,7 +83,9 @@ function writeState(state) {
   fs.writeFileSync(path.join(ROOT, 'src', 'instrument-state.json'), JSON.stringify(state, null, 2) + '\n', 'utf8');
 }
 
-function currentReverifyLedgerHash() {
+// ADR-0060 D-E: one verified read of the append-only reverify ledger, shared by
+// the hash accessor and the conformity accessor (no double read, no drift).
+function loadVerifiedLedger() {
   const ledgerPath = path.join(ROOT, 'bench', 'polygraph', 'reverify-ledger.json');
   let ledger;
   try {
@@ -91,22 +93,20 @@ function currentReverifyLedgerHash() {
   } catch (e) {
     return null;
   }
-  if (verifyLedger(ledger)) return null;
+  return verifyLedger(ledger) ? null : ledger;
+}
+
+function currentReverifyLedgerHash() {
+  const ledger = loadVerifiedLedger();
+  if (!ledger) return null;
   const tail = ledger[ledger.length - 1];
   return tail && tail.event_hash || null;
 }
 
 // ADR-0060 D-E: the sign-off guard reads the ledger tail's conformity.
 function currentReverifyLedgerTail() {
-  const ledgerPath = path.join(ROOT, 'bench', 'polygraph', 'reverify-ledger.json');
-  let ledger;
-  try {
-    ledger = JSON.parse(fs.readFileSync(ledgerPath, 'utf8'));
-  } catch (e) {
-    return null;
-  }
-  if (verifyLedger(ledger)) return null;
-  return ledger[ledger.length - 1] || null;
+  const ledger = loadVerifiedLedger();
+  return ledger ? (ledger[ledger.length - 1] || null) : null;
 }
 
 function checkChangeSurfaceCoupling(baseRef, cfg) {

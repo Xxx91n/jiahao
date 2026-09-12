@@ -64,6 +64,13 @@ function defaultDecisionRule(specLimit) {
   };
 }
 
+// ADR-0049 D-E: the drift-exposure look-back signal is the interval over limit
+// (CI upper bound) OR the point estimate over limit (ISO 17025 6.4.10). It is a
+// look-back obligation, kept separate from the pass/conditional/fail statement.
+function lookbackOverLimit(flipCI, flipRate, specLimit) {
+  return flipCI[1] > specLimit || flipRate > specLimit;
+}
+
 // Guarded acceptance: pass iff flip_rate <= spec_limit - w*u (u = CI half-width).
 // The guard-band conditional zone (acceptance_limit < x <= spec_limit) yields
 // NO pass statement (ADR-0049 D-B).
@@ -81,12 +88,11 @@ function evaluateConformity(flipRate, flipCI, rule, n) {
   // omits `n` cannot silently bypass the sampling-plan requirement.
   if (minN !== null && (nEligible === null || nEligible < minN)) {
     const u = Math.max(0, (flipCI[1] - flipCI[0]) / 2);
-    const lookback = flipCI[1] > rule.spec_limit || flipRate > rule.spec_limit;
-    return { result: 'indeterminate', acceptance_limit: rule.spec_limit - rule.w * u, lookback: lookback, min_n: minN, n: nEligible };
+    return { result: 'indeterminate', acceptance_limit: rule.spec_limit - rule.w * u, lookback: lookbackOverLimit(flipCI, flipRate, rule.spec_limit), min_n: minN, n: nEligible };
   }
   if (rule.w === 0) {
     if (!(rule.tur >= 4)) throw new Error('simple acceptance requires negotiated TUR >= 4:1 (ADR-0049 D-B)');
-    return { result: flipRate <= rule.spec_limit ? 'pass' : 'fail', acceptance_limit: rule.spec_limit, lookback: flipCI[1] > rule.spec_limit || flipRate > rule.spec_limit };
+    return { result: flipRate <= rule.spec_limit ? 'pass' : 'fail', acceptance_limit: rule.spec_limit, lookback: lookbackOverLimit(flipCI, flipRate, rule.spec_limit) };
   }
   const u = Math.max(0, (flipCI[1] - flipCI[0]) / 2);
   const acceptanceLimit = rule.spec_limit - rule.w * u;
@@ -94,7 +100,7 @@ function evaluateConformity(flipRate, flipCI, rule, n) {
   // over limit (CI upper bound) OR the point estimate over limit (17025
   // 6.4.10: shown outside specified requirements); it is a look-back
   // obligation, not a conclusion change.
-  const lookback = flipCI[1] > rule.spec_limit || flipRate > rule.spec_limit;
+  const lookback = lookbackOverLimit(flipCI, flipRate, rule.spec_limit);
   if (flipRate <= acceptanceLimit) return { result: 'pass', acceptance_limit: acceptanceLimit, lookback: lookback };
   if (flipRate <= rule.spec_limit) return { result: 'conditional', acceptance_limit: acceptanceLimit, lookback: lookback };
   return { result: 'fail', acceptance_limit: acceptanceLimit, lookback: lookback };

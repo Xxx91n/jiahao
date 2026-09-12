@@ -206,6 +206,14 @@ function projectRecordStatus(history) {
   return records;
 }
 
+// ADR-0060 D-C: a full certification clears the conditional second axis.
+function clearConditionalAxis(next) {
+  next.certification_mode = 'full';
+  next.conditional_expires_at = null;
+  next.conditional_capa_ref = null;
+  return next;
+}
+
 function transition(state, event, opts) {
   const chain = verifyState(state);
   if (!chain.valid) throw new Error(chain.reason);
@@ -233,9 +241,7 @@ function transition(state, event, opts) {
       throw new Error('signoff requires reviewer_id, reverify_ledger_hash, bias_probe_hash, and attestation_type');
     }
     next.state = 'authoritative';
-    next.certification_mode = 'full';
-    next.conditional_expires_at = null;
-    next.conditional_capa_ref = null;
+    clearConditionalAxis(next);
     next.authoritative_identity_digest = event.identity_digest;
     next.quarantined_identity_digest = null;
     next.history.push(stateEvent(tail.seq + 1, 'signoff', event.identity_digest, tail.event_hash, {
@@ -289,9 +295,7 @@ function transition(state, event, opts) {
   if (event.type === 'rollback') {
     if (next.state !== 'quarantined') throw new Error('rollback requires quarantined state');
     next.state = 'authoritative';
-    next.certification_mode = 'full';
-    next.conditional_expires_at = null;
-    next.conditional_capa_ref = null;
+    clearConditionalAxis(next);
     next.quarantined_identity_digest = null;
     next.history.push(stateEvent(tail.seq + 1, 'rollback', next.authoritative_identity_digest, tail.event_hash, { timestamp: now }));
     return next;
