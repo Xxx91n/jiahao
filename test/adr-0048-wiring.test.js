@@ -45,7 +45,11 @@ describe('ADR-0048 D-B record-only projection', () => {
     });
     expect(pending.state).toBe('authoritative');
     expect(pending.history[pending.history.length - 1].kind).toBe('record_only_change');
-    expect(instrument.projectRecordStatus(pending.history)).toMatchObject([{ record_seq: pending.history[pending.history.length - 1].seq, status: 'pending_signoff' }]);
+    // Scope to this test's own record: the live chain may already carry earlier
+    // record_only_change rows (e.g. the ADR-0049 D-E look-back disposition).
+    const recordSeq = pending.history[pending.history.length - 1].seq;
+    const mine = (h) => instrument.projectRecordStatus(h).filter((r) => r.record_seq === recordSeq);
+    expect(mine(pending.history)).toMatchObject([{ status: 'pending_signoff' }]);
 
     const certified = instrument.transition(pending, {
       type: 'record_signoff',
@@ -57,7 +61,7 @@ describe('ADR-0048 D-B record-only projection', () => {
     });
     expect(certified.state).toBe('authoritative');
     expect(certified.history[certified.history.length - 1].kind).toBe('record_signoff');
-    expect(instrument.projectRecordStatus(certified.history)).toMatchObject([{ record_seq: pending.history[pending.history.length - 1].seq, status: 'certified', reviewer_id: 'reviewer-a' }]);
+    expect(mine(certified.history)).toMatchObject([{ status: 'certified', reviewer_id: 'reviewer-a' }]);
     expect(instrument.verifyState(certified).valid).toBe(true);
   });
 

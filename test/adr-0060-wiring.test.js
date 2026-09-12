@@ -162,9 +162,93 @@ describe('ADR-0060 D-C/D-E: conditional certification axis', () => {
     expect(r.stderr).toContain('[usage]:');
   });
 
+  test('the ADR-0049 D-E look-back is discharged as a chain-anchored record', () => {
+    const st = instrument.loadState(ROOT);
+    const rec = st.history.find((e) => e.kind === 'record_only_change');
+    const sign = st.history.find((e) => e.kind === 'record_signoff');
+    expect(rec).toBeDefined();
+    expect(sign).toBeDefined();
+    expect(sign.record_seq).toBe(rec.seq);
+    expect(rec.after.evidence_kinds).toEqual(['reverse_traceability', 'oot_impact_assessment']);
+    expect(instrument.verifyState(st).valid).toBe(true);
+  });
+
   test('the live --check passes while the conditional certification is unexpired', () => {
     const r = cli(['--check']);
     expect(r.status).toBe(0);
     expect(r.stdout).toContain('certification: conditional');
+  });
+});
+
+describe('ADR-0060 D-C/D-E: fixture-tree CLI guards (expired / hard fail / default window)', () => {
+  const FILES = [
+    'docs/gates.json', 'docs/change-surface.json',
+    'scripts/instrument.js', 'scripts/reverify.js',
+    'src/change-surface.js', 'src/evidence-log.js', 'src/file-lock.js',
+    'src/instrument-identity.js', 'src/instrument-identity.json', 'src/instrument-state.json',
+    'src/reverify-schedule.js', 'src/shared/capability.js', 'src/shared/prefix-vocab.js',
+    'src/shared/paths.js', 'src/SKILL.md',
+  ];
+  function makeTree(mutate) {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-0060-'));
+    for (const rel of FILES) {
+      const target = path.join(tmp, rel);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.copyFileSync(path.join(ROOT, rel), target);
+    }
+    fs.mkdirSync(path.join(tmp, '.git'), { recursive: true });
+    if (mutate) mutate(tmp);
+    return tmp;
+  }
+  function cliIn(tmp, args) {
+    return spawnSync(process.execPath, ['scripts/instrument.js'].concat(args), { cwd: tmp, encoding: 'utf8', env: Object.assign({}, process.env, { CLAUDE_CONFIG_DIR: tmp }) });
+  }
+  // Reuse the REAL ledger (a valid hash chain) so the fixture never trips the
+  // hash check. mode "fail" truncates it to the recorded `fail` row.
+  function writeLedger(tmp, mode) {
+    const src = JSON.parse(fs.readFileSync(path.join(ROOT, 'bench', 'polygraph', 'reverify-ledger.json'), 'utf8'));
+    const led = mode === 'fail' ? src.slice(0, src.findIndex((e) => e.conformity === 'fail') + 1) : src;
+    const dir = path.join(tmp, 'bench', 'polygraph');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'reverify-ledger.json'), JSON.stringify(led, null, 2) + '\n', 'utf8');
+    return led[led.length - 1].event_hash;
+  }
+  function patchState(tmp, fn) {
+    const p = path.join(tmp, 'src', 'instrument-state.json');
+    const s = JSON.parse(fs.readFileSync(p, 'utf8'));
+    fn(s);
+    fs.writeFileSync(p, JSON.stringify(s, null, 2) + '\n', 'utf8');
+  }
+
+  test('--check exits 1 once the conditional certification expires', () => {
+    const tmp = makeTree((t) => patchState(t, (s) => {
+      s.state = 'authoritative'; s.certification_mode = 'conditional';
+      s.conditional_expires_at = '2020-01-01'; s.conditional_capa_ref = 'CAPA-X';
+    }));
+    const r = cliIn(tmp, ['--check']);
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain('quarantined');
+  });
+
+  test('--conditional-signoff refuses a hard fail', () => {
+    const tmp = makeTree();
+    const hash = writeLedger(tmp, 'fail');
+    const r = cliIn(tmp, ['--conditional-signoff', '--reviewer', 'r', '--attestation', 'certify', '--reverify-ledger-hash', hash, '--bias-probe-hash', 'c'.repeat(64), '--expires-at', '2026-12-11', '--capa-ref', 'CAPA-X']);
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain('indeterminate|conditional conformity');
+  });
+
+  test('omitting --expires-at applies the 90-day default window (D-D)', () => {
+    const tmp = makeTree((t) => patchState(t, (s) => {
+      const ii = require(path.join(ROOT, 'src', 'instrument-identity.js'));
+      s.state = 'quarantined';
+      s.quarantined_identity_digest = ii.resolveInstrumentIdentity(t).triple_hash;
+      delete s.certification_mode; delete s.conditional_expires_at; delete s.conditional_capa_ref;
+    }));
+    const hash = writeLedger(tmp, 'indeterminate');
+    const expected = new Date(Date.now() + 90 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+    const r = cliIn(tmp, ['--conditional-signoff', '--reviewer', 'r', '--attestation', 'certify', '--reverify-ledger-hash', hash, '--bias-probe-hash', 'c'.repeat(64), '--capa-ref', 'CAPA-X']);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain(expected);
   });
 });
