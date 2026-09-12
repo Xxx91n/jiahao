@@ -264,8 +264,8 @@ the discipline)
 **Two-Tier Install UX (双层安装 UX)**:
 Tier 0 is the documented manual path: one `echo "verifier" > $CONFIG_DIR/.jiahao-profile`
 line — the strongest precedent in pure-prompt distribution (shadcn manual
-tab, anthropics/skills, awesome-cursorrules). Tier 1 is `npx jiahao init`
-(or `jiahao init --profile <name>`): a single-question CLI using `prompts`,
+tab, anthropics/skills, awesome-cursorrules). Tier 1 is a name-independent `github:` channel
+(`npx --yes github:<org>/jiahao init`): a single-question CLI using `prompts`,
 supporting `--profile`, `-y`, and auto-detecting CI / non-TTY with an
 informative failure. The CLI writes only the flag file — not the SKILL
 content — and prints the Verifier Deployment Discipline reminder after

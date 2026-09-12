@@ -43,14 +43,25 @@ records in the same hash chain and feed the calibration loop.
 
 ### CLI installer (Tier 1, recommended)
 
+Tier 1 is a name-independent channel: it installs straight from the git
+repository. It requires the repository to be public — the project is currently
+private, so this channel resolves only once the repository is published.
+
 ```sh
-npx jiahao init                      # interactive profile prompt
-npx jiahao init --profile verifier   # non-interactive (CI-safe)
-npx jiahao init -y                   # accept default (verifier)
-npx jiahao init --dry-run            # print, do not write
-npx jiahao resolve                   # phase 1: preview evidence (no machine verdict shown)
-npx jiahao resolve --verdict pass --reason "tests re-run green" --reviewer alice
+npx --yes github:<org>/jiahao init                      # interactive profile prompt
+npx --yes github:<org>/jiahao init --profile verifier   # non-interactive (CI-safe)
+npx --yes github:<org>/jiahao init -y                   # accept default (verifier)
+npx --yes github:<org>/jiahao init --dry-run            # print, do not write
+npx --yes github:<org>/jiahao resolve                   # phase 1: preview evidence (no machine verdict shown)
+npx --yes github:<org>/jiahao resolve --verdict pass --reason "tests re-run green" --reviewer alice
 ```
+
+> **Naming declaration (ADR-0059 D-A).** The unprefixed npm package name
+> `jiahao` is a third party’s 2019 test package. This project has never
+> published to npm and does not claim that name — do not install it from the
+> registry. Future publication, if it ever unfreezes (defer-0001 conditions),
+> will use the scoped name `@<org>/jiahao` (reserved under defer-0028).
+> Renaming the project is rejected.
 
 The CLI writes only `.jiahao-profile`. Adapter files are distributed by
 `scripts/build-adapters.js`, never copied by the installer (drift guardrail).
