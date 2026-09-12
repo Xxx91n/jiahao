@@ -61,5 +61,32 @@ if (suites !== expected) {
     + ' (ADR-0057 D-C). A silent collection failure or an intentional suite add/remove must update the ci.yml test-job call line in the same change.');
   process.exit(1);
 }
+// ADR-0056/0057: the README's declared counts must match what actually ran.
+// Both declarations are checked: "N tests across M suites" (Develop) and
+// "M test suites, N tests" (Architecture). A drift fails the test job here,
+// in the same change that introduced it.
+const tests = head ? Number(head[1]) : null;
+if (tests === null) {
+  console.error('FAIL: JUnit header is missing the tests attribute - cannot check the README counts (ADR-0056/0057)');
+  process.exit(1);
+}
+const readme = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
+const declared = [
+  { what: 'Develop', re: /(\d+) tests across (\d+) suites/, testsIdx: 1, suitesIdx: 2 },
+  { what: 'Architecture', re: /(\d+) test suites, (\d+) tests/, testsIdx: 2, suitesIdx: 1 },
+];
+for (const d of declared) {
+  const m = readme.match(d.re);
+  if (!m) {
+    console.error('FAIL: README (' + d.what + ') is missing its declared count line (ADR-0056/0057)');
+    process.exit(1);
+  }
+  const got = { tests: Number(m[d.testsIdx]), suites: Number(m[d.suitesIdx]) };
+  if (got.tests !== tests || got.suites !== suites) {
+    console.error('FAIL: README (' + d.what + ') declares ' + got.tests + ' tests / ' + got.suites + ' suites, actual ' + tests + ' tests / ' + suites + ' suites (ADR-0056/0057: update the README in the same change)');
+    process.exit(1);
+  }
+}
+
 console.log('[test] OK: ' + suites + ' suites, ' + (head ? head[1] + ' tests' : 'n/a tests') + (head ? ', ' + head[2] + ' skipped' : '') + ' (ADR-0057 D-C)');
 process.exit(0);
