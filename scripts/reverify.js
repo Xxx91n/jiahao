@@ -77,10 +77,12 @@ function evaluateConformity(flipRate, flipCI, rule, n) {
   // insufficient" (indeterminate), never a confirmed non-conformity.
   const minN = typeof rule.min_n === 'number' ? rule.min_n : null;
   const nEligible = typeof n === 'number' ? n : null;
-  if (minN !== null && nEligible !== null && nEligible < minN) {
-    const uu = Math.max(0, (flipCI[1] - flipCI[0]) / 2);
-    const lb = flipCI[1] > rule.spec_limit || flipRate > rule.spec_limit;
-    return { result: 'indeterminate', acceptance_limit: rule.spec_limit - rule.w * uu, lookback: lb, min_n: minN, n: nEligible };
+  // ADR-0060 D-A: fail closed when the sample size is unknown — a caller that
+  // omits `n` cannot silently bypass the sampling-plan requirement.
+  if (minN !== null && (nEligible === null || nEligible < minN)) {
+    const u = Math.max(0, (flipCI[1] - flipCI[0]) / 2);
+    const lookback = flipCI[1] > rule.spec_limit || flipRate > rule.spec_limit;
+    return { result: 'indeterminate', acceptance_limit: rule.spec_limit - rule.w * u, lookback: lookback, min_n: minN, n: nEligible };
   }
   if (rule.w === 0) {
     if (!(rule.tur >= 4)) throw new Error('simple acceptance requires negotiated TUR >= 4:1 (ADR-0049 D-B)');

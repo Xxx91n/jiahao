@@ -11,7 +11,7 @@ const { corpusMissingMessage } = require('../src/shared/paths.js');
 
 describe('D1: files whitelist = runtime artifact surface', () => {
   test('files whitelist matches the ADR-0039 D1 narrowed set', () => {
-    expect(pkg.files).toEqual(['src/', 'scripts/', 'adapters/', 'schemas/', 'hooks/', 'docs/gates.json', 'docs/coverage-map.json', 'docs/deferred-registry.json', 'docs/change-surface.json', 'bench/polygraph/thresholds.json', 'README.md', 'AGENTS.md']);
+    expect(pkg.files).toEqual(['src/', 'scripts/', 'adapters/', 'schemas/', 'hooks/', 'docs/gates.json', 'docs/coverage-map.json', 'docs/deferred-registry.json', 'docs/change-surface.json', 'bench/polygraph/thresholds.json', 'CONTEXT.md', 'README.md', 'AGENTS.md']);
   });
 
   test('npm pack dry-run tarball: no test/, no docs/adr, no bench fixtures, thresholds.json present, <200,000 bytes (ADR-0039 D3)', () => {
@@ -30,7 +30,7 @@ describe('D1: files whitelist = runtime artifact surface', () => {
     const benchAllowed = new Set(['bench/polygraph/thresholds.json', 'bench/polygraph/README.md']);
     expect(names.some(f => f.startsWith('bench/') && !benchAllowed.has(f))).toBe(false);
     expect(names.some(f => f.startsWith('.githooks/'))).toBe(false);
-    for (const must of ['package.json', 'src/SKILL.md', 'src/shared/paths.js', 'scripts/install.js', 'scripts/check-mr-probes.js', 'docs/gates.json', 'bench/polygraph/thresholds.json', 'README.md', 'AGENTS.md']) {
+    for (const must of ['package.json', 'src/SKILL.md', 'src/shared/paths.js', 'scripts/install.js', 'scripts/check-mr-probes.js', 'docs/gates.json', 'bench/polygraph/thresholds.json', 'CONTEXT.md', 'README.md', 'AGENTS.md']) {
       expect(names).toContain(must);
     }
     // ADR-0039 D3 (2026-08-31 impl round): measured-anchor budget. 256KB provisional cap
@@ -46,9 +46,11 @@ describe('D1: files whitelist = runtime artifact surface', () => {
 });
 
 describe('ADR-0039 D3: cap content anchor', () => {
-  test('the 200,000-byte cap appears verbatim in ADR-0039', () => {
+  test('the current cap value appears verbatim in ADR-0039 (D3 recompute)', () => {
     const adr = fs.readFileSync(path.join(ROOT, 'docs', 'adr', '0039-tarball-runtime-surface-narrowing-docs-adr-archive-channel.md'), 'utf8');
-    expect(adr).toContain('200,000');
+    // ADR-0039 D3 recompute (2026-09-12): M=203,141 -> cap = 253,927.
+    expect(adr).toContain('253,927');
+    expect(adr).toContain('200,000'); // historical value retained in D3's text
   });
 });
 

@@ -81,18 +81,18 @@ describe('ADR-0049 D-B decision-rule anchor', () => {
     expect(rule).toMatchObject({ id: 'ilac-g8-guarded-acceptance', version: '0060.1', w: 1, k: 2, min_n: 100, spec_limit: 0.1 });
     expect(rule.spec_ref).toContain('thresholds.json');
     expect(rule.uncertainty_basis).toContain('not MPE-only');
-    const pass = reverify.evaluateConformity(0.05, [0.02, 0.08], rule);
+    const pass = reverify.evaluateConformity(0.05, [0.02, 0.08], rule, 100);
     expect(pass.result).toBe('pass');
     expect(pass.acceptance_limit).toBeCloseTo(0.07, 10);
-    const cond = reverify.evaluateConformity(0.09, [0.02, 0.08], rule);
+    const cond = reverify.evaluateConformity(0.09, [0.02, 0.08], rule, 100);
     expect(cond.result).toBe('conditional');
-    const fail = reverify.evaluateConformity(0.2, [0.02, 0.08], rule);
+    const fail = reverify.evaluateConformity(0.2, [0.02, 0.08], rule, 100);
     expect(fail.result).toBe('fail');
     // D-E: the look-back trigger is the Wilson interval over limit, kept
     // separate from the pass/conditional/fail statement.
     expect(pass.lookback).toBe(false);
     expect(fail.lookback).toBe(true);
-    const ciOverButPointUnder = reverify.evaluateConformity(0.06, [0.02, 0.12], rule);
+    const ciOverButPointUnder = reverify.evaluateConformity(0.06, [0.02, 0.12], rule, 100);
     expect(ciOverButPointUnder.lookback).toBe(true);
     // ADR-0060 D-A/D-B: below min_n the honest statement is `indeterminate`,
     // never a confirmed non-conformity.
