@@ -394,8 +394,46 @@ which must exit 2). Reverting the R14 hardening now turns both suites red.
 ## Acceptance
 
 - `npm test` (serial): all suites pass, including new adr-0058-wiring.test.js.
+- `node scripts/run-test-gate.js --expected-suites 49` (the CI test-job entrypoint,
+  and the round's headline deliverable): exit 0, `[test] OK: 49 suites, 671 tests, 0 skipped`.
 - `npm run gate:all`: all gates pass (4 UNVERIFIABLE ci-mode-only expected).
+- `GITHUB_ACTIONS=true CI=true npm run gate:all`: exit 0, 0 unverifiable.
 - `npm run corpus:drift`: fingerprints OK.
-- `npm pack --dry-run`: clean.
+- `npm pack --dry-run`: clean. Budget is size < 200,000 (ADR-0039 D3); the round
+  closes at 199,943 bytes with 57 bytes of headroom, so the next packed-surface
+  file added will break `npm test`.
 - `git diff --check`: clean.
+- `node scripts/build-adapters.js --check` / `node scripts/instrument.js --check` /
+  `node scripts/build-adr-index.js --check`: all exit 0.
+- start-alive: `node jiahao-mcp/index.js` answers the MCP handshake (initialize /
+  tools/list / tools/call / prompts/list) and stays alive.
 - All written files UTF-8 no BOM, LF.
+- **CI channel (mandatory): NOT yet satisfied.** `gh run list` shows every run
+  since 2026-08-30 red, and this branch has no run because it was never pushed.
+  See R10 and R13.
+- **Required-check deployment: NOT performed, and not performable here.** The
+  platform cannot host branch protection on this repository (private + free plan
+  -> HTTP 403 on both `/branches/main/protection` and `/rulesets`); the carrier
+  question is D-011.
+
+## Implementation status (2026-09-12 closing round)
+
+The round's decision ledger (`.scratch/grill-adr0058/decision-ledger.md`) is the
+working record; this section sinks the status of the decisions that touch this
+ADR into the committed fact source.
+
+| Decision | Status | Anchor |
+| --- | --- | --- |
+| D-002 success-only aggregation | implemented | the `summary` job's `seen == expected` guard; production-verified by run 34631502524, which aggregated `failure failure` to red |
+| D-005 ADR-0034 D5 narrowed | implemented | the inline amendment in ADR-0034 D5 |
+| D-006 test gate removed, wrapper migrated | implemented | `docs/gates.json` carries no `test` gate; R8 |
+| D-007 full-set `needs` aggregation | implemented (technical core) | `needs: [gate-all, test]`; the branch-protection half is **stale** - the platform cannot host it (403) |
+| D-008 symmetric tier contract | implemented | `test.env: JIAHAO_TEST_TIER=public`; the test job never references the corpus secret |
+| D-009 order 100 retired | implemented | absent from `docs/gates.json`, not renumbered, no tombstone |
+| D-013 test-job capability declaration | implemented | R8 plus the five R8 locks |
+
+Decisions D-001, D-003, D-010, D-011 and D-012 do not touch this ADR; their
+status lives in the ledger only. D-004 and D-007 are `stale` in part (their
+required-check premise was falsified by measurement); D-010/D-011/D-012 remain
+`deferred` pending a ruling. Nothing in this section implements an unratified
+decision.
