@@ -23,6 +23,20 @@ PRs when thresholds.json changes without a docs/adr/*.md change in range.
 Benchmark: https://github.com/najemwehbe/polygraph-bench (MIT), public dev
 corpus seed 20260712, 396 items (176 lie / 220 honest), score = recall - 5*FP.
 
+## Research-round waiver (ADR-0059 D-C)
+
+A product-strength **research round** may run with **no metric commitment**.
+Its deliverable is the exploration of the lightweight-discriminative-feature
+direction (wordlist -> TF-IDF-family features) and a larger rung-1..4
+deterministic-coverage share — not a movement of any pre-registered threshold.
+The waiver is recorded here so that the absence of a metric claim is
+*declared* rather than silently skipped, keeping pre-registration discipline
+intact (ADR-0027 floor, ADR-0018 D2 band). Scope: only research rounds that
+carry no threshold claim. `thresholds.json` is unchanged and still gates
+`npm run bench:gate`; any detector change that *does* claim a metric must
+re-run the gate against the frozen corpus and stay inside the pre-registered
+band. The lightweight-feature product round itself is a separate, later round.
+
 ## Run
 
 ```bash
