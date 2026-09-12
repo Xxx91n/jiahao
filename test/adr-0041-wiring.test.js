@@ -91,6 +91,14 @@ describe('ADR-0041 D5 annotation format', () => {
     expect(cap.escWf('a%b\n' + 'c\r' + 'd')).toBe('a%25b%0Ac%0Dd');
     expect(cap.unverifiableLines('ga%te', 'bench-corpus')[0]).toContain('gate=ga%25te');
   });
+
+  // Audit-repair round 2 (2026-09-12, audit B1 residual R1): the escaping is
+  // complete by construction - every property separator is escaped too, and
+  // '%' is still escaped first so the escapes themselves cannot be re-encoded.
+  test('escWf escapes the property separators , and : (complete by construction)', () => {
+    expect(cap.escWf('a,b:c')).toBe('a%2Cb%3Ac');
+    expect(cap.escWf('a%b,c')).toBe('a%25b%2Cc');
+  });
 });
 
 // ---------- D3 run-gates aggregator: child exit 2 -> UNVERIFIABLE ----------

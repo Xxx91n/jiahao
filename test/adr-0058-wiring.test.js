@@ -154,6 +154,25 @@ describe('ADR-0058 R8 test-job capability declaration (audit A1)', () => {
     expect(r.status).toBe(1);
     expect(r.stderr).toMatch(/unregistered capability/);
   });
+
+  // Audit-repair round 2 (2026-09-12, audit B1 residual R1): a multi-element
+  // inline declaration must not inject a workflow-command property separator.
+  // Direct path exercises escWf's ',' escaping via unverifiableLines; the
+  // end-to-end path exercises the comma-free 'a+b' label from requireCapabilities.
+  test('a multi-element inline declaration cannot inject a property separator', () => {
+    const line = cap.unverifiableLines(['repo-tree', 'docs-adr'], 'docs-adr')[0];
+    expect(line).toMatch(/^::error title=UNVERIFIABLE,gate=[^,]*,requires=[^,]*::/);
+    expect(line).not.toMatch(/gate=repo-tree,docs-adr/);
+
+    const probe2 = 'const c=require(process.argv[1]);c.requireCapabilities([process.argv[2],process.argv[3]],{root:process.argv[4]});console.log("CAP-OK");';
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-0058-cap2-'));
+    const bad = spawnSync(process.execPath, ['-e', probe2, capPath, 'repo-tree', 'docs-adr', tmp], { cwd: tmp, encoding: 'utf8' });
+    expect(bad.status).toBe(2);
+    const machine = bad.stdout.split(/\r?\n/).find(l => l.indexOf('::error title=UNVERIFIABLE') === 0);
+    expect(machine).toBeTruthy();
+    expect(machine).toMatch(/^::error title=UNVERIFIABLE,gate=[^,]*,requires=[^,]*::/);
+    expect(machine).not.toMatch(/gate=repo-tree,docs-adr/);
+  });
 });
 
 describe('ADR-0058 R9 summary result-count guard (audit A3)', () => {

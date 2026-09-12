@@ -313,7 +313,7 @@ output that a careless `git add -A` would commit. `.gitignore` now lists
 ## Repair notes (audit-repair round 2, 2026-09-12)
 
 A second independent audit conditionally passed this branch and returned B1-B7.
-R13-R15 record the three fixes that touch this ADR; B3 and B6 were fixed in
+R13-R16 record the four fixes that touch this ADR; B3 and B6 were fixed in
 place (the R11/R12 sections above and the delivery report).
 
 ### R13 - the CI corpus restore step now reports what it actually restored (audit B7)
@@ -352,6 +352,21 @@ strengthened: the "no `requireCapabilities('test')`" assertion now catches both
 quote styles and optional whitespace, and the summary-guard assertion checks the
 loop increment (`seen=$((seen + 1))`) and the comparison
 (`if [ "$seen" -ne "$expected" ]`) instead of the `seen=0` initialisation.
+
+### R16 - the inline-array label and the property-separator escaping are locked (audit B1 residual R1)
+
+The R14 code fix had no regression lock: nothing failed if `escWf` dropped the
+`,` -> `%2C` / `:` -> `%3A` escaping, or if `requireCapabilities` went back to
+joining an inline array with a raw comma - so a later edit could silently
+reintroduce the workflow-command property-separator injection. Two locks now
+close that gap. `test/adr-0041-wiring.test.js` asserts `escWf('a,b:c')` ->
+`a%2Cb%3Ac` and `escWf('a%b,c')` -> `a%25b%2Cc` (percent still escaped first),
+so the escaping is pinned as complete by construction. `test/adr-0058-wiring.test.js`
+asserts that a two-element inline declaration yields exactly three
+comma-separated `::error` properties with no raw comma inside the `gate=` value,
+both directly (`unverifiableLines(['repo-tree','docs-adr'],'docs-adr')`) and
+end-to-end (a spawned `requireCapabilities` from a directory with no `.git`,
+which must exit 2). Reverting the R14 hardening now turns both suites red.
 
 ## Consequences
 

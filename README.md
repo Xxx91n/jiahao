@@ -162,7 +162,7 @@ prompt-installer surface only. ADRs and developer docs live on the git tree (the
 ## Develop
 
 ```bash
-npm test                              # 669 tests across 49 suites (full corpus tier; the public tier skips 4 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 671 tests across 49 suites (full corpus tier; the public tier skips 4 corpus-bound tests with reasons, ADR-0056)
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
@@ -240,7 +240,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - [ADR-0057](docs/adr/0057-test-skip-honesty-and-suite-count-assertion.md) — Test-Layer Skip Honesty and Suite-Count Assertion
 - [ADR-0058](docs/adr/0058-ci-test-job-independence-and-gate-layer-entrypoint-narrowing.md) — CI Test-Job Independence, Always() Success-Only Aggregation, and Gate-Layer Entrypoint Narrowing
 <!-- adr-index:end -->
-- `test/` — 49 test suites, 669 tests
+- `test/` — 49 test suites, 671 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 - `private/bench-corpus/` — answer corpora (probes/judge-twins/twins + fingerprints; gitignored, ADR-0036 D2). Gate scripts resolve via JIAHAO_CORPUS_DIR, else the install-planted dir (`jiahao init` plants it from the package), else this repo-private dir in a maintainer tree; missing everywhere fails closed (exit 1: config; the capability probe degrades an absent corpus dir to exit 2 UNVERIFIABLE first, ADR-0041 D2). npm consumers and public git clones carry no corpus at all — corpus gates are a maintainer/CI-only contract, fail-closed by design (ADR-0038 D2).
 

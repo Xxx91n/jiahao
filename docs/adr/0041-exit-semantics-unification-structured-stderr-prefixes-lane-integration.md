@@ -7,7 +7,9 @@ Amends: ADR-0040 (D4 message specification corrected: the ::error annotation lin
 to stdout with comma-separated properties; see D5)
 
 Amended by: ADR-0042 (Q1/Q2/Q4 grill-round closure: checked ConfigLoadError, controlled
-warning rule codes, contract locking, lane atomic dependency)
+warning rule codes, contract locking, lane atomic dependency); ADR-0058 R8 (audit-repair
+round 2, 2026-09-12: the exit-2 domain extends to out-of-registry consumers that declare
+capabilities inline)
 
 References: ADR-0027 (pre-registered coupling guard), ADR-0028 (hook-domain exit-2 = block
 precedent), ADR-0029 D5 (pre-registered upgrade channel), ADR-0031 (wiring assertion
