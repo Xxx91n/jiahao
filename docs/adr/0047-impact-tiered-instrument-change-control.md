@@ -2,6 +2,8 @@
 
 Status: Accepted
 Date: 2026-09-05
+Amended by: ADR-0060 D-C (a conditional certification axis sits alongside the
+two-state release gate; expiry is fail-closed)
 
 References: ADR-0018 (calibration flywheel + kappa), ADR-0025 (scoring-mode verifier), ADR-0027 (pre-registered thresholds + coupling guard), ADR-0029 (behavioral probes), ADR-0030 (reverification runbook + dead-man clock), ADR-0031 (gate tiers), ADR-0033/0035 (deferred registry), ADR-0040/0041 (three-state exit), ADR-0044 (mechanical falsifiability), ADR-0045 (stochastic-deterministic boundary), ADR-0046 (instrument-drift recalibration).
 

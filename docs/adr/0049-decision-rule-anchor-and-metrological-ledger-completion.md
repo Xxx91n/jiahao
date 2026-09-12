@@ -2,6 +2,8 @@
 
 Status: Accepted
 Date: 2026-09-06
+Amended by: ADR-0060 D-A/D-B (min_n joins the rule identity; an `indeterminate`
+conformity precedes the guarded-acceptance statement)
 
 References: ADR-0013 (hash chain), ADR-0017 (human adjudication), ADR-0022
 (censoring metadata), ADR-0025 (judge input certificate triple), ADR-0027

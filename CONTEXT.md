@@ -264,8 +264,8 @@ the discipline)
 **Two-Tier Install UX (双层安装 UX)**:
 Tier 0 is the documented manual path: one `echo "verifier" > $CONFIG_DIR/.jiahao-profile`
 line — the strongest precedent in pure-prompt distribution (shadcn manual
-tab, anthropics/skills, awesome-cursorrules). Tier 1 is `npx jiahao init`
-(or `jiahao init --profile <name>`): a single-question CLI using `prompts`,
+tab, anthropics/skills, awesome-cursorrules). Tier 1 is a name-independent `github:` channel
+(`npx --yes github:<org>/jiahao init`): a single-question CLI using `prompts`,
 supporting `--profile`, `-y`, and auto-detecting CI / non-TTY with an
 informative failure. The CLI writes only the flag file — not the SKILL
 content — and prints the Verifier Deployment Discipline reminder after
@@ -344,53 +344,7 @@ Carrier-neutral shared modules depended on by every distribution carrier
 point inward, toward this core.
 _Avoid_: utils, common, lib
 
-ADRs in `docs/adr/` (numbered, immutable once Accepted). Active decisions:
-
-- ADR-0001 prompt-as-mental-model for second-party agents
-- ADR-0002 jiahao iron laws design
-- ADR-0003 hook architecture
-- ADR-0004 verification gate ladder
-- ADR-0005 skill distribution adapter pattern
-- ADR-0006 architecture deepening (Evidence Contract, Adapter Drift)
-- ADR-0007 hash chain tamper evidence
-- ADR-0008 confidence calibration
-- ADR-0009 MCP adapter
-- ADR-0010 dual-profile role-tagged distribution
-- ADR-0011 deployment discipline, install UX, drift automation
-- ADR-0012 detector verdict persistence + hook idempotency
-- ADR-0013 cross-turn hash chain + composite idempotency key
-- ADR-0014 wordlist migration out of cwd + structural-signal primary
-- ADR-0015 benchmark adoption (polygraph-bench) + FAGEN citation calibration
-- ADR-0016 EvidenceLog/GateLadder split + shared core relocation
-- ADR-0017 ESCALATE verdict + human adjudication write-back
-- ADR-0018 calibration flywheel (threshold band + few-shot injection + kappa)
-- ADR-0019 detector v2 (suppression rules + judge seam) + ADR-0015 D2 core-floor correction
-- ADR-0020 multi-page enumeration with pagination-exhaustion pairing
-- ADR-0021 request-side anchor signals + rescue-dominant trust direction (D6 delivery)
-- ADR-0022 detector hardening: length caps + censoring metadata + degradation contract
-- ADR-0023 timeout sentinel reconciliation + degradation schema evolution discipline
-- ADR-0024 sentinel ownership lock + reconcile hardening + session-end sweep
-- ADR-0025 judge form convergence (scoring-mode verifier contract) + honest-twin corpus + seam telemetry contract
-- ADR-0026 segmented evidence log: rotation + cross-segment anchoring + base-seq naming + verifyTail/verifyFull + transparent legacy migration
-- ADR-0027 bench gate: executable pre-registered thresholds (D1 real re-run, D2 derived config + guard, D3 0/1 + aggregated warning, D4 milestone archive)
-- ADR-0028 multi-host L0 closure: regen-diff golden (--check) + host-contracts.json registry (term-anchored coupling guard) + 4 new research-gated adapters (copilot/qoder/opencode/aider) + lifecycle register
-- ADR-0029 behavioral probe gate: per-iron-law paired probes (7+7 zero-miss smoke gate) + probe-recall/probe-fp registry + pre-registered growth + advisory upgrade channel + signing rejection log
-- ADR-0030 probe corpus growth: interval coverage gate (law-dup dropped) + deferred edition/git-history gates with unfreeze conditions + judge re-verification runbook/ledger/dead-man switch + generator advisory disposition
-- ADR-0031 wiring assertions (D1 mandatory per wiring-touching ADR) + judge bias calibration corpus (style/length-control + bias-probe, 3 metrics) + gate tier taxonomy (confirmatory/observational/deferred-with-unfreeze) + judge-input certificate isolation + optional evidence provenance (SLSA additive) + debt pack (F4/F5/S2/S3/S4)
-- ADR-0032 generator surface rules deepening: inline gsr header (id/signal-domain/status, git-as-version) + coverage-map.json registry + check-coverage.js four-state gate + pre-registered equivalence statement (no statistical gate) + rule lifecycle triad admission / 6-8 active cap / six-reason retirement
-- ADR-0033 deferred/unfreeze registry: docs/deferred-registry.json fact-source + confirmatory fail-closed + pending-evaluation + expiry-forces-action + coupling guard (seeds: sigstore / L1-L2 golden / Merkle)
-- ADR-0034 gate registry: docs/gates.json fact-source + gate:all single entrypoint + run-all-aggregate with --fail-fast opt-in + CRTM-as-entry ordering contract + three-face alignment (ci.yml wiring assertion) + pre-commit untouched; generated-ci.yml uplift registered as defer-0004 in docs/deferred-registry.json
-- ADR-0035 deferred registry maturation: review cadence ladder (quarterly/half-yearly/yearly by type x likelihood x exposure) + pending-evaluation residency SLA min(2 cycles, 12 months) + weak-form check_in discipline (warn-level) + defer-0002 split (0002 external-event narrowed / new defer-0005 free-text protocol-verification) + defer-0004 honest presence-condition via real verified_by assertion script + check-deferred.js verified_by enforcement (unverified claim auto-downgrades to pending-evaluation)
-- ADR-0036 anti-gaming audit: NIST CAISI boundary (contamination vs grader gaming, A-2+A-3 subset) + answer-corpus migration to private/bench-corpus (probes/judge-twins/twins; thresholds stays public with private_corpus sha256 anchors) + known-exposed history handling (probes refresh now, twins on cycle) + gate-defaults params consistency assertion + corpus-freshness gate (cadence-tiered, tier warn / 1.5x fail-closed, event trigger) + check-corpus-leak fingerprint gate
-- ADR-0037 metamorphic relations third corpus family: staged hybrid (v1 hand-authored selected MR specs, v2 deferred LLM+judge pipeline) + <=3 pre-registered families (claim negation / equivalence restatement / evidence flip) + IL5/IL6 declared-gap + deterministic check-mr-probes.js zero-violation gate + Wilson honest annotation / McNemar at v2
-- ADR-0038 npm runtime-artifact surface: files whitelist tarball-as-wheel (prompt-installer, measured budget per ADR-0039) + corpus gates maintainer/CI-only fail-closed by design (git clone also carries no corpus) + honest missing-corpus message + private-registry-only future corpus channel (deferred)
-- ADR-0039 tarball runtime surface narrowing: docs/adr + docs/agents leave the npm artifact (archive channel = the git tree itself; no Releases/sparse-checkout infrastructure), whitelist keeps docs/gates.json + coverage-map.json + deferred-registry.json machine fact-sources + CONTEXT.md vocabulary asset; measured-anchor budget 200,000 bytes with ADR-text content anchor, single confirmatory tier, no warn band
-- ADR-0040 gate runtime capability declaration: gates.json gains a closed `requires` enum (repo-tree/bench-corpus/docs-adr/ci-mode), three-state exit 0/1/2 with narrow exit 2 = UNVERIFIABLE, two-line ::error honest-degradation message, run-gates UNVERIFIABLE column, degradation schema explicitly unchanged, regression = helper jest + 4 spawn representatives + static wiring anchor
-- ADR-0043 fact-source spine deepening: README ADR index as derived artifact (sentinel region + scripts/build-adr-index.js --check, gate order 115) + stderr prefix vocabulary single source (src/shared/prefix-vocab.js) + run-gates choke check
-- ADR-0044 claim-directed falsification: mechanical falsifiability rule, five-tuple falsification_record, evidence tri-state, 12-twin structural first batch, 0/1/2 falsification gate reuse (implementation round: src/shared/falsify.js + scripts/check-falsify.js + order-185 gate + wiring test)
-- ADR-0045 stochastic-deterministic boundary + evidence-path verification: Candidate-Verification Loop parent model; SDB proposer/verifier/commit/reject mapping; reject = typed evidence only, no semantic auto-retry; Evidence-Path Verification stays outside claim_type/gates/falsification_record; scoring-function isolation and Lyft prompt linting deferred as defer-0012/0013 (document round)
-- ADR-0046 instrument-drift recalibration: dual-axis judge identity (rules+prompt hash, model checkpoint, inference params), resolve-then-pin event trigger, layered quarantine semantics (deterministic re-run / stochastic quarantine / telemetry re-baseline), delta-gated revalidation, two-state + human sign-off state machine (document round)
-- ADR-0047 impact-tiered instrument change control: tiered change classification (identity / corpus / threshold / schedule), rebaseline + criteria-change event types (authoritative), three-layer model identity with UNRESOLVED, inference-config metadata column + determinism envelope, silent-drift e-process deferred, data-driven calibration interval deferred (implementation round)
+ADRs live in `docs/adr/` (numbered, immutable once Accepted); the authoritative inventory is the derived index in README.md (ADR-0043), rebuilt by `node scripts/build-adr-index.js`.
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -1665,5 +1619,71 @@ regression (ADR-0058 D-H).
 _Avoid_: auto-probe tier (environment drift then silent tier change), full tier
 in CI test job (fork PR has no secret then results incomparable across trigger
 contexts).
+
+
+**Triage-Layer Detector Semantics (分级检测层语义)**:
+Detection results mean "audit trigger / review-queue entry", not system-wide
+correctness: recall 34.7% at FP=0 is industrial-normal for SAST/IDS/fraud
+triage layers (Axelsson 1999 base-rate). Ladder rungs 1-4 carry primary
+defense; L5/L7 blind spot is the ADR-0059 D-C lightweight-feature round's
+target. _Avoid_: reading triage recall as total recall; FP=0 as license to
+skip rungs.
+
+**Name-Independent Channel (名无关分发通道)**:
+Distribution that never names the npm registry: Tier 1 installs via
+`npx --yes github:<org>/jiahao init`; the unprefixed npm name `jiahao` is
+third-party property (2019 test package), never claimed; future publish uses
+scoped `@<org>/jiahao` (defer-0028) (ADR-0059 D-A). _Avoid_: `npx jiahao` /
+`npm i jiahao` instructions; renaming the project to escape the squatted name.
+
+**Source-Only Distribution Tier (仅源码分发档)**:
+Component in the git tree but absent from the npm tarball: `jiahao-mcp/`
+needs nested deps npm will not install from a tarball, so it left the files
+whitelist; consumers clone + `npm install` inside it (ADR-0059 D-B, amends
+ADR-0038 D1). _Avoid_: hoisting many-dep components into root deps;
+annotation-only downgrades leaving the broken artifact in the tarball.
+
+**Coherence-Tier Limited Assurance (一致层有限保证)**:
+Wiring/characterization tests are change detectors guaranteeing doc-code
+agreement (coherence), not behavioral correctness (correspondence);
+"limited assurance" borrows ISAE 3000; README slogan "agreement is not
+accuracy" (arXiv:2607.08065). defer-0030 hetero review may claim partial
+IEEE 1012 technical independence only (ADR-0059 D-D). _Avoid_: lowering
+claim strength AND check strength (counts stay locked, FIX-DON'T-HIDE);
+presenting deterministic checks as independent verification.
+
+**Signal-Driven Polish (信号驱动的打磨)**:
+Prompt-asset text changes are diff-level moves with an eval trigger, never
+whole-document polish sweeps: full SKILL.md polish frozen (defer-0031) until
+the D-C product round or defer-0030 hetero audit yields falsifiable defects
+AND the tarball-budget round (ADR-0058 R4) lands (ADR-0059 D-E). _Avoid_:
+aesthetic rewrites under a tiny tarball margin; readability scores as
+acceptance criteria; conflating facts-correction with styling sweeps.
+
+**Sampling-Plan Power (min_n)** (采样功效下限):
+The pre-registered minimum flip-eligible sample (100) below which the
+guarded-acceptance rule is structurally inoperable — the guard band w*u
+consumes the spec limit, so no observation can yield `pass`. Below `min_n`
+the honest statement is `indeterminate`, never a confirmed non-conformity
+(ADR-0060 D-A/D-B; defer-0032 tracks the corpus expansion). _Avoid_: reading
+a small sample as `fail`; lowering spec_limit so a small sample passes.
+
+**Indeterminate Conformity (未定性符合)**:
+The fourth conformity outcome (after pass / conditional / fail): evidence
+insufficient because the sampling plan is not met. It is a look-back
+obligation and a conditional-certification trigger — not a pass, and not a
+confirmed non-conformity (ADR-0060 D-B). _Avoid_: collapsing it into `fail`;
+treating it as a pass.
+
+**Conditional Certification (条件性认证)**:
+A second-axis certification state (`certification_mode = conditional`) layered
+on ADR-0046’s two-state release gate: the instrument is usable under a
+mandatory expiry and a CAPA reference; on expiry `effectiveState` returns
+`quarantined` (fail-closed). Reached by `--conditional-signoff` when the
+revalidation is `indeterminate`/`conditional`; a hard `fail` may be neither
+signed off nor conditionally certified (ADR-0060 D-C/D-E; defer-0033 carries
+the CAPA). _Avoid_: open-ended concession; `--signoff` (certify) on a
+non-`pass` revalidation.
+
 
 *End of Glossary*

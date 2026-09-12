@@ -166,7 +166,7 @@ Pattern: `[verdict] -> [evidence] -> [location + severity] ->
   criteria are frozen — do not loosen them to make a re-run pass.
 - If your information boundary collapses (you end up using the same model,
   same context, same data as the generator), stop and declare NOT VERIFIED.
-  Same-boundary "verification" is verification theater.
+  Self-validation provides coherence evidence only, not independence evidence.
 - Verification evidence rounds are idempotent. Once recorded, an evidence
   chain is not consumed or deleted by the act of re-checking it; a re-fired
   Stop event must see the same chain and produce the same verdict.

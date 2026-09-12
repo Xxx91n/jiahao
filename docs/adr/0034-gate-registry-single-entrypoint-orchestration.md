@@ -153,6 +153,17 @@ assertion (CI must call the single entrypoint), not by deletion.
 Deprecation warnings are rejected under ADR-0027 D3 alarm-fatigue
 discipline.
 
+Registered 2026-09-12 (ADR-0059 D-B implementation round): the new
+`pack-smoke` gate also ships a `pack:smoke` npm alias (`node
+scripts/check-pack-smoke.js`) under this decision. **Recorded deviation:** the
+`docs/gates.json` registration landed in commit `155c4db`, which did not touch
+`docs/adr` — ADR-0027’s same-commit expectation was not met at that moment.
+Rewriting the commit was rejected because the audit window
+(`.scratch/grill-adr0059/reports/2026-09-12-audit.md`) cites commit hashes as
+evidence; the substantive requirement (the gate anchored to its authorising ADR)
+is satisfied here and by ADR-0059 D-B, which explicitly deferred the
+registration to the implementation round.
+
 ### D7 pre-commit untouched; three clauses pinned in docs
 
 pre-commit keeps its ADR-0011 §3 role (fast, warn-only, information-

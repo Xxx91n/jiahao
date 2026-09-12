@@ -104,6 +104,29 @@ describe('ADR-0046 quarantine state machine', () => {
     expect(rolled.state).toBe('authoritative');
     expect(rolled.authoritative_identity_digest).toBe('a'.repeat(64));
     expect(instrument.verifyState(rolled).valid).toBe(true);
+
+    // ADR-0060 D-C: conditional certification rides a second axis; the
+    // release-gate state stays authoritative and expiry is fail-closed.
+    const q3 = instrument.transition(rolled, { type: 'identity-change', identity_digest: 'a'.repeat(64) });
+    const cond = instrument.transition(q3, {
+      type: 'conditional_signoff',
+      identity_digest: 'a'.repeat(64),
+      reviewer_id: 'reviewer-a',
+      attestation_type: 'certify',
+      reverify_ledger_hash: 'b'.repeat(64),
+      bias_probe_hash: 'c'.repeat(64),
+      expires_at: '2026-12-11',
+      capa_ref: 'CAPA-1',
+    });
+    expect(cond.state).toBe('authoritative');
+    expect(cond.certification_mode).toBe('conditional');
+    expect(cond.conditional_expires_at).toBe('2026-12-11');
+    expect(instrument.verifyState(cond).valid).toBe(true);
+    expect(instrument.effectiveState(cond, null, Date.parse('2026-10-01T00:00:00Z'))).toBe('authoritative');
+    expect(instrument.effectiveState(cond, null, Date.parse('2027-01-01T00:00:00Z'))).toBe('quarantined');
+    expect(function () {
+      instrument.transition(q3, { type: 'conditional_signoff', identity_digest: 'a'.repeat(64), reviewer_id: 'r', attestation_type: 'certify', reverify_ledger_hash: 'b'.repeat(64), bias_probe_hash: 'c'.repeat(64), capa_ref: 'CAPA-1' });
+    }).toThrow(/expires_at/);
   });
 
   test('sign-off refuses a fingerprint that does not match quarantine', () => {

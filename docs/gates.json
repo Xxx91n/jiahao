@@ -248,6 +248,17 @@
       "requires": [
         "repo-tree"
       ]
+    },
+    {
+      "name": "pack-smoke",
+      "command": "node scripts/check-pack-smoke.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md",
+      "order": 196,
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ]
     }
   ]
 }
