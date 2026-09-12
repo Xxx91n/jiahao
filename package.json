@@ -34,7 +34,6 @@
     "adapters/",
     "schemas/",
     "hooks/",
-    "jiahao-mcp/",
     "docs/gates.json",
     "docs/coverage-map.json",
     "docs/deferred-registry.json",

@@ -2,7 +2,7 @@
 
 Status: Accepted
 Date: 2026-08-31
-Amended by: ADR-0039 (narrows D1: docs/adr leaves the tarball; measured 200,000-byte budget)
+Amended by: ADR-0039 (narrows D1: docs/adr leaves the tarball; measured 200,000-byte budget); ADR-0059 D-B (drops `jiahao-mcp/` from the D1 files whitelist — source-only tier)
 
 Amends: ADR-0036 (clarifies distribution boundary now that the corpus is
 private; adds the missing artifact-surface decision)
@@ -51,6 +51,15 @@ Add `files` to package.json whitelisting the runtime surface only:
 and artifacts, `.githooks/`, `private/` (already absent), scratch dirs.
 Failure direction is safe: forgetting to whitelist a runtime file fails loudly
 in install smoke tests; a blacklist fails by silently leaking.
+
+Amended 2026-09-12 by ADR-0059 D-B: `jiahao-mcp/` is dropped from the
+`files` whitelist. The MCP adapter is now a source-only git-tree component —
+installed by clone + `npm install` inside `jiahao-mcp/`, never packed. Reason:
+nested `package.json` dependencies are not installed from tarballs (npm by
+design), so the packed tier failed at first require; hoisting
+`@modelcontextprotocol/sdk` + `zod` to root would breach the zero-extra-
+dependency discipline (ADR-0027 R1). ADR-0009’s original opt-in intent is
+restored.
 
 ### D2 Distribution boundary is documented, not fixed with more code
 
@@ -111,5 +120,6 @@ an access-controlled channel existing), not built.
 - npm always-includes `README.md` in every packed directory (unconditional);
   `bench/polygraph/README.md` is therefore present and is allowed by the
   wiring assertion alongside thresholds.json.
-- `jiahao-mcp/package-lock.json` is excluded via `jiahao-mcp/.npmignore`
-  (install-time lock, not a runtime artifact).
+- `jiahao-mcp/` left the tarball under ADR-0059 D-B (source-only tier);
+  the former `jiahao-mcp/.npmignore` exclusion of `package-lock.json` is
+  retired with it.

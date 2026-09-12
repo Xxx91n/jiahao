@@ -139,7 +139,7 @@ Not all hosts are equal. Enforcement capability is disclosed, not assumed:
 | --- | --- | --- |
 | Hook tier | claude-code, codex, copilot, qoder | Verifier exit-2 blocking semantics |
 | Instruction tier | cursor, windsurf, cline, opencode, aider, instruction-tier (AGENTS.md) | Advisory-only soft injection |
-| MCP | jiahao-mcp | Profile parameter; relies on client policy |
+| MCP (source-only) | jiahao-mcp (git tree) | Profile parameter; relies on client policy. Not in the npm tarball — clone + `npm install` inside `jiahao-mcp/` (experimental) |
 
 Known degradations are recorded per adapter README: copilot's repo-level
 `sessionStart` does not fire (upstream issue #1730; `userPromptSubmitted` is
@@ -162,6 +162,11 @@ content fails closed at exit 1 with a closed-enum `[usage]:`/`[config]:`/
 `[internal]:` stderr prefix (ADR-0041 D3). Reproducing the benchmark gates
 is a maintainer/CI-channel operation; third-party installs are a
 prompt-installer surface only. ADRs and developer docs live on the git tree (the development surface), not in the tarball — clone the repo to read them (ADR-0039).
+
+The MCP adapter (`jiahao-mcp/`) is a **source-only** git-tree component: it is
+not part of the tarball and is never distributed via npm. Run it from a clone
+— `git clone <repo> && cd jiahao-mcp && npm install` (status: experimental /
+source-only; ADR-0059 D-B). An MCP publish channel is deferred (defer-0029).
 
 ## Usage
 

@@ -11,7 +11,7 @@ const { corpusMissingMessage } = require('../src/shared/paths.js');
 
 describe('D1: files whitelist = runtime artifact surface', () => {
   test('files whitelist matches the ADR-0039 D1 narrowed set', () => {
-    expect(pkg.files).toEqual(['src/', 'scripts/', 'adapters/', 'schemas/', 'hooks/', 'jiahao-mcp/', 'docs/gates.json', 'docs/coverage-map.json', 'docs/deferred-registry.json', 'docs/change-surface.json', 'bench/polygraph/thresholds.json', 'CONTEXT.md', 'README.md', 'AGENTS.md']);
+    expect(pkg.files).toEqual(['src/', 'scripts/', 'adapters/', 'schemas/', 'hooks/', 'docs/gates.json', 'docs/coverage-map.json', 'docs/deferred-registry.json', 'docs/change-surface.json', 'bench/polygraph/thresholds.json', 'CONTEXT.md', 'README.md', 'AGENTS.md']);
   });
 
   test('npm pack dry-run tarball: no test/, no docs/adr, no bench fixtures, thresholds.json present, <200,000 bytes (ADR-0039 D3)', () => {
@@ -23,6 +23,8 @@ describe('D1: files whitelist = runtime artifact surface', () => {
     expect(names.some(f => f.startsWith('test/'))).toBe(false);
     expect(names.some(f => f.startsWith('docs/adr'))).toBe(false);
     expect(names.some(f => f.startsWith('private/'))).toBe(false);
+    // ADR-0059 D-B: the source-only MCP tier must be absent from the tarball.
+    expect(names.some(f => f.startsWith('jiahao-mcp/'))).toBe(false);
     // npm always-includes README.md in any directory it packs (unconditional, cannot be overridden);
     // thresholds.json is the only bench file we whitelist. README.md in bench/polygraph is public docs, no fixture data.
     const benchAllowed = new Set(['bench/polygraph/thresholds.json', 'bench/polygraph/README.md']);
@@ -74,6 +76,13 @@ describe('D2 / D4: documented boundary and deferred channel', () => {
     const readme = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
     expect(readme).toContain('Distribution boundary (ADR-0038)');
     expect(readme).toMatch(/public git clone.*no corpus|clone of the public repo also carries no corpus/s);
+    // ADR-0059 D-A/D-B implementation round: name-independent channel,
+    // naming declaration, source-only MCP tier; no registry install instruction.
+    expect(readme).toContain('npx --yes github:<org>/jiahao init');
+    expect(readme).toContain('Naming declaration (ADR-0059 D-A)');
+    expect(readme).not.toMatch(/npx\s+jiahao\b/);
+    expect(readme).not.toMatch(/npm\s+i(nstall)?\s+jiahao\b/);
+    expect(readme).toContain('source-only');
   });
   test('defer-0007 registers the private-registry channel as pending-evaluation', () => {
     const def = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'deferred-registry.json'), 'utf8'));
