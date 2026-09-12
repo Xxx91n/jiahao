@@ -8,10 +8,10 @@ developer docs leave the npm artifact; replaces the falsified ~50 KB size
 estimate with a measured-anchor budget)
 
 Amendment (2026-09-12, ADR-0060 implementation round). D3’s recompute trigger
-fired: the measured M of the packed tarball is **203,141 bytes** (> 160 kB), so
+fired: the measured M of the packed tarball is **203,199 bytes** (> 160 kB), so
 the cap is recomputed by D3’s own pre-registered formula,
-`max(200,000, M * 1.25) = max(200,000, ceil(203,141 * 1.25)) = 253,927 bytes`.
-The adr-0038-wiring test asserts `out.size < 253,927 bytes`. D3’s historical
+`max(200,000, M * 1.25) = max(200,000, ceil(203,199 * 1.25)) = 253,999 bytes`.
+The adr-0038-wiring test asserts `out.size < 253,999 bytes`. D3’s historical
 `out.size < 200,000 bytes` line is retained below as the record of the previous
 value. This is the formula D3 pre-registered (not a new loosening): the
 ADR-0039 implementation round recorded a measured M of ~199,943 bytes but never

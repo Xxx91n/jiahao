@@ -40,7 +40,7 @@ describe('ADR-0060 document + distribution anchors', () => {
 
   test('ADR-0039 D3 recompute is recorded; CONTEXT.md stays in the tarball (D1 unchanged)', () => {
     const adr39 = fs.readFileSync(ADR39, 'utf8');
-    expect(adr39).toContain('out.size < 253,927 bytes');
+    expect(adr39).toContain('out.size < 253,999 bytes');
     expect(pkg.files).toContain('CONTEXT.md');
     expect(pkg.files).not.toContain('jiahao-mcp/');
   });

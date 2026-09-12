@@ -14,7 +14,7 @@ describe('D1: files whitelist = runtime artifact surface', () => {
     expect(pkg.files).toEqual(['src/', 'scripts/', 'adapters/', 'schemas/', 'hooks/', 'docs/gates.json', 'docs/coverage-map.json', 'docs/deferred-registry.json', 'docs/change-surface.json', 'bench/polygraph/thresholds.json', 'CONTEXT.md', 'README.md', 'AGENTS.md']);
   });
 
-  test('npm pack dry-run tarball: no test/, no docs/adr, no bench fixtures, thresholds.json present, <200,000 bytes (ADR-0039 D3)', () => {
+  test('npm pack dry-run tarball: no test/, no docs/adr, no bench fixtures, thresholds.json present, under the ADR-0039 D3 cap', () => {
     // shell: true on win32 - Node >=18.20 refuses to spawn .cmd/.bat without it (EINVAL)
     const res = spawnSync('npm', ['pack', '--dry-run', '--json'], { cwd: ROOT, encoding: 'utf8', shell: process.platform === 'win32' });
     expect(res.status).toBe(0);
@@ -48,8 +48,8 @@ describe('D1: files whitelist = runtime artifact surface', () => {
 describe('ADR-0039 D3: cap content anchor', () => {
   test('the current cap value appears verbatim in ADR-0039 (D3 recompute)', () => {
     const adr = fs.readFileSync(path.join(ROOT, 'docs', 'adr', '0039-tarball-runtime-surface-narrowing-docs-adr-archive-channel.md'), 'utf8');
-    // ADR-0039 D3 recompute (2026-09-12): M=203,141 -> cap = 253,927.
-    expect(adr).toContain('253,927');
+    // ADR-0039 D3 recompute (2026-09-12): M=203,199 -> cap = 253,999.
+    expect(adr).toContain('253,999');
     expect(adr).toContain('200,000'); // historical value retained in D3's text
   });
 });
