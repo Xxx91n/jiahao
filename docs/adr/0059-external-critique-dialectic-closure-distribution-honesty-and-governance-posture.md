@@ -9,6 +9,10 @@
   Acceptance line and the D-E exit criteria — follows ADR-0039 D3’s
   pre-registered recompute: M=203,199 -> cap 253,999 bytes; the literal
   200,000 is the superseded prior value)
+- Amended by: ADR-0060 (the doc round also replaced CONTEXT.md’s ~49-line
+  shared-ADR list with a pointer to the README ADR index — the authoritative
+  derived inventory per ADR-0043 — to reclaim tarball budget; recorded here as
+  the authorising ADR for that removal)
 
 ## Context
 

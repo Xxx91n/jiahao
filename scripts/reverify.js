@@ -82,19 +82,18 @@ function evaluateConformity(flipRate, flipCI, rule, n) {
   // min_n the guard band consumes the spec limit and the rule cannot return
   // `pass` for any observation, so the honest statement is "evidence
   // insufficient" (indeterminate), never a confirmed non-conformity.
+  const u = Math.max(0, (flipCI[1] - flipCI[0]) / 2); // CI half-width (ADR-0049 D-B)
   const minN = typeof rule.min_n === 'number' ? rule.min_n : null;
   const nEligible = typeof n === 'number' ? n : null;
   // ADR-0060 D-A: fail closed when the sample size is unknown — a caller that
   // omits `n` cannot silently bypass the sampling-plan requirement.
   if (minN !== null && (nEligible === null || nEligible < minN)) {
-    const u = Math.max(0, (flipCI[1] - flipCI[0]) / 2);
     return { result: 'indeterminate', acceptance_limit: rule.spec_limit - rule.w * u, lookback: lookbackOverLimit(flipCI, flipRate, rule.spec_limit), min_n: minN, n: nEligible };
   }
   if (rule.w === 0) {
     if (!(rule.tur >= 4)) throw new Error('simple acceptance requires negotiated TUR >= 4:1 (ADR-0049 D-B)');
     return { result: flipRate <= rule.spec_limit ? 'pass' : 'fail', acceptance_limit: rule.spec_limit, lookback: lookbackOverLimit(flipCI, flipRate, rule.spec_limit) };
   }
-  const u = Math.max(0, (flipCI[1] - flipCI[0]) / 2);
   const acceptanceLimit = rule.spec_limit - rule.w * u;
   // ADR-0049 D-E: the drift-exposure look-back signal is the Wilson interval
   // over limit (CI upper bound) OR the point estimate over limit (17025
@@ -474,25 +473,25 @@ module.exports = { computeMetrics, wilson95, proportionCI95, clopperPearson95, c
 // (c) override-eligible > 0 && overrides_accepted === 0 (dead judge);
 // (d) vs the previous ledger entry: overrides_accepted strictly regressed.
 function conclude(metrics, corpusSize, previousEntry, conformity) {
-  const reasons = [];
-  if (metrics.fail_soft > 0) reasons.push('fail_soft=' + metrics.fail_soft);
-  if (metrics.invocations !== corpusSize) reasons.push('invocations ' + metrics.invocations + ' != corpus ' + corpusSize);
+  // Hard findings are structural failures of the run itself (fail-soft, count
+  // mismatch, dead judge, regression). The decision-rule statement is a
+  // separate, typed group — no string-prefix classification (ADR-0060 D-B).
+  const hardReasons = [];
+  if (metrics.fail_soft > 0) hardReasons.push('fail_soft=' + metrics.fail_soft);
+  if (metrics.invocations !== corpusSize) hardReasons.push('invocations ' + metrics.invocations + ' != corpus ' + corpusSize);
   const eligible = metrics.need_override != null ? metrics.need_override : corpusSize; // old metric sets lack need_override
-  if (eligible > 0 && metrics.overrides_accepted === 0) reasons.push('overrides_accepted=0 over ' + eligible + ' eligible (dead judge?)');
+  if (eligible > 0 && metrics.overrides_accepted === 0) hardReasons.push('overrides_accepted=0 over ' + eligible + ' eligible (dead judge?)');
   if (previousEntry && previousEntry.metrics && metrics.overrides_accepted < previousEntry.metrics.overrides_accepted) {
-    reasons.push('overrides_accepted regressed ' + previousEntry.metrics.overrides_accepted + ' -> ' + metrics.overrides_accepted);
+    hardReasons.push('overrides_accepted regressed ' + previousEntry.metrics.overrides_accepted + ' -> ' + metrics.overrides_accepted);
   }
-  // ADR-0049 D-B/D-E: guard-band conditional zone and conformity fail yield no
-  // pass statement; conformity fail is a drift exposure that forces the
-  // affected sign-off look-back.
-  if (conformity === 'conditional') reasons.push('decision-rule guard-band conditional zone: no pass statement (ADR-0049 D-B)');
-  if (conformity === 'fail') reasons.push('decision-rule conformity fail: drift exposure, affected sign-off look-back required (ADR-0049 D-E)');
-  // ADR-0060 D-B: an under-powered run is "evidence insufficient", not a
-  // confirmed non-conformity. When it is the ONLY finding, the conclusion is
-  // `indeterminate` (a third value: not a pass and not a fail).
-  if (conformity === 'indeterminate') reasons.push('decision-rule indeterminate: sampling plan not met (n < min_n); evidence insufficient, no conformity statement (ADR-0060 D-B)');
-  const hardFinding = reasons.some(x => x.indexOf('decision-rule') !== 0);
-  if (!hardFinding && conformity === 'indeterminate') return { conclusion: 'indeterminate', reasons };
+
+  // ADR-0049 D-B/D-E + ADR-0060 D-B: the decision-rule statement, typed.
+  const ruleReasons = [];
+  if (conformity === 'conditional') ruleReasons.push('decision-rule guard-band conditional zone: no pass statement (ADR-0049 D-B)');
+  if (conformity === 'fail') ruleReasons.push('decision-rule conformity fail: drift exposure, affected sign-off look-back required (ADR-0049 D-E)');
+  if (conformity === 'indeterminate') ruleReasons.push('decision-rule indeterminate: sampling plan not met (n < min_n); evidence insufficient, no conformity statement (ADR-0060 D-B)');
+  const reasons = hardReasons.concat(ruleReasons);
+  if (hardReasons.length === 0 && conformity === 'indeterminate') return { conclusion: 'indeterminate', reasons };
   return { conclusion: reasons.length === 0 ? 'pass' : 'fail', reasons };
 }
 

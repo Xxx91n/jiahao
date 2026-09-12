@@ -4,7 +4,7 @@
   "adr_ref": "0030",
   "corpus": "private/bench-corpus/judge-twins.jsonl",
   "corpus_size": 26,
-  "collected_at": "2026-09-12T12:02:15.615Z",
+  "collected_at": "2026-09-12T12:56:29.139Z",
   "baseline": false,
   "conclusion": "indeterminate",
   "conclusion_reasons": [
@@ -13,7 +13,7 @@
   "run_key": "ca0f86e50a6fb2fd85c4b1a2685b38fd70cec748a476985b2d92116f62ac6343",
   "metrics": {
     "invocations": 26,
-    "latency_ms_avg": 0.81,
+    "latency_ms_avg": 1.77,
     "fail_soft": 0,
     "overrides_accepted": 3,
     "need_override": 22,
