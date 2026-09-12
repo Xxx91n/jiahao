@@ -22,6 +22,13 @@ const ROOT = path.join(__dirname, '..');
 const WORK = path.join(ROOT, '.scratch', 'pack-smoke');
 const EXTRACT = path.join(WORK, 'extract');
 
+// The pack-surface contract: ONE definition, measured twice — this gate against
+// the EXTRACTED tree, and test/adr-0038-wiring.test.js against npm pack’s
+// dry-run listing. Exported so the wiring test consumes the same contract
+// instead of maintaining a second copy (drift is what the duplication caused).
+const PACK_SURFACE_ABSENT = ['jiahao-mcp', 'test', 'docs/adr'];
+const PACK_SURFACE_PRESENT = ['src/SKILL.md', 'scripts/install.js', 'docs/gates.json', 'CONTEXT.md'];
+
 function fail(msg) {
   console.error('[pack-smoke] FAIL: ' + msg);
   fs.rmSync(WORK, { recursive: true, force: true }); // never leave a partial tree
@@ -45,10 +52,10 @@ function main() {
   if (!fs.existsSync(path.join(pkgDir, 'package.json'))) fail('extracted tree has no package.json');
 
   // The extracted runtime surface must exclude the source-only / dev surfaces.
-  for (const gone of ['jiahao-mcp', 'test', 'docs/adr']) {
+  for (const gone of PACK_SURFACE_ABSENT) {
     if (fs.existsSync(path.join(pkgDir, gone))) fail('packed surface unexpectedly contains ' + gone);
   }
-  for (const present of ['src/SKILL.md', 'scripts/install.js', 'docs/gates.json', 'CONTEXT.md']) {
+  for (const present of PACK_SURFACE_PRESENT) {
     if (!fs.existsSync(path.join(pkgDir, present))) fail('packed surface is missing ' + present);
   }
 
@@ -64,5 +71,10 @@ function main() {
   fs.rmSync(WORK, { recursive: true, force: true }); // no leftovers for the next jest collection
 }
 
-try { main(); }
-catch (e) { fail(e && e.message ? e.message : String(e)); }
+if (require.main === module) {
+  // CLI path only: importing this module (the wiring test does) must not pack.
+  try { main(); }
+  catch (e) { fail(e && e.message ? e.message : String(e)); }
+}
+
+module.exports = { PACK_SURFACE_ABSENT, PACK_SURFACE_PRESENT };

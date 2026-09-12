@@ -8,6 +8,8 @@ const { spawnSync } = require('child_process');
 const ROOT = path.join(__dirname, '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
 const { corpusMissingMessage } = require('../src/shared/paths.js');
+// Single-sourced pack-surface contract (see scripts/check-pack-smoke.js).
+const { PACK_SURFACE_ABSENT, PACK_SURFACE_PRESENT } = require('../scripts/check-pack-smoke.js');
 
 describe('D1: files whitelist = runtime artifact surface', () => {
   test('files whitelist matches the ADR-0039 D1 narrowed set', () => {
@@ -20,11 +22,11 @@ describe('D1: files whitelist = runtime artifact surface', () => {
     expect(res.status).toBe(0);
     const out = JSON.parse(res.stdout.trim())[0];
     const names = out.files.map(f => f.path);
-    expect(names.some(f => f.startsWith('test/'))).toBe(false);
-    expect(names.some(f => f.startsWith('docs/adr'))).toBe(false);
-    expect(names.some(f => f.startsWith('private/'))).toBe(false);
+    // Absent-set: single-sourced from the gate's pack-surface contract (the gate
+    // checks the extracted tree; this test checks npm pack's dry-run listing).
     // ADR-0059 D-B: the source-only MCP tier must be absent from the tarball.
-    expect(names.some(f => f.startsWith('jiahao-mcp/'))).toBe(false);
+    for (const gone of PACK_SURFACE_ABSENT) expect(names.some((f) => f.startsWith(gone))).toBe(false);
+    expect(names.some(f => f.startsWith('private/'))).toBe(false);
     // npm auto-includes a README from any directory that contributes a whitelisted
     // file. Empirically verified 2026-09-12: a ROOT .npmignore does not subtract
     // from the `files` whitelist, but a SUBDIRECTORY .npmignore does (so the
@@ -33,7 +35,10 @@ describe('D1: files whitelist = runtime artifact surface', () => {
     const benchAllowed = new Set(['bench/polygraph/thresholds.json', 'bench/polygraph/README.md']);
     expect(names.some(f => f.startsWith('bench/') && !benchAllowed.has(f))).toBe(false);
     expect(names.some(f => f.startsWith('.githooks/'))).toBe(false);
-    for (const must of ['package.json', 'src/SKILL.md', 'src/shared/paths.js', 'scripts/install.js', 'scripts/check-mr-probes.js', 'docs/gates.json', 'bench/polygraph/thresholds.json', 'CONTEXT.md', 'README.md', 'AGENTS.md']) {
+    // Present-set: the gate's contract plus the entries only this test checks
+    // (same union as before — no assertion was dropped).
+    const presentExtras = ['package.json', 'src/shared/paths.js', 'scripts/check-mr-probes.js', 'bench/polygraph/thresholds.json', 'README.md', 'AGENTS.md'];
+    for (const must of PACK_SURFACE_PRESENT.concat(presentExtras)) {
       expect(names).toContain(must);
     }
     // ADR-0039 D3 (2026-08-31 impl round): measured-anchor budget. 256KB provisional cap
