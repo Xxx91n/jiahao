@@ -16,7 +16,8 @@ recomputation: the 200,000-byte budget stands". The cap therefore remains
 below.
 
 The tarball has since grown past that cap: measured 205,741 bytes / 92 files at
-2026-09-12. D3 provides no recompute path for this situation — "Bumping the
+2026-09-12, and **206,288 bytes / 92 files** after the P-A1 principal/instrument
+change (re-measured per the "measure after ANY packed-file edit" rule). D3 provides no recompute path for this situation — "Bumping the
 cap later is only ever an ADR" — so the breach is recorded here and
 **escalated**: the resolution is an ADR decision (raise the cap deliberately /
 move CONTEXT.md out under a D1 amendment / narrow the shipped surface). One

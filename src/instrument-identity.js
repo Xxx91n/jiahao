@@ -146,6 +146,10 @@ function stateEvent(seq, kind, identityDigest, prevHash, extra) {
   if (extra && extra.reason !== undefined) ev.reason = extra.reason;
   if (extra && extra.surface !== undefined) ev.surface = extra.surface;
   if (extra && extra.maker_id !== undefined) ev.maker_id = extra.maker_id;
+  // P-A1: principal (who authorised) vs instrument (what executed) + anchor.
+  if (extra && extra.principal_id !== undefined) ev.principal_id = extra.principal_id;
+  if (extra && extra.instrument_id !== undefined) ev.instrument_id = extra.instrument_id;
+  if (extra && extra.authorization !== undefined) ev.authorization = extra.authorization;
   if (extra && extra.record_seq !== undefined) ev.record_seq = extra.record_seq;
   if (extra && extra.before !== undefined) ev.before = JSON.parse(JSON.stringify(extra.before));
   if (extra && extra.after !== undefined) ev.after = JSON.parse(JSON.stringify(extra.after));
@@ -245,6 +249,12 @@ function transition(state, event, opts) {
     next.authoritative_identity_digest = event.identity_digest;
     next.quarantined_identity_digest = null;
     next.history.push(stateEvent(tail.seq + 1, 'signoff', event.identity_digest, tail.event_hash, {
+      // ADR-0060 D-E / P-A1: the record separates the PRINCIPAL (who
+      // authorised) from the INSTRUMENT (what executed the signature) and
+      // anchors the verbatim authorisation text.
+      principal_id: event.reviewer_id,
+      instrument_id: event.instrument_id || null,
+      authorization: event.authorization || null,
       reviewer_id: event.reviewer_id,
       second_reviewer: event.second_reviewer || null,
       attestation_type: event.attestation_type,
@@ -280,6 +290,10 @@ function transition(state, event, opts) {
     next.conditional_expires_at = event.expires_at;
     next.conditional_capa_ref = event.capa_ref;
     next.history.push(stateEvent(tail.seq + 1, 'conditional_signoff', event.identity_digest, tail.event_hash, {
+      // ADR-0060 D-E / P-A1: principal vs instrument + verbatim authorisation.
+      principal_id: event.reviewer_id,
+      instrument_id: event.instrument_id || null,
+      authorization: event.authorization || null,
       reviewer_id: event.reviewer_id,
       second_reviewer: event.second_reviewer || null,
       attestation_type: event.attestation_type,

@@ -119,6 +119,7 @@ describe('ADR-0060 D-C/D-E: conditional certification axis', () => {
     reviewer_id: 'reviewer-a', attestation_type: 'certify',
     reverify_ledger_hash: 'b'.repeat(64), bias_probe_hash: 'c'.repeat(64),
     expires_at: '2026-12-11', capa_ref: 'CAPA-0060-judge-flip-rate',
+    authorization: 'AUTHORISED-BY-HUMAN', instrument_id: 'agent-instrument',
   };
 
   test('conditional sign-off keeps the two-state contract and records the second axis', () => {
@@ -127,6 +128,12 @@ describe('ADR-0060 D-C/D-E: conditional certification axis', () => {
     expect(c.certification_mode).toBe('conditional');
     expect(c.conditional_expires_at).toBe('2026-12-11');
     expect(c.conditional_capa_ref).toBe('CAPA-0060-judge-flip-rate');
+    // P-A1: principal (who authorised) vs instrument (what executed) + anchor,
+    // recorded on the chain event itself.
+    const ev = c.history[c.history.length - 1];
+    expect(ev.principal_id).toBe('reviewer-a');
+    expect(ev.instrument_id).toBe('agent-instrument');
+    expect(ev.authorization).toBe('AUTHORISED-BY-HUMAN');
     expect(instrument.verifyState(c).valid).toBe(true);
   });
 
@@ -148,21 +155,27 @@ describe('ADR-0060 D-C/D-E: conditional certification axis', () => {
     const led = JSON.parse(fs.readFileSync(LEDGER, 'utf8'));
     const tail = led[led.length - 1];
     expect(tail.conformity).not.toBe('pass');
-    const r = cli(['--signoff', '--reviewer', 'r', '--attestation', 'certify', '--reverify-ledger-hash', tail.event_hash, '--bias-probe-hash', 'c'.repeat(64)]);
+    const r = cli(['--signoff', '--reviewer', 'r', '--attestation', 'certify', '--authorization', 'AUTHORISED-BY-HUMAN', '--reverify-ledger-hash', tail.event_hash, '--bias-probe-hash', 'c'.repeat(64)]);
     expect(r.status).toBe(1);
     expect(r.stderr).toContain('pass conformity');
   });
 
   test('ADR-0060 D-D: an open-ended conditional window is refused', () => {
-    const r = cli(['--conditional-signoff', '--reviewer', 'r', '--attestation', 'certify', '--reverify-ledger-hash', 'b'.repeat(64), '--bias-probe-hash', 'c'.repeat(64), '--expires-at', '2099-01-01', '--capa-ref', 'CAPA-X']);
+    const r = cli(['--conditional-signoff', '--reviewer', 'r', '--attestation', 'certify', '--authorization', 'AUTHORISED-BY-HUMAN', '--reverify-ledger-hash', 'b'.repeat(64), '--bias-probe-hash', 'c'.repeat(64), '--expires-at', '2099-01-01', '--capa-ref', 'CAPA-X']);
     expect(r.status).toBe(1);
     expect(r.stderr).toContain('exceeds the 90-day conditional window');
   });
 
   test('the live CLI refuses a conditional sign-off without --capa-ref', () => {
-    const r = cli(['--conditional-signoff', '--reviewer', 'r', '--attestation', 'certify', '--reverify-ledger-hash', 'b'.repeat(64), '--bias-probe-hash', 'c'.repeat(64)]);
+    const r = cli(['--conditional-signoff', '--reviewer', 'r', '--attestation', 'certify', '--authorization', 'AUTHORISED-BY-HUMAN', '--reverify-ledger-hash', 'b'.repeat(64), '--bias-probe-hash', 'c'.repeat(64)]);
     expect(r.status).toBe(1);
     expect(r.stderr).toContain('[usage]:');
+  });
+
+  test('P-A1: a sign-off without an explicit authorisation is refused', () => {
+    const r = cli(['--conditional-signoff', '--reviewer', 'r', '--attestation', 'certify', '--reverify-ledger-hash', 'b'.repeat(64), '--bias-probe-hash', 'c'.repeat(64), '--expires-at', '2026-12-11', '--capa-ref', 'CAPA-X']);
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain('requires --authorization');
   });
 
   test('the ADR-0049 D-E look-back is discharged as a chain-anchored record', () => {
@@ -236,7 +249,7 @@ describe('ADR-0060 D-C/D-E: fixture-tree CLI guards (expired / hard fail / defau
   test('--conditional-signoff refuses a hard fail', () => {
     const tmp = makeTree();
     const hash = writeLedger(tmp, 'fail');
-    const r = cliIn(tmp, ['--conditional-signoff', '--reviewer', 'r', '--attestation', 'certify', '--reverify-ledger-hash', hash, '--bias-probe-hash', 'c'.repeat(64), '--expires-at', '2026-12-11', '--capa-ref', 'CAPA-X']);
+    const r = cliIn(tmp, ['--conditional-signoff', '--reviewer', 'r', '--attestation', 'certify', '--authorization', 'AUTHORISED-BY-HUMAN', '--reverify-ledger-hash', hash, '--bias-probe-hash', 'c'.repeat(64), '--expires-at', '2026-12-11', '--capa-ref', 'CAPA-X']);
     expect(r.status).toBe(1);
     expect(r.stderr).toContain('indeterminate|conditional conformity');
   });
@@ -250,7 +263,7 @@ describe('ADR-0060 D-C/D-E: fixture-tree CLI guards (expired / hard fail / defau
     }));
     const hash = writeLedger(tmp, 'indeterminate');
     const expected = new Date(Date.now() + 90 * 24 * 3600 * 1000).toISOString().slice(0, 10);
-    const r = cliIn(tmp, ['--conditional-signoff', '--reviewer', 'r', '--attestation', 'certify', '--reverify-ledger-hash', hash, '--bias-probe-hash', 'c'.repeat(64), '--capa-ref', 'CAPA-X']);
+    const r = cliIn(tmp, ['--conditional-signoff', '--reviewer', 'r', '--attestation', 'certify', '--authorization', 'AUTHORISED-BY-HUMAN', '--reverify-ledger-hash', hash, '--bias-probe-hash', 'c'.repeat(64), '--capa-ref', 'CAPA-X']);
     expect(r.status).toBe(0);
     expect(r.stdout).toContain(expected);
   });

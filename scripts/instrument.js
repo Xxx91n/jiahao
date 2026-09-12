@@ -59,15 +59,35 @@ function parseJsonArg(name, value) {
 
 // ADR-0048 D-E: parse the shared human-signoff payload once at the CLI boundary.
 // Surface-specific requirements stay on each command; this owns only the common fields.
+// P-A1 (ADR-0060 D-E): the executing agent identity, recorded alongside the
+// principal so the chain can tell who authorised from what executed.
+function executingIdentity() {
+  try {
+    const { execFileSync } = require('child_process');
+    return execFileSync('git', ['config', 'user.name'], { cwd: ROOT, encoding: 'utf8' }).trim() || null;
+  } catch (e) {
+    return null;
+  }
+}
+
 function parseSignoffArgs(args) {
   if (!args.reviewer || !ATTESTATIONS.includes(args.attestation)) {
     console.error(PREFIXES.usage + ' FAIL: missing --reviewer or invalid --attestation');
+    process.exit(1);
+  }
+  // P-A1: a signature must state, verbatim, the authorisation it exercises.
+  // A bare identity string cannot distinguish a human sign-off from a
+  // self-signed agent record, so the evidence anchor is mandatory.
+  if (!args.authorization || String(args.authorization).trim().length < 10) {
+    console.error(PREFIXES.usage + ' FAIL: a sign-off requires --authorization (the verbatim authorisation being exercised, min 10 chars); an identity alone cannot evidence a human sign-off');
     process.exit(1);
   }
   return {
     reviewer: args.reviewer,
     attestation: args.attestation,
     second_reviewer: args['second-reviewer'] || null,
+    authorization: args.authorization,
+    instrument: executingIdentity(),
   };
 }
 
@@ -238,6 +258,8 @@ function signoff(args) {
       reviewer_id: signoffArgs.reviewer,
       second_reviewer: signoffArgs.second_reviewer,
       attestation_type: signoffArgs.attestation,
+      authorization: signoffArgs.authorization,
+      instrument_id: signoffArgs.instrument,
       reverify_ledger_hash: args['reverify-ledger-hash'],
       bias_probe_hash: args['bias-probe-hash'],
     });
@@ -296,6 +318,8 @@ function conditionalSignoff(args) {
       reviewer_id: signoffArgs.reviewer,
       second_reviewer: signoffArgs.second_reviewer,
       attestation_type: signoffArgs.attestation,
+      authorization: signoffArgs.authorization,
+      instrument_id: signoffArgs.instrument,
       reverify_ledger_hash: args['reverify-ledger-hash'],
       bias_probe_hash: args['bias-probe-hash'],
       expires_at: expiresAt,
@@ -450,6 +474,8 @@ function recordSignoff(args) {
       reviewer_id: signoffArgs.reviewer,
       second_reviewer: signoffArgs.second_reviewer,
       attestation_type: signoffArgs.attestation,
+      authorization: signoffArgs.authorization,
+      instrument_id: signoffArgs.instrument,
       reason: args.reason,
     });
     writeState(next);
