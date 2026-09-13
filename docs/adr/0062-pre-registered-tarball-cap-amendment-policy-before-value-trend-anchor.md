@@ -1,6 +1,6 @@
 # ADR-0062: Pre-Registered Tarball-Cap Amendment - Policy Before Value, Periodic Trend Anchor
 
-Status: Accepted (second_reviewer countersignature pending - see D-E)
+Status: Accepted (second_reviewer countersigned 2026-09-13 by Xxx91n - see D-E)
 Date: 2026-09-13
 
 Amends: ADR-0039 D3 (the one-shot narrowing-round M anchor becomes a periodic
@@ -82,9 +82,14 @@ headroom rule, not D3’s formula).
 ### D-E - second_reviewer and review_at
 
 Per ADR-0047 D-B the criteria-change path reserves the `second_reviewer`
-slot. The slot is REQUIRED-PENDING: this amendment was authored by the
-implementing agent and must be countersigned by a reviewer other than the
-author before the amendment is treated as closed. review_at: 2026-12-13.
+slot. The slot is CLOSED: the amendment was countersigned on 2026-09-13 by
+`Xxx91n` (independent of the author `Euiop1`) through the ADR-0047
+criteria-change path, recorded as `src/instrument-state.json` seq 6 (kind
+`criteria_change`, attestation `approve`, criteria
+`ADR-0039-D3-200000` -> `ADR-0062-230000`, `restatement_of: 5567bd8` - the
+withdrawn amendment this one restates over; `event_hash`
+17de5b7c8b765216c40f35b429e368f181073ba8ae212f760640a51847060355).
+review_at: 2026-12-13.
 
 ## Consequences
 
@@ -92,8 +97,7 @@ author before the amendment is treated as closed. review_at: 2026-12-13.
   amended cap with no assertion weakened (the anchor is re-pointed, not removed).
 - ADR-0039 D3 now carries a periodic trend anchor, so the next growth round
   has a defined procedure instead of an immovable number.
-- Open items: the second_reviewer countersignature (D-E) and the
-  deferred-registry tide registration of review_at.
+- Open item: the deferred-registry tide registration of review_at (2026-12-13).
 
 ## Rejected
 

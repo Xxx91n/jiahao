@@ -104,6 +104,22 @@
       "event_timestamp": "2026-09-12T13:02:14.161Z",
       "logging_timestamp": "2026-09-12T13:02:14.161Z",
       "event_hash": "d3bc927753db31c33d7f34f6188107d8798c42f1fd065b6c6f5158ca6c0728ed"
+    },
+    {
+      "seq": 6,
+      "kind": "criteria_change",
+      "identity_digest": "fb30005f0d0538126f33ad7b1b5a9ec6ff63e098a556a2ab0c45ca9a40e0a71c",
+      "reverify_ledger_hash": null,
+      "bias_probe_hash": null,
+      "reviewer_id": "Euiop1",
+      "second_reviewer": "Xxx91n",
+      "attestation_type": "approve",
+      "timestamp": "2026-09-13T08:48:53.462Z",
+      "prev_hash": "d3bc927753db31c33d7f34f6188107d8798c42f1fd065b6c6f5158ca6c0728ed",
+      "criteria_version": "ADR-0062-230000",
+      "previous_criteria_version": "ADR-0039-D3-200000",
+      "restatement_of": "5567bd8",
+      "event_hash": "17de5b7c8b765216c40f35b429e368f181073ba8ae212f760640a51847060355"
     }
   ],
   "certification_mode": "conditional",
