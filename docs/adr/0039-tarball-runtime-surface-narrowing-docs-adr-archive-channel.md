@@ -50,8 +50,10 @@ Trend width vs the ledger: decision-ledger D-001 pinned a **3-point** trend
 because the two later rows post-date the ledger entry. The extra width does not
 drive the outcome: `ceil_to_10_000(207,768 x 1.10) = ceil(228,544.8) = 230,000`
 equals the value derived from 208,655, so rows 4-5 are corroborating scope, not
-a different derivation. Current re-measure at this repair round: **212,387 bytes
-/ 93 files** (still < 230,000).
+a different derivation. Current re-measure at this repair round: **212,699 bytes
+/ 93 files** (still < 230,000), measured with `npm pack --dry-run --json` (the
+`size` field, npm 10.9.7) per this ADR's own re-measure rule. This figure is a
+point-in-time reading, not a cap: the cap parsed below is what binds.
 
 ## Context
 
