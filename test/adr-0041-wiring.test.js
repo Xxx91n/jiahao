@@ -185,6 +185,10 @@ describe('ADR-0041 D2 spawn locks', () => {
     fs.mkdirSync(path.join(tmp, 'bench', 'polygraph'), { recursive: true });
     fs.writeFileSync(path.join(tmp, 'bench', 'polygraph', 'corpus-freshness.json'), JSON.stringify({ fail_multiplier: 1, tiers: {} }));
     fs.mkdirSync(path.join(tmp, 'private', 'bench-corpus'), { recursive: true });
+    // ADR-0061 D-F: the corpus probe now requires a NON-EMPTY dir, so plant a
+    // file - this test targets the fail_multiplier config violation, not
+    // capability absence.
+    fs.writeFileSync(path.join(tmp, 'private', 'bench-corpus', 'probes.jsonl'), '');
     const env = Object.assign({}, process.env, { HOME: tmp, USERPROFILE: tmp });
     delete env.JIAHAO_CORPUS_DIR;
     const r = spawnSync(process.execPath, ['scripts/check-corpus-freshness.js'], { cwd: tmp, encoding: 'utf8', env });

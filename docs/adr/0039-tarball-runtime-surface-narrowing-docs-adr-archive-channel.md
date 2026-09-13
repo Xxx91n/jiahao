@@ -15,6 +15,12 @@ recomputation: the 200,000-byte budget stands". The cap therefore remains
 **200,000 bytes**, and `out.size < 200,000 bytes` stays the asserted value
 below.
 
+Assertion surface (2026-09-13, ADR-0061 D-F measurement-unblock round). The
+cap is now asserted by gate:all as well as by the adr-0038-wiring jest test:
+scripts/check-pack-smoke.js parses this ADR for `out.size < N bytes`
+(packCapBytes) and fails the pack-smoke gate on a breach. Honest red until the
+D-A gate-amendment ADR lands the new trend-derived cap.
+
 The tarball has since grown past that cap: measured 205,741 bytes / 92 files at
 2026-09-12; 206,288 after the P-A1 principal/instrument change; **206,501 bytes /
 92 files** after the pack-surface contract was single-sourced (re-measured after

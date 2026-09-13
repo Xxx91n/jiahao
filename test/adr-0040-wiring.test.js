@@ -39,9 +39,16 @@ describe('ADR-0040 D1/D3 capability helper', () => {
     env.JIAHAO_CORPUS_DIR = envDir;
     expect(cap.probe('bench-corpus', { root: tmp, env: { JIAHAO_CORPUS_DIR: envDir } })).toBe(false); // set but missing
     fs.mkdirSync(envDir);
+    // ADR-0061 D-F (amends ADR-0040 D1): an existing-but-EMPTY dir is not a
+    // corpus - it is a deterministic negative, not a pass.
+    expect(cap.probe('bench-corpus', { root: tmp, env: { JIAHAO_CORPUS_DIR: envDir } })).toBe(false);
+    fs.writeFileSync(path.join(envDir, 'probes.jsonl'), '');
     expect(cap.probe('bench-corpus', { root: tmp, env: { JIAHAO_CORPUS_DIR: envDir } })).toBe(true);
     expect(cap.probe('bench-corpus', { root: tmp, env: {} })).toBe(false);
-    fs.mkdirSync(path.join(tmp, 'private', 'bench-corpus'), { recursive: true });
+    const repoDir = path.join(tmp, 'private', 'bench-corpus');
+    fs.mkdirSync(repoDir, { recursive: true });
+    expect(cap.probe('bench-corpus', { root: tmp, env: {} })).toBe(false); // empty repo-private tier
+    fs.writeFileSync(path.join(repoDir, 'probes.jsonl'), '');
     expect(cap.probe('bench-corpus', { root: tmp, env: {} })).toBe(true); // repo-private tier
   });
 

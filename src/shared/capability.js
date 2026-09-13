@@ -45,6 +45,15 @@ function checkEnum(name) {
   }
 }
 
+// ADR-0061 D-F (amends ADR-0040 D1's 'directory exists' predicate): a corpus
+// tier counts as present only when the directory exists AND holds at least one
+// entry - an empty directory is not a corpus. This is still an EXISTENCE
+// verdict: no file name, fingerprint or count is inspected (ADR-0040 D2).
+function corpusTierPresent(dir) {
+  if (!dir || !fs.existsSync(dir)) return false;
+  if (!fs.statSync(dir).isDirectory()) return false;
+  return fs.readdirSync(dir).length > 0;
+}
 // Boolean existence probe. opts: { root, env } injected by tests; production
 // callers pass nothing. No try/catch on purpose (D3).
 function probe(name, opts) {
@@ -58,9 +67,15 @@ function probe(name, opts) {
     case 'bench-corpus':
       // Same resolution chain as src/shared/paths.js (ADR-0036 D2):
       // JIAHAO_CORPUS_DIR -> install-planted dir -> repo-private dir.
-      return (Boolean(env.JIAHAO_CORPUS_DIR) && fs.existsSync(env.JIAHAO_CORPUS_DIR))
-        || fs.existsSync(path.join(configDir(env), 'private', 'bench-corpus'))
-        || fs.existsSync(path.join(root, 'private', 'bench-corpus'));
+      // ADR-0061 D-F amends ADR-0040 D1: the capability is a corpus DIRECTORY
+      // WITH CONTENT, not a bare directory. An existing-but-empty dir (a
+      // stale/partial CI restore) is a deterministic negative, so dependent
+      // gates degrade to exit 2 UNVERIFIABLE instead of running and failing
+      // red on a capability that was never there. Still existence-only: which
+      // files, fingerprints and counts stay their own gates' business.
+      return corpusTierPresent(env.JIAHAO_CORPUS_DIR)
+        || corpusTierPresent(path.join(configDir(env), 'private', 'bench-corpus'))
+        || corpusTierPresent(path.join(root, 'private', 'bench-corpus'));
     case 'docs-adr':
       return fs.existsSync(path.join(root, 'docs', 'adr'));
     case 'ci-mode':

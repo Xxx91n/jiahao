@@ -5,6 +5,11 @@ Date: 2026-09-01
 
 Amended by: ADR-0041 (D4 message specification corrected: the ::error annotation line
 moves from stderr to stdout with comma-separated properties; see ADR-0041 D5).
+Amended by: ADR-0061 D-F (D1 bench-corpus predicate tightened from "directory
+exists" to "directory exists and is non-empty": an existing-but-empty dir is a
+deterministic negative -> exit 2 UNVERIFIABLE, so a stale/partial corpus restore
+degrades honestly instead of running its gates and failing red on a capability
+that was never there).
 
 References: ADR-0023 (degradation vocabulary scope), ADR-0027 (pre-registered coupling guard),
 ADR-0031 (tier vocabulary reserved for decision severity), ADR-0034 (gates.json registry,
@@ -44,7 +49,9 @@ current gates:
 - repo-tree: a git worktree is present (git rev-parse succeeds / .git exists); no version
   or HEAD-state checks. Consumers: gates-coupling, drift, adapters-golden,
   host-contracts, bench-thresholds, bench-gate, corpus-leak.
-- bench-corpus: private/bench-corpus/ directory exists; no fingerprint/count validation
+- bench-corpus: the resolved corpus directory exists AND is non-empty (an empty
+  directory is not a corpus - amended by ADR-0061 D-F); no fingerprint/count
+  validation
   (that remains with the leak/freshness/schema gates). Consumers: bench-gate,
   probe-corpus, probes, judge-bias, corpus-leak, corpus-freshness, mr-probes.
 - docs-adr: docs/adr/ directory exists. Consumers: gates-coupling, bench-thresholds.

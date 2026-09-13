@@ -11,6 +11,10 @@
 // broken (the failure mode the external critique found: a tier that ships but
 // dies at first require).
 //
+// ADR-0061 D-F: the gate also asserts the ADR-0039 D3 measured-anchor size
+// budget, so gate:all - not only the adr-0038-wiring jest test - fails on a
+// cap breach. The cap is parsed from ADR-0039 (one home for the number).
+//
 // Run: node scripts/check-pack-smoke.js
 
 const fs = require('fs');
@@ -28,6 +32,18 @@ const EXTRACT = path.join(WORK, 'extract');
 // instead of maintaining a second copy (drift is what the duplication caused).
 const PACK_SURFACE_ABSENT = ['jiahao-mcp', 'test', 'docs/adr'];
 const PACK_SURFACE_PRESENT = ['src/SKILL.md', 'scripts/install.js', 'docs/gates.json', 'CONTEXT.md'];
+
+// ADR-0039 D3 measured-anchor budget (ADR-0061 D-F). Parsed from ADR-0039 so
+// the number has exactly one home (F3: no magic number duplicated in a test);
+// exported so the wiring test consumes this helper instead of keeping a
+// second regex - duplication is what drifted before (see the surface contract).
+function packCapBytes() {
+  const adrPath = path.join(ROOT, 'docs', 'adr', '0039-tarball-runtime-surface-narrowing-docs-adr-archive-channel.md');
+  const adr = fs.readFileSync(adrPath, 'utf8');
+  const m = adr.match(/out[.]size < ([0-9,]+) bytes/);
+  if (!m) throw new Error('ADR-0039 D3 cap anchor (out.size < N bytes) not found');
+  return Number(m[1].split(',').join(''));
+}
 
 function fail(msg) {
   console.error('[pack-smoke] FAIL: ' + msg);
@@ -66,8 +82,16 @@ function main() {
   const r = execFileSync(process.execPath, [cli, '--dry-run', '-y'], { cwd: ROOT, encoding: 'utf8' });
   if (!/would write "(generator|verifier)"/.test(r)) fail('packaged CLI dry-run produced no expected plan: ' + JSON.stringify(r));
 
-  console.log('[pack-smoke] OK: ' + info.filename + ' (' + info.size + ' bytes, ' + info.entryCount + ' files) extracted and its CLI runs');
+  console.log('[pack-smoke] smoke OK: ' + info.filename + ' (' + info.size + ' bytes, ' + info.entryCount + ' files) extracted and its CLI dry-run plan matched');
   console.log('[pack-smoke] packaged surface excludes jiahao-mcp/ + test/ + docs/adr; includes src/SKILL.md + scripts/install.js + docs/gates.json + CONTEXT.md');
+
+  // ADR-0061 D-F / ADR-0039 D3: the cap was guarded only by jest before this
+  // change; gate:all must fail on a breach too. Asserted after the smoke so a
+  // budget breach never hides a broken packed surface. Honest red until the
+  // T-2 gate-amendment ADR lands the new trend-derived cap.
+  const cap = packCapBytes();
+  if (!(info.size < cap)) fail('tarball ' + info.size + ' bytes is not under the ADR-0039 D3 cap of ' + cap + ' bytes');
+  console.log('[pack-smoke] OK: budget ' + info.size + ' < ' + cap + ' bytes (ADR-0039 D3)');
   fs.rmSync(WORK, { recursive: true, force: true }); // no leftovers for the next jest collection
 }
 
@@ -77,4 +101,4 @@ if (require.main === module) {
   catch (e) { fail(e && e.message ? e.message : String(e)); }
 }
 
-module.exports = { PACK_SURFACE_ABSENT, PACK_SURFACE_PRESENT };
+module.exports = { PACK_SURFACE_ABSENT, PACK_SURFACE_PRESENT, packCapBytes };

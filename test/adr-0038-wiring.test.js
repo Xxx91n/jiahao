@@ -9,7 +9,7 @@ const ROOT = path.join(__dirname, '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
 const { corpusMissingMessage } = require('../src/shared/paths.js');
 // Single-sourced pack-surface contract (see scripts/check-pack-smoke.js).
-const { PACK_SURFACE_ABSENT, PACK_SURFACE_PRESENT } = require('../scripts/check-pack-smoke.js');
+const { PACK_SURFACE_ABSENT, PACK_SURFACE_PRESENT, packCapBytes } = require('../scripts/check-pack-smoke.js');
 
 describe('D1: files whitelist = runtime artifact surface', () => {
   test('files whitelist matches the ADR-0039 D1 narrowed set', () => {
@@ -45,10 +45,10 @@ describe('D1: files whitelist = runtime artifact surface', () => {
     // replaced by 200,000 bytes (npm decimal display unit); docs/adr left the tarball, so the
     // measured base (~141 kB) sits comfortably under a tight cap. The cap is
     // parsed from ADR-0039 (F3: no magic number duplicated in test).
-    const adr39 = fs.readFileSync(path.join(ROOT, 'docs', 'adr', '0039-tarball-runtime-surface-narrowing-docs-adr-archive-channel.md'), 'utf8');
-    const capM = adr39.match(/out\.size < ([\d,]+) bytes/);
-    expect(capM).not.toBeNull();
-    const cap = Number(capM[1].replace(/,/g, ''));
+    // Single-sourced cap parse (ADR-0061 D-F): the gate and this test consume
+    // one helper instead of two regexes - duplication is what drifted before.
+    const cap = packCapBytes();
+    expect(cap).toBeGreaterThan(0);
     expect(out.size).toBeLessThan(cap);
   }, 60000);
 });
