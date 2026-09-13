@@ -493,6 +493,24 @@
         "note": "registered in the ADR-0061 T-2 implementation round"
       },
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0038",
+      "subject": "surface-narrowed judge identity anchor review (ADR-0063 re-pin closure)",
+      "source_adr": "docs/adr/0063-surface-narrowed-judge-identity-anchor-semantic-digest-rejected.md",
+      "rationale": "ADR-0063 D-D: the narrowing moves the resolved rules_digest and re-pins the judge identity under a conditional certification (reverify tail indeterminate, ADR-0060 D-B); the review_at must ride the deferred-registry tide like every other pre-registered identity change.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the ADR-0063 review_at (2026-12-11) is checked in and the judge identity is either re-certified by a full signoff (reverify tail conformity=pass) or the conditional CAPA is dispositioned"
+      },
+      "review_at": "2026-12-11",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-13",
+      "last_check_in": {
+        "date": "2026-09-13",
+        "note": "registered in the ADR-0061 T-3 implementation round"
+      },
+      "status": "pending-evaluation"
     }
   ]
 }

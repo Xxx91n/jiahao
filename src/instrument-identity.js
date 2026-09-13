@@ -58,13 +58,33 @@ function loadState(root, opts) {
   return readJsonFile(path.join(root, STATE_REL), 'instrument state', o.readFile);
 }
 
+// ADR-0061 D-B / ADR-0063: the judge identity axis hashes the JUDGE-BEHAVIORAL
+// text surface of the rules file (the verifier-rules region), not the whole
+// file. Generator/product wording sits above the boundary, so product edits no
+// longer cascade into an identity re-pin, while any judge-rule edit still does.
+// Fail closed: a missing boundary heading is an error, never a silent
+// whole-file fallback (that would restore the dual-purpose hash by accident).
+const JUDGE_SURFACE_HEADING = '## Verifier Profile';
+
+function judgeSurfaceText(rulesText) {
+  const lines = String(rulesText).split('\n');
+  const start = lines.findIndex(function (l) {
+    return l.replace(/[ \t]+$/, '') === JUDGE_SURFACE_HEADING;
+  });
+  if (start === -1) {
+    throw new Error('judge surface heading "' + JUDGE_SURFACE_HEADING + '" not found in rules text: judge identity surface is unresolvable (fail-closed; no whole-file fallback)');
+  }
+  return lines.slice(start).join('\n');
+}
+
 function resolveInstrumentIdentity(root, opts) {
   const o = opts || {};
   const read = o.readFile || fs.readFileSync;
   const pin = loadPin(root, o);
   const rulesPath = path.join(root, pin.rules_alias);
   const rulesText = read(rulesPath, 'utf8');
-  const promptHash = sha256Text(rulesText);
+  // ADR-0061 D-B: hash only the judge-behavioral surface (verifier rules).
+  const promptHash = sha256Text(judgeSurfaceText(rulesText));
   const resolved = {
     rules_version: pin.rules_version,
     prompt_hash: promptHash,
@@ -536,6 +556,8 @@ module.exports = {
   ATTESTATIONS,
   sha256Text,
   isHex64,
+  JUDGE_SURFACE_HEADING,
+  judgeSurfaceText,
   loadPin,
   loadState,
   resolveInstrumentIdentity,
