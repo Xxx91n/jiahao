@@ -475,6 +475,24 @@
         "note": "registered in the ADR-0061 doc round"
       },
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0037",
+      "subject": "tarball-cap trend-anchor review (ADR-0062 amendment closure)",
+      "source_adr": "docs/adr/0062-pre-registered-tarball-cap-amendment-policy-before-value-trend-anchor.md",
+      "rationale": "ADR-0062 D-A/D-E: the cap amendment carries a review_at and must ride the deferred-registry tide like every other pre-registered gate revision; the live value stays anchored in ADR-0039 D3.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the ADR-0062 review_at (2026-12-13) is checked in and the trend anchor is re-measured under the pinned protocol (npm pack --dry-run --json, size field)"
+      },
+      "review_at": "2026-12-13",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-13",
+      "last_check_in": {
+        "date": "2026-09-13",
+        "note": "registered in the ADR-0061 T-2 implementation round"
+      },
+      "status": "pending-evaluation"
     }
   ]
 }

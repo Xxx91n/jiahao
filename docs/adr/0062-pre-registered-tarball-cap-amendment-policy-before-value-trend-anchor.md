@@ -32,7 +32,7 @@ not exist in the ADR - it changed the number without a governing procedure.
    value from evidence already on file, (c) carries an explicit "not a
    retro-application" declaration naming the withdrawal it is distinguished
    from, and (d) is signed off through the ADR-0047 criteria-change path
-   (second_reviewer) with a review_at date in the deferred-registry tide.
+   (second_reviewer) with a review_at date in the deferred-registry tide (this amendment is registered as defer-0037).
 2. The trigger is a PERIODIC TREND ANCHOR, not a one-shot measurement: each
    implementation round records the measured M, and the cap is reviewed
    against the trailing trend rather than a single narrowing-round value.
