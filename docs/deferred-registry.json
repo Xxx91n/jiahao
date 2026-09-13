@@ -261,10 +261,10 @@
       "review_at": "2027-09-01",
       "cadence_tier": "yearly",
       "registered_at": "2026-09-07",
-  "last_check_in": {
-    "date": "2026-09-13",
-    "note": "minimal unlock (ADR-0061 D-E C-2): authoritative governance copies now live in git-tracked docs/governance/ with machine-generated witnessed digests (anchors.json), giving a same-repo second copy. BAR STATEMENT (SPEC-3 repair, 2026-09-13): this git-commit witness does NOT satisfy the unfreeze condition and must not be recorded as if it did. ADR-0050/ADR-0061 D-E state explicitly that git alone is not tamper-proof, so a same-repo git copy is not an independent-domain witness - it shares the producing host, the repository, and the trust domain of the very record it would corroborate (detection strength equals anchor independence). The external/cross-domain half of the unfreeze condition therefore remains UNMET; defer-0024 stays open. External witness deadline for the next mandatory check-in: 2027-09-01 (this entry's review_at), with an interim obligation to re-check at each full-year tide."
-  },
+      "last_check_in": {
+        "date": "2026-09-13",
+        "note": "minimal unlock (ADR-0061 D-E C-2): authoritative governance copies now live in git-tracked docs/governance/ with machine-generated witnessed digests (anchors.json), giving a same-repo second copy. BAR STATEMENT (SPEC-3 repair, 2026-09-13): this git-commit witness does NOT satisfy the unfreeze condition and must not be recorded as if it did. ADR-0050/ADR-0061 D-E state explicitly that git alone is not tamper-proof, so a same-repo git copy is not an independent-domain witness - it shares the producing host, the repository, and the trust domain of the very record it would corroborate (detection strength equals anchor independence). The external/cross-domain half of the unfreeze condition therefore remains UNMET; defer-0024 stays open. External witness deadline for the next mandatory check-in: 2027-09-01 (this entry's review_at), with an interim obligation to re-check at each full-year tide."
+      },
       "status": "pending-evaluation"
     },
     {
@@ -509,6 +509,24 @@
       "last_check_in": {
         "date": "2026-09-13",
         "note": "registered in the ADR-0061 T-3 implementation round"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0039",
+      "subject": "first evaluation of the ADR net-addition governance trend anchor (ADR-0064 D-F)",
+      "source_adr": "docs/adr/0064-t6-product-round-pre-registration-mde-gates-and-governance-trend-anchor.md",
+      "rationale": "ADR-0064 D-F sets an observational trend anchor (63 + K=2, two consecutive documentation rounds with net additions > 0 raise one advisory line). The first evaluation cannot be pre-empted; it rides the registry tide like every other pre-registered review (ADR-0033).",
+      "unfreeze_if": {
+        "type": "free-text",
+        "check": "review_at reached; the trend anchor has either fired advisedly or is re-anchored by a same-commit ADR"
+      },
+      "review_at": "2026-12-14",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-14",
+      "last_check_in": {
+        "date": "2026-09-14",
+        "note": "registered in the grill-t6 documentation round"
       },
       "status": "pending-evaluation"
     }
