@@ -3,6 +3,7 @@
 Status: Accepted
 Date: 2026-09-12
 Amends: ADR-0049 (D-B: an `indeterminate` conformity state precedes the guarded-acceptance statement); ADR-0047 (D-A: a third instrument state `conditional`, with a mandatory expiry and CAPA)
+Amended by: ADR-0062 (the tarball cap this ADR’s acceptance references is raised to 230,000 bytes; the breach record above stands as history, not as the live value).
 
 ## Context
 

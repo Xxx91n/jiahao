@@ -202,7 +202,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). The index below is a derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js` — do not hand-edit:
 
 <!-- adr-index:start -->
-- 61 architecture decision records:
+- 62 architecture decision records:
 - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
 - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
 - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
@@ -264,6 +264,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - [ADR-0059](docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md) — External Critique Closure — Name-Independent Distribution, Source-Only MCP, Triage-Layer Detector Semantics, Coherence-Tier Assurance, and Signal-Driven Polish
 - [ADR-0060](docs/adr/0060-judge-conformity-sampling-power-indeterminate-state-and-conditional-certification.md) — Judge Conformity Sampling Power, Indeterminate Conformity State, and Conditional Instrument Certification
 - [ADR-0061](docs/adr/0061-pre-registered-gate-amendment-closure-surface-narrowed-judge-identity-and-output-tethered-convergence.md) — Pre-Registered Gate Amendment Closure, Surface-Narrowed Judge Identity, Declaration-Scoped Instrument Tagging, Output-Tethered Convergence, and Governance-Artifact Anchoring
+- [ADR-0062](docs/adr/0062-pre-registered-tarball-cap-amendment-policy-before-value-trend-anchor.md) — Pre-Registered Tarball-Cap Amendment - Policy Before Value, Periodic Trend Anchor
 <!-- adr-index:end -->
 - `test/` — 52 test suites, 704 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)

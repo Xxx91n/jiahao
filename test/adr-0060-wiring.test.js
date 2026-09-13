@@ -41,7 +41,8 @@ describe('ADR-0060 document + distribution anchors', () => {
 
   test('ADR-0039 D3 records no recompute (M=140,778); CONTEXT.md stays in the tarball (D1)', () => {
     const adr39 = fs.readFileSync(ADR39, 'utf8');
-    expect(adr39).toContain('out.size < 200,000 bytes');
+    expect(adr39).toContain('out.size < 230,000 bytes'); // amended by ADR-0062 (2026-09-13)
+    expect(adr39).toContain('200,000 bytes'); // the superseded value stays recorded, not erased
     expect(pkg.files).toContain('CONTEXT.md');
     expect(pkg.files).not.toContain('jiahao-mcp/');
     expect(pkg.scripts['pack:smoke']).toBe('node scripts/check-pack-smoke.js'); // ADR-0034 D6 alias

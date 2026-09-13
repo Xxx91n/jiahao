@@ -54,14 +54,13 @@ describe('D1: files whitelist = runtime artifact surface', () => {
 });
 
 describe('ADR-0039 D3: cap content anchor', () => {
-  test('the 200,000-byte cap appears verbatim in ADR-0039 (D3: no recompute fired)', () => {
+  test('the amended cap appears verbatim in ADR-0039 (ADR-0062 trend anchor)', () => {
     const adr = fs.readFileSync(path.join(ROOT, 'docs', 'adr', '0039-tarball-runtime-surface-narrowing-docs-adr-archive-channel.md'), 'utf8');
-    // ADR-0039 D3 (2026-08-31 impl round): the narrowing round measured
-    // M = 140,778 bytes < 160 kB, so the recompute never fired and 200,000
-    // remains the cap (see ADR-0039's budget-status note).
-    expect(adr).toContain('200,000');
-    // The breach is recorded, not papered over: the budget-status note names the
-    // measured size and the escalation.
+    // ADR-0062 D-C (2026-09-13): the one-shot 200,000-byte narrowing-round
+    // anchor is superseded by the periodic trend anchor cap 230,000 bytes.
+    // The live cap is asserted via packCapBytes(); this test anchors the text.
+    expect(adr).toContain('230,000');
+    expect(adr).toContain('200,000'); // the superseded value stays recorded, not erased
     expect(adr).toContain('Budget status (2026-09-12');
     expect(adr).toContain('withdrawn');
   });

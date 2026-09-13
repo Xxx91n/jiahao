@@ -12,8 +12,10 @@ recompute trigger did not fire.** D3 keys the recompute on the measured M of
 the *narrowed* tarball recorded at the narrowing round, and that note records
 M = 140,778 bytes (< 160 kB) with D3’s own conclusion "no cap
 recomputation: the 200,000-byte budget stands". The cap therefore remains
-**200,000 bytes**, and `out.size < 200,000 bytes` stays the asserted value
-below.
+**200,000 bytes** as of the 2026-09-12 note below; the one-shot narrowing-round
+anchor is **superseded by ADR-0062 (2026-09-13)**, which raises the cap to
+**230,000 bytes** (`out.size < 230,000 bytes`) under a periodic trend anchor
+(`cap = ceil_to_10_000(M_latest x 1.10)`; protocol pinned in ADR-0062 D-B).
 
 Assertion surface (2026-09-13, ADR-0061 D-F measurement-unblock round). The
 cap is now asserted by gate:all as well as by the adr-0038-wiring jest test:
@@ -87,15 +89,19 @@ Exa/Tavily/AnySearch, 17 primary-source fetches, cross-verified):
   boundary section states this in one sentence. (docs.rs / pkg.go.dev /
   Fowler's build-task-to-website are the isomorphic industry forms; we
   build none of them today.)
-- D3 Measured-anchor budget. The adr-0038-wiring test asserts
-  `out.size < 200,000 bytes` (200 kB, npm's decimal display unit). The cap
+- D3 Measured-anchor budget. The adr-0038-wiring test and the pack-smoke gate
+  assert `out.size < 230,000 bytes` (amended 2026-09-13 by ADR-0062; the
+  original 200,000-byte value and its one-shot narrowing-round M anchor are
+  superseded by the periodic trend anchor). The cap
   value must appear verbatim in this ADR's text (content anchor, reusing
   the ADR-0027 D2(a) mechanism: every gate value appears in its source_adr
   file). Single confirmatory tier, no warn band. The metric is npm pack's `size` field (packed tarball bytes), not `unpackedSize`. Impl round records the
   measured M of the narrowed tarball (expected ~140-150 kB) in an
   Implementation note; if M > 160 kB, the cap is recomputed as
   max(200,000, M * 1.25) and the formula and the new value are written into
-  this ADR by amendment. Bumping the cap later is only ever an ADR.
+  this ADR by amendment. **Superseded 2026-09-13 by ADR-0062**: the recompute
+  is now the periodic trend anchor `cap = ceil_to_10_000(M_latest x 1.10)`.
+  Bumping the cap later is only ever an ADR.
 - D4 Stale-claim corrections. CONTEXT.md line ~386 (ADR-0038 bullet) and the
   Runtime-Artifact Surface term definition lose the `~50KB` wording in
   favor of the measured figures and a pointer here. README distribution
