@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0061 D-E: authoritative governance copies outside the tarball whitelist; digests are machine-generated and regen-and-diff checked.",
+  "witness": "git-tracked commit (the second copy); a full external/cross-domain witness remains deferred as defer-0024 (minimal unlock, ADR-0061 D-E C-2)",
+  "artifacts": [
+    {
+      "file": "decision-ledger-adr0059.md",
+      "origin": ".scratch/grill-adr0059/decision-ledger.md",
+      "adr": "ADR-0059",
+      "bytes": 24624,
+      "sha256": "5b559580c5b006c4d0ca99f4ddb509f9872ddfdfb667a3de8a73c0c529728dde"
+    },
+    {
+      "file": "decision-ledger-adr0061.md",
+      "origin": ".scratch/grill-adr0061/decision-ledger.md",
+      "adr": "ADR-0061",
+      "bytes": 10501,
+      "sha256": "53e8564ecccc78b62d7093c7d247c8c76a305baa38efb011f3d349fbe1b2699f"
+    },
+    {
+      "file": "audit-report-adr0058.md",
+      "origin": ".scratch/grill-adr0058/reports/2026-09-12-audit-report.md",
+      "adr": "ADR-0058",
+      "bytes": 30790,
+      "sha256": "e442b1ba0ff0d95a1ffc7230090cd1d26ec1559beab3109e8643e3915927bd52"
+    },
+    {
+      "file": "ERRATA.md",
+      "origin": "(authored in place)",
+      "adr": "ADR-0061",
+      "bytes": 1701,
+      "sha256": "8a821e16fb1467635667e4d766260a66b585d9109e40f1f77ea4869540bc6d51"
+    }
+  ]
+}

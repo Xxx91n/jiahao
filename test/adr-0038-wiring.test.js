@@ -35,6 +35,8 @@ describe('D1: files whitelist = runtime artifact surface', () => {
     const benchAllowed = new Set(['bench/polygraph/thresholds.json', 'bench/polygraph/README.md']);
     expect(names.some(f => f.startsWith('bench/') && !benchAllowed.has(f))).toBe(false);
     expect(names.some(f => f.startsWith('.githooks/'))).toBe(false);
+    // ADR-0061 D-E: the authoritative governance copies stay OUTSIDE the tarball.
+    expect(names.some(f => f.startsWith('docs/governance'))).toBe(false);
     // Present-set: the gate's contract plus the entries only this test checks
     // (same union as before — no assertion was dropped).
     const presentExtras = ['package.json', 'src/shared/paths.js', 'scripts/check-mr-probes.js', 'bench/polygraph/thresholds.json', 'README.md', 'AGENTS.md'];

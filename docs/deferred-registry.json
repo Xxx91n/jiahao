@@ -263,7 +263,7 @@
       "registered_at": "2026-09-07",
       "last_check_in": {
         "date": "2026-09-09",
-        "note": "local witness vocabulary is now decided by ADR-0052/0053; cross-host condition remains unchanged"
+        "note": "minimal unlock (ADR-0061 D-E C-2): authoritative governance copies now live in git-tracked docs/governance/ with machine-generated witnessed digests (anchors.json), giving a same-repo second copy; the cross-domain/external half of the unfreeze condition remains unmet"
       },
       "status": "pending-evaluation"
     },
