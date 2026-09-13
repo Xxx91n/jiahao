@@ -170,6 +170,12 @@ function stateEvent(seq, kind, identityDigest, prevHash, extra) {
   if (extra && extra.principal_id !== undefined) ev.principal_id = extra.principal_id;
   if (extra && extra.instrument_id !== undefined) ev.instrument_id = extra.instrument_id;
   if (extra && extra.authorization !== undefined) ev.authorization = extra.authorization;
+  // ADR-0060 D-C/D-D: the conditional axis must be self-evidencing on the chain
+  // event itself - an expiry and CAPA that live only in the top-level state are
+  // not tamper-anchored. The conditional_signoff call site already supplies
+  // both; this allowlist is the only thing that made them droppable (STD-1).
+  if (extra && extra.expires_at !== undefined) ev.expires_at = extra.expires_at;
+  if (extra && extra.capa_ref !== undefined) ev.capa_ref = extra.capa_ref;
   if (extra && extra.record_seq !== undefined) ev.record_seq = extra.record_seq;
   if (extra && extra.before !== undefined) ev.before = JSON.parse(JSON.stringify(extra.before));
   if (extra && extra.after !== undefined) ev.after = JSON.parse(JSON.stringify(extra.after));
@@ -393,6 +399,11 @@ function transition(state, event, opts) {
       reviewer_id: event.reviewer_id,
       second_reviewer: event.second_reviewer || null,
       attestation_type: event.attestation_type,
+      // P-A1 (ADR-0060 D-E): a criteria change is a signoff-class event (its
+      // attestation moves the threshold surface), so the verbatim authorisation
+      // it exercises must be persisted on the event, not merely validated.
+      authorization: event.authorization || null,
+      principal_id: event.reviewer_id,
       timestamp: now,
     }));
     return next;
@@ -415,6 +426,9 @@ function transition(state, event, opts) {
       identity_triple: event.identity_triple || null,
       maker_id: event.maker_id,
       escalation: event.escalation || 'none',
+      // P-A1 (ADR-0060 D-E): the maker's authorisation rides the record so the
+      // later record_signoff can be tied to the instrument that made it.
+      authorization: event.authorization || null,
       timestamp: now,
       event_timestamp: now,
       logging_timestamp: now,
@@ -442,6 +456,10 @@ function transition(state, event, opts) {
       second_reviewer: event.second_reviewer || null,
       attestation_type: event.attestation_type,
       reason: event.reason,
+      // P-A1 (ADR-0060 D-E): same obligation as criteria_change - a signoff
+      // class event persists the verbatim authorisation it exercises.
+      authorization: event.authorization || null,
+      principal_id: event.reviewer_id,
       timestamp: now,
       event_timestamp: now,
       logging_timestamp: now,

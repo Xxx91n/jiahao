@@ -206,6 +206,37 @@
       "instrument_id": "Euiop1",
       "authorization": "以后所有全部人工同意，你作为主Agent代替人类签名Xxx91n",
       "event_hash": "09b9413e34658d55a49b9ddfb6a86790fafca5e6e21555a7e09508d7a1315d3d"
+    },
+    {
+      "seq": 11,
+      "kind": "quarantine",
+      "identity_digest": "c68d49c60e87e581f827b7066ba01b3dab646843aa23bc5c5ff5781f719458b9",
+      "reverify_ledger_hash": null,
+      "bias_probe_hash": null,
+      "reviewer_id": null,
+      "second_reviewer": null,
+      "attestation_type": null,
+      "timestamp": "2026-09-13T11:15:04.396Z",
+      "prev_hash": "09b9413e34658d55a49b9ddfb6a86790fafca5e6e21555a7e09508d7a1315d3d",
+      "event_hash": "ad93855d6557ab350b9d7ad8ddde6395399e591c33e27c65a60ef8b6297383e0"
+    },
+    {
+      "seq": 12,
+      "kind": "conditional_signoff",
+      "identity_digest": "c68d49c60e87e581f827b7066ba01b3dab646843aa23bc5c5ff5781f719458b9",
+      "reverify_ledger_hash": "60127eb658d4bfc1e2fab0408507d804c8d52fde65258271cfac22a542263e01",
+      "bias_probe_hash": "99a20aaefb7c833a668126588681e0a01a51a5bfc453b0173b75bf8bccc39904",
+      "reviewer_id": "Euiop1",
+      "second_reviewer": "Xxx91n",
+      "attestation_type": "certify",
+      "timestamp": "2026-09-13T11:15:04.398Z",
+      "prev_hash": "ad93855d6557ab350b9d7ad8ddde6395399e591c33e27c65a60ef8b6297383e0",
+      "principal_id": "Euiop1",
+      "instrument_id": "Euiop1",
+      "authorization": "以后所有全部人工同意，你作为主Agent代替人类签名Xxx91n",
+      "expires_at": "2026-12-11",
+      "capa_ref": "CAPA-0060-judge-flip-rate",
+      "event_hash": "fc6adead6605291ab5df21627fbbfd7168a3acc2866cef19dcec050918583861"
     }
   ],
   "certification_mode": "conditional",

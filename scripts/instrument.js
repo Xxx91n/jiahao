@@ -401,6 +401,9 @@ function criteriaChange(args) {
       reviewer_id: signoffArgs.reviewer,
       second_reviewer: signoffArgs.second_reviewer,
       attestation_type: signoffArgs.attestation,
+      // P-A1 (ADR-0060 D-E): pass through the authorisation parseSignoffArgs
+      // already validated and required, so it is persisted on the event.
+      authorization: signoffArgs.authorization,
     });
     writeState(next);
     console.log('[instrument] criteria change recorded');
@@ -413,6 +416,12 @@ function criteriaChange(args) {
 function record(args) {
   if (!args.maker || !args.before || !args.after) {
     console.error(PREFIXES.usage + ' FAIL: --record requires --maker, --before JSON, and --after JSON');
+    process.exit(1);
+  }
+  // P-A1 (ADR-0060 D-E): a record is a maker-attested change, so it carries the
+  // maker's verbatim authorisation just like the signoff-class events.
+  if (!args.authorization || String(args.authorization).trim().length < 10) {
+    console.error(PREFIXES.usage + ' FAIL: --record requires --authorization (the verbatim authorisation being exercised, min 10 chars)');
     process.exit(1);
   }
   const rt = readRuntime();
@@ -439,13 +448,19 @@ function record(args) {
         triple_hash: rt.resolved.triple_hash,
       },
       maker_id: args.maker,
+      authorization: args.authorization,
       escalation: escalate ? 'quarantine-lane' : 'none',
     });
     if (escalate) {
       next = transition(next, { type: 'identity-change', identity_digest: rt.resolved.triple_hash });
     }
     writeState(next);
-    const recordEvent = next.history.find(e => e.kind === 'record_only_change');
+    // P-2: report the record this invocation just appended (the tail), not the
+    // first record_only_change in history - the two diverge from the 2nd record.
+    const tailEvent = next.history[next.history.length - 1];
+    const recordEvent = (tailEvent && tailEvent.kind === 'record_only_change')
+      ? tailEvent
+      : next.history.slice().reverse().find(e => e.kind === 'record_only_change');
     console.log('[instrument] record_only_change seq=' + (recordEvent ? recordEvent.seq : '?') + ' status=pending_signoff');
     if (next.state === 'quarantined') console.log('[instrument] escalation promoted to quarantine-lane');
   } catch (e) {

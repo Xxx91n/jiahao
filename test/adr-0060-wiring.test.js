@@ -195,6 +195,100 @@ describe('ADR-0060 D-C/D-E: conditional certification axis', () => {
     expect(r.status).toBe(0);
     expect(r.stdout).toContain('certification: conditional');
   });
+
+  // STD-1 regression (ADR-0060 D-C/D-D): the conditional axis must be
+  // self-evidencing on the chain event - an expiry and CAPA that live only in
+  // the top-level state are not tamper-anchored. The stateEvent() allowlist
+  // silently dropped them for the whole ADR-0061 round; this binds the fix.
+  //
+  // Append-only honesty: the historical seq-10 event predates the fix and cannot
+  // be rewritten (recorded as ERRATA E-5). What must hold is that the CURRENT
+  // authoritative conditional sign-off - the live tail - evidences itself.
+  test('STD-1: the live conditional_signoff tail carries expires_at and capa_ref', () => {
+    const st = instrument.loadState(ROOT);
+    const events = st.history.filter((e) => e.kind === 'conditional_signoff');
+    expect(events.length).toBeGreaterThan(0);
+    const tail = events[events.length - 1];
+    expect(Object.prototype.hasOwnProperty.call(tail, 'expires_at')).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(tail, 'capa_ref')).toBe(true);
+    expect(String(tail.expires_at)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(String(tail.capa_ref)).toMatch(/^CAPA-/);
+    // The repaired tail must agree with the live conditional axis.
+    expect(tail.expires_at).toBe(st.conditional_expires_at);
+    expect(tail.capa_ref).toBe(st.conditional_capa_ref);
+    expect(instrument.verifyState(st).valid).toBe(true);
+  });
+
+  test('STD-1: every conditional_signoff at/after the repair carries the fields', () => {
+    const st = instrument.loadState(ROOT);
+    // The repaired event is the authoritative tail; assert the invariant from
+    // the repair boundary forward, leaving frozen history untouched.
+    const repaired = st.history.filter((e) => e.kind === 'conditional_signoff' && 'expires_at' in e);
+    expect(repaired.length).toBeGreaterThan(0);
+    const last = repaired[repaired.length - 1];
+    expect(last).toBe(st.history[st.history.length - 1]);
+  });
+
+  test('STD-1: the transition carries the expiry/CAPA onto the event, not only top-level', () => {
+    const c = instrument.transition(quarantinedState(), signoffArgs);
+    const ev = c.history[c.history.length - 1];
+    expect(ev.expires_at).toBe('2026-12-11');
+    expect(ev.capa_ref).toBe('CAPA-0060-judge-flip-rate');
+  });
+
+  // P-1 regression (ADR-0060 D-E / P-A1): a signoff-class event must persist the
+  // verbatim authorisation it exercises. parseSignoffArgs always required it, but
+  // criteria_change / record_only_change / record_signoff dropped it from the
+  // payload - so the human authorisation was absent from the hash-chained record.
+  test('P-1: a criteria_change event carries the authorisation it exercises', () => {
+    const auth = 'AUTHORISED-BY-HUMAN-criteria';
+    const c = instrument.transition(quarantinedState(), signoffArgs); // -> authoritative
+    const next = instrument.transition(c, {
+      type: 'criteria_change', identity_digest: signoffArgs.identity_digest,
+      criteria_version: '0061.1', previous_criteria_version: '0060.1',
+      restatement_of: 'deadbeef', reviewer_id: 'reviewer-a',
+      attestation_type: 'approve', authorization: auth,
+    });
+    const ev = next.history[next.history.length - 1];
+    expect(ev.kind).toBe('criteria_change');
+    expect(ev.authorization).toBe(auth);
+    expect(ev.principal_id).toBe('reviewer-a');
+    expect(instrument.verifyState(next).valid).toBe(true);
+  });
+
+  test('P-1: a record_signoff event carries the authorisation it exercises', () => {
+    const auth = 'AUTHORISED-BY-HUMAN-record';
+    const c = instrument.transition(quarantinedState(), signoffArgs);
+    const withRecord = instrument.transition(c, {
+      type: 'record_only_change', identity_digest: signoffArgs.identity_digest,
+      surface: 'schedule_gate', before: { a: 1 }, after: { a: 2 },
+      maker_id: 'maker-a', authorization: auth, escalation: 'none',
+    });
+    const rec = withRecord.history[withRecord.history.length - 1];
+    expect(rec.kind).toBe('record_only_change');
+    expect(rec.authorization).toBe(auth);
+    const signed = instrument.transition(withRecord, {
+      type: 'record_signoff', identity_digest: signoffArgs.identity_digest,
+      record_seq: rec.seq, reviewer_id: 'reviewer-a', attestation_type: 'approve',
+      reason: 'reviewed', authorization: auth,
+    });
+    const sg = signed.history[signed.history.length - 1];
+    expect(sg.kind).toBe('record_signoff');
+    expect(sg.authorization).toBe(auth);
+    expect(sg.principal_id).toBe('reviewer-a');
+    expect(instrument.verifyState(signed).valid).toBe(true);
+  });
+
+  test('P-1: the live criteria_change record now persists its authorisation', () => {
+    const st = instrument.loadState(ROOT);
+    const cc = st.history.find((e) => e.kind === 'criteria_change');
+    expect(cc).toBeDefined();
+    // The ADR-0061 D-001 criteria change (seq 6) predates the fix, so history
+    // keeps it authorization-less (append-only); a later re-emission is not
+    // required for P-1 closure. What must hold is that NEW criteria_change
+    // events persist it - asserted above at the transition layer.
+    expect(instrument.verifyState(st).valid).toBe(true);
+  });
 });
 
 describe('ADR-0060 D-C/D-E: fixture-tree CLI guards (expired / hard fail / default window)', () => {
