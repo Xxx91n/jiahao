@@ -65,6 +65,15 @@ keeps inside the artifact.
 Derivation rule (trend anchor): `cap = ceil_to_10_000(M_latest x 1.10)`.
 M_latest = 208,655 -> 229,520.5 -> **230,000 bytes**.
 
+Trend width vs the ledger (repair note, 2026-09-13): decision-ledger D-001 pinned
+this derivation to a **3-point** trend (205,741 -> 206,288 -> 206,501). This
+table carries **5** rows. The two extra rows (207,768; 208,655) post-date the
+ledger entry and are now back-filled into ADR-0039's trend back-fill note under
+that ADR's "re-measure after ANY packed-file edit" rule. The width difference
+does not change the outcome - `ceil_to_10_000(207,768 x 1.10) = 230,000` equals
+the value from 208,655 - so rows 4-5 are corroborating scope, not a divergent
+derivation.
+
 This is NOT ADR-0039 D3’s `max(200,000, M x 1.25)` applied to the current
 size: that arithmetic was the withdrawn 5567bd8 move. The 1.10 factor is a
 new, declared headroom on a trend anchor, chosen to cover ~15 further rounds

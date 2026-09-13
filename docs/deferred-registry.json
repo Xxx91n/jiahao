@@ -261,10 +261,10 @@
       "review_at": "2027-09-01",
       "cadence_tier": "yearly",
       "registered_at": "2026-09-07",
-      "last_check_in": {
-        "date": "2026-09-09",
-        "note": "minimal unlock (ADR-0061 D-E C-2): authoritative governance copies now live in git-tracked docs/governance/ with machine-generated witnessed digests (anchors.json), giving a same-repo second copy; the cross-domain/external half of the unfreeze condition remains unmet"
-      },
+  "last_check_in": {
+    "date": "2026-09-13",
+    "note": "minimal unlock (ADR-0061 D-E C-2): authoritative governance copies now live in git-tracked docs/governance/ with machine-generated witnessed digests (anchors.json), giving a same-repo second copy. BAR STATEMENT (SPEC-3 repair, 2026-09-13): this git-commit witness does NOT satisfy the unfreeze condition and must not be recorded as if it did. ADR-0050/ADR-0061 D-E state explicitly that git alone is not tamper-proof, so a same-repo git copy is not an independent-domain witness - it shares the producing host, the repository, and the trust domain of the very record it would corroborate (detection strength equals anchor independence). The external/cross-domain half of the unfreeze condition therefore remains UNMET; defer-0024 stays open. External witness deadline for the next mandatory check-in: 2027-09-01 (this entry's review_at), with an interim obligation to re-check at each full-year tide."
+  },
       "status": "pending-evaluation"
     },
     {

@@ -84,6 +84,22 @@ second_reviewer `Xxx91n`. It is recorded in `src/instrument-state.json` seq 10
 09b9413e34658d55a49b9ddfb6a86790fafca5e6e21555a7e09508d7a1315d3d). The
 verbatim human authorisation is anchored on that event.
 
+**Erratum (2026-09-13, repair round).** The sentence above was inaccurate on the
+day it was written: seq 10's hashed field set did **not** actually contain
+`expires_at` / `capa_ref`. The `stateEvent()` allowlist in
+`src/instrument-identity.js` had no branch for either key, so the values the
+`conditional_signoff` transition passed were silently dropped. seq 10 is frozen
+history and is not rewritten (append-only); the defect is recorded as ERRATA E-5
+and the field-set fix ships in the same repair commit. The self-evidencing
+conditional sign-off is the appended repair tail (`src/instrument-state.json`
+seq 12, kind `conditional_signoff`, carrying `expires_at` 2026-12-11 and
+`capa_ref` CAPA-0060-judge-flip-rate in its own hash anchor,
+`event_hash` fc6adead6605291ab5df21627fbbfd7168a3acc2866cef19dcec050918583861),
+reached through the
+sanctioned path (seq 11 quarantine -> seq 12 re-canonicalised conditional
+sign-off). The hash `09b9413e...` above remains the correct hash **of seq 10 as
+it stands**; it is no longer the terminal conditional sign-off.
+
 review_at: 2026-12-11, registered in the deferred-registry tide as defer-0038.
 
 ## Consequences
@@ -99,7 +115,9 @@ review_at: 2026-12-11, registered in the deferred-registry tide as defer-0038.
   f84a6c955ec5663ab3036d3229ecc9a343b6f993b9b5d3c4c3c502fb3b3ee95c to the
   judge-surface f6c6c843c4ad4151f709345d86079f4a5e0c7d216305155f75e7329638bc6154;
   the pin, the reverify ledger (seq 5) and the instrument state chain
-  (seq 9 quarantine, seq 10 conditional sign-off) all carry the new identity.
+  (seq 9 quarantine, seq 10 conditional sign-off; repaired 2026-09-13 by the
+  appended seq 11 quarantine + seq 12 conditional sign-off) all carry the new
+  identity.
 
 ## Rejected
 

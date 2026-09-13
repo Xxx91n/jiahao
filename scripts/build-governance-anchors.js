@@ -14,6 +14,9 @@ const crypto = require('crypto');
 const ROOT = path.join(__dirname, '..');
 const DIR_REL = path.join('docs', 'governance');
 const OUT_REL = path.join(DIR_REL, 'anchors.json');
+// ADR-0040 D1: a gate-registered script probes its declared capabilities before
+// loading runtime dependencies (here the requirement is just the repo tree).
+const { requireCapabilities } = require('../src/shared/capability');
 const ARTIFACTS = [
   { file: 'decision-ledger-adr0059.md', origin: '.scratch/grill-adr0059/decision-ledger.md', adr: 'ADR-0059' },
   { file: 'decision-ledger-adr0061.md', origin: '.scratch/grill-adr0061/decision-ledger.md', adr: 'ADR-0061' },
@@ -37,6 +40,7 @@ function generate() {
 }
 
 function main() {
+  requireCapabilities('governance-anchors');
   const check = process.argv.indexOf('--check') !== -1;
   const next = JSON.stringify(generate(), null, 2) + String.fromCharCode(10);
   const outPath = path.join(ROOT, OUT_REL);

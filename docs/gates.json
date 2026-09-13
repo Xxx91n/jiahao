@@ -259,6 +259,20 @@
       "requires": [
         "repo-tree"
       ]
+    },
+    {
+      "name": "governance-anchors",
+      "command": "node scripts/build-governance-anchors.js --check",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0061-pre-registered-gate-amendment-closure-surface-narrowed-judge-identity-and-output-tethered-convergence.md",
+      "order": 197,
+      "params": {
+        "check": true
+      },
+      "requires": [
+        "repo-tree",
+        "docs-adr"
+      ]
     }
   ]
 }

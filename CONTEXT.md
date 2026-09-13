@@ -1167,7 +1167,8 @@ _Avoid_: skipping validation on "obviously equivalent" rewrites
 **Runtime-Artifact Surface (运行时工件面)**:
 ADR-0038's dual-surface distribution model, isomorphic to Python's
 wheel/sdist: the npm tarball is the runtime artifact (prompt-installer only,
-files-whitelisted, measured-anchor budget 200,000 bytes per ADR-0039); the git tree is the development surface (tests,
+files-whitelisted, measured-anchor budget 230,000 bytes per ADR-0039 as amended
+by ADR-0062); the git tree is the development surface (tests,
 fixtures, integrity anchors, ADRs). Answer corpora appear on neither public
 surface; they resolve only via JIAHAO_CORPUS_DIR / install-planted /
 maintainer-tree tiers (ADR-0036).

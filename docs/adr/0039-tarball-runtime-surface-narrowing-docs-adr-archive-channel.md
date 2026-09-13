@@ -39,6 +39,20 @@ formula to the *current* size instead of the narrowing-round M, and (ii) cited
 a narrowing-round M of ~199,943 bytes that does not exist in this ADR. That
 amendment is **withdrawn**.
 
+Trend rows 4-5 back-fill (2026-09-13, ADR-0061 repair round). ADR-0062 D-C records
+a 5-row trend whose last two rows were sourced only to commit messages. Both are
+now back-filled here under this ADR's own "re-measure after ANY packed-file edit"
+rule. Row 4 = **207,768 bytes** (after the ADR-0061 doc-round glossary additions:
+CONTEXT.md glossary sync + deferred-registry sync). Row 5 = **208,655 bytes**
+(93 files; after the ADR-0061 D-F T-1 corpus-probe + pack-cap-assertion work).
+Trend width vs the ledger: decision-ledger D-001 pinned a **3-point** trend
+(205,741 -> 206,288 -> 206,501); ADR-0062 D-C uses **5** rows. The width grew
+because the two later rows post-date the ledger entry. The extra width does not
+drive the outcome: `ceil_to_10_000(207,768 x 1.10) = ceil(228,544.8) = 230,000`
+equals the value derived from 208,655, so rows 4-5 are corroborating scope, not
+a different derivation. Current re-measure at this repair round: **212,387 bytes
+/ 93 files** (still < 230,000).
+
 ## Context
 
 ADR-0038 D1 whitelisted `docs/` wholesale into the npm tarball. Measured at
