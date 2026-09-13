@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0064 D-C/D-003: corpus assets are FOUR distinct classes and never interchanged. This manifest is the machine-read taxonomy; each class delegates its numeric identity to its single home (thresholds.json corpus pin / private_corpus fingerprints / judge-twins line count / devin-corpus manifest). Checked by scripts/check-corpus-classes.js (gates.json: corpus-classes).",
+  "classes": [
+    {
+      "id": "external-bench",
+      "kind": "public-frozen",
+      "home": "bench/polygraph/thresholds.json#corpus",
+      "role": "attribution bench; sole feed of the rung ladder",
+      "frozen": true,
+      "no_rung_statistics": false
+    },
+    {
+      "id": "private-probes",
+      "kind": "private-structural",
+      "home": "private/bench-corpus",
+      "files": [
+        "probes.jsonl",
+        "judge-twins.jsonl",
+        "twins.jsonl",
+        "mr-probes.jsonl"
+      ],
+      "role": "zero-miss smoke / bias / metamorphic gates",
+      "frozen": true,
+      "no_rung_statistics": true
+    },
+    {
+      "id": "judge-conformity",
+      "kind": "private-judge",
+      "home": "private/bench-corpus/judge-twins.jsonl",
+      "n": 26,
+      "min_n": 100,
+      "status": "indeterminate",
+      "status_rule": "ADR-0060 D-B: n < min_n=100 -> conditional certification only; no conformity statement may cite it; enters NO rung statistic",
+      "frozen": true,
+      "no_rung_statistics": true
+    },
+    {
+      "id": "devin-truth",
+      "kind": "ground-truth",
+      "home": "bench/research/devin-corpus",
+      "snapshot": "devin-corpus@v1",
+      "role": "METR Task Standard ground truth (task+setup+deterministic scoring function); collected via the local Devin harness; blind to rung 1 - unlocks only after rung-1 settlement",
+      "frozen": false,
+      "no_rung_statistics": true
+    }
+  ],
+  "disjointness": {
+    "rule": "no class may merge into or substitute for another (D-C); devin ids must carry the devin- namespace prefix and collide with neither polygraph pb- ids nor gold20 ids",
+    "devin_id_prefix": "devin-",
+    "bench_id_prefix": "pb-",
+    "gold_file": "bench/research/gold20.jsonl"
+  },
+  "source_adr": "0064"
+}

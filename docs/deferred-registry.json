@@ -529,6 +529,24 @@
         "note": "registered in the grill-t6 documentation round"
       },
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0040",
+      "subject": "grill-t6 doc round landed ADR-0064 with zero product diff - forced disposition (ADR-0064 D-F)",
+      "source_adr": "docs/adr/0064-t6-product-round-pre-registration-mde-gates-and-governance-trend-anchor.md",
+      "rationale": "ADR-0064 D-F clause 3: a documentation round with zero product diff (src/, bench/ unchanged) that still lands a new ADR must write a deferred-registry entry for forced disposition. The grill-t6 doc round (qxs) is exactly that event; the event is logged in docs/governance/trend-inventory.json and must be dispositioned at the next trend-anchor evaluation.",
+      "unfreeze_if": {
+        "type": "free-text",
+        "check": "trend-inventory round entry dispositioned at the next documentation-round evaluation; entry closed only by a same-commit ADR or ledger note"
+      },
+      "review_at": "2026-12-14",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-14",
+      "last_check_in": {
+        "date": "2026-09-14",
+        "note": "registered in the grill-t6 T-1 implementation round"
+      },
+      "status": "pending-evaluation"
     }
   ]
 }

@@ -129,3 +129,12 @@ command uniqueness + supersede closure are computable today). The trend anchor
 is recorded in docs/deferred-registry.json as defer-0039 with the tide
 discipline. The critique's count of red findings closes here: prescription 1 (ADR-0062),
 2 (ADR-0061 D-E), 3 (this ADR's D-A..D-E), 4 (ADR-0061 D-C), 5 (this D-F).
+
+Registration note (T-1 implementation round, 2026-09-14): the D-F machinery lands as
+gates.json entries research-baseline (order 141), g6-equivalence (order 152),
+corpus-classes (order 167), governance-inventory (order 198); the zero-product-
+diff doc-round event is registered as defer-0040 and logged in
+docs/governance/trend-inventory.json. The G6 threshold class g6_gates was
+pre-registered into bench/polygraph/thresholds.json before the JS porting line
+(D-E); the confirmatory surface (gates/probe_gates/judge_bias_gates/mr_gates)
+is byte-frozen by bench/research/baseline-t1.json.

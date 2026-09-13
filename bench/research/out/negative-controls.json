@@ -1,0 +1,16 @@
+{
+  "triggers_masked": 95,
+  "trigger_regex": "word-boundary mask of corpus-perfect-correlation tokens",
+  "trigger_mask": {
+    "masked_tokens": 95,
+    "mean_recall_fp0": 0.8657840819542948,
+    "delta_vs_reference": 0.10930856692558821,
+    "healthy": false
+  },
+  "non_closing_channel": {
+    "mean_recall_fp0": 0.4732865023077789,
+    "delta_vs_reference": -0.28318901272092767
+  },
+  "reference_mean_recall_fp0": 0.7564755150287066,
+  "source_adr": "0064"
+}

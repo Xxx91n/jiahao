@@ -37,6 +37,13 @@
       "adr": "ADR-0061",
       "bytes": 3391,
       "sha256": "4648493008fbbeb34b9188d3aacf7b1f6a959cb08f6e6fb354391b45cce810e6"
+    },
+    {
+      "file": "trend-inventory.json",
+      "origin": "(authored in place)",
+      "adr": "ADR-0064",
+      "bytes": 955,
+      "sha256": "eb0942af2bc551d82de33d453bf59f94c36a7072dc46cb51b46b5f8ca1994cec"
     }
   ]
 }

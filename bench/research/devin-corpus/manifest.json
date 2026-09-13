@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0064 D-C(4)/D-005(6,7): devin-corpus@v1 ground-truth snapshot descriptor. A frozen snapshot names harness_commit + model_version + collected_at. While status=collecting the item file may be empty; the gate validates the contract, never a count floor (no eval dependence).",
+  "snapshot": "devin-corpus@v1",
+  "status": "collecting",
+  "harness_commit": null,
+  "model_version": "devin-desktop 1.126.0",
+  "collected_at": null,
+  "item_count": 0,
+  "items_file": "items.jsonl",
+  "incoming_dir": "incoming",
+  "scoring": "deterministic scoring function per item (METR Task Standard); labels mechanically reproducible",
+  "blind_until": "rung-1 settlement (ADR-0064 D-C(4))",
+  "disjoint_from": [
+    "external-bench (polygraph-396, pb- ids)",
+    "golden-sample (gold20)",
+    "judge-conformity (n=26)"
+  ],
+  "source_adr": "0064"
+}

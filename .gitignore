@@ -32,3 +32,4 @@ bench-artifacts/
 probe-artifacts/
 test-artifacts/
 mr-artifacts/
+__pycache__/
