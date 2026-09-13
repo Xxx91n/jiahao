@@ -439,6 +439,42 @@
         "note": "declared gap in ADR-0060 Consequences"
       },
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0035",
+      "subject": "model identity sub-declaration re-verification (UNRESOLVED tagging must not be open-ended)",
+      "source_adr": "docs/adr/0061-pre-registered-gate-amendment-closure-surface-narrowed-judge-identity-and-output-tethered-convergence.md",
+      "rationale": "ADR-0061 D-C: declaration-scoped tagging requires a recorded re-verification path and a deadline; without one the tag degrades into an open-ended concession (IATF / ADR-0060 D-D precedent).",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a re-pinned or formally dispositioned model_checkpoint/model_identity declaration exists in the reverify ledger, signed via the P-A1 path"
+      },
+      "review_at": "2026-12-11",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-13",
+      "last_check_in": {
+        "date": "2026-09-13",
+        "note": "registered in the ADR-0061 doc round"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0036",
+      "subject": "zero-movement trigger N and the exemption-counting rule for output-tethered convergence",
+      "source_adr": "docs/adr/0061-pre-registered-gate-amendment-closure-surface-narrowed-judge-identity-and-output-tethered-convergence.md",
+      "rationale": "ADR-0061 D-D/D-F: the convergence criterion (N consecutive zero-movement rounds triggers the governance-diet agenda; exemption rounds excluded, 3 consecutive exemptions alert) has no numeric N until the implementation round sets it under ADR-0060 min_n power discipline.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "an ADR or gate fixture defines N and the exemption-counting rule with a power-analysis justification"
+      },
+      "review_at": "2026-12-06",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-13",
+      "last_check_in": {
+        "date": "2026-09-13",
+        "note": "registered in the ADR-0061 doc round"
+      },
+      "status": "pending-evaluation"
     }
   ]
 }

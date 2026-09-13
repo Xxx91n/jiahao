@@ -238,6 +238,43 @@ here: an audit agent producing NO tool calls and NO evidence was not the
 target jiahao is aimed at (that's an idle agent, not a false-completion case).
 _Avoid_: chasing zero-FP on L2 (the cost was leaked to L3/wordlist; ponytail)
 
+**Pre-Registered Gate Amendment Closure**:
+A pre-registered gate value is revised only inside an ADR where the revision
+policy precedes the value it produces: evidence-derived value, explicit
+non-retroactivity declaration, second_reviewer sign-off, and a review_at in the
+deferred-registry tide. The measurement protocol (command, metric, tool
+version) is pinned before any new value is computed.
+_Avoid_: bumping the cap, post-hoc amendment
+
+**Surface-Narrowed Identity Anchor**:
+The judge instrument identity is the content hash of the judge-behavioral text
+surface (verifier rules region) of src/SKILL.md, not the whole file; product
+edits no longer cascade into instrument re-verification, while any judge-rule
+text change still triggers the full chain (ADR-0061 D-B).
+_Avoid_: semantic digest, whole-file anchor
+
+**Declaration-Scoped Out-of-Service Tag**:
+An instrument sub-declaration (e.g. model identity UNRESOLVED) is tagged
+unverified at declaration granularity, with a re-verification path and a
+deadline, never open-ended; dispositions are appended, never rewritten
+(ADR-0061 D-C; ISO/IEC 17025 §6.4.9).
+_Avoid_: dormant instrument, whole-axis shutdown
+
+**Output-Tethered Convergence**:
+Governance earning its place is judged by registered product-metric movement
+(currently bench recall), not by the review_at calendar tide — the tide is
+cadence, the metric is the criterion. Waiver rounds register their exemption
+explicitly; zero-movement judgements respect sampling-power discipline
+(ADR-0061 D-D).
+_Avoid_: quota freeze, calendar-only convergence
+
+**Witnessed Digest Anchor**:
+Governance artifacts keep authoritative copies in git-tracked storage (outside
+the tarball) with machine-generated, externally witnessed digests; git alone
+is not a tamper-proof ledger, and a bare hash cannot re-create a lost record
+(ADR-0061 D-E; SEC 17a-4 audit-trail alternative; NIST IR 8387).
+_Avoid_: self-contained anchor, scratch-path ledger
+
 ## Decision Log
 
 **Self-Preference Bias (自偏好偏差)**:
