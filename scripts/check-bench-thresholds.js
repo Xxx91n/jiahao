@@ -70,7 +70,11 @@ function checkContentAnchors(cfg) {
   if (!Array.isArray(cfg.mr_gates) || cfg.mr_gates.length === 0) {
     errors.push('mr_gates missing or empty (ADR-0037 D4): symmetry gates must not fail open');
   }
-  const allGates = (cfg.gates || []).concat(cfg.probe_gates || []).concat(cfg.judge_bias_gates || []).concat(cfg.mr_gates || []);
+  // ADR-0064 D-E: g6_gates (sklearn->JS golden-sample equivalence) share the same anchoring.
+  if (!Array.isArray(cfg.g6_gates) || cfg.g6_gates.length === 0) {
+    errors.push('g6_gates missing or empty (ADR-0064 D-E): port-equivalence gates must not fail open');
+  }
+  const allGates = (cfg.gates || []).concat(cfg.probe_gates || []).concat(cfg.judge_bias_gates || []).concat(cfg.mr_gates || []).concat(cfg.g6_gates || []);
   for (const g of allGates) {
     const text = adrText(g.source_adr);
     if (text === null) {
@@ -138,7 +142,7 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 // Returns errors ([] = pass). now is injectable for deterministic tests.
 function checkTiers(cfg, now) {
   const errors = [];
-  const all = (cfg.gates || []).concat(cfg.probe_gates || []).concat(cfg.judge_bias_gates || []).concat(cfg.mr_gates || []);
+  const all = (cfg.gates || []).concat(cfg.probe_gates || []).concat(cfg.judge_bias_gates || []).concat(cfg.mr_gates || []).concat(cfg.g6_gates || []);
   const t = typeof now === 'number' ? now : Date.now();
   for (const g of all) {
     if (typeof g.tier !== 'string' || !TIERS.has(g.tier)) {
@@ -197,7 +201,7 @@ function main() {
     for (const e of errors) console.error('FAIL: ' + e);
     process.exit(1);
   }
-  console.log(`[thresholds] OK — ${(cfg.gates || []).length + (cfg.probe_gates || []).length + (cfg.judge_bias_gates || []).length + (cfg.mr_gates || []).length} gates anchored to ADRs` + (baseRef ? '; coupling OK' : ''));
+  console.log(`[thresholds] OK — ${(cfg.gates || []).length + (cfg.probe_gates || []).length + (cfg.judge_bias_gates || []).length + (cfg.mr_gates || []).length + (cfg.g6_gates || []).length} gates anchored to ADRs` + (baseRef ? '; coupling OK' : ''));
   process.exit(0);
 }
 

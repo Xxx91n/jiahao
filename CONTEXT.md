@@ -1724,4 +1724,44 @@ the CAPA). _Avoid_: open-ended concession; `--signoff` (certify) on a
 non-`pass` revalidation.
 
 
+
+**MDE Stop-Loss Gate (MDE 停损闸)**:
+The pre-registered success criterion for a product research round: pass = a
+minimum detectable effect over the baseline (frozen formula, numeric value
+frozen before execution), second consecutive miss = CAPA switch to the next
+feature family; never an absolute target value on a small corpus (ADR-0064 D-A;
+FDA non-inferiority margin; COMPEL experiment brief).
+_Avoid_: absolute recall target, threshold shopping after seeing results
+
+**Golden-Sample Equivalence Gate (金样本等价闸)**:
+The fail-closed equivalence check between the offline attribution substrate
+(sklearn) and the product substrate (JS): token multiset bit-equal, tfidf
+rel-L2 < 1e-9 diagnostic, logits diff < 1e-12 release condition over frozen
+items, plus a positive control (a deliberately corrupted port must be rejected)
+(ADR-0064 D-E; TFX InfraValidator blessing analog).
+_Avoid_: logits-only comparison, translating the vectorizer with a converter
+
+**Governance Trend Anchor (治理趋势锚点)**:
+An observational-only anchor on governance mass: net additions per
+documentation round (new minus superseded/closed) are watched against a frozen
+anchor (63, K=2); two consecutive net-positive rounds raise one advisory line,
+never block; anchor revision is a same-commit ADR (ADR-0064 D-F; SRE burn-rate,
+not static threshold).
+_Avoid_: hard numeric cap on ADR count, blocking trend alarms
+
+**Research Round vs Confirmatory Round (研究轮/确证轮)**:
+The split between attribution work (registers metrics, never edits the confirmatory
+thresholds) and settlement work (edits thresholds.json only via a separate ADR
+with a single settlement); mixing both in one commit batch is forbidden
+(ADR-0064 D-B; ChaLearn blind-test / Tweakathon precedent).
+_Avoid_: research round that edits the gating surface it is measured by
+
+**Fourth-Class Corpus (第四类语料资产)**:
+The Devin-collected truth corpus - deterministic-scoring tasks executed in a
+real agent harness, frozen snapshot with harness commit + model version; blind
+to research rungs until settlement, disjoint from the bench and golden-sample
+inventories, and never merged into or substituted for the judge corpus
+(ADR-0064 D-C; METR task standard).
+_Avoid_: training on the validation corpus, merging corpus classes
+
 *End of Glossary*

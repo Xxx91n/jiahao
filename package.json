@@ -43,5 +43,11 @@
     "CONTEXT.md",
     "README.md",
     "AGENTS.md"
-  ]
+  ],
+  "jest": {
+    "testPathIgnorePatterns": [
+      "node_modules",
+      "\\.scratch"
+    ]
+  }
 }

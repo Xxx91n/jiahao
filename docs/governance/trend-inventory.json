@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0064 D-F: observational trend surface for governance. One row per documentation round: net ADR additions + zero-product-diff flag. The trend anchor (base 63, K=2 consecutive doc rounds with net additions >0) emits ONE advisory ::warning:: and never blocks. A zero-product-diff doc round landing a new ADR forces a deferred-registry entry.",
+  "anchor": {
+    "adr_count_base": 63,
+    "K": 2,
+    "window": "documentation rounds",
+    "rule": "two consecutive documentation rounds with net ADR additions >0 emit one advisory warning (never block)"
+  },
+  "rounds": [
+    {
+      "round": "grill-t6-doc-round",
+      "date": "2026-09-14",
+      "kind": "documentation",
+      "adr_added": [
+        "0064"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "deferred_entry": "defer-0040",
+      "advisory_fired": false
+    }
+  ],
+  "source_adr": "0064"
+}

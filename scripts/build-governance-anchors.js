@@ -21,7 +21,9 @@ const ARTIFACTS = [
   { file: 'decision-ledger-adr0059.md', origin: '.scratch/grill-adr0059/decision-ledger.md', adr: 'ADR-0059' },
   { file: 'decision-ledger-adr0061.md', origin: '.scratch/grill-adr0061/decision-ledger.md', adr: 'ADR-0061' },
   { file: 'audit-report-adr0058.md', origin: '.scratch/grill-adr0058/reports/2026-09-12-audit-report.md', adr: 'ADR-0058' },
+  { file: 'decision-ledger-t6.md', origin: '.scratch/grill-t6/decision-ledger.md', adr: 'ADR-0064' },
   { file: 'ERRATA.md', origin: '(authored in place)', adr: 'ADR-0061' },
+  { file: 'trend-inventory.json', origin: '(authored in place)', adr: 'ADR-0064' },
 ];
 
 function sha256(buf) { return crypto.createHash('sha256').update(buf).digest('hex'); }
