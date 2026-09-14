@@ -66,6 +66,10 @@ packed-file edits), measured per the pinned protocol (npm pack --dry-run
 --json, `size` field; npm 11.6.1, Node v24.11.0). Row 9 is the M_latest that
 drives the ADR-0066 amendment:
 `ceil_to_10_000(270,813 x 1.10) = 300,000`.
+Row 10 = **273,240 bytes / 101 files** (2026-09-15, audit-rework window:
+score.js pyJsonNum expansion + persisted g6-publish replay artifact; still
+under the 300,000 cap - the amendment's derivation is anchored at its own
+measurement point, and a future amendment would take the then-latest M).
 
 ## Context
 

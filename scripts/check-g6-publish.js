@@ -76,6 +76,7 @@ function buildFixture(root) {
 function replay(port, manifest, golds, expectations, tol) {
   const errors = [];
   const warnings = [];
+  const detail = { items: golds.length, tier_a_equal: 0, rel_l2_max: 0, logit_diff_max: 0 };
   const expById = {};
   for (const e of expectations) expById[e.id] = e;
   for (const g of golds) {
@@ -86,14 +87,17 @@ function replay(port, manifest, golds, expectations, tol) {
       errors.push(g.id + ': token multiset digest mismatch (tier a, bit-equal)');
       continue;
     }
+    detail.tier_a_equal += 1;
     const vec = port.vectorize(tokens, manifest);
     const rl = relL2(vec, g.vector);
+    detail.rel_l2_max = Math.max(detail.rel_l2_max, rl);
     if (!(rl < tol.relL2)) warnings.push(g.id + ': rel-L2 ' + rl.toExponential(3) + ' !< ' + tol.relL2 + ' (tier b, advisory)');
     const lg = port.logit(vec, manifest);
     const dl = Math.abs(lg - exp.logit);
+    detail.logit_diff_max = Math.max(detail.logit_diff_max, dl);
     if (!(dl < tol.logit)) errors.push(g.id + ': logit abs diff ' + dl.toExponential(3) + ' !< ' + tol.logit + ' (tier c)');
   }
-  return { errors: errors, warnings: warnings };
+  return { errors: errors, warnings: warnings, detail: detail };
 }
 
 // Pack + extract; return the extracted package dir.
@@ -138,6 +142,9 @@ function check(root) {
   const res = replay(port, manifest, golds, fixture.expectations, tol);
   errors.push.apply(errors, res.errors);
   warnings.push.apply(warnings, res.warnings);
+  // Deterministic identity of the extracted product surface (tgz bytes carry
+  // a gzip clock; the extracted files do not).
+  const surfaceSha = sha(fs.readFileSync(scorePath, 'utf8') + '|' + fs.readFileSync(manifestPath, 'utf8'));
 
   // Positive control: a corrupted manifest from the SAME tarball must be
   // rejected; if it passes, the gate cannot detect port drift (fail-closed).
@@ -146,10 +153,14 @@ function check(root) {
   corrupt.vocabulary[vk[0]] = (corrupt.vocabulary[vk[0]] + 1) % corrupt.coef.length;
   corrupt.coef[0] += 0.5;
   const cres = replay(port, corrupt, golds, fixture.expectations, tol);
-  if (cres.errors.length === 0) errors.push('POSITIVE CONTROL FAILED: corrupted manifest produced no blocking failure - the publish gate cannot detect port drift');
+  const controlRejected = cres.errors.length !== 0;
+  if (!controlRejected) errors.push('POSITIVE CONTROL FAILED: corrupted manifest produced no blocking failure - the publish gate cannot detect port drift');
 
   fs.rmSync(WORK, { recursive: true, force: true });
-  return { errors: errors, warnings: warnings, packed: packed, count: fixture.item_count, tolLogit: tol.logit };
+  return {
+    errors: errors, warnings: warnings, packed: packed, count: fixture.item_count, tolLogit: tol.logit,
+    replay: { detail: res.detail, surface_sha256: surfaceSha, control_rejected: controlRejected }
+  };
 }
 
 function main() {
@@ -172,8 +183,33 @@ function main() {
   catch (e) { console.error('[g6-publish] fail-closed: ' + e.message); process.exit(1); }
   for (const w of out.warnings) console.warn('WARN(diagnostic): ' + w);
   for (const e of out.errors) console.error('FAIL: ' + e);
+  // Persist the replay log (D-005(b) closure artifact): deterministic content
+  // (no clock fields) so a green run reproduces identical bytes.
+  if (out.replay) {
+    const outDir = path.join(ROOT, 'bench', 'research', 'out');
+    fs.mkdirSync(outDir, { recursive: true });
+    const artifact = {
+      schema_version: 1,
+      _doc: 'ADR-0065 D-B.3 / D-005(b): persisted replay log of the G6 publish gate - extracted-surface digest, per-tier results, positive-control verdict. Deterministic content (no clock fields); a green re-run reproduces identical bytes.',
+      gate: 'g6-publish',
+      tarball: { file: out.packed ? path.basename(out.packed.file) : null, size: out.packed ? out.packed.size : null },
+      extracted_surface_sha256: out.replay.surface_sha256,
+      expectations: out.count,
+      tiers: {
+        a_token_digest_bit_equal: out.replay.detail.tier_a_equal + '/' + out.replay.detail.items,
+        b_rel_l2_max: out.replay.detail.rel_l2_max,
+        c_logit_diff_max: out.replay.detail.logit_diff_max,
+        c_tolerance: out.tolLogit,
+      },
+      positive_control: { corrupted_manifest_rejected: out.replay.control_rejected },
+      warnings: out.warnings,
+      errors: out.errors,
+      verdict: out.errors.length ? 'FAIL' : 'PASS',
+    };
+    fs.writeFileSync(path.join(outDir, 'g6-publish-replay.json'), JSON.stringify(artifact, null, 2) + '\n', { encoding: 'utf8' });
+  }
   if (out.errors.length) process.exit(1);
-  console.log('[g6-publish] OK: ' + (out.packed ? out.packed.file : 'tarball') + ' replayed ' + out.count + ' gold items from the extracted tarball - token digests bit-equal (a), rel-L2 advisory (b), logits < ' + out.tolLogit + ' (c); corrupted-port positive control rejected');
+  console.log('[g6-publish] OK: ' + (out.packed ? out.packed.file : 'tarball') + ' replayed ' + out.count + ' gold items from the extracted tarball - token digests bit-equal (a), rel-L2 advisory (b), logits < ' + out.tolLogit + ' (c); corrupted-port positive control rejected; log bench/research/out/g6-publish-replay.json');
   process.exit(0);
 }
 

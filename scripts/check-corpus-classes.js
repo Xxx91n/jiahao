@@ -116,6 +116,11 @@ function checkClasses(root, opts) {
       } else if (dm.status !== 'collecting') {
         errors.push('devin manifest status must be collecting|frozen, got ' + dm.status);
       }
+      // taxonomy flag in lockstep with the live manifest status (the field
+      // drifted silently before; it is gated now)
+      if ((dm.status === 'frozen') !== (dt.frozen === true)) {
+        errors.push('devin-truth taxonomy frozen=' + JSON.stringify(dt.frozen) + ' but manifest status=' + dm.status);
+      }
       if (items) {
         const seen = new Set();
         const goldIds = new Set();

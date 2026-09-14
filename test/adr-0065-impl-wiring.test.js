@@ -69,6 +69,17 @@ describe('T-1 product port (ADR-0065 D-B.1/D-B.2)', () => {
     expect(res.logits).not.toBe(good.logits);
   });
 
+  test('pyJsonNum edge: |v|>=1e21 expands to Python int digits, small exponents pad to 2', () => {
+    expect(port.pyJson(1e21)).toBe('1000000000000000000000');
+    expect(port.pyJson(1e7)).toBe('10000000');
+    expect(port.pyStr(1e-7)).toBe('1e-07');
+    expect(port.pyJson(0.5)).toBe('0.5');
+  });
+
+  test('score() is deterministic (same input -> identical logits)', () => {
+    expect(port.score('deterministic check').logits).toBe(port.score('deterministic check').logits);
+  });
+
   fullT('itemText serializer is byte-equal to sklearn item_text on gold20', () => {
     const items = {};
     for (const l of fs.readFileSync(path.join(CORPUS_DIR, 'items.jsonl'), 'utf8').split(/\r?\n/)) {
@@ -98,8 +109,7 @@ describe('T-2 confirmatory adjudication (ADR-0065 D-A / ledger D-002)', () => {
       if (String(p).endsWith('mde-freeze.json')) return JSON.stringify(Object.assign({}, real, { survivor_floor: 0.5 }));
       return jest.requireActual('fs').readFileSync(p, o);
     });
-    expect(() => conf.loadFloor(ROOT)).toThrow(/survivor_floor|inconsistent/);
-    spy.mockRestore();
+    try { expect(() => conf.loadFloor(ROOT)).toThrow(/survivor_floor|inconsistent/); } finally { spy.mockRestore(); }
   });
 
   test('the pre-registered ladder is exactly the two survivors (cap 2, third rejected)', () => {
@@ -250,6 +260,18 @@ describe('T-3 G6 publish gate (ADR-0065 D-B.3)', () => {
     // bench fixtures never ship
     expect(names.some((f) => f.startsWith('bench/research'))).toBe(false);
   }, 60000);
+
+  test('the gate persists a deterministic replay log (D-005(b) closure artifact)', () => {
+    const p = path.join(ROOT, 'bench', 'research', 'out', 'g6-publish-replay.json');
+    expect(fs.existsSync(p)).toBe(true);
+    const a = readJson(p);
+    expect(a.gate).toBe('g6-publish');
+    expect(a.verdict).toBe('PASS');
+    expect(a.tiers.a_token_digest_bit_equal).toBe('20/20');
+    expect(a.tiers.c_logit_diff_max).toBeLessThan(1e-12);
+    expect(a.positive_control.corrupted_manifest_rejected).toBe(true);
+    expect(a.extracted_surface_sha256).toMatch(/^[a-f0-9]{64}$/);
+  });
 });
 
 // ---------------------------------------------------------------- T-4 ----
@@ -301,6 +323,22 @@ describe('T-4 devin-corpus@v1 (ADR-0065 D-C / ledger D-004)', () => {
       expect(it.transcript.events.length).toBeGreaterThan(0);
       expect(typeof it.transcript.closing).toBe('string');
     }
+  });
+
+  test('rescore replays every stored label mechanically (the 52/52 figure is rerunnable)', () => {
+    const { rescore, bandAdvisory } = require('../scripts/collect-devin-corpus.js');
+    const r = rescore(ROOT);
+    expect(r.item_count).toBe(52);
+    expect(r.agreement).toBe('52/52');
+    expect(r.agreement_pct).toBe(100);
+    expect(r.mismatches).toHaveLength(0);
+    // artifact persisted
+    const p = path.join(ROOT, 'bench', 'research', 'out', 'devin-rescore.json');
+    expect(fs.existsSync(p)).toBe(true);
+    expect(readJson(p).agreement).toBe('52/52');
+    // count-band advisory: in-band null, out-of-band WARN (advisory only)
+    expect(bandAdvisory(52, [40, 60])).toBeNull();
+    expect(bandAdvisory(10, [40, 60])).toContain('WARN(advisory)');
   });
 
   test('drops are consumed by the single snapshot (no pending drops)', () => {

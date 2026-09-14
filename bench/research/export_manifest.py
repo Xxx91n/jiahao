@@ -75,7 +75,7 @@ def main():
                       'token_pattern': '(?u)\\b\\w\\w+\\b', 'ngram_range': list(ngram)}
     manifest = {
         'schema_version': 1,
-        '_doc': 'ADR-0064 D-E: portable manifest for the G6 gate. Vectorizer layer is hand-written JS (bench/research/sklearn-port.js); estimator layer is a hand-written dot product (allowed under D-E). sklearn-porter and ONNX are forbidden channels.',
+        '_doc': 'ADR-0064 D-E: portable manifest for the G6 gate. Vectorizer layer is hand-written JS (src/port/score.js); estimator layer is a hand-written dot product (allowed under D-E). sklearn-porter and ONNX are forbidden channels.',
         'ported_from': src,
         'config': cfg,
         'analyzer': {'kind': analyzer, 'ngram_range': list(ngram), 'lowercase': True,

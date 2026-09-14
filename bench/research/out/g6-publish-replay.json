@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0065 D-B.3 / D-005(b): persisted replay log of the G6 publish gate - extracted-surface digest, per-tier results, positive-control verdict. Deterministic content (no clock fields); a green re-run reproduces identical bytes.",
+  "gate": "g6-publish",
+  "tarball": {
+    "file": "jiahao-0.0.1.tgz",
+    "size": 273240
+  },
+  "extracted_surface_sha256": "7d276bb757e27cf3dc566b2dfd882278b693da1ef6e087fe8774094dc5622174",
+  "expectations": 20,
+  "tiers": {
+    "a_token_digest_bit_equal": "20/20",
+    "b_rel_l2_max": 0,
+    "c_logit_diff_max": 2.6645352591003757e-14,
+    "c_tolerance": 1e-12
+  },
+  "positive_control": {
+    "corrupted_manifest_rejected": true
+  },
+  "warnings": [],
+  "errors": [],
+  "verdict": "PASS"
+}

@@ -41,7 +41,7 @@
       "home": "bench/research/devin-corpus",
       "snapshot": "devin-corpus@v1",
       "role": "METR Task Standard ground truth (task+setup+deterministic scoring function); collected via the local Devin harness; blind to rung 1 - unlocks only after rung-1 settlement",
-      "frozen": false,
+      "frozen": true,
       "no_rung_statistics": true
     }
   ],

@@ -63,6 +63,11 @@ close a ~40 kB breach, so the trend-anchor amendment is the only legal move.
 Derivation rule (trend anchor): `cap = ceil_to_10_000(M_latest x 1.10)`.
 M_latest = 270,813 -> 297,894.3 -> **300,000 bytes**.
 
+Post-amendment note (2026-09-15, audit-rework window): the rework fixes
+added ~2.4 KB of packed bytes; the re-measured M is 273,240 B, still under
+the amended cap. The derivation above is anchored at the amendment-time
+measurement; the live trend row continues in ADR-0039 (row 10).
+
 The jump is dominated by one planned payload - the float64 manifest
 (116,852 B raw, ~40 kB packed) - not by drift. The 1.10 headroom covers the
 observed governance-text increments while staying tight enough to catch a

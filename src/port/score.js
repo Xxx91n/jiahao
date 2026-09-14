@@ -107,7 +107,7 @@ function pyJsonStr(s) {
     else {
       const v = cp - 0x10000;
       out += '\\u' + (0xd800 + (v >> 10)).toString(16).padStart(4, '0')
-           + '\\u' + (0xdc00 + (v & 1023)).toString(16).padStart(4, '0');
+        + '\\u' + (0xdc00 + (v & 1023)).toString(16).padStart(4, '0');
     }
   }
   return out + '"';
@@ -118,7 +118,15 @@ function pyJsonNum(v) {
     // Python repr(int) is plain digits; floats with integral value render
     // '5.0' - JS cannot distinguish, so integral numbers emit int form
     // (corpus arguments are strings/ints in practice).
-    return Math.abs(v) < 1e21 ? String(v) : String(v).replace('e+', 'e+0');
+    if (Math.abs(v) < 1e21) return String(v);
+    // Python int repr never uses sci notation: expand the JS exponent form
+    // to full digits ('1e+21' -> '1000000000000000000000'). Beyond double
+    // precision the digits are the double's own value, as stored.
+    const m = /^(\d)(?:\.(\d+))?e\+(\d+)$/.exec(String(v));
+    if (!m) return String(v);
+    const digits = m[1] + (m[2] || '');
+    const zeros = Number(m[3]) + 1 - digits.length;
+    return digits + (zeros > 0 ? '0'.repeat(zeros) : '');
   }
   // Python float repr vs JS: pad one-digit exponents to two ('1e-7'->'1e-07').
   return String(v).replace(/e([+-])(\d)$/, 'e$10$2');
