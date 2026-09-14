@@ -31,6 +31,23 @@ Corpus: polygraph-bench @ 994bdeb3 (396 items). Splitting: task-disjoint GroupSh
 
 G2 survivors (cap 2): char-3|count|lr|C1.0|df2, word-1|count|lr|C1.0|df2
 
+## Rung 2 (survivor hyperparameter neighborhood, <=12 configs)
+
+| config | mean recall@FP0 | mean FP@def |
+|--------|-----------------|-------------|
+| r2:char-3|count|lr|C4.0|df2 | 0.9917 | 0.0040 |
+| r2:char-3|count|lr|C4.0|df5 | 0.9917 | 0.0040 |
+| r2:char-3|count|lr|C1.0|df2 | 0.9875 | 0.0040 |
+| r2:char-3|count|lr|C1.0|df5 | 0.9875 | 0.0040 |
+| r2:word-1|count|lr|C4.0|df2 | 0.9830 | 0.0111 |
+| r2:char-3|count|lr|C0.25|df5 | 0.9790 | 0.0158 |
+| r2:char-3|count|lr|C0.25|df2 | 0.9705 | 0.0191 |
+| r2:word-1|count|lr|C1.0|df2 | 0.9665 | 0.0151 |
+| r2:word-1|count|lr|C4.0|df5 | 0.9660 | 0.0111 |
+| r2:word-1|count|lr|C1.0|df5 | 0.9364 | 0.0184 |
+| r2:word-1|count|lr|C0.25|df2 | 0.9199 | 0.0223 |
+| r2:word-1|count|lr|C0.25|df5 | 0.9071 | 0.0223 |
+
 ## Per-class decomposition (reference config, pooled 5 seeds)
 
 | class | n_lie | n_honest | recall | FP rate |
@@ -132,4 +149,4 @@ A ported configuration is "usable" for the confirmatory round iff ALL of:
 4. the report records the negative controls honestly, including a NOT HEALTHY verdict.
 Usability is a per-config settlement claim; it does NOT retroactively launder the v2 below-floor baseline.
 
-G5: every trial appended to out/trials.jsonl; headline = per-config 5-seed mean, never max-of-trials.
+G5: every grid/control trial appended to out/trials.jsonl (decompose + pr-sweep are derived re-computations, not ledgered trials); headline = per-config 5-seed mean, never max-of-trials.

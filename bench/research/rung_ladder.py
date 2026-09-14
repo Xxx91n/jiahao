@@ -590,7 +590,7 @@ def phase_report(out_dir, freeze, survivors_doc, controls, rung2_results, decomp
     lines.append('4. the report records the negative controls honestly, including a NOT HEALTHY verdict.')
     lines.append('Usability is a per-config settlement claim; it does NOT retroactively launder the v2 below-floor baseline.')
     lines.append('')
-    lines.append('G5: every trial appended to out/trials.jsonl; headline = per-config 5-seed mean, never max-of-trials.')
+    lines.append('G5: every grid/control trial appended to out/trials.jsonl (decompose + pr-sweep are derived re-computations, not ledgered trials); headline = per-config 5-seed mean, never max-of-trials.')
     with open(os.path.join(out_dir, 'attribution-report.md'), 'w', encoding='utf-8', newline='') as f:
         f.write('\n'.join(lines) + '\n')
     print('[report] out/attribution-report.md written')
