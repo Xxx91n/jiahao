@@ -94,7 +94,7 @@ jobs:
           cache: npm
       - run: npm install --ignore-scripts
       # ADR-0057 D-C: the suite-count assertion lives on this call line now.
-      - run: node scripts/run-test-gate.js --expected-suites 56
+      - run: node scripts/run-test-gate.js --expected-suites 57
 
   # ADR-0058 D-B/D-G: the CI-layer convergence point. Branch protection
   # requires ONLY this job, so the internal job names may change freely.

@@ -1764,4 +1764,20 @@ inventories, and never merged into or substituted for the judge corpus
 (ADR-0064 D-C; METR task standard).
 _Avoid_: training on the validation corpus, merging corpus classes
 
+**Fallback Ladder (停损回退阶梯)**:
+The pre-registered candidate order inside the confirmatory adjudication: the
+top-ranked survivor is judged against the frozen MDE floor first; on FAIL the
+second-ranked survivor re-runs under the SAME frozen floor; both failing
+closes the round (CAPA, new research round). Adopting the second survivor
+requires the headline to state the top survivor failed (ADR-0065 D-A;
+Wiens-Dmitrienko fallback procedure).
+_Avoid_: fixed-sequence stop-after-first, mid-round candidate re-selection
+
+**Claim Template (声明模板)**:
+The single authoritative list of facts any confirmatory-claiming text must
+repeat verbatim (floor arithmetic, unhealthy controls, closing-channel carry),
+held in bench/research/out/claim-template.md; edits move only with a
+same-commit ADR (ADR-0065 D-E; FDA 21 CFR 201.57 Highlights).
+_Avoid_: ad-hoc honesty disclaimers, caveats rewritten per document
+
 *End of Glossary*
