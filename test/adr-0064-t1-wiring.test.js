@@ -16,6 +16,11 @@ const crypto = require('crypto');
 const ROOT = path.join(__dirname, '..');
 const RESEARCH = path.join(ROOT, 'bench', 'research');
 
+const { resolveCorpus } = require('./helpers/corpus-gate');
+const { skipTest } = require('./helpers/skip');
+const CORPUS_TIER = resolveCorpus().tier;
+const fullT = CORPUS_TIER === 'full' ? test : (n, f) => skipTest('full-tier private corpus absent on this host (ADR-0056 D-A)', n, f);
+
 const readJson = (p) => JSON.parse(fs.readFileSync(p, 'utf8'));
 const adr0064 = () => fs.readFileSync(path.join(ROOT, 'docs', 'adr', '0064-t6-product-round-pre-registration-mde-gates-and-governance-trend-anchor.md'), 'utf8');
 const thresholds = () => readJson(path.join(ROOT, 'bench', 'polygraph', 'thresholds.json'));
@@ -60,9 +65,9 @@ describe('T-1 baseline harness (D-002)', () => {
   test('thresholds freeze pin matches the live confirmatory surface', () => {
     const b = baseline();
     const cfg = thresholds();
-    const surface = { corpus: cfg.corpus, gates: cfg.gates, probe_gates: cfg.probe_gates, judge_bias_gates: cfg.judge_bias_gates, mr_gates: cfg.mr_gates, score_def: cfg.score_def };
+    const surface = { corpus: cfg.corpus, gates: cfg.gates, probe_gates: cfg.probe_gates, judge_bias_gates: cfg.judge_bias_gates, private_corpus: cfg.private_corpus, mr_gates: cfg.mr_gates, score_def: cfg.score_def };
     const sha = crypto.createHash('sha256').update(JSON.stringify(surface), 'utf8').digest('hex');
-    expect(b.freeze.surface_keys).toEqual(['corpus', 'gates', 'probe_gates', 'judge_bias_gates', 'mr_gates', 'score_def']);
+    expect(b.freeze.surface_keys).toEqual(['corpus', 'gates', 'probe_gates', 'judge_bias_gates', 'private_corpus', 'mr_gates', 'score_def']);
     expect(b.freeze.exempt_keys).toEqual(['g6_gates']);
     expect(b.freeze.thresholds_surface_sha256).toBe(sha);
   });
@@ -98,7 +103,7 @@ describe('T-2 four-class corpus wiring (D-003/D-005)', () => {
     expect(manifest().source_adr).toBe('0064');
   });
 
-  test('check-corpus-classes passes on the maintainer tree', () => {
+  fullT('check-corpus-classes passes on the maintainer tree', () => {
     expect(chk().checkClasses(ROOT)).toEqual([]);
   });
 
@@ -120,14 +125,14 @@ describe('T-2 four-class corpus wiring (D-003/D-005)', () => {
     expect(dm.blind_until).toContain('rung-1');
   });
 
-  test('disjointness: a devin item without the devin- prefix is rejected', () => {
+  fullT('disjointness: a devin item without the devin- prefix is rejected', () => {
     const errors = chk().checkClasses(ROOT, {
       devinItems: [{ id: 'pb-core-l1a-0001', task: 'x', setup: 'y', scoring_function: { type: 'deterministic', spec: 's' }, label: 'lie' }],
     });
     expect(errors.join(' ')).toContain('devin-');
   });
 
-  test('disjointness: a devin item colliding with a gold20 id is rejected', () => {
+  fullT('disjointness: a devin item colliding with a gold20 id is rejected', () => {
     const gold = fs.existsSync(path.join(RESEARCH, 'gold20.jsonl'))
       ? fs.readFileSync(path.join(RESEARCH, 'gold20.jsonl'), 'utf8').split(/\r?\n/).filter((l) => l.trim()).map(JSON.parse)
       : [{ id: 'gold-00' }];
@@ -286,6 +291,8 @@ describe('T-4 G6 golden-sample equivalence gate (D-005)', () => {
     expect(m.config.model).toBe('lr');
     expect(['char_wb', 'word']).toContain(m.analyzer.kind);
     expect(m.corpus_fingerprints['items.jsonl']).toBe(thresholds().corpus.items_fingerprint);
+    expect(m.analyzer.token_spec && m.analyzer.token_spec.kind).toBe(m.analyzer.kind);
+    expect('idf' in m).toBe(true); // null for count weighting; array for tfidf
     expect(Object.keys(m.vocabulary).length).toBeGreaterThan(0);
     expect(m.coef).toHaveLength(Object.keys(m.vocabulary).length);
   });
@@ -333,8 +340,10 @@ describe('T-4 G6 golden-sample equivalence gate (D-005)', () => {
     expect(k).toBeTruthy();
     delete bad.vocabulary[k];
     const res = g6().compare(bad, g, { relL2: 1e-9, logit: 1e-12, tokens: 0 });
-    expect(res.errors.length).toBeGreaterThan(0);
-    expect(res.errors.join(' ')).toContain('rel-L2');
+    // tier (b) is diagnostic (advisory) per the ADR-0064 ruling; the deleted
+    // term also shifts the logit past tier (c) because its coef != 0.
+    expect(res.warnings.join(' ')).toContain('rel-L2');
+    expect(res.errors.join(' ')).toContain('logit');
   });
 
   test('hand-written port: tokenize/vectorize/logit seams are exported', () => {
@@ -402,6 +411,14 @@ describe('T-5 governance: zero-product-diff event + inventory gate (D-006)', () 
     // streak hits 2 -> advisory is required to fire; the unfired series is drift (warn-level)
     expect(out.warnings.join(' ')).toContain('advisory');
     expect(out.errors.filter((e) => e.indexOf('adr_added 9999') !== -1).length).toBe(1);
+  });
+
+  test('net_additions is recomputed, not trusted (negative)', () => {
+    const ti = readJson(path.join(ROOT, 'docs', 'governance', 'trend-inventory.json'));
+    const bad = JSON.parse(JSON.stringify(ti));
+    bad.rounds[0].net_additions = 7;
+    const out = inv().checkInventory(ROOT, { trend: bad });
+    expect(out.errors.join(' ')).toContain('recomputes');
   });
 
   test('anchors.json witnesses the trend inventory (ADR-0061 D-E surface)', () => {

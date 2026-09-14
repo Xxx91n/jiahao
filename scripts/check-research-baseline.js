@@ -10,7 +10,7 @@
 //   (b) the corpus block equals the thresholds.json corpus pin (single home
 //       for the corpus identity - no second copy to drift).
 //   (c) the freeze pin: sha256 over the canonical confirmatory surface
-//       (corpus + gates + probe_gates + judge_bias_gates + mr_gates +
+//       (corpus + gates + probe_gates + judge_bias_gates + private_corpus + mr_gates +
 //       score_def) still matches the live thresholds.json. The g6_gates
 //       class is exempt (ADR-0064 D-E sanctions its pre-port registration).
 //   (d) evidence cross-check: the committed metrics-v2-run4.json artifact

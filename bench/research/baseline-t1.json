@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0064 D-B/D-002: T-1 research-round baseline harness. Records the attribution baseline AS-IS: detector v2 core split on the frozen external bench (README Run 2, metrics-v2-run4.json). The freeze pin covers ONLY the confirmatory threshold surface; the g6_gates class is exempt because ADR-0064 D-E sanctions writing it before any JS porting line. Machine-checked by scripts/check-research-baseline.js (gates.json: research-baseline).",
+  "_doc": "ADR-0064 D-B/D-002: T-1 research-round baseline harness. Records the attribution baseline AS-IS: detector v2 core split on the frozen external bench (README Run 2, metrics-v2-run4.json). The freeze pin covers ONLY the confirmatory threshold surface; the g6_gates class is exempt because ADR-0064 D-E sanctions writing it before any JS porting line; private_corpus joined the frozen surface in the T-1 repair round (audit finding: private fingerprints were outside the freeze). Machine-checked by scripts/check-research-baseline.js (gates.json: research-baseline).",
   "round": "T-1",
   "recorded_at": "2026-09-14",
   "baseline": {
@@ -40,6 +40,7 @@
       "gates",
       "probe_gates",
       "judge_bias_gates",
+      "private_corpus",
       "mr_gates",
       "score_def"
     ],
@@ -47,7 +48,8 @@
       "g6_gates"
     ],
     "exempt_reason": "ADR-0064 D-E: the G6 threshold class is pre-registered into thresholds.json BEFORE any JS porting line; it is a new threshold class, not a tuning of the confirmatory surface",
-    "thresholds_surface_sha256": "1cbc62a2e6de0226940dee0eb3d8a675243eb374eca0cc86133364ca1f367f44"
+    "thresholds_surface_sha256": "cdae09ea03b439138648c36ef05c2321c3c22b77ce5f82baa8ddb2380a330948",
+    "recorded_at": "2026-09-14"
   },
   "waiver": {
     "invoked": false,

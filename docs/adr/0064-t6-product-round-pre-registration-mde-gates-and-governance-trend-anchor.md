@@ -59,6 +59,18 @@ attribution report passes the MDE gate, changing thresholds.json or shipping a
 v3 detector is a separate later round (ADR + single confirmatory settlement,
 G5). Mixing research and settlement in one commit batch is forbidden.
 
+Carve-out (repair-round clarification): "never edits thresholds.json" means
+never edits the EXISTING confirmatory keys (corpus, gates, probe_gates,
+judge_bias_gates, private_corpus, mr_gates, score_def - the set frozen by
+bench/research/baseline-t1.json). Registering a NEW threshold class
+(g6_gates) is permitted and required by D-E, which orders it before any JS
+porting line; the freeze exempts only that class.
+
+Tier ruling (repair-round clarification): the G6 tier labels in D-E keep
+their literal semantics - (a) token multiset and (c) logit are release
+blockers; (b) the vector rel-L2 is a diagnostic channel (advisory warnings,
+never a block), because (a)+(c) already bound the product end-to-end.
+
 ### D-C - Corpus assets are four distinct classes and never interchanged
 
 1. External frozen bench (396 items, sha256 pinned).

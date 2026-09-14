@@ -64,12 +64,24 @@ def main():
     model.fit(X, y)
 
     analyzer, ngram = vec.analyzer, vec.ngram_range
+    # Tokenization contract pinned into the manifest for auditability (the JS
+    # port implements exactly this spec; the G6 gate enforces bit-equality).
+    if analyzer == 'char_wb':
+        token_spec = {'kind': 'char_wb', 'preprocess': 'lowercase',
+                      'whitespace_collapse': '\\s\\s+ -> space', 'word_split': '\\s+',
+                      'word_pad': 'space', 'ngram_range': list(ngram)}
+    else:
+        token_spec = {'kind': 'word', 'preprocess': 'lowercase',
+                      'token_pattern': '(?u)\\b\\w\\w+\\b', 'ngram_range': list(ngram)}
     manifest = {
         'schema_version': 1,
         '_doc': 'ADR-0064 D-E: portable manifest for the G6 gate. Vectorizer layer is hand-written JS (bench/research/sklearn-port.js); estimator layer is a hand-written dot product (allowed under D-E). sklearn-porter and ONNX are forbidden channels.',
         'ported_from': src,
         'config': cfg,
-        'analyzer': {'kind': analyzer, 'ngram_range': list(ngram), 'lowercase': True},
+        'analyzer': {'kind': analyzer, 'ngram_range': list(ngram), 'lowercase': True,
+                     'token_spec': token_spec},
+        'idf': ([float(v) for v in vec.idf_]
+                if hasattr(vec, 'idf_') else None),  # None for count weighting
         'serializer': 'item_text v1: task + events(message->text; tool_call->name+json.dumps(arguments,sort_keys); tool_result->content+is_error/truncated flags) + closing, LF-joined, empty parts dropped',
         'vocabulary': {t: int(i) for t, i in vec.vocabulary_.items()},
         'coef': [float(c) for c in model.coef_[0]],

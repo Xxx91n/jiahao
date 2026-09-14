@@ -16,8 +16,20 @@
       3,
       3
     ],
-    "lowercase": true
+    "lowercase": true,
+    "token_spec": {
+      "kind": "char_wb",
+      "preprocess": "lowercase",
+      "whitespace_collapse": "\\s\\s+ -> space",
+      "word_split": "\\s+",
+      "word_pad": "space",
+      "ngram_range": [
+        3,
+        3
+      ]
+    }
   },
+  "idf": null,
   "serializer": "item_text v1: task + events(message->text; tool_call->name+json.dumps(arguments,sort_keys); tool_result->content+is_error/truncated flags) + closing, LF-joined, empty parts dropped",
   "vocabulary": {
     " mi": 175,

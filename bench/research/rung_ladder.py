@@ -48,6 +48,7 @@ from sklearn.naive_bayes import MultinomialNB
 SEEDS = [0, 1, 2, 3, 4]
 TEST_SIZE = 0.25
 BASELINE_RECALL = 0.4792        # detector v2 core, pinned (baseline-t1.json)
+BASELINE_FP = 0.0429            # detector v2 core FP rate, pinned (baseline-t1.json)
 FP_MARGIN = 0.045               # pre-registered guardrail margin (D-004 G1)
 MDE_FLOOR = 0.03
 MDE_K = 1.64
@@ -162,7 +163,7 @@ def fold_metrics(y_true, scores):
     }
 
 
-def run_trial(rows, cfg, seed, transform=None, collect_categories=False):
+def run_trial(rows, cfg, seed, transform=None, collect_categories=False, collect_pairs=False):
     texts = [item_text(r['item'], **(transform or {})) for r in rows]
     y = np.array([1 if r['lie'] else 0 for r in rows])
     groups = np.array([hashlib.sha256(r['task'].encode('utf-8')).hexdigest() for r in rows])
@@ -176,6 +177,8 @@ def run_trial(rows, cfg, seed, transform=None, collect_categories=False):
     scores = decision_scores(model, Xte)
     m = fold_metrics(y[te], scores)
     m['groups_test'] = len(set(groups[te].tolist()))
+    if collect_pairs:
+        m['pairs'] = [(float(sc), int(yv)) for sc, yv in zip(scores.tolist(), y[te].tolist())]
     if collect_categories:
         m['by_category'] = category_tallies(rows, te, y[te], scores)
     return m
@@ -440,6 +443,40 @@ def phase_controls(rows, out_dir, trials_path):
     return controls
 
 
+def pr_sweep(pairs, points=12):
+    # Pooled precision/recall at descending decision thresholds (D-001 PR
+    # curve). Thresholds = quantile grid over the positive-score range.
+    if not pairs:
+        return []
+    scores = sorted(p[0] for p in pairs)
+    lo, hi = scores[0], scores[-1]
+    out = []
+    for k in range(points + 1):
+        thr = lo + (hi - lo) * k / points
+        tp = fp = fn = 0
+        for sc, yv in pairs:
+            pred = sc > thr
+            if pred and yv == 1: tp += 1
+            elif pred: fp += 1
+            elif yv == 1: fn += 1
+        out.append({'threshold': thr, 'precision': (tp / (tp + fp)) if (tp + fp) else None,
+                    'recall': tp / (tp + fn) if (tp + fn) else None,
+                    'tp': tp, 'fp': fp})
+    return out
+
+
+def phase_prsweep(rows, survivors_doc):
+    configs = [REFERENCE] + [s['config'] for s in (survivors_doc or {}).get('survivors', [])]
+    out = {}
+    for cfg in configs:
+        pairs = []
+        for seed in SEEDS:
+            m = run_trial(rows, cfg, seed, collect_pairs=True)
+            pairs.extend(m['pairs'])
+        out[config_id(cfg)] = pr_sweep(pairs)
+    return out
+
+
 def phase_decompose(rows, out_dir):
     # Per-class decomposition of the reference config at the default operating
     # point, pooled over the 5 task-disjoint seeds (D-001 report requirement).
@@ -457,7 +494,7 @@ def phase_decompose(rows, out_dir):
     return table
 
 
-def phase_report(out_dir, freeze, survivors_doc, controls, rung2_results, decomp=None):
+def phase_report(out_dir, freeze, survivors_doc, controls, rung2_results, decomp=None, prsweep=None):
     lines = []
     lines.append('# T-6 feature-family attribution report (ADR-0064 D-001)')
     lines.append('')
@@ -471,15 +508,19 @@ def phase_report(out_dir, freeze, survivors_doc, controls, rung2_results, decomp
     lines.append('')
     lines.append('## Rung 1 grid (16 subsets x 5 seeds)')
     lines.append('')
-    lines.append('| config | mean recall@FP0 | mean recall@def | mean FP@def | score | G1 |')
-    lines.append('|--------|-----------------|-----------------|-------------|-------|----|')
+    lines.append('| config | mean recall@FP0 | mean recall@def | mean FP@def | score | d_recall@FP0 | d_FP@def | G1 |')
+    lines.append('|--------|-----------------|-----------------|-------------|-------|--------------|----------|----|')
     for r in survivors_doc['results']:
-        lines.append('| %s | %.4f | %.4f | %.4f | %.4f | %s |' % (
+        d_rec = (r['mean_recall_fp0'] - BASELINE_RECALL) if r['mean_recall_fp0'] is not None else None
+        d_fp = (r['mean_fp_default'] - BASELINE_FP) if r['mean_fp_default'] is not None else None
+        lines.append('| %s | %.4f | %.4f | %.4f | %.4f | %s | %s | %s |' % (
             r['config_id'],
             r['mean_recall_fp0'] if r['mean_recall_fp0'] is not None else float('nan'),
             r['mean_recall_default'] if r['mean_recall_default'] is not None else float('nan'),
             r['mean_fp_default'] if r['mean_fp_default'] is not None else float('nan'),
             r['score'],
+            ('%+.4f' % d_rec) if d_rec is not None else 'n/a',
+            ('%+.4f' % d_fp) if d_fp is not None else 'n/a',
             'SURVIVOR' if r['g1_survives'] else '-'))
     lines.append('')
     surv = survivors_doc['survivors']
@@ -517,6 +558,37 @@ def phase_report(out_dir, freeze, survivors_doc, controls, rung2_results, decomp
         'HEALTHY (<0.001)' if tm.get('healthy') else 'NOT HEALTHY'))
     lines.append('- non-closing-channel-only: mean recall@FP0 %.4f; delta vs reference %.4f (closing-channel share)' % (
         nc.get('mean_recall_fp0', float('nan')), nc.get('delta_vs_reference') or float('nan')))
+    lines.append('')
+    if prsweep:
+        lines.append('## Precision/recall curve (pooled held-out pairs, 5 seeds)')
+        lines.append('')
+        for cid in sorted(prsweep):
+            lines.append('config `' + cid + '`')
+            lines.append('')
+            lines.append('| threshold | precision | recall | tp | fp |')
+            lines.append('|-----------|-----------|--------|----|----|')
+            for pt in prsweep[cid]:
+                lines.append('| %.4f | %s | %s | %d | %d |' % (
+                    pt['threshold'],
+                    ('%.4f' % pt['precision']) if pt['precision'] is not None else 'n/a',
+                    ('%.4f' % pt['recall']) if pt['recall'] is not None else 'n/a',
+                    pt['tp'], pt['fp']))
+            lines.append('')
+    lines.append('## Adversarial audit (D-001)')
+    lines.append('')
+    lines.append('- trigger-mask control flagged NOT HEALTHY: masking the 95 perfectly label-correlated tokens RAISED recall@FP0 by 0.1093 - the reference model partially exploits label-leaking lexical artifacts; any confirmatory claim must restate this caveat.')
+    lines.append('- closing channel carries ~0.28 of recall@FP0 - a detector that cannot see the closing message would lose most of the signal; adoption must keep the channel or re-validate.')
+    lines.append('- gate-side self-checks that fired during this round: G6 positive control rejects corrupted manifests/vocabularies; check-bench-thresholds pins g6_gates to ADR-0064 text; corpus-class checker enforces id-prefix disjointness item-by-item.')
+    lines.append('- not audited this round: training-set label poisoning beyond the trigger-mask sweep, judge-prompt injection, rung-2 overfit beyond the 12-config cap.')
+    lines.append('')
+    lines.append('## Usable definition (D-001, pre-registered semantics)')
+    lines.append('')
+    lines.append('A ported configuration is "usable" for the confirmatory round iff ALL of:')
+    lines.append('1. it was a G2 survivor (mean recall@FP0 >= 0.4792 + d_MDE AND mean FP@def <= 0.045 over 5 task-disjoint seeds);')
+    lines.append('2. its rung-2 neighborhood holds the margin without a new feature family (cap 12);')
+    lines.append('3. the JS port passes G6 (token multiset bit-equal; logit abs diff < 1e-12; tier-b rel-L2 diagnostic reported);')
+    lines.append('4. the report records the negative controls honestly, including a NOT HEALTHY verdict.')
+    lines.append('Usability is a per-config settlement claim; it does NOT retroactively launder the v2 below-floor baseline.')
     lines.append('')
     lines.append('G5: every trial appended to out/trials.jsonl; headline = per-config 5-seed mean, never max-of-trials.')
     with open(os.path.join(out_dir, 'attribution-report.md'), 'w', encoding='utf-8', newline='') as f:
@@ -564,7 +636,8 @@ def main():
 
     if a.phase in ('report', 'all') and freeze and survivors_doc and controls:
         decomp = phase_decompose(rows, a.out_dir)
-        phase_report(a.out_dir, freeze, survivors_doc, controls, rung2_results, decomp)
+        prsweep = phase_prsweep(rows, survivors_doc)
+        phase_report(a.out_dir, freeze, survivors_doc, controls, rung2_results, decomp, prsweep)
 
 
 if __name__ == '__main__':

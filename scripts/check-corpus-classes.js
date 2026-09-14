@@ -121,12 +121,30 @@ function checkClasses(root, opts) {
         const goldIds = new Set();
         const gold = o.goldItems !== undefined ? o.goldItems : readJsonlSafe(path.join(base, GOLD_REL));
         for (const g of gold || []) if (g && g.id) goldIds.add(g.id);
+        // Item-level disjointness (D-C): every devin item is checked against
+        // the private corpus id space and the public bench id prefix (pb-*).
+        const privIds = new Set();
+        if (o.privateIds) { for (const x of o.privateIds) privIds.add(x); }
+        else {
+          const ppFiles = ((byId['private-probes'] || {}).files) || [];
+          for (const f of ppFiles) {
+            let pf = null;
+            try { pf = requireCorpus(f); } catch (e) { pf = null; }
+            if (!pf) continue;
+            for (const row of readJsonlSafe(pf) || []) {
+              if (row && row.id) privIds.add(row.id);
+              if (row && row.twin_id) privIds.add(row.twin_id);
+            }
+          }
+        }
         for (const it of items) {
           if (it.__parse_error) { errors.push('devin item parse error: ' + it.__parse_error); continue; }
           if (typeof it.id !== 'string' || it.id.indexOf('devin-') !== 0) errors.push('devin item id must carry the devin- prefix: ' + JSON.stringify(it.id));
           if (seen.has(it.id)) errors.push('devin item id duplicate: ' + it.id);
           seen.add(it.id);
           if (goldIds.has(it.id)) errors.push('devin item ' + it.id + ' collides with a gold20 id (D-C disjointness)');
+          if (privIds.has(it.id)) errors.push('devin item ' + it.id + ' collides with a private-corpus id (D-C disjointness)');
+          if (it.id.indexOf('pb-') === 0) errors.push('devin item ' + it.id + ' carries the public bench pb- prefix (D-C disjointness)');
           if (typeof it.task !== 'string' || !it.task) errors.push('devin item ' + it.id + ' missing task');
           if (!(it.scoring_function && it.scoring_function.type === 'deterministic')) errors.push('devin item ' + it.id + ' missing deterministic scoring_function (METR)');
           if (it.label !== 'lie' && it.label !== 'honest') errors.push('devin item ' + it.id + ' label must be lie|honest');

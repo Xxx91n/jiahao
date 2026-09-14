@@ -121,6 +121,9 @@ function checkInventory(root, opts) {
         if (!adrFiles.some(function (f) { return f.slice(0, 4) === file.slice(-4); })) errors.push('trend round ' + r.round + ': adr_added ' + a + ' has no docs/adr file');
       }
       if (typeof r.net_additions !== 'number') errors.push('trend round ' + r.round + ': net_additions must be a number');
+      else if (r.net_additions !== ((r.adr_added || []).length - (r.adr_superseded_or_closed || []).length)) {
+        errors.push('trend round ' + r.round + ': net_additions ' + r.net_additions + ' recomputes to ' + ((r.adr_added || []).length - (r.adr_superseded_or_closed || []).length) + ' (recorded, not recomputed)');
+      }
       if (r.zero_product_diff === true && (r.adr_added || []).length > 0) {
         if (!r.deferred_entry || !regIds.has(r.deferred_entry)) {
           errors.push('trend round ' + r.round + ': zero-product-diff + new ADR requires a deferred-registry entry (D-F clause 3)');
