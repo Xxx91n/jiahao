@@ -25,10 +25,11 @@
 const fs = require('fs');
 const path = require('path');
 const { requireCapabilities } = require('../src/shared/capability');
-const port = require('../bench/research/sklearn-port');
+const port = require('../src/port/score');
 
 const ROOT = path.join(__dirname, '..');
-const MANIFEST_REL = path.join('bench', 'research', 'g6-manifest.json');
+// ADR-0065 D-B.1: the port substrate moved into src/ (shipped in the tarball).
+const MANIFEST_REL = path.join('src', 'port', 'g6-manifest.json');
 const GOLD_REL = path.join('bench', 'research', 'gold20.jsonl');
 const THRESHOLDS_REL = path.join('bench', 'polygraph', 'thresholds.json');
 
@@ -98,7 +99,7 @@ function checkG6(root, opts) {
     nGold: gateValue(cfg, 'g6-goldens'),
   };
   for (const k of Object.keys(tol)) if (tol[k] === null) errors.push('thresholds.json g6_gates missing ' + k + ' (D-E: pre-registered before porting)');
-  if (errors.length) return errors;
+  if (errors.length) return { errors: errors, warnings: warnings, detail: [] };
 
   if (golds.length !== tol.nGold) errors.push('gold20.jsonl holds ' + golds.length + ' items, expected ' + tol.nGold);
   if (tol.tokens !== 0) errors.push('g6-token-multiset tolerance must be 0 (bit-equal)');
@@ -121,7 +122,7 @@ function checkG6(root, opts) {
   const cres = compare(corrupt, golds, tol);
   if (cres.errors.length === 0) errors.push('POSITIVE CONTROL FAILED: corrupted manifest produced no blocking failure - the gate cannot detect port drift');
 
-  return { errors: errors, detail: res.detail };
+  return { errors: errors, detail: res.detail, warnings: warnings };
 }
 
 function main() {

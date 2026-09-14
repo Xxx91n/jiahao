@@ -127,6 +127,9 @@ function snapshot(argv) {
     incoming_dir: 'incoming',
     scoring: 'deterministic scoring function per item (METR Task Standard); labels mechanically reproducible',
     blind_until: 'rung-1 settlement (ADR-0064 D-C(4))',
+    plan: 'plan.json (registered before collection; categories + counts + disjointness only, never item content)',
+    verification: 'spec-layer dual verification; no Cohen kappa - mechanical labels make IAA a category error (ADR-0065 D-C.2)',
+    conformity_disclaimer: 'devin-corpus@v1 is never cited by any conformity claim (ADR-0065 D-C.4)',
     disjoint_from: ['external-bench (polygraph-396, pb- ids)', 'golden-sample (gold20)', 'judge-conformity (n=26)'],
     source_adr: '0064'
   };

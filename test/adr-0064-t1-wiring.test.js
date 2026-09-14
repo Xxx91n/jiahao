@@ -264,7 +264,7 @@ describe('T-3 rung ladder G1-G5 (D-004)', () => {
 
 
 describe('T-4 G6 golden-sample equivalence gate (D-005)', () => {
-  const manifest = () => readJson(path.join(RESEARCH, 'g6-manifest.json'));
+  const manifest = () => readJson(path.join(ROOT, 'src', 'port', 'g6-manifest.json'));
   const golds = () => fs.readFileSync(path.join(RESEARCH, 'gold20.jsonl'), 'utf8')
     .split(/\r?\n/).filter((l) => l.trim()).map(JSON.parse);
   const g6 = () => require('../scripts/check-g6-equivalence');
@@ -347,7 +347,7 @@ describe('T-4 G6 golden-sample equivalence gate (D-005)', () => {
   });
 
   test('hand-written port: tokenize/vectorize/logit seams are exported', () => {
-    const port = require('../bench/research/sklearn-port');
+    const port = require('../src/port/score');
     expect(typeof port.tokenize).toBe('function');
     expect(typeof port.vectorize).toBe('function');
     expect(typeof port.logit).toBe('function');

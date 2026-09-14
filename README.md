@@ -202,7 +202,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). The index below is a derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js` — do not hand-edit:
 
 <!-- adr-index:start -->
-- 65 architecture decision records:
+- 66 architecture decision records:
 - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
 - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
 - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
@@ -268,10 +268,42 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - [ADR-0063](docs/adr/0063-surface-narrowed-judge-identity-anchor-semantic-digest-rejected.md) — Surface-Narrowed Judge Identity Anchor - Semantic Digest Rejected
 - [ADR-0064](docs/adr/0064-t6-product-round-pre-registration-mde-gates-and-governance-trend-anchor.md) — T-6 Product Round Pre-Registration - MDE Stage-Gates, Golden-Sample Equivalence, Governance Trend Anchor
 - [ADR-0065](docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md) — T-6 Confirmatory Round - Adjudication Rule, Port Surface, Devin Corpus Protocol, Claim Honesty
+- [ADR-0066](docs/adr/0066-tarball-cap-trend-anchor-amendment-t6-product-port-surface.md) — Tarball-Cap Trend-Anchor Amendment for the T-6 Product Port Surface
 <!-- adr-index:end -->
-- `test/` — 57 test suites, 787 tests
+- `test/` — 58 test suites, 820 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 - `private/bench-corpus/` — answer corpora (probes/judge-twins/twins + fingerprints; gitignored, ADR-0036 D2). Gate scripts resolve via JIAHAO_CORPUS_DIR, else the install-planted dir (`jiahao init` plants it from the package), else this repo-private dir in a maintainer tree; missing everywhere fails closed (exit 1: config; the capability probe degrades an absent corpus dir to exit 2 UNVERIFIABLE first, ADR-0041 D2). npm consumers and public git clones carry no corpus at all — corpus gates are a maintainer/CI-only contract, fail-closed by design (ADR-0038 D2).
+
+## Confirmatory claims (T-6, ADR-0065 D-E)
+
+Every confirmatory claim about the T-6 product port repeats the fixed facts
+below verbatim. The single authority is
+bench/research/out/claim-template.md; the same block appears in
+bench/research/out/confirmatory-report.md (whitespace-normalized identical).
+
+1. Floor arithmetic: the single absolute gate is confirmatory recall@FP0
+   >= 0.563863 = baseline 0.4792 + d_MDE 0.084663 (frozen by ADR-0064 D-A;
+   no post-hoc threshold moves, ADR-0065 D-A).
+2. Trigger-mask control NOT HEALTHY: masking the 95 perfectly
+   label-correlated tokens RAISED recall@FP0 by +0.1093 - the reference
+   model partially exploits label-leaking lexical artifacts.
+3. Closing channel: the closing message carries ~0.28 of recall@FP0; a
+   scorer blind to it loses most of the signal.
+4. Terminal fact (this round): CONFIRMATORY PASS - char-3|count|lr|C1.0|df2
+   replayed the frozen corpus (polygraph-bench @994bdeb3, 396 items) through
+   the shipped product port at recall@FP0 1.000000 with FP@default 0.000000
+   (in-sample replay of the artifact trained on the full frozen corpus; the
+   out-of-fold honesty claim remains the rung-1 research number, never
+   max-of-trials).
+5. Fallback honesty: the top survivor was judged first and passed; the
+   fallback word-1|count|lr|C1.0|df2 leg never fired. Had it fired and
+   passed, every claim would state: "the top-ranked survivor
+   char-3|count|lr|C1.0|df2 failed confirmation; the adopted scorer is
+   word-1|count|lr|C1.0|df2 (headline is never max-of-trials)."
+6. Advisory channel: tier-(b) rel-L2 of port vectors vs the frozen gold20
+   vectors measured max 0, mean 0 (count weighting is exact integer
+   arithmetic on both sides) - diagnostic only, recorded in
+   confirmatory-result.json, restated here, never moves an exit code.
 
 ## License
 

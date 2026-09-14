@@ -17,7 +17,8 @@
     "instrument:gate": "node scripts/instrument.js --check",
     "mr:gate": "node scripts/check-mr-probes.js",
     "corpus:drift": "node scripts/corpus-tier-drift.js",
-    "pack:smoke": "node scripts/check-pack-smoke.js"
+    "pack:smoke": "node scripts/check-pack-smoke.js",
+    "prepublishOnly": "node scripts/check-g6-publish.js"
   },
   "devDependencies": {
     "jest": "^29.7.0"

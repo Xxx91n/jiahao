@@ -16,7 +16,7 @@ describe('D1: files whitelist = runtime artifact surface', () => {
     expect(pkg.files).toEqual(['src/', 'scripts/', 'adapters/', 'schemas/', 'hooks/', 'docs/gates.json', 'docs/coverage-map.json', 'docs/deferred-registry.json', 'docs/change-surface.json', 'bench/polygraph/thresholds.json', 'CONTEXT.md', 'README.md', 'AGENTS.md']);
   });
 
-  test('npm pack dry-run tarball: no test/, no docs/adr, no bench fixtures, thresholds.json present, under the 200,000-byte ADR-0039 D3 cap', () => {
+  test('npm pack dry-run tarball: no test/, no docs/adr, no bench fixtures, thresholds.json present, under the ADR-0039 D3 cap', () => {
     // shell: true on win32 - Node >=18.20 refuses to spawn .cmd/.bat without it (EINVAL)
     const res = spawnSync('npm', ['pack', '--dry-run', '--json'], { cwd: ROOT, encoding: 'utf8', shell: process.platform === 'win32' });
     expect(res.status).toBe(0);
@@ -59,10 +59,13 @@ describe('ADR-0039 D3: cap content anchor', () => {
   test('the amended cap appears verbatim in ADR-0039 (ADR-0062 trend anchor)', () => {
     const adr = fs.readFileSync(path.join(ROOT, 'docs', 'adr', '0039-tarball-runtime-surface-narrowing-docs-adr-archive-channel.md'), 'utf8');
     // ADR-0062 D-C (2026-09-13): the one-shot 200,000-byte narrowing-round
-    // anchor is superseded by the periodic trend anchor cap 230,000 bytes.
+    // anchor is superseded by the periodic trend anchor cap 230,000 bytes;
+    // ADR-0066 (2026-09-14) applies the same rule to the T-6 port surface and
+    // moves it to 300,000 bytes.
     // The live cap is asserted via packCapBytes(); this test anchors the text.
-    expect(adr).toContain('230,000');
-    expect(adr).toContain('200,000'); // the superseded value stays recorded, not erased
+    expect(adr).toContain('300,000');
+    expect(adr).toContain('230,000'); // the superseded value stays recorded, not erased
+    expect(adr).toContain('200,000'); // the original value stays recorded, not erased
     expect(adr).toContain('Budget status (2026-09-12');
     expect(adr).toContain('withdrawn');
   });

@@ -134,3 +134,7 @@ side-topics (release channel, defer-0040 disposition) enter this round.
   implementation round (not in this doc round — zero product diff here).
 - The trend-anchor advisory firing at this round is observational; it never
   blocks (ADR-0064 D-F).
+- Implementation-round registry writes (2026-09-14, same-commit amendment):
+  the D-E.1 rows landed as defer-0043 (this round's net-addition tally:
+  +1, ADR-0066) and defer-0044 (the single terminal event: confirmatory
+  PASS); defer-0042 is the ADR-0066 amendment's own review slot.

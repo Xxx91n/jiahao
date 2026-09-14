@@ -14,8 +14,11 @@ M = 140,778 bytes (< 160 kB) with D3’s own conclusion "no cap
 recomputation: the 200,000-byte budget stands". The cap therefore remains
 **200,000 bytes** as of the 2026-09-12 note below; the one-shot narrowing-round
 anchor is **superseded by ADR-0062 (2026-09-13)**, which raises the cap to
-**230,000 bytes** (`out.size < 230,000 bytes`) under a periodic trend anchor
-(`cap = ceil_to_10_000(M_latest x 1.10)`; protocol pinned in ADR-0062 D-B).
+**230,000 bytes** under a periodic trend anchor
+(`cap = ceil_to_10_000(M_latest x 1.10)`; protocol pinned in ADR-0062 D-B),
+and again by **ADR-0066 (2026-09-14)**, which applies the same trend-anchor
+rule to the T-6 product port surface and moves the cap to **300,000 bytes**.
+The live bound literal lives once in D3 below.
 
 Assertion surface (2026-09-13, ADR-0061 D-F measurement-unblock round). The
 cap is now asserted by gate:all as well as by the adr-0038-wiring jest test:
@@ -54,6 +57,15 @@ a different derivation. Current re-measure at this repair round: **212,699 bytes
 / 93 files** (still < 230,000), measured with `npm pack --dry-run --json` (the
 `size` field, npm 10.9.7) per this ADR's own re-measure rule. This figure is a
 point-in-time reading, not a cap: the cap parsed below is what binds.
+
+Trend rows 7-9 (2026-09-14, ADR-0066 / grill-t7 implementation round). Row 7
+= **226,867 bytes / 98 files** (the grill-t7 doc round: ADR-0065 +
+governance texts). Row 8 = **269,320 bytes** (mid-round, port surface
+landed). Row 9 = **270,813 bytes / 101 files** (final re-measure after all
+packed-file edits), measured per the pinned protocol (npm pack --dry-run
+--json, `size` field; npm 11.6.1, Node v24.11.0). Row 9 is the M_latest that
+drives the ADR-0066 amendment:
+`ceil_to_10_000(270,813 x 1.10) = 300,000`.
 
 ## Context
 
@@ -106,9 +118,10 @@ Exa/Tavily/AnySearch, 17 primary-source fetches, cross-verified):
   Fowler's build-task-to-website are the isomorphic industry forms; we
   build none of them today.)
 - D3 Measured-anchor budget. The adr-0038-wiring test and the pack-smoke gate
-  assert `out.size < 230,000 bytes` (amended 2026-09-13 by ADR-0062; the
-  original 200,000-byte value and its one-shot narrowing-round M anchor are
-  superseded by the periodic trend anchor). The cap
+  assert `out.size < 300,000 bytes` (amended 2026-09-13 by ADR-0062 to
+  230,000, and again 2026-09-14 by ADR-0066 to 300,000 for the T-6 product
+  port surface; the original 200,000-byte value and its one-shot
+  narrowing-round M anchor are superseded by the periodic trend anchor). The cap
   value must appear verbatim in this ADR's text (content anchor, reusing
   the ADR-0027 D2(a) mechanism: every gate value appears in its source_adr
   file). Single confirmatory tier, no warn band. The metric is npm pack's `size` field (packed tarball bytes), not `unpackedSize`. Impl round records the

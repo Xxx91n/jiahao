@@ -565,6 +565,60 @@
         "note": "registered in the grill-t7 doc round"
       },
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0042",
+      "subject": "tarball-cap trend-anchor review (ADR-0066 amendment closure, T-6 port surface)",
+      "source_adr": "docs/adr/0066-tarball-cap-trend-anchor-amendment-t6-product-port-surface.md",
+      "rationale": "ADR-0066 D-E: the cap amendment carries a review_at and rides the deferred-registry tide like every other pre-registered gate revision; the live value stays anchored in ADR-0039 D3. The second_reviewer slot is open pending the next audit round.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the ADR-0066 review_at (2026-12-14) is checked in and the trend anchor is re-measured under the pinned protocol (npm pack --dry-run --json, size field); second_reviewer countersign lands"
+      },
+      "review_at": "2026-12-14",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-14",
+      "last_check_in": {
+        "date": "2026-09-14",
+        "note": "registered in the grill-t7 implementation round (T-6 confirmatory port surface)"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0043",
+      "subject": "grill-t7 impl round net-addition tally: +1 ADR (ADR-0066 cap amendment) - D-006(a)(i) summary row",
+      "source_adr": "docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md",
+      "rationale": "Ledger D-006(a)(i): every round writes exactly one net-addition summary row into the defer-0039 tide. The T-6 implementation round lands one new ADR (0066, tarball-cap trend-anchor amendment 230,000->300,000 for the product port surface); implementation/research-round ADRs do not feed the trend-inventory count (ADR-0064 D-F pins the window to documentation rounds), so the tally rides the registry tide instead.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+      },
+      "review_at": "2026-12-14",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-14",
+      "last_check_in": {
+        "date": "2026-09-14",
+        "note": "net additions +1 (ADR-0066); registered in the grill-t7 implementation round"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0044",
+      "subject": "T-6 confirmatory terminal event: PASS (char-3 recall@FP0 1.000000, fp_default 0.000000 vs floor 0.563863)",
+      "source_adr": "docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md",
+      "rationale": "Ledger D-006(a)(ii): at most one terminal event per round enters the registry. The T-6 confirmatory run settled PASS on the primary survivor (bench/research/out/confirmatory-result.json); the fallback leg never fired. Fallback branches, count-band advisories, rel-L2 drift and waiver closures are excluded by the same clause.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "terminal event dispositioned at the next audit/trend evaluation; entry closed only by a same-commit ADR or ledger note"
+      },
+      "review_at": "2026-12-14",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-14",
+      "last_check_in": {
+        "date": "2026-09-14",
+        "note": "confirmatory PASS recorded from bench/research/out/confirmatory-result.json"
+      },
+      "status": "pending-evaluation"
     }
   ]
 }

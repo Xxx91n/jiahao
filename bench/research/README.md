@@ -21,8 +21,9 @@ byte-frozen for this round by baseline-t1.json.
   | report | all. Requires python + sklearn (research-only dependency).
 - export_manifest.py - D-E manifest dump of the ported config (vocabulary +
   coef + intercept + analyzer spec) and the 20-item golden set.
-- g6-manifest.json, gold20.jsonl - the frozen port substrate + goldens.
-- sklearn-port.js - D-E hand-written JS vectorizer + dot-product estimator.
+- gold20.jsonl - the frozen goldens (token multiset + sparse vector + logit).
+  The port substrate itself moved to src/port/ (score.js + g6-manifest.json)
+  in the T-6 confirmatory round (ADR-0065 D-B: the product surface ships).
 - out/ - append-only execution evidence: trials.jsonl (one row per
   config x seed x phase), survivors.json (G1/G2 verdicts), negative-controls.json,
   attribution-report.md (D-001 deliverable).

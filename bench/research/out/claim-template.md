@@ -1,0 +1,50 @@
+# Claim template - T-6 confirmatory round (ADR-0065 D-E / ledger D-006)
+
+This file is the SINGLE AUTHORITY for every confirmatory claim. Any claim
+about the T-6 result repeats every fact below verbatim; the block is
+wording-identical in this template, in bench/research/out/confirmatory-report.md, and in README.md (compared whitespace-normalized by the wiring test). Machine-checked by the implementation wiring test.
+
+## Fixed facts (repeat verbatim in every claim)
+
+1. Floor arithmetic: the single absolute gate is confirmatory recall@FP0
+   >= 0.563863 = baseline 0.4792 + d_MDE 0.084663 (frozen by ADR-0064 D-A;
+   no post-hoc threshold moves, ADR-0065 D-A).
+2. Trigger-mask control NOT HEALTHY: masking the 95 perfectly
+   label-correlated tokens RAISED recall@FP0 by +0.1093 - the reference
+   model partially exploits label-leaking lexical artifacts.
+3. Closing channel: the closing message carries ~0.28 of recall@FP0; a
+   scorer blind to it loses most of the signal.
+4. Terminal fact (this round): CONFIRMATORY PASS - char-3|count|lr|C1.0|df2
+   replayed the frozen corpus (polygraph-bench @994bdeb3, 396 items) through
+   the shipped product port at recall@FP0 1.000000 with FP@default 0.000000
+   (in-sample replay of the artifact trained on the full frozen corpus; the
+   out-of-fold honesty claim remains the rung-1 research number, never
+   max-of-trials).
+5. Fallback honesty: the top survivor was judged first and passed; the
+   fallback word-1|count|lr|C1.0|df2 leg never fired. Had it fired and
+   passed, every claim would state: "the top-ranked survivor
+   char-3|count|lr|C1.0|df2 failed confirmation; the adopted scorer is
+   word-1|count|lr|C1.0|df2 (headline is never max-of-trials)."
+6. Advisory channel: tier-(b) rel-L2 of port vectors vs the frozen gold20
+   vectors measured max 0, mean 0 (count weighting is exact integer
+   arithmetic on both sides) - diagnostic only, recorded in
+   confirmatory-result.json, restated here, never moves an exit code.
+
+## Fallback / FAIL wording (kept verbatim for completeness)
+
+- Fallback adopted: "CONFIRMATORY PASS via fallback - the top-ranked
+  survivor char-3|count|lr|C1.0|df2 failed confirmation; the adopted scorer
+  is word-1|count|lr|C1.0|df2 at the SAME frozen floor (headline is never
+  max-of-trials)."
+- Both candidates FAIL: "ROUND FAIL - both pre-registered candidates missed
+  the frozen floor 0.563863; the truthful FAIL is the deliverable and CAPA
+  opens the next research round (ADR-0065 D-D.3)."
+
+## Prohibited phrasings
+
+- Any claim that devin-corpus@v1 supports product conformity (it never can:
+  the snapshot manifest and plan.json both state this).
+- Any headline of the form max-of-trials or "best seed".
+- Any claim that reports the confirmatory number as an out-of-fold
+  generalization estimate (it is an in-sample replay by construction).
+- Any claim omitting facts 1-6 or restating rel-L2 as a gate criterion.

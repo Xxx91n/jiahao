@@ -320,6 +320,30 @@
         "repo-tree",
         "docs-adr"
       ]
+    },
+    {
+      "name": "confirmatory-bench",
+      "command": "node bench/research/confirmatory.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md",
+      "order": 151,
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ],
+      "_doc": "ADR-0065 D-A (ledger D-002): the shipped port replays the pinned corpus (994bdeb3, self-cloning to the tmp cache like bench-gate) and is judged against the frozen single floor 0.563863 + FP margin 0.045; verdict lands in bench/research/out/confirmatory-result.json. Tier-(b) rel-L2 is advisory-only. Fallback word-1 same-floor leg runs via --manifest/--config-id when the primary fails."
+    },
+    {
+      "name": "g6-publish",
+      "command": "node scripts/check-g6-publish.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md",
+      "order": 153,
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ],
+      "_doc": "ADR-0065 D-B.3 (with ADR-0064 D-E): JS-only publish gate. Packs the tarball, replays the sha256-anchored gold20 expectations against the EXTRACTED src/port surface (tiers a/c blocking, b advisory), corrupted-port positive control must be rejected. Wired to prepublishOnly; never blocks local npm pack."
     }
   ]
 }
