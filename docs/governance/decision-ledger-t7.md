@@ -1,3 +1,6 @@
+<!-- ARCHIVE: .scratch/ is git-tracked since 2026-09-15 — this file is the final
+synced snapshot (ledger D-016). Live authority: .scratch/grill-t7/decision-ledger.md -->
+
 # decision-ledger — grill-t7 (ADR-0064 D-B confirmatory round)
 
 idempotent

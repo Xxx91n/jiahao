@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0064 D-A: d_MDE computed from the corpus and frozen before the execution run. SE_5seed = sample-SE of the reference config recall_fp0 over the 5 registered seeds.",
+  "formula": "d_MDE = max(0.03, 1.64 * SE_5seed)",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "reference_config": {
+    "granularity": "word-2",
+    "weighting": "tfidf-sublinear",
+    "model": "lr",
+    "C": 1.0,
+    "alpha": 1.0,
+    "min_df": 2,
+    "config_id": "word-2|tfidf-sublinear|lr|C1.0|df2"
+  },
+  "reference_recall_fp0_by_seed": [
+    0.6285714285714286,
+    0.7446808510638298,
+    0.72,
+    0.7446808510638298,
+    0.9444444444444444
+  ],
+  "se_5seed": 0.05162386325667017,
+  "d_mde": 0.08466313574093907,
+  "baseline_recall": 0.4792,
+  "survivor_floor": 0.563863135740939,
+  "fp_margin": 0.045,
+  "corpus_fingerprints": {
+    "items.jsonl": "067a837fb6b607d8c3978fd97542ddd6609ffed49f21b40a76e20e7962ca7953",
+    "labels.jsonl": "65dcd6651ce6d592f7f3d29a30b33b3be146b917acd29e1ecac1ab60c630a2ff"
+  },
+  "source_adr": "0064"
+}

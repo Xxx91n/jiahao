@@ -20,7 +20,7 @@ function clone(o) { return JSON.parse(JSON.stringify(o)); }
 
 // ADR-0038 D1 coupling: the tarball assertion packs `scripts/`, so temp verifier
 // scripts must NOT be written there - a parallel jest worker made the measured
-// size race the ADR-0039 D3 cap. `.scratch/` is gitignored and not in
+// size race the ADR-0039 D3 cap. `.scratch/` is git-tracked but not in
 // package.json `files`, so it never enters the packed surface.
 const SCRATCH = path.join(ROOT, '.scratch');
 function tmpScript(name, body) {

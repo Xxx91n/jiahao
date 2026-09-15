@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0036 D5: corpus freshness tiers + fail multiplier (Soft-Hard Freshness Ladder). fail = tier x 1.5 (half-yearly 6mo -> 9mo, yearly 12mo -> 18mo; the ADR-0030 6/9 dead-man ladder is re-derived as 6x1.5). Freshness fact sources: judge-twins reads the reverify-ledger.json tail (single fact source, ADR-0030 D3); probes and mr-probes read max(collected_at) in the corpus itself (the ADR-0036 D3 refresh date seeds it); twins reads fresh_since here until a reverify channel exists (declared known-exposed per ADR-0036 D3, refreshed at the yearly cycle).",
+  "source_adr": "docs/adr/0036-anti-gaming-audit-corpus-migration-freshness-gate-defaults.md",
+  "fail_multiplier": 1.5,
+  "tiers": {
+    "probes.jsonl": 6,
+    "judge-twins.jsonl": 6,
+    "twins.jsonl": 12,
+    "mr-probes.jsonl": 6
+  },
+  "fresh_since": {
+    "twins.jsonl": "2026-08-30"
+  }
+}

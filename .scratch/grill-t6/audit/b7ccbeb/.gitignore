@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Agent runtimes / scratch spaces
+.omx/
+.codex-tmp/
+.codegraph/
+.scratch
+
+# Logs
+*.log
+
+# OS / shell noise
+nul
+Thumbs.db
+.DS_Store
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets (ADR-0014 convention)
+private/
+
+# Project-local gate artifacts (ADR-0027 D4 isomorphic evidence)
+bench-artifacts/
+probe-artifacts/
+test-artifacts/
+mr-artifacts/
