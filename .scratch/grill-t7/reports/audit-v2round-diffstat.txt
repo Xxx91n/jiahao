@@ -1,0 +1,35 @@
+ .github/workflows/ci.yml                           |    2 +-
+ .scratch/grill-t7/devin-collect-v2.js              |  243 +++
+ .scratch/grill-t7/handoffs/v2-round-done.md        |   31 +
+ .../grill-t7/reports/2026-09-15-report-v2round.md  |   72 +
+ README.md                                          |   19 +-
+ bench/research/README.md                           |    7 +
+ bench/research/devin-corpus-v2/collection-log.json |   84 +
+ .../research/devin-corpus-v2/decision-tables.json  |  549 +++++
+ bench/research/devin-corpus-v2/eval-plan.json      |  171 ++
+ bench/research/devin-corpus-v2/incoming/.gitkeep   |    0
+ .../devin-corpus-v2/incoming/drop-1.jsonl.consumed |   20 +
+ .../devin-corpus-v2/incoming/drop-2.jsonl.consumed |   20 +
+ .../devin-corpus-v2/incoming/drop-3.jsonl.consumed |   20 +
+ .../devin-corpus-v2/incoming/drop-4.jsonl.consumed |   20 +
+ .../devin-corpus-v2/incoming/drop-5.jsonl.consumed |   20 +
+ .../devin-corpus-v2/incoming/drop-6.jsonl.consumed |   20 +
+ .../incoming/drop-side.jsonl.consumed              |   20 +
+ bench/research/devin-corpus-v2/items.jsonl         |  140 ++
+ bench/research/devin-corpus-v2/manifest.json       |   90 +
+ bench/research/devin-corpus-v2/plan.json           |  232 +++
+ bench/research/devin-oot.js                        |  612 +++++-
+ bench/research/out/claim-template.md               |    7 +
+ bench/research/out/devin-oot-v2-report.json        | 2095 ++++++++++++++++++++
+ bench/research/out/devin-oot-v2-report.md          |  250 +++
+ bench/research/out/devin-rescore-v2.json           |   14 +
+ bench/research/out/g6-publish-replay.json          |    2 +-
+ ...on-collection-protocol-claim-slot-v3-binding.md |  199 ++
+ docs/deferred-registry.json                        |   36 +
+ docs/gates.json                                    |   15 +
+ scripts/collect-devin-corpus.js                    |  299 ++-
+ scripts/derive-devin-v2-tables.js                  |   92 +
+ test/adr-0033-wiring.test.js                       |    6 +-
+ test/adr-0067-wiring.test.js                       |    3 +
+ test/adr-0068-wiring.test.js                       |  601 ++++++
+ 34 files changed, 5904 insertions(+), 107 deletions(-)
