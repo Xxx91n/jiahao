@@ -48,3 +48,11 @@ wording-identical in this template, in bench/research/out/confirmatory-report.md
 - Any claim that reports the confirmatory number as an out-of-fold
   generalization estimate (it is an in-sample replay by construction).
 - Any claim omitting facts 1-6 or restating rel-L2 as a gate criterion.
+
+## devin-corpus@v1 OOT falsification (ADR-0067 D-C)
+
+devin-corpus@v1 falsification test: indeterminate (n=52, lie=12, CI lower 0.054861) (verdict date: 2026-09-15)
+
+This is a small-sample (n_lie=12) decision-table outcome, not a precise performance estimate; devin-corpus@v1 is never cited by any conformity claim.
+
+the pre-registered integer decision table assigns 3/12 to the indeterminate band; this is a decision-table outcome, not an effect estimate

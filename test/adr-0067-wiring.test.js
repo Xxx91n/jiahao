@@ -294,3 +294,83 @@ describe('T-2 runner seam (ADR-0067 D-B/D-E)', () => {
     } finally { spy.mockRestore(); }
   });
 });
+
+// ------------------------------------------------------------ T-4 (claim) --
+describe('T-4 claim surface (ADR-0067 D-C)', () => {
+  const oot = require('../bench/research/devin-oot.js');
+  const REPORT_MD = path.join(ROOT, 'bench', 'research', 'out', 'devin-oot-report.md');
+  const CLAIM_TPL = path.join(ROOT, 'bench', 'research', 'out', 'claim-template.md');
+  const README = path.join(ROOT, 'README.md');
+  const norm = (s) => s.replace(/\s+/g, ' ');
+
+  test('the stored artifact exists and its verdict is truthful-naming only', () => {
+    const rep = readJson(oot.REPORT_JSON);
+    expect(rep.run_status).toBe('completed');
+    expect(rep.single_shot).toBe(true);
+    expect(['falsification-passed', 'indeterminate', 'failed']).toContain(rep.decision.verdict);
+    // single-shot burn: a completed artifact exists, re-run is refused (exit 2)
+    const { spawnSync } = require('child_process');
+    const r = spawnSync(process.execPath, [path.join(ROOT, 'bench', 'research', 'devin-oot.js'), 'run'], { cwd: ROOT, encoding: 'utf8' });
+    expect(r.status).toBe(2);
+    expect(r.stderr).toContain('single-shot');
+  });
+
+  test('the fact line + limitation sentence co-occur verbatim in all three claim homes', () => {
+    const rep = readJson(oot.REPORT_JSON);
+    const fact = rep.claim.fact_line;
+    const lim = rep.claim.limitation_sentence;
+    for (const f of [CLAIM_TPL, README, REPORT_MD]) {
+      const n = norm(read(f));
+      expect(n).toContain(norm(fact));
+      expect(n).toContain(norm(lim));
+    }
+  });
+
+  test('every devin-corpus mention in a claim home is bound to the fact line', () => {
+    const rep = readJson(oot.REPORT_JSON);
+    const fact = norm(rep.claim.fact_line);
+    for (const f of [CLAIM_TPL, README, REPORT_MD]) {
+      const n = norm(read(f));
+      if (n.indexOf('devin-corpus') !== -1) expect(n).toContain(fact);
+    }
+  });
+
+  test('the fact line carries @v1 + verdict date + the CI lower bound', () => {
+    const rep = readJson(oot.REPORT_JSON);
+    const fact = rep.claim.fact_line;
+    expect(fact).toContain('devin-corpus@v1');
+    expect(fact).toContain('verdict date: ' + rep.run_at);
+    expect(fact).toContain('CI lower ' + rep.decision.ci95.lower.toFixed(6));
+    expect(fact).toMatch(/falsification test: (passed|indeterminate|failed) \(n=52, lie=12, CI lower [0-9.]+\) \(verdict date: \d{4}-\d{2}-\d{2}\)/);
+  });
+
+  test('no superlatives or max-of-trials framing in the OOT claim block', () => {
+    const rep = readJson(oot.REPORT_JSON);
+    const block = [rep.claim.fact_line, rep.claim.limitation_sentence, rep.claim.wording || ''].join(' ');
+    expect(block).not.toMatch(/max-of-trials|strongest configuration|at best|best seed/i);
+    // never a percentage success-rate framing of the verdict
+    expect(block).not.toMatch(/success rate/i);
+  });
+
+  test('INDETERMINATE wording: the integer table assigns the band; never failed-to-reach', () => {
+    const rep = readJson(oot.REPORT_JSON);
+    if (rep.decision.verdict === 'indeterminate') {
+      const w = rep.claim.wording;
+      expect(w).toContain('integer decision table assigns ' + rep.metrics.k + '/12 to the indeterminate band');
+      expect(w).toContain('decision-table outcome');
+      for (const f of [CLAIM_TPL, README, REPORT_MD]) {
+        const n = norm(read(f));
+        expect(n).toContain(norm(w));
+        expect(n).not.toMatch(/failed to reach/i);
+      }
+    }
+  });
+
+  test('the conformity surface is untouched: the six fixed facts still hold', () => {
+    const tpl = read(CLAIM_TPL);
+    expect(tpl).toContain('## Fixed facts');
+    expect(tpl).toContain('0.563863 = baseline 0.4792 + d_MDE 0.084663');
+    expect(tpl).toContain('CONFIRMATORY PASS');
+    expect(tpl).toContain('Any claim that devin-corpus@v1 supports product conformity');
+  });
+});
