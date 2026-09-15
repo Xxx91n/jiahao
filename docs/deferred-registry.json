@@ -619,6 +619,24 @@
         "note": "confirmatory PASS recorded from bench/research/out/confirmatory-result.json"
       },
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0045",
+      "subject": "grill-t7 unblind-exec round net-addition tally: +1 ADR (ADR-0067 devin-corpus@v1 OOT falsification adjudication) - D-006(a)(i) summary row",
+      "source_adr": "docs/adr/0067-devin-corpus-v1-oot-falsification-adjudication.md",
+      "rationale": "Ledger D-006(a)(i): every round writes exactly one net-addition summary row into the defer-0039 tide. The unblind execution round lands one new ADR (0067: eval-plan registration, claim-surface extension, branch policy); the terminal-event row is a separate entry registered only after the single-shot verdict exists.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+      },
+      "review_at": "2026-12-14",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-15",
+      "last_check_in": {
+        "date": "2026-09-15",
+        "note": "net additions +1 (ADR-0067); registered in the grill-t7 unblind execution round"
+      },
+      "status": "pending-evaluation"
     }
   ]
 }
