@@ -291,6 +291,42 @@
       "event_timestamp": "2026-09-15T17:35:56.520Z",
       "logging_timestamp": "2026-09-15T17:35:56.520Z",
       "event_hash": "09c70c8729fe6d43881947b55f093e6bd66581289e28eeb0fd631fb8f14ce201"
+    },
+    {
+      "seq": 15,
+      "kind": "record_only_change",
+      "identity_digest": "c68d49c60e87e581f827b7066ba01b3dab646843aa23bc5c5ff5781f719458b9",
+      "reverify_ledger_hash": null,
+      "bias_probe_hash": null,
+      "reviewer_id": null,
+      "second_reviewer": null,
+      "attestation_type": null,
+      "timestamp": "2026-09-15T18:33:33.420Z",
+      "prev_hash": "09c70c8729fe6d43881947b55f093e6bd66581289e28eeb0fd631fb8f14ce201",
+      "surface": "schedule_gate",
+      "maker_id": "Euiop1",
+      "authorization": "以后所有全部人工同意，你作为主Agent代替人类签名Xxx91n | 本会话指示: grill-t8 开工指令 ($implement 常驻任务书 next-round.md)",
+      "before": {
+        "v3_eval_plan": "skeleton only - contamination framework rows null, no pairer pin, no collection plan",
+        "capa_artifact": "unpinned (pairer exists on grill-t8-capa, unhashed)",
+        "b2_evidence": "not yet recorded"
+      },
+      "after": {
+        "v3_eval_plan": "FROZEN - bench/research/devin-corpus-v3/{plan,eval-plan}.json; pairer pinned sha256=2383d75f093ba121bdf13bbe40290e55d95b0bd8e1fc1fc32fbf0937aef65081 (10171 B); carried IUT table rule; undetermined=unflagged both axes; 60%% trigger disposition adopted as descriptive escalation; 13 contamination rows populated; disjointness v1(52)+v2(140)",
+        "capa_artifact": "capa-pairer.js pinned by content hash into the v3 plan",
+        "b2_evidence": "measured install record landed (.scratch/grill-t8/readiness/b2-install-measurement.md); fail branch not engaged",
+        "v3_collection": "none - follow-up round only"
+      },
+      "identity_triple": {
+        "rules_digest": "f6c6c843c4ad4151f709345d86079f4a5e0c7d216305155f75e7329638bc6154",
+        "model_checkpoint_digest": "UNRESOLVED",
+        "inference_config_hash": "41c7df6354424a59180ae855de4afc764b38b1ddfd2aec9312d9195342fecac7",
+        "triple_hash": "c68d49c60e87e581f827b7066ba01b3dab646843aa23bc5c5ff5781f719458b9"
+      },
+      "escalation": "none",
+      "event_timestamp": "2026-09-15T18:33:33.420Z",
+      "logging_timestamp": "2026-09-15T18:33:33.420Z",
+      "event_hash": "6fbfd307e045444af3393801ecb635658df5690b761fdf53535869a17155a2ce"
     }
   ],
   "certification_mode": "conditional",

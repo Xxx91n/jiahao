@@ -222,13 +222,13 @@ describe('v3 contamination-registry framework (ADR-0069 D-E.6)', () => {
   test('registered rows cover the v3 obligations (floor, bound, disposition, pin, undetermined)', () => {
     const rows = fw().rows;
     const by = (n) => rows.find(function (r) { return r.parameter === n; });
-    expect(by('lie-axis floor').value).toBe(null);
+    expect(by('lie-axis floor').value).toBe(0.563863); // T-3 freeze populated the value
     expect(by('lie-axis floor').v2_informed).toBe(true);
     expect(by('fp-axis usability bound').v2_informed).toBe(true);
     expect(by('ci flavor').v2_informed).toBe(false);
     expect(by('undetermined collapse').v2_informed).toBe(true);
     expect(by('category-scoped bound disposition').v2_informed).toBe(true);
-    expect(by('adjudicated object pin').value).toBe(null);
+    expect(by('adjudicated object pin').value).toBe('2383d75f093ba121bdf13bbe40290e55d95b0bd8e1fc1fc32fbf0937aef65081'); // pairer sha256
     expect(by('adjudicated object pin').v2_informed).toBe(true);
     expect(by('supported check families').value).toEqual(['exit-report', 'file-contains', 'count-report', 'content-append']);
   });
