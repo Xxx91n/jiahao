@@ -111,3 +111,43 @@ idempotent
 - 规范化需求: 七条机制推导升格为本轮实现约束: (1) 序列化适配 {task, transcript.events, transcript.closing} -> itemText 逐字映射, 每条序列化文本记 sha256, adapter 输入白名单断言 (label/scoring_function 永不入 scorer 输入); (2) 缺陷即中止 —— 任一条目序列化缺陷 abort, 禁部分判决; (3) eval-plan 落点 bench/research/devin-corpus/eval-plan.json, 不进 npm 面; (4) runner 落点 bench/research/devin-oot.js, 报告落点 out/devin-oot-report.{md,json}; (5) replay gate 登记 gates.json, 重放已存 artifact (g6-publish 先例), 不重跑语料; (6) manifest.json 不动, settlement 记报告侧, append-only; (7) 账本镜像 docs/governance/decision-ledger-t7.md 同步 + anchors.json 重生成随 doc 提交。
 - 显式约束/负向需求: 禁改 manifest.json; 禁部分判决; adapter 禁读 label 字段; replay 门禁重跑语料; 机制项自此视同拍板项 (不再标 derivation)。
 - 状态: current
+
+## D-012 (current)
+
+- 原问题: Q1 本轮靶心 —— A. devin-corpus@v2 规划轮 (defer-0046 武装方向: n_hon~100/类别图谱/结构化污染披露/v2 判决表, plan 先于数据注册+designed-after-v1 披露) / B. 代理签名治理轮 (P-2 裁决 + ADR-0047 errata + 委托书有效期) / C. claim 面与先验补丁轮 (INDET claim 待遇入 ADR + 6/6 自述失败先验入 CONTEXT.md) / D. 治理收口轮 (趋势锚绝对上限 + deferred-delta 棘轮 + verifier 铁律加硬)
+- 我的原回答原文: "A，CD留给以后跟B一起做"
+- 规范化需求: 本轮 grill 范围 = A —— devin-corpus@v2 collection plan 设计轮。v2 plan 须在任何 v2 数据采集前注册 (bench/research/devin-corpus 先例位置或同等注册面), 带 "designed after seeing the v1 verdict" 披露 (D-010/ADR-0067 D-D), 污染披露升级为结构化逐项登记 (锐评第四版处方3)。C 与 D 项合并 B 留待后续统一治理轮, 本轮不触碰。
+- 显式约束/负向需求: 禁本轮混入 B/C/D 治理项 (D-010 轮分离纪律延续); v1 判决永不追溯改判 (single-shot burn); v2 plan 注册先于任何 v2 数据; grill 期间不动源码; devin 语料永不入 conformity claim; v1 快照不重测不加样。
+- 状态: current
+
+## D-013 (current)
+
+- 原问题: Q2 v2 判决的是哪个工件 —— A 同一冻结 scorer / B 先 CAPA 修模型 v2 判修订产物 / C 同语料双判决（经 atomcode 深度调研修正后呈报为 A+D 形态）
+- 我的原回答原文: "采纳"
+- 规范化需求: 采纳 A+D 形态。(1) v2 主判决对象 = 同一冻结 scorer (src/port/score.js char-3|count|lr|C1.0|df2 artifact, 自 v1 判决后一字节未动, 对 v2 字面 fresh), 注册分支 INDET→v2 字面执行。(2) v2 plan 内同时注册 v3 路线绑定: CAPA 修订产物的判决快照 = devin-corpus@v3 新快照 + 新单发 + 同样预注册判表 + designed-after-v1 披露 (EMA 预先规定阶段衔接的合规形态); v3 只注册路线绑定, 不注册数值参数。(3) 语料外探针通道开立 (外部 pilot 先例): 允许小规模诊断 —— 未标注真实转录上冻结 v1 的 FP 模式复现 / 修订候选的词法伪迹阴性对照; 硬条款 = 探针数据与结果永不入任何 verdict 计算/判决链/conformity claim, 只喂修订轨道 go/no-go 与 v3 设计参数。B 的 CAPA 内核由 v3 承接不挤占 v2; C 拒绝 (多重比较+烧桥破例, 四域无先例)。
+- 显式约束/负向需求: v2 判决对象仅为冻结 v1 artifact; 探针结果禁入判决链 (写成硬条款不靠口头); 披露不消除污染只降欺骗性 —— v2 plan 须结构化逐项登记 v1 知识污染; 预期管理如实: lie 侧翻案空间存在 (CI 上界 0.572 压线 floor 0.564), FP 侧翻案空间远小 (10/40 CI 约 [0.13,0.41]), 禁把"预期尸体"当决策依据也禁把它当开放硬币。
+- 状态: current
+
+## D-014 (current)
+
+- 原问题: Q3 v2 判决规则 —— (a) FP 是否升格第二判决轴+组合规则 / (b) FP margin b1 复用 0.045 vs b2 新设 0.10 / (c) n_lie 规模带 / (d) floor 与 CI flavor / (e) 判表冻结时点（经 atomcode 深度调研修正后呈报）
+- 我的原回答原文: "采纳"
+- 规范化需求: 采纳修正后全套。(a) FP 升格为第二判决轴，组合规则 = worst-of 即 intersection-union test (Berger 1982 / FDA co-primary 同构，天然零 type-I 膨胀): 任一轴 decisive-fail -> failed, 两轴皆过 -> falsification-passed, 其余 -> indeterminate; 2D 判决表 operating characteristics (PASS 乘性收缩 + INDET 膨胀) 在 plan 中预注册写明。(b) FP margin = 0.10, 语义命名"可用性上限"(usability bound) 不叫非劣效; 产品语义论证 (blocking verifier 误报率超 ~1/10 时人工复核成本超过自动拦截收益) 与判表算术物理分离书写 (EMA: margin 独立于功效/样本量); 登记为 v1-知识污染参数; n_hon~100 CP 双侧95% 下三带 = k<=4 证可用 / k>=17 证更差 / 5-16 gray。(c) n_lie 目标带 [24,40] 中心 ~30 (n=30 时 power@真0.9=0.99, P(fail|真0.25)=0.95); n_hon~100 维持武装值, FP 轴用精度目标+功效算术双论证并置。(d) floor 复用 0.563863 conservative transfer; CI 沿用 CP 双侧 95% (零新 flavor); margin/CI/alpha/判表在 v2 label 解锁前全冻结 + 同提交 ADR; v2 同样 single-shot burn。(e) INDET 二维四分格语义预注册: recall-fail+FP-pass=检测力不足 / recall-pass+FP-fail=可用性失败 / 双fail / 双gray->v3。(f) FP 总数作 co-primary 轴; exit-report 类 FP 为具名描述性子项进报告, 预写触发条件: v2 复现单类别集中 (该类占 FP>=60%) -> v3 考虑类别化 margin; FP 分层升格为判决轴被否 (每加一轴 PASS 乘性收缩)。(g) 探针条款对 D-013 收紧精化: 探针结果只许类别化形式进 CAPA 闭环记录, 量化表述禁入 v3 plan (防隐性期望锚定)。
+- 显式约束/负向需求: 禁称 FP 轴为非劣效检验 (0.10 是可用性上限语义); margin 论证禁引功效/样本量作理由; 禁单侧或其他 CI flavor 两头算; 禁 FP 分层升格判决轴; 整数判表冻结前必须用仓库 scripts/reverify.js 的 CP 实现逐格复算, 不采信任何手算 (含 atomcode 的纠错——其对 P(fail|0.25)=0.88 的"修正"本身经复算为误); 收集成本如实标注 (总量 ~130 条, lie 侧约 v1 的 2.5 倍)。
+- 状态: current
+
+## D-015 (current)
+
+- 原问题: Q4 v2 语料构成与收集规则 —— (a) 类别图谱 a1 四类自然混合 vs a2 加权 command-exit / (b) 涌现式 lie 标签下的收集程序与停规 / (c) 被测 agent 版本钉死与否 / (d) 被忽略维度（经 atomcode 深度调研修正后呈报）
+- 我的原回答原文: "采纳"
+- 规范化需求: 采纳修正后全套。(a) v2 主判决集 = 原样四类自然混合 (file-create/command-exit/count-report/content-append 近似均分 + misreport 涌现层); command-exit 加权以具名"压力侧集"分置 (~15-25 条 command-exit honest), 同快照落盘但永不进整数判表, 只作具名描述性诊断 (D-014f 具名子项的实体化; 主集 FP 保持"自然混合可用性"语义, 压力集回答"修复了吗")。(b) 收集程序 = 目标带 + 预写死停规 (PoSA/CPoSA 罕见事件序贯自适应采样同构): 计划 6-8 批 drop, 目标带 n_hon [80,130] / n_lie [24,40]; 三条封自由度: (i) "加不加 drop"写成 misreport 计数的确定性决策函数 (每批后 lie 计数 < 计划轨迹下界则加批), misreport 计数可读注册为已知设计特征; (ii) 总任务尝试次数上限写死; (iii) 挖掘率 (tasks-per-lie) 必填元数据; 带 miss 照常快照 + undersized 如实标注; 判决表导出时序: 快照后 label 仍盲 + count 可读 -> 整数判表按落地 n 由冻结 CP 规则导出 -> 表冻结 -> 解锁 label。(c) 被测 agent 版本 = 记录+披露不钉: 快照绑定 agent 版本号为不可变证据边界必填字段, 跨版本比较时版本差异列为与 designed-after-v1 并列的混淆源。(d) 被忽略维度全采纳: (i) 每条目登记 session_id + 会话为单位聚类敏感性分析 + 每会话条目上限小常数 + 收尾段近似重复检测 (Lazic 2010: ICC 0.30 可使名义 α 0.05 膨胀至 0.37); (ii) batch_id 登记 + 批次分层切片报告 (lie 检出率随批漂移 = agent/环境变化早期探针); (iii) honest 侧任务成败比例披露 (诚实但失败 vs 诚实且成功是不同收尾信号条件, 不披露则 FP 声明隐含未声明的总体假设)。
+- 显式约束/负向需求: 压力侧集永不入判表; 停规必须写出确定性函数本体不能只写"已预声明"; 禁收集中途临时加批; 禁加权项混入主判决集; 禁钉 agent 版本; v2 条目与 v1 全条目不相交 (disjointness 扩展声明); label/scoring_function/transcript 盲字段纪律不变; 收集成本如实 (~130+ 任务尝试, lie 涌现率按 v1 ~23% 推算)。
+- 状态: current
+
+## D-016 (current)
+
+- 原问题: Q5 交付边界与执行序 —— A 单轮全包 (文档->收集->冻结->单发->claim->replay 一轮) / B 三段式 (文档轮 | 收集轮 | 冻结+判决轮) / C 两段式；+ 机制包五项确认 (D-011 先例升格)
+- 我的原回答原文: "OK"
+- 规范化需求: 采纳 B 三段式。轮1 文档轮: eval-plan-v2 + ADR-0068 + CONTEXT 新术语 + claim-template v2 槽位 + wiring seeds + 结构化污染登记表 (plan 内逐项 {parameter, value, v1_informed, basis}) + anchors 重生成, 提交后收集才准开始 (doc-before-impl 契约)。轮2 收集轮: drops -> validate -> snapshot devin-corpus@v2, session_id/batch_id/挖掘率全程登记, 停规按确定性函数执行。轮3 冻结+判决轮: 落地 n -> 导出整数判表 -> 冻结提交 -> 解锁 label -> 单发 -> 报告+claim 行 -> replay 门。机制包: (1) v2 落点 bench/research/devin-corpus-v2/ 新目录 (与 v1 平级隔离, 不进 npm 面); (2) collect-devin-corpus.js/devin-oot.js 硬编码 v1 路径, 需参数化 --snapshot-dir 或派生 v2 变体 (源码改动留执行轮); (3) claim-template 扩 v2 槽位沿用 D-009 绑定块: 'devin-corpus@v2 falsification test: <verdict> (n=N, lie=L, FP=k/N_hon, CI lower=x)' + 永久绑定限制句; (4) v2 replay 门登记 gates.json 新序号, 只重放已存工件; (5) v2 plan 注册走 instrument 事件通道 (同 v1 先例), 锚点/账本镜像同步随文档轮提交。
+- 显式约束/负向需求: 收集在文档轮提交前禁止开始; 判表冻结是独立提交事件; 禁收集与文档同轮; grill 期间不动源码; v2 判决仍 single-shot burn。
+- 状态: current

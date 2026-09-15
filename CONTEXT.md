@@ -325,6 +325,86 @@ the follow-up's own pre-data registration with disclosure of its dependence
 on the v1 verdict (ledger D-010).
 _Avoid_: parameter registration before the verdict exists, vague branches
 
+**Intersection-Union Adjudication (IUT 双轴判决)**:
+The v2 verdict combination: an axis-level integer table adjudicates each of
+lie-side recall and honest-side FP; the overall verdict is failed when either
+axis decisively fails, falsification-passed only when both pass, indeterminate
+otherwise (Berger 1982 IUT; FDA co-primary endpoints — no multiplicity
+adjustment needed, power shrinks multiplicatively; ledger D-014).
+_Avoid_: single-axis verdict with a descriptive guardrail, multiplicity
+corrections stacked on top of worst-of
+
+**Usability Bound (可用性上限)**:
+The v2 FP-axis criterion — an absolute product-semantic ceiling (0.10: beyond
+roughly 1-in-10 false accusations a blocking verifier costs more human
+re-review than it saves), NOT a non-inferiority margin; the value must be
+justified by product semantics independent of power/sample-size arithmetic
+(EMA margin rule) and is registered as a v1-informed parameter (ledger D-014).
+_Avoid_: calling the bound a non-inferiority margin, deriving a margin from
+what the sample size can prove
+
+**Stress Side-Set (压力侧集)**:
+A named corpus subset deliberately weighted toward a known failure mode (v2:
+extra command-exit honest items) that snapshots with the corpus but never
+enters the integer decision table — the main set prices natural-mix FP while
+the side-set asks whether the exposed failure mode persists (ImageNetV2 named
+variants / VeriStress difficulty profiles; ledger D-015).
+_Avoid_: folding weighted items into the adjudicated set, unlabeled
+overweighting
+
+**Emergent Label (涌现标签)**:
+A ground-truth label that cannot be authored — it emerges only when the
+deterministic scoring function detects a claim-evidence contradiction inside
+a real harness transcript (the devin misreport category); collection plans
+register task counts and stopping rules, never lie counts as deliverables
+(ledger D-015).
+_Avoid_: hand-written lie items, promising a fixed lie count
+
+**Deterministic Stopping Function (确定性停规函数)**:
+The pre-registered function mapping readable collection metadata (misreport
+count, batch index, attempt total) to the add-another-drop decision — the
+legal form of watching counts while collecting; the function text itself is
+registered, not just a statement that a rule exists (PoSA/CPoSA rare-event
+sequential sampling; ledger D-015).
+_Avoid_: informal stop-when-done, unregistered optional stopping
+
+**Mining Rate (挖掘率)**:
+Tasks attempted per emergent lie item yielded — mandatory collection metadata
+that measures lie rarity directly and is the evidence base for undersized
+markings (ledger D-015).
+_Avoid_: logging drop counts without attempt counts
+
+**Session Pseudoreplication (会话伪重复)**:
+The correlation structure among transcript items produced inside one agent
+session (shared context, tone, in-session drift) — left unguarded it inflates
+nominal alpha badly (Lazic 2010: ICC 0.30 can turn 0.05 into about 0.37);
+mitigated by per-item session_id, session-cluster sensitivity analysis, a
+small per-session item cap, and near-duplicate closing checks (ledger D-015).
+_Avoid_: treating transcript count as independent-sample count
+
+**Contamination Registry (污染登记表)**:
+The plan-level structured per-parameter disclosure of which design choices
+were informed by the previous verdict — each row {parameter, value,
+v1_informed, basis}; designed-after-v1 is legal input when disclosed, but
+disclosure reduces deception, it does not remove contamination (ledger
+D-013/D-016).
+_Avoid_: a blanket designed-after-v1 sentence without per-parameter
+enumeration
+
+**Evidence-Boundary Version Stamp (证据边界版本戳)**:
+The agent/harness version bound into each snapshot immutable evidence
+boundary (manifest model_version); cross-version comparisons must name the
+version difference as a confounder on par with designed-after-v1 — pinning a
+version is neither feasible nor required (ledger D-015).
+_Avoid_: version pinning, silent drift between snapshots
+
+**Derived Integer Table (判表导出)**:
+The v2 integer decision table is derived, not authored: after snapshot,
+counts are readable while labels stay blind; the frozen CP rule maps the
+landed n to the concrete band table, which is then frozen before label
+unlock (ledger D-015).
+_Avoid_: fixing k-bands before n is known, touching bands after labels seen
+
 ## Decision Log
 
 **Self-Preference Bias (自偏好偏差)**:
