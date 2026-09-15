@@ -673,6 +673,24 @@
         "note": "net additions +1 (ADR-0068); registered in the grill-t7 v2 doc round"
       },
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0048",
+      "subject": "grill-t7 v2 terminal event: devin-corpus@v2 FAILED (dual-axis IUT - lie 9/31 CI [0.142229,0.480361] below floor 0.563863; FP 21/89 above bound 0.10; exit-report share of FP = 1.0, 60% concentration trigger FIRED)",
+      "source_adr": "docs/adr/0068-devin-corpus-v2-dual-axis-adjudication-collection-protocol-claim-slot-v3-binding.md",
+      "rationale": "Ledger D-014/D-016 + ADR-0068 branch policy: the single-shot v2 adjudication settled failed on BOTH axes of the pre-registered derived integer tables. The collapse-no-shelf claim wording armed by the eval-plan is the only allowed claim surface. The fired 60% exit-report concentration trigger routes the v3 evaluation to consider a category-scoped bound; the in-sample claim remains in place and no shelf language is emitted.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "v3 terminal event dispositioned at the next audit/trend evaluation; entry closed only by a same-commit ADR or ledger note"
+      },
+      "review_at": "2026-12-14",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-15",
+      "last_check_in": {
+        "date": "2026-09-15",
+        "note": "FAILED verdict recorded from bench/research/out/devin-oot-v2-report.json (single-shot, single_shot=true)"
+      },
+      "status": "pending-evaluation"
     }
   ]
 }

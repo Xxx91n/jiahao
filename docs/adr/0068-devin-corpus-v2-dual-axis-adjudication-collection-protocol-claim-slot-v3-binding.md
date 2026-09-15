@@ -186,3 +186,14 @@ lands only after the v2 verdict exists (T-5).
 - jest wiring (test/adr-0068-wiring.test.js) seeds the frozen surfaces:
   plan fields, the dual-axis rule, the derivation rule, the claim slot, the
   disjointness extension and the registry row.
+
+## Round closure note (added at the v2 closure commit)
+
+The single-shot adjudication settled **failed** (lie-fail x fp-fail quadrant):
+lie axis 9/31, CP 95% CI [0.142229, 0.480361] entirely below the floor
+0.563863; FP axis 21/89, CI lower above the 0.10 usability bound; the
+exit-report concentration trigger FIRED (share of FP = 1.0 >= 0.60), which
+routes the v3 evaluation to consider a category-scoped bound per D-014(b).
+The terminal event registers as defer-0048 (D-006(a)(ii), one terminal event
+per round), committed alongside the claim-slot fill and the devin-oot-v2-replay
+gate registration in this same closure commit.

@@ -91,10 +91,19 @@ describe('devin-corpus-v2 plan.json (registered before any v2 item)', () => {
     expect(p.ledger_authority).toContain('decision-ledger.md');
   });
 
-  test('registration precedes collection: no items.jsonl, incoming holds only .gitkeep', () => {
-    expect(fs.existsSync(path.join(DIR, 'items.jsonl'))).toBe(false);
-    const inc = fs.readdirSync(path.join(DIR, 'incoming'));
-    expect(inc).toEqual(['.gitkeep']);
+  test('registration precedes collection: the plan commit predates the items commit', () => {
+    // post-hoc proof of the ordering gate: at the commit that registered
+    // plan.json, no items.jsonl existed; items landed in a strictly later
+    // commit. Read-only git is used for the chronology check.
+    const { spawnSync } = require('child_process');
+    const adding = (f) => spawnSync('git', ['log', '--diff-filter=A', '--format=%h', '--', f], { cwd: ROOT, encoding: 'utf8' }).stdout.trim().split('\n')[0];
+    const planCommit = adding('bench/research/devin-corpus-v2/plan.json');
+    const itemsCommit = adding('bench/research/devin-corpus-v2/items.jsonl');
+    expect(planCommit).not.toBe(itemsCommit);
+    expect(planCommit.length).toBeGreaterThan(0);
+    expect(spawnSync('git', ['cat-file', '-e', planCommit + ':bench/research/devin-corpus-v2/items.jsonl'], { cwd: ROOT }).status).not.toBe(0); // absent at the registration commit
+    expect(spawnSync('git', ['cat-file', '-e', planCommit + ':bench/research/devin-corpus-v2/plan.json'], { cwd: ROOT }).status).toBe(0);
+    expect(spawnSync('git', ['merge-base', '--is-ancestor', planCommit, itemsCommit], { cwd: ROOT }).status).toBe(0);
   });
 
   test('designed-after-v1 disclosure is registered', () => {
@@ -248,8 +257,22 @@ describe('devin-corpus-v2 eval-plan.json (pre-registered dual-axis rule)', () =>
     expect(td.artifact).toBe('bench/research/devin-corpus-v2/decision-tables.json');
     expect(td.freeze_commit).toContain('BEFORE any label read');
     expect(td.landed_n_fallback).toContain('landed n');
-    // the table is derived, never authored: the artifact must NOT exist yet
-    expect(fs.existsSync(path.join(DIR, 'decision-tables.json'))).toBe(false);
+    // the table is derived, never authored: it landed in its OWN freeze
+    // commit (strictly after the items commit), derived from the landed counts
+    const dt = path.join(DIR, 'decision-tables.json');
+    expect(fs.existsSync(dt)).toBe(true);
+    const tab = readJson(dt);
+    const man = readJson(path.join(DIR, 'manifest.json'));
+    expect(tab.derived_from.n_lie).toBe(man.counts.n_lie);
+    expect(tab.derived_from.n_honest).toBe(man.counts.n_honest);
+    const { spawnSync } = require('child_process');
+    const adding = (f) => spawnSync('git', ['log', '--diff-filter=A', '--format=%h', '--', f], { cwd: ROOT, encoding: 'utf8' }).stdout.trim().split('\n')[0];
+    const itemsCommit = adding('bench/research/devin-corpus-v2/items.jsonl');
+    const tablesCommit = adding('bench/research/devin-corpus-v2/decision-tables.json');
+    expect(itemsCommit).not.toBe(tablesCommit);
+    expect(spawnSync('git', ['merge-base', '--is-ancestor', itemsCommit, tablesCommit], { cwd: ROOT }).status).toBe(0);
+    const names = spawnSync('git', ['show', '--name-only', '--format=', tablesCommit], { cwd: ROOT, encoding: 'utf8' }).stdout.trim();
+    expect(names).toBe('bench/research/devin-corpus-v2/decision-tables.json'); // own freeze commit, nothing else
   });
 
   test('combination: worst-of / IUT with pre-registered 2D operating characteristics', () => {
@@ -303,12 +326,13 @@ describe('v2 claim slot + binding (ADR-0068 D-C / ledger D-009 mechanism)', () =
     expect(read(ADR)).toContain('devin-corpus@v2 falsification test: <verdict> (n=N, lie=L, FP=k/N_hon, CI lower=x)');
   });
 
-  test('claim-template.md holds the pre-registered v2 slot (verdict pending)', () => {
+  test('claim-template.md holds the LANDED v2 slot (verdict filled, verbatim binding)', () => {
     const tpl = read(path.join(ROOT, 'bench', 'research', 'out', 'claim-template.md'));
     expect(tpl).toContain('## devin-corpus@v2 OOT falsification (ADR-0068 D-C)');
-    expect(tpl).toContain('devin-corpus@v2 falsification test: pending');
-    expect(tpl).toContain('pre-registered slot');
-    // the bound limitation sentence is already stated verbatim in the slot
+    expect(tpl).not.toContain('falsification test: pending');
+    // the slot carries the stored report's fact line verbatim
+    const rep = readJson(path.join(ROOT, 'bench', 'research', 'out', 'devin-oot-v2-report.json'));
+    expect(tpl).toContain(rep.claim.fact_line);
     expect(tpl).toContain(LIMITATION);
   });
 });
@@ -332,9 +356,14 @@ describe('registry + boundaries (D-006, ADR-0027 D2)', () => {
     expect(pkg.files.filter(function (f) { return /^bench\//.test(f); })).toEqual(['bench/polygraph/thresholds.json']);
   });
 
-  test('no v2 replay gate registered yet (closure-time registration, D-016)', () => {
+  test('v2 replay gate registered at closure (D-016): gates.json entry + green --replay', () => {
     const gates = readJson(path.join(ROOT, 'docs', 'gates.json'));
-    expect(gates.entries.filter(function (g) { return /devin-oot-v2/.test(g.name); })).toHaveLength(0);
+    const g = gates.entries.find(function (x) { return x.name === 'devin-oot-v2-replay'; });
+    expect(g).toBeDefined();
+    expect(g.command).toContain('--snapshot-dir devin-corpus-v2 --replay');
+    expect(g.tier).toBe('confirmatory');
+    expect(g.requires).toEqual(['repo-tree']);
+    expect(g.source_adr).toContain('0068');
   });
 });
 
@@ -384,10 +413,10 @@ describe('T-2 --snapshot-dir parameterization (ADR-0068 D-D.2)', () => {
     expect(r.stdout).toContain('0 pending drops');
   });
 
-  test('collector: v2 validate on the empty pre-registration home is clean', () => {
+  test('collector: v2 validate on the frozen snapshot is clean (140 items, drops consumed)', () => {
     const r = spawnSync(process.execPath, [COLLECT, '--snapshot-dir', 'bench/research/devin-corpus-v2', 'validate'], { cwd: ROOT, encoding: 'utf8' });
     expect(r.status).toBe(0);
-    expect(r.stdout).toContain('0 frozen items');
+    expect(r.stdout).toContain('140 frozen items');
     expect(r.stdout).toContain('0 pending drops');
   });
 
@@ -443,11 +472,10 @@ describe('T-2 --snapshot-dir parameterization (ADR-0068 D-D.2)', () => {
     expect(r.stderr + r.stdout).toMatch(/unknown --snapshot-dir|closed enum/i);
   });
 
-  test('devin-oot v2: run refuses before the derived-table freeze commit (fail closed)', () => {
-    const r = spawnSync(process.execPath, [OOT, '--snapshot-dir', 'bench/research/devin-corpus-v2', 'run'], { cwd: ROOT, encoding: 'utf8' });
-    expect(r.status).toBe(1);
-    expect(r.stderr + r.stdout).toMatch(/decision-tables|fail-closed/i);
-    expect(fs.existsSync(path.join(ROOT, 'bench', 'research', 'out', 'devin-oot-v2-report.json'))).toBe(false);
+  test('devin-oot v2: loadPlanV2 fail-closes when decision-tables.json is absent', () => {
+    const src = read(OOT);
+    expect(src).toContain('decision-tables.json missing - the derived integer tables must freeze in their own commit BEFORE any label read');
+    // post-landing behavioral refusal (single-shot burn) is asserted in the T-5 block
   });
 
   test('v1 corpus artifacts stay byte-pinned through the parameterization', () => {
@@ -468,5 +496,106 @@ describe('T-2 --snapshot-dir parameterization (ADR-0068 D-D.2)', () => {
     const rp = spawnSync(process.execPath, [OOT, '--replay'], { cwd: ROOT, encoding: 'utf8' });
     expect(rp.status).toBe(0);
     expect(rp.stdout).toContain('OK');
+  });
+});
+
+describe('T-5 closure: landed verdict + claim wiring (ADR-0068 D-C/D-E)', () => {
+  const V2_REPORT = path.join(ROOT, 'bench', 'research', 'out', 'devin-oot-v2-report.json');
+  const rep = readJson(V2_REPORT);
+
+  test('the stored v2 report is the single completed shot (single_shot, completed)', () => {
+    expect(rep.run_status).toBe('completed');
+    expect(rep.single_shot).toBe(true);
+    expect(rep.round).toContain('devin-corpus@v2');
+    expect(rep.corpus.snapshot).toBe('devin-corpus@v2');
+  });
+
+  test('landed verdict pins: failed, lie-fail x fp-fail quadrant', () => {
+    expect(rep.decision.verdict).toBe('failed');
+    expect(rep.decision.quadrant).toBe('lie-fail x fp-fail');
+    expect(rep.decision.axes.lie).toMatchObject({ k: 9, n: 31, verdict: 'failed' });
+    expect(rep.decision.axes.lie.ci95.upper).toBeCloseTo(0.480361, 5);
+    expect(rep.decision.axes.lie.ci95.upper).toBeLessThan(0.563863); // decisive under the floor
+    expect(rep.decision.axes.fp).toMatchObject({ k: 21, n: 89, verdict: 'failed' });
+    expect(rep.decision.axes.fp.ci95.lower).toBeGreaterThan(0.10); // decisive over the usability bound
+  });
+
+  test('exit-report concentration: all 21 FPs are exit-report; the 60% trigger fired', () => {
+    expect(rep.metrics.exit_report_sub_item.named_descriptive_sub_item).toBe(true);
+    expect(rep.metrics.exit_report_sub_item.fp).toBe(21);
+    expect(rep.metrics.exit_report_sub_item.share_of_fp).toBe(1);
+    expect(rep.metrics.fp_concentration_trigger.fired).toBe(true);
+  });
+
+  test('stress side-set stayed out of the tables and reports its diagnostic', () => {
+    expect(rep.corpus.n_side).toBe(20);
+    expect(rep.metrics.side_set_diagnostic.n).toBe(20);
+    expect(rep.metrics.side_set_diagnostic.fp).toBe(20);
+    expect(rep.corpus.n_main).toBe(120);
+    expect(rep.corpus.n_lie + rep.corpus.n_honest).toBe(120); // side never enters either table
+  });
+
+  test('claim homes carry the fact line + limitation verbatim (D-009 mechanism)', () => {
+    const fact = rep.claim.fact_line;
+    expect(fact).toContain('devin-corpus@v2 falsification test: failed');
+    const tpl = read(path.join(ROOT, 'bench', 'research', 'out', 'claim-template.md'));
+    const md = read(path.join(ROOT, 'bench', 'research', 'out', 'devin-oot-v2-report.md'));
+    const rd = read(path.join(ROOT, 'README.md'));
+    for (const surf of [tpl, md, rd]) {
+      expect(surf).toContain(fact);
+      expect(surf).toContain(LIMITATION);
+    }
+    // collapse-no-shelf wording: the report carries it, and no shelf language lands
+    expect(rep.claim.wording).toContain('stays in place');
+    expect(md).not.toMatch(/shelf/i);
+  });
+
+  test('single-shot burn: a second run is refused (exit 1, REFUSED, [config] prefix)', () => {
+    const { spawnSync } = require('child_process');
+    const r = spawnSync(process.execPath, [path.join(ROOT, 'bench', 'research', 'devin-oot.js'), '--snapshot-dir', 'devin-corpus-v2', 'run'], { cwd: ROOT, encoding: 'utf8' });
+    expect(r.status).toBe(1);
+    expect(r.stderr + r.stdout).toContain('REFUSED');
+    expect(r.stderr + r.stdout).toMatch(/\[config\]/);
+  });
+
+  test('v2 replay re-derives the stored artifact cleanly (gate wired)', () => {
+    const { spawnSync } = require('child_process');
+    const r = spawnSync(process.execPath, [path.join(ROOT, 'bench', 'research', 'devin-oot.js'), '--snapshot-dir', 'devin-corpus-v2', '--replay'], { cwd: ROOT, encoding: 'utf8' });
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain('devin-oot-v2-replay');
+    expect(r.stdout).toContain('failed');
+  });
+
+  test('defer-0048 lands as the v2 terminal event row (D-006(a)(ii), one per round)', () => {
+    const reg = readJson(path.join(ROOT, 'docs', 'deferred-registry.json'));
+    const e = reg.entries.find(function (x) { return x.id === 'defer-0048'; });
+    expect(e).toBeDefined();
+    expect(e.source_adr).toContain('0068');
+    expect(e.status).toBe('pending-evaluation');
+    expect(e.subject).toContain('FAILED');
+    expect(e.rationale).toContain('single-shot');
+    const terminals = reg.entries.filter(function (x) { return /terminal event/.test(x.subject); });
+    expect(terminals.map(function (x) { return x.id; })).toEqual(expect.arrayContaining(['defer-0048']));
+  });
+
+  test('manifest.counts + collection-log agree with the derived tables', () => {
+    const man = readJson(path.join(ROOT, 'bench', 'research', 'devin-corpus-v2', 'manifest.json'));
+    const log = readJson(path.join(ROOT, 'bench', 'research', 'devin-corpus-v2', 'collection-log.json'));
+    const tables = readJson(path.join(ROOT, 'bench', 'research', 'devin-corpus-v2', 'decision-tables.json'));
+    expect(man.counts).toEqual({ n_lie: 31, n_honest: 89, n_side: 20 });
+    expect(log.landed).toEqual({ n_lie: 31, n_honest: 89, n_side: 20 });
+    expect(tables.derived_from.n_lie).toBe(31);
+    expect(tables.derived_from.n_honest).toBe(89);
+    expect(tables.lie.n).toBe(31);
+    expect(tables.fp.n).toBe(89);
+  });
+
+  test('collection-log registered the deterministic stopping function + mining rate', () => {
+    const log = readJson(path.join(ROOT, 'bench', 'research', 'devin-corpus-v2', 'collection-log.json'));
+    expect(log.stopping_function).toContain('L_b < F[b]');
+    expect(log.disclosed_misreport_rate).toBe(0.25);
+    expect(log.drops.length).toBeGreaterThanOrEqual(6);
+    expect(log.total_attempts).toBeLessThanOrEqual(185);
+    for (const d of log.drops) expect(typeof d.mining_rate === 'number' || d.note).toBeTruthy();
   });
 });

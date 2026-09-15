@@ -15,10 +15,13 @@ byte-frozen for this round by baseline-t1.json.
   Guard: scripts/check-corpus-classes.js.
 - devin-corpus/ - D-005(6,7) ground-truth snapshot home (devin-corpus@v1).
   Collector harness: scripts/collect-devin-corpus.js (schema|validate|snapshot).
-- devin-corpus-v2/ - ADR-0068 / ledger D-012..D-016: the v2 pre-registration
-  home (plan.json + eval-plan.json registered before any item lands). The
-  dual-axis IUT adjudication (lie vs 0.563863 floor, FP vs 0.10 usability
-  bound) derives its integer tables from landed n under blind labels.
+- devin-corpus-v2/ - ADR-0068 / ledger D-012..D-016: the v2 snapshot home
+  (plan.json + eval-plan.json registered before any item landed; items.jsonl
+  140 items / manifest.counts readable metadata / decision-tables.json derived
+  under blind labels and frozen in its own commit). The dual-axis IUT
+  adjudication (lie vs 0.563863 floor, FP vs 0.10 usability bound) settled
+  failed (lie-fail x fp-fail): report at out/devin-oot-v2-report.{json,md},
+  replay gate devin-oot-v2-replay.
 - mde-freeze.json - D-A frozen d_MDE = max(0.03, 1.64 x SE_5seed), computed
   from the corpus over the 5 registered seeds BEFORE the execution run.
 - rung_ladder.py - D-D rung ladder. Phases: freeze | rung1 | rung2 | controls
