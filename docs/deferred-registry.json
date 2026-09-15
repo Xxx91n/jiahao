@@ -655,6 +655,24 @@
         "note": "INDETERMINATE verdict recorded from bench/research/out/devin-oot-report.json"
       },
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0047",
+      "subject": "grill-t7 v2 doc round net-addition tally: +1 ADR (ADR-0068 devin-corpus@v2 plan - dual-axis adjudication, collection protocol, claim slot, v3 binding) - D-006(a)(i) summary row",
+      "source_adr": "docs/adr/0068-devin-corpus-v2-dual-axis-adjudication-collection-protocol-claim-slot-v3-binding.md",
+      "rationale": "Ledger D-006(a)(i): every round writes exactly one net-addition summary row into the defer-0039 tide. The v2 doc round lands one new ADR (0068: dual-axis IUT adjudication rule, collection protocol, claim slot, v3 binding, probe terms); the terminal-event row is a separate entry registered only after the single-shot v2 verdict exists.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+      },
+      "review_at": "2026-12-14",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-15",
+      "last_check_in": {
+        "date": "2026-09-15",
+        "note": "net additions +1 (ADR-0068); registered in the grill-t7 v2 doc round"
+      },
+      "status": "pending-evaluation"
     }
   ]
 }

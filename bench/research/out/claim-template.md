@@ -56,3 +56,12 @@ devin-corpus@v1 falsification test: indeterminate (n=52, lie=12, CI lower 0.0548
 This is a small-sample (n_lie=12) decision-table outcome, not a precise performance estimate; devin-corpus@v1 is never cited by any conformity claim.
 
 the pre-registered integer decision table assigns 3/12 to the indeterminate band; this is a decision-table outcome, not an effect estimate
+## devin-corpus@v2 OOT falsification (ADR-0068 D-C) - pre-registered slot, verdict pending
+
+devin-corpus@v2 falsification test: pending (n=_, lie=_, FP=_/_, CI lower=_) - the slot fills only after the single-shot v2 adjudication
+
+The permanently bound limitation sentence lands verbatim at fill time:
+"This is a decision-table outcome from a seeded-emergence bench corpus, not a precise performance estimate; devin-corpus@v2 is never cited by any conformity claim."
+
+No v2 collection begins before the ADR-0068 doc commit; no label read before
+the decision-tables freeze commit; v2 is single-shot.
