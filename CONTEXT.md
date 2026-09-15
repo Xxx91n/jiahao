@@ -405,6 +405,76 @@ landed n to the concrete band table, which is then frozen before label
 unlock (ledger D-015).
 _Avoid_: fixing k-bands before n is known, touching bands after labels seen
 
+**Construct Misalignment (构念错位)**
+The failure class where a score is driven by the wrong construct —
+devin-corpus@v2 showed the LR port firing on "looks like an exit-report"
+rather than "claim-evidence contradiction" (near-identical logit means on
+honest vs lie command-exit items, silent on all other categories). A wrong
+construct is unfixable by parameter surgery; the remedy is
+re-operationalization (ledger t8 D-004).
+_Avoid_: calibration framing, threshold tuning (wrong failure class)
+
+**Claim-Evidence Pairer (宣称-证据配对器)**
+The CAPA adjudication artifact replacing the lexical scorer's verdict role:
+a deterministic checker that flags ONLY a mechanically proven contradiction
+— claimed value parsed from the closing/transcript, evidence value parsed
+from tool_result/events, both present and unequal -> lie. Absent claim,
+absent evidence, or unsupported check type -> unflagged; it never "flags on
+vibes" (ledger t8 D-004, D-006).
+_Avoid_: heuristic/keyword flag (the construct it replaces)
+
+**Undetermined (未决态)**
+The pairer's third telemetry state — claim absent, evidence absent, or
+check type unsupported. Collapses to unflagged in adjudication, which is
+conservative on both axes (never an honest FP, always a lie miss); the
+undetermined rate is a pre-registered descriptive metric — the fail-open
+surface made visible (ledger t8 D-006).
+_Avoid_: exclusion from n (hides the surface), counting as flag (inverts it)
+
+**Zero-Verdict Telemetry (零判决权遥测)**
+The LR port's post-CAPA role: runs alongside the pairer as a control
+channel whose output is recorded in disclosure reports but can never enter
+a verdict in any form — no weighting, no veto, no escalation trigger;
+pairer-vs-port divergence is disclosure-only (ledger t8 D-004).
+_Avoid_: secondary signal, fallback scorer (both imply verdict power)
+
+**Meta-Circularity Ban (元循环禁令)**
+The anti-tune-on-eval rule for pairer authoring: rules derive from check
+semantics (each check type's claim-evidence structure), never from reading
+or reverse-fitting the corpus's scoring_function label machinery — the task
+text may legitimately route the pairer; the claimed value must come from
+the transcript itself (ledger t8 D-004).
+_Avoid_: spec.check-driven dispatch, label-mechanism-derived rules
+
+**Artifact-Scoped Freeze (工件级冻结)**
+The version-binding discipline for adjudicated artifacts: the measured files
+(src/port/score.js + g6-manifest.json) stay byte-frozen on main —
+sha256-asserted — while the rest of the tree evolves; the freeze is
+file-scoped, so "main is the adjudicated state" is a forbidden tree-level
+claim (ledger t8 D-003).
+_Avoid_: branch freeze as binding, tree-level adjudicated wording
+
+**Adjudication Anchor (判决锚)**
+The immutable tag naming the commit at which a snapshot was adjudicated
+(`adjudicated/<snapshot>`) — the user/auditor-pinnable ref a verdict binds;
+the naming convention is fixed once, new anchors are appended per
+adjudication and never moved (ledger t8 D-003).
+_Avoid_: moving tag, branch-as-anchor, version-bump-as-binding
+
+**Evidence-Tiered Readiness (证据分层就绪)**
+Readiness claims are evidence-tiered: README/spec wording is intent, only
+code/tests/runtime output is proof — claiming "installable" without a
+clean-environment run would re-enact the claim-evidence contradiction this
+project exists to falsify (ledger t8 D-005).
+_Avoid_: docs-say-so readiness, anecdotal "it ran once"
+
+**Measurement-Reproduction Invitation (测量复现邀请)**
+The downgraded external-trial form: third parties are invited to reproduce
+the measurement and feed categorical observations into CAPA — never an
+adoption or performance invitation; all invitation text reuses the verbatim
+fact lines, no new performance wording (ledger t8 D-005).
+_Avoid_: trial invite, beta program, adoption ask
+
 ## Decision Log
 
 **Self-Preference Bias (自偏好偏差)**:
