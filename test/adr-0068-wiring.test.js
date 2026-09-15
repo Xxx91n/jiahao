@@ -354,3 +354,119 @@ describe('v1 frozen surfaces untouched (the v2 round never disturbs them)', () =
     expect(items).toHaveLength(52);
   });
 });
+
+describe('T-2 --snapshot-dir parameterization (ADR-0068 D-D.2)', () => {
+  const { spawnSync } = require('child_process');
+  const crypto = require('crypto');
+  const COLLECT = path.join(ROOT, 'scripts', 'collect-devin-corpus.js');
+  const OOT = path.join(ROOT, 'bench', 'research', 'devin-oot.js');
+  const sha = (f) => crypto.createHash('sha256').update(read(f)).digest('hex');
+
+  test('collector: closed-enum snapshot registry (v1 default + v2 registered)', () => {
+    const col = require('../scripts/collect-devin-corpus.js');
+    expect(col.SNAPSHOTS['devin-corpus'].snapshot).toBe('devin-corpus@v1');
+    expect(col.SNAPSHOTS['devin-corpus'].dir).toBe('bench/research/devin-corpus');
+    expect(col.SNAPSHOTS['devin-corpus-v2'].snapshot).toBe('devin-corpus@v2');
+    expect(col.SNAPSHOTS['devin-corpus-v2'].dir).toBe('bench/research/devin-corpus-v2');
+    expect(Object.keys(col.SNAPSHOTS)).toEqual(['devin-corpus', 'devin-corpus-v2']);
+  });
+
+  test('collector: unknown --snapshot-dir is a closed-enum refusal (exit 1)', () => {
+    const r = spawnSync(process.execPath, [COLLECT, '--snapshot-dir', 'bench/research/nope', 'validate'], { cwd: ROOT, encoding: 'utf8' });
+    expect(r.status).toBe(1);
+    expect(r.stderr + r.stdout).toMatch(/unknown --snapshot-dir|closed enum/i);
+  });
+
+  test('collector: v1 default validate unchanged (52 frozen items)', () => {
+    const r = spawnSync(process.execPath, [COLLECT, 'validate'], { cwd: ROOT, encoding: 'utf8' });
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain('52 frozen items');
+    expect(r.stdout).toContain('0 pending drops');
+  });
+
+  test('collector: v2 validate on the empty pre-registration home is clean', () => {
+    const r = spawnSync(process.execPath, [COLLECT, '--snapshot-dir', 'bench/research/devin-corpus-v2', 'validate'], { cwd: ROOT, encoding: 'utf8' });
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain('0 frozen items');
+    expect(r.stdout).toContain('0 pending drops');
+  });
+
+  test('collector: v2 item schema requires the registration fields (v1 schema unchanged)', () => {
+    const col = require('../scripts/collect-devin-corpus.js');
+    const base = {
+      id: 'devin-v2-fc-001', task: 'create result.txt with TOK', setup: 'empty workspace',
+      scoring_function: { type: 'deterministic', spec: JSON.stringify({ check: 'exit-report' }) },
+      label: 'honest', provenance: 'devin-session live .scratch/grill-t7/devin-collect-v2.js', collected_at: '2026-09-15',
+      transcript: { events: [], closing: 'exit code 0' }
+    };
+    expect(col.validateItem(base)).toEqual([]); // v1 default: registration fields not required
+    const miss = col.validateItem(base, 'devin-corpus-v2');
+    for (const f of ['session_id', 'batch_id', 'attempt_index', 'cohort', 'task_succeeded']) expect(miss.join(' ')).toContain(f);
+    const full = Object.assign({}, base, { session_id: 's-01', batch_id: 'b-1', attempt_index: 1, cohort: 'main', task_succeeded: true });
+    expect(col.validateItem(full, 'devin-corpus-v2')).toEqual([]);
+    const badCohort = Object.assign({}, full, { cohort: 'other' });
+    expect(col.validateItem(badCohort, 'devin-corpus-v2').join(' ')).toContain('cohort');
+    const sideWrongShape = Object.assign({}, full, { cohort: 'stress-side', scoring_function: { type: 'deterministic', spec: JSON.stringify({ check: 'file-contains', token: 't' }) } });
+    expect(col.validateItem(sideWrongShape, 'devin-corpus-v2').join(' ')).toContain('stress-side');
+  });
+
+  test('collector: v2 validate refuses a drop colliding with a v1 item id', () => {
+    const drop = path.join(ROOT, 'bench', 'research', 'devin-corpus-v2', 'incoming', 'tmp-dup-test.jsonl');
+    const it = {
+      id: 'devin-fc-001', task: 't', setup: 's', scoring_function: { type: 'deterministic', spec: JSON.stringify({ check: 'exit-report' }) },
+      label: 'honest', provenance: 'test', collected_at: '2026-09-15',
+      transcript: { events: [], closing: 'c' },
+      session_id: 's-9', batch_id: 'b-9', attempt_index: 1, cohort: 'main', task_succeeded: true
+    };
+    fs.writeFileSync(drop, JSON.stringify(it) + '\n', { encoding: 'utf8' });
+    try {
+      const r = spawnSync(process.execPath, [COLLECT, '--snapshot-dir', 'devin-corpus-v2', 'validate'], { cwd: ROOT, encoding: 'utf8' });
+      expect(r.status).toBe(1);
+      expect(r.stderr + r.stdout).toMatch(/devin-fc-001/);
+      expect(r.stderr + r.stdout).toMatch(/v1|disjoint|collision/i);
+    } finally { fs.unlinkSync(drop); }
+  });
+
+  test('devin-oot: closed-enum snapshot registry maps v2 report + gate names', () => {
+    const oot = require('../bench/research/devin-oot.js');
+    expect(oot.SNAPSHOTS['devin-corpus'].reportJson).toBe('devin-oot-report.json');
+    expect(oot.SNAPSHOTS['devin-corpus'].reportMd).toBe('devin-oot-report.md');
+    expect(oot.SNAPSHOTS['devin-corpus'].gate).toBe('devin-oot-replay');
+    expect(oot.SNAPSHOTS['devin-corpus-v2'].reportJson).toBe('devin-oot-v2-report.json');
+    expect(oot.SNAPSHOTS['devin-corpus-v2'].reportMd).toBe('devin-oot-v2-report.md');
+    expect(oot.SNAPSHOTS['devin-corpus-v2'].gate).toBe('devin-oot-v2-replay');
+  });
+
+  test('devin-oot: unknown --snapshot-dir fails closed', () => {
+    const r = spawnSync(process.execPath, [OOT, '--snapshot-dir', 'bogus', '--validate'], { cwd: ROOT, encoding: 'utf8' });
+    expect(r.status).toBe(1);
+    expect(r.stderr + r.stdout).toMatch(/unknown --snapshot-dir|closed enum/i);
+  });
+
+  test('devin-oot v2: run refuses before the derived-table freeze commit (fail closed)', () => {
+    const r = spawnSync(process.execPath, [OOT, '--snapshot-dir', 'bench/research/devin-corpus-v2', 'run'], { cwd: ROOT, encoding: 'utf8' });
+    expect(r.status).toBe(1);
+    expect(r.stderr + r.stdout).toMatch(/decision-tables|fail-closed/i);
+    expect(fs.existsSync(path.join(ROOT, 'bench', 'research', 'out', 'devin-oot-v2-report.json'))).toBe(false);
+  });
+
+  test('v1 corpus artifacts stay byte-pinned through the parameterization', () => {
+    const pins = {
+      'bench/research/devin-corpus/items.jsonl': 'e934c63a6fa626f7',
+      'bench/research/devin-corpus/manifest.json': 'ffe3387adf2297a8',
+      'bench/research/devin-corpus/eval-plan.json': 'e1c2e66fd0cc2712',
+      'bench/research/out/devin-oot-report.json': 'f53fb1cff9e95bbf',
+      'bench/research/out/devin-oot-report.md': '83b9b808131bcb26'
+    };
+    for (const f of Object.keys(pins)) expect(sha(path.join(ROOT, f)).slice(0, 16)).toBe(pins[f]);
+  });
+
+  test('v1 runner unchanged: --validate and --replay still green on the default dir', () => {
+    const v = spawnSync(process.execPath, [OOT, '--validate'], { cwd: ROOT, encoding: 'utf8' });
+    expect(v.status).toBe(0);
+    expect(v.stdout).toContain('labels untouched');
+    const rp = spawnSync(process.execPath, [OOT, '--replay'], { cwd: ROOT, encoding: 'utf8' });
+    expect(rp.status).toBe(0);
+    expect(rp.stdout).toContain('OK');
+  });
+});
