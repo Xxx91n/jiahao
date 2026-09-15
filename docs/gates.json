@@ -344,6 +344,20 @@
         "repo-tree"
       ],
       "_doc": "ADR-0065 D-B.3 (with ADR-0064 D-E): JS-only publish gate. Packs the tarball, replays the sha256-anchored gold20 expectations against the EXTRACTED src/port surface (tiers a/c blocking, b advisory), corrupted-port positive control must be rejected. Wired to prepublishOnly; never blocks local npm pack."
+    },
+    {
+      "name": "devin-oot-replay",
+      "command": "node bench/research/devin-oot.js --replay",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0067-devin-corpus-v1-oot-falsification-adjudication.md",
+      "order": 154,
+      "params": {
+        "replay": true
+      },
+      "requires": [
+        "repo-tree"
+      ],
+      "_doc": "ADR-0067 D-E (ledger D-008/D-011): replays the STORED devin-oot report artifact - re-derives every published number (k, fp_count, recall/FP, confusion, CI band, verdict, fact line) from the recorded per-item rows against the frozen eval-plan. Never re-runs the corpus; items.jsonl and the corpus manifest are never opened. Fail-closed on any drift."
     }
   ]
 }

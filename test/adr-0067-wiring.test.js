@@ -308,10 +308,10 @@ describe('T-4 claim surface (ADR-0067 D-C)', () => {
     expect(rep.run_status).toBe('completed');
     expect(rep.single_shot).toBe(true);
     expect(['falsification-passed', 'indeterminate', 'failed']).toContain(rep.decision.verdict);
-    // single-shot burn: a completed artifact exists, re-run is refused (exit 2)
+    // single-shot burn: a completed artifact exists, re-run is refused (exit 65)
     const { spawnSync } = require('child_process');
     const r = spawnSync(process.execPath, [path.join(ROOT, 'bench', 'research', 'devin-oot.js'), 'run'], { cwd: ROOT, encoding: 'utf8' });
-    expect(r.status).toBe(2);
+    expect(r.status).toBe(65);
     expect(r.stderr).toContain('single-shot');
   });
 
@@ -372,5 +372,69 @@ describe('T-4 claim surface (ADR-0067 D-C)', () => {
     expect(tpl).toContain('0.563863 = baseline 0.4792 + d_MDE 0.084663');
     expect(tpl).toContain('CONFIRMATORY PASS');
     expect(tpl).toContain('Any claim that devin-corpus@v1 supports product conformity');
+  });
+});
+
+// ------------------------------------------------------------ T-5 (close) --
+describe('T-5 closure: replay gate + settlement (ADR-0067 D-E)', () => {
+  const oot = require('../bench/research/devin-oot.js');
+
+  test('the replay gate is registered in gates.json, confirmatory tier, repo-tree only', () => {
+    const g = readJson(path.join(ROOT, 'docs', 'gates.json'));
+    const e = g.entries.find((x) => x.name === 'devin-oot-replay');
+    expect(e).toBeDefined();
+    expect(e.command).toBe('node bench/research/devin-oot.js --replay');
+    expect(e.tier).toBe('confirmatory');
+    expect(e.source_adr).toContain('0067');
+    expect(e.requires).toEqual(['repo-tree']);
+    expect(e.params).toEqual({ replay: true });
+  });
+
+  test('replay re-derives the stored artifact cleanly and never opens the corpus', () => {
+    const r = oot.replayCheck(ROOT);
+    expect(r.errors).toEqual([]);
+    expect(r.rep.decision.verdict).toBe('indeterminate');
+    // purity: replayCheck opens only plan + report + mde-freeze paths
+    const real = fs.readFileSync;
+    const opened = [];
+    const spy = jest.spyOn(fs, 'readFileSync').mockImplementation((p, o) => {
+      opened.push(String(p));
+      return real.call(fs, p, o);
+    });
+    try { oot.replayCheck(ROOT); } finally { spy.mockRestore(); }
+    expect(opened.some((p) => p.indexOf('items.jsonl') !== -1)).toBe(false);
+    expect(opened.some((p) => p.indexOf('devin-corpus') !== -1 && p.indexOf('eval-plan') === -1)).toBe(false);
+  });
+
+  test('the corpus manifest is untouched: frozen status, 52 items, blind metadata intact', () => {
+    const m = readJson(path.join(ROOT, 'bench', 'research', 'devin-corpus', 'manifest.json'));
+    expect(m.status).toBe('frozen');
+    expect(m.item_count).toBe(52);
+    expect(m.blind_until).toContain('rung-1');
+    expect(m.conformity_disclaimer).toContain('never cited');
+  });
+
+  test('defer-0046 registers the INDETERMINATE terminal event', () => {
+    const reg = readJson(path.join(ROOT, 'docs', 'deferred-registry.json'));
+    const e = reg.entries.find((x) => x.id === 'defer-0046');
+    expect(e).toBeDefined();
+    expect(e.subject).toContain('INDETERMINATE');
+    expect(e.source_adr).toContain('0067');
+    expect(e.status).toBe('pending-evaluation');
+    // the branch policy for this verdict is the v2 design track
+    const rep = readJson(oot.REPORT_JSON);
+    expect(rep.settlement.branch_policy).toContain('devin-corpus@v2');
+    expect(rep.settlement.branch_policy).toContain('designed after seeing the v1 verdict');
+  });
+
+  test('the report carries every obligated field (full-report obligation)', () => {
+    const rep = readJson(oot.REPORT_JSON);
+    expect(rep.items).toHaveLength(52);
+    expect(rep.items.every((r) => /^[a-f0-9]{64}$/.test(r.sha256))).toBe(true);
+    expect(rep.metrics.recall_fp0.diagnostic_only).toBe(true);
+    expect(rep.metrics.drop_closing).toBeDefined();
+    expect(rep.positive_control.corrupted_manifest_detected).toBe(true);
+    expect(rep.fp_guardrail.descriptive_only).toBe(true);
+    expect(rep.eval_plan.sha256).toMatch(/^[a-f0-9]{64}$/);
   });
 });

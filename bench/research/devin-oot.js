@@ -24,6 +24,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const port = require('../../src/port/score.js');
+const { requireCapabilities } = require('../../src/shared/capability');
 
 const ROOT = path.join(__dirname, '..', '..');
 const CORPUS_DIR = path.join(ROOT, 'bench', 'research', 'devin-corpus');
@@ -470,6 +471,7 @@ function usage() {
 function main() {
   const cmd = process.argv[2] || 'run';
   if (cmd === '--replay') {
+    requireCapabilities('devin-oot-replay');
     const r = replayCheck(ROOT);
     for (const e of r.errors) console.error('FAIL: ' + e);
     if (r.errors.length) process.exit(1);
@@ -496,7 +498,7 @@ function main() {
   }
   if (fs.existsSync(REPORT_JSON) && readJson(REPORT_JSON).run_status === 'completed') {
     console.error('REFUSED: a completed devin-oot-report.json already exists - single-shot burn is mechanical (ADR-0067 D-A.5). Use --replay.');
-    process.exit(2);
+    process.exit(65); // EX_DATAERR: exit 2 is reserved for UNVERIFIABLE (ADR-0041 D3)
   }
   // SINGLE-SHOT: labels join here, exactly once.
   const adj = adjudicate(ser.rows, corpus.items, plan);
