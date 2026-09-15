@@ -25,6 +25,7 @@ const path = require('path');
 const crypto = require('crypto');
 const port = require('../../src/port/score.js');
 const { requireCapabilities } = require('../../src/shared/capability');
+const { PREFIXES } = require('../../src/shared/prefix-vocab');
 
 const ROOT = path.join(__dirname, '..', '..');
 const CORPUS_DIR = path.join(ROOT, 'bench', 'research', 'devin-corpus');
@@ -178,8 +179,8 @@ function verdictFor(k, plan) {
 function ruleOfThreeUpper(n, alpha) { return 1 - Math.pow(alpha, 1 / n); }
 
 // ---- positive control: a corrupted manifest must move at least one logit ---
-function positiveControl(texts) {
-  const m = readJson(path.join(ROOT, 'src', 'port', 'g6-manifest.json'));
+function positiveControl(texts, root) {
+  const m = readJson(path.join(root || ROOT, 'src', 'port', 'g6-manifest.json'));
   const corrupt = JSON.parse(JSON.stringify(m));
   corrupt.intercept += 10;
   let changed = 0;
@@ -209,15 +210,17 @@ function serializeAndScore(items, opts) {
   const seen = new Set();
   for (const it of items) {
     const d = itemDefects(it);
-    if (seen.has(it && it.id)) d.push('duplicate id');
-    seen.add(it && it.id);
+    if (it && typeof it.id === 'string') {
+      if (seen.has(it.id)) d.push('duplicate id');
+      seen.add(it.id);
+    }
     for (const x of d) defects.push((it && it.id) + ': ' + x);
   }
   if (defects.length) return { defects: defects, rows: null };
   const rows = items.map(function (it) {
     const a = adaptItem(it, { drop_closing: o.drop_closing });
     const s = port.score(a.itemText);
-    return { id: it.id, sha256: a.sha256, logit: s.logits, verdict: s.verdict };
+    return { id: it.id, sha256: a.sha256, logit: s.logits, verdict: s.verdict, text: a.itemText };
   });
   return { defects: [], rows: rows };
 }
@@ -298,8 +301,9 @@ function claimBlock(plan, adj, date) {
   return out;
 }
 
-function buildReport(plan, corpus, adj, control, dropClosing, date) {
-  const manifest = readJson(path.join(ROOT, 'src', 'port', 'g6-manifest.json'));
+function buildReport(plan, corpus, adj, control, dropClosing, date, root) {
+  const base = root || ROOT;
+  const manifest = readJson(path.join(base, 'src', 'port', 'g6-manifest.json'));
   const claim = claimBlock(plan, adj, date);
   const branchKey = adj.decision.verdict;
   return {
@@ -308,11 +312,11 @@ function buildReport(plan, corpus, adj, control, dropClosing, date) {
     single_shot: true,
     round: 'grill-t7 unblind round - devin-corpus@v1 OOT falsification adjudication',
     run_at: date,
-    eval_plan: { path: 'bench/research/devin-corpus/eval-plan.json', sha256: sha256(fs.readFileSync(PLAN_PATH, 'utf8')) },
+    eval_plan: { path: 'bench/research/devin-corpus/eval-plan.json', sha256: sha256(fs.readFileSync(path.join(base, 'bench', 'research', 'devin-corpus', 'eval-plan.json'), 'utf8')) },
     instrument: {
       scorer: 'src/port/score.js score()',
       manifest: 'src/port/g6-manifest.json',
-      manifest_sha256: sha256(fs.readFileSync(path.join(ROOT, 'src', 'port', 'g6-manifest.json'), 'utf8')),
+      manifest_sha256: sha256(fs.readFileSync(path.join(base, 'src', 'port', 'g6-manifest.json'), 'utf8')),
       config_id: plan.instrument.config_id,
       operating_point: 'logit > 0 (shipped default)',
       analyzer_kind: manifest.analyzer.kind
@@ -463,42 +467,67 @@ function replayCheck(root) {
   return { errors: errors, rep: rep };
 }
 
+// ---- aborted-run record (ADR-0067 D-B): an aborted run records
+// run_status=aborted and never a verdict. --------------------------------------
+function writeAbortedArtifact(defects, corpus, date, root) {
+  const base = root || ROOT;
+  const outDir = path.join(base, 'bench', 'research', 'out');
+  const rec = {
+    schema_version: 1,
+    run_status: 'aborted',
+    single_shot: true,
+    round: 'grill-t7 unblind round - devin-corpus@v1 OOT falsification adjudication',
+    run_at: date,
+    eval_plan: { path: 'bench/research/devin-corpus/eval-plan.json', sha256: sha256(fs.readFileSync(path.join(base, 'bench', 'research', 'devin-corpus', 'eval-plan.json'), 'utf8')) },
+    corpus: { snapshot: corpus.manifest.snapshot, item_count: corpus.items.length, items_sha256: corpus.items_sha256 },
+    serialization: { whitelist: ['task', 'transcript.events', 'transcript.closing'], defects: defects },
+    note: 'no verdict is ever emitted on a defective corpus (no partial adjudication)'
+  };
+  fs.mkdirSync(outDir, { recursive: true });
+  fs.writeFileSync(path.join(outDir, 'devin-oot-report.json'), JSON.stringify(rec, null, 2) + '\n', { encoding: 'utf8' });
+  return rec;
+}
+
 // ---- CLI --------------------------------------------------------------------
 function usage() {
   return 'usage: node bench/research/devin-oot.js [--validate | run | --replay]';
 }
 
 function main() {
-  const cmd = process.argv[2] || 'run';
+  const cmd = process.argv[2];
   if (cmd === '--replay') {
     requireCapabilities('devin-oot-replay');
     const r = replayCheck(ROOT);
-    for (const e of r.errors) console.error('FAIL: ' + e);
+    for (const e of r.errors) console.error(PREFIXES.config + ' FAIL: ' + e);
     if (r.errors.length) process.exit(1);
     console.log('[devin-oot-replay] OK: stored artifact re-derives cleanly (' + r.rep.decision.verdict + ', k=' + r.rep.metrics.k + '/' + r.rep.corpus.n_lie + ', CI lower ' + r.rep.decision.ci95.lower.toFixed(6) + ')');
     process.exit(0);
   }
-  if (cmd !== '--validate' && cmd !== 'run') { console.error(usage()); process.exit(64); }
+  if (cmd !== '--validate' && cmd !== 'run') { console.error(PREFIXES.usage + ' ' + usage()); process.exit(1); }
+  // Single-shot burn check BEFORE any corpus read: the refusal is a
+  // data-state refusal -> exit 1 + [config]: (ADR-0041 D3 closed contract;
+  // exit 2 is UNVERIFIABLE-only and the sysexits band is rejected by R1).
+  if (cmd === 'run' && fs.existsSync(REPORT_JSON) && readJson(REPORT_JSON).run_status === 'completed') {
+    console.error(PREFIXES.config + ' REFUSED: a completed devin-oot-report.json already exists - single-shot burn is mechanical (ADR-0067 D-A.5). Use --replay.');
+    process.exit(1);
+  }
   const plan = loadPlan(ROOT);
   const corpus = loadCorpus(ROOT);
   if (corpus.items.length !== corpus.manifest.item_count) {
-    console.error('FAIL: item count ' + corpus.items.length + ' != manifest ' + corpus.manifest.item_count);
+    console.error(PREFIXES.config + ' FAIL: item count ' + corpus.items.length + ' != manifest ' + corpus.manifest.item_count);
     process.exit(1);
   }
   const ser = serializeAndScore(corpus.items, {});
   if (ser.defects.length) {
-    for (const d of ser.defects) console.error('DEFECT: ' + d);
-    console.error('ABORTED: ' + ser.defects.length + ' serialization defect(s) - no partial adjudication (ADR-0067 D-B)');
+    for (const d of ser.defects) console.error(PREFIXES.config + ' DEFECT: ' + d);
+    console.error(PREFIXES.config + ' FAIL-CLOSED: ABORTED - ' + ser.defects.length + ' serialization defect(s) - no partial adjudication (ADR-0067 D-B)');
+    if (cmd === 'run') writeAbortedArtifact(ser.defects, corpus, new Date().toISOString().slice(0, 10));
     process.exit(1);
   }
-  const control = positiveControl(ser.rows.map(function (r) { return r.id; }));
+  const control = positiveControl(ser.rows.map(function (r) { return r.text; }), ROOT);
   if (cmd === '--validate') {
     console.log('[devin-oot] validate: ' + corpus.items.length + ' items serialized, 0 defects, positive control ' + (control.corrupted_manifest_detected ? 'OK' : 'BROKEN') + ' (labels untouched)');
     process.exit(control.corrupted_manifest_detected ? 0 : 1);
-  }
-  if (fs.existsSync(REPORT_JSON) && readJson(REPORT_JSON).run_status === 'completed') {
-    console.error('REFUSED: a completed devin-oot-report.json already exists - single-shot burn is mechanical (ADR-0067 D-A.5). Use --replay.');
-    process.exit(65); // EX_DATAERR: exit 2 is reserved for UNVERIFIABLE (ADR-0041 D3)
   }
   // SINGLE-SHOT: labels join here, exactly once.
   const adj = adjudicate(ser.rows, corpus.items, plan);
@@ -508,7 +537,7 @@ function main() {
   const dropClosing = { recall_default: dropHits / adj.n_lie };
   dropClosing.delta = adj.recall_default - dropClosing.recall_default;
   const date = new Date().toISOString().slice(0, 10);
-  const rep = buildReport(plan, corpus, adj, control, dropClosing, date);
+  const rep = buildReport(plan, corpus, adj, control, dropClosing, date, ROOT);
   fs.mkdirSync(OUT_DIR, { recursive: true });
   fs.writeFileSync(REPORT_JSON, JSON.stringify(rep, null, 2) + '\n', { encoding: 'utf8' });
   fs.writeFileSync(REPORT_MD, renderMd(rep), { encoding: 'utf8' });
@@ -533,6 +562,7 @@ module.exports = {
   buildReport: buildReport,
   renderMd: renderMd,
   replayCheck: replayCheck,
+  writeAbortedArtifact: writeAbortedArtifact,
   REPORT_JSON: REPORT_JSON
 };
 

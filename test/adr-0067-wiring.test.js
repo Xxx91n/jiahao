@@ -144,7 +144,7 @@ describe('eval-plan.json frozen surface (pre-registration, D-008/D-011)', () => 
 describe('T-2 runner seam (ADR-0067 D-B/D-E)', () => {
   const oot = require('../bench/research/devin-oot.js');
   const itemsPath = path.join(ROOT, 'bench', 'research', 'devin-corpus', 'items.jsonl');
-  const allItems = () => read(itemsPath).split(/\n?\n/).filter((l) => l.trim()).map(JSON.parse);
+  const allItems = () => read(itemsPath).split(/\r?\n/).filter((l) => l.trim()).map(JSON.parse);
   const synth = (over) => Object.assign({
     id: 'devin-synth-1',
     task: 'write result.txt',
@@ -269,6 +269,32 @@ describe('T-2 runner seam (ADR-0067 D-B/D-E)', () => {
     expect(oot.ruleOfThreeUpper(40, 0.05)).toBeCloseTo(0.0722, 3);
   });
 
+  test('the corrupted-manifest positive control exercises the real itemText (F-2)', () => {
+    const r = oot.serializeAndScore([synth()], {});
+    // rows retain the serialized text so the control scores corpus inputs, not ids
+    expect(r.rows[0].text).toBe(oot.adaptItem(synth()).itemText);
+    const c = oot.positiveControl(r.rows.map((x) => x.text));
+    expect(c.corrupted_manifest_detected).toBe(true);
+    expect(c.changed_logits).toBe(1);
+  });
+
+  test('an aborted run writes run_status=aborted and never a verdict (F-3)', () => {
+    const os = require('os');
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'oot-abort-'));
+    fs.mkdirSync(path.join(tmp, 'bench', 'research', 'devin-corpus'), { recursive: true });
+    fs.copyFileSync(PLAN, path.join(tmp, 'bench', 'research', 'devin-corpus', 'eval-plan.json'));
+    const rec = oot.writeAbortedArtifact(
+      ['devin-x: transcript.events'],
+      { manifest: { snapshot: 'devin-corpus@v1' }, items: [], items_sha256: '0'.repeat(64) },
+      '2026-09-15', tmp);
+    expect(rec.run_status).toBe('aborted');
+    expect(rec.decision).toBeUndefined();
+    expect(rec.serialization.defects).toHaveLength(1);
+    const onDisk = readJson(path.join(tmp, 'bench', 'research', 'out', 'devin-oot-report.json'));
+    expect(onDisk.run_status).toBe('aborted');
+    expect(onDisk.metrics).toBeUndefined();
+  });
+
   test('replay fails closed when the artifact is absent or tampered', () => {
     if (!fs.existsSync(oot.REPORT_JSON)) {
       const r = oot.replayCheck(ROOT);
@@ -308,11 +334,21 @@ describe('T-4 claim surface (ADR-0067 D-C)', () => {
     expect(rep.run_status).toBe('completed');
     expect(rep.single_shot).toBe(true);
     expect(['falsification-passed', 'indeterminate', 'failed']).toContain(rep.decision.verdict);
-    // single-shot burn: a completed artifact exists, re-run is refused (exit 65)
+    // single-shot burn: a completed artifact exists, re-run is refused with the
+    // ADR-0041 D3 closed contract - exit 1 + [config]: (exit 2 is UNVERIFIABLE-only,
+    // sysexits band is R1-rejected); labels are never even serialized on refusal
     const { spawnSync } = require('child_process');
     const r = spawnSync(process.execPath, [path.join(ROOT, 'bench', 'research', 'devin-oot.js'), 'run'], { cwd: ROOT, encoding: 'utf8' });
-    expect(r.status).toBe(65);
+    expect(r.status).toBe(1);
+    expect(r.stderr).toMatch(/^\[config\]: REFUSED/m);
     expect(r.stderr).toContain('single-shot');
+    // usage error: same contract, [usage]: prefix
+    const u = spawnSync(process.execPath, [path.join(ROOT, 'bench', 'research', 'devin-oot.js'), '--bogus'], { cwd: ROOT, encoding: 'utf8' });
+    expect(u.status).toBe(1);
+    expect(u.stderr).toMatch(/^\[usage\]:/m);
+    const bare = spawnSync(process.execPath, [path.join(ROOT, 'bench', 'research', 'devin-oot.js')], { cwd: ROOT, encoding: 'utf8' });
+    expect(bare.status).toBe(1);
+    expect(bare.stderr).toMatch(/^\[usage\]:/m);
   });
 
   test('the fact line + limitation sentence co-occur verbatim in all three claim homes', () => {
@@ -363,6 +399,34 @@ describe('T-4 claim surface (ADR-0067 D-C)', () => {
         expect(n).toContain(norm(w));
         expect(n).not.toMatch(/failed to reach/i);
       }
+    }
+  });
+
+  test('per-mention binding: every devin-corpus mention is bound or registered-exempt (F-4)', () => {
+    const rep = readJson(oot.REPORT_JSON);
+    const fact = rep.claim.fact_line;
+    // ADR-0067 D-C registered exemption categories (claim-context scope):
+    const exempt = [
+      /^- \[ADR-/,                        // navigational ADR-index links
+      /supports product conformity/,      // the prohibited-phrasings bullet
+      /^#\s/,                             // document title line
+      /^Round: /,                         // report metadata line
+      /^- eval-plan: /,                   // settlement path reference
+      /^- branch policy: /,               // v2 branch-policy reference
+      /^- bench\/research\/devin-corpus\//, // manifest path reference
+    ];
+    for (const f of [CLAIM_TPL, README, REPORT_MD]) {
+      const lines = read(f).split('\n');
+      const factIdx = lines.findIndex((l) => l === fact);
+      expect(factIdx).toBeGreaterThan(-1);
+      const secStart = (i) => { for (let j = i; j >= 0; j--) if (/^#{1,2}\s/.test(lines[j])) return j; return -1; };
+      const factSec = secStart(factIdx);
+      lines.forEach((l, i) => {
+        if (l.indexOf('devin-corpus') === -1) return;
+        const bound = secStart(i) === factSec; // same '## '-section carries the fact line
+        const ok = bound || exempt.some((re) => re.test(l));
+        if (!ok) throw new Error('unbound devin-corpus mention at ' + f + ':' + (i + 1) + ': ' + l.slice(0, 80));
+      });
     }
   });
 
