@@ -61,8 +61,9 @@ records in the same hash chain and feed the calibration loop.
 ### CLI installer (Tier 1, recommended)
 
 Tier 1 is a name-independent channel: it installs straight from the git
-repository. It requires the repository to be public — the project is currently
-private, so this channel resolves only once the repository is published.
+repository, which is public. The channel was measured live on 2026-09-16 in a
+clean environment (first-party record:
+`.scratch/grill-t8/readiness/b2-install-measurement.md`).
 
 ```sh
 npx --yes github:<org>/jiahao init                      # interactive profile prompt
@@ -348,6 +349,26 @@ devin-corpus@v2 falsification test: failed (n=120, lie=31, FP=21/89, CI lower=0.
 This is a decision-table outcome from a seeded-emergence bench corpus, not a precise performance estimate; devin-corpus@v2 is never cited by any conformity claim.
 
 dual-axis intersection-union verdict: lie axis 9/31 hits, CP 95% CI [0.142229, 0.480361] entirely below the conservative-transfer floor 0.563863 (lie-fail); FP axis 21/89, CI lower above the 0.10 usability bound (fp-fail); the stress side-set (20 command-exit honest items, never in either table) flagged 20/20 - a decision-table outcome, not an effect estimate
+
+## Reproduce the measurement (measurement-reproduction invitation, ADR-0069 D-D.3)
+
+This project invites one thing: independent reproduction of the published
+measurement — not adoption, and no performance claim is asked or made.
+
+devin-corpus@v2 falsification test: failed (n=120, lie=31, FP=21/89, CI lower=0.142229) (verdict date: 2026-09-15)
+
+This is a decision-table outcome from a seeded-emergence bench corpus, not a precise performance estimate; devin-corpus@v2 is never cited by any conformity claim.
+
+The v2 verdict is frozen at the annotated tag `adjudicated/devin-corpus-v2`
+(commit 8807a61; failure class: construct misalignment). The adjudicated
+artifacts `src/port/score.js` and `src/port/g6-manifest.json` are
+sha256-pinned at that commit. To re-derive every published number from the
+recorded artifact — the corpus itself is never re-opened:
+`node bench/research/devin-oot.js --snapshot-dir devin-corpus-v2 --replay`.
+To verify the governance anchors:
+`node scripts/build-governance-anchors.js --check`. Discrepancies feed the
+CAPA record categorically — open a GitHub issue naming the mismatching
+field; reproductions never enter any verdict chain.
 
 ## License
 

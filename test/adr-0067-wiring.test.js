@@ -418,6 +418,7 @@ describe('T-4 claim surface (ADR-0067 D-C)', () => {
       /devin-corpus@v2 falsification test: failed \(n=120/, // v2 landed fact line (ADR-0068 D-C)
       /devin-corpus@v2 is never cited/,    // v2 bound limitation sentence
       /through devin-corpus@v3/,           // ADR-0069 D-D.1: the first-screen CAPA-route mention (a registration, not a claim)
+      /devin-corpus-v2/,                  // ADR-0069 D-C/D-D.3: snapshot-dir + anchor-tag references (adjudicated/devin-corpus-v2, --snapshot-dir)
     ];
     for (const f of [CLAIM_TPL, README, REPORT_MD]) {
       const lines = read(f).split('\n');
