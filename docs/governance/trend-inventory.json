@@ -33,6 +33,19 @@
       "zero_product_diff": true,
       "deferred_entry": "defer-0041",
       "advisory_fired": true
+    },
+    {
+      "round": "grill-t8-doc-round",
+      "date": "2026-09-16",
+      "kind": "documentation",
+      "adr_added": [
+        "0069"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "deferred_entry": "defer-0049",
+      "advisory_fired": false
     }
   ],
   "source_adr": "0064"

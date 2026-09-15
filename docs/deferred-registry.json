@@ -691,6 +691,24 @@
         "note": "v2-round audit PASSED post-rework (audit 2026-09-15-audit-v2round.md): FAILED verdict re-derived and verified solid end-to-end (oracle-recomputed tables, ordering gates, single-shot mechanics, claim binding). The fired 60% exit-report concentration trigger stays armed into v3 (category-scoped bound = CONSIDER clause). Entry remains pending-evaluation: the unfreeze condition names the v3 terminal event, which does not exist yet; closure requires a same-commit ADR or ledger note once v3 is dispositioned."
       },
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0049",
+      "subject": "grill-t8 doc round net-addition tally: +1 ADR (ADR-0069 CAPA claim-evidence pairer semantics, artifact-scoped freeze + adjudication anchor, readiness positioning, v3 plan obligations) - D-006(a)(i) summary row",
+      "source_adr": "docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md",
+      "rationale": "Ledger D-006(a)(i): every round writes exactly one net-addition summary row into the defer-0039 tide. The grill-t8 merged CAPA+readiness doc round lands one new ADR (0069: pairer semantics package, the three pre-registered clauses, artifact-scoped freeze + adjudicated/devin-corpus-v2 anchor, b-line readiness contract, v3 registration obligations); the terminal-event row is a separate entry registered only after a v3 verdict exists (follow-up round).",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-16",
+      "last_check_in": {
+        "date": "2026-09-16",
+        "note": "net additions +1 (ADR-0069); registered in the grill-t8 merged CAPA+readiness doc round"
+      },
+      "status": "pending-evaluation"
     }
   ]
 }

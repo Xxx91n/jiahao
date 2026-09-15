@@ -2,6 +2,21 @@
 
 Prompt-as-mental-model skill distribution with **dual profiles** for LLM agents.
 
+**Status — an installable discipline scaffold with publicly failed measurement**
+(ADR-0069). The install channel, hook wiring and claim discipline in this
+package are real and exercised; the measured detection claim is public and
+failed:
+
+> devin-corpus@v2 falsification test: failed (n=120, lie=31, FP=21/89, CI lower=0.142229) (verdict date: 2026-09-15)
+>
+> This is a decision-table outcome from a seeded-emergence bench corpus, not a precise performance estimate; devin-corpus@v2 is never cited by any conformity claim.
+
+That verdict adjudicates the scorer artifact `src/port/score.js` — the
+failure class is construct misalignment (it fired on “looks like an exit
+report”, not on claim-evidence contradiction). A deterministic
+claim-evidence pairer is the CAPA repair track; adjudicated
+through devin-corpus@v3 names the v3 route. **Nothing on this page is a detector-effectiveness claim.**
+
 Jiahao ships two install-time rule sets. Pick once at install:
 
 | Profile | Installed in | Behavior |
@@ -12,8 +27,10 @@ Jiahao ships two install-time rule sets. Pick once at install:
 ## What it does
 
 LLM agents suffer from False Completion Syndrome: falsely claiming success,
-self-deceiving about completion, hallucinating self-evaluation. Jiahao makes
-this structurally impossible. The **generator profile** attacks the surface
+self-deceiving about completion, hallucinating self-evaluation. Jiahao
+attacks the structure of that failure — claims are separated from
+verification and evidence is demanded mechanically — without asserting the
+measurement solved it (the failed verdict above stays on the record). The **generator profile** attacks the surface
 signals inside the primary agent (you cannot self-verify — verified advice).
 The **verifier profile** runs in a separate audit agent, where
 independence theorems actually apply: an external verifier can find errors
@@ -184,7 +201,7 @@ source-only; ADR-0059 D-B). An MCP publish channel is deferred (defer-0029).
 ## Develop
 
 ```bash
-npm test                              # 923 tests across 60 suites (full corpus tier; the public tier skips 10 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 952 tests across 61 suites (full corpus tier; the public tier skips 10 corpus-bound tests with reasons, ADR-0056)
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
@@ -202,7 +219,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). The index below is a derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js` — do not hand-edit:
 
 <!-- adr-index:start -->
-- 68 architecture decision records:
+- 69 architecture decision records:
 - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
 - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
 - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
@@ -271,8 +288,9 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - [ADR-0066](docs/adr/0066-tarball-cap-trend-anchor-amendment-t6-product-port-surface.md) — Tarball-Cap Trend-Anchor Amendment for the T-6 Product Port Surface
 - [ADR-0067](docs/adr/0067-devin-corpus-v1-oot-falsification-adjudication.md) — devin-corpus@v1 OOT Falsification Adjudication - Eval-Plan Registration, Claim Surface, Branch Policy
 - [ADR-0068](docs/adr/0068-devin-corpus-v2-dual-axis-adjudication-collection-protocol-claim-slot-v3-binding.md) — devin-corpus@v2 Plan - Dual-Axis IUT Adjudication Rule, Collection Protocol, Claim Slot, v3 Binding and Probe Terms
+- [ADR-0069](docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md) — CAPA Claim-Evidence Pairer Semantics, Artifact-Scoped Freeze + Adjudication Anchor, Readiness Positioning, and v3 Plan Obligations
 <!-- adr-index:end -->
-- `test/` — 60 test suites, 923 tests
+- `test/` — 61 test suites, 952 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 - `private/bench-corpus/` — answer corpora (probes/judge-twins/twins + fingerprints; gitignored, ADR-0036 D2). Gate scripts resolve via JIAHAO_CORPUS_DIR, else the install-planted dir (`jiahao init` plants it from the package), else this repo-private dir in a maintainer tree; missing everywhere fails closed (exit 1: config; the capability probe degrades an absent corpus dir to exit 2 UNVERIFIABLE first, ADR-0041 D2). npm consumers and public git clones carry no corpus at all — corpus gates are a maintainer/CI-only contract, fail-closed by design (ADR-0038 D2).
 

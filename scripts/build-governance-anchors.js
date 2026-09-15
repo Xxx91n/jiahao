@@ -23,6 +23,7 @@ const ARTIFACTS = [
   { file: 'audit-report-adr0058.md', origin: '.scratch/grill-adr0058/reports/2026-09-12-audit-report.md', adr: 'ADR-0058' },
   { file: 'decision-ledger-t6.md', origin: '.scratch/grill-t6/decision-ledger.md', adr: 'ADR-0064' },
   { file: 'decision-ledger-t7.md', origin: '.scratch/grill-t7/decision-ledger.md', adr: 'ADR-0065' },
+  { file: 'decision-ledger-t8.md', origin: '.scratch/grill-t8/decision-ledger.md', adr: 'ADR-0069' },
   { file: 'ERRATA.md', origin: '(authored in place)', adr: 'ADR-0061' },
   { file: 'trend-inventory.json', origin: '(authored in place)', adr: 'ADR-0064' },
 ];
