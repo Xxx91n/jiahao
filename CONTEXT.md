@@ -275,6 +275,56 @@ is not a tamper-proof ledger, and a bare hash cannot re-create a lost record
 (ADR-0061 D-E; SEC 17a-4 audit-trail alternative; NIST IR 8387).
 _Avoid_: self-contained anchor, scratch-path ledger
 
+**Integer Decision Table (整数判表)**:
+A frozen mapping from integer outcome bands to verdicts, fixed before the
+data it constrains is unblinded — for devin-corpus@v1: lie-side 11-12/12 ->
+falsification-passed, 3-10/12 -> indeterminate, 0-2/12 -> failed, under
+Clopper-Pearson two-sided 95% CI at alpha 0.05 against floor 0.563863
+(ledger D-008). The table adjudicates; the point estimate does not.
+_Avoid_: point-estimate adjudication, post-hoc band selection
+
+**Single-Shot Burn (单发烧桥)**:
+A frozen truth-corpus snapshot is adjudicated exactly once; the verdict is
+settled by that snapshot's own items and never re-judged by later corpora.
+Re-testing requires a new snapshot (devin-corpus@v2) under its own
+registration (ledger D-008, ADR-0030 growth channel).
+_Avoid_: same-snapshot retest, retroactive re-adjudication
+
+**Falsification-First Instrument (证伪优先仪器)**:
+An adjudication whose statistical power concentrates on detecting collapse
+rather than confirming adequacy; at n_lie=12 the power curve is 0.88 / 0.66 /
+0.28 at true recall 0.95 / 0.9 / 0.8, so PASS is reachable only at
+near-perfect performance and INDETERMINATE is a structural outcome, not an
+anomaly (ledger D-008).
+_Avoid_: confirmation-instrument framing, power-free PASS claims
+
+**Research-Tier Citation (研究级引用通道)**:
+A claim surface carrying a verbatim, machine-asserted verdict fact line
+bound to its limitation sentence into claim homes while the
+never-cited-by-conformity clause stays untouched — a citation-layer upgrade,
+not a use-registration change (ledger D-009).
+_Avoid_: conformity promotion, unbounded paraphrase
+
+**Decision-Table Outcome (判表结局)**:
+The class a verdict names when produced by an integer decision table — an
+indeterminate outcome states where the count landed in the table, not that
+the instrument failed; never framed as 'failed to reach' (ledger D-009).
+_Avoid_: failure framing for indeterminate, effect-estimate language
+
+**Conservative Transfer (保守迁移)**:
+Reusing a floor frozen on another corpus, disclosed with its original
+semantics ('not worse than baseline + margin'), never re-narrated as an
+engineering-grade threshold (ledger D-008).
+_Avoid_: silent reuse, semantic upgrade on transfer
+
+**Branch-Mapping Policy (分支映射政策)**:
+A pre-registered rule mapping each verdict to a follow-up class —
+COLLAPSE -> CAPA repair track, INDETERMINATE -> v2 snapshot design
+(n_hon ~100 target), PASS -> optional v2 — while numeric parameters defer to
+the follow-up's own pre-data registration with disclosure of its dependence
+on the v1 verdict (ledger D-010).
+_Avoid_: parameter registration before the verdict exists, vague branches
+
 ## Decision Log
 
 **Self-Preference Bias (自偏好偏差)**:

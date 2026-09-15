@@ -35,8 +35,8 @@
       "file": "decision-ledger-t7.md",
       "origin": ".scratch/grill-t7/decision-ledger.md",
       "adr": "ADR-0065",
-      "bytes": 8648,
-      "sha256": "a9e6cd9c5a18645ca050a94df091ef471ed0b39adbf3c3ad49c1a26643a72c9e"
+      "bytes": 16053,
+      "sha256": "419993e29e7a6fbb30cfb8d35352a30b7439add5943287e5d4e669de51fafb83"
     },
     {
       "file": "ERRATA.md",
