@@ -1,6 +1,6 @@
 # v2 round audit PASSED - devin-corpus@v2 settled FAILED, rework verified (2026-09-15)
 
-Branch `grill-t7-v2-docs` (GitButler, local only): llp→xql→ptl→qsz→ktw→oom→lvm(audit)→lsl(rework).
+Landed 2026-09-15: the full round (llp→xql→ptl→qsz→ktw→oom→lvm(audit)→lsl(rework)→yyr(handoff)→nus(registry check-in)→this close-out) landed on `main` via `but land` and pushed to `origin/main`; branch `grill-t7-v2-docs` retired post-land. All history below lives on main now.
 Ledger of authority: `.scratch/grill-t7/decision-ledger.md`. Spec: `.scratch/grill-t7/spec-devin-v2.md`.
 Artifacts: report `.scratch/grill-t7/reports/2026-09-15-report-v2round.md` (rev.1);
 audit `.scratch/grill-t7/reports/2026-09-15-audit-v2round.md` + `audit-v2round.diff`.
