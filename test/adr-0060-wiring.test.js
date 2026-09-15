@@ -226,7 +226,11 @@ describe('ADR-0060 D-C/D-E: conditional certification axis', () => {
     const repaired = st.history.filter((e) => e.kind === 'conditional_signoff' && 'expires_at' in e);
     expect(repaired.length).toBeGreaterThan(0);
     const last = repaired[repaired.length - 1];
-    expect(last).toBe(st.history[st.history.length - 1]);
+    // The invariant is that the repaired tail IS the live conditional
+    // sign-off. Later non-signoff events (e.g. the seq-13 criteria_change
+    // countersign) append above it without weakening it.
+    const signoffs = st.history.filter((e) => e.kind === 'conditional_signoff');
+    expect(last).toBe(signoffs[signoffs.length - 1]);
   });
 
   test('STD-1: the transition carries the expiry/CAPA onto the event, not only top-level', () => {
