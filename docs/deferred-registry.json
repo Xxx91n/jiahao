@@ -688,7 +688,7 @@
       "registered_at": "2026-09-15",
       "last_check_in": {
         "date": "2026-09-15",
-        "note": "FAILED verdict recorded from bench/research/out/devin-oot-v2-report.json (single-shot, single_shot=true)"
+        "note": "v2-round audit PASSED post-rework (audit 2026-09-15-audit-v2round.md): FAILED verdict re-derived and verified solid end-to-end (oracle-recomputed tables, ordering gates, single-shot mechanics, claim binding). The fired 60% exit-report concentration trigger stays armed into v3 (category-scoped bound = CONSIDER clause). Entry remains pending-evaluation: the unfreeze condition names the v3 terminal event, which does not exist yet; closure requires a same-commit ADR or ledger note once v3 is dispositioned."
       },
       "status": "pending-evaluation"
     }
