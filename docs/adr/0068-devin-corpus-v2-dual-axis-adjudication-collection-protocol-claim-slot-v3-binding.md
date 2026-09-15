@@ -197,3 +197,46 @@ routes the v3 evaluation to consider a category-scoped bound per D-014(b).
 The terminal event registers as defer-0048 (D-006(a)(ii), one terminal event
 per round), committed alongside the claim-slot fill and the devin-oot-v2-replay
 gate registration in this same closure commit.
+
+## Errata (registered at the audit-rework commit)
+
+E-1. **Stopping-function letter (ledger D-015b(i) vs registered plan).**
+The ledger's text makes the add-batch decision a deterministic function of the
+lie count only (lie count < trajectory floor -> add a batch). The pre-registered
+plan.json stopping_function is wider: it adds a batch iff L_b < F[b] OR
+H_b < 80, with an early-stop clause (L_b >= 24 and H_b >= 80). The wider rule
+was registered in plan.json BEFORE any v2 data existed, is deterministic, and
+was executed as registered (batch b-6 ran on the honest-count clause alone:
+after b-5, L=24 had already met F[5]=19 while H=76 < 80). The freedom-sealing
+property the ledger intended survives - the rule is registered, deterministic,
+and was not tuned to outcomes - but it is a wider function than the ledger
+letter. This errata adjudicates the deviation: the pre-registered two-disjunct
+rule stands as the executed spec (registered pre-data, so no QRP is at play),
+and the ledger letter is superseded for this round. The collection log's
+floor_check field records only the L-vs-F comparison; the deciding clause for
+b-6 was H_b < 80 as disclosed here (the log artifact itself is frozen and not
+retro-edited).
+
+E-2. **manifest.json has no contamination_registry field.** The T-3 task note
+listed a contamination-registry reference among manifest fields; the frozen
+manifest carries the roster + counts + bands + disclaimers but not that field.
+The contamination registry itself lives in plan.json (committed before data).
+This errata discloses the omission; the frozen manifest is not mutated (a
+mutation would cascade into the pinned sha anchors and report citations).
+
+E-3. **Attempt-cap arithmetic.** plan.json registers total_attempt_cap 185 with
+semantics "160 main + 25 side". The executed harness caps at 160 main +
+SIDE_N=20 side = ceiling 180; the landed run used 140 attempts, compliant under
+both readings. The registered "25" vs the executed 20 is an internal
+inconsistency in the frozen plan text; this errata records it. The side-set
+size band [15,25] was met (20 landed).
+
+E-4. **Provenance wording precision.** manifest.model_version names the
+desktop-model version field by v1 convention; the item generator is the
+registered seeded-PRNG harness (.scratch/grill-t7/devin-collect-v2.js), and
+harness_commit is the honest generator field. For file-contains misreport
+items the recorded read_file tool_result is the seeded fault injection's
+record (content 'unrelated'), i.e. the injected-fault record rather than a
+live read of the written file; the seeded-fault mechanism is registered in
+plan.json contamination_registry and the harness header now says so plainly.
+No data change results from this wording repair.

@@ -60,6 +60,6 @@ the pre-registered integer decision table assigns 3/12 to the indeterminate band
 
 devin-corpus@v2 falsification test: failed (n=120, lie=31, FP=21/89, CI lower=0.142229) (verdict date: 2026-09-15)
 
-"This is a decision-table outcome from a seeded-emergence bench corpus, not a precise performance estimate; devin-corpus@v2 is never cited by any conformity claim."
+This is a decision-table outcome from a seeded-emergence bench corpus, not a precise performance estimate; devin-corpus@v2 is never cited by any conformity claim.
 
 Verdict landed 2026-09-15 via the single-shot run (lie-fail x fp-fail); replay: gate devin-oot-v2-replay.

@@ -231,7 +231,7 @@ function loadPlanV2(root) {
       }
       if (cursor !== t2.n + 1) errors.push(ax + ' bands do not partition 0..' + t2.n);
       for (const b of (t2.bands || [])) {
-        for (let k = b.k_min; k <= Math.min(b.k_max, b.k_min); k++) {
+        for (let k = b.k_min; k <= b.k_max; k++) {
           const ci95 = t2.per_k_ci95[String(k)];
           const v = ax === 'lie'
             ? (ci95[0] > bound ? 'falsification-passed' : (ci95[1] < bound ? 'failed' : 'indeterminate'))

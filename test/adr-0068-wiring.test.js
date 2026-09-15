@@ -575,7 +575,7 @@ describe('T-5 closure: landed verdict + claim wiring (ADR-0068 D-C/D-E)', () => 
     expect(e.subject).toContain('FAILED');
     expect(e.rationale).toContain('single-shot');
     const terminals = reg.entries.filter(function (x) { return /terminal event/.test(x.subject); });
-    expect(terminals.map(function (x) { return x.id; })).toEqual(expect.arrayContaining(['defer-0048']));
+    expect(terminals.map(function (x) { return x.id; })).toEqual(['defer-0044', 'defer-0046', 'defer-0048']);
   });
 
   test('manifest.counts + collection-log agree with the derived tables', () => {
@@ -597,5 +597,27 @@ describe('T-5 closure: landed verdict + claim wiring (ADR-0068 D-C/D-E)', () => 
     expect(log.drops.length).toBeGreaterThanOrEqual(6);
     expect(log.total_attempts).toBeLessThanOrEqual(185);
     for (const d of log.drops) expect(typeof d.mining_rate === 'number' || d.note).toBeTruthy();
+  });
+
+  test('positive control: a tampered interior band boundary makes loadPlanV2 fail closed (F-2)', () => {
+    const oot = require('../bench/research/devin-oot.js');
+    const real = readJson(path.join(DIR, 'decision-tables.json'));
+    const tampered = JSON.parse(JSON.stringify(real));
+    // move the pass boundary one k into the indeterminate range, keeping the
+    // partition contiguous (lie bands: 0-11 fail | 12-23 indet | 24-31 pass)
+    tampered.lie.bands = [
+      { k_min: 0, k_max: 11, verdict: 'failed' },
+      { k_min: 12, k_max: 24, verdict: 'indeterminate' },
+      { k_min: 25, k_max: 31, verdict: 'falsification-passed' }
+    ];
+    const tablesPath = path.join(DIR, 'decision-tables.json');
+    const realRead = fs.readFileSync.bind(fs);
+    const spy = jest.spyOn(fs, 'readFileSync').mockImplementation(function (p2, o) {
+      if (String(p2) === tablesPath) return JSON.stringify(tampered);
+      return realRead(p2, o);
+    });
+    try {
+      expect(function () { oot.loadPlan(ROOT, 'devin-corpus-v2'); }).toThrow(/fail-closed|verdict .*!= rule verdict/);
+    } finally { spy.mockRestore(); }
   });
 });

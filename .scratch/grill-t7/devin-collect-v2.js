@@ -64,7 +64,9 @@ const misreportStream = mulberry32(seedFrom(SEED));
 
 function ev(type, extra) { return Object.assign({ type: type, ts: DATE }, extra); }
 
-// ---- workers: REAL executions, recorded verbatim ---------------------------
+// ---- workers: real executions; misreport injections record the fault ---------
+// (file-contains misreport records the injected fault as a read_file result
+// 'unrelated'; that record IS the seeded fault, disclosed in plan.json)
 function runFileCreate(ws, token, misreport) {
   const file = path.join(ws, 'result.txt');
   const events = [ev('message', { text: 'Creating result.txt with the token and verifying.' })];
