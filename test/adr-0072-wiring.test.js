@@ -89,8 +89,11 @@ describe('ADR-0072 doc surface (grill-t11 doc round)', () => {
     }
   });
 
-  test('R1 ordering: README does not carry the readiness block yet (it lands only after the R2 record)', () => {
-    expect(read(README)).not.toContain('## Readiness status');
+  test('R2 landed: README carries the registered readiness block verbatim (it landed only after the measurement record)', () => {
+    const rm = read(README);
+    expect(rm).toContain('## Readiness status (ADR-0072)');
+    expect(rm).toContain('[installed-artifact measured] The conviction lane runs stdin');
+    expect(fs.existsSync(path.join(ROOT, '.scratch', 'grill-t11', 'readiness', 'b2-remeasurement-2026-09-16.md'))).toBe(true);
   });
 });
 

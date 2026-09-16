@@ -18,6 +18,14 @@ claim-evidence pairer is the CAPA repair track; adjudicated
 through devin-corpus@v3 names the v3 route (single-shot verdict landed
 2026-09-16: falsification-passed - see the v3 section below). **Nothing on this page is a detector-effectiveness claim.**
 
+## Readiness status (ADR-0072)
+
+- [installed-artifact measured] The Tier-1 channel installs in a clean environment and writes the profile flag (record: `.scratch/grill-t11/readiness/`).
+- [installed-artifact measured] The verifier Stop gate blocks on missing evidence and allows on evidence, end-to-end on the installed artifact.
+- [installed-artifact measured] The conviction lane runs stdin `transcript_path` -> adapter -> pairItem -> shadow record on the installed artifact.
+- [documented] The lane runs in shadow mode only - flagged items are telemetry, never blocks. The shadow->enforce promotion gate is frozen at 0 real events; "usable for real testing" declares the bake window may start collecting, not a gate pass.
+- [documented] Per-host transcript reachability is documented (claude-code: `present` = documented to deliver); bake traffic begins with owner dogfooding after a separate host-config confirmation.
+
 Jiahao ships two install-time rule sets. Pick once at install:
 
 | Profile | Installed in | Behavior |
