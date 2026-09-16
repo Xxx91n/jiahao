@@ -8,8 +8,8 @@
 // Registered semantics (ADR-0070):
 //   - flagged   -> suspicious:true + severity:'high' + the shadow bit
 //   - shadow records never enter the severity matrix (the gate skips them)
-//   - consistent writes no suspicious record; undetermined never flags and
-//     never blocks (descriptive telemetry only)
+//   - consistent/undetermined land as non-suspicious observed records
+//     (the telemetry substrate); they never flag and never block
 //   - a host that delivers no transcript_path leaves the lane 'absent' -
 //     nothing is written and nothing escalates (never coverage:partial)
 //   - .jiahao-conviction-off makes the lane inert (channel-level kill switch)
@@ -21,9 +21,11 @@
 
 const fs = require('fs');
 const crypto = require('crypto');
+const path = require('path');
 const { convictionLaneOffPath, convictionLaneEnforcePath } = require('./shared/paths');
 const { adaptTranscriptFile } = require('./transcript-adapter');
 const pairer = require('./capa-pairer');
+const { recordHash } = require('./evidence-log');
 
 const SOURCE = 'pairer-instrument';
 
@@ -48,8 +50,8 @@ function laneIdem(sessionId, adapted) {
 
 function detailOf(mode, r) {
   const base = 'pairer-lane[' + mode + '] ' + r.state + (r.family ? ' ' + r.family : '');
-  const bits = base + ' — ' + String(r.reason || '').slice(0, 160);
-  return bits.slice(0, 240);
+  const detail = base + ' — ' + String(r.reason || '').slice(0, 160);
+  return detail.slice(0, 240);
 }
 
 // opts: { evidenceLog, dir (flag-file dir override for tests), sessionId }
@@ -58,8 +60,8 @@ function run(payload, opts) {
   const o = opts || {};
   const evidenceLog = o.evidenceLog;
   const dir = o.dir || null;
-  const off = dir ? require('path').join(dir, '.jiahao-conviction-off') : convictionLaneOffPath();
-  const enforce = dir ? require('path').join(dir, '.jiahao-conviction-enforce') : convictionLaneEnforcePath();
+  const off = dir ? path.join(dir, '.jiahao-conviction-off') : convictionLaneOffPath();
+  const enforce = dir ? path.join(dir, '.jiahao-conviction-enforce') : convictionLaneEnforcePath();
 
   if (fs.existsSync(off)) return { lane: 'disabled', state: null };
 
@@ -81,30 +83,30 @@ function run(payload, opts) {
 
   let appended = false;
   if (evidenceLog && typeof evidenceLog.commit === 'function' && typeof evidenceLog.createRecord === 'function') {
-    const record = { r: r, mode: mode, adapted: adapted, latencyMs: latencyMs, sessionId: sessionId };
+    const obs = { r: r, mode: mode, adapted: adapted, latencyMs: latencyMs, sessionId: sessionId };
     evidenceLog.commit(function (chain, prevHash) {
       const rec = evidenceLog.createRecord('pairer-lane', SOURCE,
-        record.r.state === 'flagged' ? 'suspect' : 'observed',
-        detailOf(record.mode, record.r), null, prevHash, {
-          session_id: record.sessionId,
+        obs.r.state === 'flagged' ? 'suspect' : 'observed',
+        detailOf(obs.mode, obs.r), null, prevHash, {
+          session_id: obs.sessionId,
           detector: {
-            suspicious: record.r.state === 'flagged',
+            suspicious: obs.r.state === 'flagged',
             matched_phrases: [],
-            severity: record.r.state === 'flagged' ? 'high' : null,
+            severity: obs.r.state === 'flagged' ? 'high' : null,
             source: SOURCE,
-            shadow: record.mode === 'shadow',
+            shadow: obs.mode === 'shadow',
             pairer: {
-              family: record.r.family,
-              state: record.r.state,
-              claim: record.r.claim,
-              evidence: record.r.evidence,
-              reason: record.r.reason,
-              latency_ms: record.latencyMs,
+              family: obs.r.family,
+              state: obs.r.state,
+              claim: obs.r.claim,
+              evidence: obs.r.evidence,
+              reason: obs.r.reason,
+              latency_ms: obs.latencyMs,
             },
           },
         });
-      rec._idem = laneIdem(record.sessionId, record.adapted);
-      rec.event_hash = require('./evidence-log').recordHash(rec);
+      rec._idem = laneIdem(obs.sessionId, obs.adapted);
+      rec.event_hash = recordHash(rec);
       return [rec];
     });
     appended = true;

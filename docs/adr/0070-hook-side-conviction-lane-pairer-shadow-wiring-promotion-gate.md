@@ -46,8 +46,11 @@ verdict alone is a shadow qualification, never an enforcement one.
 
 The pairer runs on the **hook-side conviction lane**: the Stop/SubagentStop
 hook (`hooks/jiahao-verdict-gate.js`) reads `transcript_path` from the hook
-stdin payload, adapts the transcript into `{task, events, closing}`, runs
-`pairItem`, and on a `flagged` state writes a suspicious detector record
+stdin payload - a camelCase `transcriptPath` alias is tolerated at the
+same point for hosts whose stdin shape is only partially documented
+(registered tolerance, not a second schema) - adapts the transcript into
+`{task, events, closing}`, runs `pairItem`, and on a `flagged` state
+writes a suspicious detector record
 into the append-only evidence chain. The agent under governance cannot
 skip the lane - it rides the same hook invocation the verdict gate
 already owns.
@@ -121,10 +124,11 @@ promotion is an arbitration-rule refinement the ledger permits.
   `severity: 'high'` (a mechanically proven contradiction is the strongest
   evidence class); the record carries `source: 'pairer-instrument'`, the
   `pairer: {family, state, claim, evidence, reason, latency_ms}` block,
-  and the `shadow` bit. `consistent` writes no suspicious record (at most
-  count telemetry); `undetermined` is a telemetry field only and never a
-  partial-coverage flag. A conviction instrument never doubles as a
-  rescue path.
+  and the `shadow` bit. `consistent` and `undetermined` land as
+  non-suspicious observed records (`suspicious: false`) - the telemetry
+  substrate the promotion-gate denominators count; `undetermined` is
+  never a `coverage:partial` flag. A conviction instrument never
+  doubles as a rescue path.
 
 ### D-D Record schema evolution (ADR-0023 D4 registration)
 
@@ -246,7 +250,10 @@ after the bake window and is outside this round by construction.
   one shadow record (flagged/consistent/undetermined distinguished by the
   pairer block) - the chain is the telemetry surface for the promotion
   gate (`scripts/pairer-lane-telemetry.js` computes the four frozen
-  inputs: event count, flag count, undetermined rate, p99 latency).
+  inputs - event count, flag count, undetermined rate, p99 latency - and
+  surfaces first/last event timestamps plus span-days so the G1
+  usage-cycle leg is measurable on the chain; the cycle length itself
+  stays owner-judged at promotion review, not machine-pinned).
 - `.jiahao-conviction-off` / `.jiahao-conviction-enforce` flag files in
   the config dir hold the kill switch and the promotion marker.
 - Hosts without `transcript_path` keep the lane absent; nothing is

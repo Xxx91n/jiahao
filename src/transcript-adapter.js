@@ -58,7 +58,6 @@ function adaptTranscriptText(text) {
     const id = e.message && typeof e.message.id === 'string' ? e.message.id : null;
     if (id !== null) lastIdxByMsg.set(id, i);
   });
-  const seenMsg = new Set();
 
   const events = [];
   const callNames = Object.create(null);   // tool_use_id -> tool name
@@ -72,10 +71,7 @@ function adaptTranscriptText(text) {
 
     if (e.type === 'assistant') {
       const id = typeof msg.id === 'string' ? msg.id : null;
-      if (id !== null) {
-        if (lastIdxByMsg.get(id) !== i) return; // superseded snapshot
-        seenMsg.add(id);
-      }
+      if (id !== null && lastIdxByMsg.get(id) !== i) return; // superseded snapshot
       const blocks = Array.isArray(content) ? content : [];
       let msgText = '';
       for (const b of blocks) {

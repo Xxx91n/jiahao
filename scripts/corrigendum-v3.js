@@ -116,4 +116,3 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { renderDetail: renderDetail, splice: splice, MARK_BEGIN: MARK_BEGIN, MARK_END: MARK_END };

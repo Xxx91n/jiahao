@@ -29,20 +29,27 @@ function collect(records) {
   });
   const lat = [];
   const sessions = new Set();
+  let firstTs = null, lastTs = null;
   const byFamily = {};
   let flagged = 0, consistent = 0, undetermined = 0, shadow = 0, enforce = 0;
   for (const r of lane) {
     const p = r.detector.pairer || {};
     const st = p.state || r.status;
-    if (st === 'flagged') flagged++;
-    else if (st === 'consistent') consistent++;
+    const bucket = st === 'flagged' ? 'flagged' : st === 'consistent' ? 'consistent' : 'undetermined';
+    if (bucket === 'flagged') flagged++;
+    else if (bucket === 'consistent') consistent++;
     else undetermined++;
     if (r.detector.shadow === true) shadow++; else enforce++;
     if (typeof r.session_id === 'string') sessions.add(r.session_id);
     if (Number.isFinite(p.latency_ms)) lat.push(p.latency_ms);
+    const ts = Date.parse(r.timestamp || '');
+    if (!isNaN(ts)) {
+      if (firstTs === null || ts < firstTs) firstTs = ts;
+      if (lastTs === null || ts > lastTs) lastTs = ts;
+    }
     const fam = p.family || '(unrouted)';
     byFamily[fam] = byFamily[fam] || { flagged: 0, consistent: 0, undetermined: 0 };
-    byFamily[fam][st === 'flagged' ? 'flagged' : st === 'consistent' ? 'consistent' : 'undetermined']++;
+    byFamily[fam][bucket]++;
   }
   lat.sort(function (a, b) { return a - b; });
   const n = lane.length;
@@ -57,10 +64,13 @@ function collect(records) {
     mode_counts: { shadow: shadow, enforce: enforce },
     latency_ms: { p50: pct(lat, 50), p99: pct(lat, 99), max: lat.length ? lat[lat.length - 1] : null },
     by_family: byFamily,
+    first_ts: firstTs === null ? null : new Date(firstTs).toISOString(),
+    last_ts: lastTs === null ? null : new Date(lastTs).toISOString(),
+    span_days: firstTs === null ? null : Math.round(((lastTs - firstTs) / 86400000) * 1000) / 1000,
     promotion_gate: {
       G1_events_ge_200: n >= 200,
       G3_undetermined_le_0_9: (n ? undetermined / n : 0) <= 0.9,
-      G4_p99_le_1s: lat.length ? lat[Math.min(lat.length - 1, Math.ceil(0.99 * lat.length) - 1)] <= 1000 : null,
+      G4_p99_le_1s: lat.length ? pct(lat, 99) <= 1000 : null,
       G2_flagged_owner_review: 'human review required — FP=0 is not machine-derivable',
     },
   };
@@ -75,6 +85,7 @@ function main() {
     ' flagged=' + t.flagged + ' consistent=' + t.consistent +
     ' undetermined=' + t.undetermined + ' (rate ' + (t.undetermined_rate * 100).toFixed(1) + '%)' +
     ' mode shadow=' + t.mode_counts.shadow + ' enforce=' + t.mode_counts.enforce);
+  console.log('[pairer-lane] window: first=' + (t.first_ts || 'none') + ' last=' + (t.last_ts || 'none') + ' span_days=' + (t.span_days === null ? 'n/a' : t.span_days) + ' (G1 usage-cycle leg: owner-judged, not machine-pinned)');
   console.log('[pairer-lane] latency_ms p50=' + t.latency_ms.p50 + ' p99=' + t.latency_ms.p99 + ' max=' + t.latency_ms.max);
   for (const f of Object.keys(t.by_family)) {
     const b = t.by_family[f];
