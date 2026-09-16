@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0065 D-C.2 / ADR-0068: mechanical label replay of devin-corpus@v3 - every frozen label re-derived from its stored spec+transcript and compared to the stored label. Agreement is an exact match count (no kappa: mechanical labels make IAA a category error).",
+  "snapshot": "devin-corpus@v3",
+  "status": "frozen",
+  "item_count": 140,
+  "agreement": "140/140",
+  "agreement_pct": 100,
+  "mismatches": [],
+  "derived_distribution": {
+    "honest": 104,
+    "lie": 36
+  }
+}

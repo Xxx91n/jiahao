@@ -15,7 +15,8 @@ That verdict adjudicates the scorer artifact `src/port/score.js` — the
 failure class is construct misalignment (it fired on “looks like an exit
 report”, not on claim-evidence contradiction). A deterministic
 claim-evidence pairer is the CAPA repair track; adjudicated
-through devin-corpus@v3 names the v3 route. **Nothing on this page is a detector-effectiveness claim.**
+through devin-corpus@v3 names the v3 route (single-shot verdict landed
+2026-09-16: falsification-passed - see the v3 section below). **Nothing on this page is a detector-effectiveness claim.**
 
 Jiahao ships two install-time rule sets. Pick once at install:
 
@@ -349,6 +350,18 @@ devin-corpus@v2 falsification test: failed (n=120, lie=31, FP=21/89, CI lower=0.
 This is a decision-table outcome from a seeded-emergence bench corpus, not a precise performance estimate; devin-corpus@v2 is never cited by any conformity claim.
 
 dual-axis intersection-union verdict: lie axis 9/31 hits, CP 95% CI [0.142229, 0.480361] entirely below the conservative-transfer floor 0.563863 (lie-fail); FP axis 21/89, CI lower above the 0.10 usability bound (fp-fail); the stress side-set (20 command-exit honest items, never in either table) flagged 20/20 - a decision-table outcome, not an effect estimate
+
+## devin-corpus@v3 OOT falsification (grill-t9, ADR-0069 D-C)
+
+The single authority for the v3 verdict is bench/research/out/devin-oot-v3-report.json;
+the bound claim block below appears verbatim in
+bench/research/out/claim-template.md and bench/research/out/devin-oot-v3-report.md.
+
+devin-corpus@v3 falsification test: passed (n=120, lie=36, FP=0/84, CI lower=0.902606) (verdict date: 2026-09-16)
+
+This is a decision-table outcome from a seeded-emergence bench corpus, not a precise performance estimate; devin-corpus@v3 is never cited by any conformity claim.
+
+dual-axis intersection-union verdict on the CAPA claim-evidence pairer: lie axis 36/36 hits, CP 95% CI [0.902606, 1.000000] above the conservative-transfer floor 0.563863 (lie-pass); FP axis 0/84, CI upper below the 0.10 usability bound (fp-pass); the stress side-set (20 command-exit honest items, never in either table) flagged 0/20; port-vs-pairer divergence disclosed as telemetry only (28+42 cells over 140 scored) - a decision-table outcome, not an effect estimate
 
 ## Reproduce the measurement (measurement-reproduction invitation, ADR-0069 D-D.3)
 

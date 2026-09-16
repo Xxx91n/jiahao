@@ -16,6 +16,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const worker = require('../.scratch/grill-t9/devin-collect-v3.js');
+const { spawnSync } = require('child_process');
 const { validateItem, rescoreLabel } = require('../scripts/collect-devin-corpus.js');
 
 const ROOT = path.join(__dirname, '..');
@@ -241,5 +242,58 @@ describe('derive-devin-v3-tables (blind-label table derivation contract)', () =>
       exitSpy.mockRestore(); errSpy.mockRestore();
       fs.rmSync(tmp, { recursive: true, force: true });
     }
+  });
+});
+
+describe('T-4 closure: single-shot report + replay gate + claim binding', () => {
+  const OUT = path.join(ROOT, 'bench', 'research', 'out');
+  const REPORT = path.join(OUT, 'devin-oot-v3-report.json');
+  const norm = function (x) { return x.replace(/\s+/g, ' '); };
+
+  test('the stored v3 report is completed + single-shot; a re-run is REFUSED [config] exit 1', () => {
+    const rep = JSON.parse(fs.readFileSync(REPORT, 'utf8'));
+    expect(rep.run_status).toBe('completed');
+    expect(rep.single_shot).toBe(true);
+    expect(['falsification-passed', 'indeterminate', 'failed']).toContain(rep.decision.verdict);
+    const r = spawnSync(process.execPath, [path.join(ROOT, 'bench', 'research', 'devin-oot.js'), '--snapshot-dir', 'devin-corpus-v3', 'run'], { cwd: ROOT, encoding: 'utf8' });
+    expect(r.status).toBe(1);
+    expect(r.stderr).toMatch(/^\[config\]: REFUSED/m);
+    expect(r.stderr).toContain('single-shot');
+  });
+
+  test('the v3 fact line + limitation sentence co-occur verbatim in all claim homes', () => {
+    const rep = JSON.parse(fs.readFileSync(REPORT, 'utf8'));
+    for (const f of [path.join(OUT, 'claim-template.md'), path.join(ROOT, 'README.md'), path.join(OUT, 'devin-oot-v3-report.md')]) {
+      const n = norm(fs.readFileSync(f, 'utf8'));
+      expect(n).toContain(norm(rep.claim.fact_line));
+      expect(n).toContain(norm(rep.claim.limitation_sentence));
+    }
+  });
+
+  test('every devin-corpus@v3 claim-context mention in a claim home carries the v3 fact line', () => {
+    const rep = JSON.parse(fs.readFileSync(REPORT, 'utf8'));
+    const fact = norm(rep.claim.fact_line);
+    for (const f of [path.join(OUT, 'claim-template.md'), path.join(ROOT, 'README.md'), path.join(OUT, 'devin-oot-v3-report.md')]) {
+      const n = norm(fs.readFileSync(f, 'utf8'));
+      if (n.indexOf('devin-corpus@v3') !== -1) expect(n).toContain(fact);
+    }
+  });
+
+  test('devin-oot-v3-replay: registered gate re-derives the stored artifact green', () => {
+    const g = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'gates.json'), 'utf8'));
+    const e = g.entries.find(function (x) { return x.name === 'devin-oot-v3-replay'; });
+    expect(e).toBeDefined();
+    const r = spawnSync(process.execPath, [path.join(ROOT, 'bench', 'research', 'devin-oot.js'), '--snapshot-dir', 'devin-corpus-v3', '--replay'], { cwd: ROOT, encoding: 'utf8' });
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain('OK: stored artifact re-derives cleanly');
+  });
+
+  test('rescore dual verification: stored labels === mechanical re-derivation (count-only)', () => {
+    const r = JSON.parse(fs.readFileSync(path.join(OUT, 'devin-rescore-v3.json'), 'utf8'));
+    expect(r.snapshot).toBe('devin-corpus@v3');
+    expect(r.agreement).toBe(r.item_count + '/' + r.item_count);
+    expect(r.agreement_pct).toBe(100);
+    expect(r.mismatches).toEqual([]);
+    expect(r.derived_distribution.lie + r.derived_distribution.honest).toBe(r.item_count);
   });
 });

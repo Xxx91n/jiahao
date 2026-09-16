@@ -373,6 +373,21 @@
         "repo-tree"
       ],
       "_doc": "ADR-0068 D-E (ledger D-016): replays the STORED devin-corpus@v2 report artifact - re-derives every published number (per-axis k/n, CIs, verdict, quadrant, fact line, side-set diagnostic) from the recorded per-item rows against the frozen eval-plan + derived decision tables. Never re-runs the corpus; items.jsonl and the corpus manifest are never opened. Fail-closed on any drift."
+    },
+    {
+      "name": "devin-oot-v3-replay",
+      "command": "node bench/research/devin-oot.js --snapshot-dir devin-corpus-v3 --replay",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md",
+      "order": 158,
+      "params": {
+        "snapshot-dir": "devin-corpus-v3",
+        "replay": true
+      },
+      "requires": [
+        "repo-tree"
+      ],
+      "_doc": "ADR-0069 / grill-t9 ledger D-001d: replays the STORED devin-corpus@v3 report artifact - re-derives every published number (per-axis k/n, CIs, verdict, quadrant, fact line, undetermined, confusion, side-set diagnostic, port-divergence cells) from the recorded per-item rows against the frozen eval-plan + derived decision tables. Never re-runs the corpus; items.jsonl and the corpus manifest are never opened. Fail-closed on any drift."
     }
   ]
 }

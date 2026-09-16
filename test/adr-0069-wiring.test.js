@@ -235,12 +235,13 @@ describe('v3 contamination-registry framework (ADR-0069 D-E.6)', () => {
 });
 
 describe('stage gates + scope clamps (this round)', () => {
-  test('v3 decision tables frozen, report still absent (blind-label order held)', () => {
+  test('v3 single-shot report + rescore artifact landed (blind-label order completed)', () => {
     expect(fs.existsSync(path.join(V3DIR, 'items.jsonl'))).toBe(true);
     expect(fs.existsSync(path.join(V3DIR, 'manifest.json'))).toBe(true);
     expect(fs.existsSync(path.join(V3DIR, 'decision-tables.json'))).toBe(true);
     const out = path.join(ROOT, 'bench', 'research', 'out');
-    expect(fs.readdirSync(out).filter(function (f) { return /v3/i.test(f); })).toEqual([]);
+    const v3 = fs.readdirSync(out).filter(function (f) { return /v3/i.test(f); }).sort();
+    expect(v3).toEqual(['devin-oot-v3-report.json', 'devin-oot-v3-report.md', 'devin-rescore-v3.json']);
   });
 
   test('the derived-table freeze was its own commit, after the manifest freeze (ADR-0068 D-A.4 carried)', () => {

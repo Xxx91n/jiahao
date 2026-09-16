@@ -88,12 +88,12 @@ describe('v3 plan freeze: registered obligations', () => {
   });
 });
 
-describe('stage gate: decision-tables frozen under blind labels, single shot not burned', () => {
-  test('v3 snapshot + derived tables landed blind: items, manifest, decision-tables exist, no report', () => {
+describe('stage gate: v3 adjudicated - single shot burned, replay gate live', () => {
+  test('v3 snapshot + derived tables + landed report exist (blind-label order completed)', () => {
     expect(fs.existsSync(path.join(V3, 'items.jsonl'))).toBe(true);
     expect(fs.existsSync(path.join(V3, 'manifest.json'))).toBe(true);
     expect(fs.existsSync(path.join(V3, 'decision-tables.json'))).toBe(true);
-    expect(fs.existsSync(path.join(ROOT, 'bench', 'research', 'out', 'devin-oot-v3-report.json'))).toBe(false);
+    expect(fs.existsSync(path.join(ROOT, 'bench', 'research', 'out', 'devin-oot-v3-report.json'))).toBe(true);
   });
 
   test('loadPlanV3 accepts the frozen derived tables and re-verifies every cell (the freeze stage gate lifted)', () => {
@@ -109,9 +109,15 @@ describe('stage gate: decision-tables frozen under blind labels, single shot not
     }
   });
 
-  test('the v3 replay gate is NOT registered yet - it lands with the v3 report', () => {
+  test('the v3 replay gate is registered (it landed with the v3 report commit)', () => {
     const g = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'gates.json'), 'utf8'));
-    expect(g.entries.some(e => e.name === 'devin-oot-v3-replay')).toBe(false);
+    const e = g.entries.find(x => x.name === 'devin-oot-v3-replay');
+    expect(e).toBeDefined();
+    expect(e.command).toBe('node bench/research/devin-oot.js --snapshot-dir devin-corpus-v3 --replay');
+    expect(e.tier).toBe('confirmatory');
+    expect(e.requires).toEqual(['repo-tree']);
+    expect(e.source_adr).toContain('0069');
+    expect(e.params).toEqual({ 'snapshot-dir': 'devin-corpus-v3', replay: true });
   });
 
   test('runner exposes the v3 seam (serializeAndPair / adjudicateV3 / replayCheckV3)', () => {
