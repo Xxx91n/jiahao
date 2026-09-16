@@ -50,3 +50,14 @@ instrument seq 20. Hooks live in ~/.claude/settings.json against
 ~/.claude the hook env resolves (flags planted in both; check
 .jiahao-evidence under both). Bake window is OPEN - real sessions accumulate
 lane records now. Remaining = items 2 and 3 only.
+
+
+## Addendum 2026-09-17b
+
+Live-chain verification done on the real host (see report addendum 2026-09-17b):
+all 6 registered commands fire correctly under real env; lane records land in
+~/.jiahao-evidence with idempotent dedup; verify-evidence passes on the real
+chain. Test records marked session_id t11-live-regcheck-* - exclude from bake
+corpus (filter rule in report). The real chain's pre-existing evidence means
+Case A (no-evidence block) won't trigger on this host - Case B is the live
+branch here; Case A verified on fresh scratch chain.
