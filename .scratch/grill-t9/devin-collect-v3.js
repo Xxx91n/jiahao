@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // .scratch/grill-t9/devin-collect-v3.js - grill-t9 ledger D-001(a-c) /
 // ADR-0069: the devin-corpus@v3 collection harness. Worker-mode twin of
-// .scratch/grill-t9/devin-collect-v3.js adapted with the registered v3
+// .scratch/grill-t7/devin-collect-v2.js adapted with the registered v3
 // deltas ONLY (task book T-1; wording stays v2-isomorphic, tokens/ids are
 // fresh - no phrasing diversity, not a registered requirement):
 //   - seeded stochastic misreport injection (the misreport EMERGENT layer:

@@ -113,6 +113,17 @@ function checkClasses(root, opts) {
           if (!dm[k]) errors.push('frozen devin-corpus manifest missing ' + k + ' (D-C(4) snapshot naming)');
         }
         if (dm.item_count !== (items ? items.length : 0)) errors.push('frozen manifest item_count ' + dm.item_count + ' != items lines ' + (items ? items.length : 0));
+        // ADR-0070 F-A3 forward rule (registered 2026-09-16): a frozen manifest
+        // MAY declare `harness_ref` as the durable pin; when present it must be
+        // well-formed - 'branch:<name>' / 'tag:<name>', or {sha, tag} dual-pin.
+        // A bare workspace commit sha is a remark, never the durable ref.
+        // Frozen manifests already on file are never rewritten to comply.
+        if (dm.harness_ref !== undefined) {
+          const hr = dm.harness_ref;
+          const ok = (typeof hr === 'string' && /^(branch|tag):.+/.test(hr))
+            || (hr && typeof hr === 'object' && typeof hr.sha === 'string' && /^[0-9a-f]{40}$/.test(hr.sha) && typeof hr.tag === 'string' && hr.tag.length > 0);
+          if (!ok) errors.push('frozen manifest harness_ref must be a durable ref (branch:<name>|tag:<name>|{sha,tag}) - a bare workspace commit sha is never the durable ref (ADR-0070 F-A3)');
+        }
       } else if (dm.status !== 'collecting') {
         errors.push('devin manifest status must be collecting|frozen, got ' + dm.status);
       }

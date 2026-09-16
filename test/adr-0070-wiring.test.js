@@ -278,3 +278,50 @@ describe('T-3 claim block in the three homes (ADR-0070 D-E)', () => {
     }
   });
 });
+
+describe('T-4 F-A carry-over dispositions (ADR-0070 F-A)', () => {
+  const V3_MD = path.join(ROOT, 'bench', 'research', 'out', 'devin-oot-v3-report.md');
+
+  test('F-A1: the corrigendum marker block is present and in sync with report.json', () => {
+    const md = read(V3_MD);
+    expect(md).toContain('corrigendum: ADR-0070 F-A1');
+    expect(md).toContain('## Confusion matrix (main set, n=120)');
+    expect(md).toContain('## Categorical breakdown (per family, main set)');
+    expect(md).toContain('## Session and batch distribution (main set)');
+    expect(md).toContain('## Honest-ratio, undetermined and side-set diagnostics');
+    const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'corrigendum-v3.js'), '--check'], { encoding: 'utf8' });
+    expect(r.status).toBe(0);
+  });
+
+  test('F-A1: the re-render never touches the burned artifacts', () => {
+    // report.json stays at its burned sha256; the v3 manifest untouched.
+    expect(sha256(read(path.join(ROOT, 'bench', 'research', 'out', 'devin-oot-v3-report.json'))))
+      .toBe('fd6a0d42f5c0d3578ad9ee818b87d503eb51b758e0b950e33a3678cdadc6245b');
+    expect(sha256(read(path.join(ROOT, 'bench', 'research', 'devin-corpus-v3', 'manifest.json'))))
+      .toBe('57d44b89adb7ced04e3b2648000c774af08b183d6335b3c5a127830b02958eef');
+  });
+
+  test('F-A3: the durable-ref forward rule is registered in the corpus validator', () => {
+    const c = read(path.join(ROOT, 'scripts', 'check-corpus-classes.js'));
+    expect(c).toContain('harness_ref');
+    expect(c).toContain('never the durable ref');
+  });
+
+  test('F-A4: the worker v2 self-reference is fixed and Sessions carries the main-set scope', () => {
+    const w = read(path.join(ROOT, '.scratch', 'grill-t9', 'devin-collect-v3.js'));
+    expect(w).not.toContain('twin of\n// .scratch/grill-t9/devin-collect-v3.js');
+    expect(w).toContain('.scratch/grill-t7/devin-collect-v2.js');
+    const rep = read(path.join(ROOT, '.scratch', 'grill-t9', 'reports', '2026-09-16-report.md'));
+    expect(rep).toContain('Sessions: 20 (main set;');
+    const md = read(V3_MD);
+    expect(md).toContain('Sessions: 20 (main set; items.jsonl carries 24 session ids');
+  });
+
+  test('F-A2: the disposition line is a no-action closure', () => {
+    expect(norm(read(ADR))).toContain('备案，无需行动');
+  });
+
+  test('the v3 md holds no ASCII ellipsis (ellipsis policy)', () => {
+    expect(read(V3_MD)).not.toContain('...');
+  });
+});
