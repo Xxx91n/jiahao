@@ -39,3 +39,14 @@ Date: 2026-09-16 | Branch: grill-t11-docs | Commits: wnx (prior), vyr (R1 docs),
 
 - defer-0052 (round tally) + defer-0051 (cap review) ride the 2026-12-15
   tide. The trend-anchor advisory already fired (streak 5) - non-blocking.
+
+
+## Addendum 2026-09-17
+
+Item 1 (owner-confirmed claude-code hook registration) is DONE - owner granted
+authority in-session. Details in reports/2026-09-16-report.md addendum +
+instrument seq 20. Hooks live in ~/.claude/settings.json against
+~/.jiahao/pkg (stable tarball install). Evidence root: whichever of ~ or
+~/.claude the hook env resolves (flags planted in both; check
+.jiahao-evidence under both). Bake window is OPEN - real sessions accumulate
+lane records now. Remaining = items 2 and 3 only.

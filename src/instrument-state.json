@@ -466,6 +466,42 @@
       "event_timestamp": "2026-09-16T16:12:32.957Z",
       "logging_timestamp": "2026-09-16T16:12:32.957Z",
       "event_hash": "d944bc8789df809093aca44295081e43a7e4fa847eb5c8d5b0caaa0d5d805e59"
+    },
+    {
+      "seq": 20,
+      "kind": "record_only_change",
+      "identity_digest": "c68d49c60e87e581f827b7066ba01b3dab646843aa23bc5c5ff5781f719458b9",
+      "reverify_ledger_hash": null,
+      "bias_probe_hash": null,
+      "reviewer_id": null,
+      "second_reviewer": null,
+      "attestation_type": null,
+      "timestamp": "2026-09-16T16:37:32.718Z",
+      "prev_hash": "d944bc8789df809093aca44295081e43a7e4fa847eb5c8d5b0caaa0d5d805e59",
+      "surface": "schedule_gate",
+      "maker_id": "Euiop1",
+      "authorization": "授权给你权限，把所有内容都必须做完 | scope: grill-t11 completion incl owner-host claude-code hook registration | expiry: this session end | renewal: none requested",
+      "before": {
+        "hook_registration": "pending owner confirmation - declared stop point in ADR-0072 D-C",
+        "host_state": "~/.jiahao-active exists (2026-08-22); no .jiahao-profile (defaulted verifier); no jiahao entries in ~/.claude/settings.json; no stable package location"
+      },
+      "after": {
+        "hook_registration": "DONE under owner grant 2026-09-17 - 6 jiahao hook entries merged into ~/.claude/settings.json (SessionStart/SubagentStart/UserPromptSubmit/Stop/SubagentStop/SessionEnd); backups: .scratch/grill-t11/host-config-backup/settings-pre-jiahao-2026-09-17.json + sibling .bak",
+        "stable_install": "C:/Users/Administrator/.jiahao/pkg extracted from npm pack tarball of grill-t11-docs HEAD + npm i --omit=dev",
+        "flags": ".jiahao-profile=verifier + .jiahao-active=full planted in BOTH ~ and ~/.claude (covers CLAUDE_CONFIG_DIR resolution ambiguity)",
+        "liveness": "all 6 registered commands fired via real cmd invocation in scratch CLAUDE_CONFIG_DIR: activate injects ruleset, mode-tracker/subagent exit0, Stop no-evidence exit2 block, Stop+transcript wrote shadow lane record flagged exit-report claim2 vs evidence0, SessionEnd exit0; real evidence chain uncontaminated",
+        "bake": "window open - awaiting real claude-code Stop events; measured-present flip still pending first real lane event; promotion gate untouched (0 real events)"
+      },
+      "identity_triple": {
+        "rules_digest": "f6c6c843c4ad4151f709345d86079f4a5e0c7d216305155f75e7329638bc6154",
+        "model_checkpoint_digest": "UNRESOLVED",
+        "inference_config_hash": "41c7df6354424a59180ae855de4afc764b38b1ddfd2aec9312d9195342fecac7",
+        "triple_hash": "c68d49c60e87e581f827b7066ba01b3dab646843aa23bc5c5ff5781f719458b9"
+      },
+      "escalation": "none",
+      "event_timestamp": "2026-09-16T16:37:32.718Z",
+      "logging_timestamp": "2026-09-16T16:37:32.718Z",
+      "event_hash": "78835c352bbc8db62662c3650969654e512e8672968542b000c6dbe1309df5a4"
     }
   ],
   "certification_mode": "conditional",

@@ -20,7 +20,7 @@ Write ADR-0072 + the doc artifacts, then commit before any action:
 
 - Execute the pre-registered re-measurement in a clean env (empty HOME/work dirs); write the result into the evidence chain and a .scratch/grill-t11/readiness/ record (b2 sibling).
 - Pass -> README declaration wording lands (layered, evidence-source-tagged). Fail -> the pre-registered downgrade clause fires; wording repair forbidden.
-- claude-code hook registration on the owner machine REQUIRES a separate owner confirmation first (it modifies user host config). Then real use accumulates lane records = bake start.
+- claude-code hook registration on the owner machine REQUIRES a separate owner confirmation first (it modifies user host config). Then real use accumulates lane records = bake start. **[RESOLVED 2026-09-17: owner granted authority; registration executed - see report addendum + instrument seq 20.]**
 - First real lane-bearing Stop event upgrades claude-code to measured-present.
 
 ## Registered non-blocking agenda (D-003)
