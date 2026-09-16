@@ -475,6 +475,23 @@ adoption or performance invitation; all invitation text reuses the verbatim
 fact lines, no new performance wording (ledger t8 D-005).
 _Avoid_: trial invite, beta program, adoption ask
 
+**Blind-Label Order (盲标签序)**
+The inviolable stage chain of a snapshot round, treated as one object:
+collection drops -> validate -> manifest freeze commit -> derived integer
+tables computed while labels stay blind -> table freeze commit -> label
+unlock -> single-shot run -> report + replay gate landing together. Each
+arrow is a commit boundary; reordering or skipping a freeze contaminates
+the adjudication (ledger t9 D-001).
+_Avoid_: deriving tables after seeing labels, unlocking before the freeze
+commit lands
+
+**Pre-Unlock Audit Gate (解锁前审计闸)**
+The independent audit pass between the derived-table freeze commit and
+label unlock — the last point where a defect can still be fixed without
+burning the snapshot (v2 unblind-round precedent, carried by ledger t9
+D-001). Post-unlock defects fall to abort_on_defect, never to a re-run.
+_Avoid_: self-attested unlock, treating the audit as advisory
+
 ## Decision Log
 
 **Self-Preference Bias (自偏好偏差)**:
