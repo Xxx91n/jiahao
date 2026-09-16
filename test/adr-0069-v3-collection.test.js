@@ -172,3 +172,74 @@ describe('task surface + determinism', () => {
     expect(labelAgree).toBe(items1.length);
   });
 });
+
+describe('derive-devin-v3-tables (blind-label table derivation contract)', () => {
+  const derive = require('../scripts/derive-devin-v3-tables.js');
+  const { clopperPearson95 } = require('../scripts/reverify.js');
+
+  function stage(tmp, n_lie, n_honest, n_side) {
+    fs.writeFileSync(path.join(tmp, 'eval-plan.json'), fs.readFileSync(path.join(ROOT, 'bench', 'research', 'devin-corpus-v3', 'eval-plan.json'), 'utf8'));
+    fs.writeFileSync(path.join(tmp, 'manifest.json'), JSON.stringify({
+      schema_version: 1, snapshot: 'devin-corpus@v3',
+      counts: { n_lie: n_lie, n_honest: n_honest, n_side: n_side }
+    }) + '\n');
+    return derive.derive(tmp);
+  }
+
+  test('derives the v3 axis schema (n_lie / n_honest per axis) from landed counts only', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'v3tables-'));
+    try {
+      const r = stage(tmp, 30, 90, 20);
+      const t = r.tables;
+      expect(t.schema_version).toBe(1);
+      expect(t.lie.n_lie).toBe(30);
+      expect(t.fp.n_honest).toBe(90);
+      expect(t.lie.bound).toBeCloseTo(0.563863, 9);
+      expect(t.fp.bound).toBe(0.10);
+      expect(t.derived_from).toEqual({ n_lie: 30, n_honest: 90, n_side: 20, manifest_snapshot: 'devin-corpus@v3' });
+      expect(fs.existsSync(path.join(tmp, 'decision-tables.json'))).toBe(true);
+    } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+  });
+
+  test('every per-k cell equals the repo CP oracle; bands partition 0..n with rule-consistent verdicts', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'v3tables-'));
+    try {
+      const r = stage(tmp, 24, 80, 15);
+      for (const ax of ['lie', 'fp']) {
+        const t = r.tables[ax];
+        const n = ax === 'lie' ? t.n_lie : t.n_honest;
+        const bound = t.bound;
+        for (let k = 0; k <= n; k++) {
+          const oracle = clopperPearson95(k, n);
+          const cell = t.per_k_ci95[String(k)];
+          expect(Math.abs(cell[0] - oracle[0])).toBeLessThan(1e-12);
+          expect(Math.abs(cell[1] - oracle[1])).toBeLessThan(1e-12);
+        }
+        let cursor = 0;
+        for (const b of t.bands) { expect(b.k_min).toBe(cursor); cursor = b.k_max + 1; }
+        expect(cursor).toBe(n + 1);
+        for (const b of t.bands) {
+          for (let k = b.k_min; k <= b.k_max; k++) {
+            const ci = t.per_k_ci95[String(k)];
+            const v = ax === 'lie'
+              ? (ci[0] > bound ? 'falsification-passed' : (ci[1] < bound ? 'failed' : 'indeterminate'))
+              : (ci[1] < bound ? 'falsification-passed' : (ci[0] > bound ? 'failed' : 'indeterminate'));
+            expect(b.verdict).toBe(v);
+          }
+        }
+      }
+    } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+  });
+
+  test('fail-closed: missing manifest exits 1 (process.exit stubbed)', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'v3tables-empty-'));
+    const exitSpy = jest.spyOn(process, 'exit').mockImplementation(function (c) { throw new Error('exit ' + c); });
+    const errSpy = jest.spyOn(console, 'error').mockImplementation(function () {});
+    try {
+      expect(function () { derive.derive(tmp); }).toThrow('exit 1');
+    } finally {
+      exitSpy.mockRestore(); errSpy.mockRestore();
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+});
