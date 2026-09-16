@@ -60,3 +60,29 @@ seq 11 `quarantine`, seq 12 `conditional_signoff` carrying `expires_at`
 Bound by `test/adr-0060-wiring.test.js` (STD-1 fixtures). The ADR-0063 D-D claim
 that seq 10 carried these fields on the day it was written is corrected in place
 with an erratum pointer to this entry.
+
+## E-6 second_reviewer=Xxx91n is a delegated signature under standing authorization (disclosure)
+
+Observed 2026-09-16 (锐评 v4 prescription #1, dispositioned grill-t11 P-1): the
+instrument chain's `second_reviewer=Xxx91n` attestations are executed by the
+main agent under the owner's standing authorization, recorded verbatim
+on-event from seq 10 forward ("以后所有全部人工同意，你作为主Agent代替人类签名Xxx91n").
+Affected events: seq 6 and seq 8 carry the value inside the E-4
+authorization-persistence defect window (the field was not persisted on those
+event kinds), and seq 10, 12, 13 carry it with the authorization verbatim
+on-record; the registered critique anchored on seq 13's criteria_change. The
+registered wording: these are **delegated second-line review, ID-level +
+delegation-level independence** - the reviewer id differs from the executing
+agent's, but the signing entity is the same agent acting under delegation;
+there is no entity-level second line on those events.
+
+Boundary note on the existing grant (P-2 companion): the standing
+authorization is open-ended - it carries no scope and no expiry. Under the
+Bounded Delegation rule (ADR-0072 D-E) that is a defect in the grant itself;
+the forward rule and the pre-staged bounded-renewal template at
+docs/governance/delegation-renewal-template.md force renew-or-expire at the
+next authorization-bearing event.
+
+Frozen history is never rewritten (seq 6/8/10/12/13 stay verbatim on the
+append-only chain); this entry is the correction record. Bound by
+test/adr-0072-wiring.test.js.

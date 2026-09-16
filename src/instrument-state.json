@@ -397,6 +397,41 @@
       "event_timestamp": "2026-09-16T11:37:40.004Z",
       "logging_timestamp": "2026-09-16T11:37:40.004Z",
       "event_hash": "3fd2fb890389f1f96edd2f7aae3fce807a0d32c5fa4c1396395f4831d7267726"
+    },
+    {
+      "seq": 18,
+      "kind": "record_only_change",
+      "identity_digest": "c68d49c60e87e581f827b7066ba01b3dab646843aa23bc5c5ff5781f719458b9",
+      "reverify_ledger_hash": null,
+      "bias_probe_hash": null,
+      "reviewer_id": null,
+      "second_reviewer": null,
+      "attestation_type": null,
+      "timestamp": "2026-09-16T15:57:18.497Z",
+      "prev_hash": "3fd2fb890389f1f96edd2f7aae3fce807a0d32c5fa4c1396395f4831d7267726",
+      "surface": "schedule_gate",
+      "maker_id": "Euiop1",
+      "authorization": "以后所有全部人工同意，你作为主Agent代替人类签名Xxx91n | scope: grill-t11 readiness round (T-1 docs + R2 re-measurement) | expiry: this session end | 本会话指示:  常驻任务书 next-round.md",
+      "before": {
+        "readiness": "usable+testable question open; capability labels undocumented-tier ambiguity",
+        "delegation": "standing grant open-ended (no scope/expiry)",
+        "lane_claim": "present label read as live-measured risk"
+      },
+      "after": {
+        "adr": "ADR-0072 accepted (grill-t11 D-001..D-005): usable+testable verdict under measure-then-declare; b2 re-measurement + downgrade trigger pre-registered; bake protocol owner-dogfood + tier-2 second-line G2 amendment; critique dispositions P-1/P-2/P-4/P-5",
+        "capability_labels": "measured-present word slot added, reserved until first real lane event; present disclosed as documented-to-deliver",
+        "delegation": "forward rule + bounded-renewal template pre-staged; next authorization-bearing event forces renew-or-expire"
+      },
+      "identity_triple": {
+        "rules_digest": "f6c6c843c4ad4151f709345d86079f4a5e0c7d216305155f75e7329638bc6154",
+        "model_checkpoint_digest": "UNRESOLVED",
+        "inference_config_hash": "41c7df6354424a59180ae855de4afc764b38b1ddfd2aec9312d9195342fecac7",
+        "triple_hash": "c68d49c60e87e581f827b7066ba01b3dab646843aa23bc5c5ff5781f719458b9"
+      },
+      "escalation": "none",
+      "event_timestamp": "2026-09-16T15:57:18.497Z",
+      "logging_timestamp": "2026-09-16T15:57:18.497Z",
+      "event_hash": "5bc9ead9f308c944d32bed99b7e0dc3672a38955ec2f2073c80b646cf33568a6"
     }
   ],
   "certification_mode": "conditional",

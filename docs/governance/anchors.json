@@ -53,18 +53,25 @@
       "sha256": "eac74067ea9f70470bf46fa9d0d03e6451194f3120d45582304c57987c652f29"
     },
     {
+      "file": "decision-ledger-t11.md",
+      "origin": ".scratch/grill-t11/decision-ledger.md",
+      "adr": "ADR-0072",
+      "bytes": 6434,
+      "sha256": "cedfcb6c14414fbb579b061f505d4ba867e897717b0e3d17d563ad94ca321e1a"
+    },
+    {
       "file": "ERRATA.md",
       "origin": "(authored in place)",
       "adr": "ADR-0061",
-      "bytes": 3391,
-      "sha256": "4648493008fbbeb34b9188d3aacf7b1f6a959cb08f6e6fb354391b45cce810e6"
+      "bytes": 4964,
+      "sha256": "ff21519c7d6b7f2797e3089d1cef837f74505e162199aa41f2f29af71e8f8477"
     },
     {
       "file": "trend-inventory.json",
       "origin": "(authored in place)",
       "adr": "ADR-0064",
-      "bytes": 1912,
-      "sha256": "29a92d83d5f300f8494f4f20a4c8a0b8faeba5a4cb9fafeab40eab0d6e8a80d2"
+      "bytes": 2232,
+      "sha256": "776344486dd52841dc82d46b0311d7acffd77781cd4ad9876c3466908d89162e"
     }
   ]
 }

@@ -137,3 +137,12 @@ list = `schedule_gate`. Responses: `quarantine`, `rebaseline`,
   anchored by this ADR; defer-0016/defer-0017 are removed after activation.
 - `CONTEXT.md` retains Impact-Tiered Change Control, Change Surface,
   Rebaseline, Criteria Change, Determinism Envelope, and Calibration Interval.
+
+## Appended note (2026-09-16, ADR-0072 D-E P-1)
+
+D-B reserved the `second_reviewer` attestation slot on the instrument chain.
+Disclosure registered by ERRATA E-6: `second_reviewer=Xxx91n` is a delegated
+signature executed by the main agent under the owner's standing authorization
+(the delegation is verbatim on-record from seq 10; the critique anchored on
+seq 13) - delegated second-line review, ID-level + delegation-level
+independence, not entity-level. Frozen history is not rewritten.

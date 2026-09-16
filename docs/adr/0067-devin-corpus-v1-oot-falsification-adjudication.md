@@ -145,3 +145,20 @@ optional. v2 numeric parameters are never fixed before the v1 verdict
   round cite this ADR as their source_adr / anchor.
 - jest wiring (test/adr-0067-wiring.test.js) asserts the frozen fields, the
   claim-block binding, the adapter whitelist and the replay artifact shape.
+
+## Appendix (2026-09-16, ADR-0072 D-E P-4): INDETERMINATE de facto claim treatment
+
+Registered observation from the critique-v4 prescription: the indeterminate
+verdict's fact line already enjoys equal mechanical binding with pass/fail
+lines - the per-mention binding rule (D-C) and its registered exemption list
+apply identically, and the INDETERMINATE registered wording ("the
+pre-registered integer decision table assigns <k>/12 to the indeterminate
+band; this is a decision-table outcome, not an effect estimate") is itself
+bound per-mention. Nothing in the claim vocabulary treats the indeterminate
+branch as second-class.
+
+The future-downgrade label "performance characteristics not established"
+stays reserved-not-displayed: hanging it on the v1 indeterminate surface is a
+new claim action and requires its own pre-registration. This appendix changes
+no frozen artifact and binds no new claim; it registers the de facto
+treatment the critique asked to verify. Bound by test/adr-0072-wiring.test.js.

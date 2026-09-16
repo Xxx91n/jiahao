@@ -30,6 +30,12 @@ const LANE_SENTENCES = [
   'The devin-corpus@v3 adjudication describes that corpus\'s behavior; it is not a real-traffic recall claim, and the shadow->enforce promotion gate verifies flagged-item FP, undetermined coverage, and lane latency - it does not certify recall.',
 ];
 
+// ADR-0072 D-F: sentence 1's parenthetical is superseded in the claim
+// homes (the ADR body keeps its registered original). Homes assert this
+// amended form; the ADR assertion above keeps LANE_SENTENCES unchanged.
+const LANE_SENTENCES_HOMES = LANE_SENTENCES.slice();
+LANE_SENTENCES_HOMES[0] = 'The CAPA claim-evidence pairer runs in **shadow mode** on the Stop/SubagentStop conviction lane for hosts that deliver a transcript file (per-host reachability is registered in the host-contract registry; currently `present` (documented to deliver, not live-measured) only for claude-code): flagged contradictions are appended to the evidence chain as `source: pairer-instrument` shadow records and never enter the severity matrix.';
+
 describe('ADR-0070 doc surface (grill-t10 doc round)', () => {
   const adr = () => read(ADR);
 
@@ -138,7 +144,7 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () => 
 
   test('the README ADR index carries ADR-0070 (rebuilt, 70 records)', () => {
     const r = read(README);
-    expect(r).toContain('71 architecture decision records');
+    expect(r).toContain('72 architecture decision records');
     expect(r).toContain('[ADR-0070](docs/adr/0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md)');
   });
 
@@ -274,7 +280,7 @@ describe('T-3 claim block in the three homes (ADR-0070 D-E)', () => {
     ];
     for (const f of homes) {
       const n = norm(read(f));
-      for (const s of LANE_SENTENCES) expect(n).toContain(norm(s));
+      for (const s of LANE_SENTENCES_HOMES) expect(n).toContain(norm(s));
     }
   });
 });

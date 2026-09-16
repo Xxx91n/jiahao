@@ -203,7 +203,7 @@ source-only; ADR-0059 D-B). An MCP publish channel is deferred (defer-0029).
 ## Develop
 
 ```bash
-npm test                              # 994 tests across 63 suites (full corpus tier; the public tier skips 10 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 1088 tests across 68 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
@@ -221,7 +221,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). The index below is a derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js` — do not hand-edit:
 
 <!-- adr-index:start -->
-- 71 architecture decision records:
+- 72 architecture decision records:
 - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
 - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
 - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
@@ -293,8 +293,9 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - [ADR-0069](docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md) — CAPA Claim-Evidence Pairer Semantics, Artifact-Scoped Freeze + Adjudication Anchor, Readiness Positioning, and v3 Plan Obligations
 - [ADR-0070](docs/adr/0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md) — Hook-Side Conviction Lane — CAPA Pairer Shadow Wiring, Frozen Shadow→Enforce Promotion Gate, Product Shape, Claim Form, and F-A Carry-Over Dispositions
 - [ADR-0071](docs/adr/0071-tarball-cap-trend-anchor-amendment-t10-conviction-lane-surface.md) — Tarball-Cap Trend-Anchor Amendment for the T-10 Conviction-Lane Surface
+- [ADR-0072](docs/adr/0072-readiness-verdict-remeasurement-preregistration-bake-protocol-critique-dispositions.md) — Readiness Verdict (Usable + Testable), Pre-Registered Re-Measurement (b2 Method + Lane Exercise), Owner-Dogfood Bake Protocol, ADR-0070 Tier-2 Amendment, and Critique Dispositions P-1/P-2/P-4/P-5
 <!-- adr-index:end -->
-- `test/` — 63 test suites, 994 tests
+- `test/` — 68 test suites, 1088 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 - `private/bench-corpus/` — answer corpora (probes/judge-twins/twins + fingerprints; gitignored, ADR-0036 D2). Gate scripts resolve via JIAHAO_CORPUS_DIR, else the install-planted dir (`jiahao init` plants it from the package), else this repo-private dir in a maintainer tree; missing everywhere fails closed (exit 1: config; the capability probe degrades an absent corpus dir to exit 2 UNVERIFIABLE first, ADR-0041 D2). npm consumers and public git clones carry no corpus at all — corpus gates are a maintainer/CI-only contract, fail-closed by design (ADR-0038 D2).
 
@@ -367,7 +368,7 @@ dual-axis intersection-union verdict on the CAPA claim-evidence pairer: lie axis
 
 Conviction lane claim (ADR-0070 D-E, descriptive existence - the three registered sentences; the lane's state value is shadow):
 
-The CAPA claim-evidence pairer runs in **shadow mode** on the Stop/SubagentStop conviction lane for hosts that deliver a transcript file (per-host reachability is registered in the host-contract registry; currently `present` only for claude-code): flagged contradictions are appended to the evidence chain as `source: pairer-instrument` shadow records and never enter the severity matrix.
+The CAPA claim-evidence pairer runs in **shadow mode** on the Stop/SubagentStop conviction lane for hosts that deliver a transcript file (per-host reachability is registered in the host-contract registry; currently `present` (documented to deliver, not live-measured) only for claude-code): flagged contradictions are appended to the evidence chain as `source: pairer-instrument` shadow records and never enter the severity matrix.
 
 The lane flags only a mechanically proven contradiction - a claimed value parsed from the transcript closing and an evidence value parsed from the tool-result stream, both present and unequal, inside the four registered families (exit-report, file-contains, count-report, content-append); unparseable claims, absent evidence, unsupported families, and hosts without transcript delivery are outside coverage and degrade as `undetermined` or `absent`, never as a flag and never as coverage:partial.
 

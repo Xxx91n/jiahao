@@ -745,6 +745,24 @@
         "note": "registered in the grill-t10 implementation round (T-2 conviction-lane surface)"
       },
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0052",
+      "subject": "grill-t11 doc round net-addition tally: +1 ADR (ADR-0072 readiness verdict + pre-registered re-measurement + bake protocol + ADR-0070 tier-2 amendment + critique dispositions P-1/P-2/P-4/P-5) - D-006(a)(i) summary row",
+      "source_adr": "docs/adr/0072-readiness-verdict-remeasurement-preregistration-bake-protocol-critique-dispositions.md",
+      "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t11 documentation round lands one new ADR (0072: the usable+testable verdict under measure-then-declare ordering, the b2-method re-measurement with the lane exercise and pre-registered downgrade trigger, the owner-dogfood bake protocol with the independent-second-line tier-2 amendment to ADR-0070 G2, the four critique dispositions, the capability-label word-slot fix, and the dormant-then-live declaration block). The round also touches scripts/check-host-contracts.js (the measured-present enum word slot) and the claim homes' sentence-1 parenthetical - registration-surface changes; no shipped runtime behavior moves.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-16",
+      "last_check_in": {
+        "date": "2026-09-16",
+        "note": "net additions +1 (ADR-0072); registered in the grill-t11 doc round"
+      },
+      "status": "pending-evaluation"
     }
   ]
 }

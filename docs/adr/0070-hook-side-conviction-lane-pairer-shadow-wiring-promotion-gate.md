@@ -2,6 +2,7 @@
 
 Status: Accepted (user-ratified 2026-09-16 via grill-t10 decision ledger D-001..D-007; second_reviewer countersign deferred to the next audit round - the ADR-0065/0066/0067/0069 ratification pattern)
 Date: 2026-09-16
+Amended by: ADR-0072 D-D (G2 gains independent second-line review before the flip is evaluated) and D-F (claim sentence-1 parenthetical: `present` disclosed as documented-to-deliver)
 
 References: ADR-0069 (the adjudicated pairer artifact this lane ships),
 ADR-0067 D-C (per-mention claim binding, the registry the lane claim block
@@ -262,3 +263,22 @@ after the bake window and is outside this round by construction.
   documented).
 - The grill-t10 ledger joins the governance anchors list bound to this
   ADR; the round's net-addition row is defer-0050.
+
+## Amendment note (2026-09-16, ADR-0072)
+
+Two registered amendments ride the ADR-0072 discipline. The body above keeps
+its registered text; the amendment channel is this note plus the ADR-0072
+registration, under the ADR-0062/0066/0071 precedent.
+
+1. D-B criterion G2 (tier-2): "every flagged item owner-reviewed: FP = 0"
+   now requires re-review by an independent second line before the flip is
+   evaluated - FP adjudication authority is not the owner alone. The pre-set
+   adjudication criteria and the disagreement-counts-as-FP direction are
+   registered verbatim in ADR-0072 D-D. G1/G3/G4 are untouched; the flip
+   remains a separate registered act after the bake window.
+2. D-E claim sentence 1: the parenthetical "currently `present` only for
+   claude-code" is superseded in the claim homes by "currently `present`
+   (documented to deliver, not live-measured) only for claude-code" -
+   reachability-label honesty (ADR-0072 D-F). The `measured-present` word
+   slot joins the host-contract enum and stays unused until the first real
+   claude-code lane-bearing Stop event.
