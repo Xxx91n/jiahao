@@ -18,18 +18,20 @@ spec: spec-judge-seam-lane.md; report under audit: reports/2026-09-16-report.md.
 - v3 frozen set byte-untouched (report.json fd6a0d42…, manifest 57d44b89…);
   pairer-regression gate live (order 159, confirmatory); deferred tide at 45.
 
-## Open items (audit findings — owner decides disposition; none blocking)
+## Audit findings — ALL CLOSED this window (owner-authorized fix loop; re-verified)
 
-- F-B1: report never mentions ADR-0071 cap raise 300k→340k / defer-0051 — decide
-  whether a report addendum is warranted (registered properly in-repo).
-- F-B2: ADR-0070 "at most count telemetry" vs per-event consistent records —
-  reconcile wording or accept (per-event records are the G3 denominator substrate).
-- F-B3: pairer-lane-telemetry.js doesn't print the "≥1 usage period" leg of G1
-  (record timestamps make it derivable) — consider surfacing span before bake ends.
-- F-B4: gates.json _doc stale enum (missing transcript-file).
-- F-B5: report's `resolve --verdict pass` shorthand omits required --reason/--reviewer.
-- F-B6 notes: generated g6-publish-replay.json rode the feat commit (F-A2 pattern);
-  ADR-0071 rode the impl commit (defensible).
+- F-B1 closed: report honest-note now discloses the ADR-0071 cap raise + defer-0051.
+- F-B2 closed: ADR-0070 D-C(d) reconciled - consistent/undetermined land as
+  non-suspicious observed records (telemetry substrate); lane comment synced.
+- F-B3 closed: telemetry emits first_ts/last_ts/span_days + window line; cycle
+  length stays owner-judged (registered in Consequences).
+- F-B4 closed: gates.json _doc enum lists transcript-file (5 members).
+- F-B5 closed: report row now shows the full resolve triple.
+- F-B6 dispositioned: generated replay refresh rides the fix commit; ADR-0071
+  rides impl commit - accepted.
+- Plus standards cleanups (dead code, lazy requires, naming) - see audit report
+  post-fix section. Full acceptance re-run green: 67/67 suites, 1064/1064 tests,
+  gate:all exit 0, pack 303144 < 340000.
 
 ## Suggested next grill direction
 
