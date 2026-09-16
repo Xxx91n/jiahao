@@ -552,6 +552,43 @@ move because the promotion gate does not prove recall.
 _Avoid_: efficacy claims migrated from test context to product context
 (FTC precedent), silence about a shipped capability
 
+**Re-Execution Prior (重执行先验)**
+A presumptive audit-design prior in the ISA-240.31 form: as of the
+2026-09-16 snapshot, every correction to a self-produced claim or report
+was caught by re-execution or independent audit — six named cases in 锐评
+v4 plus ten later audit observations (F-A x4, F-B x6) — and zero by
+self-disclosure. Audit and gate strategy takes this prior as default
+design input; overturning it requires a documented argument, not
+vigilance (ISA 240.48: exemptions are recorded, not assumed). The count
+is a dated snapshot from authoritative artifacts, not a frequency
+estimate — detection bias is disclosed (uncaught corrections are
+invisible to the count).
+_Avoid_: reading it as an extrapolated rate; treating small n as license
+to drop the prior (ledger t11 D-004)
+
+**Bounded Delegation (有界委托)**
+The rule that delegated signing authority must carry explicit scope and
+expiry: an open-ended "all future" grant is a defect in the grant itself,
+not merely a wording gap (SOX delegation-of-authority defect class:
+temporary coverage that never expires; ISO/IEC 17025 signatory authority
+is per-person, scope-specific, and terminates on change; zero-standing-
+privilege practice). The next authorization-bearing event forces an
+explicit renew-or-expire act; a bounded-grant template is pre-staged so
+the moment is not negotiated under pressure.
+_Avoid_: open-ended delegation even when honestly recorded; retroactive
+rewriting of a grant already on the append-only chain (ledger t11 D-004)
+
+**Reachability Provenance (可达性证据分级)**
+The distinction between a capability state derived from documentation
+and one derived from live observation: transcript_file present means
+"documented to deliver" — a docs claim, not a measurement; the added
+measured-present word slot marks first-hand observation on a real host
+event; absent and unverifiable are unchanged. Labels must not impersonate
+measurement (MDN feature-detection epistemology: runtime probing and
+compatibility tables are different kinds of knowledge; ledger t11
+D-002/D-005).
+_Avoid_: citing a documented capability as if measured; renaming states
+instead of extending the enum (surgery where a word slot suffices)
 ## Decision Log
 
 **Self-Preference Bias (自偏好偏差)**:
