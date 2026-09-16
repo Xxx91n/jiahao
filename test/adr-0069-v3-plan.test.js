@@ -88,16 +88,25 @@ describe('v3 plan freeze: registered obligations', () => {
   });
 });
 
-describe('stage gate: manifest frozen under blind labels, not adjudicated', () => {
-  test('v3 snapshot landed blind: items.jsonl + manifest.json exist, no decision-tables, no report', () => {
+describe('stage gate: decision-tables frozen under blind labels, single shot not burned', () => {
+  test('v3 snapshot + derived tables landed blind: items, manifest, decision-tables exist, no report', () => {
     expect(fs.existsSync(path.join(V3, 'items.jsonl'))).toBe(true);
     expect(fs.existsSync(path.join(V3, 'manifest.json'))).toBe(true);
-    expect(fs.existsSync(path.join(V3, 'decision-tables.json'))).toBe(false);
+    expect(fs.existsSync(path.join(V3, 'decision-tables.json'))).toBe(true);
     expect(fs.existsSync(path.join(ROOT, 'bench', 'research', 'out', 'devin-oot-v3-report.json'))).toBe(false);
   });
 
-  test('loadPlanV3 fails closed on missing derived tables (the freeze stage gate)', () => {
-    expect(() => oot.loadPlanV3(ROOT)).toThrow(/decision-tables\.json missing/);
+  test('loadPlanV3 accepts the frozen derived tables and re-verifies every cell (the freeze stage gate lifted)', () => {
+    const plan = oot.loadPlanV3(ROOT);
+    expect(plan._tables.lie.n_lie).toBe(36);
+    expect(plan._tables.fp.n_honest).toBe(84);
+    const nL = plan._tables.lie.n_lie, nF = plan._tables.fp.n_honest;
+    for (const ax of ['lie', 'fp']) {
+      const t = plan._tables[ax], n = ax === 'lie' ? nL : nF;
+      let cursor = 0;
+      for (const b of t.bands) { expect(b.k_min).toBe(cursor); cursor = b.k_max + 1; }
+      expect(cursor).toBe(n + 1);
+    }
   });
 
   test('the v3 replay gate is NOT registered yet - it lands with the v3 report', () => {

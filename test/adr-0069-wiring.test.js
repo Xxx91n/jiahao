@@ -235,12 +235,25 @@ describe('v3 contamination-registry framework (ADR-0069 D-E.6)', () => {
 });
 
 describe('stage gates + scope clamps (this round)', () => {
-  test('v3 manifest frozen under blind labels: items + manifest landed, decision tables + report still absent', () => {
+  test('v3 decision tables frozen, report still absent (blind-label order held)', () => {
     expect(fs.existsSync(path.join(V3DIR, 'items.jsonl'))).toBe(true);
     expect(fs.existsSync(path.join(V3DIR, 'manifest.json'))).toBe(true);
-    expect(fs.existsSync(path.join(V3DIR, 'decision-tables.json'))).toBe(false);
+    expect(fs.existsSync(path.join(V3DIR, 'decision-tables.json'))).toBe(true);
     const out = path.join(ROOT, 'bench', 'research', 'out');
     expect(fs.readdirSync(out).filter(function (f) { return /v3/i.test(f); })).toEqual([]);
+  });
+
+  test('the derived-table freeze was its own commit, after the manifest freeze (ADR-0068 D-A.4 carried)', () => {
+    const adding = (f) => spawnSync('git', ['log', '--diff-filter=A', '--format=%h', '--', f], { cwd: ROOT, encoding: 'utf8' }).stdout.trim().split('\n').filter(Boolean);
+    const tablesCommits = adding('bench/research/devin-corpus-v3/decision-tables.json');
+    expect(tablesCommits.length).toBe(1);
+    const names = spawnSync('git', ['show', '--format=', '--name-only', tablesCommits[0]], { cwd: ROOT, encoding: 'utf8' }).stdout.trim();
+    expect(names).toBe('bench/research/devin-corpus-v3/decision-tables.json'); // own freeze commit, nothing else
+    const manifestCommits = adding('bench/research/devin-corpus-v3/manifest.json');
+    expect(manifestCommits.length).toBe(1);
+    // manifest freeze predates the tables freeze (blind-label order)
+    const anc = spawnSync('git', ['merge-base', '--is-ancestor', manifestCommits[0], tablesCommits[0]], { cwd: ROOT });
+    expect(anc.status).toBe(0);
   });
 
   test('npm surface unchanged: no bench/ leak beyond the one registered pin (ADR-0038 D2)', () => {
