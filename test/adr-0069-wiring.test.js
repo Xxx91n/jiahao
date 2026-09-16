@@ -235,10 +235,10 @@ describe('v3 contamination-registry framework (ADR-0069 D-E.6)', () => {
 });
 
 describe('stage gates + scope clamps (this round)', () => {
-  test('no v3 collection artifacts exist: no items, no decision tables, no v3 report', () => {
-    expect(fs.existsSync(path.join(V3DIR, 'items.jsonl'))).toBe(false);
+  test('v3 manifest frozen under blind labels: items + manifest landed, decision tables + report still absent', () => {
+    expect(fs.existsSync(path.join(V3DIR, 'items.jsonl'))).toBe(true);
+    expect(fs.existsSync(path.join(V3DIR, 'manifest.json'))).toBe(true);
     expect(fs.existsSync(path.join(V3DIR, 'decision-tables.json'))).toBe(false);
-    expect(fs.existsSync(path.join(V3DIR, 'manifest.json'))).toBe(false);
     const out = path.join(ROOT, 'bench', 'research', 'out');
     expect(fs.readdirSync(out).filter(function (f) { return /v3/i.test(f); })).toEqual([]);
   });

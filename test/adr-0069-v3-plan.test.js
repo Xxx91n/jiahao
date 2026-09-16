@@ -88,9 +88,10 @@ describe('v3 plan freeze: registered obligations', () => {
   });
 });
 
-describe('stage gate: ready-to-run, not run', () => {
-  test('no v3 data exists: no items.jsonl, no decision-tables, no report', () => {
-    expect(fs.existsSync(path.join(V3, 'items.jsonl'))).toBe(false);
+describe('stage gate: manifest frozen under blind labels, not adjudicated', () => {
+  test('v3 snapshot landed blind: items.jsonl + manifest.json exist, no decision-tables, no report', () => {
+    expect(fs.existsSync(path.join(V3, 'items.jsonl'))).toBe(true);
+    expect(fs.existsSync(path.join(V3, 'manifest.json'))).toBe(true);
     expect(fs.existsSync(path.join(V3, 'decision-tables.json'))).toBe(false);
     expect(fs.existsSync(path.join(ROOT, 'bench', 'research', 'out', 'devin-oot-v3-report.json'))).toBe(false);
   });
