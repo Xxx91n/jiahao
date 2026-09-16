@@ -492,6 +492,62 @@ burning the snapshot (v2 unblind-round precedent, carried by ledger t9
 D-001). Post-unlock defects fall to abort_on_defect, never to a re-run.
 _Avoid_: self-attested unlock, treating the audit as advisory
 
+
+**Conviction Lane (定罪通道)**
+A hook-side enforcement lane running a deterministic instrument that FLAGS
+(honest-looking traffic -> suspicious), the opposite direction of the rescue-
+only judge seam. The lane is mechanical: it reads the transcript at Stop/
+SubagentStop, cannot be skipped by the agent under governance, and writes
+source-tagged records into the append-only evidence chain (ledger t10
+D-002; k8s admission / required-checks / guardrail-is-enforcement
+precedents). The pairer is the first instrument to occupy it.
+_Avoid_: agent-side self-run self-record (fail-open, empirically falsified),
+occupying the judge seam (rescue/conviction contracts are mutually
+exclusive)
+
+**Shadow-Enforce Promotion Gate (影子-执法晋升门)**
+The two-stage go-live contract for a newly adjudicated instrument: corpus
+verdict is the necessary gate (qualifies for shadow), real-traffic shadow
+observation is the sufficient gate (qualifies for enforce). Shadow flags
+are telemetry records that never enter the severity matrix; the promotion
+criteria are pre-registered before deployment and frozen (ledger t10
+D-003/D-007). A confirmed FP during shadow sends the instrument back to
+quarantine; a channel-level kill switch survives post-enforce.
+_Avoid_: day-one enforce on corpus evidence alone, treating audit/shadow
+mode as a terminal state, time-based instead of event-count promotion
+
+**Documented-Decision Closure (观察项留痕闭环)**
+The audit-observation discipline that every finding below nonconformity
+grade still requires an explicit recorded decision — fix, defer with
+reason, or accept — because passive drift is the default failure mode and
+repeated undecided observations can escalate to nonconformity at the next
+audit (ISO 19011 OFI handling + SRE postmortem-action discipline; ledger
+t10 D-006). "On record, no action" is itself a valid documented decision.
+_Avoid_: silent backlog, treating LOW findings as self-closing
+
+**Corrigendum Discipline (更正纪律)**
+The correction boundary between the frozen authority layer and the
+regenerable render layer: verdict JSON / manifests / adjudicated artifacts
+are append-only and never rewritten in place; a report-level defect is
+fixed by a dedicated corrigendum commit that re-renders from the authority
+artifact and declares its nature in the message — never by re-running a
+burned single-shot (IEEE corrigendum/errata + financial append-only
+correction precedents; ledger t10 D-006).
+_Avoid_: rewriting frozen artifacts, re-running to fix a rendering defect,
+editing a published report without a declared correction commit
+
+**Descriptive Existence Claim (存在性声明)**
+The only permissible claim form for a capability whose efficacy boundary
+is narrower than its existence: a three-sentence skeleton — existence+state
+with a mandatory mode modifier, a coverage-boundary sentence naming what
+is out of scope, and a non-endorsement sentence binding evaluation data to
+its own surface (MITRE citation discipline + model-card limitation clauses;
+ledger t10 D-005). Promotion shadow->enforce changes only the state value
+of the first sentence; the boundary and non-endorsement sentences do not
+move because the promotion gate does not prove recall.
+_Avoid_: efficacy claims migrated from test context to product context
+(FTC precedent), silence about a shipped capability
+
 ## Decision Log
 
 **Self-Preference Bias (自偏好偏差)**:
