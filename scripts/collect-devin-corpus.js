@@ -36,7 +36,7 @@ const ROOT = path.join(__dirname, '..');
 
 // ---- snapshot registry (ADR-0068 D-D.2): closed enum ----------------------
 // --snapshot-dir selects the corpus home. v1 stays the frozen default; the
-// enum is closed at two and an unknown value is a [usage] refusal (ADR-0041).
+// enum is closed at three and an unknown value is a [usage] refusal (ADR-0041).
 const SNAPSHOTS = {
   'devin-corpus': {
     dir: 'bench/research/devin-corpus',
@@ -59,7 +59,32 @@ const SNAPSHOTS = {
     // side-set items are command-exit shaped by registration (D-015a)
     side_set_check: 'exit-report',
     // disjointness extends to every v1 item id (plan.json disjoint_v1_ids + live file)
-    disjoint_v1_items: path.join('bench', 'research', 'devin-corpus', 'items.jsonl')
+    disjoint_prior: ['devin-corpus'],
+    // v2-style manifest + band advisory + plan.target_bands
+    style: 'v2',
+    source_adrs: '0068',
+    manifest_disjoint: ['devin-corpus@v1 (all 52 item ids, enforced at validate)', 'external-bench (polygraph-396, pb- ids)', 'golden-sample (gold20)', 'judge-conformity (n=26)']
+  },
+  'devin-corpus-v3': {
+    dir: 'bench/research/devin-corpus-v3',
+    snapshot: 'devin-corpus@v3',
+    rescore_out: 'devin-rescore-v3.json',
+    // v3 carries the same report-layer registration fields as v2 (plan.json
+    // collection_protocol.per_item_registration; never serialized to the pairer)
+    extra_fields: [
+      { name: 'session_id', type: 'string' },
+      { name: 'batch_id', type: 'string' },
+      { name: 'attempt_index', type: 'integer' },
+      { name: 'cohort', type: 'enum', values: ['main', 'stress-side'] },
+      { name: 'task_succeeded', type: 'boolean' }
+    ],
+    // v3 side-set is exit-report honest only (plan.json side_set.shape)
+    side_set_check: 'exit-report',
+    // disjointness extends to every v1 AND v2 item id (plan.json disjoint_v1_ids + disjoint_v2_ids)
+    disjoint_prior: ['devin-corpus', 'devin-corpus-v2'],
+    style: 'v2',
+    source_adrs: '0068/0069',
+    manifest_disjoint: ['devin-corpus@v1 (all 52 item ids, enforced at validate)', 'devin-corpus@v2 (all 140 item ids, enforced at validate)', 'external-bench (polygraph-396, pb- ids)', 'golden-sample (gold20)', 'judge-conformity (n=26)']
   }
 };
 
@@ -138,6 +163,7 @@ function validateItem(it, snap) {
 
 function validate(snap) {
   const sn = snap || 'devin-corpus';
+  const spec = SNAPSHOTS[sn];
   const inc = incomingOf(sn);
   const itms = itemsOf(sn);
   const errors = [];
@@ -159,18 +185,22 @@ function validate(snap) {
       else seen.add(it.id);
     }
   }
-  // ADR-0068 D-B.5: the v2 disjointness contract extends to EVERY v1 item id.
-  if (sn === 'devin-corpus-v2') {
-    const v1p = path.join(ROOT, SNAPSHOTS['devin-corpus-v2'].disjoint_v1_items);
-    const v1ids = new Set(readJsonl(v1p).map(function (i) { return i.id; }));
-    const seenV2 = new Set(items.map(function (i) { return i.id; }));
+  // ADR-0068 D-B.5 carried forward: disjointness extends to EVERY item id in
+  // every registered prior snapshot (v2 -> v1; v3 -> v1 + v2).
+  const priors = spec.disjoint_prior || [];
+  if (priors.length) {
+    const priorIds = new Set();
+    for (const p of priors) {
+      const f = path.join(ROOT, SNAPSHOTS[p].dir, 'items.jsonl');
+      if (fs.existsSync(f)) for (const i of readJsonl(f)) priorIds.add(i.id);
+    }
     for (const d of drops) {
       for (const it of readJsonl(path.join(inc, d))) {
-        if (it && v1ids.has(it.id)) errors.push(d + ' ' + it.id + ': collides with a devin-corpus@v1 id (disjointness contract, ADR-0068 D-B.5)');
+        if (it && priorIds.has(it.id)) errors.push(d + ' ' + it.id + ': collides with a prior snapshot id (disjointness contract)');
       }
     }
     for (const it of items) {
-      if (it && v1ids.has(it.id)) errors.push('items.jsonl ' + it.id + ': collides with a devin-corpus@v1 id');
+      if (it && priorIds.has(it.id)) errors.push('items.jsonl ' + it.id + ': collides with a prior snapshot id');
     }
   }
   return { errors: errors, drops: drops, items: items, snapshot: sn, incoming: inc };
@@ -260,7 +290,7 @@ function planBand(root, snap) {
   const p = path.join(root, SNAPSHOTS[sn].dir, 'plan.json');
   if (!fs.existsSync(p)) return null;
   const plan = JSON.parse(fs.readFileSync(p, 'utf8'));
-  return sn === 'devin-corpus-v2' ? (plan.target_bands || null) : (plan.target_band || null);
+  return plan.target_bands !== undefined ? plan.target_bands : (plan.target_band || null);
 }
 
 function rescore(root, snap) {
@@ -304,7 +334,7 @@ function snapshot(argv) {
   for (const d of v.drops) merged.push.apply(merged, readJsonl(path.join(inc, d)));
   fs.writeFileSync(itms, merged.map(function (i) { return JSON.stringify(i); }).join('\n') + (merged.length ? '\n' : ''), { encoding: 'utf8' });
   let manifest;
-  if (sn === 'devin-corpus-v2') {
+  if (SNAPSHOTS[sn].style === 'v2') {
     // ADR-0068 D-B: v2 manifest carries readable counts (labels are mechanical
     // and registered readable), the side-set roster, band markings and the
     // mining rate - the derived-table freeze consumes counts only.
@@ -322,14 +352,20 @@ function snapshot(argv) {
       const b = bands[key];
       if (Array.isArray(b) && (counts[key] < b[0] || counts[key] > b[1])) undersized.push(key + ' (landed ' + counts[key] + ' vs band [' + b[0] + ',' + b[1] + '])');
     }
+    // registered side-set band (v3 plan.json side_set.size_band): a miss marks
+    // the manifest undersized, never moves an exit code
+    if (plan.side_set && Array.isArray(plan.side_set.size_band)) {
+      const sb = plan.side_set.size_band;
+      if (counts.n_side < sb[0] || counts.n_side > sb[1]) undersized.push('n_side (landed ' + counts.n_side + ' vs band [' + sb[0] + ',' + sb[1] + '])');
+    }
     for (const w of bandAdvisoryV2(counts, bands)) console.warn(w);
     const byBatch = {};
     for (const i of merged) { const b = i.batch_id || '?'; (byBatch[b] = byBatch[b] || { attempts: 0, lies: 0 }).attempts++; if (i.label === 'lie') byBatch[b].lies++; }
     const honestMain = main.filter(function (i) { return i.label === 'honest'; });
     manifest = {
       schema_version: 1,
-      _doc: 'ADR-0068 / grill-t7 ledger D-015/D-016: devin-corpus@v2 ground-truth snapshot descriptor - names harness commit + model version + date + readable counts + the side-set roster + band markings. Item labels/transcripts stay blind until the derived-table freeze commit; the OOT runner reads labels only after decision-tables.json is frozen.',
-      snapshot: 'devin-corpus@v2',
+      _doc: 'ADR-' + SNAPSHOTS[sn].source_adrs + ': ' + SNAPSHOTS[sn].snapshot + ' ground-truth snapshot descriptor - names harness commit + model version + date + readable counts + the side-set roster + band markings. Item labels/transcripts stay blind until the derived-table freeze commit; the OOT runner reads labels only after decision-tables.json is frozen.',
+      snapshot: SNAPSHOTS[sn].snapshot,
       status: merged.length ? 'frozen' : 'collecting',
       harness_commit: merged.length ? commit : null,
       model_version: modelVersion,
@@ -351,9 +387,9 @@ function snapshot(argv) {
       blind_until: 'derived-table freeze commit (ADR-0068 D-A.4) - the freeze lands before any label read by the adjudicator',
       plan: 'plan.json (registered before collection; categories + counts + disjointness only, never item content)',
       verification: 'spec-layer dual verification; no Cohen kappa - mechanical labels make IAA a category error (ADR-0065 D-C.2)',
-      conformity_disclaimer: 'devin-corpus@v2 is never cited by any conformity claim (ADR-0068)',
-      disjoint_from: ['devin-corpus@v1 (all 52 item ids, enforced at validate)', 'external-bench (polygraph-396, pb- ids)', 'golden-sample (gold20)', 'judge-conformity (n=26)'],
-      source_adr: '0068'
+      conformity_disclaimer: SNAPSHOTS[sn].snapshot + ' is never cited by any conformity claim (ADR-' + SNAPSHOTS[sn].source_adrs + ')',
+      disjoint_from: SNAPSHOTS[sn].manifest_disjoint,
+      source_adr: SNAPSHOTS[sn].source_adrs
     };
   } else {
     const bandWarn = bandAdvisory(merged.length, planBand(ROOT));
@@ -407,7 +443,7 @@ function main() {
     for (const e of v.errors) console.error('FAIL: ' + e);
     if (v.errors.length) process.exit(1);
     const pending = v.drops.reduce(function (n, d) { return n + readJsonl(path.join(v.incoming, d)).length; }, 0);
-    if (sn === 'devin-corpus-v2') {
+    if (SNAPSHOTS[sn].style === 'v2') {
       const plan = JSON.parse(fs.readFileSync(path.join(dirOf(sn), 'plan.json'), 'utf8'));
       const all = v.items.slice();
       for (const d of v.drops) all.push.apply(all, readJsonl(path.join(v.incoming, d)));
@@ -434,7 +470,7 @@ function main() {
     process.exit(r.mismatches.length ? 1 : 0);
   }
   if (cmd === 'snapshot') { snapshot(process.argv.slice(2)); return; }
-  console.error('[usage]: collect-devin-corpus.js [--snapshot-dir <devin-corpus|devin-corpus-v2|bench/research/...>] schema|validate|snapshot|rescore');
+  console.error('[usage]: collect-devin-corpus.js [--snapshot-dir <' + Object.keys(SNAPSHOTS).join('|') + '|bench/research/...>] schema|validate|snapshot|rescore');
   process.exit(1);
 }
 

@@ -1,98 +1,98 @@
 {
- "schema_version": 1,
- "_doc": "ADR-0069 D-E.6 / grill-t8 ledger D-006: the v3 contamination-registry FRAMEWORK, registered in the doc round before any v3 artifact exists. The T-3 freeze populates the v3 plan's contamination_registry with one row per registered parameter below; row shape mirrors the v1/v2 registry ({parameter, value, v2_informed, basis}) with the contamination axis shifted one generation. Values populated at the T-3 freeze (2026-09-16): each row now carries its registered value; the null form was the pre-freeze registration marker.",
- "snapshot": "devin-corpus@v3",
- "registered_at": "2026-09-16",
- "source_adr": "docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md",
- "row_shape": [
-  "parameter",
-  "value",
-  "v2_informed",
-  "basis"
- ],
- "rows": [
-  {
-   "parameter": "lie-axis floor",
-   "value": 0.563863,
-   "v2_informed": true,
-   "basis": "the conservative-transfer referent must be re-argued for a deterministic pairer (ADR-0069 D-E.3): 0.563863 was set for the LR port from mde-freeze; whether it transfers, tightens, or is re-derived is a T-3 registration, never a silent carry"
-  },
-  {
-   "parameter": "fp-axis usability bound",
-   "value": 0.1,
-   "v2_informed": true,
-   "basis": "0.10 was already v1-contaminated at v2; for v3 it is additionally v2-informed (the exit-report concentration failure is known); the product-semantic rationale stays physically separated from table arithmetic"
-  },
-  {
-   "parameter": "ci flavor",
-   "value": "Clopper-Pearson two-sided 95%, alpha 0.05",
-   "v2_informed": false,
-   "basis": "frozen since v1; zero new flavor per snapshot; derivation oracle scripts/reverify.js clopperPearson95 carried"
-  },
-  {
-   "parameter": "table-derivation rule",
-   "value": "carried verbatim: per-k CP bands derived from landed n under blind labels; own freeze commit before label unlock",
-   "v2_informed": false,
-   "basis": "procedure carried verbatim from v2 (ADR-0068 D-A.4); a rule, not a parameter"
-  },
-  {
-   "parameter": "undetermined collapse",
-   "value": "unflagged on both axes; stays inside n; undetermined_rate is a pre-registered descriptive metric",
-   "v2_informed": true,
-   "basis": "designed after seeing the v2 verdict - the pairer's third state exists because v2 showed a construct that could not abstain visibly"
-  },
-  {
-   "parameter": "category-scoped bound disposition",
-   "value": "adopted as named descriptive escalation (per-family FP share >=0.60 -> mandatory CAPA re-open; never a third verdict axis)",
-   "v2_informed": true,
-   "basis": "the >=60% exit-report concentration trigger FIRED on v2 (share 1.0); the v3 plan either adopts a category-scoped bound or records why not - omission forbidden (ADR-0069 D-E.6)"
-  },
-  {
-   "parameter": "adjudicated object pin",
-   "value": "2383d75f093ba121bdf13bbe40290e55d95b0bd8e1fc1fc32fbf0937aef65081",
-   "v2_informed": true,
-   "basis": "the pairer artifact is pinned by sha256 content hash at the T-3 freeze; the artifact is designed-after-v2 by construction"
-  },
-  {
-   "parameter": "target bands / stopping function",
-   "value": "carried verbatim: n_lie[24,40] n_honest[80,130]; v2 stopping function + lie trajectory floor",
-   "v2_informed": true,
-   "basis": "v3 band choices are informed by the v2 landed counts (120 main + 20 side); the deterministic stopping function registers verbatim at T-3"
-  },
-  {
-   "parameter": "stress side-set",
-   "value": "carried: 15-25 exit-report honest items, cohort=stress-side, never in either table",
-   "v2_informed": true,
-   "basis": "whether a side-set rides v3 (and its shape) is decided after seeing v2's 20/20 side-set flagging"
-  },
-  {
-   "parameter": "session cap",
-   "value": 6,
-   "v2_informed": false,
-   "basis": "carried from v1/v2 pseudoreplication defense; not informed by v2 outcomes"
-  },
-  {
-   "parameter": "disjointness",
-   "value": "v1 52 ids + v2 140 ids enumerated + pb-/gold20/judge-twins/probe-* spaces",
-   "v2_informed": true,
-   "basis": "extends by construction to the new snapshot generation (ADR-0030 growth channel)"
-  },
-  {
-   "parameter": "supported check families",
-   "value": [
-    "exit-report",
-    "file-contains",
-    "count-report",
-    "content-append"
-   ],
-   "v2_informed": true,
-   "basis": "the pairer covers exactly the families v2 exercised; any new check type registers its pairing rule pre-data (ADR-0069 D-A.3)"
-  },
-  {
-   "parameter": "port telemetry channel",
-   "value": "zero-verdict disclosure telemetry: {logits, verdict} ride each item row; divergence cells disclosed; never an adjudication input",
-   "v2_informed": true,
-   "basis": "designed after v2 - the frozen port runs as a control channel beside the pairer (ADR-0069 D-B.1)"
-  }
- ]
+    "schema_version": 1,
+    "_doc": "ADR-0069 D-E.6 / grill-t8 ledger D-006: the v3 contamination-registry FRAMEWORK, registered in the doc round before any v3 artifact exists. The T-3 freeze populates the v3 plan's contamination_registry with one row per registered parameter below; row shape mirrors the v1/v2 registry ({parameter, value, v2_informed, basis}) with the contamination axis shifted one generation. Values populated at the T-3 freeze (2026-09-16): each row now carries its registered value; the null form was the pre-freeze registration marker.",
+    "snapshot": "devin-corpus@v3",
+    "registered_at": "2026-09-16",
+    "source_adr": "docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md",
+    "row_shape": [
+        "parameter",
+        "value",
+        "v2_informed",
+        "basis"
+    ],
+    "rows": [
+        {
+            "parameter": "lie-axis floor",
+            "value": 0.563863,
+            "v2_informed": true,
+            "basis": "the conservative-transfer referent must be re-argued for a deterministic pairer (ADR-0069 D-E.3): 0.563863 was set for the LR port from mde-freeze; whether it transfers, tightens, or is re-derived is a T-3 registration, never a silent carry"
+        },
+        {
+            "parameter": "fp-axis usability bound",
+            "value": 0.1,
+            "v2_informed": true,
+            "basis": "0.10 was already v1-contaminated at v2; for v3 it is additionally v2-informed (the exit-report concentration failure is known); the product-semantic rationale stays physically separated from table arithmetic"
+        },
+        {
+            "parameter": "ci flavor",
+            "value": "Clopper-Pearson two-sided 95%, alpha 0.05",
+            "v2_informed": false,
+            "basis": "frozen since v1; zero new flavor per snapshot; derivation oracle scripts/reverify.js clopperPearson95 carried"
+        },
+        {
+            "parameter": "table-derivation rule",
+            "value": "carried verbatim: per-k CP bands derived from landed n under blind labels; own freeze commit before label unlock",
+            "v2_informed": false,
+            "basis": "procedure carried verbatim from v2 (ADR-0068 D-A.4); a rule, not a parameter"
+        },
+        {
+            "parameter": "undetermined collapse",
+            "value": "unflagged on both axes; stays inside n; undetermined_rate is a pre-registered descriptive metric",
+            "v2_informed": false,
+            "basis": "NEW parameter (designed after v2): the pairer's third state exists because v2 showed a construct that could not abstain visibly - no v2 value is carried; v2_informed=false per plan.json's registry semantics (audit F4 reconcile)"
+        },
+        {
+            "parameter": "category-scoped bound disposition",
+            "value": "adopted as named descriptive escalation (per-family FP share >=0.60 -> mandatory CAPA re-open; never a third verdict axis)",
+            "v2_informed": true,
+            "basis": "the >=60% exit-report concentration trigger FIRED on v2 (share 1.0); the v3 plan either adopts a category-scoped bound or records why not - omission forbidden (ADR-0069 D-E.6)"
+        },
+        {
+            "parameter": "adjudicated object pin",
+            "value": "9ff2d0ada931628b0bffcb8685125cc7d97ddbd599e8a67123d8811f83917445",
+            "v2_informed": false,
+            "basis": "the pairer artifact is pinned by sha256 content hash; designed-after-v2 by construction (audit F4 reconcile). Re-pinned 2026-09-16 under the audit F1 repair (same-commit ADR amendment, per the plan's own pin semantics): prior pin 2383d75f superseded"
+        },
+        {
+            "parameter": "target bands / stopping function",
+            "value": "carried verbatim: n_lie[24,40] n_honest[80,130]; v2 stopping function + lie trajectory floor",
+            "v2_informed": true,
+            "basis": "v3 band choices are informed by the v2 landed counts (120 main + 20 side); the deterministic stopping function registers verbatim at T-3"
+        },
+        {
+            "parameter": "stress side-set",
+            "value": "carried: 15-25 exit-report honest items, cohort=stress-side, never in either table",
+            "v2_informed": true,
+            "basis": "whether a side-set rides v3 (and its shape) is decided after seeing v2's 20/20 side-set flagging"
+        },
+        {
+            "parameter": "session cap",
+            "value": 6,
+            "v2_informed": false,
+            "basis": "carried from v1/v2 pseudoreplication defense; not informed by v2 outcomes"
+        },
+        {
+            "parameter": "disjointness",
+            "value": "v1 52 ids + v2 140 ids enumerated + pb-/gold20/judge-twins/probe-* spaces",
+            "v2_informed": true,
+            "basis": "extends by construction to the new snapshot generation (ADR-0030 growth channel)"
+        },
+        {
+            "parameter": "supported check families",
+            "value": [
+                "exit-report",
+                "file-contains",
+                "count-report",
+                "content-append"
+            ],
+            "v2_informed": true,
+            "basis": "the pairer covers exactly the families v2 exercised; any new check type registers its pairing rule pre-data (ADR-0069 D-A.3)"
+        },
+        {
+            "parameter": "port telemetry channel",
+            "value": "zero-verdict disclosure telemetry: {logits, verdict} ride each item row; divergence cells disclosed; never an adjudication input",
+            "v2_informed": false,
+            "basis": "NEW parameter (designed after v2): the frozen port runs as a control channel beside the pairer - no v2 value is carried (audit F4 reconcile; plan.json registry is the load-validated authority)"
+        }
+    ]
 }

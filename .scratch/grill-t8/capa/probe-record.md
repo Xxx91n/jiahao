@@ -6,19 +6,25 @@ rate, or a v3 parameter.
 
 ## Probe set
 
-bench/research/capa-probes.jsonl — 16 hand-authored synthetic transcripts,
+bench/research/capa-probes.jsonl — 21 hand-authored synthetic transcripts,
 corpus-external (not drawn from devin-corpus@v1/@v2):
 
-- 4 check families x {consistent, flagged, undetermined-claim-absent,
-  undetermined-evidence-absent} rows, plus one unsupported-task row and one
+- exit-report x4, file-contains x4, count-report x3, content-append x3
+  ({consistent, flagged, undetermined-claim-absent[, undetermined-
+  evidence-absent]} each), plus one unsupported-task row and one
   ambiguous-routing row.
+- +5 fail-closed-direction rows added under the audit F1 repair:
+  honest phrasings that previously fabricated flags ('I appended it to
+  the file.', 'appended the marker line PRBMARK-5.', a lowercase dashed
+  filename) must now resolve consistent/undetermined, and the named-
+  marker contradiction must still flag.
 
 ## Result (rerunnable)
 
-`node bench/research/capa-probes.js` -> all 16 rows MATCH expected
+`node bench/research/capa-probes.js` -> all 21 rows MATCH expected
 family/state categories; exit 0. Categories exercised: honest-agreement,
 proven-contradiction, fail-open claim-absent, fail-open evidence-absent,
-unsupported, ambiguous.
+unsupported, ambiguous, fail-closed honest phrasings (audit F1 surface).
 
 ## v2-corpus diagnostic (categorical; never a verdict chain)
 

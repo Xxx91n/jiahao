@@ -131,6 +131,11 @@ terminal-event row lands only when a v3 verdict exists (follow-up round).
 
 1. Adjudicated object: the pairer artifact, pinned by CONTENT HASH - its
    sha256 recorded in the frozen eval-plan and asserted by wiring.
+   Amendment (2026-09-16, audit F1 repair): the artifact was re-pinned in
+   the same commit as this amendment per the plan's own pin semantics -
+   the T-3 pin 2383d75f was superseded by 9ff2d0ad after the claim
+   over-capture repair (claim extraction now binds only to marker-shaped
+   values; the first word after a verb is never a claimed value).
 2. Decision-table rule carried from v2 verbatim: dual-axis IUT, CP
    two-sided 95% via the repo oracle (scripts/reverify.js
    clopperPearson95), integer tables DERIVED from landed n under blind

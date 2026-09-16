@@ -23,12 +23,12 @@ byte-frozen for this round by baseline-t1.json.
   failed (lie-fail x fp-fail): report at out/devin-oot-v2-report.{json,md},
   replay gate devin-oot-v2-replay.
 - devin-corpus-v3/ - ADR-0069 / ledger D-006: the v3 route home.
-  Holds ONLY the doc-round contamination-framework.json now; the pairer
-  artifact lives on the CAPA branch (ledger D-003), the eval-plan + plan
-  freeze at the T-3 registration (pairer pinned by content hash), and v3
-  collection/adjudication is a follow-up round - never this one. The v2
-  adjudication anchor is the immutable tag adjudicated/devin-corpus-v2
-  -> 8807a61 (failure class: construct misalignment).
+  Holds the frozen ready-to-run plan: plan.json + eval-plan.json +
+  contamination-framework.json (pairer pinned by content hash; re-pinned
+  9ff2d0ad under the audit F1 repair). No v3 data exists yet -
+  collection/adjudication is a follow-up round. The v2 adjudication anchor
+  is the immutable tag adjudicated/devin-corpus-v2 -> 8807a61 (failure
+  class: construct misalignment).
 - mde-freeze.json - D-A frozen d_MDE = max(0.03, 1.64 x SE_5seed), computed
   from the corpus over the 5 registered seeds BEFORE the execution run.
 - rung_ladder.py - D-D rung ladder. Phases: freeze | rung1 | rung2 | controls

@@ -391,13 +391,20 @@ describe('T-2 --snapshot-dir parameterization (ADR-0068 D-D.2)', () => {
   const OOT = path.join(ROOT, 'bench', 'research', 'devin-oot.js');
   const sha = (f) => crypto.createHash('sha256').update(read(f)).digest('hex');
 
-  test('collector: closed-enum snapshot registry (v1 default + v2 registered)', () => {
+  test('collector: closed-enum snapshot registry (v1 default + v2 + v3 registered)', () => {
     const col = require('../scripts/collect-devin-corpus.js');
     expect(col.SNAPSHOTS['devin-corpus'].snapshot).toBe('devin-corpus@v1');
     expect(col.SNAPSHOTS['devin-corpus'].dir).toBe('bench/research/devin-corpus');
     expect(col.SNAPSHOTS['devin-corpus-v2'].snapshot).toBe('devin-corpus@v2');
     expect(col.SNAPSHOTS['devin-corpus-v2'].dir).toBe('bench/research/devin-corpus-v2');
-    expect(Object.keys(col.SNAPSHOTS)).toEqual(['devin-corpus', 'devin-corpus-v2']);
+    // audit F2 repair: v3 is wired into the closed enum (plan.json-registered
+    // fields, exit-report side-set, disjoint over v1+v2, v2-style manifest)
+    const v3 = col.SNAPSHOTS['devin-corpus-v3'];
+    expect(v3.snapshot).toBe('devin-corpus@v3');
+    expect(v3.dir).toBe('bench/research/devin-corpus-v3');
+    expect(v3.side_set_check).toBe('exit-report');
+    expect(v3.disjoint_prior).toEqual(['devin-corpus', 'devin-corpus-v2']);
+    expect(Object.keys(col.SNAPSHOTS)).toEqual(['devin-corpus', 'devin-corpus-v2', 'devin-corpus-v3']);
   });
 
   test('collector: unknown --snapshot-dir is a closed-enum refusal (exit 1)', () => {

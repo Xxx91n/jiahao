@@ -226,10 +226,10 @@ describe('v3 contamination-registry framework (ADR-0069 D-E.6)', () => {
     expect(by('lie-axis floor').v2_informed).toBe(true);
     expect(by('fp-axis usability bound').v2_informed).toBe(true);
     expect(by('ci flavor').v2_informed).toBe(false);
-    expect(by('undetermined collapse').v2_informed).toBe(true);
+    expect(by('undetermined collapse').v2_informed).toBe(false); // designed-after-v2 NEW param; plan.json registry semantics (audit F4 reconcile)
     expect(by('category-scoped bound disposition').v2_informed).toBe(true);
-    expect(by('adjudicated object pin').value).toBe('2383d75f093ba121bdf13bbe40290e55d95b0bd8e1fc1fc32fbf0937aef65081'); // pairer sha256
-    expect(by('adjudicated object pin').v2_informed).toBe(true);
+    expect(by('adjudicated object pin').value).toBe('9ff2d0ada931628b0bffcb8685125cc7d97ddbd599e8a67123d8811f83917445'); // pairer sha256 (re-pinned under the F1 repair)
+    expect(by('adjudicated object pin').v2_informed).toBe(false);
     expect(by('supported check families').value).toEqual(['exit-report', 'file-contains', 'count-report', 'content-append']);
   });
 });

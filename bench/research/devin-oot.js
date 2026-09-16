@@ -1402,7 +1402,7 @@ function renderMdV3(rep) {
   L.push('');
   L.push('Quadrant: ' + d.quadrant + (d.quadrant_semantics ? ' - ' + d.quadrant_semantics : ''));
   L.push('');
-  L.push('undetermined: ' + m.undetermined.n + ' of ' + d.axes.lie.n + d.axes.fp.n + ' main items (rate ' + (m.undetermined.rate == null ? 'n/a' : m.undetermined.rate.toFixed(6)) + '; unflagged on both axes, inside n)');
+  L.push('undetermined: ' + m.undetermined.n + ' of ' + (d.axes.lie.n + d.axes.fp.n) + ' main items (rate ' + (m.undetermined.rate == null ? 'n/a' : m.undetermined.rate.toFixed(6)) + '; unflagged on both axes, inside n)');
   L.push('');
   L.push('port divergence (disclosure only): flagged-pairer/honest-port ' + m.port_divergence.flagged_pairer_honest_port + ', unflagged-pairer/flag-port ' + m.port_divergence.unflagged_pairer_flag_port + ' over ' + m.port_divergence.scored + ' scored');
   L.push('');
@@ -1416,6 +1416,24 @@ function renderMdV3(rep) {
   L.push(rep.claim.fact_line);
   L.push('');
   L.push(rep.claim.limitation_sentence);
+  L.push('');
+  L.push('## Per-item results');
+  L.push('');
+  L.push('| id | label | family | cohort | session | batch | state | claim | evidence | pairer-input sha256 |');
+  L.push('|---|---|---|---|---|---|---|---|---|---|');
+  for (const r of rep.items) {
+    L.push('| ' + r.id + ' | ' + r.label + ' | ' + r.family + ' | ' + r.cohort + ' | ' + r.session_id + ' | ' + r.batch_id + ' | ' + r.state + ' | ' + JSON.stringify(r.claim) + ' | ' + JSON.stringify(r.evidence) + ' | ' + r.sha256.slice(0, 16) + ' |');
+  }
+  L.push('');
+  L.push('## Settlement');
+  L.push('');
+  L.push('- eval-plan: ' + rep.eval_plan.path + ' (sha256 ' + rep.eval_plan.sha256.slice(0, 16) + ')');
+  L.push('- pairer artifact: ' + rep.instrument.pairer.path + ' (sha256 ' + rep.instrument.pairer.sha256.slice(0, 16) + ', ' + rep.instrument.pairer.bytes + ' B pinned)');
+  L.push('- items.jsonl sha256: ' + rep.corpus.items_sha256.slice(0, 16));
+  L.push('- undersized bands: ' + (rep.corpus.undersized.length ? rep.corpus.undersized.join('; ') : 'none'));
+  L.push('- serialization defects: ' + (rep.serialization.defects.length ? rep.serialization.defects.join('; ') : 'none (abort-on-defect armed)'));
+  L.push('- branch policy: ' + rep.settlement.branch_policy);
+  L.push('- bench/research/devin-corpus-v3/manifest.json untouched (settlement recorded here, append-only)');
   L.push('');
   return L.join('\n');
 }
@@ -1462,7 +1480,7 @@ function replayCheckV3(root) {
     : (lieDec.verdict === 'falsification-passed' && fpDec.verdict === 'falsification-passed') ? 'falsification-passed' : 'indeterminate';
   if (combined !== rep.decision.verdict) errors.push('verdict ' + rep.decision.verdict + ' != recomputed ' + combined);
   if (Math.abs(lieDec.ci95.lower - rep.decision.axes.lie.ci95.lower) > 1e-9) errors.push('lie CI lower drift');
-  const factRe = new RegExp('^devin-corpus@v3 falsification test: (passed|indeterminate|failed) \\(n=' + recompute.n_main + ', lie=' + recompute.n_lie + ', FP=' + recompute.fp_count + '/' + recompute.n_honest + ', CI lower=' + lieDec.ci95.lower.toFixed(6) + '\\) \\(verdict date: \\d{4}-\\d{2}-\\d{2}\\)$');
+  const factRe = new RegExp('^devin-corpus@v3 falsification test: (passed|indeterminate|failed) \\(n=' + recompute.n_main + ', lie=' + recompute.n_lie + ', FP=' + recompute.fp_count + '/' + recompute.n_honest + ', CI lower=' + lieDec.ci95.lower.toFixed(6).replace('.', '\\.') + '\\) \\(verdict date: \\d{4}-\\d{2}-\\d{2}\\)$');
   if (!factRe.test(rep.claim.fact_line)) errors.push('fact line does not re-derive: ' + rep.claim.fact_line);
   return { errors: errors, rep: rep, recompute: recompute };
 }
