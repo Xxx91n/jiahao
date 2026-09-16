@@ -501,6 +501,10 @@ SubagentStop, cannot be skipped by the agent under governance, and writes
 source-tagged records into the append-only evidence chain (ledger t10
 D-002; k8s admission / required-checks / guardrail-is-enforcement
 precedents). The pairer is the first instrument to occupy it.
+Landed surface (ADR-0070): `src/capa-pairer.js` (the adjudicated artifact,
+byte-pinned), `src/transcript-adapter.js` (channel component), and
+`src/pairer-lane.js` (the lane) inside `hooks/jiahao-verdict-gate.js`;
+channel flags `.jiahao-conviction-off` / `.jiahao-conviction-enforce`.
 _Avoid_: agent-side self-run self-record (fail-open, empirically falsified),
 occupying the judge seam (rescue/conviction contracts are mutually
 exclusive)

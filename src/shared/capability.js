@@ -26,13 +26,14 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
 const REGISTRY_REL = path.join('docs', 'gates.json');
 
-const CAPABILITIES = ['repo-tree', 'bench-corpus', 'docs-adr', 'ci-mode'];
+const CAPABILITIES = ['repo-tree', 'bench-corpus', 'docs-adr', 'ci-mode', 'transcript-file'];
 
 const HINTS = {
   'repo-tree': 'a git worktree is expected (.git missing at the tree root); gates run from the repo or a full checkout, not from the npm tarball',
   'bench-corpus': 'the bench corpus is a maintainer/CI asset and is not distributed in the npm package or a public git clone (ADR-0038 D2); set JIAHAO_CORPUS_DIR if you legitimately hold it (ADR-0038 D3)',
   'docs-adr': 'docs/adr/ lives in the git tree and is deliberately absent from the npm tarball (ADR-0039); run from a git checkout',
   'ci-mode': 'a CI environment is expected (GITHUB_ACTIONS or CI env var non-empty)',
+  'transcript-file': 'the host delivers a transcript file (ADR-0070 D-C(c)); for script-level consumers declare it explicitly via JIAHAO_TRANSCRIPT_FILE=<path-to-existing-file> — per-event hook delivery (transcript_path on the stop-family stdin) and per-host reachability are recorded in the host-contract registry',
 };
 
 function configDir(env) {
@@ -80,6 +81,12 @@ function probe(name, opts) {
       return fs.existsSync(path.join(root, 'docs', 'adr'));
     case 'ci-mode':
       return Boolean(env.GITHUB_ACTIONS || env.CI);
+    case 'transcript-file':
+      // ADR-0070 D-C(c): existence-only — an operator-declared transcript
+      // file path. The hook lane's per-event delivery (transcript_path on the
+      // stop-family stdin) is the runtime form; this env predicate is the
+      // script-level form so a gate may declare the capability honestly.
+      return Boolean(env.JIAHAO_TRANSCRIPT_FILE) && fs.existsSync(env.JIAHAO_TRANSCRIPT_FILE);
     default:
       return false; // unreachable: checkEnum guards the switch
   }

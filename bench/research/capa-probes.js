@@ -9,7 +9,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const pairer = require('./capa-pairer');
+const pairer = require('../../src/capa-pairer');
 
 const PROBES = path.join(__dirname, 'capa-probes.jsonl');
 

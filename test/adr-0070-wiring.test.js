@@ -11,6 +11,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { spawnSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const ADR = path.join(ROOT, 'docs', 'adr', '0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md');
@@ -137,7 +138,7 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () => 
 
   test('the README ADR index carries ADR-0070 (rebuilt, 70 records)', () => {
     const r = read(README);
-    expect(r).toContain('70 architecture decision records');
+    expect(r).toContain('71 architecture decision records');
     expect(r).toContain('[ADR-0070](docs/adr/0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md)');
   });
 
@@ -163,5 +164,117 @@ describe('frozen surfaces this round must not touch', () => {
   test('v3 report.json stays at the burned sha256', () => {
     expect(sha256(read(path.join(ROOT, 'bench', 'research', 'out', 'devin-oot-v3-report.json'))))
       .toBe('fd6a0d42f5c0d3578ad9ee818b87d503eb51b758e0b950e33a3678cdadc6245b');
+  });
+});
+
+describe('T-2 implementation surface (ADR-0070 D-A/D-C)', () => {
+  const PAIRER = path.join(ROOT, 'src', 'capa-pairer.js');
+  const PIN_SHA = '9ff2d0ada931628b0bffcb8685125cc7d97ddbd599e8a67123d8811f83917445';
+
+  test('the pairer is single-source at src/, byte-identical to the adjudicated pin', () => {
+    const buf = fs.readFileSync(PAIRER);
+    expect(sha256(buf)).toBe(PIN_SHA);
+    expect(buf.length).toBe(10697);
+    expect(fs.existsSync(path.join(ROOT, 'bench', 'research', 'capa-pairer.js'))).toBe(false); // no dual copy
+    // the pin records path as a reference; eval-plan + plan point at src/
+    const ep = readJson(path.join(ROOT, 'bench', 'research', 'devin-corpus-v3', 'eval-plan.json'));
+    const pl = readJson(path.join(ROOT, 'bench', 'research', 'devin-corpus-v3', 'plan.json'));
+    expect(ep.instrument.pairer.path).toBe('src/capa-pairer.js');
+    expect(ep.instrument.pairer.sha256).toBe(PIN_SHA);
+    expect(pl.adjudicated_object.path).toBe('src/capa-pairer.js');
+    expect(pl.adjudicated_object.sha256).toBe(PIN_SHA);
+  });
+
+  test('the lane module + adapter + channel flags exist as the registered surface', () => {
+    for (const f of ['src/pairer-lane.js', 'src/transcript-adapter.js']) {
+      expect(fs.existsSync(path.join(ROOT, f))).toBe(true);
+    }
+    const paths = require('../src/shared/paths');
+    expect(paths.convictionLaneOffPath()).toContain('.jiahao-conviction-off');
+    expect(paths.convictionLaneEnforcePath()).toContain('.jiahao-conviction-enforce');
+  });
+
+  test('the verdict gate wires the lane and skips shadow records in the matrix', () => {
+    const h = read(path.join(ROOT, 'hooks', 'jiahao-verdict-gate.js'));
+    expect(h).toContain("require('../src/pairer-lane')");
+    expect(h).toContain('detector.shadow === true');
+    expect(h).toContain("pairer-instrument");
+  });
+
+  test('createRecord carries the registered lane fields', () => {
+    const { createEvidenceLog } = require('../src/evidence-log');
+    const rec = createEvidenceLog().createRecord('pairer-lane', 'pairer-instrument', 'suspect', 'd', null, null, {
+      session_id: 's',
+      detector: {
+        suspicious: true, severity: 'high', source: 'pairer-instrument', shadow: true,
+        pairer: { family: 'exit-report', state: 'flagged', claim: 2, evidence: 0, reason: 'r', latency_ms: 3 }
+      },
+    });
+    expect(rec.detector.source).toBe('pairer-instrument');
+    expect(rec.detector.shadow).toBe(true);
+    expect(rec.detector.pairer).toEqual({ family: 'exit-report', state: 'flagged', claim: 2, evidence: 0, reason: 'r', latency_ms: 3 });
+  });
+
+  test('transcript-file is a registered closed-enum capability', () => {
+    const cap = require('../src/shared/capability');
+    expect(cap.CAPABILITIES).toContain('transcript-file');
+  });
+
+  test('host-contract registry declares transcript_file reachability on every contract and host', () => {
+    const cfg = readJson(path.join(ROOT, 'test', 'fixtures', 'host-contracts.json'));
+    const vals = ['present', 'absent', 'unverifiable'];
+    for (const c of cfg.contracts) expect(vals).toContain(c.transcript_file);
+    const hosts = new Set(cfg.contracts.map(function (c) { return c.host; }));
+    for (const h of hosts) {
+      const states = new Set(cfg.contracts.filter(function (c) { return c.host === h; }).map(function (c) { return c.transcript_file; }));
+      expect(states.size).toBe(1);
+    }
+    // claude-code documented; instruction-tier absent; the rest unverifiable
+    expect(cfg.contracts.find(function (c) { return c.host === 'claude-code'; }).transcript_file).toBe('present');
+    expect(cfg.contracts.find(function (c) { return c.host === 'aider'; }).transcript_file).toBe('absent');
+  });
+
+  test('pairer-regression gate is registered (confirmatory, repo-tree)', () => {
+    const g = readJson(path.join(ROOT, 'docs', 'gates.json'));
+    const e = g.entries.find(function (x) { return x.name === 'pairer-regression'; });
+    expect(e).toBeDefined();
+    expect(e.command).toBe('node scripts/check-pairer-regression.js');
+    expect(e.tier).toBe('confirmatory');
+    expect(e.requires).toEqual(['repo-tree']);
+    expect(e.source_adr).toContain('0070');
+    expect(fs.existsSync(path.join(ROOT, 'scripts', 'check-pairer-regression.js'))).toBe(true);
+  });
+
+  test('telemetry script exists and computes the four gate inputs', () => {
+    const t = require('../scripts/pairer-lane-telemetry.js');
+    const out = t.collect([
+      { detector: { source: 'pairer-instrument', shadow: true, pairer: { state: 'flagged', latency_ms: 5, family: 'exit-report' } }, session_id: 's1' },
+      { detector: { source: 'pairer-instrument', shadow: true, pairer: { state: 'undetermined', latency_ms: 15, family: 'file-contains' } }, session_id: 's1' },
+      { detector: { source: 'other' }, session_id: 's2' }, // non-lane record excluded
+    ]);
+    expect(out.events).toBe(2);
+    expect(out.flagged).toBe(1);
+    expect(out.undetermined_rate).toBe(0.5);
+    expect(out.latency_ms.p99).toBe(15);
+    expect(out.by_family['exit-report'].flagged).toBe(1);
+  });
+
+  test('the packed runtime surface includes the shipped pairer', () => {
+    const { PACK_SURFACE_PRESENT } = require('../scripts/check-pack-smoke.js');
+    expect(PACK_SURFACE_PRESENT).toContain('src/capa-pairer.js');
+  });
+});
+
+describe('T-3 claim block in the three homes (ADR-0070 D-E)', () => {
+  test('the three registered sentences appear verbatim in README, claim-template, and the v3 report', () => {
+    const homes = [
+      path.join(ROOT, 'README.md'),
+      path.join(ROOT, 'bench', 'research', 'out', 'claim-template.md'),
+      path.join(ROOT, 'bench', 'research', 'out', 'devin-oot-v3-report.md'),
+    ];
+    for (const f of homes) {
+      const n = norm(read(f));
+      for (const s of LANE_SENTENCES) expect(n).toContain(norm(s));
+    }
   });
 });

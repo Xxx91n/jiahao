@@ -27,6 +27,18 @@ function profilePath() {
   return path.join(configDir(), '.jiahao-profile');
 }
 
+// ADR-0070 D-B: channel-level flags for the Stop/SubagentStop conviction
+// lane. Presence of the off file makes the lane inert (kill switch,
+// survives post-enforce); presence of the enforce file is the registered
+// promotion marker that drops the shadow bit so records enter the
+// severity matrix.
+function convictionLaneOffPath() {
+  return path.join(configDir(), '.jiahao-conviction-off');
+}
+function convictionLaneEnforcePath() {
+  return path.join(configDir(), '.jiahao-conviction-enforce');
+}
+
 // ADR-0018 D4: κ governance baseline (written manually via scripts/kappa.js
 // --save-baseline; hooks only read it).
 function kappaBaselinePath() {
@@ -70,4 +82,4 @@ function requireCorpus(name) {
   process.exit(1);
 }
 
-module.exports = { configDir, corpusDir, corpusPath, repoCorpusPath, requireCorpus, corpusMissingMessage, flagPath, evidencePath, evidenceKeysPath, profilePath, kappaBaselinePath };
+module.exports = { configDir, corpusDir, corpusPath, repoCorpusPath, requireCorpus, corpusMissingMessage, flagPath, evidencePath, evidenceKeysPath, profilePath, kappaBaselinePath, convictionLaneOffPath, convictionLaneEnforcePath };

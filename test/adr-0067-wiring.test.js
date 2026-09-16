@@ -423,6 +423,7 @@ describe('T-4 claim surface (ADR-0067 D-C)', () => {
       /devin-corpus@v3 falsification test: passed \(n=120/, // v3 landed fact line (ADR-0069 D-C)
       /devin-corpus@v3 is never cited/,    // v3 bound limitation sentence
       /devin-corpus-v3/,                  // ADR-0069: snapshot-dir + manifest-path references (--snapshot-dir, bench/research/devin-corpus-v3/)
+      /The devin-corpus@v3 adjudication describes that corpus/, // ADR-0070 D-E: lane claim sentence 3 (non-endorsement, the registered descriptive-existence block)
     ];
     for (const f of [CLAIM_TPL, README, REPORT_MD]) {
       const lines = read(f).split('\n');

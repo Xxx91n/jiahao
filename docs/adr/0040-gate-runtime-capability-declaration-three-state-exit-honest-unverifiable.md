@@ -10,6 +10,11 @@ exists" to "directory exists and is non-empty": an existing-but-empty dir is a
 deterministic negative -> exit 2 UNVERIFIABLE, so a stale/partial corpus restore
 degrades honestly instead of running its gates and failing red on a capability
 that was never there).
+Amended by: ADR-0070 D-C(c) (closed enum grows a fifth name: 'transcript-file' —
+the conviction lane's declared capability; script-level existence predicate is
+the operator-declared JIAHAO_TRANSCRIPT_FILE path, per-event hook delivery is
+transcript_path on the stop-family stdin, per-host reachability lives in the
+host-contract registry).
 
 References: ADR-0023 (degradation vocabulary scope), ADR-0027 (pre-registered coupling guard),
 ADR-0031 (tier vocabulary reserved for decision severity), ADR-0034 (gates.json registry,

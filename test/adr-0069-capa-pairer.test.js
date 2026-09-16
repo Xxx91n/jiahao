@@ -8,7 +8,7 @@
 
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
-const PAIRER = path.join(ROOT, 'bench', 'research', 'capa-pairer.js');
+const PAIRER = path.join(ROOT, 'src', 'capa-pairer.js'); // ADR-0070 D-C(a1): single source moved to src/ byte-identical
 const pairer = require(PAIRER);
 const port = require('../src/port/score.js');
 

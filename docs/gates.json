@@ -388,6 +388,18 @@
         "repo-tree"
       ],
       "_doc": "ADR-0069 / grill-t9 ledger D-001d: replays the STORED devin-corpus@v3 report artifact - re-derives every published number (per-axis k/n, CIs, verdict, quadrant, fact line, undetermined, confusion, side-set diagnostic, port-divergence cells) from the recorded per-item rows against the frozen eval-plan + derived decision tables. Never re-runs the corpus; items.jsonl and the corpus manifest are never opened. Fail-closed on any drift."
+    },
+    {
+      "name": "pairer-regression",
+      "command": "node scripts/check-pairer-regression.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md",
+      "order": 159,
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ],
+      "_doc": "ADR-0070 D-A clause 4: the frozen devin-corpus@v3 corpus converted to the pairer continuous regression gate. Replays items.jsonl through the SHIPPED artifact src/capa-pairer.js and diffs {family,state,claim,evidence,reason} against the stored v3 report rows; also re-derives the artifact sha256 against the registered pin. Not a re-adjudication: labels are never consulted, no verdict is recomputed. Fail-closed on drift."
     }
   ]
 }

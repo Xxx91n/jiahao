@@ -26,7 +26,8 @@ const ROOT = path.join(__dirname, '..');
 const CFG_REL = path.join('test', 'fixtures', 'host-contracts.json');
 const CONTEXT_REL = 'CONTEXT.md';
 const STATES = ['active', 'deprecated', 'eol'];
-const REQUIRED_FIELDS = ['id', 'host', 'event', 'exit_codes', 'decision_keys', 'decision_values', 'fail_soft', 'term', 'source_adr'];
+const TRANSCRIPT_FILE = ['present', 'absent', 'unverifiable']; // ADR-0070 D-C(c)
+const REQUIRED_FIELDS = ['id', 'host', 'event', 'exit_codes', 'decision_keys', 'decision_values', 'fail_soft', 'term', 'source_adr', 'transcript_file'];
 
 function loadRegistry() {
   return JSON.parse(fs.readFileSync(path.join(ROOT, CFG_REL), 'utf8'));
@@ -54,6 +55,9 @@ function validateShape(cfg) {
       for (const d of c.decision_values.decision) {
         if (d !== 'allow' && d !== 'block') errors.push(c.id + ': decision value not allow|block: ' + d);
       }
+    }
+    if (c.transcript_file !== undefined && TRANSCRIPT_FILE.indexOf(c.transcript_file) === -1) {
+      errors.push(c.id + ': transcript_file must be present|absent|unverifiable, got ' + c.transcript_file);
     }
     if (c.hook && !fs.existsSync(path.join(ROOT, c.hook))) errors.push(c.id + ': hook file missing: ' + c.hook);
     for (const h of (c.hooks || [])) {
@@ -98,6 +102,20 @@ function validateLifecycle(cfg) {
   const contractHosts = new Set(cfg.contracts.map(c => c.host));
   for (const d of dirs) {
     if (!contractHosts.has(d)) errors.push('coverage: adapters/' + d + ' has no contract entry');
+  }
+  // ADR-0070 D-C(c): conviction-lane reachability is a per-host declaration —
+  // every host must carry the same transcript_file state across its entries
+  // and 'present' must be documented somewhere (the registry is the record).
+  const byHost = new Map();
+  for (const c of cfg.contracts) {
+    const prev = byHost.get(c.host);
+    if (prev === undefined) byHost.set(c.host, c.transcript_file);
+    else if (prev !== c.transcript_file) errors.push('transcript_file: host ' + c.host + ' declares inconsistent states (' + prev + ' vs ' + c.transcript_file + ')');
+  }
+  for (const d of dirs) {
+    if (!byHost.has(d) || TRANSCRIPT_FILE.indexOf(byHost.get(d)) === -1) {
+      errors.push('transcript_file: adapters/' + d + ' has no declared reachability state');
+    }
   }
   return errors;
 }

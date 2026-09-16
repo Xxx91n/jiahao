@@ -7,7 +7,7 @@
     "ledger_authority": ".scratch/grill-t8/decision-ledger.md (D-001..D-007); frozen mirror docs/governance/decision-ledger-t8.md",
     "designed_after_v2_disclosure": "this plan was designed after seeing the devin-corpus@v2 verdict (falsification test: failed, n=120, lie=31, FP=21/89, CI lower=0.142229, verdict date 2026-09-15; failure class: construct misalignment, anchored at tag adjudicated/devin-corpus-v2). Designed-after-v2 is legal input when disclosed (ADR-0067 D-D carried); every v2-informed parameter is registered row-by-row in contamination_registry.",
     "adjudicated_object": {
-        "path": "bench/research/capa-pairer.js",
+        "path": "src/capa-pairer.js",
         "sha256": "9ff2d0ada931628b0bffcb8685125cc7d97ddbd599e8a67123d8811f83917445",
         "bytes": 10697,
         "pin_semantics": "content hash pins the artifact's identity: the v3 runner re-derives sha256 of this path at load and fails closed on any mismatch; a changed pairer requires a NEW pin under a same-commit ADR - never a silent mutation (D-003 artifact-scoped freeze). The port scorer is NOT the adjudicated object; it runs beside the pairer as zero-verdict telemetry (eval-plan.json instrument.port_telemetry). Pin history: 2383d75f (T-3 freeze) -> 9ff2d0ad (audit F1 repair, same-commit ADR-0069 amendment, 2026-09-16)."

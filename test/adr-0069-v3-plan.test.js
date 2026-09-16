@@ -29,7 +29,7 @@ describe('v3 plan freeze: registered obligations', () => {
 
   test('adjudicated object is the pairer, pinned by content hash of the worktree artifact', () => {
     const pin = evalPlan.instrument.pairer;
-    expect(pin.path).toBe('bench/research/capa-pairer.js');
+    expect(pin.path).toBe('src/capa-pairer.js'); // ADR-0070 D-C(a1): path is a reference; the pin binds content
     expect(sha256(path.join(ROOT, pin.path))).toBe(pin.sha256);
     expect(fs.statSync(path.join(ROOT, pin.path)).size).toBe(pin.bytes);
     expect(plan.adjudicated_object.sha256).toBe(pin.sha256);

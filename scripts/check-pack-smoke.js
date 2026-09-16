@@ -31,7 +31,7 @@ const EXTRACT = path.join(WORK, 'extract');
 // dry-run listing. Exported so the wiring test consumes the same contract
 // instead of maintaining a second copy (drift is what the duplication caused).
 const PACK_SURFACE_ABSENT = ['jiahao-mcp', 'test', 'docs/adr'];
-const PACK_SURFACE_PRESENT = ['src/SKILL.md', 'scripts/install.js', 'docs/gates.json', 'CONTEXT.md'];
+const PACK_SURFACE_PRESENT = ['src/SKILL.md', 'src/capa-pairer.js', 'src/transcript-adapter.js', 'src/pairer-lane.js', 'scripts/install.js', 'docs/gates.json', 'CONTEXT.md'];
 
 // ADR-0039 D3 measured-anchor budget (ADR-0061 D-F). Parsed from ADR-0039 so
 // the number has exactly one home (F3: no magic number duplicated in a test);

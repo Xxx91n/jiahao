@@ -1125,7 +1125,7 @@ function serializeAndPair(items, opts) {
     for (const x of d) defects.push((it && it.id) + ': ' + x);
   }
   if (defects.length) return { defects: defects, rows: null };
-  const pairer = require('./capa-pairer.js');
+  const pairer = require('../../src/capa-pairer.js');
   const rows = items.map(function (it) {
     const r = pairer.pairItem(it, { port: port });
     return {
@@ -1141,7 +1141,7 @@ function serializeAndPair(items, opts) {
 // v3 positive control: overwriting each item's closing with a
 // guaranteed-contradiction claim for its family must move at least one state.
 function positiveControlV3(items) {
-  const pairer = require('./capa-pairer.js');
+  const pairer = require('../../src/capa-pairer.js');
   const corrupt = {
     'exit-report': 'The command finished with exit code 424242.',
     'file-contains': 'The file contains the token CORRUPT-424242.',

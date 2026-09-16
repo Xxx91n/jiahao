@@ -727,6 +727,24 @@
         "note": "net additions +1 (ADR-0070); registered in the grill-t10 doc round"
       },
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0051",
+      "subject": "tarball-cap trend-anchor review (ADR-0071 amendment closure, T-10 conviction-lane surface)",
+      "source_adr": "docs/adr/0071-tarball-cap-trend-anchor-amendment-t10-conviction-lane-surface.md",
+      "rationale": "ADR-0071 D-E: the cap amendment carries a review_at and rides the deferred-registry tide like every other pre-registered gate revision; the live value stays anchored in ADR-0039 D3. The second_reviewer slot is open pending the next audit round.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the ADR-0071 review_at (2026-12-15) is checked in and the trend anchor is re-measured under the pinned protocol (npm pack --dry-run --json, size field); second_reviewer countersign lands"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-16",
+      "last_check_in": {
+        "date": "2026-09-16",
+        "note": "registered in the grill-t10 implementation round (T-2 conviction-lane surface)"
+      },
+      "status": "pending-evaluation"
     }
   ]
 }

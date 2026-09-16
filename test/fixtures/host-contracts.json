@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0028 D4 pre-registered host behavior contract registry. Consumed by tests only; hooks never read it at runtime (R4). exit_codes are the hook PROCESS exit codes observed by tests, asserted with config env (CLAUDE_CONFIG_DIR pointing at a fixture dir); how a host INTERPRETS those exit codes is a host-side semantic recorded in note (R6), not shimmed (audit 2026-08-29: clarified after copilot note ambiguity). Entry fields: {id, host, event, exit_codes, decision_keys, decision_values, fail_soft, term, source_adr}. Executable entries add hook (single script) or hooks (script list), spawned by test/host-contracts.test.js with fixture stdin. Config entries add config + expect_events. Instruction entries add files. Optional note field records known degradations honestly (R6). term must anchor a CONTEXT.md glossary term (existence anchor, not prose parsing). lifecycle: per-adapter state (active|deprecated|eol); retirement triggers: official shutdown announcement, repository archival, or consecutive protocol-breaking versions without docs (ADR-0028 D6). Change governance: editing this file requires a docs/adr/*.md or CONTEXT.md change in the same commit range (scripts/check-host-contracts.js reuses the ADR-0027 coupling rule).",
+  "_doc": "ADR-0028 D4 pre-registered host behavior contract registry. Consumed by tests only; hooks never read it at runtime (R4). exit_codes are the hook PROCESS exit codes observed by tests, asserted with config env (CLAUDE_CONFIG_DIR pointing at a fixture dir); how a host INTERPRETS those exit codes is a host-side semantic recorded in note (R6), not shimmed (audit 2026-08-29: clarified after copilot note ambiguity). Entry fields: {id, host, event, exit_codes, decision_keys, decision_values, fail_soft, term, source_adr, transcript_file}. Executable entries add hook (single script) or hooks (script list), spawned by test/host-contracts.test.js with fixture stdin. Config entries add config + expect_events. Instruction entries add files. Optional note field records known degradations honestly (R6). term must anchor a CONTEXT.md glossary term (existence anchor, not prose parsing). lifecycle: per-adapter state (active|deprecated|eol); retirement triggers: official shutdown announcement, repository archival, or consecutive protocol-breaking versions without docs (ADR-0028 D6). Change governance: editing this file requires a docs/adr/*.md or CONTEXT.md change in the same commit range (scripts/check-host-contracts.js reuses the ADR-0027 coupling rule). transcript_file (ADR-0070 D-C(c)) records per-host conviction-lane reachability: present = the host is documented to deliver transcript_path on the stop-family event (claude-code); absent = the host has no stop-family hook channel at all (instruction-tier hosts); unverifiable = the event exists but transcript delivery is not documented.",
   "contracts": [
     {
       "id": "claude-verdict-gate",
@@ -24,7 +24,8 @@
       },
       "fail_soft": false,
       "term": "Verification Gate",
-      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "transcript_file": "present"
     },
     {
       "id": "claude-failsoft",
@@ -43,7 +44,8 @@
       "decision_values": {},
       "fail_soft": true,
       "term": "Session-End Sweep",
-      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "transcript_file": "present"
     },
     {
       "id": "claude-config",
@@ -63,7 +65,8 @@
       "decision_values": {},
       "fail_soft": true,
       "term": "Host Contract",
-      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "transcript_file": "present"
     },
     {
       "id": "codex-verdict-gate",
@@ -87,7 +90,8 @@
       },
       "fail_soft": false,
       "term": "Verification Gate",
-      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "transcript_file": "unverifiable"
     },
     {
       "id": "codex-failsoft",
@@ -106,7 +110,8 @@
       "decision_values": {},
       "fail_soft": true,
       "term": "Session-End Sweep",
-      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "transcript_file": "unverifiable"
     },
     {
       "id": "codex-config",
@@ -125,7 +130,8 @@
       "decision_values": {},
       "fail_soft": true,
       "term": "Host Contract",
-      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "transcript_file": "unverifiable"
     },
     {
       "id": "cursor-instruction",
@@ -140,7 +146,8 @@
       "decision_values": {},
       "fail_soft": true,
       "term": "Protection Tier",
-      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "transcript_file": "absent"
     },
     {
       "id": "windsurf-instruction",
@@ -155,7 +162,8 @@
       "decision_values": {},
       "fail_soft": true,
       "term": "Protection Tier",
-      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "transcript_file": "absent"
     },
     {
       "id": "cline-instruction",
@@ -170,7 +178,8 @@
       "decision_values": {},
       "fail_soft": true,
       "term": "Protection Tier",
-      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "transcript_file": "absent"
     },
     {
       "id": "instruction-tier-injection",
@@ -185,7 +194,8 @@
       "decision_values": {},
       "fail_soft": true,
       "term": "Protection Tier",
-      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "transcript_file": "absent"
     },
     {
       "id": "mcp-stub",
@@ -199,7 +209,8 @@
       "decision_values": {},
       "fail_soft": true,
       "term": "MCP Adapter",
-      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md"
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "transcript_file": "absent"
     },
     {
       "id": "copilot-verdict-gate",
@@ -224,7 +235,8 @@
       "fail_soft": false,
       "term": "Verification Gate",
       "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
-      "note": "agentStop maps the verdict gate; block forces continuation, CLI force-ends after 8 consecutive blocks. exit-2 on Copilot defaults to warn/fail-open outside preToolUse/permissionRequest — block channel follows Copilot continuation semantics, not Claude stderr (R6 honest record)."
+      "note": "agentStop maps the verdict gate; block forces continuation, CLI force-ends after 8 consecutive blocks. exit-2 on Copilot defaults to warn/fail-open outside preToolUse/permissionRequest — block channel follows Copilot continuation semantics, not Claude stderr (R6 honest record).",
+      "transcript_file": "unverifiable"
     },
     {
       "id": "copilot-config",
@@ -244,7 +256,8 @@
       "fail_soft": true,
       "term": "Host Contract",
       "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
-      "note": "Flat {version:1, hooks:{event:[entry]}} schema. Known degradation: repo-level sessionStart may not fire (copilot-cli #1730 open; #2415); userPromptSubmitted is the attested injection path; additionalContext fixed in CLI 1.0.11 (#2142)."
+      "note": "Flat {version:1, hooks:{event:[entry]}} schema. Known degradation: repo-level sessionStart may not fire (copilot-cli #1730 open; #2415); userPromptSubmitted is the attested injection path; additionalContext fixed in CLI 1.0.11 (#2142).",
+      "transcript_file": "unverifiable"
     },
     {
       "id": "qoder-verdict-gate",
@@ -269,7 +282,8 @@
       "fail_soft": false,
       "term": "Verification Gate",
       "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
-      "note": "Exit-2 blocking confirmed on Stop/UserPromptSubmit (docs.qoder.com/cli/hooks-reference, 2026-08). International CLI only; CN fork (Lingma) has 5 events, no SessionStart, Stop cannot block."
+      "note": "Exit-2 blocking confirmed on Stop/UserPromptSubmit (docs.qoder.com/cli/hooks-reference, 2026-08). International CLI only; CN fork (Lingma) has 5 events, no SessionStart, Stop cannot block.",
+      "transcript_file": "unverifiable"
     },
     {
       "id": "qoder-config",
@@ -289,7 +303,8 @@
       "fail_soft": true,
       "term": "Host Contract",
       "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
-      "note": "SessionEnd intentionally not registered: not verified in the official event list at research time; ADR-0024 first-hook reconcile remains the sweep baseline."
+      "note": "SessionEnd intentionally not registered: not verified in the official event list at research time; ADR-0024 first-hook reconcile remains the sweep baseline.",
+      "transcript_file": "unverifiable"
     },
     {
       "id": "opencode-instruction",
@@ -307,7 +322,8 @@
       "fail_soft": true,
       "term": "Protection Tier",
       "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
-      "note": "Advisory-only: no lifecycle hooks, no exit-2 contract (opencode#12472 open; #14551 closed not-planned). AGENTS.md is the primary channel; opencode.json instructions is V1-only (accepted but not loaded in V2 beta)."
+      "note": "Advisory-only: no lifecycle hooks, no exit-2 contract (opencode#12472 open; #14551 closed not-planned). AGENTS.md is the primary channel; opencode.json instructions is V1-only (accepted but not loaded in V2 beta).",
+      "transcript_file": "absent"
     },
     {
       "id": "aider-instruction",
@@ -325,7 +341,8 @@
       "fail_soft": true,
       "term": "Protection Tier",
       "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
-      "note": "Advisory-only: no hooks (#2557 closed stale). Loader is explicit configuration (read: list in .aider.conf.yml; git root/cwd/home search order); default installs inject nothing — the opt-in is the honest contract."
+      "note": "Advisory-only: no hooks (#2557 closed stale). Loader is explicit configuration (read: list in .aider.conf.yml; git root/cwd/home search order); default installs inject nothing — the opt-in is the honest contract.",
+      "transcript_file": "absent"
     }
   ],
   "lifecycle": {

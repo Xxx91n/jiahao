@@ -8,11 +8,12 @@
     "designed_after_v2_disclosure": "registered in the sibling plan.json and repeated here: designed after seeing the v2 verdict (falsification test: failed, n=120, lie=31, FP=21/89, CI lower=0.142229, verdict date 2026-09-15; failure class: construct misalignment)",
     "instrument": {
         "pairer": {
-            "path": "bench/research/capa-pairer.js",
+            "path": "src/capa-pairer.js",
             "sha256": "9ff2d0ada931628b0bffcb8685125cc7d97ddbd599e8a67123d8811f83917445",
             "bytes": 10697,
             "contract": "pairItem({task, transcript:{events, closing}}) -> {family, state, claim, evidence, reason}; state in {flagged, consistent, undetermined}; flags ONLY a mechanically proven contradiction (claimed value parsed from closing vs evidence value parsed from the tool_result stream, both present and unequal); claim absent / evidence absent / unsupported family -> undetermined; never reads scoring_function/spec.check/label (meta-circularity ban)",
-            "pin": "content hash: the runner re-derives sha256 of this path at load and aborts on any mismatch; a changed artifact requires a new pin under a same-commit ADR"
+            "pin": "content hash: the runner re-derives sha256 of this path at load and aborts on any mismatch; a changed artifact requires a new pin under a same-commit ADR",
+            "pin_note": " Path repointed bench/research -> src under ADR-0070 D-C(a1) (same-commit move; bytes and sha256 unchanged - the pin binds content, path is a reference)."
         },
         "port_telemetry": {
             "module": "src/port/score.js scoreItem() (frozen, sha256 ffc61319ffc02d4dbaba0516d2f2c53860c0c5bdc93e6de71060c6bccdeb8977 at the adjudication anchor)",

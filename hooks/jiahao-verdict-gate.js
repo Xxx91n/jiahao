@@ -49,12 +49,35 @@ process.stdin.on('end', () => {
     process.exit(0);
   }
 
+  // ADR-0070 D-A: the conviction lane rides this invocation — transcript_path
+  // -> transcript adapter -> pairItem -> source:pairer-instrument shadow
+  // record. Shadow records are telemetry: they never enter the severity
+  // matrix below and never satisfy the no-evidence check. The lane is
+  // fail-open: a lane-internal error is a record reason, never a hook failure.
+  let laneResult = null;
+  try { laneResult = require('../src/pairer-lane').run(parsed, { evidenceLog: evidenceLog }); } catch (e) { laneResult = null; }
+  let laneText = '';
+  if (laneResult && laneResult.lane === 'recorded' && laneResult.state === 'flagged') {
+    laneText = ' Conviction lane (' + laneResult.mode + '): pairer flagged ' +
+      (laneResult.family || 'unsupported') + ' — claim ' + JSON.stringify(laneResult.claim) +
+      ' vs evidence ' + JSON.stringify(laneResult.evidence) +
+      ' (telemetry; resolve via jiahao resolve if wrong).';
+  }
+
   // Read the evidence chain through the EvidenceLog factory (ADR-0026 D1/D5):
   // storage is a segmented log directory; legacy single-file arrays remain
   // readable in read-only legacy mode until the first write migrates them.
   // We never delete the log (D4); the chain has to survive SubagentStop
   // and any repeat fire of Stop.
-  const evidenceChain = evidenceLog.readAll();
+  const rawChain = evidenceLog.readAll();
+  // ADR-0070: shadow pairer-lane records are instrument telemetry, not agent
+  // verification evidence — a chain holding only shadow records still means
+  // "no evidence" for the Case A check below. Enforce-mode records
+  // (shadow:false) DO enter the matrix and stay visible here.
+  const effective = rawChain ? rawChain.filter(function (r) {
+    return !(r && r.detector && r.detector.source === 'pairer-instrument' && r.detector.shadow === true);
+  }) : rawChain;
+  const evidenceChain = (effective && effective.length === 0) ? null : effective;
 
   // ADR-0013 D4: chain-corruption detection runs BEFORE any severity case.
   // A broken chain is treated as missing evidence in verifier profile
@@ -93,6 +116,7 @@ process.stdin.on('end', () => {
         ' (advisory — resolve via: jiahao resolve --verdict pass|fail --reason <text> --reviewer <id>).';
     }
   }
+  pendingText += laneText;
 
   // ADR-0018 D4: κ governance RE-ALIGN advisory (never changes exit codes).
   if (evidenceChain) {
@@ -132,6 +156,8 @@ process.stdin.on('end', () => {
   // non-suspicious records (a benign claim on a truncated view still gates).
   let coveragePartial = null;
   for (const rec of evidenceChain) {
+    // ADR-0070 D-B: shadow records never enter the severity matrix.
+    if (rec && rec.detector && rec.detector.shadow === true) continue;
     if (rec && rec.detector) {
       if (rec.detector.coverage === 'partial' && !coveragePartial) coveragePartial = rec.detector;
     }
@@ -191,19 +217,19 @@ process.stdin.on('end', () => {
         process.exit(0);
       }
     } else {
-    // We do not try to be clever about "no independent evidence" here —
-    // the deterministic/checklist records are by definition self-reported.
-    // The block reason pins the location of the suspicion so escalations
-    // stay triage-able.
-    console.log(JSON.stringify({
-      decision: 'block',
-      reason:
-        'JIAHAO VERIFIER BLOCK (high severity): completion-language detector ' +
-        'matched [' + matchedPhrases.slice(0, 5).join(', ') + '] on the ' +
-        'evidence chain. Re-verify the underlying state changes with rung ' +
-        '1-3 of the ladder before allowing this stop.' + pendingText,
-    }));
-    process.exit(2);
+      // We do not try to be clever about "no independent evidence" here —
+      // the deterministic/checklist records are by definition self-reported.
+      // The block reason pins the location of the suspicion so escalations
+      // stay triage-able.
+      console.log(JSON.stringify({
+        decision: 'block',
+        reason:
+          'JIAHAO VERIFIER BLOCK (high severity): completion-language detector ' +
+          'matched [' + matchedPhrases.slice(0, 5).join(', ') + '] on the ' +
+          'evidence chain. Re-verify the underlying state changes with rung ' +
+          '1-3 of the ladder before allowing this stop.' + pendingText,
+      }));
+      process.exit(2);
     }
   }
 
@@ -233,7 +259,7 @@ process.stdin.on('end', () => {
     process.exit(0);
   }
 
-// No suspicion on any record
+  // No suspicion on any record
   // D4: do NOT consume the evidence file. Idempotent under repeat Stop /
   // SubagentStop fire.
   // ADR-0017 D4: pending escalations surface even on the quiet path.

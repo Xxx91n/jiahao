@@ -17,7 +17,9 @@ anchor is **superseded by ADR-0062 (2026-09-13)**, which raises the cap to
 **230,000 bytes** under a periodic trend anchor
 (`cap = ceil_to_10_000(M_latest x 1.10)`; protocol pinned in ADR-0062 D-B),
 and again by **ADR-0066 (2026-09-14)**, which applies the same trend-anchor
-rule to the T-6 product port surface and moves the cap to **300,000 bytes**.
+rule to the T-6 product port surface and moves the cap to **300,000 bytes**,
+then ADR-0071 (2026-09-16) applies it again to the T-10 conviction-lane
+surface and moves the cap to **340,000 bytes**.
 The live bound literal lives once in D3 below.
 
 Assertion surface (2026-09-13, ADR-0061 D-F measurement-unblock round). The
@@ -122,9 +124,10 @@ Exa/Tavily/AnySearch, 17 primary-source fetches, cross-verified):
   Fowler's build-task-to-website are the isomorphic industry forms; we
   build none of them today.)
 - D3 Measured-anchor budget. The adr-0038-wiring test and the pack-smoke gate
-  assert `out.size < 300,000 bytes` (amended 2026-09-13 by ADR-0062 to
-  230,000, and again 2026-09-14 by ADR-0066 to 300,000 for the T-6 product
-  port surface; the original 200,000-byte value and its one-shot
+  assert `out.size < 340,000 bytes` (amended 2026-09-13 by ADR-0062 to
+  230,000, again 2026-09-14 by ADR-0066 to 300,000 for the T-6 product
+  port surface, and again 2026-09-16 by ADR-0071 to 340,000 for the T-10
+  conviction-lane surface; the original 200,000-byte value and its one-shot
   narrowing-round M anchor are superseded by the periodic trend anchor). The cap
   value must appear verbatim in this ADR's text (content anchor, reusing
   the ADR-0027 D2(a) mechanism: every gate value appears in its source_adr

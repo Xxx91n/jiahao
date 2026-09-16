@@ -209,7 +209,7 @@ function _writeAnchorAtomic(file, obj, capability) {
   const tmp = file + '.tmp-' + process.pid + '-' + Date.now();
   fs.writeFileSync(tmp, JSON.stringify(obj) + String.fromCharCode(10), 'utf8');
   _fsyncFile(tmp);
-  try { fs.renameSync(tmp, file); } catch (e) { try { fs.unlinkSync(tmp); } catch (e2) {} throw e; }
+  try { fs.renameSync(tmp, file); } catch (e) { try { fs.unlinkSync(tmp); } catch (e2) { } throw e; }
   _fsyncDirectory(path.dirname(file), capability);
 }
 function _fsyncFile(file) {
@@ -265,13 +265,13 @@ function readTailAnchor(file) {
     const anchor = JSON.parse(raw);
     const checksum = _hashAnchorTriple(anchor.latest_seq, anchor.total_count, anchor.head_hash);
     if (!anchor || anchor.version !== HEAD_ANCHOR_VERSION ||
-        typeof anchor.latest_seq !== 'number' || typeof anchor.total_count !== 'number' ||
-        typeof anchor.head_hash !== 'string' || anchor.checksum !== checksum) {
+      typeof anchor.latest_seq !== 'number' || typeof anchor.total_count !== 'number' ||
+      typeof anchor.head_hash !== 'string' || anchor.checksum !== checksum) {
       return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null };
     }
     return { status: KNOWN_ANCHOR_STATUS.anchored, anchor: anchor };
-  // ADR-0052 D-A: a torn (unparseable) witness file is witness_unavailable;
-  // a present-but-wrong checksum/version stays in the corruption family above.
+    // ADR-0052 D-A: a torn (unparseable) witness file is witness_unavailable;
+    // a present-but-wrong checksum/version stays in the corruption family above.
   } catch (e) { return { status: KNOWN_ANCHOR_STATUS.witness_unavailable, anchor: null }; }
 }
 function writeTailAnchor(file, latestSeq, totalCount, headHash, capability, updatedAt, witness) {
@@ -313,12 +313,12 @@ function readGenesisAnchor(file) {
     const anchor = JSON.parse(raw);
     const checksum = _hashGenesis(anchor.first_hash);
     if (!anchor || anchor.version !== GENESIS_ANCHOR_VERSION ||
-        typeof anchor.first_hash !== 'string' || anchor.checksum !== checksum) {
+      typeof anchor.first_hash !== 'string' || anchor.checksum !== checksum) {
       return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null };
     }
     return { status: KNOWN_ANCHOR_STATUS.anchored, anchor: anchor };
-  // ADR-0052 D-A: a torn (unparseable) witness file is witness_unavailable;
-  // a present-but-wrong checksum/version stays in the corruption family above.
+    // ADR-0052 D-A: a torn (unparseable) witness file is witness_unavailable;
+    // a present-but-wrong checksum/version stays in the corruption family above.
   } catch (e) { return { status: KNOWN_ANCHOR_STATUS.witness_unavailable, anchor: null }; }
 }
 function writeGenesisAnchor(file, firstHash, capability, generation) {
@@ -358,9 +358,9 @@ function _acceptableSeal(records) {
   const seal = records[idx];
   const pinned = records[idx - 1];
   if (seal.sealed_seq !== idx - 1 ||
-      seal.sealed_total_count !== idx ||
-      !pinned || typeof pinned.event_hash !== 'string' ||
-      pinned.event_hash !== seal.sealed_head_hash) return null;
+    seal.sealed_total_count !== idx ||
+    !pinned || typeof pinned.event_hash !== 'string' ||
+    pinned.event_hash !== seal.sealed_head_hash) return null;
   return { record: seal, index: idx, post_seal_count: records.length - 1 - idx };
 }
 function _makeForwardSealRecord(sealed) {
@@ -671,8 +671,8 @@ function createEvidenceLog(overrideConfigDir, opts) {
       return true;
     } catch (e) {
       note('legacy migration failed (' + e.message + ') — staying read-only');
-      try { fs.rmSync(stagingDir, { recursive: true, force: true }); } catch (e2) {}
-      try { if (statKind() === 'none' && fs.existsSync(bak)) fs.renameSync(bak, ep); } catch (e3) {}
+      try { fs.rmSync(stagingDir, { recursive: true, force: true }); } catch (e2) { }
+      try { if (statKind() === 'none' && fs.existsSync(bak)) fs.renameSync(bak, ep); } catch (e3) { }
       legacyReadOnly = true;
       return false;
     }
@@ -683,7 +683,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
   function ensureSegmented() {
     const kind = statKind();
     if (kind === 'dir') {
-      try { fs.rmSync(stagingDir, { recursive: true, force: true }); } catch (e) {}
+      try { fs.rmSync(stagingDir, { recursive: true, force: true }); } catch (e) { }
       return true;
     }
     if (kind === 'none') {
@@ -707,12 +707,12 @@ function createEvidenceLog(overrideConfigDir, opts) {
     try {
       const sidecar = JSON.parse(raw);
       if (!sidecar || sidecar.version !== SEAL_SIDECAR_VERSION ||
-          !Number.isInteger(sidecar.seal_index) || sidecar.seal_index < 1 ||
-          !Number.isInteger(sidecar.sealed_seq) || sidecar.sealed_seq !== sidecar.seal_index - 1 ||
-          sidecar.sealed_total_count !== sidecar.seal_index ||
-          typeof sidecar.sealed_head_hash !== 'string' ||
-          typeof sidecar.seal_timestamp !== 'string' ||
-          !Number.isInteger(sidecar.post_seal_count) || sidecar.post_seal_count < 0) {
+        !Number.isInteger(sidecar.seal_index) || sidecar.seal_index < 1 ||
+        !Number.isInteger(sidecar.sealed_seq) || sidecar.sealed_seq !== sidecar.seal_index - 1 ||
+        sidecar.sealed_total_count !== sidecar.seal_index ||
+        typeof sidecar.sealed_head_hash !== 'string' ||
+        typeof sidecar.seal_timestamp !== 'string' ||
+        !Number.isInteger(sidecar.post_seal_count) || sidecar.post_seal_count < 0) {
         return null;
       }
       return {
@@ -763,7 +763,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
 
   function writeSealSidecar(seal) {
     if (!seal) {
-      try { fs.unlinkSync(sealSidecarPath()); } catch (e) {}
+      try { fs.unlinkSync(sealSidecarPath()); } catch (e) { }
       return;
     }
     _writeAnchorAtomic(sealSidecarPath(), {
@@ -918,7 +918,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     const tail = readTailAnchor(headAnchorPath());
     let anchorTs = Number.NaN;
     if (tail.status === KNOWN_ANCHOR_STATUS.anchored &&
-        tail.anchor && typeof tail.anchor.updated_at === 'string') {
+      tail.anchor && typeof tail.anchor.updated_at === 'string') {
       anchorTs = Date.parse(tail.anchor.updated_at);
     }
     if (!Number.isFinite(anchorTs) && basis && basis.record) {
@@ -959,7 +959,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     if (!state || state.head_hash === null) return;
     const genRead = readGenesisAnchor(genesisAnchorPath());
     if (genRead.status === KNOWN_ANCHOR_STATUS.anchored &&
-        genRead.anchor.first_hash !== state.first_hash) return;
+      genRead.anchor.first_hash !== state.first_hash) return;
     if (_hasForwardSeal(records) || genRead.status === KNOWN_ANCHOR_STATUS.anchored) {
       const bp = _activeBreakpoint(records);
       const extras = {
@@ -1120,17 +1120,17 @@ function createEvidenceLog(overrideConfigDir, opts) {
     if (!state || state.recs.length === 0 || !seal) return null;
     const genRead = readGenesisAnchor(genesisAnchorPath());
     if (genRead.status === KNOWN_ANCHOR_STATUS.anchored &&
-        genRead.anchor.first_hash !== state.firstHash) return null;
+      genRead.anchor.first_hash !== state.firstHash) return null;
     const genDown = genRead.status === KNOWN_ANCHOR_STATUS.witness_unavailable ||
-                    genRead.status === KNOWN_ANCHOR_STATUS.never_anchored;
+      genRead.status === KNOWN_ANCHOR_STATUS.never_anchored;
     const tailRead = readTailAnchor(headAnchorPath());
     const tailDown = tailRead.status === KNOWN_ANCHOR_STATUS.witness_unavailable ||
-                     tailRead.status === KNOWN_ANCHOR_STATUS.never_anchored;
+      tailRead.status === KNOWN_ANCHOR_STATUS.never_anchored;
     if (!genDown && !tailDown) return null;
     let bp = null;
     let post = 0;
     if (tailRead.status === KNOWN_ANCHOR_STATUS.anchored && tailRead.anchor &&
-        Number.isInteger(tailRead.anchor.witness_breakpoint_index)) {
+      Number.isInteger(tailRead.anchor.witness_breakpoint_index)) {
       bp = {
         record: { detected_at: tailRead.anchor.witness_breakpoint_detected_at },
         index: tailRead.anchor.witness_breakpoint_index,
@@ -1197,10 +1197,10 @@ function createEvidenceLog(overrideConfigDir, opts) {
     }
     writeTailAnchor(headAnchorPath(), total - 1, total, head, persistenceCapability(),
       new Date(now()).toISOString(), {
-        witness_breakpoint_index: bp ? bp.index : null,
-        witness_breakpoint_detected_at: bp ? bp.record.detected_at : null,
-        witness_post_detection_evidence_appends: bp ? postDetectionAppends : 0,
-      });
+      witness_breakpoint_index: bp ? bp.index : null,
+      witness_breakpoint_detected_at: bp ? bp.record.detected_at : null,
+      witness_post_detection_evidence_appends: bp ? postDetectionAppends : 0,
+    });
     return true;
   }
 
@@ -1243,12 +1243,12 @@ function createEvidenceLog(overrideConfigDir, opts) {
     const firstHash = records[0] && typeof records[0].event_hash === 'string' ? records[0].event_hash : null;
     const genRead = readGenesisAnchor(genesisAnchorPath());
     if (genRead.status === KNOWN_ANCHOR_STATUS.anchored &&
-        genRead.anchor.first_hash !== firstHash) return null; // corruption family owns this
+      genRead.anchor.first_hash !== firstHash) return null; // corruption family owns this
     const genDown = genRead.status === KNOWN_ANCHOR_STATUS.witness_unavailable ||
-                    genRead.status === KNOWN_ANCHOR_STATUS.never_anchored;
+      genRead.status === KNOWN_ANCHOR_STATUS.never_anchored;
     const tailRead = readTailAnchor(headAnchorPath());
     const tailDown = tailRead.status === KNOWN_ANCHOR_STATUS.witness_unavailable ||
-                     tailRead.status === KNOWN_ANCHOR_STATUS.never_anchored;
+      tailRead.status === KNOWN_ANCHOR_STATUS.never_anchored;
     if (!genDown && !tailDown) return null;
     return { tailDown: tailDown, genDown: genDown, bp: _activeBreakpoint(records), records: records };
   }
@@ -1308,8 +1308,8 @@ function createEvidenceLog(overrideConfigDir, opts) {
   function rebuildGenesisAnchor(options) {
     const rb = options || {};
     if (typeof rb.reviewer !== 'string' || rb.reviewer.length === 0 ||
-        typeof rb.reason !== 'string' || rb.reason.length === 0 ||
-        rb.approval !== true) {
+      typeof rb.reason !== 'string' || rb.reason.length === 0 ||
+      rb.approval !== true) {
       const err = new Error('rebuild requires the human review gate: reviewer, reason, and explicit approval (ADR-0017 / ADR-0052)');
       err.code = 'WITNESS_REBUILD_UNAUTHORIZED';
       throw err;
@@ -1334,11 +1334,11 @@ function createEvidenceLog(overrideConfigDir, opts) {
     const sealBasis = _acceptableSeal(records);
     const lastGoodSeal = sealBasis
       ? {
-          sealed_seq: sealBasis.index - 1,
-          sealed_total_count: sealBasis.index,
-          sealed_head_hash: sealBasis.record.sealed_head_hash,
-          post_seal_count: sealBasis.post_seal_count,
-        }
+        sealed_seq: sealBasis.index - 1,
+        sealed_total_count: sealBasis.index,
+        sealed_head_hash: sealBasis.record.sealed_head_hash,
+        post_seal_count: sealBasis.post_seal_count,
+      }
       : null;
     const bp = _activeBreakpoint(records);
     witnessGateBusy = true; // the audit disposition write must bypass the hard stop
@@ -1460,7 +1460,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
         // A record chained onto a hash that was relocated by an earlier
         // rotation splice in THIS commit gets re-linked transparently.
         if (tailIsAnchor && typeof rec.prev_hash === 'string' &&
-            Object.prototype.hasOwnProperty.call(relink, rec.prev_hash)) {
+          Object.prototype.hasOwnProperty.call(relink, rec.prev_hash)) {
           rec.prev_hash = relink[rec.prev_hash];
         }
         if (tailIsAnchor && rec.prev_hash !== undefined && rec.prev_hash !== tail) {
@@ -1472,7 +1472,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
         // ADR-0026 D2: byte-threshold rotation, evaluated before each write.
         if (activePath && fs.existsSync(activePath)) {
           let size = 0;
-          try { size = fs.statSync(activePath).size; } catch (e) {}
+          try { size = fs.statSync(activePath).size; } catch (e) { }
           if (size >= rotateBytes && !(opts.skipRotation)) {
             _fsyncFile(activePath);
             const anchor = {
@@ -1674,12 +1674,12 @@ function createEvidenceLog(overrideConfigDir, opts) {
     return Object.assign({}, chain, fb || {}, _freshnessMeta(all, seal));
   }
   function clear() {
-    try { fs.rmSync(ep, { recursive: true, force: true }); } catch (e) {}
-    try { fs.unlinkSync(kp); } catch (e) {}
-    try { fs.unlinkSync(headAnchorPath()); } catch (e) {}
-    try { fs.unlinkSync(genesisAnchorPath()); } catch (e) {}
-    try { fs.unlinkSync(sealSidecarPath()); } catch (e) {}
-    try { fs.rmSync(stagingDir, { recursive: true, force: true }); } catch (e) {}
+    try { fs.rmSync(ep, { recursive: true, force: true }); } catch (e) { }
+    try { fs.unlinkSync(kp); } catch (e) { }
+    try { fs.unlinkSync(headAnchorPath()); } catch (e) { }
+    try { fs.unlinkSync(genesisAnchorPath()); } catch (e) { }
+    try { fs.unlinkSync(sealSidecarPath()); } catch (e) { }
+    try { fs.rmSync(stagingDir, { recursive: true, force: true }); } catch (e) { }
     // clear() IS the explicit operator action; the D5 "never auto-deleted"
     // rule covers automatic paths only.
     for (let i = 0; i <= 1000; i++) {
@@ -1733,6 +1733,23 @@ function createRecord(gateId, gateType, status, detail, confidence, prevHash, ex
           if (!record.detector.degradation.detail) record.detector.degradation.detail = {};
           record.detector.degradation.detail.unrecognized_kind = g.kind;
         }
+      }
+      // ADR-0070 D-D: additive-optional conviction-lane fields. `source` is the
+      // append-only namespace marker ('pairer-instrument'); `shadow` excludes
+      // the record from the severity matrix; `pairer` carries the pairer
+      // output verbatim plus lane timing.
+      if (typeof d.source === 'string' && d.source.length > 0) record.detector.source = d.source;
+      if (d.shadow === true || d.shadow === false) record.detector.shadow = d.shadow;
+      if (d.pairer && typeof d.pairer === 'object') {
+        const p = d.pairer;
+        record.detector.pairer = {
+          family: typeof p.family === 'string' ? p.family : null,
+          state: typeof p.state === 'string' ? p.state : null,
+          claim: p.claim === undefined ? null : p.claim,
+          evidence: p.evidence === undefined ? null : p.evidence,
+          reason: typeof p.reason === 'string' ? p.reason : null,
+          latency_ms: Number.isFinite(p.latency_ms) ? p.latency_ms : null,
+        };
       }
     }
     if (typeof extras.session_id === 'string' && extras.session_id.length > 0) {
