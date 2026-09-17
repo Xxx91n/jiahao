@@ -669,6 +669,48 @@ D-005).
 _Avoid_: ritual rubber-stamp audits; zero independent review of external
 claims; unlabelled independence
 
+**Discharged-by-Trigger (触发销账)**
+A calendar-scheduled registry review item discharged early when an explicit
+trigger — an audit finding or equivalent event — fires before its review_at
+date. The override is legitimate only when the ledger records it explicitly
+as a trigger-overrode-calendar event; silently skipping the date is a silent
+direction change (ledger t14 D-001, D-002).
+_Avoid_: waiting out a stale calendar date after a trigger has fired;
+discharging without the explicit ledger note; re-binding the item to a
+future scheduled review instead of closing it
+
+**Sufficiency Qualifier (充分性限定词)**
+A diversity qualification applied to the same corpus a count leg measures:
+the proposition is single (count ∧ sessions≥N ∧ intent-classes≥M) and the
+qualifier produces no independent pass state. Values are pre-registered as
+the loosest defensible bounds under tightening-only asymmetry — tighten
+later, never loosen (ledger t14 D-003).
+_Avoid_: an independent diversity leg (a small-but-diverse corpus would
+bypass the count's intent); symbolic parameters without values; reusing an
+unrelated field as the diversity measure
+
+**Sunset Trigger (日落触发器)**
+A pre-registered dual-or-path clause — a parallel zero-observation counter
+or the watch's closure without prior activation, whichever fires first —
+whose sole consequence is activating a scheduled review; it never amends,
+closes, or exempts the thing it watches. Its clock must be lifecycle-
+independent of the watched item (watchdog independence) so the hole it
+exists to close stays unreachable (ledger t14 D-004).
+_Avoid_: binding the trigger to the watched row's own expiry field
+(dependency inversion); auto-executing dispositions on a timer; record-only
+triggers that convene nothing
+
+**Meta-Preregistration (元预注册)**
+Registering now the obligation that a future review must register its own
+evidence criteria before evaluating — blocking, so output produced without
+prior registration is void. The frame may fix criteria shape (at least one
+falsifiable kill condition; no amendment of frozen thresholds) without
+fixing values that would go stale before the review convenes (ledger t14
+D-004).
+_Avoid_: writing full criteria years ahead of the review (stale on arrival);
+advisory-only meta-requirements; criteria that quietly loosen between
+registration and evaluation
+
 ## Decision Log
 
 **Self-Preference Bias (自偏好偏差)**:
