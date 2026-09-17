@@ -823,13 +823,14 @@
       "registered_at": "2026-09-17",
       "last_check_in": {
         "date": "2026-09-17",
-        "note": "R2 disposition: quarterly cadence confirmed; organic trigger kept in unfreeze_if; six-months-zero closure condition registered in closes_if"
+        "note": "R1 (grill-t14): sunset_trigger_pointer registered -> ADR-0075 D-C; quarterly cadence and organic unfreeze trigger unchanged; closes_if unchanged"
       },
       "status": "pending-evaluation",
       "closes_if": {
         "type": "external-event",
         "check": "six consecutive months with organic=0 at every quarterly check-in -> close the watch as expired (no organic lane traffic ever observed)"
-      }
+      },
+      "sunset_trigger_pointer": "ADR-0075 D-C (docs/adr/0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md): dual-or-path sunset trigger - 6 consecutive zero-organic quarterly check-ins OR this row closing without prior activation -> activates the scheduled strategic review; the clause body lives in the ADR, this row carries only the pointer"
     },
     {
       "id": "defer-0056",
@@ -884,6 +885,24 @@
       "last_check_in": {
         "date": "2026-09-17",
         "note": "registered in R2 as the standing net-increment review item (defer-0050/51/52/56 closed this round)"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0059",
+      "subject": "grill-t14 doc round net-addition tally: +1 ADR (ADR-0075 promotion-review preregistration pack - N/M sufficiency qualifier on the G1 organic corpus, <=8-class intent taxonomy, sunset trigger clause, blocking meta-requirement) - D-006(a)(i) summary row",
+      "source_adr": "docs/adr/0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md",
+      "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t14 documentation round lands one new ADR (0075: the single-proposition N/M sufficiency qualifier on the G1 organic corpus - events>=200 AND sessions>=20 AND intent-classes>=5 with no independent pass state; the pre-registered 8-class analysis-side intent taxonomy with unknown catch-all and K=2 support; the dual-or-path sunset trigger activating only the scheduled strategic review; and the blocking meta-requirement fixing the criteria shape). The round also touches docs/governance (t14 ledger copy + anchors regen), the defer-0055 pointer field, README index, and test/adr-0075-wiring.test.js - registration-surface changes; no shipped runtime behavior moves.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-17",
+      "last_check_in": {
+        "date": "2026-09-17",
+        "note": "net additions +1 (ADR-0075); registered in the grill-t14 doc round"
       },
       "status": "pending-evaluation"
     }

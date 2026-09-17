@@ -130,7 +130,7 @@ describe('README + governance-surface sync', () => {
 
   test('the README ADR index carries ADR-0074 (rebuilt, 74 records)', () => {
     const r = read(README);
-    expect(r).toContain('74 architecture decision records');
+    expect(r).toContain('75 architecture decision records');
     expect(r).toContain('0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md');
   });
 
@@ -187,7 +187,7 @@ describe('R2 action round (2026-09-17): map, re-verification note, dispositions'
     const m = readJson(path.join(ROOT, 'docs', 'rewrite-map.json'));
     expect(m.schema_version).toBe(1);
     expect(m.generated_by).toBe('scripts/build-rewrite-map.js');
-    expect(m.published_tip).toBe('051744a7a1b4027a42720814c819bf051e0831a8');
+    expect(m.published_tip).toBe('a8e0bdb0aaf0a13a3efbdc3783d17acd86fa2ceb'); // grill-t14: tip advanced post-publish
     expect(m.commits.length).toBe(15);
     expect(m.counts.doc_refs).toBe(m.doc_refs.length);
     expect(m.doc_refs.length).toBeGreaterThan(0);

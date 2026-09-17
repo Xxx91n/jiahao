@@ -74,6 +74,13 @@
       "sha256": "b7e57e91e3e5032fbf890aca72ab1b825b09ac491627850fba8a690620d769d4"
     },
     {
+      "file": "decision-ledger-t14.md",
+      "origin": ".scratch/grill-t14/decision-ledger.md",
+      "adr": "ADR-0075",
+      "bytes": 7253,
+      "sha256": "80f46acc9bf7b1142359049703e3ea9efcc11c155ffede3509ac21031a36c96a"
+    },
+    {
       "file": "ERRATA.md",
       "origin": "(authored in place)",
       "adr": "ADR-0061",

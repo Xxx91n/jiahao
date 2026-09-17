@@ -12,6 +12,13 @@ pointers, and this file is never hand-edited.
 - **Old side (pre-purge, local-only)**: `git rev-list` over the retained
   pre-rewrite refs (`gb-local/grill-t12-docs` and any other `gb-local/*` tip
   that carries pre-purge objects), minus commits already in the new side.
+  Discovery rule: a `gb-local/*` ref is old-side iff it has commits not on
+  `origin/main` AND contains no published-side rewritten commit or the
+  published tip — post-purge working branches descend from those objects
+  even when they carry unpublished work or predate the current tip (the
+  tip-only test goes stale once `origin/main` advances past the rewrite
+  region). The prior map's `commits[].new`/`published_tip` supply the
+  anchor; the first generation falls back to the tip test.
 - **Doc citations**: `git ls-files` over tracked docs (`*.md`, `*.json`,
   `*.txt` under `docs/`, `CONTEXT.md`, `README.md`, `AGENTS.md`,
   `.scratch/**`) scanned for hex strings matching `/\b[0-9a-f]{7,40}\b/` —

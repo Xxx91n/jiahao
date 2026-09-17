@@ -10,10 +10,15 @@
 // class \u2014 rewritten | local-only | published-unchanged \u2014 and every old-side
 // commit gets its new-side counterpart (or null).
 //
-// Old-side discovery: a gb-local/* ref (gitbutler/* internals excluded) whose
-// history does NOT contain the new published tip is a retained pre-purge line.
-// Post-purge working branches descend from the new tip and are excluded by
-// that test \u2014 the rule is mechanical, not a name convention.
+// Old-side discovery: a gb-local/* ref (gitbutler/* internals excluded) is a
+// retained pre-purge line when (a) it carries commits the published side
+// lacks AND (b) it does not contain any published-side rewritten commit or
+// the published tip. Post-purge working branches descend from those objects
+// even when they predate the current tip (the tip test alone goes stale the
+// moment origin/main advances past the rewrite region) or carry unpublished
+// work of their own. The prior map's commits[].new + published_tip supply
+// the anchor; the first generation falls back to the tip test. The rule is
+// mechanical, not a name convention.
 //
 // Modes: default writes the map; --check regenerates and diffs (generated_at
 // excluded); --verify re-derives each row's truth from git (subjects, empties,
@@ -58,12 +63,22 @@ function logMeta(ref) {
   return rows;
 }
 
-function discoverOldRefs(newRef) {
+function discoverOldRefs(newRef, publishedSide) {
+  const anchors = (publishedSide && publishedSide.length) ? publishedSide : [newRef];
   const refs = git(['for-each-ref', '--format=%(refname:short)', 'refs/remotes/gb-local/'])
     .split('\n').map(function (s) { return s.trim(); }).filter(Boolean)
     .filter(function (r) { return r.indexOf('gitbutler') === -1; });
   return refs.filter(function (r) {
-    return !gitOk(['merge-base', '--is-ancestor', newRef, r]);
+    // (a) carries objects the published side lacks - a ref fully contained
+    // in published history has nothing to translate.
+    const uniq = git(['rev-list', '--count', newRef + '..' + r]).trim();
+    if (uniq === '0') return false;
+    // (b) does not descend from a published-side object - post-purge
+    // working branches do, even when they also carry unpublished commits.
+    for (const s of anchors) {
+      if (gitOk(['merge-base', '--is-ancestor', s, r])) return false;
+    }
+    return true;
   });
 }
 
@@ -149,9 +164,16 @@ function build(oldRefs, newRef) {
   removed.forEach(function (m) { removedSet[m.sha] = 1; });
   const objSorted = Array.from(new Set(Array.from(pubObjects).concat(Array.from(oldObjects), Array.from(allObjects)))).sort();
 
-  // doc citation scan (the map file itself excluded \u2014 generated, not a source)
-  const files = git(['ls-files']).split('\n').map(function (s) { return s.trim(); })
-    .filter(function (f) { return f !== SELF && DOC_PATH_RE.test(f) && DOC_EXT_RE.test(f); });
+  // doc citation scan (the map file itself excluded \u2014 generated, not a
+  // source). Enumeration is the UNION of index + committed tree (the F-1
+  // lesson: GitButler's virtual index lags HEAD by committed files, so an
+  // index-only scan silently misses tracked docs). Untracked worktree files
+  // are deliberately NOT scanned - a doc joins the tracked surface only via
+  // a commit, so the map regen that follows the doc commit picks it up.
+  const files = Array.from(new Set(
+    git(['ls-files']).split('\n').concat(git(['ls-tree', '-r', 'HEAD', '--name-only']).split('\n'))
+  )).map(function (s) { return s.trim(); }).filter(Boolean)
+    .filter(function (f) { return f !== SELF && DOC_PATH_RE.test(f) && DOC_EXT_RE.test(f); }).sort();
   const docRefs = [];
   const problems = [];
   for (const f of files) {
@@ -270,7 +292,18 @@ function main() {
     }
   }
   requireCapabilities('rewrite-map');
-  const oldRefs = oldArgs.length ? oldArgs : discoverOldRefs(newRef);
+  // Post-purge branches can predate the current tip without being pre-purge
+  // lines: they descend from published-side rewritten commits. Anchor the
+  // discovery on the prior map's new-side identities when one is committed
+  // (the first generation falls back to the tip-only test).
+  let publishedSide = null;
+  try {
+    const prior = JSON.parse(fs.readFileSync(path.join(ROOT, OUT_REL), 'utf8'));
+    const rew = (prior.commits || []).map(function (c) { return c.new; }).filter(Boolean);
+    if (prior.published_tip) rew.push(prior.published_tip);
+    if (rew.length) publishedSide = rew;
+  } catch (e) { /* no prior map: tip-only test */ }
+  const oldRefs = oldArgs.length ? oldArgs : discoverOldRefs(newRef, publishedSide);
   if (!oldRefs.length) { console.error('[rewrite-map] FAIL: no old-side refs discovered (gb-local/* not descended from ' + newRef + ')'); process.exit(1); }
   const map = build(oldRefs, newRef);
   if (verifyMode) {
