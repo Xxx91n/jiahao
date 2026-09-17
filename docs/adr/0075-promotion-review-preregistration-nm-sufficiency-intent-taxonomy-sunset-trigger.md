@@ -110,6 +110,7 @@ This round registers the requirement plus the criteria SHAPE - deliberately not 
 - The strategic review is bound by a blocking meta-requirement - unregistered criteria void its output - with the criteria shape fixed but values deferred to the review itself.
 - defer-0055 keeps its quarterly cadence and carries only a pointer to the clause; defer-0059 joins the tally tide; the t14 ledger joins the anchors; the round takes the ADR-0074 light close with two unbundled owner asks.
 - R2 dispositions (executed 2026-09-17, action round) land below this line when executed; the preregistration text above does not move during R2.
+- R2 dispositions (executed 2026-09-17): defer-0051 closed discharged-by-trigger (pinned-protocol re-measure 324711 < 340000 on the evidence packet, weak-independent second-party countersign, single-point caveat recorded, owner ratification pending as T-3 Ask B); defer-0059 closed via the same-commit ledger note; defer-0055 keeps quarterly cadence with the sunset counter at 1/6 (organic=0 at this check-in); telemetry checkpoint exported; trend-inventory grill-t14 row landed; instrument seq 26 recorded; the rewrite-map generator's old-ref discovery and citation-scan enumeration were repaired under the F-1 union lesson (the doc round's own regen exposed that post-publish working branches poisoned old-side discovery); preregistration text untouched throughout.
 
 ## Acceptance
 

@@ -43,3 +43,44 @@ Source of truth for the doc closeout. Append on each confirmed answer.
 - 显式约束/负向需求: 惯例性日历审计否决（违自立的触发规则）；打包两 ask 否决（判断性决策藏进记录性尾巴=ratify 稀释成顺手签）；R2 执行中改预注册参数否决（R1 末冻结）；countersign 不得表述为轮级独立审计。
 - 状态: current
 
+
+## T-2 dispositions (R2 action round, 2026-09-17)
+
+Executed under the R1 stage gate (pyq+pry on grill-t14-docs; boundary green: 72
+suites / 1163 tests, gate:all exit 0). Each row names its evidence; this section
+is the same-commit ledger note closing defer-0051 and defer-0059.
+
+- defer-0051 (ADR-0071 D-E cap trend-anchor review slot) — CLOSED,
+  discharged-by-trigger. The explicit trigger overrides review_at=2026-12-15
+  (D-002): pinned-protocol re-measurement `npm pack --dry-run --json` ->
+  size 324711 < cap 340000 (evidence packet
+  .scratch/grill-t14/evidence/defer-0051-evidence-packet.json; prior anchor
+  302936, delta +21775 across t12/t13/t14 surface growth); second-party
+  countersign by fresh-session agent devin-subagent-t14-countersign declaring
+  weak-independent (separate session, shared infrastructure; covers this
+  packet only - NOT a round audit). Owner ratification of the same packet is
+  pending as T-3 Ask B (rejection reopens the row). Closure note on the
+  entry: 1 data point existence check - trend duty stays in pack-smoke
+  (gate order 196).
+- defer-0059 (t14 doc-round net-addition tally) — CLOSED. The grill-t14 row
+  exists in docs/governance/trend-inventory.json (+1 ADR-0075,
+  zero_product_diff) and the ADR is registered; nothing left to disposition.
+- defer-0055 (organic routing-rate watch) — stays pending-evaluation on
+  quarterly cadence; sunset_trigger_pointer -> ADR-0075 D-C registered in R1;
+  closes_if unchanged. Sunset counter (ADR-0075 D-C path A) starts 1/6:
+  this check-in observed organic=0 (telemetry checkpoint
+  .scratch/grill-t14/telemetry-checkpoint-2026-09-17.{txt,json}; the
+  counter lifecycle is independent of this row).
+- defer-0058 (standing per-round net-increment review) — EXECUTED for
+  grill-t14: net registry increment +1 (defer-0059 added and closed;
+  defer-0051 closed; defer-0055 pointer field added - row count unchanged).
+- defer-0053 — stays deferred (unfreeze_frozen).
+- defer-0054 — stays actioned; scanner live (3 rules, union enumeration
+  858/869/869 files, 0 hits this run).
+- defer-0057 — stays pending-evaluation (t13 tally row; closes at the next
+  trend-anchor evaluation like its siblings).
+- Telemetry checkpoint exported (organic=0 across all provenance classes:
+  G1=false, G3=false, G4=true; p50=2 p99=3 max=3 ms).
+- Push fact annotation (D-001/D-005): remote main already reached a8e0bdb
+  during grill; no push was requested or executed in this round - the
+  consent-packet agenda item is discharged as already-fact.

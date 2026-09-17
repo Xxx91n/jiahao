@@ -1,0 +1,57 @@
+{
+  "schema": "defer-0051-evidence-packet@1",
+  "entry": "defer-0051",
+  "subject": "ADR-0071 D-E cap trend-anchor review slot - pinned-protocol re-measurement + double-signature close (grill-t14 ledger D-002)",
+  "round": "grill-t14 R2 action round",
+  "created": "2026-09-17",
+  "protocol": {
+    "pinned_by": "defer-0051 unfreeze_if + ADR-0071 D-B",
+    "command": "npm pack --dry-run --json",
+    "field": "size",
+    "note": "dry-run measures the packed tarball size without writing the artifact; the value is identical in kind to the real-pack smoke output (324711 observed in both this run and gate pack-smoke order 196 the same day)"
+  },
+  "measurement": {
+    "size_bytes": 324711,
+    "unpacked_size_bytes": 1114695,
+    "entry_count": 111,
+    "filename": "jiahao-0.0.1.tgz",
+    "node": "v24.11.0",
+    "npm": "11.19.1",
+    "measured_at_commit": "7657a94 (GitButler workspace commit = grill-t14-docs tip carrying R1 commits pyq + pry)",
+    "measured_at": "2026-09-17",
+    "rerun_command": "npm pack --dry-run --json | jq '.[0].size' (or node -e parse)"
+  },
+  "anchors": {
+    "cap_bytes": 340000,
+    "cap_source": "ADR-0039 D3 cap as amended by ADR-0071",
+    "prior_measurement_bytes": 302936,
+    "prior_measurement_note": "ADR-0071 D-C measurement (grill-t11/t12 window)",
+    "under_cap": true,
+    "delta_vs_prior_bytes": 21775,
+    "delta_note": "growth across t12/t13/t14 doc+script surface additions; still under the frozen cap"
+  },
+  "disposition_semantics": {
+    "closure_kind": "discharged-by-trigger",
+    "single_point_caveat": "this is a 1 data point existence check - it discharges the review slot only; trend duty stays in scripts/check-pack-smoke.js (gate order 196) which asserts the cap on every gate:all run",
+    "trigger_override": "the explicit trigger (T-3 audit F-4 reopen -> pinned-protocol re-measure + countersign) overrides the review_at=2026-12-15 calendar slot; recorded in .scratch/grill-t14/decision-ledger.md T-2 dispositions"
+  },
+  "signatures": {
+    "second_party_countersign": {
+      "signer": "devin-subagent-t14-countersign",
+      "grade": "weak-independent",
+      "grade_basis": "separate agent session, same host/repo checkout and toolchain as the measuring session — no independent environment (ADR-0074 D-F grade vocabulary)",
+      "verified_command": "npm pack --dry-run --json",
+      "observed_size_bytes": 324711,
+      "matches_packet": true,
+      "under_cap": true,
+      "registry_entry_seen_pending": true,
+      "signed_at": "2026-09-17",
+      "statement": "re-measurement reproduced the packet's size under the pinned command; signature covers this packet only, not the round"
+    },
+    "owner_ratification": null
+  },
+  "signature_rules": {
+    "second_party_countersign": "fresh-session agent; declares its independence grade explicitly (expected: weak-independent per ADR-0074 D-F vocabulary - separate session, shared infrastructure); verifies the measurement by re-running the pinned command; signs THIS packet only - this is not a round audit",
+    "owner_ratification": "judgmental owner act with its own accept/reject exit; must NOT be bundled with the instrument seq-24 record sign-off"
+  }
+}

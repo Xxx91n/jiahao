@@ -121,8 +121,10 @@ describe('registry + governance-surface sync', () => {
     const d = reg.entries.find(function (e) { return e.id === 'defer-0059'; });
     expect(d).toBeDefined();
     expect(d.source_adr).toContain('0075-promotion-review-preregistration');
-    expect(d.status).toBe('pending-evaluation');
     expect(d.cadence_tier).toBe('quarterly');
+    // R2 disposition pass: closed via the same-commit ledger note (the
+    // R1->R2 boundary describe below asserts the closure surface).
+    expect(d.status).toBe('closed');
   });
 
   test('the README ADR index carries ADR-0075 (rebuilt, 75 records)', () => {
@@ -140,6 +142,50 @@ describe('registry + governance-surface sync', () => {
     const copy = read(path.join(ROOT, 'docs', 'governance', 'decision-ledger-t14.md'));
     expect(sha256(copy)).toBe(e.sha256);
     expect(copy).toBe(read(path.join(ROOT, '.scratch', 'grill-t14', 'decision-ledger.md')));
+  });
+});
+
+describe('R1->R2 boundary: action-round dispositions (grill-t14 R2)', () => {
+  test('defer-0051 is closed discharged-by-trigger with the single-point caveat', () => {
+    const reg = readJson(path.join(ROOT, 'docs', 'deferred-registry.json'));
+    const d = reg.entries.find(function (e) { return e.id === 'defer-0051'; });
+    expect(d.status).toBe('closed');
+    expect(d.closed_via).toContain('discharged-by-trigger');
+    expect(d.closed_via).toContain('324711');
+    expect(d.closure_note).toContain('1 data point existence check');
+    expect(d.closure_note).toContain('pack-smoke');
+    expect(d.trigger_override).toContain('overrides review_at=2026-12-15');
+  });
+
+  test('the evidence packet carries the measurement + weak-independent countersign; owner slot stays open', () => {
+    const p = readJson(path.join(ROOT, '.scratch', 'grill-t14', 'evidence', 'defer-0051-evidence-packet.json'));
+    expect(p.measurement.size_bytes).toBe(324711);
+    expect(p.protocol.command).toBe('npm pack --dry-run --json');
+    expect(p.anchors.under_cap).toBe(true);
+    expect(p.signatures.second_party_countersign.grade).toBe('weak-independent');
+    expect(p.signatures.second_party_countersign.matches_packet).toBe(true);
+    expect(p.signatures.owner_ratification).toBeNull();
+  });
+
+  test('the T-2 dispositions ledger section is appended and synced to the governance copy', () => {
+    const scratch = read(path.join(ROOT, '.scratch', 'grill-t14', 'decision-ledger.md'));
+    expect(scratch).toContain('## T-2 dispositions (R2 action round, 2026-09-17)');
+    expect(scratch).toContain('defer-0051');
+    expect(scratch).toContain('discharged-by-trigger');
+    expect(scratch).toContain('overrides review_at=2026-12-15');
+    const copy = read(path.join(ROOT, 'docs', 'governance', 'decision-ledger-t14.md'));
+    expect(copy).toBe(scratch);
+  });
+
+  test('defer-0059 closed via same-commit ledger note; the trend row landed', () => {
+    const reg = readJson(path.join(ROOT, 'docs', 'deferred-registry.json'));
+    const d = reg.entries.find(function (e) { return e.id === 'defer-0059'; });
+    expect(d.status).toBe('closed');
+    expect(d.closed_via).toContain('same-commit ledger note');
+    const t = readJson(path.join(ROOT, 'docs', 'governance', 'trend-inventory.json'));
+    const row = t.rounds.find(function (r) { return r.round === 'grill-t14-doc-round'; });
+    expect(row.adr_added).toEqual(['0075']);
+    expect(row.deferred_entry).toBe('defer-0059');
   });
 });
 

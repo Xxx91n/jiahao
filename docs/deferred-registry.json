@@ -744,9 +744,13 @@
       "registered_at": "2026-09-16",
       "last_check_in": {
         "date": "2026-09-17",
-        "note": "R2 closure REVERTED per T-3 audit F-4: own unfreeze condition (2026-12-15 check-in + npm pack --dry-run --json re-measurement + second_reviewer countersign) is not yet satisfied; the entry stays live — its re-measurement/countersign legs are unique to this entry and are NOT merged into defer-0058 (which covers only the generic net-increment cadence)"
+        "note": "R2 (grill-t14): closed discharged-by-trigger - re-measure 324711<340000 + weak-independent countersign on the evidence packet; owner ratification pending (Ask B); trend duty stays in pack-smoke"
       },
-      "status": "pending-evaluation"
+      "status": "closed",
+      "closed_at": "2026-09-17",
+      "closed_via": "discharged-by-trigger: pinned-protocol re-measurement (npm pack --dry-run --json -> size 324711 < cap 340000) + second-party countersign (weak-independent, devin-subagent-t14-countersign) on evidence packet .scratch/grill-t14/evidence/defer-0051-evidence-packet.json; same-commit ledger note: .scratch/grill-t14/decision-ledger.md section \"T-2 dispositions (R2 action round, 2026-09-17)\"; owner ratification of the same packet is pending as the separate T-3 Ask B (rejection reopens this row)",
+      "closure_note": "1 data point existence check - this closure discharges the review slot only; trend duty stays in pack-smoke (scripts/check-pack-smoke.js, gate order 196) which asserts the cap on every gate:all run",
+      "trigger_override": "explicit trigger (T-3 audit F-4 reopen -> pinned-protocol re-measure + countersign, executed 2026-09-17) overrides review_at=2026-12-15 per grill-t14 ledger D-002"
     },
     {
       "id": "defer-0052",
@@ -884,7 +888,7 @@
       "registered_at": "2026-09-17",
       "last_check_in": {
         "date": "2026-09-17",
-        "note": "registered in R2 as the standing net-increment review item (defer-0050/51/52/56 closed this round)"
+        "note": "grill-t14 round reviewed: net registry increment +1 (defer-0059 added; defer-0051 closed discharged-by-trigger; defer-0055 pointer added - same row count); tally rows verified"
       },
       "status": "pending-evaluation"
     },
@@ -902,9 +906,11 @@
       "registered_at": "2026-09-17",
       "last_check_in": {
         "date": "2026-09-17",
-        "note": "net additions +1 (ADR-0075); registered in the grill-t14 doc round"
+        "note": "R2 net-addition review executed: tally row verified against trend inventory and ADR registration; disposition recorded in the same-commit ledger note"
       },
-      "status": "pending-evaluation"
+      "status": "closed",
+      "closed_at": "2026-09-17",
+      "closed_via": "same-commit ledger note: .scratch/grill-t14/decision-ledger.md section \"T-2 dispositions (R2 action round, 2026-09-17)\" - tally verified against trend-inventory grill-t14 row (+1 ADR-0075) and ADR registration"
     }
   ]
 }

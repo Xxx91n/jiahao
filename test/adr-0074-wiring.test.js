@@ -216,9 +216,10 @@ describe('R2 action round (2026-09-17): map, re-verification note, dispositions'
       expect(by(id).closed_via).toContain('T-2 dispositions');
     }
     // T-3 F-4: defer-0051 closure reverted - its own unfreeze condition was
-    // never satisfied; the entry is live again (pending-evaluation).
-    expect(by('defer-0051').status).toBe('pending-evaluation');
-    expect(by('defer-0051').last_check_in.note).toContain('REVERTED');
+    // never satisfied. grill-t14 R2 executed the live legs (pinned-protocol
+    // re-measure + weak-independent countersign) and closed it by trigger.
+    expect(by('defer-0051').status).toBe('closed');
+    expect(by('defer-0051').closed_via).toContain('discharged-by-trigger');
     expect(by('defer-0054').status).toBe('actioned');
     expect(by('defer-0054').actioned_via).toContain('check-secret-scan');
     expect(by('defer-0054').unfreeze_if).toBeDefined(); // unfreeze retained per task book

@@ -77,8 +77,8 @@
       "file": "decision-ledger-t14.md",
       "origin": ".scratch/grill-t14/decision-ledger.md",
       "adr": "ADR-0075",
-      "bytes": 7253,
-      "sha256": "80f46acc9bf7b1142359049703e3ea9efcc11c155ffede3509ac21031a36c96a"
+      "bytes": 9788,
+      "sha256": "c51fb6a08726c6b411f549c83993f7bcfa5d10ecac02b495b7c1e006ecc93cee"
     },
     {
       "file": "ERRATA.md",
@@ -91,8 +91,8 @@
       "file": "trend-inventory.json",
       "origin": "(authored in place)",
       "adr": "ADR-0064",
-      "bytes": 2872,
-      "sha256": "3d56fc5b49c9ec708db7e2ffa459504811a6c80c8033d2ae59d9d38ddb45a6a4"
+      "bytes": 3192,
+      "sha256": "f59ccbca7636479ea9bf105c63be1064cb01a84443220dd0470c56c5b04500ba"
     }
   ]
 }
