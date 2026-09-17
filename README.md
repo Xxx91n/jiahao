@@ -23,8 +23,8 @@ through devin-corpus@v3 names the v3 route (single-shot verdict landed
 - [installed-artifact measured] The Tier-1 channel installs in a clean environment and writes the profile flag (record: `.scratch/grill-t11/readiness/`).
 - [installed-artifact measured] The verifier Stop gate blocks on missing evidence and allows on evidence, end-to-end on the installed artifact.
 - [installed-artifact measured] The conviction lane runs stdin `transcript_path` -> adapter -> pairItem -> shadow record on the installed artifact.
-- [documented] The lane runs in shadow mode only - flagged items are telemetry, never blocks. The shadow->enforce promotion gate is frozen at 0 real events; "usable for real testing" declares the bake window may start collecting, not a gate pass.
-- [documented] Per-host transcript reachability is documented (claude-code: `measured-present` = live-observed on real host events; organic usage pending); bake traffic begins with owner dogfooding after a separate host-config confirmation.
+- [documented] The lane runs in shadow mode only - flagged items are telemetry, never blocks. The shadow->enforce promotion gate is frozen at 0 organic events; "usable for real testing" declares the bake window may start collecting, not a gate pass.
+- [documented] Per-host transcript reachability is documented (claude-code: `measured-present` - live-observed: independent-audit reproduction + automated-harness events; organic pending); bake traffic begins with owner dogfooding after a separate host-config confirmation.
 
 Jiahao ships two install-time rule sets. Pick once at install:
 
@@ -304,7 +304,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - [ADR-0072](docs/adr/0072-readiness-verdict-remeasurement-preregistration-bake-protocol-critique-dispositions.md) — Readiness Verdict (Usable + Testable), Pre-Registered Re-Measurement (b2 Method + Lane Exercise), Owner-Dogfood Bake Protocol, ADR-0070 Tier-2 Amendment, and Critique Dispositions P-1/P-2/P-4/P-5
 - [ADR-0073](docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md) — Provenance-Tiered Corpus Registration, ADR-0070 G1 Tightening-Only Amendment (organic leg), grill-t11 Audit Carry-Over Dispositions (F-A1/O-1/W-1/O-2; W-2 closed-by-design), and Bake Stewardship Protocol
 <!-- adr-index:end -->
-- `test/` — 68 test suites, 1088 tests
+- `test/` — 69 test suites, 1112 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 - `private/bench-corpus/` — answer corpora (probes/judge-twins/twins + fingerprints; gitignored, ADR-0036 D2). Gate scripts resolve via JIAHAO_CORPUS_DIR, else the install-planted dir (`jiahao init` plants it from the package), else this repo-private dir in a maintainer tree; missing everywhere fails closed (exit 1: config; the capability probe degrades an absent corpus dir to exit 2 UNVERIFIABLE first, ADR-0041 D2). npm consumers and public git clones carry no corpus at all — corpus gates are a maintainer/CI-only contract, fail-closed by design (ADR-0038 D2).
 
