@@ -60,3 +60,24 @@ HEAD` are authoritative.
 $implement + $tdd for defer-0053 (write-time field is a schema-evolution seam)
 or the O-A temp-dir fix; $code-review + audit pattern at close; $but for VCS;
 $handoff at close.
+
+## Post-close addendum: pre-publish history sanitization (2026-09-17)
+
+Owner ordered merge-to-main + push with sensitive-info removal and force
+overwrite. Executed before landing:
+
+- `but uncommit ruu:xo ruu:xl` — the host-config backup
+  (`settings-pre-jiahao-2026-09-17.json`) and `jiahao-0.0.1.tgz` were pulled
+  out of the `ruu` commit; no tree in the published history carries either
+  path. Both files remain on disk under the standing `.gitignore` rules.
+- Verbatim literals scrubbed at tip: t11 audit report endpoint value redacted;
+  `audit-evidence/round-diff.patch` regenerated with the backup-path hunks
+  excluded (commit `wys`).
+- `kxo`/`wko` are now empty commits — the untrack acts they record became
+  no-ops once the files never entered history; their messages are retained as
+  the disposition record.
+- Exposure-window statements citing `05fa697` describe the pre-purge local
+  objects (retained in `gb-local` refs and the local object store; the new
+  published SHAs differ from `a375dbc`/`2c93a30` onward). At publish time the
+  external exposure of the backup contents remains zero — the payload never
+  left the local machine.
