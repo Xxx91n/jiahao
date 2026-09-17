@@ -4,7 +4,7 @@
   "gate": "g6-publish",
   "tarball": {
     "file": "jiahao-0.0.1.tgz",
-    "size": 309584
+    "size": 311515
   },
   "extracted_surface_sha256": "7d276bb757e27cf3dc566b2dfd882278b693da1ef6e087fe8774094dc5622174",
   "expectations": 20,
