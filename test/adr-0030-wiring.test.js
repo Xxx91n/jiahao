@@ -9,7 +9,8 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const REPO = path.join(__dirname, '..');
-const BASE = path.join(os.tmpdir(), 'jiahao-adr0030-wiring').replace(/\\/g, '/');
+// O-A: unique per-run temp dir (fixed-name dirs were the jest parallel-flake vector)
+const BASE = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-adr0030-wiring-')).replace(/\\/g, '/');
 const TREE = BASE + '/tree';
 const CFG = BASE + '/cfg';
 

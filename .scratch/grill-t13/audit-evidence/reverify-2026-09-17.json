@@ -1,0 +1,29 @@
+{
+  "schema": "reverify-evidence/v1",
+  "adr": "docs/adr/0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md",
+  "section": "D-E",
+  "date": "2026-09-17",
+  "tool": "npx github:Xxx91n/jiahao init --profile verifier -y (clean env: scratch HOME/USERPROFILE/npm_config_cache/CLAUDE_CONFIG_DIR)",
+  "npm_version": "11.19.1",
+  "node_version": "v24.11.0",
+  "resolved_sha": "051744a7a1b4027a42720814c819bf051e0831a8",
+  "clone_rev_parse": "051744a7a1b4027a42720814c819bf051e0831a8",
+  "allow_flags": "npx -y only; no approval prompt observed on npm 11.19.1 git-dep install; prepare script not observed to run on the npx bin-invocation path",
+  "evidence_class": "clean-env-reverify (empty HOME + cold npm cache + isolated CLAUDE_CONFIG_DIR)",
+  "artifact_fingerprint": {
+    "kind": "pkg-tree-sha256-excluding-node_modules",
+    "value": "4af4c498535c6e108b6fb16ea4e8368f9f74dd0e0c2043e9e91f211828cfa93a"
+  },
+  "assertions": {
+    "A1_install_identity": "PASS — npm codeload tarball resolved 051744a7a1b4027a42720814c819bf051e0831a8; independent git clone rev-parse HEAD identical; .jiahao-profile=verifier planted in scratch cfg",
+    "A2_liveness": "PASS — SessionStart activate exit 0 (ruleset injected + .jiahao-active flag written); Stop with transcript_path exit 2 block (verifier no-evidence) AND pairer-lane shadow record appended to segmented evidence dir; unactivated session exits 0 silently (gate inert without .jiahao-active — session-scoped, hooks/jiahao-verdict-gate.js:24)",
+    "A3_whitelist_diff": "PASS — git diff --name-status 2c93a30..051744a = exactly 3 registered files, all M",
+    "A4_range_diff": "PASS — git range-diff 1ca81f5..2c93a30 1ca81f5..051744a = 15 pairs, all ! (rewritten), matching the 15-commit rewrite region",
+    "A5_no_collateral": "PASS — git ls-tree -r --name-only 051744a contains 0 host-config-backup / *.tgz paths"
+  },
+  "transcript_log": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.log",
+  "deviations": [
+    "ADR-0074 D-E pins npm v12 semantics; this host runs npm 11.19.1 — the registered flag-behaviors (script execution, git-dep approval) were recorded as observed on 11.19.1 rather than skipped"
+  ],
+  "verdict": "PASS — tip-pinned install claim re-verified at published tip"
+}

@@ -183,7 +183,8 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () => 
     const e = reg.entries.find(function (x) { return x.id === 'defer-0052'; });
     expect(e).toBeDefined();
     expect(e.source_adr).toContain('0072');
-    expect(e.status).toBe('pending-evaluation');
+    expect(e.status).toBe('closed');
+    expect(e.closed_via).toContain('T-2 dispositions');
     expect(e.review_at).toBe('2026-12-15');
     expect(e.subject).toContain('net-addition');
     expect(e.rationale).toContain('D-006(a)(i)');

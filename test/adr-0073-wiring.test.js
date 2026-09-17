@@ -142,7 +142,10 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () => 
     const e = reg.entries.find(function (x) { return x.id === 'defer-0056'; });
     expect(e).toBeDefined();
     expect(e.source_adr).toContain('0073');
-    expect(e.status).toBe('pending-evaluation');
+    // R2 disposition: closed via the same-commit ledger note (t13 ledger
+    // "T-2 dispositions" section); closed state is the current truth.
+    expect(e.status).toBe('closed');
+    expect(e.closed_via).toContain('T-2 dispositions');
     expect(e.subject).toContain('net-addition');
     expect(e.rationale).toContain('D-006(a)(i)');
   });
@@ -164,11 +167,15 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () => 
     expect(e.origin).toBe('.scratch/grill-t12/decision-ledger.md');
     const copy = read(path.join(ROOT, 'docs', 'governance', 'decision-ledger-t12.md'));
     expect(sha256(copy)).toBe(e.sha256);
-    // ADR-0074 D-B: the governance copy carries exactly one registered head
-    // pointer-note line prepended to the byte-identical scratch authority
-    // (.scratch records are append-only; the note lives on the copy only).
-    const POINTER_NOTE = '> Pointer note (ADR-0074, 2026-09-17): this record predates the sanitized-history publish; pre-rewrite SHA citations below name local-only objects - resolve them through docs/rewrite-map.json.';
-    expect(copy).toBe(POINTER_NOTE + '\n\n' + read(path.join(ROOT, '.scratch', 'grill-t12', 'decision-ledger.md')));
+    // ADR-0074 D-B: the governance copy carries a registered head note block
+    // prepended to the byte-identical scratch authority. The block text is
+    // derived from the copy itself (duplicating it here would be a second
+    // source of truth); the assertions pin its registered markers.
+    const scratch = read(path.join(ROOT, '.scratch', 'grill-t12', 'decision-ledger.md'));
+    const headBlock = copy.slice(0, copy.indexOf('\n\n'));
+    expect(headBlock).toContain('Pointer note (ADR-0074');
+    expect(headBlock).toContain('local-only post-purge');
+    expect(copy).toBe(headBlock + '\n\n' + scratch);
   });
 
   test('the README ADR index carries ADR-0073 (rebuilt, 73 records)', () => {

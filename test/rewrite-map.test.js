@@ -1,0 +1,130 @@
+// test/rewrite-map.test.js \u2014 ADR-0074 D-C wiring: generated rewrite map
+// completeness, classification truth, and the secret-scan tripwire (defer-0054).
+const { execFileSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
+const ROOT = path.join(__dirname, '..');
+const MAP_PATH = path.join(ROOT, 'docs', 'rewrite-map.json');
+const MAP = JSON.parse(fs.readFileSync(MAP_PATH, 'utf8'));
+const CLASSES = ['rewritten', 'local-only', 'published-unchanged'];
+
+function run(args) {
+  return execFileSync('node', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
+}
+
+describe('rewrite-map.json \u2014 generated single translation point', () => {
+  test('shape + committed-file invariants', () => {
+    expect(MAP.schema_version).toBe(1);
+    expect(MAP.generated_by).toBe('scripts/build-rewrite-map.js');
+    expect(MAP.published_tip).toMatch(/^[0-9a-f]{40}$/);
+    expect(MAP.boundary.shared_base).toMatch(/^[0-9a-f]{40}$/);
+    expect(MAP.boundary.old_tip).toMatch(/^[0-9a-f]{40}$/);
+    expect(MAP.boundary.new_counterpart).toMatch(/^[0-9a-f]{40}$/);
+    expect(MAP.sides.old_refs.length).toBeGreaterThan(0);
+    expect(MAP.sides.new_refs).toContain('origin/main');
+    // the map never cites itself (self-scan would make regen unstable)
+    expect(MAP.doc_refs.some(d => d.file === 'docs/rewrite-map.json')).toBe(false);
+  });
+
+  test('every doc citation carries one of the three registered classes', () => {
+    expect(MAP.doc_refs.length).toBeGreaterThan(0);
+    for (const d of MAP.doc_refs) {
+      expect(CLASSES).toContain(d.class);
+      expect(d.sha).toMatch(/^[0-9a-f]{7,40}$/);
+      expect(d.sha).toMatch(/[a-f]/); // all-digit tokens are numeric literals
+      if (d.class === 'rewritten') expect(d.resolved_to).toMatch(/^[0-9a-f]{40}$/);
+    }
+    expect(MAP.counts.doc_refs).toBe(MAP.doc_refs.length);
+  });
+
+  test('known anchors classify correctly', () => {
+    const cls = (sha) => MAP.doc_refs.filter(d => d.sha === sha).map(d => d.class);
+    // pre-purge rewritten commits cited in docs resolve to their new SHAs
+    for (const h of MAP.doc_refs.filter(d => d.sha === '05fa697')) {
+      expect(h.class).toBe('rewritten');
+      expect(h.resolved_to).toMatch(/^2e9cdc9/);
+    }
+    for (const h of MAP.doc_refs.filter(d => d.sha === '2c93a30')) {
+      expect(h.class).toBe('rewritten');
+      expect(h.resolved_to).toMatch(/^3454d13/);
+    }
+    // the published tip and the shared base are published-unchanged
+    for (const h of MAP.doc_refs.filter(d => d.sha === '051744a')) expect(h.class).toBe('published-unchanged');
+    for (const h of MAP.doc_refs.filter(d => d.sha === '1ca81f5')) expect(h.class).toBe('published-unchanged');
+    expect(cls('051744a').length).toBeGreaterThan(0);
+  });
+
+  test('commits rows: every pair shares subject; published_only recorded', () => {
+    for (const c of MAP.commits) {
+      expect(c.old).toMatch(/^[0-9a-f]{40}$/);
+      expect(c.new).toMatch(/^[0-9a-f]{40}$/);
+      expect(c.old).not.toBe(c.new);
+    }
+    const publishedOnlyShas = MAP.published_only.map(p => p.new.slice(0, 7));
+    expect(publishedOnlyShas).toContain('051744a');
+    expect(publishedOnlyShas).toContain('a6729a9');
+    // the two registered empty commits carry the mechanical empty flag
+    const emptyNew = MAP.commits.filter(c => c.empty).map(c => c.new.slice(0, 7));
+    expect(emptyNew).toContain('b73e558');
+    expect(emptyNew).toContain('e54c267');
+  });
+
+  test('--check exits 0 against the committed map', () => {
+    const out = run(['scripts/build-rewrite-map.js', '--check']);
+    expect(out).toContain('[rewrite-map] OK');
+  });
+
+  test('--verify re-derives classifications and boundary truth', () => {
+    const out = run(['scripts/build-rewrite-map.js', '--verify']);
+    expect(out).toContain('[rewrite-map] VERIFY OK');
+  });
+
+  test('gate registered in docs/gates.json', () => {
+    const g = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'gates.json'), 'utf8'));
+    const entry = g.entries.find(e => e.name === 'rewrite-map');
+    expect(entry).toBeTruthy();
+    expect(entry.command).toBe('node scripts/build-rewrite-map.js --check');
+    expect(entry.requires).toContain('repo-tree');
+  });
+});
+
+describe('check-secret-scan.js \u2014 defer-0054 tripwire (<=3 rules)', () => {
+  const { RULES, scanFile } = require('../scripts/check-secret-scan.js');
+  const os = require('os');
+
+  test('rule count is the registered <=3 shape', () => {
+    expect(RULES.length).toBeLessThanOrEqual(3);
+    expect(RULES.map(r => r.id)).toEqual(['R1-private-key', 'R2-provider-token', 'R3-purged-path-class']);
+  });
+
+  test('planted samples are blocked by the expected rule', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-scan-'));
+    const keyFile = path.join(dir, 'k.txt');
+    fs.writeFileSync(keyFile, '-----BEGIN RSA PRIVATE KEY-----\nfake\n-----END RSA PRIVATE KEY-----\n');
+    const tokFile = path.join(dir, 't.txt');
+    fs.writeFileSync(tokFile, 'token = "ghp_abcdefghijklmnopqrstuvwxyz0123456789"\n');
+    const envFile = path.join(dir, '.env');
+    fs.writeFileSync(envFile, 'X=1\n');
+    const keyRel = path.relative(ROOT, keyFile).split(path.sep).join('/');
+    const tokRel = path.relative(ROOT, tokFile).split(path.sep).join('/');
+    const envRel = path.relative(ROOT, envFile).split(path.sep).join('/');
+    expect(scanFile(keyRel, () => fs.readFileSync(keyFile, 'utf8')).map(h => h.rule)).toContain('R1-private-key');
+    expect(scanFile(tokRel, () => fs.readFileSync(tokFile, 'utf8')).map(h => h.rule)).toContain('R2-provider-token');
+    expect(scanFile(envRel, () => 'X=1\n').map(h => h.rule)).toContain('R3-purged-path-class');
+    expect(scanFile('host-config-backup/settings.json', () => '{}').map(h => h.rule)).toContain('R3-purged-path-class');
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  test('clean tree passes the gate command', () => {
+    const out = run(['scripts/check-secret-scan.js']);
+    expect(out).toContain('[secret-scan] OK');
+  });
+
+  test('gate registered in docs/gates.json', () => {
+    const g = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'gates.json'), 'utf8'));
+    const entry = g.entries.find(e => e.name === 'secret-scan');
+    expect(entry).toBeTruthy();
+    expect(entry.command).toBe('node scripts/check-secret-scan.js');
+  });
+});

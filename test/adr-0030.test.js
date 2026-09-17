@@ -165,7 +165,7 @@ describe('audit fixes (2026-08-29): F2/F3/T2', () => {
   });
 
   test('F3: load() treats a tampered ledger tail as broken chain -> degraded', () => {
-    const tmpRoot = path.join(os.tmpdir(), 'jiahao-adr0030-f3').replace(/\\/g, '/');
+    const tmpRoot = fs2.mkdtempSync(path.join(os.tmpdir(), 'jiahao-adr0030-f3-')).replace(/\\/g, '/');
     fs2.rmSync(tmpRoot, { recursive: true, force: true });
     fs2.mkdirSync(tmpRoot + '/bench/polygraph', { recursive: true });
     fs2.writeFileSync(tmpRoot + '/bench/polygraph/deadline.json', fs2.readFileSync(path.join(__dirname, '..', 'bench', 'polygraph', 'deadline.json'), 'utf8'), 'utf8');
@@ -179,7 +179,7 @@ describe('audit fixes (2026-08-29): F2/F3/T2', () => {
   });
 
   test('F3: a valid fresh ledger stays fresh through load()', () => {
-    const tmpRoot = path.join(os.tmpdir(), 'jiahao-adr0030-f3b').replace(/\\/g, '/');
+    const tmpRoot = fs2.mkdtempSync(path.join(os.tmpdir(), 'jiahao-adr0030-f3b-')).replace(/\\/g, '/');
     fs2.rmSync(tmpRoot, { recursive: true, force: true });
     fs2.mkdirSync(tmpRoot + '/bench/polygraph', { recursive: true });
     fs2.writeFileSync(tmpRoot + '/bench/polygraph/deadline.json', fs2.readFileSync(path.join(__dirname, '..', 'bench', 'polygraph', 'deadline.json'), 'utf8'), 'utf8');

@@ -1,4 +1,5 @@
 > Pointer note (ADR-0074, 2026-09-17): this record predates the sanitized-history publish; pre-rewrite SHA citations below name local-only objects - resolve them through docs/rewrite-map.json.
+> Annotation (ADR-0074 D-B, 2026-09-17): D-003's "历史 blob 保留" reads local-only post-purge - the retained pre-rewrite objects live on local refs (gb-local/*) and are unreachable from origin/*.
 
 # Decision Ledger - grill-t12
 

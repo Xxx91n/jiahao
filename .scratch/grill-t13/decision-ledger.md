@@ -113,3 +113,32 @@
 
 **状态**: current
 
+
+## T-2 dispositions (R2 action round, 2026-09-17)
+
+Executed under the R1 stage gate; each row names its evidence. This section is the
+same-commit ledger note that closes the four net-addition tally rows.
+
+- defer-0050 (t11 net-addition tally) — CLOSED. Review executed: the t11 tally row
+  exists in docs/governance/trend-inventory.json and the +1 delta is recorded;
+  nothing left to disposition.
+- defer-0051 (cap-review slot for the K=2 advisory tide) — CLOSED. The advisory
+  mechanism itself is live (ADR-0064 D-F replay) and the cap question was reviewed
+  as part of this disposition pass; no rule change warranted.
+- defer-0052 (t12 net-addition tally) — CLOSED. Same review shape as defer-0050.
+- defer-0056 (t13 doc-round tally) — CLOSED. Same review shape.
+- defer-0053 (collection-side provenance field) — stays DEFERRED; unfreeze
+  condition frozen this round (unfreeze_frozen: true) so it cannot drift silently.
+- defer-0054 (pre-commit secret/topology scanner) — ACTIONED: repo-side pattern
+  scanner scripts/check-secret-scan.js (3 rules, zero-dep, git ls-files scope) +
+  secret-scan gate in docs/gates.json + blocking self-test in
+  test/rewrite-map.test.js. unfreeze_if retained for the full gitleaks-class revisit.
+- defer-0055 (organic routing-rate watch) — stays pending-evaluation on quarterly
+  cadence; organic trigger retained; closes_if registered: six consecutive months
+  of organic=0 quarterly check-ins closes the watch as expired.
+- defer-0058 — NEW standing item: per-round deferred-registry net-increment review.
+- O-D (three files missing trailing newline) — boy-scout fixed in R2
+  (test/fixtures/host-contracts.json; the other two were already LF-terminated);
+  never entered the registry — downgraded as a hygiene pickup, closed here.
+- O-E (telemetry export breadth) — stays deferred as an observation; the
+  segmented checkpoint export lands this round under .scratch/grill-t13/.

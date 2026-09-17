@@ -40,7 +40,13 @@ const ISO_DATE = new RegExp('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
 const TYPES = ['presence-condition', 'count-threshold', 'external-event', 'free-text'];
 const NON_EVALUABLE = ['external-event', 'free-text'];
 const EVALUABLE = ['presence-condition', 'count-threshold'];
-const STATUSES = ['deferred', 'pending-evaluation'];
+const STATUSES = ['deferred', 'pending-evaluation', 'closed', 'actioned'];
+// ADR-0074 D-E (R2 dispositions): terminal dispositions. 'closed' = review
+// executed and dispositioned (same-commit ADR or ledger note); 'actioned' =
+// the deferred work was performed. Terminal rows stay in the registry so
+// trend-inventory deferred_entry references keep resolving; they carry
+// closure fields and are exempt from freshness/semantics/SLA/discipline.
+const TERMINAL = ['closed', 'actioned'];
 const TIERS = ['quarterly', 'half-yearly', 'yearly'];
 const TIER_DAYS = { quarterly: 92, 'half-yearly': 183, yearly: 365 };
 const DAY_MS = 86400000;
@@ -99,6 +105,14 @@ function validateShape(cfg) {
     }
     if (typeof e.review_at !== 'string' || !ISO_DATE.test(e.review_at)) { errors.push(tag + ': review_at must be an ISO date YYYY-MM-DD'); } else if (!isRealDate(e.review_at)) { errors.push(tag + ': review_at is not a real calendar date'); }
     if (!STATUSES.includes(e.status)) errors.push(tag + ': status must be one of ' + STATUSES.join('|') + ', got ' + e.status);
+    if (e.status === 'closed') {
+      if (typeof e.closed_at !== 'string' || !ISO_DATE.test(e.closed_at) || !isRealDate(e.closed_at)) errors.push(tag + ': closed requires closed_at (ISO date)');
+      if (typeof e.closed_via !== 'string' || e.closed_via.length < 10) errors.push(tag + ': closed requires closed_via (same-commit ADR or ledger note)');
+    }
+    if (e.status === 'actioned') {
+      if (typeof e.actioned_at !== 'string' || !ISO_DATE.test(e.actioned_at) || !isRealDate(e.actioned_at)) errors.push(tag + ': actioned requires actioned_at (ISO date)');
+      if (typeof e.actioned_via !== 'string' || e.actioned_via.length < 10) errors.push(tag + ': actioned requires actioned_via');
+    }
     shapeExtras(e, tag, errors);
   }
   return errors;
@@ -110,12 +124,13 @@ function validateEntries(cfg, sources, thresholds, now) {
   for (const e of cfg.entries || []) {
     if (!e || typeof e.id !== 'string') continue;
     const tag = e.id;
-    // freshness: expiry forces action
-    if (typeof e.review_at === 'string' && ISO_DATE.test(e.review_at) && e.review_at < now) {
+    const terminal = TERMINAL.indexOf(e.status) !== -1;
+    // freshness: expiry forces action (terminal rows are exempt)
+    if (!terminal && typeof e.review_at === 'string' && ISO_DATE.test(e.review_at) && e.review_at < now) {
       errors.push(tag + ': STALE - review_at ' + e.review_at + ' is before ' + now + ' (ADR-0033 D4: activate, re-defer with new review_at + rationale, or remove)');
     }
     // D3 status semantics + ADR-0035 D6 verified-by enforcement
-    if (e.unfreeze_if && TYPES.includes(e.unfreeze_if.type)) {
+    if (!terminal && e.unfreeze_if && TYPES.includes(e.unfreeze_if.type)) {
       if (NON_EVALUABLE.indexOf(e.unfreeze_if.type) !== -1 && e.status !== 'pending-evaluation') {
         errors.push(tag + ': ' + e.unfreeze_if.type + ' is not machine-evaluable; status must be pending-evaluation (ADR-0033 D3)');
       }
@@ -130,7 +145,7 @@ function validateEntries(cfg, sources, thresholds, now) {
       }
     }
     // ADR-0035 D2 residency SLA: pending-evaluation outstays min(2 cycles, 12 months) -> fail
-    if (e.status === 'pending-evaluation' && typeof e.registered_at === 'string' && isRealDate(e.registered_at) && TIER_DAYS[e.cadence_tier]) {
+    if (!terminal && e.status === 'pending-evaluation' && typeof e.registered_at === 'string' && isRealDate(e.registered_at) && TIER_DAYS[e.cadence_tier]) {
       const cap = Math.min(2 * TIER_DAYS[e.cadence_tier], 365);
       if (daysBetween(e.registered_at, now) > cap) {
         errors.push(tag + ': pending-evaluation residency SLA breached (' + daysBetween(e.registered_at, now) + 'd > ' + cap + 'd cap; ADR-0035 D2: activate, re-defer with new review_at + rationale, or remove)');
@@ -166,6 +181,7 @@ function validateDiscipline(cfg, now) {
   const warnings = [];
   for (const e of cfg.entries || []) {
     if (!e || typeof e.id !== 'string' || !e.unfreeze_if) continue;
+    if (TERMINAL.indexOf(e.status) !== -1) continue;
     if (e.unfreeze_if.type !== 'external-event') continue;
     const cyc = TIER_DAYS[e.cadence_tier];
     if (!e.last_check_in || !isRealDate(e.last_check_in.date || '')) {
@@ -248,7 +264,9 @@ function main() {
   }
   for (const w of validateDiscipline(cfg, now)) console.warn('WARN: ' + w);
   for (const s of evalSuggestions(cfg)) console.log(s);
-  console.log('[deferred] OK - ' + cfg.entries.length + ' deferred entries' + (baseRef ? '' : ' (no base ref: coupling skipped)'));
+  const liveN = cfg.entries.filter(function (e) { return TERMINAL.indexOf(e.status) === -1; }).length;
+  const termN = cfg.entries.length - liveN;
+  console.log('[deferred] OK - ' + cfg.entries.length + ' entries (' + liveN + ' live, ' + termN + ' closed/actioned)' + (baseRef ? '' : ' (no base ref: coupling skipped)'));
   if (baseRef) {
     const c = checkCoupling(baseRef);
     if (c.length) { for (const e of c) console.error('FAIL: ' + e); process.exit(1); }

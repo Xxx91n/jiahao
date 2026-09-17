@@ -121,11 +121,11 @@ describe('README + governance-surface sync', () => {
     expect(r).toContain('docs/rewrite-map.json');
   });
 
-  test('the Install verified-at slot is reserved with suspended wording', () => {
+  test('the Install verified-at note is filled (R2 re-verification passed)', () => {
     const r = read(README);
     expect(r).toContain('**Install-channel verification (ADR-0074 D-D).**');
-    expect(r).toContain('tip-pinned claim is suspended pending re-verification');
-    expect(r).toContain('verified-at-published-tip:<full-sha>');
+    expect(r).toContain('verified-at-published-tip:051744a7a1b4027a42720814c819bf051e0831a8');
+    expect(r).not.toContain('suspended pending re-verification');
   });
 
   test('the README ADR index carries ADR-0074 (rebuilt, 74 records)', () => {
@@ -179,5 +179,53 @@ describe('frozen surfaces this round must not touch', () => {
     expect(s13.kind).toBe('criteria_change');
     expect(s13.event_hash).toBe('d025289f5279c3751f0f50abbb331893861bed412eeb072e3d7e13be4e6b4006');
     expect(s13.second_reviewer).toBe('Xxx91n');
+  });
+});
+
+describe('R2 action round (2026-09-17): map, re-verification note, dispositions', () => {
+  test('docs/rewrite-map.json is the generated, classified translation point', () => {
+    const m = readJson(path.join(ROOT, 'docs', 'rewrite-map.json'));
+    expect(m.schema_version).toBe(1);
+    expect(m.generated_by).toBe('scripts/build-rewrite-map.js');
+    expect(m.published_tip).toBe('051744a7a1b4027a42720814c819bf051e0831a8');
+    expect(m.commits.length).toBe(15);
+    expect(m.counts.doc_refs).toBe(m.doc_refs.length);
+    expect(m.doc_refs.length).toBeGreaterThan(0);
+  });
+
+  test('README carries the filled verified-at-published-tip note (re-verification passed)', () => {
+    const r = read(README);
+    expect(r).toContain('verified-at-published-tip:051744a7a1b4027a42720814c819bf051e0831a8');
+    expect(r).toContain('clean-env-reverify');
+    expect(r).not.toContain('suspended pending re-verification');
+  });
+
+  test('reverify evidence artifact exists with all five assertions PASS', () => {
+    const ev = readJson(path.join(ROOT, '.scratch', 'grill-t13', 'audit-evidence', 'reverify-2026-09-17.json'));
+    expect(ev.resolved_sha).toBe('051744a7a1b4027a42720814c819bf051e0831a8');
+    expect(ev.clone_rev_parse).toBe(ev.resolved_sha);
+    for (const k of Object.keys(ev.assertions)) expect(ev.assertions[k]).toMatch(/^PASS/);
+    expect(ev.verdict).toContain('PASS');
+  });
+
+  test('registry terminal dispositions landed (closed/actioned rows keep resolving)', () => {
+    const reg = readJson(path.join(ROOT, 'docs', 'deferred-registry.json'));
+    const by = id => reg.entries.find(e => e.id === id);
+    for (const id of ['defer-0050', 'defer-0051', 'defer-0052', 'defer-0056']) {
+      expect(by(id).status).toBe('closed');
+      expect(by(id).closed_via).toContain('T-2 dispositions');
+    }
+    expect(by('defer-0054').status).toBe('actioned');
+    expect(by('defer-0054').actioned_via).toContain('check-secret-scan');
+    expect(by('defer-0054').unfreeze_if).toBeDefined(); // unfreeze retained per task book
+    expect(by('defer-0053').unfreeze_frozen).toBe(true);
+    expect(by('defer-0055').closes_if.check).toContain('six consecutive months');
+    expect(by('defer-0058').status).toBe('pending-evaluation');
+  });
+
+  test('secret-scan and rewrite-map gates are registered', () => {
+    const g = readJson(path.join(ROOT, 'docs', 'gates.json'));
+    expect(g.entries.some(e => e.name === 'secret-scan')).toBe(true);
+    expect(g.entries.some(e => e.name === 'rewrite-map')).toBe(true);
   });
 });

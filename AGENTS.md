@@ -26,3 +26,6 @@ docs/agents/domain.md.
 - When reporting artifacts in chat (specs, plans, ledgers, handoffs, diffs),
   cite every file by its full absolute path; never report only a bare
   filename or repo-relative path.
+- Intermediate commits inside a round may be red (t12 audit O-B); only the
+  round-final state must be green. A red mid-round commit is not a defect —
+  it is disclosed in the round report rather than silently amended.

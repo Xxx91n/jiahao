@@ -400,6 +400,30 @@
         "repo-tree"
       ],
       "_doc": "ADR-0070 D-A clause 4: the frozen devin-corpus@v3 corpus converted to the pairer continuous regression gate. Replays items.jsonl through the SHIPPED artifact src/capa-pairer.js and diffs {family,state,claim,evidence,reason} against the stored v3 report rows; also re-derives the artifact sha256 against the registered pin. Not a re-adjudication: labels are never consulted, no verdict is recomputed. Fail-closed on drift."
+    },
+    {
+      "name": "rewrite-map",
+      "command": "node scripts/build-rewrite-map.js --check",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md",
+      "order": 208,
+      "params": {
+        "check": true
+      },
+      "requires": [
+        "repo-tree"
+      ]
+    },
+    {
+      "name": "secret-scan",
+      "command": "node scripts/check-secret-scan.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md",
+      "order": 218,
+      "requires": [
+        "repo-tree"
+      ],
+      "params": {}
     }
   ]
 }

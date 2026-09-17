@@ -723,10 +723,12 @@
       "cadence_tier": "quarterly",
       "registered_at": "2026-09-16",
       "last_check_in": {
-        "date": "2026-09-16",
-        "note": "net additions +1 (ADR-0070); registered in the grill-t10 doc round"
+        "date": "2026-09-17",
+        "note": "R2 net-addition review executed: tally rows verified against trend inventory and ADR registrations; disposition recorded in the same-commit ledger note"
       },
-      "status": "pending-evaluation"
+      "status": "closed",
+      "closed_at": "2026-09-17",
+      "closed_via": "same-commit ledger note: .scratch/grill-t13/decision-ledger.md section \"T-2 dispositions (R2)\""
     },
     {
       "id": "defer-0051",
@@ -741,10 +743,12 @@
       "cadence_tier": "quarterly",
       "registered_at": "2026-09-16",
       "last_check_in": {
-        "date": "2026-09-16",
-        "note": "registered in the grill-t10 implementation round (T-2 conviction-lane surface)"
+        "date": "2026-09-17",
+        "note": "R2 net-addition review executed: tally rows verified against trend inventory and ADR registrations; disposition recorded in the same-commit ledger note"
       },
-      "status": "pending-evaluation"
+      "status": "closed",
+      "closed_at": "2026-09-17",
+      "closed_via": "same-commit ledger note: .scratch/grill-t13/decision-ledger.md section \"T-2 dispositions (R2)\""
     },
     {
       "id": "defer-0052",
@@ -759,10 +763,12 @@
       "cadence_tier": "quarterly",
       "registered_at": "2026-09-16",
       "last_check_in": {
-        "date": "2026-09-16",
-        "note": "net additions +1 (ADR-0072); registered in the grill-t11 doc round"
+        "date": "2026-09-17",
+        "note": "R2 net-addition review executed: tally rows verified against trend inventory and ADR registrations; disposition recorded in the same-commit ledger note"
       },
-      "status": "pending-evaluation"
+      "status": "closed",
+      "closed_at": "2026-09-17",
+      "closed_via": "same-commit ledger note: .scratch/grill-t13/decision-ledger.md section \"T-2 dispositions (R2)\""
     },
     {
       "id": "defer-0053",
@@ -778,9 +784,10 @@
       "registered_at": "2026-09-17",
       "last_check_in": {
         "date": "2026-09-17",
-        "note": "analysis-side classification live (ADR-0073 D-A); collection-side field is the durable follow-up"
+        "note": "R2 disposition: stays deferred; unfreeze condition frozen (unfreeze_frozen) — no silent widening"
       },
-      "status": "pending-evaluation"
+      "status": "pending-evaluation",
+      "unfreeze_frozen": true
     },
     {
       "id": "defer-0054",
@@ -798,7 +805,9 @@
         "date": "2026-09-17",
         "note": "registered as recurrence-prevention agenda after the O-2 disposition (untrack + forward rule + zero-external-exposure window on record)"
       },
-      "status": "pending-evaluation"
+      "status": "actioned",
+      "actioned_at": "2026-09-17",
+      "actioned_via": "R2 repo-side pattern scanner scripts/check-secret-scan.js (3 rules) + secret-scan gate in docs/gates.json + blocking self-test in test/rewrite-map.test.js"
     },
     {
       "id": "defer-0055",
@@ -814,9 +823,13 @@
       "registered_at": "2026-09-17",
       "last_check_in": {
         "date": "2026-09-17",
-        "note": "first segmented summary: organic 0 / automated_harness 29 / synthetic_selfcheck 2 / unclassified 0 (live chain, 31 records)"
+        "note": "R2 disposition: quarterly cadence confirmed; organic trigger kept in unfreeze_if; six-months-zero closure condition registered in closes_if"
       },
-      "status": "pending-evaluation"
+      "status": "pending-evaluation",
+      "closes_if": {
+        "type": "external-event",
+        "check": "six consecutive months with organic=0 at every quarterly check-in -> close the watch as expired (no organic lane traffic ever observed)"
+      }
     },
     {
       "id": "defer-0056",
@@ -832,9 +845,11 @@
       "registered_at": "2026-09-17",
       "last_check_in": {
         "date": "2026-09-17",
-        "note": "net additions +1 (ADR-0073); registered in the grill-t12 doc round"
+        "note": "R2 net-addition review executed: tally rows verified against trend inventory and ADR registrations; disposition recorded in the same-commit ledger note"
       },
-      "status": "pending-evaluation"
+      "status": "closed",
+      "closed_at": "2026-09-17",
+      "closed_via": "same-commit ledger note: .scratch/grill-t13/decision-ledger.md section \"T-2 dispositions (R2)\""
     },
     {
       "id": "defer-0057",
@@ -851,6 +866,24 @@
       "last_check_in": {
         "date": "2026-09-17",
         "note": "net additions +1 (ADR-0074); registered in the grill-t13 doc round"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0058",
+      "subject": "standing cadence: per-round deferred-registry net-increment review (each documentation round's ADR delta gets a tally row and a disposition at the next trend-anchor evaluation)",
+      "source_adr": "docs/adr/0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md",
+      "rationale": "the R2 review of defer-0050/0051/0052/0056 showed net-addition tally rows accumulate without a standing review cadence; this entry makes the per-round net-increment review a registered, repeating agenda item instead of ad-hoc cleanup",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "reviewed and dispositioned at each trend-anchor evaluation round; closes when a round lands zero net registry additions AND no tally rows remain open"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-17",
+      "last_check_in": {
+        "date": "2026-09-17",
+        "note": "registered in R2 as the standing net-increment review item (defer-0050/51/52/56 closed this round)"
       },
       "status": "pending-evaluation"
     }

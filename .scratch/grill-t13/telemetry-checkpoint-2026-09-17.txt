@@ -1,0 +1,9 @@
+[pairer-lane] events=31 sessions=31 flagged=2 consistent=0 undetermined=29 (rate 93.5%) mode shadow=31 enforce=0
+[pairer-lane] provenance: organic=0 automated_harness=29 synthetic_selfcheck=2 unclassified=0
+[pairer-lane] flagged by provenance: organic=0 automated_harness=0 synthetic_selfcheck=2 unclassified=0
+[pairer-lane] window: first=2026-09-16T16:46:46.710Z last=2026-09-16T23:56:05.620Z span_days=0.298 (G1 usage-cycle leg: owner-judged, not machine-pinned)
+[pairer-lane] latency_ms p50=2 p99=3 max=3
+[pairer-lane]   exit-report: flagged=2 consistent=0 undetermined=0
+[pairer-lane]   (unrouted): flagged=0 consistent=0 undetermined=28
+[pairer-lane]   file-contains: flagged=0 consistent=0 undetermined=1
+[pairer-lane] promotion inputs: G1(>=200 organic)=false (organic=0) G3(undet<=90%)=false G4(p99<=1s)=true; G2 stays a human review
