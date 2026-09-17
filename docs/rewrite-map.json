@@ -2,8 +2,8 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-17T15:21:58.654Z",
-  "published_tip": "58d0ffcd172d60a2b569c4f5407a3f76e0bad8db",
+  "generated_at": "2026-09-17T15:26:49.512Z",
+  "published_tip": "613351009753c75febfc2a5b0a4f044addafcbff",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
     "old_tip": "2c93a30a5495219d0d2385f25d19af23e729852f",
@@ -20,7 +20,7 @@
   },
   "counts": {
     "commits": 15,
-    "published_only": 23,
+    "published_only": 24,
     "removed": 0,
     "same": 278,
     "doc_refs": 1342,
@@ -111,6 +111,10 @@
   ],
   "removed": [],
   "published_only": [
+    {
+      "new": "613351009753c75febfc2a5b0a4f044addafcbff",
+      "subject": "chore(grill-t14): rewrite-map regen after landing - published_tip advances past t14 stack, 23 published-only, 15 pairs stable"
+    },
     {
       "new": "58d0ffcd172d60a2b569c4f5407a3f76e0bad8db",
       "subject": "chore(grill-t14): rewrite-map regen after audit artifacts - 1342 citations, 15 pairs stable"
