@@ -502,6 +502,41 @@
       "event_timestamp": "2026-09-16T16:37:32.718Z",
       "logging_timestamp": "2026-09-16T16:37:32.718Z",
       "event_hash": "78835c352bbc8db62662c3650969654e512e8672968542b000c6dbe1309df5a4"
+    },
+    {
+      "seq": 21,
+      "kind": "record_only_change",
+      "identity_digest": "c68d49c60e87e581f827b7066ba01b3dab646843aa23bc5c5ff5781f719458b9",
+      "reverify_ledger_hash": null,
+      "bias_probe_hash": null,
+      "reviewer_id": null,
+      "second_reviewer": null,
+      "attestation_type": null,
+      "timestamp": "2026-09-17T01:53:46.724Z",
+      "prev_hash": "78835c352bbc8db62662c3650969654e512e8672968542b000c6dbe1309df5a4",
+      "surface": "schedule_gate",
+      "maker_id": "Euiop1",
+      "authorization": "本会话指示: 读取 .scratch/grill-t12/handoffs/next-round.md 作为常驻任务书，完整遵循它 | scope: grill-t12 closure+stewardship round (T-1 docs + T-2 ordered actions) | expiry: this session end",
+      "before": {
+        "provenance": "none - 31 lane records one unlabeled population; frozen G1 would count all",
+        "carried_items": "F-A1 tgz tracked; O-2 host backup tracked; O-1 measured-present flip pending trigger-met; W-1 substrate divergence undocumented; W-2 naming-convention exclusion only"
+      },
+      "after": {
+        "adr": "ADR-0073 accepted (grill-t12 D-001..D-004): provenance-tiered corpus (4 classes, mechanical session-to-project-dir rule, conservative unclassified fallback, no deletion); G1 amended to organic-only counting - tightening-only, forward-effective, measured count resets 31->0",
+        "registrations": "defer-0053 collection-side provenance field (instrument agenda); defer-0054 pre-commit scanner gitleaks-class (O-2 recurrence prevention); defer-0055 organic routing-rate watch; defer-0056 net-addition tally",
+        "dispositions": "F-A1/O-2 untrack ordered with .gitignore-first; O-1 flip + W-1 substrate note + claim-home parenthetical queued for R2 same commit; dry-run shape + checkpoint cadence + diversity framework registered",
+        "boundary": "R1 doc commit is the stage gate - no untrack/flip/relabel precedes it"
+      },
+      "identity_triple": {
+        "rules_digest": "f6c6c843c4ad4151f709345d86079f4a5e0c7d216305155f75e7329638bc6154",
+        "model_checkpoint_digest": "UNRESOLVED",
+        "inference_config_hash": "41c7df6354424a59180ae855de4afc764b38b1ddfd2aec9312d9195342fecac7",
+        "triple_hash": "c68d49c60e87e581f827b7066ba01b3dab646843aa23bc5c5ff5781f719458b9"
+      },
+      "escalation": "none",
+      "event_timestamp": "2026-09-17T01:53:46.724Z",
+      "logging_timestamp": "2026-09-17T01:53:46.724Z",
+      "event_hash": "6b8b4407d8363e5f2e6263a4ac83c92cf3e0d8f69adf7ba97ba492395e93f1b3"
     }
   ],
   "certification_mode": "conditional",

@@ -2,7 +2,7 @@
 
 Status: Accepted (user-ratified 2026-09-16 via grill-t10 decision ledger D-001..D-007; second_reviewer countersign deferred to the next audit round - the ADR-0065/0066/0067/0069 ratification pattern)
 Date: 2026-09-16
-Amended by: ADR-0072 D-D (G2 gains independent second-line review before the flip is evaluated) and D-F (claim sentence-1 parenthetical: `present` disclosed as documented-to-deliver)
+Amended by: ADR-0072 D-D (G2 gains independent second-line review before the flip is evaluated) and D-F (claim sentence-1 parenthetical: `present` disclosed as documented-to-deliver); ADR-0073 D-B (G1 narrowed to organic events under provenance-tiered counting) and D-C (O-1: `measured-present` flip executed; claim sentence-1 parenthetical superseded with the evidence layer; O-2/W-1 dispositions)
 
 References: ADR-0069 (the adjudicated pairer artifact this lane ships),
 ADR-0067 D-C (per-mention claim binding, the registry the lane claim block
@@ -282,3 +282,24 @@ registration, under the ADR-0062/0066/0071 precedent.
    reachability-label honesty (ADR-0072 D-F). The `measured-present` word
    slot joins the host-contract enum and stays unused until the first real
    claude-code lane-bearing Stop event.
+
+## Amendment note (2026-09-17, ADR-0073)
+
+Two further registered amendments ride the ADR-0073 discipline. The body above
+keeps its registered text; the amendment channel is this note plus the
+ADR-0073 registration, under the same ADR-0062/0066/0071 precedent.
+
+1. D-B criterion G1 (provenance-tiered, tightening-only): ">= 200 real Stop
+   events carrying lane records" is narrowed to ">= 200 organic Stop events
+   carrying lane records" under the provenance classes registered in ADR-0073
+   D-A (organic / automated_harness / synthetic_selfcheck / unclassified).
+   Forward-effective from registration; the measured count resets 31 -> 0
+   organic - away from the target, the only clean direction for a post-hoc
+   amendment. G2 (as amended by ADR-0072 D-D), G3, G4 are untouched.
+2. D-E claim sentence 1 / D-C(c) word slot: the first real claude-code
+   lane-bearing Stop events landed (the grill-t11 audit's O-1 trigger), so
+   the three claude-code contracts' `transcript_file` flips `present` ->
+   `measured-present`, and the claim homes' parenthetical is superseded by
+   "currently `measured-present` (live-observed: independent-audit
+   reproduction + automated-harness events; organic pending) only for
+   claude-code" - the evidence layer is mandatory (ADR-0073 D-C O-1).

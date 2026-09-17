@@ -763,6 +763,78 @@
         "note": "net additions +1 (ADR-0072); registered in the grill-t11 doc round"
       },
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0053",
+      "subject": "collection-side provenance field on lane records (instrument agenda: write-time provenance vs analysis-side classification)",
+      "source_adr": "docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md",
+      "rationale": "ADR-0073 D-A registers analysis-side provenance classification (session->project-dir mechanical rule) as this round's bridge; the durable form is a record field written at lane-write time so classification never depends on transcript availability after the fact. Registered as an instrument agenda, not this round's scope (ledger D-002 bounds this round to the analysis side).",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a same-commit ADR registers the collection-side provenance field (record schema evolution discipline, ADR-0023 D4) and the lane writes it on new records"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-17",
+      "last_check_in": {
+        "date": "2026-09-17",
+        "note": "analysis-side classification live (ADR-0073 D-A); collection-side field is the durable follow-up"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0054",
+      "subject": "pre-commit secret/topology scanner (gitleaks class) - recurrence prevention for host-config material entering git-tracked dirs (O-2)",
+      "source_adr": "docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md",
+      "rationale": "ADR-0073 D-C O-2: the host settings backup reached the index inside git-tracked .scratch before anyone noticed; the forward rule (host config backups never enter git-tracked dirs) is registered and the gitignore clause is live, but a rule without a scanner depends on vigilance - the Re-Execution Prior says every catch so far came from re-execution or audit, not self-disclosure. A gitleaks-class pre-commit scan is the registered prevention agenda; selection is out of this round's scope.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a pre-commit scanner is selected and wired (pre-commit hook or CI job) covering secrets AND host-topology material (proxy endpoints, absolute host paths)"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-17",
+      "last_check_in": {
+        "date": "2026-09-17",
+        "note": "registered as recurrence-prevention agenda after the O-2 disposition (untrack + forward rule + zero-external-exposure window on record)"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0055",
+      "subject": "organic routing-rate watch - does organic lane traffic ever arrive (provenance-tiered G1 leg observable per round)",
+      "source_adr": "docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md",
+      "rationale": "ADR-0073 D-B narrows G1 to organic events and the organic leg currently reads 0; the standing question is whether real usage traffic ever reaches the lane. The segmented telemetry summary (R-b checkpoint cadence: every grill round close + mandatory before promotion review) makes this observable each round without a new process.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "organic lane records appear on the chain (organic > 0 in a segmented summary) or the bake protocol is re-opened by a same-commit ADR"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-17",
+      "last_check_in": {
+        "date": "2026-09-17",
+        "note": "first segmented summary: organic 0 / automated_harness 29 / synthetic_selfcheck 2 / unclassified 0 (live chain, 31 records)"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0056",
+      "subject": "grill-t12 doc round net-addition tally: +1 ADR (ADR-0073 provenance-tiered corpus + G1 organic amendment + audit carry-over dispositions F-A1/O-1/W-1/O-2 + bake stewardship protocol) - D-006(a)(i) summary row",
+      "source_adr": "docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md",
+      "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t12 documentation round lands one new ADR (0073: the four provenance classes with the mechanical session->project-dir rule and conservative unclassified fallback, the tightening-only G1 organic amendment, the carried-item dispositions with registered wording, and the bake stewardship protocol - dry-run shape, checkpoint cadence, diversity-qualifier framework). The round also touches scripts/pairer-lane-telemetry.js (segmented output), test/fixtures/host-contracts.json (measured-present flip), scripts/build-governance-anchors.js (t12 ledger row) and the claim homes' sentence-1 parenthetical - registration-surface changes; no shipped runtime behavior moves.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-17",
+      "last_check_in": {
+        "date": "2026-09-17",
+        "note": "net additions +1 (ADR-0073); registered in the grill-t12 doc round"
+      },
+      "status": "pending-evaluation"
     }
   ]
 }
