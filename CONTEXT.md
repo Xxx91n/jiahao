@@ -627,6 +627,48 @@ recount to pass.
 _Avoid_: loosening a frozen criterion after seeing measurements; recounting
 retroactively under a new rule to claim progress (ledger t12 D-002)
 
+**Sanitized-History Publish (清洗发布)**
+An owner-ordered history rewrite performed before merge-to-main + push:
+sensitive paths are removed so no published tree ever carries them, and every
+post-rewrite commit receives a new object name while earlier history is
+unchanged. For consumers the event is a bounded break: tip-region SHAs change,
+never-pushed local objects are classed local-only, and the rewrite itself must
+be disclosed because undisclosed rewrites match the supply-chain threat
+profile (ledger t13 D-001, D-003).
+_Avoid_: silent rewrite; claiming "blob retained" without stating it is
+local-object-store-only after purge; rewriting already-depended-on history
+
+**Rewrite Map (重写映射表)**
+The append-only old→new SHA resolution table (docs/rewrite-map.json) generated
+by aligning pre-purge refs (gb-local) with published history via commit
+messages, plus a three-class classification of every SHA cited in tracked
+docs: rewritten→new / local-only / published-unchanged. It is the single
+translation point — append-only record files are never edited to add pointers,
+and governance-surface files carry one pointer note each (ledger t13 D-003).
+_Avoid_: editing historical records in place; hand-built mappings; expanding
+local-only entries beyond SHA+label; partial coverage (incomplete = new
+inconsistency)
+
+**Tip-Pinned Install Claim (tip 钉死安装宣称)**
+The install-channel reproducibility claim binds to the specific published tip
+it was re-verified on; any history rewrite auto-invalidates it pending fresh
+re-verification. Re-verification depth is claim-evidence matched: install
+success + installed-artifact liveness smoke + whitelist diff (diff ⊆
+registered sanitize hunks), with evidence recording resolved SHA, clone
+rev-parse, npm version, and allow-flags (ledger t13 D-002).
+_Avoid_: copying npm's resolved field alone (npm/git#252); full-suite re-runs
+(claim inflation); byte-identical equivalence assertions
+
+**Independence-Grade Declaration (独立性等级声明)**
+Every audit report must state the verifier's actual independence level — a
+second party sharing the same session/toolchain is weak-independent and must
+say so. Independent-verification triggers are rule-registered (external
+claims, sanitization-zone touches, risk threshold), not per-round
+deliberation; ordinary engineering rounds take the light close (ledger t13
+D-005).
+_Avoid_: ritual rubber-stamp audits; zero independent review of external
+claims; unlabelled independence
+
 ## Decision Log
 
 **Self-Preference Bias (自偏好偏差)**:
