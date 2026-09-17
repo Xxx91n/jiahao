@@ -1,3 +1,4 @@
+# Note: hunks under .scratch/grill-t11/host-config-backup/ are excluded from this evidence mirror (sensitive host-topology literals removed before publish). The exclusion is itself the wko deletion diff of the never-published backup file.
 diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
 index 54186c8..258d536 100644
 --- a/.github/workflows/ci.yml
@@ -25,63 +26,6 @@ index 9660dc8..dd31085 100644
 +
 +# Host configuration backups never enter git-tracked dirs (ADR-0073 D-C O-2 forward rule)
 +host-config-backup/
-diff --git a/.scratch/grill-t11/host-config-backup/settings-pre-jiahao-2026-09-17.json b/.scratch/grill-t11/host-config-backup/settings-pre-jiahao-2026-09-17.json
-deleted file mode 100644
-index 1037a17..0000000
---- a/.scratch/grill-t11/host-config-backup/settings-pre-jiahao-2026-09-17.json
-+++ /dev/null
-@@ -1,50 +0,0 @@
--{
--  "$schema": "https://json.schemastore.org/claude-code-settings.json",
--  "attribution": {
--    "commit": "",
--    "pr": ""
--  },
--  "autoCompactWindow": 950000,
--  "enabledPlugins": {
--    "context-mode@context-mode": true
--  },
--  "env": {
--    "ANTHROPIC_AUTH_TOKEN": "PROXY_MANAGED",
--    "ANTHROPIC_BASE_URL": "http://127.0.0.1:15721",
--    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-4-5",
--    "ANTHROPIC_DEFAULT_HAIKU_MODEL_NAME": "deepseekpro",
--    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-5",
--    "ANTHROPIC_DEFAULT_OPUS_MODEL_NAME": "deepseekpro",
--    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-5",
--    "ANTHROPIC_DEFAULT_SONNET_MODEL_NAME": "deepseekpro",
--    "DISABLE_UPDATES": "1"
--  },
--  "extraKnownMarketplaces": {
--    "context-mode": {
--      "source": {
--        "repo": "mksglu/context-mode",
--        "source": "github"
--      }
--    }
--  },
--  "hooks": {
--    "SessionStart": [
--      {
--        "hooks": [
--          {
--            "command": "\"D:/nodejs/node.exe\" \"C:/Users/Administrator/.claude/hooks/context-mode-cache-heal.mjs\"",
--            "type": "command"
--          }
--        ]
--      }
--    ]
--  },
--  "model": "deepseekpro",
--  "permissions": {
--    "allow": [
--      "Bash(git status)",
--      "Bash(npm run test *)"
--    ]
--  },
--  "theme": "dark"
--}
-\ No newline at end of file
 diff --git a/.scratch/grill-t12/GOAL.md b/.scratch/grill-t12/GOAL.md
 new file mode 100644
 index 0000000..d480baf
