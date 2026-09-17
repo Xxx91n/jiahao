@@ -142,3 +142,38 @@ same-commit ledger note that closes the four net-addition tally rows.
   never entered the registry — downgraded as a hygiene pickup, closed here.
 - O-E (telemetry export breadth) — stays deferred as an observation; the
   segmented checkpoint export lands this round under .scratch/grill-t13/.
+
+## T-3 audit bounce + fix round (2026-09-17)
+
+T-3 audit (reports/2026-09-17-t3-audit.md, commit rwk): FAIL, one blocking
+finding. This section registers the dispositions; it does not rewrite the
+T-2 disposition record above (append-only).
+
+- F-1 BLOCKING fixed: test/rewrite-map.test.js fixture literals now assembled
+  at runtime (committed source carries no scannable bytes); check-secret-scan
+  enumerates the UNION of git ls-files + git ls-tree HEAD (the index alone was
+  a fail-open enumeration — GitButler's virtual index lagged HEAD by 7 files),
+  and oversized files are reported loudly instead of silently skipped.
+- F-2 corrected: re-measured range-diff = 1 !/12 =/2 left-only/4 right-only
+  (was reported as "15 pairs all !"); correction registered in
+  audit-evidence/reverify-2026-09-17.json + the R2 report corrections section.
+- F-3 recorded: A3 now carries the numstat-level check (1+1-/1+57-/21+0-) that
+  the frozen plan required; substance unchanged.
+- F-4 disposition: defer-0051 REOPENED (status pending-evaluation) — its own
+  unfreeze condition (2026-12-15 check-in + pinned-protocol re-measurement +
+  second_reviewer countersign) was never satisfied; closure was premature.
+  Its unique legs stay on the entry, not merged into defer-0058.
+- F-5: defer-0054 unfreeze_if rewritten to the post-action trigger (rules >3
+  or a miss incident -> gitleaks revisit); detection_limit field added.
+- F-6: defer-0053 cost_note added (dirty-data window on zero-write-assumption
+  break).
+- F-7: entropy-check deviation REGISTERED — substituted by R3 purged-path
+  classes because a generic high-entropy rule false-positives on the sha256
+  digests throughout .scratch reports; registered in defer-0054, the scanner
+  header, and ADR-0074's fix bullet.
+- F-8: adr-0073-wiring restored to byte-exact pinning of the registered note
+  block (substring form removed — it allowed drift).
+- F-9 minors: 'use strict' added to both new scripts; ADR-ref comments
+  re-anchored (R2-dispositions bullet + ledger, not D-E); gitbutler filter
+  fixed (gb-local/gitbutler/* actually excluded now); map emits same[] and
+  removed new:null forms per spec; MAX_BYTES skip is loud; GOAL count synced.

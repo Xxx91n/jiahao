@@ -226,7 +226,7 @@ source-only; ADR-0059 D-B). An MCP publish channel is deferred (defer-0029).
 ## Develop
 
 ```bash
-npm test                              # 1147 tests across 71 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 1148 tests across 71 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
@@ -320,7 +320,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - [ADR-0073](docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md) — Provenance-Tiered Corpus Registration, ADR-0070 G1 Tightening-Only Amendment (organic leg), grill-t11 Audit Carry-Over Dispositions (F-A1/O-1/W-1/O-2; W-2 closed-by-design), and Bake Stewardship Protocol
 - [ADR-0074](docs/adr/0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md) — Sanitized-History Publish Record, Rewrite-Map Single Translation Point, Tip-Pinned Install Claim Invalidation, Published-Tip Re-Verification Preregistration, and Independence-Grade Audit Convention
 <!-- adr-index:end -->
-- `test/` — 71 test suites, 1147 tests
+- `test/` — 71 test suites, 1148 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 - `private/bench-corpus/` — answer corpora (probes/judge-twins/twins + fingerprints; gitignored, ADR-0036 D2). Gate scripts resolve via JIAHAO_CORPUS_DIR, else the install-planted dir (`jiahao init` plants it from the package), else this repo-private dir in a maintainer tree; missing everywhere fails closed (exit 1: config; the capability probe degrades an absent corpus dir to exit 2 UNVERIFIABLE first, ADR-0041 D2). npm consumers and public git clones carry no corpus at all — corpus gates are a maintainer/CI-only contract, fail-closed by design (ADR-0038 D2).
 

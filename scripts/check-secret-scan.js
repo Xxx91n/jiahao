@@ -1,6 +1,12 @@
 #!/usr/bin/env node
-// scripts/check-secret-scan.js \u2014 defer-0054 actioned (ADR-0074 D-E / t13 ledger):
-// repo-side pattern scanner, <=3 rules, zero dependencies, git ls-files scope.
+'use strict';
+// scripts/check-secret-scan.js — defer-0054 actioned (authority: ADR-0074 R2-
+// dispositions bullet + t13 ledger "T-2 dispositions"; not the D-E plan itself):
+// repo-side pattern scanner, <=3 rules, zero dependencies, tracked-scope.
+// Spec deviation registered (T-3 F-7): the spec'd cheap high-entropy check is
+// substituted by R3 purged-path classes — a generic entropy rule false-positives
+// on the sha256 digests throughout .scratch reports; entropy detection stays on
+// the defer-0054 gitleaks-revisit trigger.
 //
 // The purge surface classes this guards against (ADR-0074 D-A):
 //   R1 content: private-key PEM material
@@ -42,7 +48,8 @@ function scanFile(rel, readContent) {
   } else {
     let st;
     try { st = fs.statSync(abs); } catch (e) { return hits; }
-    if (!st.isFile() || st.size > MAX_BYTES) return hits;
+    if (!st.isFile()) return hits;
+    if (st.size > MAX_BYTES) { oversized.push(rel); return hits; }
     text = fs.readFileSync(abs, 'utf8');
   }
   for (const r of RULES) {
@@ -51,9 +58,21 @@ function scanFile(rel, readContent) {
   return hits;
 }
 
+const oversized = [];
+let enumCounts = { index: 0, tree: 0, union: 0 };
+
+// T-3 F-1: the mutable index alone is NOT authoritative — GitButler's virtual-
+// branch index can lag HEAD, silently shrinking scan scope (a "fail-closed"
+// gate with a fail-open enumeration). Union the index with the committed tree.
 function trackedFiles() {
-  return execFileSync('git', ['ls-files'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 })
+  const opts = { cwd: ROOT, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 };
+  const index = execFileSync('git', ['ls-files'], opts)
     .split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+  const tree = execFileSync('git', ['ls-tree', '-r', 'HEAD', '--name-only'], opts)
+    .split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+  const union = Array.from(new Set(index.concat(tree))).sort();
+  enumCounts = { index: index.length, tree: tree.length, union: union.length };
+  return union;
 }
 
 function main() {
@@ -69,8 +88,10 @@ function main() {
     for (const h of hits) console.error('  ' + h.rule + '  ' + h.file);
     process.exit(1);
   }
-  console.log('[secret-scan] OK - ' + RULES.length + ' rules, 0 hits');
+  const extra = ' - enum index/tree/union ' + enumCounts.index + '/' + enumCounts.tree + '/' + enumCounts.union +
+    (oversized.length ? '; skipped-oversized ' + oversized.length + ' [' + oversized.join(', ') + ']' : '; oversized-skip 0');
+  console.log('[secret-scan] OK - ' + RULES.length + ' rules, 0 hits' + extra);
 }
 
 if (require.main === module) main();
-module.exports = { RULES, scanFile, trackedFiles };
+module.exports = { RULES, scanFile, trackedFiles, oversized, enumCounts };

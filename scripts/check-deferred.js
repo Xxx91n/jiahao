@@ -41,7 +41,8 @@ const TYPES = ['presence-condition', 'count-threshold', 'external-event', 'free-
 const NON_EVALUABLE = ['external-event', 'free-text'];
 const EVALUABLE = ['presence-condition', 'count-threshold'];
 const STATUSES = ['deferred', 'pending-evaluation', 'closed', 'actioned'];
-// ADR-0074 D-E (R2 dispositions): terminal dispositions. 'closed' = review
+// Terminal dispositions (authority: ADR-0074 R2-dispositions bullet + t13
+// ledger "T-2 dispositions", not the D-E plan itself). 'closed' = review
 // executed and dispositioned (same-commit ADR or ledger note); 'actioned' =
 // the deferred work was performed. Terminal rows stay in the registry so
 // trend-inventory deferred_entry references keep resolving; they carry

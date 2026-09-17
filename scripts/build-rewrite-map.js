@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+'use strict';
 // scripts/build-rewrite-map.js \u2014 ADR-0074 D-B/D-C: generate docs/rewrite-map.json
 // Spec: docs/rewrite-map-generator-spec.md. Zero-dep (stdlib + git subprocess).
 //
@@ -60,7 +61,7 @@ function logMeta(ref) {
 function discoverOldRefs(newRef) {
   const refs = git(['for-each-ref', '--format=%(refname:short)', 'refs/remotes/gb-local/'])
     .split('\n').map(function (s) { return s.trim(); }).filter(Boolean)
-    .filter(function (r) { return r.indexOf('gitbutler/') !== 0; });
+    .filter(function (r) { return r.indexOf('gitbutler') === -1; });
   return refs.filter(function (r) {
     return !gitOk(['merge-base', '--is-ancestor', newRef, r]);
   });
@@ -190,6 +191,13 @@ function build(oldRefs, newRef) {
   const oldTip = newest ? newest.old : git(['rev-parse', oldRefs[0]]).trim();
   const base = git(['merge-base', oldTip, newRef]).trim();
 
+  // Spec: commits present on both sides with the same SHA are emitted as
+  // `same` rows (explicit is auditable; ~all commits at/below the shared
+  // base). Removed pairs carry an explicit `new: null` rather than a
+  // separate ad-hoc shape.
+  const sameRaw = git(['log', '--format=%H%x00%s', base]).trim();
+  const same = sameRaw ? sameRaw.split('\n').map(function (l) { const z = l.indexOf('\u0000'); return { sha: l.slice(0, z), subject: l.slice(z + 1) }; }) : [];
+
   return {
     schema_version: 1,
     _doc: 'ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.',
@@ -202,6 +210,7 @@ function build(oldRefs, newRef) {
       commits: commits.length,
       published_only: publishedOnly.length,
       removed: removed.length,
+      same: same.length,
       doc_refs: docRefs.length,
       doc_refs_by_class: {
         rewritten: docRefs.filter(function (d) { return d['class'] === 'rewritten'; }).length,
@@ -210,8 +219,9 @@ function build(oldRefs, newRef) {
       }
     },
     commits: commits,
-    removed: removed.map(function (m) { return { old: m.sha, subject: m.subject }; }),
+    removed: removed.map(function (m) { return { old: m.sha, new: null, subject: m.subject }; }),
     published_only: publishedOnly,
+    same: same,
     doc_refs: docRefs.map(function (d) { const r = { file: d.file, line: d.line, sha: d.sha, 'class': d['class'], resolved_to: d.resolved_to }; if (d.label) r.label = d.label; return r; })
   };
 }
@@ -226,6 +236,10 @@ function verify(map) {
     if (c.empty === true && !isEmptyCommit(c.new)) errs.push('empty claim fails re-derivation: ' + c.new);
     if (c.empty !== true && isEmptyCommit(c.new)) errs.push('empty flag missing: ' + c.new);
   }
+  const reBase = git(['merge-base', map.boundary.old_tip, newRef]).trim();
+  const reSame = git(['rev-list', reBase]).trim().split('\n').filter(Boolean).sort();
+  const mapSame = (map.same || []).map(function (s) { return s.sha; }).sort();
+  if (JSON.stringify(mapSame) !== JSON.stringify(reSame)) errs.push('same list re-derivation differs');
   for (const r of map.removed || []) {
     if (gitOk(['merge-base', '--is-ancestor', r.old, newRef])) errs.push('removed commit is on published side: ' + r.old);
   }

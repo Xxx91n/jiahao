@@ -126,7 +126,11 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () => 
     expect(e).toBeDefined();
     expect(e.source_adr).toContain('0073');
     expect(e.subject).toContain('gitleaks');
-    expect(e.unfreeze_if.type).toBe('presence-condition');
+    // T-3 F-5: post-action trigger (rules >3 or a miss incident) is an
+    // external-event, replacing the stale pre-action presence-condition.
+    expect(e.unfreeze_if.type).toBe('external-event');
+    expect(e.unfreeze_if.check).toContain('gitleaks');
+    expect(e.detection_limit).toContain('blind to unknown');
   });
 
   test('defer-0055 lands the organic routing-rate watch (external-event)', () => {
@@ -172,10 +176,13 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () => 
     // derived from the copy itself (duplicating it here would be a second
     // source of truth); the assertions pin its registered markers.
     const scratch = read(path.join(ROOT, '.scratch', 'grill-t12', 'decision-ledger.md'));
-    const headBlock = copy.slice(0, copy.indexOf('\n\n'));
-    expect(headBlock).toContain('Pointer note (ADR-0074');
-    expect(headBlock).toContain('local-only post-purge');
-    expect(copy).toBe(headBlock + '\n\n' + scratch);
+    // ADR-0074 D-B: the governance copy carries a registered head note block,
+    // pinned BYTE-EXACT below (T-3 F-8: the substring form allowed drift).
+    const POINTER_HEAD = [
+      '> Pointer note (ADR-0074, 2026-09-17): this record predates the sanitized-history publish; pre-rewrite SHA citations below name local-only objects - resolve them through docs/rewrite-map.json.',
+      "> Annotation (ADR-0074 D-B, 2026-09-17): D-003's \"历史 blob 保留\" reads local-only post-purge - the retained pre-rewrite objects live on local refs (gb-local/*) and are unreachable from origin/*.",
+    ].join('\n');
+    expect(copy).toBe(POINTER_HEAD + '\n\n' + scratch);
   });
 
   test('the README ADR index carries ADR-0073 (rebuilt, 73 records)', () => {

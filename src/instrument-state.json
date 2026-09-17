@@ -610,6 +610,43 @@
       "event_timestamp": "2026-09-17T07:59:43.644Z",
       "logging_timestamp": "2026-09-17T07:59:43.644Z",
       "event_hash": "1f1ff63de65b4bea5e04809cbf30349a169671327c0efee9670423b24258d1dc"
+    },
+    {
+      "seq": 24,
+      "kind": "record_only_change",
+      "identity_digest": "c68d49c60e87e581f827b7066ba01b3dab646843aa23bc5c5ff5781f719458b9",
+      "reverify_ledger_hash": null,
+      "bias_probe_hash": null,
+      "reviewer_id": null,
+      "second_reviewer": null,
+      "attestation_type": null,
+      "timestamp": "2026-09-17T09:42:07.595Z",
+      "prev_hash": "1f1ff63de65b4bea5e04809cbf30349a169671327c0efee9670423b24258d1dc",
+      "surface": "schedule_gate",
+      "maker_id": "devin-grill-t13-t3fix",
+      "authorization": "T-3 audit bounce fix window: remediate F-1 blocking + F-2..F-9 findings per audit report rwk",
+      "before": {
+        "secret_scan": "fail-open-enumeration+self-trip",
+        "defer_0051": "closed-premature",
+        "map_forms": "spec-incomplete",
+        "range_diff_evidence": "mischaracterized"
+      },
+      "after": {
+        "secret_scan": "union-enum+assembled-fixtures+loud-skip",
+        "defer_0051": "reopened-live",
+        "map_forms": "same+null-complete",
+        "range_diff_evidence": "corrected-registered"
+      },
+      "identity_triple": {
+        "rules_digest": "f6c6c843c4ad4151f709345d86079f4a5e0c7d216305155f75e7329638bc6154",
+        "model_checkpoint_digest": "UNRESOLVED",
+        "inference_config_hash": "41c7df6354424a59180ae855de4afc764b38b1ddfd2aec9312d9195342fecac7",
+        "triple_hash": "c68d49c60e87e581f827b7066ba01b3dab646843aa23bc5c5ff5781f719458b9"
+      },
+      "escalation": "none",
+      "event_timestamp": "2026-09-17T09:42:07.595Z",
+      "logging_timestamp": "2026-09-17T09:42:07.595Z",
+      "event_hash": "0cc6a89778b80d6ccf5ed6af38e7fa52b514cc5fda72f6260cb42ffeecac8a47"
     }
   ],
   "certification_mode": "conditional",

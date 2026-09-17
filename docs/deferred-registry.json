@@ -744,11 +744,9 @@
       "registered_at": "2026-09-16",
       "last_check_in": {
         "date": "2026-09-17",
-        "note": "R2 net-addition review executed: tally rows verified against trend inventory and ADR registrations; disposition recorded in the same-commit ledger note"
+        "note": "R2 closure REVERTED per T-3 audit F-4: own unfreeze condition (2026-12-15 check-in + npm pack --dry-run --json re-measurement + second_reviewer countersign) is not yet satisfied; the entry stays live — its re-measurement/countersign legs are unique to this entry and are NOT merged into defer-0058 (which covers only the generic net-increment cadence)"
       },
-      "status": "closed",
-      "closed_at": "2026-09-17",
-      "closed_via": "same-commit ledger note: .scratch/grill-t13/decision-ledger.md section \"T-2 dispositions (R2)\""
+      "status": "pending-evaluation"
     },
     {
       "id": "defer-0052",
@@ -787,7 +785,8 @@
         "note": "R2 disposition: stays deferred; unfreeze condition frozen (unfreeze_frozen) — no silent widening"
       },
       "status": "pending-evaluation",
-      "unfreeze_frozen": true
+      "unfreeze_frozen": true,
+      "cost_note": "if the zero-write assumption breaks, a dirty-data window exists: lane records written before the provenance field lands carry no provenance and can skew the routing-rate read until reclassified (T-3 F-6)"
     },
     {
       "id": "defer-0054",
@@ -795,8 +794,8 @@
       "source_adr": "docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md",
       "rationale": "ADR-0073 D-C O-2: the host settings backup reached the index inside git-tracked .scratch before anyone noticed; the forward rule (host config backups never enter git-tracked dirs) is registered and the gitignore clause is live, but a rule without a scanner depends on vigilance - the Re-Execution Prior says every catch so far came from re-execution or audit, not self-disclosure. A gitleaks-class pre-commit scan is the registered prevention agenda; selection is out of this round's scope.",
       "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "a pre-commit scanner is selected and wired (pre-commit hook or CI job) covering secrets AND host-topology material (proxy endpoints, absolute host paths)"
+        "type": "external-event",
+        "check": "the pattern scanner exceeds 3 rules OR a miss incident is observed -> revisit with a gitleaks-class full scanner (post-action trigger, T-3 F-5)"
       },
       "review_at": "2026-12-15",
       "cadence_tier": "quarterly",
@@ -807,7 +806,8 @@
       },
       "status": "actioned",
       "actioned_at": "2026-09-17",
-      "actioned_via": "R2 repo-side pattern scanner scripts/check-secret-scan.js (3 rules) + secret-scan gate in docs/gates.json + blocking self-test in test/rewrite-map.test.js"
+      "actioned_via": "R2 repo-side pattern scanner scripts/check-secret-scan.js (3 rules) + secret-scan gate in docs/gates.json + blocking self-test in test/rewrite-map.test.js",
+      "detection_limit": "self-built tripwire is blind to unknown secret forms; the gitleaks-revisit trigger above carries the full-scanner revisit agenda (T-3 F-5 disclosure)"
     },
     {
       "id": "defer-0055",

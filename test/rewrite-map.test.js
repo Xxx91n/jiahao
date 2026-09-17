@@ -36,6 +36,13 @@ describe('rewrite-map.json \u2014 generated single translation point', () => {
       if (d.class === 'rewritten') expect(d.resolved_to).toMatch(/^[0-9a-f]{40}$/);
     }
     expect(MAP.counts.doc_refs).toBe(MAP.doc_refs.length);
+    // T-3 F-9: spec-mandated forms — same rows emitted explicitly (shared
+    // commits below the boundary); removed rows carry new:null when present.
+    expect(Array.isArray(MAP.same)).toBe(true);
+    expect(MAP.same.length).toBeGreaterThan(0);
+    expect(MAP.same[0].sha).toMatch(/^[0-9a-f]{40}$/);
+    for (const r of MAP.removed) expect(r.new).toBeNull();
+    expect(MAP.sides.old_refs.every(r => r.indexOf('gitbutler') === -1)).toBe(true);
   });
 
   test('known anchors classify correctly', () => {
@@ -101,9 +108,11 @@ describe('check-secret-scan.js \u2014 defer-0054 tripwire (<=3 rules)', () => {
   test('planted samples are blocked by the expected rule', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-scan-'));
     const keyFile = path.join(dir, 'k.txt');
-    fs.writeFileSync(keyFile, '-----BEGIN RSA PRIVATE KEY-----\nfake\n-----END RSA PRIVATE KEY-----\n');
+    // T-3 F-1: fixtures are assembled at runtime so the committed source never
+    // contains a scannable literal — the scanner must still fire on the bytes.
+    fs.writeFileSync(keyFile, '-----BEGIN ' + 'RSA PRIVATE KEY-----\nfake\n-----END ' + 'RSA PRIVATE KEY-----\n');
     const tokFile = path.join(dir, 't.txt');
-    fs.writeFileSync(tokFile, 'token = "ghp_abcdefghijklmnopqrstuvwxyz0123456789"\n');
+    fs.writeFileSync(tokFile, 'token = "' + 'ghp_' + 'abcdefghijklmnopqrstuvwxyz0123456789' + '"\n');
     const envFile = path.join(dir, '.env');
     fs.writeFileSync(envFile, 'X=1\n');
     const keyRel = path.relative(ROOT, keyFile).split(path.sep).join('/');
@@ -114,6 +123,13 @@ describe('check-secret-scan.js \u2014 defer-0054 tripwire (<=3 rules)', () => {
     expect(scanFile(envRel, () => 'X=1\n').map(h => h.rule)).toContain('R3-purged-path-class');
     expect(scanFile('host-config-backup/settings.json', () => '{}').map(h => h.rule)).toContain('R3-purged-path-class');
     fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  test('enumeration covers the committed tree, not just the index (T-3 F-1)', () => {
+    const { trackedFiles } = require('../scripts/check-secret-scan.js');
+    const files = trackedFiles();
+    expect(files).toContain('test/rewrite-map.test.js');
+    expect(files).toContain('docs/rewrite-map.json');
   });
 
   test('clean tree passes the gate command', () => {

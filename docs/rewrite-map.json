@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-17T08:09:44.249Z",
+  "generated_at": "2026-09-17T09:42:46.984Z",
   "published_tip": "051744a7a1b4027a42720814c819bf051e0831a8",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -11,7 +11,6 @@
   },
   "sides": {
     "old_refs": [
-      "gb-local/gitbutler/target",
       "gb-local/grill-t11-docs",
       "gb-local/grill-t12-docs"
     ],
@@ -23,11 +22,12 @@
     "commits": 15,
     "published_only": 2,
     "removed": 0,
-    "doc_refs": 1148,
+    "same": 278,
+    "doc_refs": 1182,
     "doc_refs_by_class": {
-      "rewritten": 83,
-      "local-only": 508,
-      "published-unchanged": 557
+      "rewritten": 91,
+      "local-only": 511,
+      "published-unchanged": 580
     }
   },
   "commits": [
@@ -118,6 +118,1120 @@
     {
       "new": "a6729a95a9c1e6c195a80362522278d4524a7ebe",
       "subject": "chore(grill-t12): sanitize host-topology literals before publish - t11 audit report endpoint value redacted (127.0.0.1:15721 -> redacted, disclosure semantics kept); audit-evidence round-diff.patch regenerated excluding host-config-backup hunks (it carried the full backup-file payload via the wko deletion diff); prepares owner-ordered history purge of the committed backup + tgz blob"
+    }
+  ],
+  "same": [
+    {
+      "sha": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
+      "subject": "docs(grill-t11): round report + handoff (readiness verdict measured PASS; R1/R2 ordering held; stop points listed for owner)"
+    },
+    {
+      "sha": "f80721d66e771a3eb3a78b0d1f90f1bf27a24193",
+      "subject": "feat(grill-t11): R2 pre-registered re-measurement PASS + layered readiness declaration (clean-env npx github: install exit 0; gate block/allow verified on installed artifact; lane stdin->adapter->pairItem->shadow record end-to-end; instrument seq 19; readiness record + README D-G block)"
+    },
+    {
+      "sha": "51ee74cff3b14fc72fa8344c65ea17892aaa33f7",
+      "subject": "docs(grill-t11): ADR-0072 readiness verdict + pre-registered re-measurement + bake protocol + tier-2 G2 amendment + critique dispositions (T-1 doc round; ERRATA E-6, ADR-0047/0067/0070 appendices, delegation template, measured-present word slot, defer-0052, anchors/index/instrument event)"
+    },
+    {
+      "sha": "ce47e36f587ae347b2a516eb7de0fab2ca37e894",
+      "subject": "docs(grill-t11): readiness round spec + task book + CONTEXT terms (D-001..D-005 settled; measure-then-declare, owner-dogfood bake + tier-2 second-line FP review, 4 critique dispositions, R1/R2 boundary)"
+    },
+    {
+      "sha": "c861084e09dfb4044bb173f8ae3203bcf5b44c9b",
+      "subject": "docs(grill-t10): audit addendum — F-B1 ADR-0071 cap-raise disclosure, F-B5 resolve-cmd full form, adapter test count 8->9; post-fix verification section (acceptance re-run green); handoff F-B items closed"
+    },
+    {
+      "sha": "91d947f40d81d139d48d553fd39a54d20fdfeb3a",
+      "subject": "fix(grill-t10): close audit findings F-B2..F-B4 + standards cleanups (ADR-0070 D-C(d) wording reconciled to per-event observed records, transcriptPath alias registered; telemetry surfaces first/last/span_days for the G1 cycle leg; gates.json _doc enum gains transcript-file; dead seenMsg/exports removed, recordHash+path requires hoisted, naming cleaned; generated g6-publish-replay refresh rides along - mechanically forced)"
+    },
+    {
+      "sha": "3254af6511f71237c81721873df25f9987be8e02",
+      "subject": "audit(grill-t10): post-round independent audit PASS-WITH-OBSERVATIONS + handoff (hard acceptance re-run green; lane semantics verified e2e in sandboxed config dir; D-001..D-007 mapped; 6 non-blocking findings F-B1..F-B6)"
+    },
+    {
+      "sha": "03882ca85d0e3824357adddf8a055645092bfcbd",
+      "subject": "docs(grill-t10): round report - shadow-mode conviction lane shipped, frozen promotion gate registered"
+    },
+    {
+      "sha": "269a2eda2cc185d8441c2eec98a71655ebe62009",
+      "subject": "fix(grill-t10): F-A corrigendum - re-render v3 md detail sections from authoritative report.json"
+    },
+    {
+      "sha": "78e902daa20218bfc23e9dc9f90687e3098967a8",
+      "subject": "feat(grill-t10): ship the conviction lane in shadow mode (T-2+T-3)"
+    },
+    {
+      "sha": "c9897f3f045895fd588614f9b5fbd9dcb3522890",
+      "subject": "docs(grill-t10): ADR-0070 hook-side conviction lane - frozen shadow->enforce gate, product shape, claim form, F-A dispositions (T-1 doc round; anchors/ledger/defer-0050/index/instrument event)"
+    },
+    {
+      "sha": "fdb28784ef5785763a20b475ce3ab29323b05c29",
+      "subject": "docs(grill-t10): judge-seam lane round spec + task book + CONTEXT terms"
+    },
+    {
+      "sha": "a2f4faab08d1970b8b1ac086cb91fd07de93660a",
+      "subject": "audit(grill-t9): post-round independent audit PASS-WITH-OBSERVATIONS + handoff (claim->evidence->conclusion verified; D-001 a-e mapped; 5 non-blocking findings)"
+    },
+    {
+      "sha": "31411156a0db47210a031cf6a4afde9d0d457894",
+      "subject": "docs(grill-t9): v3 round report + handoff (verdict falsification-passed; evidence-bound)"
+    },
+    {
+      "sha": "db1d49d1771afc839840a92913c59d02491f58f5",
+      "subject": "feat(grill-t9): devin-corpus@v3 single-shot adjudication PASSED + replay gate (T-4; report+gate same commit)"
+    },
+    {
+      "sha": "e00f5c4762028c1f4df47354281ae00c00dfa1e6",
+      "subject": "chore(grill-t9): pre-unlock audit PASS + stage-gate flips for frozen tables (audit D-1; labels still blind)"
+    },
+    {
+      "sha": "1c0f324ab8f0741a9465aa051d6bc4df0482804d",
+      "subject": "feat(grill-t9): devin-corpus@v3 derived decision-tables freeze (T-3; labels still blind - unlock precedes single shot)"
+    },
+    {
+      "sha": "72b50c4a3c224ae9ebbb876a4a9fe9d10072c906",
+      "subject": "feat(grill-t9): derive-devin-v3-tables + contract tests (T-3 tooling; labels still blind)"
+    },
+    {
+      "sha": "3e808f8796f942fa9e96a5798d96a3d853ac9044",
+      "subject": "feat(grill-t9): devin-corpus@v3 manifest freeze (T-2; blind-label order arrow 2)"
+    },
+    {
+      "sha": "73151605804f3749f81fe47b4ddd9a1be1d5469d",
+      "subject": "feat(grill-t9): v3 collection worker + drops (T-1; blind-label order arrow 1)"
+    },
+    {
+      "sha": "c6a8a211fcd7e07211b81d41a138f408c85108cb",
+      "subject": "docs(grill-t9): v3 collection round spec + task book"
+    },
+    {
+      "sha": "2755bf35f1773f1fe425876b45750ce30d0a8610",
+      "subject": "ci(46/D-046): jiahao macro-b-regression.yml 单文件撤除——回归 CI 迁回 6F 自有 CI（6F 侧 .github/workflows/macro-b-regression.yml 承载 schedule+workflow_dispatch URL opt-in）；jiahao 仅作审计对象不承载我方资产；本提交仅此 1 文件（其余内容零触碰）"
+    },
+    {
+      "sha": "b4c7ec591b4282e1264d9150b098e293257810f7",
+      "subject": "chore(grill-t8): refresh g6-publish replay record after re-audit pack:smoke (285802 -> 286187)"
+    },
+    {
+      "sha": "75f1f25b696f26587782028c79f69d94532d1bc4",
+      "subject": "audit(grill-t8): re-audit of repair uqo+tsz - PASS, blocking conditions F1/F2 cleared, v3 collection gate released"
+    },
+    {
+      "sha": "ddaf5cd2a8fb2e1bd0dd1b8e90fba415ded9c68d",
+      "subject": "audit(grill-t8): independent re-verification report + audit handoff - PASS-WITH-CONDITIONS (F1 pairer over-capture, F2 v3 collection unwired)"
+    },
+    {
+      "sha": "30177a09c8bdb318e3b2577f764bbeb308b20a2a",
+      "subject": "ci(39/A-044): jiahao Macro-B 持续回归接入 CI——schedule 周一定时回归+workflow_dispatch（触发面写明）；接入=多写者触发器(a)激活点（D-034④a，衔接 6F mw-regression-ci）；checkout 本仓全历史+Xxx91n/6F 引擎仓构建后跑 39-macro-b-one-shot.mjs --repo jiahao；已上架层限定（preview 不混）；job 绿=管线跑通+工件齐备，裁定三档如实"
+    },
+    {
+      "sha": "e17b78b51a1a443466976dbdc5f4eca90af57a3e",
+      "subject": "docs(grill-t8): audit-repair disposition - repair report + repair handoff"
+    },
+    {
+      "sha": "0121972d516a34ad463fb994a61b3227b5847423",
+      "subject": "fix(grill-t8): audit F1/F2 repair - pairer claim over-capture closed, v3 collection wired, re-pin 9ff2d0ad"
+    },
+    {
+      "sha": "dd3a9bb122357c6e858163f8336cff39bc8ff004",
+      "subject": "docs(grill-t8): round close-out - rerunnable report + handoff"
+    },
+    {
+      "sha": "e602449579042f3d109b8ea6bc6c843aeee445a5",
+      "subject": "feat(grill-t8): T-3 - devin-corpus@v3 eval plan frozen, pairer content-hash pinned"
+    },
+    {
+      "sha": "ac77309b2e9f11f1f0a72dd7ef7c084dd1e6bd14",
+      "subject": "feat(grill-t8): CAPA claim-evidence pairer + corpus-external probes (A-line)"
+    },
+    {
+      "sha": "3fd473bf656a8fb061cdc383c84f6e62db2ee47a",
+      "subject": "docs(grill-t8): B-line readiness - measured install channel + reproduction invitation (b2/b3)"
+    },
+    {
+      "sha": "b985f51ebaabb315159d31335d2442fb1c83e25d",
+      "subject": "docs(grill-t8): ADR-0069 CAPA pairer semantics + adjudicated/devin-corpus-v2 anchor + readiness positioning"
+    },
+    {
+      "sha": "39b96887007b4c7e473b1dc2d199c3a0c77b3196",
+      "subject": "docs(grill-t8): CAPA+readiness merged-round spec + task book"
+    },
+    {
+      "sha": "c1afe09141545a26717404a8e554fac5162bf06d",
+      "subject": "docs(grill-t7): v2 handoff close-out - landing on main; branch retired post-land"
+    },
+    {
+      "sha": "7b80854ab66da762d8c512ca08cf8cd523a08cad",
+      "subject": "registry(grill-t7): defer-0048 audit check-in - v2 FAILED verdict verified solid at the v2-round audit; stays pending-evaluation (unfreeze names the v3 terminal event); 60% trigger seam stays armed"
+    },
+    {
+      "sha": "80f6f10ccb3eb24f46bf920ec905bd448baab88b",
+      "subject": "audit(grill-t7): v2-round audit PASSED post-rework - all F-1..F-4 dispositions verified, acceptance suite re-run green; handoff with next-round pointers"
+    },
+    {
+      "sha": "98c919d0c6ccffba41fcdd123f05dcf241aaae5a",
+      "subject": "fix(grill-t7): v2 audit rework - band-guard F-2 fix + positive control; errata E-1..E-4 (F-3a/b/c/d); claim-template quote-state align (F-3e); report/handoff rev.1 re-measured (F-1)"
+    },
+    {
+      "sha": "6fb8ae709abc53c4155bf261527df2b346d41004",
+      "subject": "audit(grill-t7): v2-round independent audit - NOT CLEAN PASS (F-1 report-honesty x3 / F-2 band-guard hole / F-3 spec-letter deviations) - fix list + re-run checklist enclosed"
+    },
+    {
+      "sha": "03c9aa5292eda78bdb22796c1694457c775bbd3d",
+      "subject": "docs(grill-t7): v2 round report + handoff (rerunnable evidence)"
+    },
+    {
+      "sha": "8807a61122a8991bbe5f99ecc412d8989496f786",
+      "subject": "verdict(grill-t7): devin-corpus@v2 single-shot FAILED (lie-fail x fp-fail) - claim filled, replay gate + terminal event registered (T-5)"
+    },
+    {
+      "sha": "367f68af758ced40cbd0207838d887c177f4ce3d",
+      "subject": "freeze(grill-t7): devin-corpus@v2 derived decision tables (R-3 - labels unlock after this commit)"
+    },
+    {
+      "sha": "9ed6f87dc5f1bada8309a05ff80166c01e1dfe24",
+      "subject": "data(grill-t7): devin-corpus@v2 collected + frozen (T-3: 140 items, 31 lie / 89 honest / 20 side, seeded-emergent)"
+    },
+    {
+      "sha": "30696e085f4d075cc511c9da040fabf818335602",
+      "subject": "feat(grill-t7): --snapshot-dir parameterization + v2 table-derivation script (T-2)"
+    },
+    {
+      "sha": "14855514331471d5363ada573e7c68f656467cfa",
+      "subject": "docs(grill-t7): ADR-0068 + devin-corpus@v2 pre-registration (T-1 doc round)"
+    },
+    {
+      "sha": "ee9b4db46dce9ea2f4c388d77bf791ebd7f277cf",
+      "subject": "chore: git-track .scratch — issue tracker and round records now versioned; volatile tool workdirs (pack-smoke, g6-publish, .tmp-*) stay ignored; t7 ledger mirror frozen as final D-016 archive"
+    },
+    {
+      "sha": "3ef3d76402226037360c037b75002e6442c79d65",
+      "subject": "chore(grill-t7): refresh g6-publish-replay artifact from gate run"
+    },
+    {
+      "sha": "7863b649902846c53614238fa4231f8587aeea6a",
+      "subject": "docs(grill-t7): v2-round consolidation — CONTEXT +10 terms, ledger mirror synced to D-016, anchors regen"
+    },
+    {
+      "sha": "3cd4e19fb5bbfbcf50a8ad7a13d63be2f350116b",
+      "subject": "fix(grill-t7): audit rework F-1..F-4 on the devin-oot runner + claim binding"
+    },
+    {
+      "sha": "c4c5441e7c4522d0d893eb688e6f12fe4eed357d",
+      "subject": "feat(grill-t7): devin-oot-replay gate + terminal-event registration (T-5)"
+    },
+    {
+      "sha": "cff9cb39b1e2b4925959976fbe52107778bfd714",
+      "subject": "docs(grill-t7): claim surface for the devin-corpus@v1 INDETERMINATE verdict (T-4)"
+    },
+    {
+      "sha": "f8292f0cac776bd924ee7d37e3ab1dd3d7104ef7",
+      "subject": "result(grill-t7): single-shot devin-corpus@v1 OOT adjudication - INDETERMINATE (T-3)"
+    },
+    {
+      "sha": "8acf6f7fc89293ae03534286830a79eb5dadc0ef",
+      "subject": "feat(grill-t7): devin-oot.js runner + adapter seam for the v1 OOT falsification round (T-2)"
+    },
+    {
+      "sha": "c90ca86eef9f106e0b543deb95f194d82315a98c",
+      "subject": "docs(grill-t7): ADR-0067 + eval-plan pre-registration for the devin-corpus@v1 OOT falsification adjudication"
+    },
+    {
+      "sha": "cc7ae1894a09b43038d485b45c446e3190d5cebb",
+      "subject": "test(adr-0060): scope the STD-1 tail invariant to the sign-off kind"
+    },
+    {
+      "sha": "dadc50d58ba45cee25cfaecc7f8e1d63f8d72cf1",
+      "subject": "instrument: ADR-0066 second_reviewer countersign — criteria_change ADR-0066-300000/ADR-0062-230000 restatement_of 4c106b6 (F-2, defer-0042)"
+    },
+    {
+      "sha": "c233f2be37b2e176150b7c7d79e68767a721116e",
+      "subject": "chore(bench): refresh g6-publish replay artifact"
+    },
+    {
+      "sha": "eec7ca179a4fceb3c5b3e50c1191acfcdd10ecd5",
+      "subject": "docs(grill-t7): unblind-round consolidation — ledger mirror synced to D-001..D-011, CONTEXT.md +7 glossary terms, governance anchors regenerated"
+    },
+    {
+      "sha": "94f56dd7abb0b328b2c28d0bd9c669981dbda290",
+      "subject": "fix(impl-round): audit remediation F-1/F-3..F-7 (2026-09-15 audit report)"
+    },
+    {
+      "sha": "4c106b685a3e25a64973b3a6ffe827fabbb241b6",
+      "subject": "feat(port): T-6 confirmatory round - product scorer in src/port + publish gate + frozen devin corpus (grill-t7 D-001..D-006)"
+    },
+    {
+      "sha": "b2a2c56da09b907076b3dc4a53acc1ec504b90d2",
+      "subject": "chore(devin-corpus): register devin-corpus@v1 collection plan before any item lands (ADR-0065 D-C plan-first)"
+    },
+    {
+      "sha": "bea9aafe5d8142e118c85e389d17ed8feb19687d",
+      "subject": "docs(adr-0065): T-6 confirmatory round adjudication + port surface + devin corpus + claim honesty (grill-t7 D-001..D-006)"
+    },
+    {
+      "sha": "e0f666244056160fc5ceeb67de012c7f4f3232f2",
+      "subject": "fix(git): ignore test-artifacts/ (ADR-0057 JUnit evidence output dir)"
+    },
+    {
+      "sha": "28c253e6f215cd4e095ff55a7f63be9969f32c8d",
+      "subject": "Merge pull request #7 from Xxx91n/grill-t6-t1-round"
+    },
+    {
+      "sha": "88877282fee69d5ccc585a9abea5d9b93cfda2c3",
+      "subject": "fix(adr-0064): regenerate attribution report via full --phase all (audit R-1) + precise G5 footer wording (R-4)"
+    },
+    {
+      "sha": "014f3a38a209e9fe1d494da09f748bf5e917cbc4",
+      "subject": "fix(adr-0064): audit repair round - corpus-tier test gating, private_corpus in freeze, G6 idf+regex manifest, tier-b diagnostic ruling, D-001 report sections, net_additions recompute"
+    },
+    {
+      "sha": "ac31dac8860665c23892c8d92c5e605ffe64c39b",
+      "subject": "feat(adr-0064): T-1 research round - baseline harness, four-class corpus, rung ladder, G6 port gate, governance trend surface"
+    },
+    {
+      "sha": "b7ccbebec303ea3fa5d665afa5dc03c7589401e7",
+      "subject": "docs(adr-0064): T-6 pre-registration round - MDE stop-loss gates, research/confirmatory split, four-class corpus, G1-G5+G6 rung ladder, governance trend anchor. New ADR-0064 + wiring test; registry defer-0039 (free-text); CONTEXT.md +5 terms; governance ledger copy + anchors regen; ci expected-suites 55; README 55 suites / 738 tests. Full suite 55/55, 738/738 green; gate:all exit 0; tarball 214,003 B < 230,000 cap."
+    },
+    {
+      "sha": "a995bec7db56e5be5486e8775c4af6d5cb6efc9d",
+      "subject": "fix(adr-0061 D-E): correct the ADR-0039 repair-round re-measure figure to 212,699 bytes (re-audit D-1). WHAT: docs/adr/0039 line 53 read '212,387 bytes', which no measurement supports; the auditor measured 212,699 B / 93 files twice (npm pack --dry-run --json, size field), which is also exactly what the pack-smoke gate prints. The figure is replaced, the measurement command and npm version are now cited inline per this ADR's own 're-measure after ANY packed-file edit' rule, and the sentence now states it is a point-in-time reading rather than a cap. WHY: an unverified number in a canonical ADR is precisely the SPEC-1/R-4 defect class this repair round was chartered to close; it was introduced by the R-4 paragraph itself. Docs-only: no code, no gate, no witness artifact changes. Suite 54/54 727/727; gate:all exit 0 (23 entries); governance-anchors in sync."
+    },
+    {
+      "sha": "2e633f99a88d56f8269259bca5ea3cffca170d97",
+      "subject": "docs(adr-0061 D-E): close the audit R-2..R-5 record findings - glossary cap sync, gate-lane anchoring, trend provenance, defer-0024 bar. WHAT: CONTEXT.md:1170 moves the live tarball cap 200,000 -> 230,000 (ADR-0039 as amended by ADR-0062) - the only stale live-cap literal in the tree (R-2/STD-2); docs/gates.json gains a confirmatory governance-anchors entry (order 197, node scripts/build-governance-anchors.js --check, requires repo-tree + docs-adr) so anchors drift fails gate:all, not only the jest lane (R-3/SPEC-2), with ADR-0061 D-E amended in the same commit per the ADR-0027 D2 coupling guard; scripts/build-governance-anchors.js now declares its capability (ADR-0040 D1/D7d); ADR-0039 gets a row 4-5 back-fill note (207,768 / 208,655 measured per its own re-measure rule) and ADR-0062 D-C states the trend width (ledger 3-point vs ADR 5-row) explicitly (R-4/SPEC-1); defer-0024's check-in states the git-commit witness does NOT satisfy ADR-0050/0061 D-E no-git-as-tamper-proof-ledger negative, keeps the external witness open, deadline 2027-09-01 (R-5/SPEC-3). WHY: four document/record findings the audit raised before the round can be called sound; none is a build/gate breach. README test count 720 -> 727 (same-change rule, ADR-0056/0057); docs/governance/anchors.json regenerated for the ERRATA edit. gate:all exit 0 (23 entries)."
+    },
+    {
+      "sha": "9bed002d2e8248e0499d03e69bd608362f7cfba6",
+      "subject": "fix(adr-0061 D-E): persist the evidence the ADRs claim - conditional expiry/CAPA on the chain event, authorisation on signoff-class events (audit R-1, closes STD-1/P-1/P-2). WHAT: src/instrument-identity.js stateEvent() allowlist gains expires_at + capa_ref branches (the conditional_signoff transition at :322-323 already passed both; the allowlist silently dropped them - STD-1), and criteria_change / record_only_change / record_signoff now persist authorization (+ principal_id where a reviewer attests) so the verbatim human sign-off is anchored on the hash-chained event, not merely validated (P-1); scripts/instrument.js passes the validated --authorization through on the criteria-change and record paths, requires it on --record, and reports the record it just appended instead of the first in history (P-2). WHY: seq 10 asserted an expiry/CAPA it did not carry, and seq 6's human authorisation was absent from the permanent record - both had to be either persisted or the ADRs amended; persisting is the stronger closure. The chain is re-emitted through the sanctioned path (seq 11 quarantine -> seq 12 conditional_signoff) with the SAME real anchors as seq 10 - seq 1-10 hashes are byte-identical (append-only, no hand-edit). Frozen seq 6/seq 10 keep their defective field sets; the obligation binds events appended from the repair boundary. Tests: test/adr-0060-wiring.test.js +7 (STD-1 tail carries the fields; transition carries them; P-1 criteria_change/record_signoff carry authorisation; live tail invariant). Suite 54/54 727/727."
+    },
+    {
+      "sha": "01c113899f397202162ae4b96ad07ee64ed6fce8",
+      "subject": "feat(adr-0061 D-002): narrow the judge identity hash surface to judge-behavioral text. WHAT: src/instrument-identity.js gains judgeSurfaceText() (slice from the '## Verifier Profile' heading to EOF; a missing heading throws, never a whole-file fallback) and resolveInstrumentIdentity hashes that surface instead of all of src/SKILL.md; the pin moves f84a6c95..ee95c -> f6c6c843..c6154 through the P-A1 re-pin (quarantine seq 9, reverify ledger seq 5, conditional sign-off seq 10 countersigned by Xxx91n != author Euiop1, expires 2026-12-11, CAPA-0060-judge-flip-rate). WHY: ADR-0061 D-B - the dual-purpose file dragged product wording into the judge identity axis, so product-surface edits paid a full identity re-pin tax while judge-rule edits are the only ones that can move judge behaviour. Content addressing is kept; semantic digests stay banned (JudgeSense). Ships new ADR-0063, defer-0038 (review_at 2026-12-11), and the polarity fixtures (product edits do not re-pin; judge-surface edits still do; missing heading fails closed). Suite 54/54 720/720; gate:all exit 0; tarball 211617 B < 230000 B."
+    },
+    {
+      "sha": "e20e1ca72ec5f3eba2e4580269bc69d5afefd179",
+      "subject": "feat(adr-0061 D-005): governance-artifact anchoring - authoritative copies + witnessed digests. New git-tracked docs/governance/ (OUTSIDE the tarball whitelist): decision-ledger-adr0059.md, decision-ledger-adr0061.md, audit-report-adr0058.md, ERRATA.md; machine-generated docs/governance/anchors.json with a regen-and-diff check (scripts/build-governance-anchors.js --check, write and --check share one path). ADR-0059 ledger pointer line amended (C-1) to name the authoritative copy. defer-0024 minimal unlock (C-2): the git-tracked second copy is recorded in its check-in; the cross-domain witness stays deferred. New wiring test + a tarball-absence assertion. Suite 52/52 704/704; gate:all exit 0."
+    },
+    {
+      "sha": "18003bdb73e45329435281e33a04274f2452f1bc",
+      "subject": "feat(adr-0061 D-003): declaration-scoped out-of-service tagging + seq-3 disposition + look-back. src/instrument-state.json seq 7 record_only_change (maker Euiop1): model_checkpoint/model_identity sub-declarations tagged out-of-service, re-verification path P-A1, deadline 2026-12-11 (defer-0035), plus the seq-3 disposition (conditional interval stands, ADR-0060 D-B indeterminate) and the 2026-09-12..13 conditional-window look-back (no impact). seq 8 record_signoff countersigned by Xxx91n (!= author) with attestation approve - append-only, no rewrite. No new state machine kinds; hash chain verified. Suite 52/52 704/704; gate:all exit 0."
+    },
+    {
+      "sha": "149f2a2fe8db809f50d0811a4747718c175c826e",
+      "subject": "chore(adr-0061 D-001): register defer-0037 - the ADR-0062 review_at (2026-12-13) now rides the deferred-registry tide. Anchored in ADR-0062 text (no dangling registration); adr-0033 seed inventory 30 -> 31. Deferred gate OK (31 entries), adr-0033 suite green."
+    },
+    {
+      "sha": "85426fccd0cfaab9762f1d2aa14d6b711cc68623",
+      "subject": "fix(adr-0061 D-001): close ADR-0062 D-E - independent second_reviewer countersignature recorded. src/instrument-state.json seq 6 (kind criteria_change): reviewer Euiop1, second_reviewer Xxx91n (independent of the author), attestation approve, criteria ADR-0039-D3-200000 -> ADR-0062-230000, restatement_of 5567bd8 (the withdrawn amendment this one restates over), verbatim authorisation supplied. ADR-0062 D-E REQUIRED-PENDING -> CLOSED with the event hash. Hash chain verified (instrument --check OK). Suite 52/52 suites 704/704 tests; gate:all exit 0; tarball 208,883 B < 230,000 B cap."
+    },
+    {
+      "sha": "12f31bd465ae91f066cadc2d23fd410f925adef3",
+      "subject": "feat(adr-0061 D-001): gate-amendment ADR-0062 - policy section before value section, periodic trend anchor. Pins the measurement protocol (npm pack --dry-run --json, size field not unpackedSize, npm 10.9.7), derives the new cap from the on-file trend 205,741 -> 206,288 -> 206,501 -> 207,768 -> 208,655 by cap = ceil_to_10_000(M_latest x 1.10) = 230,000 bytes, declares itself NOT a D3 retro-application (distinguished from the withdrawn 5567bd8), and amends ADR-0039 D3 (one-shot M=140,778 anchor -> periodic trend anchor). Assertions re-anchored, none weakened: full suite 52/52 suites 704/704 tests green; gate:all exit 0; tarball 208,719 B < 230,000 B. second_reviewer countersignature recorded REQUIRED-PENDING (D-E)."
+    },
+    {
+      "sha": "843fed7eb810c9c2ac65c130fdcae90d0e85c002",
+      "subject": "fix(adr-0061 D-006): unblock measurement - bench-corpus probe requires a NON-EMPTY dir, so an absent/empty corpus degrades to exit 2 UNVERIFIABLE instead of running its gates red (restores ADR-0040 three-state honesty); gate:all now asserts the ADR-0039 D3 tarball cap via a single-sourced packCapBytes helper consumed by the wiring test. Amends ADR-0040 D1 in the same commit. Honest red: pack-smoke 208,655 B > 200,000 B until the T-2 gate-amendment ADR lands."
+    },
+    {
+      "sha": "031a3a747c9b05463c87bc0587d331baf2de3e53",
+      "subject": "docs(adr-0061): doc round - pre-registered gate amendment closure (D-001), surface-narrowed judge identity (D-002), declaration-scoped tagging and look-back (D-003), output-tethered convergence (D-004), governance artifact anchoring (D-005), measurement-unblock sequencing (D-006). New ADR-0061; CONTEXT.md gains 5 terms; registry gains defer-0035/0036; wiring seeds (adr-0033 inventory 30 entries, adr-0061 content anchors); ci expected-suites 52; README 52 suites / 704 tests."
+    },
+    {
+      "sha": "808c2cd3f23e0d12dfba992dead5e76c8cf8db0b",
+      "subject": "Merge pull request #5 from Xxx91n/adr0059-impl"
+    },
+    {
+      "sha": "dc5da61c7dc7c66e8b9213334b8c30fcd656e3ba",
+      "subject": "docs(consistency): refresh every LIVE measurement claim after the last packed-file edit (report ERRATA/15.4/15.8/15.9 and ADR-0060 Acceptance now state 206,501; the 205,741 and 206,288 figures are kept only inside labelled measurement chains or as explicitly baseline-labelled levers). Ledger D-007 gains a measurement-drift note: the next round must recompute from the current value (206,501 x 1.25 ~ 258,127) and re-measure before deciding. Closes the audit's stale-claim class (V-4/V-6/P-C2) across the round artifacts."
+    },
+    {
+      "sha": "4c45a7d8bb1613b8de0292363905acbc57c0775a",
+      "subject": "refactor(pack-smoke): single-source the pack-surface contract (PACK_SURFACE_PRESENT/ABSENT exported by the gate, consumed by the wiring test) and guard main() with require.main so importing the gate does not pack. Closes the audit's fresh DRY judgement call without dropping any assertion; ADR-0039 re-measures the tarball after this packed-file edit (206,288 -> 206,501). Report gains section 16 (audit judgement-call + scope-creep dispositions) and a strengthened ERRATA block (superseded 15/15 claim; the section-13 stale-sweep miss the audit found)."
+    },
+    {
+      "sha": "a090d782e3107c7548034a2c62e1cef86ab677ff",
+      "subject": "feat(instrument P-A1): a sign-off now requires --authorization (the verbatim authorisation being exercised) and the chain records principal_id vs instrument_id separately, so a record can no longer conflate the human principal with the executing agent; stateEvent whitelist extended; new refusal test + README 699. Also: ADR-0039 re-measures the tarball after this packed-file edit (205,741 -> 206,288); ADR-0034 D6 records the pack:smoke alias with an explicit same-commit deviation note (history rewrite rejected - the audit cites commit hashes as evidence); V-3 standing-rules conflict filed as a back-report for the task-book owner (their artifact left untouched)."
+    },
+    {
+      "sha": "5567bd8f6eb6a2bb25b21820c4d5c5071179d631",
+      "subject": "fix(audit): withdraw the falsified ADR-0039 budget amendment and restore the pre-registered 200,000-byte cap. The narrowing round measured M=140,778 (<160kB) so D3's recompute never fired; the amendment (i) applied D3's formula to the current size and (ii) cited an M of ~199,943 that does not exist in the ADR. ADR-0039 now carries a truthful Budget status note recording the breach (measured 205,741 B / 92 files) and its escalation; ADR-0059/0060 acceptance literals, the defer-0031 note and both wiring cap assertions are reverted. Report gains a top-level ERRATA block and section 15 (audit verification + remediation + open decisions); adr-0049 assertion strength restored to an exact check; adr-0038 npm-README comment corrected (a subdirectory .npmignore does override, a root one does not). Honest state: 1 failing assertion = the cap breach."
+    },
+    {
+      "sha": "3d6c4d0a976c626f8ceedad25eb4bdf787a7b29b",
+      "subject": "feat(test-gate): assert the README's declared test/suite counts against the actual JUnit counts (ADR-0056/0057 drift prevention: a README that drifts from reality now fails the test job in the same change). Stale-count sweep across non-frozen files is clean."
+    },
+    {
+      "sha": "43d7dd3e539c5b264600e8086887a1043b0e660f",
+      "subject": "chore(pack-smoke): add the ADR-0034 D6 npm debugging alias (pack:smoke) + clean up the fixture tree on the failure path; wiring assertion for the alias (round close-out; 15/15 closure green)"
+    },
+    {
+      "sha": "cb00addd3ae47aeea0e815704b77d03fba684818",
+      "subject": "fix(final-audit BLOCK): discharge the ADR-0049 D-E look-back as a chain-anchored record (record_only_change seq=4 + record_signoff, evidence_kinds reverse_traceability/oot_impact_assessment); add the missing ADR-0060 Acceptance assertions (expired --check exit 1, hard-fail refusal, 90-day default) via a fixture tree; scope adr-0048/0049 live-state assertions to their own records (README 51/698)"
+    },
+    {
+      "sha": "55c95eb93b8c6e2698f8a6a959b8210dea4701c4",
+      "subject": "docs(review): add Amended-by pointers (ADR-0011 <- ADR-0059; ADR-0047/0049 <- ADR-0060) + record the CONTEXT.md shared-ADR-list removal in ADR-0059; refactor: typed conclude reasons (no string-prefix classification) + single CI half-width (final-audit remediation)"
+    },
+    {
+      "sha": "e1177e057ca01f61b5022e3191b2a2b40be2e597",
+      "subject": "refactor(deslop): collapse the three inline look-back predicates into lookbackOverLimit(); share one verified ledger read (loadVerifiedLedger) between the hash and conformity accessors; extract clearConditionalAxis() for the two reset sites. Behaviour locked by the 694-test suite + 15-step closure (code-review smell remediation)"
+    },
+    {
+      "sha": "a731291a6ccc0c90d6087a0beaf36f13b3e34f50",
+      "subject": "docs(acceptance): align every pack-size budget literal with ADR-0039 D3's recomputed cap (ADR-0060 Acceptance references the cap; ADR-0059 carries the amendment; defer-0031 note synced) + wiring assertions"
+    },
+    {
+      "sha": "155c4dbbb7c32084babe880c8e81cf814349c08d",
+      "subject": "feat(adr-0059 D-B): land the pack->install->smoke integrity check (scripts/check-pack-smoke.js + gate order 196) and the ADR-0060 D-D 90-day default with no open-ended window; wiring assertions + closure step 15; README counts 51/694"
+    },
+    {
+      "sha": "e72ba8f55e7549daa925a4073d9df571fcaf5be0",
+      "subject": "chore(adr-0039): align the D3 recompute anchor to the final measured M (203,199 -> cap 253,999) and fix the stale pack-test name (code-review follow-up)"
+    },
+    {
+      "sha": "00f0b5ff6c1b29e07e4bf2a16fef419dc87065a8",
+      "subject": "fix(review): restore CONTEXT.md in the tarball (ADR-0039 D1 ruling unchanged) + apply ADR-0039 D3 cap recompute (M=203,141 -> 253,927 bytes); min_n now fails closed on an unknown sample size; add test/adr-0060-wiring.test.js (ADR-0031 D1) + ci expected-suites 51; closure gains an install smoke step (code-review remediation)"
+    },
+    {
+      "sha": "d0ff581397522ff78cd6ab8bac7b3116ba3f30f6",
+      "subject": "docs(adr-0060): register defer-0032/0033/0034 (corpus expansion, judge-quality CAPA, prompt-exercising eval surface) + CONTEXT.md glossary sync (Sampling-Plan Power / Indeterminate Conformity / Conditional Certification) + registry inventory wiring sync (D-006)"
+    },
+    {
+      "sha": "4bbdc81df286845d14bea2bc1f69dad77b086cca",
+      "subject": "feat(adr-0060): sampling-plan power min_n=100 + indeterminate conformity + conditional certification axis; re-pin instrument identity, record conditional certification (expires 2026-12-11, CAPA-0060-judge-flip-rate); drop CONTEXT.md from tarball to restore the 200KB cap; wiring tests synced (D-006)"
+    },
+    {
+      "sha": "2473402b2fab3230a5a9ca9b52783b37e9b4b7b4",
+      "subject": "feat(assurance): coherence-tier wording pass - SKILL.md same-boundary sharpened + README slogan + adapter regen + wiring tests (D-004). NOTE: src/SKILL.md is the instrument rules axis (rules_alias); ADR-0046/0047 identity re-pin + human sign-off PENDING."
+    },
+    {
+      "sha": "02bc8956aa9be5614cb1b2e9c8f612a82180c625",
+      "subject": "docs(bench): record the no-metric research-round waiver note (D-003)"
+    },
+    {
+      "sha": "63abb6a3fc73717d949391956f545cc68b817cef",
+      "subject": "feat(dist): source-only MCP tier - drop jiahao-mcp/ from tarball whitelist, amend ADR-0038 D1, pack assertion (D-002)"
+    },
+    {
+      "sha": "0ba37d86094fd49acb20c566dcde77c89020e79b",
+      "subject": "docs(readme): name-independent Tier 1 channel + naming declaration (D-001)"
+    },
+    {
+      "sha": "85775a6236484d531a9ee15ceaba67f33c3f89a4",
+      "subject": "ADR-0059 doc round: external-critique dialectic closure"
+    },
+    {
+      "sha": "62046da1b38a634aed2403adb25fb7b6c71c2f61",
+      "subject": "docs(adr-0058): sink decision status + complete the Acceptance section"
+    },
+    {
+      "sha": "e280218ac9f703b997de26be96cec53b5d59523e",
+      "subject": "test(adr-0058): lock inline-array escaping (audit R1) and sync ADR-0041 Amended-by header (R2)"
+    },
+    {
+      "sha": "fa0c91ff7f4bfe199e4e44420ee0f14667328c79",
+      "subject": "fix(adr-0058): repair audit findings B1-B7 (round 2)"
+    },
+    {
+      "sha": "84e621fb16ce45d0ab5f5901c57e93b08987a60f",
+      "subject": "fix(adr-0058): repair audit findings A1/A3/A4/A5 (test-job capability + summary count guard)"
+    },
+    {
+      "sha": "d148bc4389a101bf6dd9172d578da3dafe30a8f4",
+      "subject": "chore(hooks): de-GitButler .githooks - real pre-commit restored as active hook"
+    },
+    {
+      "sha": "744cf94d616c3a78b91006a2c0f03445e369aaf9",
+      "subject": "docs(adr-0058): audit fixes - false/stale claims corrected"
+    },
+    {
+      "sha": "919c5bdad101fcc52297b4ef373dffb243617bbb",
+      "subject": "feat(ci): independent test job + always() success-only summary (ADR-0058)"
+    },
+    {
+      "sha": "e6381339e143eb46990ab7dac773ac53cb0cfc9c",
+      "subject": "test(adr-0055): make stale-upstream flake deterministic (HEAD~1, not HEAD which equals origin/main after merge) (#4)"
+    },
+    {
+      "sha": "b0a8a0a7c3a0a3ad72b975deee2aab97b5851462",
+      "subject": "fix(git): ignore test-artifacts/ (ADR-0057 JUnit evidence output dir) (#3)"
+    },
+    {
+      "sha": "e01339666db5c3eff7845ed3c76bc61f3a9c8559",
+      "subject": "fix(audit): decision-rule TUR doc, drift fail-on-divergence + derived suites, skip-rule ids, README counts; post-audit ADR appendices"
+    },
+    {
+      "sha": "abadc3ad7e254df8c74c8142516935e9d2a7cdc4",
+      "subject": "fix(adr-0056): drop accidentally committed maintainer run artifacts (ADR-0038 D2 clone purity)"
+    },
+    {
+      "sha": "343d0d8c439dcbb0877b5a3b9131e93a0ef95487",
+      "subject": "feat(adr-0057): skip-honesty gate, suite-count asserting test gate, JUnit evidence"
+    },
+    {
+      "sha": "915939ec1d4ecf9261ec3a57314c32dd44522f89",
+      "subject": "feat(adr-0056): three-tier corpus resolution, committed fixture corpus, tier drift recurrence"
+    },
+    {
+      "sha": "9f15390f04442e01d7ef5bf4ad1b0b33737f69fa",
+      "subject": "merge: ADR-0056/0057 doc round into implementation round"
+    },
+    {
+      "sha": "37660b379e5e165902ecad41d713e5b96d2c4b47",
+      "subject": "feat(adr-0049): decision-rule anchor, corpus_ref row identity, no-adjustment declaration, drift look-back"
+    },
+    {
+      "sha": "76c2999848f18e467b722c922401aa272d0a57b8",
+      "subject": "wip: start ADR-0049/0056/0057 implementation round"
+    },
+    {
+      "sha": "3233472df1faaf1387a2dc2bef8497f6716337f3",
+      "subject": "docs(adr-0056,adr-0057): test corpus tiering + test-layer skip honesty decision rounds; glossary, defer-0026, index, wiring seeds"
+    },
+    {
+      "sha": "d6386fcde99f531316c7fa438687c10abc758919",
+      "subject": "Merge pull request #2 from Xxx91n/codex/adr0044-defer-id-fix"
+    },
+    {
+      "sha": "ce7f43c9abdc12cc8c627a888fdbea159d3b33fd",
+      "subject": "wip: ADR-0044 doc defer-id rename 0044-0x->0009/0010/0011 (parked scratch, verify before landing)"
+    },
+    {
+      "sha": "c35c23f132940189c9bff10ddaa6b6ddf47792ae",
+      "subject": "Merge pull request #1 from Xxx91n/codex/adr0055-impl"
+    },
+    {
+      "sha": "72f554f50ddd39d24d1af243404661fe97884054",
+      "subject": "fix(adr-0055): audit fixes — harden seal sidecar against old segments, explicit witness anchor fields, deduplicate appendBounded via commit"
+    },
+    {
+      "sha": "efd9b5eba6bba4e2231a84bf681d1ca6f3c300bc",
+      "subject": "feat(adr-0055): add work-baseline contract and O(1) seal verification"
+    },
+    {
+      "sha": "6ebd7f7c9065cc4269404fab3f6db31e1b221c99",
+      "subject": "docs(adr-0055): work-baseline anchoring and seal verification performance decision + glossary/index sync (document round)"
+    },
+    {
+      "sha": "ad53f369664a0311b209a81131bcb65be78ae075",
+      "subject": "docs(adr-0054): anchor freshness verification and re-anchoring activation"
+    },
+    {
+      "sha": "4cf1316cbd065185a5df890d8e2452a74c4d4baf",
+      "subject": "docs(adr-0051,0052,0053): persistence class, witness recovery, and anchor freshness"
+    },
+    {
+      "sha": "2e7279c1956cae9772a13826bfe3891a9d0446f7",
+      "subject": "docs(adr-0049,0050): decision-rule anchor and append-only hardening document rounds"
+    },
+    {
+      "sha": "f6c843df79609db1392fa5404230f9556a5605db",
+      "subject": "chore(agents): require committing each documentation round after close"
+    },
+    {
+      "sha": "1f663d1b7a81fd369a32b2b5d8f318be3e5cde6f",
+      "subject": "ADR-0048 implementation round: metrological ledger, record tier, content anchor"
+    },
+    {
+      "sha": "3326e226d542275d4c82845c4b45c43e5365ad53",
+      "subject": "docs(adr-0048): metrological ledger, record tier, content anchor decision"
+    },
+    {
+      "sha": "fe00ad96fd5aea4ef5690307ebd37befb2d7052e",
+      "subject": "fix(adr-0047): enforce per-surface attestations and ADR-only coupling"
+    },
+    {
+      "sha": "949e8a6266c6ce379b54296bf361d89fe2097fa9",
+      "subject": "feat(adr-0047): impact-tiered instrument change control"
+    },
+    {
+      "sha": "bb5cf75c0bda037423d59c6bea4d5cc4efa7d2a1",
+      "subject": "fix(adr-0044): widen falsification twin timeout"
+    },
+    {
+      "sha": "28cc4d60f231c22d19affc9121c034d35adf36e9",
+      "subject": "fix(adr-0044): make twins claim-directed and persist falsification evidence"
+    },
+    {
+      "sha": "a16530844946b79e9b23829cc2ad401a0333d9fb",
+      "subject": "ADR-0044 implementation round: falsification core and gate"
+    },
+    {
+      "sha": "9344adb9b945a527e72df5e1e6446374fc6617dd",
+      "subject": "ADR-0044 document round: Claim-Directed Falsification decision and glossary/index sync"
+    },
+    {
+      "sha": "b3883402e3c4335c459abb8f03f2154892305ca2",
+      "subject": "fix(adr-0046): close audit gaps in instrument quarantine gate"
+    },
+    {
+      "sha": "e12ca8a3fd6879f00953b7a10be2cad422a017d6",
+      "subject": "feat(adr-0046): implement instrument identity gate and quarantine state machine"
+    },
+    {
+      "sha": "8cc767376af59a9df6aff764d6c21f868e9284e1",
+      "subject": "ADR-0043 merged into ADR-0041 lane: fact-source spine deepening, derived-artifact discipline, prefix vocabulary single source"
+    },
+    {
+      "sha": "c76fc213b9ff6b677bf534d1437fb8e1e83f4ff9",
+      "subject": "ADR-0041 impl: exit 2 narrowed to probed-capability-absence (registry gates + src/shared); fail-closed/usage paths exit 1 with closed-enum [usage]:/[config]:/[internal]: stderr prefixes; ::error annotation corrected to stdout with comma-separated properties + %25/%0D/%0A escaping (ADR-0040 D4 spec-defect fix, amended by ADR-0041 D5); run-gates aggregates child exit 2 into UNVERIFIABLE column instead of collapsing to fail (ADR-0040 D5 unfinished half); wiring assertions adr-0041 (D2 spawn locks, D3 vocab + aggregator, D5 format, D4 consumer-side registry lock for probe-corpus/judge-bias); Hyrum dependents updated same commit (adr-0036/0037/0038/0040 tests); H1 exact-commit record: registry entries at HEAD, script wiring arrived via parallel ride-along edits; M3 magic 200000 deleted (ADR-anchored), L1 check-drift top-level side effects wrapped in main(); bench-gate parses args before capability probe; README counts 486/33 -> 500/34, runbook exit-2 claims corrected"
+    },
+    {
+      "sha": "c2ade88b6c3f3845a0235719fc1f4d5f389e3705",
+      "subject": "docs(adr-0041): D3 clarification - closed-enum prefix MUST narrowed to displaced fail-path; verdict detail lines exempt (evidence, unlabelled, per Bazel TIFF/SARIF result-vs-notification/TAP/MISRA/grep); [corpus-freshness] non-enum token removal ruled; R8/R9 rejected (prefix-all pollutes [internal]:, [config]: mislabels result as notification); impl-round mechanical lock noted (+2 atomcode-researched lenses pending D8 promotion)"
+    },
+    {
+      "sha": "f83cdaaf93f33e9a769c8dfbaf3f8ded1a16ca65",
+      "subject": "docs(readme): correct test counts to measured truth (486 tests / 33 suites, was stale 411/29 and 427/30); adapters count verified 11; gates.json 18 entries verified via gate:all"
+    },
+    {
+      "sha": "bb18e1e6a498cc772da8e1c9ef13233169c7c12c",
+      "subject": "docs(adr-0041): exit-semantics unification - exit 2 narrowed to probed-capability-absence (registry gates + src/shared only), three-code space + closed-enum stderr prefixes, ADR-0040 D4 ::error corrected to stdout with comma-separated properties (spec-level defect), consumer-side registry wiring (H1), order-preserving lane integration, internal-toolchain hard cutover, curated glossary 6 terms (grill round, docs-only, 7 serial atomcode researches)"
+    },
+    {
+      "sha": "43d8804ef1c0ee1f8256ec78a0dd36b1e41d8e11",
+      "subject": "ADR-0040 impl: runtime capability probes (closed enum repo-tree/bench-corpus/docs-adr/ci-mode in src/shared/capability.js), requireCapabilities + validateRequires wired into all 18 gates and run-gates precheck, honest exit-2 UNVERIFIABLE with two-line ::error, run-gates single aggregated UNVERIFIABLE row (exit stays 0 locally), lazy requires in check-probes/bench-gate so UNVERIFIABLE precedes module load; F3 adr-0038 cap parsed from ADR-0039 text, F7 size-metric clarified, F8 comment repaired, seed inventory + defer-0008 synced; regression = adr-0040-wiring helper test + 4 spawn representatives + tmp-tree UNVERIFIABLE lock"
+    },
+    {
+      "sha": "55879ac96e4fad856a1478d3366b2702f54ee432",
+      "subject": "docs(adr-0040): gate runtime capability declaration - closed requires enum in gates.json (repo-tree/bench-corpus/docs-adr/ci-mode), three-state exit 0/1/2 with narrow exit-2 UNVERIFIABLE semantics, two-line ::error honest degradation message, run-gates UNVERIFIABLE column, degradation schema unchanged, regression = helper jest + 4 spawn representatives + static wiring anchor; defer-0008 local-file escape (grill round, docs-only)"
+    },
+    {
+      "sha": "84eb1fbe5353a09b3c095db1c1c158e73c534e08",
+      "subject": "ADR-0039 impl + audit F1/F2/F4/F8: files whitelist narrowed (docs/adr out of tarball, 140,778 B / 75 files measured, budget 200,000 B content-anchored in ADR-0039); corpus JSONL + thresholds parses fail closed exit 2 (mr + probes, symmetric); maintainer tier discriminator uses gitignored private/bench-corpus not .git; Wilson 75.8% pinned in ADR-0037 D5; spawn-level schema-bad->exit-2 regression lock"
+    },
+    {
+      "sha": "12a5a87eb3874e5fb7368ab64365bd884890fb34",
+      "subject": "docs(adr-0039): tarball runtime surface narrowing - docs/adr leaves npm artifact (archive channel = git tree, no new infra), whitelist keeps 3 machine fact-sources + CONTEXT.md; measured-anchor budget 200,000 bytes with ADR content anchor; stale ~50KB claims corrected (grill round, docs-only)"
+    },
+    {
+      "sha": "a6afaa7fddcf7d2002d470d9ed133c516135fe50",
+      "subject": "ADR-0037/0038 impl: MR third corpus family gate (12 pairs, judge-verified 12/12, leak+freshness+anchor gates extended) + npm runtime-artifact files whitelist with smoke-verified honest fail-closed corpus boundary. Deviation: tarball 237KB vs 50KB estimate (D1 whitelist intact; docs/adr dominates), cap 256KB, note in ADR-0038"
+    },
+    {
+      "sha": "6c81da1a289fdad291bd35300cd260247bbb0759",
+      "subject": "docs(adr-0037,0038): MR third corpus family (staged hybrid, <=3 pre-registered families, IL5/IL6 declared-gap) + npm runtime-artifact surface (files whitelist, corpus-gate maintainer/CI-only boundary) - grill round, docs only"
+    },
+    {
+      "sha": "52691648aded49dcb28cdafc5411ab69769ca96c",
+      "subject": "ADR-0036 audit-round hardening: freshness future-timestamp fail-closed; leak gate scans evidence log; anchor id-set validation; exit-2 wiring test strengthened (D6a deviation: n-gram shards rejected, evidence-logged)"
+    },
+    {
+      "sha": "d205815aacbd2b70359e4ee466d96ee1d4148501",
+      "subject": "ADR-0036 impl: private bench corpus (leak-gated, freshness-tiered), gate params contract, pb12 corpus refresh"
+    },
+    {
+      "sha": "066e877c639a838db3943d5dd7837bc3a6d14efe",
+      "subject": "fix(adr-0054): repair freshness renewal and segmented verify"
+    },
+    {
+      "sha": "dcac5d356e884b52674d484c56b0eaa370a1f0fa",
+      "subject": "feat(adr-0054): wire anchor freshness and re-anchor activation"
+    },
+    {
+      "sha": "91fa45e0dde367e3c213d61c5143a737aa7354c4",
+      "subject": "fix(adr-0051,0052,0053): close audit findings and add test loop"
+    },
+    {
+      "sha": "0b122ede36da7874f43fee8e73d1cc4b190dd2fc",
+      "subject": "feat(adr-0053): periodic re-anchoring, anchor freshness, last-good-seal fallback"
+    },
+    {
+      "sha": "a74596a9313f6dbe73fb1dc0b84c58dbec3843d7",
+      "subject": "feat(adr-0052): witness-unavailable failure state, degraded append policy, human-gated rebuild"
+    },
+    {
+      "sha": "bb29f2c5718e5ee21e8b5e35c9de8b4fe00f7ee3",
+      "subject": "feat(adr-0051): closed persistence capability class for anchor writes"
+    },
+    {
+      "sha": "81db869508120d587f5be14860dc74ee0ccc690f",
+      "subject": "fix(adr-0050): close genesis mismatch and anchor rename durability"
+    },
+    {
+      "sha": "15e8f2f4783a112c30d51e4065ff26c5faded60c",
+      "subject": "fix(adr-0050): make anchor hardening fail closed and fsync ordered"
+    },
+    {
+      "sha": "cbbcc5d9d90567afd276d79366e9d03048575a77",
+      "subject": "feat(adr-0050): external head and genesis anchor closure"
+    },
+    {
+      "sha": "aa3f5198a3706b6c6f6fc52d756c5ace0e3917a2",
+      "subject": "chore(gitignore): ignore process residue from %TEMP% / host tools / agent runtimes (408 -> 0 stray files)"
+    },
+    {
+      "sha": "4135e8f22935cdc32c3fddf06f8474cd8157c91f",
+      "subject": "docs(adr-0036): anti-gaming audit - CAISI boundary + answer-corpus migration + corpus freshness soft-hard ladder + gate-defaults params consistency + fingerprint leak gate"
+    },
+    {
+      "sha": "6a00a85466a48d5f5ae8e9edd977c1ddebd680da",
+      "subject": "ADR-0035 audit O2: defer-0004 check prose aligned with assertion mechanism (top-level jobs only)"
+    },
+    {
+      "sha": "73c7ebce02e8dff641157d9966366e4604f2d4dd",
+      "subject": "ADR-0035 audit F1: README test count 410->411 (line 165, missed by previous bulk edit)"
+    },
+    {
+      "sha": "e1779f41875b6618fe9548336074975d958bae43",
+      "subject": "ADR-0035 audit fix: broken verified_by verifier (exit>1) now WARNs instead of silently reading as not-satisfied; verifier exit-code contract documented; +1 test (411/29); README counts"
+    },
+    {
+      "sha": "469331a366fb2f56369018d09925366dc9f3d7b5",
+      "subject": "ADR-0035 impl: registry corrections (0002 narrowed external-event, 0005 added, ladder review_at/cadence_tier/registered_at/last_check_in) + check-ci-jobs assertion + check-deferred SLA/checkin-warn/verified_by rules + 15 wiring tests (410/29 green)"
+    },
+    {
+      "sha": "b6ef30b5dfd990e8a6d95c4363027f9172cef590",
+      "subject": "docs(adr-0035): deferred registry maturation - cadence ladder + residency SLA + check-in discipline + verified-by enforcement + entry corrections (grill round, docs-only)"
+    },
+    {
+      "sha": "1e049cfc467e4b636e23c7c004ba18d523330439",
+      "subject": "ADR-0034 audit fix: ci-wiring fail-closed hardening - block direct run-gates.js second entrypoint (S1) + derive alias blocklist from any scripts key token-prefix-matching a registry gate, not only :gate suffix (S2, catches judge:bias); +2 negative tests; README counts 393->395"
+    },
+    {
+      "sha": "4bb6a5166e117ac0d77914391907a324e1e29893",
+      "subject": "ADR-0034 impl: gate registry (docs/gates.json) + gate:all single-entrypoint runner + ci-wiring contract assertion + defer-0004 generated-ci uplift"
+    },
+    {
+      "sha": "6d9077aabc4ed40f41c86ca990d6a728e8de0e62",
+      "subject": "docs(adr-0034): gate registry + single entrypoint gate:all + CRTM-as-entry ordering + three-face alignment (grill round, docs-only)"
+    },
+    {
+      "sha": "18fce9c519bebb06d29b0c4742ee5486e6f5397e",
+      "subject": "ADR-0033 audit fixes: calendar-date validation, verbatim D7 predicate, anchor semantics doc, README counts"
+    },
+    {
+      "sha": "848e7fb509845b77a505f45a488e9de90ae95ab0",
+      "subject": "ADR-0033 impl: deferred registry + fail-closed checker + wiring tests"
+    },
+    {
+      "sha": "4c49d4d169ece268b96e5b3b5c18a541515392d0",
+      "subject": "Merge ADR-0033 grill round (docs-only)"
+    },
+    {
+      "sha": "20864a7714af4b79dddd846bda6da4d15e156370",
+      "subject": "docs(adr-0033): deferred/unfreeze registry - fact-source + pending-evaluation + expiry-forces-action (grill round, docs-only)"
+    },
+    {
+      "sha": "c6be725fa6299a79a99ddb10cc5811abe20462cf",
+      "subject": "audit(adr-0032): latch D5 retirement reason tag in gsr header validator + rebuild header regex with assembled standard escapes"
+    },
+    {
+      "sha": "4bd48a8dd7446121df9be61e524695a11039af2d",
+      "subject": "Merge ADR-0032 impl: generator rule registry + coverage gate"
+    },
+    {
+      "sha": "9f0ec47363ee50009aeded7145bc874b0bebc5e0",
+      "subject": "feat(adr-0032): generator rule registry - gsr headers, coverage map gate, lifecycle state machine"
+    },
+    {
+      "sha": "140dd9f3cb05ae895b2458be8eb964afb4a25d50",
+      "subject": "Merge ADR-0032 grill round (docs-only)"
+    },
+    {
+      "sha": "7e807b20eb3b6aebddf447e2e999069523c04a19",
+      "subject": "docs(adr-0032): generator surface rules deepening — gsr header + coverage map + equivalence pre-registration + lifecycle"
+    },
+    {
+      "sha": "7b49bbbd002b86bb6b9bbb66ecf273394415f9ae",
+      "subject": "audit(adr-0031): conclude regression-arm test coverage + SR 11-7 superseded-by-SR 26-2 citation annotation"
+    },
+    {
+      "sha": "cc17910962b8ce19108c1736395a8036ba4f79c2",
+      "subject": "audit(adr-0031): fail-closed confirmatory gates on non-computable metric (judge-bias SKIP bypass) + severity enum validation in judge input whitelist + swap_order naming errata"
+    },
+    {
+      "sha": "047333a2ff4943cba1aa50dabddae765faebe750",
+      "subject": "audit(adr-0031): sync README test counts 332/24 -> 347/25"
+    },
+    {
+      "sha": "199ba89baabaaa9d51c8a3603b24ee8bc3163e00",
+      "subject": "reverify: seq=2 run artifacts + ledger entry (conclusion=pass, run_key dedup)"
+    },
+    {
+      "sha": "c38b2ba7342677d8b29a156c023c59c14f928762",
+      "subject": "Merge ADR-0031 implementation"
+    },
+    {
+      "sha": "9566a2b3d3eb2906cdbc51aa492390c9b7f8e516",
+      "subject": "ADR-0031 impl: gate tiers (D3) + judge bias corpus v1.1 & metrics gate (D2) + judge input whitelist (D4) + evidence provenance additive field (D5) + reverify F4/F5 conclusion/idempotency fixes (D6) + wiring assertions (D1)"
+    },
+    {
+      "sha": "8b57e0cbcb3adc5e0879144024ec5d8957ee96bf",
+      "subject": "merge: ADR-0031 grill (docs-only)"
+    },
+    {
+      "sha": "7f58421a3eb074b4fd67500e9cbef26ac6cffd6a",
+      "subject": "docs(adr-0031 grill): wiring assertions + judge bias corpus + gate tiers + judge isolation + evidence provenance + debt pack (docs-only)"
+    },
+    {
+      "sha": "5737a37e446fdda8fea6a4a2955ff3a42a975740",
+      "subject": "merge: ADR-0030 audit fixes (F1-F3, wiring state bug, coverage tests)"
+    },
+    {
+      "sha": "9b2ec3292e63760b0da46a9bfebbe8d6f2303ddf",
+      "subject": "fix(adr-0030 audit): F1 coverage-in-degraded bypass, F2 missing deadline.json fail-closed, F3 gate-path ledger chain verification, state-object wiring bug, T1/T2 tests, README counts"
+    },
+    {
+      "sha": "e86ba8f6693970c55c179ed4bf58c2e261bb327e",
+      "subject": "merge: ADR-0030 impl (interval coverage gate + reverify runbook + dead-man degradation)"
+    },
+    {
+      "sha": "615e0d430fc899999ed27c5d79ddc382b9861091",
+      "subject": "feat(adr-0030): interval coverage gate + reverify runbook + dead-man degradation"
+    },
+    {
+      "sha": "1b33ba1424ef65c3765b5f806d7c375e63afbab9",
+      "subject": "Merge branch 'codex/adr0030-grill-docs'"
+    },
+    {
+      "sha": "8c53d19a55d25b815ae07d2258f1d56050fec621",
+      "subject": "docs(adr-0030 grill): probe corpus growth interval gate + reverify runbook + dead-man degradation + advisory disposition (docs-only)"
+    },
+    {
+      "sha": "8a3a6dc1db0632e691732aec01feb74f4a5ffc98",
+      "subject": "merge: ADR-0029 audit fixes (fail-closed probe gates + symmetric zero-count exemption + CI wiring)"
+    },
+    {
+      "sha": "f8dafb5c3b18f7bed3158d9c70aa816484b2fc49",
+      "subject": "fix(adr-0029 audit): fail-closed probe_gates guard, judge-error degradation, unparseable-date check, dynamic coupling base, symmetric 0-errors exemption"
+    },
+    {
+      "sha": "f08c45b2818b22a7127f47d3e7ebc792502ce4a1",
+      "subject": "test(bench-gate): pin coupling semantic check to range containing ADR+thresholds pair (HEAD~1 is per-commit, not per-change-set)"
+    },
+    {
+      "sha": "45240c42a402044db7f2ff692e6ed80991147b73",
+      "subject": "merge: ADR-0029 behavioral probe gate implementation"
+    },
+    {
+      "sha": "17c3da2f6852fc530d5a63c032b35c336261b163",
+      "subject": "feat(adr-0029): behavioral probe gate — 14 paired probes, probe-recall/probe-fp zero-miss gates, schema gate, jest core tests"
+    },
+    {
+      "sha": "3c89d518886ac5c0fa8bc1be14486680c3c7f734",
+      "subject": "docs: ADR-0029 behavioral probe gate (verifier effectiveness, zero-miss smoke gate, advisory upgrade channel, signing rejection)"
+    },
+    {
+      "sha": "3b363a73f09e309daa09b80bbce6912a4e4275bd",
+      "subject": "merge: ADR-0028 multi-host L0 closure (regen-diff golden + host contracts + 4 host adapters)"
+    },
+    {
+      "sha": "fd05bff538be1a3a2368e4daef9ee6c5e34be663",
+      "subject": "fix(adr-0028-audit): qoder SessionStart matcher includes clear"
+    },
+    {
+      "sha": "19c199adb804c3b2b78c24e34a150a7f08d2bc55",
+      "subject": "docs(adr-0028-audit): clarify exit_codes semantics in host-contracts _doc"
+    },
+    {
+      "sha": "4cf877ce1be7bf5e1330c5c511a41b73073d98ef",
+      "subject": "chore(jiahao-mcp): track package-lock for reproducible MCP server install"
+    },
+    {
+      "sha": "fa223a04b26f9bc6cdf1612b571aa7f6c3e2656f",
+      "subject": "docs(adr-0028-D6): protection-tier disclosure + factual corrections"
+    },
+    {
+      "sha": "478b4094dfdf2c3af6fef5a6d6d20e202b95f7f8",
+      "subject": "feat(adr-0028-D5): four research-gated host adapters (copilot/qoder/opencode/aider)"
+    },
+    {
+      "sha": "0587c35b8526ac75eafa28ea59252000acadeba2",
+      "subject": "feat(adr-0028): L0 test closure — regen-diff golden (--check) + host-contracts registry + conformance matrix"
+    },
+    {
+      "sha": "dc73204ea5cab2e2d9883332d774fe11080dc349",
+      "subject": "docs(adr-0028): multi-host L0 test closure -- regen-diff golden + host contracts registry + lifecycle register (grill round, atomcode-researched x3: smoke pyramid / approval-testing lineage / host lifecycle; Rejected: jest snapshot, hash manifest, auto-bless; CONTEXT.md +4 terms; README drift fixes)"
+    },
+    {
+      "sha": "111c84c7f99e5f78dd0451350e6436eb28e3f7f1",
+      "subject": "fix(adr-0027): audit repairs — fetch-depth 0 for coupling guard, testable coupling rule"
+    },
+    {
+      "sha": "7bb8d1bc62c0e2291060b8501f7f7f0bd5b39e0e",
+      "subject": "docs(bench): document executable bench gate usage (ADR-0027)"
+    },
+    {
+      "sha": "b34db8022caf2ec899e7d18501f657cb5eda6d1a",
+      "subject": "feat(adr-0027): executable bench gate + threshold governance (D1-D4)"
+    },
+    {
+      "sha": "17d97d8e7436acd6f72369a12d56261b3a9c1a26",
+      "subject": "docs(adr-0027): bench gate decision — executable pre-registered thresholds (D1 real re-run / D2 thresholds.json + same-commit ADR guard / D3 0/1 + aggregated ::warning:: / D4 milestone archive; D5 rejections). CONTEXT.md +3 terms + index; README 26->27. Grill round, atomcode-researched."
+    },
+    {
+      "sha": "ee116e91741434f2dcf1d85500bab60df41948c0",
+      "subject": "fix(adr-0026): seal legacy_breakpoint on rotation anchors"
+    },
+    {
+      "sha": "a1a3ea2f9d149f7d54b1a53e80e06c448f645a24",
+      "subject": "feat(adr-0026): segmented evidence log — rotation + cross-segment anchor + base-seq naming"
+    },
+    {
+      "sha": "3796af4932a8d7b4b68215d2ecab9e9dc281206b",
+      "subject": "docs(adr-0026): segmented evidence log decision — rotation + cross-segment anchor + base-seq naming + transparent legacy migration (grill round, atomcode-researched)"
+    },
+    {
+      "sha": "d1a471e7d3110080ed80b8a72e1143436d14c25d",
+      "subject": "fix(adr-0025): drop latency_ms_avg from judge telemetry snapshot — four-metric minimal set only (ADR-0025 D3/D5 audit finding)"
+    },
+    {
+      "sha": "11475211d77899287a031463ab46296c8db7ffbe",
+      "subject": "docs(adr-0025): judge form convergence decision record + glossary"
+    },
+    {
+      "sha": "9a78ce8d24261e381a95f0080e9a4dfede476553",
+      "subject": "feat(adr-0025): judge seam signature lock + telemetry contract + honest-twin corpus"
+    },
+    {
+      "sha": "10d15ee755bf618ce96acba832720d1a777f41c9",
+      "subject": "feat(adr-0024): sentinel ownership lock, reconcile hardening, SessionEnd sweep"
+    },
+    {
+      "sha": "4404bed0e2cf9ca6427209d218396934fdb0817e",
+      "subject": "docs(adr): ADR-0024 sentinel ownership lock + reconcile hardening + session-end sweep"
+    },
+    {
+      "sha": "b19c8694090dd5e80d494a545ba99d84b8a19f5e",
+      "subject": "fix(adr-0023): schema unknown-kind (null) branch — close D4/D5 contradiction found in audit"
+    },
+    {
+      "sha": "5acfdacfcbce670126b2411e2ff301e7c0a12b01",
+      "subject": "feat(adr-0023): timeout sentinel reconciliation + degradation schema evolution discipline"
+    },
+    {
+      "sha": "af647c5f2078ed76c7ce0c28a7653fea2598885b",
+      "subject": "docs(adr): ADR-0023 timeout sentinel reconciliation + degradation schema evolution discipline; CONTEXT.md +3 terms; README ADR 22->23"
+    },
+    {
+      "sha": "9c00100202e9ce46148508b105de6e3e46e53cda",
+      "subject": "fix(adr-0022): scan-skip degradation surfaces pag-cap abandonment and missing wordlist; verified: jest 205/205 + drift/twins/truncation gates all pass"
+    },
+    {
+      "sha": "5bb4b6635ffb61f6cc073d21f65a1cacac8f1a48",
+      "subject": "feat(adr-0022): detector hardening — 64KB input cap + censoring metadata + degradation contract"
+    },
+    {
+      "sha": "fe351ba4ce3a7da4e297620e7f95393a39e6562a",
+      "subject": "docs(adr-0022): detector hardening — length caps + censoring metadata + degradation contract"
+    },
+    {
+      "sha": "73544d15b5f5d6fc367a30d12d8d10e859d67c74",
+      "subject": "refactor(anchors): drop dead ternary in extractQuad (constant per_page key) — audit round ADR-0021"
+    },
+    {
+      "sha": "a8e15fab93d301170fd3381e73aeb49c583cad92",
+      "subject": "docs(bench): polygraph run6 - beat-b2 gate PASS, ADR-0021 twins 2/2"
+    },
+    {
+      "sha": "c6ab5a0a5d27d11c31fe7162d44f14cd47c26e91",
+      "subject": "feat(detector): ADR-0021 request-side anchor signals"
+    },
+    {
+      "sha": "16e178cc5336ee2780f753452a399ec2874f9c68",
+      "subject": "docs(adr): ADR-0021 request-side anchor signals + rescue-dominant trust direction; CONTEXT.md +3 terms (Request-Side Anchor Signal / Server-Authoritative Boundary / Signal Trust Table); README ADR count 20->21"
+    },
+    {
+      "sha": "6e3c5cdae18545c2266532cbd68d9c0fae195f9c",
+      "subject": "docs(adr): ADR-0020 research addendum (short-page is weak witness, safe-side use confirmed); README stale FAIL line -> PASS"
+    },
+    {
+      "sha": "ef57262e84f77db99c4caa0f00a7306b29f7f043",
+      "subject": "docs(adr,bench): ADR-0020 + polygraph run5 - beat-b2 gate PASSED (core 0.479>0.385, 47.92%@0.00%)"
+    },
+    {
+      "sha": "566a2844402b343f323b4d4ac1809f9ebb0b7fc1",
+      "subject": "feat(detector): ADR-0020 multi-page enumeration with pagination-exhaustion pairing"
+    },
+    {
+      "sha": "c83f30b497f02cb8cb79bf9ff95fbe65b01efb48",
+      "subject": "docs(bench): polygraph detector v2 run (honest FAIL vs b2 baseline); frozen artifacts + failure analysis"
+    },
+    {
+      "sha": "8f5b2bbfef02e964ce5b216014ac80ee48c6c0ce",
+      "subject": "feat(detector): ADR-0019 detector v2 - suppression rules, transient/hard failure layering, claim-evidence pairing, negation scope"
+    },
+    {
+      "sha": "47612c0b7c35d064a2af1d73fa0e72ed4c19c421",
+      "subject": "docs(adr): ADR-0019 detector v2 — suppression rules + judge seam; ADR-0015 D2 core-floor correction (grill round, docs only)"
+    },
+    {
+      "sha": "d5b149b6a698b1b9713e4a5e5b9ac7ca4aaaf1de",
+      "subject": "fix(audit-adr0018): deriveThresholds degenerate-model guard (a=0 -> static band) + comment rot fix + README test count 150"
+    },
+    {
+      "sha": "074474d07223e18c52e2593b6c7bb1088f9f5552",
+      "subject": "feat: ADR-0018 calibration flywheel — threshold band + few-shot injection + κ governance; ADR-0015 polygraph-bench baseline (honest FAIL)"
+    },
+    {
+      "sha": "ca1866b205c2fcf9251cddae0af2465a8035de00",
+      "subject": "docs(adr): ADR-0018 calibration flywheel — threshold band + few-shot injection + kappa governance (grill round, docs only)"
+    },
+    {
+      "sha": "c141faf2261e91ab54b9244797e5ebf1dbf3c369",
+      "subject": "docs(readme): fix stale test count in Develop section (90/8 -> 134/12)"
+    },
+    {
+      "sha": "60049f3648f376bebfda85c0064ff120418438c0",
+      "subject": "feat: ADR-0017 implementation — ESCALATE verdict + human adjudication write-back"
+    },
+    {
+      "sha": "8a367bcc8b0da4d4a561606f34996d1e5effd554",
+      "subject": "docs(adr): ADR-0017 — ESCALATE verdict + human adjudication write-back (grill round, docs only)"
+    },
+    {
+      "sha": "02a3bbafb1f6ada25c2b6d30184b955f11dba548",
+      "subject": "fix(audit-adr0016): module-level createRecord + stale comment/doc rot + eval-ab factory hoist"
+    },
+    {
+      "sha": "175aff7dfbe66db276d6bdfb14cd02ea3c1dee80",
+      "subject": "refactor(adr-0016): EvidenceLog/GateLadder split + shared paths core"
+    },
+    {
+      "sha": "1752a9c6fb58f6c7c62d5c859e4553846b17dbb6",
+      "subject": "docs(adr): ADR-0016 — EvidenceLog/GateLadder split + shared core relocation (grill round, docs only)"
+    },
+    {
+      "sha": "315af8a03879b009e848f1f7d92e4493d592adbf",
+      "subject": "fix(audit): normalize() follows NFKC + \\p{P} + explicit-tail pattern (UTS#18/UAX#15)"
+    },
+    {
+      "sha": "61321cf939b3da6271773609980a4325a3c3d845",
+      "subject": "fix(audit): appendEvidence tail-prev-hash guard + detector.js mojibake cleanup"
+    },
+    {
+      "sha": "9bc52dbcb45038396d2f9865a69cd45ebfdcd153",
+      "subject": "feat(adr0013): include prev_hash in recordHash, composite idempotency, verify-on-read"
+    },
+    {
+      "sha": "d9218a3deca69d10cfff71b5f8b070519a16f34e",
+      "subject": "docs(adr): ADR-0013/0014/0015 — cross-turn chain + wordlist migration + benchmark adoption"
+    },
+    {
+      "sha": "8d6b4f2ceec1d357d532e2dee22a0e7078e08d96",
+      "subject": "feat(adr-0012): D1-D5 implementation — detector module, gate extras, verdict-gate severity matrix, SubagentStop parity"
+    },
+    {
+      "sha": "f756183907b1051ce93d3e806cbad992e5d75920",
+      "subject": "docs(grill-round2026-08-24): ADR-0012 detector verdict persistence + hook idempotency + 5 new CONTEXT terms (27 total)"
+    },
+    {
+      "sha": "0bee8c65e11ebcf2a83b7f86c33698ba530c67e1",
+      "subject": "fix(audit): install.js CLI edge cases + pre-commit scope + README ADR count"
+    },
+    {
+      "sha": "b19db65a53e48f9dcd1195c5c66e1f90eff2bacb",
+      "subject": "feat(adr-0011): Tier-1 install CLI + CI drift gate + native pre-commit hook"
+    },
+    {
+      "sha": "d272c60a543b945f628de6dec58777e5e54a710e",
+      "subject": "docs(adr): ADR-0011 deployment discipline + two-tier install UX + layered drift automation"
+    },
+    {
+      "sha": "9466035b56a61b9fe3b834a7970e8dc34e42b326",
+      "subject": "Revert \"docs: verifier deployment discipline — co-installation not supported by design\""
+    },
+    {
+      "sha": "a26476d94f9b43aeafa20ab55225571eef8dcdfb",
+      "subject": "docs: verifier deployment discipline — co-installation not supported by design"
+    },
+    {
+      "sha": "29516237dfb1982712e04e5173262dc6dce53bc8",
+      "subject": "chore: handoff location -- move audit closeout handoff out of repo to OS temp (per handoff skill convention)"
+    },
+    {
+      "sha": "6f6b58699c489546e4f98731088cc77f7637ee1b",
+      "subject": "chore: audit closeout — SSOT splitByProfile, readProfile(), strengthened advisory test, README/AGENTS sync, CONTEXT ADR index"
+    },
+    {
+      "sha": "f4ed724abab9b803e90f856fc781a311a2866db4",
+      "subject": "docs: handoff for dual-profile implementation (5abab78..6e2f8a5)"
+    },
+    {
+      "sha": "6e2f8a5f6499c05c34b412af3ad2ad8b2d7d5913",
+      "subject": "test(dual-profile): fix parallel test collision with per-suite TMP dirs"
+    },
+    {
+      "sha": "c682768c563b461def0b7de154140df7db6ad5fb",
+      "subject": "test(dual-profile): 8 dual-profile tests + hooks.test.js beforeEach cleanup New: - SKILL.md profile sections exist - generator profile excludes verifier terms - verifier profile contains required terms - generator adapter content checks - build-adapters generates both profiles - activate hook generator profile selection - verdict-gate advisory mode for generator"
+    },
+    {
+      "sha": "bc631fac334779567e3c52b5690272625aff209f",
+      "subject": "feat(mcp): profile parameter in registerPrompt and registerTool"
+    },
+    {
+      "sha": "7d30fc04ecb89f90189f5bd32dcd14df951416aa",
+      "subject": "feat(hooks): verdict-gate generator profile advisory mode"
+    },
+    {
+      "sha": "f06d16b071200da40f0832906d08b66482399e9a",
+      "subject": "feat(hooks): jiahao-activate reads .jiahao-profile for profile selection"
+    },
+    {
+      "sha": "95b82fd7f7afa35e2958f30266d647ad5fc2b00a",
+      "subject": "feat(hooks): profilePath() in jiahao-paths.js"
+    },
+    {
+      "sha": "5abab782f695dec66f0ac66e73e33d1a34917415",
+      "subject": "feat(dual-profile): SKILL.md split + build-adapters profile generation + check-drift purity"
+    },
+    {
+      "sha": "7876fac7e907d518d8fe51aa681342adb6dfa8d3",
+      "subject": "docs: grill固化 — CONTEXT.md +5 terms, ADR-0010 dual-profile decision"
+    },
+    {
+      "sha": "15d16dfb93616dfe0ffcf67d08feb361dcfe53a5",
+      "subject": "fix: verdict-gate variable shadowing + stale ponytail debt comments"
+    },
+    {
+      "sha": "2e866a7d2540f0d4c0e24a3d4122f55e9b02a3e6",
+      "subject": "feat(eval): A/B evaluation harness — FCR measurement with 5 fixtures + 13 tests"
+    },
+    {
+      "sha": "168afeff54f20d0a54960523c880fb1adced5aa5",
+      "subject": "feat(B3): MCP adapter — jiahao-mcp stdio server (prompt + tool)"
+    },
+    {
+      "sha": "f282c516ac61b893e610507d148d8930685f0818",
+      "subject": "feat(B2): confidence calibration — Platt sigmoid + logging + ECE monitoring"
+    },
+    {
+      "sha": "73dd1bdf177a47c7b6e4cba6f3e2dca49ef2c236",
+      "subject": "feat(B1): hash chain tamper-evidence — prev_hash linking + verifyChain + canonical JSON"
+    },
+    {
+      "sha": "97c6f843a6701372ceca668cabe5aae610974171",
+      "subject": "docs: domain-modeling固化 — CONTEXT.md +2 terms, ADR-0006"
+    },
+    {
+      "sha": "df40468d9122efb206a94fd621226a4259ea988f",
+      "subject": "fix(architecture): evidence parsing, shared paths, drift coverage, claims cleanup"
+    },
+    {
+      "sha": "98fc678c86df48199b6bce7d1e80ece27f376a1d",
+      "subject": "audit: fix Codex adapter SubagentStop->SubagentStart, gate.js /tmp->os.tmpdir, claims.filter->claims.slice, check-drift stronger fragment, add README.md"
+    },
+    {
+      "sha": "65f9a31bb859ec4acf6bf2741dd970fdafe5ba24",
+      "subject": "phase4: skill distribution adapter pattern + ADR-0005 + 7 tests"
+    },
+    {
+      "sha": "9a41983cd6933d770e4bb796aa4222fbd738bc85",
+      "subject": "phase2-3: verification gate ladder (short-circuit+escalate) + ADR-0004 + 12 tests"
+    },
+    {
+      "sha": "98c5002170244a9880e97d6f592fef03260679e0",
+      "subject": "phase1: hook architecture (4 events + 5 scripts + runtime) + ADR-0003 + 9 tests"
+    },
+    {
+      "sha": "924a59b0815c5f371fe26c6ca7d54b225975b7ab",
+      "subject": "phase0: jiahao iron laws SKILL.md + ADR-0002 + structure tests"
+    },
+    {
+      "sha": "a7788e2885af7a40ed3d0fa5c51e8c988d122e98",
+      "subject": "init: project scaffold with CONTEXT.md, ADR-0001, AGENTS.md, domain docs"
     }
   ],
   "doc_refs": [
@@ -4485,6 +5599,22 @@
       "resolved_to": null
     },
     {
+      "file": ".scratch/grill-t13/reports/2026-09-17-r2-report.md",
+      "line": 85,
+      "sha": "d9bcfa1",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-r2-report.md",
+      "line": 85,
+      "sha": "5d8a591",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
       "file": ".scratch/grill-t13/reports/2026-09-17-report.md",
       "line": 3,
       "sha": "051744a",
@@ -4542,6 +5672,231 @@
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 32,
+      "sha": "2c93a30",
+      "class": "rewritten",
+      "resolved_to": "3454d13f8a2bfe1e4357426b6d2c48346576ca0b"
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 32,
+      "sha": "3454d13",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 32,
+      "sha": "1ca81f5",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 32,
+      "sha": "1ca81f54",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 32,
+      "sha": "2c93a30a",
+      "class": "rewritten",
+      "resolved_to": "3454d13f8a2bfe1e4357426b6d2c48346576ca0b"
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 32,
+      "sha": "3454d13f",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 32,
+      "sha": "051744a7",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 32,
+      "sha": "a6729a9",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 32,
+      "sha": "1ca81f5",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 32,
+      "sha": "2c93a30",
+      "class": "rewritten",
+      "resolved_to": "3454d13f8a2bfe1e4357426b6d2c48346576ca0b"
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 32,
+      "sha": "b73e558",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 32,
+      "sha": "e54c267",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 33,
+      "sha": "051744a7",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 33,
+      "sha": "4af4c498",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 34,
+      "sha": "051744a7",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 42,
+      "sha": "051744a7",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 44,
+      "sha": "051744a7",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 72,
+      "sha": "1ca81f5",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 72,
+      "sha": "2c93a30",
+      "class": "rewritten",
+      "resolved_to": "3454d13f8a2bfe1e4357426b6d2c48346576ca0b"
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 72,
+      "sha": "1ca81f5",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 72,
+      "sha": "051744a",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 73,
+      "sha": "05fa697",
+      "class": "rewritten",
+      "resolved_to": "2e9cdc9e45e49963e17568107d9efe3ec89b43cf"
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 73,
+      "sha": "2e9cdc9",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 74,
+      "sha": "112686a",
+      "class": "rewritten",
+      "resolved_to": "b73e558c54c0123423033561fb0a69db5ef39e70"
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 74,
+      "sha": "3692a86",
+      "class": "rewritten",
+      "resolved_to": "e54c267ed94787358d349c46d99fa314e8920e48"
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 74,
+      "sha": "b73e558",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 75,
+      "sha": "e54c267",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 75,
+      "sha": "a6729a9",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 75,
+      "sha": "051744a",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 85,
+      "sha": "2c93a30",
+      "class": "rewritten",
+      "resolved_to": "3454d13f8a2bfe1e4357426b6d2c48346576ca0b"
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 85,
+      "sha": "051744a",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "line": 159,
+      "sha": "a6729a9",
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t13/spec-post-publish-checkpoint.md",

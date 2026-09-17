@@ -17,13 +17,20 @@
   "assertions": {
     "A1_install_identity": "PASS — npm codeload tarball resolved 051744a7a1b4027a42720814c819bf051e0831a8; independent git clone rev-parse HEAD identical; .jiahao-profile=verifier planted in scratch cfg",
     "A2_liveness": "PASS — SessionStart activate exit 0 (ruleset injected + .jiahao-active flag written); Stop with transcript_path exit 2 block (verifier no-evidence) AND pairer-lane shadow record appended to segmented evidence dir; unactivated session exits 0 silently (gate inert without .jiahao-active — session-scoped, hooks/jiahao-verdict-gate.js:24)",
-    "A3_whitelist_diff": "PASS — git diff --name-status 2c93a30..051744a = exactly 3 registered files, all M",
-    "A4_range_diff": "PASS — git range-diff 1ca81f5..2c93a30 1ca81f5..051744a = 15 pairs, all ! (rewritten), matching the 15-commit rewrite region",
+    "A3_whitelist_diff": "PASS — git diff --name-status 2c93a30..051744a = exactly 3 registered files, all M; hunk-level re-check (T-3 F-3 fix): git diff --numstat = 1+1- audit.md / 1+57- round-diff.patch / 21+0- reaudit-closed.md — matches the frozen plan's registered hunk shapes",
+    "A4_range_diff": "PASS — corrected per T-3 F-2: git range-diff 1ca81f5..2c93a30 1ca81f5..051744a = 1 ! pair (05fa697→2e9cdc9) + 12 = pairs + 2 left-only (112686a, 3692a86 — emptied commits) + 4 right-only (b73e558, e54c267, a6729a9, 051744a); every old-side commit maps or hits a registered disposition — substantive check carried by build-rewrite-map --verify",
     "A5_no_collateral": "PASS — git ls-tree -r --name-only 051744a contains 0 host-config-backup / *.tgz paths"
   },
   "transcript_log": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.log",
   "deviations": [
     "ADR-0074 D-E pins npm v12 semantics; this host runs npm 11.19.1 — the registered flag-behaviors (script execution, git-dep approval) were recorded as observed on 11.19.1 rather than skipped"
   ],
-  "verdict": "PASS — tip-pinned install claim re-verified at published tip"
+  "verdict": "PASS — tip-pinned install claim re-verified at published tip",
+  "corrections": [
+    {
+      "date": "2026-09-17",
+      "ref": "T-3 audit F-2/F-3",
+      "note": "original text claimed \"15 pairs all !\" and recorded only the file-set leg; re-measured range-diff distribution is 1 !/12 =/2 left-only/4 right-only; A3 instrument was name-status granularity — numstat-level check now recorded (substance unchanged: both legs still PASS)"
+    }
+  ]
 }

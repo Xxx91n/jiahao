@@ -12,7 +12,7 @@ Deliverables landed:
 Next: T-3 narrow audit round per task book (T-1 R1 doc round DONE 2026-09-17; T-2 R2 action round DONE 2026-09-17).
 
 R2 landed:
-- scripts/build-rewrite-map.js + docs/rewrite-map.json (15 pairs, 1129 doc citations, --check/--verify green)
+- scripts/build-rewrite-map.js + docs/rewrite-map.json (15 pairs, 1182 doc citations (post-T-3-fix regen), --check/--verify green)
 - clean-env re-verification PASS at 051744a7 (A1-A5; evidence .scratch/grill-t13/audit-evidence/reverify-2026-09-17.json + .log)
 - README verified-at-published-tip note filled
 - scripts/check-secret-scan.js (3 rules) + secret-scan gate; defer-0054 actioned

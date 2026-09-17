@@ -211,10 +211,14 @@ describe('R2 action round (2026-09-17): map, re-verification note, dispositions'
   test('registry terminal dispositions landed (closed/actioned rows keep resolving)', () => {
     const reg = readJson(path.join(ROOT, 'docs', 'deferred-registry.json'));
     const by = id => reg.entries.find(e => e.id === id);
-    for (const id of ['defer-0050', 'defer-0051', 'defer-0052', 'defer-0056']) {
+    for (const id of ['defer-0050', 'defer-0052', 'defer-0056']) {
       expect(by(id).status).toBe('closed');
       expect(by(id).closed_via).toContain('T-2 dispositions');
     }
+    // T-3 F-4: defer-0051 closure reverted - its own unfreeze condition was
+    // never satisfied; the entry is live again (pending-evaluation).
+    expect(by('defer-0051').status).toBe('pending-evaluation');
+    expect(by('defer-0051').last_check_in.note).toContain('REVERTED');
     expect(by('defer-0054').status).toBe('actioned');
     expect(by('defer-0054').actioned_via).toContain('check-secret-scan');
     expect(by('defer-0054').unfreeze_if).toBeDefined(); // unfreeze retained per task book
