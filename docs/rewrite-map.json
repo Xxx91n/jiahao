@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-17T13:46:40.769Z",
+  "generated_at": "2026-09-17T14:06:53.718Z",
   "published_tip": "a8e0bdb0aaf0a13a3efbdc3783d17acd86fa2ceb",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -23,11 +23,11 @@
     "published_only": 11,
     "removed": 0,
     "same": 278,
-    "doc_refs": 1332,
+    "doc_refs": 1334,
     "doc_refs_by_class": {
       "rewritten": 97,
       "local-only": 623,
-      "published-unchanged": 612
+      "published-unchanged": 614
     }
   },
   "commits": [
@@ -6589,7 +6589,21 @@
       "sha": "7657a94",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t14/handoffs/2026-09-17-r1-r2-executed.md",
+      "line": 5,
+      "sha": "a8e0bdb",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t14/handoffs/2026-09-17-r1-r2-executed.md",
+      "line": 23,
+      "sha": "a8e0bdb",
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t14/handoffs/next-round.md",
