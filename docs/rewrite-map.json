@@ -2,8 +2,8 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-17T15:18:14.759Z",
-  "published_tip": "a8e0bdb0aaf0a13a3efbdc3783d17acd86fa2ceb",
+  "generated_at": "2026-09-17T15:21:58.654Z",
+  "published_tip": "58d0ffcd172d60a2b569c4f5407a3f76e0bad8db",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
     "old_tip": "2c93a30a5495219d0d2385f25d19af23e729852f",
@@ -20,14 +20,14 @@
   },
   "counts": {
     "commits": 15,
-    "published_only": 11,
+    "published_only": 23,
     "removed": 0,
     "same": 278,
     "doc_refs": 1342,
     "doc_refs_by_class": {
       "rewritten": 97,
-      "local-only": 625,
-      "published-unchanged": 620
+      "local-only": 624,
+      "published-unchanged": 621
     }
   },
   "commits": [
@@ -111,6 +111,54 @@
   ],
   "removed": [],
   "published_only": [
+    {
+      "new": "58d0ffcd172d60a2b569c4f5407a3f76e0bad8db",
+      "subject": "chore(grill-t14): rewrite-map regen after audit artifacts - 1342 citations, 15 pairs stable"
+    },
+    {
+      "new": "992e6769eff4379bf81621bc9e20a0159e873117",
+      "subject": "audit(grill-t14): R1+R2 audit PASS with findings - audit report + next-round handoff + GOAL status; owner asks (seq-24 sign-off, defer-0051 packet ratification) still pending"
+    },
+    {
+      "new": "9fc1a5e90562ee42421a580175f2c1a76bba2578",
+      "subject": "chore(grill-t14): rewrite-map regen after report edit"
+    },
+    {
+      "new": "b85ca4e2604b646d8a7152e556136f2a65b0d439",
+      "subject": "docs(grill-t14): report cites the landed commit ids"
+    },
+    {
+      "new": "50e50e3e67bfcef324eb72ccc6358bc7751c4b72",
+      "subject": "chore(grill-t14): rewrite-map regen after handoff commit - 1334 citations"
+    },
+    {
+      "new": "e1eda591196d5ce3660e3bd64b1f7436c124b383",
+      "subject": "docs(grill-t14): R1+R2 executed handoff - owner asks pending, forward agenda (sunset counter 1/6, strategic review stays scheduled), suggested skills"
+    },
+    {
+      "new": "9420dad1d46cd9f3f71fa73644b63fc81b03ef3c",
+      "subject": "chore(grill-t14): g6-publish replay log refresh (325192 bytes current surface) + GOAL status R1+R2 executed"
+    },
+    {
+      "new": "d174f9e6a475b3683f89eef101d70a407c100e86",
+      "subject": "chore(grill-t14): rewrite-map regen after R2 commit - 1332 citations (ledger T-2 + report + packet + telemetry surfaces classified), 15 pairs stable"
+    },
+    {
+      "new": "6427e1fb5a5790792ff2770fa0d21df3c9c37395",
+      "subject": "feat(grill-t14): R2 action round - defer-0051 closed discharged-by-trigger (pinned-protocol re-measure 324711<340000 + weak-independent countersign on evidence packet, single-point caveat, owner ratification pending Ask B, trigger overrides review_at 2026-12-15) + defer-0059/0058 tally dispositions + ledger T-2 section + telemetry checkpoint (organic=0, sunset counter 1/6) + trend-inventory grill-t14 row + instrument seq 26 + ADR-0075 R2 bullet + wiring state flips + round report"
+    },
+    {
+      "new": "c8d89d06b694100b23600ee61bfd6dc0dd5074cf",
+      "subject": "chore(grill-t14): rewrite-map regen after R1 doc commit - 1270 citations (ADR-0075 a8e0bdb refs classified), 15 pairs stable, published_tip advances to a8e0bdb"
+    },
+    {
+      "new": "3cbd14fe2fabc339cd54981d07e3025ca5d0c6fd",
+      "subject": "docs(grill-t14): ADR-0075 promotion-review preregistration pack + rewrite-map generator discovery/union repair (T-1 R1 doc round, ledger D-003/D-004/D-005: N/M single-proposition qualifier 200/20/5 no independent leg; <=8-class analysis-side intent taxonomy unknown catch-all K=2 classifier version+prompt-hash pinning; sunset dual-or-path trigger sole-consequence strategic-review activation watchdog lifecycle independent; blocking meta-requirement criteria shape >=1 organic-falsifiable kill no G1/G3/G4 amendment tighten-only; defer-0055 clause pointer + defer-0059 tally; README index 75 + counts 1163/72; adr-0075 wiring seeds + adr-0033/0069/0070/0072/0073/0074 stale-count repairs; t14 ledger governance copy + anchors row; instrument seq 25; ci expected-suites 72; build-rewrite-map old-ref discovery anchored on published-side objects + citation scan union enumeration per F-1 lesson; generator spec amended)"
+    },
+    {
+      "new": "ece495ef109942f0a4809e12627c7456cc861fca",
+      "subject": "docs(grill-t14): disposition+preregistration spec + task book + CONTEXT terms - ledger D-001..D-005 settled (defer-0051 full-close double-signature path, N/M sufficiency qualifier 200/20/5 with <=8-class analysis-side taxonomy, sunset dual-or-path trigger + blocking meta-preregistration, no-audit trigger-rule closeout with two separate owner asks); CONTEXT +4 terms (Discharged-by-Trigger / Sufficiency Qualifier / Sunset Trigger / Meta-Preregistration)"
+    },
     {
       "new": "a8e0bdb0aaf0a13a3efbdc3783d17acd86fa2ceb",
       "subject": "audit(grill-t13): T-3 re-audit PASS after fix round - all F-1..F-9 dispositions verified against repo truth (union enumeration scans committed tree incl. test file 851/859/859, fixtures runtime-assembled, defer-0051 legitimately reopened with live legs, registry text repairs complete, byte-exact pin restored); rerun battery green 1148/1148 + gate:all exit 0 + pack-smoke 322314; weak-independent declaration; audit-passed handoff with next-round agenda (push request eligible per D-005e, defer-0051 legs, seq24 signoff)"
@@ -6652,9 +6700,8 @@
       "file": ".scratch/grill-t14/reports/2026-09-17-audit-pass.md",
       "line": 48,
       "sha": "6427e1f",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t14/reports/2026-09-17-audit-pass.md",
