@@ -589,6 +589,44 @@ compatibility tables are different kinds of knowledge; ledger t11
 D-002/D-005).
 _Avoid_: citing a documented capability as if measured; renaming states
 instead of extending the enum (surgery where a word slot suffices)
+**Provenance-Tiered Corpus (来源分层语料)**
+The rule that telemetry records carry a source class — organic (real usage),
+automated_harness (test rigs firing real events), synthetic_selfcheck (marked
+self-tests), unclassified (transcript unavailable; conservatively excluded
+from organic counts) — assigned by mechanical session-to-project-directory
+mapping, never by naming convention. All records are retained (GA4's lesson:
+excluded data is never processed); gate criteria count only the organic leg,
+while harness traffic keeps second-class use for pipeline health and
+regression comparison (RUM/synthetic discipline: each is legitimate, neither
+counts for the other). Named failure modes: wrong-population validity
+failure, synthetic-as-RUM conflation, Goodhart on a count gate, benchmark
+contamination, GIVT invalid traffic.
+_Avoid_: deleting records to clean a corpus; counting non-organic events
+toward gate criteria; classification by naming convention (ledger t12 D-002)
+
+**Record-Level Closure (记录级闭环)**
+The distinction between a critique item being closed as a record — landed,
+verified, registered — and the underlying issue being ended. Completion
+verdicts are stated in two layers, "closed as records; not ended as issues",
+because closure itself generates new open items and structural themes
+(delegated authority, design contamination) are standing tensions that get
+answered continuously, not completed. A flat "all done" is the self-comforting
+claim this vocabulary exists to prevent.
+_Avoid_: flat completion claims in either direction — "all done" overstates,
+"not done" erases landed work (ledger t12 D-004)
+
+**Tightening-Only Post-Hoc Amendment (只许变严的事后修订)**
+The asymmetry rule for amending a frozen gate after observing data: a
+post-hoc change is clean only when it moves the criterion away from the
+target — e.g., narrowing "200 real events" to "200 organic events" after
+discovering harness traffic, which resets the measured count to zero.
+Amendments that move the criterion toward the observed data are
+Goodhart-shaped and forbidden; the honest handling of an unanticipated
+finding is record it, register the stricter rule, extend the window — never
+recount to pass.
+_Avoid_: loosening a frozen criterion after seeing measurements; recounting
+retroactively under a new rule to claim progress (ledger t12 D-002)
+
 ## Decision Log
 
 **Self-Preference Bias (自偏好偏差)**:
