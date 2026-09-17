@@ -2,8 +2,8 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-17T15:26:49.512Z",
-  "published_tip": "613351009753c75febfc2a5b0a4f044addafcbff",
+  "generated_at": "2026-09-17T15:42:17.369Z",
+  "published_tip": "968291659675fb1dd049aa4a330b9653436faf70",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
     "old_tip": "2c93a30a5495219d0d2385f25d19af23e729852f",
@@ -20,14 +20,14 @@
   },
   "counts": {
     "commits": 15,
-    "published_only": 24,
+    "published_only": 25,
     "removed": 0,
     "same": 278,
-    "doc_refs": 1342,
+    "doc_refs": 1344,
     "doc_refs_by_class": {
       "rewritten": 97,
-      "local-only": 624,
-      "published-unchanged": 621
+      "local-only": 625,
+      "published-unchanged": 622
     }
   },
   "commits": [
@@ -111,6 +111,10 @@
   ],
   "removed": [],
   "published_only": [
+    {
+      "new": "968291659675fb1dd049aa4a330b9653436faf70",
+      "subject": "chore(grill-t14): rewrite-map regen post-land - published_tip=6133510"
+    },
     {
       "new": "613351009753c75febfc2a5b0a4f044addafcbff",
       "subject": "chore(grill-t14): rewrite-map regen after landing - published_tip advances past t14 stack, 23 published-only, 15 pairs stable"
@@ -6652,10 +6656,25 @@
     },
     {
       "file": ".scratch/grill-t14/handoffs/2026-09-17-audit-passed.md",
-      "line": 55,
+      "line": 63,
       "sha": "a8e0bdb",
       "class": "published-unchanged",
       "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t14/handoffs/2026-09-17-audit-passed.md",
+      "line": 64,
+      "sha": "051744a",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t14/handoffs/2026-09-17-audit-passed.md",
+      "line": 72,
+      "sha": "1c58786",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t14/handoffs/2026-09-17-r1-r2-executed.md",
