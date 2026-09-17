@@ -3,7 +3,7 @@
 Restored context from .scratch/grill-t13/handoffs/2026-09-17-t3-audit-passed.md.
 Grilled the next-round decisions; ledger at decision-ledger.md is authoritative.
 
-Status: SETTLED 2026-09-17 -> EXECUTING (devin sub-agent, grill-t14-docs branch).
+Status: R1+R2 EXECUTED 2026-09-17 (devin sub-agent; grill-t14-docs pyq+pry, grill-t14-r2 svn+slz; boundary green 72/1167 + gate:all 0). Owner asks pending (seq-24 sign-off, defer-0051 packet ratification).
 - Spec: spec-disposition-preregistration.md
 - Task book: handoffs/next-round.md
 - Ledger: decision-ledger.md (D-001..D-005, all current)
