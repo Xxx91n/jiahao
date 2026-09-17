@@ -2,8 +2,8 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-17T09:42:46.984Z",
-  "published_tip": "051744a7a1b4027a42720814c819bf051e0831a8",
+  "generated_at": "2026-09-17T12:03:34.736Z",
+  "published_tip": "a8e0bdb0aaf0a13a3efbdc3783d17acd86fa2ceb",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
     "old_tip": "2c93a30a5495219d0d2385f25d19af23e729852f",
@@ -20,14 +20,14 @@
   },
   "counts": {
     "commits": 15,
-    "published_only": 2,
+    "published_only": 11,
     "removed": 0,
     "same": 278,
-    "doc_refs": 1182,
+    "doc_refs": 1270,
     "doc_refs_by_class": {
-      "rewritten": 91,
-      "local-only": 511,
-      "published-unchanged": 580
+      "rewritten": 97,
+      "local-only": 565,
+      "published-unchanged": 608
     }
   },
   "commits": [
@@ -111,6 +111,42 @@
   ],
   "removed": [],
   "published_only": [
+    {
+      "new": "a8e0bdb0aaf0a13a3efbdc3783d17acd86fa2ceb",
+      "subject": "audit(grill-t13): T-3 re-audit PASS after fix round - all F-1..F-9 dispositions verified against repo truth (union enumeration scans committed tree incl. test file 851/859/859, fixtures runtime-assembled, defer-0051 legitimately reopened with live legs, registry text repairs complete, byte-exact pin restored); rerun battery green 1148/1148 + gate:all exit 0 + pack-smoke 322314; weak-independent declaration; audit-passed handoff with next-round agenda (push request eligible per D-005e, defer-0051 legs, seq24 signoff)"
+    },
+    {
+      "new": "505d3db308263bce3794286c08d31a30822bb84b",
+      "subject": "fix(grill-t13): T-3 audit bounce fix round - F-1 scanner union enumeration (ls-files + ls-tree HEAD; GitButler index lag was fail-open) + runtime-assembled fixtures + loud oversized skip, F-2/F-3 evidence corrections registered (range-diff 1!/12=/2L/4R + numstat leg), F-4 defer-0051 reopened (premature closure, own unfreeze unmet), F-5/F-6/F-7 registry repairs (post-action trigger + detection_limit + cost_note + entropy deviation registered), F-8 byte-exact note pin restored, F-9 strict/anchors/gitbutler-filter/same+null forms/GOAL counts; map regen 1182 citations, jest 1148/1148, gate:all 0, instrument seq 24"
+    },
+    {
+      "new": "876b09d1fcea37949d08c30467c156af5ca44903",
+      "subject": "audit(grill-t13): T-3 narrow close-audit FAIL->bounce - F-1 secret-scan self-trips on complete index (GitButler partial index masked it locally; CI would be red), F-2 A4 range-diff mischaracterized (1 ! + 13 = not all !), F-3 A3 ran name-status not frozen hunk set-diff, F-4 defer-0051 closed without satisfying own unfreeze + content not merged to 0058, F-5/F-6/F-7 registry text gaps, F-8 verbatim pin weakened, F-9 minors; rerun battery otherwise green (1147/1147, 35 gates, pack-smoke 320896); weak-independent declaration"
+    },
+    {
+      "new": "5d8a591213547e57c30b9414c38796ec6ece8fa7",
+      "subject": "docs(grill-t13): R2 action-round report - map+scanner+reverification PASS evidence, registry dispositions, deviations (npm 11 vs v12 pin), full battery 1147/1147"
+    },
+    {
+      "new": "d9bcfa1dcfb41ddd942e253a35deab81f33b740a",
+      "subject": "feat(grill-t13): R2 action round - rewrite-map generator + map (15 pairs, 1132 classified doc citations), clean-env published-tip re-verification PASS (A1-A5, verified-at note filled), 3-rule secret scanner + gate (defer-0054 actioned), registry terminal statuses (defer-0050/51/52/56 closed via same-commit ledger note, defer-0053 frozen, defer-0055 closes_if, defer-0058 standing), O-A mkdtempSync + O-B red-state line + O-D newline hygiene, telemetry checkpoint, t12 D-003 local-only post-purge annotation, instrument seq 23"
+    },
+    {
+      "new": "38cbee358e2cf75aa725a484578892067c68197d",
+      "subject": "docs(grill-t13): R1 doc-round report - deliverables, rerunnable evidence, deviations, two-axis review aggregation (review fixes amended into the doc commit)"
+    },
+    {
+      "new": "0c4b2a8945d2c5b047438216e452eeeedffd7d12",
+      "subject": "docs(grill-t13): ADR-0074 sanitized-history publish record + rewrite-map single translation point + tip-pinned claim invalidation + re-verification preregistration + independence-grade audit convention (T-1 doc round; defer-0057 tally, t13 ledger anchors, trend row, README index 74 + boundary disclosure + Install verified-at pending slot, pointer notes on ADR-0073 + t12 governance copy, wiring seeds adr-0074, instrument seq 22, ci expected-suites 70, stale-count repairs, g6 replay mechanical refresh)"
+    },
+    {
+      "new": "36608b63add036a74650501c59b46ead2874dd8d",
+      "subject": "docs(agents): require full absolute paths when reporting artifacts in chat"
+    },
+    {
+      "new": "5c1fe1f7ddf722d371259245d5d6c98f99a73689",
+      "subject": "docs(grill-t13): post-publish checkpoint spec + task book + CONTEXT terms - ledger D-001..D-005 settled (published-tip re-verification agenda, rewrite-map three-class disposition, ADR-0074+runbook+README disclosure triple, registry dispositions incl. defer-0054 pickup and tally merge, narrow-domain close audit with independence-grade declaration); CONTEXT +4 terms (Sanitized-History Publish / Rewrite Map / Tip-Pinned Install Claim / Independence-Grade Declaration)"
+    },
     {
       "new": "051744a7a1b4027a42720814c819bf051e0831a8",
       "subject": "docs(grill-t12): pre-publish sanitization addendum on closing handoff - records the owner-ordered history purge (backup + tgz never in published trees), literal redaction at tip, empty-commit disposition for kxo/wko, and that the 05fa697 exposure-window statements describe pre-purge local objects; external exposure stays zero at publish"
@@ -5466,6 +5502,132 @@
       "resolved_to": null
     },
     {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 9,
+      "sha": "051744a7a1b4027a42720814c819bf051e0831a8",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 10,
+      "sha": "051744a7a1b4027a42720814c819bf051e0831a8",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 18,
+      "sha": "051744a7a1b4027a42720814c819bf051e0831a8",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 20,
+      "sha": "2c93a30",
+      "class": "rewritten",
+      "resolved_to": "3454d13f8a2bfe1e4357426b6d2c48346576ca0b"
+    },
+    {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 20,
+      "sha": "051744a",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 21,
+      "sha": "1ca81f5",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 21,
+      "sha": "2c93a30",
+      "class": "rewritten",
+      "resolved_to": "3454d13f8a2bfe1e4357426b6d2c48346576ca0b"
+    },
+    {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 21,
+      "sha": "1ca81f5",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 21,
+      "sha": "051744a",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 21,
+      "sha": "05fa697",
+      "class": "rewritten",
+      "resolved_to": "2e9cdc9e45e49963e17568107d9efe3ec89b43cf"
+    },
+    {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 21,
+      "sha": "2e9cdc9",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 21,
+      "sha": "112686a",
+      "class": "rewritten",
+      "resolved_to": "b73e558c54c0123423033561fb0a69db5ef39e70"
+    },
+    {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 21,
+      "sha": "3692a86",
+      "class": "rewritten",
+      "resolved_to": "e54c267ed94787358d349c46d99fa314e8920e48"
+    },
+    {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 21,
+      "sha": "b73e558",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 21,
+      "sha": "e54c267",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 21,
+      "sha": "a6729a9",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 21,
+      "sha": "051744a",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/audit-evidence/reverify-2026-09-17.json",
+      "line": 22,
+      "sha": "051744a",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
       "file": ".scratch/grill-t13/decision-ledger.md",
       "line": 27,
       "sha": "051744a",
@@ -5602,17 +5764,15 @@
       "file": ".scratch/grill-t13/reports/2026-09-17-r2-report.md",
       "line": 85,
       "sha": "d9bcfa1",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t13/reports/2026-09-17-r2-report.md",
       "line": 85,
       "sha": "5d8a591",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t13/reports/2026-09-17-report.md",
@@ -5669,9 +5829,8 @@
       "file": ".scratch/grill-t13/reports/2026-09-17-report.md",
       "line": 97,
       "sha": "5c1fe1f",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
@@ -5899,6 +6058,48 @@
       "resolved_to": null
     },
     {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-fix-report.md",
+      "line": 49,
+      "sha": "1ca81f5",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-fix-report.md",
+      "line": 49,
+      "sha": "2c93a30",
+      "class": "rewritten",
+      "resolved_to": "3454d13f8a2bfe1e4357426b6d2c48346576ca0b"
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-fix-report.md",
+      "line": 49,
+      "sha": "1ca81f5",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-fix-report.md",
+      "line": 49,
+      "sha": "051744a",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-reaudit.md",
+      "line": 7,
+      "sha": "505d3db",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/reports/2026-09-17-t3-reaudit.md",
+      "line": 8,
+      "sha": "876b09d",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
       "file": ".scratch/grill-t13/spec-post-publish-checkpoint.md",
       "line": 4,
       "sha": "051744a",
@@ -5909,6 +6110,497 @@
       "file": ".scratch/grill-t13/spec-post-publish-checkpoint.md",
       "line": 36,
       "sha": "051744a",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 70,
+      "sha": "9e73c467",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 70,
+      "sha": "ab3f0235b19d",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 77,
+      "sha": "9b625010",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 77,
+      "sha": "713f89200ff0",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 84,
+      "sha": "a82305f1",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 84,
+      "sha": "fa1aeefd1bf0",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 91,
+      "sha": "b53354dd",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 91,
+      "sha": "5061f481c988",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 98,
+      "sha": "7255d842",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 98,
+      "sha": "5e4fffd642d9",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 105,
+      "sha": "a2293410",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 105,
+      "sha": "60aa5772e00a",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 112,
+      "sha": "c4c660f0",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 112,
+      "sha": "79423d7086ae",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 119,
+      "sha": "a63052c1",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 119,
+      "sha": "5476e2ab3c39",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 126,
+      "sha": "99a74ec2",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 126,
+      "sha": "58f763f32421",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 133,
+      "sha": "e79de01a",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 133,
+      "sha": "11cecc9eab98",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 140,
+      "sha": "eb076ee4",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 140,
+      "sha": "72ea09f3d855",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 147,
+      "sha": "9d8775e2",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 147,
+      "sha": "8da53f217e50",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 154,
+      "sha": "4f51888b",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 154,
+      "sha": "6577643fa56d",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 161,
+      "sha": "babf448d",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 161,
+      "sha": "5bbacb612648",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 168,
+      "sha": "bdceb93a",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 168,
+      "sha": "77dfef7ea764",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 175,
+      "sha": "6d50ed0b",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 175,
+      "sha": "9822646f31e0",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 182,
+      "sha": "a98462ff8c57",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 189,
+      "sha": "fc1df20a",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 189,
+      "sha": "90df3b353f2d",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 196,
+      "sha": "a2115b18",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 196,
+      "sha": "0df7ee2aac32",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 203,
+      "sha": "c3f8aaaf",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 203,
+      "sha": "2f3b41c0e83d",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 210,
+      "sha": "5bb41ded",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 210,
+      "sha": "c656fc708744",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 217,
+      "sha": "bf113314",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 217,
+      "sha": "fb633f3561a1",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 224,
+      "sha": "fa37371d",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 224,
+      "sha": "55b2a4f2833f",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 231,
+      "sha": "a27e99a1",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 231,
+      "sha": "395c7803a12d",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 238,
+      "sha": "fe73d6e2",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 238,
+      "sha": "68518aef8bfb",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 245,
+      "sha": "c06a16fb",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 245,
+      "sha": "b0618d288f9c",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 252,
+      "sha": "209a1063",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 252,
+      "sha": "8557ead75fe7",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 259,
+      "sha": "81fe0fd1",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 259,
+      "sha": "23836c2d5b61",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 266,
+      "sha": "12cb508a",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+      "line": 266,
+      "sha": "2106deabd8e1",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t14/GOAL.md",
+      "line": 22,
+      "sha": "a8e0bdb",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t14/handoffs/next-round.md",
+      "line": 15,
+      "sha": "a8e0bdb",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t14/handoffs/next-round.md",
+      "line": 59,
+      "sha": "a8e0bdb",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t14/spec-disposition-preregistration.md",
+      "line": 8,
+      "sha": "a8e0bdb",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t14/spec-disposition-preregistration.md",
+      "line": 21,
+      "sha": "a8e0bdb",
       "class": "published-unchanged",
       "resolved_to": null
     },
@@ -9037,7 +9729,7 @@
     },
     {
       "file": "README.md",
-      "line": 343,
+      "line": 344,
       "sha": "994bdeb3",
       "class": "local-only",
       "resolved_to": null,
@@ -9045,7 +9737,7 @@
     },
     {
       "file": "README.md",
-      "line": 412,
+      "line": 413,
       "sha": "8807a61",
       "class": "published-unchanged",
       "resolved_to": null
@@ -9367,6 +10059,20 @@
       "file": "docs/adr/0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md",
       "line": 82,
       "sha": "051744a7a1b4027a42720814c819bf051e0831a8",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": "docs/adr/0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md",
+      "line": 10,
+      "sha": "a8e0bdb",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": "docs/adr/0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md",
+      "line": 90,
+      "sha": "a8e0bdb",
       "class": "published-unchanged",
       "resolved_to": null
     },
@@ -9938,84 +10644,84 @@
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 28,
+      "line": 35,
       "sha": "1ca81f5",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 31,
+      "line": 38,
       "sha": "a6729a9",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 32,
+      "line": 39,
       "sha": "051744a",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 33,
+      "line": 40,
       "sha": "b73e558",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 33,
+      "line": 40,
       "sha": "e54c267",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 61,
+      "line": 68,
       "sha": "051744a7a1b4027a42720814c819bf051e0831a8",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 62,
+      "line": 69,
       "sha": "1ca81f5",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 62,
+      "line": 69,
       "sha": "2c93a30",
       "class": "rewritten",
       "resolved_to": "3454d13f8a2bfe1e4357426b6d2c48346576ca0b"
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 62,
+      "line": 69,
       "sha": "3454d13",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 64,
+      "line": 71,
       "sha": "05fa697",
       "class": "rewritten",
       "resolved_to": "2e9cdc9e45e49963e17568107d9efe3ec89b43cf"
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 64,
+      "line": 71,
       "sha": "2e9cdc9",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 65,
+      "line": 72,
       "sha": "a6729a9",
       "class": "published-unchanged",
       "resolved_to": null
