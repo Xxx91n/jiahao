@@ -1,11 +1,17 @@
 # Handoff — grill-t14 audit PASSED with findings (2026-09-17)
 
-## State
+## State (updated post-land)
 
 Audit window over stack grill-t14-docs{kkr,pyq,pry} + grill-t14-r2{svn,slz,ryu,xzq,rtk,lll,mvy}
 on base a8e0bdb. Verdict: PASS — every report claim verified against repo truth;
 all gates re-ran green at HEAD (72 suites/1167 tests, gate:all exit 0,
 pack-smoke 325192<340000, instrument chain OK, anchors 13 in sync).
+
+**LANDED 2026-09-17**: the whole stack + audit artifacts + post-land map regens are on
+`origin/main` = `9682916` (owner-authorized merge+push via `but land --whole-stack`).
+All merged branches deleted (local t14 pair auto-unapplied; gb-local mirrors
+t13-docs/t13-r1/t14-docs/t14-r2/t14-mapfix removed). gb-local/grill-t11-docs +
+grill-t12-docs kept — they are the rewrite-map old-side anchors, never delete.
 
 Full audit report: D:\Aworker\jiahao\.scratch\grill-t14\reports\2026-09-17-audit-pass.md
 Round diff captured at: D:\Aworker\jiahao\.scratch\grill-t14\audit-evidence\round-diff.patch
@@ -52,7 +58,24 @@ t13 patch at tq).
   consider a wiring or lint check that a disclosed generator repair is matched
   by a spec diff hunk.
 - Standing: defer-0053/0055/0057/0058 cadence + O-E backlog per standing agenda.
-- Push remains owner-only; stack unpublished (remote main a8e0bdb — fact).
+- Push done this round (owner-authorized). NOTE: `docs/rewrite-map.json` is
+  stale-on-tip by construction — every land advances origin/main past the
+  committed published_tip; the next round's first regen re-syncs (a8e0bdb's
+  committed map pointed at 051744a the same way). CI on main has been red on
+  every recent push (t10..t14) — structural/pre-existing, candidate standing
+  topic if CI truth matters to the owner.
+
+## Process lessons from the merge (recorded, not ratified)
+
+- `but commit` without explicit change IDs sweeps ALL uncommitted files — the
+  t13 forbidden patch (r2-round-diff.patch, fixture literals tripping
+  secret-scan R1/R2) entered commit 1c58786 and reached origin/main before
+  detection. Purged by owner-approved force-push to 6133510; tree verified
+  clean (secret-scan 0 hits, patch absent). LESSON: always pass explicit IDs;
+  the two audit-evidence patches stay untracked forever (they are still on
+  disk, uncommitted, as required).
+- uncommit leaves files staged in the git index (`A` state) where ls-files
+  enumeration picks them up — verify `git status` shows ?? after uncommit.
 
 ## Suggested skills
 
