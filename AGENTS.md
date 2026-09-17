@@ -23,3 +23,6 @@ docs/agents/domain.md.
   ADR, `CONTEXT.md` glossary sync, `docs/deferred-registry.json` sync, README
   ADR index rebuild, and wiring-test seed update) before the next
   implementation round starts.
+- When reporting artifacts in chat (specs, plans, ledgers, handoffs, diffs),
+  cite every file by its full absolute path; never report only a bare
+  filename or repo-relative path.
