@@ -186,6 +186,93 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () => 
   });
 });
 
+describe('provenance segmentation (ADR-0073 D-A + R2 telemetry extension)', () => {
+  const TEL = require('../scripts/pairer-lane-telemetry.js');
+  const os = require('os');
+
+  function mkProjects() {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'prov-'));
+    const harness = path.join(dir, 'D--Aworker-e2e-r66-claude');
+    const real = path.join(dir, 'D--Work-realproj');
+    fs.mkdirSync(harness, { recursive: true });
+    fs.mkdirSync(real, { recursive: true });
+    // scripted-driver transcript: headless bookkeeping types present
+    fs.writeFileSync(path.join(real, 'sid-scripted.jsonl'),
+      JSON.stringify({ type: 'queue-operation', sessionId: 'sid-scripted' }) + '\n' +
+      JSON.stringify({ type: 'user', message: { role: 'user', content: 'Reply' } }) + '\n');
+    // interactive transcript: user/assistant turns only
+    fs.writeFileSync(path.join(real, 'sid-organic.jsonl'),
+      JSON.stringify({ type: 'user', message: { role: 'user', content: 'fix the flaky test' } }) + '\n' +
+      JSON.stringify({ type: 'assistant' }) + '\n' +
+      JSON.stringify({ type: 'user', message: { role: 'user', content: 'now run it' } }) + '\n');
+    // harness-workspace transcript
+    fs.writeFileSync(path.join(harness, 'sid-harness.jsonl'),
+      JSON.stringify({ type: 'user', message: { role: 'user', content: 'x' } }) + '\n');
+    return dir;
+  }
+
+  function ctxFor(dir) {
+    return {
+      projectsDir: dir,
+      selftestSessions: TEL.REGISTERED_SELFTEST_SESSIONS.slice(),
+      harnessProjectDirs: TEL.REGISTERED_HARNESS_PROJECT_DIRS.slice(),
+    };
+  }
+
+  function laneRecord(sid, state) {
+    return { session_id: sid, detector: { source: 'pairer-instrument', shadow: true, pairer: { state: state || 'undetermined', latency_ms: 2 } } };
+  }
+
+  test('the mechanical rule classifies all four classes in the registered order', () => {
+    const dir = mkProjects();
+    const ctx = ctxFor(dir);
+    expect(TEL.classifyProvenance(laneRecord('t11-live-regcheck-s2'), ctx).cls).toBe('synthetic_selfcheck');
+    expect(TEL.classifyProvenance(laneRecord('sid-no-such-transcript'), ctx).cls).toBe('unclassified');
+    expect(TEL.classifyProvenance(laneRecord('sid-harness'), ctx).cls).toBe('automated_harness');
+    expect(TEL.classifyProvenance(laneRecord('sid-scripted'), ctx).cls).toBe('automated_harness');
+    expect(TEL.classifyProvenance(laneRecord('sid-organic'), ctx).cls).toBe('organic');
+    expect(TEL.classifyProvenance(laneRecord(undefined), ctx).cls).toBe('unclassified');
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  test('self-test set membership beats transcript resolution (registered order)', () => {
+    const dir = mkProjects();
+    const ctx = ctxFor(dir);
+    // even if a transcript existed for a registered self-test id, the set wins
+    fs.writeFileSync(path.join(dir, 'D--Work-realproj', 't11-live-regcheck-s2.jsonl'),
+      JSON.stringify({ type: 'user', message: { role: 'user', content: 'hi' } }) + '\n');
+    expect(TEL.classifyProvenance(laneRecord('t11-live-regcheck-s2'), ctx).cls).toBe('synthetic_selfcheck');
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  test('collect() segments provenance counts + flagged-by-class; the G1 leg counts organic only', () => {
+    const dir = mkProjects();
+    const out = TEL.collect([
+      laneRecord('t11-live-regcheck-s2', 'flagged'),
+      laneRecord('t11-live-regcheck-s3', 'flagged'),
+      laneRecord('sid-harness', 'undetermined'),
+      laneRecord('sid-scripted', 'undetermined'),
+      laneRecord('sid-organic', 'consistent'),
+      laneRecord('sid-missing', 'undetermined'),
+      { detector: { source: 'other' }, session_id: 'noise' },
+    ], { provenanceCtx: ctxFor(dir) });
+    expect(out.provenance.counts).toEqual({ organic: 1, automated_harness: 2, synthetic_selfcheck: 2, unclassified: 1 });
+    expect(out.provenance.flagged_by_class.synthetic_selfcheck).toBe(2);
+    expect(out.provenance.flagged_by_class.organic).toBe(0);
+    expect(out.promotion_gate.G1_organic_count).toBe(1);
+    expect(out.promotion_gate.G1_organic_ge_200).toBe(false);
+    expect(out.promotion_gate.G1_events_total).toBe(6);
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  test('collect() without a provenance ctx stays honest (null, never an inflated count)', () => {
+    const out = TEL.collect([laneRecord('sid-x')]);
+    expect(out.provenance).toBeNull();
+    expect(out.promotion_gate.G1_organic_ge_200).toBeNull();
+    expect(out.promotion_gate.G1_organic_count).toBeNull();
+  });
+});
+
 describe('R1->R2 boundary: the flip executed in R2 carries the registered wording', () => {
   test('the three claude-code contracts carry measured-present; every other host does not', () => {
     const cfg = readJson(path.join(ROOT, 'test', 'fixtures', 'host-contracts.json'));
