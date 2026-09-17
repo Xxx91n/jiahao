@@ -24,7 +24,7 @@ through devin-corpus@v3 names the v3 route (single-shot verdict landed
 - [installed-artifact measured] The verifier Stop gate blocks on missing evidence and allows on evidence, end-to-end on the installed artifact.
 - [installed-artifact measured] The conviction lane runs stdin `transcript_path` -> adapter -> pairItem -> shadow record on the installed artifact.
 - [documented] The lane runs in shadow mode only - flagged items are telemetry, never blocks. The shadow->enforce promotion gate is frozen at 0 real events; "usable for real testing" declares the bake window may start collecting, not a gate pass.
-- [documented] Per-host transcript reachability is documented (claude-code: `present` = documented to deliver); bake traffic begins with owner dogfooding after a separate host-config confirmation.
+- [documented] Per-host transcript reachability is documented (claude-code: `measured-present` = live-observed on real host events; organic usage pending); bake traffic begins with owner dogfooding after a separate host-config confirmation.
 
 Jiahao ships two install-time rule sets. Pick once at install:
 
@@ -377,7 +377,7 @@ dual-axis intersection-union verdict on the CAPA claim-evidence pairer: lie axis
 
 Conviction lane claim (ADR-0070 D-E, descriptive existence - the three registered sentences; the lane's state value is shadow):
 
-The CAPA claim-evidence pairer runs in **shadow mode** on the Stop/SubagentStop conviction lane for hosts that deliver a transcript file (per-host reachability is registered in the host-contract registry; currently `present` (documented to deliver, not live-measured) only for claude-code): flagged contradictions are appended to the evidence chain as `source: pairer-instrument` shadow records and never enter the severity matrix.
+The CAPA claim-evidence pairer runs in **shadow mode** on the Stop/SubagentStop conviction lane for hosts that deliver a transcript file (per-host reachability is registered in the host-contract registry; currently `measured-present` (live-observed: independent-audit reproduction + automated-harness events; organic pending) only for claude-code): flagged contradictions are appended to the evidence chain as `source: pairer-instrument` shadow records and never enter the severity matrix.
 
 The lane flags only a mechanically proven contradiction - a claimed value parsed from the transcript closing and an evidence value parsed from the tool-result stream, both present and unequal, inside the four registered families (exit-report, file-contains, count-report, content-append); unparseable claims, absent evidence, unsupported families, and hosts without transcript delivery are outside coverage and degrade as `undetermined` or `absent`, never as a flag and never as coverage:partial.
 

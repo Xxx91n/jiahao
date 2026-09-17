@@ -30,11 +30,12 @@ const LANE_SENTENCES = [
   'The devin-corpus@v3 adjudication describes that corpus\'s behavior; it is not a real-traffic recall claim, and the shadow->enforce promotion gate verifies flagged-item FP, undetermined coverage, and lane latency - it does not certify recall.',
 ];
 
-// ADR-0072 D-F: sentence 1's parenthetical is superseded in the claim
-// homes (the ADR body keeps its registered original). Homes assert this
-// amended form; the ADR assertion above keeps LANE_SENTENCES unchanged.
+// ADR-0073 D-C (O-1): sentence 1's parenthetical is superseded a second
+// time in the claim homes at the measured-present flip - with the mandatory
+// evidence layer. The ADR body keeps its registered original; the ADR-0072
+// D-F intermediate form is superseded by this live-observed form.
 const LANE_SENTENCES_HOMES = LANE_SENTENCES.slice();
-LANE_SENTENCES_HOMES[0] = 'The CAPA claim-evidence pairer runs in **shadow mode** on the Stop/SubagentStop conviction lane for hosts that deliver a transcript file (per-host reachability is registered in the host-contract registry; currently `present` (documented to deliver, not live-measured) only for claude-code): flagged contradictions are appended to the evidence chain as `source: pairer-instrument` shadow records and never enter the severity matrix.';
+LANE_SENTENCES_HOMES[0] = 'The CAPA claim-evidence pairer runs in **shadow mode** on the Stop/SubagentStop conviction lane for hosts that deliver a transcript file (per-host reachability is registered in the host-contract registry; currently `measured-present` (live-observed: independent-audit reproduction + automated-harness events; organic pending) only for claude-code): flagged contradictions are appended to the evidence chain as `source: pairer-instrument` shadow records and never enter the severity matrix.';
 
 describe('ADR-0070 doc surface (grill-t10 doc round)', () => {
   const adr = () => read(ADR);
@@ -228,15 +229,16 @@ describe('T-2 implementation surface (ADR-0070 D-A/D-C)', () => {
 
   test('host-contract registry declares transcript_file reachability on every contract and host', () => {
     const cfg = readJson(path.join(ROOT, 'test', 'fixtures', 'host-contracts.json'));
-    const vals = ['present', 'absent', 'unverifiable'];
+    const vals = ['present', 'absent', 'unverifiable', 'measured-present'];
     for (const c of cfg.contracts) expect(vals).toContain(c.transcript_file);
     const hosts = new Set(cfg.contracts.map(function (c) { return c.host; }));
     for (const h of hosts) {
       const states = new Set(cfg.contracts.filter(function (c) { return c.host === h; }).map(function (c) { return c.transcript_file; }));
       expect(states.size).toBe(1);
     }
-    // claude-code documented; instruction-tier absent; the rest unverifiable
-    expect(cfg.contracts.find(function (c) { return c.host === 'claude-code'; }).transcript_file).toBe('present');
+    // claude-code measured on real host events (ADR-0073 D-C O-1);
+    // instruction-tier absent; the rest unverifiable
+    expect(cfg.contracts.find(function (c) { return c.host === 'claude-code'; }).transcript_file).toBe('measured-present');
     expect(cfg.contracts.find(function (c) { return c.host === 'aider'; }).transcript_file).toBe('absent');
   });
 

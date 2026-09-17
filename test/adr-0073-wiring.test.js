@@ -186,12 +186,22 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () => 
   });
 });
 
-describe('R1->R2 boundary: the registered-but-not-executed state is honest', () => {
-  test('at the R1 commit the flip is registered in ADR-0073 but not executed in the contracts', () => {
+describe('R1->R2 boundary: the flip executed in R2 carries the registered wording', () => {
+  test('the three claude-code contracts carry measured-present; every other host does not', () => {
     const cfg = readJson(path.join(ROOT, 'test', 'fixtures', 'host-contracts.json'));
-    expect(cfg.contracts.find(function (c) { return c.host === 'claude-code'; }).transcript_file).toBe('present');
-    const a = read(ADR);
-    expect(a).toContain('measured-present');
+    const claude = cfg.contracts.filter(function (c) { return c.host === 'claude-code'; });
+    expect(claude.length).toBeGreaterThan(0);
+    for (const c of claude) expect(c.transcript_file).toBe('measured-present');
+    for (const c of cfg.contracts) {
+      if (c.host !== 'claude-code') expect(c.transcript_file).not.toBe('measured-present');
+    }
+  });
+
+  test('the evidence-layer parenthetical sits verbatim in all three claim homes (ADR-0073 D-C O-1)', () => {
+    const s = 'currently `measured-present` (live-observed: independent-audit reproduction + automated-harness events; organic pending) only for claude-code';
+    for (const f of ['README.md', path.join('bench', 'research', 'out', 'claim-template.md'), path.join('bench', 'research', 'out', 'devin-oot-v3-report.md')]) {
+      expect(read(path.join(ROOT, f))).toContain(s);
+    }
   });
 });
 

@@ -149,7 +149,9 @@ describe('ADR-0070 amendments (ADR-0072 D-D/D-F)', () => {
   });
 
   test('the amended claim sentence sits verbatim in all three claim homes', () => {
-    const s = 'currently `present` (documented to deliver, not live-measured) only for claude-code';
+    // ADR-0073 D-C (O-1): superseded a second time at the measured-present
+    // flip - the evidence layer is mandatory per the registered wording.
+    const s = 'currently `measured-present` (live-observed: independent-audit reproduction + automated-harness events; organic pending) only for claude-code';
     for (const f of ['README.md', path.join('bench', 'research', 'out', 'claim-template.md'), path.join('bench', 'research', 'out', 'devin-oot-v3-report.md')]) {
       expect(read(path.join(ROOT, f))).toContain(s);
     }
@@ -164,12 +166,14 @@ describe('capability-label semantics fix (ADR-0072 D-F)', () => {
     expect(cfg._doc).toContain('never a live measurement');
   });
 
-  test('the measured-present word slot is registered in the validator enum but unused by every contract', () => {
+  test('the measured-present word slot is registered in the validator enum; post-flip only claude-code carries it (ADR-0073 D-C O-1)', () => {
     const v = read(path.join(ROOT, 'scripts', 'check-host-contracts.js'));
     expect(v).toContain("'measured-present'");
     const cfg = readJson(path.join(ROOT, 'test', 'fixtures', 'host-contracts.json'));
-    for (const c of cfg.contracts) expect(c.transcript_file).not.toBe('measured-present');
-    expect(cfg.contracts.find(function (c) { return c.host === 'claude-code'; }).transcript_file).toBe('present');
+    for (const c of cfg.contracts) {
+      if (c.host === 'claude-code') expect(c.transcript_file).toBe('measured-present');
+      else expect(c.transcript_file).not.toBe('measured-present');
+    }
   });
 });
 
