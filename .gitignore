@@ -38,3 +38,9 @@ probe-artifacts/
 test-artifacts/
 mr-artifacts/
 __pycache__/
+
+# Derived pack artifacts are never committed (grill-t11 audit F-A1, ADR-0073 D-C)
+/*.tgz
+
+# Host configuration backups never enter git-tracked dirs (ADR-0073 D-C O-2 forward rule)
+host-config-backup/
