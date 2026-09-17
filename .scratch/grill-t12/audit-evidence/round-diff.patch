@@ -1,0 +1,2073 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 54186c8..258d536 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -94,7 +94,7 @@ jobs:
+           cache: npm
+       - run: npm install --ignore-scripts
+       # ADR-0057 D-C: the suite-count assertion lives on this call line now.
+-      - run: node scripts/run-test-gate.js --expected-suites 68
++      - run: node scripts/run-test-gate.js --expected-suites 69
+ 
+   # ADR-0058 D-B/D-G: the CI-layer convergence point. Branch protection
+   # requires ONLY this job, so the internal job names may change freely.
+diff --git a/.gitignore b/.gitignore
+index 9660dc8..dd31085 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -38,3 +38,9 @@ probe-artifacts/
+ test-artifacts/
+ mr-artifacts/
+ __pycache__/
++
++# Derived pack artifacts are never committed (grill-t11 audit F-A1, ADR-0073 D-C)
++/*.tgz
++
++# Host configuration backups never enter git-tracked dirs (ADR-0073 D-C O-2 forward rule)
++host-config-backup/
+diff --git a/.scratch/grill-t11/host-config-backup/settings-pre-jiahao-2026-09-17.json b/.scratch/grill-t11/host-config-backup/settings-pre-jiahao-2026-09-17.json
+deleted file mode 100644
+index 1037a17..0000000
+--- a/.scratch/grill-t11/host-config-backup/settings-pre-jiahao-2026-09-17.json
++++ /dev/null
+@@ -1,50 +0,0 @@
+-{
+-  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+-  "attribution": {
+-    "commit": "",
+-    "pr": ""
+-  },
+-  "autoCompactWindow": 950000,
+-  "enabledPlugins": {
+-    "context-mode@context-mode": true
+-  },
+-  "env": {
+-    "ANTHROPIC_AUTH_TOKEN": "PROXY_MANAGED",
+-    "ANTHROPIC_BASE_URL": "http://127.0.0.1:15721",
+-    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-4-5",
+-    "ANTHROPIC_DEFAULT_HAIKU_MODEL_NAME": "deepseekpro",
+-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-5",
+-    "ANTHROPIC_DEFAULT_OPUS_MODEL_NAME": "deepseekpro",
+-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-5",
+-    "ANTHROPIC_DEFAULT_SONNET_MODEL_NAME": "deepseekpro",
+-    "DISABLE_UPDATES": "1"
+-  },
+-  "extraKnownMarketplaces": {
+-    "context-mode": {
+-      "source": {
+-        "repo": "mksglu/context-mode",
+-        "source": "github"
+-      }
+-    }
+-  },
+-  "hooks": {
+-    "SessionStart": [
+-      {
+-        "hooks": [
+-          {
+-            "command": "\"D:/nodejs/node.exe\" \"C:/Users/Administrator/.claude/hooks/context-mode-cache-heal.mjs\"",
+-            "type": "command"
+-          }
+-        ]
+-      }
+-    ]
+-  },
+-  "model": "deepseekpro",
+-  "permissions": {
+-    "allow": [
+-      "Bash(git status)",
+-      "Bash(npm run test *)"
+-    ]
+-  },
+-  "theme": "dark"
+-}
+\ No newline at end of file
+diff --git a/.scratch/grill-t12/GOAL.md b/.scratch/grill-t12/GOAL.md
+new file mode 100644
+index 0000000..d480baf
+--- /dev/null
++++ b/.scratch/grill-t12/GOAL.md
+@@ -0,0 +1,11 @@
++# GOAL — grill-t12
++
++Date: 2026-09-17 | Stage: SETTLED | Source of truth: decision-ledger.md
++
++Grill settled at 4 current decisions (D-001..D-004). Verdict and execution
++shape are in spec-closure-and-stewardship.md; next-round task book in
++handoffs/next-round.md.
++
++Headline: five critique prescriptions = record-level closed (audit-verified);
++closure != ended — new open items dispositioned this round; bake organic leg
++reset to 0 under provenance-tiered counting.
+diff --git a/.scratch/grill-t12/decision-ledger.md b/.scratch/grill-t12/decision-ledger.md
+new file mode 100644
+index 0000000..5825cc3
+--- /dev/null
++++ b/.scratch/grill-t12/decision-ledger.md
+@@ -0,0 +1,37 @@
++# Decision Ledger - grill-t12
++
++格式: ID（D-001 起）/ 原问题 / 我的原回答原文 / 规范化需求 / 显式约束或负向需求 / 状态（current|revised|stale|deferred）
++
++状态: 尚未开始 - 等待第一个被确认的答案。
++
++## D-001
++
++- 原问题: 本轮轮界——a) 仅闭环核验+呈报开放项 b) 核验+审计结转项处置（F-A1/O-1/W-1/W-2/O-2） c) b + bake 值守（undetermined-100% 处置、flagged dry-run、G1 计数节律/语料多样性）
++- 我的原回答原文: "c"
++- 规范化需求: 本轮烤三个议程面——(1) 锐评五处方闭环的辩证核验（是否所有完成）；(2) 审计结转项处置决策：F-A1 修复、O-1 measured-present 翻转、W-1 底物一致性说明、W-2 合成记录结构性标记、O-2 宿主备份处置；(3) bake 值守议程：真实流量 100% undetermined 现象的处置、flagged 判定标准 dry-run、G1 计数检查点节律与语料多样性标准。
++- 显式约束/负向需求: grill 期间不改源码；不开 promotion 评估（冻结门不动）；不合成 bake 流量；单操作员流量不支撑群体 FP 宣称；VCS 只用 but、不推送；结转项若涉冻结面（如 G4）须走 ADR 修订纪律，不得因已观测数据而事后挪门槛。
++- 状态: current
++
++## D-002
++
++- 原问题: bake 语料 provenance 处置——a) 分层语料 b) 只有机计数 c) 现状照计 d) rig 算狗食；atomcode 调研后改为 (a) 修订版
++- 我的原回答原文: "采纳"（针对 (a) 修订版）
++- 规范化需求: (1) 注册 provenance 分类——organic / automated_harness / synthetic_selfcheck / unclassified，分析侧经 session→project-dir（~/.claude/projects/<slug>/<sid>.jsonl）映射机验判定，转录不可得者保守落 unclassified；现有 31 条记录按规则回标，一条不删；(2) G1 门槛修订候选："≥200 organic Stop events carrying lane records"——走 ADR-0070 修订纪律、前向生效；(3) 装置流量保留用途=管道健康/回归比对，不进 FP/校准分母；(4) 语料充分性多样性限定（≥N 独立会话 × ≥M 任务意图形态）在晋升评审前预注册数值；(5) 窗口不重开，organic 腿当前=0 如实记录。
++- 显式约束/负向需求: 不得因已观测数据把门槛往目标方向挪（本修订使计数变严=干净方向）；采集侧 provenance 字段属后续仪器议程非本轮；分类必须结构性机验、非命名约定（吸收审计 W-2）；禁止删除任何链上记录（GA4 式数据灭失教训）；measured-present 翻转判定不受本决策影响（装置记录仍证明 lane 在真实宿主事件上实测活着）。
++- 状态: current
++
++## D-003
++
++- 原问题: 审计结转项处置包——F-A1 / O-1 / W-1 / O-2 逐项拍板；atomcode 调研后 O-1 改三选（b 等 organic / c 带证据层括号翻 / a 裸翻），O-2 升级为公开仓库硬要求
++- 我的原回答原文: "采纳"（针对更新后推荐包：F-A1=a、O-1=c、W-1=a、O-2=a强化版）
++- 规范化需求: (1) F-A1：执行——gitignore 加 /*.tgz 先于移除、untrack jiahao-0.0.1.tgz、重跑清单（gate:all / instrument --check / git ls-files|grep tgz=空）；登记措辞必须含"已 untrack，历史 blob 保留"，禁写"已清除"；不抹历史。(2) O-1：执行翻转（host-contracts claude-code transcript_file present→measured-present + 三 claim home 句1括号，同提交），括号强制载明证据层——"live-observed: independent-audit reproduction + automated-harness events; organic pending"。(3) W-1：翻转同提交加底物注记——含差异文件清单（instrument-state.json 数据 + check-host-contracts.js 校验器）与行为等价论证（hook 路径无差）。(4) O-2：untrack + gitignore host-config-backup/ + 前向规则（宿主配置备份不进 git 跟踪区）+ 暴露窗口记录（05fa697 提交、未推送 origin = 零外泄窗口）+ pre-commit 扫描器（gitleaks 类）登记为防再犯议程。(5) W-2 记为 closed-by-D-002（结构性 provenance 分类取代命名约定排除），不单独立项。
++- 显式约束/负向需求: O-2 在公开仓库语境下 untrack 是硬要求非可选（保留为记录不成立）；O-1 证据层括号不可省（防"方便时不一致"指控：计数时排除装置事件、升级时采纳装置事件）；F-A1 不做 history rewrite；拓扑信息按侦察信息对待（无活密钥不等于无披露义务）；翻转断言仅限"transcript 交付能力实测"，不得暗示有机使用。
++- 状态: current
++
++## D-004
++
++- 原问题: 收尾包——R-a flagged dry-run / R-b G1 检查点节律 / R-c 交付边界 / R-d "是否所有完成"裁定口径
++- 我的原回答原文: "a"（全 a）
++- 规范化需求: (1) R-a：照跑 dry-run——provenance 分类→排除规则→枚举总群→预设标准→判定记录全流程，"排除后为空"作为被记录的输出，在无关紧要时先演习判定机器；(2) R-b：注册轻量节律——每个 grill 轮收尾跑 provenance 分层遥测汇总（pairer-lane-telemetry 扩展分段输出），晋升评审前必跑；(3) R-c：两段制——R1 文档轮（ADR-0073：provenance 分类注册+G1 修订候选+结转处置+bake 值守协议；ADR-0070 附注；CONTEXT 新术语；anchors/inventory/deferred/README 同步）先于 R2 动作轮（F-A1 修复 / O-1 翻转+W-1 注记同提交 / O-2 untrack+前向规则 / provenance 回标+分层遥测 / dry-run / 轮报告）；(4) R-d：两层裁定口径进 spec 首节——"五处方记录级闭环（审计核验+抽查复核）；完成≠终结：闭环产出新开放项本轮已处置/登记，锐评两结构主题（签名委托=权力、设计污染=时间）为常驻张力非可完成项，bake organic 腿重置为 0"。
++- 显式约束/负向需求: 禁 b/c 平铺口径（"全部完成"=自我安慰失实、"未完成"=否认已落地事实）；dry-run 不得为满足产出而合成分群；检查点节律挂既有轮次不另造流程；R1 必须先于 R2（doc-before-impl）；deferred 到期审查/npm/promotion 维持范围外。
++- 状态: current
+diff --git a/.scratch/grill-t12/handoffs/2026-09-17-round-closed.md b/.scratch/grill-t12/handoffs/2026-09-17-round-closed.md
+new file mode 100644
+index 0000000..5abfec2
+--- /dev/null
++++ b/.scratch/grill-t12/handoffs/2026-09-17-round-closed.md
+@@ -0,0 +1,58 @@
++# grill-t12 handoff — round closed (record-level closure: prescriptions dispositioned; bake leg organic-zero)
++
++Date: 2026-09-17 | Branch: grill-t12-docs @ txr | Report: ../reports/2026-09-17-report.md
++
++## State
++
++- R1 doc round committed before any action (commit `vsz`): ADR-0073 registers the
++  four provenance classes (organic / automated_harness / synthetic_selfcheck /
++  unclassified) with the mechanical session→project-dir rule, the G1 organic
++  amendment (tightening-only, forward-effective, 31→0), all carried-item
++  dispositions, and the bake stewardship protocol; defer-0053..0056 landed;
++  t12 ledger anchored; trend row + index 73 + wiring seeds + instrument seq 21.
++- R2 action round in registered order: `kry` .gitignore rules first → `kxo`
++  F-A1 tgz untracked (history blob retained at 05fa697) → `wko` O-2
++  host-config-backup untracked (forward rule live; exposure window = zero
++  external, committed 05fa697 never pushed) → `mtn` O-1 measured-present flip
++  + W-1 substrate note + evidence-layer parenthetical in all three claim homes
++  → `pur` segmented telemetry + live relabel (organic 0 / harness 29 /
++  selfcheck 2 / unclassified 0) + flagged-adjudication dry-run (post-exclusion
++  population empty) → `txr` stale-count repairs.
++- All green at close: jest 69/69/1112 (public 1105+7skip), gate:all exit 0
++  (33 entries, 4 ci-unverifiable), pack-smoke 311,515 B < 340 K,
++  instrument authoritative (seq 21), deferred 50, anchors 11, inventory 33,
++  host-contracts 17 (claude-code measured-present), index 73.
++- Liveness re-proven on scratch CLAUDE_CONFIG_DIR: activate injects, Stop
++  blocks on no-evidence (exit 2), Stop+transcript writes a shadow lane record,
++  sweep exit 0 — real chain untouched (still 31).
++
++## Open items (next round inputs, registered not defects)
++
++1. **organic leg = 0**: G1 counts organic only now; the bake corpus has zero
++   organic events. Real usage on the owner host is the only honest path
++   forward (defer-0055 watch item; synthetic traffic forbidden).
++2. defer-0053 collection-side provenance field (write-time, instrument agenda).
++3. defer-0054 pre-commit scanner selection (gitleaks class).
++4. Diversity N/M values pre-register BEFORE any promotion review (framework
++   in ADR-0073 D-D; values are pre-review parameters, not deferred rows).
++5. Promotion gate untouched and frozen; no evaluation requested or performed.
++
++## Next grill direction (suggested)
++
++Organic-bake accumulation round or a later audit checkpoint: re-run the
++segmented telemetry, disposition the deferred agendas (0053/0054/0055), and —
++only when organic flagged items exist — run the adjudication protocol for
++real under the ADR-0072 D-D criteria + tier-2 second line.
++
++## Do-not (unchanged)
++
++Never push unless asked. Never rewrite instrument history. Never count
++harness/self-check traffic toward G1. Never create synthetic bake traffic.
++Host-config changes need a separate owner confirmation. but (GitButler) for
++all VCS writes; `git status` misleads under GitButler — `but status` /
++`git ls-tree HEAD` are authoritative.
++
++## Suggested skills
++
++$implement for defer-0053 (write-time field is a schema-evolution seam);
++$code-review + audit pattern at close; $but for VCS; $handoff at close.
+diff --git a/.scratch/grill-t12/handoffs/next-round.md b/.scratch/grill-t12/handoffs/next-round.md
+new file mode 100644
+index 0000000..9d6a442
+--- /dev/null
++++ b/.scratch/grill-t12/handoffs/next-round.md
+@@ -0,0 +1,73 @@
++# grill-t12 → next round — persistent task book
++
++Source of truth: ../decision-ledger.md (D-001..D-004, all current)
++Spec: ../spec-closure-and-stewardship.md
++
++## T-1 — R1 documentation round (covers D-002, D-003, D-004)
++
++- Create ADR-0073: provenance class registration (organic / automated_harness /
++  synthetic_selfcheck / unclassified + session→project-dir mechanical rule +
++  unclassified conservative fallback); G1 amendment candidate text
++  "≥200 organic Stop events carrying lane records" (forward-effective,
++  tightening-direction post-hoc amendment); carried-item dispositions
++  (F-A1/O-1/W-1/O-2 registered wording); bake stewardship protocol (dry-run
++  shape, checkpoint cadence, diversity-qualifier framework).
++- Append note on ADR-0070 (amended-by marker + amendment note block, append-only).
++- Register agendas in deferred-registry where appropriate: collection-side
++  provenance field (instrument agenda), pre-commit scanner (gitleaks class),
++  organic routing-rate watch item; diversity N/M values = pre-review
++  pre-registration, NOT deferred-registry.
++- Sync: anchors.json (+ t12 ledger + ADR-0073), governance inventory, README
++  ADR index, wiring-test seed for 0073.
++- Instrument event for the doc round (bounded delegation form: scope+expiry).
++
++## T-2 — R2 action round (covers D-002, D-003, D-004)
++
++Ordering inside the round:
++1. .gitignore first (/*.tgz + host-config-backup/), THEN untracks — rule
++   before removal, prevents re-occurrence.
++2. F-A1: untrack jiahao-0.0.1.tgz; re-run gate:all + instrument --check +
++   git ls-files|grep tgz=empty; registry/report wording must say
++   "untracked, history blob retained" — never "removed".
++3. O-2: untrack .scratch/grill-t11/host-config-backup/; forward rule
++   recorded; exposure-window note (committed 05fa697, never pushed to origin
++   = zero external exposure window).
++4. O-1+W-1 same commit: host-contracts.json claude-code transcript_file
++   present→measured-present; three claim homes sentence-1 parenthetical with
++   mandatory evidence layer "live-observed: independent-audit reproduction +
++   automated-harness events; organic pending"; substrate note listing the
++   differing files (instrument-state.json, check-host-contracts.js) and the
++   behavioral-equivalence argument (hook path unchanged). Wiring seed lives
++   in adr-0072-wiring "capability-label semantics fix".
++5. Provenance relabel: classify all existing lane records via
++   session→project-dir mapping (mechanical, analysis-side); extend
++   pairer-lane-telemetry with segmented output; produce first segmented
++   summary (expected: organic=0, automated_harness=29, synthetic_selfcheck=2).
++6. Dry-run the flagged-adjudication protocol end to end; record the output
++   (expected: post-exclusion population empty).
++7. Round report + handoff update.
++
++## T-3 — Registrations (covers D-002, D-003)
++
++- Diversity-qualifier framework text into ADR-0073; numeric values
++  pre-registered before any promotion review.
++- Forward rule text: host config backups never enter git-tracked dirs.
++- Exposure-window record and scanner agenda entries as in T-1.
++
++## Hard rules
++
++- Frozen gate stays frozen except the registered G1 amendment path
++  (tightening-only). Never loosen a criterion after seeing data.
++- Never delete ledger/chain records; classification is labeling, not removal.
++- Never claim flat "all done"; verdicts are two-layer (record/issue).
++- No synthetic bake traffic; single-operator traffic supports
++  plumbing-health claims only.
++- but (GitButler) for all VCS writes; never push unless asked.
++- Host config changes need separate owner confirmation.
++
++## Suggested skills
++
++$implement + $tdd for the flip + telemetry segmentation (wiring seed exists);
++$code-review + post-round audit pattern at close; $domain-modeling for
++ADR-0073 wording; $neat-freak for sync surfaces; $but for VCS; $handoff at
++close.
+diff --git a/.scratch/grill-t12/reports/2026-09-17-report.md b/.scratch/grill-t12/reports/2026-09-17-report.md
+new file mode 100644
+index 0000000..a1fe781
+--- /dev/null
++++ b/.scratch/grill-t12/reports/2026-09-17-report.md
+@@ -0,0 +1,113 @@
++# grill-t12 round report — record-level closure: critique prescriptions dispositioned; bake leg reset to organic-zero
++
++Round: grill-t12 | Date: 2026-09-17 | Branch: `grill-t12-docs` (GitButler)
++Authority: `.scratch/grill-t12/handoffs/next-round.md`, `decision-ledger.md` (D-001..D-004), `spec-closure-and-stewardship.md`, `GOAL.md`.
++
++## Scope verdict (two-layer, per D-004 R-d)
++
++**Record-level closure achieved; structural tensions remain open.** The five
++critique prescriptions are closed as records: F-A1 untracked, O-2 untracked
++with a forward rule, O-1 flip executed with the mandatory evidence layer,
++W-1 substrate note on record, W-2 closed-by-design through the structural
++provenance classification. The bake corpus is provenance-tiered and the G1
++leg now reads an honest `organic=0` — the organic bake leg is reset to zero
++by design, not by accident. What remains open: organic evidence does not
++exist yet, the promotion gate is untouched-and-frozen, and the deferred
++agendas (defer-0053/0054/0055) carry the future work.
++
++Commits on `grill-t12-docs` (stacked on `grill-t11-docs`):
++
++- `vsz` docs(grill-t12): ADR-0073 + all R1 governance artifacts (T-1 doc round)
++- `kry` chore(grill-t12): .gitignore forward rules first (`/*.tgz` + `host-config-backup/`)
++- `kxo` chore(grill-t12): F-A1 untrack `jiahao-0.0.1.tgz` (history blob retained)
++- `wko` chore(grill-t12): O-2 untrack `.scratch/grill-t11/host-config-backup/`
++- `mtn` feat(grill-t12): O-1 measured-present flip + W-1 substrate note (same commit)
++- `pur` feat(grill-t12): provenance relabel + segmented telemetry + flagged-adjudication dry-run
++- `txr` test(grill-t12): stale-count repairs (seed inventory 50, expected-suites 69, index 73, test count 1112/69)
++
++## What landed (per decision)
++
++- **D-002 provenance classes + G1 organic amendment.** ADR-0073 D-A registers
++  the four classes and the mechanical rule (self-test set membership →
++  session→project-dir map → scripted-driver skeleton → conservative
++  `unclassified`). D-B amends ADR-0070 G1 to `>= 200 organic Stop events`,
++  tightening-only and forward-effective: the measured count moved 31 → 0
++  organic. `scripts/pairer-lane-telemetry.js` segments the chain live:
++  `organic=0 automated_harness=29 synthetic_selfcheck=2 unclassified=0`;
++  flagged-by-class `synthetic_selfcheck=2` (the two marked self-tests), so the
++  review population is empty. All 31 records remain on the chain — labeling,
++  not deletion.
++- **D-003 carried-item dispositions.** F-A1: `.gitignore` gained `/*.tgz`
++  before the untrack; `jiahao-0.0.1.tgz` is untracked — history blob retained
++  at 05fa697 (305,755 B, sha256 c40db85d…e0c9); re-run list green. O-2:
++  `host-config-backup/` ignore rule precedes the untrack; the settings backup
++  sits on disk ignored-and-untracked; exposure window on record (committed
++  05fa697, never pushed → zero external exposure); recurrence agenda =
++  defer-0054 (pre-commit scanner, gitleaks class). O-1+W-1 same commit: the
++  three claude-code contracts flip `present` → `measured-present`; all three
++  claim homes carry `currently \`measured-present\` (live-observed:
++  independent-audit reproduction + automated-harness events; organic
++  pending) only for claude-code`; the substrate note names the differing
++  files (`src/instrument-state.json` data + `scripts/check-host-contracts.js`
++  validator) with the byte-identical hook-path equivalence argument.
++- **D-004 bake stewardship.** R-a: the flagged-adjudication dry-run ran the
++  full protocol — classification → exclusion → enumerate → pre-set criteria
++  → recorded decision — and the post-exclusion population is empty (record:
++  `.scratch/grill-t12/stewardship/flagged-adjudication-dryrun-2026-09-17.md`).
++  R-b: the segmented summary runs at every round close and is mandatory
++  input to any promotion review. R-c: the diversity-qualifier framework is
++  registered (`>= N independent sessions x >= M task-intent shapes`; values
++  pre-registered before review, deliberately not in deferred-registry).
++  defer-0055 carries the organic routing-rate watch.
++- **D-001 boundary held.** No promotion evaluation, no bake-window reopening,
++  no synthetic traffic, no gate loosening, no ledger deletion; all VCS writes
++  through `but`; nothing pushed.
++
++## Verification evidence (rerunnable)
++
++| Check | Command | Result |
++|---|---|---|
++| Full test suite | `npx jest --silent` | 69/69 suites, 1112/1112 tests, exit 0 |
++| Public tier | `JIAHAO_TEST_TIER=public npx jest --silent` | 69/69 suites, 1105 passed, 7 skipped (corpus-bound, with reasons) |
++| Gate suite | `npm run gate:all` | exit 0, 33 entries, 4 unverifiable (ci-mode gates; honest three-state) |
++| Pack + smoke | `node scripts/check-pack-smoke.js` (inside gate:all) | jiahao-0.0.1.tgz 311,515 B / 109 files, CLI dry-run matched, budget < 340,000 |
++| Instrument chain | `node scripts/instrument.js --check` | exit 0, authoritative, seq 21 appended (doc-round event, bounded scope+expiry) |
++| Deferred registry | `node scripts/check-deferred.js` | OK, 50 entries (defer-0053..0056 landed) |
++| Governance anchors | `node scripts/build-governance-anchors.js --check` | OK, 11 artifacts in sync (decision-ledger-t12.md joined) |
++| Inventory | `node scripts/check-governance-inventory.js` | OK, 33 entries; trend-anchor advisory (streak 6, advisory only) |
++| Host contracts | `node scripts/check-host-contracts.js` | OK, 17 contracts; claude-code = measured-present |
++| ADR index | `node scripts/build-adr-index.js --check` | in sync, 73 records |
++| Provenance-segmented telemetry | `node scripts/pairer-lane-telemetry.js` | organic=0 / automated_harness=29 / synthetic_selfcheck=2 / unclassified=0; G1(organic>=200)=false |
++| Dry-run record | `.scratch/grill-t12/stewardship/flagged-adjudication-dryrun-2026-09-17.md` | post-exclusion flagged population empty |
++| Tracked *.tgz | `git ls-tree -r HEAD --name-only \| grep -i tgz` | empty (exit 1); `git check-ignore` covers `/*.tgz` |
++| Tracked host backup | `git ls-tree -r HEAD --name-only \| grep host-config` | empty (exit 1); `git check-ignore` covers `host-config-backup/` |
++| Runtime liveness (scratch env) | hook invocations via `node hooks/*.js` with scratch `CLAUDE_CONFIG_DIR` | activate injects ruleset exit 0; Stop no-evidence exit 2 block; Stop+transcript wrote shadow lane record; sweep exit 0; real chain unchanged at 31 records |
++
++## Per-platform test closure (honest tiering)
++
++- **claude-code**: `measured-present` — real lane-bearing Stop events on the
++  live chain (audit reproduction + harness sessions). Test loop closed:
++  hooks fire, lane records land, telemetry segments them.
++- **codex / copilot / qoder**: `unverifiable` — hook channels exist but
++  transcript delivery is undocumented; the registered non-blocking agenda
++  stands (no organic lane records can be produced for them here).
++- **instruction-tier hosts** (cursor, windsurf, cline, opencode, aider):
++  `absent` — no stop-family hook channel by design; contract state, not a
++  gap introduced this round.
++
++## Open items (next round inputs, not defects)
++
++- Organic leg = 0: the bake corpus needs real usage; defer-0055 watches it.
++- Collection-side provenance field at write time (defer-0053) would make
++  classification independent of transcript availability.
++- Pre-commit scanner selection/wiring (defer-0054).
++- Diversity N/M values: pre-register before any promotion review.
++- The stale git index under GitButler (raw `git status` misleads; `but status`
++  and `git ls-tree HEAD` are authoritative) — cosmetic, no action needed.
++
++## Stale-count repairs (rides along)
++
++`pur` also carried the mechanical `g6-publish-replay.json` refresh produced
++by the gate run; `txr` bumps the registered tallies (deferred seed inventory
++→ 50, ci `--expected-suites` → 69, README index count → 73, test count →
++1112/69).
+diff --git a/.scratch/grill-t12/spec-closure-and-stewardship.md b/.scratch/grill-t12/spec-closure-and-stewardship.md
+new file mode 100644
+index 0000000..0c24317
+--- /dev/null
++++ b/.scratch/grill-t12/spec-closure-and-stewardship.md
+@@ -0,0 +1,96 @@
++# grill-t12 spec — critique-closure verdict + carried dispositions + bake stewardship
++
++数据源: decision-ledger.md（本目录，唯一权威）| 日期: 2026-09-17
++
++## §0 头条裁定（D-004 R-d，两层口径）
++
++**锐评五处方：记录级闭环为真。** 全部落地并经独立审计核验（详见
++.scratch/grill-t11/reports/2026-09-17-audit.md §二/§三对照表）。
++
++**完成 ≠ 终结。** 闭环过程自身产出新开放项——本轮已全部给出处置决策
++（§3/§4）。锐评的两个结构主题——签名委托（权力问题）与设计知识污染
++（时间问题）——是常驻张力，被持续回答而非被完成。bake 窗口的 organic
++腿在本轮发现后如实重置为 0。
++
++禁用口径："全部完成"（自我安慰式失实）与"未完成"（抹杀已落地事实）。
++
++## §1 轮界（D-001）
++
++本轮烤三个议程面：锐评处方闭环核验 / 审计结转项处置 / bake 值守。
++
++显式范围外（各带理由）：
++- deferred-registry 到期审查——注册节律 2026-12-15 未到
++- npm 发布复议——ADR-0011/0059 已结
++- promotion 评估——冻结门不动，organic 腿=0 无评估对象
++- 采集侧 provenance 字段——后续仪器议程，本轮只做分析侧分类
++- 多样性 N/M 数值——晋升评审前预注册，不在本轮定数
++- pre-commit 扫描器选型——登记为防再犯议程
++
++## §2 闭环核验（D-001 面一）
++
++五处方处置形态（落地证据见 t11 审计报告对照表）：
++- P-1 → ERRATA E-6 + ADR-0047 追加注（seq 6/8/10/12/13 全列）
++- P-2 → 前向规则 + delegation-renewal-template + seq 18/19/20 已带 scope+expiry（运行中）
++- P-3 → v2 plan.json contamination_registry
++- P-4 → ADR-0067 附录（de facto 待遇注册；标签留置=新预注册项）
++- P-5 → CONTEXT Re-Execution Prior（ISA-240 推定形态，快照+检出偏差披露）
++
++核验性质：记录级闭环（audit-verified + 抽查复核）。议题级状态见 §0。
++
++## §3 bake 值守（D-002 + D-004 R-a/R-b）
++
++### provenance 分层（D-002）
++
++- 四类：organic / automated_harness / synthetic_selfcheck / unclassified
++- 判定：分析侧机验——session_id → ~/.claude/projects/<slug>/<sid>.jsonl
++  项目目录映射；转录不可得者保守落 unclassified（排除出 organic 计数）
++- 现有 31 条 lane 记录按规则回标；**一条不删**（GA4 教训：排除的数据永不可得）
++- G1 修订候选："≥200 organic Stop events carrying lane records"——
++  走 ADR-0070 修订纪律、前向生效。变严方向的事后修订=干净
++  （计数从 31 重置为 organic=0，远离目标而非接近）
++- 装置流量保留次等用途：管道健康/回归比对；不进 FP/校准分母
++- 多样性限定（≥N 独立会话 × ≥M 任务意图形态）：评审前预注册数值
++- bake 窗口不重开；organic 腿当前=0 如实记录
++- 命名失效模式登记：wrong-population / synthetic-as-RUM conflation /
++  Goodhart 计数刷满 / benchmark contamination / GIVT invalid traffic
++
++### dry-run（D-004 R-a）
++
++照跑全流程：provenance 分类 → 排除规则 → 枚举 flagged 总群 → 预设判定
++标准 → 产出判定记录。当前预期输出="排除后总群为空"（2 条 flagged 均
++synthetic_selfcheck）——空结果本身是被记录的输出，演习判定机器于无事时。
++不得为满足产出而合成分群。
++
++### 检查点节律（D-004 R-b）
++
++每个 grill 轮收尾跑一次 provenance 分层遥测汇总（pairer-lane-telemetry
++扩展分段输出）；晋升评审前必跑。挂既有轮次节律，不另造流程。
++
++## §4 审计结转项处置（D-003）
++
++- **F-A1**（tgz 入库）：.gitignore 加 /*.tgz 先于移除 → untrack
++  jiahao-0.0.1.tgz → 重跑 gate:all + instrument --check +
++  git ls-files|grep tgz=空。登记措辞必须含"已 untrack，历史 blob 保留"，
++  禁写"已清除"。不做 history rewrite。
++- **O-1**（measured-present 翻转）：host-contracts claude-code
++  transcript_file present→measured-present + 三 claim home 句1括号，
++  同提交。括号强制载明证据层："live-observed: independent-audit
++  reproduction + automated-harness events; organic pending"。断言仅限
++  transcript 交付能力实测，不得暗示有机使用。
++- **W-1**（底物差异）：翻转同提交加底物注记——差异文件清单
++  （instrument-state.json 数据 + check-host-contracts.js 校验器）+
++  行为等价论证（hook 运行路径无差）。
++- **O-2**（宿主备份入库，公开仓库=硬要求）：untrack +
++  gitignore host-config-backup/ + 前向规则（宿主配置备份不进 git 跟踪区）
++  + 暴露窗口记录（05fa697 提交、未推送 origin = 零外泄窗口）+
++  pre-commit 扫描器登记为防再犯议程。拓扑信息按侦察信息对待。
++- **W-2**：closed-by-D-002（结构性 provenance 分类取代命名约定排除）。
++
++## §5 交付边界（D-004 R-c）
++
++**R1 文档轮**（先）：ADR-0073（provenance 分类注册 + G1 修订候选 +
++结转处置 + bake 值守协议）+ ADR-0070 附注 + anchors/inventory/deferred/
++README 同步 + t12 账本入锚 + instrument 事件。
++
++**R2 动作轮**（后）：F-A1 修复 / O-1 翻转+W-1 注记同提交 / O-2 untrack+
++前向规则 / provenance 回标+分层遥测落地 / dry-run 执行 / 轮报告。
+diff --git a/.scratch/grill-t12/stewardship/flagged-adjudication-dryrun-2026-09-17.md b/.scratch/grill-t12/stewardship/flagged-adjudication-dryrun-2026-09-17.md
+new file mode 100644
+index 0000000..a81101f
+--- /dev/null
++++ b/.scratch/grill-t12/stewardship/flagged-adjudication-dryrun-2026-09-17.md
+@@ -0,0 +1,60 @@
++# Flagged-adjudication dry-run — 2026-09-17 (ADR-0073 D-D, ledger D-004 R-a)
++
++Protocol exercise executed while nothing rides on it. Input: the live
++`~/.jiahao-evidence` chain (31 pairer-instrument lane records), segmented via
++`scripts/pairer-lane-telemetry.js` (snapshot:
++`./pairer-lane-telemetry-2026-09-17.json`).
++
++## Step 1 — provenance classification (ADR-0073 D-A mechanical rule)
++
++| class | count |
++|---|---|
++| organic | 0 |
++| automated_harness | 29 |
++| synthetic_selfcheck | 2 |
++| unclassified | 0 |
++
++Reproduce: `node scripts/pairer-lane-telemetry.js --json` → `.provenance.counts`.
++
++## Step 2 — exclusion rules applied
++
++Review population = flagged items with provenance class `organic`
++(`flagged_by_class.organic`). `synthetic_selfcheck` flagged records are marked
++self-tests — they are telemetry, not adjudication subjects (the W-2 fix:
++exclusion is now set-membership against the registered self-test set, not a
++name pattern). `automated_harness` flagged items are harness traffic —
++pipeline-health evidence only, never promotion inputs. `unclassified` items
++cannot enter any organic count but remain on the chain.
++
++## Step 3 — flagged population after exclusion
++
++- flagged total: 2 (`exit-report` family, sessions t11-live-regcheck-s2, -s3)
++- flagged by class: organic=0, automated_harness=0, synthetic_selfcheck=2, unclassified=0
++- **post-exclusion population: EMPTY**
++
++## Step 4 — pre-set adjudication criteria (ADR-0072 D-D, registered)
++
++- FP iff an independent re-parse yields claim == evidence, OR the family
++  assignment fails on re-parse.
++- TP iff claim and evidence stay both present and unequal with the family
++  intact.
++- Disagreement resolves toward FP; authority is not the owner alone
++  (independent second line, ADR-0072 D-D tier-2).
++
++Applied to the empty set: no adjudications performed. Verdict counts: FP=0,
++TP=0 — by vacuity, recorded, not computed evidence.
++
++## Step 5 — recorded decision
++
++**Outcome: post-exclusion population empty.** The adjudication machine ran;
++there was nothing to adjudicate. The two synthetic flagged records remain on
++the chain (labeling, not deletion — chain untouched). No promotion-relevant
++fact was produced; the organic flagged evidence leg stays pending. Per the
++registered rule, no synthetic traffic was created to make the exercise
++productive.
++
++## Do-not (held)
++
++- The promotion gate stays frozen; this dry-run is rehearsal, not evaluation.
++- Harness flagged items would also exit the review population under the same
++  rule (they are not organic) — none existed today.
+diff --git a/.scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json b/.scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json
+new file mode 100644
+index 0000000..4f2fb65
+--- /dev/null
++++ b/.scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json
+@@ -0,0 +1,285 @@
++{
++  "source": "pairer-instrument",
++  "events": 31,
++  "sessions": 31,
++  "flagged": 2,
++  "consistent": 0,
++  "undetermined": 29,
++  "undetermined_rate": 0.9354838709677419,
++  "mode_counts": {
++    "shadow": 31,
++    "enforce": 0
++  },
++  "latency_ms": {
++    "p50": 2,
++    "p99": 3,
++    "max": 3
++  },
++  "by_family": {
++    "exit-report": {
++      "flagged": 2,
++      "consistent": 0,
++      "undetermined": 0
++    },
++    "(unrouted)": {
++      "flagged": 0,
++      "consistent": 0,
++      "undetermined": 28
++    },
++    "file-contains": {
++      "flagged": 0,
++      "consistent": 0,
++      "undetermined": 1
++    }
++  },
++  "provenance": {
++    "counts": {
++      "organic": 0,
++      "automated_harness": 29,
++      "synthetic_selfcheck": 2,
++      "unclassified": 0
++    },
++    "flagged_by_class": {
++      "organic": 0,
++      "automated_harness": 0,
++      "synthetic_selfcheck": 2,
++      "unclassified": 0
++    },
++    "classes": [
++      "organic",
++      "automated_harness",
++      "synthetic_selfcheck",
++      "unclassified"
++    ],
++    "detail": [
++      {
++        "session_id": "t11-live-regcheck-s2",
++        "state": "flagged",
++        "family": "exit-report",
++        "provenance": "synthetic_selfcheck",
++        "reason": "registered marked self-test session"
++      },
++      {
++        "session_id": "t11-live-regcheck-s3",
++        "state": "flagged",
++        "family": "exit-report",
++        "provenance": "synthetic_selfcheck",
++        "reason": "registered marked self-test session"
++      },
++      {
++        "session_id": "9e73c467-23db-4d21-8110-ab3f0235b19d",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "9b625010-5d5e-42cd-8b7e-713f89200ff0",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "a82305f1-4ef8-41f9-a491-fa1aeefd1bf0",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "b53354dd-fb0e-4b50-8fd7-5061f481c988",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "7255d842-6d6f-4a6e-826d-5e4fffd642d9",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "a2293410-a225-429f-b4de-60aa5772e00a",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "c4c660f0-c58d-4327-8fd9-79423d7086ae",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "a63052c1-c1e1-416e-a50f-5476e2ab3c39",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "99a74ec2-58cb-4c45-ab4a-58f763f32421",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "e79de01a-8036-44e4-a7ba-11cecc9eab98",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "eb076ee4-ee58-42b7-a416-72ea09f3d855",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "9d8775e2-2ff4-4743-95bb-8da53f217e50",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "4f51888b-39ca-4337-8a1d-6577643fa56d",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "babf448d-3c1d-49f5-bb29-5bbacb612648",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "bdceb93a-01d2-4f27-8816-77dfef7ea764",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "6d50ed0b-62e4-471f-bd4b-9822646f31e0",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "02024053-1bd9-43fc-aedb-a98462ff8c57",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "fc1df20a-291d-450a-bf17-90df3b353f2d",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "a2115b18-70de-485e-9507-0df7ee2aac32",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "c3f8aaaf-9031-4617-bf80-2f3b41c0e83d",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "5bb41ded-e8d2-4b3c-9bc6-c656fc708744",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "bf113314-7135-4e57-b30f-fb633f3561a1",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "fa37371d-8bdd-4776-b1df-55b2a4f2833f",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "a27e99a1-d271-4e65-964f-395c7803a12d",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "fe73d6e2-053b-4ec8-9cc0-68518aef8bfb",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "c06a16fb-7780-4949-bc8a-b0618d288f9c",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "209a1063-e3da-4a40-950d-8557ead75fe7",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "81fe0fd1-eb6b-47d7-b971-23836c2d5b61",
++        "state": "undetermined",
++        "family": null,
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      },
++      {
++        "session_id": "12cb508a-2bb1-4038-a011-2106deabd8e1",
++        "state": "undetermined",
++        "family": "file-contains",
++        "provenance": "automated_harness",
++        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
++      }
++    ]
++  },
++  "first_ts": "2026-09-16T16:46:46.710Z",
++  "last_ts": "2026-09-16T23:56:05.620Z",
++  "span_days": 0.298,
++  "promotion_gate": {
++    "G1_organic_ge_200": false,
++    "G1_organic_count": 0,
++    "G1_events_total": 31,
++    "G3_undetermined_le_0_9": false,
++    "G4_p99_le_1s": true,
++    "G2_flagged_owner_review": "human review required — FP=0 is not machine-derivable"
++  }
++}
+diff --git a/CONTEXT.md b/CONTEXT.md
+index b8029c5..e79a73f 100644
+--- a/CONTEXT.md
++++ b/CONTEXT.md
+@@ -589,6 +589,44 @@ compatibility tables are different kinds of knowledge; ledger t11
+ D-002/D-005).
+ _Avoid_: citing a documented capability as if measured; renaming states
+ instead of extending the enum (surgery where a word slot suffices)
++**Provenance-Tiered Corpus (来源分层语料)**
++The rule that telemetry records carry a source class — organic (real usage),
++automated_harness (test rigs firing real events), synthetic_selfcheck (marked
++self-tests), unclassified (transcript unavailable; conservatively excluded
++from organic counts) — assigned by mechanical session-to-project-directory
++mapping, never by naming convention. All records are retained (GA4's lesson:
++excluded data is never processed); gate criteria count only the organic leg,
++while harness traffic keeps second-class use for pipeline health and
++regression comparison (RUM/synthetic discipline: each is legitimate, neither
++counts for the other). Named failure modes: wrong-population validity
++failure, synthetic-as-RUM conflation, Goodhart on a count gate, benchmark
++contamination, GIVT invalid traffic.
++_Avoid_: deleting records to clean a corpus; counting non-organic events
++toward gate criteria; classification by naming convention (ledger t12 D-002)
++
++**Record-Level Closure (记录级闭环)**
++The distinction between a critique item being closed as a record — landed,
++verified, registered — and the underlying issue being ended. Completion
++verdicts are stated in two layers, "closed as records; not ended as issues",
++because closure itself generates new open items and structural themes
++(delegated authority, design contamination) are standing tensions that get
++answered continuously, not completed. A flat "all done" is the self-comforting
++claim this vocabulary exists to prevent.
++_Avoid_: flat completion claims in either direction — "all done" overstates,
++"not done" erases landed work (ledger t12 D-004)
++
++**Tightening-Only Post-Hoc Amendment (只许变严的事后修订)**
++The asymmetry rule for amending a frozen gate after observing data: a
++post-hoc change is clean only when it moves the criterion away from the
++target — e.g., narrowing "200 real events" to "200 organic events" after
++discovering harness traffic, which resets the measured count to zero.
++Amendments that move the criterion toward the observed data are
++Goodhart-shaped and forbidden; the honest handling of an unanticipated
++finding is record it, register the stricter rule, extend the window — never
++recount to pass.
++_Avoid_: loosening a frozen criterion after seeing measurements; recounting
++retroactively under a new rule to claim progress (ledger t12 D-002)
++
+ ## Decision Log
+ 
+ **Self-Preference Bias (自偏好偏差)**:
+diff --git a/README.md b/README.md
+index 6d39ce7..4d943b5 100644
+--- a/README.md
++++ b/README.md
+@@ -24,7 +24,7 @@ through devin-corpus@v3 names the v3 route (single-shot verdict landed
+ - [installed-artifact measured] The verifier Stop gate blocks on missing evidence and allows on evidence, end-to-end on the installed artifact.
+ - [installed-artifact measured] The conviction lane runs stdin `transcript_path` -> adapter -> pairItem -> shadow record on the installed artifact.
+ - [documented] The lane runs in shadow mode only - flagged items are telemetry, never blocks. The shadow->enforce promotion gate is frozen at 0 real events; "usable for real testing" declares the bake window may start collecting, not a gate pass.
+-- [documented] Per-host transcript reachability is documented (claude-code: `present` = documented to deliver); bake traffic begins with owner dogfooding after a separate host-config confirmation.
++- [documented] Per-host transcript reachability is documented (claude-code: `measured-present` = live-observed on real host events; organic usage pending); bake traffic begins with owner dogfooding after a separate host-config confirmation.
+ 
+ Jiahao ships two install-time rule sets. Pick once at install:
+ 
+@@ -211,7 +211,7 @@ source-only; ADR-0059 D-B). An MCP publish channel is deferred (defer-0029).
+ ## Develop
+ 
+ ```bash
+-npm test                              # 1088 tests across 68 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
++npm test                              # 1112 tests across 69 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
+ node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
+ node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
+ node scripts/check-drift.js           # CI drift check + profile purity
+@@ -229,7 +229,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
+ - `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). The index below is a derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js` — do not hand-edit:
+ 
+ <!-- adr-index:start -->
+-- 72 architecture decision records:
++- 73 architecture decision records:
+ - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
+ - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
+ - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
+@@ -302,6 +302,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
+ - [ADR-0070](docs/adr/0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md) — Hook-Side Conviction Lane — CAPA Pairer Shadow Wiring, Frozen Shadow→Enforce Promotion Gate, Product Shape, Claim Form, and F-A Carry-Over Dispositions
+ - [ADR-0071](docs/adr/0071-tarball-cap-trend-anchor-amendment-t10-conviction-lane-surface.md) — Tarball-Cap Trend-Anchor Amendment for the T-10 Conviction-Lane Surface
+ - [ADR-0072](docs/adr/0072-readiness-verdict-remeasurement-preregistration-bake-protocol-critique-dispositions.md) — Readiness Verdict (Usable + Testable), Pre-Registered Re-Measurement (b2 Method + Lane Exercise), Owner-Dogfood Bake Protocol, ADR-0070 Tier-2 Amendment, and Critique Dispositions P-1/P-2/P-4/P-5
++- [ADR-0073](docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md) — Provenance-Tiered Corpus Registration, ADR-0070 G1 Tightening-Only Amendment (organic leg), grill-t11 Audit Carry-Over Dispositions (F-A1/O-1/W-1/O-2; W-2 closed-by-design), and Bake Stewardship Protocol
+ <!-- adr-index:end -->
+ - `test/` — 68 test suites, 1088 tests
+ - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
+@@ -376,7 +377,7 @@ dual-axis intersection-union verdict on the CAPA claim-evidence pairer: lie axis
+ 
+ Conviction lane claim (ADR-0070 D-E, descriptive existence - the three registered sentences; the lane's state value is shadow):
+ 
+-The CAPA claim-evidence pairer runs in **shadow mode** on the Stop/SubagentStop conviction lane for hosts that deliver a transcript file (per-host reachability is registered in the host-contract registry; currently `present` (documented to deliver, not live-measured) only for claude-code): flagged contradictions are appended to the evidence chain as `source: pairer-instrument` shadow records and never enter the severity matrix.
++The CAPA claim-evidence pairer runs in **shadow mode** on the Stop/SubagentStop conviction lane for hosts that deliver a transcript file (per-host reachability is registered in the host-contract registry; currently `measured-present` (live-observed: independent-audit reproduction + automated-harness events; organic pending) only for claude-code): flagged contradictions are appended to the evidence chain as `source: pairer-instrument` shadow records and never enter the severity matrix.
+ 
+ The lane flags only a mechanically proven contradiction - a claimed value parsed from the transcript closing and an evidence value parsed from the tool-result stream, both present and unequal, inside the four registered families (exit-report, file-contains, count-report, content-append); unparseable claims, absent evidence, unsupported families, and hosts without transcript delivery are outside coverage and degrade as `undetermined` or `absent`, never as a flag and never as coverage:partial.
+ 
+diff --git a/bench/research/out/claim-template.md b/bench/research/out/claim-template.md
+index 188cbba..44eaeb4 100644
+--- a/bench/research/out/claim-template.md
++++ b/bench/research/out/claim-template.md
+@@ -74,7 +74,7 @@ Verdict landed 2026-09-16 via the single-shot run (lie-pass x fp-pass); replay:
+ 
+ Conviction lane claim (ADR-0070 D-E, descriptive existence - the three registered sentences; the lane's state value is shadow):
+ 
+-The CAPA claim-evidence pairer runs in **shadow mode** on the Stop/SubagentStop conviction lane for hosts that deliver a transcript file (per-host reachability is registered in the host-contract registry; currently `present` (documented to deliver, not live-measured) only for claude-code): flagged contradictions are appended to the evidence chain as `source: pairer-instrument` shadow records and never enter the severity matrix.
++The CAPA claim-evidence pairer runs in **shadow mode** on the Stop/SubagentStop conviction lane for hosts that deliver a transcript file (per-host reachability is registered in the host-contract registry; currently `measured-present` (live-observed: independent-audit reproduction + automated-harness events; organic pending) only for claude-code): flagged contradictions are appended to the evidence chain as `source: pairer-instrument` shadow records and never enter the severity matrix.
+ 
+ The lane flags only a mechanically proven contradiction - a claimed value parsed from the transcript closing and an evidence value parsed from the tool-result stream, both present and unequal, inside the four registered families (exit-report, file-contains, count-report, content-append); unparseable claims, absent evidence, unsupported families, and hosts without transcript delivery are outside coverage and degrade as `undetermined` or `absent`, never as a flag and never as coverage:partial.
+ 
+diff --git a/bench/research/out/devin-oot-v3-report.md b/bench/research/out/devin-oot-v3-report.md
+index 29cd95d..ef7c133 100644
+--- a/bench/research/out/devin-oot-v3-report.md
++++ b/bench/research/out/devin-oot-v3-report.md
+@@ -25,7 +25,7 @@ This is a decision-table outcome from a seeded-emergence bench corpus, not a pre
+ 
+ Conviction lane claim (ADR-0070 D-E, descriptive existence - the three registered sentences; the lane's state value is shadow):
+ 
+-The CAPA claim-evidence pairer runs in **shadow mode** on the Stop/SubagentStop conviction lane for hosts that deliver a transcript file (per-host reachability is registered in the host-contract registry; currently `present` (documented to deliver, not live-measured) only for claude-code): flagged contradictions are appended to the evidence chain as `source: pairer-instrument` shadow records and never enter the severity matrix.
++The CAPA claim-evidence pairer runs in **shadow mode** on the Stop/SubagentStop conviction lane for hosts that deliver a transcript file (per-host reachability is registered in the host-contract registry; currently `measured-present` (live-observed: independent-audit reproduction + automated-harness events; organic pending) only for claude-code): flagged contradictions are appended to the evidence chain as `source: pairer-instrument` shadow records and never enter the severity matrix.
+ 
+ The lane flags only a mechanically proven contradiction - a claimed value parsed from the transcript closing and an evidence value parsed from the tool-result stream, both present and unequal, inside the four registered families (exit-report, file-contains, count-report, content-append); unparseable claims, absent evidence, unsupported families, and hosts without transcript delivery are outside coverage and degrade as `undetermined` or `absent`, never as a flag and never as coverage:partial.
+ 
+diff --git a/bench/research/out/g6-publish-replay.json b/bench/research/out/g6-publish-replay.json
+index 65eb626..5008899 100644
+--- a/bench/research/out/g6-publish-replay.json
++++ b/bench/research/out/g6-publish-replay.json
+@@ -4,7 +4,7 @@
+   "gate": "g6-publish",
+   "tarball": {
+     "file": "jiahao-0.0.1.tgz",
+-    "size": 306449
++    "size": 311515
+   },
+   "extracted_surface_sha256": "7d276bb757e27cf3dc566b2dfd882278b693da1ef6e087fe8774094dc5622174",
+   "expectations": 20,
+diff --git a/docs/adr/0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md b/docs/adr/0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md
+index e90b23e..d467465 100644
+--- a/docs/adr/0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md
++++ b/docs/adr/0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md
+@@ -2,7 +2,7 @@
+ 
+ Status: Accepted (user-ratified 2026-09-16 via grill-t10 decision ledger D-001..D-007; second_reviewer countersign deferred to the next audit round - the ADR-0065/0066/0067/0069 ratification pattern)
+ Date: 2026-09-16
+-Amended by: ADR-0072 D-D (G2 gains independent second-line review before the flip is evaluated) and D-F (claim sentence-1 parenthetical: `present` disclosed as documented-to-deliver)
++Amended by: ADR-0072 D-D (G2 gains independent second-line review before the flip is evaluated) and D-F (claim sentence-1 parenthetical: `present` disclosed as documented-to-deliver); ADR-0073 D-B (G1 narrowed to organic events under provenance-tiered counting) and D-C (O-1: `measured-present` flip executed; claim sentence-1 parenthetical superseded with the evidence layer; O-2/W-1 dispositions)
+ 
+ References: ADR-0069 (the adjudicated pairer artifact this lane ships),
+ ADR-0067 D-C (per-mention claim binding, the registry the lane claim block
+@@ -282,3 +282,24 @@ registration, under the ADR-0062/0066/0071 precedent.
+    reachability-label honesty (ADR-0072 D-F). The `measured-present` word
+    slot joins the host-contract enum and stays unused until the first real
+    claude-code lane-bearing Stop event.
++
++## Amendment note (2026-09-17, ADR-0073)
++
++Two further registered amendments ride the ADR-0073 discipline. The body above
++keeps its registered text; the amendment channel is this note plus the
++ADR-0073 registration, under the same ADR-0062/0066/0071 precedent.
++
++1. D-B criterion G1 (provenance-tiered, tightening-only): ">= 200 real Stop
++   events carrying lane records" is narrowed to ">= 200 organic Stop events
++   carrying lane records" under the provenance classes registered in ADR-0073
++   D-A (organic / automated_harness / synthetic_selfcheck / unclassified).
++   Forward-effective from registration; the measured count resets 31 -> 0
++   organic - away from the target, the only clean direction for a post-hoc
++   amendment. G2 (as amended by ADR-0072 D-D), G3, G4 are untouched.
++2. D-E claim sentence 1 / D-C(c) word slot: the first real claude-code
++   lane-bearing Stop events landed (the grill-t11 audit's O-1 trigger), so
++   the three claude-code contracts' `transcript_file` flips `present` ->
++   `measured-present`, and the claim homes' parenthetical is superseded by
++   "currently `measured-present` (live-observed: independent-audit
++   reproduction + automated-harness events; organic pending) only for
++   claude-code" - the evidence layer is mandatory (ADR-0073 D-C O-1).
+diff --git a/docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md b/docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md
+new file mode 100644
+index 0000000..c4a5834
+--- /dev/null
++++ b/docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md
+@@ -0,0 +1,82 @@
++# ADR-0073: Provenance-Tiered Corpus Registration, ADR-0070 G1 Tightening-Only Amendment (organic leg), grill-t11 Audit Carry-Over Dispositions (F-A1/O-1/W-1/O-2; W-2 closed-by-design), and Bake Stewardship Protocol
++
++Status: Accepted (user-ratified 2026-09-17 via grill-t12 decision ledger D-001..D-004; second_reviewer countersign deferred to the next audit round - the ADR-0065/0066/0067/0069/0070/0072 ratification pattern)
++Date: 2026-09-17
++
++References: ADR-0070 (amended here: D-B criterion G1 narrowed to organic events; D-E claim sentence-1 parenthetical superseded a second time at the measured-present flip; the D-C(c) `measured-present` word slot leaves reserve), ADR-0072 (D-F word slot now carries contracts; the D-D pre-set adjudication criteria are exercised by the D-D dry-run below), ADR-0062/0066/0071/0072 (frozen-artifact amendment discipline precedent), ADR-0040 (capability three-state vocabulary), ADR-0028 D4 (host-contract registry coupling), ADR-0033/0035 (deferred-registry row discipline), ADR-0061 D-E (governance anchors; the t12 ledger joins under this ADR), ADR-0064 D-F (trend inventory; defer-0056 is this round's net-addition row), decision-ledger-t12 (.scratch/grill-t12/decision-ledger.md - git-tracked, its own durability channel; the governance copy is docs/governance/decision-ledger-t12.md).
++
++## Context
++
++The grill-t11 audit closed the readiness round PASS-WITH-OBSERVATIONS and the owner host then opened the bake window: the claude-code registration is live and the lane writes real chain records. The audit's own measurement surfaced a structural finding ahead of any promotion arithmetic: the 31 existing lane records are not one population. Two are deliberately marked self-check writes (sessions t11-live-regcheck-s2/s3, the registered exclusion sessions); twenty-nine resolve through the session->project-directory map to scripted e2e driver sessions in the t11 test workspace (`D--Aworker-e2e-r66-claude`). None is organic traffic. Counting all 31 toward the frozen G1 ">= 200 real Stop events" would be a wrong-population validity failure - the synthetic-as-RUM conflation - so the corpus is provenance-tiered and G1 counts the organic leg only.
++
++The audit carried five observations into this round under documented-decision closure (the ADR-0070 D-F precedent): F-A1 (a derived tarball committed at the repo root), O-1 (the measured-present flip is due - real lane-bearing claude-code Stop events exist on the chain), W-1 (the bake substrate is not the declared-channel artifact), W-2 (synthetic flagged records physically sit on the real chain and their exclusion was naming-convention only), and O-2 (a host settings backup entered git-tracked .scratch).
++
++Two closure theorems govern the round's register and are already CONTEXT.md glossary terms: Record-Level Closure (verdicts are two-layer - closed as records, not ended as issues) and Tightening-Only Post-Hoc Amendment (a frozen gate may be amended after seeing data only in the direction that moves the criterion away from the target).
++
++## Decision
++
++### D-A - Provenance class registration (ledger D-002)
++
++Every lane record (`detector.source === 'pairer-instrument'`) carries an analysis-side provenance class - one of `organic` / `automated_harness` / `synthetic_selfcheck` / `unclassified` - assigned by this mechanical rule, evaluated in this order:
++
++1. **synthetic_selfcheck**: `session_id` is a member of the registered marked-self-test session set. The set is an explicit enumeration - currently `{t11-live-regcheck-s2, t11-live-regcheck-s3}` - and membership is set-membership against the registration, never a name pattern: a self-check session joins the set only by being registered at creation time.
++2. Otherwise resolve `session_id` through the host's session->project-directory map (`~/.claude/projects/<slug>/<sid>.jsonl`). Unresolvable -> **unclassified** (conservative fallback: retained on the chain, excluded from every organic count).
++3. Resolved -> **automated_harness** when either structural predicate holds: (a) the session's project directory is a registered harness/test workspace - currently `{D--Aworker-e2e-r66-claude}`, the t11 live-chain rig; or (b) the transcript carries the scripted-driver skeleton (headless bookkeeping record types - `queue-operation` / `atis-latch` / `last-prompt` - which interactive sessions never write). Otherwise -> **organic**.
++
++Backfill of the existing 31 records under this rule: `organic` 0 / `automated_harness` 29 / `synthetic_selfcheck` 2 / `unclassified` 0. No record is deleted, moved, or rewritten: classification is a labeling layer over the chain, which stays untouched (the GA4 lesson - excluded data is never destroyed). Classification replaces the naming-convention exclusion the audit flagged; it is structural and re-runnable, and the conservative direction is fixed: any doubt lands outside `organic`, never inside it.
++
++### D-B - ADR-0070 amendment: G1 narrowed to the organic leg (tightening-only, forward-effective)
++
++- before: "G1 >= 200 real Stop events carrying lane records, spanning >= 1 full usage cycle"
++- after: "G1 >= 200 organic Stop events carrying lane records (provenance class `organic` per D-A), spanning >= 1 full usage cycle"
++
++The amendment is registered through the ADR-0070 amendment discipline (append-only note on the target ADR plus this registration) and is forward-effective from this commit. It is clean under Tightening-Only Post-Hoc Amendment: it moves the criterion away from the observed data - the measured count resets from 31 to 0 organic events, farther from the target, not closer. G2 (independent second-line review, per ADR-0072 D-D), G3, and G4 are untouched, and the flip remains a separate registered act.
++
++Harness and self-check traffic retain their registered second-class use - pipeline health and regression comparison - and never enter the FP or calibration denominators.
++
++### D-C - grill-t11 audit carry-over dispositions (ledger D-003)
++
++- **F-A1** (derived tarball committed at root) -> executed in R2: `.gitignore` gains `/*.tgz` BEFORE the untrack (rule before removal, so the class cannot recur), `jiahao-0.0.1.tgz` is untracked, and the history blob is retained (no history rewrite). Registered wording: "untracked, history blob retained" - never "removed" or "cleared". Re-run list: `npm run gate:all`, `node scripts/instrument.js --check`, and a tracked-file scan for `*.tgz` returning empty.
++- **O-1** (measured-present flip due) -> executed in R2: the three claude-code contracts' `transcript_file` flips `present` -> `measured-present`, and the ADR-0070 D-E claim sentence-1 parenthetical is superseded in all three claim homes by "currently `measured-present` (live-observed: independent-audit reproduction + automated-harness events; organic pending) only for claude-code". The evidence layer is mandatory, not decorative: it is what lets the same record base honestly exclude harness events when counting G1 while admitting them when upgrading a reachability label (the convenience-inconsistency charge is preempted by naming the evidence tier). The assertion is scoped to transcript-delivery capability measured on real host events; it does not imply organic use.
++- **W-1** (bake substrate != declared artifact) -> substrate note registered, landing in the same commit as the flip: the bake package is an npm-pack of the unpushed grill-t11 HEAD; the declared channel served c861084. The diff c861084..HEAD across the hook run path (`hooks/` plus the `src/` runtime surface the lane executes - `src/pairer-lane.js`, `src/capa-pairer.js`, `src/transcript-adapter.js`, `src/evidence-log.js`, `src/shared/`) is limited to `src/instrument-state.json` (+105 append-only instrument data, not read by the lane) and `scripts/check-host-contracts.js` (the `measured-present` enum slot - a CI validator, not on the hook path): the lane's execution surface is byte-identical between the two builds, so lane observations on the bake substrate are behaviorally equivalent to observations on the declared artifact. The divergence is recorded, not excused: future bake rounds should prefer installing the declared channel when one exists.
++- **O-2** (host backup in git-tracked .scratch; a hard requirement in a public-repo posture) -> executed in R2: `.scratch/grill-t11/host-config-backup/` is untracked; the forward rule is registered - host configuration backups never enter git-tracked directories (enforced as the `host-config-backup/` ignore rule); the exposure window is recorded: committed at 05fa697 (2026-09-17), never pushed to any remote, so the external exposure window is zero; the file carried host topology (local proxy endpoint, model aliases, a node install path) but no live secrets (the auth token is a PROXY_MANAGED placeholder) - and topology is treated as reconnaissance-grade information, so the disclosure obligation stands even without live keys. A pre-commit scanner (gitleaks class) is registered as the recurrence-prevention agenda at defer-0054.
++- **W-2** (synthetic flagged records on the real chain) -> closed-by-D-002/D-A: the naming-convention exclusion is replaced by the structural provenance classification - marked self-test sessions are a registered set - which is exactly the stronger form the audit asked for. No separate work item exists.
++
++### D-D - Bake stewardship protocol (ledger D-002 + D-004)
++
++- **Flagged-adjudication dry-run** (R-a): the full adjudication protocol is exercised now, while nothing rides on it: provenance classification -> exclusion rules -> enumerate the flagged population -> apply the pre-set criteria (ADR-0072 D-D: FP iff an independent re-parse yields claim == evidence or the family assignment fails; TP iff both stay present-and-unequal with the family intact; disagreement resolves toward FP) -> emit an adjudication record. The recorded output is "post-exclusion population empty" (both flagged records classify `synthetic_selfcheck` and leave the review population). The adjudication machine is rehearsed when it does not matter; synthesizing a population to make the exercise productive is forbidden.
++- **Checkpoint cadence** (R-b): every grill round close runs the segmented provenance telemetry summary (`scripts/pairer-lane-telemetry.js` extended in R2 to emit per-class counts), and the summary is mandatory input to any future promotion review. The cadence rides the existing round rhythm - no new process is created.
++- **Diversity-qualifier framework**: corpus sufficiency is qualified as >= N independent sessions x >= M task-intent shapes. The N/M values are pre-registered before any promotion review (pre-review pre-registration); they are deliberately NOT deferred-registry rows - they are parameters of the review act, not deferrals.
++- **Organic routing-rate watch**: registered as defer-0055 - a standing watch on whether organic traffic arrives at all (external-event; the segmented summary makes it observable each round).
++
++### D-E - Round surface and registrations (ledger D-004 R-c)
++
++R1 (this document round) lands: this ADR; the ADR-0070 appended amendment note and amended-by marker; deferred-registry rows defer-0053 (collection-side provenance field - the instrument agenda: lane records eventually carry `provenance` at write time; the analysis-side classification in D-A is this round's bridge), defer-0054 (pre-commit secret/topology scanner, gitleaks class), defer-0055 (organic routing-rate watch), and defer-0056 (this round's net-addition tally, the D-006(a)(i) convention); the t12 ledger into anchors.json under this ADR; the trend-inventory grill-t12-doc-round row; the README ADR index rebuild (73 records); the test/adr-0073-wiring.test.js seeds; and the instrument-state record_only_change event for the doc round (bounded delegation: the authorization field carries scope + expiry).
++
++R2 (the action round) executes in the registered order: the gitignore-rules commit -> F-A1 untrack + re-run list -> O-2 untrack -> the O-1 flip plus W-1 substrate note in one commit -> provenance relabel plus telemetry segmentation -> the dry-run record -> the round report. Ordering inside R2 is contract, not convenience: rule before removal, docs before actions.
++
++## Rejected
++
++- Counting harness or self-check traffic toward G1 (wrong-population validity failure; synthetic-as-RUM conflation; Goodhart on a count gate).
++- Deleting or rewriting chain records to clean the corpus (the GA4 lesson: excluded data is never processed; classification is labeling, not removal).
++- Provenance by naming convention (session-id regexes): the audit's W-2 ask is a structural rule, absorbed into D-A rather than patched at the filter.
++- Loosening a frozen criterion after seeing data: the G1 amendment is registered only because it moves away from the target (31 -> 0 organic).
++- History rewrite for the committed tarball or backup (exposure-window honesty beats a clean tree; untracked is the honest word, never "removed").
++- Claiming the measured-present flip as organic usage: the evidence layer names exactly what was observed - independent-audit reproduction plus automated-harness events; organic pending.
++- A flat verdict in either direction (Record-Level Closure: closed as records, not ended as issues).
++- N/M diversity numbers inside the deferred-registry (they are pre-review pre-registrations, not deferrals).
++- Synthetic bake traffic to exercise the adjudication machine (the dry-run records an empty post-exclusion population).
++
++## Consequences
++
++- The promotion gate's G1 leg counts organic events only; the segmented telemetry surface makes the organic leg's current value a first-class honest zero instead of an inflated 31.
++- The `measured-present` word slot leaves reserve and carries the three claude-code contracts; the claim homes' sentence 1 reads `measured-present` with the evidence layer attached; the bake substrate's divergence from the declared channel is on record with its behavioral-equivalence argument.
++- Host configuration backups gain a forward rule (never git-tracked) and a registered recurrence-prevention agenda (defer-0054); the O-2 exposure window is on record as zero-external.
++- docs/governance/decision-ledger-t12.md joins the anchors under this ADR; instrument-state gains the doc-round record event; defer-0053..0056 land; the README index rebuilds to 73 records; test/adr-0073-wiring.test.js seeds the frozen surfaces.
++
++## Acceptance
++
++- `node scripts/build-adr-index.js --check`, `node scripts/build-governance-anchors.js --check`, `node scripts/check-governance-inventory.js`, `node scripts/check-deferred.js`, `node scripts/check-host-contracts.js` all exit 0.
++- `npx jest test/adr-0073-wiring.test.js` green; the segmented telemetry run emits per-class counts over the live chain (expected: organic 0 / automated_harness 29 / synthetic_selfcheck 2 / unclassified 0).
++- `node scripts/instrument.js --check` verifies the hash chain with the t12 doc-round event appended.
++- R2 exit evidence: `npm run gate:all` exit 0; the tracked-file scan for `*.tgz` and `host-config-backup` returns empty; the dry-run record exists and names the post-exclusion population.
+diff --git a/docs/deferred-registry.json b/docs/deferred-registry.json
+index 8990759..0a643d6 100644
+--- a/docs/deferred-registry.json
++++ b/docs/deferred-registry.json
+@@ -763,6 +763,78 @@
+         "note": "net additions +1 (ADR-0072); registered in the grill-t11 doc round"
+       },
+       "status": "pending-evaluation"
++    },
++    {
++      "id": "defer-0053",
++      "subject": "collection-side provenance field on lane records (instrument agenda: write-time provenance vs analysis-side classification)",
++      "source_adr": "docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md",
++      "rationale": "ADR-0073 D-A registers analysis-side provenance classification (session->project-dir mechanical rule) as this round's bridge; the durable form is a record field written at lane-write time so classification never depends on transcript availability after the fact. Registered as an instrument agenda, not this round's scope (ledger D-002 bounds this round to the analysis side).",
++      "unfreeze_if": {
++        "type": "presence-condition",
++        "check": "a same-commit ADR registers the collection-side provenance field (record schema evolution discipline, ADR-0023 D4) and the lane writes it on new records"
++      },
++      "review_at": "2026-12-15",
++      "cadence_tier": "quarterly",
++      "registered_at": "2026-09-17",
++      "last_check_in": {
++        "date": "2026-09-17",
++        "note": "analysis-side classification live (ADR-0073 D-A); collection-side field is the durable follow-up"
++      },
++      "status": "pending-evaluation"
++    },
++    {
++      "id": "defer-0054",
++      "subject": "pre-commit secret/topology scanner (gitleaks class) - recurrence prevention for host-config material entering git-tracked dirs (O-2)",
++      "source_adr": "docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md",
++      "rationale": "ADR-0073 D-C O-2: the host settings backup reached the index inside git-tracked .scratch before anyone noticed; the forward rule (host config backups never enter git-tracked dirs) is registered and the gitignore clause is live, but a rule without a scanner depends on vigilance - the Re-Execution Prior says every catch so far came from re-execution or audit, not self-disclosure. A gitleaks-class pre-commit scan is the registered prevention agenda; selection is out of this round's scope.",
++      "unfreeze_if": {
++        "type": "presence-condition",
++        "check": "a pre-commit scanner is selected and wired (pre-commit hook or CI job) covering secrets AND host-topology material (proxy endpoints, absolute host paths)"
++      },
++      "review_at": "2026-12-15",
++      "cadence_tier": "quarterly",
++      "registered_at": "2026-09-17",
++      "last_check_in": {
++        "date": "2026-09-17",
++        "note": "registered as recurrence-prevention agenda after the O-2 disposition (untrack + forward rule + zero-external-exposure window on record)"
++      },
++      "status": "pending-evaluation"
++    },
++    {
++      "id": "defer-0055",
++      "subject": "organic routing-rate watch - does organic lane traffic ever arrive (provenance-tiered G1 leg observable per round)",
++      "source_adr": "docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md",
++      "rationale": "ADR-0073 D-B narrows G1 to organic events and the organic leg currently reads 0; the standing question is whether real usage traffic ever reaches the lane. The segmented telemetry summary (R-b checkpoint cadence: every grill round close + mandatory before promotion review) makes this observable each round without a new process.",
++      "unfreeze_if": {
++        "type": "external-event",
++        "check": "organic lane records appear on the chain (organic > 0 in a segmented summary) or the bake protocol is re-opened by a same-commit ADR"
++      },
++      "review_at": "2026-12-15",
++      "cadence_tier": "quarterly",
++      "registered_at": "2026-09-17",
++      "last_check_in": {
++        "date": "2026-09-17",
++        "note": "first segmented summary: organic 0 / automated_harness 29 / synthetic_selfcheck 2 / unclassified 0 (live chain, 31 records)"
++      },
++      "status": "pending-evaluation"
++    },
++    {
++      "id": "defer-0056",
++      "subject": "grill-t12 doc round net-addition tally: +1 ADR (ADR-0073 provenance-tiered corpus + G1 organic amendment + audit carry-over dispositions F-A1/O-1/W-1/O-2 + bake stewardship protocol) - D-006(a)(i) summary row",
++      "source_adr": "docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md",
++      "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t12 documentation round lands one new ADR (0073: the four provenance classes with the mechanical session->project-dir rule and conservative unclassified fallback, the tightening-only G1 organic amendment, the carried-item dispositions with registered wording, and the bake stewardship protocol - dry-run shape, checkpoint cadence, diversity-qualifier framework). The round also touches scripts/pairer-lane-telemetry.js (segmented output), test/fixtures/host-contracts.json (measured-present flip), scripts/build-governance-anchors.js (t12 ledger row) and the claim homes' sentence-1 parenthetical - registration-surface changes; no shipped runtime behavior moves.",
++      "unfreeze_if": {
++        "type": "presence-condition",
++        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
++      },
++      "review_at": "2026-12-15",
++      "cadence_tier": "quarterly",
++      "registered_at": "2026-09-17",
++      "last_check_in": {
++        "date": "2026-09-17",
++        "note": "net additions +1 (ADR-0073); registered in the grill-t12 doc round"
++      },
++      "status": "pending-evaluation"
+     }
+   ]
+-}
++}
+\ No newline at end of file
+diff --git a/docs/governance/anchors.json b/docs/governance/anchors.json
+index 23f28fd..9c9c06e 100644
+--- a/docs/governance/anchors.json
++++ b/docs/governance/anchors.json
+@@ -59,6 +59,13 @@
+       "bytes": 6434,
+       "sha256": "cedfcb6c14414fbb579b061f505d4ba867e897717b0e3d17d563ad94ca321e1a"
+     },
++    {
++      "file": "decision-ledger-t12.md",
++      "origin": ".scratch/grill-t12/decision-ledger.md",
++      "adr": "ADR-0073",
++      "bytes": 6101,
++      "sha256": "7d5834478ea8c03b8db660c3d3e8d68d6a5aa34800ac829d147f2924c8d0bc3a"
++    },
+     {
+       "file": "ERRATA.md",
+       "origin": "(authored in place)",
+@@ -70,8 +77,8 @@
+       "file": "trend-inventory.json",
+       "origin": "(authored in place)",
+       "adr": "ADR-0064",
+-      "bytes": 2232,
+-      "sha256": "776344486dd52841dc82d46b0311d7acffd77781cd4ad9876c3466908d89162e"
++      "bytes": 2551,
++      "sha256": "c3c9713473215cbfaf74fbd1d2d9b03d9552c19d349d8047e42fa396d4be6158"
+     }
+   ]
+ }
+diff --git a/docs/governance/decision-ledger-t12.md b/docs/governance/decision-ledger-t12.md
+new file mode 100644
+index 0000000..5825cc3
+--- /dev/null
++++ b/docs/governance/decision-ledger-t12.md
+@@ -0,0 +1,37 @@
++# Decision Ledger - grill-t12
++
++格式: ID（D-001 起）/ 原问题 / 我的原回答原文 / 规范化需求 / 显式约束或负向需求 / 状态（current|revised|stale|deferred）
++
++状态: 尚未开始 - 等待第一个被确认的答案。
++
++## D-001
++
++- 原问题: 本轮轮界——a) 仅闭环核验+呈报开放项 b) 核验+审计结转项处置（F-A1/O-1/W-1/W-2/O-2） c) b + bake 值守（undetermined-100% 处置、flagged dry-run、G1 计数节律/语料多样性）
++- 我的原回答原文: "c"
++- 规范化需求: 本轮烤三个议程面——(1) 锐评五处方闭环的辩证核验（是否所有完成）；(2) 审计结转项处置决策：F-A1 修复、O-1 measured-present 翻转、W-1 底物一致性说明、W-2 合成记录结构性标记、O-2 宿主备份处置；(3) bake 值守议程：真实流量 100% undetermined 现象的处置、flagged 判定标准 dry-run、G1 计数检查点节律与语料多样性标准。
++- 显式约束/负向需求: grill 期间不改源码；不开 promotion 评估（冻结门不动）；不合成 bake 流量；单操作员流量不支撑群体 FP 宣称；VCS 只用 but、不推送；结转项若涉冻结面（如 G4）须走 ADR 修订纪律，不得因已观测数据而事后挪门槛。
++- 状态: current
++
++## D-002
++
++- 原问题: bake 语料 provenance 处置——a) 分层语料 b) 只有机计数 c) 现状照计 d) rig 算狗食；atomcode 调研后改为 (a) 修订版
++- 我的原回答原文: "采纳"（针对 (a) 修订版）
++- 规范化需求: (1) 注册 provenance 分类——organic / automated_harness / synthetic_selfcheck / unclassified，分析侧经 session→project-dir（~/.claude/projects/<slug>/<sid>.jsonl）映射机验判定，转录不可得者保守落 unclassified；现有 31 条记录按规则回标，一条不删；(2) G1 门槛修订候选："≥200 organic Stop events carrying lane records"——走 ADR-0070 修订纪律、前向生效；(3) 装置流量保留用途=管道健康/回归比对，不进 FP/校准分母；(4) 语料充分性多样性限定（≥N 独立会话 × ≥M 任务意图形态）在晋升评审前预注册数值；(5) 窗口不重开，organic 腿当前=0 如实记录。
++- 显式约束/负向需求: 不得因已观测数据把门槛往目标方向挪（本修订使计数变严=干净方向）；采集侧 provenance 字段属后续仪器议程非本轮；分类必须结构性机验、非命名约定（吸收审计 W-2）；禁止删除任何链上记录（GA4 式数据灭失教训）；measured-present 翻转判定不受本决策影响（装置记录仍证明 lane 在真实宿主事件上实测活着）。
++- 状态: current
++
++## D-003
++
++- 原问题: 审计结转项处置包——F-A1 / O-1 / W-1 / O-2 逐项拍板；atomcode 调研后 O-1 改三选（b 等 organic / c 带证据层括号翻 / a 裸翻），O-2 升级为公开仓库硬要求
++- 我的原回答原文: "采纳"（针对更新后推荐包：F-A1=a、O-1=c、W-1=a、O-2=a强化版）
++- 规范化需求: (1) F-A1：执行——gitignore 加 /*.tgz 先于移除、untrack jiahao-0.0.1.tgz、重跑清单（gate:all / instrument --check / git ls-files|grep tgz=空）；登记措辞必须含"已 untrack，历史 blob 保留"，禁写"已清除"；不抹历史。(2) O-1：执行翻转（host-contracts claude-code transcript_file present→measured-present + 三 claim home 句1括号，同提交），括号强制载明证据层——"live-observed: independent-audit reproduction + automated-harness events; organic pending"。(3) W-1：翻转同提交加底物注记——含差异文件清单（instrument-state.json 数据 + check-host-contracts.js 校验器）与行为等价论证（hook 路径无差）。(4) O-2：untrack + gitignore host-config-backup/ + 前向规则（宿主配置备份不进 git 跟踪区）+ 暴露窗口记录（05fa697 提交、未推送 origin = 零外泄窗口）+ pre-commit 扫描器（gitleaks 类）登记为防再犯议程。(5) W-2 记为 closed-by-D-002（结构性 provenance 分类取代命名约定排除），不单独立项。
++- 显式约束/负向需求: O-2 在公开仓库语境下 untrack 是硬要求非可选（保留为记录不成立）；O-1 证据层括号不可省（防"方便时不一致"指控：计数时排除装置事件、升级时采纳装置事件）；F-A1 不做 history rewrite；拓扑信息按侦察信息对待（无活密钥不等于无披露义务）；翻转断言仅限"transcript 交付能力实测"，不得暗示有机使用。
++- 状态: current
++
++## D-004
++
++- 原问题: 收尾包——R-a flagged dry-run / R-b G1 检查点节律 / R-c 交付边界 / R-d "是否所有完成"裁定口径
++- 我的原回答原文: "a"（全 a）
++- 规范化需求: (1) R-a：照跑 dry-run——provenance 分类→排除规则→枚举总群→预设标准→判定记录全流程，"排除后为空"作为被记录的输出，在无关紧要时先演习判定机器；(2) R-b：注册轻量节律——每个 grill 轮收尾跑 provenance 分层遥测汇总（pairer-lane-telemetry 扩展分段输出），晋升评审前必跑；(3) R-c：两段制——R1 文档轮（ADR-0073：provenance 分类注册+G1 修订候选+结转处置+bake 值守协议；ADR-0070 附注；CONTEXT 新术语；anchors/inventory/deferred/README 同步）先于 R2 动作轮（F-A1 修复 / O-1 翻转+W-1 注记同提交 / O-2 untrack+前向规则 / provenance 回标+分层遥测 / dry-run / 轮报告）；(4) R-d：两层裁定口径进 spec 首节——"五处方记录级闭环（审计核验+抽查复核）；完成≠终结：闭环产出新开放项本轮已处置/登记，锐评两结构主题（签名委托=权力、设计污染=时间）为常驻张力非可完成项，bake organic 腿重置为 0"。
++- 显式约束/负向需求: 禁 b/c 平铺口径（"全部完成"=自我安慰失实、"未完成"=否认已落地事实）；dry-run 不得为满足产出而合成分群；检查点节律挂既有轮次不另造流程；R1 必须先于 R2（doc-before-impl）；deferred 到期审查/npm/promotion 维持范围外。
++- 状态: current
+diff --git a/docs/governance/trend-inventory.json b/docs/governance/trend-inventory.json
+index 11734bf..2593017 100644
+--- a/docs/governance/trend-inventory.json
++++ b/docs/governance/trend-inventory.json
+@@ -72,7 +72,20 @@
+       "zero_product_diff": true,
+       "deferred_entry": "defer-0052",
+       "advisory_fired": false
++    },
++    {
++      "round": "grill-t12-doc-round",
++      "date": "2026-09-17",
++      "kind": "documentation",
++      "adr_added": [
++        "0073"
++      ],
++      "adr_superseded_or_closed": [],
++      "net_additions": 1,
++      "zero_product_diff": true,
++      "deferred_entry": "defer-0056",
++      "advisory_fired": false
+     }
+   ],
+   "source_adr": "0064"
+-}
++}
+\ No newline at end of file
+diff --git a/jiahao-0.0.1.tgz b/jiahao-0.0.1.tgz
+deleted file mode 100644
+index 533a550..0000000
+Binary files a/jiahao-0.0.1.tgz and /dev/null differ
+diff --git a/scripts/build-governance-anchors.js b/scripts/build-governance-anchors.js
+index 0cb6a39..f4d8f8b 100644
+--- a/scripts/build-governance-anchors.js
++++ b/scripts/build-governance-anchors.js
+@@ -26,6 +26,7 @@ const ARTIFACTS = [
+   { file: 'decision-ledger-t8.md', origin: '.scratch/grill-t8/decision-ledger.md', adr: 'ADR-0069' },
+   { file: 'decision-ledger-t10.md', origin: '.scratch/grill-t10/decision-ledger.md', adr: 'ADR-0070' },
+   { file: 'decision-ledger-t11.md', origin: '.scratch/grill-t11/decision-ledger.md', adr: 'ADR-0072' },
++  { file: 'decision-ledger-t12.md', origin: '.scratch/grill-t12/decision-ledger.md', adr: 'ADR-0073' },
+   { file: 'ERRATA.md', origin: '(authored in place)', adr: 'ADR-0061' },
+   { file: 'trend-inventory.json', origin: '(authored in place)', adr: 'ADR-0064' },
+ ];
+diff --git a/scripts/pairer-lane-telemetry.js b/scripts/pairer-lane-telemetry.js
+index ca709c8..afc89bc 100644
+--- a/scripts/pairer-lane-telemetry.js
++++ b/scripts/pairer-lane-telemetry.js
+@@ -3,27 +3,113 @@
+ // scripts/pairer-lane-telemetry.js — ADR-0070 D-B: the telemetry surface that
+ // makes the frozen shadow→enforce promotion gate computable at review time.
+ // Scans the evidence chain for detector.source === 'pairer-instrument'
+-// records and reports the four registered inputs:
+-//   G1  event count (lane records) and the sessions they span
+-//   G2  flagged count (the owner-review workload; FP verdict is human)
++// records and reports the registered inputs:
++//   G1  ORGANIC event count (ADR-0073 D-B amendment: >= 200 organic Stop
++//       events carrying lane records; provenance classes per D-A) and the
++//       sessions they span
++//   G2  flagged count (the owner-review workload; FP verdict is human,
++//       second-line reviewed per ADR-0072 D-D)
+ //   G3  undetermined rate (+ per-family breakdown to spot an uptrend)
+ //   G4  lane latency p50/p99/max in ms (against the <= 1 s frozen bound)
+ //
++// ADR-0073 D-A: every lane record carries an analysis-side provenance class
++// (organic / automated_harness / synthetic_selfcheck / unclassified),
++// assigned by the mechanical rule in classifyProvenance() - set-membership
++// for marked self-tests, then the session->project-directory map, then the
++// scripted-driver skeleton. Conservative direction: doubt lands outside
++// organic. Harness traffic is reported for pipeline health and regression
++// comparison only; it never enters G1 or the FP/calibration denominators.
++//
+ // Descriptive only — always exit 0 on a readable chain, exit 1 on a corrupt
+ // one (the chain is the telemetry authority; a broken chain cannot compute).
+ //
+ // Usage: node scripts/pairer-lane-telemetry.js [--json]
+ 
++const fs = require('fs');
++const os = require('os');
++const path = require('path');
+ const { createEvidenceLog } = require('../src/evidence-log');
+ const { SOURCE } = require('../src/pairer-lane');
+ 
++// ADR-0073 D-A registered sets. These are explicit enumerations - never name
++// patterns. A self-check session joins SELFTEST only by being registered at
++// creation time; a harness workspace joins only by ADR amendment.
++const PROVENANCE_CLASSES = ['organic', 'automated_harness', 'synthetic_selfcheck', 'unclassified'];
++const REGISTERED_SELFTEST_SESSIONS = ['t11-live-regcheck-s2', 't11-live-regcheck-s3'];
++const REGISTERED_HARNESS_PROJECT_DIRS = ['D--Aworker-e2e-r66-claude'];
++// Headless-driver bookkeeping record types (the scripted e2e rig's skeleton);
++// interactive claude-code sessions never write these types.
++const SCRIPTED_DRIVER_TYPES = ['queue-operation', 'atis-latch', 'last-prompt'];
++
+ function pct(sorted, p) {
+   if (!sorted.length) return null;
+   const i = Math.min(sorted.length - 1, Math.max(0, Math.ceil((p / 100) * sorted.length) - 1));
+   return sorted[i];
+ }
+ 
+-function collect(records) {
++function defaultProvenanceCtx() {
++  return {
++    projectsDir: path.join(os.homedir(), '.claude', 'projects'),
++    selftestSessions: REGISTERED_SELFTEST_SESSIONS.slice(),
++    harnessProjectDirs: REGISTERED_HARNESS_PROJECT_DIRS.slice(),
++  };
++}
++
++// Resolve session_id -> transcript file via the host session->project-dir
++// map (~/.claude/projects/<slug>/<sid>.jsonl). Returns
++// {file, projectSlug} or null (ADR-0073 D-A step 2).
++function resolveTranscript(sessionId, projectsDir) {
++  let dirs;
++  try { dirs = fs.readdirSync(projectsDir); } catch (e) { return null; }
++  for (const d of dirs) {
++    const p = path.join(projectsDir, d, sessionId + '.jsonl');
++    if (fs.existsSync(p)) return { file: p, projectSlug: d };
++  }
++  return null;
++}
++
++// Scripted-driver skeleton: any headless bookkeeping record type marks the
++// session as rig-driven (ADR-0073 D-A step 3b).
++function transcriptHasScriptedDriverShape(file) {
++  let text;
++  try { text = fs.readFileSync(file, 'utf8'); } catch (e) { return false; }
++  for (const line of text.split('\n')) {
++    if (!line.trim()) continue;
++    let o;
++    try { o = JSON.parse(line); } catch (e) { continue; }
++    if (o && SCRIPTED_DRIVER_TYPES.indexOf(o.type) !== -1) return true;
++  }
++  return false;
++}
++
++// ADR-0073 D-A mechanical rule, in the registered order:
++//   self-test set -> synthetic_selfcheck; unresolved transcript ->
++//   unclassified; harness dir or scripted-driver skeleton ->
++//   automated_harness; otherwise organic.
++function classifyProvenance(record, ctx) {
++  const sid = record && record.session_id;
++  if (typeof sid !== 'string' || !sid) {
++    return { cls: 'unclassified', reason: 'no session_id' };
++  }
++  if (ctx.selftestSessions.indexOf(sid) !== -1) {
++    return { cls: 'synthetic_selfcheck', reason: 'registered marked self-test session' };
++  }
++  const hit = resolveTranscript(sid, ctx.projectsDir);
++  if (!hit) {
++    return { cls: 'unclassified', reason: 'no transcript under ' + ctx.projectsDir };
++  }
++  if (ctx.harnessProjectDirs.indexOf(hit.projectSlug) !== -1) {
++    return { cls: 'automated_harness', reason: 'project dir ' + hit.projectSlug + ' is a registered harness workspace' };
++  }
++  if (transcriptHasScriptedDriverShape(hit.file)) {
++    return { cls: 'automated_harness', reason: 'scripted-driver skeleton in transcript' };
++  }
++  return { cls: 'organic', reason: 'interactive session in ' + hit.projectSlug };
++}
++
++function collect(records, opts) {
++  const o = opts || {};
++  const ctx = o.provenanceCtx === undefined ? null : o.provenanceCtx;
+   const lane = (records || []).filter(function (r) {
+     return r && r.detector && r.detector.source === SOURCE;
+   });
+@@ -32,6 +118,9 @@ function collect(records) {
+   let firstTs = null, lastTs = null;
+   const byFamily = {};
+   let flagged = 0, consistent = 0, undetermined = 0, shadow = 0, enforce = 0;
++  const provCounts = { organic: 0, automated_harness: 0, synthetic_selfcheck: 0, unclassified: 0 };
++  const provFlagged = { organic: 0, automated_harness: 0, synthetic_selfcheck: 0, unclassified: 0 };
++  const provDetail = [];
+   for (const r of lane) {
+     const p = r.detector.pairer || {};
+     const st = p.state || r.status;
+@@ -50,6 +139,12 @@ function collect(records) {
+     const fam = p.family || '(unrouted)';
+     byFamily[fam] = byFamily[fam] || { flagged: 0, consistent: 0, undetermined: 0 };
+     byFamily[fam][bucket]++;
++    if (ctx) {
++      const c = classifyProvenance(r, ctx);
++      provCounts[c.cls]++;
++      if (bucket === 'flagged') provFlagged[c.cls]++;
++      provDetail.push({ session_id: r.session_id || null, state: bucket, family: p.family || null, provenance: c.cls, reason: c.reason });
++    }
+   }
+   lat.sort(function (a, b) { return a - b; });
+   const n = lane.length;
+@@ -64,11 +159,21 @@ function collect(records) {
+     mode_counts: { shadow: shadow, enforce: enforce },
+     latency_ms: { p50: pct(lat, 50), p99: pct(lat, 99), max: lat.length ? lat[lat.length - 1] : null },
+     by_family: byFamily,
++    provenance: ctx === null ? null : {
++      counts: provCounts,
++      flagged_by_class: provFlagged,
++      classes: PROVENANCE_CLASSES.slice(),
++      detail: provDetail,
++    },
+     first_ts: firstTs === null ? null : new Date(firstTs).toISOString(),
+     last_ts: lastTs === null ? null : new Date(lastTs).toISOString(),
+     span_days: firstTs === null ? null : Math.round(((lastTs - firstTs) / 86400000) * 1000) / 1000,
+     promotion_gate: {
+-      G1_events_ge_200: n >= 200,
++      // ADR-0073 D-B: the G1 leg counts the organic class only; null when
++      // provenance was not computed (honest unverifiable, never an inflated count).
++      G1_organic_ge_200: ctx === null ? null : provCounts.organic >= 200,
++      G1_organic_count: ctx === null ? null : provCounts.organic,
++      G1_events_total: n,
+       G3_undetermined_le_0_9: (n ? undetermined / n : 0) <= 0.9,
+       G4_p99_le_1s: lat.length ? pct(lat, 99) <= 1000 : null,
+       G2_flagged_owner_review: 'human review required — FP=0 is not machine-derivable',
+@@ -79,22 +184,44 @@ function collect(records) {
+ function main() {
+   const log = createEvidenceLog();
+   const records = log.readAll() || [];
+-  const t = collect(records);
++  const t = collect(records, { provenanceCtx: defaultProvenanceCtx() });
+   if (process.argv.indexOf('--json') !== -1) { console.log(JSON.stringify(t, null, 2)); return; }
+   console.log('[pairer-lane] events=' + t.events + ' sessions=' + t.sessions +
+     ' flagged=' + t.flagged + ' consistent=' + t.consistent +
+     ' undetermined=' + t.undetermined + ' (rate ' + (t.undetermined_rate * 100).toFixed(1) + '%)' +
+     ' mode shadow=' + t.mode_counts.shadow + ' enforce=' + t.mode_counts.enforce);
++  if (t.provenance) {
++    const c = t.provenance.counts, f = t.provenance.flagged_by_class;
++    console.log('[pairer-lane] provenance: organic=' + c.organic +
++      ' automated_harness=' + c.automated_harness +
++      ' synthetic_selfcheck=' + c.synthetic_selfcheck +
++      ' unclassified=' + c.unclassified);
++    console.log('[pairer-lane] flagged by provenance: organic=' + f.organic +
++      ' automated_harness=' + f.automated_harness +
++      ' synthetic_selfcheck=' + f.synthetic_selfcheck +
++      ' unclassified=' + f.unclassified);
++  }
+   console.log('[pairer-lane] window: first=' + (t.first_ts || 'none') + ' last=' + (t.last_ts || 'none') + ' span_days=' + (t.span_days === null ? 'n/a' : t.span_days) + ' (G1 usage-cycle leg: owner-judged, not machine-pinned)');
+   console.log('[pairer-lane] latency_ms p50=' + t.latency_ms.p50 + ' p99=' + t.latency_ms.p99 + ' max=' + t.latency_ms.max);
+   for (const f of Object.keys(t.by_family)) {
+     const b = t.by_family[f];
+     console.log('[pairer-lane]   ' + f + ': flagged=' + b.flagged + ' consistent=' + b.consistent + ' undetermined=' + b.undetermined);
+   }
+-  console.log('[pairer-lane] promotion inputs: G1(>=200 events)=' + t.promotion_gate.G1_events_ge_200 +
++  console.log('[pairer-lane] promotion inputs: G1(>=200 organic)=' + t.promotion_gate.G1_organic_ge_200 +
++    ' (organic=' + t.promotion_gate.G1_organic_count + ')' +
+     ' G3(undet<=90%)=' + t.promotion_gate.G3_undetermined_le_0_9 +
+     ' G4(p99<=1s)=' + t.promotion_gate.G4_p99_le_1s + '; G2 stays a human review');
+ }
+ 
+ if (require.main === module) main();
+-module.exports = { collect: collect };
++module.exports = {
++  collect: collect,
++  classifyProvenance: classifyProvenance,
++  resolveTranscript: resolveTranscript,
++  transcriptHasScriptedDriverShape: transcriptHasScriptedDriverShape,
++  defaultProvenanceCtx: defaultProvenanceCtx,
++  PROVENANCE_CLASSES: PROVENANCE_CLASSES,
++  REGISTERED_SELFTEST_SESSIONS: REGISTERED_SELFTEST_SESSIONS,
++  REGISTERED_HARNESS_PROJECT_DIRS: REGISTERED_HARNESS_PROJECT_DIRS,
++  SCRIPTED_DRIVER_TYPES: SCRIPTED_DRIVER_TYPES,
++};
+diff --git a/src/instrument-state.json b/src/instrument-state.json
+index 27bdd86..c17ef86 100644
+--- a/src/instrument-state.json
++++ b/src/instrument-state.json
+@@ -502,6 +502,41 @@
+       "event_timestamp": "2026-09-16T16:37:32.718Z",
+       "logging_timestamp": "2026-09-16T16:37:32.718Z",
+       "event_hash": "78835c352bbc8db62662c3650969654e512e8672968542b000c6dbe1309df5a4"
++    },
++    {
++      "seq": 21,
++      "kind": "record_only_change",
++      "identity_digest": "c68d49c60e87e581f827b7066ba01b3dab646843aa23bc5c5ff5781f719458b9",
++      "reverify_ledger_hash": null,
++      "bias_probe_hash": null,
++      "reviewer_id": null,
++      "second_reviewer": null,
++      "attestation_type": null,
++      "timestamp": "2026-09-17T01:53:46.724Z",
++      "prev_hash": "78835c352bbc8db62662c3650969654e512e8672968542b000c6dbe1309df5a4",
++      "surface": "schedule_gate",
++      "maker_id": "Euiop1",
++      "authorization": "本会话指示: 读取 .scratch/grill-t12/handoffs/next-round.md 作为常驻任务书，完整遵循它 | scope: grill-t12 closure+stewardship round (T-1 docs + T-2 ordered actions) | expiry: this session end",
++      "before": {
++        "provenance": "none - 31 lane records one unlabeled population; frozen G1 would count all",
++        "carried_items": "F-A1 tgz tracked; O-2 host backup tracked; O-1 measured-present flip pending trigger-met; W-1 substrate divergence undocumented; W-2 naming-convention exclusion only"
++      },
++      "after": {
++        "adr": "ADR-0073 accepted (grill-t12 D-001..D-004): provenance-tiered corpus (4 classes, mechanical session-to-project-dir rule, conservative unclassified fallback, no deletion); G1 amended to organic-only counting - tightening-only, forward-effective, measured count resets 31->0",
++        "registrations": "defer-0053 collection-side provenance field (instrument agenda); defer-0054 pre-commit scanner gitleaks-class (O-2 recurrence prevention); defer-0055 organic routing-rate watch; defer-0056 net-addition tally",
++        "dispositions": "F-A1/O-2 untrack ordered with .gitignore-first; O-1 flip + W-1 substrate note + claim-home parenthetical queued for R2 same commit; dry-run shape + checkpoint cadence + diversity framework registered",
++        "boundary": "R1 doc commit is the stage gate - no untrack/flip/relabel precedes it"
++      },
++      "identity_triple": {
++        "rules_digest": "f6c6c843c4ad4151f709345d86079f4a5e0c7d216305155f75e7329638bc6154",
++        "model_checkpoint_digest": "UNRESOLVED",
++        "inference_config_hash": "41c7df6354424a59180ae855de4afc764b38b1ddfd2aec9312d9195342fecac7",
++        "triple_hash": "c68d49c60e87e581f827b7066ba01b3dab646843aa23bc5c5ff5781f719458b9"
++      },
++      "escalation": "none",
++      "event_timestamp": "2026-09-17T01:53:46.724Z",
++      "logging_timestamp": "2026-09-17T01:53:46.724Z",
++      "event_hash": "6b8b4407d8363e5f2e6263a4ac83c92cf3e0d8f69adf7ba97ba492395e93f1b3"
+     }
+   ],
+   "certification_mode": "conditional",
+diff --git a/test/adr-0033-wiring.test.js b/test/adr-0033-wiring.test.js
+index 355dd83..0ed13f1 100644
+--- a/test/adr-0033-wiring.test.js
++++ b/test/adr-0033-wiring.test.js
+@@ -45,11 +45,12 @@ describe('ADR-0033 D2 entry schema', () => {
+     // ADR-0068 (grill-t7 v2 closure round) extends the seed inventory to 42 entries: defer-0048 (terminal event FAILED, D-006(a)(ii)).
+     // ADR-0070 (grill-t10 doc round) extends the seed inventory to 44 entries: defer-0050 (net-addition tally, D-006(a)(i)).
+     // ADR-0071 (grill-t10 impl round) extends the seed inventory to 45 entries: defer-0051 (cap trend-anchor review slot, ADR-0071 D-E).
++    // ADR-0073 (grill-t12 doc round) extends the seed inventory to 50 entries: defer-0053 (collection-side provenance field), defer-0054 (pre-commit scanner, gitleaks class), defer-0055 (organic routing-rate watch), defer-0056 (net-addition tally, D-006(a)(i)).
+     // expansion to n>=100), defer-0033 (judge-quality CAPA), defer-0034
+     // (prompt-exercising eval surface).
+-    expect(registry.entries.map(e => e.id)).toEqual(['defer-0001', 'defer-0002', 'defer-0003', 'defer-0004', 'defer-0005', 'defer-0006', 'defer-0007', 'defer-0008', 'defer-0009', 'defer-0010', 'defer-0011', 'defer-0012', 'defer-0013', 'defer-0015', 'defer-0018', 'defer-0019', 'defer-0023', 'defer-0024', 'defer-0025', 'defer-0026', 'defer-0027', 'defer-0028', 'defer-0029', 'defer-0030', 'defer-0031', 'defer-0032', 'defer-0033', 'defer-0034', 'defer-0035', 'defer-0036', 'defer-0037', 'defer-0038', 'defer-0039', 'defer-0040', 'defer-0041', 'defer-0042', 'defer-0043', 'defer-0044', 'defer-0045', 'defer-0046', 'defer-0047', 'defer-0048', 'defer-0049', 'defer-0050', 'defer-0051', 'defer-0052']);
++    expect(registry.entries.map(e => e.id)).toEqual(['defer-0001', 'defer-0002', 'defer-0003', 'defer-0004', 'defer-0005', 'defer-0006', 'defer-0007', 'defer-0008', 'defer-0009', 'defer-0010', 'defer-0011', 'defer-0012', 'defer-0013', 'defer-0015', 'defer-0018', 'defer-0019', 'defer-0023', 'defer-0024', 'defer-0025', 'defer-0026', 'defer-0027', 'defer-0028', 'defer-0029', 'defer-0030', 'defer-0031', 'defer-0032', 'defer-0033', 'defer-0034', 'defer-0035', 'defer-0036', 'defer-0037', 'defer-0038', 'defer-0039', 'defer-0040', 'defer-0041', 'defer-0042', 'defer-0043', 'defer-0044', 'defer-0045', 'defer-0046', 'defer-0047', 'defer-0048', 'defer-0049', 'defer-0050', 'defer-0051', 'defer-0052', 'defer-0053', 'defer-0054', 'defer-0055', 'defer-0056']);
+     // ADR-0035 D6: no verified_by -> pending-evaluation; only defer-0004 (real assertion) stays deferred
+-    expect(registry.entries.map(e => e.status)).toEqual(['pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'deferred', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'deferred', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation']);// defer-0052 pending-evaluation (D-006 net-addition tally, ADR-0072); defer-0051 pending-evaluation (ADR-0071 D-E cap review slot); defer-0050 pending-evaluation (D-006 net-addition tally, ADR-0070); defer-0049 pending-evaluation (D-006 net-addition tally, ADR-0069); defer-0048 pending-evaluation (D-006 terminal event FAILED, ADR-0068); defer-0047 pending-evaluation (D-006 net-addition tally, ADR-0068); defer-0046 pending-evaluation (D-006 terminal event INDETERMINATE, ADR-0067); defer-0045 pending-evaluation (D-006 net-addition tally, ADR-0067); defer-0044 pending-evaluation (D-006 terminal event PASS); defer-0043 pending-evaluation (D-006 net-addition tally); defer-0042 pending-evaluation (ADR-0066 review slot); defer-0041 pending-evaluation (ADR-0065 D-F forced disposition); defer-0040 pending-evaluation (ADR-0064 D-F); defer-0039 pending-evaluation (ADR-0064); defer-0038 pending-evaluation (ADR-0063); defer-0032/0033/0034 pending-evaluation; defer-0037 pending-evaluation (ADR-0062); defer-0026 deferred (ADR-0057 D-D); defer-0027..0031 pending-evaluation
++    expect(registry.entries.map(e => e.status)).toEqual(['pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'deferred', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'deferred', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation']);// defer-0053..0056 pending-evaluation (ADR-0073); defer-0052 pending-evaluation (D-006 net-addition tally, ADR-0072); defer-0051 pending-evaluation (ADR-0071 D-E cap review slot); defer-0050 pending-evaluation (D-006 net-addition tally, ADR-0070); defer-0049 pending-evaluation (D-006 net-addition tally, ADR-0069); defer-0048 pending-evaluation (D-006 terminal event FAILED, ADR-0068); defer-0047 pending-evaluation (D-006 net-addition tally, ADR-0068); defer-0046 pending-evaluation (D-006 terminal event INDETERMINATE, ADR-0067); defer-0045 pending-evaluation (D-006 net-addition tally, ADR-0067); defer-0044 pending-evaluation (D-006 terminal event PASS); defer-0043 pending-evaluation (D-006 net-addition tally); defer-0042 pending-evaluation (ADR-0066 review slot); defer-0041 pending-evaluation (ADR-0065 D-F forced disposition); defer-0040 pending-evaluation (ADR-0064 D-F); defer-0039 pending-evaluation (ADR-0064); defer-0038 pending-evaluation (ADR-0063); defer-0032/0033/0034 pending-evaluation; defer-0037 pending-evaluation (ADR-0062); defer-0026 deferred (ADR-0057 D-D); defer-0027..0031 pending-evaluation
+     for (const e of registry.entries) expect(e.review_at >= today).toBe(true);
+   });
+ 
+diff --git a/test/adr-0069-wiring.test.js b/test/adr-0069-wiring.test.js
+index c4760f7..6b45d86 100644
+--- a/test/adr-0069-wiring.test.js
++++ b/test/adr-0069-wiring.test.js
+@@ -304,7 +304,7 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () =>
+ 
+   test('the README ADR index carries ADR-0069 (rebuilt, 69 records)', () => {
+     const r = read(README);
+-    expect(r).toContain('72 architecture decision records'); // ADR-0070 landed (grill-t10)
++    expect(r).toContain('73 architecture decision records'); // ADR-0073 landed (grill-t12)
+     expect(r).toContain('[ADR-0069](docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md)');
+   });
+ 
+diff --git a/test/adr-0070-wiring.test.js b/test/adr-0070-wiring.test.js
+index 8594bf3..249d7e2 100644
+--- a/test/adr-0070-wiring.test.js
++++ b/test/adr-0070-wiring.test.js
+@@ -30,11 +30,12 @@ const LANE_SENTENCES = [
+   'The devin-corpus@v3 adjudication describes that corpus\'s behavior; it is not a real-traffic recall claim, and the shadow->enforce promotion gate verifies flagged-item FP, undetermined coverage, and lane latency - it does not certify recall.',
+ ];
+ 
+-// ADR-0072 D-F: sentence 1's parenthetical is superseded in the claim
+-// homes (the ADR body keeps its registered original). Homes assert this
+-// amended form; the ADR assertion above keeps LANE_SENTENCES unchanged.
++// ADR-0073 D-C (O-1): sentence 1's parenthetical is superseded a second
++// time in the claim homes at the measured-present flip - with the mandatory
++// evidence layer. The ADR body keeps its registered original; the ADR-0072
++// D-F intermediate form is superseded by this live-observed form.
+ const LANE_SENTENCES_HOMES = LANE_SENTENCES.slice();
+-LANE_SENTENCES_HOMES[0] = 'The CAPA claim-evidence pairer runs in **shadow mode** on the Stop/SubagentStop conviction lane for hosts that deliver a transcript file (per-host reachability is registered in the host-contract registry; currently `present` (documented to deliver, not live-measured) only for claude-code): flagged contradictions are appended to the evidence chain as `source: pairer-instrument` shadow records and never enter the severity matrix.';
++LANE_SENTENCES_HOMES[0] = 'The CAPA claim-evidence pairer runs in **shadow mode** on the Stop/SubagentStop conviction lane for hosts that deliver a transcript file (per-host reachability is registered in the host-contract registry; currently `measured-present` (live-observed: independent-audit reproduction + automated-harness events; organic pending) only for claude-code): flagged contradictions are appended to the evidence chain as `source: pairer-instrument` shadow records and never enter the severity matrix.';
+ 
+ describe('ADR-0070 doc surface (grill-t10 doc round)', () => {
+   const adr = () => read(ADR);
+@@ -144,7 +145,7 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () =>
+ 
+   test('the README ADR index carries ADR-0070 (rebuilt, 70 records)', () => {
+     const r = read(README);
+-    expect(r).toContain('72 architecture decision records');
++    expect(r).toContain('73 architecture decision records');
+     expect(r).toContain('[ADR-0070](docs/adr/0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md)');
+   });
+ 
+@@ -228,15 +229,16 @@ describe('T-2 implementation surface (ADR-0070 D-A/D-C)', () => {
+ 
+   test('host-contract registry declares transcript_file reachability on every contract and host', () => {
+     const cfg = readJson(path.join(ROOT, 'test', 'fixtures', 'host-contracts.json'));
+-    const vals = ['present', 'absent', 'unverifiable'];
++    const vals = ['present', 'absent', 'unverifiable', 'measured-present'];
+     for (const c of cfg.contracts) expect(vals).toContain(c.transcript_file);
+     const hosts = new Set(cfg.contracts.map(function (c) { return c.host; }));
+     for (const h of hosts) {
+       const states = new Set(cfg.contracts.filter(function (c) { return c.host === h; }).map(function (c) { return c.transcript_file; }));
+       expect(states.size).toBe(1);
+     }
+-    // claude-code documented; instruction-tier absent; the rest unverifiable
+-    expect(cfg.contracts.find(function (c) { return c.host === 'claude-code'; }).transcript_file).toBe('present');
++    // claude-code measured on real host events (ADR-0073 D-C O-1);
++    // instruction-tier absent; the rest unverifiable
++    expect(cfg.contracts.find(function (c) { return c.host === 'claude-code'; }).transcript_file).toBe('measured-present');
+     expect(cfg.contracts.find(function (c) { return c.host === 'aider'; }).transcript_file).toBe('absent');
+   });
+ 
+diff --git a/test/adr-0072-wiring.test.js b/test/adr-0072-wiring.test.js
+index 2809655..08ed3ab 100644
+--- a/test/adr-0072-wiring.test.js
++++ b/test/adr-0072-wiring.test.js
+@@ -149,7 +149,9 @@ describe('ADR-0070 amendments (ADR-0072 D-D/D-F)', () => {
+   });
+ 
+   test('the amended claim sentence sits verbatim in all three claim homes', () => {
+-    const s = 'currently `present` (documented to deliver, not live-measured) only for claude-code';
++    // ADR-0073 D-C (O-1): superseded a second time at the measured-present
++    // flip - the evidence layer is mandatory per the registered wording.
++    const s = 'currently `measured-present` (live-observed: independent-audit reproduction + automated-harness events; organic pending) only for claude-code';
+     for (const f of ['README.md', path.join('bench', 'research', 'out', 'claim-template.md'), path.join('bench', 'research', 'out', 'devin-oot-v3-report.md')]) {
+       expect(read(path.join(ROOT, f))).toContain(s);
+     }
+@@ -164,12 +166,14 @@ describe('capability-label semantics fix (ADR-0072 D-F)', () => {
+     expect(cfg._doc).toContain('never a live measurement');
+   });
+ 
+-  test('the measured-present word slot is registered in the validator enum but unused by every contract', () => {
++  test('the measured-present word slot is registered in the validator enum; post-flip only claude-code carries it (ADR-0073 D-C O-1)', () => {
+     const v = read(path.join(ROOT, 'scripts', 'check-host-contracts.js'));
+     expect(v).toContain("'measured-present'");
+     const cfg = readJson(path.join(ROOT, 'test', 'fixtures', 'host-contracts.json'));
+-    for (const c of cfg.contracts) expect(c.transcript_file).not.toBe('measured-present');
+-    expect(cfg.contracts.find(function (c) { return c.host === 'claude-code'; }).transcript_file).toBe('present');
++    for (const c of cfg.contracts) {
++      if (c.host === 'claude-code') expect(c.transcript_file).toBe('measured-present');
++      else expect(c.transcript_file).not.toBe('measured-present');
++    }
+   });
+ });
+ 
+@@ -207,7 +211,7 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () =>
+ 
+   test('the README ADR index carries ADR-0072 (rebuilt, 72 records)', () => {
+     const r = read(README);
+-    expect(r).toContain('72 architecture decision records');
++    expect(r).toContain('73 architecture decision records');
+     expect(r).toContain('[ADR-0072](docs/adr/0072-readiness-verdict-remeasurement-preregistration-bake-protocol-critique-dispositions.md)');
+   });
+ 
+diff --git a/test/adr-0073-wiring.test.js b/test/adr-0073-wiring.test.js
+new file mode 100644
+index 0000000..29f5456
+--- /dev/null
++++ b/test/adr-0073-wiring.test.js
+@@ -0,0 +1,308 @@
++'use strict';
++// test/adr-0073-wiring.test.js -- ADR-0073 (grill-t12 ledger D-001..D-004):
++// doc-round wiring seeds for the closure + stewardship round. Locks the
++// PRE-ACTION surface: the four provenance classes with the mechanical
++// session->project-dir rule and conservative unclassified fallback, the
++// tightening-only G1 organic amendment, the carried-item registered wording
++// (F-A1/O-1/W-1/O-2, W-2 closed-by-design), the bake stewardship protocol
++// (dry-run shape, checkpoint cadence, diversity-qualifier framework), the
++// R1->R2 boundary, and the registry/ceremony rows. The doc commit is the
++// stage gate: no untrack/flip/relabel precedes it.
++// Const/style follows test/adr-0072-wiring.test.js.
++
++const fs = require('fs');
++const path = require('path');
++const crypto = require('crypto');
++
++const ROOT = path.join(__dirname, '..');
++const ADR = path.join(ROOT, 'docs', 'adr', '0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md');
++const README = path.join(ROOT, 'README.md');
++
++function read(p) { return fs.readFileSync(p, 'utf8'); }
++function readJson(p) { return JSON.parse(read(p)); }
++function sha256(b) { return crypto.createHash('sha256').update(b).digest('hex'); }
++const norm = (s) => s.replace(/\s+/g, ' ').trim();
++
++describe('ADR-0073 doc surface (grill-t12 doc round)', () => {
++  const adr = () => read(ADR);
++
++  test('ADR-0073 exists with title, status, date and ledger anchor', () => {
++    const a = adr();
++    expect(a).toContain('# ADR-0073: Provenance-Tiered Corpus');
++    expect(a).toContain('Status: Accepted');
++    expect(a).toContain('Date: 2026-09-17');
++    expect(a).toContain('D-001..D-004');
++    expect(a).toContain('decision-ledger-t12');
++  });
++
++  test('all five decision clauses land (provenance, G1 amendment, dispositions, stewardship, round surface)', () => {
++    const a = adr();
++    expect(a).toContain('### D-A - Provenance class registration');
++    expect(a).toContain('### D-B - ADR-0070 amendment: G1 narrowed to the organic leg');
++    expect(a).toContain('### D-C - grill-t11 audit carry-over dispositions');
++    expect(a).toContain('### D-D - Bake stewardship protocol');
++    expect(a).toContain('### D-E - Round surface and registrations');
++  });
++
++  test('the provenance rule is registered: four classes, mechanical map, conservative fallback, no deletion', () => {
++    const a = norm(adr());
++    for (const c of ['organic', 'automated_harness', 'synthetic_selfcheck', 'unclassified']) {
++      expect(a).toContain('`' + c + '`');
++    }
++    expect(a).toContain('~/.claude/projects/<slug>/<sid>.jsonl');
++    expect(a).toContain('excluded from every organic count');
++    expect(a).toContain('No record is deleted');
++    expect(a).toContain('queue-operation');
++    expect(a).toContain('{t11-live-regcheck-s2, t11-live-regcheck-s3}');
++    expect(a).toContain('{D--Aworker-e2e-r66-claude}');
++  });
++
++  test('the G1 amendment is registered verbatim (before/after + tightening-direction disclosure)', () => {
++    const a = norm(adr());
++    expect(a).toContain('G1 >= 200 real Stop events carrying lane records');
++    expect(a).toContain('G1 >= 200 organic Stop events carrying lane records');
++    expect(a).toContain('forward-effective from this');
++    expect(a).toContain('31 to 0 organic');
++    expect(a).toContain('the flip remains a separate registered act');
++  });
++
++  test('carried-item wording is registered verbatim (F-A1/O-1/W-1/O-2, W-2 closed-by-design)', () => {
++    const a = norm(adr());
++    expect(a).toContain('untracked, history blob retained');
++    expect(a).toContain('live-observed: independent-audit reproduction + automated-harness events; organic pending');
++    expect(a).toContain('src/instrument-state.json');
++    expect(a).toContain('scripts/check-host-contracts.js');
++    expect(a).toContain('05fa697');
++    expect(a).toContain('external exposure window is zero');
++    expect(a).toContain('host configuration backups never enter git-tracked');
++    expect(a).toContain('closed-by-D-002');
++  });
++
++  test('the bake stewardship protocol lands (dry-run shape, cadence, diversity framework)', () => {
++    const a = norm(adr());
++    expect(a).toContain('post-exclusion population empty');
++    expect(a).toContain('synthesizing a population to make the exercise productive is forbidden');
++    expect(a).toContain('>= N independent sessions x >= M task-intent shapes');
++    expect(a).toContain('deliberately NOT deferred-registry rows');
++    expect(a).toContain('scripts/pairer-lane-telemetry.js');
++  });
++
++  test('rejected clauses land (inflated G1, record deletion, naming convention, loosening, history rewrite, organic-overclaim, flat verdict, registry N/M, synthetic bake)', () => {
++    const a = adr();
++    for (const r of ['wrong-population validity failure', 'classification is labeling, not removal', 'naming convention', 'away from the target', 'untracked is the honest word', 'does not imply organic use', 'closed as records, not ended as issues', 'pre-review pre-registrations, not deferrals', 'empty post-exclusion population']) {
++      expect(a).toContain(r);
++    }
++  });
++});
++
++describe('ADR-0070 amendments (ADR-0073 D-B/D-C)', () => {
++  const A70 = path.join(ROOT, 'docs', 'adr', '0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md');
++
++  test('ADR-0070 carries the extended Amended-by line and the appended 2026-09-17 amendment note', () => {
++    const a = read(A70);
++    const n = norm(a);
++    expect(a).toContain('ADR-0073 D-B');
++    expect(a).toContain('## Amendment note (2026-09-17, ADR-0073)');
++    expect(n).toContain('>= 200 organic Stop events');
++    expect(n).toContain('live-observed: independent-audit reproduction + automated-harness events; organic pending');
++    // the earlier amendment note is preserved (append-only)
++    expect(a).toContain('## Amendment note (2026-09-16, ADR-0072)');
++  });
++});
++
++describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () => {
++  test('defer-0053 lands the collection-side provenance instrument agenda', () => {
++    const reg = readJson(path.join(ROOT, 'docs', 'deferred-registry.json'));
++    const e = reg.entries.find(function (x) { return x.id === 'defer-0053'; });
++    expect(e).toBeDefined();
++    expect(e.source_adr).toContain('0073');
++    expect(e.status).toBe('pending-evaluation');
++    expect(e.subject).toContain('provenance');
++  });
++
++  test('defer-0054 lands the pre-commit scanner agenda (gitleaks class, O-2 recurrence prevention)', () => {
++    const reg = readJson(path.join(ROOT, 'docs', 'deferred-registry.json'));
++    const e = reg.entries.find(function (x) { return x.id === 'defer-0054'; });
++    expect(e).toBeDefined();
++    expect(e.source_adr).toContain('0073');
++    expect(e.subject).toContain('gitleaks');
++    expect(e.unfreeze_if.type).toBe('presence-condition');
++  });
++
++  test('defer-0055 lands the organic routing-rate watch (external-event)', () => {
++    const reg = readJson(path.join(ROOT, 'docs', 'deferred-registry.json'));
++    const e = reg.entries.find(function (x) { return x.id === 'defer-0055'; });
++    expect(e).toBeDefined();
++    expect(e.unfreeze_if.type).toBe('external-event');
++    expect(e.status).toBe('pending-evaluation');
++  });
++
++  test('defer-0056 lands as this round net-addition tally row', () => {
++    const reg = readJson(path.join(ROOT, 'docs', 'deferred-registry.json'));
++    const e = reg.entries.find(function (x) { return x.id === 'defer-0056'; });
++    expect(e).toBeDefined();
++    expect(e.source_adr).toContain('0073');
++    expect(e.status).toBe('pending-evaluation');
++    expect(e.subject).toContain('net-addition');
++    expect(e.rationale).toContain('D-006(a)(i)');
++  });
++
++  test('trend-inventory gains the grill-t12 doc-round row', () => {
++    const ti = readJson(path.join(ROOT, 'docs', 'governance', 'trend-inventory.json'));
++    const r = ti.rounds.find(function (x) { return x.round === 'grill-t12-doc-round'; });
++    expect(r).toBeDefined();
++    expect(r.adr_added).toEqual(['0073']);
++    expect(r.net_additions).toBe(1);
++    expect(r.deferred_entry).toBe('defer-0056');
++  });
++
++  test('anchors.json lists decision-ledger-t12.md under ADR-0073, content-equal to the scratch authority', () => {
++    const a = readJson(path.join(ROOT, 'docs', 'governance', 'anchors.json'));
++    const e = a.artifacts.find(function (x) { return x.file === 'decision-ledger-t12.md'; });
++    expect(e).toBeDefined();
++    expect(e.adr).toBe('ADR-0073');
++    expect(e.origin).toBe('.scratch/grill-t12/decision-ledger.md');
++    const copy = read(path.join(ROOT, 'docs', 'governance', 'decision-ledger-t12.md'));
++    expect(sha256(copy)).toBe(e.sha256);
++    expect(copy).toBe(read(path.join(ROOT, '.scratch', 'grill-t12', 'decision-ledger.md')));
++  });
++
++  test('the README ADR index carries ADR-0073 (rebuilt, 73 records)', () => {
++    const r = read(README);
++    expect(r).toContain('73 architecture decision records');
++    expect(r).toContain('[ADR-0073](docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md)');
++  });
++
++  test('the instrument-side registration event is recorded on the hash chain (bounded delegation: scope + expiry)', () => {
++    const st = readJson(path.join(ROOT, 'src', 'instrument-state.json'));
++    const ev = st.history.find(function (e) {
++      return e.kind === 'record_only_change' && e.after && JSON.stringify(e.after).indexOf('ADR-0073') !== -1;
++    });
++    expect(ev).toBeDefined();
++    expect(ev.maker_id).toBeDefined();
++    expect(ev.authorization).toBeDefined();
++    expect(ev.authorization).toContain('scope:');
++    expect(ev.authorization).toContain('expiry:');
++  });
++});
++
++describe('provenance segmentation (ADR-0073 D-A + R2 telemetry extension)', () => {
++  const TEL = require('../scripts/pairer-lane-telemetry.js');
++  const os = require('os');
++
++  function mkProjects() {
++    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'prov-'));
++    const harness = path.join(dir, 'D--Aworker-e2e-r66-claude');
++    const real = path.join(dir, 'D--Work-realproj');
++    fs.mkdirSync(harness, { recursive: true });
++    fs.mkdirSync(real, { recursive: true });
++    // scripted-driver transcript: headless bookkeeping types present
++    fs.writeFileSync(path.join(real, 'sid-scripted.jsonl'),
++      JSON.stringify({ type: 'queue-operation', sessionId: 'sid-scripted' }) + '\n' +
++      JSON.stringify({ type: 'user', message: { role: 'user', content: 'Reply' } }) + '\n');
++    // interactive transcript: user/assistant turns only
++    fs.writeFileSync(path.join(real, 'sid-organic.jsonl'),
++      JSON.stringify({ type: 'user', message: { role: 'user', content: 'fix the flaky test' } }) + '\n' +
++      JSON.stringify({ type: 'assistant' }) + '\n' +
++      JSON.stringify({ type: 'user', message: { role: 'user', content: 'now run it' } }) + '\n');
++    // harness-workspace transcript
++    fs.writeFileSync(path.join(harness, 'sid-harness.jsonl'),
++      JSON.stringify({ type: 'user', message: { role: 'user', content: 'x' } }) + '\n');
++    return dir;
++  }
++
++  function ctxFor(dir) {
++    return {
++      projectsDir: dir,
++      selftestSessions: TEL.REGISTERED_SELFTEST_SESSIONS.slice(),
++      harnessProjectDirs: TEL.REGISTERED_HARNESS_PROJECT_DIRS.slice(),
++    };
++  }
++
++  function laneRecord(sid, state) {
++    return { session_id: sid, detector: { source: 'pairer-instrument', shadow: true, pairer: { state: state || 'undetermined', latency_ms: 2 } } };
++  }
++
++  test('the mechanical rule classifies all four classes in the registered order', () => {
++    const dir = mkProjects();
++    const ctx = ctxFor(dir);
++    expect(TEL.classifyProvenance(laneRecord('t11-live-regcheck-s2'), ctx).cls).toBe('synthetic_selfcheck');
++    expect(TEL.classifyProvenance(laneRecord('sid-no-such-transcript'), ctx).cls).toBe('unclassified');
++    expect(TEL.classifyProvenance(laneRecord('sid-harness'), ctx).cls).toBe('automated_harness');
++    expect(TEL.classifyProvenance(laneRecord('sid-scripted'), ctx).cls).toBe('automated_harness');
++    expect(TEL.classifyProvenance(laneRecord('sid-organic'), ctx).cls).toBe('organic');
++    expect(TEL.classifyProvenance(laneRecord(undefined), ctx).cls).toBe('unclassified');
++    fs.rmSync(dir, { recursive: true, force: true });
++  });
++
++  test('self-test set membership beats transcript resolution (registered order)', () => {
++    const dir = mkProjects();
++    const ctx = ctxFor(dir);
++    // even if a transcript existed for a registered self-test id, the set wins
++    fs.writeFileSync(path.join(dir, 'D--Work-realproj', 't11-live-regcheck-s2.jsonl'),
++      JSON.stringify({ type: 'user', message: { role: 'user', content: 'hi' } }) + '\n');
++    expect(TEL.classifyProvenance(laneRecord('t11-live-regcheck-s2'), ctx).cls).toBe('synthetic_selfcheck');
++    fs.rmSync(dir, { recursive: true, force: true });
++  });
++
++  test('collect() segments provenance counts + flagged-by-class; the G1 leg counts organic only', () => {
++    const dir = mkProjects();
++    const out = TEL.collect([
++      laneRecord('t11-live-regcheck-s2', 'flagged'),
++      laneRecord('t11-live-regcheck-s3', 'flagged'),
++      laneRecord('sid-harness', 'undetermined'),
++      laneRecord('sid-scripted', 'undetermined'),
++      laneRecord('sid-organic', 'consistent'),
++      laneRecord('sid-missing', 'undetermined'),
++      { detector: { source: 'other' }, session_id: 'noise' },
++    ], { provenanceCtx: ctxFor(dir) });
++    expect(out.provenance.counts).toEqual({ organic: 1, automated_harness: 2, synthetic_selfcheck: 2, unclassified: 1 });
++    expect(out.provenance.flagged_by_class.synthetic_selfcheck).toBe(2);
++    expect(out.provenance.flagged_by_class.organic).toBe(0);
++    expect(out.promotion_gate.G1_organic_count).toBe(1);
++    expect(out.promotion_gate.G1_organic_ge_200).toBe(false);
++    expect(out.promotion_gate.G1_events_total).toBe(6);
++    fs.rmSync(dir, { recursive: true, force: true });
++  });
++
++  test('collect() without a provenance ctx stays honest (null, never an inflated count)', () => {
++    const out = TEL.collect([laneRecord('sid-x')]);
++    expect(out.provenance).toBeNull();
++    expect(out.promotion_gate.G1_organic_ge_200).toBeNull();
++    expect(out.promotion_gate.G1_organic_count).toBeNull();
++  });
++});
++
++describe('R1->R2 boundary: the flip executed in R2 carries the registered wording', () => {
++  test('the three claude-code contracts carry measured-present; every other host does not', () => {
++    const cfg = readJson(path.join(ROOT, 'test', 'fixtures', 'host-contracts.json'));
++    const claude = cfg.contracts.filter(function (c) { return c.host === 'claude-code'; });
++    expect(claude.length).toBeGreaterThan(0);
++    for (const c of claude) expect(c.transcript_file).toBe('measured-present');
++    for (const c of cfg.contracts) {
++      if (c.host !== 'claude-code') expect(c.transcript_file).not.toBe('measured-present');
++    }
++  });
++
++  test('the evidence-layer parenthetical sits verbatim in all three claim homes (ADR-0073 D-C O-1)', () => {
++    const s = 'currently `measured-present` (live-observed: independent-audit reproduction + automated-harness events; organic pending) only for claude-code';
++    for (const f of ['README.md', path.join('bench', 'research', 'out', 'claim-template.md'), path.join('bench', 'research', 'out', 'devin-oot-v3-report.md')]) {
++      expect(read(path.join(ROOT, f))).toContain(s);
++    }
++  });
++});
++
++describe('frozen surfaces this round must not touch', () => {
++  test('v3 report.json stays at the burned sha256', () => {
++    expect(sha256(read(path.join(ROOT, 'bench', 'research', 'out', 'devin-oot-v3-report.json'))))
++      .toBe('fd6a0d42f5c0d3578ad9ee818b87d503eb51b758e0b950e33a3678cdadc6245b');
++  });
++
++  test('instrument-state history seq 13 is byte-stable (frozen, never rewritten)', () => {
++    const st = readJson(path.join(ROOT, 'src', 'instrument-state.json'));
++    const s13 = st.history.find(function (e) { return e.seq === 13; });
++    expect(s13.kind).toBe('criteria_change');
++    expect(s13.event_hash).toBe('d025289f5279c3751f0f50abbb331893861bed412eeb072e3d7e13be4e6b4006');
++    expect(s13.second_reviewer).toBe('Xxx91n');
++  });
++});
+diff --git a/test/fixtures/host-contracts.json b/test/fixtures/host-contracts.json
+index 8742262..3749daf 100644
+--- a/test/fixtures/host-contracts.json
++++ b/test/fixtures/host-contracts.json
+@@ -1,6 +1,6 @@
+ {
+   "schema_version": 1,
+-  "_doc": "ADR-0028 D4 pre-registered host behavior contract registry. Consumed by tests only; hooks never read it at runtime (R4). exit_codes are the hook PROCESS exit codes observed by tests, asserted with config env (CLAUDE_CONFIG_DIR pointing at a fixture dir); how a host INTERPRETS those exit codes is a host-side semantic recorded in note (R6), not shimmed (audit 2026-08-29: clarified after copilot note ambiguity). Entry fields: {id, host, event, exit_codes, decision_keys, decision_values, fail_soft, term, source_adr, transcript_file}. Executable entries add hook (single script) or hooks (script list), spawned by test/host-contracts.test.js with fixture stdin. Config entries add config + expect_events. Instruction entries add files. Optional note field records known degradations honestly (R6). term must anchor a CONTEXT.md glossary term (existence anchor, not prose parsing). lifecycle: per-adapter state (active|deprecated|eol); retirement triggers: official shutdown announcement, repository archival, or consecutive protocol-breaking versions without docs (ADR-0028 D6). Change governance: editing this file requires a docs/adr/*.md or CONTEXT.md change in the same commit range (scripts/check-host-contracts.js reuses the ADR-0027 coupling rule). transcript_file (ADR-0070 D-C(c)) records per-host conviction-lane reachability: present = the host is documented to deliver transcript_path on the stop-family event (claude-code); absent = the host has no stop-family hook channel at all (instruction-tier hosts); unverifiable = the event exists but transcript delivery is not documented. present is a documentation claim, never a live measurement (ADR-0072 D-F). ADR-0072 D-F adds the measured-present word slot: measured-present = first-hand observation of transcript_path delivery on a real host event; the slot is reserved - no contract carries it until the first real claude-code lane-bearing Stop event lands on the chain (then claude-code flips present -> measured-present).",
++  "_doc": "ADR-0028 D4 pre-registered host behavior contract registry. Consumed by tests only; hooks never read it at runtime (R4). exit_codes are the hook PROCESS exit codes observed by tests, asserted with config env (CLAUDE_CONFIG_DIR pointing at a fixture dir); how a host INTERPRETS those exit codes is a host-side semantic recorded in note (R6), not shimmed (audit 2026-08-29: clarified after copilot note ambiguity). Entry fields: {id, host, event, exit_codes, decision_keys, decision_values, fail_soft, term, source_adr, transcript_file}. Executable entries add hook (single script) or hooks (script list), spawned by test/host-contracts.test.js with fixture stdin. Config entries add config + expect_events. Instruction entries add files. Optional note field records known degradations honestly (R6). term must anchor a CONTEXT.md glossary term (existence anchor, not prose parsing). lifecycle: per-adapter state (active|deprecated|eol); retirement triggers: official shutdown announcement, repository archival, or consecutive protocol-breaking versions without docs (ADR-0028 D6). Change governance: editing this file requires a docs/adr/*.md or CONTEXT.md change in the same commit range (scripts/check-host-contracts.js reuses the ADR-0027 coupling rule). transcript_file (ADR-0070 D-C(c)) records per-host conviction-lane reachability: present = the host is documented to deliver transcript_path on the stop-family event (claude-code); absent = the host has no stop-family hook channel at all (instruction-tier hosts); unverifiable = the event exists but transcript delivery is not documented. present is a documentation claim, never a live measurement (ADR-0072 D-F). ADR-0072 D-F adds the measured-present word slot: measured-present = first-hand observation of transcript_path delivery on a real host event; the slot is reserved - no contract carries it until the first real claude-code lane-bearing Stop event lands on the chain (then claude-code flips present -> measured-present). Flip executed 2026-09-17 under ADR-0073 D-C (O-1): the trigger was met by the grill-t11 audit-window lane events - live-observed on independent-audit reproduction plus automated-harness events, organic pending; the label asserts transcript-delivery capability only. Substrate note (W-1): the bake package is an npm-pack of grill-t11 HEAD while the declared channel served c861084; the hook run path is byte-identical between the two builds (differences confined to src/instrument-state.json data and scripts/check-host-contracts.js - see ADR-0073 D-C W-1).",
+   "contracts": [
+     {
+       "id": "claude-verdict-gate",
+@@ -25,7 +25,7 @@
+       "fail_soft": false,
+       "term": "Verification Gate",
+       "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+-      "transcript_file": "present"
++      "transcript_file": "measured-present"
+     },
+     {
+       "id": "claude-failsoft",
+@@ -45,7 +45,7 @@
+       "fail_soft": true,
+       "term": "Session-End Sweep",
+       "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+-      "transcript_file": "present"
++      "transcript_file": "measured-present"
+     },
+     {
+       "id": "claude-config",
+@@ -66,7 +66,7 @@
+       "fail_soft": true,
+       "term": "Host Contract",
+       "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+-      "transcript_file": "present"
++      "transcript_file": "measured-present"
+     },
+     {
+       "id": "codex-verdict-gate",
+@@ -385,4 +385,4 @@
+       "note": "instruction tier; explicit-config loader, no auto-discovery"
+     }
+   }
+-}
++}
+\ No newline at end of file
