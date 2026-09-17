@@ -537,6 +537,42 @@
       "event_timestamp": "2026-09-17T01:53:46.724Z",
       "logging_timestamp": "2026-09-17T01:53:46.724Z",
       "event_hash": "6b8b4407d8363e5f2e6263a4ac83c92cf3e0d8f69adf7ba97ba492395e93f1b3"
+    },
+    {
+      "seq": 22,
+      "kind": "record_only_change",
+      "identity_digest": "c68d49c60e87e581f827b7066ba01b3dab646843aa23bc5c5ff5781f719458b9",
+      "reverify_ledger_hash": null,
+      "bias_probe_hash": null,
+      "reviewer_id": null,
+      "second_reviewer": null,
+      "attestation_type": null,
+      "timestamp": "2026-09-17T06:45:37.684Z",
+      "prev_hash": "6b8b4407d8363e5f2e6263a4ac83c92cf3e0d8f69adf7ba97ba492395e93f1b3",
+      "surface": "schedule_gate",
+      "maker_id": "Euiop1",
+      "authorization": "本会话指示: 读取 .scratch/grill-t13/handoffs/next-round.md 作为常驻任务书，完整遵循它 | scope: grill-t13 post-publish checkpoint round (T-1 docs) | expiry: this session end",
+      "before": {
+        "install_claim": "measured-live line bound to pre-rewrite tip; stale pending re-verification",
+        "sha_citations": "pre-rewrite SHAs in docs name local-only objects; no translation point",
+        "publish_event": "landed at origin/main 051744a; unrecorded in ADR/runbook; undisclosed"
+      },
+      "after": {
+        "adr": "ADR-0074 accepted (grill-t13 D-001..D-005): publish event record with bounded-break disclosure, rewrite-map single translation point (three classes, completeness invariant), tip-pinned claim invalidation + verified-at note form, re-verification plan pre-registered, independence-grade audit convention",
+        "registrations": "defer-0057 net-addition tally; t13 ledger anchored (governance copy + anchors.json); trend row; wiring seeds adr-0074",
+        "disclosure": "README boundary line + verified-at pending slot; pointer notes on ADR-0073 + t12 governance copy; .scratch untouched",
+        "boundary": "R1 doc commit is the stage gate - no map generation/re-verification/registry disposition precedes it; no push"
+      },
+      "identity_triple": {
+        "rules_digest": "f6c6c843c4ad4151f709345d86079f4a5e0c7d216305155f75e7329638bc6154",
+        "model_checkpoint_digest": "UNRESOLVED",
+        "inference_config_hash": "41c7df6354424a59180ae855de4afc764b38b1ddfd2aec9312d9195342fecac7",
+        "triple_hash": "c68d49c60e87e581f827b7066ba01b3dab646843aa23bc5c5ff5781f719458b9"
+      },
+      "escalation": "none",
+      "event_timestamp": "2026-09-17T06:45:37.684Z",
+      "logging_timestamp": "2026-09-17T06:45:37.684Z",
+      "event_hash": "d57a01dc33b3de770bed6a30f9b6c739e403becd6e88b61327391d5fd0556e9b"
     }
   ],
   "certification_mode": "conditional",

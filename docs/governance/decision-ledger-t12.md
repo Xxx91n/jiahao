@@ -1,3 +1,5 @@
+> Pointer note (ADR-0074, 2026-09-17): this record predates the sanitized-history publish; pre-rewrite SHA citations below name local-only objects - resolve them through docs/rewrite-map.json.
+
 # Decision Ledger - grill-t12
 
 格式: ID（D-001 起）/ 原问题 / 我的原回答原文 / 规范化需求 / 显式约束或负向需求 / 状态（current|revised|stale|deferred）

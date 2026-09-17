@@ -164,12 +164,16 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () => 
     expect(e.origin).toBe('.scratch/grill-t12/decision-ledger.md');
     const copy = read(path.join(ROOT, 'docs', 'governance', 'decision-ledger-t12.md'));
     expect(sha256(copy)).toBe(e.sha256);
-    expect(copy).toBe(read(path.join(ROOT, '.scratch', 'grill-t12', 'decision-ledger.md')));
+    // ADR-0074 D-B: the governance copy carries exactly one registered head
+    // pointer-note line prepended to the byte-identical scratch authority
+    // (.scratch records are append-only; the note lives on the copy only).
+    const POINTER_NOTE = '> Pointer note (ADR-0074, 2026-09-17): this record predates the sanitized-history publish; pre-rewrite SHA citations below name local-only objects - resolve them through docs/rewrite-map.json.';
+    expect(copy).toBe(POINTER_NOTE + '\n\n' + read(path.join(ROOT, '.scratch', 'grill-t12', 'decision-ledger.md')));
   });
 
   test('the README ADR index carries ADR-0073 (rebuilt, 73 records)', () => {
     const r = read(README);
-    expect(r).toContain('73 architecture decision records');
+    expect(r).toContain('74 architecture decision records');
     expect(r).toContain('[ADR-0073](docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md)');
   });
 

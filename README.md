@@ -74,6 +74,12 @@ repository, which is public. The channel was measured live on 2026-09-16 in a
 clean environment (first-party record:
 `.scratch/grill-t8/readiness/b2-install-measurement.md`).
 
+> **Install-channel verification (ADR-0074 D-D).** The 2026-09-16 measurement
+> predates the sanitized-history publish (the measured tip was rewritten); the
+> tip-pinned claim is suspended pending re-verification. Slot reserved:
+> `verified-at-published-tip:<full-sha> + tool + date + evidence-class` lands here
+> once the pre-registered plan (ADR-0074 D-E) passes.
+
 ```sh
 npx --yes github:<org>/jiahao init                      # interactive profile prompt
 npx --yes github:<org>/jiahao init --profile verifier   # non-interactive (CI-safe)
@@ -196,6 +202,14 @@ content fails closed at exit 1 with a closed-enum `[usage]:`/`[config]:`/
 is a maintainer/CI-channel operation; third-party installs are a
 prompt-installer surface only. ADRs and developer docs live on the git tree (the development surface), not in the tarball — clone the repo to read them (ADR-0039).
 
+> **History note (ADR-0074).** On 2026-09-17, before first publish, the pre-push
+> history underwent an owner-ordered sanitized-history rewrite: sensitive paths
+> were removed so no published tree ever carried them, and tip-region commit
+> SHAs changed (bounded scope; earlier history untouched). Pre-rewrite SHA
+> citations in docs resolve through `docs/rewrite-map.json` — the single
+> translation point (generated in the R2 action round); the event record is
+> ADR-0074 and the sanitization runbook.
+
 The MCP adapter (`jiahao-mcp/`) is a **source-only** git-tree component: it is
 not part of the tarball and is never distributed via npm. Run it from a clone
 — `git clone <repo> && cd jiahao-mcp && npm install` (status: experimental /
@@ -211,7 +225,7 @@ source-only; ADR-0059 D-B). An MCP publish channel is deferred (defer-0029).
 ## Develop
 
 ```bash
-npm test                              # 1112 tests across 69 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 1129 tests across 70 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
@@ -229,7 +243,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). The index below is a derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js` — do not hand-edit:
 
 <!-- adr-index:start -->
-- 73 architecture decision records:
+- 74 architecture decision records:
 - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
 - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
 - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
@@ -303,8 +317,9 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - [ADR-0071](docs/adr/0071-tarball-cap-trend-anchor-amendment-t10-conviction-lane-surface.md) — Tarball-Cap Trend-Anchor Amendment for the T-10 Conviction-Lane Surface
 - [ADR-0072](docs/adr/0072-readiness-verdict-remeasurement-preregistration-bake-protocol-critique-dispositions.md) — Readiness Verdict (Usable + Testable), Pre-Registered Re-Measurement (b2 Method + Lane Exercise), Owner-Dogfood Bake Protocol, ADR-0070 Tier-2 Amendment, and Critique Dispositions P-1/P-2/P-4/P-5
 - [ADR-0073](docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md) — Provenance-Tiered Corpus Registration, ADR-0070 G1 Tightening-Only Amendment (organic leg), grill-t11 Audit Carry-Over Dispositions (F-A1/O-1/W-1/O-2; W-2 closed-by-design), and Bake Stewardship Protocol
+- [ADR-0074](docs/adr/0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md) — Sanitized-History Publish Record, Rewrite-Map Single Translation Point, Tip-Pinned Install Claim Invalidation, Published-Tip Re-Verification Preregistration, and Independence-Grade Audit Convention
 <!-- adr-index:end -->
-- `test/` — 69 test suites, 1112 tests
+- `test/` — 70 test suites, 1129 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 - `private/bench-corpus/` — answer corpora (probes/judge-twins/twins + fingerprints; gitignored, ADR-0036 D2). Gate scripts resolve via JIAHAO_CORPUS_DIR, else the install-planted dir (`jiahao init` plants it from the package), else this repo-private dir in a maintainer tree; missing everywhere fails closed (exit 1: config; the capability probe degrades an absent corpus dir to exit 2 UNVERIFIABLE first, ADR-0041 D2). npm consumers and public git clones carry no corpus at all — corpus gates are a maintainer/CI-only contract, fail-closed by design (ADR-0038 D2).
 
