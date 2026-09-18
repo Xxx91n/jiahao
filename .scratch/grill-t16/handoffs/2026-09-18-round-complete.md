@@ -41,8 +41,9 @@ green; zero owner asks; awareness items listed at the end.
 - `npm run pack-smoke` → `jiahao-0.0.1.tgz (333992 bytes, 113 files)` <
   340000 budget.
 - Facts canon: `.scratch/grill-t16/round-facts.json` (suites 73, passed
-  1216, pack 333992, instrument 27, map 1412, registry 56, anchors 16,
-  asof f86494d→pin, report_commit null, not_run 4 ci-mode gates).
+  1216, pack 333992, instrument 27, registry 56, anchors 16,
+  battery_as_of_commit pins the closing battery's run commit, report_commit
+  null, not_run 4 ci-mode gates).
 
 ## Conventions now in force (ADR-0077)
 
