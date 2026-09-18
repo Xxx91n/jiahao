@@ -165,7 +165,7 @@
         "files": [
           "bench/research/out/g6-publish-replay.json"
         ],
-        "reason": "gate refresh during the R1 boundary battery - faithful regeneration by the registered generator (check-g6-publish.js) after the tarball grew with the new ADR; first marker use under ADR-0077 D-B"
+        "reason": "gate refresh during the R1 boundary battery and the R2 final battery - faithful regeneration by the registered generator (check-g6-publish.js) after the tarball grew with the new ADR and the new machinery script; first marker use under ADR-0077 D-B"
       },
       "deferred_entry": "defer-0062",
       "advisory_fired": false
