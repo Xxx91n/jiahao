@@ -273,9 +273,13 @@ describe('ADR-0077 D-A consuming-row exit semantics (grill-t16)', () => {
   const script = path.join(ROOT, 'scripts', 'check-ci-jobs.js');
   const run = (ymlText) => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-cijobs-'));
-    const f = path.join(dir, 'ci.yml');
-    fs.writeFileSync(f, ymlText);
-    return spawnSync(process.execPath, [script, f], { cwd: ROOT, encoding: 'utf8' });
+    try {
+      const f = path.join(dir, 'ci.yml');
+      fs.writeFileSync(f, ymlText);
+      return spawnSync(process.execPath, [script, f], { cwd: ROOT, encoding: 'utf8' });
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   };
 
   test('the consuming row is defer0004 (the only live consumer)', () => {
