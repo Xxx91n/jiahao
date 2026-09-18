@@ -158,6 +158,28 @@ function checkInventory(root, opts) {
       if (r.carve_out_used === 1 && !(r.governance_tooling_diff && Array.isArray(r.governance_tooling_diff.files) && r.governance_tooling_diff.files.length)) {
         errors.push('trend round ' + r.round + ': carve_out_used=1 requires a non-empty governance_tooling_diff.files disclosure');
       }
+      // ADR-0077 D-B sibling marker: mechanism_output_diff records faithful
+      // regenerations of mechanism-output artifacts for provenance - it never
+      // feeds burn-rate. Every listed file must be a member of the closed
+      // mechanism_outputs enumeration and classify R2; a bare marker with no
+      // files hard-fails (mirrors carve_out_used=1).
+      if (r.mechanism_output_diff !== undefined) {
+        const mod = r.mechanism_output_diff;
+        if (!mod || typeof mod !== 'object' || !Array.isArray(mod.files) || !mod.files.length || typeof mod.reason !== 'string' || mod.reason.length < 10) {
+          errors.push('trend round ' + r.round + ': mechanism_output_diff must be {files: non-empty string[], reason: string>=10} - a bare marker hard-fails (ADR-0077 D-B)');
+        } else {
+          if (!closureSet) closureSet = new Set(surfaceTaxonomy.computeRuntimeClosure(base));
+          const tax = surfaceTaxonomy.loadTaxonomy(base);
+          const outputs = ((tax.mechanism_outputs && tax.mechanism_outputs.entries) || []).map(function (e) { return e.file; });
+          for (const f of mod.files) {
+            if (outputs.indexOf(f) === -1) {
+              errors.push('trend round ' + r.round + ': mechanism_output_diff file ' + f + ' is not in the mechanism_outputs closed enumeration (ADR-0077 D-B)');
+            } else if (surfaceTaxonomy.classifyPath(f, closureSet) !== 'R2') {
+              errors.push('trend round ' + r.round + ': mechanism_output_diff file ' + f + ' does not classify R2 - mislabeled marker (ADR-0077 D-B)');
+            }
+          }
+        }
+      }
       carveStreak = (r.carve_out_used === 1) ? carveStreak + 1 : 0;
       streak = (r.net_additions > 0) ? streak + 1 : 0;
     }

@@ -56,7 +56,7 @@ function computeRuntimeClosure(root) {
     REQ_RE.lastIndex = 0;
     let m;
     while ((m = REQ_RE.exec(text))) {
-      const spec = m[1] || m[2];
+      const spec = m[1];
       const target = spec && resolveRequire(spec, abs);
       if (target && !seen.has(relOf(target, root))) queue.push(target);
     }

@@ -85,7 +85,14 @@
       "origin": ".scratch/grill-t15/decision-ledger.md",
       "adr": "ADR-0076",
       "bytes": 20979,
-      "sha256": "b2ceae6da63744ba304c09857080c39cbf393f7a354f61e1061d59bb7e424520"
+      "sha256": "69bdff733bb0d9426bc865ccbb4da13b38d8d55d2a2fbab24e908889cd70b6af"
+    },
+    {
+      "file": "decision-ledger-t16.md",
+      "origin": ".scratch/grill-t16/decision-ledger.md",
+      "adr": "ADR-0077",
+      "bytes": 16974,
+      "sha256": "033439ecb11d1e4631d98a1ca6607177bc86d6510cecbda973f126acdc33bdf1"
     },
     {
       "file": "ERRATA.md",

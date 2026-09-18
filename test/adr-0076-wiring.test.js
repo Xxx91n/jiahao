@@ -274,4 +274,47 @@ describe('ADR-0077 amendments (grill-t16 fix + mechanism round, data-surface ass
     expect(l).toContain('consent-sweep');
     expect(l).toContain('never \"audit response\"');
   });
+
+  test('mechanism_output_diff marker: checker accepts members, hard-fails bare markers and unlisted files', () => {
+    const inv = require('../scripts/check-governance-inventory');
+    const ti = readJson(path.join(ROOT, 'docs', 'governance', 'trend-inventory.json'));
+    const mk = function (id, mod) {
+      const probe = JSON.parse(JSON.stringify(ti));
+      probe.rounds.push({ round: id, date: '2026-09-18', kind: 'documentation', adr_added: [], net_additions: 0, zero_product_diff: false, mechanism_output_diff: mod, carve_out_used: 0 });
+      return inv.checkInventory(ROOT, { trend: probe }).errors.filter(function (e) { return e.indexOf(id) !== -1; });
+    };
+    expect(mk('probe-mod', { files: ['src/instrument-state.json'], reason: 'faithful regeneration via instrument.js append event' })).toEqual([]);
+    expect(mk('probe-bare', { files: [], reason: 'x' }).join(' ')).toContain('bare marker hard-fails');
+    expect(mk('probe-unlisted', { files: ['scripts/install.js'], reason: 'unlisted file claims the exemption' }).join(' ')).toContain('closed enumeration');
+    expect(mk('probe-r3', { files: ['docs/rewrite-map.json'], reason: 'docs-surface output is not an enumeration member' }).join(' ')).toContain('closed enumeration');
+  });
+
+  test('anchors.json lists decision-ledger-t16.md under ADR-0077, content-equal to the scratch authority', () => {
+    const a = readJson(path.join(ROOT, 'docs', 'governance', 'anchors.json'));
+    const e = a.artifacts.find(function (x) { return x.file === 'decision-ledger-t16.md'; });
+    expect(e).toBeDefined();
+    expect(e.adr).toBe('ADR-0077');
+    const gov = read(path.join(ROOT, 'docs', 'governance', 'decision-ledger-t16.md'));
+    const scratch = read(path.join(ROOT, '.scratch', 'grill-t16', 'decision-ledger.md'));
+    expect(gov).toBe(scratch);
+  });
+
+  test('facts canon: artifact schema + deterministic render pin + no bare schema numbers in report prose (ADR-0077 D-C)', () => {
+    const facts = readJson(path.join(ROOT, '.scratch', 'grill-t16', 'round-facts.json'));
+    expect(Object.keys(facts).sort()).toEqual(['_doc', 'anchors_count', 'battery_as_of_commit', 'instrument_entries', 'not_run', 'pack_bytes', 'passed', 'registry_entries', 'report_commit', 'rewrite_map_citations', 'schema_version', 'skipped', 'suites']);
+    expect(facts.report_commit).toBeNull();
+    expect(Array.isArray(facts.not_run)).toBe(true);
+    const brf = require('../scripts/build-round-facts');
+    const report = read(path.join(ROOT, '.scratch', 'grill-t16', 'reports', '2026-09-18-report.md'));
+    const i = report.indexOf(brf.SENTINEL_START), j = report.indexOf(brf.SENTINEL_END);
+    expect(i !== -1 && j > i).toBe(true);
+    expect(report.slice(i, j + brf.SENTINEL_END.length)).toBe(brf.renderRegion(facts));
+    const prose = (report.slice(0, i) + report.slice(j + brf.SENTINEL_END.length)).replace(/`[^`]*`/g, '');
+    for (const k of ['suites', 'passed', 'pack_bytes', 'instrument_entries', 'rewrite_map_citations', 'registry_entries', 'anchors_count']) {
+      const v = String(facts[k]);
+      if (v.length >= 2) expect(prose).not.toMatch(new RegExp('\\b' + v + '\\b'));
+      expect(prose).not.toMatch(new RegExp(k + '\\s*[:=]'));
+    }
+    expect(prose).not.toMatch(/\b0\s+skipped|skipped\s*[:=]\s*0/);
+  });
 });
