@@ -235,6 +235,8 @@ describe('defer-0004 narrowed trigger (grill-t15 D-003 re-defer)', () => {
     const pm = presence(withMatrix, { workflowFiles: 1 });
     expect(pm.defer0004.any_matrix).toBe(true);
     expect(pm.defer0004.satisfied).toBe(true);
+    const inlineMatrix = yml(job('test', '    strategy:\n      matrix: {os: [ubuntu-latest]}\n') + job('gate-all') + job('summary', '    if: always()\n'));
+    expect(presence(inlineMatrix, { workflowFiles: 1 }).defer0004.any_matrix).toBe(true); // F-E nit: inline matrix: {...} form
     const four = yml(job('a') + job('b') + job('c') + job('d'));
     const p4 = presence(four, { workflowFiles: 1 });
     expect(p4.defer0004.over_three_jobs).toBe(true);
@@ -261,5 +263,67 @@ describe('defer-0004 narrowed trigger (grill-t15 D-003 re-defer)', () => {
     expect(d.unfreeze_if.check).toContain('matrix');
     expect(d.unfreeze_if.check).toContain('> 3');
     expect(d.rationale).toContain('narrowed');
+  });
+});
+
+describe('ADR-0077 D-A consuming-row exit semantics (grill-t16)', () => {
+  const { evaluate, presence, CONSUMING_ROW } = require('../scripts/check-ci-jobs');
+  const yml = (jobs) => 'name: ci\n\njobs:\n' + jobs;
+  const job = (name, body) => '  ' + name + ':\n    runs-on: x\n' + (body || '    steps: []\n');
+  const script = path.join(ROOT, 'scripts', 'check-ci-jobs.js');
+  const run = (ymlText) => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-cijobs-'));
+    const f = path.join(dir, 'ci.yml');
+    fs.writeFileSync(f, ymlText);
+    return spawnSync(process.execPath, [script, f], { cwd: ROOT, encoding: 'utf8' });
+  };
+
+  test('the consuming row is defer0004 (the only live consumer)', () => {
+    expect(CONSUMING_ROW).toBe('defer0004');
+    const res = evaluate(fs.readFileSync(path.join(ROOT, '.github', 'workflows', 'ci.yml'), 'utf8'), { workflowFiles: 1 });
+    expect(res.satisfied).toBe(res.predicates.defer0004.satisfied);
+  });
+
+  test('direction 1 - consuming row satisfied -> exit 0', () => {
+    const text = yml(job('a') + job('b') + job('c') + job('d', '    strategy:\n      matrix: {os: [x]}\n'));
+    const r = run(text);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain('defer0004=SATISFIED');
+    expect(r.stdout).toContain('human review suggested');
+  });
+
+  test('direction 2 - consuming row unmet -> exit 1 (live shape)', () => {
+    const text = yml(job('gate-all') + job('test') + job('summary', '    if: always()\n    needs: [gate-all, test]\n'));
+    const r = run(text);
+    expect(r.status).toBe(1);
+    expect(r.stdout).toContain('defer0004=unmet');
+    expect(r.stdout).toContain('the deferral remains valid');
+  });
+
+  test('direction 3 - a regressed non-consuming row stays diagnostic: exit 0 with defer0026=unmet printed', () => {
+    const text = yml(job('a') + job('b') + job('c') + job('d')); // 4 jobs satisfies defer0004; no test/summary jobs regress defer0026
+    const res = evaluate(text, { workflowFiles: 1 });
+    expect(res.predicates.defer0026.satisfied).toBe(false);
+    expect(res.satisfied).toBe(true); // the union-exit class is dead
+    expect(res.unmet).toEqual(['defer0026']); // diagnostics still report it
+    const r = run(text);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain('defer0026=unmet');
+  });
+
+  test('a crash exits 2 with a stderr line - never masquerades as unsatisfied', () => {
+    const missing = path.join(os.tmpdir(), 'jh-cijobs-no-such-file.yml');
+    const r = spawnSync(process.execPath, [script, missing], { cwd: ROOT, encoding: 'utf8' });
+    expect(r.status).toBe(2);
+    expect(r.stderr).toContain('verifier broken');
+    expect(r.stdout).not.toContain('the deferral remains valid');
+  });
+
+  test('the header registers the convention verbatim and the discharge re-point clause', () => {
+    const src = fs.readFileSync(script, 'utf8');
+    expect(src).toContain('currently consuming');
+    expect(src).toContain('multi-row reporting is diagnostic, never exit-driving');
+    expect(src).toContain('re-points or retires in the same commit');
+    expect(src).toContain('exit 2');
   });
 });
