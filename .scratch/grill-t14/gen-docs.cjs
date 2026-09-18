@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const ROOT = 'D:/Aworker/jiahao';
+const ROOT = path.join(__dirname, '..', '..');
 
 const spec = `# grill-t14 spec — disposition + preregistration round
 

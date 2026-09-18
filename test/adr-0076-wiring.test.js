@@ -390,4 +390,21 @@ describe('grill-t17 dispositions (ADR-0077 D-E appendix + residue registrations)
     expect(c).toContain('Scribed Approval');
     expect(c).toContain('Proxy Signature');
   });
+
+  test('gen-docs invariant: every committed copy derives ROOT from __dirname (D-003 class-killer)', () => {
+    const files = tracked().filter(function (f) { return /^\.scratch\/grill-t[^/]*\/gen-docs\.cjs$/.test(f); });
+    expect(files.length).toBeGreaterThanOrEqual(4);
+    for (const f of files) {
+      const src = read(path.join(ROOT, f));
+      expect({ f: f, ok: /const ROOT\s*=\s*path\.join\(\s*__dirname\s*,\s*'\.\.'\s*,\s*'\.\.'\s*\)/.test(src) }).toEqual({ f: f, ok: true });
+      expect({ f: f, abs: /const ROOT\s*=\s*['"][A-Za-z]:[/\\]/.test(src) }).toEqual({ f: f, abs: false });
+    }
+  });
+
+  test('the gen-docs template carries the frozen derived-ROOT header', () => {
+    const tpl = read(path.join(ROOT, '.scratch', 'gen-docs.template.cjs'));
+    expect(tpl).toContain('path.join(__dirname');
+    expect(tpl).not.toMatch(/const ROOT\s*=\s*['"][A-Za-z]:[/\\]/);
+    expect(tpl).toContain('{{ROUND_SLUG}}');
+  });
 });

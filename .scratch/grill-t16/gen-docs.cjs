@@ -2,7 +2,7 @@
 // Source of truth: .scratch/grill-t16/decision-ledger.md (D-001..D-005).
 const fs = require('fs');
 const path = require('path');
-const ROOT = 'D:/Aworker/jiahao';
+const ROOT = path.join(__dirname, '..', '..');
 const SCRATCH = path.join(ROOT, '.scratch/grill-t16');
 
 // ---------- spec ----------
