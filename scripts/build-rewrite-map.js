@@ -297,14 +297,21 @@ function main() {
   // discovery on the prior map's new-side identities when one is committed
   // (the first generation falls back to the tip-only test).
   let publishedSide = null;
+  const outAbs = path.join(ROOT, OUT_REL);
   try {
-    const prior = JSON.parse(fs.readFileSync(path.join(ROOT, OUT_REL), 'utf8'));
+    const prior = JSON.parse(fs.readFileSync(outAbs, 'utf8'));
     const rew = (prior.commits || []).map(function (c) { return c.new; }).filter(Boolean);
     if (prior.published_tip) rew.push(prior.published_tip);
     if (rew.length) publishedSide = rew;
-  } catch (e) { /* no prior map: tip-only test */ }
+  } catch (e) {
+    if (e && e.code !== 'ENOENT') {
+      console.error('[rewrite-map] FAIL: prior map ' + OUT_REL + ' exists but is unreadable (' + (e && e.message) + ') - discovery would silently degrade to the tip-only test; fix or remove the file');
+      process.exit(1);
+    }
+    // ENOENT: first generation - tip-only test.
+  }
   const oldRefs = oldArgs.length ? oldArgs : discoverOldRefs(newRef, publishedSide);
-  if (!oldRefs.length) { console.error('[rewrite-map] FAIL: no old-side refs discovered (gb-local/* not descended from ' + newRef + ')'); process.exit(1); }
+  if (!oldRefs.length) { console.error('[rewrite-map] FAIL: no old-side refs discovered (no gb-local/* carries objects absent from ' + newRef + ' and not descended from published-side anchors)'); process.exit(1); }
   const map = build(oldRefs, newRef);
   if (verifyMode) {
     const errs = verify(map);
@@ -313,7 +320,6 @@ function main() {
     return;
   }
   if (check) {
-    const outAbs = path.join(ROOT, OUT_REL);
     if (!fs.existsSync(outAbs)) { console.error('[rewrite-map] FAIL: ' + OUT_REL + ' missing \u2014 run the generator'); process.exit(1); }
     const committed = JSON.parse(fs.readFileSync(outAbs, 'utf8'));
     if (JSON.stringify(stableCopy(committed)) !== JSON.stringify(stableCopy(map))) {
@@ -323,7 +329,6 @@ function main() {
     console.log('[rewrite-map] OK: map in sync (' + map.counts.doc_refs + ' doc citations classified)');
     return;
   }
-  const outAbs = path.join(ROOT, OUT_REL);
   fs.writeFileSync(outAbs, JSON.stringify(map, null, 2) + '\n');
   console.log('[rewrite-map] wrote ' + OUT_REL + ': ' + map.counts.commits + ' rewritten, ' +
     map.counts.removed + ' removed, ' + map.counts.published_only + ' published-only, ' +

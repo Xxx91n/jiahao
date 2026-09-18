@@ -136,7 +136,8 @@ describe('registry dispositions (ADR-0076 D-E)', () => {
     const d = reg().entries.find(function (e) { return e.id === 'defer-0061'; });
     expect(d).toBeDefined();
     expect(d.source_adr).toContain('0076-round-edit-surface-taxonomy');
-    expect(d.status).toBe('pending-evaluation');
+    expect(d.status).toBe('closed');
+    expect(d.closed_via).toContain('same-commit ledger note');
   });
 });
 

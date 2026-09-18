@@ -118,6 +118,30 @@
         "reason": "F-4 disclosed deviation: shipped gate tooling edited inside the doc round (pre-taxonomy; retroactive annotation under ADR-0076 D-A/D-B semantics - not counted as a carve-out use)"
       },
       "carve_out_used": 0
+    },
+    {
+      "round": "grill-t15-doc-round",
+      "date": "2026-09-18",
+      "kind": "documentation",
+      "adr_added": [
+        "0076"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "governance_tooling_diff": {
+        "files": [
+          "scripts/check-ci-jobs.js",
+          "scripts/surface-taxonomy.js",
+          "scripts/check-governance-inventory.js",
+          "scripts/build-governance-anchors.js",
+          ".github/workflows/ci.yml"
+        ],
+        "reason": "defer-0004 narrowed re-defer requires the verified_by predicate to match (D-003; permanently-SATISFIED alert fatigue banned) - the carve-out first registered use, baseline: consecutive counting starts here (ADR-0076 D-B). The other files are mechanism bootstrap disclosed in ADR-0076 D-B: taxonomy authority module, inventory recompute, anchors admission list, suite-count parity - mechanism creation, not carve-out uses."
+      },
+      "carve_out_used": 1,
+      "deferred_entry": "defer-0061",
+      "advisory_fired": false
     }
   ],
   "source_adr": "0064"

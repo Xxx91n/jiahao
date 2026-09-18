@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-18T03:46:09.890Z",
+  "generated_at": "2026-09-18T04:38:01.390Z",
   "published_tip": "21b144216403671ae53e176fe6eee43265832e08",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -23,11 +23,11 @@
     "published_only": 27,
     "removed": 0,
     "same": 278,
-    "doc_refs": 1344,
+    "doc_refs": 1346,
     "doc_refs_by_class": {
       "rewritten": 97,
       "local-only": 625,
-      "published-unchanged": 622
+      "published-unchanged": 624
     }
   },
   "commits": [
@@ -7240,6 +7240,20 @@
       "label": "unresolved hex literal"
     },
     {
+      "file": ".scratch/grill-t15/handoffs/next-round.md",
+      "line": 16,
+      "sha": "21b1442",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t15/spec-disposition-mechanisms.md",
+      "line": 8,
+      "sha": "21b1442",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
       "file": ".scratch/grill-t6/audit/b7ccbeb/bench/polygraph/README.md",
       "line": 3,
       "sha": "b34db80",
@@ -10364,7 +10378,7 @@
     },
     {
       "file": "README.md",
-      "line": 344,
+      "line": 345,
       "sha": "994bdeb3",
       "class": "local-only",
       "resolved_to": null,
@@ -10372,7 +10386,7 @@
     },
     {
       "file": "README.md",
-      "line": 413,
+      "line": 414,
       "sha": "8807a61",
       "class": "published-unchanged",
       "resolved_to": null
@@ -10706,7 +10720,7 @@
     },
     {
       "file": "docs/adr/0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md",
-      "line": 90,
+      "line": 92,
       "sha": "a8e0bdb",
       "class": "published-unchanged",
       "resolved_to": null
@@ -11286,84 +11300,84 @@
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 35,
+      "line": 41,
       "sha": "1ca81f5",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 38,
+      "line": 44,
       "sha": "a6729a9",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 39,
+      "line": 45,
       "sha": "051744a",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 40,
+      "line": 46,
       "sha": "b73e558",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 40,
+      "line": 46,
       "sha": "e54c267",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 68,
+      "line": 74,
       "sha": "051744a7a1b4027a42720814c819bf051e0831a8",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 69,
+      "line": 75,
       "sha": "1ca81f5",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 69,
+      "line": 75,
       "sha": "2c93a30",
       "class": "rewritten",
       "resolved_to": "3454d13f8a2bfe1e4357426b6d2c48346576ca0b"
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 69,
+      "line": 75,
       "sha": "3454d13",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 71,
+      "line": 77,
       "sha": "05fa697",
       "class": "rewritten",
       "resolved_to": "2e9cdc9e45e49963e17568107d9efe3ec89b43cf"
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 71,
+      "line": 77,
       "sha": "2e9cdc9",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "docs/rewrite-map-generator-spec.md",
-      "line": 72,
+      "line": 78,
       "sha": "a6729a9",
       "class": "published-unchanged",
       "resolved_to": null

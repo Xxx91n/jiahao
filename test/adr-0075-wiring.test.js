@@ -122,9 +122,8 @@ describe('registry + governance-surface sync', () => {
     expect(d).toBeDefined();
     expect(d.source_adr).toContain('0075-promotion-review-preregistration');
     expect(d.cadence_tier).toBe('quarterly');
-    // R2 disposition pass: closed via the same-commit ledger note (the
-    // R1->R2 boundary describe below asserts the closure surface).
-    expect(d.status).toBe('closed');
+    // R1 facts only here - the closed status is R2 state and lives solely in
+    // the R1->R2 boundary describe below (grill-t15 nit: no double assert).
   });
 
   test('the README ADR index carries ADR-0075 (rebuilt, 76 records)', () => {

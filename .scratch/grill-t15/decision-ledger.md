@@ -66,3 +66,19 @@ Executed per handoffs/next-round.md T-1. Each row names its evidence; this secti
 - CONTEXT.md — Round Edit Surface + Governance Carve-Out terms and the amended Sunset Trigger (absence is not zero) landed in the settle commit.
 - README index rebuilt (76 records); AGENTS.md single pointer line; anchors 15 artifacts with the t15 ledger copy; ci.yml suite-count parity 73 (bootstrap disclosure per ADR-0076 D-B).
 - R1 exit battery: taxonomy closure test green + anchors in sync + D-004 bidirectional assertions green + 1/6 trail reconciled.
+
+## T-2 dispositions (R2 action round, 2026-09-18)
+
+Executed under the R1 stage gate (kym on grill-t15-docs; boundary green on the self-check battery). Each row names its evidence; this section is the same-commit ledger note closing defer-0061 and recording the consent-sweep for the standing cadence.
+
+- defer-0004 — RE-DEFERRED, narrowed. unfreeze_if now `ci.yml spans multiple workflow files OR any job declares a matrix OR job count > 3` (verified_by unchanged: scripts/check-ci-jobs.js, predicate rewritten in the same commit); the live shape reports defer0004=unmet (1 workflow, 3 jobs, no matrix) - the deferral remains valid and the permanently-firing SUGGEST is dead. First registered D-B carve-out use; trend row records governance_tooling_diff + carve_out_used:1 with the baseline.
+- defer-0061 (t15 doc-round net-addition tally) — CLOSED via this same-commit ledger note. The grill-t15 row exists in docs/governance/trend-inventory.json (+1 ADR-0076; zero_product_diff=true AND governance_tooling_diff set - both true on the F-4 shape) and the ADR is registered; nothing left to disposition.
+- defer-0058 (standing per-round net-increment review) — EXECUTED for grill-t15: net registry increment +2 (defer-0060 and defer-0061 added; defer-0026 actioned - terminal, count unchanged; defer-0004 re-deferred - row count unchanged).
+- defer-0055 — stays pending-evaluation on quarterly cadence; sunset_trigger_pointer is now a pure pointer (F-3 settled). Sunset counter stays 1/6: this checkpoint observed organic=0 across all provenance classes (telemetry checkpoint .scratch/grill-t15/telemetry-checkpoint-2026-09-18.{txt,json}); a mid-quarter checkpoint is cadence evidence for the watch, not a quarterly sunset observation - the next counter observation is due at the 2026-12-15 tide.
+- defer-0053 — stays deferred (unfreeze_frozen).
+- defer-0054 — stays actioned; scanner live (3 rules).
+- defer-0057 — stays pending-evaluation (t13 tally row; closes at the next trend-anchor evaluation).
+- O-E backlog (telemetry export breadth) — stays deferred as an observation on the standing consent-sweep; low-priority backlog, no failure driver.
+- WORKFLOW.md — disposition: register permanent absence. The file never existed in this repo history; the working conventions it would carry live in the $but skill, the task-book handoffs (next-round.md), and the AGENTS.md working agreement. Absence is registered, not silently tolerated.
+- Audit nits executed: stale FAIL message now describes the anchored discovery rule; corrupt-prior-map read hard-fails loudly (ENOENT-only fallback, no silent tip-only degrade); gen-docs.cjs ROOT derived from __dirname; adr-0075-wiring defer-0059 closed-status assertion lives solely in the R2 boundary describe; path.join(ROOT,OUT_REL) deduplicated; docs/rewrite-map.json regenerated (1346 doc citations classified, in sync).
+- Owner asks (unbundled, still open): Ask A - instrument seq-24 sign-off (record-type, open since t13); Ask B - defer-0051 evidence-packet ratification (judgmental; a rejection reopens the row). Frozen packet texts live in ADR-0076 D-E. Bookkeeping annotations only: the ADR-0075 second_reviewer countersign lands when the owner ratifies the t14 audit outcome; defer-0060 is a tracked row (owner action = its unfreeze_if), not a decision ask.
