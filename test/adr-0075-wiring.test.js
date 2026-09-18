@@ -156,14 +156,18 @@ describe('R1->R2 boundary: action-round dispositions (grill-t14 R2)', () => {
     expect(d.trigger_override).toContain('overrides review_at=2026-12-15');
   });
 
-  test('the evidence packet carries the measurement + weak-independent countersign; owner slot stays open', () => {
+  test('the evidence packet carries the measurement + weak-independent countersign + the owner ratification landed at grill-t15 T-3', () => {
     const p = readJson(path.join(ROOT, '.scratch', 'grill-t14', 'evidence', 'defer-0051-evidence-packet.json'));
     expect(p.measurement.size_bytes).toBe(324711);
     expect(p.protocol.command).toBe('npm pack --dry-run --json');
     expect(p.anchors.under_cap).toBe(true);
     expect(p.signatures.second_party_countersign.grade).toBe('weak-independent');
     expect(p.signatures.second_party_countersign.matches_packet).toBe(true);
-    expect(p.signatures.owner_ratification).toBeNull();
+    // owner slot was open at t14 R2 (Ask B pending); ratified 2026-09-18 at
+    // grill-t15 T-3 - F-1 settled, the t14 audit outcome owner-ratified.
+    expect(p.signatures.owner_ratification.verdict).toBe('ratified');
+    expect(p.signatures.owner_ratification.signer).toBe('Euiop1');
+    expect(p.signatures.owner_ratification.signed_at).toBe('2026-09-18');
   });
 
   test('the T-2 dispositions ledger section is appended and synced to the governance copy', () => {

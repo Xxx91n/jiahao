@@ -750,8 +750,8 @@
       "cadence_tier": "quarterly",
       "registered_at": "2026-09-16",
       "last_check_in": {
-        "date": "2026-09-17",
-        "note": "R2 (grill-t14): closed discharged-by-trigger - re-measure 324711<340000 + weak-independent countersign on the evidence packet; owner ratification pending (Ask B); trend duty stays in pack-smoke"
+        "date": "2026-09-18",
+        "note": "owner ratified the evidence packet (signatures.owner_ratification.verdict=ratified, signer Euiop1) - grill-t14 audit F-1 settles; row stays closed discharged-by-trigger"
       },
       "status": "closed",
       "closed_at": "2026-09-17",

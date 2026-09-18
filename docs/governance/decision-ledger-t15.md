@@ -82,3 +82,13 @@ Executed under the R1 stage gate (kym on grill-t15-docs; boundary green on the s
 - WORKFLOW.md — disposition: register permanent absence. The file never existed in this repo history; the working conventions it would carry live in the $but skill, the task-book handoffs (next-round.md), and the AGENTS.md working agreement. Absence is registered, not silently tolerated.
 - Audit nits executed: stale FAIL message now describes the anchored discovery rule; corrupt-prior-map read hard-fails loudly (ENOENT-only fallback, no silent tip-only degrade); gen-docs.cjs ROOT derived from __dirname; adr-0075-wiring defer-0059 closed-status assertion lives solely in the R2 boundary describe; path.join(ROOT,OUT_REL) deduplicated; docs/rewrite-map.json regenerated (1346 doc citations classified, in sync).
 - Owner asks (unbundled, still open): Ask A - instrument seq-24 sign-off (record-type, open since t13); Ask B - defer-0051 evidence-packet ratification (judgmental; a rejection reopens the row). Frozen packet texts live in ADR-0076 D-E. Bookkeeping annotations only: the ADR-0075 second_reviewer countersign lands when the owner ratifies the t14 audit outcome; defer-0060 is a tracked row (owner action = its unfreeze_if), not a decision ask.
+
+## T-3 dispositions (owner asks, 2026-09-18)
+
+Owner approval utterance exercised verbatim: 批准，给你权限 (2026-09-18). The two asks were kept unbundled per D-007 - each recorded as its own act with its own evidence.
+
+- Ask A (record-type) — EXECUTED: `node scripts/instrument.js --record-signoff --record-seq 24 --reviewer Euiop1 --attestation approve` appended a record_signoff entry certifying instrument record seq-24 (the t13 T-3 fix-round record_only_change). No verdict content adjudicated by the signature.
+- Ask B (judgmental, own accept/reject exit) — EXECUTED as accept: `.scratch/grill-t14/evidence/defer-0051-evidence-packet.json` signatures.owner_ratification = {verdict:ratified, signer:Euiop1, signed_at:2026-09-18}; the pinned-protocol re-measurement + weak-independent countersign stands as the discharge basis. defer-0051 stays closed discharged-by-trigger; grill-t14 audit F-1 settles.
+- ADR-0075 second_reviewer countersign — LANDED: the Status line now records the 2026-09-18 countersign; the t14 audit outcome stands owner-ratified once its last judgmental item (F-1 / Ask B) was ratified.
+- defer-0060 — remains a tracked row (pending-evaluation, quarterly); the owner actions are its unfreeze_if (secret regen + required-check deployment), not a decision ask - no bookkeeping change this approval.
+- Sunset counter: unchanged at 1/6; next quarterly observation 2026-12-15.

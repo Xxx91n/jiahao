@@ -48,7 +48,12 @@
       "signed_at": "2026-09-17",
       "statement": "re-measurement reproduced the packet's size under the pinned command; signature covers this packet only, not the round"
     },
-    "owner_ratification": null
+    "owner_ratification": {
+      "verdict": "ratified",
+      "signer": "Euiop1",
+      "reason": "owner judgmental act, own accept/reject exit exercised as accept: the pinned-protocol re-measurement (npm pack --dry-run --json -> 324711 < 340000) plus the weak-independent countersign is accepted as the discharge basis for defer-0051; signature covers this packet only - rejection exit was open and not taken (owner chat approval 2026-09-18: 批准，给你权限)",
+      "signed_at": "2026-09-18"
+    }
   },
   "signature_rules": {
     "second_party_countersign": "fresh-session agent; declares its independence grade explicitly (expected: weak-independent per ADR-0074 D-F vocabulary - separate session, shared infrastructure); verifies the measurement by re-running the pinned command; signs THIS packet only - this is not a round audit",

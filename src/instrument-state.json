@@ -723,6 +723,25 @@
       "event_timestamp": "2026-09-17T12:51:00.619Z",
       "logging_timestamp": "2026-09-17T12:51:00.619Z",
       "event_hash": "7b8c3b2c93d46e6fa67c91109a2acb3e93282c16430a82148eeb74bd54b929c9"
+    },
+    {
+      "seq": 27,
+      "kind": "record_signoff",
+      "identity_digest": "c68d49c60e87e581f827b7066ba01b3dab646843aa23bc5c5ff5781f719458b9",
+      "reverify_ledger_hash": null,
+      "bias_probe_hash": null,
+      "reviewer_id": "Euiop1",
+      "second_reviewer": null,
+      "attestation_type": "approve",
+      "timestamp": "2026-09-18T05:08:26.939Z",
+      "prev_hash": "7b8c3b2c93d46e6fa67c91109a2acb3e93282c16430a82148eeb74bd54b929c9",
+      "reason": "Ask A (record-type, unbundled): owner sign-off on instrument record seq-24 - the t13 T-3 fix-round record_only_change event (F-1 blocking + F-2..F-9 remediation window); no verdict content is adjudicated by this signature",
+      "principal_id": "Euiop1",
+      "authorization": "批准，给你权限 - owner chat approval 2026-09-18 covering the two unbundled asks (seq-24 record sign-off + defer-0051 packet ratification)",
+      "record_seq": 24,
+      "event_timestamp": "2026-09-18T05:08:26.939Z",
+      "logging_timestamp": "2026-09-18T05:08:26.939Z",
+      "event_hash": "13de035570ce081107e4a99ead039fbfe7283d4097bbf8a0b507cac3b20a06a8"
     }
   ],
   "certification_mode": "conditional",
