@@ -34,6 +34,8 @@ const gates = JSON.parse(fs.readFileSync(gatesPath, 'utf8'));
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
 const jobs = parseJobs(ciContent);
 const body = (name) => (jobs[name] || []).join('\n');
+const yml = (jobsText) => 'name: ci\n\njobs:\n' + jobsText;
+const job = (name, bodyText) => '  ' + name + ':\n    runs-on: x\n' + (bodyText || '    steps: []\n');
 
 describe('ADR-0058 D-006/D-009 registry narrowing', () => {
   test('gates.json does not contain a test gate entry', () => {
@@ -214,8 +216,6 @@ describe('ADR-0058 R12 gitignore hygiene (audit A5)', () => {
 
 describe('defer-0004 narrowed trigger (grill-t15 D-003 re-defer)', () => {
   const { evaluate, presence } = require('../scripts/check-ci-jobs');
-  const yml = (jobs) => 'name: ci\n\njobs:\n' + jobs;
-  const job = (name, body) => '  ' + name + ':\n    runs-on: x\n' + (body || '    steps: []\n');
 
   test('negative fixture: the live shape (single workflow, 3 jobs, no matrix) does NOT satisfy the narrowed trigger', () => {
     const text = yml(job('gate-all') + job('test') + job('summary', '    if: always()\n    needs: [gate-all, test]\n'));
@@ -268,8 +268,6 @@ describe('defer-0004 narrowed trigger (grill-t15 D-003 re-defer)', () => {
 
 describe('ADR-0077 D-A consuming-row exit semantics (grill-t16)', () => {
   const { evaluate, presence, CONSUMING_ROW } = require('../scripts/check-ci-jobs');
-  const yml = (jobs) => 'name: ci\n\njobs:\n' + jobs;
-  const job = (name, body) => '  ' + name + ':\n    runs-on: x\n' + (body || '    steps: []\n');
   const script = path.join(ROOT, 'scripts', 'check-ci-jobs.js');
   const run = (ymlText) => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-cijobs-'));
