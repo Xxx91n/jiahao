@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-18T13:50:30.964Z",
+  "generated_at": "2026-09-18T14:52:27.194Z",
   "published_tip": "21b144216403671ae53e176fe6eee43265832e08",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -23,11 +23,11 @@
     "published_only": 27,
     "removed": 0,
     "same": 278,
-    "doc_refs": 1414,
+    "doc_refs": 1425,
     "doc_refs_by_class": {
       "rewritten": 97,
-      "local-only": 687,
-      "published-unchanged": 630
+      "local-only": 694,
+      "published-unchanged": 634
     }
   },
   "commits": [
@@ -7746,6 +7746,13 @@
       "label": "unresolved hex literal"
     },
     {
+      "file": ".scratch/grill-t16/handoffs/2026-09-18-audit-passed-with-findings.md",
+      "line": 57,
+      "sha": "21b1442",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
       "file": ".scratch/grill-t16/handoffs/2026-09-18-round-complete.md",
       "line": 10,
       "sha": "f86494d",
@@ -7769,6 +7776,62 @@
       "resolved_to": null
     },
     {
+      "file": ".scratch/grill-t16/reports/2026-09-18-audit.md",
+      "line": 6,
+      "sha": "46954f8",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t16/reports/2026-09-18-audit.md",
+      "line": 6,
+      "sha": "a51ae08",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t16/reports/2026-09-18-audit.md",
+      "line": 37,
+      "sha": "640f8c7",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t16/reports/2026-09-18-audit.md",
+      "line": 117,
+      "sha": "640f8c7",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t16/reports/2026-09-18-audit.md",
+      "line": 128,
+      "sha": "46954f8",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t16/reports/2026-09-18-audit.md",
+      "line": 128,
+      "sha": "46954f8",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t16/reports/2026-09-18-audit.md",
+      "line": 128,
+      "sha": "a51ae08",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
       "file": ".scratch/grill-t16/reports/2026-09-18-report.md",
       "line": 20,
       "sha": "640f8c7",
@@ -7788,6 +7851,27 @@
       "file": ".scratch/grill-t16/spec-fix-mechanisms.md",
       "line": 9,
       "sha": "21b1442",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t17/GOAL.md",
+      "line": 10,
+      "sha": "3cd4e19",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t17/handoffs/next-round.md",
+      "line": 75,
+      "sha": "21b1442",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t17/spec-fix-disposition.md",
+      "line": 7,
+      "sha": "3cd4e19",
       "class": "published-unchanged",
       "resolved_to": null
     },

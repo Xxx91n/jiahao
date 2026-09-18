@@ -44,3 +44,62 @@ section is the same-commit ledger note for the R1 doc-surface edits
   member list realigned to the shipped enumeration, t16 report F-C
   wording corrected to the carve-out gloss; adr-0033 seed inventory
   re-pinned to 57 entries.
+
+## T-2 dispositions (R2 implementation bundle, 2026-09-18)
+
+Executed per handoffs/next-round.md T-2. Verbatim battery output is
+committed under .scratch/grill-t17/evidence/ (D-002 evidence convention);
+each row names its evidence or pin.
+
+- D-002 — proseScan exported from scripts/build-round-facts.js;
+  backtick-strip exemption deleted; --check --report enforces the
+  unconditional scan at author time (pre-collect, pre-splice).
+  Wiring: adr-0076-wiring t17 describe pins the export, a
+  quoted-stale-number fixture that MUST fail --check, and the t17
+  real-report pin; the t16 report is grandfathered to the render pin
+  (forward-binding, E-4/E-5 pattern). Evidence: round-facts.txt +
+  quoted-stale.txt.
+- D-003 — gen-docs class-killer double layer: invariant pin over every
+  committed .scratch/grill-t*/gen-docs.cjs (derived ROOT required,
+  absolute literal banned); t14+t16 retro-fix totalization (no
+  exemption registry); .scratch/gen-docs.template.cjs authoring layer.
+- D-005 — gated smells fixed in three atomic commits (zmn tmpdir
+  cleanup, zks yml/job dedup, lun loadTaxonomy hoist); the fourth smell
+  deferred as defer-0063 with the anti-rot quota. Wiring nits folded
+  into the machinery commit (adr-0076 header, adr-0069 test name).
+- Battery — the t16 audit section-6 list re-ran verbatim after regen
+  (map -> facts -> report-splice); every command's full output is
+  committed under .scratch/grill-t17/evidence/.
+- Report — rendered facts region from round-facts.json; no canon
+  number in prose; report_commit stays null (self-reference disclosed,
+  not faked).
+
+## T-3 dispositions (closeout, 2026-09-18)
+
+- Zero owner asks this round: T-3 fully discharged; the consent-sweep
+  is registration, not an ask.
+- Consent-sweep lines (standing cadence):
+  - defer-0060 (CI 403 carrier, external-event) — stays
+    pending-evaluation on quarterly cadence; review_at 2026-12-15; a
+    tracked row, not an ask.
+  - Sunset counter — stays 1/6 (missed check-in is not a zero;
+    organic=0 across provenance classes at the last observation); next
+    quarterly observation 2026-12-15.
+  - defer-0053 — stays pending-evaluation (unfreeze_frozen).
+  - defer-0057 — stays pending-evaluation (t13 tally row; closes at
+    the next trend-anchor evaluation).
+  - defer-0058 (standing per-round net-increment review) — EXECUTED
+    for grill-t17: net registry increment +1 (defer-0063 registered;
+    no closed/actioned transitions otherwise).
+  - O-E backlog (telemetry export breadth) — stays deferred as an
+    observation on the standing consent-sweep; low-priority backlog,
+    no failure driver.
+  - Smell-ticket quota (defer-0063) — the next fix bundle must take
+    one smell ticket first; a deferred ticket with no quota is rot,
+    not a deferral.
+- Stack landing (grill-t15-docs, grill-t16-docs unlanded) —
+  informational only; owner-domain action, not a decision item.
+- The four audit patches (tq/nl/xu/my) stay untracked forever.
+- Audit-ready note for the owner: the report's disposition mapping is
+  the next audit's standing review surface; every claim cites a
+  committed evidence path.

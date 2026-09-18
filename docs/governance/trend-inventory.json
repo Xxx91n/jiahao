@@ -169,6 +169,23 @@
       },
       "deferred_entry": "defer-0062",
       "advisory_fired": false
+    },
+    {
+      "round": "grill-t17-fix-round",
+      "date": "2026-09-18",
+      "kind": "documentation",
+      "adr_added": [],
+      "adr_superseded_or_closed": [],
+      "net_additions": 0,
+      "zero_product_diff": true,
+      "carve_out_used": 0,
+      "mechanism_output_diff": {
+        "files": [
+          "bench/research/out/g6-publish-replay.json"
+        ],
+        "reason": "faithful regeneration via check-g6-publish re-run during the acceptance battery - the packaged build-round-facts.js grew with the proseScan export, moving the tarball byte record"
+      },
+      "advisory_fired": false
     }
   ],
   "source_adr": "0064"
