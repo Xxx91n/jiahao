@@ -328,6 +328,8 @@ place the corpus under `bench-corpus/`). The diagnostics are failure-proof
 path; the step's existing semantics are unchanged. The secret-rotation branch
 still needs repository-admin credentials and remains open.
 
+Tracked forward (grill-t15, ADR-0076 D-E): defer-0060 in `docs/deferred-registry.json` is the sole live tracker for this carrier - the `JIAHAO_BENCH_CORPUS_B64` regeneration plus the same-source 403 required-check deployment, both repository-admin actions.
+
 ### R14 - inline-array capability labels could inject a property separator (audit B1/B2)
 
 `unverifiableLines` joined an inline array into the `gate=` property with a raw

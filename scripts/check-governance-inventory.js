@@ -23,6 +23,7 @@
 const fs = require('fs');
 const path = require('path');
 const { requireCapabilities } = require('../src/shared/capability');
+const surfaceTaxonomy = require('./surface-taxonomy'); // ADR-0076 D-A: surface classification authority
 
 const ROOT = path.join(__dirname, '..');
 const GATES_REL = path.join('docs', 'gates.json');
@@ -114,6 +115,8 @@ function checkInventory(root, opts) {
     const registry = o.registry || JSON.parse(fs.readFileSync(path.join(base, REGISTRY_REL), 'utf8'));
     const regIds = new Set(registry.entries.map(function (e) { return e.id; }));
     let streak = 0;
+    let carveStreak = 0;
+    let closureSet = null;
     for (const r of ti.rounds || []) {
       if (r.kind !== 'documentation') { errors.push('trend round ' + r.round + ': kind must be documentation'); continue; }
       for (const a of r.adr_added || []) {
@@ -129,7 +132,37 @@ function checkInventory(root, opts) {
           errors.push('trend round ' + r.round + ': zero-product-diff + new ADR requires a deferred-registry entry (D-F clause 3)');
         }
       }
+      // ADR-0076 D-B disclosure gate: a declared governance-tooling
+      // diff is recomputed against the taxonomy authority, never trusted -
+      // every listed file must classify R2 (R1 is a hard error: doc rounds
+      // never touch the runtime surface; R3 is a mislabeled row).
+      if (r.governance_tooling_diff !== undefined) {
+        const gtd = r.governance_tooling_diff;
+        if (!gtd || typeof gtd !== 'object' || !Array.isArray(gtd.files) || typeof gtd.reason !== 'string' || gtd.reason.length < 10) {
+          errors.push('trend round ' + r.round + ': governance_tooling_diff must be {files: string[], reason: string>=10} (ADR-0076 D-B)');
+        } else {
+          if (!closureSet) closureSet = new Set(surfaceTaxonomy.computeRuntimeClosure(base));
+          for (const f of gtd.files) {
+            const cls = surfaceTaxonomy.classifyPath(f, closureSet);
+            if (cls === 'R1') {
+              errors.push('trend round ' + r.round + ': governance_tooling_diff lists runtime-surface file ' + f + ' - R1 is implementation-round territory absolutely (ADR-0076 D-A)');
+            } else if (cls !== 'R2') {
+              errors.push('trend round ' + r.round + ': governance_tooling_diff file ' + f + ' classifies ' + cls + ', not R2 - mislabeled disclosure');
+            }
+          }
+        }
+        if (r.carve_out_used !== 0 && r.carve_out_used !== 1) {
+          errors.push('trend round ' + r.round + ': carve_out_used must be declared 0|1 alongside governance_tooling_diff (ADR-0076 D-B burn-rate)');
+        }
+      }
+      if (r.carve_out_used === 1 && !(r.governance_tooling_diff && Array.isArray(r.governance_tooling_diff.files) && r.governance_tooling_diff.files.length)) {
+        errors.push('trend round ' + r.round + ': carve_out_used=1 requires a non-empty governance_tooling_diff.files disclosure');
+      }
+      carveStreak = (r.carve_out_used === 1) ? carveStreak + 1 : 0;
       streak = (r.net_additions > 0) ? streak + 1 : 0;
+    }
+    if (carveStreak >= 2) {
+      warnings.push('::warning title=Governance carve-out burn-rate::' + carveStreak + ' consecutive documentation rounds used the governance carve-out - advisory only, never blocks (ADR-0076 D-B)');
     }
     const fired = (ti.rounds || []).filter(function (r) { return r.advisory_fired; }).length;
     // D-F: exactly one advisory when the streak reaches K; advisory never blocks.

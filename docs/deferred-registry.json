@@ -294,7 +294,10 @@
       "review_at": "2027-09-10",
       "cadence_tier": "yearly",
       "registered_at": "2026-09-10",
-      "status": "deferred"
+      "status": "actioned",
+      "actioned_at": "2026-09-18",
+      "actioned_via": "ADR-0058 D-F/D-G executed: ci.yml live-verified - gate-all + test(JIAHAO_TEST_TIER=public) + summary(always(), success-only seen==expected guard); all four check-ci-jobs predicates SATISFIED; same-commit ledger note: .scratch/grill-t15/decision-ledger.md T-1 dispositions",
+      "limitation": "actioned covers the deferred work only: the required-check deployment remains a repository-admin action (platform 403) and CI green is an environmental condition (ADR-0058 R10) - neither is the deferred work, and actioned does not endorse the whole carrier problem; the 403 carrier is tracked live by defer-0060"
     },
     {
       "id": "defer-0027",
@@ -834,7 +837,7 @@
         "type": "external-event",
         "check": "six consecutive months with organic=0 at every quarterly check-in -> close the watch as expired (no organic lane traffic ever observed)"
       },
-      "sunset_trigger_pointer": "ADR-0075 D-C (docs/adr/0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md): dual-or-path sunset trigger - 6 consecutive zero-organic quarterly check-ins OR this row closing without prior activation -> activates the scheduled strategic review; the clause body lives in the ADR, this row carries only the pointer"
+      "sunset_trigger_pointer": "ADR-0075 D-C (docs/adr/0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md) - this row carries only the pointer; the clause body lives in the ADR"
     },
     {
       "id": "defer-0056",
@@ -911,6 +914,42 @@
       "status": "closed",
       "closed_at": "2026-09-17",
       "closed_via": "same-commit ledger note: .scratch/grill-t14/decision-ledger.md section \"T-2 dispositions (R2 action round, 2026-09-17)\" - tally verified against trend-inventory grill-t14 row (+1 ADR-0075) and ADR registration"
+    },
+    {
+      "id": "defer-0060",
+      "subject": "CI gate-all channel permanently red - JIAHAO_BENCH_CORPUS_B64 regeneration (the tarball must expose bench-corpus/mr-probes.jsonl at JIAHAO_CORPUS_DIR) plus the same-source 403 required-check deployment; both repository-admin actions",
+      "source_adr": "docs/adr/0076-round-edit-surface-taxonomy-and-governance-carve-out.md",
+      "rationale": "ADR-0058 R10/R13: the channel is red for an environment/secret condition, not code; the R13 diagnostics make failures self-explanatory but the secret-rotation branch needs repository-admin credentials. Folds the 403 required-check deployment (same credential class, same intervention surface). defer-0026 limitation is historical record - this row is the sole live tracker of the 403 issue. id note: defer-0060 was the rejected D-002 sunset-row placeholder name, never landed - the id belongs to the first lander (grill-t15 D-006).",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "owner regenerates the JIAHAO_BENCH_CORPUS_B64 secret AND the R13 diagnostics report green AND/OR the summary job is deployed as the required check"
+      },
+      "closes_if": {
+        "type": "external-event",
+        "check": "a main CI run goes green via the summary aggregation OR the owner explicitly retires the channel via same-commit ADR amendment"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-18",
+      "last_check_in": {
+        "date": "2026-09-18",
+        "note": "registered at the grill-t15 disposition round as the sole live tracker of the 403 carrier (defer-0026 limitation field demoted to historical record)"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0061",
+      "subject": "grill-t15 doc round net-addition tally: +1 ADR (ADR-0076 round edit-surface taxonomy + governance carve-out + sunset-counter durable home + spec-code bidirectional pinning + registry dispositions) - D-006(a)(i) summary row",
+      "source_adr": "docs/adr/0076-round-edit-surface-taxonomy-and-governance-carve-out.md",
+      "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t15 documentation round lands one new ADR (0076: the three-surface edit taxonomy with closure-scan authority, the three-gate governance carve-out with burn-rate advisory, the sunset counter durable home in the anchors chain, the spec-code bidirectional pinning convention, and the round registry dispositions). The round also touches docs/governance (sunset-counter.json, surface-taxonomy.json, anchors, t15 ledger copy), CONTEXT.md glossary, README index, AGENTS.md pointer, wiring tests, and - via the first registered carve-out in R2 - scripts/check-ci-jobs.js.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-18",
+      "status": "pending-evaluation"
     }
   ]
 }

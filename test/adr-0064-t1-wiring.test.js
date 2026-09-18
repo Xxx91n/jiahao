@@ -425,6 +425,23 @@ describe('T-5 governance: zero-product-diff event + inventory gate (D-006)', () 
     const anchors = readJson(path.join(ROOT, 'docs', 'governance', 'anchors.json'));
     expect(anchors.artifacts.some((a) => a.file === 'trend-inventory.json')).toBe(true);
   });
+
+
+  test('governance_tooling_diff disclosure is accepted when files classify R2 (ADR-0076 D-B)', () => {
+    const ti = readJson(path.join(ROOT, 'docs', 'governance', 'trend-inventory.json'));
+    const probe = JSON.parse(JSON.stringify(ti));
+    probe.rounds.push({ round: 'probe-carve-out', date: '2026-09-18', kind: 'documentation', adr_added: [], adr_superseded_or_closed: [], net_additions: 0, zero_product_diff: false, governance_tooling_diff: { files: ['scripts/check-ci-jobs.js'], reason: 'predicate rewrite bundled with the defer-0004 narrowed re-defer (ADR-0076 D-B first use)' }, carve_out_used: 1 });
+    const out = inv().checkInventory(ROOT, { trend: probe });
+    expect(out.errors.filter(function (e) { return e.indexOf('probe-carve-out') !== -1; })).toEqual([]);
+  });
+
+  test('a runtime-surface file in a doc-round governance diff hard-fails (R1 is never carve-out-able)', () => {
+    const ti = readJson(path.join(ROOT, 'docs', 'governance', 'trend-inventory.json'));
+    const probe = JSON.parse(JSON.stringify(ti));
+    probe.rounds.push({ round: 'probe-r1-breach', date: '2026-09-18', kind: 'documentation', adr_added: [], adr_superseded_or_closed: [], net_additions: 0, zero_product_diff: false, governance_tooling_diff: { files: ['scripts/install.js'], reason: 'attempted runtime edit inside a doc round' }, carve_out_used: 1 });
+    const out = inv().checkInventory(ROOT, { trend: probe });
+    expect(out.errors.join(' ')).toContain('runtime-surface');
+  });
 });
 
 

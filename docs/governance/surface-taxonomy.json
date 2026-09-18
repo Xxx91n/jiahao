@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0076 D-A: machine-readable round edit-surface taxonomy. Three surfaces, every git-tracked file classified exactly once. R1 runtime = the scripts/install.js static require() closure, enumerated below and re-derived by test/adr-0076-wiring.test.js - the closure scan is the authority, this list is never hand-maintained. R2 governance = machinery (checkers, builders, runners, bench, hooks, CI) - implementation-round territory, doc-round touchable only via the registered carve-out (ADR-0076 D-B). R3 documentation = free in a documentation round.",
+  "source_adr": "docs/adr/0076-round-edit-surface-taxonomy-and-governance-carve-out.md",
+  "seeds": {
+    "runtime_closure_roots": [
+      "scripts/install.js"
+    ]
+  },
+  "surfaces": {
+    "R1": {
+      "name": "runtime",
+      "rule": "files in the static require() closure of seeds.runtime_closure_roots (scripts/surface-taxonomy.js computeRuntimeClosure); enumerated snapshot below - drift between this list and a fresh scan fails the wiring test",
+      "files": [
+        "package.json",
+        "scripts/install.js",
+        "scripts/resolve.js",
+        "src/calibration.js",
+        "src/change-surface.js",
+        "src/evidence-log.js",
+        "src/file-lock.js",
+        "src/instrument-identity.js",
+        "src/shared/paths.js",
+        "src/shared/prefix-vocab.js"
+      ]
+    },
+    "R2": {
+      "name": "governance",
+      "rule": "every git-tracked path not classified R1 or R3",
+      "examples": [
+        "scripts/check-*",
+        "scripts/build-*",
+        "scripts/run-*",
+        "scripts/collect-*",
+        "scripts/derive-*",
+        "scripts/eval-*",
+        "scripts/instrument.js",
+        "scripts/pairer-lane-telemetry.js",
+        "bench/**",
+        "hooks/**",
+        "jiahao-mcp/**",
+        "schemas/**",
+        "private/**",
+        ".github/**",
+        ".githooks/**",
+        "test/** outside adr-*-wiring.test.js",
+        "dotfiles and lockfiles"
+      ]
+    },
+    "R3": {
+      "name": "documentation",
+      "rule": "docs/**, .scratch/**, adapters/**, test/adr-*-wiring.test.js, CONTEXT.md, README.md, AGENTS.md",
+      "prefixes": [
+        "docs/",
+        ".scratch/",
+        "adapters/"
+      ],
+      "exact": [
+        "CONTEXT.md",
+        "README.md",
+        "AGENTS.md"
+      ],
+      "wiring_tests": "test/adr-<n>-wiring.test.js"
+    }
+  },
+  "round_permissions": {
+    "documentation": [
+      "R3",
+      "R2 only through the registered carve-out (ADR-0076 D-B)",
+      "R1 never"
+    ],
+    "implementation": [
+      "R1",
+      "R2",
+      "R3"
+    ]
+  },
+  "diff_semantics": {
+    "zero_product_diff": "no R1-surface file touched (redefined under ADR-0076; historical rows keep their meaning)",
+    "governance_tooling_diff": "independent dimension recording which R2 files the round touched - may be true while zero_product_diff is also true (the F-4 shape)",
+    "carve_out_used": "0|1 burn-rate marker on the trend-inventory row; two consecutive rounds at 1 raise an advisory"
+  }
+}

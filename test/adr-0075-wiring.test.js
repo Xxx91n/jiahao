@@ -127,9 +127,9 @@ describe('registry + governance-surface sync', () => {
     expect(d.status).toBe('closed');
   });
 
-  test('the README ADR index carries ADR-0075 (rebuilt, 75 records)', () => {
+  test('the README ADR index carries ADR-0075 (rebuilt, 76 records)', () => {
     const r = read(README);
-    expect(r).toContain('75 architecture decision records');
+    expect(r).toContain('76 architecture decision records');
     expect(r).toContain('0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md');
   });
 

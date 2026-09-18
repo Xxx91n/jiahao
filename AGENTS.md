@@ -23,6 +23,7 @@ docs/agents/domain.md.
   ADR, `CONTEXT.md` glossary sync, `docs/deferred-registry.json` sync, README
   ADR index rebuild, and wiring-test seed update) before the next
   implementation round starts.
+- Round edit surfaces follow ADR-0076 (`docs/adr/0076-round-edit-surface-taxonomy-and-governance-carve-out.md`): documentation rounds touch the documentation surface only; governance machinery moves through the registered carve-out; the runtime require-chain is implementation-round territory.
 - When reporting artifacts in chat (specs, plans, ledgers, handoffs, diffs),
   cite every file by its full absolute path; never report only a bare
   filename or repo-relative path.

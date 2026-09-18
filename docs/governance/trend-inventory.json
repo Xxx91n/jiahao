@@ -110,7 +110,14 @@
       "net_additions": 1,
       "zero_product_diff": true,
       "deferred_entry": "defer-0059",
-      "advisory_fired": false
+      "advisory_fired": false,
+      "governance_tooling_diff": {
+        "files": [
+          "scripts/build-rewrite-map.js"
+        ],
+        "reason": "F-4 disclosed deviation: shipped gate tooling edited inside the doc round (pre-taxonomy; retroactive annotation under ADR-0076 D-A/D-B semantics - not counted as a carve-out use)"
+      },
+      "carve_out_used": 0
     }
   ],
   "source_adr": "0064"

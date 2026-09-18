@@ -29,6 +29,7 @@ const ARTIFACTS = [
   { file: 'decision-ledger-t12.md', origin: '.scratch/grill-t12/decision-ledger.md', adr: 'ADR-0073' },
   { file: 'decision-ledger-t13.md', origin: '.scratch/grill-t13/decision-ledger.md', adr: 'ADR-0074' },
   { file: 'decision-ledger-t14.md', origin: '.scratch/grill-t14/decision-ledger.md', adr: 'ADR-0075' },
+  { file: 'decision-ledger-t15.md', origin: '.scratch/grill-t15/decision-ledger.md', adr: 'ADR-0076' },
   { file: 'ERRATA.md', origin: '(authored in place)', adr: 'ADR-0061' },
   { file: 'trend-inventory.json', origin: '(authored in place)', adr: 'ADR-0064' },
   { file: 'sunset-counter.json', origin: '(authored in place)', adr: 'ADR-0076' },
