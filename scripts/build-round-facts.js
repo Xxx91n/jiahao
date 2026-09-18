@@ -103,6 +103,28 @@ function spliceRegion(text, region) {
   return text.slice(0, i) + region + text.slice(j + SENTINEL_END.length);
 }
 
+// Pure: report text + facts -> violation strings. Unconditional scan
+// (ADR-0077 D-E): canon numbers live only in the sentinel region and the
+// backtick-span exemption is dead - a quoted number is still a number in
+// prose. Reports cite verbatim tool output by evidence-file path instead
+// (.scratch/grill-tNN/evidence/), never inline. Forward-binding: reports
+// written under the old exemption convention are not re-scanned.
+const PROSE_KEYS = ['suites', 'passed', 'pack_bytes', 'instrument_entries', 'rewrite_map_citations', 'registry_entries', 'anchors_count'];
+function proseScan(text, facts) {
+  const i = text.indexOf(SENTINEL_START);
+  const j = text.indexOf(SENTINEL_END);
+  const prose = (i !== -1 && j !== -1 && j > i) ? text.slice(0, i) + text.slice(j + SENTINEL_END.length) : text;
+  const violations = [];
+  for (const k of PROSE_KEYS) {
+    if (typeof facts[k] !== 'number') continue;
+    const v = String(facts[k]);
+    if (v.length >= 2 && new RegExp('\\b' + v + '\\b').test(prose)) violations.push('canon number ' + k + '=' + v + ' appears in report prose outside the sentinel region (quoted or bare - cite an evidence path instead, ADR-0077 D-E)');
+    if (new RegExp(k + '\\s*[:=]').test(prose)) violations.push('schema key ' + k + ' assigned in report prose outside the sentinel region');
+  }
+  if (/\b0\s+skipped|skipped\s*[:=]\s*0/.test(prose)) violations.push('skipped=0 appears in report prose outside the sentinel region');
+  return violations;
+}
+
 function main(argv) {
   requireCapabilities(['repo-tree'], { root: ROOT }); // non-registry consumer: inline declaration (ADR-0058 R8)
   const ri = argv.indexOf('--round');
@@ -119,6 +141,18 @@ function main(argv) {
   // on re-running the suite. Collection runs on a bare write, on --check,
   // or when the artifact is missing.
   const cur = fs.existsSync(factsPath) ? fs.readFileSync(factsPath, 'utf8') : null;
+  // ADR-0077 D-E author-time enforcement: canon numbers outside the
+  // sentinel region fail before collect or splice - a dirty report can
+  // never render green. Runs pre-collect so --check fails fast on prose
+  // (the facts the report renders are the committed artifact, not the
+  // about-to-be-collected state).
+  if (reportPath && cur !== null) {
+    const violations = proseScan(fs.readFileSync(reportPath, 'utf8'), JSON.parse(cur));
+    if (violations.length) {
+      for (const v of violations) console.error('FAIL: ' + v);
+      process.exit(1);
+    }
+  }
   const needsCollect = !reportPath || check || cur === null;
   let drift = false;
   if (needsCollect) {
@@ -143,7 +177,15 @@ function main(argv) {
     // the committed region stale in --check, and a bare write renders what
     // it just wrote.
     if (!fs.existsSync(factsPath)) { console.error('FAIL: .scratch/' + slug + '/round-facts.json missing - regenerate with node scripts/build-round-facts.js --round ' + slug); process.exit(1); }
-    const region = renderRegion(JSON.parse(fs.readFileSync(factsPath, 'utf8')));
+    const factsNow = JSON.parse(fs.readFileSync(factsPath, 'utf8'));
+    // Post-collect re-scan: covers the artifact-missing edge (collect just
+    // wrote the canon this path scans against). Same scan, same artifact.
+    const late = proseScan(fs.readFileSync(reportPath, 'utf8'), factsNow);
+    if (late.length) {
+      for (const v of late) console.error('FAIL: ' + v);
+      process.exit(1);
+    }
+    const region = renderRegion(factsNow);
     const text = fs.readFileSync(reportPath, 'utf8');
     const spliced = spliceRegion(text, region);
     if (check) {
@@ -158,4 +200,4 @@ function main(argv) {
 }
 
 if (require.main === module) main(process.argv);
-module.exports = { collect, renderRegion, spliceRegion, SENTINEL_START, SENTINEL_END };
+module.exports = { collect, renderRegion, spliceRegion, proseScan, PROSE_KEYS, SENTINEL_START, SENTINEL_END };

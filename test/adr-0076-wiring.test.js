@@ -1,9 +1,10 @@
-// test/adr-0076-wiring.test.js — grill-t15 doc-round wiring (ADR-0076 D-A..D-E).
+// test/adr-0076-wiring.test.js — ADR-0076 + ADR-0077 wiring (grill-t15..t17 doc/fix rounds).
 'use strict';
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
-const { execFileSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
 const ROOT = path.join(__dirname, '..');
 const ADR = path.join(ROOT, 'docs', 'adr', '0076-round-edit-surface-taxonomy-and-governance-carve-out.md');
 const TAX = path.join(ROOT, 'docs', 'governance', 'surface-taxonomy.json');
@@ -299,7 +300,7 @@ describe('ADR-0077 amendments (grill-t16 fix + mechanism round, data-surface ass
     expect(gov).toBe(scratch);
   });
 
-  test('facts canon: artifact schema + deterministic render pin + no bare schema numbers in report prose (ADR-0077 D-C)', () => {
+  test('facts canon: artifact schema + deterministic render pin (ADR-0077 D-C)', () => {
     const facts = readJson(path.join(ROOT, '.scratch', 'grill-t16', 'round-facts.json'));
     expect(Object.keys(facts).sort()).toEqual(['_doc', 'anchors_count', 'battery_as_of_commit', 'instrument_entries', 'not_run', 'pack_bytes', 'passed', 'registry_entries', 'report_commit', 'rewrite_map_citations', 'schema_version', 'skipped', 'suites']);
     expect(facts.report_commit).toBeNull();
@@ -309,12 +310,84 @@ describe('ADR-0077 amendments (grill-t16 fix + mechanism round, data-surface ass
     const i = report.indexOf(brf.SENTINEL_START), j = report.indexOf(brf.SENTINEL_END);
     expect(i !== -1 && j > i).toBe(true);
     expect(report.slice(i, j + brf.SENTINEL_END.length)).toBe(brf.renderRegion(facts));
-    const prose = (report.slice(0, i) + report.slice(j + brf.SENTINEL_END.length)).replace(/`[^`]*`/g, '');
-    for (const k of ['suites', 'passed', 'pack_bytes', 'instrument_entries', 'rewrite_map_citations', 'registry_entries', 'anchors_count']) {
-      const v = String(facts[k]);
-      if (v.length >= 2) expect(prose).not.toMatch(new RegExp('\\b' + v + '\\b'));
-      expect(prose).not.toMatch(new RegExp(k + '\\s*[:=]'));
+    // The t16 report predates the D-E unconditional scan (authored under
+    // the backtick-exemption convention): prose enforcement is
+    // forward-binding from grill-t17 - pinned in the describe below.
+  });
+});
+
+describe('grill-t17 dispositions (ADR-0077 D-E appendix + residue registrations)', () => {
+  const brf = require('../scripts/build-round-facts');
+  const ADR77 = path.join(ROOT, 'docs', 'adr', '0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md');
+  const T17F = path.join(ROOT, '.scratch', 'grill-t17', 'round-facts.json');
+  const T17R = path.join(ROOT, '.scratch', 'grill-t17', 'reports', '2026-09-18-report.md');
+
+  test('proseScan export: unconditional - a quoted canon number is still a violation', () => {
+    const facts = { suites: 73, passed: 1216, skipped: 0, pack_bytes: 333992, instrument_entries: 27, rewrite_map_citations: 1414, registry_entries: 57, anchors_count: 16 };
+    const clean = '# r\n\n' + brf.SENTINEL_START + '\n- suites: 73\n' + brf.SENTINEL_END + '\n\nprose cites the evidence path only\n';
+    expect(brf.proseScan(clean, facts)).toEqual([]);
+    const quoted = '# r\n\n' + brf.SENTINEL_START + '\n- suites: 73\n' + brf.SENTINEL_END + '\n\nverbatim output `[test] OK: 73 suites, 1216 tests` carried inline\n';
+    const v = brf.proseScan(quoted, facts).join(' ');
+    expect(v).toContain('suites=73');
+    expect(v).toContain('passed=1216');
+  });
+
+  test('a quoted-stale-number fixture MUST fail --check (ADR-0077 D-E)', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-brf-'));
+    try {
+      const rep = path.join(dir, 'fixture-report.md');
+      fs.writeFileSync(rep, '# fixture\n\n' + brf.SENTINEL_START + '\n- suites: 73\n' + brf.SENTINEL_END + '\n\nstale number inside backticks: `1216`\n');
+      const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'build-round-facts.js'), '--round', 'grill-t16', '--check', '--report', rep], { cwd: ROOT, encoding: 'utf8' });
+      expect(r.status).toBe(1);
+      expect(String(r.stderr)).toContain('passed=1216');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
     }
-    expect(prose).not.toMatch(/\b0\s+skipped|skipped\s*[:=]\s*0/);
+  });
+
+  test('the t17 report renders the canon region and carries no canon number in prose', () => {
+    const facts = readJson(T17F);
+    const report = read(T17R);
+    const i = report.indexOf(brf.SENTINEL_START), j = report.indexOf(brf.SENTINEL_END);
+    expect(i !== -1 && j > i).toBe(true);
+    expect(report.slice(i, j + brf.SENTINEL_END.length)).toBe(brf.renderRegion(facts));
+    expect(brf.proseScan(report, facts)).toEqual([]);
+  });
+
+  test('ADR-0077 D-E appendix registers the unconditional scan + the evidence-file convention', () => {
+    const a = read(ADR77);
+    expect(a).toContain('D-E - The unconditional-scan enforcement and the evidence-file convention');
+    expect(a).toContain('proseScan');
+    expect(a).toContain('.scratch/grill-tNN/evidence/');
+    expect(a).toContain('defer-0063');
+  });
+
+  test('defer-0063 is the missing-convention smell ticket with the anti-rot quota', () => {
+    const d = readJson(path.join(ROOT, 'docs', 'deferred-registry.json')).entries.find(function (e) { return e.id === 'defer-0063'; });
+    expect(d).toBeDefined();
+    expect(d.status).toBe('pending-evaluation');
+    expect(d.unfreeze_if.type).toBe('free-text');
+    expect(d.rationale).toContain('gate criteria');
+    expect(d.rationale).toContain('next fix bundle must take one smell ticket first');
+    expect(d.source_adr).toContain('0077-verifier-exit-convention');
+  });
+
+  test('ERRATA E-7 registers the seq-27 classification + the literal-token convention', () => {
+    const e = read(path.join(ROOT, 'docs', 'governance', 'ERRATA.md'));
+    expect(e).toContain('E-7 seq-27');
+    expect(e).toContain('substantively compliant');
+    expect(e).toContain('literal defect');
+    expect(e).toContain('expiry=任务耗竭');
+    expect(e).toContain('`scope:`+`expiry:`');
+  });
+
+  test('CONTEXT carries the Re-Execution Prior snapshot v2 and the sharpened delegation convention', () => {
+    const c = read(path.join(ROOT, 'CONTEXT.md'));
+    expect(c).toContain('n=19');
+    expect(c).toContain('supersedes the 2026-09-16 n=16 snapshot');
+    expect(c).toContain('quality-not-claim');
+    expect(c).toContain('`scope:`+`expiry:` tokens');
+    expect(c).toContain('Scribed Approval');
+    expect(c).toContain('Proxy Signature');
   });
 });
