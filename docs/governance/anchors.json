@@ -93,6 +93,13 @@
       "adr": "ADR-0064",
       "bytes": 3192,
       "sha256": "f59ccbca7636479ea9bf105c63be1064cb01a84443220dd0470c56c5b04500ba"
+    },
+    {
+      "file": "sunset-counter.json",
+      "origin": "(authored in place)",
+      "adr": "ADR-0076",
+      "bytes": 2048,
+      "sha256": "5e9f1ffcc05959969fe925f621ecb23201b9fe1710abaac6f5c4221dc8b9d345"
     }
   ]
 }

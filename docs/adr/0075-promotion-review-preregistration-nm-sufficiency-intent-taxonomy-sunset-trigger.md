@@ -65,6 +65,8 @@ The four implementation requirements, frozen as text:
 
 defer-0055's registry row carries a pointer to this clause and nothing else - the clause body lives here, not in the row.
 
+Durable state host (grill-t15, ADR-0076 D-C): the path-A counter lives in `docs/governance/sunset-counter.json` inside the ADR-0061 anchors chain; the decision ledger keeps an append-only audit trail only. A missed check-in is not a zero - the counter freezes and records the miss; an organic observation resets it with an explicit reset event.
+
 ### D-D - The blocking meta-requirement and the criteria shape (ledger D-004)
 
 **Decision**: the strategic review the D-C trigger activates is bound by a blocking meta-requirement, registered now:

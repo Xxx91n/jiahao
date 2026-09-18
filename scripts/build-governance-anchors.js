@@ -31,6 +31,7 @@ const ARTIFACTS = [
   { file: 'decision-ledger-t14.md', origin: '.scratch/grill-t14/decision-ledger.md', adr: 'ADR-0075' },
   { file: 'ERRATA.md', origin: '(authored in place)', adr: 'ADR-0061' },
   { file: 'trend-inventory.json', origin: '(authored in place)', adr: 'ADR-0064' },
+  { file: 'sunset-counter.json', origin: '(authored in place)', adr: 'ADR-0076' },
 ];
 
 function sha256(buf) { return crypto.createHash('sha256').update(buf).digest('hex'); }

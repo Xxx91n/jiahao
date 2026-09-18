@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0075 D-C sunset trigger durable state host (grill-t15 D-002): the parallel zero-observation counter lives in this git-tracked artifact inside the ADR-0061 anchors regen-and-diff chain; the decision ledger degrades to an append-only audit trail and is not the state host; no registry row is opened (defer-0060 as counter host was rejected, D-002). Single writer = round disposition; telemetry produces evidence only and never writes state (measurement vs bookkeeping separation).",
+  "trigger_ref": "ADR-0075 D-C",
+  "n_target": 6,
+  "consecutive_zeros": 1,
+  "observations": [
+    {
+      "check_in_date": "2026-09-17",
+      "organic_events": 0,
+      "evidence_ref": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+      "ledger_ref": ".scratch/grill-t14/decision-ledger.md#t-2-dispositions"
+    }
+  ],
+  "missed_check_ins": [],
+  "reset_events": [],
+  "activation": null,
+  "verified_by": "scripts/pairer-lane-telemetry.js",
+  "cadence": "quarterly, aligned to the defer-0055 check-in tide but with an independent lifecycle - this counter is not a field of defer-0055's row and does not die with it (watchdog independence, ADR-0075 D-C path A)",
+  "semantics": {
+    "organic_positive": "organic_events > 0 at a check-in resets consecutive_zeros to 0 AND appends a reset_events entry - a reset is never a silent overwrite",
+    "missed_check_in": "a quarterly check-in not executed freezes consecutive_zeros and appends a missed_check_ins entry - absence of observation is not an observation of zero (tighten-only operationalization of 'consecutive quarterly check-ins', grill-t15 D-002)",
+    "activation": "when consecutive_zeros reaches n_target the ledger records the event first, then activation {date, ledger_ref} is set - a one-way latch. Activation only SUGGESTS the already-scheduled strategic review (ADR-0035 D6); it never amends, closes, or exempts anything",
+    "single_writer": "round disposition writes this file; telemetry scripts only produce the evidence_ref payloads"
+  }
+}

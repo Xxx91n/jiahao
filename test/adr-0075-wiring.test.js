@@ -211,3 +211,54 @@ describe('frozen surfaces this round must not touch', () => {
     expect(a).toContain('G1/G3/G4 untouched');
   });
 });
+
+
+describe('grill-t15: sunset counter durable home (ADR-0075 D-C state host)', () => {
+  const COUNTER = path.join(ROOT, 'docs', 'governance', 'sunset-counter.json');
+  const counter = () => readJson(COUNTER);
+
+  test('the counter artifact exists with the registered schema and lives in the anchors chain', () => {
+    const c = counter();
+    expect(c.schema_version).toBe(1);
+    expect(c.trigger_ref).toBe('ADR-0075 D-C');
+    expect(c.n_target).toBe(6);
+    const a = readJson(path.join(ROOT, 'docs', 'governance', 'anchors.json'));
+    const e = a.artifacts.find(function (x) { return x.file === 'sunset-counter.json'; });
+    expect(e).toBeDefined();
+    expect(e.sha256).toBe(sha256(read(COUNTER)));
+  });
+
+  test('the count reads 1/6: one observation of organic=0, no resets, no activation latch', () => {
+    const c = counter();
+    expect(c.consecutive_zeros).toBe(1);
+    expect(c.observations).toHaveLength(1);
+    expect(c.observations[0].organic_events).toBe(0);
+    expect(c.reset_events).toEqual([]);
+    expect(c.missed_check_ins).toEqual([]);
+    expect(c.activation).toBeNull();
+  });
+
+  test('the observation tail reconciles with the ledger audit trail (ledger is not the state host)', () => {
+    const c = counter();
+    const obs = c.observations[c.observations.length - 1];
+    expect(obs.check_in_date).toBe('2026-09-17');
+    expect(fs.existsSync(path.join(ROOT, obs.evidence_ref))).toBe(true);
+    const ledger = read(path.join(ROOT, obs.ledger_ref.split('#')[0]));
+    expect(ledger).toContain('organic=0');
+    expect(ledger).toContain('1/6');
+  });
+
+  test('the clause semantics are pinned: missed check-in freezes, organic resets, activation only suggests', () => {
+    const c = counter();
+    expect(c.semantics.missed_check_in).toContain('freezes');
+    expect(c.semantics.organic_positive).toContain('resets');
+    expect(c.semantics.activation).toContain('SUGGESTS');
+    expect(c.verified_by).toBe('scripts/pairer-lane-telemetry.js');
+  });
+
+  test('ADR-0075 D-C carries the durable-host pointer line', () => {
+    const a = norm(read(ADR));
+    expect(a).toContain('docs/governance/sunset-counter.json');
+    expect(a).toContain('A missed check-in is not a zero');
+  });
+});
