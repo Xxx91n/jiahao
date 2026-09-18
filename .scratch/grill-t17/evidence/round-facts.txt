@@ -1,0 +1,3 @@
+$ node scripts/build-round-facts.js --round grill-t17 --check --report .scratch/grill-t17/reports/2026-09-18-report.md
+[round-facts] OK - facts and report region in sync
+exit: 0

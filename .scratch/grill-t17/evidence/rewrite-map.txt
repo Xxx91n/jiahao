@@ -1,3 +1,3 @@
 $ node scripts/build-rewrite-map.js --check
-[rewrite-map] OK: map in sync (1425 doc citations classified)
+[rewrite-map] OK: map in sync (1432 doc citations classified)
 exit: 0
