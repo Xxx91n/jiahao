@@ -2268,4 +2268,26 @@ held in bench/research/out/claim-template.md; edits move only with a
 same-commit ADR (ADR-0065 D-E; FDA 21 CFR 201.57 Highlights).
 _Avoid_: ad-hoc honesty disclaimers, caveats rewritten per document
 
+
+**Scribed Approval (代书批准)**:
+A signature-class event where the human made the decision and the agent only
+recorded it (writes the owner-ID as the decision’s attribution): the delegated
+act is the handwriting, not the decision. Distinguished from Proxy Signature by
+where the decision was made - the authorization field is the evidence axis
+(per-event owner approval text = scribed; open-ended standing grant = proxy).
+Instrument history: seq-27 is scribed approval (bounded two-ask scope).
+_Avoid_: treating scribe and proxy as the same delegation class; auditing
+delegation quality by reviewer ID alone instead of the authorization field
+
+**Proxy Signature (代理签署)**:
+A signature-class event where the agent exercised signing authority under a
+blanket/standing grant - the decision to sign was delegated, not merely the
+recording. Requires its own authorization basis (scope+expiry per Bounded
+Delegation); instrument history: seq 10-13 signed under the Xxx91n open-ended
+grant = proxy signatures (ERRATA E-6 registered wording: delegated second-line
+review, ID-level + delegation-level independence).
+_Avoid_: open-ended proxy grants (never open-ended, ADR-0061 D-C); counting a
+proxy signature as human-reviewed evidence
+
+
 *End of Glossary*
