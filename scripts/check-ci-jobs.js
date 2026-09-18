@@ -32,29 +32,61 @@ function parseJobs(yml) {
 
 function countJobs(yml) { return Object.keys(parseJobs(yml)).length; }
 
-// Pure: yml text in, predicate -> boolean out.
-function presence(yml) {
+// Pure: yml text + workflow-file count in, per-row predicates out.
+// defer-0004 (grill-t15 D-003 narrowed re-defer): the renderer question
+// reopens only when the CI shape outgrows what hand-reading honestly covers -
+// more than one workflow file OR any job declaring a matrix OR more than
+// three jobs. Multi-job alone (the old p1) was satisfied by ADR-0058's own
+// shape and permanently false-fired; the narrowed conditions are the
+// renderer-justifying ones.
+// defer-0026 (ADR-0058 D-F/D-G): dedicated test job + summary job + summary
+// always() - kept for reporting; the row is terminal (actioned 2026-09-18).
+function presence(yml, opts) {
   const jobs = parseJobs(yml);
   const summary = (jobs.summary || []).join('\n');
   const has = (k) => Object.prototype.hasOwnProperty.call(jobs, k);
+  const jobCount = Object.keys(jobs).length;
+  const anyMatrix = Object.keys(jobs).some(function (k) {
+    return /^\s+matrix:\s*(#.*)?$/m.test(jobs[k].join('\n'));
+  });
+  const workflowFiles = (opts && opts.workflowFiles) || 1;
+  const d0004 = {
+    multi_workflow: workflowFiles > 1,
+    any_matrix: anyMatrix,
+    over_three_jobs: jobCount > 3,
+  };
+  d0004.satisfied = d0004.multi_workflow || d0004.any_matrix || d0004.over_three_jobs;
+  const d0026 = {
+    test_job: has('test'),
+    summary_job: has('summary'),
+    summary_always: /^\s*if:\s*(\$\{\{\s*)?always\(\)\s*(\}\})?\s*$/m.test(summary),
+  };
+  d0026.satisfied = d0026.test_job && d0026.summary_job && d0026.summary_always;
   return {
-    p1_multi_job: Object.keys(jobs).length > 1,
-    p2_test_job: has('test'),
-    p3_summary_job: has('summary'),
-    p4_summary_always: /^\s*if:\s*(\$\{\{\s*)?always\(\)\s*(\}\})?\s*$/m.test(summary),
+    defer0004: d0004,
+    defer0026: d0026,
+    detail: { jobCount: jobCount, workflowFiles: workflowFiles, anyMatrix: anyMatrix },
   };
 }
 
-function evaluate(yml) {
-  const predicates = presence(yml);
-  const unmet = Object.keys(predicates).filter(k => !predicates[k]);
-  return { predicates, satisfied: unmet.length === 0, unmet };
+function evaluate(yml, opts) {
+  const p = presence(yml, opts);
+  const rows = ['defer0004', 'defer0026'];
+  const unmet = rows.filter(function (r) { return !p[r].satisfied; });
+  return { predicates: p, satisfied: unmet.length === 0, unmet: unmet };
 }
 
 function main(argv) {
-  const res = evaluate(fs.readFileSync(argv[2] || path.join(ROOT, CI_REL), 'utf8'));
-  const tags = Object.keys(res.predicates).map(k => (res.predicates[k] ? '+' : '-') + k).join(' ');
-  console.log('ci jobs: ' + tags + (res.satisfied
+  const ciPath = argv[2] || path.join(ROOT, CI_REL);
+  const wfDir = path.dirname(ciPath);
+  const workflowFiles = fs.readdirSync(wfDir).filter(function (f) { return /\.ya?ml$/.test(f); }).length;
+  const res = evaluate(fs.readFileSync(ciPath, 'utf8'), { workflowFiles: workflowFiles });
+  const tags = ['defer0004', 'defer0026'].map(function (r) {
+    const sub = res.predicates[r];
+    return r + '=' + (sub.satisfied ? 'SATISFIED' : 'unmet') +
+      '(' + Object.keys(sub).filter(function (k) { return k !== 'satisfied'; }).map(function (k) { return (sub[k] ? '+' : '-') + k; }).join(',') + ')';
+  }).join(' ');
+  console.log('ci jobs: ' + tags + ' detail=' + JSON.stringify(res.predicates.detail) + (res.satisfied
     ? ' - presence-condition SATISFIED, human review suggested (ADR-0035 D6)'
     : ' - not met (' + res.unmet.join(', ') + '); the deferral remains valid'));
   process.exit(res.satisfied ? 0 : 1);

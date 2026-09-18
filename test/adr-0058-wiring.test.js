@@ -211,3 +211,55 @@ describe('ADR-0058 R12 gitignore hygiene (audit A5)', () => {
     }
   });
 });
+
+describe('defer-0004 narrowed trigger (grill-t15 D-003 re-defer)', () => {
+  const { evaluate, presence } = require('../scripts/check-ci-jobs');
+  const yml = (jobs) => 'name: ci\n\njobs:\n' + jobs;
+  const job = (name, body) => '  ' + name + ':\n    runs-on: x\n' + (body || '    steps: []\n');
+
+  test('negative fixture: the live shape (single workflow, 3 jobs, no matrix) does NOT satisfy the narrowed trigger', () => {
+    const text = yml(job('gate-all') + job('test') + job('summary', '    if: always()\n    needs: [gate-all, test]\n'));
+    const p = presence(text, { workflowFiles: 1 });
+    expect(p.defer0004.satisfied).toBe(false);
+    expect(p.defer0004.multi_workflow).toBe(false);
+    expect(p.defer0004.any_matrix).toBe(false);
+    expect(p.defer0004.over_three_jobs).toBe(false);
+    expect(p.defer0026.satisfied).toBe(true);
+    expect(evaluate(text, { workflowFiles: 1 }).unmet).toEqual(['defer0004']);
+  });
+
+  test('positive fixtures: multi-workflow OR any matrix OR >3 jobs each satisfy the narrowed trigger', () => {
+    const base = yml(job('gate-all') + job('test') + job('summary', '    if: always()\n'));
+    expect(presence(base, { workflowFiles: 2 }).defer0004.satisfied).toBe(true);
+    const withMatrix = yml(job('test', '    strategy:\n      matrix:\n        node: [20]\n') + job('gate-all') + job('summary', '    if: always()\n'));
+    const pm = presence(withMatrix, { workflowFiles: 1 });
+    expect(pm.defer0004.any_matrix).toBe(true);
+    expect(pm.defer0004.satisfied).toBe(true);
+    const four = yml(job('a') + job('b') + job('c') + job('d'));
+    const p4 = presence(four, { workflowFiles: 1 });
+    expect(p4.defer0004.over_three_jobs).toBe(true);
+    expect(p4.defer0004.satisfied).toBe(true);
+  });
+
+  test('boundary: exactly three jobs with no matrix stays deferred', () => {
+    const three = yml(job('a') + job('b') + job('c'));
+    expect(presence(three, { workflowFiles: 1 }).defer0004.satisfied).toBe(false);
+  });
+
+  test('the live ci.yml reports defer0004 unmet and defer0026 satisfied', () => {
+    const res = evaluate(fs.readFileSync(path.join(ROOT, '.github', 'workflows', 'ci.yml'), 'utf8'), { workflowFiles: 1 });
+    expect(res.predicates.defer0004.satisfied).toBe(false);
+    expect(res.predicates.defer0026.satisfied).toBe(true);
+  });
+
+  test('the registry row carries the narrowed prose trigger with the same verified_by', () => {
+    const reg = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'deferred-registry.json'), 'utf8'));
+    const d = reg.entries.find(function (e) { return e.id === 'defer-0004'; });
+    expect(d.status).toBe('deferred');
+    expect(d.unfreeze_if.verified_by).toBe('scripts/check-ci-jobs.js');
+    expect(d.unfreeze_if.check).toContain('multiple workflow files');
+    expect(d.unfreeze_if.check).toContain('matrix');
+    expect(d.unfreeze_if.check).toContain('> 3');
+    expect(d.rationale).toContain('narrowed');
+  });
+});
