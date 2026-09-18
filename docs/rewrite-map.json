@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-18T08:25:27.075Z",
+  "generated_at": "2026-09-18T09:19:49.300Z",
   "published_tip": "21b144216403671ae53e176fe6eee43265832e08",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -23,11 +23,11 @@
     "published_only": 27,
     "removed": 0,
     "same": 278,
-    "doc_refs": 1403,
+    "doc_refs": 1410,
     "doc_refs_by_class": {
       "rewritten": 97,
-      "local-only": 682,
-      "published-unchanged": 624
+      "local-only": 683,
+      "published-unchanged": 630
     }
   },
   "commits": [
@@ -7240,6 +7240,42 @@
       "label": "unresolved hex literal"
     },
     {
+      "file": ".scratch/grill-t15/audit-evidence/audit-report-2026-09-18.md",
+      "line": 4,
+      "sha": "21b1442",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t15/audit-evidence/audit-report-2026-09-18.md",
+      "line": 8,
+      "sha": "21b1442",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t15/audit-evidence/audit-report-2026-09-18.md",
+      "line": 33,
+      "sha": "fd6a0d42",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t15/audit-evidence/audit-report-2026-09-18.md",
+      "line": 49,
+      "sha": "21b1442",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t15/handoffs/2026-09-18-audit-passed-with-findings.md",
+      "line": 21,
+      "sha": "21b1442",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
       "file": ".scratch/grill-t15/handoffs/next-round.md",
       "line": 16,
       "sha": "21b1442",
@@ -7708,6 +7744,20 @@
       "class": "local-only",
       "resolved_to": null,
       "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t16/handoffs/next-round.md",
+      "line": 17,
+      "sha": "21b1442",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t16/spec-fix-mechanisms.md",
+      "line": 9,
+      "sha": "21b1442",
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t6/audit/b7ccbeb/bench/polygraph/README.md",
@@ -10834,7 +10884,7 @@
     },
     {
       "file": "README.md",
-      "line": 345,
+      "line": 346,
       "sha": "994bdeb3",
       "class": "local-only",
       "resolved_to": null,
@@ -10842,7 +10892,7 @@
     },
     {
       "file": "README.md",
-      "line": 414,
+      "line": 415,
       "sha": "8807a61",
       "class": "published-unchanged",
       "resolved_to": null

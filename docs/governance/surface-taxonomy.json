@@ -77,7 +77,23 @@
   },
   "diff_semantics": {
     "zero_product_diff": "no R1-surface file touched (redefined under ADR-0076; historical rows keep their meaning)",
-    "governance_tooling_diff": "independent dimension recording which R2 files the round touched - may be true while zero_product_diff is also true (the F-4 shape)",
+    "governance_tooling_diff": "independent dimension recording machinery-SOURCE hand-edits on the R2 surface - may be true while zero_product_diff is also true (the F-4 shape). Mechanism-output artifacts (mechanism_outputs below) are exempt only on faithful regeneration: the diff equals what re-running the registered generator at that commit produces. A HAND-EDIT of an output is a named heavier violation (falsification-adjacent) and must be disclosed in files[] (ADR-0077 D-B; supersedes the earlier phrasing \"which R2 files the round touched\")",
+    "mechanism_output_diff": "optional sibling marker {files, reason} - provenance visibility for mechanism-output touches; never feeds burn-rate; listed files must be in mechanism_outputs; a bare marker with no files hard-fails (ADR-0077 D-B)",
     "carve_out_used": "0|1 burn-rate marker on the trend-inventory row; two consecutive rounds at 1 raise an advisory"
+  },
+  "mechanism_outputs": {
+    "_doc": "ADR-0077 D-B: closed enumeration (never residual - same anti-drift discipline as the R1 closure) of git-tracked, R2-classified artifacts produced by a registered in-repo generator. A faithful regeneration of a member is exempt from governance_tooling_diff.files[] disclosure; a hand-edit is a named heavier violation and must be disclosed. Sibling-class outputs on the documentation surface (docs/governance/anchors.json, docs/rewrite-map.json, the surfaces.R1.files snapshot, the README adr-index block) are named in ADR-0077, not enumerated here - R3 files never enter files[] jurisdiction, so the exemption question does not arise for them.",
+    "entries": [
+      {
+        "file": "src/instrument-state.json",
+        "generator": "scripts/instrument.js",
+        "replay_verified": false
+      },
+      {
+        "file": "bench/research/out/g6-publish-replay.json",
+        "generator": "scripts/check-g6-publish.js",
+        "replay_verified": true
+      }
+    ]
   }
 }

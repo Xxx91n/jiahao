@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-09-18
+- Amended-by: ADR-0077 (D-B(2) diff semantics: the phrase "which R2 files the round touched" is superseded - files[] jurisdiction is machinery-source hand-edits; mechanism-output artifacts carry the faithful-regeneration exemption)
 - Ledger: `.scratch/grill-t15/decision-ledger.md` — grill-t15 D-001..D-007 (all current); the governance copy is `docs/governance/decision-ledger-t15.md`
 - Spec: `.scratch/grill-t15/spec-disposition-mechanisms.md`
 
@@ -28,7 +29,7 @@ The R1 set is enumerated by the closure scan, never by hand — `test/adr-0076-w
 **Decision**: a documentation round may touch an R2 file only through the registered carve-out, gated three ways:
 
 1. **Necessity** — the justification names the triggering artifact; only what the round's own artifact truthfulness requires qualifies.
-2. **Disclosure** — the trend-inventory row carries `governance_tooling_diff:{files, reason}` and the round's ADR names the change in its Decision section.
+2. **Disclosure** — the trend-inventory row carries `governance_tooling_diff:{files, reason}` and the round's ADR names the change in its Decision section. *(Amended by ADR-0077 D-B: the literal phrase "which R2 files the round touched" is superseded - files[] jurisdiction is machinery-SOURCE hand-edits; mechanism-output artifacts are exempt only on faithful regeneration, and the optional mechanism_output_diff sibling marker carries provenance.)*
 3. **Burn-rate** — the row carries `carve_out_used`; two consecutive carve-out rounds raise one advisory warning that never blocks.
 
 The check is *recomputed, not trusted*: `scripts/check-governance-inventory.js` re-derives every listed file's surface from the taxonomy authority and hard-fails on an R1 file or a mislabeled row — a declaration cannot declare itself true.

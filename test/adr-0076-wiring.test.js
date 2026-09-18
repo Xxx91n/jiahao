@@ -40,7 +40,7 @@ describe('ADR-0076 doc surface (grill-t15 disposition + mechanism round)', () =>
 
   test('README index rebuilt: 76 records incl. ADR-0076', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('76 architecture decision records');
+    expect(r).toContain('77 architecture decision records');
     expect(r).toContain('0076-round-edit-surface-taxonomy-and-governance-carve-out.md');
   });
 
@@ -149,5 +149,129 @@ describe('owner asks frozen, never bundled (ADR-0076 D-E)', () => {
     expect(a).toContain('Ask B packet (frozen)');
     expect(a).toContain('defer-0051-evidence-packet.json');
     expect(a).toContain('rejection reopens');
+  });
+});
+
+describe('ADR-0077 amendments (grill-t16 fix + mechanism round, data-surface assertions)', () => {
+  const ADR77 = path.join(ROOT, 'docs', 'adr', '0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md');
+  const trend = () => readJson(path.join(ROOT, 'docs', 'governance', 'trend-inventory.json'));
+
+  test('ADR-0077 exists with live status, date, amends line, and ledger anchor', () => {
+    const a = read(ADR77);
+    expect(a).toContain('# ADR-0077:');
+    expect(a).toContain('- Status: Accepted');
+    expect(a).toContain('- Date: 2026-09-18');
+    expect(a).toContain('- Amends: ADR-0076 D-B(2)');
+    expect(a).toContain('decision-ledger.md');
+    expect(a).toContain('currently consuming');
+    expect(a).toContain('the report is narrative, never the home of numbers');
+  });
+
+  test('ADR-0076 carries the Amended-by pointer and the D-B(2) superseded-phrase annotation', () => {
+    const a = read(ADR);
+    expect(a).toContain('- Amended-by: ADR-0077');
+    expect(a).toContain('Amended by ADR-0077 D-B');
+    expect(a).toContain('machinery-SOURCE hand-edits');
+  });
+
+  test('mechanism_outputs is a closed enumeration: every entry classifies R2 and names an existing generator', () => {
+    const t = readJson(TAX);
+    const mo = t.mechanism_outputs;
+    expect(mo).toBeDefined();
+    expect(Array.isArray(mo.entries)).toBe(true);
+    const closure = new Set(tax.computeRuntimeClosure(ROOT));
+    for (const e of mo.entries) {
+      expect(Object.keys(e).sort()).toEqual(['file', 'generator', 'replay_verified']);
+      expect(tax.classifyPath(e.file, closure)).toBe('R2');
+      expect(fs.existsSync(path.join(ROOT, e.generator))).toBe(true);
+      expect(typeof e.replay_verified).toBe('boolean');
+    }
+  });
+
+  test('the two F-D artifacts are the enumeration members', () => {
+    const files = readJson(TAX).mechanism_outputs.entries.map(function (e) { return e.file; }).sort();
+    expect(files).toEqual(['bench/research/out/g6-publish-replay.json', 'src/instrument-state.json']);
+  });
+
+  test('diff_semantics reworded: machinery-source hand-edits + faithful regeneration + mechanism_output_diff entry', () => {
+    const ds = readJson(TAX).diff_semantics;
+    expect(ds.governance_tooling_diff).toContain('machinery-SOURCE hand-edits');
+    expect(ds.governance_tooling_diff).toContain('faithful regeneration');
+    expect(ds.governance_tooling_diff).not.toContain('recording which R2 files the round touched');
+    expect(ds.mechanism_output_diff).toContain('never feeds burn-rate');
+    expect(ds.mechanism_output_diff).toContain('hard-fails');
+  });
+
+  test('t15 trend row annotation is additive-only: historical booleans untouched', () => {
+    const r = trend().rounds.find(function (x) { return x.round === 'grill-t15-doc-round'; });
+    expect(r.carve_out_used).toBe(1);
+    expect(r.zero_product_diff).toBe(true);
+    expect(r.governance_tooling_diff.files).toContain('scripts/check-ci-jobs.js');
+    expect(r.mechanism_output_diff.files.sort()).toEqual(['bench/research/out/g6-publish-replay.json', 'src/instrument-state.json']);
+    expect(r.mechanism_output_diff.reason.length).toBeGreaterThanOrEqual(10);
+  });
+
+  test('t16 row: +1 ADR-0077, zero product diff, carve-out not invoked (streak resets)', () => {
+    const r = trend().rounds.find(function (x) { return x.round === 'grill-t16-doc-round'; });
+    expect(r).toBeDefined();
+    expect(r.adr_added).toEqual(['0077']);
+    expect(r.net_additions).toBe(1);
+    expect(r.zero_product_diff).toBe(true);
+    expect(r.carve_out_used).toBe(0);
+    expect(r.governance_tooling_diff).toBeUndefined();
+    expect(r.mechanism_output_diff.files).toEqual(['bench/research/out/g6-publish-replay.json']);
+    expect(r.deferred_entry).toBe('defer-0062');
+    expect(r.advisory_fired).toBe(false);
+  });
+
+  test('no unlisted file claims the output exemption (mechanism_output_diff files are always inside the enumeration)', () => {
+    const t = readJson(TAX);
+    const members = t.mechanism_outputs.entries.map(function (e) { return e.file; });
+    const closure = new Set(tax.computeRuntimeClosure(ROOT));
+    for (const r of trend().rounds) {
+      if (!r.mechanism_output_diff) continue;
+      expect(Array.isArray(r.mechanism_output_diff.files)).toBe(true);
+      expect(r.mechanism_output_diff.files.length).toBeGreaterThan(0);
+      for (const f of r.mechanism_output_diff.files) {
+        expect(members).toContain(f);
+        expect(tax.classifyPath(f, closure)).toBe('R2');
+      }
+    }
+  });
+
+  test('CONTEXT.md carries the Consuming-Row Exit + Facts Canon terms and the carve-out gloss restored the inventory channel', () => {
+    const c = read(path.join(ROOT, 'CONTEXT.md'));
+    expect(c).toContain('Consuming-Row Exit');
+    expect(c).toContain('Facts Canon');
+    expect(c).toContain('trend-inventory governance_tooling_diff channel');
+  });
+
+  test('defer-0004 rationale cites ADR-0058 D-C explicitly (settles F-C)', () => {
+    const d = readJson(path.join(ROOT, 'docs', 'deferred-registry.json')).entries.find(function (e) { return e.id === 'defer-0004'; });
+    expect(d.rationale).toContain('ADR-0058 D-C');
+  });
+
+  test('defer-0062 tally row registered closed for the +1 round', () => {
+    const d = readJson(path.join(ROOT, 'docs', 'deferred-registry.json')).entries.find(function (e) { return e.id === 'defer-0062'; });
+    expect(d).toBeDefined();
+    expect(d.source_adr).toContain('0077-verifier-exit-convention');
+    expect(d.status).toBe('closed');
+    expect(d.closed_via).toContain('same-commit ledger note');
+  });
+
+  test('README index rebuilt: 77 records incl. ADR-0077', () => {
+    const r = read(path.join(ROOT, 'README.md'));
+    expect(r).toContain('77 architecture decision records');
+    expect(r).toContain('0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md');
+  });
+
+  test('the ledger carries the convention verbatim and the consent-sweep lines', () => {
+    const l = read(path.join(ROOT, '.scratch', 'grill-t16', 'decision-ledger.md'));
+    expect(l).toContain('currently consuming');
+    expect(l).toContain('multi-row reporting is diagnostic, never exit-driving');
+    expect(l).toContain('T-1 dispositions');
+    expect(l).toContain('defer-0060');
+    expect(l).toContain('consent-sweep');
+    expect(l).toContain('never \"audit response\"');
   });
 });

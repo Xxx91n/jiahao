@@ -56,7 +56,7 @@
       "id": "defer-0004",
       "subject": "generated ci.yml from docs/gates.json (C-style render + regen-diff uplift)",
       "source_adr": "docs/adr/0034-gate-registry-single-entrypoint-orchestration.md",
-      "rationale": "ADR-0034 R4: ci.yml is a single-consumer ~30-line file; a renderer would hide intent drift behind a build step (ADR-0032 D2 anti-precedent). The D5 line-level wiring assertion (scripts/check-ci-wiring.js) covers the drift risk at zero build-layer cost. grill-t15 D-003: multi-job arrived via ADR-0058 and did not constitute sufficient reason for a renderer; re-defer narrowed to the renderer-justifying conditions (multi-workflow / any matrix / >3 jobs) with the verified_by predicate rewritten to match - a permanently-SATISFIED verifier is the alert-fatigue anti-pattern.",
+      "rationale": "ADR-0034 R4: ci.yml is a single-consumer ~30-line file; a renderer would hide intent drift behind a build step (ADR-0032 D2 anti-precedent). The D5 line-level wiring assertion (scripts/check-ci-wiring.js) covers the drift risk at zero build-layer cost. grill-t15 D-003: multi-job arrived via ADR-0058 and did not constitute sufficient reason for a renderer; re-defer narrowed to the renderer-justifying conditions (multi-workflow / any matrix / >3 jobs) with the verified_by predicate rewritten to match - a permanently-SATISFIED verifier is the alert-fatigue anti-pattern. grill-t16 F-C settlement: the narrowed re-defer is one of the three exits pre-registered by ADR-0058 D-C (defer-0004 evaluation scope: presence-coupled only - activate, re-defer + update rationale, or close); the exit-semantics convention that governs the verifier is ADR-0077 D-A.",
       "unfreeze_if": {
         "type": "presence-condition",
         "check": "ci.yml spans multiple workflow files OR any job declares a matrix OR job count > 3",
@@ -956,6 +956,22 @@
       "status": "closed",
       "closed_at": "2026-09-18",
       "closed_via": "same-commit ledger note: .scratch/grill-t15/decision-ledger.md T-2 dispositions (defer-0059 precedent: row exists + ADR registered = nothing left to disposition)"
+    },
+    {
+      "id": "defer-0062",
+      "subject": "grill-t16 doc round net-addition tally: +1 ADR (ADR-0077 consuming-row exit convention + mechanism-output artifact enumeration + round-report facts canon) - D-006(a)(i) summary row",
+      "source_adr": "docs/adr/0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md",
+      "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t16 documentation round lands one new ADR (0077: the consuming-row verified_by exit convention, the R2-internal mechanism_outputs closed enumeration with the faithful-regeneration exemption and the mechanism_output_diff provenance marker, and the round-report facts canon with the narrowed addendum channel). The round also touches CONTEXT.md glossary, the surface-taxonomy diff_semantics reword, the t15 trend-row additive annotation, the README index, and the adr-0076 wiring assertions - no R2 machinery is touched in the documentation bundle (carve-out not invoked).",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-18",
+      "status": "closed",
+      "closed_at": "2026-09-18",
+      "closed_via": "same-commit ledger note: .scratch/grill-t16/decision-ledger.md T-1 dispositions (defer-0059/0061 precedent: row exists + ADR registered = nothing left to disposition)"
     }
   ]
 }

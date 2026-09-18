@@ -140,7 +140,34 @@
         "reason": "defer-0004 narrowed re-defer requires the verified_by predicate to match (D-003; permanently-SATISFIED alert fatigue banned) - the carve-out first registered use, baseline: consecutive counting starts here (ADR-0076 D-B). The other files are mechanism bootstrap disclosed in ADR-0076 D-B: taxonomy authority module, inventory recompute, anchors admission list, suite-count parity - mechanism creation, not carve-out uses."
       },
       "carve_out_used": 1,
+      "mechanism_output_diff": {
+        "files": [
+          "src/instrument-state.json",
+          "bench/research/out/g6-publish-replay.json"
+        ],
+        "reason": "additive-only annotation under ADR-0077 D-B (settles audit F-D): the two R2-surface touches this round were mechanism-output artifacts - instrument-state.json appended by the T-3 sign-off event and g6-publish-replay.json refreshed by the gate. Historical booleans untouched; carve_out_used:1 stands."
+      },
       "deferred_entry": "defer-0061",
+      "advisory_fired": false
+    },
+    {
+      "round": "grill-t16-doc-round",
+      "date": "2026-09-18",
+      "kind": "documentation",
+      "adr_added": [
+        "0077"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "carve_out_used": 0,
+      "mechanism_output_diff": {
+        "files": [
+          "bench/research/out/g6-publish-replay.json"
+        ],
+        "reason": "gate refresh during the R1 boundary battery - faithful regeneration by the registered generator (check-g6-publish.js) after the tarball grew with the new ADR; first marker use under ADR-0077 D-B"
+      },
+      "deferred_entry": "defer-0062",
       "advisory_fired": false
     }
   ],

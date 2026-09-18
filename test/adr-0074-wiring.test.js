@@ -142,7 +142,7 @@ describe('README + governance-surface sync', () => {
 
   test('the README ADR index carries ADR-0074 (rebuilt, 74 records)', () => {
     const r = read(README);
-    expect(r).toContain('76 architecture decision records');
+    expect(r).toContain('77 architecture decision records');
     expect(r).toContain('0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md');
   });
 

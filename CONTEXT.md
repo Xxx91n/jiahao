@@ -731,7 +731,8 @@ list no mechanical scan can verify
 The gated exemption letting a documentation round repair governance
 machinery when the round's own artifact truthfulness requires it:
 necessity (the justification names the triggering artifact), disclosure
-(the change is named in the round's ADR decision and ledger), and burn-rate
+(the change is named in the round's ADR decision, the ledger, and the
+trend-inventory governance_tooling_diff channel), and burn-rate
 visibility (each use is marked so consecutive uses raise an advisory). A
 controlled emergency lane, not a general permission (ledger t15 D-005).
 _Avoid_: unmarked use; bundling the justification into prose; reading the
