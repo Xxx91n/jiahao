@@ -553,16 +553,22 @@ _Avoid_: efficacy claims migrated from test context to product context
 (FTC precedent), silence about a shipped capability
 
 **Re-Execution Prior (重执行先验)**
-A presumptive audit-design prior in the ISA-240.31 form: as of the
-2026-09-16 snapshot, every correction to a self-produced claim or report
-was caught by re-execution or independent audit — six named cases in 锐评
-v4 plus ten later audit observations (F-A x4, F-B x6) — and zero by
-self-disclosure. Audit and gate strategy takes this prior as default
-design input; overturning it requires a documented argument, not
-vigilance (ISA 240.48: exemptions are recorded, not assumed). The count
-is a dated snapshot from authoritative artifacts, not a frequency
-estimate — detection bias is disclosed (uncaught corrections are
-invisible to the count).
+A presumptive audit-design prior in the ISA-240.31 form. Snapshot v2
+(2026-09-18, supersedes the 2026-09-16 n=16 snapshot, which is archived
+not edited): every correction to a self-produced claim or report was
+caught by re-execution or independent audit — the n=16 base (six named
+cases in 锐评 v4 plus ten later audit observations, F-A x4 / F-B x6) plus
+the t16 audit's claim findings G-1/G-2/G-3 merged at closeout, n=19 —
+and zero by self-disclosure. G-4 is excluded as quality-not-claim
+(smells are not claim corrections). Audit and gate strategy takes this
+prior as default design input; overturning it requires a documented
+argument, not vigilance (ISA 240.48: exemptions are recorded, not
+assumed). The count is a dated snapshot from authoritative artifacts,
+not a frequency estimate — detection bias is disclosed (uncaught
+corrections are invisible to the count). Registered conventions: audit
+findings merge into the count at closeout; the first self-disclosure
+case is a directional event — separately registered, never an in-place
+number change.
 _Avoid_: reading it as an extrapolated rate; treating small n as license
 to drop the prior (ledger t11 D-004)
 
@@ -574,7 +580,10 @@ temporary coverage that never expires; ISO/IEC 17025 signatory authority
 is per-person, scope-specific, and terminates on change; zero-standing-
 privilege practice). The next authorization-bearing event forces an
 explicit renew-or-expire act; a bounded-grant template is pre-staged so
-the moment is not negotiated under pressure.
+the moment is not negotiated under pressure. Convention sharpened
+(grill-t17, ERRATA E-7): signoff-class authorizations carry the literal
+`scope:`+`expiry:` tokens in the authorization field — a bounded reading
+is not a bounded grant.
 _Avoid_: open-ended delegation even when honestly recorded; retroactive
 rewriting of a grant already on the append-only chain (ledger t11 D-004)
 

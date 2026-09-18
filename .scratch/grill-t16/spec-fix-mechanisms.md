@@ -89,10 +89,12 @@ via pointer/status line, surface-taxonomy diff_semantics via rewording.
 
 - surface-taxonomy.json gains mechanism_outputs: R2-internal sub-class,
   CLOSED enumeration (never residual — same anti-drift discipline as the
-  R1 closure). Each entry: {file, generator, replay_verified}. Members
-  include src/instrument-state.json, bench/research/out/g6-publish-
-  replay.json, anchors.json, rewrite-map.json, the taxonomy R1 snapshot,
-  pack-size records.
+  R1 closure). Each entry: {file, generator, replay_verified}. Shipped
+  members: src/instrument-state.json, bench/research/out/g6-publish-
+  replay.json. The same output class on the documentation surface —
+  anchors.json, rewrite-map.json, the taxonomy R1 snapshot, pack-size
+  records — is named, not enumerated (R3 files never enter files[]
+  jurisdiction).
 - Wiring asserts: every entry classifies R2, names an existing generator,
   and no unlisted file may claim the exemption.
 - diff_semantics.governance_tooling_diff reworded: files[] jurisdiction =

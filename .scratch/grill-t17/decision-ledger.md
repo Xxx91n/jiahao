@@ -8,3 +8,39 @@
 | D-004 | Q4 两残值项处置：seq-27 expiry 字面缺格 + Re-Execution Prior 刷新（经 atomcode 调研裁决） | "采纳"（针对 a′+b′） | (a) seq-27 判定实质合规+字面瑕疵登记：治理注记补记 expiry=任务耗竭语义（冻链不改写落新注记）；惯例锐化签署类授权须带字面 scope:+expiry: 双 token；CONTEXT 词条 Scribed Approval vs Proxy Signature（判别轴=authorization 字段：人决我录 vs 我决）；(b) Re-Execution Prior 发 snapshot v2：n=19@2026-09-18（G-1/G-2/G-3 纳入、G-4 质量非 claim 不计），旧 n=16 标 superseded 归档，detection-bias 条款原样携带；登记惯例"审计发现收官并入计数" | 负向：不以精神满足豁免登记（防临时批准变永久特权先例化）；不滚动窗口不就地改数；首例自披露=方向性事件单独登记非改数；instrument CLI 不加硬格式门禁（授权是逐字人语非机读字段） | current |
 | D-005 | Q5 G-3 nits+G-4 smells 处置形态（经 atomcode 调研裁决为判据闸门混合式） | "采纳"（针对 b″） | 三判据闸门（分钟级~≤30行×行为不变×无需先立惯例）：tmpdir清理+helper去重+loader-in-loop 三件进当期（独立 refactor:/test: 原子commit不混修复束）；guard/exit-style 递延登记（惯例缺失非局部缺陷，先立惯例再修）附防腐烂钩子"下轮修复束首项必带一张smell票"配额行；惯例成文为闸门判据本身；nits 5件全修（更正类非可选） | 负向：不写"smells默认进当期修复束"惯例（无上限yak-shaving契约化）；不顺带修与fix混提（Goulding评审成本×2）；不动冻结面；递延票无配额=腐烂不接受 | current |
 | D-006 | Q6 收尾形态与执行结构 | "采纳"（针对 a+b+c+d 全包） | 轻收尾：自检电池（t16审计§6验收电池原样复跑）+owner批准，审计节律属owner域仅呈报audit-ready；R1先行（CONTEXT两词条+seq-27注记+prior v2+ADR-0077附录+registry递延票+doc-nits）后R2（proseScan+fixture/gen-docs钉+追溯修+模板/三smell原子commit/钉名修/t17报告facts canon+evidence首用）；setup commit吸收uo+xk；consent-sweep逐条disposition行+smell票配额行；零ask、栈landing仅知情、4patch永不提交 | 负向：不自立惯例性审计（触发未响惯例审计=自立规矩自破）；carve-out不援引（R1全R3/R2全R2干净切分）；proseScan惯例走ADR-0077附录非新ADR；report_commit仍null自指披露 | current |
+
+## T-1 dispositions (R1 documentation bundle, 2026-09-18)
+
+Executed per handoffs/next-round.md T-1. Each row names its evidence; this
+section is the same-commit ledger note for the R1 doc-surface edits
+(consent-sweep framing - never "audit response").
+
+- D-002 — ADR-0077 D-E appendix registered: unconditional-scan proseScan
+  semantics (backtick-strip exemption deleted; canon numbers live only in
+  the sentinel region, quoted or bare) + the evidence-file convention
+  (verbatim output in .scratch/grill-tNN/evidence/, per-round artifacts,
+  never in the anchors chain - same churn reasoning as round-facts.json).
+  Forward-binding: earlier reports stay verbatim under the convention
+  they were written to.
+- D-004a — ERRATA E-7 registered: seq-27 record_signoff classified
+  substantively compliant + literal defect; expiry=任务耗竭 recorded as
+  the correction; the frozen hash chain is untouched; signoff-class
+  authorizations carry literal scope:+expiry: tokens henceforth
+  (CONTEXT Bounded Delegation sharpened; not gated in instrument CLI).
+- D-004b — CONTEXT Re-Execution Prior snapshot v2 published:
+  n=19@2026-09-18 (n=16 base + G-1/G-2/G-3 merged at closeout; G-4
+  excluded as quality-not-claim); the n=16 snapshot is superseded and
+  archived, not edited; the detection-bias clause is carried verbatim;
+  conventions registered - audit findings merge at closeout, first
+  self-disclosure is a directional event registered separately.
+  Scribed Approval / Proxy Signature terms verified present (setup
+  commit qqu); wording did not drift, no extension needed.
+- D-005 — defer-0063 registered (build-round-facts guard/exit-style
+  smell, missing-convention class, free-text unfreeze_if, quarterly
+  2026-12-15; the gate criteria convention is written into the row and
+  the anti-rot quota is registered: next fix bundle takes one smell
+  ticket first). Doc-nits executed: t16 round-complete handoff
+  citation-count dup + "D-E" mislabel corrected, t16 spec section-3
+  member list realigned to the shipped enumeration, t16 report F-C
+  wording corrected to the carve-out gloss; adr-0033 seed inventory
+  re-pinned to 57 entries.

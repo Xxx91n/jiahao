@@ -86,3 +86,27 @@ next authorization-bearing event.
 Frozen history is never rewritten (seq 6/8/10/12/13 stay verbatim on the
 append-only chain); this entry is the correction record. Bound by
 test/adr-0072-wiring.test.js.
+
+## E-7 seq-27 record_signoff authorization carries no literal expiry token (registered defect)
+
+Observed 2026-09-18 (grill-t17 D-004 disposition of the t16 audit residue):
+the seq-27 `record_signoff` event's authorization ("批准，给你权限 - owner
+chat approval 2026-09-18 covering the two unbundled asks (seq-24 record
+sign-off + defer-0051 packet ratification)") is scope-bounded to two named
+tasks — a self-exhausting expiry equivalent — so the event is
+**substantively compliant**; but it carries no literal `expiry:` token,
+which is a **literal defect**, registered so a temporary grant cannot
+precedent-normalize into a permanent privilege.
+
+Correction (the frozen hash chain is untouched): expiry=任务耗竭 — the
+authorization lapses when the two named tasks complete — is recorded here
+as the correction record; seq-27 itself stays verbatim on the append-only
+chain.
+
+Convention sharpened forward: signoff-class authorizations carry the
+literal `scope:`+`expiry:` tokens in the authorization field — the
+bounded-grant template at docs/governance/delegation-renewal-template.md
+already existed; verbatim use was the missing step (E-4/E-5 pattern: the
+obligation binds events appended from the registration boundary forward).
+Not gated in the instrument CLI: the authorization field is verbatim human
+text, not a machine-readable field.

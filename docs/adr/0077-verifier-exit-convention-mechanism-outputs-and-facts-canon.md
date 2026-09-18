@@ -56,6 +56,14 @@ Judgment line (the D-002 shape applied): "the report is narrative, never the hom
 - Zero owner asks this round: T-3 is fully discharged; defer-0060's owner actions are its unfreeze_if.
 - The three audit patches (tq/nl/xu) stay untracked forever; the round report restates the explicit-change-IDs lesson.
 
+### D-E - The unconditional-scan enforcement and the evidence-file convention (grill-t17 appendix, ledger D-002)
+
+**Decision**: the D-C prose pin is unconditional. The bare-number scan moves into `scripts/build-round-facts.js` as the exported `proseScan`, the backtick-span exemption is deleted, and `--check --report` enforces it at author time — a canon number in report prose fails the check before the gate ever sees it, quoted or bare. Schema-key values live only in the sentinel region; a number inside quotation marks is still a number in prose. The pin binds reports authored from this appendix forward — earlier round reports were written under the backtick-exemption convention and stay verbatim (the E-4/E-5 forward-binding pattern).
+
+**The evidence-file convention**: verbatim tool output lives in `.scratch/grill-tNN/evidence/` committed artifacts; the report references them by path and carries no numbers inline. Evidence artifacts are per-round regenerated and do NOT join the anchors chain — the same churn reasoning that keeps `round-facts.json` out (per-round regeneration would churn the slow-moving digest chain; the D-C adjudicated deviation extends to the evidence directory by the same argument).
+
+**defer-0063** registers the deferred sibling smell: `build-round-facts.js`'s guard/exit-style mix is a missing convention, not a local defect — convention first, fix after, per the registered gate criteria (minutes-scale ~≤30 lines × behavior-preserving × no-convention-needed). The row carries the anti-rot quota: the next fix bundle takes one smell ticket first.
+
 ## Consequences
 
 - A verifier crash can no longer masquerade as "condition unsatisfied": exit>1 stays reserved for verifier-broken and evalSuggestions already warns on it.

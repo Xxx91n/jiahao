@@ -6,7 +6,7 @@ green; zero owner asks; awareness items listed at the end.
 ## What landed (branch `grill-t16-docs`, newest-first)
 
 - `pnq` — final-battery regen (g6 replay 333992, facts/report re-render,
-  anchors digest, trend marker reason, rewrite-map 1412).
+  anchors digest, trend marker reason, rewrite-map 1414).
 - `f86494d` (was `rqt`, amended) — closing-step regen + `battery_as_of_commit`
   durable-pin fix in `scripts/build-round-facts.js`.
 - `vkz` — R2 machinery: `mechanism_output_diff` checker support,
@@ -17,7 +17,7 @@ green; zero owner asks; awareness items listed at the end.
   `any_matrix` inline fix; `adr-0058-wiring` three-direction + crash +
   diagnostic + inline-matrix fixtures.
 - `spr` — R1 boundary: ADR-0077 (D-A convention, D-B enumeration,
-  D-C facts canon, D-E narrowed addendum), ADR-0076 amended, taxonomy
+  D-C facts canon incl. the narrowed addendum), ADR-0076 amended, taxonomy
   `mechanism_outputs` closed enumeration, t15 row additive annotation,
   defer-0004 ADR-0058 D-C cite, defer-0062 tally, CONTEXT terms, README 77,
   anchors 15, rewrite-map 1410.
@@ -35,7 +35,7 @@ green; zero owner asks; awareness items listed at the end.
   doc-round ADR streak 10 ≥ K=2, never blocks).
 - `node scripts/check-deferred.js` → OK 56 entries (47 live, 9 closed).
 - `node scripts/build-governance-anchors.js --check` → OK 16 artifacts.
-- `node scripts/build-rewrite-map.js --check` → OK 1412 citations.
+- `node scripts/build-rewrite-map.js --check` → OK 1414 citations.
 - `node scripts/build-round-facts.js --round grill-t16 --check --report
   .scratch/grill-t16/reports/2026-09-18-report.md` → facts + region in sync.
 - `npm run pack-smoke` → `jiahao-0.0.1.tgz (333992 bytes, 113 files)` <

@@ -972,6 +972,24 @@
       "status": "closed",
       "closed_at": "2026-09-18",
       "closed_via": "same-commit ledger note: .scratch/grill-t16/decision-ledger.md T-1 dispositions (defer-0059/0061 precedent: row exists + ADR registered = nothing left to disposition)"
+    },
+    {
+      "id": "defer-0063",
+      "subject": "build-round-facts.js guard/exit-style mix (arg-guard + process.exit shape) - deferred as a missing convention, not a local defect",
+      "source_adr": "docs/adr/0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md",
+      "rationale": "grill-t16 audit G-4 smell, grill-t17 D-005 gate-criteria disposition: the script's argument-guard and exit-style mix fails the third leg of the registered gate criteria (minutes-scale ~<=30 lines x behavior-preserving x no-convention-needed) - fixing it needs a convention for guard/exit-style across fail-closed tooling first, otherwise the fix recurs. Registered as the missing-convention class. Anti-rot quota: the next fix bundle must take one smell ticket first - a deferred ticket with no quota is rot, not a deferral.",
+      "unfreeze_if": {
+        "type": "free-text",
+        "check": "a written convention for verifier guard/exit-style exists (ADR clause or CONTEXT term) - then this becomes a gated smell-bundle candidate"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-18",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-09-18",
+        "note": "registered at the grill-t17 fix round as the missing-convention class; carries the anti-rot quota (next fix bundle takes one smell ticket first)"
+      }
     }
   ]
 }
