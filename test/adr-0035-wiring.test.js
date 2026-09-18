@@ -126,24 +126,26 @@ describe('ADR-0035 D5/D6 verified_by semantics', () => {
     expect(checkCiJobs.countJobs(multi)).toBe(2);
   });
 
-  // ADR-0058 D-004: the presence predicates now hold on the real tree (three
-  // jobs: gate-all + test + summary with always()), so the evaluator reports
-  // SATISFIED. This test was the pre-landing characterization of the old
-  // single-job ci.yml; it is re-anchored, not deleted.
-  test('check-ci-jobs on real ci.yml: multi-job landed -> exit 0 (condition satisfied)', () => {
+  // grill-t15 D-003: the defer-0004 predicate was narrowed to the
+  // renderer-justifying conditions (multi-workflow / any matrix / >3 jobs).
+  // The live shape (1 workflow, 3 jobs, no matrix) reports defer0004 unmet,
+  // so the evaluator exits 1 - the deferral remains valid and the stale
+  // multi-job SATISFIED (a permanently-firing SUGGEST) is dead.
+  test('check-ci-jobs on real ci.yml: defer0004 unmet on the narrowed predicate -> exit 1 (deferral remains valid)', () => {
     let code = 0;
     try {
       execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'check-ci-jobs.js')], { stdio: 'pipe' });
     } catch (err) { code = err.status; }
-    expect(code).toBe(0);
+    expect(code).toBe(1);
   });
 
   test('evalSuggestions: satisfied assertion suggests, unsatisfied stays silent', () => {
-    // real registry after ADR-0058 landed: both presence-coupled entries report
-    // SATISFIED -> one SUGGEST each, and never an auto-activation (ADR-0035 D6).
+    // real registry after grill-t15: defer-0026 is terminal (actioned) and
+    // defer-0004's narrowed predicate reports unmet on the live shape -> no
+    // SATISFIED suggestions at all (ADR-0035 D6 quiet-by-default).
     const real = checkDeferred.evalSuggestions(registry);
     const suggested = real.filter(m => m.indexOf('SATISFIED') !== -1).map(m => m.match(/SUGGEST: (\S+):/)[1]);
-    expect(suggested).toEqual(['defer-0004', 'defer-0026']);
+    expect(suggested).toEqual([]);
     // synthetic: verified_by script that always exits 0 -> SUGGEST
     // (repo-relative: evalSuggestions resolves verified_by against ROOT)
     const t = tmpScript('.tmp-adr0035-satisfied.js', 'process.exit(0);\n');
