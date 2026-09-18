@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-18T09:19:49.300Z",
+  "generated_at": "2026-09-18T10:25:00.470Z",
   "published_tip": "21b144216403671ae53e176fe6eee43265832e08",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -23,10 +23,10 @@
     "published_only": 27,
     "removed": 0,
     "same": 278,
-    "doc_refs": 1410,
+    "doc_refs": 1412,
     "doc_refs_by_class": {
       "rewritten": 97,
-      "local-only": 683,
+      "local-only": 685,
       "published-unchanged": 630
     }
   },
@@ -7751,6 +7751,22 @@
       "sha": "21b1442",
       "class": "published-unchanged",
       "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t16/reports/2026-09-18-report.md",
+      "line": 19,
+      "sha": "52f286f",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t16/round-facts.json",
+      "line": 12,
+      "sha": "52f286f",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
     },
     {
       "file": ".scratch/grill-t16/spec-fix-mechanisms.md",

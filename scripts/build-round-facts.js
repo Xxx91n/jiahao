@@ -62,7 +62,10 @@ function collect() {
   const map = readJson('docs/rewrite-map.json');
   const reg = readJson('docs/deferred-registry.json');
   const anchors = readJson('docs/governance/anchors.json');
-  const head = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+  // Newest real commit: on a GitButler workspace HEAD is an ephemeral
+  // "GitButler Workspace Commit" that rewrites away; the "as of" pin must
+  // name a durable commit, so skip workspace commits by subject.
+  const head = execFileSync('git', ['log', '-1', '--format=%h', '--invert-grep', '--grep=^GitButler Workspace Commit', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
   return {
     schema_version: 1,
     _doc: 'ADR-0077 D-C facts canon: regenerable at the closing step; the report facts section renders deterministically from this artifact. report_commit stays null - the report cannot cite its own commit. Not an anchors-chain member (per-round regeneration would churn the digest chain).',
@@ -117,23 +120,30 @@ function main(argv) {
   // or when the artifact is missing.
   const cur = fs.existsSync(factsPath) ? fs.readFileSync(factsPath, 'utf8') : null;
   const needsCollect = !reportPath || check || cur === null;
-  let facts;
   let drift = false;
   if (needsCollect) {
-    facts = collect();
+    const facts = collect();
     const next = JSON.stringify(facts, null, 2) + '\n';
     if (check) {
-      if (cur !== next) { console.error('FAIL: .scratch/' + slug + '/round-facts.json is stale - regenerate with node scripts/build-round-facts.js --round ' + slug); drift = true; }
+      // battery_as_of_commit is a run-record, not a regen-stable field: the
+      // closing commit that carries the artifact always moves HEAD past the
+      // battery's pin. Drift on that field alone is expected, never an error.
+      const strip = (o) => { const c = Object.assign({}, o); delete c.battery_as_of_commit; return JSON.stringify(c); };
+      const curFacts = cur === null ? null : JSON.parse(cur);
+      if (curFacts === null || strip(curFacts) !== strip(facts)) { console.error('FAIL: .scratch/' + slug + '/round-facts.json is stale - regenerate with node scripts/build-round-facts.js --round ' + slug); drift = true; }
     } else if (cur !== next) {
       fs.writeFileSync(factsPath, next, 'utf8');
       console.log('[round-facts] wrote .scratch/' + slug + '/round-facts.json');
     }
-  } else {
-    facts = JSON.parse(cur);
   }
 
   if (reportPath) {
-    const region = renderRegion(facts);
+    // The report renders the on-disk canon (post-collect state), never the
+    // collected object itself: a fresh battery_as_of_commit must not mark
+    // the committed region stale in --check, and a bare write renders what
+    // it just wrote.
+    if (!fs.existsSync(factsPath)) { console.error('FAIL: .scratch/' + slug + '/round-facts.json missing - regenerate with node scripts/build-round-facts.js --round ' + slug); process.exit(1); }
+    const region = renderRegion(JSON.parse(fs.readFileSync(factsPath, 'utf8')));
     const text = fs.readFileSync(reportPath, 'utf8');
     const spliced = spliceRegion(text, region);
     if (check) {
