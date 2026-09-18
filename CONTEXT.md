@@ -695,10 +695,14 @@ or the watch's closure without prior activation, whichever fires first —
 whose sole consequence is activating a scheduled review; it never amends,
 closes, or exempts the thing it watches. Its clock must be lifecycle-
 independent of the watched item (watchdog independence) so the hole it
-exists to close stays unreachable (ledger t14 D-004).
+exists to close stays unreachable (ledger t14 D-004). A missed
+check-in is not a zero: the counter freezes and records the miss — absence
+of observation is not an observation of zero; an organic observation resets
+the count with an explicit reset event (ledger t15 D-002).
 _Avoid_: binding the trigger to the watched row's own expiry field
 (dependency inversion); auto-executing dispositions on a timer; record-only
-triggers that convene nothing
+triggers that convene nothing; counting a missed check-in as a zero;
+silent counter resets
 
 **Meta-Preregistration (元预注册)**
 Registering now the obligation that a future review must register its own
@@ -710,6 +714,28 @@ D-004).
 _Avoid_: writing full criteria years ahead of the review (stale on arrival);
 advisory-only meta-requirements; criteria that quietly loosen between
 registration and evaluation
+
+**Round Edit Surface (轮编辑面)**
+The taxonomy declaring which file classes a round type may touch: the
+runtime surface (the shipped bin require-chain closure — always
+implementation-round territory, no exemption), governance machinery
+(checkers, builders, telemetry — doc-round touchable only through a
+carve-out), and documentation (free). The product boundary is the require
+closure, not the package files[] list — packaging contents and product
+surface are different questions (ledger t15 D-005).
+_Avoid_: directory-level whitelists (one directory can mix entry and
+machinery); treating files[] as the product boundary; a hand-maintained
+list no mechanical scan can verify
+
+**Governance Carve-Out (治理豁免)**
+The gated exemption letting a documentation round repair governance
+machinery when the round's own artifact truthfulness requires it:
+necessity (the justification names the triggering artifact), disclosure
+(the change is named in the round's ADR decision and ledger), and burn-rate
+visibility (each use is marked so consecutive uses raise an advisory). A
+controlled emergency lane, not a general permission (ledger t15 D-005).
+_Avoid_: unmarked use; bundling the justification into prose; reading the
+marker as permission to touch runtime files
 
 ## Decision Log
 

@@ -2,8 +2,8 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-17T15:42:17.369Z",
-  "published_tip": "968291659675fb1dd049aa4a330b9653436faf70",
+  "generated_at": "2026-09-18T03:46:09.890Z",
+  "published_tip": "21b144216403671ae53e176fe6eee43265832e08",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
     "old_tip": "2c93a30a5495219d0d2385f25d19af23e729852f",
@@ -20,7 +20,7 @@
   },
   "counts": {
     "commits": 15,
-    "published_only": 25,
+    "published_only": 27,
     "removed": 0,
     "same": 278,
     "doc_refs": 1344,
@@ -111,6 +111,14 @@
   ],
   "removed": [],
   "published_only": [
+    {
+      "new": "21b144216403671ae53e176fe6eee43265832e08",
+      "subject": "chore(grill-t14): rewrite-map regen after handoff update - 1344 citations"
+    },
+    {
+      "new": "ae8622766e5df6bab16b96ea5cdeaf68b43e4938",
+      "subject": "docs(grill-t14): audit-passed handoff updated post-land (origin/main=9682916, merged branches cleaned, patch-sweep lesson recorded) + GOAL status landed"
+    },
     {
       "new": "968291659675fb1dd049aa4a330b9653436faf70",
       "subject": "chore(grill-t14): rewrite-map regen post-land - published_tip=6133510"
