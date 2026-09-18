@@ -117,6 +117,7 @@ function checkInventory(root, opts) {
     let streak = 0;
     let carveStreak = 0;
     let closureSet = null;
+    let mechOutputs = null;
     for (const r of ti.rounds || []) {
       if (r.kind !== 'documentation') { errors.push('trend round ' + r.round + ': kind must be documentation'); continue; }
       for (const a of r.adr_added || []) {
@@ -169,10 +170,12 @@ function checkInventory(root, opts) {
           errors.push('trend round ' + r.round + ': mechanism_output_diff must be {files: non-empty string[], reason: string>=10} - a bare marker hard-fails (ADR-0077 D-B)');
         } else {
           if (!closureSet) closureSet = new Set(surfaceTaxonomy.computeRuntimeClosure(base));
-          const tax = surfaceTaxonomy.loadTaxonomy(base);
-          const outputs = ((tax.mechanism_outputs && tax.mechanism_outputs.entries) || []).map(function (e) { return e.file; });
+          if (!mechOutputs) {
+            const tax = surfaceTaxonomy.loadTaxonomy(base);
+            mechOutputs = ((tax.mechanism_outputs && tax.mechanism_outputs.entries) || []).map(function (e) { return e.file; });
+          }
           for (const f of mod.files) {
-            if (outputs.indexOf(f) === -1) {
+            if (mechOutputs.indexOf(f) === -1) {
               errors.push('trend round ' + r.round + ': mechanism_output_diff file ' + f + ' is not in the mechanism_outputs closed enumeration (ADR-0077 D-B)');
             } else if (surfaceTaxonomy.classifyPath(f, closureSet) !== 'R2') {
               errors.push('trend round ' + r.round + ': mechanism_output_diff file ' + f + ' does not classify R2 - mislabeled marker (ADR-0077 D-B)');
