@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-18T10:34:46.776Z",
+  "generated_at": "2026-09-18T10:36:53.637Z",
   "published_tip": "21b144216403671ae53e176fe6eee43265832e08",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -23,10 +23,10 @@
     "published_only": 27,
     "removed": 0,
     "same": 278,
-    "doc_refs": 1412,
+    "doc_refs": 1415,
     "doc_refs_by_class": {
       "rewritten": 97,
-      "local-only": 685,
+      "local-only": 688,
       "published-unchanged": 630
     }
   },
@@ -7746,6 +7746,30 @@
       "label": "unresolved hex literal"
     },
     {
+      "file": ".scratch/grill-t16/handoffs/2026-09-18-round-complete.md",
+      "line": 10,
+      "sha": "f86494d",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t16/handoffs/2026-09-18-round-complete.md",
+      "line": 45,
+      "sha": "f86494d",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t16/handoffs/2026-09-18-round-complete.md",
+      "line": 86,
+      "sha": "f86494d",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
       "file": ".scratch/grill-t16/handoffs/next-round.md",
       "line": 17,
       "sha": "21b1442",
@@ -7755,7 +7779,7 @@
     {
       "file": ".scratch/grill-t16/reports/2026-09-18-report.md",
       "line": 20,
-      "sha": "bdedbf9",
+      "sha": "f6e396f",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -7763,7 +7787,7 @@
     {
       "file": ".scratch/grill-t16/round-facts.json",
       "line": 12,
-      "sha": "bdedbf9",
+      "sha": "f6e396f",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
