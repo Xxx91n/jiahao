@@ -19,10 +19,16 @@ pointers, and this file is never hand-edited.
   tip-only test goes stale once `origin/main` advances past the rewrite
   region). The prior map's `commits[].new`/`published_tip` supply the
   anchor; the first generation falls back to the tip test.
-- **Doc citations**: `git ls-files` over tracked docs (`*.md`, `*.json`,
+- **Doc citations**: the union of `git ls-files` and
+  `git ls-tree -r HEAD --name-only` over tracked docs (`*.md`, `*.json`,
   `*.txt` under `docs/`, `CONTEXT.md`, `README.md`, `AGENTS.md`,
   `.scratch/**`) scanned for hex strings matching `/\b[0-9a-f]{7,40}\b/` —
-  each hit recorded as `{file, line, sha}`.
+  each hit recorded as `{file, line, sha}`. Enumeration is the UNION of the
+  index and the committed tree (the F-1 lesson: GitButler's virtual index
+  lags HEAD by committed files, so an index-only scan silently misses
+  tracked docs). Untracked worktree files are deliberately NOT scanned — a
+  doc joins the tracked surface only via a commit, so the map regen that
+  follows the doc commit picks it up.
 
 ## Alignment algorithm
 

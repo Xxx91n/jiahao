@@ -111,6 +111,18 @@ describe('companion docs (runbook + generator spec)', () => {
       expect(s).toContain(x);
     }
   });
+
+  test('spec-code bidirectional pin: the spec registers the union enumeration and the generator carries both call sites (grill-t15 D-004)', () => {
+    const s = read(SPEC);
+    const inputs = s.slice(s.indexOf('## Inputs'), s.indexOf('## Alignment'));
+    const bullet = inputs.slice(inputs.indexOf('Doc citations'));
+    expect(bullet).toContain('git ls-files');
+    expect(bullet).toContain('ls-tree -r HEAD');
+    expect(bullet.toLowerCase()).toContain('untracked');
+    const gen = read(path.join(ROOT, 'scripts', 'build-rewrite-map.js'));
+    expect(gen).toContain('ls-files');
+    expect(gen).toContain('ls-tree');
+  });
 });
 
 describe('README + governance-surface sync', () => {
