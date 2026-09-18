@@ -737,6 +737,31 @@ controlled emergency lane, not a general permission (ledger t15 D-005).
 _Avoid_: unmarked use; bundling the justification into prose; reading the
 marker as permission to touch runtime files
 
+**Consuming-Row Exit (消费行出口)**
+The exit-semantics contract for a verified_by script: the exit code
+reports only the condition of the row(s) currently consuming it — legs
+computed for other rows are diagnostics and may be printed, but never
+drive the exit. Exit 0 = the consuming row's condition satisfied, exit 1 =
+unsatisfied, exit >1 = the verifier itself is broken (a crash must never
+masquerade as unsatisfied). When the consuming row discharges, the exit
+key is re-pointed or retired in the same commit as that registry edit;
+a second live consumer is what activates the pre-registered selector
+upgrade (ledger t16 D-002).
+_Avoid_: union exits over multiple rows' legs (a terminal row's
+regression silently suppresses the live tripwire); crash paths exiting 1;
+selectors wired before a second consumer exists
+
+**Facts Canon (事实正典)**
+The rule that a round report's evidence numbers live in exactly one
+regenerable artifact, refreshed at the closing step — the report is
+narrative, never the home of numbers. Numbers already determined at the
+close are restated mechanically; the as-of/addendum channel is reserved
+for genuinely subsequent events and self-reference disclosures (ledger
+t16 D-004).
+_Avoid_: hand-written figures in report prose; annotating a restatable
+number instead of restating it; faking a self-referential field instead
+of leaving it honestly null
+
 ## Decision Log
 
 **Self-Preference Bias (自偏好偏差)**:
