@@ -607,4 +607,51 @@ describe('grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendi
     expect(d).toContain('defer-0055');
     expect(d).toContain('isolated lapse');
   });
+
+  test('single-digit canon fixture: bare single-digit value walks free (declared floor gap), key-assign catches it (D-002)', () => {
+    const facts = { suites: 5, passed: 1225, skipped: 0, pack_bytes: 335900, instrument_entries: 27, rewrite_map_citations: 1432, registry_entries: 57, anchors_count: 16 };
+    const bare = '# r\n\nprose mentions 5 suites inline\n';
+    expect(brf.proseScan(bare, facts)).toEqual([]);
+    const assigned = '# r\n\nsuites: 5 written as a schema-key assign\n';
+    expect(brf.proseScan(assigned, facts).join(' ')).toContain('schema key suites assigned');
+    const quoted = '# r\n\nalso quoted `5` stays free under the registered floor\n';
+    expect(brf.proseScan(quoted, facts)).toEqual([]);
+  });
+
+  test('key-assign fixture: every one of the eleven schema keys is enforced in prose (D-002)', () => {
+    const facts = { suites: 73, passed: 1225, skipped: 0, pack_bytes: 335900, instrument_entries: 27, rewrite_map_citations: 1432, registry_entries: 57, anchors_count: 16, battery_as_of_commit: 'abc1234', report_commit: null, not_run: ['x'] };
+    const prose = 'suites: 1\npassed: 2\nskipped: 3\npack_bytes: 4\ninstrument_entries: 5\nrewrite_map_citations: 6\nregistry_entries: 7\nanchors_count: 8\nbattery_as_of_commit: 9\nreport_commit: null\nnot_run: [a]\n';
+    const v = brf.proseScan(prose, facts);
+    for (const k of brf.SCHEMA_KEYS) expect(v.join(' ')).toContain('schema key ' + k + ' assigned');
+    expect(brf.SCHEMA_KEYS.length).toBe(11);
+    // skipped:3 also trips the dedicated skipped=0 pattern? No - =0 only:
+    expect(brf.proseScan('skipped: 0\n', facts).join(' ')).toContain('skipped=0');
+  });
+
+  test('PROSE_KEYS single-source: derived from SCHEMA_KEYS, all numeric-canon, no drift (D-003)', () => {
+    expect(brf.PROSE_KEYS.sort()).toEqual(['anchors_count', 'instrument_entries', 'pack_bytes', 'passed', 'registry_entries', 'rewrite_map_citations', 'suites']);
+    for (const k of brf.PROSE_KEYS) expect(brf.SCHEMA_KEYS).toContain(k);
+    const facts = { suites: 1, passed: 2, skipped: 3, pack_bytes: 4, instrument_entries: 5, rewrite_map_citations: 6, registry_entries: 7, anchors_count: 8, battery_as_of_commit: 'h', report_commit: null, not_run: ['z'] };
+    const region = brf.renderRegion(facts);
+    for (const k of brf.SCHEMA_KEYS) expect(region).toContain('- ' + k + ':');
+    const src = read(path.join(ROOT, 'scripts', 'build-round-facts.js'));
+    expect((src.match(/readFileSync\(reportPath/g) || []).length).toBe(1);
+    expect((src.match(/emitExit\(/g) || []).length).toBe(3); // definition + both converged sites
+  });
+
+  test('emit-exit boundary: a multi-violation report exits 1 with every cause line (D-003/D-A.1)', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-brf-'));
+    try {
+      const rep = path.join(dir, 'multi.md');
+      fs.writeFileSync(rep, '# fixture\n\n' + brf.SENTINEL_START + '\n- suites: 73\n' + brf.SENTINEL_END + '\n\nsuites: 99 plus report_commit: 1 assigned\n');
+      const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'build-round-facts.js'), '--round', 'grill-t16', '--check', '--report', rep], { cwd: ROOT, encoding: 'utf8' });
+      expect(r.status).toBe(1);
+      const fails = String(r.stderr).split('\n').filter(function (l) { return /^FAIL: /.test(l); });
+      expect(fails.length).toBeGreaterThanOrEqual(2);
+      expect(String(r.stderr)).toContain('schema key suites assigned');
+      expect(String(r.stderr)).toContain('schema key report_commit assigned');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });
