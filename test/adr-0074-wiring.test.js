@@ -199,7 +199,7 @@ describe('R2 action round (2026-09-17): map, re-verification note, dispositions'
     const m = readJson(path.join(ROOT, 'docs', 'rewrite-map.json'));
     expect(m.schema_version).toBe(1);
     expect(m.generated_by).toBe('scripts/build-rewrite-map.js');
-    expect(m.published_tip).toBe('60ce7438af354f6989a0fb16314b4e6bbf900718'); // grill-t18: tip advanced post-t15/16/17-landing
+    expect(m.published_tip).toBe('20bcbe3930677de46df2e981d67597cb98bf3c63'); // grill-t19: tip advanced post-t18-landing (stale pin re-pinned, disclosed)
     expect(m.commits.length).toBe(15);
     expect(m.counts.doc_refs).toBe(m.doc_refs.length);
     expect(m.doc_refs.length).toBeGreaterThan(0);
