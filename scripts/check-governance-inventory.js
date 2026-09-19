@@ -190,7 +190,13 @@ function checkInventory(root, opts) {
           }
         }
       }
-      carveStreak = (r.kind === 'documentation' && r.carve_out_used === 1) ? carveStreak + 1 : 0;
+      // ADR-0078 D-A (grill-t19): kind:fix rows are outside both advisory
+      // streak populations - skip-not-reset. A fix row never feeds the
+      // doc-round net-additions streak even when net_additions>0, and never
+      // resets either streak, so doc-fix-doc adjacency still counts
+      // consecutive for both streaks.
+      if (r.kind === 'fix') continue;
+      carveStreak = (r.carve_out_used === 1) ? carveStreak + 1 : 0;
       streak = (r.net_additions > 0) ? streak + 1 : 0;
     }
     if (carveStreak >= 2) {

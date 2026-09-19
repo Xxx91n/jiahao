@@ -838,4 +838,49 @@ describe('grill-t19 dispositions (ADR-0077 missing-input clause + ADR-0078 strea
     expect(tail.indexOf('drift = true')).toBeLessThan(tail.indexOf('process.exit'));
     expect(src).toContain('missing-input clause (grill-t19)');
   });
+
+  test('kind:fix rows are transparent to the ADR streak - net_additions>0 on a fix row never feeds it (D-003 negative)', () => {
+    const fix = fixRow({ adr_added: ['0078'], net_additions: 1 });
+    const out = outFor([fix]);
+    expect(out.errors).toEqual([]);
+    const w = out.warnings.join(' ');
+    expect(w).not.toContain('trend anchor');
+    expect(w).not.toContain('advisory drift');
+  });
+
+  test('doc-fix-doc adjacency counts consecutive for both streaks (D-003 skip-not-reset positive)', () => {
+    // ADR streak: doc(+1) + fix + doc(+1) -> the fix row is transparent,
+    // streak 2 >= K -> the trend-anchor advisory fires.
+    const w1 = outFor([
+      docRow({ round: 'grill-tNN-doc-1', adr_added: ['0076'], net_additions: 1, deferred_entry: 'defer-0060' }),
+      fixRow({ round: 'grill-tNN-fix-1' }),
+      docRow({ round: 'grill-tNN-doc-2', adr_added: ['0077'], net_additions: 1, deferred_entry: 'defer-0060' })
+    ]).warnings.join(' ');
+    expect(w1).toContain('trend anchor');
+    // carveStreak: doc(carve=1) + fix + doc(carve=1) -> the fix row is
+    // transparent, carveStreak 2 -> the burn-rate advisory fires.
+    const carve = { governance_tooling_diff: { files: ['scripts/check-ci-jobs.js'], reason: 'carve-out disclosure for the fixture round' }, carve_out_used: 1 };
+    const w2 = outFor([
+      docRow(Object.assign({ round: 'grill-tNN-doc-c1' }, carve)),
+      fixRow({ round: 'grill-tNN-fix-c1' }),
+      docRow(Object.assign({ round: 'grill-tNN-doc-c2' }, carve))
+    ]).warnings.join(' ');
+    expect(w2).toContain('carve-out burn-rate');
+  });
+
+  test('a fix row never resets a running streak - streak state is preserved across the row (D-003)', () => {
+    // control: without the fix row the same doc pair fires identically
+    const w3 = outFor([
+      docRow({ round: 'grill-tNN-doc-3', adr_added: ['0076'], net_additions: 1, deferred_entry: 'defer-0060' }),
+      docRow({ round: 'grill-tNN-doc-4', adr_added: ['0077'], net_additions: 1, deferred_entry: 'defer-0060' })
+    ]).warnings.join(' ');
+    expect(w3).toContain('trend anchor');
+  });
+
+  test('ADR-0078 D-A registers the streak-population sentence (D-003)', () => {
+    const a = read(ADR78);
+    expect(a).toContain('outside both advisory streak populations');
+    expect(a).toContain('skip-not-reset');
+    expect(a).toContain('doc-fix-doc sequence remains consecutive');
+  });
 });
