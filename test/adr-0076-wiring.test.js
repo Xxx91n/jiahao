@@ -801,4 +801,41 @@ describe('grill-t19 dispositions (ADR-0077 missing-input clause + ADR-0078 strea
     expect(r).toContain('wsl round-complete handoff');
     expect(r).not.toContain('Intermediate commits green throughout');
   });
+
+  test('a corrupt facts artifact exits 2 verifier-broken - a crash never masquerades as unsatisfied (D-004/A-6)', () => {
+    const dir = path.join(ROOT, '.scratch', 'tmp-t19-corrupt');
+    fs.mkdirSync(dir, { recursive: true });
+    try {
+      fs.writeFileSync(path.join(dir, 'round-facts.json'), '{corrupt json', 'utf8');
+      const rep = path.join(dir, 'rep.md');
+      fs.writeFileSync(rep, '# rep\n', 'utf8');
+      const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'build-round-facts.js'), '--round', 'tmp-t19-corrupt', '--check', '--report', rep], { cwd: ROOT, encoding: 'utf8' });
+      expect(r.status).toBe(2);
+      expect(String(r.stderr)).toContain('verifier broken');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('missing factsFile routes to the drift channel: FAIL + boundary exit 1, report phase skipped (D-004/A-8)', () => {
+    // Runtime verdict pinned over the committed capture (a jest-side spawn
+    // would pay a full-jest collect recursively - the committed evidence
+    // carries the re-runnable command instead): FAIL pair + EXIT 1, the
+    // fixture report is never spliced.
+    const cap = read(path.join(ROOT, '.scratch', 'grill-t19', 'evidence', 'round-facts-missing.txt'));
+    expect(cap).toContain('$ node scripts/build-round-facts.js --round grill-t19-nofacts --check --report');
+    expect(cap).toContain('EXIT 1');
+    expect(cap).toContain('FAIL: .scratch/grill-t19-nofacts/round-facts.json missing');
+    expect(cap).not.toContain('verifier broken');
+    expect(read(path.join(ROOT, '.scratch', 'grill-t19', 'evidence', 'missing-facts.fixture.md'))).toBe('# fixture report\n');
+  });
+
+  test('the missing-facts branch is a boundary-route shape, not an early exit (D-004 structure pin)', () => {
+    const src = read(path.join(ROOT, 'scripts', 'build-round-facts.js'));
+    const i = src.indexOf("'/round-facts.json missing");
+    expect(i).toBeGreaterThan(-1);
+    const tail = src.slice(i);
+    expect(tail.indexOf('drift = true')).toBeLessThan(tail.indexOf('process.exit'));
+    expect(src).toContain('missing-input clause (grill-t19)');
+  });
 });
