@@ -753,7 +753,10 @@ reports only the condition of the row(s) currently consuming it — legs
 computed for other rows are diagnostics and may be printed, but never
 drive the exit. Exit 0 = the consuming row's condition satisfied, exit 1 =
 unsatisfied, exit >1 = the verifier itself is broken (a crash must never
-masquerade as unsatisfied). When the consuming row discharges, the exit
+masquerade as unsatisfied). A missing input artifact is an unsatisfied
+condition recorded at the phase boundary, never an early exit; the
+three-value contract grows no fourth class (ledger t19 D-004; ADR-0077
+D-A.1). When the consuming row discharges, the exit
 key is re-pointed or retired in the same commit as that registry edit;
 a second live consumer is what activates the pre-registered selector
 upgrade (ledger t16 D-002).
@@ -2246,7 +2249,11 @@ An observational-only anchor on governance mass: net additions per
 documentation round (new minus superseded/closed) are watched against a frozen
 anchor (63, K=2); two consecutive net-positive rounds raise one advisory line,
 never block; anchor revision is a same-commit ADR (ADR-0064 D-F; SRE burn-rate,
-not static threshold).
+not static threshold). kind:fix rows are outside both streak populations
+(skip-not-reset): they never feed the doc-round net-additions streak even when
+net_additions>0 (the field stays on the row as fact), and they never reset
+carveStreak, so doc-fix-doc carve-out adjacency still counts consecutive
+(ledger t19 D-003; ADR-0078 D-A).
 _Avoid_: hard numeric cap on ADR count, blocking trend alarms
 
 **Research Round vs Confirmatory Round (研究轮/确证轮)**:
@@ -2325,5 +2332,56 @@ whose citation label flips to unresolved-hex-literal. Sha references pin
 immutable history. See also Facts Canon (ledger t18 D-007).
 _Avoid_: regenerating a map or anchors artifact inside an amend; pinning
 an as_of sha on rewritable history
+
+**Disclosed Repair (披露式修复)**:
+The repair convention for closed-round committed artifacts (ledgers,
+reports, specs): a defect in a committed document is fixed by an in-place
+disclosed edit, never deletion or silent rewrite. Every repair line leads
+with a retroactive-repair declaration carrying the reason+when+who triple,
+and each repair is registered item-by-item in the repairing round's ledger
+and report; cascade regeneration rides plain commits (Amend-Riding not
+triggered). Numeric canon (round-facts.json) and verbatim evidence
+artifacts are outside this convention — evidence repairs go through
+Disclosed Re-Capture (ledger t19 D-002).
+_Avoid_: append-only dogma on closed artifacts; byte-editing canon or
+evidence to "fix" it; repair lines missing the declaration triple
+
+**Disclosed Re-Capture (披露式重捕获)**:
+The repair form for verbatim evidence-class artifacts: when a committed
+capture is void (e.g. invocation-layer corruption), the producing check is
+re-run through a clean channel and the fresh verbatim output written to
+the same slot — a new capture, never a byte patch. The voided capture is
+declared void in the repairing round's ledger and report, and its
+corrupted bytes are absorbed as the negative fixture pinning the failure
+signature (chain-of-custody: corrections are new disclosed captures). The
+repair diff is the review surface, held to code-change review discipline
+(ledger t19 D-006).
+_Avoid_: editing verbatim evidence bytes in place; deleting the corrupted
+sample; re-capture without the void declaration
+
+**Non-Interpolating Channel (非插值通道)**:
+The execution-channel clause extending the doc authoring-path convention:
+battery commands carrying backslash-bearing arguments run through
+non-interpolating channels — argument arrays (execFileSync arg lists) or
+script files — never through escape-interpreting string layers (shell
+string concatenation, heredoc), which eat backslash-class sequences into
+control bytes. Second live demonstration of the same root-cause class as
+doc-authoring corruption (ledger t19 D-006).
+_Avoid_: string-concatenated command lines carrying Windows paths;
+assuming the corruption lives in the write layer when the invocation
+layer produced it
+
+**Bilingual Mirror (双语镜像)**:
+The distribution-surface convention for localized front-faces:
+README.zh-CN.md mirrors README.md structurally, lives in the git tree but
+never enters the npm tarball (cap-exempt per ADR-0039 D3 policy), and is
+pin-free — pinned blocks are translated but each carries an 'English
+original prevails' pointer back to the pinned text. Both files open with
+an autonym language-switch line (English | 中文, current language bold
+and unlinked — GitHub never auto-selects); the mirror header carries an
+HTML comment pinning its translation-baseline commit hash for drift
+management (ledger t19 D-007/D-010; convention home ADR-0079).
+_Avoid_: single-file bilingual mixing; letting the mirror masquerade as
+the pinned text; numeric or dynamic badges
 
 *End of Glossary*

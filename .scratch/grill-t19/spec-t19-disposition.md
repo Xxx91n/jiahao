@@ -1,0 +1,55 @@
+# grill-t19 — spec: t18 audit-finding disposition + README front-face (two execution rounds)
+
+Settled 2026-09-19. Authoritative source: .scratch/grill-t19/decision-ledger.md (D-001..D-010, all current).
+
+## 0. Headline
+
+One grill ledger charters TWO execution rounds (D-001). t19 = fix disposition round for the t18 audit (PASS WITH FINDINGS, 2026-09-19): A-1..A-8 dispositions + R-1..R-7 rework + audit section-6 battery verbatim re-run + clean-tree assertion, trend row kind:fix. t20 = README documentation round opening on t19's post-disposition baseline: front-face redesign, bilingual EN + zh-CN, user-facing. CAPA ordering: remediation precedes enhancement.
+
+## 1. Round topology + boundary (D-001)
+
+In scope (t19): A-1..A-8 dispositions; R-1..R-7 rework items; t18 audit section-6 battery verbatim re-run (--round grill-t19); cadence consent-sweep; critique registration; setup commit absorbing vl + ns (t18 audit report + audit handoff, untracked at t18 round-final — message discloses absorption). Out of scope: any README work inside t19 (README never rides a fix row — kind overloading forbidden by ADR-0078 D-A closed enum); delegation posture; stack landing; strategic/promotion review; never-commit set untouched (tq/nl/xu/my + audit-evidence trees + round-diff patches + round-commits.txt). t20's trend-row kind adjudicated in THIS grill (D-010), not deferred to execution.
+
+## 2. Disclosed Repair convention + A-1/A-2/A-5 (D-002)
+
+Convention registered (CONTEXT term): closed-round committed artifacts (ledgers, reports) are repaired by in-place disclosed edits — every repair line leads with a retroactive-repair declaration carrying the reason+when+who triple; each repair registered item-by-item in the t19 ledger and report; cascade regeneration rides plain commits (Amend-Riding not triggered). Applications: A-1 restores the defer-0060 named line in the t18 ledger T-3 sweep + the t18 report sweep (first line declares the omission + spec pre-scoping reason); A-2 adds the export-misreport by-design note to the t18 report (incl. the SCHEMA_KEYS surface); A-5 rewrites the green-throughout sentence into the true statement + adds wrx/wsl to the commit-chain paragraph. Boundary: numeric canon (round-facts.json) and verbatim evidence artifacts are OUTSIDE this convention — D-006 governs them; repair never means deletion or silent rewrite; the convention governs HOW repairs land, not WHAT merits repair (item contents per R-1/R-2/R-3 as audited).
+
+## 3. A-4 streak semantics (D-003)
+
+Both advisory streaks treat kind:fix rows as transparent (skip-not-reset): the ADR streak (ADR-0064 D-F) measures the documentation-round sequence only — fix rows never feed it even when net_additions>0 (the field stays on the row as fact); carveStreak (ADR-0076 D-B) is never reset by a fix row — doc-fix-doc carve-out adjacency still counts consecutive. ADR-0078 D-A gains the streak-semantics sentence; check-governance-inventory.js:193-194 gains the kind guard; wiring gains a positive pin (doc+carve, fix, doc+carve still fires burn-rate) and a negative pin (fix net_additions>0 does not feed the doc streak). Zero current-reading drift registered as fact. CONTEXT Governance Trend Anchor clause synced. Negatives: no third fix-streak counter; no reset-on-fix (a fix round must never legally wash a streak — symmetric dodge).
+
+## 4. A-6/A-8 exit classes + quota discharge (D-004)
+
+build-round-facts.js: main() body gains try/catch mapping any crash to 'verifier broken' + exit 2 (covers JSON.parse corrupt artifact, spliceRegion throw, execFileSync, requireCapabilities); the :201 missing-factsFile condition routes through the drift/unsatisfied channel — report phase skipped, single boundary exit 1 at :216 (behavior-equivalent). ADR-0077 D-A.1 appendix gains one clarifying sentence (missing input artifact = unsatisfied recorded at the phase boundary, never an early exit; the three-value contract does not grow a class). CONTEXT Consuming-Row Exit clause synced. The A-6 fix lands as the FIRST R2 commit of the fix bundle = the anti-rot quota smell ticket discharged (ordering + ledger registration line). Negatives: no entry-guard fourth state; exit codes unchanged for all existing paths; emitExit/process.exit verdict paths stay outside catch semantics.
+
+## 5. A-7 gtd shape check (D-005)
+
+Shared governance_tooling_diff shape check becomes presence-implies-non-empty: whenever a trend row carries gtd, files MUST be a non-empty string[] (any round kind) — mirroring the mechanism_output_diff bare-marker hard-fail and the carve_out_used=1 gate; kind:fix additionally still requires gtd presence (:127 unchanged). Wiring gains two negatives: kind:fix + {files:[]} fails; documentation + {files:[]} fails. Convention wording registers the escape channel: 'no carve-out used' is expressed by carve_out_used:0 with the field omitted, never by an empty files list. Negatives: historical rows unaffected (t17/t18 rows carry 3 files each — negatives gate the future only); no kind:fix definition change (zero-files fix rounds use kind:documentation or no row).
+
+## 6. A-3 evidence re-capture + .txt signature + channel convention (D-006)
+
+(i) Re-run the missing-file check with a clean argument via execFileSync arg-array (no string layer); write the fresh verbatim output to the same evidence file via fs (re-capture, not byte-edit); register a retroactive-repair line in the t19 ledger + report declaring the first capture void (invocation-layer corruption); the corrupted bytes are absorbed as the negative fixture for the new signature leg. (ii) The doc-hygiene pin extends to committed .scratch/**/*.txt carrying ONLY the evidence-shaped signature (path broken across LF — trailing-backslash/cross-line path class); the md control-byte set does NOT transfer (0x1B ANSI is legitimate in verbatim output — per-type signature granularity). (iii) CONTEXT Non-Interpolating Channel term: battery commands carrying backslash-bearing args run through arg arrays / script files, never escape-interpreting string layers. Negatives: no byte-editing of verbatim evidence; the .txt signature set registers only A-3-demonstrated signatures (extensible per the pin's own clause); re-capture reviewable like a code change.
+
+## 7. t20 bilingual shape (D-007)
+
+README.md stays the English-primary face — every pinned block byte-untouched; README.zh-CN.md is added as the full Chinese mirror (git-tree only, never in the tarball, pin-free — pinned blocks are translated but each carries an 'English original prevails' pointer back to the pinned text); both files open with an autonym language-switch line (English | 中文, current language bold and unlinked); the zh-CN file header carries an HTML comment recording its translation-baseline commit hash. Mirror structure stays aligned with the primary. Negatives: no cap amendment (ADR-0039 D3 policy-before-value); no single-file bilingual mixing; the mirror never pretends to be the pinned text.
+
+## 8. t20 README IA (D-008)
+
+Full skeleton: language-switch line; title + one-line value; static non-numeric badges only; honesty banner (the pinned failed-verdict block verbatim, presented as the project's identity statement, before '## What it does' as the first-screen pin requires); What it does; Readiness status (ADR-0072) heading preserved at ## level; Install (pinned commands + naming declaration + verified-at note; 'Verifier deployment discipline' section name untouched for the install.js pointer; threat model subsection); Verification Ladder; Hosts & protection tiers condensed to table; Usage; Distribution boundary; a new '## Measurement record' parent section demoting confirmatory/v1/v2/v3/lane/reproduce pinned content one level down (all verbatim, zero byte changes); Develop + Architecture short (ADR index region folded into <details>); License last. Constraints: every pinned block byte-identical (wiring verdict is the arbiter on ordering); blank line after every <summary>; no GitHub Alerts inside folded regions; '## What it does' and '## Readiness status (ADR-0072)' stay at ## level.
+
+## 9. t20 visual scope (D-009)
+
+Pure-text face: no assets/readme/ directory, no hero SVG; the honesty banner owns the first screen as the project's visual identity; 2-3 static non-numeric badges; the dual-profile flow diagram lands via the D-008-registered discretionary Mermaid block in the Architecture section (git-diff reviewable, language-neutral — the zh-CN mirror is likewise pure text). Negatives: no GIF or ImageGen; no full visual system; Mermaid diagram remains discretionary at implementation, not a pin.
+
+## 10. t20 trend row + ADR-0079 (D-010)
+
+t20 registers kind:documentation + adr_added:["0079"] + net_additions:1 honestly feeding the ADR streak. ADR-0079 houses the bilingual-mirror convention: D1 dual filename EN-primary + zh-CN mirror; D2 autonym language-switch line; D3 translation-baseline commit-hash HTML comment; D4 'English original prevails' arbitration; D5 zh-CN tarball-cap exemption citing ADR-0039 D3 as policy basis. ADR-0038/0039 untouched except pointer lines if needed (append-only / supersede model). ADR-0079 and the t20 report must explicitly state 'the ADR exists because the convention needs a policy home — the streak feed is a disclosed fact, not the motive' (anti-quota-theater clause). Wiring edits triggered by 0079 ride ADR-0076 carve-out: carve_out_used:1 + non-empty governance_tooling_diff.files (D-005 shape). Negatives: no in-place revision of ADR-0038; no ledger-only convention.
+
+## 11. t19 closeout
+
+R1 documentation phase first (t18 repairs + ADR-0077/0078 amendments + CONTEXT sync + A-3 re-capture), then R2 machinery phase (checker/builder changes + wiring); carve-out NOT invoked — a kind:fix row discloses machinery edits via governance_tooling_diff by definition. Section-6 battery verbatim re-run (--round grill-t19) into committed evidence + clean-tree assertion. Consent-sweep named lines (every standing registry row touched keeps a named-id line; the defer-0060 line records its restoration + status). t19 trend row: kind:fix + governance_tooling_diff listing this round's R2 machinery files (non-empty per D-005); zero_product_diff evaluated honestly per ADR-0076 D-A. Round report: facts-canon rendered, zero canon numbers in prose, retroactive-repair registrations item-by-item, quota discharge line (ordering + registration), zero-drift streak fact. report_commit null.
+
+## 12. Negative union
+
+No kind overloading; no README work inside t19; no byte-patching verbatim evidence; no silent rewrite or append-only dogma on closed artifacts; no third fix-streak counter; no reset-on-fix; no entry-guard fourth exit class; no empty-files gtd rows; no broad md control-byte signature transfer to .txt; no string-interpolated battery commands with backslash args; no cap amendment; no single-file bilingual; no hero/GIF/ImageGen; no numeric/dynamic badges; no GitHub Alerts inside folds; no in-place revision of ADR-0038; no ledger-only conventions; no delegation/stack/strategy reopening; never-commit set preserved; report_commit null.
