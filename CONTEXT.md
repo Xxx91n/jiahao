@@ -767,7 +767,10 @@ regenerable artifact, refreshed at the closing step — the report is
 narrative, never the home of numbers. Numbers already determined at the
 close are restated mechanically; the as-of/addendum channel is reserved
 for genuinely subsequent events and self-reference disclosures (ledger
-t16 D-004).
+t16 D-004). The rule binds the sibling narrative genre: handoff
+verified-state lines cite evidence paths, never carry regenerable
+counts - a count quoted in a handoff goes stale at the next regen
+boundary (ledger t18 D-007).
 _Avoid_: hand-written figures in report prose; annotating a restatable
 number instead of restating it; faking a self-referential field instead
 of leaving it honestly null
@@ -2284,7 +2287,9 @@ recorded it (writes the owner-ID as the decision’s attribution): the delegated
 act is the handwriting, not the decision. Distinguished from Proxy Signature by
 where the decision was made - the authorization field is the evidence axis
 (per-event owner approval text = scribed; open-ended standing grant = proxy).
-Instrument history: seq-27 is scribed approval (bounded two-ask scope).
+Instrument history: seq-27 is scribed approval (bounded two-ask scope);
+seq 3/5/6/8 pre-authorization-era events are historical background (no
+authorization text predates the field enforcement).
 _Avoid_: treating scribe and proxy as the same delegation class; auditing
 delegation quality by reviewer ID alone instead of the authorization field
 
@@ -2298,5 +2303,27 @@ review, ID-level + delegation-level independence).
 _Avoid_: open-ended proxy grants (never open-ended, ADR-0061 D-C); counting a
 proxy signature as human-reviewed evidence
 
+
+**Consent Sweep (同意清理)**:
+The per-round closeout ritual that discharges every standing registry row
+(defer-00xx, sunset counter, quota rows) with a disposition line in the
+round ledger. Normative clause: every row touched MUST keep a named-id
+line - substance may fold into a shared-theme line (the sunset counter
+organic=0 observation may carry the defer-0055 substance) but the row id
+is never stripped. Bundled approval never bundles the record (ledger t18
+D-005; FedRAMP per-id + consent-agenda precedent).
+_Avoid_: identifier-stripping (folding a row substance into a themed line
+and dropping its id - the ledger can no longer prove the row was
+individually dispositioned); treating the sweep as an owner ask (it is
+registration, not an ask)
+
+**Amend-Riding Discipline (搭便车修正纪律)**:
+Regeneration artifacts (rewrite-map, anchors, round-facts) ride plain
+commits, never an amend - an amend rewrites the commit sha, stranding any
+sha-shaped reference (battery_as_of_commit) into an unreachable object
+whose citation label flips to unresolved-hex-literal. Sha references pin
+immutable history. See also Facts Canon (ledger t18 D-007).
+_Avoid_: regenerating a map or anchors artifact inside an amend; pinning
+an as_of sha on rewritable history
 
 *End of Glossary*

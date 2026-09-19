@@ -2,8 +2,8 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-18T15:11:08.051Z",
-  "published_tip": "21b144216403671ae53e176fe6eee43265832e08",
+  "generated_at": "2026-09-19T01:37:09.589Z",
+  "published_tip": "60ce7438af354f6989a0fb16314b4e6bbf900718",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
     "old_tip": "2c93a30a5495219d0d2385f25d19af23e729852f",
@@ -20,14 +20,14 @@
   },
   "counts": {
     "commits": 15,
-    "published_only": 27,
+    "published_only": 55,
     "removed": 0,
     "same": 278,
     "doc_refs": 1432,
     "doc_refs_by_class": {
       "rewritten": 97,
-      "local-only": 701,
-      "published-unchanged": 634
+      "local-only": 690,
+      "published-unchanged": 645
     }
   },
   "commits": [
@@ -111,6 +111,118 @@
   ],
   "removed": [],
   "published_only": [
+    {
+      "new": "60ce7438af354f6989a0fb16314b4e6bbf900718",
+      "subject": "chore(grill-t17): rewrite-map final regen - the battery_as_of_commit sha became unreachable after the tip amend, flipping its citation label to the truthful 'unresolved hex literal'; plain commit keeps the label stable (map regen must never ride an amend)"
+    },
+    {
+      "new": "26afbfcdd4d06fd5be8b71b6858ad1a07780c050",
+      "subject": "docs(grill-t17): round-complete handoff - commits, verified state, conventions in force, regen order, bootstrap pattern, residuals incl. the defer-0063 smell-ticket quota for the next fix bundle (T-3)"
+    },
+    {
+      "new": "ab13f4831541d1d92ec2d84265c80ae9a5ca9d5c",
+      "subject": "chore(grill-t17): closeout - t16 audit section-6 battery re-ran verbatim into .scratch/grill-t17/evidence/ (12 committed artifacts + quoted-stale fixture + liveness probe); round-facts.json regenerated (collect on green suite) + report facts region rendered (report_commit null, zero canon numbers in prose under the D-E unconditional scan); README test declarations synced; trend-inventory t17 row (mechanism_output_diff provenance for the g6 replay regen after packaged-script growth); anchors + rewrite-map regen; ledger T-2/T-3 dispositions + consent-sweep incl. the defer-0063 smell-ticket quota line (ledger D-002/D-006)"
+    },
+    {
+      "new": "cb9bcce689b8a693ab165c795b27712bc2f8a6b5",
+      "subject": "refactor(grill-t17): loadTaxonomy lifted out of the per-round loop in check-governance-inventory - lazy-initialized alongside closureSet, mechanism_outputs enumeration computed once (gated smell, ledger D-005)"
+    },
+    {
+      "new": "20367eb630dc195815a22700daf55711f57999c5",
+      "subject": "test(grill-t17): yml/job fixture helpers deduplicated - hoisted to file scope, identical copies removed from the defer-0004 and ADR-0077 describes (gated smell, ledger D-005)"
+    },
+    {
+      "new": "dfeb755f306470c1d835190b71e1dbe96003d3b7",
+      "subject": "test(grill-t17): tmpdir cleanup in adr-0058-wiring run() helper - mkdtempSync dir removed in a finally block (gated smell, ledger D-005: minutes-scale x behavior-preserving x no-convention-needed)"
+    },
+    {
+      "new": "cc01ad03aa465f17c11caa9424979cb6f8834986",
+      "subject": "fix(grill-t17): gen-docs ROOT class-killer - invariant pin + retro-fix totalization + template layer (ADR-0077 era, ledger D-003). Every committed .scratch/grill-t*/gen-docs.cjs must derive ROOT from __dirname (wiring pin in adr-0076-wiring t17 describe); t14+t16 infected copies converted to derived form (no exemption registry - n small, fix mechanical); .scratch/gen-docs.template.cjs lands the frozen derived-ROOT header as the authoring layer for future rounds (template prevents the ~95%, the pin catches the ~5%; no whole-script shared module)"
+    },
+    {
+      "new": "22197e6f8475f0e1d64ef326f5b2c684be1e24f7",
+      "subject": "fix(grill-t17): proseScan moved into build-round-facts.js as an export + unconditional scan enforced at author time (ADR-0077 D-E, ledger D-002) - the backtick-strip exemption is deleted; canon numbers live only in the sentinel region, quoted or bare; violations exit before collect or splice so --check --report fails fast at author time. Wiring: adr-0076-wiring pins the export (clean/quoted fixtures), a quoted-stale-number fixture that MUST fail --check, the t17 real-report pin, and the R1 registrations (D-E appendix, defer-0063, ERRATA E-7, prior v2); t16 report grandfathered to render-pin only; L1 header + adr-0069:305 test-name nits corrected (T-2 R2, ledger D-002/D-005)"
+    },
+    {
+      "new": "d227923c637be7f142b42a753c53a2b57c87c3f4",
+      "subject": "docs(grill-t17): R1 documentation bundle - ADR-0077 D-E appendix (unconditional-scan proseScan + evidence-file convention, defer-0063 registered); CONTEXT Re-Execution Prior snapshot v2 (n=19@2026-09-18, n=16 superseded, detection-bias verbatim) + Bounded Delegation literal-token sharpening; ERRATA E-7 seq-27 substantively-compliant+literal-defect registration with expiry=任务耗竭 correction; deferred-registry defer-0063 smell ticket (missing-convention class, gate criteria + anti-rot quota); doc-nits (t16 handoff 1414x2 + D-C addendum label, t16 spec member list, t16 report F-C gloss wording); adr-0033 seed inventory 57; ledger T-1 dispositions; anchors regen (T-1 R1, ledger D-002/D-004/D-005)"
+    },
+    {
+      "new": "10a4d68555ba04c07ee72f444a7a2fda8d125132",
+      "subject": "chore(grill-t17): decision ledger + spec + task book + CONTEXT terms (D-001..D-006 settled); absorbs t16 audit report + audit-passed handoff"
+    },
+    {
+      "new": "a51ae08a59ba2870be402c69d80d5351af9ccfb2",
+      "subject": "chore(grill-t16): handoff staleness fix + final sync - volatile asof sha removed from the handoff verified-state line (convention described, not the value); rewrite-map 1414; facts+region re-rendered"
+    },
+    {
+      "new": "640f8c75d045d88d01a22f4352a444754397bca6",
+      "subject": "chore(grill-t16): final citation/facts sync - rewrite-map 1415 (the committed handoff's f86494d sha refs entered the scanned set once tracked); facts+region re-rendered asof=lzt-sha"
+    },
+    {
+      "new": "f6e396f962bfd0813da56dc071f05a5f80ec6d8c",
+      "subject": "docs(grill-t16): round-complete handoff + final artifact sync - handoff for the next agent (commits, verified state, ADR-0077 conventions in force, regen order, residuals, T-3 zero-ask awareness); report boundary/pack evidence corrected; facts+map re-rendered to the pnq pin"
+    },
+    {
+      "new": "bdedbf9d95987f2350990c039ddf3529d4976fd7",
+      "subject": "chore(grill-t16): final-battery artifact regeneration - g6-publish-replay faithful regen records tarball 333992 (build-round-facts.js entered the packaged surface; marker reason extended to cover both batteries); facts canon + report region re-rendered pack_bytes=333992 asof=f86494d; anchors digest follows trend-inventory marker edit; rewrite-map 1412 in sync"
+    },
+    {
+      "new": "f86494d56d2904576a07bc6b42dca1da5449d756",
+      "subject": "chore(grill-t16): closing-step artifact regeneration - rewrite-map 1412 citations (report + t16 ledger copy admitted; the map classifies battery_as_of_commit sha strings as local-only refs, so the regen order is map->facts->report-splice); round-facts battery_as_of_commit now names the newest real commit (GitButler workspace commits rewrite away, durable pin required); report region re-rendered 1216/1412/52f286f (T-2 R2 closeout)"
+    },
+    {
+      "new": "52f286ffbebaf84e78fed6c73d3d7e46dee332d2",
+      "subject": "feat(grill-t16): mechanism machinery + facts canon + closeout (T-2 R2, ledger D-003/D-004/D-005) - check-governance-inventory accepts mechanism_output_diff (closed-enumeration membership + R2 classification + bare-marker hard-fail, never feeds burn-rate; probe fixtures in adr-0076-wiring); build-round-facts.js regenerates round-facts.json and splices the deterministic sentinel region (--report reads the on-disk canon so a region fix never blocks on re-running the suite); decision-ledger-t16.md admitted to anchors chain under ADR-0077 (15->16); F-E nits: surface-taxonomy.js dead m[1]||m[2] dropped, t15 ledger citations 1346->1403 both copies resynced; round report with artifact-rendered facts section + render-pin wiring; README 1216; T-2 ledger dispositions + consent-sweep verification"
+    },
+    {
+      "new": "96c5a813ce3f443fbdff3de12dc4b3fd78422bce",
+      "subject": "fix(grill-t16): check-ci-jobs consuming-row exit semantics - exit keyed to defer0004.satisfied (the row currently consuming the verifier, ADR-0077 D-A; union-exit class dead), defer0026 legs stay computed/printed as diagnostics, crash exits 2 via stderr (never masquerades as unsatisfied), header registers the convention verbatim + discharge re-point clause, any_matrix regex matches inline matrix:{...} form (F-E nit); adr-0058-wiring pins the three exit directions + crash + diagnostic + inline-matrix fixtures (T-2 R2, ledger D-002; settles audit F-A/F-B)"
+    },
+    {
+      "new": "9aef03c089232616b0c599bde4107ebdf093ac05",
+      "subject": "docs(grill-t16): ADR-0077 consuming-row exit convention + mechanism_outputs enumeration + facts canon (T-1 R1 boundary commit, ledger D-002/D-003/D-004/D-005: verifier exit keyed to the currently consuming row with crash->exit2 and discharge re-point clause; R2-internal closed mechanism_outputs enumeration {src/instrument-state.json replay:false, g6-publish-replay.json replay:true} + diff_semantics reworded to machinery-source hand-edits + mechanism_output_diff sibling marker first use; ADR-0076 D-B(2) amended via pointer line; round-report facts canon with narrowed addendum and disclosed not-in-anchors deviation; t15 row additive annotation settles F-D; defer-0004 rationale gains ADR-0058 D-C cite settling F-C same-commit with CONTEXT carve-out gloss; defer-0062 tally closed via same-commit ledger note; consent-sweep lines defer-0060/0053/0055+sunset 1/6/0057/0058/O-E; README index 77 + test counts 1207; anchors 15; rewrite-map 1410; g6-publish replay faithful regen)"
+    },
+    {
+      "new": "1927ea32da0fd94911f4d95dcd5b7c98c188ada7",
+      "subject": "chore(grill-t16): decision ledger + spec + task book + CONTEXT terms (D-001..D-005 settled); includes t15 audit report + audit-passed handoff docs"
+    },
+    {
+      "new": "46954f8a5c676213ab7db854faadd3a70e2a039a",
+      "subject": "feat(grill-t15): T-3 owner dispositions executed unbundled - Ask A: instrument --record-signoff record-seq 24 (seq=27 record_signoff, reviewer Euiop1, attestation approve, verbatim owner authorization); Ask B: defer-0051 evidence packet owner_ratification=ratified (signer Euiop1, 2026-09-18; F-1 settles, row stays closed discharged-by-trigger); ADR-0075 second_reviewer countersign landed in Status (t14 audit outcome owner-ratified); ledger T-3 section + governance copy resync + anchors 15; adr-0075-wiring packet test re-anchored to the ratified terminal state"
+    },
+    {
+      "new": "12a9f75416d415941bf4647dbc905b66aba926b9",
+      "subject": "docs(grill-t15): round report 2026-09-18 - changed-file inventory, D-002..D-007 mapping, disclosed red intermediate states, reproducible gate/pack/liveness evidence, frozen-surface byte stability, never-committed patch confirmation"
+    },
+    {
+      "new": "ab34ad43b4bc08acbd54bcfe8a8b7b0bdb359986",
+      "subject": "fix(grill-t15): wiring re-anchoring after round state change - stale-count asserts 75->76 (adr-0069/0070/0072/0073), seed inventory 55 entries + status sequence (adr-0033: defer-0026 actioned, defer-0060/0061 appended), adr-0035 real-ci predicate test re-anchored to narrowed semantics (exit 1 = deferral remains valid; evalSuggestions quiet on the live registry), README test counts 1194, rewrite-map regen 1403 citations, g6-publish replay records new pack size (T-2 tail, keeps the battery green)"
+    },
+    {
+      "new": "1a32db300f486fc1a0013d3dc0ba93db100e2a82",
+      "subject": "feat(grill-t15): R2 nits + dispositions + checkpoint - stale FAIL msg describes anchored discovery; corrupt-prior-map loud-fails (ENOENT-only fallback); gen-docs.cjs ROOT derived; adr-0075-wiring closed-assert lives solely in R2 describe; OUT_REL dedup; rewrite-map regenerated 1346 citations; telemetry checkpoint organic=0 (sunset counter stays 1/6 - mid-quarter checkpoint is watch evidence, not a quarterly observation); defer-0061 closed same-commit ledger note; defer-0058 net-increment +2; consent-sweep lines defer-0053/0055/0057 + O-E backlog; WORKFLOW.md permanent absence registered; trend row governance_tooling_diff + carve_out_used:1 baseline (T-2 R2, ledger D-003/D-006/D-007)"
+    },
+    {
+      "new": "c1e577eaa2083620faed209bf6deb61bc3d9d8bc",
+      "subject": "feat(grill-t15): defer-0004 narrowed re-defer bundle - registry unfreeze_if rewritten to the renderer-justifying conditions (multi-workflow / any matrix / >3 jobs) + check-ci-jobs.js predicate rewrite (per-row defer0004/defer0026 reporting; live shape reports defer0004 unmet so the permanently-firing SUGGEST dies) + adr-0058-wiring predicate tests with positive and negative fixtures + ADR-0076 R2 status line (T-2 R2, ledger D-003; first registered D-B carve-out use)"
+    },
+    {
+      "new": "e03324e3922be957bb35c355355f262ff11338e5",
+      "subject": "docs(grill-t15): ADR-0076 round edit-surface taxonomy + governance carve-out + spec-code pinning + registry dispositions (T-1 R1 boundary commit, ledger D-003/D-005/D-006/D-007: R1/R2/R3 taxonomy with closure-scan authority in surface-taxonomy.json + scripts/surface-taxonomy.js; three-gate carve-out with recomputed-not-trusted check + burn-rate advisory in check-governance-inventory; zero_product_diff redefined to no-R1-touch with independent governance_tooling_diff; t14 row annotated retroactively; defer-0026 actioned+limitation, defer-0060 new 403 tracker + ADR-0058 R10/R13 pointer, defer-0055 pure pointer, defer-0061 tally; adr-0076-wiring suite + adr-0064-t1 +2 tests + stale-count repairs; CONTEXT terms + README index 76 + AGENTS pointer + anchors 15 + ci expected-suites 73 bootstrap-disclosed)"
+    },
+    {
+      "new": "406f7482b64ad4fedb2b46f42fae94ba8066007f",
+      "subject": "docs(grill-t15): spec-code bidirectional pin - rewrite-map-generator-spec Inputs bullet amended to the union(ls-files, ls-tree -r HEAD) enumeration + untracked-worktree convention (F-2) and adr-0074-wiring gains the two-sided mechanism-vocabulary assertion (spec registers ls-files+ls-tree+untracked; generator carries both call sites - unilateral drift on either side reads red) (T-1 R1 doc round, ledger D-004)"
+    },
+    {
+      "new": "3fece2ecd64912ab4793706d09c71697a5acbac3",
+      "subject": "docs(grill-t15): sunset counter durable home - docs/governance/sunset-counter.json (1/6, ADR-0075 D-C path A state host in the anchors chain) + anchors 13->14 + ADR-0075 D-C durable-host pointer line + adr-0075-wiring coherence assertions (existence/n_target=6/observation tail reconciles with the ledger audit trail/missed-check-in freeze semantics) (T-1 R1 doc round, ledger D-002)"
+    },
+    {
+      "new": "cead40e37b959023e4d9b8e5451ef1a9cf9e2b65",
+      "subject": "chore(grill-t15): decision ledger + spec + task book + CONTEXT terms (D-001..D-007 settled)"
+    },
     {
       "new": "21b144216403671ae53e176fe6eee43265832e08",
       "subject": "chore(grill-t14): rewrite-map regen after handoff update - 1344 citations"
@@ -7756,17 +7868,15 @@
       "file": ".scratch/grill-t16/handoffs/2026-09-18-round-complete.md",
       "line": 10,
       "sha": "f86494d",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t16/handoffs/2026-09-18-round-complete.md",
       "line": 87,
       "sha": "f86494d",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t16/handoffs/next-round.md",
@@ -7779,73 +7889,64 @@
       "file": ".scratch/grill-t16/reports/2026-09-18-audit.md",
       "line": 6,
       "sha": "46954f8",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t16/reports/2026-09-18-audit.md",
       "line": 6,
       "sha": "a51ae08",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t16/reports/2026-09-18-audit.md",
       "line": 37,
       "sha": "640f8c7",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t16/reports/2026-09-18-audit.md",
       "line": 117,
       "sha": "640f8c7",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t16/reports/2026-09-18-audit.md",
       "line": 128,
       "sha": "46954f8",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t16/reports/2026-09-18-audit.md",
       "line": 128,
       "sha": "46954f8",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t16/reports/2026-09-18-audit.md",
       "line": 128,
       "sha": "a51ae08",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t16/reports/2026-09-18-report.md",
       "line": 20,
       "sha": "640f8c7",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t16/round-facts.json",
       "line": 12,
       "sha": "640f8c7",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t16/spec-fix-mechanisms.md",
