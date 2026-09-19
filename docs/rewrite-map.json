@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-19T02:12:44.787Z",
+  "generated_at": "2026-09-19T02:24:44.968Z",
   "published_tip": "60ce7438af354f6989a0fb16314b4e6bbf900718",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -23,10 +23,10 @@
     "published_only": 55,
     "removed": 0,
     "same": 278,
-    "doc_refs": 1439,
+    "doc_refs": 1447,
     "doc_refs_by_class": {
       "rewritten": 97,
-      "local-only": 692,
+      "local-only": 700,
       "published-unchanged": 650
     }
   },
@@ -8082,6 +8082,70 @@
       "sha": "3cd4e19",
       "class": "published-unchanged",
       "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t18/evidence/gate-all.txt",
+      "line": 13,
+      "sha": "f6c6c843c4ad4151",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t18/evidence/gate-all.txt",
+      "line": 15,
+      "sha": "41c7df6354424a59",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t18/evidence/gate-all.txt",
+      "line": 69,
+      "sha": "9ff2d0ad",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t18/evidence/instrument.txt",
+      "line": 5,
+      "sha": "f6c6c843c4ad4151",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t18/evidence/instrument.txt",
+      "line": 7,
+      "sha": "41c7df6354424a59",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t18/evidence/liveness.txt",
+      "line": 129,
+      "sha": "e06bd7a76005eaee41c86357339d6f8534f8b8a7",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t18/reports/2026-09-19-report.md",
+      "line": 24,
+      "sha": "c5d3924",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t18/round-facts.json",
+      "line": 12,
+      "sha": "c5d3924",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
     },
     {
       "file": ".scratch/grill-t6/audit/b7ccbeb/bench/polygraph/README.md",

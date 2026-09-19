@@ -226,7 +226,7 @@ source-only; ADR-0059 D-B). An MCP publish channel is deferred (defer-0029).
 ## Develop
 
 ```bash
-npm test                              # 1243 tests across 73 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 1244 tests across 73 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
@@ -324,7 +324,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - [ADR-0077](docs/adr/0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md) — The Consuming-Row Exit Convention, the Mechanism-Output Artifact Enumeration, and the Round-Report Facts Canon (grill-t16 fix + mechanism round)
 - [ADR-0078](docs/adr/0078-fix-round-disclosure-taxonomy.md) — The Fix-Round Disclosure Taxonomy - kind:fix and the Reused governance_tooling_diff Channel (grill-t18 disposition round)
 <!-- adr-index:end -->
-- `test/` — 73 test suites, 1243 tests
+- `test/` — 73 test suites, 1244 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 - `private/bench-corpus/` — answer corpora (probes/judge-twins/twins + fingerprints; gitignored, ADR-0036 D2). Gate scripts resolve via JIAHAO_CORPUS_DIR, else the install-planted dir (`jiahao init` plants it from the package), else this repo-private dir in a maintainer tree; missing everywhere fails closed (exit 1: config; the capability probe degrades an absent corpus dir to exit 2 UNVERIFIABLE first, ADR-0041 D2). npm consumers and public git clones carry no corpus at all — corpus gates are a maintainer/CI-only contract, fail-closed by design (ADR-0038 D2).
 

@@ -9,5 +9,5 @@ EXIT 0
 > jiahao@0.0.1 prepare
 > git config core.hooksPath .githooks || true
 
-(node:8396) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(node:16088) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
 (Use `node --trace-deprecation ...` to show where the warning was created)

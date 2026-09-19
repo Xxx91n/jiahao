@@ -134,7 +134,7 @@ falsification OK: 12 twin pairs
 > jiahao@0.0.1 prepare
 > git config core.hooksPath .githooks || true
 
-(node:13016) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(node:16036) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 [197 governance-anchors] PASS
 [governance-anchors] OK - 17 artifacts, digests in sync
@@ -142,9 +142,9 @@ falsification OK: 12 twin pairs
 [governance-inventory] OK: 35 entries, live source_adr, unique commands, closed references
 trend-anchor advisory drift: 1 fired vs 0 expected (streak 1 of 2)
 [208 rewrite-map] PASS
-[rewrite-map] OK: map in sync (1439 doc citations classified)
+[rewrite-map] OK: map in sync (1447 doc citations classified)
 [218 secret-scan] PASS
-[secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 936/936/936; oversized-skip 0
+[secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 956/956/956; oversized-skip 0
 ::warning title=gate:all::1 advisory/band warning(s) from gates: instrument-identity
 ::error title=UNVERIFIABLE::4 gate(s) unverifiable: ci-wiring requires ci-mode, bench-gate requires ci-mode, probes requires ci-mode, mr-probes requires ci-mode
 gate:all exit 0 (35 entries, 4 unverifiable, fail-fast off)
