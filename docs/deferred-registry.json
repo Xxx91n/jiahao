@@ -1,995 +1,998 @@
 {
-  "schema_version": 1,
-  "_doc": "ADR-0033: registry of chosen-to-defer (pending-activation) items only. Declared-gap permanents live in coverage-map.json; chosen-not-to-build items (e.g. judgeSeam, ADR-0019 D4) stay in ADRs per MADR. review_at expiry is fail-closed: activate, re-defer with new review_at + rationale, or remove. Anchors are existence-based: source_adr file must exist and the entry id must appear in any docs/adr/*.md or CONTEXT.md (typically the registering ADR). Enforced by scripts/check-deferred.js (deferred:gate). ADR-0035 additions: every entry carries cadence_tier (quarterly|half-yearly|yearly, review cadence ladder D1) and registered_at (D2 residency SLA: pending-evaluation may not outstay min(2 cycles, 12 months)); external-event entries carry last_check_in{date,note} with at least one check-in per cycle (warn-level, D3); presence-condition/count-threshold entries must carry verified_by pointing to an existing assertion script or be downgraded to pending-evaluation (D6, fail-closed).",
-  "entries": [
-    {
-      "id": "defer-0001",
-      "subject": "supply-chain signing (sigstore keyless / SLSA provenance)",
-      "source_adr": "docs/adr/0029-verifier-effectiveness-behavioral-probe-gate.md",
-      "rationale": "Single maintainer, local-only distribution (no remote, no npm publish, no CI): signing infrastructure buys nothing until at least one distribution channel exists. ADR-0029 D7 registers signing as a rejected-for-now item with explicit re-activation conditions.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "the project gains a publish pipeline AND a remote + GitHub Actions (or equivalent OIDC issuer) exists AND artifact inventory (tarball, adapters manifest) is formalized"
-      },
-      "review_at": "2027-02-28",
-      "cadence_tier": "half-yearly",
-      "registered_at": "2026-08-30",
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0002",
-      "subject": "L1/L2 golden gate deepening for the 8 long-tail host adapters (upstream copilot-cli bugs)",
-      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
-      "rationale": "L1/L2 golden conformance is suspended while upstream copilot-cli sessionStart bugs are unresolved; shipping L1 gates on buggy session semantics would codify breakage as gold. Partial fulfillment as of 2026-08-30: issues 2415/2142 closed, 1730/2201 still open (ADR-0035 D4 narrows this entry to the pure external-event; the host-protocol verification moved to defer-0005).",
-      "unfreeze_if": {
-        "type": "external-event",
-        "check": "the copilot-cli sessionStart bugs (issues 1730, 2201, 2415, 2142) resolved upstream"
-      },
-      "review_at": "2026-11-30",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-08-30",
-      "last_check_in": {
-        "date": "2026-08-30",
-        "note": "upstream verified via atomcode research: 2415/2142 closed, 1730/2201 open; condition not yet fulfilled"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0003",
-      "subject": "Merkle tree / signature upgrade of the evidence hash chain",
-      "source_adr": "CONTEXT.md",
-      "rationale": "Single-repo single-actor chains gain nothing from Merkle batching; the current linear hash chain is auditable end-to-end. Deferred per CONTEXT.md Cross-Turn Hash Chain terminology.",
-      "unfreeze_if": {
-        "type": "external-event",
-        "check": "a second-party consumer of the evidence log exists outside the producing repository, OR a cross-machine verification requirement appears"
-      },
-      "review_at": "2027-08-31",
-      "cadence_tier": "yearly",
-      "registered_at": "2026-08-30",
-      "last_check_in": {
-        "date": "2026-08-30",
-        "note": "checked, nothing changed: no second-party evidence-log consumer, no cross-machine verification requirement"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0004",
-      "subject": "generated ci.yml from docs/gates.json (C-style render + regen-diff uplift)",
-      "source_adr": "docs/adr/0034-gate-registry-single-entrypoint-orchestration.md",
-      "rationale": "ADR-0034 R4: ci.yml is a single-consumer ~30-line file; a renderer would hide intent drift behind a build step (ADR-0032 D2 anti-precedent). The D5 line-level wiring assertion (scripts/check-ci-wiring.js) covers the drift risk at zero build-layer cost. grill-t15 D-003: multi-job arrived via ADR-0058 and did not constitute sufficient reason for a renderer; re-defer narrowed to the renderer-justifying conditions (multi-workflow / any matrix / >3 jobs) with the verified_by predicate rewritten to match - a permanently-SATISFIED verifier is the alert-fatigue anti-pattern. grill-t16 F-C settlement: the narrowed re-defer is one of the three exits pre-registered by ADR-0058 D-C (defer-0004 evaluation scope: presence-coupled only - activate, re-defer + update rationale, or close); the exit-semantics convention that governs the verifier is ADR-0077 D-A.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "ci.yml spans multiple workflow files OR any job declares a matrix OR job count > 3",
-        "verified_by": "scripts/check-ci-jobs.js"
-      },
-      "review_at": "2027-08-31",
-      "cadence_tier": "yearly",
-      "registered_at": "2026-08-30",
-      "status": "deferred",
-      "last_check_in": {
-        "date": "2026-09-18",
-        "note": "narrowed re-defer at grill-t15: predicate now reports defer0004=unmet on the live shape (1 workflow, 3 jobs, no matrix) - the deferral remains valid"
-      }
-    },
-    {
-      "id": "defer-0005",
-      "subject": "verify the 8 long-tail host protocols against official documentation",
-      "source_adr": "docs/adr/0035-deferred-registry-cadence-checkin-verifiedby-honesty-corrections.md",
-      "rationale": "Split out of defer-0002 by ADR-0035 D4 (one entry, one condition type). L1/L2 golden conformance for the 8 long-tail hosts must not ship until each protocol is verified against its official documentation; serial atomcode research per host is the verification channel. Stays in this registry, not coverage-map.json (ADR-0035 R5: different namespace).",
-      "unfreeze_if": {
-        "type": "free-text",
-        "check": "all 8 long-tail host protocols (incl. copilot, qoder, opencode, aider) verified against official docs and recorded in host-contracts.json"
-      },
-      "review_at": "2026-11-30",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-08-30",
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0006",
-      "subject": "MR corpus v2 pipeline: LLM-generated candidate transforms + independent semantic-preservation judge (ASE 2026 two-layer, different model family) + paired McNemar (Amazon LLM-Accuracy-Stats) + FWER control",
-      "source_adr": "docs/adr/0037-metamorphic-relations-third-corpus-family-staged-hybrid.md",
-      "rationale": "v1 is hand-authored because judge-validated machine generation cannot feed a zero-false-positive corpus (LLMorph: unverified transforms are only ~42-60% true positives). Scaling past ~12 pairs needs the two-layer pipeline and paired statistics; both are buildable on demand, so v1 is frozen instead of pre-built.",
-      "unfreeze_if": {
-        "type": "count-threshold",
-        "check": "any single MR family accumulates >= 30 real cases (the ADR-0029 D3 graduation line), OR a freshness cycle demands corpus regeneration at a scale hand-authoring cannot carry"
-      },
-      "review_at": "2027-02-28",
-      "cadence_tier": "half-yearly",
-      "registered_at": "2026-08-31",
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0007",
-      "subject": "private-registry corpus distribution channel (publish=false / access-controlled npm registry package, Cargo/Turborepo internal-package pattern)",
-      "source_adr": "docs/adr/0038-npm-runtime-artifact-surface-corpus-distribution-boundary.md",
-      "rationale": "No external consumer demand exists today; the maintainer/CI channel (CI secret tar) covers all real reproduction needs. Building the channel now would pay the two-package version-sync cost for zero demand (ADR-0038 R1 reasoning).",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "a real external consumer of the benchmark corpus exists (an external team attempting reproduction) AND an access-controlled private channel is provisioned"
-      },
-      "review_at": "2027-02-28",
-      "cadence_tier": "half-yearly",
-      "registered_at": "2026-08-31",
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0008",
-      "subject": "local-file:<path> escape form for gate capability probing (one-off custom gates)",
-      "source_adr": "docs/adr/0040-gate-runtime-capability-declaration-three-state-exit-honest-unverifiable.md",
-      "rationale": "The four-capability closed enum covers all 18 current gates; an unconstrained escape slides toward an expression language. systemd precedent: X- prefix is a reserved namespace, not an open verb; if built, it must be prefix-scoped, relative-path-only, and inside the coupling guard's scan range.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "a real gate needs an arbitrary-path capability outside the closed enum"
-      },
-      "review_at": "2027-03-01",
-      "cadence_tier": "half-yearly",
-      "registered_at": "2026-09-01",
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0009",
-      "subject": "implement check-falsify.js and register falsification in docs/gates.json",
-      "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
-      "rationale": "ADR-0044 is a document-round decision only. The executable falsification gate and registry wiring belong to the next implementation round.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "the ADR-0044 implementation round opens"
-      },
-      "review_at": "2027-03-01",
-      "cadence_tier": "half-yearly",
-      "registered_at": "2026-09-04",
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0010",
-      "subject": "define and commit the first 12 falsification-twins with claim_id, claim_type, and falsification_cmd entries",
-      "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
-      "rationale": "The first twin batch is a structural killing-power check, not statistical coverage. Its fixtures are created in the implementation round once the record and gate contract are wired.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "the ADR-0044 implementation round opens and check-falsify.js exists"
-      },
-      "review_at": "2027-03-01",
-      "cadence_tier": "half-yearly",
-      "registered_at": "2026-09-04",
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0011",
-      "subject": "add statistical falsification metrics and threshold enforcement after the structural gate is green",
-      "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
-      "rationale": "Statistics would pretend to measure what the first structural gate cannot yet support. It follows a green structural falsification gate and a larger twin corpus.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "defer-0009 is implemented and the structural falsification gate is green"
-      },
-      "review_at": "2027-03-01",
-      "cadence_tier": "half-yearly",
-      "registered_at": "2026-09-04",
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0012",
-      "subject": "scoring-function isolation for capable-optimizer defense",
-      "source_adr": "docs/adr/0045-stochastic-deterministic-boundary-evidence-path-verification.md",
-      "rationale": "ADR-0036 already isolates corpus data; ADR-0045 records the separate execution-boundary concern. Scoring code must not be readable or mutable by the generator before it runs, but there is no current score-bearing verifier implementation to protect.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "a scoring-mode verifier or LLM-judge runtime exists and is reachable by the generator"
-      },
-      "review_at": "2027-03-01",
-      "cadence_tier": "half-yearly",
-      "registered_at": "2026-09-05",
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0013",
-      "subject": "Lyft-style prompt contradiction and dead-path linting",
-      "source_adr": "docs/adr/0045-stochastic-deterministic-boundary-evidence-path-verification.md",
-      "rationale": "Current adapter drift and structural checks catch shape drift, not contradictory or dead instruction paths. Adding an LLM-level prompt linter would introduce a new review dependency before the existing static gates demonstrate the need.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "adapter drift and structural gates have produced a reproducible missed contradiction case"
-      },
-      "review_at": "2027-03-01",
-      "cadence_tier": "half-yearly",
-      "registered_at": "2026-09-05",
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0015",
-      "subject": "Human-labeled anchor corpus and annotation manual for the judge revalidation admission gate",
-      "source_adr": "docs/adr/0046-instrument-drift-recalibration.md",
-      "rationale": "The human-anchor admission gate (ADR-0046 D-D) requires a frozen human-labeled corpus with a human-human kappa baseline, expert rotation, and a 60-90 day refresh; that asset does not exist yet.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "the ADR-0046 implementation round opens and a frozen human-labeled anchor corpus with annotation manual is commissioned"
-      },
-      "review_at": "2027-03-01",
-      "cadence_tier": "half-yearly",
-      "registered_at": "2026-09-05",
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0018",
-      "subject": "silent-drift anytime-valid auto-detection: anchor e-process + guard-window attribution to {none, system, judge}",
-      "source_adr": "docs/adr/0047-impact-tiered-instrument-change-control.md",
-      "rationale": "ADR-0047 D-E defers silent provider drift detection behind its two prerequisites: the human-labeled anchor corpus (defer-0015) and a trustworthy scheduler carrier (CONTEXT.md Reverification Runbook rejects cron/CI without a trusted remote executor). Building before the anchor set exists would replicate the naive-z ~75% false-alarm failure.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "defer-0015's frozen human-labeled anchor corpus with annotation manual is committed and schema-valid, AND a trustworthy scheduler carrier exists (CI cron with a trusted remote executor, or equivalent), AND the reverify pipeline wires the ADR-0046 D-A identity triple"
-      },
-      "review_at": "2027-03-01",
-      "cadence_tier": "half-yearly",
-      "registered_at": "2026-09-05",
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0019",
-      "subject": "data-driven calibration interval and offset-band feedback (staircase / reliability-ratio + guard-band)",
-      "source_adr": "docs/adr/0047-impact-tiered-instrument-change-control.md",
-      "rationale": "ADR-0047 D-F keeps the 6/9-month dead-man clock as initial interval and floor while the reverify ledger accumulates as-found/as-left history. Data-driven interval adjustment needs enough same-identity cycles and flip-eligible samples plus the anchor set before a control decision is statistically honest.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "the same identity has accumulated >= 2-3 complete reverify cycles AND >= 30 flip-eligible samples (ADR-0029 D3 graduation line) AND defer-0015's anchor set is available"
-      },
-      "review_at": "2027-03-01",
-      "cadence_tier": "half-yearly",
-      "registered_at": "2026-09-05",
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0023",
-      "subject": "criteria-change pointwise replay (as-left re-projection pipeline)",
-      "source_adr": "docs/adr/0049-decision-rule-anchor-and-metrological-ledger-completion.md",
-      "rationale": "ADR-0049 D-D requires pointwise replayable judge input before a criteria change can produce a genuine as-left re-projection. The current ledger retains aggregate values only, so criteria change must fall back to restatement mapping until input retention and the anchor set exist.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "the metrological ledger is authoritative AND pointwise judge input retention (claim/toolResults/heuristicVerdict) is implemented AND defer-0015's anchor set is available"
-      },
-      "review_at": "2026-12-06",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-06",
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0024",
-      "subject": "external witness / second-copy anchor for the evidence-log tip and genesis (independent-domain mirror: transparency log / timestamp / DNS TXT / second host)",
-      "source_adr": "docs/adr/0050-append-only-hardening-external-head-anchor-and-genesis-anchoring.md",
-      "rationale": "ADR-0050 D-B lands the install-time local genesis anchor and tail sidecar first. An external second copy raises detection strength from same-host to cross-domain (detection strength equals anchor independence) but requires network or a third-party trust domain; deferred until a cross-machine verification requirement or second-party consumer exists.",
-      "unfreeze_if": {
-        "type": "external-event",
-        "check": "a cross-machine verification requirement or a second-party consumer of the evidence log exists outside the producing host"
-      },
-      "review_at": "2027-09-01",
-      "cadence_tier": "yearly",
-      "registered_at": "2026-09-07",
-      "last_check_in": {
-        "date": "2026-09-13",
-        "note": "minimal unlock (ADR-0061 D-E C-2): authoritative governance copies now live in git-tracked docs/governance/ with machine-generated witnessed digests (anchors.json), giving a same-repo second copy. BAR STATEMENT (SPEC-3 repair, 2026-09-13): this git-commit witness does NOT satisfy the unfreeze condition and must not be recorded as if it did. ADR-0050/ADR-0061 D-E state explicitly that git alone is not tamper-proof, so a same-repo git copy is not an independent-domain witness - it shares the producing host, the repository, and the trust domain of the very record it would corroborate (detection strength equals anchor independence). The external/cross-domain half of the unfreeze condition therefore remains UNMET; defer-0024 stays open. External witness deadline for the next mandatory check-in: 2027-09-01 (this entry's review_at), with an interim obligation to re-check at each full-year tide."
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0025",
-      "subject": "host-native directory synchronization capability upgrade",
-      "source_adr": "docs/adr/0051-closed-persistence-capability-class.md",
-      "rationale": "ADR-0051 records the closed persistence capability class. The current runtime uses dir-sync-unsupported on Windows; promoting it to dir-sync-durable requires a documented portable directory-fsync primitive from Node or Windows, not a local adapter or new dependency.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "the target runtime exposes a documented and supported portable directory-fsync primitive"
-      },
-      "review_at": "2027-03-09",
-      "cadence_tier": "half-yearly",
-      "registered_at": "2026-09-09",
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0026",
-      "subject": "independent CI test job with always() summary (status-check visibility for the test layer)",
-      "source_adr": "docs/adr/0057-test-skip-honesty-and-suite-count-assertion.md",
-      "rationale": "ADR-0057 D-D: splitting test out of gate:all into a parallel job with an always() summary reverses the platform skipped=success default, but requires amending ADR-0034 D5 wording and the check-ci-wiring blocklist; landing ADR-0056/0057 inside the existing test gate comes first. Activation also satisfies the defer-0004 presence condition, whose evaluation must run in the same round.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "ci.yml declares a dedicated test job independent of gate:all plus an always() summary job",
-        "verified_by": "scripts/check-ci-jobs.js"
-      },
-      "review_at": "2027-09-10",
-      "cadence_tier": "yearly",
-      "registered_at": "2026-09-10",
-      "status": "actioned",
-      "actioned_at": "2026-09-18",
-      "actioned_via": "ADR-0058 D-F/D-G executed: ci.yml live-verified - gate-all + test(JIAHAO_TEST_TIER=public) + summary(always(), success-only seen==expected guard); all four check-ci-jobs predicates SATISFIED; same-commit ledger note: .scratch/grill-t15/decision-ledger.md T-1 dispositions",
-      "limitation": "actioned covers the deferred work only: the required-check deployment remains a repository-admin action (platform 403) and CI green is an environmental condition (ADR-0058 R10) - neither is the deferred work, and actioned does not endorse the whole carrier problem; the 403 carrier is tracked live by defer-0060"
-    },
-    {
-      "id": "defer-0027",
-      "subject": "verifiable-log wheels (hypercore/ssb/Rekor) for the evidence hash chain",
-      "source_adr": "docs/adr/0016-evidencelog-gateladder-split-shared-core.md",
-      "rationale": "ADR-0016 D4 sub-item (i): industrial verifiable-log wheels deferred because single-repo single-actor chains gain nothing from Merkle batching; the current linear hash chain (~100 lines, zero-dep) is auditable end-to-end. Trigger condition for activation remains cross-host audit per ADR-0013. Sub-items (ii) (profile.js relocation + configDir dedup) and (iii) (lint boundary) have no live trigger and stay in ADR prose.",
-      "unfreeze_if": {
-        "type": "external-event",
-        "check": "a second-party consumer of the evidence log exists outside the producing repository, OR a cross-machine verification requirement appears"
-      },
-      "review_at": "2027-09-01",
-      "cadence_tier": "yearly",
-      "registered_at": "2026-09-12",
-      "last_check_in": {
-        "date": "2026-09-12",
-        "note": "registered from ADR-0016 D4 prose; no second-party evidence-log consumer, no cross-machine verification requirement"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0028",
-      "subject": "npm scoped publish channel (@<org>/jiahao) + name squat declaration",
-      "source_adr": "docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md",
-      "rationale": "The unprefixed npm name jiahao is a third-party 2019 test package; the project has never published (defer-0001). Tier 1 moves to a name-independent github: channel now; a scoped @<org>/jiahao identity is reserved so a future legitimate channel exists. Scoped and unprefixed names do not conflict; creating the npm user/org for the scope is cheap and time-sensitive (names are first-come, hard to transfer).",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "a publish pipeline exists AND a remote exists AND an OIDC issuer (npm trusted publishing) is available AND an artifact inventory is formalized (all four defer-0001 conditions)"
-      },
-      "review_at": "2027-02-28",
-      "cadence_tier": "half-yearly",
-      "registered_at": "2026-09-12",
-      "last_check_in": {
-        "date": "2026-09-12",
-        "note": "registered at ADR-0059; <org> placeholder unset — run a candidate-name availability scan (normalized variants) before any publication"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0029",
-      "subject": "MCP distribution channel revival (jiahao-mcp publishable as its own artifact)",
-      "source_adr": "docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md",
-      "rationale": "ADR-0059 D-B removes jiahao-mcp/ from the tarball to restore ADR-0009 opt-in intent (nested package.json deps are not installed from tarballs — npm by design). The component stays source-only in the git tree. Revival is deferred until a real channel exists, mirroring the defer-0007 presence-condition pattern.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "a real external MCP-only consumer exists AND a working publish channel exists (defer-0001/defer-0028 conditions satisfiable)"
-      },
-      "review_at": "2027-09-01",
-      "cadence_tier": "yearly",
-      "registered_at": "2026-09-12",
-      "last_check_in": {
-        "date": "2026-09-12",
-        "note": "source-only tier active; no external MCP-only consumer on record"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0030",
-      "subject": "heterogeneous-model independent review channel (independent review layer)",
-      "source_adr": "docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md",
-      "rationale": "ADR-0059 D-D: wiring tests are coherence-tier limited assurance; same-author verification cannot claim IEEE 1012 independence. A cross-family model review channel converts the unfalsifiable same-boundary charge into a measurable, bookable engineering object. Honest bound: it provides partial technical independence only — managerial/financial independence is out of reach and labeled as such (cross-family confident errors partially shared, rho ~0.47).",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "at least one usable audit channel from a different model family exists AND a review-tasks.json schema is landed"
-      },
-      "review_at": "2026-12-12",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-12",
-      "last_check_in": {
-        "date": "2026-09-12",
-        "note": "MVP scope: reports stay inside the repository (defer-0024 external-event NOT triggered); must not merge into defer-0015 (ADR-0035 D4 single-condition discipline)"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0031",
-      "subject": "full-document polish pass over src/SKILL.md",
-      "source_adr": "docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md",
-      "rationale": "Prompt assets change via eval-carrying diffs (OpenAI/Braintrust prompt-versioning practice; RFC errata / camera-ready freeze patterns); a whole-document sweep has no industrial counterpart and would breach the 57-byte tarball margin plus trigger CONTEXT.md glossary ripple. Facts-correction edits (e.g. D-004 wording) remain licensed at any time; polish requires anchored defects.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "the product round (D-C) or the hetero audit (defer-0030) has produced >=N falsifiable SKILL.md defects each anchored to bench/GSR/audit evidence AND the tarball-budget round (ADR-0058 R4) has landed"
-      },
-      "review_at": "2027-03-12",
-      "cadence_tier": "half-yearly",
-      "registered_at": "2026-09-12",
-      "last_check_in": {
-        "date": "2026-09-12",
-        "note": "exit criteria pre-registered in ADR-0059 D-E (trigger-attributed commits, green GSR+wiring, pre/post bench verdict invariance, pack under the ADR-0039 D3 cap (200,000), glossary sync)"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0032",
-      "subject": "judge-twins corpus expansion to n>=100 flip-eligible",
-      "source_adr": "docs/adr/0060-judge-conformity-sampling-power-indeterminate-state-and-conditional-certification.md",
-      "rationale": "ADR-0060 D-A pre-registers min_n=100: below it the guarded-acceptance rule is structurally inoperable (the guard band consumes the spec limit, so no observation can return pass). The frozen judge-twins corpus has 26 entries / 22 flip-eligible, so reaching the operable region requires expanding the corpus, which is a corpus rebaseline (ADR-0047 corpus surface) and therefore its own round.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "a corpus authoring round has produced judge-twins.jsonl with >= 100 flip-eligible entries and a new frozen content fingerprint"
-      },
-      "review_at": "2027-03-12",
-      "cadence_tier": "half-yearly",
-      "registered_at": "2026-09-12",
-      "last_check_in": {
-        "date": "2026-09-12",
-        "note": "registered at ADR-0060; current corpus has 22 flip-eligible entries (n < min_n=100)"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0033",
-      "subject": "judge-quality CAPA: flip rate to <= 0.05",
-      "source_adr": "docs/adr/0060-judge-conformity-sampling-power-indeterminate-state-and-conditional-certification.md",
-      "rationale": "The as-found revalidation measured a flip rate of 0.13636 (3/22) against spec_limit 0.10 - a real judge-quality gap, not a sampling artifact (at p=0.136 no sample size can pass). The conditional certification carries this CAPA; the spec limit is NOT loosened to make existing data pass (ADR-0060 D-D).",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "a judge-quality round has driven the flip rate to <= 0.05 and a fresh revalidation records conformity=pass"
-      },
-      "review_at": "2026-12-11",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-12",
-      "last_check_in": {
-        "date": "2026-09-12",
-        "note": "conditional certification expires 2026-12-11 (fail-closed on expiry)"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0034",
-      "subject": "eval surface that actually exercises the src/SKILL.md prompt",
-      "source_adr": "docs/adr/0060-judge-conformity-sampling-power-indeterminate-state-and-conditional-certification.md",
-      "rationale": "The judge-twins evaluation path is deterministic (identical per-entry outcomes across runs; no provider call observed), so the TOST no-regression argument establishes \"no regression on the evaluated surface\", not \"the prompt has no behavioural effect\". A prompt-exercising eval surface is the declared gap.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "an eval harness exists whose inputs actually exercise the SKILL.md prompt and whose results are recorded in the reverify ledger"
-      },
-      "review_at": "2027-09-01",
-      "cadence_tier": "yearly",
-      "registered_at": "2026-09-12",
-      "last_check_in": {
-        "date": "2026-09-12",
-        "note": "declared gap in ADR-0060 Consequences"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0035",
-      "subject": "model identity sub-declaration re-verification (UNRESOLVED tagging must not be open-ended)",
-      "source_adr": "docs/adr/0061-pre-registered-gate-amendment-closure-surface-narrowed-judge-identity-and-output-tethered-convergence.md",
-      "rationale": "ADR-0061 D-C: declaration-scoped tagging requires a recorded re-verification path and a deadline; without one the tag degrades into an open-ended concession (IATF / ADR-0060 D-D precedent).",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "a re-pinned or formally dispositioned model_checkpoint/model_identity declaration exists in the reverify ledger, signed via the P-A1 path"
-      },
-      "review_at": "2026-12-11",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-13",
-      "last_check_in": {
-        "date": "2026-09-13",
-        "note": "registered in the ADR-0061 doc round"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0036",
-      "subject": "zero-movement trigger N and the exemption-counting rule for output-tethered convergence",
-      "source_adr": "docs/adr/0061-pre-registered-gate-amendment-closure-surface-narrowed-judge-identity-and-output-tethered-convergence.md",
-      "rationale": "ADR-0061 D-D/D-F: the convergence criterion (N consecutive zero-movement rounds triggers the governance-diet agenda; exemption rounds excluded, 3 consecutive exemptions alert) has no numeric N until the implementation round sets it under ADR-0060 min_n power discipline.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "an ADR or gate fixture defines N and the exemption-counting rule with a power-analysis justification"
-      },
-      "review_at": "2026-12-06",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-13",
-      "last_check_in": {
-        "date": "2026-09-13",
-        "note": "registered in the ADR-0061 doc round"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0037",
-      "subject": "tarball-cap trend-anchor review (ADR-0062 amendment closure)",
-      "source_adr": "docs/adr/0062-pre-registered-tarball-cap-amendment-policy-before-value-trend-anchor.md",
-      "rationale": "ADR-0062 D-A/D-E: the cap amendment carries a review_at and must ride the deferred-registry tide like every other pre-registered gate revision; the live value stays anchored in ADR-0039 D3.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "the ADR-0062 review_at (2026-12-13) is checked in and the trend anchor is re-measured under the pinned protocol (npm pack --dry-run --json, size field)"
-      },
-      "review_at": "2026-12-13",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-13",
-      "last_check_in": {
-        "date": "2026-09-13",
-        "note": "registered in the ADR-0061 T-2 implementation round"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0038",
-      "subject": "surface-narrowed judge identity anchor review (ADR-0063 re-pin closure)",
-      "source_adr": "docs/adr/0063-surface-narrowed-judge-identity-anchor-semantic-digest-rejected.md",
-      "rationale": "ADR-0063 D-D: the narrowing moves the resolved rules_digest and re-pins the judge identity under a conditional certification (reverify tail indeterminate, ADR-0060 D-B); the review_at must ride the deferred-registry tide like every other pre-registered identity change.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "the ADR-0063 review_at (2026-12-11) is checked in and the judge identity is either re-certified by a full signoff (reverify tail conformity=pass) or the conditional CAPA is dispositioned"
-      },
-      "review_at": "2026-12-11",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-13",
-      "last_check_in": {
-        "date": "2026-09-13",
-        "note": "registered in the ADR-0061 T-3 implementation round"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0039",
-      "subject": "first evaluation of the ADR net-addition governance trend anchor (ADR-0064 D-F)",
-      "source_adr": "docs/adr/0064-t6-product-round-pre-registration-mde-gates-and-governance-trend-anchor.md",
-      "rationale": "ADR-0064 D-F sets an observational trend anchor (63 + K=2, two consecutive documentation rounds with net additions > 0 raise one advisory line). The first evaluation cannot be pre-empted; it rides the registry tide like every other pre-registered review (ADR-0033).",
-      "unfreeze_if": {
-        "type": "free-text",
-        "check": "review_at reached; the trend anchor has either fired advisedly or is re-anchored by a same-commit ADR"
-      },
-      "review_at": "2026-12-14",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-14",
-      "last_check_in": {
-        "date": "2026-09-14",
-        "note": "registered in the grill-t6 documentation round"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0040",
-      "subject": "grill-t6 doc round landed ADR-0064 with zero product diff - forced disposition (ADR-0064 D-F)",
-      "source_adr": "docs/adr/0064-t6-product-round-pre-registration-mde-gates-and-governance-trend-anchor.md",
-      "rationale": "ADR-0064 D-F clause 3: a documentation round with zero product diff (src/, bench/ unchanged) that still lands a new ADR must write a deferred-registry entry for forced disposition. The grill-t6 doc round (qxs) is exactly that event; the event is logged in docs/governance/trend-inventory.json and must be dispositioned at the next trend-anchor evaluation.",
-      "unfreeze_if": {
-        "type": "free-text",
-        "check": "trend-inventory round entry dispositioned at the next documentation-round evaluation; entry closed only by a same-commit ADR or ledger note"
-      },
-      "review_at": "2026-12-14",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-14",
-      "last_check_in": {
-        "date": "2026-09-14",
-        "note": "registered in the grill-t6 T-1 implementation round"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0041",
-      "subject": "grill-t7 doc round landed ADR-0065 with zero product diff - forced disposition (ADR-0064 D-F)",
-      "source_adr": "docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md",
-      "rationale": "ADR-0064 D-F clause 3: a documentation round with zero product diff (src/, bench/ unchanged) that still lands a new ADR must write a deferred-registry entry for forced disposition. The grill-t7 doc round is exactly that event; logged in docs/governance/trend-inventory.json and must be dispositioned at the next trend-anchor evaluation.",
-      "unfreeze_if": {
-        "type": "free-text",
-        "check": "trend-inventory round entry dispositioned at the next documentation-round evaluation; entry closed only by a same-commit ADR or ledger note"
-      },
-      "review_at": "2026-12-14",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-14",
-      "last_check_in": {
-        "date": "2026-09-14",
-        "note": "registered in the grill-t7 doc round"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0042",
-      "subject": "tarball-cap trend-anchor review (ADR-0066 amendment closure, T-6 port surface)",
-      "source_adr": "docs/adr/0066-tarball-cap-trend-anchor-amendment-t6-product-port-surface.md",
-      "rationale": "ADR-0066 D-E: the cap amendment carries a review_at and rides the deferred-registry tide like every other pre-registered gate revision; the live value stays anchored in ADR-0039 D3. The second_reviewer slot is open pending the next audit round.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "the ADR-0066 review_at (2026-12-14) is checked in and the trend anchor is re-measured under the pinned protocol (npm pack --dry-run --json, size field); second_reviewer countersign lands"
-      },
-      "review_at": "2026-12-14",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-14",
-      "last_check_in": {
-        "date": "2026-09-14",
-        "note": "registered in the grill-t7 implementation round (T-6 confirmatory port surface)"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0043",
-      "subject": "grill-t7 impl round net-addition tally: +1 ADR (ADR-0066 cap amendment) - D-006(a)(i) summary row",
-      "source_adr": "docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md",
-      "rationale": "Ledger D-006(a)(i): every round writes exactly one net-addition summary row into the defer-0039 tide. The T-6 implementation round lands one new ADR (0066, tarball-cap trend-anchor amendment 230,000->300,000 for the product port surface); implementation/research-round ADRs do not feed the trend-inventory count (ADR-0064 D-F pins the window to documentation rounds), so the tally rides the registry tide instead.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
-      },
-      "review_at": "2026-12-14",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-14",
-      "last_check_in": {
-        "date": "2026-09-14",
-        "note": "net additions +1 (ADR-0066); registered in the grill-t7 implementation round"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0044",
-      "subject": "T-6 confirmatory terminal event: PASS (char-3 recall@FP0 1.000000, fp_default 0.000000 vs floor 0.563863)",
-      "source_adr": "docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md",
-      "rationale": "Ledger D-006(a)(ii): at most one terminal event per round enters the registry. The T-6 confirmatory run settled PASS on the primary survivor (bench/research/out/confirmatory-result.json); the fallback leg never fired. Fallback branches, count-band advisories, rel-L2 drift and waiver closures are excluded by the same clause.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "terminal event dispositioned at the next audit/trend evaluation; entry closed only by a same-commit ADR or ledger note"
-      },
-      "review_at": "2026-12-14",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-14",
-      "last_check_in": {
-        "date": "2026-09-14",
-        "note": "confirmatory PASS recorded from bench/research/out/confirmatory-result.json"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0045",
-      "subject": "grill-t7 unblind-exec round net-addition tally: +1 ADR (ADR-0067 devin-corpus@v1 OOT falsification adjudication) - D-006(a)(i) summary row",
-      "source_adr": "docs/adr/0067-devin-corpus-v1-oot-falsification-adjudication.md",
-      "rationale": "Ledger D-006(a)(i): every round writes exactly one net-addition summary row into the defer-0039 tide. The unblind execution round lands one new ADR (0067: eval-plan registration, claim-surface extension, branch policy); the terminal-event row is a separate entry registered only after the single-shot verdict exists.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
-      },
-      "review_at": "2026-12-14",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-15",
-      "last_check_in": {
-        "date": "2026-09-15",
-        "note": "net additions +1 (ADR-0067); registered in the grill-t7 unblind execution round"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0046",
-      "subject": "grill-t7 unblind terminal event: INDETERMINATE (k=3/12, CP 95% CI [0.054861,0.571858] straddles floor 0.563863)",
-      "source_adr": "docs/adr/0067-devin-corpus-v1-oot-falsification-adjudication.md",
-      "rationale": "Ledger D-006(a)(ii): at most one terminal event per round enters the registry. The single-shot devin-corpus@v1 OOT adjudication settled INDETERMINATE (band 3-10 of the frozen integer table); the branch policy arms devin-corpus@v2 (design target n_hon ~ 100) whose plan must be registered before v2 data with the disclosure that it was designed after seeing the v1 verdict.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "terminal event dispositioned at the next audit/trend evaluation; entry closed only by a same-commit ADR or ledger note"
-      },
-      "review_at": "2026-12-14",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-15",
-      "last_check_in": {
-        "date": "2026-09-15",
-        "note": "INDETERMINATE verdict recorded from bench/research/out/devin-oot-report.json"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0047",
-      "subject": "grill-t7 v2 doc round net-addition tally: +1 ADR (ADR-0068 devin-corpus@v2 plan - dual-axis adjudication, collection protocol, claim slot, v3 binding) - D-006(a)(i) summary row",
-      "source_adr": "docs/adr/0068-devin-corpus-v2-dual-axis-adjudication-collection-protocol-claim-slot-v3-binding.md",
-      "rationale": "Ledger D-006(a)(i): every round writes exactly one net-addition summary row into the defer-0039 tide. The v2 doc round lands one new ADR (0068: dual-axis IUT adjudication rule, collection protocol, claim slot, v3 binding, probe terms); the terminal-event row is a separate entry registered only after the single-shot v2 verdict exists.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
-      },
-      "review_at": "2026-12-14",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-15",
-      "last_check_in": {
-        "date": "2026-09-15",
-        "note": "net additions +1 (ADR-0068); registered in the grill-t7 v2 doc round"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0048",
-      "subject": "grill-t7 v2 terminal event: devin-corpus@v2 FAILED (dual-axis IUT - lie 9/31 CI [0.142229,0.480361] below floor 0.563863; FP 21/89 above bound 0.10; exit-report share of FP = 1.0, 60% concentration trigger FIRED)",
-      "source_adr": "docs/adr/0068-devin-corpus-v2-dual-axis-adjudication-collection-protocol-claim-slot-v3-binding.md",
-      "rationale": "Ledger D-014/D-016 + ADR-0068 branch policy: the single-shot v2 adjudication settled failed on BOTH axes of the pre-registered derived integer tables. The collapse-no-shelf claim wording armed by the eval-plan is the only allowed claim surface. The fired 60% exit-report concentration trigger routes the v3 evaluation to consider a category-scoped bound; the in-sample claim remains in place and no shelf language is emitted.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "v3 terminal event dispositioned at the next audit/trend evaluation; entry closed only by a same-commit ADR or ledger note"
-      },
-      "review_at": "2026-12-14",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-15",
-      "last_check_in": {
-        "date": "2026-09-15",
-        "note": "v2-round audit PASSED post-rework (audit 2026-09-15-audit-v2round.md): FAILED verdict re-derived and verified solid end-to-end (oracle-recomputed tables, ordering gates, single-shot mechanics, claim binding). The fired 60% exit-report concentration trigger stays armed into v3 (category-scoped bound = CONSIDER clause). Entry remains pending-evaluation: the unfreeze condition names the v3 terminal event, which does not exist yet; closure requires a same-commit ADR or ledger note once v3 is dispositioned."
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0049",
-      "subject": "grill-t8 doc round net-addition tally: +1 ADR (ADR-0069 CAPA claim-evidence pairer semantics, artifact-scoped freeze + adjudication anchor, readiness positioning, v3 plan obligations) - D-006(a)(i) summary row",
-      "source_adr": "docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md",
-      "rationale": "Ledger D-006(a)(i): every round writes exactly one net-addition summary row into the defer-0039 tide. The grill-t8 merged CAPA+readiness doc round lands one new ADR (0069: pairer semantics package, the three pre-registered clauses, artifact-scoped freeze + adjudicated/devin-corpus-v2 anchor, b-line readiness contract, v3 registration obligations); the terminal-event row is a separate entry registered only after a v3 verdict exists (follow-up round).",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
-      },
-      "review_at": "2026-12-15",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-16",
-      "last_check_in": {
-        "date": "2026-09-16",
-        "note": "net additions +1 (ADR-0069); registered in the grill-t8 merged CAPA+readiness doc round"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0050",
-      "subject": "grill-t10 doc round net-addition tally: +1 ADR (ADR-0070 hook-side conviction lane - pairer shadow wiring, frozen shadow->enforce promotion gate, product shape, claim form, F-A carry-over dispositions) - D-006(a)(i) summary row",
-      "source_adr": "docs/adr/0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md",
-      "rationale": "Ledger D-006(a)(i): every round writes exactly one net-addition summary row into the defer-0039 tide. The grill-t10 doc round lands one new ADR (0070: conviction-lane locus with the four registered clauses, the four frozen shadow->enforce promotion criteria, the single-source product shape + transcript-file three-state + schema-evolved record form, the three-sentence descriptive-existence claim, and the F-A1..F-A4 documented dispositions); the promotion-flip act is a separate registered entry only after the bake window (D-007 boundary).",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
-      },
-      "review_at": "2026-12-15",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-16",
-      "last_check_in": {
-        "date": "2026-09-17",
-        "note": "R2 net-addition review executed: tally rows verified against trend inventory and ADR registrations; disposition recorded in the same-commit ledger note"
-      },
-      "status": "closed",
-      "closed_at": "2026-09-17",
-      "closed_via": "same-commit ledger note: .scratch/grill-t13/decision-ledger.md section \"T-2 dispositions (R2)\""
-    },
-    {
-      "id": "defer-0051",
-      "subject": "tarball-cap trend-anchor review (ADR-0071 amendment closure, T-10 conviction-lane surface)",
-      "source_adr": "docs/adr/0071-tarball-cap-trend-anchor-amendment-t10-conviction-lane-surface.md",
-      "rationale": "ADR-0071 D-E: the cap amendment carries a review_at and rides the deferred-registry tide like every other pre-registered gate revision; the live value stays anchored in ADR-0039 D3. The second_reviewer slot is open pending the next audit round.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "the ADR-0071 review_at (2026-12-15) is checked in and the trend anchor is re-measured under the pinned protocol (npm pack --dry-run --json, size field); second_reviewer countersign lands"
-      },
-      "review_at": "2026-12-15",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-16",
-      "last_check_in": {
-        "date": "2026-09-18",
-        "note": "owner ratified the evidence packet (signatures.owner_ratification.verdict=ratified, signer Euiop1) - grill-t14 audit F-1 settles; row stays closed discharged-by-trigger"
-      },
-      "status": "closed",
-      "closed_at": "2026-09-17",
-      "closed_via": "discharged-by-trigger: pinned-protocol re-measurement (npm pack --dry-run --json -> size 324711 < cap 340000) + second-party countersign (weak-independent, devin-subagent-t14-countersign) on evidence packet .scratch/grill-t14/evidence/defer-0051-evidence-packet.json; same-commit ledger note: .scratch/grill-t14/decision-ledger.md section \"T-2 dispositions (R2 action round, 2026-09-17)\"; owner ratification of the same packet is pending as the separate T-3 Ask B (rejection reopens this row)",
-      "closure_note": "1 data point existence check - this closure discharges the review slot only; trend duty stays in pack-smoke (scripts/check-pack-smoke.js, gate order 196) which asserts the cap on every gate:all run",
-      "trigger_override": "explicit trigger (T-3 audit F-4 reopen -> pinned-protocol re-measure + countersign, executed 2026-09-17) overrides review_at=2026-12-15 per grill-t14 ledger D-002"
-    },
-    {
-      "id": "defer-0052",
-      "subject": "grill-t11 doc round net-addition tally: +1 ADR (ADR-0072 readiness verdict + pre-registered re-measurement + bake protocol + ADR-0070 tier-2 amendment + critique dispositions P-1/P-2/P-4/P-5) - D-006(a)(i) summary row",
-      "source_adr": "docs/adr/0072-readiness-verdict-remeasurement-preregistration-bake-protocol-critique-dispositions.md",
-      "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t11 documentation round lands one new ADR (0072: the usable+testable verdict under measure-then-declare ordering, the b2-method re-measurement with the lane exercise and pre-registered downgrade trigger, the owner-dogfood bake protocol with the independent-second-line tier-2 amendment to ADR-0070 G2, the four critique dispositions, the capability-label word-slot fix, and the dormant-then-live declaration block). The round also touches scripts/check-host-contracts.js (the measured-present enum word slot) and the claim homes' sentence-1 parenthetical - registration-surface changes; no shipped runtime behavior moves.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
-      },
-      "review_at": "2026-12-15",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-16",
-      "last_check_in": {
-        "date": "2026-09-17",
-        "note": "R2 net-addition review executed: tally rows verified against trend inventory and ADR registrations; disposition recorded in the same-commit ledger note"
-      },
-      "status": "closed",
-      "closed_at": "2026-09-17",
-      "closed_via": "same-commit ledger note: .scratch/grill-t13/decision-ledger.md section \"T-2 dispositions (R2)\""
-    },
-    {
-      "id": "defer-0053",
-      "subject": "collection-side provenance field on lane records (instrument agenda: write-time provenance vs analysis-side classification)",
-      "source_adr": "docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md",
-      "rationale": "ADR-0073 D-A registers analysis-side provenance classification (session->project-dir mechanical rule) as this round's bridge; the durable form is a record field written at lane-write time so classification never depends on transcript availability after the fact. Registered as an instrument agenda, not this round's scope (ledger D-002 bounds this round to the analysis side).",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "a same-commit ADR registers the collection-side provenance field (record schema evolution discipline, ADR-0023 D4) and the lane writes it on new records"
-      },
-      "review_at": "2026-12-15",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-17",
-      "last_check_in": {
-        "date": "2026-09-17",
-        "note": "R2 disposition: stays deferred; unfreeze condition frozen (unfreeze_frozen) — no silent widening"
-      },
-      "status": "pending-evaluation",
-      "unfreeze_frozen": true,
-      "cost_note": "if the zero-write assumption breaks, a dirty-data window exists: lane records written before the provenance field lands carry no provenance and can skew the routing-rate read until reclassified (T-3 F-6)"
-    },
-    {
-      "id": "defer-0054",
-      "subject": "pre-commit secret/topology scanner (gitleaks class) - recurrence prevention for host-config material entering git-tracked dirs (O-2)",
-      "source_adr": "docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md",
-      "rationale": "ADR-0073 D-C O-2: the host settings backup reached the index inside git-tracked .scratch before anyone noticed; the forward rule (host config backups never enter git-tracked dirs) is registered and the gitignore clause is live, but a rule without a scanner depends on vigilance - the Re-Execution Prior says every catch so far came from re-execution or audit, not self-disclosure. A gitleaks-class pre-commit scan is the registered prevention agenda; selection is out of this round's scope.",
-      "unfreeze_if": {
-        "type": "external-event",
-        "check": "the pattern scanner exceeds 3 rules OR a miss incident is observed -> revisit with a gitleaks-class full scanner (post-action trigger, T-3 F-5)"
-      },
-      "review_at": "2026-12-15",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-17",
-      "last_check_in": {
-        "date": "2026-09-17",
-        "note": "registered as recurrence-prevention agenda after the O-2 disposition (untrack + forward rule + zero-external-exposure window on record)"
-      },
-      "status": "actioned",
-      "actioned_at": "2026-09-17",
-      "actioned_via": "R2 repo-side pattern scanner scripts/check-secret-scan.js (3 rules) + secret-scan gate in docs/gates.json + blocking self-test in test/rewrite-map.test.js",
-      "detection_limit": "self-built tripwire is blind to unknown secret forms; the gitleaks-revisit trigger above carries the full-scanner revisit agenda (T-3 F-5 disclosure)"
-    },
-    {
-      "id": "defer-0055",
-      "subject": "organic routing-rate watch - does organic lane traffic ever arrive (provenance-tiered G1 leg observable per round)",
-      "source_adr": "docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md",
-      "rationale": "ADR-0073 D-B narrows G1 to organic events and the organic leg currently reads 0; the standing question is whether real usage traffic ever reaches the lane. The segmented telemetry summary (R-b checkpoint cadence: every grill round close + mandatory before promotion review) makes this observable each round without a new process.",
-      "unfreeze_if": {
-        "type": "external-event",
-        "check": "organic lane records appear on the chain (organic > 0 in a segmented summary) or the bake protocol is re-opened by a same-commit ADR"
-      },
-      "review_at": "2026-12-15",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-17",
-      "last_check_in": {
-        "date": "2026-09-17",
-        "note": "R1 (grill-t14): sunset_trigger_pointer registered -> ADR-0075 D-C; quarterly cadence and organic unfreeze trigger unchanged; closes_if unchanged"
-      },
-      "status": "pending-evaluation",
-      "closes_if": {
-        "type": "external-event",
-        "check": "six consecutive months with organic=0 at every quarterly check-in -> close the watch as expired (no organic lane traffic ever observed)"
-      },
-      "sunset_trigger_pointer": "ADR-0075 D-C (docs/adr/0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md) - this row carries only the pointer; the clause body lives in the ADR"
-    },
-    {
-      "id": "defer-0056",
-      "subject": "grill-t12 doc round net-addition tally: +1 ADR (ADR-0073 provenance-tiered corpus + G1 organic amendment + audit carry-over dispositions F-A1/O-1/W-1/O-2 + bake stewardship protocol) - D-006(a)(i) summary row",
-      "source_adr": "docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md",
-      "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t12 documentation round lands one new ADR (0073: the four provenance classes with the mechanical session->project-dir rule and conservative unclassified fallback, the tightening-only G1 organic amendment, the carried-item dispositions with registered wording, and the bake stewardship protocol - dry-run shape, checkpoint cadence, diversity-qualifier framework). The round also touches scripts/pairer-lane-telemetry.js (segmented output), test/fixtures/host-contracts.json (measured-present flip), scripts/build-governance-anchors.js (t12 ledger row) and the claim homes' sentence-1 parenthetical - registration-surface changes; no shipped runtime behavior moves.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
-      },
-      "review_at": "2026-12-15",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-17",
-      "last_check_in": {
-        "date": "2026-09-17",
-        "note": "R2 net-addition review executed: tally rows verified against trend inventory and ADR registrations; disposition recorded in the same-commit ledger note"
-      },
-      "status": "closed",
-      "closed_at": "2026-09-17",
-      "closed_via": "same-commit ledger note: .scratch/grill-t13/decision-ledger.md section \"T-2 dispositions (R2)\""
-    },
-    {
-      "id": "defer-0057",
-      "subject": "grill-t13 doc round net-addition tally: +1 ADR (ADR-0074 sanitized-history publish record, rewrite-map single translation point, tip-pinned claim invalidation + re-verification preregistration, independence-grade audit convention) - D-006(a)(i) summary row",
-      "source_adr": "docs/adr/0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md",
-      "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t13 documentation round lands one new ADR (0074: the publish event record with bounded-break disclosure, the rewrite-map single translation point with three-class citation taxonomy, the tip-pinned install claim invalidation rule with the verified-at note form, the pre-registered published-tip re-verification plan, and the independence-grade audit convention). The round also touches docs/governance (t13 ledger copy + runbook + pointer notes), README disclosure/verified-at slot, and test/adr-0074-wiring.test.js - registration-surface changes; no shipped runtime behavior moves.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
-      },
-      "review_at": "2026-12-15",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-17",
-      "last_check_in": {
-        "date": "2026-09-17",
-        "note": "net additions +1 (ADR-0074); registered in the grill-t13 doc round"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0058",
-      "subject": "standing cadence: per-round deferred-registry net-increment review (each documentation round's ADR delta gets a tally row and a disposition at the next trend-anchor evaluation)",
-      "source_adr": "docs/adr/0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md",
-      "rationale": "the R2 review of defer-0050/0051/0052/0056 showed net-addition tally rows accumulate without a standing review cadence; this entry makes the per-round net-increment review a registered, repeating agenda item instead of ad-hoc cleanup",
-      "unfreeze_if": {
-        "type": "external-event",
-        "check": "reviewed and dispositioned at each trend-anchor evaluation round; closes when a round lands zero net registry additions AND no tally rows remain open"
-      },
-      "review_at": "2026-12-15",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-17",
-      "last_check_in": {
-        "date": "2026-09-17",
-        "note": "grill-t14 round reviewed: net registry increment +1 (defer-0059 added; defer-0051 closed discharged-by-trigger; defer-0055 pointer added - same row count); tally rows verified"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0059",
-      "subject": "grill-t14 doc round net-addition tally: +1 ADR (ADR-0075 promotion-review preregistration pack - N/M sufficiency qualifier on the G1 organic corpus, <=8-class intent taxonomy, sunset trigger clause, blocking meta-requirement) - D-006(a)(i) summary row",
-      "source_adr": "docs/adr/0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md",
-      "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t14 documentation round lands one new ADR (0075: the single-proposition N/M sufficiency qualifier on the G1 organic corpus - events>=200 AND sessions>=20 AND intent-classes>=5 with no independent pass state; the pre-registered 8-class analysis-side intent taxonomy with unknown catch-all and K=2 support; the dual-or-path sunset trigger activating only the scheduled strategic review; and the blocking meta-requirement fixing the criteria shape). The round also touches docs/governance (t14 ledger copy + anchors regen), the defer-0055 pointer field, README index, and test/adr-0075-wiring.test.js - registration-surface changes; no shipped runtime behavior moves.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
-      },
-      "review_at": "2026-12-15",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-17",
-      "last_check_in": {
-        "date": "2026-09-17",
-        "note": "R2 net-addition review executed: tally row verified against trend inventory and ADR registration; disposition recorded in the same-commit ledger note"
-      },
-      "status": "closed",
-      "closed_at": "2026-09-17",
-      "closed_via": "same-commit ledger note: .scratch/grill-t14/decision-ledger.md section \"T-2 dispositions (R2 action round, 2026-09-17)\" - tally verified against trend-inventory grill-t14 row (+1 ADR-0075) and ADR registration"
-    },
-    {
-      "id": "defer-0060",
-      "subject": "CI gate-all channel permanently red - JIAHAO_BENCH_CORPUS_B64 regeneration (the tarball must expose bench-corpus/mr-probes.jsonl at JIAHAO_CORPUS_DIR) plus the same-source 403 required-check deployment; both repository-admin actions",
-      "source_adr": "docs/adr/0076-round-edit-surface-taxonomy-and-governance-carve-out.md",
-      "rationale": "ADR-0058 R10/R13: the channel is red for an environment/secret condition, not code; the R13 diagnostics make failures self-explanatory but the secret-rotation branch needs repository-admin credentials. Folds the 403 required-check deployment (same credential class, same intervention surface). defer-0026 limitation is historical record - this row is the sole live tracker of the 403 issue. id note: defer-0060 was the rejected D-002 sunset-row placeholder name, never landed - the id belongs to the first lander (grill-t15 D-006).",
-      "unfreeze_if": {
-        "type": "external-event",
-        "check": "owner regenerates the JIAHAO_BENCH_CORPUS_B64 secret AND the R13 diagnostics report green AND/OR the summary job is deployed as the required check"
-      },
-      "closes_if": {
-        "type": "external-event",
-        "check": "a main CI run goes green via the summary aggregation OR the owner explicitly retires the channel via same-commit ADR amendment"
-      },
-      "review_at": "2026-12-15",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-18",
-      "last_check_in": {
-        "date": "2026-09-18",
-        "note": "registered at the grill-t15 disposition round as the sole live tracker of the 403 carrier (defer-0026 limitation field demoted to historical record)"
-      },
-      "status": "pending-evaluation"
-    },
-    {
-      "id": "defer-0061",
-      "subject": "grill-t15 doc round net-addition tally: +1 ADR (ADR-0076 round edit-surface taxonomy + governance carve-out + sunset-counter durable home + spec-code bidirectional pinning + registry dispositions) - D-006(a)(i) summary row",
-      "source_adr": "docs/adr/0076-round-edit-surface-taxonomy-and-governance-carve-out.md",
-      "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t15 documentation round lands one new ADR (0076: the three-surface edit taxonomy with closure-scan authority, the three-gate governance carve-out with burn-rate advisory, the sunset counter durable home in the anchors chain, the spec-code bidirectional pinning convention, and the round registry dispositions). The round also touches docs/governance (sunset-counter.json, surface-taxonomy.json, anchors, t15 ledger copy), CONTEXT.md glossary, README index, AGENTS.md pointer, wiring tests, and - via the first registered carve-out in R2 - scripts/check-ci-jobs.js.",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
-      },
-      "review_at": "2026-12-15",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-18",
-      "status": "closed",
-      "closed_at": "2026-09-18",
-      "closed_via": "same-commit ledger note: .scratch/grill-t15/decision-ledger.md T-2 dispositions (defer-0059 precedent: row exists + ADR registered = nothing left to disposition)"
-    },
-    {
-      "id": "defer-0062",
-      "subject": "grill-t16 doc round net-addition tally: +1 ADR (ADR-0077 consuming-row exit convention + mechanism-output artifact enumeration + round-report facts canon) - D-006(a)(i) summary row",
-      "source_adr": "docs/adr/0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md",
-      "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t16 documentation round lands one new ADR (0077: the consuming-row verified_by exit convention, the R2-internal mechanism_outputs closed enumeration with the faithful-regeneration exemption and the mechanism_output_diff provenance marker, and the round-report facts canon with the narrowed addendum channel). The round also touches CONTEXT.md glossary, the surface-taxonomy diff_semantics reword, the t15 trend-row additive annotation, the README index, and the adr-0076 wiring assertions - no R2 machinery is touched in the documentation bundle (carve-out not invoked).",
-      "unfreeze_if": {
-        "type": "presence-condition",
-        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
-      },
-      "review_at": "2026-12-15",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-18",
-      "status": "closed",
-      "closed_at": "2026-09-18",
-      "closed_via": "same-commit ledger note: .scratch/grill-t16/decision-ledger.md T-1 dispositions (defer-0059/0061 precedent: row exists + ADR registered = nothing left to disposition)"
-    },
-    {
-      "id": "defer-0063",
-      "subject": "build-round-facts.js guard/exit-style mix (arg-guard + process.exit shape) - deferred as a missing convention, not a local defect",
-      "source_adr": "docs/adr/0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md",
-      "rationale": "grill-t16 audit G-4 smell, grill-t17 D-005 gate-criteria disposition: the script's argument-guard and exit-style mix fails the third leg of the registered gate criteria (minutes-scale ~<=30 lines x behavior-preserving x no-convention-needed) - fixing it needs a convention for guard/exit-style across fail-closed tooling first, otherwise the fix recurs. Registered as the missing-convention class. Anti-rot quota: the next fix bundle must take one smell ticket first - a deferred ticket with no quota is rot, not a deferral.",
-      "unfreeze_if": {
-        "type": "free-text",
-        "check": "a written convention for verifier guard/exit-style exists (ADR clause or CONTEXT term) - then this becomes a gated smell-bundle candidate"
-      },
-      "review_at": "2026-12-15",
-      "cadence_tier": "quarterly",
-      "registered_at": "2026-09-18",
-      "status": "pending-evaluation",
-      "last_check_in": {
-        "date": "2026-09-18",
-        "note": "registered at the grill-t17 fix round as the missing-convention class; carries the anti-rot quota (next fix bundle takes one smell ticket first)"
-      }
-    }
-  ]
+ "schema_version": 1,
+ "_doc": "ADR-0033: registry of chosen-to-defer (pending-activation) items only. Declared-gap permanents live in coverage-map.json; chosen-not-to-build items (e.g. judgeSeam, ADR-0019 D4) stay in ADRs per MADR. review_at expiry is fail-closed: activate, re-defer with new review_at + rationale, or remove. Anchors are existence-based: source_adr file must exist and the entry id must appear in any docs/adr/*.md or CONTEXT.md (typically the registering ADR). Enforced by scripts/check-deferred.js (deferred:gate). ADR-0035 additions: every entry carries cadence_tier (quarterly|half-yearly|yearly, review cadence ladder D1) and registered_at (D2 residency SLA: pending-evaluation may not outstay min(2 cycles, 12 months)); external-event entries carry last_check_in{date,note} with at least one check-in per cycle (warn-level, D3); presence-condition/count-threshold entries must carry verified_by pointing to an existing assertion script or be downgraded to pending-evaluation (D6, fail-closed).",
+ "entries": [
+  {
+   "id": "defer-0001",
+   "subject": "supply-chain signing (sigstore keyless / SLSA provenance)",
+   "source_adr": "docs/adr/0029-verifier-effectiveness-behavioral-probe-gate.md",
+   "rationale": "Single maintainer, local-only distribution (no remote, no npm publish, no CI): signing infrastructure buys nothing until at least one distribution channel exists. ADR-0029 D7 registers signing as a rejected-for-now item with explicit re-activation conditions.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "the project gains a publish pipeline AND a remote + GitHub Actions (or equivalent OIDC issuer) exists AND artifact inventory (tarball, adapters manifest) is formalized"
+   },
+   "review_at": "2027-02-28",
+   "cadence_tier": "half-yearly",
+   "registered_at": "2026-08-30",
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0002",
+   "subject": "L1/L2 golden gate deepening for the 8 long-tail host adapters (upstream copilot-cli bugs)",
+   "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+   "rationale": "L1/L2 golden conformance is suspended while upstream copilot-cli sessionStart bugs are unresolved; shipping L1 gates on buggy session semantics would codify breakage as gold. Partial fulfillment as of 2026-08-30: issues 2415/2142 closed, 1730/2201 still open (ADR-0035 D4 narrows this entry to the pure external-event; the host-protocol verification moved to defer-0005).",
+   "unfreeze_if": {
+    "type": "external-event",
+    "check": "the copilot-cli sessionStart bugs (issues 1730, 2201, 2415, 2142) resolved upstream"
+   },
+   "review_at": "2026-11-30",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-08-30",
+   "last_check_in": {
+    "date": "2026-08-30",
+    "note": "upstream verified via atomcode research: 2415/2142 closed, 1730/2201 open; condition not yet fulfilled"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0003",
+   "subject": "Merkle tree / signature upgrade of the evidence hash chain",
+   "source_adr": "CONTEXT.md",
+   "rationale": "Single-repo single-actor chains gain nothing from Merkle batching; the current linear hash chain is auditable end-to-end. Deferred per CONTEXT.md Cross-Turn Hash Chain terminology.",
+   "unfreeze_if": {
+    "type": "external-event",
+    "check": "a second-party consumer of the evidence log exists outside the producing repository, OR a cross-machine verification requirement appears"
+   },
+   "review_at": "2027-08-31",
+   "cadence_tier": "yearly",
+   "registered_at": "2026-08-30",
+   "last_check_in": {
+    "date": "2026-08-30",
+    "note": "checked, nothing changed: no second-party evidence-log consumer, no cross-machine verification requirement"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0004",
+   "subject": "generated ci.yml from docs/gates.json (C-style render + regen-diff uplift)",
+   "source_adr": "docs/adr/0034-gate-registry-single-entrypoint-orchestration.md",
+   "rationale": "ADR-0034 R4: ci.yml is a single-consumer ~30-line file; a renderer would hide intent drift behind a build step (ADR-0032 D2 anti-precedent). The D5 line-level wiring assertion (scripts/check-ci-wiring.js) covers the drift risk at zero build-layer cost. grill-t15 D-003: multi-job arrived via ADR-0058 and did not constitute sufficient reason for a renderer; re-defer narrowed to the renderer-justifying conditions (multi-workflow / any matrix / >3 jobs) with the verified_by predicate rewritten to match - a permanently-SATISFIED verifier is the alert-fatigue anti-pattern. grill-t16 F-C settlement: the narrowed re-defer is one of the three exits pre-registered by ADR-0058 D-C (defer-0004 evaluation scope: presence-coupled only - activate, re-defer + update rationale, or close); the exit-semantics convention that governs the verifier is ADR-0077 D-A.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "ci.yml spans multiple workflow files OR any job declares a matrix OR job count > 3",
+    "verified_by": "scripts/check-ci-jobs.js"
+   },
+   "review_at": "2027-08-31",
+   "cadence_tier": "yearly",
+   "registered_at": "2026-08-30",
+   "status": "deferred",
+   "last_check_in": {
+    "date": "2026-09-18",
+    "note": "narrowed re-defer at grill-t15: predicate now reports defer0004=unmet on the live shape (1 workflow, 3 jobs, no matrix) - the deferral remains valid"
+   }
+  },
+  {
+   "id": "defer-0005",
+   "subject": "verify the 8 long-tail host protocols against official documentation",
+   "source_adr": "docs/adr/0035-deferred-registry-cadence-checkin-verifiedby-honesty-corrections.md",
+   "rationale": "Split out of defer-0002 by ADR-0035 D4 (one entry, one condition type). L1/L2 golden conformance for the 8 long-tail hosts must not ship until each protocol is verified against its official documentation; serial atomcode research per host is the verification channel. Stays in this registry, not coverage-map.json (ADR-0035 R5: different namespace).",
+   "unfreeze_if": {
+    "type": "free-text",
+    "check": "all 8 long-tail host protocols (incl. copilot, qoder, opencode, aider) verified against official docs and recorded in host-contracts.json"
+   },
+   "review_at": "2026-11-30",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-08-30",
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0006",
+   "subject": "MR corpus v2 pipeline: LLM-generated candidate transforms + independent semantic-preservation judge (ASE 2026 two-layer, different model family) + paired McNemar (Amazon LLM-Accuracy-Stats) + FWER control",
+   "source_adr": "docs/adr/0037-metamorphic-relations-third-corpus-family-staged-hybrid.md",
+   "rationale": "v1 is hand-authored because judge-validated machine generation cannot feed a zero-false-positive corpus (LLMorph: unverified transforms are only ~42-60% true positives). Scaling past ~12 pairs needs the two-layer pipeline and paired statistics; both are buildable on demand, so v1 is frozen instead of pre-built.",
+   "unfreeze_if": {
+    "type": "count-threshold",
+    "check": "any single MR family accumulates >= 30 real cases (the ADR-0029 D3 graduation line), OR a freshness cycle demands corpus regeneration at a scale hand-authoring cannot carry"
+   },
+   "review_at": "2027-02-28",
+   "cadence_tier": "half-yearly",
+   "registered_at": "2026-08-31",
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0007",
+   "subject": "private-registry corpus distribution channel (publish=false / access-controlled npm registry package, Cargo/Turborepo internal-package pattern)",
+   "source_adr": "docs/adr/0038-npm-runtime-artifact-surface-corpus-distribution-boundary.md",
+   "rationale": "No external consumer demand exists today; the maintainer/CI channel (CI secret tar) covers all real reproduction needs. Building the channel now would pay the two-package version-sync cost for zero demand (ADR-0038 R1 reasoning).",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "a real external consumer of the benchmark corpus exists (an external team attempting reproduction) AND an access-controlled private channel is provisioned"
+   },
+   "review_at": "2027-02-28",
+   "cadence_tier": "half-yearly",
+   "registered_at": "2026-08-31",
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0008",
+   "subject": "local-file:<path> escape form for gate capability probing (one-off custom gates)",
+   "source_adr": "docs/adr/0040-gate-runtime-capability-declaration-three-state-exit-honest-unverifiable.md",
+   "rationale": "The four-capability closed enum covers all 18 current gates; an unconstrained escape slides toward an expression language. systemd precedent: X- prefix is a reserved namespace, not an open verb; if built, it must be prefix-scoped, relative-path-only, and inside the coupling guard's scan range.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "a real gate needs an arbitrary-path capability outside the closed enum"
+   },
+   "review_at": "2027-03-01",
+   "cadence_tier": "half-yearly",
+   "registered_at": "2026-09-01",
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0009",
+   "subject": "implement check-falsify.js and register falsification in docs/gates.json",
+   "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
+   "rationale": "ADR-0044 is a document-round decision only. The executable falsification gate and registry wiring belong to the next implementation round.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "the ADR-0044 implementation round opens"
+   },
+   "review_at": "2027-03-01",
+   "cadence_tier": "half-yearly",
+   "registered_at": "2026-09-04",
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0010",
+   "subject": "define and commit the first 12 falsification-twins with claim_id, claim_type, and falsification_cmd entries",
+   "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
+   "rationale": "The first twin batch is a structural killing-power check, not statistical coverage. Its fixtures are created in the implementation round once the record and gate contract are wired.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "the ADR-0044 implementation round opens and check-falsify.js exists"
+   },
+   "review_at": "2027-03-01",
+   "cadence_tier": "half-yearly",
+   "registered_at": "2026-09-04",
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0011",
+   "subject": "add statistical falsification metrics and threshold enforcement after the structural gate is green",
+   "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
+   "rationale": "Statistics would pretend to measure what the first structural gate cannot yet support. It follows a green structural falsification gate and a larger twin corpus.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "defer-0009 is implemented and the structural falsification gate is green"
+   },
+   "review_at": "2027-03-01",
+   "cadence_tier": "half-yearly",
+   "registered_at": "2026-09-04",
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0012",
+   "subject": "scoring-function isolation for capable-optimizer defense",
+   "source_adr": "docs/adr/0045-stochastic-deterministic-boundary-evidence-path-verification.md",
+   "rationale": "ADR-0036 already isolates corpus data; ADR-0045 records the separate execution-boundary concern. Scoring code must not be readable or mutable by the generator before it runs, but there is no current score-bearing verifier implementation to protect.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "a scoring-mode verifier or LLM-judge runtime exists and is reachable by the generator"
+   },
+   "review_at": "2027-03-01",
+   "cadence_tier": "half-yearly",
+   "registered_at": "2026-09-05",
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0013",
+   "subject": "Lyft-style prompt contradiction and dead-path linting",
+   "source_adr": "docs/adr/0045-stochastic-deterministic-boundary-evidence-path-verification.md",
+   "rationale": "Current adapter drift and structural checks catch shape drift, not contradictory or dead instruction paths. Adding an LLM-level prompt linter would introduce a new review dependency before the existing static gates demonstrate the need.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "adapter drift and structural gates have produced a reproducible missed contradiction case"
+   },
+   "review_at": "2027-03-01",
+   "cadence_tier": "half-yearly",
+   "registered_at": "2026-09-05",
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0015",
+   "subject": "Human-labeled anchor corpus and annotation manual for the judge revalidation admission gate",
+   "source_adr": "docs/adr/0046-instrument-drift-recalibration.md",
+   "rationale": "The human-anchor admission gate (ADR-0046 D-D) requires a frozen human-labeled corpus with a human-human kappa baseline, expert rotation, and a 60-90 day refresh; that asset does not exist yet.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "the ADR-0046 implementation round opens and a frozen human-labeled anchor corpus with annotation manual is commissioned"
+   },
+   "review_at": "2027-03-01",
+   "cadence_tier": "half-yearly",
+   "registered_at": "2026-09-05",
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0018",
+   "subject": "silent-drift anytime-valid auto-detection: anchor e-process + guard-window attribution to {none, system, judge}",
+   "source_adr": "docs/adr/0047-impact-tiered-instrument-change-control.md",
+   "rationale": "ADR-0047 D-E defers silent provider drift detection behind its two prerequisites: the human-labeled anchor corpus (defer-0015) and a trustworthy scheduler carrier (CONTEXT.md Reverification Runbook rejects cron/CI without a trusted remote executor). Building before the anchor set exists would replicate the naive-z ~75% false-alarm failure.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "defer-0015's frozen human-labeled anchor corpus with annotation manual is committed and schema-valid, AND a trustworthy scheduler carrier exists (CI cron with a trusted remote executor, or equivalent), AND the reverify pipeline wires the ADR-0046 D-A identity triple"
+   },
+   "review_at": "2027-03-01",
+   "cadence_tier": "half-yearly",
+   "registered_at": "2026-09-05",
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0019",
+   "subject": "data-driven calibration interval and offset-band feedback (staircase / reliability-ratio + guard-band)",
+   "source_adr": "docs/adr/0047-impact-tiered-instrument-change-control.md",
+   "rationale": "ADR-0047 D-F keeps the 6/9-month dead-man clock as initial interval and floor while the reverify ledger accumulates as-found/as-left history. Data-driven interval adjustment needs enough same-identity cycles and flip-eligible samples plus the anchor set before a control decision is statistically honest.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "the same identity has accumulated >= 2-3 complete reverify cycles AND >= 30 flip-eligible samples (ADR-0029 D3 graduation line) AND defer-0015's anchor set is available"
+   },
+   "review_at": "2027-03-01",
+   "cadence_tier": "half-yearly",
+   "registered_at": "2026-09-05",
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0023",
+   "subject": "criteria-change pointwise replay (as-left re-projection pipeline)",
+   "source_adr": "docs/adr/0049-decision-rule-anchor-and-metrological-ledger-completion.md",
+   "rationale": "ADR-0049 D-D requires pointwise replayable judge input before a criteria change can produce a genuine as-left re-projection. The current ledger retains aggregate values only, so criteria change must fall back to restatement mapping until input retention and the anchor set exist.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "the metrological ledger is authoritative AND pointwise judge input retention (claim/toolResults/heuristicVerdict) is implemented AND defer-0015's anchor set is available"
+   },
+   "review_at": "2026-12-06",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-06",
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0024",
+   "subject": "external witness / second-copy anchor for the evidence-log tip and genesis (independent-domain mirror: transparency log / timestamp / DNS TXT / second host)",
+   "source_adr": "docs/adr/0050-append-only-hardening-external-head-anchor-and-genesis-anchoring.md",
+   "rationale": "ADR-0050 D-B lands the install-time local genesis anchor and tail sidecar first. An external second copy raises detection strength from same-host to cross-domain (detection strength equals anchor independence) but requires network or a third-party trust domain; deferred until a cross-machine verification requirement or second-party consumer exists.",
+   "unfreeze_if": {
+    "type": "external-event",
+    "check": "a cross-machine verification requirement or a second-party consumer of the evidence log exists outside the producing host"
+   },
+   "review_at": "2027-09-01",
+   "cadence_tier": "yearly",
+   "registered_at": "2026-09-07",
+   "last_check_in": {
+    "date": "2026-09-13",
+    "note": "minimal unlock (ADR-0061 D-E C-2): authoritative governance copies now live in git-tracked docs/governance/ with machine-generated witnessed digests (anchors.json), giving a same-repo second copy. BAR STATEMENT (SPEC-3 repair, 2026-09-13): this git-commit witness does NOT satisfy the unfreeze condition and must not be recorded as if it did. ADR-0050/ADR-0061 D-E state explicitly that git alone is not tamper-proof, so a same-repo git copy is not an independent-domain witness - it shares the producing host, the repository, and the trust domain of the very record it would corroborate (detection strength equals anchor independence). The external/cross-domain half of the unfreeze condition therefore remains UNMET; defer-0024 stays open. External witness deadline for the next mandatory check-in: 2027-09-01 (this entry's review_at), with an interim obligation to re-check at each full-year tide."
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0025",
+   "subject": "host-native directory synchronization capability upgrade",
+   "source_adr": "docs/adr/0051-closed-persistence-capability-class.md",
+   "rationale": "ADR-0051 records the closed persistence capability class. The current runtime uses dir-sync-unsupported on Windows; promoting it to dir-sync-durable requires a documented portable directory-fsync primitive from Node or Windows, not a local adapter or new dependency.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "the target runtime exposes a documented and supported portable directory-fsync primitive"
+   },
+   "review_at": "2027-03-09",
+   "cadence_tier": "half-yearly",
+   "registered_at": "2026-09-09",
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0026",
+   "subject": "independent CI test job with always() summary (status-check visibility for the test layer)",
+   "source_adr": "docs/adr/0057-test-skip-honesty-and-suite-count-assertion.md",
+   "rationale": "ADR-0057 D-D: splitting test out of gate:all into a parallel job with an always() summary reverses the platform skipped=success default, but requires amending ADR-0034 D5 wording and the check-ci-wiring blocklist; landing ADR-0056/0057 inside the existing test gate comes first. Activation also satisfies the defer-0004 presence condition, whose evaluation must run in the same round.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "ci.yml declares a dedicated test job independent of gate:all plus an always() summary job",
+    "verified_by": "scripts/check-ci-jobs.js"
+   },
+   "review_at": "2027-09-10",
+   "cadence_tier": "yearly",
+   "registered_at": "2026-09-10",
+   "status": "actioned",
+   "actioned_at": "2026-09-18",
+   "actioned_via": "ADR-0058 D-F/D-G executed: ci.yml live-verified - gate-all + test(JIAHAO_TEST_TIER=public) + summary(always(), success-only seen==expected guard); all four check-ci-jobs predicates SATISFIED; same-commit ledger note: .scratch/grill-t15/decision-ledger.md T-1 dispositions",
+   "limitation": "actioned covers the deferred work only: the required-check deployment remains a repository-admin action (platform 403) and CI green is an environmental condition (ADR-0058 R10) - neither is the deferred work, and actioned does not endorse the whole carrier problem; the 403 carrier is tracked live by defer-0060"
+  },
+  {
+   "id": "defer-0027",
+   "subject": "verifiable-log wheels (hypercore/ssb/Rekor) for the evidence hash chain",
+   "source_adr": "docs/adr/0016-evidencelog-gateladder-split-shared-core.md",
+   "rationale": "ADR-0016 D4 sub-item (i): industrial verifiable-log wheels deferred because single-repo single-actor chains gain nothing from Merkle batching; the current linear hash chain (~100 lines, zero-dep) is auditable end-to-end. Trigger condition for activation remains cross-host audit per ADR-0013. Sub-items (ii) (profile.js relocation + configDir dedup) and (iii) (lint boundary) have no live trigger and stay in ADR prose.",
+   "unfreeze_if": {
+    "type": "external-event",
+    "check": "a second-party consumer of the evidence log exists outside the producing repository, OR a cross-machine verification requirement appears"
+   },
+   "review_at": "2027-09-01",
+   "cadence_tier": "yearly",
+   "registered_at": "2026-09-12",
+   "last_check_in": {
+    "date": "2026-09-12",
+    "note": "registered from ADR-0016 D4 prose; no second-party evidence-log consumer, no cross-machine verification requirement"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0028",
+   "subject": "npm scoped publish channel (@<org>/jiahao) + name squat declaration",
+   "source_adr": "docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md",
+   "rationale": "The unprefixed npm name jiahao is a third-party 2019 test package; the project has never published (defer-0001). Tier 1 moves to a name-independent github: channel now; a scoped @<org>/jiahao identity is reserved so a future legitimate channel exists. Scoped and unprefixed names do not conflict; creating the npm user/org for the scope is cheap and time-sensitive (names are first-come, hard to transfer).",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "a publish pipeline exists AND a remote exists AND an OIDC issuer (npm trusted publishing) is available AND an artifact inventory is formalized (all four defer-0001 conditions)"
+   },
+   "review_at": "2027-02-28",
+   "cadence_tier": "half-yearly",
+   "registered_at": "2026-09-12",
+   "last_check_in": {
+    "date": "2026-09-12",
+    "note": "registered at ADR-0059; <org> placeholder unset — run a candidate-name availability scan (normalized variants) before any publication"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0029",
+   "subject": "MCP distribution channel revival (jiahao-mcp publishable as its own artifact)",
+   "source_adr": "docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md",
+   "rationale": "ADR-0059 D-B removes jiahao-mcp/ from the tarball to restore ADR-0009 opt-in intent (nested package.json deps are not installed from tarballs — npm by design). The component stays source-only in the git tree. Revival is deferred until a real channel exists, mirroring the defer-0007 presence-condition pattern.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "a real external MCP-only consumer exists AND a working publish channel exists (defer-0001/defer-0028 conditions satisfiable)"
+   },
+   "review_at": "2027-09-01",
+   "cadence_tier": "yearly",
+   "registered_at": "2026-09-12",
+   "last_check_in": {
+    "date": "2026-09-12",
+    "note": "source-only tier active; no external MCP-only consumer on record"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0030",
+   "subject": "heterogeneous-model independent review channel (independent review layer)",
+   "source_adr": "docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md",
+   "rationale": "ADR-0059 D-D: wiring tests are coherence-tier limited assurance; same-author verification cannot claim IEEE 1012 independence. A cross-family model review channel converts the unfalsifiable same-boundary charge into a measurable, bookable engineering object. Honest bound: it provides partial technical independence only — managerial/financial independence is out of reach and labeled as such (cross-family confident errors partially shared, rho ~0.47).",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "at least one usable audit channel from a different model family exists AND a review-tasks.json schema is landed"
+   },
+   "review_at": "2026-12-12",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-12",
+   "last_check_in": {
+    "date": "2026-09-12",
+    "note": "MVP scope: reports stay inside the repository (defer-0024 external-event NOT triggered); must not merge into defer-0015 (ADR-0035 D4 single-condition discipline)"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0031",
+   "subject": "full-document polish pass over src/SKILL.md",
+   "source_adr": "docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md",
+   "rationale": "Prompt assets change via eval-carrying diffs (OpenAI/Braintrust prompt-versioning practice; RFC errata / camera-ready freeze patterns); a whole-document sweep has no industrial counterpart and would breach the 57-byte tarball margin plus trigger CONTEXT.md glossary ripple. Facts-correction edits (e.g. D-004 wording) remain licensed at any time; polish requires anchored defects.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "the product round (D-C) or the hetero audit (defer-0030) has produced >=N falsifiable SKILL.md defects each anchored to bench/GSR/audit evidence AND the tarball-budget round (ADR-0058 R4) has landed"
+   },
+   "review_at": "2027-03-12",
+   "cadence_tier": "half-yearly",
+   "registered_at": "2026-09-12",
+   "last_check_in": {
+    "date": "2026-09-12",
+    "note": "exit criteria pre-registered in ADR-0059 D-E (trigger-attributed commits, green GSR+wiring, pre/post bench verdict invariance, pack under the ADR-0039 D3 cap (200,000), glossary sync)"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0032",
+   "subject": "judge-twins corpus expansion to n>=100 flip-eligible",
+   "source_adr": "docs/adr/0060-judge-conformity-sampling-power-indeterminate-state-and-conditional-certification.md",
+   "rationale": "ADR-0060 D-A pre-registers min_n=100: below it the guarded-acceptance rule is structurally inoperable (the guard band consumes the spec limit, so no observation can return pass). The frozen judge-twins corpus has 26 entries / 22 flip-eligible, so reaching the operable region requires expanding the corpus, which is a corpus rebaseline (ADR-0047 corpus surface) and therefore its own round.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "a corpus authoring round has produced judge-twins.jsonl with >= 100 flip-eligible entries and a new frozen content fingerprint"
+   },
+   "review_at": "2027-03-12",
+   "cadence_tier": "half-yearly",
+   "registered_at": "2026-09-12",
+   "last_check_in": {
+    "date": "2026-09-12",
+    "note": "registered at ADR-0060; current corpus has 22 flip-eligible entries (n < min_n=100)"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0033",
+   "subject": "judge-quality CAPA: flip rate to <= 0.05",
+   "source_adr": "docs/adr/0060-judge-conformity-sampling-power-indeterminate-state-and-conditional-certification.md",
+   "rationale": "The as-found revalidation measured a flip rate of 0.13636 (3/22) against spec_limit 0.10 - a real judge-quality gap, not a sampling artifact (at p=0.136 no sample size can pass). The conditional certification carries this CAPA; the spec limit is NOT loosened to make existing data pass (ADR-0060 D-D).",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "a judge-quality round has driven the flip rate to <= 0.05 and a fresh revalidation records conformity=pass"
+   },
+   "review_at": "2026-12-11",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-12",
+   "last_check_in": {
+    "date": "2026-09-12",
+    "note": "conditional certification expires 2026-12-11 (fail-closed on expiry)"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0034",
+   "subject": "eval surface that actually exercises the src/SKILL.md prompt",
+   "source_adr": "docs/adr/0060-judge-conformity-sampling-power-indeterminate-state-and-conditional-certification.md",
+   "rationale": "The judge-twins evaluation path is deterministic (identical per-entry outcomes across runs; no provider call observed), so the TOST no-regression argument establishes \"no regression on the evaluated surface\", not \"the prompt has no behavioural effect\". A prompt-exercising eval surface is the declared gap.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "an eval harness exists whose inputs actually exercise the SKILL.md prompt and whose results are recorded in the reverify ledger"
+   },
+   "review_at": "2027-09-01",
+   "cadence_tier": "yearly",
+   "registered_at": "2026-09-12",
+   "last_check_in": {
+    "date": "2026-09-12",
+    "note": "declared gap in ADR-0060 Consequences"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0035",
+   "subject": "model identity sub-declaration re-verification (UNRESOLVED tagging must not be open-ended)",
+   "source_adr": "docs/adr/0061-pre-registered-gate-amendment-closure-surface-narrowed-judge-identity-and-output-tethered-convergence.md",
+   "rationale": "ADR-0061 D-C: declaration-scoped tagging requires a recorded re-verification path and a deadline; without one the tag degrades into an open-ended concession (IATF / ADR-0060 D-D precedent).",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "a re-pinned or formally dispositioned model_checkpoint/model_identity declaration exists in the reverify ledger, signed via the P-A1 path"
+   },
+   "review_at": "2026-12-11",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-13",
+   "last_check_in": {
+    "date": "2026-09-13",
+    "note": "registered in the ADR-0061 doc round"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0036",
+   "subject": "zero-movement trigger N and the exemption-counting rule for output-tethered convergence",
+   "source_adr": "docs/adr/0061-pre-registered-gate-amendment-closure-surface-narrowed-judge-identity-and-output-tethered-convergence.md",
+   "rationale": "ADR-0061 D-D/D-F: the convergence criterion (N consecutive zero-movement rounds triggers the governance-diet agenda; exemption rounds excluded, 3 consecutive exemptions alert) has no numeric N until the implementation round sets it under ADR-0060 min_n power discipline.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "an ADR or gate fixture defines N and the exemption-counting rule with a power-analysis justification"
+   },
+   "review_at": "2026-12-06",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-13",
+   "last_check_in": {
+    "date": "2026-09-13",
+    "note": "registered in the ADR-0061 doc round"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0037",
+   "subject": "tarball-cap trend-anchor review (ADR-0062 amendment closure)",
+   "source_adr": "docs/adr/0062-pre-registered-tarball-cap-amendment-policy-before-value-trend-anchor.md",
+   "rationale": "ADR-0062 D-A/D-E: the cap amendment carries a review_at and must ride the deferred-registry tide like every other pre-registered gate revision; the live value stays anchored in ADR-0039 D3.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "the ADR-0062 review_at (2026-12-13) is checked in and the trend anchor is re-measured under the pinned protocol (npm pack --dry-run --json, size field)"
+   },
+   "review_at": "2026-12-13",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-13",
+   "last_check_in": {
+    "date": "2026-09-13",
+    "note": "registered in the ADR-0061 T-2 implementation round"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0038",
+   "subject": "surface-narrowed judge identity anchor review (ADR-0063 re-pin closure)",
+   "source_adr": "docs/adr/0063-surface-narrowed-judge-identity-anchor-semantic-digest-rejected.md",
+   "rationale": "ADR-0063 D-D: the narrowing moves the resolved rules_digest and re-pins the judge identity under a conditional certification (reverify tail indeterminate, ADR-0060 D-B); the review_at must ride the deferred-registry tide like every other pre-registered identity change.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "the ADR-0063 review_at (2026-12-11) is checked in and the judge identity is either re-certified by a full signoff (reverify tail conformity=pass) or the conditional CAPA is dispositioned"
+   },
+   "review_at": "2026-12-11",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-13",
+   "last_check_in": {
+    "date": "2026-09-13",
+    "note": "registered in the ADR-0061 T-3 implementation round"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0039",
+   "subject": "first evaluation of the ADR net-addition governance trend anchor (ADR-0064 D-F)",
+   "source_adr": "docs/adr/0064-t6-product-round-pre-registration-mde-gates-and-governance-trend-anchor.md",
+   "rationale": "ADR-0064 D-F sets an observational trend anchor (63 + K=2, two consecutive documentation rounds with net additions > 0 raise one advisory line). The first evaluation cannot be pre-empted; it rides the registry tide like every other pre-registered review (ADR-0033).",
+   "unfreeze_if": {
+    "type": "free-text",
+    "check": "review_at reached; the trend anchor has either fired advisedly or is re-anchored by a same-commit ADR"
+   },
+   "review_at": "2026-12-14",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-14",
+   "last_check_in": {
+    "date": "2026-09-14",
+    "note": "registered in the grill-t6 documentation round"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0040",
+   "subject": "grill-t6 doc round landed ADR-0064 with zero product diff - forced disposition (ADR-0064 D-F)",
+   "source_adr": "docs/adr/0064-t6-product-round-pre-registration-mde-gates-and-governance-trend-anchor.md",
+   "rationale": "ADR-0064 D-F clause 3: a documentation round with zero product diff (src/, bench/ unchanged) that still lands a new ADR must write a deferred-registry entry for forced disposition. The grill-t6 doc round (qxs) is exactly that event; the event is logged in docs/governance/trend-inventory.json and must be dispositioned at the next trend-anchor evaluation.",
+   "unfreeze_if": {
+    "type": "free-text",
+    "check": "trend-inventory round entry dispositioned at the next documentation-round evaluation; entry closed only by a same-commit ADR or ledger note"
+   },
+   "review_at": "2026-12-14",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-14",
+   "last_check_in": {
+    "date": "2026-09-14",
+    "note": "registered in the grill-t6 T-1 implementation round"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0041",
+   "subject": "grill-t7 doc round landed ADR-0065 with zero product diff - forced disposition (ADR-0064 D-F)",
+   "source_adr": "docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md",
+   "rationale": "ADR-0064 D-F clause 3: a documentation round with zero product diff (src/, bench/ unchanged) that still lands a new ADR must write a deferred-registry entry for forced disposition. The grill-t7 doc round is exactly that event; logged in docs/governance/trend-inventory.json and must be dispositioned at the next trend-anchor evaluation.",
+   "unfreeze_if": {
+    "type": "free-text",
+    "check": "trend-inventory round entry dispositioned at the next documentation-round evaluation; entry closed only by a same-commit ADR or ledger note"
+   },
+   "review_at": "2026-12-14",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-14",
+   "last_check_in": {
+    "date": "2026-09-14",
+    "note": "registered in the grill-t7 doc round"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0042",
+   "subject": "tarball-cap trend-anchor review (ADR-0066 amendment closure, T-6 port surface)",
+   "source_adr": "docs/adr/0066-tarball-cap-trend-anchor-amendment-t6-product-port-surface.md",
+   "rationale": "ADR-0066 D-E: the cap amendment carries a review_at and rides the deferred-registry tide like every other pre-registered gate revision; the live value stays anchored in ADR-0039 D3. The second_reviewer slot is open pending the next audit round.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "the ADR-0066 review_at (2026-12-14) is checked in and the trend anchor is re-measured under the pinned protocol (npm pack --dry-run --json, size field); second_reviewer countersign lands"
+   },
+   "review_at": "2026-12-14",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-14",
+   "last_check_in": {
+    "date": "2026-09-14",
+    "note": "registered in the grill-t7 implementation round (T-6 confirmatory port surface)"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0043",
+   "subject": "grill-t7 impl round net-addition tally: +1 ADR (ADR-0066 cap amendment) - D-006(a)(i) summary row",
+   "source_adr": "docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md",
+   "rationale": "Ledger D-006(a)(i): every round writes exactly one net-addition summary row into the defer-0039 tide. The T-6 implementation round lands one new ADR (0066, tarball-cap trend-anchor amendment 230,000->300,000 for the product port surface); implementation/research-round ADRs do not feed the trend-inventory count (ADR-0064 D-F pins the window to documentation rounds), so the tally rides the registry tide instead.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+   },
+   "review_at": "2026-12-14",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-14",
+   "last_check_in": {
+    "date": "2026-09-14",
+    "note": "net additions +1 (ADR-0066); registered in the grill-t7 implementation round"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0044",
+   "subject": "T-6 confirmatory terminal event: PASS (char-3 recall@FP0 1.000000, fp_default 0.000000 vs floor 0.563863)",
+   "source_adr": "docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md",
+   "rationale": "Ledger D-006(a)(ii): at most one terminal event per round enters the registry. The T-6 confirmatory run settled PASS on the primary survivor (bench/research/out/confirmatory-result.json); the fallback leg never fired. Fallback branches, count-band advisories, rel-L2 drift and waiver closures are excluded by the same clause.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "terminal event dispositioned at the next audit/trend evaluation; entry closed only by a same-commit ADR or ledger note"
+   },
+   "review_at": "2026-12-14",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-14",
+   "last_check_in": {
+    "date": "2026-09-14",
+    "note": "confirmatory PASS recorded from bench/research/out/confirmatory-result.json"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0045",
+   "subject": "grill-t7 unblind-exec round net-addition tally: +1 ADR (ADR-0067 devin-corpus@v1 OOT falsification adjudication) - D-006(a)(i) summary row",
+   "source_adr": "docs/adr/0067-devin-corpus-v1-oot-falsification-adjudication.md",
+   "rationale": "Ledger D-006(a)(i): every round writes exactly one net-addition summary row into the defer-0039 tide. The unblind execution round lands one new ADR (0067: eval-plan registration, claim-surface extension, branch policy); the terminal-event row is a separate entry registered only after the single-shot verdict exists.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+   },
+   "review_at": "2026-12-14",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-15",
+   "last_check_in": {
+    "date": "2026-09-15",
+    "note": "net additions +1 (ADR-0067); registered in the grill-t7 unblind execution round"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0046",
+   "subject": "grill-t7 unblind terminal event: INDETERMINATE (k=3/12, CP 95% CI [0.054861,0.571858] straddles floor 0.563863)",
+   "source_adr": "docs/adr/0067-devin-corpus-v1-oot-falsification-adjudication.md",
+   "rationale": "Ledger D-006(a)(ii): at most one terminal event per round enters the registry. The single-shot devin-corpus@v1 OOT adjudication settled INDETERMINATE (band 3-10 of the frozen integer table); the branch policy arms devin-corpus@v2 (design target n_hon ~ 100) whose plan must be registered before v2 data with the disclosure that it was designed after seeing the v1 verdict.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "terminal event dispositioned at the next audit/trend evaluation; entry closed only by a same-commit ADR or ledger note"
+   },
+   "review_at": "2026-12-14",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-15",
+   "last_check_in": {
+    "date": "2026-09-15",
+    "note": "INDETERMINATE verdict recorded from bench/research/out/devin-oot-report.json"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0047",
+   "subject": "grill-t7 v2 doc round net-addition tally: +1 ADR (ADR-0068 devin-corpus@v2 plan - dual-axis adjudication, collection protocol, claim slot, v3 binding) - D-006(a)(i) summary row",
+   "source_adr": "docs/adr/0068-devin-corpus-v2-dual-axis-adjudication-collection-protocol-claim-slot-v3-binding.md",
+   "rationale": "Ledger D-006(a)(i): every round writes exactly one net-addition summary row into the defer-0039 tide. The v2 doc round lands one new ADR (0068: dual-axis IUT adjudication rule, collection protocol, claim slot, v3 binding, probe terms); the terminal-event row is a separate entry registered only after the single-shot v2 verdict exists.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+   },
+   "review_at": "2026-12-14",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-15",
+   "last_check_in": {
+    "date": "2026-09-15",
+    "note": "net additions +1 (ADR-0068); registered in the grill-t7 v2 doc round"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0048",
+   "subject": "grill-t7 v2 terminal event: devin-corpus@v2 FAILED (dual-axis IUT - lie 9/31 CI [0.142229,0.480361] below floor 0.563863; FP 21/89 above bound 0.10; exit-report share of FP = 1.0, 60% concentration trigger FIRED)",
+   "source_adr": "docs/adr/0068-devin-corpus-v2-dual-axis-adjudication-collection-protocol-claim-slot-v3-binding.md",
+   "rationale": "Ledger D-014/D-016 + ADR-0068 branch policy: the single-shot v2 adjudication settled failed on BOTH axes of the pre-registered derived integer tables. The collapse-no-shelf claim wording armed by the eval-plan is the only allowed claim surface. The fired 60% exit-report concentration trigger routes the v3 evaluation to consider a category-scoped bound; the in-sample claim remains in place and no shelf language is emitted.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "v3 terminal event dispositioned at the next audit/trend evaluation; entry closed only by a same-commit ADR or ledger note"
+   },
+   "review_at": "2026-12-14",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-15",
+   "last_check_in": {
+    "date": "2026-09-15",
+    "note": "v2-round audit PASSED post-rework (audit 2026-09-15-audit-v2round.md): FAILED verdict re-derived and verified solid end-to-end (oracle-recomputed tables, ordering gates, single-shot mechanics, claim binding). The fired 60% exit-report concentration trigger stays armed into v3 (category-scoped bound = CONSIDER clause). Entry remains pending-evaluation: the unfreeze condition names the v3 terminal event, which does not exist yet; closure requires a same-commit ADR or ledger note once v3 is dispositioned."
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0049",
+   "subject": "grill-t8 doc round net-addition tally: +1 ADR (ADR-0069 CAPA claim-evidence pairer semantics, artifact-scoped freeze + adjudication anchor, readiness positioning, v3 plan obligations) - D-006(a)(i) summary row",
+   "source_adr": "docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md",
+   "rationale": "Ledger D-006(a)(i): every round writes exactly one net-addition summary row into the defer-0039 tide. The grill-t8 merged CAPA+readiness doc round lands one new ADR (0069: pairer semantics package, the three pre-registered clauses, artifact-scoped freeze + adjudicated/devin-corpus-v2 anchor, b-line readiness contract, v3 registration obligations); the terminal-event row is a separate entry registered only after a v3 verdict exists (follow-up round).",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+   },
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-16",
+   "last_check_in": {
+    "date": "2026-09-16",
+    "note": "net additions +1 (ADR-0069); registered in the grill-t8 merged CAPA+readiness doc round"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0050",
+   "subject": "grill-t10 doc round net-addition tally: +1 ADR (ADR-0070 hook-side conviction lane - pairer shadow wiring, frozen shadow->enforce promotion gate, product shape, claim form, F-A carry-over dispositions) - D-006(a)(i) summary row",
+   "source_adr": "docs/adr/0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md",
+   "rationale": "Ledger D-006(a)(i): every round writes exactly one net-addition summary row into the defer-0039 tide. The grill-t10 doc round lands one new ADR (0070: conviction-lane locus with the four registered clauses, the four frozen shadow->enforce promotion criteria, the single-source product shape + transcript-file three-state + schema-evolved record form, the three-sentence descriptive-existence claim, and the F-A1..F-A4 documented dispositions); the promotion-flip act is a separate registered entry only after the bake window (D-007 boundary).",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+   },
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-16",
+   "last_check_in": {
+    "date": "2026-09-17",
+    "note": "R2 net-addition review executed: tally rows verified against trend inventory and ADR registrations; disposition recorded in the same-commit ledger note"
+   },
+   "status": "closed",
+   "closed_at": "2026-09-17",
+   "closed_via": "same-commit ledger note: .scratch/grill-t13/decision-ledger.md section \"T-2 dispositions (R2)\""
+  },
+  {
+   "id": "defer-0051",
+   "subject": "tarball-cap trend-anchor review (ADR-0071 amendment closure, T-10 conviction-lane surface)",
+   "source_adr": "docs/adr/0071-tarball-cap-trend-anchor-amendment-t10-conviction-lane-surface.md",
+   "rationale": "ADR-0071 D-E: the cap amendment carries a review_at and rides the deferred-registry tide like every other pre-registered gate revision; the live value stays anchored in ADR-0039 D3. The second_reviewer slot is open pending the next audit round.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "the ADR-0071 review_at (2026-12-15) is checked in and the trend anchor is re-measured under the pinned protocol (npm pack --dry-run --json, size field); second_reviewer countersign lands"
+   },
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-16",
+   "last_check_in": {
+    "date": "2026-09-18",
+    "note": "owner ratified the evidence packet (signatures.owner_ratification.verdict=ratified, signer Euiop1) - grill-t14 audit F-1 settles; row stays closed discharged-by-trigger"
+   },
+   "status": "closed",
+   "closed_at": "2026-09-17",
+   "closed_via": "discharged-by-trigger: pinned-protocol re-measurement (npm pack --dry-run --json -> size 324711 < cap 340000) + second-party countersign (weak-independent, devin-subagent-t14-countersign) on evidence packet .scratch/grill-t14/evidence/defer-0051-evidence-packet.json; same-commit ledger note: .scratch/grill-t14/decision-ledger.md section \"T-2 dispositions (R2 action round, 2026-09-17)\"; owner ratification of the same packet is pending as the separate T-3 Ask B (rejection reopens this row)",
+   "closure_note": "1 data point existence check - this closure discharges the review slot only; trend duty stays in pack-smoke (scripts/check-pack-smoke.js, gate order 196) which asserts the cap on every gate:all run",
+   "trigger_override": "explicit trigger (T-3 audit F-4 reopen -> pinned-protocol re-measure + countersign, executed 2026-09-17) overrides review_at=2026-12-15 per grill-t14 ledger D-002"
+  },
+  {
+   "id": "defer-0052",
+   "subject": "grill-t11 doc round net-addition tally: +1 ADR (ADR-0072 readiness verdict + pre-registered re-measurement + bake protocol + ADR-0070 tier-2 amendment + critique dispositions P-1/P-2/P-4/P-5) - D-006(a)(i) summary row",
+   "source_adr": "docs/adr/0072-readiness-verdict-remeasurement-preregistration-bake-protocol-critique-dispositions.md",
+   "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t11 documentation round lands one new ADR (0072: the usable+testable verdict under measure-then-declare ordering, the b2-method re-measurement with the lane exercise and pre-registered downgrade trigger, the owner-dogfood bake protocol with the independent-second-line tier-2 amendment to ADR-0070 G2, the four critique dispositions, the capability-label word-slot fix, and the dormant-then-live declaration block). The round also touches scripts/check-host-contracts.js (the measured-present enum word slot) and the claim homes' sentence-1 parenthetical - registration-surface changes; no shipped runtime behavior moves.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+   },
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-16",
+   "last_check_in": {
+    "date": "2026-09-17",
+    "note": "R2 net-addition review executed: tally rows verified against trend inventory and ADR registrations; disposition recorded in the same-commit ledger note"
+   },
+   "status": "closed",
+   "closed_at": "2026-09-17",
+   "closed_via": "same-commit ledger note: .scratch/grill-t13/decision-ledger.md section \"T-2 dispositions (R2)\""
+  },
+  {
+   "id": "defer-0053",
+   "subject": "collection-side provenance field on lane records (instrument agenda: write-time provenance vs analysis-side classification)",
+   "source_adr": "docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md",
+   "rationale": "ADR-0073 D-A registers analysis-side provenance classification (session->project-dir mechanical rule) as this round's bridge; the durable form is a record field written at lane-write time so classification never depends on transcript availability after the fact. Registered as an instrument agenda, not this round's scope (ledger D-002 bounds this round to the analysis side).",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "a same-commit ADR registers the collection-side provenance field (record schema evolution discipline, ADR-0023 D4) and the lane writes it on new records"
+   },
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-17",
+   "last_check_in": {
+    "date": "2026-09-17",
+    "note": "R2 disposition: stays deferred; unfreeze condition frozen (unfreeze_frozen) — no silent widening"
+   },
+   "status": "pending-evaluation",
+   "unfreeze_frozen": true,
+   "cost_note": "if the zero-write assumption breaks, a dirty-data window exists: lane records written before the provenance field lands carry no provenance and can skew the routing-rate read until reclassified (T-3 F-6)"
+  },
+  {
+   "id": "defer-0054",
+   "subject": "pre-commit secret/topology scanner (gitleaks class) - recurrence prevention for host-config material entering git-tracked dirs (O-2)",
+   "source_adr": "docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md",
+   "rationale": "ADR-0073 D-C O-2: the host settings backup reached the index inside git-tracked .scratch before anyone noticed; the forward rule (host config backups never enter git-tracked dirs) is registered and the gitignore clause is live, but a rule without a scanner depends on vigilance - the Re-Execution Prior says every catch so far came from re-execution or audit, not self-disclosure. A gitleaks-class pre-commit scan is the registered prevention agenda; selection is out of this round's scope.",
+   "unfreeze_if": {
+    "type": "external-event",
+    "check": "the pattern scanner exceeds 3 rules OR a miss incident is observed -> revisit with a gitleaks-class full scanner (post-action trigger, T-3 F-5)"
+   },
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-17",
+   "last_check_in": {
+    "date": "2026-09-17",
+    "note": "registered as recurrence-prevention agenda after the O-2 disposition (untrack + forward rule + zero-external-exposure window on record)"
+   },
+   "status": "actioned",
+   "actioned_at": "2026-09-17",
+   "actioned_via": "R2 repo-side pattern scanner scripts/check-secret-scan.js (3 rules) + secret-scan gate in docs/gates.json + blocking self-test in test/rewrite-map.test.js",
+   "detection_limit": "self-built tripwire is blind to unknown secret forms; the gitleaks-revisit trigger above carries the full-scanner revisit agenda (T-3 F-5 disclosure)"
+  },
+  {
+   "id": "defer-0055",
+   "subject": "organic routing-rate watch - does organic lane traffic ever arrive (provenance-tiered G1 leg observable per round)",
+   "source_adr": "docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md",
+   "rationale": "ADR-0073 D-B narrows G1 to organic events and the organic leg currently reads 0; the standing question is whether real usage traffic ever reaches the lane. The segmented telemetry summary (R-b checkpoint cadence: every grill round close + mandatory before promotion review) makes this observable each round without a new process.",
+   "unfreeze_if": {
+    "type": "external-event",
+    "check": "organic lane records appear on the chain (organic > 0 in a segmented summary) or the bake protocol is re-opened by a same-commit ADR"
+   },
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-17",
+   "last_check_in": {
+    "date": "2026-09-17",
+    "note": "R1 (grill-t14): sunset_trigger_pointer registered -> ADR-0075 D-C; quarterly cadence and organic unfreeze trigger unchanged; closes_if unchanged"
+   },
+   "status": "pending-evaluation",
+   "closes_if": {
+    "type": "external-event",
+    "check": "six consecutive months with organic=0 at every quarterly check-in -> close the watch as expired (no organic lane traffic ever observed)"
+   },
+   "sunset_trigger_pointer": "ADR-0075 D-C (docs/adr/0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md) - this row carries only the pointer; the clause body lives in the ADR"
+  },
+  {
+   "id": "defer-0056",
+   "subject": "grill-t12 doc round net-addition tally: +1 ADR (ADR-0073 provenance-tiered corpus + G1 organic amendment + audit carry-over dispositions F-A1/O-1/W-1/O-2 + bake stewardship protocol) - D-006(a)(i) summary row",
+   "source_adr": "docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md",
+   "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t12 documentation round lands one new ADR (0073: the four provenance classes with the mechanical session->project-dir rule and conservative unclassified fallback, the tightening-only G1 organic amendment, the carried-item dispositions with registered wording, and the bake stewardship protocol - dry-run shape, checkpoint cadence, diversity-qualifier framework). The round also touches scripts/pairer-lane-telemetry.js (segmented output), test/fixtures/host-contracts.json (measured-present flip), scripts/build-governance-anchors.js (t12 ledger row) and the claim homes' sentence-1 parenthetical - registration-surface changes; no shipped runtime behavior moves.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+   },
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-17",
+   "last_check_in": {
+    "date": "2026-09-17",
+    "note": "R2 net-addition review executed: tally rows verified against trend inventory and ADR registrations; disposition recorded in the same-commit ledger note"
+   },
+   "status": "closed",
+   "closed_at": "2026-09-17",
+   "closed_via": "same-commit ledger note: .scratch/grill-t13/decision-ledger.md section \"T-2 dispositions (R2)\""
+  },
+  {
+   "id": "defer-0057",
+   "subject": "grill-t13 doc round net-addition tally: +1 ADR (ADR-0074 sanitized-history publish record, rewrite-map single translation point, tip-pinned claim invalidation + re-verification preregistration, independence-grade audit convention) - D-006(a)(i) summary row",
+   "source_adr": "docs/adr/0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md",
+   "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t13 documentation round lands one new ADR (0074: the publish event record with bounded-break disclosure, the rewrite-map single translation point with three-class citation taxonomy, the tip-pinned install claim invalidation rule with the verified-at note form, the pre-registered published-tip re-verification plan, and the independence-grade audit convention). The round also touches docs/governance (t13 ledger copy + runbook + pointer notes), README disclosure/verified-at slot, and test/adr-0074-wiring.test.js - registration-surface changes; no shipped runtime behavior moves.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+   },
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-17",
+   "last_check_in": {
+    "date": "2026-09-17",
+    "note": "net additions +1 (ADR-0074); registered in the grill-t13 doc round"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0058",
+   "subject": "standing cadence: per-round deferred-registry net-increment review (each documentation round's ADR delta gets a tally row and a disposition at the next trend-anchor evaluation)",
+   "source_adr": "docs/adr/0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md",
+   "rationale": "the R2 review of defer-0050/0051/0052/0056 showed net-addition tally rows accumulate without a standing review cadence; this entry makes the per-round net-increment review a registered, repeating agenda item instead of ad-hoc cleanup",
+   "unfreeze_if": {
+    "type": "external-event",
+    "check": "reviewed and dispositioned at each trend-anchor evaluation round; closes when a round lands zero net registry additions AND no tally rows remain open"
+   },
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-17",
+   "last_check_in": {
+    "date": "2026-09-17",
+    "note": "grill-t14 round reviewed: net registry increment +1 (defer-0059 added; defer-0051 closed discharged-by-trigger; defer-0055 pointer added - same row count); tally rows verified"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0059",
+   "subject": "grill-t14 doc round net-addition tally: +1 ADR (ADR-0075 promotion-review preregistration pack - N/M sufficiency qualifier on the G1 organic corpus, <=8-class intent taxonomy, sunset trigger clause, blocking meta-requirement) - D-006(a)(i) summary row",
+   "source_adr": "docs/adr/0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md",
+   "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t14 documentation round lands one new ADR (0075: the single-proposition N/M sufficiency qualifier on the G1 organic corpus - events>=200 AND sessions>=20 AND intent-classes>=5 with no independent pass state; the pre-registered 8-class analysis-side intent taxonomy with unknown catch-all and K=2 support; the dual-or-path sunset trigger activating only the scheduled strategic review; and the blocking meta-requirement fixing the criteria shape). The round also touches docs/governance (t14 ledger copy + anchors regen), the defer-0055 pointer field, README index, and test/adr-0075-wiring.test.js - registration-surface changes; no shipped runtime behavior moves.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+   },
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-17",
+   "last_check_in": {
+    "date": "2026-09-17",
+    "note": "R2 net-addition review executed: tally row verified against trend inventory and ADR registration; disposition recorded in the same-commit ledger note"
+   },
+   "status": "closed",
+   "closed_at": "2026-09-17",
+   "closed_via": "same-commit ledger note: .scratch/grill-t14/decision-ledger.md section \"T-2 dispositions (R2 action round, 2026-09-17)\" - tally verified against trend-inventory grill-t14 row (+1 ADR-0075) and ADR registration"
+  },
+  {
+   "id": "defer-0060",
+   "subject": "CI gate-all channel permanently red - JIAHAO_BENCH_CORPUS_B64 regeneration (the tarball must expose bench-corpus/mr-probes.jsonl at JIAHAO_CORPUS_DIR) plus the same-source 403 required-check deployment; both repository-admin actions",
+   "source_adr": "docs/adr/0076-round-edit-surface-taxonomy-and-governance-carve-out.md",
+   "rationale": "ADR-0058 R10/R13: the channel is red for an environment/secret condition, not code; the R13 diagnostics make failures self-explanatory but the secret-rotation branch needs repository-admin credentials. Folds the 403 required-check deployment (same credential class, same intervention surface). defer-0026 limitation is historical record - this row is the sole live tracker of the 403 issue. id note: defer-0060 was the rejected D-002 sunset-row placeholder name, never landed - the id belongs to the first lander (grill-t15 D-006).",
+   "unfreeze_if": {
+    "type": "external-event",
+    "check": "owner regenerates the JIAHAO_BENCH_CORPUS_B64 secret AND the R13 diagnostics report green AND/OR the summary job is deployed as the required check"
+   },
+   "closes_if": {
+    "type": "external-event",
+    "check": "a main CI run goes green via the summary aggregation OR the owner explicitly retires the channel via same-commit ADR amendment"
+   },
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-18",
+   "last_check_in": {
+    "date": "2026-09-18",
+    "note": "registered at the grill-t15 disposition round as the sole live tracker of the 403 carrier (defer-0026 limitation field demoted to historical record)"
+   },
+   "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0061",
+   "subject": "grill-t15 doc round net-addition tally: +1 ADR (ADR-0076 round edit-surface taxonomy + governance carve-out + sunset-counter durable home + spec-code bidirectional pinning + registry dispositions) - D-006(a)(i) summary row",
+   "source_adr": "docs/adr/0076-round-edit-surface-taxonomy-and-governance-carve-out.md",
+   "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t15 documentation round lands one new ADR (0076: the three-surface edit taxonomy with closure-scan authority, the three-gate governance carve-out with burn-rate advisory, the sunset counter durable home in the anchors chain, the spec-code bidirectional pinning convention, and the round registry dispositions). The round also touches docs/governance (sunset-counter.json, surface-taxonomy.json, anchors, t15 ledger copy), CONTEXT.md glossary, README index, AGENTS.md pointer, wiring tests, and - via the first registered carve-out in R2 - scripts/check-ci-jobs.js.",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+   },
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-18",
+   "status": "closed",
+   "closed_at": "2026-09-18",
+   "closed_via": "same-commit ledger note: .scratch/grill-t15/decision-ledger.md T-2 dispositions (defer-0059 precedent: row exists + ADR registered = nothing left to disposition)"
+  },
+  {
+   "id": "defer-0062",
+   "subject": "grill-t16 doc round net-addition tally: +1 ADR (ADR-0077 consuming-row exit convention + mechanism-output artifact enumeration + round-report facts canon) - D-006(a)(i) summary row",
+   "source_adr": "docs/adr/0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md",
+   "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t16 documentation round lands one new ADR (0077: the consuming-row verified_by exit convention, the R2-internal mechanism_outputs closed enumeration with the faithful-regeneration exemption and the mechanism_output_diff provenance marker, and the round-report facts canon with the narrowed addendum channel). The round also touches CONTEXT.md glossary, the surface-taxonomy diff_semantics reword, the t15 trend-row additive annotation, the README index, and the adr-0076 wiring assertions - no R2 machinery is touched in the documentation bundle (carve-out not invoked).",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
+   },
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-18",
+   "status": "closed",
+   "closed_at": "2026-09-18",
+   "closed_via": "same-commit ledger note: .scratch/grill-t16/decision-ledger.md T-1 dispositions (defer-0059/0061 precedent: row exists + ADR registered = nothing left to disposition)"
+  },
+  {
+   "id": "defer-0063",
+   "subject": "build-round-facts.js guard/exit-style mix (arg-guard + process.exit shape) - deferred as a missing convention, not a local defect",
+   "source_adr": "docs/adr/0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md",
+   "rationale": "grill-t16 audit G-4 smell, grill-t17 D-005 gate-criteria disposition: the script's argument-guard and exit-style mix fails the third leg of the registered gate criteria (minutes-scale ~<=30 lines x behavior-preserving x no-convention-needed) - fixing it needs a convention for guard/exit-style across fail-closed tooling first, otherwise the fix recurs. Registered as the missing-convention class. Anti-rot quota: the next fix bundle must take one smell ticket first - a deferred ticket with no quota is rot, not a deferral.",
+   "unfreeze_if": {
+    "type": "free-text",
+    "check": "a written convention for verifier guard/exit-style exists (ADR clause or CONTEXT term) - then this becomes a gated smell-bundle candidate"
+   },
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-18",
+   "status": "closed",
+   "last_check_in": {
+    "date": "2026-09-19",
+    "note": "grill-t18 sweep: convention landed (ADR-0077 D-A.1 appendix), emit-exit helper converged both sites (commit rvn), row transitions closed - quota discharged, next-bundle quota passes forward"
+   },
+   "closed_at": "2026-09-19",
+   "closed_via": "ADR-0077 D-A.1 guard/emit-exit contract + grill-t18 ledger T-2 (emit-exit helper, commit rvn)",
+   "note": "Discharged in grill-t18: the written convention landed (ADR-0077 D-A.1 appendix beside D-A) and the fix bundle took this ticket first - build-round-facts.js converges both violation-emit sites on one shared emit-exit boundary, fail-fast unchanged. Anti-rot quota for the NEXT bundle passes forward via the sweep."
+  }
+ ]
 }

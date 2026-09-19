@@ -405,7 +405,10 @@ describe('T-5 claim template + governance (ADR-0065 D-E / ledger D-006)', () => 
 
   test('trend inventory stays documentation-round only (impl rounds do not feed it)', () => {
     const ti = readJson(path.join(ROOT, 'docs', 'governance', 'trend-inventory.json'));
-    expect(ti.rounds.every((r) => r.kind === 'documentation')).toBe(true);
+    // ADR-0078: the kind enum admits documentation|fix; the pin's purpose is
+    // that impl rounds do not feed the inventory - assert that, not the
+    // superseded closed-enum form.
+    expect(ti.rounds.every((r) => r.kind === 'documentation' || r.kind === 'fix')).toBe(true);
     // this round's terminal event lives in confirmatory-result.json, not here
     expect(ti.rounds.some((r) => r.round === 'grill-t7-impl-round')).toBe(false);
   });

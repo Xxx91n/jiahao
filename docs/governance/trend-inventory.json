@@ -193,6 +193,32 @@
         ],
         "reason": "Retroactive correction disclosed on the corrected line (audit-log convention, ADR-0078 D-B): this fix round was mislabeled kind:documentation under the closed enum before ADR-0078 admitted fix. The two R2 machinery hand-edits are backfilled: build-round-facts.js (proseScan export + author-time enforcement) and check-governance-inventory.js (loadTaxonomy hoist)."
       }
+    },
+    {
+      "round": "grill-t18-fix-round",
+      "date": "2026-09-19",
+      "kind": "fix",
+      "adr_added": [
+        "0078"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "governance_tooling_diff": {
+        "files": [
+          "scripts/build-governance-anchors.js",
+          "scripts/build-round-facts.js",
+          "scripts/check-governance-inventory.js"
+        ],
+        "reason": "Fix round R2 machinery hand-edits disclosed per ADR-0078 D-A (first compliant kind:fix row): build-round-facts.js (emit-exit helper + key-assign coverage + SCHEMA_KEYS single-source + reportPath single-read), check-governance-inventory.js (kind enum + fix-row shape enforcement), build-governance-anchors.js (t18 ledger admission row). zero_product_diff holds - no R1 runtime file touched (ADR-0076 D-A)."
+      },
+      "advisory_fired": false,
+      "mechanism_output_diff": {
+        "files": [
+          "bench/research/out/g6-publish-replay.json"
+        ],
+        "reason": "faithful regeneration via check-g6-publish re-run during the acceptance battery - the packaged build-round-facts.js grew with the R2 machinery edits, moving the tarball byte record (same mechanism the t17 row disclosed)"
+      }
     }
   ],
   "source_adr": "0064"

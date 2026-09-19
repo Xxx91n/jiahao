@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-19T01:37:09.589Z",
+  "generated_at": "2026-09-19T02:12:44.787Z",
   "published_tip": "60ce7438af354f6989a0fb16314b4e6bbf900718",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -23,11 +23,11 @@
     "published_only": 55,
     "removed": 0,
     "same": 278,
-    "doc_refs": 1432,
+    "doc_refs": 1439,
     "doc_refs_by_class": {
       "rewritten": 97,
-      "local-only": 690,
-      "published-unchanged": 645
+      "local-only": 692,
+      "published-unchanged": 650
     }
   },
   "commits": [
@@ -8010,6 +8010,57 @@
       "resolved_to": null
     },
     {
+      "file": ".scratch/grill-t17/reports/2026-09-18-audit.md",
+      "line": 6,
+      "sha": "a51ae08",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t17/reports/2026-09-18-audit.md",
+      "line": 6,
+      "sha": "60ce743",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t17/reports/2026-09-18-audit.md",
+      "line": 40,
+      "sha": "4ee26b2",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t17/reports/2026-09-18-audit.md",
+      "line": 147,
+      "sha": "a51ae08",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t17/reports/2026-09-18-audit.md",
+      "line": 147,
+      "sha": "a51ae08",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t17/reports/2026-09-18-audit.md",
+      "line": 147,
+      "sha": "60ce743",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t17/reports/2026-09-18-audit.md",
+      "line": 228,
+      "sha": "4ee26b2",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
       "file": ".scratch/grill-t17/reports/2026-09-18-report.md",
       "line": 25,
       "sha": "4ee26b2",
@@ -11157,7 +11208,7 @@
     },
     {
       "file": "README.md",
-      "line": 346,
+      "line": 347,
       "sha": "994bdeb3",
       "class": "local-only",
       "resolved_to": null,
@@ -11165,7 +11216,7 @@
     },
     {
       "file": "README.md",
-      "line": 415,
+      "line": 416,
       "sha": "8807a61",
       "class": "published-unchanged",
       "resolved_to": null
@@ -11264,7 +11315,7 @@
     },
     {
       "file": "docs/adr/0064-t6-product-round-pre-registration-mde-gates-and-governance-trend-anchor.md",
-      "line": 30,
+      "line": 33,
       "sha": "994bdeb",
       "class": "local-only",
       "resolved_to": null,

@@ -41,7 +41,7 @@ describe('ADR-0076 doc surface (grill-t15 disposition + mechanism round)', () =>
 
   test('README index rebuilt: 76 records incl. ADR-0076', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('77 architecture decision records');
+    expect(r).toContain('78 architecture decision records');
     expect(r).toContain('0076-round-edit-surface-taxonomy-and-governance-carve-out.md');
   });
 
@@ -262,7 +262,7 @@ describe('ADR-0077 amendments (grill-t16 fix + mechanism round, data-surface ass
 
   test('README index rebuilt: 77 records incl. ADR-0077', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('77 architecture decision records');
+    expect(r).toContain('78 architecture decision records');
     expect(r).toContain('0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md');
   });
 
@@ -365,7 +365,11 @@ describe('grill-t17 dispositions (ADR-0077 D-E appendix + residue registrations)
   test('defer-0063 is the missing-convention smell ticket with the anti-rot quota', () => {
     const d = readJson(path.join(ROOT, 'docs', 'deferred-registry.json')).entries.find(function (e) { return e.id === 'defer-0063'; });
     expect(d).toBeDefined();
-    expect(d.status).toBe('pending-evaluation');
+    // grill-t18: discharged - the written convention landed (ADR-0077 D-A.1)
+    // and the fix bundle took this ticket first; the row closes with a
+    // same-commit pointer rather than disappearing.
+    expect(d.status).toBe('closed');
+    expect(d.closed_via).toContain('ADR-0077 D-A.1');
     expect(d.unfreeze_if.type).toBe('free-text');
     expect(d.rationale).toContain('gate criteria');
     expect(d.rationale).toContain('next fix bundle must take one smell ticket first');
@@ -483,6 +487,19 @@ describe('grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendi
     expect(r.carve_out_used).toBe(0);
     expect(r.mechanism_output_diff.files).toEqual(['bench/research/out/g6-publish-replay.json']);
     expect(r.net_additions).toBe(0);
+    expect(errsFor([r])).toEqual([]);
+  });
+
+  test('the grill-t18 row is the first compliant kind:fix row (gtd + mechanism output disclosed, exempt D-F)', () => {
+    const ti = readJson(TREND);
+    const r = ti.rounds.find(function (x) { return x.round === 'grill-t18-fix-round'; });
+    expect(r).toBeDefined();
+    expect(r.kind).toBe('fix');
+    expect(r.zero_product_diff).toBe(true);
+    expect(r.governance_tooling_diff.files.sort()).toEqual(['scripts/build-governance-anchors.js', 'scripts/build-round-facts.js', 'scripts/check-governance-inventory.js']);
+    expect(r.mechanism_output_diff.files).toEqual(['bench/research/out/g6-publish-replay.json']);
+    expect(r.adr_added).toEqual(['0078']);
+    expect(r.net_additions).toBe(1);
     expect(errsFor([r])).toEqual([]);
   });
 

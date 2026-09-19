@@ -1,0 +1,17 @@
+$ node <h1-reread byte check over .scratch/grill-t17/handoffs/next-round.md>
+
+EXIT 0
+
+file: D:/Aworker/jiahao/.scratch/grill-t17/handoffs/next-round.md
+bytes: 5707
+control-byte/lone-CR count: 0
+C1 chars present: false
+stripped-path signature: false
+OK   D:\Aworker\jiahao\.scratch\grill-t17\decision-ledger.md
+OK   D:\Aworker\jiahao\.scratch\grill-t17\spec-fix-disposition.md
+OK   D:\Aworker\jiahao\.scratch\grill-t16\reports\2026-09-18-audit.md
+OK   D:\Aworker\jiahao\.scratch\grill-t16\handoffs\2026-09-18-audit-passed-with-findings.md
+OK   - $grill
+OK   - $tdd
+OK   - $code-review
+OK   - $handoff
