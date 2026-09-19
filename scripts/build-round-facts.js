@@ -124,11 +124,15 @@ function proseScan(text, facts) {
   const j = text.indexOf(SENTINEL_END);
   const prose = (i !== -1 && j !== -1 && j > i) ? text.slice(0, i) + text.slice(j + SENTINEL_END.length) : text;
   const violations = [];
-  for (const k of PROSE_KEYS) {
-    if (typeof facts[k] !== 'number') continue;
+  // Key-assign leg covers every schema key (H-3 fix): the schema-key form is
+  // unambiguous at any width, so it is also the backstop for the bare-value
+  // floor's single-digit gap (ADR-0077 D-E grill-t18 amendment). The bare
+  // leg still runs on the numeric-canon PROSE_KEYS subset only.
+  for (const k of SCHEMA_KEYS) {
+    if (new RegExp(k + '\\s*[:=]').test(prose)) violations.push('schema key ' + k + ' assigned in report prose outside the sentinel region');
+    if (PROSE_KEYS.indexOf(k) === -1 || typeof facts[k] !== 'number') continue;
     const v = String(facts[k]);
     if (v.length >= 2 && new RegExp('\\b' + v + '\\b').test(prose)) violations.push('canon number ' + k + '=' + v + ' appears in report prose outside the sentinel region (quoted or bare - cite an evidence path instead, ADR-0077 D-E)');
-    if (new RegExp(k + '\\s*[:=]').test(prose)) violations.push('schema key ' + k + ' assigned in report prose outside the sentinel region');
   }
   if (/\b0\s+skipped|skipped\s*[:=]\s*0/.test(prose)) violations.push('skipped=0 appears in report prose outside the sentinel region');
   return violations;
