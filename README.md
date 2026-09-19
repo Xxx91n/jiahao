@@ -244,7 +244,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). The index below is a derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js` — do not hand-edit:
 
 <!-- adr-index:start -->
-- 77 architecture decision records:
+- 78 architecture decision records:
 - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
 - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
 - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
@@ -322,6 +322,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - [ADR-0075](docs/adr/0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md) — Promotion-Review Preregistration Pack — N/M Sufficiency Qualifier on the G1 Organic Corpus, Pre-Registered <=8-Class Intent Taxonomy, Sunset Trigger Clause, and Blocking Meta-Requirement
 - [ADR-0076](docs/adr/0076-round-edit-surface-taxonomy-and-governance-carve-out.md) — Round Edit-Surface Taxonomy, the Governance Carve-Out, the Sunset-Counter Durable Home, and Spec-Code Bidirectional Pinning (grill-t15 disposition + mechanism round)
 - [ADR-0077](docs/adr/0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md) — The Consuming-Row Exit Convention, the Mechanism-Output Artifact Enumeration, and the Round-Report Facts Canon (grill-t16 fix + mechanism round)
+- [ADR-0078](docs/adr/0078-fix-round-disclosure-taxonomy.md) — The Fix-Round Disclosure Taxonomy - kind:fix and the Reused governance_tooling_diff Channel (grill-t18 disposition round)
 <!-- adr-index:end -->
 - `test/` — 73 test suites, 1225 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)

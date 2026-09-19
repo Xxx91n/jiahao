@@ -6,6 +6,9 @@ Date: 2026-09-14
 Amends: ADR-0059 D-C (the "research round carries no metric commitment" general
 clause; T-6 and later research rounds carry an MDE stop-loss commitment, not an
 absolute target value).
+Amended-by: ADR-0078 (D-F trend-inventory surface: the kind enum is no longer
+documentation-only - fix rounds file kind:fix rows that MUST disclose R2
+machinery hand-edits via the reused governance_tooling_diff channel).
 References: ADR-0027 D3 (advisory aggregation), ADR-0030 (corpus floor),
 ADR-0050 (append-only), ADR-0060 D-B (min_n / indeterminate), ADR-0061 D-D/E
 (output-tethered convergence; witnessed digest anchoring), ADR-0062 (trend

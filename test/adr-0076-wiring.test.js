@@ -408,3 +408,87 @@ describe('grill-t17 dispositions (ADR-0077 D-E appendix + residue registrations)
     expect(tpl).toContain('{{ROUND_SLUG}}');
   });
 });
+
+describe('grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendix + doc hygiene)', () => {
+  const cgi = require('../scripts/check-governance-inventory');
+  const brf = require('../scripts/build-round-facts');
+  const ADR78 = path.join(ROOT, 'docs', 'adr', '0078-fix-round-disclosure-taxonomy.md');
+  const TREND = path.join(ROOT, 'docs', 'governance', 'trend-inventory.json');
+  function trendWith(rounds) {
+    return { schema_version: 1, anchor: { adr_count_base: 63, K: 2 }, rounds: rounds };
+  }
+  function fixRow(over) {
+    return Object.assign({
+      round: 'grill-tNN-fix-round', date: '2026-09-19', kind: 'fix',
+      adr_added: [], adr_superseded_or_closed: [], net_additions: 0,
+      zero_product_diff: true,
+      governance_tooling_diff: { files: ['scripts/build-round-facts.js'], reason: 'R2 machinery hand-edit disclosed per ADR-0078 D-A' },
+      advisory_fired: false
+    }, over || {});
+  }
+  function errsFor(rounds) {
+    return cgi.checkInventory(ROOT, { trend: trendWith(rounds) }).errors;
+  }
+
+  test('ADR-0078 exists with live status, date, amends line, ledger + spec anchors', () => {
+    const a = read(ADR78);
+    expect(a).toContain('# ADR-0078:');
+    expect(a).toContain('- Status: Accepted');
+    expect(a).toContain('- Date: 2026-09-19');
+    expect(a).toContain('Amends: ADR-0064 D-F');
+    expect(a).toContain('decision-ledger-t18');
+    expect(a).toContain('spec-h-disposition');
+    expect(a).toContain('D-A - The fix-round row shape');
+    expect(a).toContain('D-B - The disclosed corrective rewrite');
+    const a64 = read(path.join(ROOT, 'docs', 'adr', '0064-t6-product-round-pre-registration-mde-gates-and-governance-trend-anchor.md'));
+    expect(a64).toContain('Amended-by: ADR-0078');
+  });
+
+  test('kind enum: a fix row WITH governance_tooling_diff passes; WITHOUT it fails (ADR-0078 negative pin)', () => {
+    expect(errsFor([fixRow()])).toEqual([]);
+    const bare = fixRow(); delete bare.governance_tooling_diff;
+    const errs = errsFor([bare]).join(' ');
+    expect(errs).toContain('fix rounds must disclose');
+    expect(errs).toContain('governance_tooling_diff');
+  });
+
+  test('fix rows are exempt from the D-F deferred-entry assert; documentation rows are not (control)', () => {
+    const fix = fixRow({ adr_added: ['0078'], net_additions: 1 });
+    expect(errsFor([fix])).toEqual([]);
+    const doc = fixRow({ kind: 'documentation', adr_added: ['0078'], net_additions: 1 });
+    expect(errsFor([doc]).join(' ')).toContain('deferred-registry entry');
+  });
+
+  test('fix-row gtd files still classify against the taxonomy (R3 listing is mislabeled)', () => {
+    const bad = fixRow({ governance_tooling_diff: { files: ['AGENTS.md'], reason: 'R3 file mislabeled as machinery' } });
+    expect(errsFor([bad]).join(' ')).toContain('classifies');
+    const r1 = fixRow({ governance_tooling_diff: { files: ['scripts/install.js'], reason: 'R1 runtime file listed - hard error' } });
+    expect(errsFor([r1]).join(' ')).toContain('R1');
+  });
+
+  test('carve_out_used may be omitted on fix rows and never feeds the burn-rate streak', () => {
+    const row = fixRow(); delete row.carve_out_used;
+    const out = cgi.checkInventory(ROOT, { trend: trendWith([row]) });
+    expect(out.errors).toEqual([]);
+    const streaky = cgi.checkInventory(ROOT, { trend: trendWith([fixRow({ carve_out_used: 1 }), fixRow({ carve_out_used: 1 })]) });
+    expect(streaky.warnings.join(' ')).not.toContain('carve-out');
+  });
+
+  test('the grill-t17 row is corrected disclosed: kind fix + gtd backfill + retroactive first line, history untouched', () => {
+    const ti = readJson(TREND);
+    const r = ti.rounds.find(function (x) { return x.round === 'grill-t17-fix-round'; });
+    expect(r.kind).toBe('fix');
+    expect(r.governance_tooling_diff.files.sort()).toEqual(['scripts/build-round-facts.js', 'scripts/check-governance-inventory.js']);
+    expect(r.governance_tooling_diff.reason.slice(0, 22)).toBe('Retroactive correction');
+    expect(r.carve_out_used).toBe(0);
+    expect(r.mechanism_output_diff.files).toEqual(['bench/research/out/g6-publish-replay.json']);
+    expect(r.net_additions).toBe(0);
+    expect(errsFor([r])).toEqual([]);
+  });
+
+  test('README index rebuilt: 78 records incl. ADR-0078', () => {
+    const r = read(path.join(ROOT, 'README.md'));
+    expect(r).toContain('78 architecture decision records');
+    expect(r).toContain('0078-fix-round-disclosure-taxonomy.md');
+  });
+});

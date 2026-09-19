@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0064 D-F: observational trend surface for governance. One row per documentation round: net ADR additions + zero-product-diff flag. The trend anchor (base 63, K=2 consecutive doc rounds with net additions >0) emits ONE advisory ::warning:: and never blocks. A zero-product-diff doc round landing a new ADR forces a deferred-registry entry.",
+  "_doc": "ADR-0064 D-F + ADR-0078 D-A: observational trend surface for governance. One row per round. Documentation rounds record net ADR additions + zero-product-diff flag and the carve-out burn-rate fields; fix rounds disclose R2 machinery hand-edits via the reused governance_tooling_diff channel and are exempt from the D-F deferred-entry assert. The trend anchor (base 63, K=2 consecutive doc rounds with net additions >0) emits ONE advisory ::warning:: and never blocks. A zero-product-diff documentation round landing a new ADR forces a deferred-registry entry.",
   "anchor": {
     "adr_count_base": 63,
     "K": 2,
@@ -173,7 +173,7 @@
     {
       "round": "grill-t17-fix-round",
       "date": "2026-09-18",
-      "kind": "documentation",
+      "kind": "fix",
       "adr_added": [],
       "adr_superseded_or_closed": [],
       "net_additions": 0,
@@ -185,7 +185,14 @@
         ],
         "reason": "faithful regeneration via check-g6-publish re-run during the acceptance battery - the packaged build-round-facts.js grew with the proseScan export, moving the tarball byte record"
       },
-      "advisory_fired": false
+      "advisory_fired": false,
+      "governance_tooling_diff": {
+        "files": [
+          "scripts/build-round-facts.js",
+          "scripts/check-governance-inventory.js"
+        ],
+        "reason": "Retroactive correction disclosed on the corrected line (audit-log convention, ADR-0078 D-B): this fix round was mislabeled kind:documentation under the closed enum before ADR-0078 admitted fix. The two R2 machinery hand-edits are backfilled: build-round-facts.js (proseScan export + author-time enforcement) and check-governance-inventory.js (loadTaxonomy hoist)."
+      }
     }
   ],
   "source_adr": "0064"

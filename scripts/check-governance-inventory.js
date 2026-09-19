@@ -119,7 +119,14 @@ function checkInventory(root, opts) {
     let closureSet = null;
     let mechOutputs = null;
     for (const r of ti.rounds || []) {
-      if (r.kind !== 'documentation') { errors.push('trend round ' + r.round + ': kind must be documentation'); continue; }
+      // ADR-0078 D-A: the kind enum admits documentation|fix. A fix row MUST
+      // disclose R2 machinery hand-edits via governance_tooling_diff (field
+      // reused, not paralleled); carve_out_used is not counted for fix rows;
+      // fix rows are exempt from the D-F deferred-entry assert.
+      if (r.kind !== 'documentation' && r.kind !== 'fix') { errors.push('trend round ' + r.round + ': kind must be documentation|fix (ADR-0078)'); continue; }
+      if (r.kind === 'fix' && r.governance_tooling_diff === undefined) {
+        errors.push('trend round ' + r.round + ': fix rounds must disclose R2 machinery hand-edits via governance_tooling_diff (ADR-0078 D-A)');
+      }
       for (const a of r.adr_added || []) {
         const file = '0000' + a;
         if (!adrFiles.some(function (f) { return f.slice(0, 4) === file.slice(-4); })) errors.push('trend round ' + r.round + ': adr_added ' + a + ' has no docs/adr file');
@@ -128,7 +135,7 @@ function checkInventory(root, opts) {
       else if (r.net_additions !== ((r.adr_added || []).length - (r.adr_superseded_or_closed || []).length)) {
         errors.push('trend round ' + r.round + ': net_additions ' + r.net_additions + ' recomputes to ' + ((r.adr_added || []).length - (r.adr_superseded_or_closed || []).length) + ' (recorded, not recomputed)');
       }
-      if (r.zero_product_diff === true && (r.adr_added || []).length > 0) {
+      if (r.kind === 'documentation' && r.zero_product_diff === true && (r.adr_added || []).length > 0) {
         if (!r.deferred_entry || !regIds.has(r.deferred_entry)) {
           errors.push('trend round ' + r.round + ': zero-product-diff + new ADR requires a deferred-registry entry (D-F clause 3)');
         }
@@ -152,7 +159,7 @@ function checkInventory(root, opts) {
             }
           }
         }
-        if (r.carve_out_used !== 0 && r.carve_out_used !== 1) {
+        if (r.kind === 'documentation' && r.carve_out_used !== 0 && r.carve_out_used !== 1) {
           errors.push('trend round ' + r.round + ': carve_out_used must be declared 0|1 alongside governance_tooling_diff (ADR-0076 D-B burn-rate)');
         }
       }
@@ -183,7 +190,7 @@ function checkInventory(root, opts) {
           }
         }
       }
-      carveStreak = (r.carve_out_used === 1) ? carveStreak + 1 : 0;
+      carveStreak = (r.kind === 'documentation' && r.carve_out_used === 1) ? carveStreak + 1 : 0;
       streak = (r.net_additions > 0) ? streak + 1 : 0;
     }
     if (carveStreak >= 2) {
