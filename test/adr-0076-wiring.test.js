@@ -672,3 +672,133 @@ describe('grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendi
     }
   });
 });
+
+describe('grill-t19 dispositions (ADR-0077 missing-input clause + ADR-0078 streak/gtd semantics + A-3 re-capture)', () => {
+  const cgi = require('../scripts/check-governance-inventory');
+  const brf = require('../scripts/build-round-facts');
+  const ADR78 = path.join(ROOT, 'docs', 'adr', '0078-fix-round-disclosure-taxonomy.md');
+  const ADR77 = path.join(ROOT, 'docs', 'adr', '0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md');
+  const TREND = path.join(ROOT, 'docs', 'governance', 'trend-inventory.json');
+  function trendWith(rounds) {
+    return { schema_version: 1, anchor: { adr_count_base: 63, K: 2 }, rounds: rounds };
+  }
+  function fixRow(over) {
+    return Object.assign({
+      round: 'grill-tNN-fix-round', date: '2026-09-19', kind: 'fix',
+      adr_added: [], adr_superseded_or_closed: [], net_additions: 0,
+      zero_product_diff: true,
+      governance_tooling_diff: { files: ['scripts/build-round-facts.js'], reason: 'R2 machinery hand-edit disclosed per ADR-0078 D-A' },
+      advisory_fired: false
+    }, over || {});
+  }
+  function docRow(over) {
+    return Object.assign({
+      round: 'grill-tNN-doc-round', date: '2026-09-19', kind: 'documentation',
+      adr_added: [], adr_superseded_or_closed: [], net_additions: 0,
+      zero_product_diff: true, carve_out_used: 0, advisory_fired: false
+    }, over || {});
+  }
+  function outFor(rounds) { return cgi.checkInventory(ROOT, { trend: trendWith(rounds) }); }
+
+  // .txt hygiene leg (grill-t19 D-006, audit A-3): the pin extends to
+  // committed .scratch/**/*.txt carrying ONLY the evidence-shaped signature
+  // - a path broken across LF (trailing-backslash/cross-line path class, the
+  // invocation-layer corruption that voided the first capture). The md
+  // control-byte set does NOT transfer: 0x1B ANSI is legitimate in verbatim
+  // tool output - per-type signature granularity, extensible on demonstration.
+  function txtHygiene(buf) {
+    const t = buf.toString('utf8');
+    const hits = [];
+    if (/[A-Za-z]:(?:[\\\/][A-Za-z0-9_.-]+)*\\\r?\n[A-Za-z0-9_.-]+\.[A-Za-z]{2,5}/.test(t)) hits.push('path-LF-break signature (trailing-backslash cross-line path)');
+    return hits;
+  }
+
+  test('txt hygiene pin: every committed .scratch/**/*.txt is free of the path-LF-break signature (D-006)', () => {
+    const files = tracked().filter(function (f) { return /^\.scratch\/.+\.txt$/.test(f); });
+    expect(files.length).toBeGreaterThan(10);
+    for (const f of files) {
+      expect({ f: f, hits: txtHygiene(fs.readFileSync(path.join(ROOT, f))) }).toEqual({ f: f, hits: [] });
+    }
+  });
+
+  test('txt hygiene negative fixture: the voided A-3 capture bytes are flagged; the md control-byte set does not transfer', () => {
+    // The voided first capture of .scratch/grill-t18/evidence/
+    // check-ci-jobs-missing.txt (pre-re-capture bytes): the recorded command
+    // reads `D:` + literal LF + `onexistent.yml` and the ENOENT path reads
+    // `jiahao\` + literal LF + `onexistent.yml` - an escape-interpreting
+    // invocation layer ate the backslash-n sequences into real newlines.
+    const a = Buffer.concat([
+      Buffer.from('$ node scripts/check-ci-jobs.js D:'),
+      Buffer.from([0x0a]),
+      Buffer.from('onexistent.yml\n\nEXIT 2\n\ncheck-ci-jobs: verifier broken - ENOENT: no such file or directory, open \'D:\\Aworker\\jiahao\\'),
+      Buffer.from([0x0a]),
+      Buffer.from('onexistent.yml\'\n')
+    ]);
+    expect(txtHygiene(a).join(' | ')).toContain('path-LF-break');
+    // Control: ANSI 0x1B and a lone CR are legitimate in verbatim .txt
+    // output - the md signature set must NOT flag them here.
+    const b = Buffer.concat([
+      Buffer.from('[test] '),
+      Buffer.from([0x1b]),
+      Buffer.from('[32mgreen'),
+      Buffer.from([0x1b]),
+      Buffer.from('[0m ok\rmid\nnext line\n')
+    ]);
+    expect(txtHygiene(b)).toEqual([]);
+  });
+
+  test('the t18 check-ci-jobs-missing evidence is the re-captured verbatim output (Disclosed Re-Capture, D-006)', () => {
+    const f = path.join(ROOT, '.scratch', 'grill-t18', 'evidence', 'check-ci-jobs-missing.txt');
+    const t = read(f);
+    expect(t).toContain('$ node scripts/check-ci-jobs.js .scratch/grill-t18/evidence/no-such-ci.yml');
+    expect(t).toContain('EXIT 2');
+    expect(t).toContain('verifier broken - ENOENT');
+    expect(t).toContain('D:\\Aworker\\jiahao\\.scratch\\grill-t18\\evidence\\no-such-ci.yml');
+    expect(txtHygiene(fs.readFileSync(f))).toEqual([]);
+  });
+
+  test('CONTEXT carries the Disclosed Repair / Disclosed Re-Capture / Non-Interpolating Channel / Bilingual Mirror terms (D-002/D-006/D-007)', () => {
+    const c = read(path.join(ROOT, 'CONTEXT.md'));
+    expect(c).toContain('Disclosed Repair (披露式修复)');
+    expect(c).toContain('reason+when+who triple');
+    expect(c).toContain('Disclosed Re-Capture (披露式重捕获)');
+    expect(c).toContain('Non-Interpolating Channel (非插值通道)');
+    expect(c).toContain('escape-interpreting string layers');
+    expect(c).toContain('Bilingual Mirror (双语镜像)');
+  });
+
+  test('CONTEXT clauses: trend-anchor streak populations + consuming-row missing-input (D-003/D-004)', () => {
+    const c = read(path.join(ROOT, 'CONTEXT.md'));
+    expect(c).toContain('kind:fix rows are outside both streak populations');
+    expect(c).toContain('skip-not-reset');
+    expect(c).toContain('condition recorded at the phase boundary, never an early exit');
+    expect(c).toContain('three-value contract grows no fourth class');
+  });
+
+  test('ADR-0077 D-A.1 registers the missing-input clause (D-004)', () => {
+    const a = read(ADR77);
+    expect(a).toContain('Missing-input clause (grill-t19 amendment, ledger D-004)');
+    expect(a).toContain('unsatisfied condition recorded at the phase boundary');
+    expect(a).toContain('three-value contract grows no fourth class');
+  });
+
+  test('the t18 artifacts carry the restored defer-0060 named lines (A-1 Disclosed Repair)', () => {
+    const l = read(path.join(ROOT, '.scratch', 'grill-t18', 'decision-ledger.md'));
+    const r = read(path.join(ROOT, '.scratch', 'grill-t18', 'reports', '2026-09-19-report.md'));
+    for (const t of [l, r]) {
+      expect(t).toContain('defer-0060 (Disclosed Repair - restored by grill-t19, 2026-09-19)');
+      expect(t).toContain('review_at 2026-12-15');
+    }
+    expect(l).toContain('task book\'s item 22');
+  });
+
+  test('the t18 report carries the export-misreport by-design note + the true green statement (A-2/A-5)', () => {
+    const r = read(path.join(ROOT, '.scratch', 'grill-t18', 'reports', '2026-09-19-report.md'));
+    expect(r).toContain('Export-misreport by-design note');
+    expect(r).toContain('SCHEMA_KEYS/PROSE_KEYS');
+    expect(r).toContain('NOT green throughout');
+    expect(r).toContain('wrx commit');
+    expect(r).toContain('wsl round-complete handoff');
+    expect(r).not.toContain('Intermediate commits green throughout');
+  });
+});

@@ -1,7 +1,5 @@
-$ node scripts/check-ci-jobs.js D:
-onexistent.yml
+$ node scripts/check-ci-jobs.js .scratch/grill-t18/evidence/no-such-ci.yml
 
 EXIT 2
 
-check-ci-jobs: verifier broken - ENOENT: no such file or directory, open 'D:\Aworker\jiahao\
-onexistent.yml'
+check-ci-jobs: verifier broken - ENOENT: no such file or directory, open 'D:\Aworker\jiahao\.scratch\grill-t18\evidence\no-such-ci.yml'
