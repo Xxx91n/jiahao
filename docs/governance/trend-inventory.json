@@ -219,6 +219,29 @@
         ],
         "reason": "faithful regeneration via check-g6-publish re-run during the acceptance battery - the packaged build-round-facts.js grew with the R2 machinery edits, moving the tarball byte record (same mechanism the t17 row disclosed)"
       }
+    },
+    {
+      "round": "grill-t19-fix-round",
+      "date": "2026-09-19",
+      "kind": "fix",
+      "adr_added": [],
+      "adr_superseded_or_closed": [],
+      "net_additions": 0,
+      "zero_product_diff": true,
+      "governance_tooling_diff": {
+        "files": [
+          "scripts/build-round-facts.js",
+          "scripts/check-governance-inventory.js"
+        ],
+        "reason": "Fix round R2 machinery hand-edits disclosed per ADR-0078 D-A: build-round-facts.js (main() crash-wrapper -> exit 2 verifier-broken + missing-factsFile boundary routing per the ADR-0077 D-A.1 missing-input clause), check-governance-inventory.js (kind:fix skip-not-reset streak guard + gtd non-empty files shape check). zero_product_diff holds - no R1 runtime file touched (ADR-0076 D-A)."
+      },
+      "advisory_fired": false,
+      "mechanism_output_diff": {
+        "files": [
+          "bench/research/out/g6-publish-replay.json"
+        ],
+        "reason": "faithful regeneration via check-g6-publish re-run during the acceptance battery - the packaged build-round-facts.js + check-governance-inventory.js grew with the R2 machinery edits, moving the tarball byte record (same mechanism the t17/t18 rows disclosed)"
+      }
     }
   ],
   "source_adr": "0064"

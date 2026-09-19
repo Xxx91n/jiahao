@@ -115,3 +115,92 @@ Authority for this round. Append-only; every owner-confirmed substantive conclus
   advisory_fired=1 = expected (zero advisory drift); the carveStreak
   reading is unchanged (zero at round close).
 
+
+## T-1 dispositions (R1 documentation surface)
+
+- T-1.1 defer-0060 named lines restored in the t18 ledger T-3 sweep +
+  report Consent-sweep (Disclosed Repair, audit A-1; declaration triple
+  on each line) - commit xqq.
+- T-1.2 export-misreport by-design note added to the t18 report incl. the
+  SCHEMA_KEYS/PROSE_KEYS test-only export surface (audit A-2) - commit xqq.
+- T-1.3 green-throughout sentence rewritten to the true ruy-red-at-commit
+  statement; ruy/wrx/wsl named in the commit chain (audit A-5) - commit
+  xqq.
+- T-1.4 ADR-0077 D-A.1 missing-input clause appended (audit A-8
+  adjudication) - commit pmv.
+- T-1.5 CONTEXT terms verified pre-landed (Disclosed Repair / Disclosed
+  Re-Capture / Non-Interpolating Channel / Bilingual Mirror + the
+  trend-anchor streak-population clause + the consuming-row
+  missing-input clause) - carried in nwp; wiring pin asserts them.
+- T-1.6 A-3 Disclosed Re-Capture executed - first capture declared void
+  (invocation-layer corruption), fresh verbatim output re-run through the
+  Non-Interpolating Channel (spawnSync arg array, parameterized
+  no-such-ci.yml arg), corrupted bytes absorbed as the .txt signature
+  leg's negative fixture - commit utp.
+- T-1.7 cascade regeneration rode plain commits - governance copy
+  re-synced, anchors digests + rewrite-map regenerated (published_tip
+  advanced post-landing; old-side discovery refs restored after
+  remote-prune) - inside commit xqq.
+- T-1.8 setup absorption - t18 audit report (ns) + audit handoff (vl)
+  committed disclosed - commit qzp.
+- T-1.9 critique-v4 completion result carried in Registration lines
+  (D-001).
+- T-1.10 stale pins re-pinned disclosed - adr-0074 published_tip pin
+  advanced post-landing - commit krp.
+
+
+## T-2 dispositions (R2 machinery surface)
+
+- T-2.1 FIRST R2 COMMIT discharged the anti-rot quota smell ticket:
+  build-round-facts.js main() try/catch -> 'verifier broken' + exit 2
+  (audit A-6) + missing-factsFile routed to the drift channel at the
+  single boundary exit with the report phase skipped (audit A-8) -
+  commit lrn; the discharge is the ordering + the Registration line.
+- T-2.2 wiring pins for the machinery fix - corrupt->exit2 spawn,
+  missing->boundary-exit1 committed capture, source-shape pin - commit
+  rsr.
+- T-2.3 ADR-0078 D-A streak-population sentence + checker kind guard
+  (audit A-4, coupled per ADR-0035) - commit twz; positive + negative +
+  control pins in the same commit.
+- T-2.4 gtd escape channel closed (audit A-7, coupled) - presence implies
+  non-empty files for both kinds; 'no carve-out used' records as
+  carve_out_used:0 + field omitted - commit txu; wiring negatives x2 in
+  the same commit.
+- T-2.5 governance_tooling_diff on the t19 row lists exactly the two R2
+  machinery files hand-edited this round; carve_out_used omitted (no
+  carve-out invoked); zero_product_diff honest (no R1 runtime file
+  touched).
+
+
+## T-3 dispositions (closeout)
+
+- R-1..R-7 rework landed: R-1 t18 repairs (xqq), R-2 ADR-0078 sentence
+  (twz), R-3 checker kind guard (twz), R-4 gtd shape (txu), R-5/A-3
+  re-capture + .txt leg (utp), R-6 missing-input boundary (lrn + pmv),
+  R-7 quota discharge (lrn, first R2 commit).
+- Consent-sweep (per-row named lines, Consent Sweep convention):
+  - defer-0060: restoration registered (A-1 repairs in xqq); the row
+    stands - pending-evaluation external-event (CI 403 carrier, sole
+    live tracker), quarterly cadence, review_at 2026-12-15.
+  - defer-0063: discharged at t18 (quota model settled) - standing.
+  - defer-0053: frozen pending corpus - untouched this round.
+  - defer-0055: sunset pointer - organic=0 stands; not a quarterly
+    observation round.
+  - defer-0057: closed; the rewrite-map keeps the tip-pinned history
+    legible (published_tip advanced post-landing).
+  - defer-0058: net registry increment 0 this round - fix rows exempt
+    from the D-F deferred-entry assert; no tally row.
+  - sunset counter: 1/6 unchanged - mid-quarter, no observation due.
+  - O-E backlog: informational; none surfaced this round.
+  - never-commit patch set: kept verbatim (tq/nl/xu/my family +
+    audit-evidence trees + round-diff patches + round-commits.txt stay
+    untracked; nothing new joined the set).
+- Streak-reading fact (D-003): under skip-not-reset the trend-anchor
+  advisory reads fired=1 = expected - zero advisory drift; the standing
+  drift warning resolved and the advisory now reads consecutive doc
+  rounds only.
+- Zero-product-diff honest: no R1 runtime file touched this round
+  (ADR-0076 D-A); the R2 machinery surface is disclosed on the row.
+- Round-facts + report + battery evidence committed; report_commit
+  stays null.
+

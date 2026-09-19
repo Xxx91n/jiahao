@@ -1,0 +1,6 @@
+$ node scripts/check-governance-inventory.js
+
+EXIT 0
+
+[governance-inventory] OK: 35 entries, live source_adr, unique commands, closed references
+::warning title=Governance trend anchor::two consecutive documentation rounds added ADRs (streak 10 >= K=2) - advisory only, never blocks (ADR-0064 D-F)
