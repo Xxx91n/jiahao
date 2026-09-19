@@ -125,6 +125,14 @@ function proseScan(text, facts) {
   return violations;
 }
 
+// ADR-0077 D-A.1 emit-exit boundary: violations accumulate within a phase
+// and cross exactly one boundary - one FAIL line per violation, then exit 1.
+// (A crash must never masquerade as unsatisfied: verifier-broken is exit >1.)
+function emitExit(violations) {
+  for (const v of violations) console.error('FAIL: ' + v);
+  process.exit(1);
+}
+
 function main(argv) {
   requireCapabilities(['repo-tree'], { root: ROOT }); // non-registry consumer: inline declaration (ADR-0058 R8)
   const ri = argv.indexOf('--round');
@@ -148,10 +156,7 @@ function main(argv) {
   // about-to-be-collected state).
   if (reportPath && cur !== null) {
     const violations = proseScan(fs.readFileSync(reportPath, 'utf8'), JSON.parse(cur));
-    if (violations.length) {
-      for (const v of violations) console.error('FAIL: ' + v);
-      process.exit(1);
-    }
+    if (violations.length) emitExit(violations);
   }
   const needsCollect = !reportPath || check || cur === null;
   let drift = false;
@@ -181,10 +186,7 @@ function main(argv) {
     // Post-collect re-scan: covers the artifact-missing edge (collect just
     // wrote the canon this path scans against). Same scan, same artifact.
     const late = proseScan(fs.readFileSync(reportPath, 'utf8'), factsNow);
-    if (late.length) {
-      for (const v of late) console.error('FAIL: ' + v);
-      process.exit(1);
-    }
+    if (late.length) emitExit(late);
     const region = renderRegion(factsNow);
     const text = fs.readFileSync(reportPath, 'utf8');
     const spliced = spliceRegion(text, region);
