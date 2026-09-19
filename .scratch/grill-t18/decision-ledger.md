@@ -67,3 +67,47 @@ Status legend: current | revised | stale | deferred.
 - Constraints / negatives: no immediate re-audit (ITAF 1402 timing + no trigger = rubber-stamp risk); no self-attestation circularity (convention effectiveness never evidenced by own compliance); never-commit set preserved (tq/nl/xu/my + t17 audit-evidence incl. un patch + rerun/* + round-commits.txt); report_commit stays null.
 - Status: current
 
+
+## Registration lines (round scope, 2026-09-19)
+
+- Critique-v4 verdict registered (D-001): all five prescriptions verified
+  disposed on the live tree (P-1/P-2 over-delivered by the t17 Scribed/
+  Proxy terms + ERRATA E-7). Residuals - delegation posture, v2 corpus
+  pending - recorded out-of-scope per D-001 (a new argument is required;
+  the v4 text is not one).
+
+## T-1 dispositions (R1 documentation surface, 2026-09-19)
+
+Executed per handoffs/next-round.md T-1. Two doc-surface commits; the
+ADR-0078 + trend-inventory + checker triple lands in one commit per the
+ADR-0035 coupling guard.
+
+- D-004 - ADR-0078 registers the fix-round disclosure taxonomy (kind enum
+  documentation|fix; fix rows MUST disclose R2 machinery hand-edits via the
+  reused governance_tooling_diff channel; carve_out_used not counted; D-F
+  deferred-entry assert exempt; streak unchanged). The grill-t17 row is
+  corrected disclosed (kind->fix + gtd backfill + retroactive first line);
+  the checker enum line admits fix with the missing-gtd negative pin.
+- D-002 - ADR-0077 D-E amendment registers the bare-value floor as a
+  pattern-ambiguity function with the key-assign compensating clause and
+  the permanent declared coverage boundary (not deferred-registry).
+- D-003 - ADR-0077 D-A.1 appendix registers the guard/emit-exit structure
+  contract (accumulate within phase, one emit-exit boundary per phase,
+  immediate exit reserved for verifier-broken exit>1) + cause-summary
+  clause; defer-0063 unfreezes and discharges in this round's R2.
+- D-007 - ADR-0077 D-E gains the regen-boundary sentence (verbatim
+  evidence snapshots may disagree on counts across the regen boundary -
+  expected ordering artifact). CONTEXT terms Consent Sweep, Amend-Riding
+  Discipline, Facts Canon tail clause, and the seq 3/5/6/8 clause verified
+  pre-landed in the setup commit.
+- D-006 - .scratch/grill-t17/handoffs/next-round.md repaired via
+  fs.writeFileSync authoring (4 absolute paths + 4 dollar-skill names
+  restored, CR byte + octal-eaten strays removed); AGENTS.md working
+  agreement gains the authoring-path clause; doc-hygiene wiring pin lands
+  over committed .scratch/*.md. Same-commit second repair disclosed: the
+  corpus scan surfaced .scratch/grill-t6/reports/2026-09-14-audit-t1.md
+  (the "(?u)\bww+\b" pair eaten to 0x08 backspaces - same corruption
+  class); both pre-fix states are the pin's two negative fixtures.
+- D-005 - t17 decision-ledger carries the appended disclosure note
+  (defer-0055 omission = isolated lapse; appendable, not rewritten);
+  CONTEXT Consent Sweep verified pre-landed.

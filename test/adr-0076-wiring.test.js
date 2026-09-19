@@ -491,4 +491,120 @@ describe('grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendi
     expect(r).toContain('78 architecture decision records');
     expect(r).toContain('0078-fix-round-disclosure-taxonomy.md');
   });
+
+  test('ADR-0077 grill-t18 amendments: D-A.1 appendix + floor registration + regen-boundary sentence', () => {
+    const a = read(path.join(ROOT, 'docs', 'adr', '0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md'));
+    expect(a).toContain('D-A.1 - The guard/emit-exit structure contract');
+    expect(a).toContain('one emit-exit boundary per phase');
+    expect(a).toContain('Cause-summary clause');
+    expect(a).toContain('defer-0063');
+    expect(a).toContain('The bare-value floor, registered (grill-t18 amendment, ledger D-002)');
+    expect(a).toContain('pattern-ambiguity function');
+    expect(a).toContain('backstopped by the key-assign leg');
+    expect(a).toContain('permanent declared gap');
+    expect(a).toContain('all eleven schema keys');
+    expect(a).toContain('may disagree on counts across the regen boundary');
+  });
+
+  test('CONTEXT terms verified pre-landed (D-005/D-007)', () => {
+    const c = read(path.join(ROOT, 'CONTEXT.md'));
+    expect(c).toContain('Consent Sweep (同意清理)');
+    expect(c).toContain('named-id');
+    expect(c).toContain('identifier-stripping');
+    expect(c).toContain('Amend-Riding Discipline (搭便车修正纪律)');
+    expect(c).toContain('never an amend');
+    expect(c).toContain('verified-state lines cite evidence paths, never carry regenerable');
+    expect(c).toContain('seq 3/5/6/8 pre-authorization-era events are historical background');
+  });
+
+  test('AGENTS.md authoring-path clause (D-006)', () => {
+    const ag = read(path.join(ROOT, 'AGENTS.md'));
+    expect(ag).toContain('fs.writeFileSync');
+    expect(ag).toContain('escape-interpreting shell layers');
+    expect(ag).toContain('byte-check');
+  });
+
+  // Doc-hygiene scanner (grill-t18 D-006): zero-dependency pin over committed
+  // .scratch/*.md. Registered signature set (extensible via defer-registry on
+  // newly demonstrated classes; not an exhaustive sanitizer):
+  //   banned control bytes x00-x08/x0B/x0C/x0E-x1F (tab+LF exempt, CR allowed
+  //   for CRLF files), lone CR not followed by LF, C1 octal-eaten chars,
+  //   stripped paths (backtick spans exempt for verbatim citation), stripped
+  //   $name bullets.
+  function docHygiene(buf) {
+    const hits = [];
+    for (let i = 0; i < buf.length; i++) {
+      const b = buf[i];
+      if (b < 9 || b === 11 || b === 12 || (b > 13 && b < 32)) hits.push('control byte 0x' + b.toString(16) + ' @' + i);
+      if (b === 13 && buf[i + 1] !== 10) hits.push('lone CR @' + i);
+    }
+    const t = buf.toString('utf8');
+    if (/[-]/.test(t)) hits.push('C1 control char (octal-eaten stray)');
+    const noTicks = t.replace(/`[^`]*`/g, '');
+    if (/[A-Za-z]:(?![\\\/])[A-Za-z0-9_.-]+\.[a-z]{2,5}/.test(noTicks)) hits.push('stripped-path signature (D:Aworker class)');
+    if (/^- {2,}—/m.test(t) || /^- -[a-z]/m.test(t)) hits.push('stripped $name bullet');
+    return hits;
+  }
+
+  test('doc-hygiene pin: every committed .scratch/*.md is free of corruption signatures', () => {
+    const files = tracked().filter(function (f) { return /^\.scratch\/.+\.md$/.test(f); });
+    expect(files.length).toBeGreaterThan(100);
+    for (const f of files) {
+      expect({ f: f, hits: docHygiene(fs.readFileSync(path.join(ROOT, f))) }).toEqual({ f: f, hits: [] });
+    }
+  });
+
+  test('doc-hygiene negative fixtures: the two real corruption samples are flagged', () => {
+    // Sample A: the corrupted authoritative-inputs block + stripped $name
+    // bullets from the committed .scratch/grill-t17/handoffs/next-round.md
+    // (pre-fix bytes) - stripped paths, a literal CR mid-path, octal-eaten
+    // C1 strays, and eaten $skill names.
+    const a = Buffer.concat([
+      Buffer.from('- Audit being settled: D:Aworkerjiahao.scratchgrill-t16'),
+      Buffer.from([0x0d]),
+      Buffer.from('eports'),
+      Buffer.from([0xc2, 0x82]),
+      Buffer.from('6-09-18-audit.md\n- Ledger: D:Aworkerjiahao.scratchgrill-t17decision-ledger.md\n-  — G-bundle fix round\n- -review — before each commit\n')
+    ]);
+    const ha = docHygiene(a).join(' | ');
+    expect(ha).toContain('lone CR');
+    expect(ha).toContain('C1 control char');
+    expect(ha).toContain('stripped-path');
+    expect(ha).toContain('stripped $name bullet');
+    // Sample B: the eaten \b pair in .scratch/grill-t6/reports/
+    // 2026-09-14-audit-t1.md - "(?u)\bww+\b" written as two 0x08 backspace
+    // bytes by an escape-interpreting layer (same corruption class).
+    const b = Buffer.concat([
+      Buffer.from('analyzer.token_spec (incl. (?u)'),
+      Buffer.from([0x08]),
+      Buffer.from('ww+'),
+      Buffer.from([0x08]),
+      Buffer.from(' for word kind)\n')
+    ]);
+    expect(docHygiene(b).join(' | ')).toContain('control byte 0x8');
+  });
+
+  test('the t17 next-round.md repair holds: restored paths + $names + zero signatures (H-1)', () => {
+    const f = path.join(ROOT, '.scratch', 'grill-t17', 'handoffs', 'next-round.md');
+    const buf = fs.readFileSync(f);
+    const t = buf.toString('utf8');
+    for (const s of [
+      'D:\\Aworker\\jiahao\\.scratch\\grill-t17\\decision-ledger.md',
+      'D:\\Aworker\\jiahao\\.scratch\\grill-t17\\spec-fix-disposition.md',
+      'D:\\Aworker\\jiahao\\.scratch\\grill-t16\\reports\\2026-09-18-audit.md',
+      'D:\\Aworker\\jiahao\\.scratch\\grill-t16\\handoffs\\2026-09-18-audit-passed-with-findings.md',
+      '- $grill — G-bundle fix round',
+      '- $tdd — quoted-stale fixture',
+      '- $code-review — before each commit',
+      '- $handoff — next checkpoint'
+    ]) expect(t).toContain(s);
+    expect(docHygiene(buf)).toEqual([]);
+  });
+
+  test('t17 ledger carries the appended disclosure note (D-005)', () => {
+    const d = read(path.join(ROOT, '.scratch', 'grill-t17', 'decision-ledger.md'));
+    expect(d).toContain('Disclosure note (appended by grill-t18');
+    expect(d).toContain('defer-0055');
+    expect(d).toContain('isolated lapse');
+  });
 });

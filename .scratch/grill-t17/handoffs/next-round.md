@@ -1,10 +1,10 @@
 # grill-t17 → next round — standing task book
 
 Audience: any sub-agent executing the t17 fix round. Authoritative inputs:
-- Ledger (decisions, verbatim answers, constraints): D:Aworkerjiahao.scratchgrill-t17decision-ledger.md
-- Spec (sectioned requirements, negatives union): D:Aworkerjiahao.scratchgrill-t17spec-fix-disposition.md
-- Audit being settled: D:Aworkerjiahao.scratchgrill-t16eports6-09-18-audit.md (§6 = acceptance battery to re-run verbatim)
-- Audit handoff: D:Aworkerjiahao.scratchgrill-t16handoffs6-09-18-audit-passed-with-findings.md
+- Ledger (decisions, verbatim answers, constraints): D:\Aworker\jiahao\.scratch\grill-t17\decision-ledger.md
+- Spec (sectioned requirements, negatives union): D:\Aworker\jiahao\.scratch\grill-t17\spec-fix-disposition.md
+- Audit being settled: D:\Aworker\jiahao\.scratch\grill-t16\reports\2026-09-18-audit.md (§6 = acceptance battery to re-run verbatim)
+- Audit handoff: D:\Aworker\jiahao\.scratch\grill-t16\handoffs\2026-09-18-audit-passed-with-findings.md
 
 ## Verified baseline (t16 audit-reproduced; re-verify before claiming)
 
@@ -88,9 +88,9 @@ Ordered steps:
 
 ## Suggested skills
 
--  — G-bundle fix round
--  — quoted-stale fixture, gen-docs invariant pin, smell-fix regression
-- -review — before each commit; separate refactor:/test: commits per D-005
--  — next checkpoint
+- $grill — G-bundle fix round
+- $tdd — quoted-stale fixture, gen-docs invariant pin, smell-fix regression
+- $code-review — before each commit; separate refactor:/test: commits per D-005
+- $handoff — next checkpoint
 - gitbutler (but) — ALL VCS writes
 - atomcode-research — only for contested dispositions

@@ -103,3 +103,11 @@ each row names its evidence or pin.
 - Audit-ready note for the owner: the report's disposition mapping is
   the next audit's standing review surface; every claim cites a
   committed evidence path.
+
+## Disclosure note (appended by grill-t18, D-005 - ledger is append-only)
+
+The grill-t17 consent-sweep (T-3 above) omitted a named line for defer-0055
+- an isolated lapse, not a convention: the t12-t14 sweeps all named their
+rows. The grill-t18 Consent Sweep glossary term (CONTEXT.md) now registers
+the one-named-line-per-row rule this line violated; the omission stays
+history, disclosed here rather than rewritten into the T-3 section.
