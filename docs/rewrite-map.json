@@ -2,8 +2,8 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-19T02:28:45.042Z",
-  "published_tip": "60ce7438af354f6989a0fb16314b4e6bbf900718",
+  "generated_at": "2026-09-19T08:44:38.188Z",
+  "published_tip": "20bcbe3930677de46df2e981d67597cb98bf3c63",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
     "old_tip": "2c93a30a5495219d0d2385f25d19af23e729852f",
@@ -20,14 +20,14 @@
   },
   "counts": {
     "commits": 15,
-    "published_only": 55,
+    "published_only": 66,
     "removed": 0,
     "same": 278,
-    "doc_refs": 1447,
+    "doc_refs": 1457,
     "doc_refs_by_class": {
       "rewritten": 97,
-      "local-only": 700,
-      "published-unchanged": 650
+      "local-only": 698,
+      "published-unchanged": 662
     }
   },
   "commits": [
@@ -111,6 +111,50 @@
   ],
   "removed": [],
   "published_only": [
+    {
+      "new": "20bcbe3930677de46df2e981d67597cb98bf3c63",
+      "subject": "docs(grill-t18): round-complete handoff (Facts Canon: verified-state lines cite evidence paths, zero regenerable counts) + final regen fixpoint - map/facts/report-region settle on the committed sha [D-008]"
+    },
+    {
+      "new": "70859bf5de4fb83e21412896ac050ec68b5994ff",
+      "subject": "docs(grill-t18): evidence re-sync disclosed - the closeout commit's added t18-row pin moved the jest count (+1) and the post-commit mechanism_output_diff + report edits re-staled the anchors/map digests; README re-synced to the truthful count, anchors/map regenerated, facts recollected and the affected evidence items re-captured verbatim on the final tree (regen-boundary class, ADR-0077 D-E)"
+    },
+    {
+      "new": "c5d3924c398ed99540ed5d428a93501566530e3f",
+      "subject": "docs(grill-t18): closeout - round-facts + report + committed battery evidence (t17 section-6 list verbatim parameterized --round grill-t18); defer-0063 closed via ADR-0077 D-A.1 + commit rvn; t18 trend row first compliant kind:fix + governance_tooling_diff (build-round-facts/check-governance-inventory/build-governance-anchors) + mechanism_output_diff (g6-publish-replay regen, tarball byte record moved); consent-sweep per-row named lines; governance ledger copy + anchors admission (17 artifacts); stale pins re-pinned disclosed (index counts 78, adr-0065 enum pin, defer-0063 discharged row, seed status array); README test-count sync; report_commit null [D-001..D-008]"
+    },
+    {
+      "new": "a32566e24c2918dbe95496dd763b46e8034c351d",
+      "subject": "test(grill-t18): wiring fixtures - single-digit canon fixture (declared floor gap + key-assign backstop), all-eleven-key key-assign fixture, PROSE_KEYS single-source + emit-exit boundary pins [D-002/D-003]"
+    },
+    {
+      "new": "01e533f8c0fd23e1b65e10052d50400788507f41",
+      "subject": "refactor(grill-t18): build-round-facts reportPath single-read - one buffer feeds both scan phases and the splice (the file cannot change mid-run; the only write is the splice) [D-003]"
+    },
+    {
+      "new": "d39cdc5af0fa21867575ad871d93fdb4aca12e9a",
+      "subject": "fix(grill-t18): proseScan key-assign leg covers all eleven schema keys - skipped, not_run, battery_as_of_commit, report_commit added (the H-3 gap); bare-value floor and skipped=0 pattern unchanged; single-digit values backstopped by the now-complete key-assign leg per ADR-0077 D-E amendment [D-002]"
+    },
+    {
+      "new": "116b51b596ee23a627dd467206e401b8cb74d55f",
+      "subject": "refactor(grill-t18): build-round-facts SCHEMA_KEYS single-source - the eleven schema keys declared once; renderRegion iterates it (byte-identical output), PROSE_KEYS derived as its numeric-canon subset [D-003]"
+    },
+    {
+      "new": "7bc4dc54ac0e4895bf0bc9db1052401595ebdedc",
+      "subject": "fix(grill-t18): build-round-facts emit-exit helper - both violation sites converge on one boundary function per the ADR-0077 D-A.1 structure contract; fail-fast semantics unchanged (discharges defer-0063's deferred mix + the H-4 FAIL-print duplication, quota taken first) [D-003]"
+    },
+    {
+      "new": "e3924fa7ca9997052c28db113189d81c1cf43ba6",
+      "subject": "docs(grill-t18): ADR-0077 grill-t18 amendments - D-A.1 guard/emit-exit structure contract + cause-summary clause (unfreezes defer-0063), D-E bare-value floor registered as pattern-ambiguity function w/ key-assign backstop + permanent declared gap, D-E regen-boundary sentence; AGENTS.md authoring-path clause (fs.writeFileSync/file-edit only, post-write byte-check); t17 handoff repaired (4 paths + 4 dollar-skill names, CR + octal-eaten strays); t6 audit-t1 second repair disclosed (eaten backslash-b pair); t17 ledger disclosure note (defer-0055 = isolated lapse); critique-v4 verdict registered; doc-hygiene pin over committed .scratch/*.md [D-001/D-002/D-003/D-005/D-006/D-007]"
+    },
+    {
+      "new": "bfcbc4cbc4d3571869f65f0567b9b60b63b62a0d",
+      "subject": "docs(grill-t18): ADR-0078 fix-round disclosure taxonomy - kind enum admits fix, fix rows disclose R2 machinery hand-edits via the reused governance_tooling_diff channel (carve_out_used not counted, D-F deferred-entry assert exempt, streak unchanged); t17 row corrective rewrite disclosed (kind->fix + gtd backfill + retroactive first line); checker enum admits fix + fix-requires-gtd enforcement (ADR-0035 coupling: ADR+json+checker same commit); wiring negative pin kind:fix-without-gtd [D-004]"
+    },
+    {
+      "new": "d93dca25606eb237a6ba018465ffa172a0ca85e4",
+      "subject": "docs(grill-t18): decision ledger + spec + task book + CONTEXT terms (D-001..D-008 settled); wiring seed advanced for the t15/16/17 landing (published_tip 60ce743); absorbs the t17 audit report (zo) + audit handoff (yz) - untracked at the t17 round-final, disclosed per D-008"
+    },
     {
       "new": "60ce7438af354f6989a0fb16314b4e6bbf900718",
       "subject": "chore(grill-t17): rewrite-map final regen - the battery_as_of_commit sha became unreachable after the tip amend, flipping its citation label to the truthful 'unresolved hex literal'; plain commit keeps the label stable (map regen must never ride an amend)"
@@ -8132,20 +8176,88 @@
       "label": "unresolved hex literal"
     },
     {
+      "file": ".scratch/grill-t18/reports/2026-09-19-audit.md",
+      "line": 5,
+      "sha": "d93dca2",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t18/reports/2026-09-19-audit.md",
+      "line": 5,
+      "sha": "20bcbe3",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t18/reports/2026-09-19-audit.md",
+      "line": 5,
+      "sha": "60ce743",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t18/reports/2026-09-19-audit.md",
+      "line": 37,
+      "sha": "70859bf",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t18/reports/2026-09-19-audit.md",
+      "line": 51,
+      "sha": "e3924fa",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t18/reports/2026-09-19-audit.md",
+      "line": 52,
+      "sha": "e3924fa",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t18/reports/2026-09-19-audit.md",
+      "line": 55,
+      "sha": "7bc4dc5",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t18/reports/2026-09-19-audit.md",
+      "line": 62,
+      "sha": "c5d3924",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t18/reports/2026-09-19-audit.md",
+      "line": 123,
+      "sha": "c5d3924",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
       "file": ".scratch/grill-t18/reports/2026-09-19-report.md",
       "line": 24,
       "sha": "70859bf",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t18/reports/2026-09-19-report.md",
+      "line": 98,
+      "sha": "c5d3924",
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t18/round-facts.json",
       "line": 12,
       "sha": "70859bf",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t6/audit/b7ccbeb/bench/polygraph/README.md",

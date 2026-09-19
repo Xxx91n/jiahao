@@ -82,3 +82,36 @@ Authority for this round. Append-only; every owner-confirmed substantive conclus
 - Constraints / negatives: no in-place revision of ADR-0038 (immutable-ADR rule; cross-domain revision lives in a new ADR — 'Amended by' pointer precedent); no ledger-only convention (round dies, convention dies — t18 D-007 loss path); zh-CN mirror convention is a distribution-surface decision (cap exemption, arbitration, hash anchor) not a prose-style matter, so 'Any Decision Record' objection does not apply.
 - Status: current
 
+
+## Registration lines (round scope, 2026-09-19)
+
+- Critique-v4 completion result carried into this round's docs (D-001):
+  the t18 Registration lines registered the all-disposed verdict (P-1/P-2
+  over-delivered by the t17 Scribed/Proxy terms + ERRATA E-7); the
+  residuals (delegation posture, v2 corpus pending) stay out-of-scope -
+  a new argument is required and none was offered this round.
+- Retroactive-repair registrations (Disclosed Repair convention, D-002;
+  who=grill-t19 fix/dev sub-agent, when=2026-09-19):
+  - A-1a: t18 ledger T-3 consent-sweep - the defer-0060 named line
+    restored; the declaration on the line records the omission and the
+    spec pre-scoping reason (spec section-8 + ledger D-008 scoped the
+    sweep set without it while task-book item 22 included it).
+  - A-1b: t18 report Consent-sweep paragraph - same restoration.
+  - A-2: t18 report - export-misreport by-design note added, incl. the
+    SCHEMA_KEYS/PROSE_KEYS test-only export surface.
+  - A-5: t18 report - the green-throughout sentence rewritten into the
+    true statement (ruy red at commit, re-sync disclosed on the wrx
+    line); ruy/wrx/wsl added to the commit-chain paragraph.
+  - A-3: (Disclosed Re-Capture, D-006) - the t18 check-ci-jobs-missing
+    evidence re-captured through a non-interpolating channel; the first
+    capture declared void (invocation-layer corruption); the corrupted
+    bytes absorbed as the .txt signature leg's negative fixture.
+- Anti-rot quota discharged (D-004): the fix bundle's FIRST R2 commit is
+  the build-round-facts crash-wrapper + missing-factsFile boundary-exit
+  fix (A-6/A-8) - the discharge is the commit ordering plus this
+  registration line, not a claim.
+- Streak-reading fact under the new semantics (D-003): with kind:fix rows
+  transparent to both advisory streaks, the trend-anchor reading is
+  advisory_fired=1 = expected (zero advisory drift); the carveStreak
+  reading is unchanged (zero at round close).
+

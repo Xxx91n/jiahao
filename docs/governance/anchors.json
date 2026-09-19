@@ -98,8 +98,8 @@
       "file": "decision-ledger-t18.md",
       "origin": ".scratch/grill-t18/decision-ledger.md",
       "adr": "ADR-0078",
-      "bytes": 17783,
-      "sha256": "a20b7ef09caaea1001ced0e2b6178f6d664c7e86961044249750525a96551148"
+      "bytes": 18400,
+      "sha256": "da500a1e10df28348d8ab168e77e32c58928fb7cf923338ef238294ff8f43e32"
     },
     {
       "file": "ERRATA.md",

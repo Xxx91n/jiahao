@@ -163,6 +163,15 @@ wiring fixtures land as their own test: commit.
   - defer-0057: untouched; stays pending-evaluation (t13 tally row).
   - defer-0058: net registry increment 0 this round (fix rows are exempt
     from the D-F deferred-entry assert, ADR-0078 D-A) - no tally row.
+  - defer-0060 (Disclosed Repair - restored by grill-t19, 2026-09-19):
+    retroactive-repair declaration - this named line was omitted at the
+    t18 sweep (audit A-1); the omission was pre-scoped (spec section-8
+    and ledger D-008 carried the sweep set without defer-0060 while the
+    task book's item 22 included it - an internal spec inconsistency,
+    not an execution slip) yet was disclosed nowhere. Restored here per
+    the grill-t19 D-002 convention; the row itself stands untouched:
+    pending-evaluation external-event (CI 403 carrier, sole live
+    tracker), quarterly cadence, review_at 2026-12-15.
   - O-E backlog: informational; no new observations surfaced this round.
   - never-commit patch set: preserved untouched (tq/nl/xu/my + t17
     audit-evidence rerun/* + round-commits.txt + round-diff.patch).
