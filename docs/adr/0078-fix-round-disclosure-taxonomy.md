@@ -18,6 +18,7 @@ The grill-t17 audit closed PASS WITH FINDINGS (H-1..H-5 plus nits). H-5a named t
 
 - `zero_product_diff` keeps the ADR-0076 D-A definition: the product is the R1 runtime require-closure; R2 machinery edits never move it.
 - `carve_out_used` is a documentation-round burn-rate field and is NOT counted for fix rounds (the carve-out streak counts documentation rows only); a fix row may omit it.
+- `governance_tooling_diff` presence implies a non-empty `files` list (grill-t19 amendment, ledger D-005): 'no carve-out used' is recorded as `carve_out_used:0` with the field omitted, never an empty files list - a bare marker hard-fails for both kinds.
 - The D-F deferred-entry assert is documentation-round scoped: a fix row is exempt from the "zero-product-diff + new ADR forces a deferred-registry entry" rule. The tally-row convention is a documentation-round cadence; fix rows stay in the inventory because the streak semantics depend on continuity.
 - The advisory streak computation is kind-aware (grill-t19 amendment, ledger D-003): `kind:fix` rows are outside both advisory streak populations (skip-not-reset) - they never feed the doc-round net-additions streak even when `net_additions > 0`, and they never reset `carveStreak`, so a doc-fix-doc sequence remains consecutive for both streaks.
 - `scripts/check-governance-inventory.js` admits `fix` on the kind enum line and enforces the row shape above; wiring pins the negative (a `kind:fix` row without `governance_tooling_diff` fails).

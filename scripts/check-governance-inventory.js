@@ -146,8 +146,8 @@ function checkInventory(root, opts) {
       // never touch the runtime surface; R3 is a mislabeled row).
       if (r.governance_tooling_diff !== undefined) {
         const gtd = r.governance_tooling_diff;
-        if (!gtd || typeof gtd !== 'object' || !Array.isArray(gtd.files) || typeof gtd.reason !== 'string' || gtd.reason.length < 10) {
-          errors.push('trend round ' + r.round + ': governance_tooling_diff must be {files: string[], reason: string>=10} (ADR-0076 D-B)');
+        if (!gtd || typeof gtd !== 'object' || !Array.isArray(gtd.files) || !gtd.files.length || typeof gtd.reason !== 'string' || gtd.reason.length < 10) {
+          errors.push('trend round ' + r.round + ': governance_tooling_diff must be {files: non-empty string[], reason: string>=10} - an empty files list hard-fails; \'no carve-out used\' is carve_out_used:0 + field omitted (ADR-0076 D-B; ADR-0078 D-A grill-t19)');
         } else {
           if (!closureSet) closureSet = new Set(surfaceTaxonomy.computeRuntimeClosure(base));
           for (const f of gtd.files) {

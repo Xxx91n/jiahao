@@ -883,4 +883,20 @@ describe('grill-t19 dispositions (ADR-0077 missing-input clause + ADR-0078 strea
     expect(a).toContain('skip-not-reset');
     expect(a).toContain('doc-fix-doc sequence remains consecutive');
   });
+
+  test('gtd presence implies non-empty files: kind:fix + {files:[]} hard-fails (D-005 negative)', () => {
+    const bad = fixRow({ governance_tooling_diff: { files: [], reason: 'a bare marker with nothing disclosed' } });
+    expect(outFor([bad]).errors.join(' ')).toContain('non-empty string[]');
+  });
+
+  test('documentation + {files:[]} hard-fails too - the escape channel is closed for both kinds (D-005)', () => {
+    const bad = docRow({ governance_tooling_diff: { files: [], reason: 'a bare marker with nothing disclosed' }, carve_out_used: 0 });
+    expect(outFor([bad]).errors.join(' ')).toContain('non-empty string[]');
+  });
+
+  test('ADR-0078 D-A registers the gtd escape-channel convention (D-005)', () => {
+    const a = read(ADR78);
+    expect(a).toContain('carve_out_used:0');
+    expect(a).toContain('never an empty files list');
+  });
 });
