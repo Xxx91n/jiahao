@@ -83,13 +83,18 @@ function collect() {
   };
 }
 
+// The eleven schema keys in canon order - the single source for the
+// renderRegion list and the proseScan key legs (ADR-0077 D-E grill-t18:
+// key-assign coverage spans all of them).
+const SCHEMA_KEYS = ['suites', 'passed', 'skipped', 'pack_bytes', 'instrument_entries', 'rewrite_map_citations', 'registry_entries', 'anchors_count', 'battery_as_of_commit', 'report_commit', 'not_run'];
+
 // Pure: facts -> sentinel region text (sentinel lines included, fixed order).
 function renderRegion(facts) {
   const lines = [SENTINEL_START];
-  for (const k of ['suites', 'passed', 'skipped', 'pack_bytes', 'instrument_entries', 'rewrite_map_citations', 'registry_entries', 'anchors_count', 'battery_as_of_commit', 'report_commit']) {
-    lines.push('- ' + k + ': ' + (facts[k] === null ? 'null' : facts[k]));
+  for (const k of SCHEMA_KEYS) {
+    if (k === 'not_run') lines.push('- not_run: [' + facts.not_run.join(', ') + ']');
+    else lines.push('- ' + k + ': ' + (facts[k] === null ? 'null' : facts[k]));
   }
-  lines.push('- not_run: [' + facts.not_run.join(', ') + ']');
   lines.push(SENTINEL_END);
   return lines.join('\n');
 }
@@ -109,7 +114,11 @@ function spliceRegion(text, region) {
 // prose. Reports cite verbatim tool output by evidence-file path instead
 // (.scratch/grill-tNN/evidence/), never inline. Forward-binding: reports
 // written under the old exemption convention are not re-scanned.
-const PROSE_KEYS = ['suites', 'passed', 'pack_bytes', 'instrument_entries', 'rewrite_map_citations', 'registry_entries', 'anchors_count'];
+// The bare-number leg's canon-number set, derived from SCHEMA_KEYS (single
+// source - never a second list to drift): the numeric canon keys only.
+// skipped stays out (its dedicated =0 pattern stands), as do the non-numeric
+// battery_as_of_commit / report_commit / not_run forms.
+const PROSE_KEYS = SCHEMA_KEYS.filter(function (k) { return ['skipped', 'battery_as_of_commit', 'report_commit', 'not_run'].indexOf(k) === -1; });
 function proseScan(text, facts) {
   const i = text.indexOf(SENTINEL_START);
   const j = text.indexOf(SENTINEL_END);
@@ -202,4 +211,4 @@ function main(argv) {
 }
 
 if (require.main === module) main(process.argv);
-module.exports = { collect, renderRegion, spliceRegion, proseScan, PROSE_KEYS, SENTINEL_START, SENTINEL_END };
+module.exports = { collect, renderRegion, spliceRegion, proseScan, SCHEMA_KEYS, PROSE_KEYS, SENTINEL_START, SENTINEL_END };
