@@ -155,6 +155,10 @@ function main(argv) {
   const repI = argv.indexOf('--report');
   const reportPath = repI !== -1 ? path.resolve(argv[repI + 1]) : null;
   const factsPath = path.join(ROOT, '.scratch', slug, 'round-facts.json');
+  // Single read of the report: the file cannot change mid-run (the only
+  // write is the splice below), so both scan phases and the splice share
+  // this one buffer.
+  const reportText = reportPath ? fs.readFileSync(reportPath, 'utf8') : null;
 
   // Collect refreshes the artifact and requires a green battery (the canon
   // has no facts on a red tree). --report splices from the on-disk artifact:
@@ -168,7 +172,7 @@ function main(argv) {
   // (the facts the report renders are the committed artifact, not the
   // about-to-be-collected state).
   if (reportPath && cur !== null) {
-    const violations = proseScan(fs.readFileSync(reportPath, 'utf8'), JSON.parse(cur));
+    const violations = proseScan(reportText, JSON.parse(cur));
     if (violations.length) emitExit(violations);
   }
   const needsCollect = !reportPath || check || cur === null;
@@ -198,14 +202,13 @@ function main(argv) {
     const factsNow = JSON.parse(fs.readFileSync(factsPath, 'utf8'));
     // Post-collect re-scan: covers the artifact-missing edge (collect just
     // wrote the canon this path scans against). Same scan, same artifact.
-    const late = proseScan(fs.readFileSync(reportPath, 'utf8'), factsNow);
+    const late = proseScan(reportText, factsNow);
     if (late.length) emitExit(late);
     const region = renderRegion(factsNow);
-    const text = fs.readFileSync(reportPath, 'utf8');
-    const spliced = spliceRegion(text, region);
+    const spliced = spliceRegion(reportText, region);
     if (check) {
-      if (spliced !== text) { console.error('FAIL: report facts region is stale - regenerate with --report'); drift = true; }
-    } else if (spliced !== text) {
+      if (spliced !== reportText) { console.error('FAIL: report facts region is stale - regenerate with --report'); drift = true; }
+    } else if (spliced !== reportText) {
       fs.writeFileSync(reportPath, spliced, 'utf8');
       console.log('[round-facts] spliced facts region into ' + path.basename(reportPath));
     }
