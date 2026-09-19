@@ -18,7 +18,9 @@
 //             <!-- round-facts:start --> / <!-- round-facts:end --> region
 //   --check   exit 1 on drift instead of writing
 //
-// Exit 0 = written / in sync; exit 1 = drift or failure (fail-closed).
+// Exit 0 = written / in sync; exit 1 = drift or unsatisfied (fail-closed);
+// exit 2 = verifier broken - a crash must never masquerade as unsatisfied
+// (ADR-0077 D-A/D-A.1, grill-t19).
 
 'use strict';
 
@@ -147,74 +149,92 @@ function emitExit(violations) {
 }
 
 function main(argv) {
-  requireCapabilities(['repo-tree'], { root: ROOT }); // non-registry consumer: inline declaration (ADR-0058 R8)
-  const ri = argv.indexOf('--round');
-  if (ri === -1 || !argv[ri + 1]) { console.error('FAIL: --round <slug> is required'); process.exit(1); }
-  const slug = argv[ri + 1];
-  const check = argv.indexOf('--check') !== -1;
-  const repI = argv.indexOf('--report');
-  const reportPath = repI !== -1 ? path.resolve(argv[repI + 1]) : null;
-  const factsPath = path.join(ROOT, '.scratch', slug, 'round-facts.json');
-  // Single read of the report: the file cannot change mid-run (the only
-  // write is the splice below), so both scan phases and the splice share
-  // this one buffer.
-  const reportText = reportPath ? fs.readFileSync(reportPath, 'utf8') : null;
+  try {
+    requireCapabilities(['repo-tree'], { root: ROOT }); // non-registry consumer: inline declaration (ADR-0058 R8)
+    const ri = argv.indexOf('--round');
+    if (ri === -1 || !argv[ri + 1]) { console.error('FAIL: --round <slug> is required'); process.exit(1); }
+    const slug = argv[ri + 1];
+    const check = argv.indexOf('--check') !== -1;
+    const repI = argv.indexOf('--report');
+    const reportPath = repI !== -1 ? path.resolve(argv[repI + 1]) : null;
+    const factsPath = path.join(ROOT, '.scratch', slug, 'round-facts.json');
+    // Single read of the report: the file cannot change mid-run (the only
+    // write is the splice below), so both scan phases and the splice share
+    // this one buffer.
+    const reportText = reportPath ? fs.readFileSync(reportPath, 'utf8') : null;
 
-  // Collect refreshes the artifact and requires a green battery (the canon
-  // has no facts on a red tree). --report splices from the on-disk artifact:
-  // the report renders the canon as committed, so a region fix never blocks
-  // on re-running the suite. Collection runs on a bare write, on --check,
-  // or when the artifact is missing.
-  const cur = fs.existsSync(factsPath) ? fs.readFileSync(factsPath, 'utf8') : null;
-  // ADR-0077 D-E author-time enforcement: canon numbers outside the
-  // sentinel region fail before collect or splice - a dirty report can
-  // never render green. Runs pre-collect so --check fails fast on prose
-  // (the facts the report renders are the committed artifact, not the
-  // about-to-be-collected state).
-  if (reportPath && cur !== null) {
-    const violations = proseScan(reportText, JSON.parse(cur));
-    if (violations.length) emitExit(violations);
-  }
-  const needsCollect = !reportPath || check || cur === null;
-  let drift = false;
-  if (needsCollect) {
-    const facts = collect();
-    const next = JSON.stringify(facts, null, 2) + '\n';
-    if (check) {
-      // battery_as_of_commit is a run-record, not a regen-stable field: the
-      // closing commit that carries the artifact always moves HEAD past the
-      // battery's pin. Drift on that field alone is expected, never an error.
-      const strip = (o) => { const c = Object.assign({}, o); delete c.battery_as_of_commit; return JSON.stringify(c); };
-      const curFacts = cur === null ? null : JSON.parse(cur);
-      if (curFacts === null || strip(curFacts) !== strip(facts)) { console.error('FAIL: .scratch/' + slug + '/round-facts.json is stale - regenerate with node scripts/build-round-facts.js --round ' + slug); drift = true; }
-    } else if (cur !== next) {
-      fs.writeFileSync(factsPath, next, 'utf8');
-      console.log('[round-facts] wrote .scratch/' + slug + '/round-facts.json');
+    // Collect refreshes the artifact and requires a green battery (the canon
+    // has no facts on a red tree). --report splices from the on-disk artifact:
+    // the report renders the canon as committed, so a region fix never blocks
+    // on re-running the suite. Collection runs on a bare write, on --check,
+    // or when the artifact is missing.
+    const cur = fs.existsSync(factsPath) ? fs.readFileSync(factsPath, 'utf8') : null;
+    // ADR-0077 D-E author-time enforcement: canon numbers outside the
+    // sentinel region fail before collect or splice - a dirty report can
+    // never render green. Runs pre-collect so --check fails fast on prose
+    // (the facts the report renders are the committed artifact, not the
+    // about-to-be-collected state).
+    if (reportPath && cur !== null) {
+      const violations = proseScan(reportText, JSON.parse(cur));
+      if (violations.length) emitExit(violations);
     }
-  }
+    const needsCollect = !reportPath || check || cur === null;
+    let drift = false;
+    if (needsCollect) {
+      const facts = collect();
+      const next = JSON.stringify(facts, null, 2) + '\n';
+      if (check) {
+        // battery_as_of_commit is a run-record, not a regen-stable field: the
+        // closing commit that carries the artifact always moves HEAD past the
+        // battery's pin. Drift on that field alone is expected, never an error.
+        const strip = (o) => { const c = Object.assign({}, o); delete c.battery_as_of_commit; return JSON.stringify(c); };
+        const curFacts = cur === null ? null : JSON.parse(cur);
+        if (curFacts === null || strip(curFacts) !== strip(facts)) { console.error('FAIL: .scratch/' + slug + '/round-facts.json is stale - regenerate with node scripts/build-round-facts.js --round ' + slug); drift = true; }
+      } else if (cur !== next) {
+        fs.writeFileSync(factsPath, next, 'utf8');
+        console.log('[round-facts] wrote .scratch/' + slug + '/round-facts.json');
+      }
+    }
 
-  if (reportPath) {
-    // The report renders the on-disk canon (post-collect state), never the
-    // collected object itself: a fresh battery_as_of_commit must not mark
-    // the committed region stale in --check, and a bare write renders what
-    // it just wrote.
-    if (!fs.existsSync(factsPath)) { console.error('FAIL: .scratch/' + slug + '/round-facts.json missing - regenerate with node scripts/build-round-facts.js --round ' + slug); process.exit(1); }
-    const factsNow = JSON.parse(fs.readFileSync(factsPath, 'utf8'));
-    // Post-collect re-scan: covers the artifact-missing edge (collect just
-    // wrote the canon this path scans against). Same scan, same artifact.
-    const late = proseScan(reportText, factsNow);
-    if (late.length) emitExit(late);
-    const region = renderRegion(factsNow);
-    const spliced = spliceRegion(reportText, region);
-    if (check) {
-      if (spliced !== reportText) { console.error('FAIL: report facts region is stale - regenerate with --report'); drift = true; }
-    } else if (spliced !== reportText) {
-      fs.writeFileSync(reportPath, spliced, 'utf8');
-      console.log('[round-facts] spliced facts region into ' + path.basename(reportPath));
+    if (reportPath) {
+      // The report renders the on-disk canon (post-collect state), never the
+      // collected object itself: a fresh battery_as_of_commit must not mark
+      // the committed region stale in --check, and a bare write renders what
+      // it just wrote.
+      if (!fs.existsSync(factsPath)) {
+        // ADR-0077 D-A.1 missing-input clause (grill-t19): a missing input
+        // artifact is an unsatisfied condition recorded at the phase
+        // boundary - the report phase is skipped and the drift channel
+        // carries it to the single boundary exit, never an early exit (the
+        // three-value contract grows no fourth class).
+        console.error('FAIL: .scratch/' + slug + '/round-facts.json missing - regenerate with node scripts/build-round-facts.js --round ' + slug);
+        drift = true;
+      } else {
+        const factsNow = JSON.parse(fs.readFileSync(factsPath, 'utf8'));
+        // Post-collect re-scan: covers the artifact-missing edge (collect just
+        // wrote the canon this path scans against). Same scan, same artifact.
+        const late = proseScan(reportText, factsNow);
+        if (late.length) emitExit(late);
+        const region = renderRegion(factsNow);
+        const spliced = spliceRegion(reportText, region);
+        if (check) {
+          if (spliced !== reportText) { console.error('FAIL: report facts region is stale - regenerate with --report'); drift = true; }
+        } else if (spliced !== reportText) {
+          fs.writeFileSync(reportPath, spliced, 'utf8');
+          console.log('[round-facts] spliced facts region into ' + path.basename(reportPath));
+        }
+      }
     }
+    if (drift) process.exit(1);
+    if (check) console.log('[round-facts] OK - facts' + (reportPath ? ' and report region' : '') + ' in sync');
+  } catch (e) {
+    // ADR-0077 D-A: a crash is the verifier itself broken (exit>1), never
+    // "condition unsatisfied"; evalSuggestions warns on it. Verdict exits
+    // (emitExit/process.exit) never reach this handler - a verdict is not
+    // a crash.
+    console.error('build-round-facts: verifier broken - ' + ((e && e.message) || e));
+    process.exit(2);
   }
-  if (drift) process.exit(1);
-  if (check) console.log('[round-facts] OK - facts' + (reportPath ? ' and report region' : '') + ' in sync');
 }
 
 if (require.main === module) main(process.argv);
