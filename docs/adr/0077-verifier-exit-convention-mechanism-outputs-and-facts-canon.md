@@ -27,6 +27,7 @@ The grill-t15 audit closed PASS WITH FINDINGS (F-A..F-E plus nits). Several find
 
 - **Cause-summary clause**: a nonzero exit states its cause at the end of output — one FAIL line per accumulated violation, then the exit. Exit >1 stays the verifier-broken channel per D-A (a crash must never masquerade as unsatisfied).
 - **defer-0063 unfreeze + discharge**: this appendix is the written convention defer-0063's `unfreeze_if` required (ADR clause form). The grill-t18 fix bundle takes the ticket first per its anti-rot quota — `build-round-facts.js` converges both violation-emit sites on one shared emit-exit boundary, fail-fast semantics unchanged. The row transitions closed in the same round's registry bookkeeping.
+- **Missing-input clause (grill-t19 amendment, ledger D-004)**: a missing input artifact is an unsatisfied condition recorded at the phase boundary — the phase is skipped and the single boundary exit carries it — never an early exit; the three-value contract grows no fourth class. Executed on `build-round-facts.js` in the same round's R2: the missing-factsFile condition routes through the drift/unsatisfied channel to the boundary exit, and the `main()` catch wrapper maps any crash to verifier-broken (exit 2).
 
 ### D-B - Mechanism-output artifacts: an R2-internal closed enumeration (ledger D-003)
 
