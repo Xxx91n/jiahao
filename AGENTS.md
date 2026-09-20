@@ -33,6 +33,8 @@ docs/agents/domain.md.
   `echo`, inline `node -e` strings), which eat backslashes, `$names`, and
   octal sequences (grill-t18 D-006). Post-write: re-read the file and
   byte-check the critical fragments before committing.
+- A captured-evidence `$` line names the verbatim argv or is explicitly
+  marked display-form (grill-t20, audit B-2 convention).
 - Intermediate commits inside a round may be red (t12 audit O-B); only the
   round-final state must be green. A red mid-round commit is not a defect —
   it is disclosed in the round report rather than silently amended.

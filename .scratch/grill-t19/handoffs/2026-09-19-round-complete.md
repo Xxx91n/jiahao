@@ -33,7 +33,13 @@ paths, never carry regenerable counts.
 - `qzk` - closeout: t19 trend row (kind:fix + gtd + mechanism output +
   honest zero_product_diff), ledger T-1/T-2/T-3 + consent sweep, GOAL
   closed, README suite pins, section-6 battery verbatim re-run
-  --round grill-t19 via capture-battery.cjs (18 evidence files).
+  --round grill-t19 via capture-battery.cjs (17 evidence files under
+  evidence/). [Disclosed Repair - the original "18 evidence files" was
+  ambiguous: qzk committed 17 files under evidence/ (16 captures + 1
+  fixture); 18 is reachable only by counting round-facts.json as
+  evidence or summing across commits loosely. Reason: count ambiguity
+  (grill-t19 audit B-6); repaired by grill-t20 fix/dev sub-agent,
+  2026-09-20.]
 - `rvn` - disclosed re-sync: map regen over the committed evidence
   surface + facts re-collect + region re-splice.
 - `vyk` - anchors regen (trend-inventory trailing-newline byte drift).
