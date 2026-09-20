@@ -31,8 +31,10 @@ paths, never carry regenerable counts.
 - `yoo` - disclosed mirror baseline re-pin (ADR-0079 D6 second step;
   drift pin red on `zpr` by design, green here).
 - `poo` - T-3 closeout: battery verbatim re-run `--round grill-t20`
-  (18 evidence files committed incl. round-facts canon + sentinel
-  splice, report_commit null); ledger T-1/T-2/T-3 dispositions +
+  (the evidence set committed - capture legs plus the quoted-stale
+  fixture and the round-facts canon + sentinel splice, report_commit
+  null; the "18 evidence files" phrasing repaired 2026-09-20, audit
+  C-7); ledger T-1/T-2/T-3 dispositions +
   consent-sweep named lines; trend row (kind:documentation,
   adr_added ["0079"], net_additions 1, zero_product_diff true,
   deferred_entry defer-0064); mechanism_output_diff on the g6-publish

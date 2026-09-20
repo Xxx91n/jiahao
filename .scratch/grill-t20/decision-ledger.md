@@ -63,3 +63,12 @@ Authority for this round. Append-only; every owner-confirmed substantive conclus
 - defer-0065 (new, B-5): pending-evaluation — unfreeze when an arg-validation convention next forms.
 - Sunset counter (ADR-0076 D-E durable home): unchanged this round — no instrument-identity change.
 - Never-commit set: unchanged — `.scratch/grill-t*/audit-evidence/` trees, `*.patch`, `round-commits.txt` remain untracked by design (the clean-tree leg classifies them, never flags them).
+
+## Post-closeout audit repairs (2026-09-20, second-party audit)
+
+- C-1: D-001's "touches zero R2 files" was false under the surface taxonomy - `.github/workflows/ci.yml` (suite-parity hand-edit) and `README-zh-CN.md` (new root file, R2 residual) classify R2 and were touched undisclosed at commit time. Retroactive annotation: the t20 trend row is backfilled `carve_out_used:0` + `governance_tooling_diff.files` (t14 precedent - not counted as a carve-out use; the three-gate path was not walked at commit time). Owed to an R2-capable window: the t20-ledger anchors admission plus a possible taxonomy amendment (README-* to R3; standing suite-parity exemption) - carried in `.scratch/grill-t20/handoffs/2026-09-20-audit-handoff.md`.
+- C-2/C-3: report repairs - the dangling `host-contracts.txt` citation removed; the canonical anti-quota-theater sentence restored into the report.
+- C-4: `CONTEXT.md` Bilingual Mirror term filename repaired to `README-zh-CN.md`.
+- C-5: stale test titles (76/77/78 -> 79) and the mislabeled D6 pin title repaired in `test/adr-0076-wiring.test.js` / `test/adr-0079-wiring.test.js`.
+- C-7: the un-split evidence-count phrasing repaired in `.scratch/grill-t20/handoffs/2026-09-20-round-complete.md`.
+- C-6: harness smells (cap() argv double-typing, NPMCLI derivation fragility, C1 raw-byte regex, recapture clone) - judgement calls carried to the audit handoff for a future maintenance window.

@@ -4,7 +4,7 @@ Settled 2026-09-20. Authoritative source: .scratch/grill-t20/decision-ledger.md 
 
 ## 0. Headline
 
-Single kind:documentation round on the verified t19 baseline (PASS WITH FINDINGS): the README front-face lands (EN-primary IA redesign + zh-CN mirror + ADR-0079) AND all seven t19 audit findings are dispositioned inside the same round — every B item's touched surface is R3 (documentation-surface, free in a doc round) or deferred, so t20 touches zero R2 machinery: carve_out_used absent, governance_tooling_diff absent.
+Single kind:documentation round on the verified t19 baseline (PASS WITH FINDINGS): the README front-face lands (EN-primary IA redesign + zh-CN mirror + ADR-0079) AND all seven t19 audit findings are dispositioned inside the same round — every B item's touched surface is R3 (documentation-surface, free in a doc round) or deferred, so t20 touches zero R2 machinery: carve_out_used absent, governance_tooling_diff absent. [Disclosed Repair, 2026-09-20, audit C-1: the assertion was false - ci.yml and README-zh-CN.md classify R2 and were touched undisclosed; the t20 trend row carries the retroactive gtd backfill under the t14 precedent]
 
 ## 1. Round boundary (D-001)
 

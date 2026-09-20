@@ -2373,7 +2373,7 @@ layer produced it
 
 **Bilingual Mirror (双语镜像)**:
 The distribution-surface convention for localized front-faces:
-README.zh-CN.md mirrors README.md structurally, lives in the git tree but
+README-zh-CN.md mirrors README.md structurally (hyphenated basename - npm's readme.* glob force-packs the dotted form; ADR-0079 filename note), lives in the git tree but
 never enters the npm tarball (cap-exempt per ADR-0039 D3 policy), and is
 pin-free — pinned blocks are translated but each carries an 'English
 original prevails' pointer back to the pinned text. Both files open with
@@ -2381,7 +2381,7 @@ an autonym language-switch line (English | 中文, current language bold
 and unlinked — GitHub never auto-selects); the mirror header carries an
 HTML comment pinning its translation-baseline commit hash for drift
 management (ledger t19 D-007/D-010; convention home ADR-0079). Sync
-discipline: any commit touching README.md must update README.zh-CN.md in
+discipline: any commit touching README.md must update README-zh-CN.md in
 the same commit and advance the baseline to that commit's sha; the
 baseline advances only on real sync, and the drift pin (README last-commit
 sha == recorded baseline) makes an unsynced README edit red (ledger t20

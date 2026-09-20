@@ -63,7 +63,7 @@ describe('ADR-0079 bilingual mirror convention (grill-t20)', () => {
     expect(baseline()).toBe(head);
   });
 
-  test('D6 semantics: the ADR registers the two-step re-pin rhythm + same-commit rule', () => {
+  test('D6 semantics + Context sentence: re-pin rhythm, same-commit rule, policy-home line', () => {
     const a = read(path.join(ROOT, 'docs', 'adr', '0079-bilingual-readme-mirror-convention.md'));
     expect(a).toContain('MUST update README-zh-CN.md in the same commit');
     expect(a).toContain('re-pin');

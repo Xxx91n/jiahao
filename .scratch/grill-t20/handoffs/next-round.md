@@ -1,6 +1,6 @@
 # grill-t20 — next-round task book (durable)
 
-For any sub-agent. Authoritative inputs: D:/Aworker/jiahao/.scratch/grill-t20/decision-ledger.md (D-001..D-005, all current) + D:/Aworker/jiahao/.scratch/grill-t20/spec-t20-disposition.md (sections 0-8) + inherited charter D:/Aworker/jiahao/.scratch/grill-t19/decision-ledger.md (D-007..D-010) + D:/Aworker/jiahao/.scratch/grill-t19/spec-t19-disposition.md (sections 7-10). This file is the map, not the content. Round shape: single kind:documentation round — zero R2 machinery touched (carve_out_used absent, gtd absent).
+For any sub-agent. Authoritative inputs: D:/Aworker/jiahao/.scratch/grill-t20/decision-ledger.md (D-001..D-005, all current) + D:/Aworker/jiahao/.scratch/grill-t20/spec-t20-disposition.md (sections 0-8) + inherited charter D:/Aworker/jiahao/.scratch/grill-t19/decision-ledger.md (D-007..D-010) + D:/Aworker/jiahao/.scratch/grill-t19/spec-t19-disposition.md (sections 7-10). This file is the map, not the content. Round shape: single kind:documentation round — zero R2 machinery touched (carve_out_used absent, gtd absent). [Disclosed Repair, 2026-09-20, audit C-1: two R2 files were in fact touched - see the trend-row backfill and the t20 audit report]
 
 ## Baseline (t19 audit, verified 2026-09-19)
 
@@ -56,7 +56,7 @@ For any sub-agent. Authoritative inputs: D:/Aworker/jiahao/.scratch/grill-t20/de
 - Committed docs via fs.writeFileSync/file-edit tools only; post-write re-read + byte-check.
 - Battery args carrying backslashes through Non-Interpolating Channel (arg arrays / script files); '$' lines name verbatim argv or marked display-form.
 - Every pinned README block byte-identical; wiring tests are the ordering arbiter; 'Verifier deployment discipline' section name untouched.
-- No R2 machinery edits inside t20 (build-round-facts.js untouched; B-4/B-5 live in the registry).
+- No R2 machinery edits inside t20 (build-round-facts.js untouched; B-4/B-5 live in the registry). [Disclosed Repair, 2026-09-20, audit C-1: the restraint was breached by ci.yml + README-zh-CN.md - repaired retroactively in the trend row]
 - report_commit null; canon numbers never in prose; verbatim evidence never byte-patched.
 
 ## Suggested skills

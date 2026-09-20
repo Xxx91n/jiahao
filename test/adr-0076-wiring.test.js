@@ -39,7 +39,7 @@ describe('ADR-0076 doc surface (grill-t15 disposition + mechanism round)', () =>
     expect(c).toContain('absence');
   });
 
-  test('README index rebuilt: 76 records incl. ADR-0076', () => {
+  test('README index rebuilt: 79 records incl. ADR-0076', () => {
     const r = read(path.join(ROOT, 'README.md'));
     expect(r).toContain('79 architecture decision records');
     expect(r).toContain('0076-round-edit-surface-taxonomy-and-governance-carve-out.md');
@@ -260,7 +260,7 @@ describe('ADR-0077 amendments (grill-t16 fix + mechanism round, data-surface ass
     expect(d.closed_via).toContain('same-commit ledger note');
   });
 
-  test('README index rebuilt: 77 records incl. ADR-0077', () => {
+  test('README index rebuilt: 79 records incl. ADR-0077', () => {
     const r = read(path.join(ROOT, 'README.md'));
     expect(r).toContain('79 architecture decision records');
     expect(r).toContain('0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md');
@@ -503,7 +503,7 @@ describe('grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendi
     expect(errsFor([r])).toEqual([]);
   });
 
-  test('README index rebuilt: 78 records incl. ADR-0078', () => {
+  test('README index rebuilt: 79 records incl. ADR-0078', () => {
     const r = read(path.join(ROOT, 'README.md'));
     expect(r).toContain('79 architecture decision records');
     expect(r).toContain('0078-fix-round-disclosure-taxonomy.md');

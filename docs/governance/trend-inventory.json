@@ -253,6 +253,14 @@
    "adr_superseded_or_closed": [],
    "net_additions": 1,
    "zero_product_diff": true,
+   "carve_out_used": 0,
+   "governance_tooling_diff": {
+    "files": [
+     ".github/workflows/ci.yml",
+     "README-zh-CN.md"
+    ],
+    "reason": "Audit C-1 retroactive annotation (2026-09-20): two R2-surface files were touched undisclosed at commit time inside the documentation round - .github/workflows/ci.yml suite-parity hand-edit (forced by the ADR-0057 D-C count pin) and README-zh-CN.md, a new root-level documentation file falling into the R2 residual classification (R3_EXACT names CONTEXT.md/README.md/AGENTS.md exactly; no R3 prefix or wiring-test glob covers it). Disclosed under the t14 retroactive-annotation precedent - not counted as a carve-out use because the carve-out three-gate path was not walked at commit time; Disclosed Repair markers land at the zero-R2 claims in the t20 ledger/report/spec/task-book; the owed t20-ledger anchors admission and a possible taxonomy amendment (README-* to R3, standing suite-parity exemption) carry to the audit handoff for an R2-capable window."
+   },
    "deferred_entry": "defer-0064",
    "advisory_fired": false,
    "mechanism_output_diff": {
