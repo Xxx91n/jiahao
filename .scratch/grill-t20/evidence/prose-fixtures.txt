@@ -1,0 +1,96 @@
+$ node D:\Aworker\jiahao\node_modules\jest\bin\jest.js test/adr-0076-wiring.test.js -t fixture
+
+EXIT 0
+
+PASS test/adr-0076-wiring.test.js
+  ADR-0076 doc surface (grill-t15 disposition + mechanism round)
+    ○ skipped title, status, date, ledger anchor
+    ○ skipped decision clauses D-A..D-E land
+    ○ skipped CONTEXT.md carries the two new terms + the amended Sunset Trigger
+    ○ skipped README index rebuilt: 76 records incl. ADR-0076
+    ○ skipped AGENTS.md carries the single pointer line
+    ○ skipped anchors.json lists decision-ledger-t15.md under ADR-0076, content-equal to the scratch authority
+  surface taxonomy artifact (ADR-0076 D-A)
+    ○ skipped the R1 set is exactly the computed require-closure (authority is the scan, not the list)
+    ○ skipped every git-tracked file classifies into exactly one surface
+    ○ skipped the surface rules pin representative paths to their class
+  registry dispositions (ADR-0076 D-E)
+    ○ skipped defer-0026 actioned with the limitation field
+    ○ skipped defer-0060 is the sole live 403 tracker: external-event, pending-evaluation, no verified_by
+    ○ skipped defer-0055 sunset pointer is pure (audit F-3): pointer only, no clause restatement
+    ○ skipped defer-0061 tally row registered for the +1 round
+  owner asks frozen, never bundled (ADR-0076 D-E)
+    ○ skipped both ask packets are frozen verbatim with their types
+  ADR-0077 amendments (grill-t16 fix + mechanism round, data-surface assertions)
+    ○ skipped ADR-0077 exists with live status, date, amends line, and ledger anchor
+    ○ skipped ADR-0076 carries the Amended-by pointer and the D-B(2) superseded-phrase annotation
+    ○ skipped mechanism_outputs is a closed enumeration: every entry classifies R2 and names an existing generator
+    ○ skipped the two F-D artifacts are the enumeration members
+    ○ skipped diff_semantics reworded: machinery-source hand-edits + faithful regeneration + mechanism_output_diff entry
+    ○ skipped t15 trend row annotation is additive-only: historical booleans untouched
+    ○ skipped t16 row: +1 ADR-0077, zero product diff, carve-out not invoked (streak resets)
+    ○ skipped no unlisted file claims the output exemption (mechanism_output_diff files are always inside the enumeration)
+    ○ skipped CONTEXT.md carries the Consuming-Row Exit + Facts Canon terms and the carve-out gloss restored the inventory channel
+    ○ skipped defer-0004 rationale cites ADR-0058 D-C explicitly (settles F-C)
+    ○ skipped defer-0062 tally row registered closed for the +1 round
+    ○ skipped README index rebuilt: 77 records incl. ADR-0077
+    ○ skipped the ledger carries the convention verbatim and the consent-sweep lines
+    ○ skipped mechanism_output_diff marker: checker accepts members, hard-fails bare markers and unlisted files
+    ○ skipped anchors.json lists decision-ledger-t16.md under ADR-0077, content-equal to the scratch authority
+    ○ skipped facts canon: artifact schema + deterministic render pin (ADR-0077 D-C)
+  grill-t17 dispositions (ADR-0077 D-E appendix + residue registrations)
+    √ a quoted-stale-number fixture MUST fail --check (ADR-0077 D-E) (67 ms)
+    ○ skipped proseScan export: unconditional - a quoted canon number is still a violation
+    ○ skipped the t17 report renders the canon region and carries no canon number in prose
+    ○ skipped ADR-0077 D-E appendix registers the unconditional scan + the evidence-file convention
+    ○ skipped defer-0063 is the missing-convention smell ticket with the anti-rot quota
+    ○ skipped ERRATA E-7 registers the seq-27 classification + the literal-token convention
+    ○ skipped CONTEXT carries the Re-Execution Prior snapshot v2 and the sharpened delegation convention
+    ○ skipped gen-docs invariant: every committed copy derives ROOT from __dirname (D-003 class-killer)
+    ○ skipped the gen-docs template carries the frozen derived-ROOT header
+  grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendix + doc hygiene)
+    √ doc-hygiene negative fixtures: the two real corruption samples are flagged (2 ms)
+    √ single-digit canon fixture: bare single-digit value walks free (declared floor gap), key-assign catches it (D-002) (3 ms)
+    √ key-assign fixture: every one of the eleven schema keys is enforced in prose (D-002) (2 ms)
+    ○ skipped ADR-0078 exists with live status, date, amends line, ledger + spec anchors
+    ○ skipped kind enum: a fix row WITH governance_tooling_diff passes; WITHOUT it fails (ADR-0078 negative pin)
+    ○ skipped fix rows are exempt from the D-F deferred-entry assert; documentation rows are not (control)
+    ○ skipped fix-row gtd files still classify against the taxonomy (R3 listing is mislabeled)
+    ○ skipped carve_out_used may be omitted on fix rows and never feeds the burn-rate streak
+    ○ skipped the grill-t17 row is corrected disclosed: kind fix + gtd backfill + retroactive first line, history untouched
+    ○ skipped the grill-t18 row is the first compliant kind:fix row (gtd + mechanism output disclosed, exempt D-F)
+    ○ skipped README index rebuilt: 78 records incl. ADR-0078
+    ○ skipped ADR-0077 grill-t18 amendments: D-A.1 appendix + floor registration + regen-boundary sentence
+    ○ skipped CONTEXT terms verified pre-landed (D-005/D-007)
+    ○ skipped AGENTS.md authoring-path clause (D-006)
+    ○ skipped doc-hygiene pin: every committed .scratch/*.md is free of corruption signatures
+    ○ skipped the t17 next-round.md repair holds: restored paths + $names + zero signatures (H-1)
+    ○ skipped t17 ledger carries the appended disclosure note (D-005)
+    ○ skipped PROSE_KEYS single-source: derived from SCHEMA_KEYS, all numeric-canon, no drift (D-003)
+    ○ skipped emit-exit boundary: a multi-violation report exits 1 with every cause line (D-003/D-A.1)
+  grill-t19 dispositions (ADR-0077 missing-input clause + ADR-0078 streak/gtd semantics + A-3 re-capture)
+    √ txt hygiene negative fixture: the voided A-3 capture bytes are flagged; the md control-byte set does not transfer (1 ms)
+    ○ skipped txt hygiene pin: every committed .scratch/**/*.txt is free of the path-LF-break signature (D-006)
+    ○ skipped the t18 check-ci-jobs-missing evidence is the re-captured verbatim output (Disclosed Re-Capture, D-006)
+    ○ skipped CONTEXT carries the Disclosed Repair / Disclosed Re-Capture / Non-Interpolating Channel / Bilingual Mirror terms (D-002/D-006/D-007)
+    ○ skipped CONTEXT clauses: trend-anchor streak populations + consuming-row missing-input (D-003/D-004)
+    ○ skipped ADR-0077 D-A.1 registers the missing-input clause (D-004)
+    ○ skipped the t18 artifacts carry the restored defer-0060 named lines (A-1 Disclosed Repair)
+    ○ skipped the t18 report carries the export-misreport by-design note + the true green statement (A-2/A-5)
+    ○ skipped a corrupt facts artifact exits 2 verifier-broken - a crash never masquerades as unsatisfied (D-004/A-6)
+    ○ skipped missing factsFile routes to the drift channel: FAIL + boundary exit 1, report phase skipped (D-004/A-8)
+    ○ skipped the missing-facts branch is a boundary-route shape, not an early exit (D-004 structure pin)
+    ○ skipped kind:fix rows are transparent to the ADR streak - net_additions>0 on a fix row never feeds it (D-003 negative)
+    ○ skipped B-1 discriminating pin: [fix(+1), doc(+1)] stays silent - under feed-semantics this scenario fires the trend-anchor advisory (audit B-1)
+    ○ skipped doc-fix-doc adjacency counts consecutive for both streaks (D-003 skip-not-reset positive)
+    ○ skipped a fix row never resets a running streak - streak state is preserved across the row (D-003)
+    ○ skipped ADR-0078 D-A registers the streak-population sentence (D-003)
+    ○ skipped gtd presence implies non-empty files: kind:fix + {files:[]} hard-fails (D-005 negative)
+    ○ skipped documentation + {files:[]} hard-fails too - the escape channel is closed for both kinds (D-005)
+    ○ skipped ADR-0078 D-A registers the gtd escape-channel convention (D-005)
+
+Test Suites: 1 passed, 1 total
+Tests:       72 skipped, 5 passed, 77 total
+Snapshots:   0 total
+Time:        0.597 s, estimated 1 s
+Ran all test suites matching /test\\adr-0076-wiring.test.js/i with tests matching "fixture".

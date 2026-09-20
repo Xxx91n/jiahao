@@ -42,3 +42,24 @@ Authority for this round. Append-only; every owner-confirmed substantive conclus
 - Constraints / negatives: every piece reuses an established convention (no new invention); battery leg order/args and which defer row serves as deferred_entry are execution-surface; no battery-skip simplification (the doc-round light-close triad precedent stands); B-items are not spun into a further round (consistent with D-001).
 - Status: current
 
+
+## Round dispositions (closeout record)
+
+- T-1.1 done (commit `zsq`): absorbed pz + kv (t19 audit report + audit handoff) with disclosed absorption.
+- T-1.2 done (commit `szm`): ADR-0079 authored (D1-D6 + anti-quota-theater sentence); later amended with the npm filename deviation (`README-zh-CN.md` — the dotted form is force-included by npm's `readme.*` glob; empirical `npm pack` evidence).
+- T-1.3 done (commit `szm`): defer-0064 (B-4) + defer-0065 (B-5) registered free-text pending-evaluation; seed inventory extended (id/status arrays, `test/adr-0033-wiring.test.js`).
+- T-1.4 done (commit `szm`): B-2 verbatim-argv convention bullet in `AGENTS.md`.
+- T-1.5 done (commit `szm`): B-6 Disclosed Repair on the t19 round-complete '18 evidence files' wording (declaration triple on the line).
+- T-1.6 done (verify-only): CONTEXT Bilingual Mirror term carries both clauses; no edit needed.
+- T-1.7 done (commit `szm`): `.scratch/grill-t20/capture-battery.cjs` — B-2 verbatim-argv labels, B-3 duplicate leg + dead `WIN` removed, B-7 committed clean-tree leg; C1 regex copy-corruption caught and restored byte-identical.
+- T-2 done (commit `zpr` + disclosed re-pin): README front-face IA redesign per spec section-3 (11-## skeleton, badges, <details> ADR index, Mermaid); `README-zh-CN.md` mirror (switch pair, baseline comment, prevails pointers, identical ## skeleton); `test/adr-0079-wiring.test.js` (8 pins) + B-1 discriminating pin; index/count pins resynced; `ci.yml` expected-suites bumped; rewrite-map regen. D6 two-commit rhythm: drift pin red on `zpr` by design, green on the re-pin.
+- T-3 done: battery re-run verbatim `--round grill-t20`; consent-sweep below; trend row added; facts-canon report with `report_commit null`.
+- Disclosed mid-round states: adr-0079 test red pre-mirror (write-first sequencing); drift pin red on the sync commit (D6 rhythm); an AGENTS.md shell-interpolation corruption caught on re-read and restored byte-clean via the file-edit channel before commit; one GitButler worktree normalization reverted uncommitted README edits once — mitigated by prompt commits; pack-cap fit recovered on the shipped surface (README prose tightening + `_doc` header trims on the three packed docs JSONs) — thin headroom under the ADR-0039 D3 cap is a carry-forward risk for the next surface-growing round (the trend-derived amendment needs a pre-registered ADR slot).
+
+## Consent sweep (named lines)
+
+- defer-0060: standing — external-event (CI 403 carrier), quarterly cadence; no check-in due this round.
+- defer-0064 (new, B-4): pending-evaluation — unfreeze when the exit contract next opens; the precision clause distinguishing red-suite from machinery breakage belongs there.
+- defer-0065 (new, B-5): pending-evaluation — unfreeze when an arg-validation convention next forms.
+- Sunset counter (ADR-0076 D-E durable home): unchanged this round — no instrument-identity change.
+- Never-commit set: unchanged — `.scratch/grill-t*/audit-evidence/` trees, `*.patch`, `round-commits.txt` remain untracked by design (the clean-tree leg classifies them, never flags them).
