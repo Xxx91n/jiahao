@@ -2380,7 +2380,12 @@ original prevails' pointer back to the pinned text. Both files open with
 an autonym language-switch line (English | 中文, current language bold
 and unlinked — GitHub never auto-selects); the mirror header carries an
 HTML comment pinning its translation-baseline commit hash for drift
-management (ledger t19 D-007/D-010; convention home ADR-0079).
+management (ledger t19 D-007/D-010; convention home ADR-0079). Sync
+discipline: any commit touching README.md must update README.zh-CN.md in
+the same commit and advance the baseline to that commit's sha; the
+baseline advances only on real sync, and the drift pin (README last-commit
+sha == recorded baseline) makes an unsynced README edit red (ledger t20
+D-004).
 _Avoid_: single-file bilingual mixing; letting the mirror masquerade as
 the pinned text; numeric or dynamic badges
 
