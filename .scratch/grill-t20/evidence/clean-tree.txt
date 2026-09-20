@@ -2,7 +2,7 @@ $ git status --porcelain
 
 EXIT 0
 
- M bench/research/out/g6-publish-replay.json
+ M .scratch/grill-t20/evidence/clean-tree.txt
 ?? .scratch/grill-t13/audit-evidence/r2-round-diff.patch
 ?? .scratch/grill-t14/audit-evidence/
 ?? .scratch/grill-t15/audit-evidence/round-diff.patch
@@ -10,13 +10,10 @@ EXIT 0
 ?? .scratch/grill-t17/audit-evidence/
 ?? .scratch/grill-t18/audit-evidence/
 ?? .scratch/grill-t19/audit-evidence/
-?? .scratch/grill-t20/evidence/
-?? .scratch/grill-t20/reports/
-?? .scratch/grill-t20/round-facts.json
 
 classification:
   tracked-diff lines: 1
-  untracked lines: 10 (never-commit class or self: 7; other: 3)
-  unexpected untracked: .scratch/grill-t20/evidence/, .scratch/grill-t20/reports/, .scratch/grill-t20/round-facts.json
+  untracked lines: 7 (never-commit class or self: 7; other: 0)
+  unexpected untracked: none
 
 verdict: DIRTY
