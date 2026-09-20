@@ -1,6 +1,14 @@
-# grill-t20 — GOAL (open)
+# grill-t20 — GOAL (closed 2026-09-20)
 
 Round opened 2026-09-20, on the verified t19 baseline (PASS WITH FINDINGS, B-1..B-7).
+
+Closeout: Track A done — B-1..B-7 all dispositioned (B-1 discriminating
+wiring pin; B-2 convention + battery labels; B-3 slop removed; B-4/B-5
+defer-registered defer-0064/0065; B-6 Disclosed Repair; B-7 committed
+clean-tree leg). Track B done — README front-face IA redesign +
+structural mirror landed; filename amended to `README-zh-CN.md` (the
+dotted form is force-included by npm's `readme.*` glob — deviation
+disclosed in ADR-0079); ADR-0079 + trend row landed per charter.
 
 ## Track A — t19 audit-finding disposition
 
