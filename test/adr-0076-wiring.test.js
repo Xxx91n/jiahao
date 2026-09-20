@@ -41,7 +41,7 @@ describe('ADR-0076 doc surface (grill-t15 disposition + mechanism round)', () =>
 
   test('README index rebuilt: 76 records incl. ADR-0076', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('78 architecture decision records');
+    expect(r).toContain('79 architecture decision records');
     expect(r).toContain('0076-round-edit-surface-taxonomy-and-governance-carve-out.md');
   });
 
@@ -262,7 +262,7 @@ describe('ADR-0077 amendments (grill-t16 fix + mechanism round, data-surface ass
 
   test('README index rebuilt: 77 records incl. ADR-0077', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('78 architecture decision records');
+    expect(r).toContain('79 architecture decision records');
     expect(r).toContain('0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md');
   });
 
@@ -505,7 +505,7 @@ describe('grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendi
 
   test('README index rebuilt: 78 records incl. ADR-0078', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('78 architecture decision records');
+    expect(r).toContain('79 architecture decision records');
     expect(r).toContain('0078-fix-round-disclosure-taxonomy.md');
   });
 
@@ -842,6 +842,22 @@ describe('grill-t19 dispositions (ADR-0077 missing-input clause + ADR-0078 strea
   test('kind:fix rows are transparent to the ADR streak - net_additions>0 on a fix row never feeds it (D-003 negative)', () => {
     const fix = fixRow({ adr_added: ['0078'], net_additions: 1 });
     const out = outFor([fix]);
+    expect(out.errors).toEqual([]);
+    const w = out.warnings.join(' ');
+    expect(w).not.toContain('trend anchor');
+    expect(w).not.toContain('advisory drift');
+  });
+
+  test('B-1 discriminating pin: [fix(+1), doc(+1)] stays silent - under feed-semantics this scenario fires the trend-anchor advisory (audit B-1)', () => {
+    // Discriminating coverage: the single-row pin above is vacuous under the
+    // pre-D-003 semantics (streak 1 < K either way). With [fix(+1), doc(+1)]
+    // the OLD code counts the fix row into the doc streak (2 >= K=2 -> the
+    // advisory fires); the skip-not-reset code treats the fix row as
+    // transparent (streak 1 -> silent). This pin fails on the old semantics.
+    const out = outFor([
+      fixRow({ round: 'grill-tNN-fix-feed', adr_added: ['0078'], net_additions: 1 }),
+      docRow({ round: 'grill-tNN-doc-feed', adr_added: ['0079'], net_additions: 1, deferred_entry: 'defer-0064' })
+    ]);
     expect(out.errors).toEqual([]);
     const w = out.warnings.join(' ');
     expect(w).not.toContain('trend anchor');

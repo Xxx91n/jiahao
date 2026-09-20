@@ -7,17 +7,19 @@
 
 ## Context
 
-The grill-t19 charter (ledger D-007) settled the bilingual shape of the GitHub front-face: README.md stays the English-primary face and README.zh-CN.md is added as the full Chinese mirror, living in the git tree only. That charter left the mirror's maintenance question open: a translated front-face that drifts silently is worse than none - it reads as current while lying. The adjudicated options were: a same-commit sync discipline with a mechanically enforced drift pin, a convention without a drift pin, or best-effort with no discipline. This decision registers the strict form: the mirror carries a recorded translation baseline, every README-touching commit pays the sync tax, and a wiring pin makes an unsynced README edit red. The ADR exists because the convention needs a policy home - the streak feed is a disclosed fact, not the motive.
+The grill-t19 charter (ledger D-007) settled the bilingual shape of the GitHub front-face: README.md stays the English-primary face and README-zh-CN.md is added as the full Chinese mirror, living in the git tree only. That charter left the mirror's maintenance question open: a translated front-face that drifts silently is worse than none - it reads as current while lying. The adjudicated options were: a same-commit sync discipline with a mechanically enforced drift pin, a convention without a drift pin, or best-effort with no discipline. This decision registers the strict form: the mirror carries a recorded translation baseline, every README-touching commit pays the sync tax, and a wiring pin makes an unsynced README edit red. The ADR exists because the convention needs a policy home - the streak feed is a disclosed fact, not the motive.
 
 ## Decision
 
 ### D1 - Dual filename: EN-primary + zh-CN mirror
 
-README.md remains the English-primary face. README.zh-CN.md is the full Chinese mirror, structurally aligned with the primary: the same top-level `## ` heading skeleton in the same order, section content translated. The mirror lives in the git tree and is pin-free - it never pretends to be the pinned text.
+README.md remains the English-primary face. README-zh-CN.md is the full Chinese mirror, structurally aligned with the primary: the same top-level `## ` heading skeleton in the same order, section content translated. The mirror lives in the git tree and is pin-free - it never pretends to be the pinned text.
+
+**Filename note (implementation amendment, grill-t20):** the charter's dotted form `README.zh-CN.md` is unimplementable under npm semantics - npm's always-include `readme.*` glob force-packs any `README.*` basename regardless of the `files` list or `.npmignore` (verified live by `npm pack --dry-run` on 2026-09-20), which would have made the D5 tarball exemption and the pack-cap gate both fail. The hyphenated basename `README-zh-CN.md` escapes the glob (verified same run) while preserving the BCP-47 tag, the root placement, and every other element of the chartered form.
 
 ### D2 - Autonym language-switch line
 
-Both files open with a language-switch line in autonym form: `English | 中文`, where the current language is bold and unlinked and the other language links to the sibling file (English -> README.md, 中文 -> README.zh-CN.md). GitHub never auto-selects a language, so the switch line is the whole navigation channel.
+Both files open with a language-switch line in autonym form: `English | 中文`, where the current language is bold and unlinked and the other language links to the sibling file (English -> README.md, 中文 -> README-zh-CN.md). GitHub never auto-selects a language, so the switch line is the whole navigation channel.
 
 ### D3 - Translation-baseline commit-hash HTML comment
 
@@ -29,11 +31,11 @@ Where a translated block and the English original disagree, the English original
 
 ### D5 - zh-CN tarball-cap exemption (ADR-0039 D3)
 
-README.zh-CN.md never enters the npm tarball - it is absent from `package.json`'s `files` list and from `npm pack` output, so it adds zero bytes to the measured pack surface. The cap headroom is protected under the pre-registered policy of ADR-0039 D3 (policy-before-value); no cap amendment is needed or made.
+README-zh-CN.md never enters the npm tarball - it is absent from `package.json`'s `files` list and from `npm pack` output, so it adds zero bytes to the measured pack surface. The cap headroom is protected under the pre-registered policy of ADR-0039 D3 (policy-before-value); no cap amendment is needed or made.
 
 ### D6 - Same-commit sync discipline + drift pin (grill-t20 ledger D-004)
 
-Any commit touching README.md MUST update README.zh-CN.md in the same commit. The baseline comment then advances to name that commit's sha - physically a two-step rhythm, since a commit cannot name its own sha inside itself: the sync commit carries the mirror update, and a disclosed re-pin commit immediately after lands the new baseline (the `published_tip` stale-pin re-pin precedent). At rest, `git log -1 README.md` equals the recorded baseline. The baseline sha advances only on real sync - trivial README edits still pay the sync tax; that tax is what keeps the mirror alive. If the tax proves too heavy later, revision goes through ADR supersede, never through a broken pin.
+Any commit touching README.md MUST update README-zh-CN.md in the same commit. The baseline comment then advances to name that commit's sha - physically a two-step rhythm, since a commit cannot name its own sha inside itself: the sync commit carries the mirror update, and a disclosed re-pin commit immediately after lands the new baseline (the `published_tip` stale-pin re-pin precedent). At rest, `git log -1 README.md` equals the recorded baseline. The baseline sha advances only on real sync - trivial README edits still pay the sync tax; that tax is what keeps the mirror alive. If the tax proves too heavy later, revision goes through ADR supersede, never through a broken pin.
 
 `test/adr-0079-wiring.test.js` (R3 documentation surface - no carve-out) pins: the mirror exists; the language-switch line pair is present on both files; the baseline comment carries a 40-hex sha that exists in git history; the two files share the same top-level `## ` heading skeleton; the mirror is absent from the package files; and the drift pin - `git log -1 README.md` sha equals the recorded baseline sha (README moved without the mirror = red).
 
