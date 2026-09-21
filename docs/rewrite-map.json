@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-21T18:06:17.435Z",
+  "generated_at": "2026-09-21T18:25:00.678Z",
   "published_tip": "dc6d21b95b7edc18d895ebbe41f649726ead3659",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -23,11 +23,11 @@
     "published_only": 93,
     "removed": 0,
     "same": 278,
-    "doc_refs": 1718,
+    "doc_refs": 1721,
     "doc_refs_by_class": {
       "rewritten": 103,
-      "local-only": 711,
-      "published-unchanged": 904
+      "local-only": 713,
+      "published-unchanged": 905
     }
   },
   "commits": [
@@ -10197,6 +10197,29 @@
       "file": ".scratch/grill-t20/round-facts.json",
       "line": 12,
       "sha": "abf2f83",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t21/decision-ledger.md",
+      "line": 43,
+      "sha": "845999a",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t21/decision-ledger.md",
+      "line": 44,
+      "sha": "6e83350",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t21/decision-ledger.md",
+      "line": 44,
+      "sha": "dc6d21b",
       "class": "published-unchanged",
       "resolved_to": null
     },
