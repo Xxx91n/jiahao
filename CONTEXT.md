@@ -1496,7 +1496,11 @@ gates can never be entries; enforcement is fail-closed via
 `scripts/check-deferred.js` with the ADR-0027 couplingViolation guard
 (registry diff requires a same-commit ADR change). Anchoring is
 existence-based (source_adr exists + entry id appears in ADR text or
-CONTEXT.md), never value-anchored.
+CONTEXT.md), never value-anchored. A merged row may register a class of
+same-type items with per-instance itemization (each instance
+individually closable), the four elements (owner, deadline, acceptance
+criterion, recurrence->split escalation trigger), and ratchet semantics
+— the set only shrinks, never grows (ledger t21 D-004).
 _Avoid_: parsing ADR prose to derive deferrals, observational tier for
 registry violations, a second registry file for rejected items
 
@@ -2253,7 +2257,13 @@ not static threshold). kind:fix rows are outside both streak populations
 (skip-not-reset): they never feed the doc-round net-additions streak even when
 net_additions>0 (the field stays on the row as fact), and they never reset
 carveStreak, so doc-fix-doc carve-out adjacency still counts consecutive
-(ledger t19 D-003; ADR-0078 D-A).
+(ledger t19 D-003; ADR-0078 D-A). Trend rows are correctable in place by
+disclosed retroactive repair: carve_out_used and
+governance_tooling_diff.files are reused as the carrier (the files list
+is the honest list of R2-touched files, with the reason's first line
+naming the correction and any field-name/content mismatch) — never a
+silent rewrite, a new unvalidated field, or a prose-only note (ledger
+t21 D-002; ADR-0078 D-B audit-log convention).
 _Avoid_: hard numeric cap on ADR count, blocking trend alarms
 
 **Research Round vs Confirmatory Round (研究轮/确证轮)**:
