@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-21T18:28:37.610Z",
+  "generated_at": "2026-09-21T18:30:48.698Z",
   "published_tip": "dc6d21b95b7edc18d895ebbe41f649726ead3659",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -10974,7 +10974,7 @@
     {
       "file": ".scratch/grill-t21/reports/2026-09-22-report.md",
       "line": 17,
-      "sha": "86cc71d",
+      "sha": "f6ad3e3",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -11022,7 +11022,7 @@
     {
       "file": ".scratch/grill-t21/round-facts.json",
       "line": 12,
-      "sha": "86cc71d",
+      "sha": "f6ad3e3",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
