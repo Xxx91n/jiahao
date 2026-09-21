@@ -37,3 +37,32 @@ Records append-only; revisions create new IDs, never edit in place.
 - Constraints / negatives: no C-6 harness refactor in-round (scope creep for a disposition round); t21 zero_product_diff stays true (carve-out touches R2 not R1); anchors admission cascade (17->18) regenerates ride as mechanism output; per-finding closure table is mandatory even for nits.
 - Status: current
 
+
+## Closeout (2026-09-22) - disposition round complete
+
+- T-1 done (commit vvy / 845999a): the four zero-R2 claim sites rewritten to the canonical "R1 zero-touch + two R2 files retro-acknowledged via the declared carve-out" form with reason+when+who triples (t20 ledger D-001, spec-t20 sections 0/1/8, next-round.md, t20 report), superseding the 2026-09-20 `carve_out_used:0`-annotation markers; AGENTS.md gained the C-7 split-form evidence-count convention (+ checklist position + two-round lookback). One AGENTS.md write corrupted by `String.replace` `` $` `` substitution was caught by the byte-check and restored pre-commit.
+- T-2 done (commit orv / 6e83350): surface-taxonomy.js `R3_README_ROOT` predicate; surface-taxonomy.json rule text + `reclassifications` log; check-governance-inventory.js reclass grace (t20-time truth preserved, post-effective listings still hard-fail); build-governance-anchors.js admits `decision-ledger-t20.md` (content-equal copy); ADR-0080 authored; deferred-registry gains `defer-0066` (merged ratchet row, four instances, four elements); wiring pins resynced (index 80, published_tip -> dc6d21b, seed inventory 60, ci.yml suite parity 75); pack-cap surface compression (_doc trims + terse row).
+- T-3 done: battery re-run verbatim `--round grill-t21`; facts canon collected + spliced; clean-tree via Disclosed Re-Capture; this report with `report_commit` null.
+
+### Consent sweep (named lines)
+
+- defer-0060: standing - external-event (CI 403 carrier), quarterly cadence; no check-in due.
+- defer-0064 / defer-0065 (t20 B-4/B-5): pending-evaluation, quarterly.
+- defer-0066 (new, C-6): pending-evaluation, review_at 2026-12-15 - merged ratchet row; the set only shrinks, never grows.
+- Sunset counter (ADR-0076 D-E durable home): unchanged - no instrument-identity change.
+- Never-commit set: unchanged - `.scratch/grill-t*/audit-evidence/` trees, `*.patch`, `round-commits.txt` stay untracked (the clean-tree leg classifies them, never flags them).
+- Advisories that fired this round (advisory-only, never blocking): the carve-out burn-rate advisory (t20 corrected + t21 declared - two consecutive `carve_out_used:1`) and the documentation-streak advisory; both disclosed in evidence/governance-inventory.txt output.
+
+### Per-finding closure (t20 audit C-1..C-7)
+
+- C-1 -> repaired (row corrected to `carve_out_used:1` canonical form; four claim-site markers rewritten; residual gap closed by ADR-0080 D-A + the D-B grace).
+- C-2 -> verified (dangling citation absent).
+- C-3 -> verified (canonical sentence present).
+- C-4 -> verified (CONTEXT filename correct).
+- C-5 -> repaired (index-record pins resynced; published_tip re-pinned; seed inventory extended).
+- C-6 -> deferred-registered (`defer-0066` merged ratchet row).
+- C-7 -> landed (AGENTS.md convention + checklist position + this lookback).
+
+### Lookback
+
+- C-7 effectiveness lookback registered for the next two rounds (grill-t22, grill-t23): check that committed prose holds the split-form evidence-count convention.
