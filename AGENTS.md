@@ -35,6 +35,11 @@ docs/agents/domain.md.
   byte-check the critical fragments before committing.
 - A captured-evidence `$` line names the verbatim argv or is explicitly
   marked display-form (grill-t20, audit B-2 convention).
+- Evidence counts in committed prose write split form ("17 captures + 1
+  fixture"); a bare total is forbidden where a capture/fixture split
+  exists (grill-t21, audit C-7 convention). Mechanical position: a
+  checklist tick in the closeout/audit loop; an effectiveness lookback is
+  registered for the next two rounds in the round ledger.
 - Intermediate commits inside a round may be red (t12 audit O-B); only the
   round-final state must be green. A red mid-round commit is not a defect —
   it is disclosed in the round report rather than silently amended.
