@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0034: machine registry of the CI gate family (fifth fact-source, sibling to thresholds.json / coverage-map.json / host-contracts.json / deferred-registry.json). One entry per gate: {name, command, tier, source_adr, order}. order is a required integer with no default; bands: 0-99 meta-checks (gates-alignment, ci-wiring, gates-coupling - names structurally asserted by scripts/run-gates.js, CRTM-as-entry), 100+ functional gates. tier reuses the ADR-0031 D3 vocabulary: confirmatory fails the run; observational records and never blocks; deferred-with-unfreeze is registered but skipped. Execution: default complete-run aggregates all breaches; --fail-fast is opt-in and short-circuits confirmatory failures only (ADR-0034 D3). Advisory band warnings aggregate into one ::warning:: annotation (ADR-0027 D3). Changes to this file require a same-commit ADR via the shared ADR-0027 couplingViolation guard (gates-coupling entry, CI_BASE_REF). CI invokes exactly one entrypoint: npm run gate:all (D2/D5); per-gate npm aliases remain for debugging (D6). ADR-0040 D1: every entry declares requires, drawn from the closed enum repo-tree/bench-corpus/docs-adr/ci-mode/transcript-file (src/shared/capability.js); gates probe capabilities before loading runtime dependencies - a deterministically absent capability exits 2 (UNVERIFIABLE), an unknown name is a registry violation.",
+  "_doc": "CI gate family registry (ADR-0034; run-gates.js).",
   "entries": [
     {
       "name": "gates-alignment",

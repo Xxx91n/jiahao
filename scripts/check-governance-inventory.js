@@ -118,6 +118,7 @@ function checkInventory(root, opts) {
     let carveStreak = 0;
     let closureSet = null;
     let mechOutputs = null;
+  let reclasses = null;
     for (const r of ti.rounds || []) {
       // ADR-0078 D-A: the kind enum admits documentation|fix. A fix row MUST
       // disclose R2 machinery hand-edits via governance_tooling_diff (field
@@ -155,7 +156,21 @@ function checkInventory(root, opts) {
             if (cls === 'R1') {
               errors.push('trend round ' + r.round + ': governance_tooling_diff lists runtime-surface file ' + f + ' - R1 is implementation-round territory absolutely (ADR-0076 D-A)');
             } else if (cls !== 'R2') {
-              errors.push('trend round ' + r.round + ': governance_tooling_diff file ' + f + ' classifies ' + cls + ', not R2 - mislabeled disclosure');
+              // ADR-0080 D-B: taxonomy evolution is logged in surface-taxonomy.json
+              // reclassifications. A file moved off R2 by a rule effective AFTER the
+              // row's date was R2 at row time - the honest-list disclosure stays
+              // valid; a row dated on/after the effective date still fails.
+              if (!reclasses) {
+                const taxJson = surfaceTaxonomy.loadTaxonomy(base);
+                reclasses = Array.isArray(taxJson.reclassifications) ? taxJson.reclassifications : [];
+              }
+              const excused = reclasses.some(function (rc) {
+                if (!rc || rc.to !== cls || !r.date || !(r.date < rc.effective)) return false;
+                try { return new RegExp(rc.pattern).test(f); } catch (e) { return false; }
+              });
+              if (!excused) {
+                errors.push('trend round ' + r.round + ': governance_tooling_diff file ' + f + ' classifies ' + cls + ', not R2 - mislabeled disclosure');
+              }
             }
           }
         }

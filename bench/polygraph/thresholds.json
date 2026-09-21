@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0027 D2: machine-consumed derived config. Floors are pre-registered (ADR-0015 D2, corrected by ADR-0019 D5); targets are the ADR-0018 D2 band's warning boundary (recall target = match b2's core recall, score target = official ranking floor 0.80 aspiration). Changes require an ADR (enforced by scripts/check-bench-thresholds.js).",
+  "_doc": "bench thresholds - changes need an ADR.",
   "corpus": {
     "repo": "https://github.com/najemwehbe/polygraph-bench.git",
     "ref": "994bdeb3e75bb5c2ffac4f35a3eca9bac02c6356",

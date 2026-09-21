@@ -24,6 +24,14 @@ const TAXONOMY_REL = path.join('docs', 'governance', 'surface-taxonomy.json');
 const R3_PREFIXES = ['docs/', '.scratch/', 'adapters/'];
 const R3_EXACT = ['CONTEXT.md', 'README.md', 'AGENTS.md'];
 const R3_WIRING_TEST = (r) => r.startsWith('test/adr-') && r.endsWith('-wiring.test.js');
+// ADR-0080 D-A: root-level README-* files are documentation by naming
+// convention - the audit C-1 residual-rule gap (README-zh-CN.md classified
+// R2 only because no R3 rule named it). Wide form is deliberate: any
+// root-level file prefixed README is doc surface; benign false-inclusion
+// is bounded by the name itself (a non-doc README-* file would be a naming
+// violation anyway). README.md stays in R3_EXACT - redundant under the
+// predicate, kept so existing pins hold.
+const R3_README_ROOT = (r) => r.indexOf('/') === -1 && r.startsWith('README');
 
 const REQ_RE = new RegExp('require\\(\\s*[\'"]([^\'"]+)[\'"]\\s*\\)', 'g');
 
@@ -68,6 +76,7 @@ function classifyPath(rel, closureSet) {
   const r = String(rel).split(path.sep).join('/');
   if (closureSet.has(r)) return 'R1';
   if (R3_EXACT.indexOf(r) !== -1) return 'R3';
+  if (R3_README_ROOT(r)) return 'R3';
   for (const p of R3_PREFIXES) { if (r.indexOf(p) === 0) return 'R3'; }
   if (R3_WIRING_TEST(r)) return 'R3';
   return 'R2';
@@ -78,4 +87,4 @@ function loadTaxonomy(root) {
   return JSON.parse(fs.readFileSync(path.join(base, TAXONOMY_REL), 'utf8'));
 }
 
-module.exports = { BIN_SEEDS, TAXONOMY_REL, R3_PREFIXES, R3_EXACT, R3_WIRING_TEST, computeRuntimeClosure, classifyPath, loadTaxonomy };
+module.exports = { BIN_SEEDS, TAXONOMY_REL, R3_PREFIXES, R3_EXACT, R3_WIRING_TEST, R3_README_ROOT, computeRuntimeClosure, classifyPath, loadTaxonomy };

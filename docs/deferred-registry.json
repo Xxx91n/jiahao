@@ -1,6 +1,6 @@
 {
  "schema_version": 1,
- "_doc": "ADR-0033: registry of chosen-to-defer (pending-activation) items. Anchors existence-based: source_adr file must exist and the entry id must appear in any docs/adr/*.md or CONTEXT.md. Enforced by scripts/check-deferred.js (deferred:gate). ADR-0035: entries carry cadence_tier + registered_at; external-event entries carry last_check_in per cycle; evaluable types carry verified_by or downgrade to pending-evaluation.",
+ "_doc": "chosen-to-defer registry (ADR-0033; check-deferred.js).",
  "entries": [
   {
    "id": "defer-0001",
@@ -1020,6 +1020,26 @@
    "review_at": "2026-12-15",
    "cadence_tier": "quarterly",
    "registered_at": "2026-09-20",
+   "status": "pending-evaluation"
+  },
+  {
+      "id": "defer-0066",
+   "subject": "capture-harness hardening set (audit C-6) - merged ratchet row",
+   "source_adr": "docs/adr/0080-readme-star-r3-predicate-and-taxonomy-reclassification-channel.md",
+   "rationale": "grill-t21 D-004: four C-6 harness smells ride the next harness-touching change. Ratchet: set only shrinks, never grows; instances individually closable. Owner: next harness-touching round; deadline: review_at; acceptance: all resolved or split; escalation: same-class recurrence splits the instance standalone.",
+   "unfreeze_if": {
+    "type": "free-text",
+    "check": "all four instances resolved or split; same-class recurrence splits the instance standalone"
+   },
+   "instances": [
+    "recapture-clean-tree clone -> shared clean-tree leg",
+    "capNode() derives label + argv once from the spawned argv",
+    "robust NPMCLI resolution (require.resolve or npm.cmd fallback)",
+    "C1 control-range regex -> copy-safe U+0080-U+009F escape form"
+   ],
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-22",
    "status": "pending-evaluation"
   }
  ]

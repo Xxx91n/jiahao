@@ -2,8 +2,8 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-20T12:54:04.280Z",
-  "published_tip": "20bcbe3930677de46df2e981d67597cb98bf3c63",
+  "generated_at": "2026-09-21T18:06:17.435Z",
+  "published_tip": "dc6d21b95b7edc18d895ebbe41f649726ead3659",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
     "old_tip": "2c93a30a5495219d0d2385f25d19af23e729852f",
@@ -20,14 +20,14 @@
   },
   "counts": {
     "commits": 15,
-    "published_only": 66,
+    "published_only": 93,
     "removed": 0,
     "same": 278,
-    "doc_refs": 1703,
+    "doc_refs": 1718,
     "doc_refs_by_class": {
       "rewritten": 103,
-      "local-only": 734,
-      "published-unchanged": 866
+      "local-only": 711,
+      "published-unchanged": 904
     }
   },
   "commits": [
@@ -111,6 +111,114 @@
   ],
   "removed": [],
   "published_only": [
+    {
+      "new": "dc6d21b95b7edc18d895ebbe41f649726ead3659",
+      "subject": "sync(grill-t20): post-repair regen fixpoint - CONTEXT.md repair grew the packed surface (pack_bytes 339518->339563, still under ADR-0039 D3 cap); g6-publish replay faithful regeneration via check-g6-publish re-run (mechanism output, same disclosed class as the row's mechanism_output_diff); round-facts re-collected + report region re-spliced; rewrite-map regenerated over the repaired doc surface (1703 citations stable). Same class as t18 wrx / t19 rvn / t20 zpp - regen rides a plain commit [audit C-1..C-7 repair cascade]"
+    },
+    {
+      "new": "abf2f8350d1d3057ab4968a928d3392d5cd11d55",
+      "subject": "docs(grill-t20): post-closeout audit repairs C-1..C-7 (second-party audit repair window) - trend row retroactive backfill carve_out_used:0 + governance_tooling_diff.files [ci.yml suite-parity, README-zh-CN.md R2-residual] under the t14 annotation precedent + Disclosed Repair markers at the zero-R2 claims (report/ledger/spec/task-book) + canonical anti-quota-theater sentence restored in report (C-3) + dangling host-contracts.txt citation removed (C-2) + CONTEXT Bilingual Mirror filename to README-zh-CN.md (C-4) + stale index-count test titles 76/77/78->79 + D6 pin label (C-5) + '18 evidence files' un-split phrasing repaired (C-7) + anchors/rewrite-map faithful regen. Repair surface all-R3 documentation; zero R2/R1 touched by the repair itself [audit C-1..C-7]"
+    },
+    {
+      "new": "3a8a63f09d00cbeecb40703b92a0735626b882c9",
+      "subject": "sync(grill-t20): post-closeout regen fixpoint - anchors + rewrite-map regenerated over the committed doc surface (new report/handoff/ledger/trend row entered the scanned set; citations now 1703), round-facts re-collected, report region re-spliced. Same class as t18 wrx / t19 rvn - regen rides a plain commit [D-005]"
+    },
+    {
+      "new": "9f5e0ba7c17670889e486038aedac35be0ff908b",
+      "subject": "docs(grill-t20): GOAL closed (Track A done - B-1..B-7 all dispositioned; Track B done - front-face + mirror landed, filename deviation disclosed) + round-complete handoff (commit chain map, verified-state evidence paths, carry-forwards incl. thin pack-cap headroom + mirror sync discipline, suggested skills) [D-005]"
+    },
+    {
+      "new": "a9abbbd0b2436e1bde6c025166ae098e59304c4c",
+      "subject": "docs(grill-t20): clean-tree.txt final capture - CLEAN verdict on the committed tree (0 tracked diffs; 7 untracked all never-commit class: audit-evidence trees + round-diff patches) - B-7 leg closes green"
+    },
+    {
+      "new": "b4d2ec2569ec8b2d6937fa7707e7b3e7610e6a2d",
+      "subject": "docs(grill-t20): clean-tree evidence sync - commits the pre-final capture so the recapture leg observes an unmodified committed file at status time (B-7 sequencing)"
+    },
+    {
+      "new": "5a536d236cb28c199e85b463d485f90737f3b82c",
+      "subject": "docs(grill-t20): B-7 recapture harness - verbatim replica of the battery clean-tree leg for committed-tree re-capture (the in-battery capture runs pre-commit by necessity; the committed evidence must show the final committed-tree state)"
+    },
+    {
+      "new": "a47cde1493075fa13e9fbb5e11b9e4a18ad6e205",
+      "subject": "docs(grill-t20): T-3 closeout - battery verbatim re-run '--round grill-t20' through capture-battery.cjs (Non-Interpolating Channel): 18 evidence files committed incl. round-facts canon + sentinel splice (report_commit null) + B-7 committed clean-tree leg. Battery: gates green, test-gate 74-suite match, ci-jobs keyed exit (defer0004 unmet stands), missing-input verifier-broken, quoted-stale must-fail, h1 scan 277md+53txt clean, liveness pack/extract/install/init/MCP ok. Ledger T-1/T-2/T-3 dispositions + consent-sweep named lines (defer-0060 standing, defer-0064/0065 new, sunset counter, never-commit set) + trend row (kind:documentation, adr_added:[0079], net_additions:1, zero_product_diff:true, deferred_entry:defer-0064 per ADR-0076 D-F clause-3) + mechanism_output_diff on g6-publish replay (packaged script bytes moved - mechanism output disclosed). Disclosed: heredoc channel used for one ledger append (byte-verified clean post-hoc; the B-2 convention deviation is disclosed, not hidden) [D-001..D-005]"
+    },
+    {
+      "new": "076b6d9fa94c77b8798d85d5f7afb848fb048712",
+      "subject": "docs(grill-t20): mirror baseline re-pin to sync commit 533e97b8 - disclosed second step of ADR-0079 D6 two-commit rhythm (a commit cannot carry its own sha; the sync commit moved git log -1 README.md, the mirror baseline now records it; drift pin was red on zpr by design, green here)"
+    },
+    {
+      "new": "533e97b88b9fd861546e0805b7bb310cdcf1b56c",
+      "subject": "docs(grill-t20): T-2 - README front-face IA redesign (switch line + badges + readiness/install/ladder/hosts/usage/boundary/measurement/develop/architecture/license skeleton per spec section-3; honesty banner + naming declaration + pinned blocks byte-verbatim; ADR index folded <details> + mermaid; test counts 1271/74) + README-zh-CN.md structural mirror (ADR-0079 D1-D4; filename amended from README.zh-CN.md - npm readme.* glob force-includes dotted names, hyphenated variant preserves the D5 tarball exemption, disclosed in ADR-0079) + test/adr-0079-wiring.test.js (8 pins) + B-1 discriminating pin in adr-0076 test (fix(+1)+doc(+1) silent under revised trend semantics) + seed inventory 57->59 + '78 records' pins ->79 + ci expected-suites 74 + rewrite-map regen + disclosed pack-cap compression (README prose tightening + _doc header trims on deferred-registry/coverage-map/change-surface - 340.2kB -> 339.6kB under ADR-0039 D3 cap; AGENTS.md restored to committed byte-state after shell-interpolation damage caught and repaired via file-edit channel per Non-Interpolating discipline) [D-001..D-005]"
+    },
+    {
+      "new": "982b52ec70e5e176f184daffe83d841f34e20983",
+      "subject": "docs(grill-t20): T-1 documentation surface - ADR-0079 bilingual-mirror convention (D1 dual filename EN-primary + zh-CN mirror, D2 autonym switch line, D3 translation-baseline comment, D4 English-original-prevails arbitration, D5 tarball-cap exemption citing ADR-0039 D3, D6 same-commit sync + drift-pin semantics; anti-quota-theater sentence carried - the ADR exists because the convention needs a policy home, the streak feed is a disclosed fact not the motive) + B-4/B-5 defer-registered (defer-0064 collect()-red-suite->exit-2 conflation pending-evaluation 'when the exit contract next opens', defer-0065 --report bare-arg asymmetry pending-evaluation 'when an arg-validation convention next forms') + B-2 convention line in AGENTS.md ('$' line names verbatim argv or marked display-form) + B-6 Disclosed Repair on t19 round-complete '18 evidence files' (declaration triple: ambiguity, qzk committed 17 under evidence/, grill-t20 2026-09-20) + capture-battery.cjs R3 fixes (verbatim argv labels, duplicate round-facts leg + unused WIN removed, new git-status clean-tree leg). CONTEXT Bilingual Mirror term verified pre-landed [D-001/D-004/D-005 + t19 D-010]"
+    },
+    {
+      "new": "839fe66f01b8ef5ea8326d038b508b04d058f072",
+      "subject": "docs(grill-t20): setup - absorbs the t19 audit report (pz) + audit handoff (kv), untracked at the t19 audit-final; absorption disclosed per t20 D-001/D-005 (t19 qzp precedent) [D-005]"
+    },
+    {
+      "new": "645c9fa66a35cd8ca086eec8e0b8e66613f59875",
+      "subject": "docs(grill-t20): grill closeout - decision ledger D-001..D-005 (single doc round: B-1..B-7 disposition R3/defer + README front-face charter), spec-t20-disposition, CONTEXT sync (Bilingual Mirror sync-discipline + drift-pin clause), next-round task book"
+    },
+    {
+      "new": "2818cdbb5ade8c690a3ab64ab43d14fec7a27406",
+      "subject": "handoff(grill-t19): round-complete handoff - commit chain map, verified-state evidence paths, carry-forwards (t20 README front-face deferred per D-007; defer-0060 standing; never-commit verbatim), suggested skills [D-001]"
+    },
+    {
+      "new": "a0e3dd1de44eab6cdfd5728b6830fe24eb900888",
+      "subject": "sync(grill-t19): anchors regen - trend-inventory trailing-newline byte drift corrected post-closeout (sha256 input moved; digest chain re-derived). Plain commit per D-002"
+    },
+    {
+      "new": "21c98d0a7cdba5e47fbff86b4abc8f642ee4a3f2",
+      "subject": "sync(grill-t19): post-closeout regen fixpoint - rewrite-map regenerated over the committed evidence surface (1457->1566 doc citations; the committed battery evidence files entered the scanned set once tracked), round-facts re-collected (rewrite_map_citations + battery_as_of_commit advanced), report facts region re-spliced. Same re-sync class as t18 wrx - regen rides a plain commit, never amend [D-001]"
+    },
+    {
+      "new": "0f895b28ecb35439a9a851a41185c5ed0f1ff559",
+      "subject": "closeout(grill-t19): T-3 - t19 trend row (kind:fix + gtd on the two R2 machinery files + mechanism output + honest zero_product_diff, exempt D-F), ledger T-1/T-2/T-3 dispositions + consent-sweep named lines, GOAL closed (Track A done / Track B->t20), README suite pins 1244->1262, section-6 battery verbatim re-run --round grill-t19 captured through capture-battery.cjs (Non-Interpolating Channel): 18 evidence files committed incl. round-facts canon + sentinel splice (report_commit null), anchors regen + g6-publish replay regen (packaged script bytes moved - mechanism output disclosed on the row). Battery: gates green, ci-jobs keyed exit, missing-input verifier-broken, quoted-stale must-fail, h1 scan 268md+37txt clean, liveness pack/extract/install/init/MCP ok [D-001]"
+    },
+    {
+      "new": "cb36800371bace510ac472e28b64dfb7784ebd3c",
+      "subject": "docs+fix(grill-t19): gtd escape channel closed - coupled commit (ADR-0035). A-7: governance_tooling_diff presence now implies non-empty files for both kinds; 'no carve-out used' records as carve_out_used:0 with the field omitted, never an empty files list - the mislabeled-row escape route is gone. Checker shape check hardened + error text names the convention; ADR-0078 D-A gains the convention sentence; wiring negatives x2 (fix+{files:[]} and documentation+{files:[]} both hard-fail) [D-005]"
+    },
+    {
+      "new": "32f41d81e4ab9c9d4149b7ae65276ae64ca4b655",
+      "subject": "docs+fix(grill-t19): ADR-0078 D-A streak-population sentence + checker kind guard - coupled commit (ADR-0035). A-4: kind:fix rows are outside both advisory streak populations, skip-not-reset - never feed the doc net-additions streak even at net_additions>0, never reset carveStreak; doc-fix-doc adjacency counts consecutive. Checker: fix rows continue past both streak updates. Wiring: negative pin (fix row net_additions=1 feeds nothing), positive pins (doc-fix-doc fires the trend-anchor AND the burn-rate advisories), control pin. Reading change registered: drift warning resolves (fired=1=expected), trend-anchor advisory now reads streak 10 >= K=2 - zero advisory drift (D-003)"
+    },
+    {
+      "new": "b20afdef1f0917fc3edfe9b82da0fe2748f77c7c",
+      "subject": "test(grill-t19): wiring pins for the lrn machinery fix - corrupt-artifact spawn -> exit 2 verifier-broken (A-6); missing-factsFile verdict pinned over committed capture round-facts-missing.txt (FAIL pair + EXIT 1, fixture report unspliced - a jest-side spawn would recurse collect, so the runtime leg lives in committed evidence via capture-missing-facts.cjs, non-interpolating channel) + source-shape pin (FAIL->drift->boundary, no early exit) (A-8) [D-004]"
+    },
+    {
+      "new": "fc874b13dc22ceafd6f850103a96968a9cc0511a",
+      "subject": "fix(grill-t19): build-round-facts main() crash-wrapper + missing-factsFile boundary routing - FIRST R2 COMMIT, discharging the anti-rot quota smell ticket (ordering + ledger registration line, D-004). A-6: main() body wrapped in try/catch mapping any crash (corrupt JSON.parse, spliceRegion throw, execFileSync/collect failure, requireCapabilities throw) to 'verifier broken' + exit 2 - a crash never masquerades as unsatisfied (ADR-0077 D-A). A-8: the :201 missing-factsFile early-exit replaced by the missing-input clause - unsatisfied recorded via the drift channel at the single boundary exit, report phase skipped, no fourth exit class (ADR-0077 D-A.1 clause landed in pmv). Verified: corrupt artifact -> exit 2; missing artifact + --check --report -> FAIL pair + boundary exit 1 [D-004]"
+    },
+    {
+      "new": "2ecbddbf0d9d6dadce5d69c74771b3a39d146e02",
+      "subject": "test(grill-t19): stale pin re-pinned disclosed - adr-0074 published_tip pin advances 60ce743->20bcbe3 as the published side absorbed the t18 stack post-landing (the C2 cascade regen records it; same class as the t18 closeout's index/enum/seed re-pins)"
+    },
+    {
+      "new": "071ff2714a8feaddb66a43ece9bcb6f9747c9829",
+      "subject": "test(grill-t19): A-3 Disclosed Re-Capture - the t18 check-ci-jobs-missing evidence re-captured through a Non-Interpolating Channel (spawnSync arg array harness .scratch/grill-t19/recapture-check-ci-jobs-missing.cjs, parameterized .scratch/grill-t18/evidence/no-such-ci.yml arg, exit 2 verified); the first capture declared void (invocation-layer corruption - escape-interpreting layer ate backslash-n into literal LFs). Doc-hygiene pin extended to committed .scratch/**/*.txt carrying ONLY the path-LF-break signature (trailing-backslash cross-line path class; md control-byte set does NOT transfer - 0x1B ANSI is legitimate verbatim output); the corrupted bytes absorbed as the leg's negative fixture. CONTEXT terms + clauses verified pre-landed; t18 repair artifacts pinned (A-1/A-2/A-5) [D-002/D-006]"
+    },
+    {
+      "new": "ff112486a5d2272d811788daac4258f0fc27aa54",
+      "subject": "docs(grill-t19): ADR-0077 D-A.1 missing-input clause - a missing input artifact is an unsatisfied condition recorded at the phase boundary, never an early exit; the three-value contract grows no fourth class (settles audit A-8 adjudication; executed on build-round-facts.js this round's R2) [D-004]"
+    },
+    {
+      "new": "ed2a31691bb371690adce0baad579b8f02740e41",
+      "subject": "docs(grill-t19): t18 Disclosed Repairs - Disclosed Repair convention first application (D-002). A-1: defer-0060 named line restored in t18 ledger T-3 sweep + report Consent-sweep (retroactive-repair declaration triple on each line: omission + spec pre-scoping reason, grill-t19, 2026-09-19). A-2: export-misreport by-design note added incl. SCHEMA_KEYS/PROSE_KEYS test-only surface. A-5: green-throughout sentence rewritten to the true ruy-red-at-commit statement + ruy/wrx/wsl named in the commit chain. Registrations itemized in t19 ledger + critique-v4 completion result carried (D-001). Cascade regen riding plain commit: decision-ledger-t18 governance copy re-synced, anchors digests + rewrite-map regenerated (1457 citations; published_tip advances 60ce743->20bcbe3 post-landing; old-side discovery refs restored - gb-local/grill-t11-docs + grill-t12-docs re-pointed at the retained old tips ab2e322/2c93a30 after remote-prune) [D-001/D-002]"
+    },
+    {
+      "new": "96dfbae5db60d1131bfc0aee991d291959049a04",
+      "subject": "docs(grill-t19): setup - absorbs the t18 audit report (ns) + audit handoff (vl), untracked at the t18 round-final; absorption disclosed per t19 D-001 (t18 vrp precedent)"
+    },
+    {
+      "new": "25dad359eed8c41a0157a1edf0fe72fddc066b60",
+      "subject": "docs(grill-t19): grill closeout - decision ledger D-001..D-010 (two-round topology: t19 fix disposition + t20 README front-face), spec-t19-disposition, CONTEXT sync (Disclosed Repair / Disclosed Re-Capture / Non-Interpolating Channel / Bilingual Mirror terms + Trend Anchor streak-population + Consuming-Row Exit missing-input clauses), next-round task book"
+    },
     {
       "new": "20bcbe3930677de46df2e981d67597cb98bf3c63",
       "subject": "docs(grill-t18): round-complete handoff (Facts Canon: verified-state lines cite evidence paths, zero regenerable counts) + final regen fixpoint - map/facts/report-region settle on the committed sha [D-008]"
@@ -9011,9 +9119,8 @@
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 5,
       "sha": "2818cdb",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
@@ -9026,137 +9133,120 @@
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 34,
       "sha": "0f895b2",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 51,
       "sha": "fc874b1",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 52,
       "sha": "25dad35",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 52,
       "sha": "96dfbae",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 52,
       "sha": "ed2a316",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 52,
       "sha": "ff11248",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 52,
       "sha": "071ff27",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 52,
       "sha": "2ecbddb",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 52,
       "sha": "fc874b1",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 52,
       "sha": "b20afde",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 52,
       "sha": "32f41d8",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 52,
       "sha": "cb36800",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 52,
       "sha": "0f895b2",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 52,
       "sha": "21c98d0",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 52,
       "sha": "a0e3dd1",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 52,
       "sha": "2818cdb",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 53,
       "sha": "ed2a316",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
@@ -9169,9 +9259,8 @@
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 53,
       "sha": "2ecbddb",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
@@ -9219,9 +9308,8 @@
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
       "line": 97,
       "sha": "2818cdb",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-audit.md",
@@ -9234,9 +9322,8 @@
       "file": ".scratch/grill-t19/reports/2026-09-19-report.md",
       "line": 19,
       "sha": "0f895b2",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t19/reports/2026-09-19-report.md",
@@ -9256,9 +9343,8 @@
       "file": ".scratch/grill-t19/round-facts.json",
       "line": 12,
       "sha": "0f895b2",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t20/evidence/gate-all.txt",
@@ -10002,20 +10088,124 @@
       "label": "unresolved hex literal"
     },
     {
+      "file": ".scratch/grill-t20/reports/2026-09-20-audit.md",
+      "line": 5,
+      "sha": "2818cdb",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t20/reports/2026-09-20-audit.md",
+      "line": 5,
+      "sha": "3a8a63f",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t20/reports/2026-09-20-audit.md",
+      "line": 5,
+      "sha": "2818cdb",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t20/reports/2026-09-20-audit.md",
+      "line": 5,
+      "sha": "9cacc83",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t20/reports/2026-09-20-audit.md",
+      "line": 36,
+      "sha": "9f5e0ba",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t20/reports/2026-09-20-audit.md",
+      "line": 50,
+      "sha": "2818cdb",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t20/reports/2026-09-20-audit.md",
+      "line": 51,
+      "sha": "533e97b88b9fd861546e0805b7bb310cdcf1b56c",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t20/reports/2026-09-20-audit.md",
+      "line": 52,
+      "sha": "533e97b88b9fd861546e0805b7bb310cdcf1b56c",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t20/reports/2026-09-20-audit.md",
+      "line": 60,
+      "sha": "2818cdb",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t20/reports/2026-09-20-audit.md",
+      "line": 60,
+      "sha": "3a8a63f",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t20/reports/2026-09-20-audit.md",
+      "line": 102,
+      "sha": "533e97b",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t20/reports/2026-09-20-audit.md",
+      "line": 103,
+      "sha": "a47cde1",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t20/reports/2026-09-20-audit.md",
+      "line": 105,
+      "sha": "533e97b",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t20/reports/2026-09-20-audit.md",
+      "line": 105,
+      "sha": "076b6d9",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
       "file": ".scratch/grill-t20/reports/2026-09-20-report.md",
       "line": 27,
       "sha": "abf2f83",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t20/round-facts.json",
       "line": 12,
       "sha": "abf2f83",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t21/handoffs/next-round.md",
+      "line": 7,
+      "sha": "533e97b",
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t6/audit/b7ccbeb/bench/polygraph/README.md",

@@ -253,13 +253,13 @@
    "adr_superseded_or_closed": [],
    "net_additions": 1,
    "zero_product_diff": true,
-   "carve_out_used": 0,
+   "carve_out_used": 1,
    "governance_tooling_diff": {
     "files": [
      ".github/workflows/ci.yml",
      "README-zh-CN.md"
     ],
-    "reason": "Audit C-1 retroactive annotation (2026-09-20): two R2-surface files were touched undisclosed at commit time inside the documentation round - .github/workflows/ci.yml suite-parity hand-edit (forced by the ADR-0057 D-C count pin) and README-zh-CN.md, a new root-level documentation file falling into the R2 residual classification (R3_EXACT names CONTEXT.md/README.md/AGENTS.md exactly; no R3 prefix or wiring-test glob covers it). Disclosed under the t14 retroactive-annotation precedent - not counted as a carve-out use because the carve-out three-gate path was not walked at commit time; Disclosed Repair markers land at the zero-R2 claims in the t20 ledger/report/spec/task-book; the owed t20-ledger anchors admission and a possible taxonomy amendment (README-* to R3, standing suite-parity exemption) carry to the audit handoff for an R2-capable window."
+    "reason": "Retroactive correction under grill-t21 audit C-1 (2026-09-22): the t20-time zero-R2 registration was mechanically false - field-name/content mismatch disclosed: README-zh-CN.md was a taxonomy-residual misclassification (R2 by rule absence, not governance tooling in substance; reclassified R3 forward by the ADR-0080 README-* predicate) while .github/workflows/ci.yml is the genuine governance-tooling touch (suite-parity hand-edit forced by the ADR-0057 D-C count pin). Both files were R2 under the t20 taxonomy - the row keeps t20-time truth. The four prose claim sites carry Disclosed Repair markers (t20 ledger D-001, spec-t20 sections 0/1/8, next-round.md, t20 report) and the t21 taxonomy amendment closes the residual rule gap. Supersedes the 2026-09-20 carve_out_used:0 annotation form - the carve-out channel is used as designed."
    },
    "deferred_entry": "defer-0064",
    "advisory_fired": false,
@@ -268,6 +268,35 @@
      "bench/research/out/g6-publish-replay.json"
     ],
     "reason": "faithful regeneration via check-g6-publish re-run during the acceptance battery - the packaged script bytes moved the tarball byte record (same mechanism the t17/t18/t19 rows disclosed)"
+   }
+  },
+  {
+   "round": "grill-t21-doc-round",
+   "date": "2026-09-22",
+   "kind": "documentation",
+   "adr_added": [
+    "0080"
+   ],
+   "adr_superseded_or_closed": [],
+   "net_additions": 1,
+   "zero_product_diff": true,
+   "carve_out_used": 1,
+   "governance_tooling_diff": {
+    "files": [
+     ".github/workflows/ci.yml",
+     "scripts/build-governance-anchors.js",
+     "scripts/check-governance-inventory.js",
+     "scripts/surface-taxonomy.js"
+    ],
+    "reason": "Declared carve-out (t21 D-001): the audit C-1 disposition requires machinery edits - the README-* R3 predicate + the reclassification grace (surface-taxonomy/check-governance-inventory), the t20-ledger anchors admission (build-governance-anchors), and the suite-count parity bump for the new wiring suite (ci.yml). ADR-0080 names each edit."
+   },
+   "deferred_entry": "defer-0066",
+   "advisory_fired": false,
+   "mechanism_output_diff": {
+    "files": [
+     "bench/research/out/g6-publish-replay.json"
+    ],
+    "reason": "faithful regeneration via check-g6-publish re-run inside gate:all during the acceptance battery - same mechanism the t17/t18/t19/t20 rows disclosed"
    }
   }
  ],

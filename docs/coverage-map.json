@@ -1,6 +1,6 @@
 {
  "schema_version": 1,
- "_doc": "ADR-0032 D3: machine fact-source for generator-rule coverage of the seven iron laws (covered | declared-gap | needs-adr | undecidable). ADR-0037 D2: mr_gaps registers the metamorphic-relation coverage axis.",
+ "_doc": "iron-law coverage map (ADR-0032 D3).",
  "laws": {
   "L1": {
    "state": "covered",

@@ -102,6 +102,13 @@
       "sha256": "da500a1e10df28348d8ab168e77e32c58928fb7cf923338ef238294ff8f43e32"
     },
     {
+      "file": "decision-ledger-t20.md",
+      "origin": ".scratch/grill-t20/decision-ledger.md",
+      "adr": "ADR-0080",
+      "bytes": 13348,
+      "sha256": "168e1c71221bbfd092e81347cb43d22418e271c4eb10ae7a092c488c720838b4"
+    },
+    {
       "file": "ERRATA.md",
       "origin": "(authored in place)",
       "adr": "ADR-0061",
@@ -112,8 +119,8 @@
       "file": "trend-inventory.json",
       "origin": "(authored in place)",
       "adr": "ADR-0064",
-      "bytes": 10542,
-      "sha256": "c30a1fa3a618249db46918d0e1bf8804dd93b9a8da1ff226759cfe95fc9d03d1"
+      "bytes": 11676,
+      "sha256": "5314100b8ffb71485ecb6c169d0a3715478820e3281c48f6ac03b8c12b54fb0c"
     },
     {
       "file": "sunset-counter.json",

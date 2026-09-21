@@ -49,7 +49,7 @@
     },
     "R3": {
       "name": "documentation",
-      "rule": "docs/**, .scratch/**, adapters/**, test/adr-*-wiring.test.js, CONTEXT.md, README.md, AGENTS.md",
+      "rule": "docs/**, .scratch/**, adapters/**, test/adr-*-wiring.test.js, CONTEXT.md, AGENTS.md, README* (root-level README prefix predicate - README.md subsumed, ADR-0080)",
       "prefixes": [
         "docs/",
         ".scratch/",
@@ -81,6 +81,16 @@
     "mechanism_output_diff": "optional sibling marker {files, reason} - provenance visibility for mechanism-output touches; never feeds burn-rate; listed files must be in mechanism_outputs; a bare marker with no files hard-fails (ADR-0077 D-B)",
     "carve_out_used": "0|1 burn-rate marker on the trend-inventory row; two consecutive rounds at 1 raise an advisory"
   },
+  "reclassifications": [
+    {
+      "pattern": "^README[^/]*$",
+      "from": "R2",
+      "to": "R3",
+      "effective": "2026-09-22",
+      "adr": "ADR-0080",
+      "note": "residual-rule gap closure - root README-* files classified R2 by rule absence (t20 audit C-1). A trend row dated before this entry may list a matching file in governance_tooling_diff.files without the mislabeled-disclosure failure (the file was R2 at row time); a row dated on/after the effective date fails as before."
+    }
+  ],
   "mechanism_outputs": {
     "_doc": "ADR-0077 D-B: closed enumeration (never residual - same anti-drift discipline as the R1 closure) of git-tracked, R2-classified artifacts produced by a registered in-repo generator. A faithful regeneration of a member is exempt from governance_tooling_diff.files[] disclosure; a hand-edit is a named heavier violation and must be disclosed. Sibling-class outputs on the documentation surface (docs/governance/anchors.json, docs/rewrite-map.json, the surfaces.R1.files snapshot, the README adr-index block) are named in ADR-0077, not enumerated here - R3 files never enter files[] jurisdiction, so the exemption question does not arise for them.",
     "entries": [
