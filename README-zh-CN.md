@@ -1,10 +1,26 @@
 [English](README.md) | **中文**
 
-<!-- translation-baseline: d597c8a0a66aa4a76f93c6c939591920e4065698 -->
+<!-- translation-baseline: 8effaaf46602992f41d8e1ba31ac3634bafdadcf -->
 
-# Jiahao（嘉豪）
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/brand/logo-dark.png">
+    <img src="docs/assets/brand/logo.png" alt="jiahao 标志 —— 兜帽蒙面像" width="140">
+  </picture>
+</p>
 
-面向 LLM 智能体的**双配置（dual profiles）**提示即心智模型技能分发。
+<h1 align="center">Jiahao（嘉豪）</h1>
+
+<p align="center">
+  面向 LLM 智能体的<b>双配置（dual profiles）</b>提示即心智模型技能分发。
+</p>
+
+<p align="center">
+  <img src="docs/assets/badge-license.svg" alt="license: MIT">
+  <img src="docs/assets/badge-profiles.svg" alt="profiles: generator | verifier">
+  <img src="docs/assets/badge-channel.svg" alt="channel: npx github:">
+  <img src="docs/assets/badge-verdict.svg" alt="measurement: publicly failed — v2">
+</p>
 
 > 本文件为 `README.md` 的中文结构镜像（ADR-0079 D1/D4）：与英文原文不一致时，**English original prevails**（以英文原文为准）。逐字钉块（裁决行、声明、命令）保持英文原样并附原句指针。
 
@@ -26,6 +42,8 @@ Jiahao 提供两套安装期规则集，安装时择一：
 |---------|--------------|----------|
 | **generator** | 执行工作的主 Agent | 3 条表面信号规则（无证据 → 无声明、列出已验证的状态变更、验证 = 调用工具）。**仅建议性** —— 永不阻断。 |
 | **verifier**（默认） | 审查工作的审计 Agent | 7 条铁律 + 6 级验证阶梯 + 哈希链 + 置信度校准 + 偏误防护。**缺证据即阻断**。 |
+
+<p align="center"><img src="docs/assets/hero.svg" alt="generator | 信息边界 | verifier -> 六级阶梯 -> PASS / FAIL / ESCALATE / NOT VERIFIED" width="880"></p>
 
 **generator 配置** 针对主 Agent 内部的表面信号（你无法自证 —— 属已验证的建议）。**verifier 配置** 在独立的审计 Agent 中运行，独立性定理在此真正成立：外部验证者能发现生成者结构性看不见的错误。
 
@@ -102,6 +120,8 @@ Jiahao 的词表与检测逻辑**不是隐藏秘密**：工作目录内任何有
 
 ## Verification Ladder
 
+<p align="center"><img src="docs/assets/diagrams/verification-ladder.svg" alt="六级验证阶梯" width="880"></p>
+
 1. 确定性机器检查（测试套件、编译器、哈希比对）
 2. 基准真值比对（数据库状态、oracle 输出）
 3. 独立重执行（重跑、重查、回放）
@@ -153,6 +173,15 @@ MCP 适配器（`jiahao-mcp/`）是 **source-only** git 树组件：不在 tarba
 ## Measurement record
 
 （测量记录各小节为逐字钉块；下列中文仅为导读，**English original prevails**。）
+
+裁决速览 —— 每一行在本页下方各小节中均有逐字绑定；本页不对真实流量作任何检测有效性声明。
+
+| 渠道 | 语料 | 裁决 | 日期 | 记录 |
+| --- | --- | --- | --- | --- |
+| T-6 确认性（产品移植） | polygraph-bench @994bdeb3，396 项 | CONFIRMATORY PASS（in-sample 回放） | T-6 轮 | [ADR-0065](docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md) |
+| devin-corpus@v1 OOT | 种子台架，n=52，lie=12 | indeterminate | 2026-09-15 | [ADR-0067](docs/adr/0067-devin-corpus-v1-oot-falsification-adjudication.md) |
+| devin-corpus@v2 OOT | 种子台架，n=120，lie=31，FP=21/89 | **failed** | 2026-09-15 | [ADR-0068](docs/adr/0068-devin-corpus-v2-dual-axis-adjudication-collection-protocol-claim-slot-v3-binding.md) |
+| devin-corpus@v3 OOT（CAPA 配对器） | 种子台架，n=120，lie=36，FP=0/84 | passed | 2026-09-16 | [ADR-0069](docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md) |
 
 ### Confirmatory claims (T-6, ADR-0065 D-E)
 
@@ -269,13 +298,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 
 双配置流程：建议性 generator 产出声明；独立 verifier 走六级阶梯并落四种裁决之一。
 
-```mermaid
-flowchart LR
-  G["generator profile<br/>3 surface-signal rules (advisory)"] --> C[claim]
-  C --> V["independent verifier<br/>7 iron laws (blocking)"]
-  V --> L["6-rung verification ladder"]
-  L --> O{PASS / FAIL / ESCALATE / NOT VERIFIED}
-```
+<p align="center"><img src="docs/assets/diagrams/dual-profile.svg" alt="双配置安装流程图" width="880"></p>
 
 <details>
 <summary>ADR index — derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`</summary>
