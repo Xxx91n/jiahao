@@ -1,4 +1,4 @@
-captured-at-head: 7690fec25d38e7f78c081faeb7887a881e488918
+captured-at-head: 9efe7b69c1cf1bbba8a9e8b4c0f047fd251198f5
 $ node <doc-hygiene byte scan over committed .scratch/*.md + *.txt>
 
 EXIT 0
@@ -304,6 +304,31 @@ OK   .scratch/grill-t23/reports/2026-09-22-report.md
 OK   .scratch/grill-t23/spec-t23-disposition.md
 OK   .scratch/grill-t24/GOAL.md
 OK   .scratch/grill-t24/decision-ledger.md
+OK   .scratch/grill-t24/evidence/adr-0083-wiring.txt
+OK   .scratch/grill-t24/evidence/anchors.txt
+OK   .scratch/grill-t24/evidence/check-ci-jobs-missing.txt
+OK   .scratch/grill-t24/evidence/check-ci-jobs.txt
+OK   .scratch/grill-t24/evidence/check-deferred.txt
+OK   .scratch/grill-t24/evidence/clean-tree.txt
+OK   .scratch/grill-t24/evidence/compile-node-check.txt
+OK   .scratch/grill-t24/evidence/compile-yaml.txt
+OK   .scratch/grill-t24/evidence/coverage-badref.txt
+OK   .scratch/grill-t24/evidence/coverage.txt
+OK   .scratch/grill-t24/evidence/gate-all.txt
+OK   .scratch/grill-t24/evidence/governance-inventory.txt
+OK   .scratch/grill-t24/evidence/h1-reread.txt
+OK   .scratch/grill-t24/evidence/instrument.txt
+OK   .scratch/grill-t24/evidence/inventory-shape.txt
+OK   .scratch/grill-t24/evidence/liveness.txt
+OK   .scratch/grill-t24/evidence/never-commit-sweep.txt
+OK   .scratch/grill-t24/evidence/pack-smoke.txt
+OK   .scratch/grill-t24/evidence/prose-fixtures.txt
+OK   .scratch/grill-t24/evidence/quoted-stale.fixture.md
+OK   .scratch/grill-t24/evidence/quoted-stale.txt
+OK   .scratch/grill-t24/evidence/reclass-shape.txt
+OK   .scratch/grill-t24/evidence/rewrite-map.txt
+OK   .scratch/grill-t24/evidence/round-facts.txt
+OK   .scratch/grill-t24/evidence/run-test-gate.txt
 OK   .scratch/grill-t24/handoffs/2026-09-23-audit-handoff.md
 OK   .scratch/grill-t24/handoffs/2026-09-23-round-handoff.md
 OK   .scratch/grill-t24/handoffs/next-round.md
@@ -460,4 +485,4 @@ OK   .scratch/grill-t9/reports/2026-09-16-post-round-audit.md
 OK   .scratch/grill-t9/reports/2026-09-16-pre-unlock-audit.md
 OK   .scratch/grill-t9/reports/2026-09-16-report.md
 OK   .scratch/grill-t9/spec-v3-collection.md
-independent scan: 319 committed .scratch/*.md + 138 committed .scratch/*.txt, 0 flagged
+independent scan: 320 committed .scratch/*.md + 162 committed .scratch/*.txt, 0 flagged

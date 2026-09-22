@@ -1,9 +1,32 @@
-captured-at-head: 7690fec25d38e7f78c081faeb7887a881e488918
+captured-at-head: 9efe7b69c1cf1bbba8a9e8b4c0f047fd251198f5
 $ git status --porcelain
 
 EXIT 0
 
- M bench/research/out/g6-publish-replay.json
+ M .scratch/grill-t24/evidence/adr-0083-wiring.txt
+ M .scratch/grill-t24/evidence/anchors.txt
+ M .scratch/grill-t24/evidence/check-ci-jobs-missing.txt
+ M .scratch/grill-t24/evidence/check-ci-jobs.txt
+ M .scratch/grill-t24/evidence/check-deferred.txt
+ M .scratch/grill-t24/evidence/compile-node-check.txt
+ M .scratch/grill-t24/evidence/compile-yaml.txt
+ M .scratch/grill-t24/evidence/coverage-badref.txt
+ M .scratch/grill-t24/evidence/coverage.txt
+ M .scratch/grill-t24/evidence/gate-all.txt
+ M .scratch/grill-t24/evidence/governance-inventory.txt
+ M .scratch/grill-t24/evidence/h1-reread.txt
+ M .scratch/grill-t24/evidence/instrument.txt
+ M .scratch/grill-t24/evidence/inventory-shape.txt
+ M .scratch/grill-t24/evidence/liveness.txt
+ M .scratch/grill-t24/evidence/never-commit-sweep.txt
+ M .scratch/grill-t24/evidence/pack-smoke.txt
+ M .scratch/grill-t24/evidence/prose-fixtures.txt
+ M .scratch/grill-t24/evidence/quoted-stale.fixture.md
+ M .scratch/grill-t24/evidence/quoted-stale.txt
+ M .scratch/grill-t24/evidence/reclass-shape.txt
+ M .scratch/grill-t24/evidence/rewrite-map.txt
+ M .scratch/grill-t24/evidence/round-facts.txt
+ M .scratch/grill-t24/evidence/run-test-gate.txt
 ?? .scratch/grill-t13/audit-evidence/r2-round-diff.patch
 ?? .scratch/grill-t14/audit-evidence/
 ?? .scratch/grill-t15/audit-evidence/round-diff.patch
@@ -17,11 +40,10 @@ EXIT 0
 ?? .scratch/grill-t22/audit-evidence/
 ?? .scratch/grill-t23/audit-evidence/
 ?? .scratch/grill-t23/ref-assets/
-?? .scratch/grill-t24/evidence/
 
 classification (registry docs/governance/never-commit.json, 9 active rules):
-  tracked-diff lines: 1
-  untracked lines: 14 (never-commit class or self: 13; other: 1)
-  unexpected untracked: .scratch/grill-t24/evidence/
+  tracked-diff lines: 24
+  untracked lines: 13 (never-commit class or self: 13; other: 0)
+  unexpected untracked: none
 
 verdict: DIRTY

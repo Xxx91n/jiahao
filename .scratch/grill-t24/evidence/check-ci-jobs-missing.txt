@@ -1,4 +1,4 @@
-captured-at-head: 7690fec25d38e7f78c081faeb7887a881e488918
+captured-at-head: 9efe7b69c1cf1bbba8a9e8b4c0f047fd251198f5
 $ node scripts/check-ci-jobs.js .scratch/grill-t24/evidence/no-such-ci.yml
 
 EXIT 2

@@ -1,4 +1,4 @@
-captured-at-head: 7690fec25d38e7f78c081faeb7887a881e488918
+captured-at-head: 9efe7b69c1cf1bbba8a9e8b4c0f047fd251198f5
 $ node scripts/run-gates.js
 
 EXIT 1
@@ -135,7 +135,7 @@ falsification OK: 12 twin pairs
 > jiahao@0.0.1 prepare
 > git config core.hooksPath .githooks || true
 
-(node:10256) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(node:14088) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 [197 governance-anchors] PASS
 [governance-anchors] OK - 18 artifacts, digests in sync
@@ -144,7 +144,7 @@ falsification OK: 12 twin pairs
 [208 rewrite-map] FAIL
 [rewrite-map] FAIL: docs\rewrite-map.json is stale — regenerate with node scripts/build-rewrite-map.js
 [218 secret-scan] PASS
-[secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 1175/1175/1175; oversized-skip 0
+[secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 1201/1201/1201; oversized-skip 0
 ::warning title=gate:all::3 advisory/band warning(s) from gates: instrument-identity, governance-inventory
 ::error title=UNVERIFIABLE::4 gate(s) unverifiable: ci-wiring requires ci-mode, bench-gate requires ci-mode, probes requires ci-mode, mr-probes requires ci-mode
 gate:all exit 1 (35 entries, 4 unverifiable, fail-fast off)
