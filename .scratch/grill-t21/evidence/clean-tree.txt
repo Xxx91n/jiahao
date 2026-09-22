@@ -2,21 +2,6 @@ $ git status --porcelain
 
 EXIT 0
 
- M .scratch/grill-t21/evidence/adr-0080-wiring.txt
- M .scratch/grill-t21/evidence/gate-all.txt
- M .scratch/grill-t21/evidence/h1-reread.txt
- M .scratch/grill-t21/evidence/liveness.txt
- M .scratch/grill-t21/evidence/pack-smoke.txt
- M .scratch/grill-t21/evidence/prose-fixtures.txt
- M .scratch/grill-t21/evidence/quoted-stale.fixture.md
- M .scratch/grill-t21/evidence/quoted-stale.txt
- M .scratch/grill-t21/evidence/reclass-shape.txt
- M .scratch/grill-t21/evidence/rewrite-map.txt
- M .scratch/grill-t21/evidence/round-facts.txt
- M .scratch/grill-t21/evidence/run-test-gate.txt
- M .scratch/grill-t21/reports/2026-09-22-report.md
- M .scratch/grill-t21/round-facts.json
- M bench/research/out/g6-publish-replay.json
 ?? .scratch/grill-t13/audit-evidence/r2-round-diff.patch
 ?? .scratch/grill-t14/audit-evidence/
 ?? .scratch/grill-t15/audit-evidence/round-diff.patch
@@ -26,12 +11,10 @@ EXIT 0
 ?? .scratch/grill-t19/audit-evidence/
 ?? .scratch/grill-t20/audit-evidence/
 ?? .scratch/grill-t21/audit-evidence/
-?? .scratch/grill-t21/evidence/coverage.txt
-?? .scratch/grill-t21/evidence/inventory-shape.txt
 
 classification:
-  tracked-diff lines: 15
-  untracked lines: 11 (never-commit class or self: 9; other: 2)
-  unexpected untracked: .scratch/grill-t21/evidence/coverage.txt, .scratch/grill-t21/evidence/inventory-shape.txt
+  tracked-diff lines: 0
+  untracked lines: 9 (never-commit class or self: 9; other: 0)
+  unexpected untracked: none
 
-verdict: DIRTY
+verdict: CLEAN
