@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-22T10:07:56.896Z",
+  "generated_at": "2026-09-22T10:48:27.960Z",
   "published_tip": "688e113b658411a1da8f2c838eb03dbdf3bd153d",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -23,10 +23,10 @@
     "published_only": 123,
     "removed": 0,
     "same": 278,
-    "doc_refs": 2094,
+    "doc_refs": 2095,
     "doc_refs_by_class": {
       "rewritten": 103,
-      "local-only": 740,
+      "local-only": 741,
       "published-unchanged": 1251
     }
   },
@@ -16078,14 +16078,14 @@
     },
     {
       "file": "README.md",
-      "line": 66,
+      "line": 80,
       "sha": "051744a7a1b4027a42720814c819bf051e0831a8",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": "README.md",
-      "line": 218,
+      "line": 224,
       "sha": "994bdeb3",
       "class": "local-only",
       "resolved_to": null,
@@ -16093,7 +16093,15 @@
     },
     {
       "file": "README.md",
-      "line": 289,
+      "line": 246,
+      "sha": "994bdeb3",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": "README.md",
+      "line": 317,
       "sha": "8807a61",
       "class": "published-unchanged",
       "resolved_to": null

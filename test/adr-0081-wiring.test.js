@@ -101,8 +101,8 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
     expect((r.stderr || '') + (r.stdout || '')).not.toContain('execFileSync');
   });
 
-  test('coverage leg: the committed diff anchored at the t22 round base validates the latest row', () => {
-    const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'check-governance-inventory.js'), '--coverage-base', 'b93a5df02853ab4ec33ca3eb6881b5576e05b5d9'], { cwd: ROOT, encoding: 'utf8' });
+  test('coverage leg: the committed diff anchored at the t23 round base validates the latest row', () => {
+    const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'check-governance-inventory.js'), '--coverage-base', '688e113b658411a1da8f2c838eb03dbdf3bd153d'], { cwd: ROOT, encoding: 'utf8' });
     expect(r.status).toBe(0);
   });
 
