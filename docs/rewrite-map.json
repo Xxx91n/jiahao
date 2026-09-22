@@ -2,8 +2,8 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-22T13:25:35.259Z",
-  "published_tip": "688e113b658411a1da8f2c838eb03dbdf3bd153d",
+  "generated_at": "2026-09-22T16:43:47.471Z",
+  "published_tip": "c526de301c5d2d25e653bc910a80a9ae56dd252a",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
     "old_tip": "2c93a30a5495219d0d2385f25d19af23e729852f",
@@ -11,8 +11,7 @@
   },
   "sides": {
     "old_refs": [
-      "gb-local/grill-t11-docs",
-      "gb-local/grill-t12-docs"
+      "gb-local/pre-purge-line"
     ],
     "new_refs": [
       "origin/main"
@@ -20,14 +19,14 @@
   },
   "counts": {
     "commits": 15,
-    "published_only": 123,
+    "published_only": 169,
     "removed": 0,
     "same": 278,
-    "doc_refs": 2321,
+    "doc_refs": 2344,
     "doc_refs_by_class": {
       "rewritten": 103,
-      "local-only": 853,
-      "published-unchanged": 1365
+      "local-only": 748,
+      "published-unchanged": 1493
     }
   },
   "commits": [
@@ -111,6 +110,190 @@
   ],
   "removed": [],
   "published_only": [
+    {
+      "new": "c526de301c5d2d25e653bc910a80a9ae56dd252a",
+      "subject": "Merge pull request #9 from Xxx91n/grill-t23-docs"
+    },
+    {
+      "new": "9aba1f6adbb6fece92a07d87835695bc807c1ba6",
+      "subject": "docs(grill-t23): map regen over the committed fixpoint surface (2321 citations)"
+    },
+    {
+      "new": "11a41731a66ad0bac3623490e7863ce1f8600c4b",
+      "subject": "docs(grill-t23): repair-window closeout fixpoint - handoff records the audit-repair outcome, report References lists the t23 audit pair; facts 2321 citations / battery_as_of c5ef0d2; map regenerated last"
+    },
+    {
+      "new": "c5ef0d282c4b24cf9b13c183a573edb56487190a",
+      "subject": "docs(grill-t23): fixpoint after g6 replay regen - facts re-collected (pack_bytes 340472, battery_as_of 46b218b) + report spliced + map regenerated"
+    },
+    {
+      "new": "46b218bf11eb5810a31a697b15564da2cfd1c28c",
+      "subject": "docs(grill-t23): g6-publish-replay regen inside the post-repair gate:all (declared mechanism_output_diff; tarball 340290->340472 tracks the amended doc surface)"
+    },
+    {
+      "new": "57a3cf3c4481cadb4ab40a609e491ae8860040c5",
+      "subject": "docs(grill-t23): clean-tree recaptured CLEAN - ref-assets classified never-commit, tracked-diff 0, 13 untracked all never-commit class"
+    },
+    {
+      "new": "c304ec2b9c7f509ac0eb0fb667dd39a79cfef0ee",
+      "subject": "docs(grill-t23): NEVER_COMMIT classifier + ref-assets/ (task-book labeled; T4-C-2 untracked at 0bf3394) + clean-tree.txt intermediate capture (self-modified marker; recapture converges to CLEAN on next pass)"
+    },
+    {
+      "new": "c44c0dc9978b717110df335bf58770e46fc285e4",
+      "subject": "docs(grill-t23): T4-C dispositions - C-1 three stale-red legs re-captured verbatim post-fixpoint (all EXIT 0); C-7 carve-out comments on config.yml + ci.yml; C-3 defer-0066 backfill + C1-instance resolved-in-harness check-in + defer-0068 countersign check-in (t23 audit as second-party evidence, defer-0042 precedent); C-8 gh-metadata.txt verbatim leg; report: T3/T4 disposition tables, consent-sweep defer-0066, honest-state additions (8effaaf D6 deviation, ref-assets untrack, 51a66d3 message mismatch, re-capture), commit map normalized to shas, C-7 tick 2/2 with corrected count, headroom tri-source reconciliation; map/facts regen fixpoint (2318 citations, battery_as_of 0bf3394)"
+    },
+    {
+      "new": "0bf339475b4506ea670a6ae4503c1913b6487ecc",
+      "subject": "docs(grill-t23): untrack ref-assets (T4-C-2) - the task book labels .scratch/grill-t23/ref-assets/ never-commit but 58ba705 committed the three reference PNGs; they are not pipeline inputs (build-brand-assets.py reads D:/NDM/generated-image.png). Removing from the branch tree; worktree bytes restored next; disclosed in the report's honest-state section"
+    },
+    {
+      "new": "154f918faa7d33134312bc5fe9857bc13aaf215f",
+      "subject": "docs(grill-t23): absorb t23 audit artifacts - PASS WITH FINDINGS report + audit handoff (9 T4-C findings route to this repair window); audit-evidence/ stays never-commit"
+    },
+    {
+      "new": "9b27a5ee622740f05e6b24c66753dc051e7b68de",
+      "subject": "docs(grill-t23): closeout fixpoint + full sweep disclosure - facts 2246 citations / battery_as_of 6e12154; report discloses BOTH never-commit sweeps (a2e5571 five-file + 51a66d3 index-pool) with reverts; handoff lesson strengthened (allowlist, not id-filter)"
+    },
+    {
+      "new": "6e121544953467e90d5ee35a34e0996b19caa33a",
+      "subject": "docs(grill-t23): purge diagnostic tmp-swept.txt from the tree (never belonged; its absence broke the txt-hygiene enumeration)"
+    },
+    {
+      "new": "1b505a4676c7831dcaf68c56a12cfb34d3d83d44",
+      "subject": "docs(grill-t23): fixpoint after never-commit revert - facts re-collected (2238 citations, battery_as_of 0e951ea) + report region re-spliced + map regenerated"
+    },
+    {
+      "new": "0e951ea743eae1c1888caf68d0cb863be15c837f",
+      "subject": "docs(grill-t23): revert never-commit sweep in 51a66d3 - the but-commit absorbed 168 audit-evidence captures alongside the intended report edit; removing them from the branch tree (bytes preserved in 51a66d3 history, worktree copies restored next)"
+    },
+    {
+      "new": "3762f6b45487807f0b850e4019794a692396719f",
+      "subject": "docs(grill-t23): rewrite-map regen for the commit-map tail row (report cites the handoff sha)"
+    },
+    {
+      "new": "51a66d31c1a6e9770db35a757381c34a645a1abc",
+      "subject": "docs(grill-t23): commit map tail rows - handoff sha + closing fixpoint noted"
+    },
+    {
+      "new": "681774235d6d01fe4b031dfe6f0879970f315067",
+      "subject": "docs(grill-t23): fixpoint for handoff commit - facts re-collected (2237 citations, battery_as_of d36e982) + report re-spliced + map regenerated"
+    },
+    {
+      "new": "d36e9821fcf734d5415b0722de6ef67dba61d7c8",
+      "subject": "docs(grill-t23): round-complete handoff for the next session - what landed, carry-forward items (defer-0068 tide, manual social-preview, burn-rate advisory, GitButler index desync + the git reset resync recipe, regen-fixpoint order, id-list discipline), reproduce commands"
+    },
+    {
+      "new": "8cf062512709899d514e97df3af442958a7b58ce",
+      "subject": "docs(grill-t23): final regen fixpoint - facts 2234 citations + battery_as_of 2173d53; report narrative complete (commit map tail, carve-out disclosure, consent sweep incl. the a2e5571 never-commit violation + restoration, disclosures, lessons, references); map regenerated after the final collect"
+    },
+    {
+      "new": "2173d53b0d1c4cb515959652426c37c1ac534747",
+      "subject": "docs(grill-t23): clean-tree recaptured CLEAN - tracked-diff 0, untracked = never-commit class only"
+    },
+    {
+      "new": "bda02278d5cc796a901553169ac174600a412c81",
+      "subject": "docs(grill-t23): clean-tree evidence intermediate capture (self-modified marker, tmp diagnostic file removed)"
+    },
+    {
+      "new": "ddab9b42c5c033ca7333aba2ed5b5c5bd971282a",
+      "subject": "docs(grill-t23): regen fixpoint after never-commit restoration - facts re-collected (battery_as_of 837fca7, citations 2203) + report spliced + map regenerated last so committed citations name the committed battery_as_of"
+    },
+    {
+      "new": "837fca7dbf8ecc8544e74583d0d7e7dee68fcd45",
+      "subject": "docs(grill-t23): remove mistakenly-committed audit-evidence captures - a2e5571's grep-based id collection swept t19-t22 audit-evidence/clean-tree.txt into the branch; never-commit class restored (bytes remain in a2e5571 history and are restored to the worktree below)"
+    },
+    {
+      "new": "66995c747d57fc14e9c8f347b5aac2f086ef1457",
+      "subject": "docs(grill-t23): clean-tree.txt recaptured post-commit - verdict CLEAN (tracked-diff 0, untracked = never-commit class only)"
+    },
+    {
+      "new": "a2e55718022f10efd5170a74fbe112619502dc14",
+      "subject": "docs(grill-t23): clean-tree evidence intermediate state (self-modified marker) - recapture script committed; next recapture converges to the CLEAN committed form"
+    },
+    {
+      "new": "22f2053d443e0f10c5f06e0601ee3c18a62add56",
+      "subject": "docs(grill-t23): recapture-clean-tree.cjs - post-commit Disclosed Re-Capture channel (t22-derived), 'use strict' intact"
+    },
+    {
+      "new": "16ff956cef08219d88e59d15ecbadb72dd669e26",
+      "subject": "docs(grill-t23): regen fixpoint - map regenerated AFTER the facts re-collect so committed citations name the committed battery_as_of (e92992e workspace tip); facts count 2203 stable"
+    },
+    {
+      "new": "e92992e07d1212733fbeb95733b2da96207a1e3e",
+      "subject": "docs(grill-t23): regen fixpoint - facts re-collected (battery_as_of 33e8597, citations 2203) + report facts region re-spliced + rewrite-map regenerated AFTER the collect (t21/t22 ordering: the map's doc citations name the committed battery_as_of)"
+    },
+    {
+      "new": "33e8597245f234b454188067b1dec6ef09b7a9b9",
+      "subject": "docs(grill-t23): rewrite-map regen over the committed battery surface - 2203 citations (evidence argv shas + report commit-map citations joined the tracked set)"
+    },
+    {
+      "new": "1c0835631336df69572769a059b72c0c9419d666",
+      "subject": "docs(grill-t23): battery evidence capture - verbatim legs (gate-all 0, run-test-gate 77/1307 expected-red at rewrite-map staleness inside the run, coverage base 688e113 OK, anchors OK, pack-smoke 340290<380000, liveness exit 0, svg-assets 7/7, brand-regen byte-identical, h1-reread 306md+112txt 0 flagged after the C1 fix); facts canon collected + report spliced"
+    },
+    {
+      "new": "d6ac5d25dc87234c13d4e1605bab2ebbbd05270c",
+      "subject": "docs(grill-t23): rewrite-map regen 2097 citations - the report narrative's SHA citations joined the map (regen ordering: map regenerates after each doc-bearing commit)"
+    },
+    {
+      "new": "e841ce535b93206127c1380d43a0e83f68ffd96f",
+      "subject": "docs(grill-t23): battery repair + report narrative + rewrite-map fixpoint - capture-battery C1 check rewritten escape-proof (codePoint loop; the [\\u0080-\\u009f] literal was eaten to a raw 0x9F byte, flagging every '-'-bearing md); report narrative filled (commit map, carve-out disclosure, consent sweep, evidence table, disclosures, lessons, refs); rewrite-map regen 2096 citations after the new report's SHA citations landed; round-facts.json first-collect"
+    },
+    {
+      "new": "dba54e934a9e0c8de7f5bc43b94995462b0e701d",
+      "subject": "docs(grill-t23): anchors regen + 0081-wiring latest-row fix - anchors.json regenerated after the trend row landed (digest moved); g6-publish-replay.json regen'd inside the first gate-all leg (declared mechanism_output_diff); adr-0081-wiring keeps the t22 row pinned by NAME (position-free) while latest-row assertions move to grill-t23-front-face - the stale-pin red was an expected mid-round state, disclosed"
+    },
+    {
+      "new": "4c28d129492343bdf54d9de178b6c8c295b9eb31",
+      "subject": "docs(grill-t23): trend row + coverage re-anchor - trend-inventory gains the grill-t23-front-face row (kind documentation, adr_added 0082, net +1, zero_product_diff true, carve_out_used:1 with gtd.files = the five R2 touches (.github templates x4 + ci.yml parity), deferred_entry defer-0068, mechanism_output_diff = g6-publish replay regen); adr-0081-wiring coverage-base pin re-anchored b93a5df -> 688e113 per ADR-0081 D-A (the base pairs with the latest row's own round); rewrite-map regen over the committed surface (2095 citations) [T-4 trend row]"
+    },
+    {
+      "new": "58ba705a0017fce8125fbc64d25fcf16f6c3bd45",
+      "subject": "docs(grill-t23): closeout prep - capture-battery.cjs (verbatim-leg runner, t22-derived), report skeleton with round-facts sentinel, ref-assets (user-side raster inputs), hero.svg reworked as pure motif strip (wordmark moved out - h1/tagline carry text, the strip carries the dual-profile + ladder + verdict motif only) [T-4 setup]"
+    },
+    {
+      "new": "ae57a59048641d6b78d015918c0f9c8a98c98bc4",
+      "subject": "docs(grill-t23): repo metadata + asset docs - gh repo edit set description + 7 topics (verified live via gh repo view); docs/assets/README.md lands the asset inventory, regeneration commands, and the manual social-preview upload guide (no API exists for it, per D-006). No push performed [D-006 authorized gh scope]"
+    },
+    {
+      "new": "e308d8ee779ab376ca7666625a043fc49f949f8b",
+      "subject": "docs(grill-t23): .github issue+PR templates under the ADR-0076 carve-out - ISSUE_TEMPLATE/measurement-discrepancy.md is the README-documented reproduction channel (name the mismatching field, verbatim command+output), bug-report.md carries the host-tier degradation checklist + exit-code evidence slot, config.yml routes to the ADR index + measurement record, PULL_REQUEST_TEMPLATE.md enforces evidence-cited claims / ADR-0079 mirror sync / ADR-0039 cap smoke / closed verdict enum; file-level carve-out disclosure comments inline, trend-row registration follows in T-4 [D-007(2) declared carve-out]"
+    },
+    {
+      "new": "ec44625834170a0ec9af6eee44125d4b4d5a5a40",
+      "subject": "docs(grill-t23): zh-CN mirror synced to the preserve-refresh + D6 baseline re-pinned to 8effaaf4 (the README-touching commit lly) - centered logo/badges/hero strip/ladder/dual-profile images mirrored, verdicts-at-a-glance table added in zh, mermaid replaced by the committed SVG, h2 parity holds [ADR-0079 same-commit + D6 second-step rhythm]"
+    },
+    {
+      "new": "8effaaf46602992f41d8e1ba31ac3634bafdadcf",
+      "subject": "docs(grill-t23): README preserve-refresh - centered logo (dark/light picture swap) + h1 + tagline + four local SVG badges replacing external shields; failed v2 verdict block kept verbatim on the first screen (adr-0069 head pins intact); hero motif strip + verification-ladder.svg + dual-profile.svg placed; mermaid block replaced by the committed SVG; Measurement record gains an at-a-glance verdicts table over the unchanged verbatim claim blocks; all wiring-pinned fragments verified present [D-004 README mode: visual refresh, information architecture preserved]"
+    },
+    {
+      "new": "3f4e0ad5cf29f92c95212f323477fef656df8ba8",
+      "subject": "docs(grill-t23): pure-SVG visual system - hero.svg (wordmark + dual-profile split + ladder tick), diagrams/dual-profile.svg (.jiahao-profile -> generator/verifier -> hooks -> 4 verdict states, replaces the mermaid block), diagrams/verification-ladder.svg (six rungs verbatim from src/SKILL.md, stop-at-first-holds + ESCALATE branch), badge set x4 (license/profiles/channel/measurement publicly failed) - all self-contained, title+desc, prefers-color-scheme dark adaptation, 1200 viewBox, no foreignObject/script/external refs (check-svg-assets.cjs 7/7 OK, XML well-formed) [D-002 visual layer]"
+    },
+    {
+      "new": "424c07380cb50d7386447cc0e5be6fd266ee9761",
+      "subject": "docs(grill-t23): D6 second step - re-pin the zh-CN translation baseline to d597c8a (the t23 cap-amendment README.md-touching commit; count lines synced in the same zh edit per the rhythm) [ADR-0079 D6]"
+    },
+    {
+      "new": "acf538830a89e6c91ac380d8d448abfb22f14cdf",
+      "subject": "docs(grill-t23): brand asset matrix landed under docs/assets/brand/ (D-005/D-007) - deterministic Pillow pipeline over the external GPT Image draft (alpha source, no white fringe: semi-px mean RGB 3.3); 1024 RGBA master logo.png + logo-dark.png white-sticker halo derivation (MaxFilter-31) + favicon 16/32/48/128 + favicon.ico composite + apple-touch-icon 180 opaque + android-chrome 192/512 + social-preview 1280x640 (#0d1117, six-rung ladder motif, text-figure collision guarded by fit() assert). Phase-6 checks on the evidence sheet: 16px reads, light/dark backgrounds clean, edge quality verified [D-007 dark-variant derivation]"
+    },
+    {
+      "new": "d597c8a0a66aa4a76f93c6c939591920e4065698",
+      "subject": "docs(grill-t23): cap amendment via the pre-registered ADR-0062 D-A channel - ADR-0082 lands policy-before-value (M=339,408 pinned re-measure -> cap=ceil_to_10_000(373,348.8)=380,000, not-a-retro-application); ADR-0039 D3 live anchor amended in place 340,000->380,000; defer-0067 discharged-by-trigger, defer-0068 registers the second_reviewer slot (2026-12-15 tide). Wiring: adr-0082 suite added (77 suites/1307 tests), adr-0033 seed inventory 62, adr-0081 discharge pin, adr-0060/0065 cap literals resynced, ci.yml parity 77 (R2 carve-out), README index rebuilt to 82 records + count lines synced (ADR-0056/0057), rewrite-map regen + published_tip re-pinned to 688e113 (gb-local/main caught up, disclosed). Verification: pack-smoke 339,911<380,000 green; run-test-gate --expected-suites 77 -> 77/77 suites, 1307/1307 tests exit 0; check-deferred 62 entries OK [defer-0067 discharged]"
+    },
+    {
+      "new": "3a8c3b29b7e0321dd993f76015fb768730eaa93c",
+      "subject": "docs(grill-t23): dispose t22 audit nits - T3-C-1 ADR-0081 D-E enumerates the third R2 touch (thresholds.json) + scopes the R3 sentence to the registry/CONTEXT subset (dated in-place correction); T3-C-2 dated consent-sweep backfill naming defer-0060/0064/0065 + sunset counter + never-commit set; T3-C-3 'use strict' restored in recapture-clean-tree.cjs (defer-0066 instance). adr-0081-wiring 14/14 green"
+    },
+    {
+      "new": "657d422d85c101c999047cd3f6618f90e929e230",
+      "subject": "docs(grill-t23): absorb t22 second-party audit - PASS WITH FINDINGS report + audit handoff (a8974cd precedent); audit-evidence stays never-commit"
+    },
+    {
+      "new": "a54d0100ca159a2b98b8626b7df4336b8496a593",
+      "subject": "docs(grill-t23): grill closeout - decision ledger D-001..D-007, spec, task book, GOAL"
+    },
     {
       "new": "688e113b658411a1da8f2c838eb03dbdf3bd153d",
       "subject": "docs(grill-t22): regen fixpoint - rewrite-map regenerated AFTER the facts re-collect so its doc citations name the committed battery_as_of_commit (de68857); the earlier regen ran before the splice and pinned the stale pin - same ordering error as t21 lny, disclosed"
@@ -13705,25 +13888,36 @@
       "file": ".scratch/grill-t23/handoffs/2026-09-22-audit-handoff.md",
       "line": 5,
       "sha": "9b27a5e",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/handoffs/2026-09-22-audit-handoff.md",
       "line": 20,
       "sha": "8effaaf",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/handoffs/2026-09-22-audit-handoff.md",
       "line": 23,
       "sha": "51a66d3",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/handoffs/2026-09-22-next-round-handoff.md",
+      "line": 7,
+      "sha": "c526de3",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/handoffs/2026-09-22-next-round-handoff.md",
+      "line": 8,
+      "sha": "c526de3",
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/handoffs/2026-09-22-round-complete-handoff.md",
@@ -13736,9 +13930,8 @@
       "file": ".scratch/grill-t23/handoffs/2026-09-22-round-complete-handoff.md",
       "line": 22,
       "sha": "8effaaf",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/handoffs/2026-09-22-round-complete-handoff.md",
@@ -13751,41 +13944,36 @@
       "file": ".scratch/grill-t23/handoffs/2026-09-22-round-complete-handoff.md",
       "line": 41,
       "sha": "154f918",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/handoffs/2026-09-22-round-complete-handoff.md",
       "line": 47,
       "sha": "8effaaf",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/handoffs/2026-09-22-round-complete-handoff.md",
       "line": 47,
       "sha": "51a66d3",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/handoffs/2026-09-22-round-complete-handoff.md",
       "line": 63,
       "sha": "a2e5571",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/handoffs/2026-09-22-round-complete-handoff.md",
       "line": 64,
       "sha": "51a66d3",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/handoffs/next-round.md",
@@ -13805,9 +13993,8 @@
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 5,
       "sha": "9b27a5e",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
@@ -13821,33 +14008,29 @@
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 5,
       "sha": "a2e5571",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 5,
       "sha": "837fca7",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 5,
       "sha": "51a66d3",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 5,
       "sha": "0e951ea",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
@@ -13860,9 +14043,8 @@
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 11,
       "sha": "6e12154",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
@@ -13889,49 +14071,43 @@
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 42,
       "sha": "6e12154",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 46,
       "sha": "d597c8a",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 46,
       "sha": "acf5388",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 46,
       "sha": "8effaaf",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 46,
       "sha": "e308d8e",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 50,
       "sha": "8effaaf",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
@@ -13951,169 +14127,267 @@
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 59,
       "sha": "a2e5571",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 59,
       "sha": "837fca7",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 59,
       "sha": "51a66d3",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 59,
       "sha": "0e951ea",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 59,
       "sha": "6e12154",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 61,
       "sha": "51a66d3",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 61,
       "sha": "8cf0625",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 61,
       "sha": "9b27a5e",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 67,
       "sha": "657d422",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 77,
       "sha": "1c08356",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 78,
       "sha": "58ba705",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 82,
       "sha": "8effaaf",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 82,
       "sha": "ec44625",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 82,
       "sha": "d597c8a",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 85,
       "sha": "51a66d3",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 85,
       "sha": "6e12154",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 98,
       "sha": "a2e5571",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 98,
       "sha": "51a66d3",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 98,
       "sha": "837fca7",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 98,
       "sha": "0e951ea",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
       "line": 101,
       "sha": "8effaaf",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "line": 4,
+      "sha": "9b27a5e",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "line": 4,
+      "sha": "154f918",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "line": 4,
+      "sha": "0bf3394",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "line": 4,
+      "sha": "c44c0dc",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "line": 4,
+      "sha": "c304ec2",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "line": 4,
+      "sha": "57a3cf3",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "line": 4,
+      "sha": "46b218b",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "line": 4,
+      "sha": "c5ef0d2",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "line": 4,
+      "sha": "11a4173",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "line": 4,
+      "sha": "9aba1f6",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "line": 25,
+      "sha": "1c08356",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "line": 26,
+      "sha": "0bf3394",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "line": 30,
+      "sha": "8effaaf",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "line": 33,
+      "sha": "51a66d3",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "line": 38,
+      "sha": "c44c0dc",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "line": 39,
+      "sha": "154f918",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "line": 41,
+      "sha": "c5ef0d2",
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
@@ -14126,9 +14400,8 @@
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 30,
       "sha": "c5ef0d2",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
@@ -14141,345 +14414,302 @@
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 39,
       "sha": "a54d010",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 40,
       "sha": "657d422",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 41,
       "sha": "3a8c3b2",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 42,
       "sha": "d597c8a",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 43,
       "sha": "acf5388",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 44,
       "sha": "424c073",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 44,
       "sha": "d597c8a",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 45,
       "sha": "3f4e0ad",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 46,
       "sha": "8effaaf",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 47,
       "sha": "ec44625",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 47,
       "sha": "8effaaf",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 48,
       "sha": "e308d8e",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 49,
       "sha": "ae57a59",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 50,
       "sha": "58ba705",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 51,
       "sha": "4c28d12",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 52,
       "sha": "dba54e9",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 53,
       "sha": "e841ce5",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 54,
       "sha": "d6ac5d2",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 55,
       "sha": "1c08356",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 56,
       "sha": "33e8597",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 57,
       "sha": "e92992e",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 57,
       "sha": "16ff956",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 58,
       "sha": "22f2053",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 59,
       "sha": "a2e5571",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 60,
       "sha": "66995c7",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 61,
       "sha": "837fca7",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 62,
       "sha": "ddab9b4",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 63,
       "sha": "bda0227",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 63,
       "sha": "2173d53",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 64,
       "sha": "8cf0625",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 65,
       "sha": "d36e982",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 67,
       "sha": "51a66d3",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 68,
       "sha": "3762f6b",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 69,
       "sha": "0e951ea",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 69,
       "sha": "51a66d3",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 70,
       "sha": "1b505a4",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 71,
       "sha": "6e12154",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 72,
       "sha": "9b27a5e",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 73,
       "sha": "154f918",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 74,
       "sha": "0bf3394",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 78,
       "sha": "6e12154",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 127,
       "sha": "a2e5571",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 128,
       "sha": "837fca7",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
@@ -14499,158 +14729,167 @@
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 173,
       "sha": "657d422",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 173,
       "sha": "3a8c3b2",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 181,
       "sha": "154f918",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 186,
       "sha": "0bf3394",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 190,
       "sha": "8effaaf",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 193,
       "sha": "51a66d3",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 218,
       "sha": "dba54e9",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 225,
       "sha": "a2e5571",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 227,
       "sha": "837fca7",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 229,
       "sha": "51a66d3",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 230,
       "sha": "0e951ea",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 237,
       "sha": "8effaaf",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 239,
       "sha": "ec44625",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 244,
       "sha": "58ba705",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 245,
       "sha": "0bf3394",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 247,
       "sha": "51a66d3",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 249,
       "sha": "8cf0625",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 249,
       "sha": "9b27a5e",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/round-facts.json",
       "line": 12,
       "sha": "c5ef0d2",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
+      "class": "published-unchanged",
+      "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/spec-t23-disposition.md",
       "line": 16,
       "sha": "a8974cd",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t24/GOAL.md",
+      "line": 10,
+      "sha": "c526de3",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t24/decision-ledger.md",
+      "line": 16,
+      "sha": "c44c0dc",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t24/handoffs/next-round.md",
+      "line": 8,
+      "sha": "c526de3",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t24/handoffs/next-round.md",
+      "line": 13,
+      "sha": "657d422",
       "class": "published-unchanged",
       "resolved_to": null
     },
