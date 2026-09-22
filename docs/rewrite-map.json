@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-22T10:48:27.960Z",
+  "generated_at": "2026-09-22T11:02:41.204Z",
   "published_tip": "688e113b658411a1da8f2c838eb03dbdf3bd153d",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -23,10 +23,10 @@
     "published_only": 123,
     "removed": 0,
     "same": 278,
-    "doc_refs": 2095,
+    "doc_refs": 2096,
     "doc_refs_by_class": {
       "rewritten": 103,
-      "local-only": 741,
+      "local-only": 742,
       "published-unchanged": 1251
     }
   },
@@ -12952,6 +12952,14 @@
       "sha": "a8974cd",
       "class": "published-unchanged",
       "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 28,
+      "sha": "dba54e9",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
     },
     {
       "file": ".scratch/grill-t23/spec-t23-disposition.md",

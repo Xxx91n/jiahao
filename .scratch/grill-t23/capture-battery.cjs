@@ -97,7 +97,7 @@ function mdHygiene(buf) {
     if (b === 13 && buf[i + 1] !== 10) hits.push('lone CR @' + i);
   }
   const t = buf.toString('utf8');
-  if (/[-]/.test(t)) hits.push('C1 control char (octal-eaten stray)');
+  for (const ch of t) { const c = ch.codePointAt(0); if (c >= 0x80 && c <= 0x9f) { hits.push('C1 control char (octal-eaten stray)'); break; } }
   const noTicks = t.replace(/`[^`]*`/g, '');
   if (/[A-Za-z]:(?![\\/])[A-Za-z0-9_.-]+\.[a-z]{2,5}/.test(noTicks)) hits.push('stripped-path signature');
   if (/^- {2,}-/m.test(t) || /^- -[a-z]/m.test(t)) hits.push('stripped $name bullet');

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0077 D-C facts canon: regenerable at the closing step; the report facts section renders deterministically from this artifact. report_commit stays null - the report cannot cite its own commit. Not an anchors-chain member (per-round regeneration would churn the digest chain).",
+  "suites": 77,
+  "passed": 1307,
+  "skipped": 0,
+  "pack_bytes": 340290,
+  "instrument_entries": 27,
+  "rewrite_map_citations": 2095,
+  "registry_entries": 62,
+  "anchors_count": 18,
+  "battery_as_of_commit": "dba54e9",
+  "report_commit": null,
+  "not_run": [
+    "bench-gate",
+    "ci-wiring",
+    "mr-probes",
+    "probes"
+  ]
+}
