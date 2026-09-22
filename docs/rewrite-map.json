@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-22T13:17:20.337Z",
+  "generated_at": "2026-09-22T13:23:39.570Z",
   "published_tip": "688e113b658411a1da8f2c838eb03dbdf3bd153d",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -23,10 +23,10 @@
     "published_only": 123,
     "removed": 0,
     "same": 278,
-    "doc_refs": 2318,
+    "doc_refs": 2321,
     "doc_refs_by_class": {
       "rewritten": 103,
-      "local-only": 850,
+      "local-only": 853,
       "published-unchanged": 1365
     }
   },
@@ -13749,7 +13749,31 @@
     },
     {
       "file": ".scratch/grill-t23/handoffs/2026-09-22-round-complete-handoff.md",
-      "line": 48,
+      "line": 41,
+      "sha": "154f918",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/handoffs/2026-09-22-round-complete-handoff.md",
+      "line": 47,
+      "sha": "8effaaf",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/handoffs/2026-09-22-round-complete-handoff.md",
+      "line": 47,
+      "sha": "51a66d3",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/handoffs/2026-09-22-round-complete-handoff.md",
+      "line": 63,
       "sha": "a2e5571",
       "class": "local-only",
       "resolved_to": null,
@@ -13757,7 +13781,7 @@
     },
     {
       "file": ".scratch/grill-t23/handoffs/2026-09-22-round-complete-handoff.md",
-      "line": 49,
+      "line": 64,
       "sha": "51a66d3",
       "class": "local-only",
       "resolved_to": null,
@@ -14101,7 +14125,7 @@
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 30,
-      "sha": "46b218b",
+      "sha": "c5ef0d2",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -14618,7 +14642,7 @@
     {
       "file": ".scratch/grill-t23/round-facts.json",
       "line": 12,
-      "sha": "46b218b",
+      "sha": "c5ef0d2",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"

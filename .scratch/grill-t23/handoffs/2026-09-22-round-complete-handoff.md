@@ -35,6 +35,21 @@ is local-only — **never pushed** (D-006: push not authorized). Base
   `docs/governance/trend-inventory.json` (carve_out_used:1, 5 R2 files,
   deferred_entry defer-0068, mechanism_output_diff = g6 replay).
 
+## Audit-repair window outcome (2026-09-22, post-audit)
+
+The t23 second-party audit (`reports/2026-09-22-audit.md`, absorbed at
+`154f918`) returned **PASS WITH FINDINGS** — nine T4-C nits, all disposed
+in this window (per-finding table in the round report's Audit dispositions
+section): three stale-red evidence legs re-captured verbatim post-fixpoint,
+ref-assets untracked per the task-book label, consent sweep backfilled for
+`defer-0066` (+ registry check-in marking the C1 instance resolved), the
+C-7 lookback tick registered with the corrected count, the T3-C disposition
+table added, the `8effaaf` D6 deviation and `51a66d3` message mismatch
+disclosed, `config.yml`/`ci.yml` inline carve-out comments added, and a
+verbatim `gh repo view` leg captured (`evidence/gh-metadata.txt`).
+defer-0068's countersign is recorded via `last_check_in` (defer-0042
+precedent); the row stays pending-evaluation to the 2026-12-15 tide.
+
 ## Known carry-forward / watch items
 
 1. **defer-0068** discharges at the 2026-12-15 second-reviewer tide.
