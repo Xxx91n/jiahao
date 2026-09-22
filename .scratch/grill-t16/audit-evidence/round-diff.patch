@@ -1,0 +1,2521 @@
+diff --git a/.scratch/grill-t15/audit-evidence/audit-report-2026-09-18.md b/.scratch/grill-t15/audit-evidence/audit-report-2026-09-18.md
+new file mode 100644
+index 0000000..79ea62e
+--- /dev/null
++++ b/.scratch/grill-t15/audit-evidence/audit-report-2026-09-18.md
+@@ -0,0 +1,120 @@
++# grill-t15 audit report — 2026-09-18 (second-party audit window)
++
++- Scope: `.scratch/grill-t15/reports/2026-09-18-report.md` + T-3 addendum,
++  branch `grill-t15-docs` (9 content commits over base 21b1442).
++- Method: hard acceptance re-run (every verification command re-executed),
++  repo-reality spot checks (rg/file existence/JSON fields/sha256), and the
++  $code-review two-axis review (Standards + Spec, parallel sub-agents) over
++  `21b1442...HEAD` (diff materialized at `./round-diff.patch`, 3400 lines).
++- Duties: report only — no fixes. Version control untouched except
++  discarding the gate-run residue this audit itself caused.
++
++## Verdict: PASS WITH FINDINGS
++
++All hard acceptance green; every D-xxx claim substantively verified against
++repo evidence. Findings F-A..F-E below are disposition material for the
++next round; none invalidate the landed state.
++
++## 1. Hard acceptance re-run (claim vs reproduced)
++
++| Report claim | Reproduced | Verdict |
++|---|---|---|
++| run-test-gate --expected-suites 73 -> 73 suites / 1194 tests / 3 skipped | 73/1194 PASS, **0 skipped** | PASS (count drift, note) |
++| npm run gate:all -> exit 0, 35 entries, 4 unverifiable, 2 advisory | exit 0, 35/4/2 identical | PASS |
++| check-deferred -> 55 entries (47 live, 8 closed/actioned) | identical | PASS |
++| build-governance-anchors --check -> 15 artifacts in sync | identical | PASS |
++| check-governance-inventory -> 35 entries + trend advisory | identical | PASS |
++| build-rewrite-map --check -> 1403 citations in sync | identical | PASS |
++| check-ci-jobs -> exit 1, defer0004=unmet, defer0026=SATISFIED | real exit 1, identical output | PASS |
++| instrument --check -> OK, conditional cert to 2026-12-11 | identical | PASS |
++| npm pack -> 112 files, 329559 B | 112 files, **329844 B** | PASS (post-T-3 drift; <340000) |
++| liveness: install.js --help / init -y --dry-run exit 0 | identical output, exit 0 | PASS |
++| telemetry: events=31 organic=0, G1=false G3=false G4=true | identical | PASS |
++| frozen: devin-oot-v3 sha256 fd6a0d42... | byte-match | PASS |
++| frozen: instrument-state seq-13 stable, "26 entries" | seq-13 stable; now **27 entries** (seq-27 = the T-3 signoff itself) | PASS (stale count) |
++| two audit patches never committed | tq + nl untracked; nothing else pending | PASS |
++
++## 2. D-xxx claim -> evidence -> conclusion
++
++| Claim | Evidence | Conclusion |
++|---|---|---|
++| D-001 boundary honored | no strategic/promotion review opened; thresholds.json untouched (patch mentions are prose only); grill commits touch no R1 closure file; patches untracked | VERIFIED |
++| D-002 counter home | docs/governance/sunset-counter.json exists (schema v1, n_target=6, consecutive_zeros=1, observation 2026-09-17 organic=0, evidence_ref->t14 checkpoint, ledger_ref->t14 ledger#t-2-dispositions); anchors-admitted (15 artifacts, --check green); adr-0075-wiring 24 tests pin coherence/semantics; ADR-0075 D-C pointer line present; defer-0055 pure pointer | VERIFIED (ledger_ref deviates from taskbook's "t15 D-002" but resolves to the real observation record - defensible) |
++| D-003 0026 actioned / 0004 narrowed | defer-0026 status=actioned + limitation + actioned_at/via; defer-0004 unfreeze_if verbatim "multiple workflow files OR any matrix OR job count > 3", verified_by=check-ci-jobs.js, predicate rewritten (multi_workflow/any_matrix/over_three_jobs), live reports unmet; 5 new adr-0058 tests incl. negative fixture; same commit wuk | VERIFIED with two defects: exit-code conflation (F-A), missing "ADR-0058 D-C" citation (F-C) |
++| D-004 bidirectional pin | spec Inputs bullet registers union(git ls-files, ls-tree -r HEAD)+untracked convention; adr-0074 23 tests assert spec-side vocabulary AND generator call sites; same commit kuk; no gates.json entry | VERIFIED |
++| D-005 taxonomy + carve-out | surface-taxonomy.{js,json} authority (closure scan; classifyPath verified); ADR-0076 D-A/D-B; check-governance-inventory re-derives declared files' surface + burn-rate advisory; t14 row retro-annotated; zero_product_diff redefined; CONTEXT terms + AGENTS one line; adr-0064-t1 +2 tests | VERIFIED; residual: recompute validates declared files only, completeness unchecked (F-D) |
++| D-006 defer-0060 row | row verbatim: external-event, pending-evaluation, quarterly, review_at 2026-12-15, NO verified_by, sole-403-tracker rationale, id note verbatim; ADR-0058 R10/R13 pointer line same commit | VERIFIED |
++| D-007 light close + asks | asks unbundled (separate packets/acts/ledger lines); Ask A seq=27 record_signoff seq-24/Euiop1/approve verbatim auth; Ask B owner_ratification=ratified (rejection exit preserved in reason); ADR-0075 Status countersign 2026-09-18; consent-sweep lines T-2; WORKFLOW.md absent + registered; wording guards held (no audit-response framing; ratification not called audit closure) | VERIFIED |
++
++## 3. Two-axis review ($code-review over 21b1442...HEAD)
++
++### Standards
++- HARD: check-ci-jobs.js header still says "Predicates: multi-job
++  (defer-0004)" - the predicate it documents was rewritten (wuk). Verified
++  lines 4-5. (Also F-B.)
++- HARD: two R2-surface files touched this round absent from
++  governance_tooling_diff.files: src/instrument-state.json (T-3 append) and
++  bench/research/out/g6-publish-replay.json (gate refresh). Defensible as
++  mechanism-output artifacts, but the taxonomy letter carves no such
++  exception and the recompute cannot detect omission. (F-D.)
++- Judgement calls: stale comment test/adr-0069-wiring.test.js (~L307, count
++  bumped, comment still says ADR-0075 landed); dead `m[1]||m[2]` in
++  surface-taxonomy.js (REQ_RE has one capture group); ledger T-2 "1346
++  citations" vs final 1403; per-round count re-asserts across ~10 wiring
++  files (registered convention, noted only).
++- Clean: registry schema conventions, ADR-0076 structure, script headers
++  elsewhere, AGENTS single pointer, R1 closure untouched, red disclosures.
++
++### Spec
++- PARTIAL: defer-0004 disposition lacks the required "ADR-0058 D-C"
++  citation (spec S3 + ledger D-003 "处置记录显式引 ADR-0058 D-C 保持链条").
++  Rationale cites ADR-0058 unqualified; T-2 and ADR-0076 D-E do not name
++  D-C either. (F-C.)
++- MINOR: counter observations[0].ledger_ref -> t14 ledger T-2 vs taskbook's
++  "t15 D-002"; resolves to the real observation record. Noted, no rework.
++- MINOR: CONTEXT carve-out gloss says "named in ADR decision and ledger",
++  dropping the trend-inventory governance_tooling_diff channel.
++- DEFECT: check-ci-jobs exit code ANDs defer0004+defer0026
++  (satisfied = unmet.length===0). check-deferred evalSuggestions treats
++  exit 0 as THE row's condition met; only defer-0004 consumes it now. A
++  workflow split (the likeliest trigger: multi_workflow) moves the summary
++  job out of ci.yml, defer0026 legs regress, exit=1 -> defer-0004's
++  narrowed trigger fires SILENTLY - the missed-alert dual of the banned
++  permanently-SATISFIED. (F-A.)
++- MINOR: any_matrix regex misses inline `matrix: {...}` and does not anchor
++  to a strategy: parent.
++- Clean: §6 row verbatim, §4 pins mechanism-vocabulary only, §8 negative
++  union unbreached, asks unbundled, wording guards held.
++
++## 4. Findings (disposition material for next round)
++
++- F-A (medium): check-ci-jobs exit-code conflation - defer-0004's verified_by
++  tripwire can silently miss in the primary activation path. Suggested fix:
++  key the exit to the live row under evaluation (defer0004 only for exit
++  semantics, or a per-row selector), pin exit semantics in adr-0058-wiring,
++  update the header comment (F-B same commit).
++- F-B (low): stale script header in check-ci-jobs.js ("multi-job" predicate
++  description) - the anti-drift discipline this round champions.
++- F-C (low): defer-0004 disposition missing explicit ADR-0058 D-C citation
++  (registry rationale and/or ledger note).
++- F-D (low): governance_tooling_diff completeness ambiguity - two R2
++  mechanism-output artifacts touched but undeclared; recompute validates
++  labels, not coverage. Disclose or amend taxonomy/diff_semantics to name
++  the mechanism-output-artifact convention.
++- F-E (nits): adr-0069 stale comment; surface-taxonomy m[2] dead code;
++  CONTEXT carve-out gloss; any_matrix regex edge; ledger 1346 vs 1403;
++  report commit list omits kkx/ovs/pyt; report evidence numbers stale
++  post-T-3 (skips 3->0, pack 329559->329844, entries 26->27).
++
++## 5. Process notes (reported, not ratified)
++
++- Report self-description is staleness-class, not fabrication: every
++  reproducible command re-verified within disclosed ordering; the stale
++  figures all sit in pre-T-3 sections the addendum supersedes.
++- Mid-round reds disclosed per AGENTS.md (4 items, all resolved; final
++  state green on my own re-run).
++- This audit's own artifacts: round-diff.patch stays untracked forever
++  (same convention as tq/nl); the gate-run rewrite of
++  bench/research/out/g6-publish-replay.json caused by this audit was
++  discarded - workspace matches audited HEAD.
++- No VCS writes by this window.
+diff --git a/.scratch/grill-t15/decision-ledger.md b/.scratch/grill-t15/decision-ledger.md
+index 742fcf6..ee6caf9 100644
+--- a/.scratch/grill-t15/decision-ledger.md
++++ b/.scratch/grill-t15/decision-ledger.md
+@@ -80,7 +80,7 @@ Executed under the R1 stage gate (kym on grill-t15-docs; boundary green on the s
+ - defer-0057 — stays pending-evaluation (t13 tally row; closes at the next trend-anchor evaluation).
+ - O-E backlog (telemetry export breadth) — stays deferred as an observation on the standing consent-sweep; low-priority backlog, no failure driver.
+ - WORKFLOW.md — disposition: register permanent absence. The file never existed in this repo history; the working conventions it would carry live in the $but skill, the task-book handoffs (next-round.md), and the AGENTS.md working agreement. Absence is registered, not silently tolerated.
+-- Audit nits executed: stale FAIL message now describes the anchored discovery rule; corrupt-prior-map read hard-fails loudly (ENOENT-only fallback, no silent tip-only degrade); gen-docs.cjs ROOT derived from __dirname; adr-0075-wiring defer-0059 closed-status assertion lives solely in the R2 boundary describe; path.join(ROOT,OUT_REL) deduplicated; docs/rewrite-map.json regenerated (1346 doc citations classified, in sync).
++- Audit nits executed: stale FAIL message now describes the anchored discovery rule; corrupt-prior-map read hard-fails loudly (ENOENT-only fallback, no silent tip-only degrade); gen-docs.cjs ROOT derived from __dirname; adr-0075-wiring defer-0059 closed-status assertion lives solely in the R2 boundary describe; path.join(ROOT,OUT_REL) deduplicated; docs/rewrite-map.json regenerated (1403 doc citations classified, in sync).
+ - Owner asks (unbundled, still open): Ask A - instrument seq-24 sign-off (record-type, open since t13); Ask B - defer-0051 evidence-packet ratification (judgmental; a rejection reopens the row). Frozen packet texts live in ADR-0076 D-E. Bookkeeping annotations only: the ADR-0075 second_reviewer countersign lands when the owner ratifies the t14 audit outcome; defer-0060 is a tracked row (owner action = its unfreeze_if), not a decision ask.
+ 
+ ## T-3 dispositions (owner asks, 2026-09-18)
+diff --git a/.scratch/grill-t15/handoffs/2026-09-18-audit-passed-with-findings.md b/.scratch/grill-t15/handoffs/2026-09-18-audit-passed-with-findings.md
+new file mode 100644
+index 0000000..c07d838
+--- /dev/null
++++ b/.scratch/grill-t15/handoffs/2026-09-18-audit-passed-with-findings.md
+@@ -0,0 +1,76 @@
++# grill-t15 audit PASSED WITH FINDINGS — handoff to grill-t16 (2026-09-18)
++
++Second-party audit verdict: **PASS WITH FINDINGS** (same class as t14).
++Full audit: `.scratch/grill-t15/audit-evidence/audit-report-2026-09-18.md`.
++Round report under audit: `.scratch/grill-t15/reports/2026-09-18-report.md`.
++Ledger/spec/taskbook: `.scratch/grill-t15/decision-ledger.md`,
++`.scratch/grill-t15/spec-disposition-mechanisms.md`,
++`.scratch/grill-t15/handoffs/next-round.md`.
++
++## Verified state (auditor re-ran, do not re-litigate)
++
++- `node scripts/run-test-gate.js --expected-suites 73` -> 73/1194, 0 skipped
++- `npm run gate:all` -> exit 0 (35 entries, 4 unverifiable ci-mode, 2 advisory)
++- `node scripts/check-deferred.js` -> 55 entries (47 live, 8 closed/actioned)
++- `node scripts/build-governance-anchors.js --check` -> 15 artifacts in sync
++- `node scripts/check-governance-inventory.js` -> 35 entries + trend advisory
++- `node scripts/build-rewrite-map.js --check` -> 1403 citations in sync
++- `node scripts/check-ci-jobs.js` -> exit 1 (defer0004=unmet, defer0026=SATISFIED)
++- `node scripts/instrument.js --check` -> authoritative, conditional cert to 2026-12-11
++- `npm pack` -> 112 files, **329844 B** (post-T-3; <340000)
++- branch `grill-t15-docs` = 9 content commits over base 21b1442 (kkx, vwm,
++  kuk, kym, wuk, opl, pvz, ovs, pyt); T-3 owner dispositions landed
++  (seq=27 record_signoff; defer-0051 owner_ratification=ratified;
++  ADR-0075 countersign 2026-09-18).
++
++## Findings to disposition next round (F-1..F-5 of THIS audit)
++
++1. **F-A (medium) — check-ci-jobs exit-code conflation.** `evaluate()`
++   returns satisfied = unmet.length===0 across BOTH rows; check-deferred
++   treats exit 0 as THE row's trigger. Only defer-0004 consumes it now:
++   a workflow split (the likeliest defer0004 trigger) moves the summary
++   job out of ci.yml, defer0026 legs regress, exit=1 -> the narrowed
++   tripwire fires silently. Fix: exit keyed to the live row (defer0004)
++   or a per-row selector; pin exit semantics in test/adr-0058-wiring.test.js.
++2. **F-B (low)** — check-ci-jobs.js header still describes the dead
++   "multi-job" predicate (lines 4-5). Fix with F-A, same commit.
++3. **F-C (low)** — defer-0004 disposition lacks the explicit "ADR-0058 D-C"
++   citation (spec S3 / ledger D-003). Registry rationale or ledger note.
++4. **F-D (low)** — governance_tooling_diff completeness: two R2
++   mechanism-output artifacts touched (src/instrument-state.json via T-3,
++   bench/research/out/g6-publish-replay.json via gate refresh) undeclared.
++   Recompute validates declared files only. Disclose, or amend
++   surface-taxonomy/diff_semantics to name the output-artifact convention.
++5. **F-E (nits)** — test/adr-0069-wiring.test.js stale comment;
++   surface-taxonomy.js dead `m[1]||m[2]`; CONTEXT carve-out gloss drops
++   the inventory-row channel; any_matrix regex misses inline `matrix:{}`;
++   ledger "1346 citations" vs final 1403; round-report stale numbers
++   (skips 3->0, pack 329559->329844, instrument entries 26->27).
++
++## Suggested next grill direction
++
++grill-t16 = small fix + disposition round: land F-A/F-B/F-C as one
++implementation bundle (R2 surface — this is implementation-round
++territory, NOT a doc-round carve-out case), decide F-D (disclose vs
++taxonomy amendment), sweep F-E nits, then re-run the identical acceptance
++battery above. Standing items: defer-0060 quarterly (review_at
++2026-12-15, owner actions = unfreeze_if); sunset counter next observation
++2026-12-15 (stays 1/6); pending-evaluation SLA rows stay on cadence.
++
++## Rules still in force
++
++- `but` for all VCS writes, explicit change IDs; separate branch per session.
++- NEVER commit the three audit-evidence patches:
++  `.scratch/grill-t13/audit-evidence/r2-round-diff.patch` (tq),
++  `.scratch/grill-t14/audit-evidence/round-diff.patch` (nl),
++  `.scratch/grill-t15/audit-evidence/round-diff.patch` (xu).
++- Consent-sweep / standing-review-surface framing for cadence items —
++  never "audit response".
++
++## Suggested skills
++
++- $implement — F-A/F-B/F-C fix bundle
++- $tdd — exit-semantics pin + predicate tests at the agreed seam
++- $code-review — before each commit
++- $handoff — next checkpoint
++- gitbutler (`but`) — all VCS writes
+diff --git a/.scratch/grill-t16/GOAL.md b/.scratch/grill-t16/GOAL.md
+new file mode 100644
+index 0000000..acd7933
+--- /dev/null
++++ b/.scratch/grill-t16/GOAL.md
+@@ -0,0 +1,20 @@
++# grill-t16 GOAL — SETTLED 2026-09-18
++
++Restored context from .scratch/grill-t15/handoffs/2026-09-18-audit-passed-with-findings.md
++(t15 stack 9 commits on grill-t15-docs, unlanded; audit PASS WITH FINDINGS
++-> findings F-A..F-E + nits).
++
++Status: SETTLED. Five decisions confirmed (D-001..D-005, all current):
++fix+mechanism round; verifier exit keyed to the consuming row + crash
++exit-2 + convention; mechanism-output artifact convention (R2-internal
++closed enumeration, ADR-0077); round-report facts canon; light close +
++clean R1/R2 split + consent-sweep residuals + zero asks.
++
++Authoritative records:
++- Ledger: .scratch/grill-t16/decision-ledger.md
++- Spec:   .scratch/grill-t16/spec-fix-mechanisms.md
++- Tasks:  .scratch/grill-t16/handoffs/next-round.md
++
++Rules that remain in force: but for all VCS writes with explicit change
++IDs; the three audit-evidence patches (t13 tq, t14 nl, t15 xu) stay
++untracked forever.
+diff --git a/.scratch/grill-t16/decision-ledger.md b/.scratch/grill-t16/decision-ledger.md
+new file mode 100644
+index 0000000..3279964
+--- /dev/null
++++ b/.scratch/grill-t16/decision-ledger.md
+@@ -0,0 +1,70 @@
++# grill-t16 decision ledger
++
++Authoritative record. Every user-confirmed substantive conclusion appends a
++D-xxx entry here immediately: ID, original question, verbatim answer,
++normalized requirement, explicit constraints/negative requirements, status.
++## D-001 — round boundary: fix + mechanism round
++
++- 原问题: Q1 轮界——audit-passed-with-findings 后下一轮绑定哪些线（a 窄修复 / b 修复+机制 / c 全域）
++- 原回答原文: "b"
++- 规范化需求: 本轮=修复+机制轮，议程：(1) F-A/F-B/F-C 实现束（R2 面=实现轮属地非 doc 轮豁免）；(2) F-D 裁决（披露 vs 修法）；(3) F-E nits 清扫；(4) verified_by 出口语义惯例（一行一验证器/按行选择器——杀灭多行腿并集求值类）；(5) 机制产出物在分类法中的位置（instrument-state.json/replay-*.json 第四类或 R2 内命名惯例）；(6) 轮报告数字陈旧类处置（收官重算惯例 vs as-of 标注）；(7) 常驻 cadence（defer-0060 季度、sunset 1/6、SLA 行）consent 清点；(8) 栈 landing 状态知情议程（owner 域动作非烤题）。
++- 显式约束/负向需求: 战略评审不开启（sunset 1/6 未触发）；promotion 评审不开启（organic=0 无语料）；禁改 G1/G3/G4 阈值；grill 期间不改源码；三个 audit patch（tq/nl/xu）永不提交；F-A 修复不得把 defer0026 腿检查删掉（独立断言仍在 wiring 层存活，只是出口语义归位）；栈 landing 不是本轮自决项。
++- 状态: current
++## D-002 — F-A fix shape: exit keyed to live consuming row + crash-path exit-2 + convention
++
++- 原问题: Q2 check-ci-jobs 出口码合流修复形态（a 键定活行 / b 按行选择器 / c registry 派生 / d 拆脚本）
++- 原回答原文: "采纳"（对 a′ 三束同构修正版推荐）
++- 规范化需求: **B1 实现束**（R2 实现轮属地，carve_out_used 不递增）：check-ci-jobs.js——exit=res.predicates.defer0004.satisfied?0:1；defer0026 腿保留计算+打进 stdout tag 行（诊断层非出口驱动）；头注释重写杀 F-B（multi-job 死谓词描述）；main() 包 catch→exit 2+stderr 行（crash masquerade=同类缺陷同束修，Nagios UNKNOWN catch-all 镜像）；注释块载惯例行+销账重指条款（defer-0004 销账时出口键须重指或退役于同一 registry 提交）。adr-0058-wiring fixtures 钉三方向（0004 满足→exit0/0004 未满足→exit1/0004 满足且0026腿退化→exit0且stdout含defer0026=unmet）+crash→exit2 fixture+0026 腿既有断言保留。**B2 惯例束**：账本载惯例原文——"verified_by 脚本的出口码只反映当前消费行的腿；多行报告是诊断，永不驱动出口"，措辞用"currently consuming"；CONTEXT 加一行惯例词条（兼作 F-C registry 编辑的耦合锚）。**B3 F-C 束**：defer-0004 rationale 补 "ADR-0058 D-C" 显式引，与 B2 同提交（ADR-0027/0033 D4 coupling guard）。
++- 显式约束/负向需求: 惯例极=一行一验证器（exit keyed to consuming row）；(b) --row 选择器登记为预注册升级路径——第二个活消费者出现时激活，非现行形态（n=1 选择器=永久死代码）；否决 (c) registry 派生（循环依赖：check-deferred 跑验证器、验证器读 registry；出口码变 registry 格式函数=masquerade 类）；否决 (d) 拆脚本（0026 已 actioned 其 verified_by 永不执行=无消费者机器=decorative-assertion theatre 明拒）；defer0026 可观测性残余如实披露——evalSuggestions 丢弃验证器 stdout，0026 运行时降至 wiring 层，轮报告必须写明（summary job 另有 check-ci-wiring 覆盖非全孤儿）；atomcode 六搜七全文确认 (a) 高置信，crash→exit2 与残余披露两锐化采纳。
++- 状态: current
++## D-003 — F-D: mechanism-output artifact convention (R2-internal closed enumeration, ADR-0077)
++
++- 原问题: Q3 governance_tooling_diff.files[] 语义（a 披露性补注 / b 立法命名惯例 / c 全覆盖+recompute）
++- 原回答原文: "采纳"（对 b′ 修正版推荐）
++- 规范化需求: **新 ADR-0077 显式修订**（不静默改写 ADR-0076 D-B(2)——被审计钉的字面句 "which R2 files the round touched" 必须在 ADR-0076 指针行 + surface-taxonomy diff_semantics 两处同时显式取代，防矛盾文本并立）。**mechanism_outputs 块**进 surface-taxonomy.json：R2 内子类封闭枚举（非残留，同 R1 闭包纪律），每项 {file, generator, replay_verified}——成员含 src/instrument-state.json、bench/research/out/g6-publish-replay.json、anchors.json、rewrite-map.json、taxonomy R1 快照、pack 记录等；wiring 断言每项归类 R2+生成器存在+未列文件不得声称豁免。**diff_semantics 重措辞**：files[] 管辖域=机器源手改；产出物豁免条件=忠实再生（faithful="diff 等于在该提交重跑注册生成器的产出"，Go 生成文件惯例 verbatim：非正典源、删掉重跑 diff 为零）；手改产出物=独立更重违例（伪造计量边缘）且必须进 files[] 披露。**可选 sibling 标记** mechanism_output_diff:{files,reason}——溯源可见不喂烧率，checker 验清单文件∈mechanism_outputs，裸标记硬失败（镜像 carve_out_used=1 校验）。**t15 行 additive-only 补注**（两个触碰归产出物类，历史布尔不动，carve_out_used:1 保持）。replay_verified:true 者重跑比对=审计升级工具（初期非 blocking gate）；非幂等生成器（时间戳）记 replay_verified:false 为登记欠账。
++- 显式约束/负向需求: D-001 议程 5 的极裁决=**R2 内惯例**（第四类破 D-A 三选一不变量+产出物逃出 R2 管辖，否决）；否决 (a) 仅披露（类不命名则每轮换件复发）；否决 (c) 全覆盖清单（复制 git+误读证据范围+再生噪声淹死烧率信号）；无新 registry 行、无新 gate（比例先例）；豁免是 checker 验枚举非自声明布尔（recomputed-not-trusted 不破）；防游戏四守卫：具名违例类/replay 机械裁决/git 考古威慑/生成器幂等钉；动机漂移不可技术根除如实记；atomcode 确认 (b)，锐化（ADR-0077 显式取代+封闭枚举+replay_verified 属性+裸标记硬失败）采纳。
++- 状态: current
++## D-004 — round-report staleness class: facts-artifact canon + close-regen carrier
++
++- 原问题: Q4 轮报告数字陈旧类处置（a 收官重算 / b as-of 标注 / c 事实工件 / d 维持现状）
++- 原回答原文: "采纳"（对 c′ 修正版推荐）
++- 规范化需求: **主形态=facts 工件 canon**：scripts/build-round-facts.js 收官时（T-2 尾步）重生成 .scratch/grill-<tN>/round-facts.json——schema：suites/passed/skipped、pack_bytes、instrument_entries、rewrite_map_citations、registry_entries、anchors_count、battery_as_of_commit、**report_commit:null**（自指以诚实 null 化解）、not_run 通道数组。报告 facts 节由脚本确定性内嵌渲染，**正文禁裸数字**（wiring 可钉 facts 节外不得复现 schema 键值）。**承载步=收官重算**（a 降为步骤非形态）。**as-of/addendum 收窄为窄通道**：仅承载真期后事件（owner 批准、T-3 签核）与自指披露——ASC 855 类比：陈旧数字是调整性事件必须重述非标注；t15 T-3 addendum 模式保留但不再承担修正正文数字职能，t16 轮报告显式记一句收窄防审计误读为删减。ADR-0077 载惯例行+CONTEXT 词条（同 D-002 惯例词条通道）；**显式裁决性偏离**：facts 工件不入 anchors 链（每轮再生 churn 摘要链，anchors 服务慢变工件）——理由一行写进 ADR-0077（披露不盲从先例）。工件落点按 D-003 枚举纪律对齐归类（.scratch=R3 工件属地 / docs/governance=R3 前缀但可入 mechanism_outputs 讨论）。
++- 显式约束/负向需求: 否决 (b) 为主形态（把已知陈旧合法化，调整性事件应重述）；否决 (d) 现状（连续两轮实证失效）；无新 gate、无新 registry 行（比例先例+sunset 计数器判词同构）；散文判词："报告是叙述，永远不是数字宿主"（平移 D-002 "账本非状态宿主"）；自指不得用伪值填补——report_commit:null 是设计非缺漏；atomcode 八搜五全文确认 c 主+a 承载，锐化（ASC 855 二分/addendum 收窄/report_commit:null/不入 anchors 显式理由）采纳。
++- 状态: current
++## D-005 — closeout form: light close + clean R1/R2 split + consent-sweep residuals + zero asks
++
++- 原问题: Q5 收尾形态（a 审计与否 / b 阶段结构 / c 残留归并 / d owner 呈请）
++- 原回答原文: "采纳"（对 a1+b+c+d 全包推荐）
++- 规范化需求: **a1 轻收尾**：ADR-0074 D-F 三触发无一响（面小于 t15）——自检电池+owner 批准闭轮+处置列下审复核面；电池显式含新机械（adr-0058-wiring 三方向+crash fixture、mechanism_outputs 枚举断言、facts 工件渲染钉）。**阶段结构（carve-out 不援引——文档束全 R3、实现束全 R2，burn-rate streak 自然归零）**：R1 文档束=ADR-0077（F-D 惯例修订+facts canon+不入 anchors 理由行+addendum 收窄）+CONTEXT 词条×2+diff_semantics 重措辞+mechanism_outputs 封闭枚举+t15 行补注+defer-0004 rationale F-C 引注（B2+B3 同提交解耦合守卫）+账本 T 段 consent 行+defer-0062 tally+README 索引 77；R2 实现束=check-ci-jobs 出口归位+头注释+crash→exit2+惯例注释块+adr-0058-wiring fixtures（脚本与钉它的测试同一实现提交）+build-round-facts.js+模板渲染钉+F-E nits 六项+轮报告（facts 节工件渲染）。时序 R1 先行 spec-first，R2 收尾出报告。**残留归并**：F-A/F-B→B1；F-C/F-D→R1；F-E→R2；cadence 项（defer-0060 季度 12-15、sunset 1/6、SLA 行、O-E）处置时点各落一行 ledger disposition（consent-sweep 措辞非 audit response）；栈 landing 知情行非决策项；三 patch（tq/nl/xu）永不提交+轮报告重述显式 ID 教训。**零 owner ask**：T-3 全销，defer-0060 是登记行非 ask，栈 landing 仅知情注记。
++- 显式约束/负向需求: 否决 a2 惯例性审计；措辞守卫延续（consent-sweep/standing-review-surface 永不称 audit response）；fixtures 与脚本同提交（tests with behavior they verify）；R1 全程不碰 R1/R2 文件（本轮无 carve-out 需要）；dialectical 记录：Q5 未走 atomcode（先例直接适用，non-contested），其余四题全部经 atomcode 且零冲突。
++- 状态: current
++## T-1 dispositions (R1 documentation round, 2026-09-18)
++
++Executed per handoffs/next-round.md T-1. Each row names its evidence; this section is the same-commit ledger note for the R1 registry edits and records the consent-sweep for the standing cadence (consent-sweep framing - never "audit response").
++
++- Convention verbatim (D-002 B2): "a verified_by script's exit code reflects only the legs of the row(s) currently consuming it; multi-row reporting is diagnostic, never exit-driving." Worded "currently consuming" so the per-row selector stays a pre-registered upgrade path, not a contradiction, when a second live consumer appears. CONTEXT.md carries the Consuming-Row Exit term (settle commit) and the Facts Canon term; the discharge re-point clause lives in ADR-0077 D-A.
++- defer-0004 — rationale gained the explicit "ADR-0058 D-C" citation (settles audit F-C): the narrowed re-defer is one of the three exits ADR-0058 D-C pre-registers (activate / re-defer + update rationale / close). Same commit as the CONTEXT carve-out gloss touch per the coupling guard (B3 anchor).
++- defer-0062 (t16 doc-round net-addition tally) — CLOSED via this same-commit ledger note. The grill-t16 row exists in docs/governance/trend-inventory.json (+1 ADR-0077; zero_product_diff=true; carve_out_used:0 - the carve-out is not invoked this round, burn-rate streak resets) and the ADR is registered; nothing left to disposition (defer-0059/0061 precedent).
++- defer-0058 (standing per-round net-increment review) — EXECUTED for grill-t16: net registry increment +1 (defer-0062 added and closed; defer-0004 stays deferred; no actioned/closed transitions otherwise).
++- defer-0060 (CI gate-all permanently-red channel) — stays pending-evaluation on quarterly cadence (review_at 2026-12-15); a tracked row, not an ask - the owner actions (secret regen + required-check deployment) are its unfreeze_if.
++- defer-0055 + sunset counter — stays pending-evaluation on quarterly cadence; the counter stays 1/6 (missed check-in is not a zero; organic=0 across provenance classes at the last observation); the next quarterly observation is the 2026-12-15 tide.
++- defer-0053 — stays pending-evaluation (unfreeze_frozen).
++- defer-0057 — stays pending-evaluation (t13 tally row; closes at the next trend-anchor evaluation).
++- O-E backlog (telemetry export breadth) — stays deferred as an observation on the standing consent-sweep; low-priority backlog, no failure driver.
++- Stack landing (grill-t15-docs, unlanded commits incl. the t16 settle commit) — awareness line only: landing is owner-domain, not a decision item this round.
++- Mechanism surface — ADR-0077 lands D-A (exit convention) + D-B (mechanism_outputs closed enumeration: src/instrument-state.json replay_verified:false, g6-publish-replay.json replay_verified:true; diff_semantics reworded to machinery-source hand-edits jurisdiction; mechanism_output_diff sibling marker registered) + D-C (facts canon; the artifact deliberately does NOT join the anchors chain - per-round regeneration would churn the digest chain) + D-D (registrations). ADR-0076 D-B(2) is amended via pointer line, never silently rewritten - the flagged phrase is superseded in both places.
++- t15 trend row — annotated additively (mechanism_output_diff lists the two output-class touches); historical booleans untouched. The t16 row carries the first mechanism_output_diff marker use: g6-publish-replay.json refreshed by the gate during the R1 battery (faithful regeneration, not a machinery-source edit).
++- R1 exit battery: taxonomy closure test green + anchors in sync + inventory/deferred green + the new adr-0076-wiring assertions green; boundary commit must be green.
++- WORKFLOW.md — permanent absence stands (registered at t15); the version-control conventions live in the but skill, the task-book handoffs, and the AGENTS.md working agreement.
++- The three audit patches (tq/nl/xu) stay untracked forever; but commits use explicit change IDs only.
++## T-2 dispositions (R2 implementation round, 2026-09-18)
++
++Executed under the R1 stage gate (spr on grill-t16-docs; boundary green on the self-check battery). Each row names its evidence; this section is the same-commit ledger note for the R2 machinery edits.
++
++- defer-0004 — stays deferred; the registry row is untouched this round (the narrowed re-defer stands). The verifier fix is machinery-side: check-ci-jobs.js exit is keyed to defer0004.satisfied per ADR-0077 D-A (settles F-A), the header registers the convention verbatim + discharge re-point clause (settles F-B), a crash exits 2 via stderr (never masquerades as unsatisfied), and defer0026 legs stay computed/printed as diagnostics. adr-0058-wiring pins the three exit directions, the crash fixture, and the defer0026 diagnostic.
++- mechanism_output_diff — checker support landed in check-governance-inventory.js (closed-enumeration membership + R2 classification + bare-marker hard-fail; never feeds burn-rate). Probe-row fixtures live in adr-0076-wiring.
++- Facts canon — scripts/build-round-facts.js regenerates .scratch/grill-t16/round-facts.json at the closing step (suites/passed/skipped/pack_bytes/instrument_entries/rewrite_map_citations/registry_entries/anchors_count/battery_as_of_commit/report_commit:null/not_run[]); the report facts section renders deterministically inside a sentinel region; the artifact stays out of the anchors chain (disclosed deviation).
++- F-E nits executed: surface-taxonomy.js dead m[1]||m[2] dropped; check-ci-jobs.js any_matrix regex now matches the inline matrix: {...} form (fixture pinned); t15 ledger citation count corrected 1346 -> 1403 (both copies resynced, anchors regenerated). The adr-0069 stale comment rode along with the forced 76->77 count bump in R1 (same physical line; disclosed, not hidden).
++- defer-0058 (standing per-round net-increment review) — EXECUTED for grill-t16 R2: no further registry net increment in the implementation phase (defer-0062 was the +1, registered and closed in R1).
++- Consent-sweep verification: the T-1 disposition lines stand - defer-0060 stays pending-evaluation (quarterly, 2026-12-15), the sunset counter stays 1/6 (next observation 2026-12-15), defer-0053/0057 stay pending-evaluation, O-E backlog stays deferred; zero owner asks this round; the three audit patches (tq/nl/xu) stay untracked forever.
++- decision-ledger-t16.md — governance copy admitted to the anchors chain under ADR-0077 (15 -> 16 artifacts); resynced at round close.
+diff --git a/.scratch/grill-t16/gen-docs.cjs b/.scratch/grill-t16/gen-docs.cjs
+new file mode 100644
+index 0000000..d827b1b
+--- /dev/null
++++ b/.scratch/grill-t16/gen-docs.cjs
+@@ -0,0 +1,370 @@
++// grill-t16 doc generator — spec + task book + GOAL + CONTEXT terms.
++// Source of truth: .scratch/grill-t16/decision-ledger.md (D-001..D-005).
++const fs = require('fs');
++const path = require('path');
++const ROOT = 'D:/Aworker/jiahao';
++const SCRATCH = path.join(ROOT, '.scratch/grill-t16');
++
++// ---------- spec ----------
++const spec = `# grill-t16 spec — fix + mechanism round
++
++Source of truth: .scratch/grill-t16/decision-ledger.md (D-001..D-005, all current).
++Status: SETTLED 2026-09-18. Execution follows handoffs/next-round.md.
++
++## §0 — headline
++
++t15 closed with the audit PASSED WITH FINDINGS (F-A..F-E) and the stack
++held on grill-t15-docs (9 commits, remote main still 21b1442 — landing is
++owner-domain). This round disposes the findings and kills two classes at
++once: the verifier exit conflation becomes a named contract (the exit
++reports the consuming row's condition, never a union), and the report's
++numbers move into a regenerated canon (the report is narrative, never the
++home of numbers). Small round, but both fixes are anti-self-deception
++instruments — a tripwire that can silently miss is worse than no tripwire.
++
++## §1 — round boundary (D-001)
++
++Eight agenda items, bound:
++
++1. F-A/F-B/F-C implementation bundle (R2 surface — implementation-round
++   territory, not a doc-round carve-out).
++2. F-D adjudication (disclose vs amend).
++3. F-E nits sweep.
++4. verified_by exit-semantics convention (kill the multi-row union class).
++5. Mechanism-output artifacts in the taxonomy (fourth class vs R2-internal
++   convention).
++6. Round-report number-staleness class.
++7. Standing cadence consent sweep (defer-0060, sunset 1/6, SLA rows, O-E).
++8. Stack landing status — awareness line only (owner-domain action).
++
++### Explicitly out of scope (with rationale)
++
++- Strategic review — sunset counter 1/6, trigger inactive.
++- Promotion review — organic=0, no qualifying corpus.
++- G1/G3/G4 threshold amendment — banned.
++- Source edits during grilling.
++- Deleting defer0026 leg evaluation — legs stay as diagnostics + wiring;
++  only the exit semantics re-key.
++- Stack landing — not a self-decided item this round.
++- The three audit patches (tq/nl/xu) — untracked forever.
++
++## §2 — F-A fix: exit keyed to the live consuming row (D-002)
++
++Bundle B1 (implementation commit, R2):
++
++- check-ci-jobs.js: exit = res.predicates.defer0004.satisfied ? 0 : 1;
++  defer0026 legs stay computed AND printed in the stdout tag line
++  (diagnostic layer, never exit-driving).
++- Header rewritten — kills F-B's stale multi-job predicate description in
++  the same edit.
++- main() wrapped in catch → exit 2 + stderr line (crash masquerade is the
++  same conflation class on a different path; Nagios UNKNOWN catch-all
++  mirror). Without this the R2-honesty hole stays half-open.
++- Comment block carries the convention line + the discharge re-point
++  clause: when defer-0004 discharges, the exit key re-points or retires in
++  the same commit as that registry edit.
++- test/adr-0058-wiring.test.js fixtures pin three directions: defer0004
++  satisfied → exit 0; defer0004 unmet → exit 1; defer0004 satisfied while
++  defer0026 legs regressed → exit 0 AND stdout contains defer0026=unmet;
++  plus a crash-path → exit 2 fixture; existing defer0026 leg assertions
++  retained.
++
++Bundle B2 (doc commit, R3 — same commit as B3):
++
++- Ledger carries the convention verbatim: "a verified_by script's exit code
++  reflects only the legs of the row(s) currently consuming it; multi-row
++  reporting is diagnostic, never exit-driving" — worded "currently
++  consuming" so the (b) selector stays a pre-registered upgrade path, not a
++  contradiction, when a second live consumer appears.
++- CONTEXT.md gains the convention term (also serves as the coupling
++  anchor for B3).
++
++Bundle B3 (F-C, same commit as B2):
++
++- defer-0004 rationale gains the explicit "ADR-0058 D-C" citation
++  (ADR-0027/0033 D4 coupling guard satisfied by B2's CONTEXT change).
++
++Honest residual (disclosed in the round report): evalSuggestions discards
++the verifier's stdout, so defer0026 regressions surface only via wiring
++fixtures — wiring-layer-only at runtime; not fully orphaned (the summary
++job is separately covered by check-ci-wiring).
++
++## §3 — F-D: mechanism-output artifact convention (D-003)
++
++New ADR-0077 explicitly amends (never silently rewrites) ADR-0076 D-B(2)'s
++"which R2 files the round touched" — superseded in BOTH places: ADR-0076
++via pointer/status line, surface-taxonomy diff_semantics via rewording.
++
++- surface-taxonomy.json gains mechanism_outputs: R2-internal sub-class,
++  CLOSED enumeration (never residual — same anti-drift discipline as the
++  R1 closure). Each entry: {file, generator, replay_verified}. Members
++  include src/instrument-state.json, bench/research/out/g6-publish-
++  replay.json, anchors.json, rewrite-map.json, the taxonomy R1 snapshot,
++  pack-size records.
++- Wiring asserts: every entry classifies R2, names an existing generator,
++  and no unlisted file may claim the exemption.
++- diff_semantics.governance_tooling_diff reworded: files[] jurisdiction =
++  machinery-SOURCE hand-edits; mechanism-output artifacts are exempt when
++  the diff is a faithful regeneration — faithful = "the diff equals what
++  re-running the registered generator at that commit produces" (Go
++  generated-file convention verbatim: non-canonical source, delete +
++  regenerate → zero diff). A HAND-EDIT of an output is a named heavier
++  violation (falsification-adjacent) and must be disclosed in files[].
++- Optional sibling marker mechanism_output_diff:{files,reason} —
++  provenance visibility, never feeds burn-rate; checker validates listed
++  files ∈ mechanism_outputs; a bare marker with no files hard-fails
++  (mirrors carve_out_used=1).
++- t15 trend row: additive-only annotation (the two touches are the
++  output class under the new convention); historical booleans untouched;
++  carve_out_used:1 stands.
++- replay_verified:true outputs get re-run-and-diff as the audit's
++  escalation tool (not a blocking gate initially); non-idempotent
++  generators register replay_verified:false as recorded debt.
++- D-001 agenda-5 pole decided: R2-INTERNAL convention — a fourth surface
++  class would break D-A's exactly-one-of-three invariant and let outputs
++  escape R2 jurisdiction.
++
++## §4 — round-report staleness: facts canon (D-004)
++
++- scripts/build-round-facts.js regenerates
++  .scratch/grill-<tN>/round-facts.json at the closing step (T-2 tail):
++  schema {suites, passed, skipped, pack_bytes, instrument_entries,
++  rewrite_map_citations, registry_entries, anchors_count,
++  battery_as_of_commit, report_commit: null, not_run[]}.
++- The report's facts section is deterministically embedded/rendered from
++  the artifact; bare numbers are banned in report prose (wiring can pin:
++  no schema-key values outside the facts section).
++- report_commit stays null by design — the report cannot cite its own
++  commit; self-reference is disclosed, not faked.
++- as-of/addendum narrowed to genuinely subsequent events (owner
++  dispositions, T-3 sign-offs) and self-reference disclosure — ASC 855
++  analogy: stale numbers are ADJUSTING events (determined at close,
++  collected early) and must be restated, not annotated. The t15 T-3
++  addendum pattern persists but sheds its number-fixing role; the t16
++  report states the narrowing explicitly so the thinner addendum is not
++  misread as a deletion.
++- Explicit adjudicated deviation: the facts artifact does NOT join the
++  anchors chain — per-round regeneration would churn the digest chain
++  (anchors serve slow-moving artifacts); the one-line reason lands in
++  ADR-0077 (disclose-don't-blindly-follow precedent).
++- Judgment line (D-002's shape, applied): "the report is narrative, never
++  the home of numbers."
++- Landing-spot note: the artifact lives in .scratch (R3 process-evidence
++  home per ADR-0061 D-E layering); mechanism_outputs alignment per D-003's
++  enumeration discipline.
++
++## §5 — closeout form (D-005)
++
++- Light close: ADR-0074 D-F triggers silent (no external claim, no
++  sanitized zone, no threshold crossing; smaller surface than t15).
++  Self-check battery + owner approval + dispositions listed as standing
++  review surface at next audit. Battery must include the new machinery:
++  adr-0058-wiring three-direction + crash fixtures, mechanism_outputs
++  enumeration assertions, facts-artifact render pin.
++- Phase structure (carve-out NOT invoked — doc bundle is all R3,
++  implementation bundle is all R2; burn-rate streak resets naturally):
++  - R1 doc bundle: ADR-0077 + CONTEXT terms x2 + diff_semantics reword +
++    mechanism_outputs enumeration + t15 row annotation + defer-0004
++    rationale F-C citation (B2+B3 same commit) + ledger consent lines +
++    defer-0062 tally + README index 77.
++  - R2 implementation bundle: check-ci-jobs fix + header + crash→exit2 +
++    convention comment + adr-0058-wiring fixtures (script and its pins in
++    one commit — tests travel with the behavior they verify) +
++    build-round-facts.js + template render pin + F-E nits (adr-0069
++    comment, surface-taxonomy.js dead code, any_matrix inline regex,
++    CONTEXT gloss line, ledger 1346→1403 correction) + round report with
++    artifact-rendered facts section.
++  - Ordering: R1 first (convention before implementation — spec-first).
++- Residuals: F-A/F-B → B1; F-C/F-D → R1; F-E → R2; cadence items
++  (defer-0060 quarterly 2026-12-15, sunset 1/6 same date, SLA rows, O-E)
++  get one ledger disposition line each at disposition time —
++  consent-sweep framing, never "audit response".
++- Stack landing (grill-t15-docs, 9 commits, unpushed): awareness line
++  only — owner-domain action, not a decision item.
++- Zero owner asks this round: T-3 fully discharged (seq-24 signed,
++  defer-0051 ratified, countersign landed); defer-0060 is a tracked row,
++  owner action is its unfreeze_if not a decision ask.
++- The three audit patches (tq/nl/xu) stay untracked forever; the round
++  report restates the explicit-change-IDs lesson.
++
++## §6 — negative requirements union
++
++- No strategic review, no promotion review, no G1/G3/G4 amendment (D-001).
++- defer0026 legs never deleted; the exit never re-unions; exit>1 stays
++  reserved for verifier-broken (D-002).
++- files[] never claims an unlisted output exemption; hand-edits of outputs
++  never hide behind the regeneration convention; the bare-marker path
++  hard-fails (D-003).
++- Report prose never hand-writes facts-section numbers; report_commit is
++  never faked; as-of marking never substitutes for a restatable number
++  (D-004).
++- No routine audit without a D-F trigger; no "audit response" framing; no
++  bundled asks; carve-out stays un-invoked this round (D-005).
++- The three audit patches stay untracked forever; but commits always carry
++  explicit change IDs.
++`;
++
++// ---------- task book ----------
++const book = `# grill-t16 → next-round task book (2026-09-18)
++
++Standing task book for the next session. Ledger: ../decision-ledger.md
++(D-001..D-005 all current). Spec: ../spec-fix-mechanisms.md.
++
++## Rerunnable state (auditor-verified at t15 close — re-run before relying)
++
++- \`node scripts/run-test-gate.js --expected-suites 73\` → 73 suites / 1194 tests / 0 skipped
++- \`npm run gate:all\` → exit 0
++- \`node scripts/check-deferred.js\` → 55 entries (47 live, 8 closed/actioned)
++- \`node scripts/build-governance-anchors.js --check\` → 15 artifacts in sync
++- \`node scripts/check-governance-inventory.js\` → 35 entries + trend advisory
++- \`node scripts/build-rewrite-map.js --check\` → 1403 citations in sync
++- \`node scripts/check-ci-jobs.js\` → exit 1 (defer0004 unmet — correct per narrowed semantics)
++- \`node scripts/instrument.js --check\` → authoritative; conditional cert to 2026-12-11
++- \`npm pack\` → 329844 B (< 340000 cap)
++- origin/main = 21b1442; grill-t15-docs = 9 commits UNLANDED (owner-domain)
++- workspace: three intentionally untracked audit patches (tq=t13, nl=t14,
++  xu=t15 — NEVER commit; but commit needs explicit IDs)
++
++## T-1 — R1 documentation bundle (D-002 B2+B3, D-003, D-004 partial, D-005)
++
++Produce ADR-0077 "verifier exit convention + mechanism-output artifacts +
++round-report facts canon" plus:
++
++1. ADR-0077: amends ADR-0076 D-B(2) wording explicitly (pointer/status line
++   on 0076; the flagged phrase superseded in both places); carries the
++   exit convention, the mechanism-output convention, the facts-canon line,
++   the not-in-anchors reason, and the addendum narrowing (D-002/D-003/D-004).
++2. docs/governance/surface-taxonomy.json: mechanism_outputs closed
++   enumeration {file, generator, replay_verified}; diff_semantics reworded
++   (files[] = machinery-source hand-edits; faithful-regeneration exemption;
++   hand-edit = named heavier violation) (D-003).
++3. check-governance-inventory: accept optional mechanism_output_diff
++   {files,reason}; validate listed files ∈ mechanism_outputs; bare marker
++   hard-fails; never feeds burn-rate (D-003).
++4. t15 trend row additive-only annotation (the two touches are the output
++   class); historical booleans untouched (D-003).
++5. Wiring: mechanism_outputs enumeration assertions (every entry R2,
++   generator exists, no unlisted exemption claims) — adr-0076 or adr-0077
++   wiring file (D-003).
++6. CONTEXT.md: +convention term (exit keyed to consuming row) + facts-canon
++   term; the CONTEXT edit doubles as B3's coupling anchor (D-002/D-004).
++7. Registry: defer-0004 rationale gains explicit "ADR-0058 D-C" citation —
++   SAME COMMIT as the CONTEXT change (F-C, D-002 B3); defer-0062 tally row
++   (this round's net addition); t15-row annotation as above.
++8. Ledger T-section: one consent-sweep disposition line per cadence item
++   (defer-0060, sunset 1/6, SLA rows, O-E) — never "audit response" (D-005).
++9. README ADR index 77; anchors regen if a tracked artifact changed.
++10. R1 exit: boundary commit green; all R2-needed text frozen (fixture
++    expectations, registry JSON, convention wording).
++
++Hard rules: R1 touches no R1/R2 file this round (no carve-out needed);
++pins are mechanism vocabulary; the convention is worded "currently
++consuming".
++
++## T-2 — R2 implementation bundle (D-002 B1, D-004, D-005)
++
++Ordered:
++
++1. check-ci-jobs fix — ONE COMMIT: exit = defer0004.satisfied; defer0026
++   legs stay computed + printed; header rewritten (F-B); main() catch →
++   exit 2 + stderr; comment block with convention + discharge re-point
++   clause; adr-0058-wiring fixtures (three directions + crash fixture +
++   defer0026 leg assertions retained) (D-002).
++2. scripts/build-round-facts.js + round-facts.json schema
++   (battery_as_of_commit, report_commit:null, not_run[]); report facts
++   section deterministically rendered; render-pin wiring test (D-004).
++3. F-E nits: adr-0069 stale comment; surface-taxonomy.js dead m[1]||m[2];
++   any_matrix inline regex (\`matrix:\s*{\` edge); CONTEXT carve-out gloss
++   (inventory-row channel restored); ledger 1346→1403 correction (D-005).
++4. Round report: facts section rendered from the artifact; disclosed items
++   — defer0026 now wiring-layer-only at runtime; addendum narrowing;
++   explicit-change-IDs lesson; carve-out not invoked (streak resets)
++   (D-002/D-004/D-005).
++5. Consent-sweep ledger lines completed at disposition time (R2 verifies
++   one line exists per cadence item).
++
++## T-3 — owner surface (D-005)
++
++- ZERO asks this round. Awareness annotations only: grill-t15-docs stack
++  (9 commits) unlanded — owner-domain; defer-0060 owner actions sit in its
++  unfreeze_if (quarterly review 2026-12-15); sunset counter stays 1/6 until
++  the 2026-12-15 observation.
++
++## Suggested skills
++
++- $implement — R1/R2 execution
++- $tdd — wiring fixtures + render pin at agreed seams
++- $code-review — before each commit
++- $domain-modeling — CONTEXT/ADR authoring
++- $handoff — next checkpoint
++- atomcode-research — contested dispositions
++- gitbutler (but) — ALL VCS writes; explicit change IDs always
++`;
++
++// ---------- GOAL ----------
++const goal = `# grill-t16 GOAL — SETTLED 2026-09-18
++
++Restored context from .scratch/grill-t15/handoffs/2026-09-18-audit-passed-with-findings.md
++(t15 stack 9 commits on grill-t15-docs, unlanded; audit PASS WITH FINDINGS
++-> findings F-A..F-E + nits).
++
++Status: SETTLED. Five decisions confirmed (D-001..D-005, all current):
++fix+mechanism round; verifier exit keyed to the consuming row + crash
++exit-2 + convention; mechanism-output artifact convention (R2-internal
++closed enumeration, ADR-0077); round-report facts canon; light close +
++clean R1/R2 split + consent-sweep residuals + zero asks.
++
++Authoritative records:
++- Ledger: .scratch/grill-t16/decision-ledger.md
++- Spec:   .scratch/grill-t16/spec-fix-mechanisms.md
++- Tasks:  .scratch/grill-t16/handoffs/next-round.md
++
++Rules that remain in force: but for all VCS writes with explicit change
++IDs; the three audit-evidence patches (t13 tq, t14 nl, t15 xu) stay
++untracked forever.
++`;
++
++// ---------- CONTEXT ----------
++const ctxPath = path.join(ROOT, 'CONTEXT.md');
++let ctx = fs.readFileSync(ctxPath, 'utf8');
++
++const terms = `**Consuming-Row Exit (消费行出口)**
++The exit-semantics contract for a verified_by script: the exit code
++reports only the condition of the row(s) currently consuming it — legs
++computed for other rows are diagnostics and may be printed, but never
++drive the exit. Exit 0 = the consuming row's condition satisfied, exit 1 =
++unsatisfied, exit >1 = the verifier itself is broken (a crash must never
++masquerade as unsatisfied). When the consuming row discharges, the exit
++key is re-pointed or retired in the same commit as that registry edit;
++a second live consumer is what activates the pre-registered selector
++upgrade (ledger t16 D-002).
++_Avoid_: union exits over multiple rows' legs (a terminal row's
++regression silently suppresses the live tripwire); crash paths exiting 1;
++selectors wired before a second consumer exists
++
++**Facts Canon (事实正典)**
++The rule that a round report's evidence numbers live in exactly one
++regenerable artifact, refreshed at the closing step — the report is
++narrative, never the home of numbers. Numbers already determined at the
++close are restated mechanically; the as-of/addendum channel is reserved
++for genuinely subsequent events and self-reference disclosures (ledger
++t16 D-004).
++_Avoid_: hand-written figures in report prose; annotating a restatable
++number instead of restating it; faking a self-referential field instead
++of leaving it honestly null
++
++## Decision Log`;
++const dlOld = '## Decision Log';
++if (!ctx.includes(dlOld)) throw new Error('Decision Log anchor not found');
++ctx = ctx.replace(dlOld, terms);
++
++// ---------- writes ----------
++fs.writeFileSync(path.join(SCRATCH, 'spec-fix-mechanisms.md'), spec);
++fs.mkdirSync(path.join(SCRATCH, 'handoffs'), { recursive: true });
++fs.writeFileSync(path.join(SCRATCH, 'handoffs/next-round.md'), book);
++fs.writeFileSync(path.join(SCRATCH, 'GOAL.md'), goal);
++fs.writeFileSync(ctxPath, ctx);
++
++console.log('spec bytes:', spec.length, '| book bytes:', book.length,
++  '| goal bytes:', goal.length, '| CONTEXT bytes:', ctx.length);
++console.log('terms present:', ctx.includes('Consuming-Row Exit') && ctx.includes('Facts Canon'));
+diff --git a/.scratch/grill-t16/handoffs/2026-09-18-round-complete.md b/.scratch/grill-t16/handoffs/2026-09-18-round-complete.md
+new file mode 100644
+index 0000000..8733dd1
+--- /dev/null
++++ b/.scratch/grill-t16/handoffs/2026-09-18-round-complete.md
+@@ -0,0 +1,93 @@
++# grill-t16 handoff — 2026-09-18 (fix + mechanism round COMPLETE)
++
++Audience: the next agent (grill-t17 or later). Status: round complete and
++green; zero owner asks; awareness items listed at the end.
++
++## What landed (branch `grill-t16-docs`, newest-first)
++
++- `pnq` — final-battery regen (g6 replay 333992, facts/report re-render,
++  anchors digest, trend marker reason, rewrite-map 1412).
++- `f86494d` (was `rqt`, amended) — closing-step regen + `battery_as_of_commit`
++  durable-pin fix in `scripts/build-round-facts.js`.
++- `vkz` — R2 machinery: `mechanism_output_diff` checker support,
++  `build-round-facts.js`, anchors t16 admission (15→16), F-E nits,
++  render-pin + probe wiring, README 1216, T-2 ledger section, report.
++- `wsn` — R2 verifier fix: `check-ci-jobs.js` exit keyed to
++  `defer0004.satisfied` (consuming row), crash→exit 2, header convention,
++  `any_matrix` inline fix; `adr-0058-wiring` three-direction + crash +
++  diagnostic + inline-matrix fixtures.
++- `spr` — R1 boundary: ADR-0077 (D-A convention, D-B enumeration,
++  D-C facts canon, D-E narrowed addendum), ADR-0076 amended, taxonomy
++  `mechanism_outputs` closed enumeration, t15 row additive annotation,
++  defer-0004 ADR-0058 D-C cite, defer-0062 tally, CONTEXT terms, README 77,
++  anchors 15, rewrite-map 1410.
++- `mkz` — t16 setup (task book, spec, ledger D-001..D-005, CONTEXT terms).
++
++## Verified state (round-final, reproducible)
++
++- `node scripts/run-test-gate.js --expected-suites 73` →
++  `[test] OK: 73 suites, 1216 tests, 0 skipped`, exit 0.
++- `npm run gate:all` → exit 0, 35 entries, 4 UNVERIFIABLE
++  (ci-wiring/bench-gate/probes/mr-probes need ci-mode; registered, honest).
++- `node scripts/check-ci-jobs.js` → exit 1, `defer0004=unmet
++  defer0026=SATISFIED` (diagnostic). Missing file → exit 2 stderr.
++- `node scripts/check-governance-inventory.js` → OK 35 entries (advisory:
++  doc-round ADR streak 10 ≥ K=2, never blocks).
++- `node scripts/check-deferred.js` → OK 56 entries (47 live, 9 closed).
++- `node scripts/build-governance-anchors.js --check` → OK 16 artifacts.
++- `node scripts/build-rewrite-map.js --check` → OK 1412 citations.
++- `node scripts/build-round-facts.js --round grill-t16 --check --report
++  .scratch/grill-t16/reports/2026-09-18-report.md` → facts + region in sync.
++- `npm run pack-smoke` → `jiahao-0.0.1.tgz (333992 bytes, 113 files)` <
++  340000 budget.
++- Facts canon: `.scratch/grill-t16/round-facts.json` (suites 73, passed
++  1216, pack 333992, instrument 27, registry 56, anchors 16,
++  battery_as_of_commit pins the closing battery's run commit, report_commit
++  null, not_run 4 ci-mode gates).
++
++## Conventions now in force (ADR-0077)
++
++- **Consuming-row exit**: a `verified_by` script's exit reflects only the
++  row(s) currently consuming it; multi-row reporting is diagnostic, never
++  exit-driving. exit>1 = verifier broken (crash must not read as
++  unsatisfied). Discharge re-point: when the consuming row discharges, the
++  key re-points/retires in the same commit as that registry edit.
++- **`mechanism_outputs`** (taxonomy): closed R2 enumeration {file, generator,
++  replay_verified} = `src/instrument-state.json` + `bench/research/out/
++  g6-publish-replay.json`. Trend rows may carry `mechanism_output_diff`
++  {files, reason} for faithful regenerations — membership + R2-classification
++  validated, bare marker hard-fails, never feeds burn-rate.
++- **Facts canon**: `scripts/build-round-facts.js --round <slug>` regenerates
++  `.scratch/<slug>/round-facts.json`; `--report <path>` splices the
++  sentinel region from the on-disk artifact (never re-collects — a stale
++  region is fixable without re-running jest); `--check` tolerates
++  `battery_as_of_commit` drift (run-record, not freshness).
++- **Regen order at round close**: rewrite-map → facts → report splice →
++  anchors. The map classifies sha-shaped strings (e.g.
++  `battery_as_of_commit`) as local-only citations — regenerate the map
++  after the fact files settle, not before.
++
++## Residual / disclosures
++
++- `evalSuggestions` discards verifier stdout: a defer0026 leg regression
++  surfaces only via wiring fixtures at runtime (documented in the report).
++- The `mechanism_outputs` enumeration covers exactly the R2-surface
++  members; docs-surface generated siblings (anchors, rewrite-map, taxonomy
++  snapshots, README index) are named in ADR-0077 but not enumerated — R3
++  files never enter files[] jurisdiction (disclosed interpretation).
++- Facts artifact deliberately not in the anchors chain (per-round
++  regeneration would churn the digest chain — ADR-0077 D-C).
++- The three audit patches (`tq`/`nl`/`xu`) remain untracked forever —
++  never commit them.
++- `but commit` always got explicit change IDs copied from `but status`.
++
++## T-3 awareness (zero asks, next agent should not act on these)
++
++- Stack landing: `grill-t15-docs` (9 commits) + `grill-t16-docs` (mkz, spr,
++  wsn, vkz, f86494d, pnq) unlanded — owner domain.
++- defer-0060: sole live 403 tracker; owner actions (secret regen +
++  required-check deploy) are its unfreeze_if, review_at 2026-12-15.
++- Sunset counter stays 1/6; next observation 2026-12-15; the durable host
++  is `docs/governance/sunset-counter.json` (anchors chain).
++- Consent-sweep standing rows (defer-0053, defer-0057, defer-0058 cadence,
++  O-E backlog): T-1/T-2 ledger lines record this round's dispositions.
+diff --git a/.scratch/grill-t16/handoffs/next-round.md b/.scratch/grill-t16/handoffs/next-round.md
+new file mode 100644
+index 0000000..6c4cf13
+--- /dev/null
++++ b/.scratch/grill-t16/handoffs/next-round.md
+@@ -0,0 +1,94 @@
++# grill-t16 → next-round task book (2026-09-18)
++
++Standing task book for the next session. Ledger: ../decision-ledger.md
++(D-001..D-005 all current). Spec: ../spec-fix-mechanisms.md.
++
++## Rerunnable state (auditor-verified at t15 close — re-run before relying)
++
++- `node scripts/run-test-gate.js --expected-suites 73` → 73 suites / 1194 tests / 0 skipped
++- `npm run gate:all` → exit 0
++- `node scripts/check-deferred.js` → 55 entries (47 live, 8 closed/actioned)
++- `node scripts/build-governance-anchors.js --check` → 15 artifacts in sync
++- `node scripts/check-governance-inventory.js` → 35 entries + trend advisory
++- `node scripts/build-rewrite-map.js --check` → 1403 citations in sync
++- `node scripts/check-ci-jobs.js` → exit 1 (defer0004 unmet — correct per narrowed semantics)
++- `node scripts/instrument.js --check` → authoritative; conditional cert to 2026-12-11
++- `npm pack` → 329844 B (< 340000 cap)
++- origin/main = 21b1442; grill-t15-docs = 9 commits UNLANDED (owner-domain)
++- workspace: three intentionally untracked audit patches (tq=t13, nl=t14,
++  xu=t15 — NEVER commit; but commit needs explicit IDs)
++
++## T-1 — R1 documentation bundle (D-002 B2+B3, D-003, D-004 partial, D-005)
++
++Produce ADR-0077 "verifier exit convention + mechanism-output artifacts +
++round-report facts canon" plus:
++
++1. ADR-0077: amends ADR-0076 D-B(2) wording explicitly (pointer/status line
++   on 0076; the flagged phrase superseded in both places); carries the
++   exit convention, the mechanism-output convention, the facts-canon line,
++   the not-in-anchors reason, and the addendum narrowing (D-002/D-003/D-004).
++2. docs/governance/surface-taxonomy.json: mechanism_outputs closed
++   enumeration {file, generator, replay_verified}; diff_semantics reworded
++   (files[] = machinery-source hand-edits; faithful-regeneration exemption;
++   hand-edit = named heavier violation) (D-003).
++3. check-governance-inventory: accept optional mechanism_output_diff
++   {files,reason}; validate listed files ∈ mechanism_outputs; bare marker
++   hard-fails; never feeds burn-rate (D-003).
++4. t15 trend row additive-only annotation (the two touches are the output
++   class); historical booleans untouched (D-003).
++5. Wiring: mechanism_outputs enumeration assertions (every entry R2,
++   generator exists, no unlisted exemption claims) — adr-0076 or adr-0077
++   wiring file (D-003).
++6. CONTEXT.md: +convention term (exit keyed to consuming row) + facts-canon
++   term; the CONTEXT edit doubles as B3's coupling anchor (D-002/D-004).
++7. Registry: defer-0004 rationale gains explicit "ADR-0058 D-C" citation —
++   SAME COMMIT as the CONTEXT change (F-C, D-002 B3); defer-0062 tally row
++   (this round's net addition); t15-row annotation as above.
++8. Ledger T-section: one consent-sweep disposition line per cadence item
++   (defer-0060, sunset 1/6, SLA rows, O-E) — never "audit response" (D-005).
++9. README ADR index 77; anchors regen if a tracked artifact changed.
++10. R1 exit: boundary commit green; all R2-needed text frozen (fixture
++    expectations, registry JSON, convention wording).
++
++Hard rules: R1 touches no R1/R2 file this round (no carve-out needed);
++pins are mechanism vocabulary; the convention is worded "currently
++consuming".
++
++## T-2 — R2 implementation bundle (D-002 B1, D-004, D-005)
++
++Ordered:
++
++1. check-ci-jobs fix — ONE COMMIT: exit = defer0004.satisfied; defer0026
++   legs stay computed + printed; header rewritten (F-B); main() catch →
++   exit 2 + stderr; comment block with convention + discharge re-point
++   clause; adr-0058-wiring fixtures (three directions + crash fixture +
++   defer0026 leg assertions retained) (D-002).
++2. scripts/build-round-facts.js + round-facts.json schema
++   (battery_as_of_commit, report_commit:null, not_run[]); report facts
++   section deterministically rendered; render-pin wiring test (D-004).
++3. F-E nits: adr-0069 stale comment; surface-taxonomy.js dead m[1]||m[2];
++   any_matrix inline regex (`matrix:s*{` edge); CONTEXT carve-out gloss
++   (inventory-row channel restored); ledger 1346→1403 correction (D-005).
++4. Round report: facts section rendered from the artifact; disclosed items
++   — defer0026 now wiring-layer-only at runtime; addendum narrowing;
++   explicit-change-IDs lesson; carve-out not invoked (streak resets)
++   (D-002/D-004/D-005).
++5. Consent-sweep ledger lines completed at disposition time (R2 verifies
++   one line exists per cadence item).
++
++## T-3 — owner surface (D-005)
++
++- ZERO asks this round. Awareness annotations only: grill-t15-docs stack
++  (9 commits) unlanded — owner-domain; defer-0060 owner actions sit in its
++  unfreeze_if (quarterly review 2026-12-15); sunset counter stays 1/6 until
++  the 2026-12-15 observation.
++
++## Suggested skills
++
++- $implement — R1/R2 execution
++- $tdd — wiring fixtures + render pin at agreed seams
++- $code-review — before each commit
++- $domain-modeling — CONTEXT/ADR authoring
++- $handoff — next checkpoint
++- atomcode-research — contested dispositions
++- gitbutler (but) — ALL VCS writes; explicit change IDs always
+diff --git a/.scratch/grill-t16/reports/2026-09-18-report.md b/.scratch/grill-t16/reports/2026-09-18-report.md
+new file mode 100644
+index 0000000..4b9c6b4
+--- /dev/null
++++ b/.scratch/grill-t16/reports/2026-09-18-report.md
+@@ -0,0 +1,144 @@
++# grill-t16 round report — 2026-09-18
++
++Round: fix + mechanism round (ledger D-001). Executor: repair/dev sub-agent.
++Boundary commits: R1 documentation bundle `spr`, R2 verifier fix `wsn`,
++plus the machinery/closeout commits - all on grill-t16-docs (the report
++cannot name the commit that carries it; `report_commit` stays null). Task book:
++`.scratch/grill-t16/handoffs/next-round.md`.
++
++## Facts (rendered from `.scratch/grill-t16/round-facts.json` — ADR-0077 D-C canon)
++
++<!-- round-facts:start -->
++- suites: 73
++- passed: 1216
++- skipped: 0
++- pack_bytes: 333992
++- instrument_entries: 27
++- rewrite_map_citations: 1414
++- registry_entries: 56
++- anchors_count: 16
++- battery_as_of_commit: 640f8c7
++- report_commit: null
++- not_run: [bench-gate, ci-wiring, mr-probes, probes]
++<!-- round-facts:end -->
++
++The report is narrative, never the home of numbers. `report_commit` stays
++`null` by design — the report cannot cite its own commit. `battery_as_of_commit`
++pins the tree the closing battery ran against.
++
++## Findings settlement (t15 audit F-A..F-E)
++
++- **F-A** (exit union across rows) — SETTLED. `scripts/check-ci-jobs.js` exit
++  is keyed to `defer0004.satisfied` (the row currently consuming the verifier);
++  defer0026 legs remain computed and printed as diagnostics and never drive
++  the exit. A crash exits `2` on a stderr line — verifier-broken can no
++  longer masquerade as unsatisfied (`evalSuggestions` already warns on exit>1).
++- **F-B** (stale "multi-job" header) — SETTLED in the same edit: the header
++  registers the consuming-row convention verbatim and the discharge re-point
++  clause.
++- **F-C** (defer-0004 citation chain broke) — SETTLED in R1: the rationale
++  cites ADR-0058 D-C explicitly (the three-exit framework under which the
++  narrowed re-defer was taken), same commit as the CONTEXT convention touch.
++- **F-D** (mechanism outputs undeclared) — SETTLED by convention: ADR-0077
++  D-B registers the `mechanism_outputs` closed enumeration (R2-internal, never
++  a fourth surface), rewords `diff_semantics`, adds the optional
++  `mechanism_output_diff` provenance marker, and annotates the t15 row
++  additively (historical booleans untouched, `carve_out_used:1` stands).
++- **F-E** (nits) — SETTLED: adr-0069 stale comment (rode the forced 76→77
++  count bump in R1 — same physical line, disclosed), `surface-taxonomy.js`
++  dead `m[1]||m[2]` dropped, `any_matrix` regex now matches the inline
++  `matrix: {...}` form, t15 ledger citation count corrected 1346→1403 in both
++  copies (anchors regenerated), CONTEXT carve-out gloss restored the
++  trend-inventory channel.
++
++## Decision mapping
++
++- **D-002** — executed: B1 exit re-keyed + crash→2 + header rewrite +
++  convention comment; B2 convention verbatim in the ledger T-1 section and
++  CONTEXT terms (settle commit); B3 F-C citation in the same R1 commit.
++- **D-003** — executed: `mechanism_outputs` enumeration `{file, generator,
++  replay_verified}` = `src/instrument-state.json` (instrument.js, false —
++  append-only timestamps) + `bench/research/out/g6-publish-replay.json`
++  (check-g6-publish.js, true — byte-deterministic at a fixed tree). The same
++  output class on the documentation surface (anchors.json, rewrite-map.json,
++  the taxonomy R1.files snapshot, the README adr-index block) is named in
++  ADR-0077, not enumerated: R3 files never enter files[] jurisdiction, so the
++  exemption question does not arise — this is the honest reading of
++  "R2-internal closed enumeration" + "every entry classifies R2" (the spec's
++  member list named the whole output family; the enumeration governs exactly
++  the set the disclosure obligation exists for). Checker support landed in R2:
++  membership + R2 classification validated, bare marker hard-fails, never
++  feeds burn-rate. The t16 row carries the marker's first real use
++  (g6-publish-replay.json gate refresh during the R1 battery).
++- **D-004** — executed: `scripts/build-round-facts.js` regenerates
++  `.scratch/grill-t16/round-facts.json`; the facts section above renders
++  deterministically inside the sentinel region; a render-pin wiring test
++  asserts artifact-region equality and bans bare schema-key values in report
++  prose. Addendum channel narrowed to genuinely subsequent events and
++  self-reference disclosure (ASC 855 analogy — stale numbers are restated,
++  not annotated); this report states the narrowing so the thinner addendum
++  is not misread as a deletion. Adjudicated deviation: the artifact does NOT
++  join the anchors chain (per-round regeneration would churn the digest
++  chain) — recorded in ADR-0077 D-C.
++- **D-005** — executed: light close (no strategic/promotion review, no
++  G1/G3/G4 amendment); R1 all-R3 / R2 all-R2 — carve-out NOT invoked,
++  burn-rate streak resets (`carve_out_used:0` on the t16 row); consent-sweep
++  disposition lines written at T-1; zero owner asks; the three audit patches
++  (tq/nl/xu) stay untracked forever; explicit-change-ID discipline restated:
++  `but commit` was given the exact change IDs copied from `but status`
++  output, never invented.
++
++## Reproducible evidence
++
++- `node scripts/check-ci-jobs.js` → exit 1; prints
++  `defer0004=unmet(...) defer0026=SATISFIED(...) - not met (defer0004); the
++  deferral remains valid` (consuming row keyed; defer0026 diagnostic).
++- `node scripts/check-ci-jobs.js /nonexistent.yml` → exit 2; stderr
++  `check-ci-jobs: verifier broken - ENOENT...` (crash never reads as
++  unsatisfied).
++- `node scripts/run-test-gate.js --expected-suites 73` →
++  `[test] OK: 73 suites, 1216 tests, 0 skipped (ADR-0057 D-C)`, exit 0.
++- `npm run gate:all` → `gate:all exit 0 (35 entries, 4 unverifiable,
++  fail-fast off)`; UNVERIFIABLE = ci-wiring/bench-gate/probes/mr-probes
++  (ci-mode absent on this host — registered, not skipped silently).
++- `node scripts/check-governance-inventory.js` →
++  `[governance-inventory] OK: 35 entries, live source_adr, unique commands,
++  closed references`, exit 0 (one standing advisory: doc-round ADR streak).
++- `node scripts/check-deferred.js` → `[deferred] OK - 56 entries (47 live,
++  9 closed/actioned)`, exit 0.
++- `node scripts/build-governance-anchors.js --check` →
++  `OK - 16 artifacts, digests in sync` (decision-ledger-t16.md admitted).
++- `node scripts/build-rewrite-map.js --check` → `map in sync`.
++- `node scripts/check-ci-wiring.js` / adr-0058-wiring → suite green;
++  the three exit directions + crash + defer0026-diagnostic + inline-matrix
++  fixtures all pass.
++- `npm run pack-smoke` → `smoke OK: jiahao-0.0.1.tgz (333992 bytes, 113
++  files)` under the 340000 budget - the byte count lives in the facts
++  artifact and the g6-publish replay record.
++- `node scripts/build-round-facts.js --round grill-t16 --check --report
++  .scratch/grill-t16/reports/2026-09-18-report.md` → facts + region in sync,
++  exit 0.
++
++## Disclosures
++
++- `evalSuggestions` discards verifier stdout: a defer0026 leg regression
++  surfaces only via wiring fixtures at runtime (wiring-layer-only, not
++  orphaned — the summary job is separately covered by check-ci-wiring).
++- The t16 ledger's governance copy (`docs/governance/decision-ledger-t16.md`)
++  joined the anchors chain in R2 (the ARTIFACTS edit is machinery); it is
++  resynced at round close so the digest pins the final ledger.
++- The mechanism-output reading note under D-003 above is disclosed as an
++  interpretation: the enumeration is exactly the R2-surface members; the
++  docs-surface siblings are named in the ADR for completeness.
++- The `mkz` settle commit's CONTEXT terms (Consuming-Row Exit, Facts Canon)
++  predated this round's work and are pinned by wiring now.
++
++## T-3 awareness (zero asks)
++
++- Stack landing: `grill-t15-docs` carries the t15 + t16-settle commits
++  unlanded; `grill-t16-docs` adds `spr` + the R2 commits on top. Landing is
++  owner-domain — awareness only.
++- defer-0060 stays a tracked row (quarterly, review_at 2026-12-15): the
++  owner actions (secret regen + required-check deployment) are its
++  unfreeze_if, not a decision ask.
++- Sunset counter stays 1/6; next quarterly observation 2026-12-15.
+diff --git a/.scratch/grill-t16/round-facts.json b/.scratch/grill-t16/round-facts.json
+new file mode 100644
+index 0000000..dda026c
+--- /dev/null
++++ b/.scratch/grill-t16/round-facts.json
+@@ -0,0 +1,20 @@
++{
++  "schema_version": 1,
++  "_doc": "ADR-0077 D-C facts canon: regenerable at the closing step; the report facts section renders deterministically from this artifact. report_commit stays null - the report cannot cite its own commit. Not an anchors-chain member (per-round regeneration would churn the digest chain).",
++  "suites": 73,
++  "passed": 1216,
++  "skipped": 0,
++  "pack_bytes": 333992,
++  "instrument_entries": 27,
++  "rewrite_map_citations": 1414,
++  "registry_entries": 56,
++  "anchors_count": 16,
++  "battery_as_of_commit": "640f8c7",
++  "report_commit": null,
++  "not_run": [
++    "bench-gate",
++    "ci-wiring",
++    "mr-probes",
++    "probes"
++  ]
++}
+diff --git a/.scratch/grill-t16/spec-fix-mechanisms.md b/.scratch/grill-t16/spec-fix-mechanisms.md
+new file mode 100644
+index 0000000..ab14d5a
+--- /dev/null
++++ b/.scratch/grill-t16/spec-fix-mechanisms.md
+@@ -0,0 +1,196 @@
++# grill-t16 spec — fix + mechanism round
++
++Source of truth: .scratch/grill-t16/decision-ledger.md (D-001..D-005, all current).
++Status: SETTLED 2026-09-18. Execution follows handoffs/next-round.md.
++
++## §0 — headline
++
++t15 closed with the audit PASSED WITH FINDINGS (F-A..F-E) and the stack
++held on grill-t15-docs (9 commits, remote main still 21b1442 — landing is
++owner-domain). This round disposes the findings and kills two classes at
++once: the verifier exit conflation becomes a named contract (the exit
++reports the consuming row's condition, never a union), and the report's
++numbers move into a regenerated canon (the report is narrative, never the
++home of numbers). Small round, but both fixes are anti-self-deception
++instruments — a tripwire that can silently miss is worse than no tripwire.
++
++## §1 — round boundary (D-001)
++
++Eight agenda items, bound:
++
++1. F-A/F-B/F-C implementation bundle (R2 surface — implementation-round
++   territory, not a doc-round carve-out).
++2. F-D adjudication (disclose vs amend).
++3. F-E nits sweep.
++4. verified_by exit-semantics convention (kill the multi-row union class).
++5. Mechanism-output artifacts in the taxonomy (fourth class vs R2-internal
++   convention).
++6. Round-report number-staleness class.
++7. Standing cadence consent sweep (defer-0060, sunset 1/6, SLA rows, O-E).
++8. Stack landing status — awareness line only (owner-domain action).
++
++### Explicitly out of scope (with rationale)
++
++- Strategic review — sunset counter 1/6, trigger inactive.
++- Promotion review — organic=0, no qualifying corpus.
++- G1/G3/G4 threshold amendment — banned.
++- Source edits during grilling.
++- Deleting defer0026 leg evaluation — legs stay as diagnostics + wiring;
++  only the exit semantics re-key.
++- Stack landing — not a self-decided item this round.
++- The three audit patches (tq/nl/xu) — untracked forever.
++
++## §2 — F-A fix: exit keyed to the live consuming row (D-002)
++
++Bundle B1 (implementation commit, R2):
++
++- check-ci-jobs.js: exit = res.predicates.defer0004.satisfied ? 0 : 1;
++  defer0026 legs stay computed AND printed in the stdout tag line
++  (diagnostic layer, never exit-driving).
++- Header rewritten — kills F-B's stale multi-job predicate description in
++  the same edit.
++- main() wrapped in catch → exit 2 + stderr line (crash masquerade is the
++  same conflation class on a different path; Nagios UNKNOWN catch-all
++  mirror). Without this the R2-honesty hole stays half-open.
++- Comment block carries the convention line + the discharge re-point
++  clause: when defer-0004 discharges, the exit key re-points or retires in
++  the same commit as that registry edit.
++- test/adr-0058-wiring.test.js fixtures pin three directions: defer0004
++  satisfied → exit 0; defer0004 unmet → exit 1; defer0004 satisfied while
++  defer0026 legs regressed → exit 0 AND stdout contains defer0026=unmet;
++  plus a crash-path → exit 2 fixture; existing defer0026 leg assertions
++  retained.
++
++Bundle B2 (doc commit, R3 — same commit as B3):
++
++- Ledger carries the convention verbatim: "a verified_by script's exit code
++  reflects only the legs of the row(s) currently consuming it; multi-row
++  reporting is diagnostic, never exit-driving" — worded "currently
++  consuming" so the (b) selector stays a pre-registered upgrade path, not a
++  contradiction, when a second live consumer appears.
++- CONTEXT.md gains the convention term (also serves as the coupling
++  anchor for B3).
++
++Bundle B3 (F-C, same commit as B2):
++
++- defer-0004 rationale gains the explicit "ADR-0058 D-C" citation
++  (ADR-0027/0033 D4 coupling guard satisfied by B2's CONTEXT change).
++
++Honest residual (disclosed in the round report): evalSuggestions discards
++the verifier's stdout, so defer0026 regressions surface only via wiring
++fixtures — wiring-layer-only at runtime; not fully orphaned (the summary
++job is separately covered by check-ci-wiring).
++
++## §3 — F-D: mechanism-output artifact convention (D-003)
++
++New ADR-0077 explicitly amends (never silently rewrites) ADR-0076 D-B(2)'s
++"which R2 files the round touched" — superseded in BOTH places: ADR-0076
++via pointer/status line, surface-taxonomy diff_semantics via rewording.
++
++- surface-taxonomy.json gains mechanism_outputs: R2-internal sub-class,
++  CLOSED enumeration (never residual — same anti-drift discipline as the
++  R1 closure). Each entry: {file, generator, replay_verified}. Members
++  include src/instrument-state.json, bench/research/out/g6-publish-
++  replay.json, anchors.json, rewrite-map.json, the taxonomy R1 snapshot,
++  pack-size records.
++- Wiring asserts: every entry classifies R2, names an existing generator,
++  and no unlisted file may claim the exemption.
++- diff_semantics.governance_tooling_diff reworded: files[] jurisdiction =
++  machinery-SOURCE hand-edits; mechanism-output artifacts are exempt when
++  the diff is a faithful regeneration — faithful = "the diff equals what
++  re-running the registered generator at that commit produces" (Go
++  generated-file convention verbatim: non-canonical source, delete +
++  regenerate → zero diff). A HAND-EDIT of an output is a named heavier
++  violation (falsification-adjacent) and must be disclosed in files[].
++- Optional sibling marker mechanism_output_diff:{files,reason} —
++  provenance visibility, never feeds burn-rate; checker validates listed
++  files ∈ mechanism_outputs; a bare marker with no files hard-fails
++  (mirrors carve_out_used=1).
++- t15 trend row: additive-only annotation (the two touches are the
++  output class under the new convention); historical booleans untouched;
++  carve_out_used:1 stands.
++- replay_verified:true outputs get re-run-and-diff as the audit's
++  escalation tool (not a blocking gate initially); non-idempotent
++  generators register replay_verified:false as recorded debt.
++- D-001 agenda-5 pole decided: R2-INTERNAL convention — a fourth surface
++  class would break D-A's exactly-one-of-three invariant and let outputs
++  escape R2 jurisdiction.
++
++## §4 — round-report staleness: facts canon (D-004)
++
++- scripts/build-round-facts.js regenerates
++  .scratch/grill-<tN>/round-facts.json at the closing step (T-2 tail):
++  schema {suites, passed, skipped, pack_bytes, instrument_entries,
++  rewrite_map_citations, registry_entries, anchors_count,
++  battery_as_of_commit, report_commit: null, not_run[]}.
++- The report's facts section is deterministically embedded/rendered from
++  the artifact; bare numbers are banned in report prose (wiring can pin:
++  no schema-key values outside the facts section).
++- report_commit stays null by design — the report cannot cite its own
++  commit; self-reference is disclosed, not faked.
++- as-of/addendum narrowed to genuinely subsequent events (owner
++  dispositions, T-3 sign-offs) and self-reference disclosure — ASC 855
++  analogy: stale numbers are ADJUSTING events (determined at close,
++  collected early) and must be restated, not annotated. The t15 T-3
++  addendum pattern persists but sheds its number-fixing role; the t16
++  report states the narrowing explicitly so the thinner addendum is not
++  misread as a deletion.
++- Explicit adjudicated deviation: the facts artifact does NOT join the
++  anchors chain — per-round regeneration would churn the digest chain
++  (anchors serve slow-moving artifacts); the one-line reason lands in
++  ADR-0077 (disclose-don't-blindly-follow precedent).
++- Judgment line (D-002's shape, applied): "the report is narrative, never
++  the home of numbers."
++- Landing-spot note: the artifact lives in .scratch (R3 process-evidence
++  home per ADR-0061 D-E layering); mechanism_outputs alignment per D-003's
++  enumeration discipline.
++
++## §5 — closeout form (D-005)
++
++- Light close: ADR-0074 D-F triggers silent (no external claim, no
++  sanitized zone, no threshold crossing; smaller surface than t15).
++  Self-check battery + owner approval + dispositions listed as standing
++  review surface at next audit. Battery must include the new machinery:
++  adr-0058-wiring three-direction + crash fixtures, mechanism_outputs
++  enumeration assertions, facts-artifact render pin.
++- Phase structure (carve-out NOT invoked — doc bundle is all R3,
++  implementation bundle is all R2; burn-rate streak resets naturally):
++  - R1 doc bundle: ADR-0077 + CONTEXT terms x2 + diff_semantics reword +
++    mechanism_outputs enumeration + t15 row annotation + defer-0004
++    rationale F-C citation (B2+B3 same commit) + ledger consent lines +
++    defer-0062 tally + README index 77.
++  - R2 implementation bundle: check-ci-jobs fix + header + crash→exit2 +
++    convention comment + adr-0058-wiring fixtures (script and its pins in
++    one commit — tests travel with the behavior they verify) +
++    build-round-facts.js + template render pin + F-E nits (adr-0069
++    comment, surface-taxonomy.js dead code, any_matrix inline regex,
++    CONTEXT gloss line, ledger 1346→1403 correction) + round report with
++    artifact-rendered facts section.
++  - Ordering: R1 first (convention before implementation — spec-first).
++- Residuals: F-A/F-B → B1; F-C/F-D → R1; F-E → R2; cadence items
++  (defer-0060 quarterly 2026-12-15, sunset 1/6 same date, SLA rows, O-E)
++  get one ledger disposition line each at disposition time —
++  consent-sweep framing, never "audit response".
++- Stack landing (grill-t15-docs, 9 commits, unpushed): awareness line
++  only — owner-domain action, not a decision item.
++- Zero owner asks this round: T-3 fully discharged (seq-24 signed,
++  defer-0051 ratified, countersign landed); defer-0060 is a tracked row,
++  owner action is its unfreeze_if not a decision ask.
++- The three audit patches (tq/nl/xu) stay untracked forever; the round
++  report restates the explicit-change-IDs lesson.
++
++## §6 — negative requirements union
++
++- No strategic review, no promotion review, no G1/G3/G4 amendment (D-001).
++- defer0026 legs never deleted; the exit never re-unions; exit>1 stays
++  reserved for verifier-broken (D-002).
++- files[] never claims an unlisted output exemption; hand-edits of outputs
++  never hide behind the regeneration convention; the bare-marker path
++  hard-fails (D-003).
++- Report prose never hand-writes facts-section numbers; report_commit is
++  never faked; as-of marking never substitutes for a restatable number
++  (D-004).
++- No routine audit without a D-F trigger; no "audit response" framing; no
++  bundled asks; carve-out stays un-invoked this round (D-005).
++- The three audit patches stay untracked forever; but commits always carry
++  explicit change IDs.
+diff --git a/CONTEXT.md b/CONTEXT.md
+index ce463ef..2928dbe 100644
+--- a/CONTEXT.md
++++ b/CONTEXT.md
+@@ -731,12 +731,38 @@ list no mechanical scan can verify
+ The gated exemption letting a documentation round repair governance
+ machinery when the round's own artifact truthfulness requires it:
+ necessity (the justification names the triggering artifact), disclosure
+-(the change is named in the round's ADR decision and ledger), and burn-rate
++(the change is named in the round's ADR decision, the ledger, and the
++trend-inventory governance_tooling_diff channel), and burn-rate
+ visibility (each use is marked so consecutive uses raise an advisory). A
+ controlled emergency lane, not a general permission (ledger t15 D-005).
+ _Avoid_: unmarked use; bundling the justification into prose; reading the
+ marker as permission to touch runtime files
+ 
++**Consuming-Row Exit (消费行出口)**
++The exit-semantics contract for a verified_by script: the exit code
++reports only the condition of the row(s) currently consuming it — legs
++computed for other rows are diagnostics and may be printed, but never
++drive the exit. Exit 0 = the consuming row's condition satisfied, exit 1 =
++unsatisfied, exit >1 = the verifier itself is broken (a crash must never
++masquerade as unsatisfied). When the consuming row discharges, the exit
++key is re-pointed or retired in the same commit as that registry edit;
++a second live consumer is what activates the pre-registered selector
++upgrade (ledger t16 D-002).
++_Avoid_: union exits over multiple rows' legs (a terminal row's
++regression silently suppresses the live tripwire); crash paths exiting 1;
++selectors wired before a second consumer exists
++
++**Facts Canon (事实正典)**
++The rule that a round report's evidence numbers live in exactly one
++regenerable artifact, refreshed at the closing step — the report is
++narrative, never the home of numbers. Numbers already determined at the
++close are restated mechanically; the as-of/addendum channel is reserved
++for genuinely subsequent events and self-reference disclosures (ledger
++t16 D-004).
++_Avoid_: hand-written figures in report prose; annotating a restatable
++number instead of restating it; faking a self-referential field instead
++of leaving it honestly null
++
+ ## Decision Log
+ 
+ **Self-Preference Bias (自偏好偏差)**:
+diff --git a/README.md b/README.md
+index 2489791..0b5a959 100644
+--- a/README.md
++++ b/README.md
+@@ -226,7 +226,7 @@ source-only; ADR-0059 D-B). An MCP publish channel is deferred (defer-0029).
+ ## Develop
+ 
+ ```bash
+-npm test                              # 1194 tests across 73 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
++npm test                              # 1216 tests across 73 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
+ node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
+ node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
+ node scripts/check-drift.js           # CI drift check + profile purity
+@@ -244,7 +244,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
+ - `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). The index below is a derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js` — do not hand-edit:
+ 
+ <!-- adr-index:start -->
+-- 76 architecture decision records:
++- 77 architecture decision records:
+ - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
+ - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
+ - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
+@@ -321,8 +321,9 @@ node scripts/check-drift.js           # CI drift check + profile purity
+ - [ADR-0074](docs/adr/0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md) — Sanitized-History Publish Record, Rewrite-Map Single Translation Point, Tip-Pinned Install Claim Invalidation, Published-Tip Re-Verification Preregistration, and Independence-Grade Audit Convention
+ - [ADR-0075](docs/adr/0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md) — Promotion-Review Preregistration Pack — N/M Sufficiency Qualifier on the G1 Organic Corpus, Pre-Registered <=8-Class Intent Taxonomy, Sunset Trigger Clause, and Blocking Meta-Requirement
+ - [ADR-0076](docs/adr/0076-round-edit-surface-taxonomy-and-governance-carve-out.md) — Round Edit-Surface Taxonomy, the Governance Carve-Out, the Sunset-Counter Durable Home, and Spec-Code Bidirectional Pinning (grill-t15 disposition + mechanism round)
++- [ADR-0077](docs/adr/0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md) — The Consuming-Row Exit Convention, the Mechanism-Output Artifact Enumeration, and the Round-Report Facts Canon (grill-t16 fix + mechanism round)
+ <!-- adr-index:end -->
+-- `test/` — 73 test suites, 1194 tests
++- `test/` — 73 test suites, 1216 tests
+ - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
+ - `private/bench-corpus/` — answer corpora (probes/judge-twins/twins + fingerprints; gitignored, ADR-0036 D2). Gate scripts resolve via JIAHAO_CORPUS_DIR, else the install-planted dir (`jiahao init` plants it from the package), else this repo-private dir in a maintainer tree; missing everywhere fails closed (exit 1: config; the capability probe degrades an absent corpus dir to exit 2 UNVERIFIABLE first, ADR-0041 D2). npm consumers and public git clones carry no corpus at all — corpus gates are a maintainer/CI-only contract, fail-closed by design (ADR-0038 D2).
+ 
+diff --git a/bench/research/out/g6-publish-replay.json b/bench/research/out/g6-publish-replay.json
+index ef55153..bb17a47 100644
+--- a/bench/research/out/g6-publish-replay.json
++++ b/bench/research/out/g6-publish-replay.json
+@@ -4,7 +4,7 @@
+   "gate": "g6-publish",
+   "tarball": {
+     "file": "jiahao-0.0.1.tgz",
+-    "size": 329559
++    "size": 333992
+   },
+   "extracted_surface_sha256": "7d276bb757e27cf3dc566b2dfd882278b693da1ef6e087fe8774094dc5622174",
+   "expectations": 20,
+diff --git a/docs/adr/0076-round-edit-surface-taxonomy-and-governance-carve-out.md b/docs/adr/0076-round-edit-surface-taxonomy-and-governance-carve-out.md
+index 4b3de82..31c9a7e 100644
+--- a/docs/adr/0076-round-edit-surface-taxonomy-and-governance-carve-out.md
++++ b/docs/adr/0076-round-edit-surface-taxonomy-and-governance-carve-out.md
+@@ -2,6 +2,7 @@
+ 
+ - Status: Accepted
+ - Date: 2026-09-18
++- Amended-by: ADR-0077 (D-B(2) diff semantics: the phrase "which R2 files the round touched" is superseded - files[] jurisdiction is machinery-source hand-edits; mechanism-output artifacts carry the faithful-regeneration exemption)
+ - Ledger: `.scratch/grill-t15/decision-ledger.md` — grill-t15 D-001..D-007 (all current); the governance copy is `docs/governance/decision-ledger-t15.md`
+ - Spec: `.scratch/grill-t15/spec-disposition-mechanisms.md`
+ 
+@@ -28,7 +29,7 @@ The R1 set is enumerated by the closure scan, never by hand — `test/adr-0076-w
+ **Decision**: a documentation round may touch an R2 file only through the registered carve-out, gated three ways:
+ 
+ 1. **Necessity** — the justification names the triggering artifact; only what the round's own artifact truthfulness requires qualifies.
+-2. **Disclosure** — the trend-inventory row carries `governance_tooling_diff:{files, reason}` and the round's ADR names the change in its Decision section.
++2. **Disclosure** — the trend-inventory row carries `governance_tooling_diff:{files, reason}` and the round's ADR names the change in its Decision section. *(Amended by ADR-0077 D-B: the literal phrase "which R2 files the round touched" is superseded - files[] jurisdiction is machinery-SOURCE hand-edits; mechanism-output artifacts are exempt only on faithful regeneration, and the optional mechanism_output_diff sibling marker carries provenance.)*
+ 3. **Burn-rate** — the row carries `carve_out_used`; two consecutive carve-out rounds raise one advisory warning that never blocks.
+ 
+ The check is *recomputed, not trusted*: `scripts/check-governance-inventory.js` re-derives every listed file's surface from the taxonomy authority and hard-fails on an R1 file or a mislabeled row — a declaration cannot declare itself true.
+diff --git a/docs/adr/0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md b/docs/adr/0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md
+new file mode 100644
+index 0000000..8467fdf
+--- /dev/null
++++ b/docs/adr/0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md
+@@ -0,0 +1,64 @@
++# ADR-0077: The Consuming-Row Exit Convention, the Mechanism-Output Artifact Enumeration, and the Round-Report Facts Canon (grill-t16 fix + mechanism round)
++
++- Status: Accepted
++- Date: 2026-09-18
++- Amends: ADR-0076 D-B(2) (governance_tooling_diff.files[] jurisdiction narrowed to machinery-source hand-edits; the mechanism-output faithful-regeneration exemption is registered)
++- Ledger: `.scratch/grill-t16/decision-ledger.md` — grill-t16 D-001..D-005 (all current); the governance copy is `docs/governance/decision-ledger-t16.md`
++- Spec: `.scratch/grill-t16/spec-fix-mechanisms.md`
++
++## Context
++
++The grill-t15 audit closed PASS WITH FINDINGS (F-A..F-E plus nits). Several findings name mechanism classes rather than one-off defects: F-A/F-B (a verified_by exit code ANDs legs across rows, so a terminal row's regression can silence the live tripwire; the stale header still describes the dead predicate), F-C (a disposition's citation chain broke), F-D (two R2-surface mechanism-output artifacts were touched but undeclared — the taxonomy's letter carves no output-artifact exception and the recompute validates labels, not coverage). A recurring class sits beside them: report numbers go stale between drafting and close. This round re-keys the exit to the row currently consuming the verifier, names the output-artifact convention inside the R2 surface, and moves report numbers into a regenerated canon.
++
++## Decision
++
++### D-A - The consuming-row exit convention (ledger D-002)
++
++**Decision**: a verified_by script's exit code reflects only the legs of the row(s) currently consuming it; multi-row reporting is diagnostic, never exit-driving. The wording is "currently consuming" on purpose: the per-row selector is a pre-registered upgrade path that activates when a second live consumer appears — it is not a contradiction of the convention, and wiring a selector earlier would be permanent dead code (n=1 has nothing to select).
++
++- exit 0 = the consuming row's condition satisfied; exit 1 = unsatisfied; exit >1 = the verifier itself is broken. A crash must never masquerade as unsatisfied (the Nagios UNKNOWN catch-all mirror); check-deferred's evalSuggestions already treats exit>1 as the verifier-broken WARN, so the contract plugs into existing machinery.
++- Discharge re-point clause: when the consuming row discharges, the exit key re-points to the next consumer or retires in the same commit as that registry edit — the exit key is part of the disposition, not an afterthought.
++- Executed on scripts/check-ci-jobs.js in R2: the exit is keyed to defer0004 (the only live consumer); defer0026 legs stay computed and printed in the stdout tag line as diagnostics; the header is rewritten in the same edit (settles F-B); main() is wrapped in a catch that exits 2 with a stderr line.
++- Honest residual, disclosed not hidden: evalSuggestions discards the verifier's stdout, so defer0026 leg regressions surface only via wiring fixtures at runtime — wiring-layer-only, not fully orphaned (the summary job is separately covered by check-ci-wiring).
++
++### D-B - Mechanism-output artifacts: an R2-internal closed enumeration (ledger D-003)
++
++**Decision**: docs/governance/surface-taxonomy.json gains a mechanism_outputs block — a closed enumeration (never residual, same anti-drift discipline as the R1 closure) of {file, generator, replay_verified} entries. The enumeration covers exactly the files the disclosure obligation exists for: git-tracked, R2-classified artifacts produced by a registered in-repo generator. Initial members:
++
++- src/instrument-state.json — generator scripts/instrument.js; replay_verified:false (append-only event log with timestamps; re-running is not byte-identical — registered debt).
++- bench/research/out/g6-publish-replay.json — generator scripts/check-g6-publish.js; replay_verified:true (deterministic at a fixed tree — its own _doc attests a green re-run reproduces identical bytes; it also carries the pack-size record).
++
++The same output class on the documentation surface — docs/governance/anchors.json, docs/rewrite-map.json, the taxonomy's own R1.files snapshot, the README adr-index block — is named here, not enumerated: R3 files never enter files[] jurisdiction, so the exemption question does not arise for them. A fourth surface class stays rejected: it would break D-A's exactly-one-of-three invariant and let outputs escape R2 jurisdiction.
++
++diff_semantics.governance_tooling_diff is reworded: files[] jurisdiction = machinery-SOURCE hand-edits. A mechanism-output artifact is exempt when the diff is a faithful regeneration — faithful = "the diff equals what re-running the registered generator at that commit produces" (the Go generated-file convention verbatim: non-canonical source; delete and regenerate produces zero diff). A HAND-EDIT of an output is a named heavier violation — falsification-adjacent — and must be disclosed in files[].
++
++An optional sibling marker mechanism_output_diff:{files,reason} gives provenance visibility and never feeds burn-rate; the checker validates listed files ∈ mechanism_outputs, and a bare marker with no files hard-fails (mirrors carve_out_used=1). replay_verified:true outputs get re-run-and-diff as the audit's escalation tool (not a blocking gate initially); non-idempotent generators register replay_verified:false as recorded debt. The anti-gaming guards stand: a named heavier violation class, mechanical replay adjudication, git-archaeology deterrence, and idempotency pins; motive drift cannot be technically eradicated and is recorded honestly.
++
++The grill-t15 trend row is annotated additively: the two touches the audit flagged (src/instrument-state.json via T-3, bench/research/out/g6-publish-replay.json via gate refresh) are the output class under this convention; historical booleans are untouched and carve_out_used:1 stands.
++
++### D-C - The round-report facts canon (ledger D-004)
++
++**Decision**: scripts/build-round-facts.js regenerates .scratch/grill-<tN>/round-facts.json at the closing step — schema {suites, passed, skipped, pack_bytes, instrument_entries, rewrite_map_citations, registry_entries, anchors_count, battery_as_of_commit, report_commit, not_run[]}. The report's facts section is deterministically rendered from the artifact inside a sentinel region; bare numbers are banned in report prose (wiring pins: no schema-key value may appear outside the facts section). report_commit stays null by design — the report cannot cite its own commit; self-reference is disclosed, not faked.
++
++The as-of/addendum channel is narrowed to genuinely subsequent events (owner dispositions, T-3 sign-offs) and self-reference disclosure — the ASC 855 analogy: stale numbers are adjusting events determined at close and must be restated, not annotated. The t15 T-3 addendum pattern persists but sheds its number-fixing role; the t16 report states the narrowing explicitly so the thinner addendum is not misread as a deletion.
++
++Explicit adjudicated deviation: the facts artifact does NOT join the anchors chain — per-round regeneration would churn the digest chain, and anchors serve slow-moving artifacts. The reason is recorded here rather than silently following the ledger-copy precedent.
++
++Judgment line (the D-002 shape applied): "the report is narrative, never the home of numbers."
++
++### D-D - Round surface and registrations (ledger D-001/D-005)
++
++- The R1/R2 split is clean this round: the documentation bundle is all R3, the implementation bundle is all R2 — the D-B carve-out is NOT invoked and the burn-rate streak resets naturally. The t16 trend row records carve_out_used:0 with no governance_tooling_diff.
++- defer-0062 — the net-addition tally row (+1 ADR-0077) per the D-006(a)(i) convention; closed via same-commit ledger note (defer-0059 precedent).
++- defer-0004's rationale gains the explicit "ADR-0058 D-C" citation (settles audit F-C; lands in the same commit as the CONTEXT convention touch per the ADR-0027/0033 coupling guard).
++- Consent-sweep (never "audit response"): defer-0060 (quarterly, review_at 2026-12-15 — a tracked row, not an ask), the sunset counter (1/6 — next observation 2026-12-15), defer-0053/0057/0058 and the O-E backlog each get one ledger disposition line at disposition time.
++- Stack landing (grill-t15-docs, unlanded commits) — awareness line only; owner-domain action, not a decision item.
++- Zero owner asks this round: T-3 is fully discharged; defer-0060's owner actions are its unfreeze_if.
++- The three audit patches (tq/nl/xu) stay untracked forever; the round report restates the explicit-change-IDs lesson.
++
++## Consequences
++
++- A verifier crash can no longer masquerade as "condition unsatisfied": exit>1 stays reserved for verifier-broken and evalSuggestions already warns on it.
++- The multi-row union exit class is dead by convention: one live consumer = one keyed exit; the selector activates only when a second consumer exists.
++- Mechanism outputs get provenance without polluting the burn-rate signal; a hand-edited output is a heavier named violation, not a diff that can hide behind regeneration wording.
++- The report can never host stale numbers again: the facts artifact is regenerated at close, the section renders deterministically, and the self-reference hole is disclosed as null instead of filled with a fake value.
+diff --git a/docs/deferred-registry.json b/docs/deferred-registry.json
+index 544ba70..cbd2674 100644
+--- a/docs/deferred-registry.json
++++ b/docs/deferred-registry.json
+@@ -56,7 +56,7 @@
+       "id": "defer-0004",
+       "subject": "generated ci.yml from docs/gates.json (C-style render + regen-diff uplift)",
+       "source_adr": "docs/adr/0034-gate-registry-single-entrypoint-orchestration.md",
+-      "rationale": "ADR-0034 R4: ci.yml is a single-consumer ~30-line file; a renderer would hide intent drift behind a build step (ADR-0032 D2 anti-precedent). The D5 line-level wiring assertion (scripts/check-ci-wiring.js) covers the drift risk at zero build-layer cost. grill-t15 D-003: multi-job arrived via ADR-0058 and did not constitute sufficient reason for a renderer; re-defer narrowed to the renderer-justifying conditions (multi-workflow / any matrix / >3 jobs) with the verified_by predicate rewritten to match - a permanently-SATISFIED verifier is the alert-fatigue anti-pattern.",
++      "rationale": "ADR-0034 R4: ci.yml is a single-consumer ~30-line file; a renderer would hide intent drift behind a build step (ADR-0032 D2 anti-precedent). The D5 line-level wiring assertion (scripts/check-ci-wiring.js) covers the drift risk at zero build-layer cost. grill-t15 D-003: multi-job arrived via ADR-0058 and did not constitute sufficient reason for a renderer; re-defer narrowed to the renderer-justifying conditions (multi-workflow / any matrix / >3 jobs) with the verified_by predicate rewritten to match - a permanently-SATISFIED verifier is the alert-fatigue anti-pattern. grill-t16 F-C settlement: the narrowed re-defer is one of the three exits pre-registered by ADR-0058 D-C (defer-0004 evaluation scope: presence-coupled only - activate, re-defer + update rationale, or close); the exit-semantics convention that governs the verifier is ADR-0077 D-A.",
+       "unfreeze_if": {
+         "type": "presence-condition",
+         "check": "ci.yml spans multiple workflow files OR any job declares a matrix OR job count > 3",
+@@ -956,6 +956,22 @@
+       "status": "closed",
+       "closed_at": "2026-09-18",
+       "closed_via": "same-commit ledger note: .scratch/grill-t15/decision-ledger.md T-2 dispositions (defer-0059 precedent: row exists + ADR registered = nothing left to disposition)"
++    },
++    {
++      "id": "defer-0062",
++      "subject": "grill-t16 doc round net-addition tally: +1 ADR (ADR-0077 consuming-row exit convention + mechanism-output artifact enumeration + round-report facts canon) - D-006(a)(i) summary row",
++      "source_adr": "docs/adr/0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md",
++      "rationale": "Ledger D-006(a)(i) convention (one net-addition summary row per round): the grill-t16 documentation round lands one new ADR (0077: the consuming-row verified_by exit convention, the R2-internal mechanism_outputs closed enumeration with the faithful-regeneration exemption and the mechanism_output_diff provenance marker, and the round-report facts canon with the narrowed addendum channel). The round also touches CONTEXT.md glossary, the surface-taxonomy diff_semantics reword, the t15 trend-row additive annotation, the README index, and the adr-0076 wiring assertions - no R2 machinery is touched in the documentation bundle (carve-out not invoked).",
++      "unfreeze_if": {
++        "type": "presence-condition",
++        "check": "tally dispositioned at the next trend-anchor evaluation (defer-0039 tide); entry closed only by a same-commit ADR or ledger note"
++      },
++      "review_at": "2026-12-15",
++      "cadence_tier": "quarterly",
++      "registered_at": "2026-09-18",
++      "status": "closed",
++      "closed_at": "2026-09-18",
++      "closed_via": "same-commit ledger note: .scratch/grill-t16/decision-ledger.md T-1 dispositions (defer-0059/0061 precedent: row exists + ADR registered = nothing left to disposition)"
+     }
+   ]
+ }
+diff --git a/docs/governance/anchors.json b/docs/governance/anchors.json
+index 9a8a2e9..5317333 100644
+--- a/docs/governance/anchors.json
++++ b/docs/governance/anchors.json
+@@ -85,7 +85,14 @@
+       "origin": ".scratch/grill-t15/decision-ledger.md",
+       "adr": "ADR-0076",
+       "bytes": 20979,
+-      "sha256": "b2ceae6da63744ba304c09857080c39cbf393f7a354f61e1061d59bb7e424520"
++      "sha256": "69bdff733bb0d9426bc865ccbb4da13b38d8d55d2a2fbab24e908889cd70b6af"
++    },
++    {
++      "file": "decision-ledger-t16.md",
++      "origin": ".scratch/grill-t16/decision-ledger.md",
++      "adr": "ADR-0077",
++      "bytes": 16974,
++      "sha256": "033439ecb11d1e4631d98a1ca6607177bc86d6510cecbda973f126acdc33bdf1"
+     },
+     {
+       "file": "ERRATA.md",
+@@ -98,8 +105,8 @@
+       "file": "trend-inventory.json",
+       "origin": "(authored in place)",
+       "adr": "ADR-0064",
+-      "bytes": 4612,
+-      "sha256": "5670315a559ad92e1a3dad5e3a0410532512ad4ce4dc19b9661d06debadfdcfc"
++      "bytes": 5839,
++      "sha256": "e8254aabf3d035dd09e7d4a6684fc64f8f61fec45aac8a8da74ea748d1e058ce"
+     },
+     {
+       "file": "sunset-counter.json",
+diff --git a/docs/governance/decision-ledger-t15.md b/docs/governance/decision-ledger-t15.md
+index 742fcf6..ee6caf9 100644
+--- a/docs/governance/decision-ledger-t15.md
++++ b/docs/governance/decision-ledger-t15.md
+@@ -80,7 +80,7 @@ Executed under the R1 stage gate (kym on grill-t15-docs; boundary green on the s
+ - defer-0057 — stays pending-evaluation (t13 tally row; closes at the next trend-anchor evaluation).
+ - O-E backlog (telemetry export breadth) — stays deferred as an observation on the standing consent-sweep; low-priority backlog, no failure driver.
+ - WORKFLOW.md — disposition: register permanent absence. The file never existed in this repo history; the working conventions it would carry live in the $but skill, the task-book handoffs (next-round.md), and the AGENTS.md working agreement. Absence is registered, not silently tolerated.
+-- Audit nits executed: stale FAIL message now describes the anchored discovery rule; corrupt-prior-map read hard-fails loudly (ENOENT-only fallback, no silent tip-only degrade); gen-docs.cjs ROOT derived from __dirname; adr-0075-wiring defer-0059 closed-status assertion lives solely in the R2 boundary describe; path.join(ROOT,OUT_REL) deduplicated; docs/rewrite-map.json regenerated (1346 doc citations classified, in sync).
++- Audit nits executed: stale FAIL message now describes the anchored discovery rule; corrupt-prior-map read hard-fails loudly (ENOENT-only fallback, no silent tip-only degrade); gen-docs.cjs ROOT derived from __dirname; adr-0075-wiring defer-0059 closed-status assertion lives solely in the R2 boundary describe; path.join(ROOT,OUT_REL) deduplicated; docs/rewrite-map.json regenerated (1403 doc citations classified, in sync).
+ - Owner asks (unbundled, still open): Ask A - instrument seq-24 sign-off (record-type, open since t13); Ask B - defer-0051 evidence-packet ratification (judgmental; a rejection reopens the row). Frozen packet texts live in ADR-0076 D-E. Bookkeeping annotations only: the ADR-0075 second_reviewer countersign lands when the owner ratifies the t14 audit outcome; defer-0060 is a tracked row (owner action = its unfreeze_if), not a decision ask.
+ 
+ ## T-3 dispositions (owner asks, 2026-09-18)
+diff --git a/docs/governance/decision-ledger-t16.md b/docs/governance/decision-ledger-t16.md
+new file mode 100644
+index 0000000..3279964
+--- /dev/null
++++ b/docs/governance/decision-ledger-t16.md
+@@ -0,0 +1,70 @@
++# grill-t16 decision ledger
++
++Authoritative record. Every user-confirmed substantive conclusion appends a
++D-xxx entry here immediately: ID, original question, verbatim answer,
++normalized requirement, explicit constraints/negative requirements, status.
++## D-001 — round boundary: fix + mechanism round
++
++- 原问题: Q1 轮界——audit-passed-with-findings 后下一轮绑定哪些线（a 窄修复 / b 修复+机制 / c 全域）
++- 原回答原文: "b"
++- 规范化需求: 本轮=修复+机制轮，议程：(1) F-A/F-B/F-C 实现束（R2 面=实现轮属地非 doc 轮豁免）；(2) F-D 裁决（披露 vs 修法）；(3) F-E nits 清扫；(4) verified_by 出口语义惯例（一行一验证器/按行选择器——杀灭多行腿并集求值类）；(5) 机制产出物在分类法中的位置（instrument-state.json/replay-*.json 第四类或 R2 内命名惯例）；(6) 轮报告数字陈旧类处置（收官重算惯例 vs as-of 标注）；(7) 常驻 cadence（defer-0060 季度、sunset 1/6、SLA 行）consent 清点；(8) 栈 landing 状态知情议程（owner 域动作非烤题）。
++- 显式约束/负向需求: 战略评审不开启（sunset 1/6 未触发）；promotion 评审不开启（organic=0 无语料）；禁改 G1/G3/G4 阈值；grill 期间不改源码；三个 audit patch（tq/nl/xu）永不提交；F-A 修复不得把 defer0026 腿检查删掉（独立断言仍在 wiring 层存活，只是出口语义归位）；栈 landing 不是本轮自决项。
++- 状态: current
++## D-002 — F-A fix shape: exit keyed to live consuming row + crash-path exit-2 + convention
++
++- 原问题: Q2 check-ci-jobs 出口码合流修复形态（a 键定活行 / b 按行选择器 / c registry 派生 / d 拆脚本）
++- 原回答原文: "采纳"（对 a′ 三束同构修正版推荐）
++- 规范化需求: **B1 实现束**（R2 实现轮属地，carve_out_used 不递增）：check-ci-jobs.js——exit=res.predicates.defer0004.satisfied?0:1；defer0026 腿保留计算+打进 stdout tag 行（诊断层非出口驱动）；头注释重写杀 F-B（multi-job 死谓词描述）；main() 包 catch→exit 2+stderr 行（crash masquerade=同类缺陷同束修，Nagios UNKNOWN catch-all 镜像）；注释块载惯例行+销账重指条款（defer-0004 销账时出口键须重指或退役于同一 registry 提交）。adr-0058-wiring fixtures 钉三方向（0004 满足→exit0/0004 未满足→exit1/0004 满足且0026腿退化→exit0且stdout含defer0026=unmet）+crash→exit2 fixture+0026 腿既有断言保留。**B2 惯例束**：账本载惯例原文——"verified_by 脚本的出口码只反映当前消费行的腿；多行报告是诊断，永不驱动出口"，措辞用"currently consuming"；CONTEXT 加一行惯例词条（兼作 F-C registry 编辑的耦合锚）。**B3 F-C 束**：defer-0004 rationale 补 "ADR-0058 D-C" 显式引，与 B2 同提交（ADR-0027/0033 D4 coupling guard）。
++- 显式约束/负向需求: 惯例极=一行一验证器（exit keyed to consuming row）；(b) --row 选择器登记为预注册升级路径——第二个活消费者出现时激活，非现行形态（n=1 选择器=永久死代码）；否决 (c) registry 派生（循环依赖：check-deferred 跑验证器、验证器读 registry；出口码变 registry 格式函数=masquerade 类）；否决 (d) 拆脚本（0026 已 actioned 其 verified_by 永不执行=无消费者机器=decorative-assertion theatre 明拒）；defer0026 可观测性残余如实披露——evalSuggestions 丢弃验证器 stdout，0026 运行时降至 wiring 层，轮报告必须写明（summary job 另有 check-ci-wiring 覆盖非全孤儿）；atomcode 六搜七全文确认 (a) 高置信，crash→exit2 与残余披露两锐化采纳。
++- 状态: current
++## D-003 — F-D: mechanism-output artifact convention (R2-internal closed enumeration, ADR-0077)
++
++- 原问题: Q3 governance_tooling_diff.files[] 语义（a 披露性补注 / b 立法命名惯例 / c 全覆盖+recompute）
++- 原回答原文: "采纳"（对 b′ 修正版推荐）
++- 规范化需求: **新 ADR-0077 显式修订**（不静默改写 ADR-0076 D-B(2)——被审计钉的字面句 "which R2 files the round touched" 必须在 ADR-0076 指针行 + surface-taxonomy diff_semantics 两处同时显式取代，防矛盾文本并立）。**mechanism_outputs 块**进 surface-taxonomy.json：R2 内子类封闭枚举（非残留，同 R1 闭包纪律），每项 {file, generator, replay_verified}——成员含 src/instrument-state.json、bench/research/out/g6-publish-replay.json、anchors.json、rewrite-map.json、taxonomy R1 快照、pack 记录等；wiring 断言每项归类 R2+生成器存在+未列文件不得声称豁免。**diff_semantics 重措辞**：files[] 管辖域=机器源手改；产出物豁免条件=忠实再生（faithful="diff 等于在该提交重跑注册生成器的产出"，Go 生成文件惯例 verbatim：非正典源、删掉重跑 diff 为零）；手改产出物=独立更重违例（伪造计量边缘）且必须进 files[] 披露。**可选 sibling 标记** mechanism_output_diff:{files,reason}——溯源可见不喂烧率，checker 验清单文件∈mechanism_outputs，裸标记硬失败（镜像 carve_out_used=1 校验）。**t15 行 additive-only 补注**（两个触碰归产出物类，历史布尔不动，carve_out_used:1 保持）。replay_verified:true 者重跑比对=审计升级工具（初期非 blocking gate）；非幂等生成器（时间戳）记 replay_verified:false 为登记欠账。
++- 显式约束/负向需求: D-001 议程 5 的极裁决=**R2 内惯例**（第四类破 D-A 三选一不变量+产出物逃出 R2 管辖，否决）；否决 (a) 仅披露（类不命名则每轮换件复发）；否决 (c) 全覆盖清单（复制 git+误读证据范围+再生噪声淹死烧率信号）；无新 registry 行、无新 gate（比例先例）；豁免是 checker 验枚举非自声明布尔（recomputed-not-trusted 不破）；防游戏四守卫：具名违例类/replay 机械裁决/git 考古威慑/生成器幂等钉；动机漂移不可技术根除如实记；atomcode 确认 (b)，锐化（ADR-0077 显式取代+封闭枚举+replay_verified 属性+裸标记硬失败）采纳。
++- 状态: current
++## D-004 — round-report staleness class: facts-artifact canon + close-regen carrier
++
++- 原问题: Q4 轮报告数字陈旧类处置（a 收官重算 / b as-of 标注 / c 事实工件 / d 维持现状）
++- 原回答原文: "采纳"（对 c′ 修正版推荐）
++- 规范化需求: **主形态=facts 工件 canon**：scripts/build-round-facts.js 收官时（T-2 尾步）重生成 .scratch/grill-<tN>/round-facts.json——schema：suites/passed/skipped、pack_bytes、instrument_entries、rewrite_map_citations、registry_entries、anchors_count、battery_as_of_commit、**report_commit:null**（自指以诚实 null 化解）、not_run 通道数组。报告 facts 节由脚本确定性内嵌渲染，**正文禁裸数字**（wiring 可钉 facts 节外不得复现 schema 键值）。**承载步=收官重算**（a 降为步骤非形态）。**as-of/addendum 收窄为窄通道**：仅承载真期后事件（owner 批准、T-3 签核）与自指披露——ASC 855 类比：陈旧数字是调整性事件必须重述非标注；t15 T-3 addendum 模式保留但不再承担修正正文数字职能，t16 轮报告显式记一句收窄防审计误读为删减。ADR-0077 载惯例行+CONTEXT 词条（同 D-002 惯例词条通道）；**显式裁决性偏离**：facts 工件不入 anchors 链（每轮再生 churn 摘要链，anchors 服务慢变工件）——理由一行写进 ADR-0077（披露不盲从先例）。工件落点按 D-003 枚举纪律对齐归类（.scratch=R3 工件属地 / docs/governance=R3 前缀但可入 mechanism_outputs 讨论）。
++- 显式约束/负向需求: 否决 (b) 为主形态（把已知陈旧合法化，调整性事件应重述）；否决 (d) 现状（连续两轮实证失效）；无新 gate、无新 registry 行（比例先例+sunset 计数器判词同构）；散文判词："报告是叙述，永远不是数字宿主"（平移 D-002 "账本非状态宿主"）；自指不得用伪值填补——report_commit:null 是设计非缺漏；atomcode 八搜五全文确认 c 主+a 承载，锐化（ASC 855 二分/addendum 收窄/report_commit:null/不入 anchors 显式理由）采纳。
++- 状态: current
++## D-005 — closeout form: light close + clean R1/R2 split + consent-sweep residuals + zero asks
++
++- 原问题: Q5 收尾形态（a 审计与否 / b 阶段结构 / c 残留归并 / d owner 呈请）
++- 原回答原文: "采纳"（对 a1+b+c+d 全包推荐）
++- 规范化需求: **a1 轻收尾**：ADR-0074 D-F 三触发无一响（面小于 t15）——自检电池+owner 批准闭轮+处置列下审复核面；电池显式含新机械（adr-0058-wiring 三方向+crash fixture、mechanism_outputs 枚举断言、facts 工件渲染钉）。**阶段结构（carve-out 不援引——文档束全 R3、实现束全 R2，burn-rate streak 自然归零）**：R1 文档束=ADR-0077（F-D 惯例修订+facts canon+不入 anchors 理由行+addendum 收窄）+CONTEXT 词条×2+diff_semantics 重措辞+mechanism_outputs 封闭枚举+t15 行补注+defer-0004 rationale F-C 引注（B2+B3 同提交解耦合守卫）+账本 T 段 consent 行+defer-0062 tally+README 索引 77；R2 实现束=check-ci-jobs 出口归位+头注释+crash→exit2+惯例注释块+adr-0058-wiring fixtures（脚本与钉它的测试同一实现提交）+build-round-facts.js+模板渲染钉+F-E nits 六项+轮报告（facts 节工件渲染）。时序 R1 先行 spec-first，R2 收尾出报告。**残留归并**：F-A/F-B→B1；F-C/F-D→R1；F-E→R2；cadence 项（defer-0060 季度 12-15、sunset 1/6、SLA 行、O-E）处置时点各落一行 ledger disposition（consent-sweep 措辞非 audit response）；栈 landing 知情行非决策项；三 patch（tq/nl/xu）永不提交+轮报告重述显式 ID 教训。**零 owner ask**：T-3 全销，defer-0060 是登记行非 ask，栈 landing 仅知情注记。
++- 显式约束/负向需求: 否决 a2 惯例性审计；措辞守卫延续（consent-sweep/standing-review-surface 永不称 audit response）；fixtures 与脚本同提交（tests with behavior they verify）；R1 全程不碰 R1/R2 文件（本轮无 carve-out 需要）；dialectical 记录：Q5 未走 atomcode（先例直接适用，non-contested），其余四题全部经 atomcode 且零冲突。
++- 状态: current
++## T-1 dispositions (R1 documentation round, 2026-09-18)
++
++Executed per handoffs/next-round.md T-1. Each row names its evidence; this section is the same-commit ledger note for the R1 registry edits and records the consent-sweep for the standing cadence (consent-sweep framing - never "audit response").
++
++- Convention verbatim (D-002 B2): "a verified_by script's exit code reflects only the legs of the row(s) currently consuming it; multi-row reporting is diagnostic, never exit-driving." Worded "currently consuming" so the per-row selector stays a pre-registered upgrade path, not a contradiction, when a second live consumer appears. CONTEXT.md carries the Consuming-Row Exit term (settle commit) and the Facts Canon term; the discharge re-point clause lives in ADR-0077 D-A.
++- defer-0004 — rationale gained the explicit "ADR-0058 D-C" citation (settles audit F-C): the narrowed re-defer is one of the three exits ADR-0058 D-C pre-registers (activate / re-defer + update rationale / close). Same commit as the CONTEXT carve-out gloss touch per the coupling guard (B3 anchor).
++- defer-0062 (t16 doc-round net-addition tally) — CLOSED via this same-commit ledger note. The grill-t16 row exists in docs/governance/trend-inventory.json (+1 ADR-0077; zero_product_diff=true; carve_out_used:0 - the carve-out is not invoked this round, burn-rate streak resets) and the ADR is registered; nothing left to disposition (defer-0059/0061 precedent).
++- defer-0058 (standing per-round net-increment review) — EXECUTED for grill-t16: net registry increment +1 (defer-0062 added and closed; defer-0004 stays deferred; no actioned/closed transitions otherwise).
++- defer-0060 (CI gate-all permanently-red channel) — stays pending-evaluation on quarterly cadence (review_at 2026-12-15); a tracked row, not an ask - the owner actions (secret regen + required-check deployment) are its unfreeze_if.
++- defer-0055 + sunset counter — stays pending-evaluation on quarterly cadence; the counter stays 1/6 (missed check-in is not a zero; organic=0 across provenance classes at the last observation); the next quarterly observation is the 2026-12-15 tide.
++- defer-0053 — stays pending-evaluation (unfreeze_frozen).
++- defer-0057 — stays pending-evaluation (t13 tally row; closes at the next trend-anchor evaluation).
++- O-E backlog (telemetry export breadth) — stays deferred as an observation on the standing consent-sweep; low-priority backlog, no failure driver.
++- Stack landing (grill-t15-docs, unlanded commits incl. the t16 settle commit) — awareness line only: landing is owner-domain, not a decision item this round.
++- Mechanism surface — ADR-0077 lands D-A (exit convention) + D-B (mechanism_outputs closed enumeration: src/instrument-state.json replay_verified:false, g6-publish-replay.json replay_verified:true; diff_semantics reworded to machinery-source hand-edits jurisdiction; mechanism_output_diff sibling marker registered) + D-C (facts canon; the artifact deliberately does NOT join the anchors chain - per-round regeneration would churn the digest chain) + D-D (registrations). ADR-0076 D-B(2) is amended via pointer line, never silently rewritten - the flagged phrase is superseded in both places.
++- t15 trend row — annotated additively (mechanism_output_diff lists the two output-class touches); historical booleans untouched. The t16 row carries the first mechanism_output_diff marker use: g6-publish-replay.json refreshed by the gate during the R1 battery (faithful regeneration, not a machinery-source edit).
++- R1 exit battery: taxonomy closure test green + anchors in sync + inventory/deferred green + the new adr-0076-wiring assertions green; boundary commit must be green.
++- WORKFLOW.md — permanent absence stands (registered at t15); the version-control conventions live in the but skill, the task-book handoffs, and the AGENTS.md working agreement.
++- The three audit patches (tq/nl/xu) stay untracked forever; but commits use explicit change IDs only.
++## T-2 dispositions (R2 implementation round, 2026-09-18)
++
++Executed under the R1 stage gate (spr on grill-t16-docs; boundary green on the self-check battery). Each row names its evidence; this section is the same-commit ledger note for the R2 machinery edits.
++
++- defer-0004 — stays deferred; the registry row is untouched this round (the narrowed re-defer stands). The verifier fix is machinery-side: check-ci-jobs.js exit is keyed to defer0004.satisfied per ADR-0077 D-A (settles F-A), the header registers the convention verbatim + discharge re-point clause (settles F-B), a crash exits 2 via stderr (never masquerades as unsatisfied), and defer0026 legs stay computed/printed as diagnostics. adr-0058-wiring pins the three exit directions, the crash fixture, and the defer0026 diagnostic.
++- mechanism_output_diff — checker support landed in check-governance-inventory.js (closed-enumeration membership + R2 classification + bare-marker hard-fail; never feeds burn-rate). Probe-row fixtures live in adr-0076-wiring.
++- Facts canon — scripts/build-round-facts.js regenerates .scratch/grill-t16/round-facts.json at the closing step (suites/passed/skipped/pack_bytes/instrument_entries/rewrite_map_citations/registry_entries/anchors_count/battery_as_of_commit/report_commit:null/not_run[]); the report facts section renders deterministically inside a sentinel region; the artifact stays out of the anchors chain (disclosed deviation).
++- F-E nits executed: surface-taxonomy.js dead m[1]||m[2] dropped; check-ci-jobs.js any_matrix regex now matches the inline matrix: {...} form (fixture pinned); t15 ledger citation count corrected 1346 -> 1403 (both copies resynced, anchors regenerated). The adr-0069 stale comment rode along with the forced 76->77 count bump in R1 (same physical line; disclosed, not hidden).
++- defer-0058 (standing per-round net-increment review) — EXECUTED for grill-t16 R2: no further registry net increment in the implementation phase (defer-0062 was the +1, registered and closed in R1).
++- Consent-sweep verification: the T-1 disposition lines stand - defer-0060 stays pending-evaluation (quarterly, 2026-12-15), the sunset counter stays 1/6 (next observation 2026-12-15), defer-0053/0057 stay pending-evaluation, O-E backlog stays deferred; zero owner asks this round; the three audit patches (tq/nl/xu) stay untracked forever.
++- decision-ledger-t16.md — governance copy admitted to the anchors chain under ADR-0077 (15 -> 16 artifacts); resynced at round close.
+diff --git a/docs/governance/surface-taxonomy.json b/docs/governance/surface-taxonomy.json
+index 0f1c2ac..359b11c 100644
+--- a/docs/governance/surface-taxonomy.json
++++ b/docs/governance/surface-taxonomy.json
+@@ -77,7 +77,23 @@
+   },
+   "diff_semantics": {
+     "zero_product_diff": "no R1-surface file touched (redefined under ADR-0076; historical rows keep their meaning)",
+-    "governance_tooling_diff": "independent dimension recording which R2 files the round touched - may be true while zero_product_diff is also true (the F-4 shape)",
++    "governance_tooling_diff": "independent dimension recording machinery-SOURCE hand-edits on the R2 surface - may be true while zero_product_diff is also true (the F-4 shape). Mechanism-output artifacts (mechanism_outputs below) are exempt only on faithful regeneration: the diff equals what re-running the registered generator at that commit produces. A HAND-EDIT of an output is a named heavier violation (falsification-adjacent) and must be disclosed in files[] (ADR-0077 D-B; supersedes the earlier phrasing \"which R2 files the round touched\")",
++    "mechanism_output_diff": "optional sibling marker {files, reason} - provenance visibility for mechanism-output touches; never feeds burn-rate; listed files must be in mechanism_outputs; a bare marker with no files hard-fails (ADR-0077 D-B)",
+     "carve_out_used": "0|1 burn-rate marker on the trend-inventory row; two consecutive rounds at 1 raise an advisory"
++  },
++  "mechanism_outputs": {
++    "_doc": "ADR-0077 D-B: closed enumeration (never residual - same anti-drift discipline as the R1 closure) of git-tracked, R2-classified artifacts produced by a registered in-repo generator. A faithful regeneration of a member is exempt from governance_tooling_diff.files[] disclosure; a hand-edit is a named heavier violation and must be disclosed. Sibling-class outputs on the documentation surface (docs/governance/anchors.json, docs/rewrite-map.json, the surfaces.R1.files snapshot, the README adr-index block) are named in ADR-0077, not enumerated here - R3 files never enter files[] jurisdiction, so the exemption question does not arise for them.",
++    "entries": [
++      {
++        "file": "src/instrument-state.json",
++        "generator": "scripts/instrument.js",
++        "replay_verified": false
++      },
++      {
++        "file": "bench/research/out/g6-publish-replay.json",
++        "generator": "scripts/check-g6-publish.js",
++        "replay_verified": true
++      }
++    ]
+   }
+ }
+diff --git a/docs/governance/trend-inventory.json b/docs/governance/trend-inventory.json
+index fe48ff2..d73e979 100644
+--- a/docs/governance/trend-inventory.json
++++ b/docs/governance/trend-inventory.json
+@@ -140,8 +140,35 @@
+         "reason": "defer-0004 narrowed re-defer requires the verified_by predicate to match (D-003; permanently-SATISFIED alert fatigue banned) - the carve-out first registered use, baseline: consecutive counting starts here (ADR-0076 D-B). The other files are mechanism bootstrap disclosed in ADR-0076 D-B: taxonomy authority module, inventory recompute, anchors admission list, suite-count parity - mechanism creation, not carve-out uses."
+       },
+       "carve_out_used": 1,
++      "mechanism_output_diff": {
++        "files": [
++          "src/instrument-state.json",
++          "bench/research/out/g6-publish-replay.json"
++        ],
++        "reason": "additive-only annotation under ADR-0077 D-B (settles audit F-D): the two R2-surface touches this round were mechanism-output artifacts - instrument-state.json appended by the T-3 sign-off event and g6-publish-replay.json refreshed by the gate. Historical booleans untouched; carve_out_used:1 stands."
++      },
+       "deferred_entry": "defer-0061",
+       "advisory_fired": false
++    },
++    {
++      "round": "grill-t16-doc-round",
++      "date": "2026-09-18",
++      "kind": "documentation",
++      "adr_added": [
++        "0077"
++      ],
++      "adr_superseded_or_closed": [],
++      "net_additions": 1,
++      "zero_product_diff": true,
++      "carve_out_used": 0,
++      "mechanism_output_diff": {
++        "files": [
++          "bench/research/out/g6-publish-replay.json"
++        ],
++        "reason": "gate refresh during the R1 boundary battery and the R2 final battery - faithful regeneration by the registered generator (check-g6-publish.js) after the tarball grew with the new ADR and the new machinery script; first marker use under ADR-0077 D-B"
++      },
++      "deferred_entry": "defer-0062",
++      "advisory_fired": false
+     }
+   ],
+   "source_adr": "0064"
+diff --git a/docs/rewrite-map.json b/docs/rewrite-map.json
+index a09fe53..99feaee 100644
+--- a/docs/rewrite-map.json
++++ b/docs/rewrite-map.json
+@@ -2,7 +2,7 @@
+   "schema_version": 1,
+   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
+   "generated_by": "scripts/build-rewrite-map.js",
+-  "generated_at": "2026-09-18T04:41:20.708Z",
++  "generated_at": "2026-09-18T10:39:41.190Z",
+   "published_tip": "21b144216403671ae53e176fe6eee43265832e08",
+   "boundary": {
+     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
+@@ -23,11 +23,11 @@
+     "published_only": 27,
+     "removed": 0,
+     "same": 278,
+-    "doc_refs": 1403,
++    "doc_refs": 1414,
+     "doc_refs_by_class": {
+       "rewritten": 97,
+-      "local-only": 682,
+-      "published-unchanged": 624
++      "local-only": 687,
++      "published-unchanged": 630
+     }
+   },
+   "commits": [
+@@ -7239,6 +7239,42 @@
+       "resolved_to": null,
+       "label": "unresolved hex literal"
+     },
++    {
++      "file": ".scratch/grill-t15/audit-evidence/audit-report-2026-09-18.md",
++      "line": 4,
++      "sha": "21b1442",
++      "class": "published-unchanged",
++      "resolved_to": null
++    },
++    {
++      "file": ".scratch/grill-t15/audit-evidence/audit-report-2026-09-18.md",
++      "line": 8,
++      "sha": "21b1442",
++      "class": "published-unchanged",
++      "resolved_to": null
++    },
++    {
++      "file": ".scratch/grill-t15/audit-evidence/audit-report-2026-09-18.md",
++      "line": 33,
++      "sha": "fd6a0d42",
++      "class": "local-only",
++      "resolved_to": null,
++      "label": "unresolved hex literal"
++    },
++    {
++      "file": ".scratch/grill-t15/audit-evidence/audit-report-2026-09-18.md",
++      "line": 49,
++      "sha": "21b1442",
++      "class": "published-unchanged",
++      "resolved_to": null
++    },
++    {
++      "file": ".scratch/grill-t15/handoffs/2026-09-18-audit-passed-with-findings.md",
++      "line": 21,
++      "sha": "21b1442",
++      "class": "published-unchanged",
++      "resolved_to": null
++    },
+     {
+       "file": ".scratch/grill-t15/handoffs/next-round.md",
+       "line": 16,
+@@ -7709,6 +7745,52 @@
+       "resolved_to": null,
+       "label": "unresolved hex literal"
+     },
++    {
++      "file": ".scratch/grill-t16/handoffs/2026-09-18-round-complete.md",
++      "line": 10,
++      "sha": "f86494d",
++      "class": "local-only",
++      "resolved_to": null,
++      "label": "local object"
++    },
++    {
++      "file": ".scratch/grill-t16/handoffs/2026-09-18-round-complete.md",
++      "line": 87,
++      "sha": "f86494d",
++      "class": "local-only",
++      "resolved_to": null,
++      "label": "local object"
++    },
++    {
++      "file": ".scratch/grill-t16/handoffs/next-round.md",
++      "line": 17,
++      "sha": "21b1442",
++      "class": "published-unchanged",
++      "resolved_to": null
++    },
++    {
++      "file": ".scratch/grill-t16/reports/2026-09-18-report.md",
++      "line": 20,
++      "sha": "640f8c7",
++      "class": "local-only",
++      "resolved_to": null,
++      "label": "local object"
++    },
++    {
++      "file": ".scratch/grill-t16/round-facts.json",
++      "line": 12,
++      "sha": "640f8c7",
++      "class": "local-only",
++      "resolved_to": null,
++      "label": "local object"
++    },
++    {
++      "file": ".scratch/grill-t16/spec-fix-mechanisms.md",
++      "line": 9,
++      "sha": "21b1442",
++      "class": "published-unchanged",
++      "resolved_to": null
++    },
+     {
+       "file": ".scratch/grill-t6/audit/b7ccbeb/bench/polygraph/README.md",
+       "line": 3,
+@@ -10834,7 +10916,7 @@
+     },
+     {
+       "file": "README.md",
+-      "line": 345,
++      "line": 346,
+       "sha": "994bdeb3",
+       "class": "local-only",
+       "resolved_to": null,
+@@ -10842,7 +10924,7 @@
+     },
+     {
+       "file": "README.md",
+-      "line": 414,
++      "line": 415,
+       "sha": "8807a61",
+       "class": "published-unchanged",
+       "resolved_to": null
+diff --git a/scripts/build-governance-anchors.js b/scripts/build-governance-anchors.js
+index 250f105..0201cdd 100644
+--- a/scripts/build-governance-anchors.js
++++ b/scripts/build-governance-anchors.js
+@@ -30,6 +30,7 @@ const ARTIFACTS = [
+   { file: 'decision-ledger-t13.md', origin: '.scratch/grill-t13/decision-ledger.md', adr: 'ADR-0074' },
+   { file: 'decision-ledger-t14.md', origin: '.scratch/grill-t14/decision-ledger.md', adr: 'ADR-0075' },
+   { file: 'decision-ledger-t15.md', origin: '.scratch/grill-t15/decision-ledger.md', adr: 'ADR-0076' },
++  { file: 'decision-ledger-t16.md', origin: '.scratch/grill-t16/decision-ledger.md', adr: 'ADR-0077' },
+   { file: 'ERRATA.md', origin: '(authored in place)', adr: 'ADR-0061' },
+   { file: 'trend-inventory.json', origin: '(authored in place)', adr: 'ADR-0064' },
+   { file: 'sunset-counter.json', origin: '(authored in place)', adr: 'ADR-0076' },
+diff --git a/scripts/build-round-facts.js b/scripts/build-round-facts.js
+new file mode 100644
+index 0000000..99af7e6
+--- /dev/null
++++ b/scripts/build-round-facts.js
+@@ -0,0 +1,161 @@
++#!/usr/bin/env node
++// build-round-facts.js - ADR-0077 D-C facts canon: the round report's facts
++// section is rendered deterministically from one regenerable artifact,
++// .scratch/grill-<tN>/round-facts.json. "The report is narrative, never the
++// home of numbers" - bare schema-key values outside the sentinel region are
++// pinned red by wiring. report_commit stays null by design: the report
++// cannot cite its own commit (self-reference disclosed, not faked). The
++// artifact deliberately does NOT join the anchors chain - per-round
++// regeneration would churn the slow-moving digest chain.
++//
++// Deterministic: fixed key order, no timestamps; battery_as_of_commit pins
++// the tree the battery ran against. Write mode and --check share one
++// generation path (regen-and-diff, ADR-0028 D2 precedent).
++//
++// Usage: node scripts/build-round-facts.js --round <slug> [--report <path>] [--check]
++//   --round   round slug (grill-t16); artifact lands at .scratch/<slug>/round-facts.json
++//   --report  splice the rendered facts block into the report's
++//             <!-- round-facts:start --> / <!-- round-facts:end --> region
++//   --check   exit 1 on drift instead of writing
++//
++// Exit 0 = written / in sync; exit 1 = drift or failure (fail-closed).
++
++'use strict';
++
++const fs = require('fs');
++const path = require('path');
++const { execFileSync } = require('child_process');
++const { requireCapabilities, probe } = require('../src/shared/capability');
++
++const ROOT = path.join(__dirname, '..');
++const SENTINEL_START = '<!-- round-facts:start -->';
++const SENTINEL_END = '<!-- round-facts:end -->';
++
++const readJson = (rel) => JSON.parse(fs.readFileSync(path.join(ROOT, rel.split('/').join(path.sep)), 'utf8'));
++
++// jest --json summary -> {suites, passed, skipped}. Fact source = the suite
++// itself (the battery's own numbers, never hand-typed).
++function testFacts() {
++  const out = execFileSync(process.execPath, [require.resolve('jest/bin/jest'), '--json', '--silent'], {
++    cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'],
++  });
++  const j = JSON.parse(out.slice(out.indexOf('{')));
++  return { suites: j.numTotalTestSuites, passed: j.numPassedTests, skipped: j.numPendingTests };
++}
++
++// Unverifiable channels: gates whose declared capability is absent on this
++// host - rederived from gates.json + the capability probe, not hand-listed.
++function notRunChannels() {
++  const gates = readJson('docs/gates.json');
++  const missing = [];
++  for (const e of gates.entries || []) {
++    const reqs = e.requires || [];
++    if (reqs.length && !reqs.every((c) => probe(c, { root: ROOT }))) missing.push(e.name);
++  }
++  return missing.sort();
++}
++
++function collect() {
++  const t = testFacts();
++  const replay = readJson('bench/research/out/g6-publish-replay.json');
++  const instrument = readJson('src/instrument-state.json');
++  const map = readJson('docs/rewrite-map.json');
++  const reg = readJson('docs/deferred-registry.json');
++  const anchors = readJson('docs/governance/anchors.json');
++  // Newest real commit: on a GitButler workspace HEAD is an ephemeral
++  // "GitButler Workspace Commit" that rewrites away; the "as of" pin must
++  // name a durable commit, so skip workspace commits by subject.
++  const head = execFileSync('git', ['log', '-1', '--format=%h', '--invert-grep', '--grep=^GitButler Workspace Commit', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
++  return {
++    schema_version: 1,
++    _doc: 'ADR-0077 D-C facts canon: regenerable at the closing step; the report facts section renders deterministically from this artifact. report_commit stays null - the report cannot cite its own commit. Not an anchors-chain member (per-round regeneration would churn the digest chain).',
++    suites: t.suites,
++    passed: t.passed,
++    skipped: t.skipped,
++    pack_bytes: replay.tarball.size,
++    instrument_entries: (instrument.history || []).length,
++    rewrite_map_citations: (map.counts || {}).doc_refs,
++    registry_entries: (reg.entries || []).length,
++    anchors_count: (anchors.artifacts || []).length,
++    battery_as_of_commit: head,
++    report_commit: null,
++    not_run: notRunChannels(),
++  };
++}
++
++// Pure: facts -> sentinel region text (sentinel lines included, fixed order).
++function renderRegion(facts) {
++  const lines = [SENTINEL_START];
++  for (const k of ['suites', 'passed', 'skipped', 'pack_bytes', 'instrument_entries', 'rewrite_map_citations', 'registry_entries', 'anchors_count', 'battery_as_of_commit', 'report_commit']) {
++    lines.push('- ' + k + ': ' + (facts[k] === null ? 'null' : facts[k]));
++  }
++  lines.push('- not_run: [' + facts.not_run.join(', ') + ']');
++  lines.push(SENTINEL_END);
++  return lines.join('\n');
++}
++
++// Pure: splice a region into report text between the sentinel lines.
++function spliceRegion(text, region) {
++  const i = text.indexOf(SENTINEL_START);
++  const j = text.indexOf(SENTINEL_END);
++  if (i === -1 || j === -1 || j < i) throw new Error('round-facts sentinel region missing or inverted in the report');
++  if (text.indexOf(SENTINEL_START, i + 1) !== -1 || text.indexOf(SENTINEL_END, j + 1) !== -1) throw new Error('duplicate round-facts sentinel marker in the report');
++  return text.slice(0, i) + region + text.slice(j + SENTINEL_END.length);
++}
++
++function main(argv) {
++  requireCapabilities(['repo-tree'], { root: ROOT }); // non-registry consumer: inline declaration (ADR-0058 R8)
++  const ri = argv.indexOf('--round');
++  if (ri === -1 || !argv[ri + 1]) { console.error('FAIL: --round <slug> is required'); process.exit(1); }
++  const slug = argv[ri + 1];
++  const check = argv.indexOf('--check') !== -1;
++  const repI = argv.indexOf('--report');
++  const reportPath = repI !== -1 ? path.resolve(argv[repI + 1]) : null;
++  const factsPath = path.join(ROOT, '.scratch', slug, 'round-facts.json');
++
++  // Collect refreshes the artifact and requires a green battery (the canon
++  // has no facts on a red tree). --report splices from the on-disk artifact:
++  // the report renders the canon as committed, so a region fix never blocks
++  // on re-running the suite. Collection runs on a bare write, on --check,
++  // or when the artifact is missing.
++  const cur = fs.existsSync(factsPath) ? fs.readFileSync(factsPath, 'utf8') : null;
++  const needsCollect = !reportPath || check || cur === null;
++  let drift = false;
++  if (needsCollect) {
++    const facts = collect();
++    const next = JSON.stringify(facts, null, 2) + '\n';
++    if (check) {
++      // battery_as_of_commit is a run-record, not a regen-stable field: the
++      // closing commit that carries the artifact always moves HEAD past the
++      // battery's pin. Drift on that field alone is expected, never an error.
++      const strip = (o) => { const c = Object.assign({}, o); delete c.battery_as_of_commit; return JSON.stringify(c); };
++      const curFacts = cur === null ? null : JSON.parse(cur);
++      if (curFacts === null || strip(curFacts) !== strip(facts)) { console.error('FAIL: .scratch/' + slug + '/round-facts.json is stale - regenerate with node scripts/build-round-facts.js --round ' + slug); drift = true; }
++    } else if (cur !== next) {
++      fs.writeFileSync(factsPath, next, 'utf8');
++      console.log('[round-facts] wrote .scratch/' + slug + '/round-facts.json');
++    }
++  }
++
++  if (reportPath) {
++    // The report renders the on-disk canon (post-collect state), never the
++    // collected object itself: a fresh battery_as_of_commit must not mark
++    // the committed region stale in --check, and a bare write renders what
++    // it just wrote.
++    if (!fs.existsSync(factsPath)) { console.error('FAIL: .scratch/' + slug + '/round-facts.json missing - regenerate with node scripts/build-round-facts.js --round ' + slug); process.exit(1); }
++    const region = renderRegion(JSON.parse(fs.readFileSync(factsPath, 'utf8')));
++    const text = fs.readFileSync(reportPath, 'utf8');
++    const spliced = spliceRegion(text, region);
++    if (check) {
++      if (spliced !== text) { console.error('FAIL: report facts region is stale - regenerate with --report'); drift = true; }
++    } else if (spliced !== text) {
++      fs.writeFileSync(reportPath, spliced, 'utf8');
++      console.log('[round-facts] spliced facts region into ' + path.basename(reportPath));
++    }
++  }
++  if (drift) process.exit(1);
++  if (check) console.log('[round-facts] OK - facts' + (reportPath ? ' and report region' : '') + ' in sync');
++}
++
++if (require.main === module) main(process.argv);
++module.exports = { collect, renderRegion, spliceRegion, SENTINEL_START, SENTINEL_END };
+diff --git a/scripts/check-ci-jobs.js b/scripts/check-ci-jobs.js
+index 91daa06..119f390 100644
+--- a/scripts/check-ci-jobs.js
++++ b/scripts/check-ci-jobs.js
+@@ -1,11 +1,23 @@
+ #!/usr/bin/env node
+-// check-ci-jobs.js - ADR-0035 D5 presence evaluator, expanded by ADR-0058 D-004.
+-// Zero-dependency; exit 0 = SATISFIED (suggests human review, ADR-0035 D6),
+-// exit 1 = not satisfied. Predicates: multi-job (defer-0004); dedicated test
+-// job + summary job + summary always() (defer-0026). Anti-pattern assertions
+-// live in test/adr-0058-wiring.test.js, not here (D-004 two-layer).
++// check-ci-jobs.js - ADR-0035 D5 presence evaluator, expanded by ADR-0058
++// D-004, re-keyed by ADR-0077 D-A (grill-t16).
+ //
+-// Usage: node scripts/check-ci-jobs.js [ci.yml path]
++// Consuming-row exit convention (ADR-0077 D-A, verbatim): "a verified_by
++// script's exit code reflects only the legs of the row(s) currently
++// consuming it; multi-row reporting is diagnostic, never exit-driving."
++//   exit 0 = the consuming row's condition satisfied (human review suggested,
++//            ADR-0035 D6)
++//   exit 1 = the consuming row's condition unmet - the deferral remains valid
++//   exit 2 = the verifier itself is broken (a crash must never masquerade as
++//            "unsatisfied"; evalSuggestions warns on exit>1)
++// Currently consuming: defer-0004 (the only live consumer). defer-0026's
++// legs stay computed and printed as diagnostics - the row is terminal
++// (actioned 2026-09-18); its regressions surface via wiring fixtures, not
++// the process exit. Discharge re-point clause: when defer-0004 discharges,
++// the exit key re-points or retires in the same commit as that registry edit.
++//
++// Anti-pattern assertions live in test/adr-0058-wiring.test.js (D-004
++// two-layer). Usage: node scripts/check-ci-jobs.js [ci.yml path]
+ 
+ 'use strict';
+ 
+@@ -14,6 +26,8 @@ const path = require('path');
+ 
+ const ROOT = path.join(__dirname, '..');
+ const CI_REL = path.join('.github', 'workflows', 'ci.yml');
++// ADR-0077 D-A: the row currently consuming this verifier's exit code.
++const CONSUMING_ROW = 'defer0004';
+ 
+ // Top-level jobs: mapping -> { name: [content lines] }; comments are inert.
+ function parseJobs(yml) {
+@@ -40,14 +54,16 @@ function countJobs(yml) { return Object.keys(parseJobs(yml)).length; }
+ // shape and permanently false-fired; the narrowed conditions are the
+ // renderer-justifying ones.
+ // defer-0026 (ADR-0058 D-F/D-G): dedicated test job + summary job + summary
+-// always() - kept for reporting; the row is terminal (actioned 2026-09-18).
++// always() - diagnostic legs only; the row is terminal (actioned 2026-09-18).
+ function presence(yml, opts) {
+   const jobs = parseJobs(yml);
+   const summary = (jobs.summary || []).join('\n');
+   const has = (k) => Object.prototype.hasOwnProperty.call(jobs, k);
+   const jobCount = Object.keys(jobs).length;
+   const anyMatrix = Object.keys(jobs).some(function (k) {
+-    return /^\s+matrix:\s*(#.*)?$/m.test(jobs[k].join('\n'));
++    // F-E nit: the key matches whether the matrix value is a nested block or
++    // an inline flow mapping (matrix: {...}).
++    return /^\s+matrix:\s*/m.test(jobs[k].join('\n'));
+   });
+   const workflowFiles = (opts && opts.workflowFiles) || 1;
+   const d0004 = {
+@@ -73,25 +89,34 @@ function evaluate(yml, opts) {
+   const p = presence(yml, opts);
+   const rows = ['defer0004', 'defer0026'];
+   const unmet = rows.filter(function (r) { return !p[r].satisfied; });
+-  return { predicates: p, satisfied: unmet.length === 0, unmet: unmet };
++  // ADR-0077 D-A: the verdict is keyed to the row currently consuming the
++  // verifier; unmet stays the diagnostic list across all rows' legs.
++  return { predicates: p, satisfied: p[CONSUMING_ROW].satisfied, unmet: unmet };
+ }
+ 
+ function main(argv) {
+-  const ciPath = argv[2] || path.join(ROOT, CI_REL);
+-  const wfDir = path.dirname(ciPath);
+-  const workflowFiles = fs.readdirSync(wfDir).filter(function (f) { return /\.ya?ml$/.test(f); }).length;
+-  const res = evaluate(fs.readFileSync(ciPath, 'utf8'), { workflowFiles: workflowFiles });
+-  const tags = ['defer0004', 'defer0026'].map(function (r) {
+-    const sub = res.predicates[r];
+-    return r + '=' + (sub.satisfied ? 'SATISFIED' : 'unmet') +
+-      '(' + Object.keys(sub).filter(function (k) { return k !== 'satisfied'; }).map(function (k) { return (sub[k] ? '+' : '-') + k; }).join(',') + ')';
+-  }).join(' ');
+-  console.log('ci jobs: ' + tags + ' detail=' + JSON.stringify(res.predicates.detail) + (res.satisfied
+-    ? ' - presence-condition SATISFIED, human review suggested (ADR-0035 D6)'
+-    : ' - not met (' + res.unmet.join(', ') + '); the deferral remains valid'));
+-  process.exit(res.satisfied ? 0 : 1);
++  try {
++    const ciPath = argv[2] || path.join(ROOT, CI_REL);
++    const wfDir = path.dirname(ciPath);
++    const workflowFiles = fs.readdirSync(wfDir).filter(function (f) { return /\.ya?ml$/.test(f); }).length;
++    const res = evaluate(fs.readFileSync(ciPath, 'utf8'), { workflowFiles: workflowFiles });
++    const tags = ['defer0004', 'defer0026'].map(function (r) {
++      const sub = res.predicates[r];
++      return r + '=' + (sub.satisfied ? 'SATISFIED' : 'unmet') +
++        '(' + Object.keys(sub).filter(function (k) { return k !== 'satisfied'; }).map(function (k) { return (sub[k] ? '+' : '-') + k; }).join(',') + ')';
++    }).join(' ');
++    console.log('ci jobs: ' + tags + ' detail=' + JSON.stringify(res.predicates.detail) + (res.satisfied
++      ? ' - consuming row ' + CONSUMING_ROW + ' SATISFIED, human review suggested (ADR-0035 D6)'
++      : ' - not met (' + res.unmet.join(', ') + '); the deferral remains valid'));
++    process.exit(res.satisfied ? 0 : 1);
++  } catch (e) {
++    // ADR-0077 D-A: a crash is the verifier itself broken (exit>1), never
++    // "condition unsatisfied"; evalSuggestions warns on it.
++    console.error('check-ci-jobs: verifier broken - ' + ((e && e.message) || e));
++    process.exit(2);
++  }
+ }
+ 
+ if (require.main === module) main(process.argv);
+ 
+-module.exports = { parseJobs, countJobs, presence, evaluate, CI_REL };
++module.exports = { parseJobs, countJobs, presence, evaluate, CI_REL, CONSUMING_ROW };
+diff --git a/scripts/check-governance-inventory.js b/scripts/check-governance-inventory.js
+index da7faed..5e44f11 100644
+--- a/scripts/check-governance-inventory.js
++++ b/scripts/check-governance-inventory.js
+@@ -158,6 +158,28 @@ function checkInventory(root, opts) {
+       if (r.carve_out_used === 1 && !(r.governance_tooling_diff && Array.isArray(r.governance_tooling_diff.files) && r.governance_tooling_diff.files.length)) {
+         errors.push('trend round ' + r.round + ': carve_out_used=1 requires a non-empty governance_tooling_diff.files disclosure');
+       }
++      // ADR-0077 D-B sibling marker: mechanism_output_diff records faithful
++      // regenerations of mechanism-output artifacts for provenance - it never
++      // feeds burn-rate. Every listed file must be a member of the closed
++      // mechanism_outputs enumeration and classify R2; a bare marker with no
++      // files hard-fails (mirrors carve_out_used=1).
++      if (r.mechanism_output_diff !== undefined) {
++        const mod = r.mechanism_output_diff;
++        if (!mod || typeof mod !== 'object' || !Array.isArray(mod.files) || !mod.files.length || typeof mod.reason !== 'string' || mod.reason.length < 10) {
++          errors.push('trend round ' + r.round + ': mechanism_output_diff must be {files: non-empty string[], reason: string>=10} - a bare marker hard-fails (ADR-0077 D-B)');
++        } else {
++          if (!closureSet) closureSet = new Set(surfaceTaxonomy.computeRuntimeClosure(base));
++          const tax = surfaceTaxonomy.loadTaxonomy(base);
++          const outputs = ((tax.mechanism_outputs && tax.mechanism_outputs.entries) || []).map(function (e) { return e.file; });
++          for (const f of mod.files) {
++            if (outputs.indexOf(f) === -1) {
++              errors.push('trend round ' + r.round + ': mechanism_output_diff file ' + f + ' is not in the mechanism_outputs closed enumeration (ADR-0077 D-B)');
++            } else if (surfaceTaxonomy.classifyPath(f, closureSet) !== 'R2') {
++              errors.push('trend round ' + r.round + ': mechanism_output_diff file ' + f + ' does not classify R2 - mislabeled marker (ADR-0077 D-B)');
++            }
++          }
++        }
++      }
+       carveStreak = (r.carve_out_used === 1) ? carveStreak + 1 : 0;
+       streak = (r.net_additions > 0) ? streak + 1 : 0;
+     }
+diff --git a/scripts/surface-taxonomy.js b/scripts/surface-taxonomy.js
+index 43a94d3..63c85a0 100644
+--- a/scripts/surface-taxonomy.js
++++ b/scripts/surface-taxonomy.js
+@@ -56,7 +56,7 @@ function computeRuntimeClosure(root) {
+     REQ_RE.lastIndex = 0;
+     let m;
+     while ((m = REQ_RE.exec(text))) {
+-      const spec = m[1] || m[2];
++      const spec = m[1];
+       const target = spec && resolveRequire(spec, abs);
+       if (target && !seen.has(relOf(target, root))) queue.push(target);
+     }
+diff --git a/test/adr-0033-wiring.test.js b/test/adr-0033-wiring.test.js
+index 8cff0ef..7e8ed6c 100644
+--- a/test/adr-0033-wiring.test.js
++++ b/test/adr-0033-wiring.test.js
+@@ -50,11 +50,12 @@ describe('ADR-0033 D2 entry schema', () => {
+     // R2 (grill-t13 action round): +1 = defer-0058 (standing net-increment review); defer-0050/0051/0052/0056 closed; defer-0054 actioned.
+     // ADR-0075 (grill-t14 doc round) extends the seed inventory to 53 entries: defer-0059 (net-addition tally, D-006(a)(i)).
+     // ADR-0076 (grill-t15 doc round) extends the seed inventory to 55 entries: defer-0060 (CI 403 carrier, external-event), defer-0061 (net-addition tally, D-006(a)(i)). grill-t15 R1: defer-0026 actioned (+limitation); R2: defer-0061 closed via same-commit ledger note.
++    // ADR-0077 (grill-t16 doc round) extends the seed inventory to 56 entries: defer-0062 (net-addition tally, D-006(a)(i)); closed via same-commit ledger note (defer-0059/0061 precedent).
+     // expansion to n>=100), defer-0033 (judge-quality CAPA), defer-0034
+     // (prompt-exercising eval surface).
+-    expect(registry.entries.map(e => e.id)).toEqual(['defer-0001', 'defer-0002', 'defer-0003', 'defer-0004', 'defer-0005', 'defer-0006', 'defer-0007', 'defer-0008', 'defer-0009', 'defer-0010', 'defer-0011', 'defer-0012', 'defer-0013', 'defer-0015', 'defer-0018', 'defer-0019', 'defer-0023', 'defer-0024', 'defer-0025', 'defer-0026', 'defer-0027', 'defer-0028', 'defer-0029', 'defer-0030', 'defer-0031', 'defer-0032', 'defer-0033', 'defer-0034', 'defer-0035', 'defer-0036', 'defer-0037', 'defer-0038', 'defer-0039', 'defer-0040', 'defer-0041', 'defer-0042', 'defer-0043', 'defer-0044', 'defer-0045', 'defer-0046', 'defer-0047', 'defer-0048', 'defer-0049', 'defer-0050', 'defer-0051', 'defer-0052', 'defer-0053', 'defer-0054', 'defer-0055', 'defer-0056', 'defer-0057', 'defer-0058', 'defer-0059', 'defer-0060', 'defer-0061']);
++    expect(registry.entries.map(e => e.id)).toEqual(['defer-0001', 'defer-0002', 'defer-0003', 'defer-0004', 'defer-0005', 'defer-0006', 'defer-0007', 'defer-0008', 'defer-0009', 'defer-0010', 'defer-0011', 'defer-0012', 'defer-0013', 'defer-0015', 'defer-0018', 'defer-0019', 'defer-0023', 'defer-0024', 'defer-0025', 'defer-0026', 'defer-0027', 'defer-0028', 'defer-0029', 'defer-0030', 'defer-0031', 'defer-0032', 'defer-0033', 'defer-0034', 'defer-0035', 'defer-0036', 'defer-0037', 'defer-0038', 'defer-0039', 'defer-0040', 'defer-0041', 'defer-0042', 'defer-0043', 'defer-0044', 'defer-0045', 'defer-0046', 'defer-0047', 'defer-0048', 'defer-0049', 'defer-0050', 'defer-0051', 'defer-0052', 'defer-0053', 'defer-0054', 'defer-0055', 'defer-0056', 'defer-0057', 'defer-0058', 'defer-0059', 'defer-0060', 'defer-0061', 'defer-0062']);
+     // ADR-0035 D6: no verified_by -> pending-evaluation; only defer-0004 (real assertion) stays deferred
+-    expect(registry.entries.map(e => e.status)).toEqual(['pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'deferred', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'actioned', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'closed', 'closed', 'closed', 'pending-evaluation', 'actioned', 'pending-evaluation', 'closed', 'pending-evaluation', 'pending-evaluation', 'closed', 'pending-evaluation', 'closed']);// T-3 fix: defer-0051 reopened (F-4 - own unfreeze condition unmet); defer-0050/0052/0056 closed; defer-0054 actioned; grill-t14 R2: defer-0051 closed discharged-by-trigger, defer-0059 closed via same-commit ledger note; grill-t15 R1/R2: defer-0026 actioned+limitation, defer-0060 pending-evaluation, defer-0061 closed
++    expect(registry.entries.map(e => e.status)).toEqual(['pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'deferred', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'actioned', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'pending-evaluation', 'closed', 'closed', 'closed', 'pending-evaluation', 'actioned', 'pending-evaluation', 'closed', 'pending-evaluation', 'pending-evaluation', 'closed', 'pending-evaluation', 'closed', 'closed']);// T-3 fix: defer-0051 reopened (F-4 - own unfreeze condition unmet); defer-0050/0052/0056 closed; defer-0054 actioned; grill-t14 R2: defer-0051 closed discharged-by-trigger, defer-0059 closed via same-commit ledger note; grill-t15 R1/R2: defer-0026 actioned+limitation, defer-0060 pending-evaluation, defer-0061 closed; grill-t16 R1: defer-0062 closed
+     for (const e of registry.entries) expect(e.review_at >= today).toBe(true);
+   });
+ 
+diff --git a/test/adr-0058-wiring.test.js b/test/adr-0058-wiring.test.js
+index e400223..9453dbe 100644
+--- a/test/adr-0058-wiring.test.js
++++ b/test/adr-0058-wiring.test.js
+@@ -235,6 +235,8 @@ describe('defer-0004 narrowed trigger (grill-t15 D-003 re-defer)', () => {
+     const pm = presence(withMatrix, { workflowFiles: 1 });
+     expect(pm.defer0004.any_matrix).toBe(true);
+     expect(pm.defer0004.satisfied).toBe(true);
++    const inlineMatrix = yml(job('test', '    strategy:\n      matrix: {os: [ubuntu-latest]}\n') + job('gate-all') + job('summary', '    if: always()\n'));
++    expect(presence(inlineMatrix, { workflowFiles: 1 }).defer0004.any_matrix).toBe(true); // F-E nit: inline matrix: {...} form
+     const four = yml(job('a') + job('b') + job('c') + job('d'));
+     const p4 = presence(four, { workflowFiles: 1 });
+     expect(p4.defer0004.over_three_jobs).toBe(true);
+@@ -263,3 +265,65 @@ describe('defer-0004 narrowed trigger (grill-t15 D-003 re-defer)', () => {
+     expect(d.rationale).toContain('narrowed');
+   });
+ });
++
++describe('ADR-0077 D-A consuming-row exit semantics (grill-t16)', () => {
++  const { evaluate, presence, CONSUMING_ROW } = require('../scripts/check-ci-jobs');
++  const yml = (jobs) => 'name: ci\n\njobs:\n' + jobs;
++  const job = (name, body) => '  ' + name + ':\n    runs-on: x\n' + (body || '    steps: []\n');
++  const script = path.join(ROOT, 'scripts', 'check-ci-jobs.js');
++  const run = (ymlText) => {
++    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-cijobs-'));
++    const f = path.join(dir, 'ci.yml');
++    fs.writeFileSync(f, ymlText);
++    return spawnSync(process.execPath, [script, f], { cwd: ROOT, encoding: 'utf8' });
++  };
++
++  test('the consuming row is defer0004 (the only live consumer)', () => {
++    expect(CONSUMING_ROW).toBe('defer0004');
++    const res = evaluate(fs.readFileSync(path.join(ROOT, '.github', 'workflows', 'ci.yml'), 'utf8'), { workflowFiles: 1 });
++    expect(res.satisfied).toBe(res.predicates.defer0004.satisfied);
++  });
++
++  test('direction 1 - consuming row satisfied -> exit 0', () => {
++    const text = yml(job('a') + job('b') + job('c') + job('d', '    strategy:\n      matrix: {os: [x]}\n'));
++    const r = run(text);
++    expect(r.status).toBe(0);
++    expect(r.stdout).toContain('defer0004=SATISFIED');
++    expect(r.stdout).toContain('human review suggested');
++  });
++
++  test('direction 2 - consuming row unmet -> exit 1 (live shape)', () => {
++    const text = yml(job('gate-all') + job('test') + job('summary', '    if: always()\n    needs: [gate-all, test]\n'));
++    const r = run(text);
++    expect(r.status).toBe(1);
++    expect(r.stdout).toContain('defer0004=unmet');
++    expect(r.stdout).toContain('the deferral remains valid');
++  });
++
++  test('direction 3 - a regressed non-consuming row stays diagnostic: exit 0 with defer0026=unmet printed', () => {
++    const text = yml(job('a') + job('b') + job('c') + job('d')); // 4 jobs satisfies defer0004; no test/summary jobs regress defer0026
++    const res = evaluate(text, { workflowFiles: 1 });
++    expect(res.predicates.defer0026.satisfied).toBe(false);
++    expect(res.satisfied).toBe(true); // the union-exit class is dead
++    expect(res.unmet).toEqual(['defer0026']); // diagnostics still report it
++    const r = run(text);
++    expect(r.status).toBe(0);
++    expect(r.stdout).toContain('defer0026=unmet');
++  });
++
++  test('a crash exits 2 with a stderr line - never masquerades as unsatisfied', () => {
++    const missing = path.join(os.tmpdir(), 'jh-cijobs-no-such-file.yml');
++    const r = spawnSync(process.execPath, [script, missing], { cwd: ROOT, encoding: 'utf8' });
++    expect(r.status).toBe(2);
++    expect(r.stderr).toContain('verifier broken');
++    expect(r.stdout).not.toContain('the deferral remains valid');
++  });
++
++  test('the header registers the convention verbatim and the discharge re-point clause', () => {
++    const src = fs.readFileSync(script, 'utf8');
++    expect(src).toContain('currently consuming');
++    expect(src).toContain('multi-row reporting is diagnostic, never exit-driving');
++    expect(src).toContain('re-points or retires in the same commit');
++    expect(src).toContain('exit 2');
++  });
++});
+diff --git a/test/adr-0069-wiring.test.js b/test/adr-0069-wiring.test.js
+index edddba8..ac6b236 100644
+--- a/test/adr-0069-wiring.test.js
++++ b/test/adr-0069-wiring.test.js
+@@ -304,7 +304,7 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () =>
+ 
+   test('the README ADR index carries ADR-0069 (rebuilt, 69 records)', () => {
+     const r = read(README);
+-    expect(r).toContain('76 architecture decision records'); // ADR-0075 landed (grill-t14)
++    expect(r).toContain('77 architecture decision records'); // ADR-0077 landed (grill-t16)
+     expect(r).toContain('[ADR-0069](docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md)');
+   });
+ 
+diff --git a/test/adr-0070-wiring.test.js b/test/adr-0070-wiring.test.js
+index 0f7c457..ad279ec 100644
+--- a/test/adr-0070-wiring.test.js
++++ b/test/adr-0070-wiring.test.js
+@@ -146,7 +146,7 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () =>
+ 
+   test('the README ADR index carries ADR-0070 (rebuilt, 70 records)', () => {
+     const r = read(README);
+-    expect(r).toContain('76 architecture decision records');
++    expect(r).toContain('77 architecture decision records');
+     expect(r).toContain('[ADR-0070](docs/adr/0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md)');
+   });
+ 
+diff --git a/test/adr-0072-wiring.test.js b/test/adr-0072-wiring.test.js
+index 5bbe198..723dc52 100644
+--- a/test/adr-0072-wiring.test.js
++++ b/test/adr-0072-wiring.test.js
+@@ -212,7 +212,7 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () =>
+ 
+   test('the README ADR index carries ADR-0072 (rebuilt, 72 records)', () => {
+     const r = read(README);
+-    expect(r).toContain('76 architecture decision records');
++    expect(r).toContain('77 architecture decision records');
+     expect(r).toContain('[ADR-0072](docs/adr/0072-readiness-verdict-remeasurement-preregistration-bake-protocol-critique-dispositions.md)');
+   });
+ 
+diff --git a/test/adr-0073-wiring.test.js b/test/adr-0073-wiring.test.js
+index 523f32b..0b6f4c3 100644
+--- a/test/adr-0073-wiring.test.js
++++ b/test/adr-0073-wiring.test.js
+@@ -187,7 +187,7 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () =>
+ 
+   test('the README ADR index carries ADR-0073 (rebuilt, 73 records)', () => {
+     const r = read(README);
+-    expect(r).toContain('76 architecture decision records');
++    expect(r).toContain('77 architecture decision records');
+     expect(r).toContain('[ADR-0073](docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md)');
+   });
+ 
+diff --git a/test/adr-0074-wiring.test.js b/test/adr-0074-wiring.test.js
+index c7a24fd..1c63656 100644
+--- a/test/adr-0074-wiring.test.js
++++ b/test/adr-0074-wiring.test.js
+@@ -142,7 +142,7 @@ describe('README + governance-surface sync', () => {
+ 
+   test('the README ADR index carries ADR-0074 (rebuilt, 74 records)', () => {
+     const r = read(README);
+-    expect(r).toContain('76 architecture decision records');
++    expect(r).toContain('77 architecture decision records');
+     expect(r).toContain('0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md');
+   });
+ 
+diff --git a/test/adr-0075-wiring.test.js b/test/adr-0075-wiring.test.js
+index fb64914..0e2dd5c 100644
+--- a/test/adr-0075-wiring.test.js
++++ b/test/adr-0075-wiring.test.js
+@@ -128,7 +128,7 @@ describe('registry + governance-surface sync', () => {
+ 
+   test('the README ADR index carries ADR-0075 (rebuilt, 76 records)', () => {
+     const r = read(README);
+-    expect(r).toContain('76 architecture decision records');
++    expect(r).toContain('77 architecture decision records');
+     expect(r).toContain('0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md');
+   });
+ 
+diff --git a/test/adr-0076-wiring.test.js b/test/adr-0076-wiring.test.js
+index 24f16ac..49155dc 100644
+--- a/test/adr-0076-wiring.test.js
++++ b/test/adr-0076-wiring.test.js
+@@ -40,7 +40,7 @@ describe('ADR-0076 doc surface (grill-t15 disposition + mechanism round)', () =>
+ 
+   test('README index rebuilt: 76 records incl. ADR-0076', () => {
+     const r = read(path.join(ROOT, 'README.md'));
+-    expect(r).toContain('76 architecture decision records');
++    expect(r).toContain('77 architecture decision records');
+     expect(r).toContain('0076-round-edit-surface-taxonomy-and-governance-carve-out.md');
+   });
+ 
+@@ -151,3 +151,170 @@ describe('owner asks frozen, never bundled (ADR-0076 D-E)', () => {
+     expect(a).toContain('rejection reopens');
+   });
+ });
++
++describe('ADR-0077 amendments (grill-t16 fix + mechanism round, data-surface assertions)', () => {
++  const ADR77 = path.join(ROOT, 'docs', 'adr', '0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md');
++  const trend = () => readJson(path.join(ROOT, 'docs', 'governance', 'trend-inventory.json'));
++
++  test('ADR-0077 exists with live status, date, amends line, and ledger anchor', () => {
++    const a = read(ADR77);
++    expect(a).toContain('# ADR-0077:');
++    expect(a).toContain('- Status: Accepted');
++    expect(a).toContain('- Date: 2026-09-18');
++    expect(a).toContain('- Amends: ADR-0076 D-B(2)');
++    expect(a).toContain('decision-ledger.md');
++    expect(a).toContain('currently consuming');
++    expect(a).toContain('the report is narrative, never the home of numbers');
++  });
++
++  test('ADR-0076 carries the Amended-by pointer and the D-B(2) superseded-phrase annotation', () => {
++    const a = read(ADR);
++    expect(a).toContain('- Amended-by: ADR-0077');
++    expect(a).toContain('Amended by ADR-0077 D-B');
++    expect(a).toContain('machinery-SOURCE hand-edits');
++  });
++
++  test('mechanism_outputs is a closed enumeration: every entry classifies R2 and names an existing generator', () => {
++    const t = readJson(TAX);
++    const mo = t.mechanism_outputs;
++    expect(mo).toBeDefined();
++    expect(Array.isArray(mo.entries)).toBe(true);
++    const closure = new Set(tax.computeRuntimeClosure(ROOT));
++    for (const e of mo.entries) {
++      expect(Object.keys(e).sort()).toEqual(['file', 'generator', 'replay_verified']);
++      expect(tax.classifyPath(e.file, closure)).toBe('R2');
++      expect(fs.existsSync(path.join(ROOT, e.generator))).toBe(true);
++      expect(typeof e.replay_verified).toBe('boolean');
++    }
++  });
++
++  test('the two F-D artifacts are the enumeration members', () => {
++    const files = readJson(TAX).mechanism_outputs.entries.map(function (e) { return e.file; }).sort();
++    expect(files).toEqual(['bench/research/out/g6-publish-replay.json', 'src/instrument-state.json']);
++  });
++
++  test('diff_semantics reworded: machinery-source hand-edits + faithful regeneration + mechanism_output_diff entry', () => {
++    const ds = readJson(TAX).diff_semantics;
++    expect(ds.governance_tooling_diff).toContain('machinery-SOURCE hand-edits');
++    expect(ds.governance_tooling_diff).toContain('faithful regeneration');
++    expect(ds.governance_tooling_diff).not.toContain('recording which R2 files the round touched');
++    expect(ds.mechanism_output_diff).toContain('never feeds burn-rate');
++    expect(ds.mechanism_output_diff).toContain('hard-fails');
++  });
++
++  test('t15 trend row annotation is additive-only: historical booleans untouched', () => {
++    const r = trend().rounds.find(function (x) { return x.round === 'grill-t15-doc-round'; });
++    expect(r.carve_out_used).toBe(1);
++    expect(r.zero_product_diff).toBe(true);
++    expect(r.governance_tooling_diff.files).toContain('scripts/check-ci-jobs.js');
++    expect(r.mechanism_output_diff.files.sort()).toEqual(['bench/research/out/g6-publish-replay.json', 'src/instrument-state.json']);
++    expect(r.mechanism_output_diff.reason.length).toBeGreaterThanOrEqual(10);
++  });
++
++  test('t16 row: +1 ADR-0077, zero product diff, carve-out not invoked (streak resets)', () => {
++    const r = trend().rounds.find(function (x) { return x.round === 'grill-t16-doc-round'; });
++    expect(r).toBeDefined();
++    expect(r.adr_added).toEqual(['0077']);
++    expect(r.net_additions).toBe(1);
++    expect(r.zero_product_diff).toBe(true);
++    expect(r.carve_out_used).toBe(0);
++    expect(r.governance_tooling_diff).toBeUndefined();
++    expect(r.mechanism_output_diff.files).toEqual(['bench/research/out/g6-publish-replay.json']);
++    expect(r.deferred_entry).toBe('defer-0062');
++    expect(r.advisory_fired).toBe(false);
++  });
++
++  test('no unlisted file claims the output exemption (mechanism_output_diff files are always inside the enumeration)', () => {
++    const t = readJson(TAX);
++    const members = t.mechanism_outputs.entries.map(function (e) { return e.file; });
++    const closure = new Set(tax.computeRuntimeClosure(ROOT));
++    for (const r of trend().rounds) {
++      if (!r.mechanism_output_diff) continue;
++      expect(Array.isArray(r.mechanism_output_diff.files)).toBe(true);
++      expect(r.mechanism_output_diff.files.length).toBeGreaterThan(0);
++      for (const f of r.mechanism_output_diff.files) {
++        expect(members).toContain(f);
++        expect(tax.classifyPath(f, closure)).toBe('R2');
++      }
++    }
++  });
++
++  test('CONTEXT.md carries the Consuming-Row Exit + Facts Canon terms and the carve-out gloss restored the inventory channel', () => {
++    const c = read(path.join(ROOT, 'CONTEXT.md'));
++    expect(c).toContain('Consuming-Row Exit');
++    expect(c).toContain('Facts Canon');
++    expect(c).toContain('trend-inventory governance_tooling_diff channel');
++  });
++
++  test('defer-0004 rationale cites ADR-0058 D-C explicitly (settles F-C)', () => {
++    const d = readJson(path.join(ROOT, 'docs', 'deferred-registry.json')).entries.find(function (e) { return e.id === 'defer-0004'; });
++    expect(d.rationale).toContain('ADR-0058 D-C');
++  });
++
++  test('defer-0062 tally row registered closed for the +1 round', () => {
++    const d = readJson(path.join(ROOT, 'docs', 'deferred-registry.json')).entries.find(function (e) { return e.id === 'defer-0062'; });
++    expect(d).toBeDefined();
++    expect(d.source_adr).toContain('0077-verifier-exit-convention');
++    expect(d.status).toBe('closed');
++    expect(d.closed_via).toContain('same-commit ledger note');
++  });
++
++  test('README index rebuilt: 77 records incl. ADR-0077', () => {
++    const r = read(path.join(ROOT, 'README.md'));
++    expect(r).toContain('77 architecture decision records');
++    expect(r).toContain('0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md');
++  });
++
++  test('the ledger carries the convention verbatim and the consent-sweep lines', () => {
++    const l = read(path.join(ROOT, '.scratch', 'grill-t16', 'decision-ledger.md'));
++    expect(l).toContain('currently consuming');
++    expect(l).toContain('multi-row reporting is diagnostic, never exit-driving');
++    expect(l).toContain('T-1 dispositions');
++    expect(l).toContain('defer-0060');
++    expect(l).toContain('consent-sweep');
++    expect(l).toContain('never \"audit response\"');
++  });
++
++  test('mechanism_output_diff marker: checker accepts members, hard-fails bare markers and unlisted files', () => {
++    const inv = require('../scripts/check-governance-inventory');
++    const ti = readJson(path.join(ROOT, 'docs', 'governance', 'trend-inventory.json'));
++    const mk = function (id, mod) {
++      const probe = JSON.parse(JSON.stringify(ti));
++      probe.rounds.push({ round: id, date: '2026-09-18', kind: 'documentation', adr_added: [], net_additions: 0, zero_product_diff: false, mechanism_output_diff: mod, carve_out_used: 0 });
++      return inv.checkInventory(ROOT, { trend: probe }).errors.filter(function (e) { return e.indexOf(id) !== -1; });
++    };
++    expect(mk('probe-mod', { files: ['src/instrument-state.json'], reason: 'faithful regeneration via instrument.js append event' })).toEqual([]);
++    expect(mk('probe-bare', { files: [], reason: 'x' }).join(' ')).toContain('bare marker hard-fails');
++    expect(mk('probe-unlisted', { files: ['scripts/install.js'], reason: 'unlisted file claims the exemption' }).join(' ')).toContain('closed enumeration');
++    expect(mk('probe-r3', { files: ['docs/rewrite-map.json'], reason: 'docs-surface output is not an enumeration member' }).join(' ')).toContain('closed enumeration');
++  });
++
++  test('anchors.json lists decision-ledger-t16.md under ADR-0077, content-equal to the scratch authority', () => {
++    const a = readJson(path.join(ROOT, 'docs', 'governance', 'anchors.json'));
++    const e = a.artifacts.find(function (x) { return x.file === 'decision-ledger-t16.md'; });
++    expect(e).toBeDefined();
++    expect(e.adr).toBe('ADR-0077');
++    const gov = read(path.join(ROOT, 'docs', 'governance', 'decision-ledger-t16.md'));
++    const scratch = read(path.join(ROOT, '.scratch', 'grill-t16', 'decision-ledger.md'));
++    expect(gov).toBe(scratch);
++  });
++
++  test('facts canon: artifact schema + deterministic render pin + no bare schema numbers in report prose (ADR-0077 D-C)', () => {
++    const facts = readJson(path.join(ROOT, '.scratch', 'grill-t16', 'round-facts.json'));
++    expect(Object.keys(facts).sort()).toEqual(['_doc', 'anchors_count', 'battery_as_of_commit', 'instrument_entries', 'not_run', 'pack_bytes', 'passed', 'registry_entries', 'report_commit', 'rewrite_map_citations', 'schema_version', 'skipped', 'suites']);
++    expect(facts.report_commit).toBeNull();
++    expect(Array.isArray(facts.not_run)).toBe(true);
++    const brf = require('../scripts/build-round-facts');
++    const report = read(path.join(ROOT, '.scratch', 'grill-t16', 'reports', '2026-09-18-report.md'));
++    const i = report.indexOf(brf.SENTINEL_START), j = report.indexOf(brf.SENTINEL_END);
++    expect(i !== -1 && j > i).toBe(true);
++    expect(report.slice(i, j + brf.SENTINEL_END.length)).toBe(brf.renderRegion(facts));
++    const prose = (report.slice(0, i) + report.slice(j + brf.SENTINEL_END.length)).replace(/`[^`]*`/g, '');
++    for (const k of ['suites', 'passed', 'pack_bytes', 'instrument_entries', 'rewrite_map_citations', 'registry_entries', 'anchors_count']) {
++      const v = String(facts[k]);
++      if (v.length >= 2) expect(prose).not.toMatch(new RegExp('\\b' + v + '\\b'));
++      expect(prose).not.toMatch(new RegExp(k + '\\s*[:=]'));
++    }
++    expect(prose).not.toMatch(/\b0\s+skipped|skipped\s*[:=]\s*0/);
++  });
++});

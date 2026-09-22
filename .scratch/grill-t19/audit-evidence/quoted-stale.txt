@@ -1,0 +1,8 @@
+$ node scripts/build-round-facts.js --round grill-t19 --check --report .scratch/grill-t19/evidence/quoted-stale.fixture.md
+
+EXIT 1
+
+FAIL: schema key suites assigned in report prose outside the sentinel region
+FAIL: canon number suites=73 appears in report prose outside the sentinel region (quoted or bare - cite an evidence path instead, ADR-0077 D-E)
+FAIL: canon number passed=1262 appears in report prose outside the sentinel region (quoted or bare - cite an evidence path instead, ADR-0077 D-E)
+__CM_FS__:22039

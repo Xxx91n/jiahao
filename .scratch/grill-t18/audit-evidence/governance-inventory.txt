@@ -1,0 +1,4 @@
+$ node scripts/check-governance-inventory.js
+trend-anchor advisory drift: 1 fired vs 0 expected (streak 1 of 2)
+[governance-inventory] OK: 35 entries, live source_adr, unique commands, closed references
+EXIT 0

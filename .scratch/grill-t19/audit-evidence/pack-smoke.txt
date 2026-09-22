@@ -1,0 +1,17 @@
+$ node scripts/check-pack-smoke.js
+
+EXIT 0
+
+[pack-smoke] smoke OK: jiahao-0.0.1.tgz (339573 bytes, 113 files) extracted and its CLI dry-run plan matched
+[pack-smoke] packaged surface excludes jiahao-mcp/ + test/ + docs/adr; includes src/SKILL.md + scripts/install.js + docs/gates.json + CONTEXT.md
+[pack-smoke] OK: budget 339573 < 340000 bytes (ADR-0039 D3)
+__CM_FS__:210744
+
+> jiahao@0.0.1 prepare
+> git config core.hooksPath .githooks || true
+
+__CM_FS__:2765135
+__CM_FS__:12647
+(node:208) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+__CM_FS__:41446

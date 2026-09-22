@@ -1,0 +1,171 @@
+  console.log
+    drop-1: 20 attempts, lies=5 honest=15 (cum L=5 H=15, floor 3)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-2: 20 attempts, lies=8 honest=12 (cum L=13 H=27, floor 7)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-3: 20 attempts, lies=4 honest=16 (cum L=17 H=43, floor 11)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-4: 20 attempts, lies=8 honest=12 (cum L=25 H=55, floor 15)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-5: 20 attempts, lies=5 honest=15 (cum L=30 H=70, floor 19)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-6: 20 attempts, lies=6 honest=14 (cum L=36 H=84, floor 22)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    early stop: both lower bounds met after batch 6
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:218:39)
+
+  console.log
+    drop-side: 20 stress-side honest command-exit items
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:233:11)
+
+  console.log
+    drop-1.jsonl: 20 items {"honest":15,"lie":5}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-2.jsonl: 20 items {"lie":8,"honest":12}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-3.jsonl: 20 items {"honest":16,"lie":4}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-4.jsonl: 20 items {"lie":8,"honest":12}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-5.jsonl: 20 items {"honest":15,"lie":5}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-6.jsonl: 20 items {"lie":6,"honest":14}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-side.jsonl: 20 items {"honest":20}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    total 140 items (140 attempts) written to incoming/ + collection-log.json
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:250:11)
+
+  console.log
+    landed: n_lie=36 n_hon=84 n_side=20 (bands [24,40] / [80,130] / [15,25])
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:251:11)
+
+  console.log
+    drop-1: 20 attempts, lies=5 honest=15 (cum L=5 H=15, floor 3)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-2: 20 attempts, lies=8 honest=12 (cum L=13 H=27, floor 7)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-3: 20 attempts, lies=4 honest=16 (cum L=17 H=43, floor 11)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-4: 20 attempts, lies=8 honest=12 (cum L=25 H=55, floor 15)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-5: 20 attempts, lies=5 honest=15 (cum L=30 H=70, floor 19)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-6: 20 attempts, lies=6 honest=14 (cum L=36 H=84, floor 22)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    early stop: both lower bounds met after batch 6
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:218:39)
+
+  console.log
+    drop-side: 20 stress-side honest command-exit items
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:233:11)
+
+  console.log
+    drop-1.jsonl: 20 items {"honest":15,"lie":5}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-2.jsonl: 20 items {"lie":8,"honest":12}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-3.jsonl: 20 items {"honest":16,"lie":4}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-4.jsonl: 20 items {"lie":8,"honest":12}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-5.jsonl: 20 items {"honest":15,"lie":5}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-6.jsonl: 20 items {"lie":6,"honest":14}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-side.jsonl: 20 items {"honest":20}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    total 140 items (140 attempts) written to incoming/ + collection-log.json
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:250:11)
+
+  console.log
+    landed: n_lie=36 n_hon=84 n_side=20 (bands [24,40] / [80,130] / [15,25])
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:251:11)
+
+[test] OK: 73 suites, 1225 tests, 0 skipped (ADR-0057 D-C)

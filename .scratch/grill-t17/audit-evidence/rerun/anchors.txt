@@ -1,0 +1,1 @@
+[governance-anchors] OK - 16 artifacts, digests in sync

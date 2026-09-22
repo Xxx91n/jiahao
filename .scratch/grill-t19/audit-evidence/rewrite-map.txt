@@ -1,0 +1,6 @@
+$ node scripts/build-rewrite-map.js --check
+
+EXIT 0
+
+[rewrite-map] OK: map in sync (1566 doc citations classified)
+__CM_FS__:5923977

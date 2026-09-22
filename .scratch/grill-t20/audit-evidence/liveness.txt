@@ -1,0 +1,152 @@
+$ node D:\nodejs\node_modules\npm\bin\npm-cli.js pack --pack-destination C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-pqb2m4
+
+
+> jiahao@0.0.1 prepare
+> git config core.hooksPath .githooks || true
+
+jiahao-0.0.1.tgz
+npm notice
+npm notice package: jiahao@0.0.1
+npm notice Tarball Contents
+npm notice 2.1kB AGENTS.md
+npm notice 136.3kB CONTEXT.md
+npm notice 35.0kB README.md
+npm notice 258B adapters/aider/.aider.conf.yml
+npm notice 2.8kB adapters/aider/CONVENTIONS-generator.md
+npm notice 6.6kB adapters/aider/CONVENTIONS.md
+npm notice 479B adapters/aider/README.md
+npm notice 219B adapters/claude-code/README.md
+npm notice 2.8kB adapters/cline/jiahao-generator.md
+npm notice 6.6kB adapters/cline/jiahao.md
+npm notice 1.1kB adapters/codex/hooks.json
+npm notice 864B adapters/copilot/hooks.json
+npm notice 1.2kB adapters/copilot/README.md
+npm notice 2.8kB adapters/cursor/jiahao-generator.mdc
+npm notice 6.6kB adapters/cursor/jiahao.mdc
+npm notice 2.8kB adapters/instruction-tier/AGENTS-generator.md
+npm notice 6.6kB adapters/instruction-tier/AGENTS.md
+npm notice 247B adapters/mcp/README.md
+npm notice 2.8kB adapters/opencode/jiahao-generator.md
+npm notice 6.6kB adapters/opencode/jiahao-verifier.md
+npm notice 53B adapters/opencode/opencode.json
+npm notice 664B adapters/opencode/README.md
+npm notice 1.2kB adapters/qoder/README.md
+npm notice 1.2kB adapters/qoder/settings.json
+npm notice 2.8kB adapters/windsurf/jiahao-generator.md
+npm notice 6.6kB adapters/windsurf/jiahao.md
+npm notice 12.7kB bench/polygraph/README.md
+npm notice 6.7kB bench/polygraph/thresholds.json
+npm notice 977B docs/change-surface.json
+npm notice 2.7kB docs/coverage-map.json
+npm notice 71.0kB docs/deferred-registry.json
+npm notice 15.8kB docs/gates.json
+npm notice 1.3kB hooks/jiahao-activate.js
+npm notice 1.5kB hooks/jiahao-hooks.json
+npm notice 1.7kB hooks/jiahao-mode-tracker.js
+npm notice 5.6kB hooks/jiahao-profile.js
+npm notice 1.7kB hooks/jiahao-runtime.js
+npm notice 1.7kB hooks/jiahao-subagent.js
+npm notice 601B hooks/jiahao-sweep.js
+npm notice 12.7kB hooks/jiahao-verdict-gate.js
+npm notice 1.6kB package.json
+npm notice 2.6kB schemas/degradation.schema.json
+npm notice 12.5kB scripts/bench-gate.js
+npm notice 15.0kB scripts/build-adapters.js
+npm notice 4.1kB scripts/build-adr-index.js
+npm notice 4.3kB scripts/build-governance-anchors.js
+npm notice 17.4kB scripts/build-rewrite-map.js
+npm notice 13.2kB scripts/build-round-facts.js
+npm notice 10.2kB scripts/check-bench-thresholds.js
+npm notice 5.7kB scripts/check-ci-jobs.js
+npm notice 3.9kB scripts/check-ci-wiring.js
+npm notice 10.7kB scripts/check-corpus-classes.js
+npm notice 5.4kB scripts/check-corpus-freshness.js
+npm notice 7.7kB scripts/check-corpus-leak.js
+npm notice 6.6kB scripts/check-coverage.js
+npm notice 15.9kB scripts/check-deferred.js
+npm notice 4.2kB scripts/check-drift.js
+npm notice 2.4kB scripts/check-falsify.js
+npm notice 6.2kB scripts/check-g6-equivalence.js
+npm notice 11.7kB scripts/check-g6-publish.js
+npm notice 2.6kB scripts/check-gate-params.js
+npm notice 13.2kB scripts/check-governance-inventory.js
+npm notice 7.4kB scripts/check-host-contracts.js
+npm notice 10.7kB scripts/check-mr-probes.js
+npm notice 5.6kB scripts/check-pack-smoke.js
+npm notice 3.2kB scripts/check-pairer-regression.js
+npm notice 3.1kB scripts/check-plan-baseline.js
+npm notice 9.1kB scripts/check-probes.js
+npm notice 6.9kB scripts/check-research-baseline.js
+npm notice 4.5kB scripts/check-secret-scan.js
+npm notice 2.9kB scripts/check-skip-reasons.js
+npm notice 24.7kB scripts/collect-devin-corpus.js
+npm notice 3.5kB scripts/collect-holdout.js
+npm notice 3.7kB scripts/corpus-tier-drift.js
+npm notice 6.4kB scripts/corrigendum-v3.js
+npm notice 4.8kB scripts/derive-devin-v2-tables.js
+npm notice 5.6kB scripts/derive-devin-v3-tables.js
+npm notice 3.7kB scripts/eval-ab.js
+npm notice 6.5kB scripts/install.js
+npm notice 22.3kB scripts/instrument.js
+npm notice 1.9kB scripts/jest-junit-lite.js
+npm notice 1.9kB scripts/kappa.js
+npm notice 10.8kB scripts/pairer-lane-telemetry.js
+npm notice 2.9kB scripts/rebuild-anchor.js
+npm notice 4.8kB scripts/resolve.js
+npm notice 32.3kB scripts/reverify.js
+npm notice 13.3kB scripts/run-gates.js
+npm notice 4.2kB scripts/run-test-gate.js
+npm notice 3.3kB scripts/surface-taxonomy.js
+npm notice 1.9kB scripts/verify-evidence.js
+npm notice 11.8kB src/calibration.js
+npm notice 10.7kB src/capa-pairer.js
+npm notice 4.1kB src/change-surface.js
+npm notice 31.2kB src/detector.js
+npm notice 81.6kB src/evidence-log.js
+npm notice 3.1kB src/file-lock.js
+npm notice 6.7kB src/gate.js
+npm notice 27.4kB src/instrument-identity.js
+npm notice 919B src/instrument-identity.json
+npm notice 40.2kB src/instrument-state.json
+npm notice 5.3kB src/pairer-lane.js
+npm notice 2.1kB src/plan-contract.js
+npm notice 117.1kB src/port/g6-manifest.json
+npm notice 8.4kB src/port/score.js
+npm notice 4.9kB src/request-anchors.js
+npm notice 3.5kB src/reverify-schedule.js
+npm notice 7.9kB src/sentinel.js
+npm notice 8.0kB src/shared/capability.js
+npm notice 4.7kB src/shared/falsify.js
+npm notice 4.1kB src/shared/paths.js
+npm notice 370B src/shared/prefix-vocab.js
+npm notice 8.7kB src/SKILL.md
+npm notice 5.8kB src/transcript-adapter.js
+npm notice Tarball Details
+npm notice name: jiahao
+npm notice version: 0.0.1
+npm notice filename: jiahao-0.0.1.tgz
+npm notice package size: 339.6 kB
+npm notice unpacked size: 1.2 MB
+npm notice shasum: c847a1b7103d8d94ab1786879dfbe2ee5cb48d8c
+npm notice integrity: sha512-d1CE2ouxACJaJ[...]OPWBtrEQ6R/uA==
+npm notice total files: 113
+npm notice
+
+tarball: jiahao-0.0.1.tgz extract exit=0
+$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-pqb2m4\package\scripts\install.js --help (extracted tarball copy)
+jiahao v0.0.1 — install .jiahao-profile flag
+
+Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
+       jiahao resolve [--verdict pass|fail --reason <text> --reviewer <id>]
+
+Writes ONLY C:\Users\Administrator\.jiahao-profile
+Tier 0 manual: echo "verifier" > C:\Users\Administrator\.jiahao-profile
+exit=0
+$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-pqb2m4\package\scripts\install.js init -y --dry-run (extracted tarball copy)
+[dry-run] would write "verifier" to C:\Users\Administrator\.jiahao-profile
+exit=0
+$ node jiahao-mcp/index.js <stdin: JSON-RPC initialize request>
+{"result":{"protocolVersion":"2024-11-05","capabilities":{"prompts":{"listChanged":true},"tools":{"listChanged":true}},"serverInfo":{"name":"jiahao","version":"1.0.0"}},"jsonrpc":"2.0","id":1}
+exit=0
+
+EXIT 0

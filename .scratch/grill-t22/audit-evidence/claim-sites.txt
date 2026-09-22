@@ -1,0 +1,54 @@
+$ node .scratch\grill-t22\audit-evidence\claim-sites.cjs
+
+EXIT 1
+
+PASS F1 facts canon fields present :: {"schema_version":1,"_doc":"ADR-0077 D-C facts canon: regenerable at the closing step; the report facts section renders deterministically from this artifact. report_commit stays null - the report cannot cite its own commit. Not an anchors-chain member (per-round regeneration would churn the digest chain).","suites":76,"passed":1300,"skipped":0,"pack_bytes":339408,"instrument_entries":27,"rewrite_map_citations":2051,"registry_entries":61,"anchors_count":18,"battery_as_of_commit":"de68857","report_commit":null,"not_run":["bench-gate","ci-wiring","mr-probes","probes"]}
+PASS F2.suites report facts line matches canon :: canon suites=76
+PASS F2.passed report facts line matches canon :: canon passed=1300
+PASS F2.skipped report facts line matches canon :: canon skipped=0
+PASS F2.pack_bytes report facts line matches canon :: canon pack_bytes=339408
+PASS F2.instrument_entries report facts line matches canon :: canon instrument_entries=27
+PASS F2.rewrite_map_citations report facts line matches canon :: canon rewrite_map_citations=2051
+PASS F2.registry_entries report facts line matches canon :: canon registry_entries=61
+PASS F2.anchors_count report facts line matches canon :: canon anchors_count=18
+PASS F3 report_commit null in both :: canon+report null
+PASS F4 battery_as_of_commit names de68857 :: de68857
+PASS E1 22 capture files exist with $ argv + EXIT shape :: 22/22 ok; missing/bad: none
+PASS E2 fixture exists :: quoted-stale.fixture.md
+FAIL E3 report lists split-form evidence count :: report evidence-set wording
+PASS A1 ADR-0081 exists Accepted+dated+ledger/spec anchors :: header fields
+PASS A2 D-A amend-in-place canonical + pairing rule :: D-A text
+PASS A3 D-B rc.from adjudication recorded :: D-B text
+PASS A4 D-E names defer-0067 + countersign + reconciliation :: D-E text
+PASS A5 own-row flip branch recorded unfired :: flip branch
+FAIL A6 ADR-0081 D-E R2-touch enumeration consistent with row (3 files) :: ADR :40 says two R2 touches; row gtd.files has 3
+PASS C1 CONTEXT Repair Window term present :: offset 126192
+PASS C2 term references ADR-0081/0076 + coverage leg + _Avoid_ :: term body
+PASS T1 latest row is t22 doc round :: grill-t22-doc-round
+PASS T2 adr_added [0081] + net_additions 1 + zero_product_diff :: {"a":["0081"],"n":1,"z":true}
+PASS T3 carve_out_used 1 + three R2 files + defer-0067 :: [".github/workflows/ci.yml","bench/polygraph/thresholds.json","scripts/check-governance-inventory.js"]
+PASS T4 mechanism_output_diff names g6-publish-replay :: ["bench/research/out/g6-publish-replay.json"]
+PASS T5 16 rows total (t22 added one row) :: rows=16
+PASS R1 registry 61 entries :: entries=61
+PASS R2 defer-0067 armed pending-evaluation + ADR-0081 source :: pending-evaluation
+PASS R3 defer-0042 countersign via last_check_in :: 2026-09-22
+PASS R4 defer-0051 closed + R2-C-4 correction note :: closed
+PASS M1 checker try/catch keyed FAIL on unresolvable ref :: source shape
+PASS M2 rc.from R2 guard in source :: rc.from guard
+PASS CI1 ci.yml suite parity 76 :: expected-suites 76
+PASS B1 README 76 suites / 1300 tests :: en lines
+PASS B2 zh-CN mirror synced :: zh lines
+PASS D1 GOAL.md Disclosed Repair marker :: GOAL
+PASS D2 next-round.md Disclosed Repair marker :: next-round
+PASS D3 t21 report six-wiring-files marker :: t21 report marker
+PASS D4 ADR-0071 status line reconciled :: status+note
+PASS G1 anchors_count 18 :: artifacts=18
+PASS G2 rewrite-map citation count field/canon 2051 :: canon=2051
+PASS G3 instrument entries canon 27 :: canon=27
+PASS H1 no canon numerals in report prose outside facts region :: leaks: none
+PASS H2 committed clean-tree verdict CLEAN :: CLEAN
+PASS V1 all 13 report-map commits resolve with matching subjects :: 13/13; missing: none
+PASS H3 not_run legs present in gate-all evidence :: seen: bench-gate,ci-wiring,mr-probes,probes
+PASS W1 adr-0033 seed inventory extended (61/81 pins) :: pins present
+PASS H4 23 evidence files git-tracked :: tracked=23
+claim-sites: 47 PASS, 2 FAIL

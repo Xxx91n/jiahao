@@ -1,0 +1,27 @@
+$ node D:\Aworker\jiahao\node_modules\jest\bin\jest.js test/adr-0080-wiring.test.js
+
+EXIT 0
+
+PASS test/adr-0080-wiring.test.js
+  ADR-0080 doc surface (grill-t21 disposition round)
+    √ title, status, date, ledger + spec anchors (5 ms)
+    √ ADR-0080 registers the required policy content (audit C-1 contract) (2 ms)
+    √ README-* root predicate: mirror + companions classify R3 (the residual gap is closed) (9 ms)
+    √ taxonomy artifact carries the reclassifications log + the README-* rule text (2 ms)
+    √ gtd recompute grace: pre-effective rows listing a reclassified file pass; post-effective rows still fail (153 ms)
+    √ the t20 row keeps t20-time truth under the corrected carve_out_used:1 form (audit C-1) (39 ms)
+    √ the t21 row is the declared carve-out form (D-001) (44 ms)
+    √ coverage leg: the declared channels must cover the committed R2 diff (t21 audit C-1) (9 ms)
+    √ reclass grace requires from:R2 in the log entry (over-exemption tightened) (55 ms)
+    √ defer-0066 is the merged ratchet row: four instances + the four elements (D-004) (3 ms)
+    √ anchors.json lists decision-ledger-t20.md under ADR-0080, content-equal to the scratch authority (3 ms)
+    √ README index rebuilt: 81 records incl. ADR-0080 (1 ms)
+    √ ci.yml suite parity declares 76 suites (the new wiring suite is counted)
+    √ CONTEXT.md clauses verified: trend-anchor disclosed-repair + registry merged-ratchet (2 ms)
+    √ AGENTS.md carries the C-7 split-form evidence-count convention (1 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       15 passed, 15 total
+Snapshots:   0 total
+Time:        1.476 s
+Ran all test suites matching /test\\adr-0080-wiring.test.js/i.

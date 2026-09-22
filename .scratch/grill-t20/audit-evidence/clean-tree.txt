@@ -1,0 +1,21 @@
+$ git status --porcelain
+
+EXIT 0
+
+?? .scratch/grill-t13/audit-evidence/r2-round-diff.patch
+?? .scratch/grill-t14/audit-evidence/
+?? .scratch/grill-t15/audit-evidence/round-diff.patch
+?? .scratch/grill-t16/audit-evidence/
+?? .scratch/grill-t17/audit-evidence/
+?? .scratch/grill-t18/audit-evidence/
+?? .scratch/grill-t19/audit-evidence/
+?? .scratch/grill-t20/audit-evidence/
+?? .scratch/grill-t20/handoffs/2026-09-20-audit-handoff.md
+?? .scratch/grill-t20/reports/2026-09-20-audit.md
+
+classification:
+  tracked-diff lines: 0
+  untracked lines: 10 (never-commit class or self: 8; other: 2)
+  unexpected untracked: .scratch/grill-t20/handoffs/2026-09-20-audit-handoff.md, .scratch/grill-t20/reports/2026-09-20-audit.md
+
+verdict: DIRTY

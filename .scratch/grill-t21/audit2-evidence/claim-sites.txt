@@ -1,0 +1,28 @@
+$ node .scratchgrill-t21audit2-evidenceclaim-sites.cjs
+
+EXIT 0
+
+PASS C-1 t21 row gtd.files registers thresholds.json :: [".github/workflows/ci.yml","bench/polygraph/thresholds.json","scripts/build-governance-anchors.js","scripts/check-governance-inventory.js","scripts/surface-taxonomy.js"]
+PASS C-1 row reason retro-acknowledges
+PASS C-1 ADR-0080 names thresholds.json
+PASS C-1 ADR-0080 post-audit note present
+PASS C-1 report post-audit section names file + coverage leg
+PASS C-2 spec-4 Disclosed Repair marker (rejected-with-rationale)
+PASS C-2 report closure row states rejection
+PASS C-2 ledger post-audit discloses rejection
+PASS C-3 battery has inventory-shape leg with live filter
+PASS C-3 battery header discloses the drop+restore
+PASS C-4 report says seven wiring files :: six-occurrences=2 (marker quote + honest-state :73 - flagged for judgment)
+NOTE residual six-mention outside the marker quote: ["- Mid-session jest ran red (pack cap exceeded; stale index-record pins in six wiring files; one stale published_tip pin). Every failure was resolved before its carrying commit landed - each commit sits on a verified-green tree. Disclosed per the intermediate-red convention, never silently amended."]
+PASS C-5 report row = verified + routine re-pin
+PASS C-5 ledger row = verified/re-pin not repaired
+PASS machinery rc.from guard present
+PASS machinery --coverage-base leg present
+PASS machinery shapeBad dedup (single predicate)
+PASS machinery indent fix (4-space let reclasses) :: "    let reclasses = null;"
+PASS defer-0042 present, status pending-evaluation, second_reviewer slot text open
+PASS defer-0051 present (status recorded for adjudication) :: closed
+NOTE defer-0051 status=closed; rationale still says slot open=true; closed_via countersign=true
+PASS canon: 75 suites / 1286 passed / pack 339994 / citations 1865 / registry 60 / anchors 18 / pin 148972b / report_commit null :: {"schema_version":1,"_doc":"ADR-0077 D-C facts canon: regenerable at the closing step; the report facts section renders deterministically from this artifact. report_commit stays null - the report cannot cite its own commit. Not an anchors-chain member (per-round regeneration would churn the digest chain).","suites":75,"passed":1286,"skipped":0,"pack_bytes":339994,"instrument_entries":27,"rewrite_map_citations":1865,"registry_entries":60,"anchors_count":18,"battery_as_of_commit":"148972b","report_commit":null,"not_run":["bench-gate","ci-wiring","mr-probes","probes"]}
+PASS registry live count matches canon (60) :: actual 60
+ALL CLAIM SITES GREEN

@@ -1,0 +1,12 @@
+$ node scripts/instrument.js --check
+
+EXIT 0
+
+[instrument] rules f6c6c843c4ad4151
+[instrument] model UNRESOLVED
+[instrument] inference 41c7df6354424a59
+[instrument] state authoritative
+[instrument] conditional certification: expires 2026-12-11, CAPA CAPA-0060-judge-flip-rate
+::warning title=judge-conditional::conditional certification active (expires 2026-12-11, CAPA CAPA-0060-judge-flip-rate)
+[instrument] OK: identity pinned and authoritative (certification: conditional)
+__CM_FS__:271271

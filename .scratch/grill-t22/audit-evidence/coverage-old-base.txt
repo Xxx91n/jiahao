@@ -1,0 +1,8 @@
+$ node scripts/check-governance-inventory.js --coverage-base dc6d21b95b7edc18d895ebbe41f649726ead3659
+
+EXIT 1
+
+::warning title=Governance carve-out burn-rate::3 consecutive documentation rounds used the governance carve-out - advisory only, never blocks (ADR-0076 D-B)
+::warning title=Governance trend anchor::two consecutive documentation rounds added ADRs (streak 13 >= K=2) - advisory only, never blocks (ADR-0064 D-F)
+FAIL: coverage: scripts/build-governance-anchors.js is R2 but undeclared in the latest row (t21 audit C-1)
+FAIL: coverage: scripts/surface-taxonomy.js is R2 but undeclared in the latest row (t21 audit C-1)

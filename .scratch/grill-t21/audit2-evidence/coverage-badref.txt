@@ -1,0 +1,43 @@
+$ node scripts/check-governance-inventory.js --coverage-base not-a-real-ref
+
+EXIT 1
+
+fatal: ambiguous argument 'not-a-real-ref': unknown revision or path not in the working tree.
+Use '--' to separate paths from revisions, like this:
+'git <command> [<revision>...] -- [<file>...]'
+node:child_process:964
+    throw err;
+    ^
+
+Error: Command failed: git diff --name-only not-a-real-ref HEAD
+fatal: ambiguous argument 'not-a-real-ref': unknown revision or path not in the working tree.
+Use '--' to separate paths from revisions, like this:
+'git <command> [<revision>...] -- [<file>...]'
+
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at checkExecSyncError (node:child_process:925:11)
+    at execFileSync (node:child_process:961:15)
+    at checkInventory (D:\Aworker\jiahao\scripts\check-governance-inventory.js:231:23)
+    at main (D:\Aworker\jiahao\scripts\check-governance-inventory.js:258:15)
+    at Object.<anonymous> (D:\Aworker\jiahao\scripts\check-governance-inventory.js:266:30)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    '',
+    "fatal: ambiguous argument 'not-a-real-ref': unknown revision or path not in the working tree.\n" +
+      "Use '--' to separate paths from revisions, like this:\n" +
+      "'git <command> [<revision>...] -- [<file>...]'\n"
+  ],
+  pid: 15436,
+  stdout: '',
+  stderr: "fatal: ambiguous argument 'not-a-real-ref': unknown revision or path not in the working tree.\n" +
+    "Use '--' to separate paths from revisions, like this:\n" +
+    "'git <command> [<revision>...] -- [<file>...]'\n"
+}
+
+Node.js v24.11.0

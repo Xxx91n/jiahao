@@ -1,0 +1,6 @@
+$ node scripts/build-governance-anchors.js --check
+
+EXIT 0
+
+[governance-anchors] OK - 17 artifacts, digests in sync
+__CM_FS__:501431

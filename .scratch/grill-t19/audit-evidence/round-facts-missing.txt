@@ -1,0 +1,7 @@
+$ node scripts/build-round-facts.js --round grill-t19-audit-nofacts --check --report .scratch/grill-t19/audit-evidence/missing-facts.fixture.md
+
+EXIT 1
+
+FAIL: .scratch/grill-t19-audit-nofacts/round-facts.json is stale - regenerate with node scripts/build-round-facts.js --round grill-t19-audit-nofacts
+FAIL: .scratch/grill-t19-audit-nofacts/round-facts.json missing - regenerate with node scripts/build-round-facts.js --round grill-t19-audit-nofacts
+__CM_FS__:585868
