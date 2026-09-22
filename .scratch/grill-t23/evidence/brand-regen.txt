@@ -1,0 +1,23 @@
+$ python .scratch/grill-t23/build-brand-assets.py
+
+EXIT 0
+
+wrote docs/assets/brand/:
+  android-chrome-192x192.png 24595
+  android-chrome-512x512.png 139410
+  apple-touch-icon.png 16499
+  favicon-128.png 14990
+  favicon-16.png 783
+  favicon-32.png 2085
+  favicon-48.png 3862
+  favicon.ico 6736
+  logo-dark.png 468329
+  logo.png 443547
+  social-preview.png 211226
+evidence sheet: D:\Aworker\jiahao\.scratch\grill-t23\evidence\logo-phase6-sheet.png
+
+$ git status --porcelain -- docs/assets/brand/
+
+EXIT 0
+
+regen-diff verdict: CLEAN (byte-identical)

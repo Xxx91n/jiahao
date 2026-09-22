@@ -1,0 +1,13 @@
+# Carve-out disclosure (ADR-0076 D-B, grill-t23 D-007): this file is part of
+# the declared .github/ front-face carve-out — necessity: issue-template
+# contact links route reporters to the ADR index and the measurement record
+# instead of opening void issues; disclosure: this comment + the round
+# report's carve-out section + the trend row's governance_tooling_diff.
+blank_issues_enabled: true
+contact_links:
+  - name: Architecture decision records
+    url: https://github.com/Xxx91n/jiahao/tree/main/docs/adr
+    about: Design questions usually already have an ADR — check the index first.
+  - name: Measurement record
+    url: https://github.com/Xxx91n/jiahao#measurement-record
+    about: The adjudicated verdicts and the reproduction invitation live in the README.

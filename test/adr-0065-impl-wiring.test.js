@@ -423,7 +423,7 @@ describe('D-001 scope + D-003 surface', () => {
     expect(t).toContain('300,000');
     expect(t).toContain('269,320');
     const a39 = fs.readFileSync(path.join(ROOT, 'docs', 'adr', '0039-tarball-runtime-surface-narrowing-docs-adr-archive-channel.md'), 'utf8');
-    expect(a39).toContain('out.size < 340,000 bytes'); // ADR-0062 (2026-09-13) -> ADR-0066 (2026-09-14) -> ADR-0071 (2026-09-16)
+    expect(a39).toContain('out.size < 380,000 bytes'); // ADR-0062 (2026-09-13) -> ADR-0066 (2026-09-14) -> ADR-0071 (2026-09-16) -> ADR-0082 (2026-09-22)
   });
 
   test('confirmatory-bench is registered as a confirmatory gate', () => {

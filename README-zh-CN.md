@@ -1,10 +1,26 @@
 [English](README.md) | **中文**
 
-<!-- translation-baseline: 10c45a69cdb4f77067c817a53b95c95b2e2dd14e -->
+<!-- translation-baseline: 8effaaf46602992f41d8e1ba31ac3634bafdadcf -->
 
-# Jiahao（嘉豪）
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/brand/logo-dark.png">
+    <img src="docs/assets/brand/logo.png" alt="jiahao 标志 —— 兜帽蒙面像" width="140">
+  </picture>
+</p>
 
-面向 LLM 智能体的**双配置（dual profiles）**提示即心智模型技能分发。
+<h1 align="center">Jiahao（嘉豪）</h1>
+
+<p align="center">
+  面向 LLM 智能体的<b>双配置（dual profiles）</b>提示即心智模型技能分发。
+</p>
+
+<p align="center">
+  <img src="docs/assets/badge-license.svg" alt="license: MIT">
+  <img src="docs/assets/badge-profiles.svg" alt="profiles: generator | verifier">
+  <img src="docs/assets/badge-channel.svg" alt="channel: npx github:">
+  <img src="docs/assets/badge-verdict.svg" alt="measurement: publicly failed — v2">
+</p>
 
 > 本文件为 `README.md` 的中文结构镜像（ADR-0079 D1/D4）：与英文原文不一致时，**English original prevails**（以英文原文为准）。逐字钉块（裁决行、声明、命令）保持英文原样并附原句指针。
 
@@ -26,6 +42,8 @@ Jiahao 提供两套安装期规则集，安装时择一：
 |---------|--------------|----------|
 | **generator** | 执行工作的主 Agent | 3 条表面信号规则（无证据 → 无声明、列出已验证的状态变更、验证 = 调用工具）。**仅建议性** —— 永不阻断。 |
 | **verifier**（默认） | 审查工作的审计 Agent | 7 条铁律 + 6 级验证阶梯 + 哈希链 + 置信度校准 + 偏误防护。**缺证据即阻断**。 |
+
+<p align="center"><img src="docs/assets/hero.svg" alt="generator | 信息边界 | verifier -> 六级阶梯 -> PASS / FAIL / ESCALATE / NOT VERIFIED" width="880"></p>
 
 **generator 配置** 针对主 Agent 内部的表面信号（你无法自证 —— 属已验证的建议）。**verifier 配置** 在独立的审计 Agent 中运行，独立性定理在此真正成立：外部验证者能发现生成者结构性看不见的错误。
 
@@ -102,6 +120,8 @@ Jiahao 的词表与检测逻辑**不是隐藏秘密**：工作目录内任何有
 
 ## Verification Ladder
 
+<p align="center"><img src="docs/assets/diagrams/verification-ladder.svg" alt="六级验证阶梯" width="880"></p>
+
 1. 确定性机器检查（测试套件、编译器、哈希比对）
 2. 基准真值比对（数据库状态、oracle 输出）
 3. 独立重执行（重跑、重查、回放）
@@ -153,6 +173,15 @@ MCP 适配器（`jiahao-mcp/`）是 **source-only** git 树组件：不在 tarba
 ## Measurement record
 
 （测量记录各小节为逐字钉块；下列中文仅为导读，**English original prevails**。）
+
+裁决速览 —— 每一行在本页下方各小节中均有逐字绑定；本页不对真实流量作任何检测有效性声明。
+
+| 渠道 | 语料 | 裁决 | 日期 | 记录 |
+| --- | --- | --- | --- | --- |
+| T-6 确认性（产品移植） | polygraph-bench @994bdeb3，396 项 | CONFIRMATORY PASS（in-sample 回放） | T-6 轮 | [ADR-0065](docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md) |
+| devin-corpus@v1 OOT | 种子台架，n=52，lie=12 | indeterminate | 2026-09-15 | [ADR-0067](docs/adr/0067-devin-corpus-v1-oot-falsification-adjudication.md) |
+| devin-corpus@v2 OOT | 种子台架，n=120，lie=31，FP=21/89 | **failed** | 2026-09-15 | [ADR-0068](docs/adr/0068-devin-corpus-v2-dual-axis-adjudication-collection-protocol-claim-slot-v3-binding.md) |
+| devin-corpus@v3 OOT（CAPA 配对器） | 种子台架，n=120，lie=36，FP=0/84 | passed | 2026-09-16 | [ADR-0069](docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md) |
 
 ### Confirmatory claims (T-6, ADR-0065 D-E)
 
@@ -247,7 +276,7 @@ v2 裁决冻结于带注释标签 `adjudicated/devin-corpus-v2`（commit 8807a61
 ## Develop
 
 ```bash
-npm test                              # 1300 tests across 76 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 1307 tests across 77 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
@@ -262,20 +291,14 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `hooks/` —— 6 个 hook 脚本 + hooks.json + runtime.js
 - `adapters/` —— 生成的分宿主适配（11 个宿主目录 / 23 个生成文件；ADR-0028 D5）
 - `jiahao-mcp/` —— 仅 MCP 适配器（配置参数）
-- `test/` —— 76 test suites, 1300 tests
+- `test/` —— 77 test suites, 1307 tests
 - `bench/polygraph/` —— ADR-0015 基准适配器 + 冻结开发切分语料（ADR-0019 运行诚实 FAIL、ADR-0020 运行 PASS 优于 b2；见其 README）
 - `private/bench-corpus/` —— 答案语料（probes/judge-twins/twins + 指纹；gitignored，ADR-0036 D2）。门脚本经 JIAHAO_CORPUS_DIR 解析，其次安装植入目录（`jiahao init` 自包内植入），再次维护者树内本仓库私有目录；处处皆无则失败关闭（exit 1: config；能力探针先将缺失语料目录降级为 exit 2 UNVERIFIABLE，ADR-0041 D2）。npm 消费者与公开 git clone 完全不含语料 —— 语料门是维护者/CI 专属契约，设计上失败关闭（ADR-0038 D2）。
 - `docs/adr/` —— 架构决策记录（git 树开发面；ADR-0039）。下方索引为派生工件（ADR-0043），由 `node scripts/build-adr-index.js` 重建 —— 勿手改：
 
 双配置流程：建议性 generator 产出声明；独立 verifier 走六级阶梯并落四种裁决之一。
 
-```mermaid
-flowchart LR
-  G["generator profile<br/>3 surface-signal rules (advisory)"] --> C[claim]
-  C --> V["independent verifier<br/>7 iron laws (blocking)"]
-  V --> L["6-rung verification ladder"]
-  L --> O{PASS / FAIL / ESCALATE / NOT VERIFIED}
-```
+<p align="center"><img src="docs/assets/diagrams/dual-profile.svg" alt="双配置安装流程图" width="880"></p>
 
 <details>
 <summary>ADR index — derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`</summary>

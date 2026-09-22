@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="224" height="20" viewBox="0 0 2240 200" role="img" aria-labelledby="t">
+  <title id="t">measurement: publicly failed — v2</title>
+  <rect width="2240" height="200" rx="30" fill="#555"/>
+  <rect x="800" width="1440" height="200" fill="#cf222e"/>
+  <rect x="800" width="40" height="200" fill="#cf222e"/>
+  <g fill="#fff" font-family="Verdana,DejaVu Sans,sans-serif" font-size="110" text-anchor="middle">
+    <text x="400" y="140" fill="#010101" opacity="0.25" transform="translate(0,10)">measurement</text>
+    <text x="400" y="140">measurement</text>
+    <text x="1520" y="140" fill="#010101" opacity="0.25" transform="translate(0,10)">publicly failed — v2</text>
+    <text x="1520" y="140">publicly failed — v2</text>
+  </g>
+</svg>

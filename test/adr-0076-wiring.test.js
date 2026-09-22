@@ -41,7 +41,7 @@ describe('ADR-0076 doc surface (grill-t15 disposition + mechanism round)', () =>
 
   test('README index rebuilt: 81 records incl. ADR-0076', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('81 architecture decision records');
+    expect(r).toContain('82 architecture decision records');
     expect(r).toContain('0076-round-edit-surface-taxonomy-and-governance-carve-out.md');
   });
 
@@ -262,7 +262,7 @@ describe('ADR-0077 amendments (grill-t16 fix + mechanism round, data-surface ass
 
   test('README index rebuilt: 81 records incl. ADR-0077', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('81 architecture decision records');
+    expect(r).toContain('82 architecture decision records');
     expect(r).toContain('0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md');
   });
 
@@ -505,7 +505,7 @@ describe('grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendi
 
   test('README index rebuilt: 81 records incl. ADR-0078', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('81 architecture decision records');
+    expect(r).toContain('82 architecture decision records');
     expect(r).toContain('0078-fix-round-disclosure-taxonomy.md');
   });
 

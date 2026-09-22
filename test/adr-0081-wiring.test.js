@@ -47,13 +47,15 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
     expect(a).toContain('headroom');
   });
 
-  test('defer-0067 registers the pack-cap headroom watch (pending-evaluation, armed band)', () => {
+  test('defer-0067 discharged-by-trigger via the ADR-0082 amendment (grill-t23; registration facts retained)', () => {
     const d = readJson(REG).entries.find((e) => e.id === 'defer-0067');
     expect(d).toBeDefined();
-    expect(d.status).toBe('pending-evaluation');
+    expect(d.status).toBe('closed');
+    expect(d.closed_at).toBe('2026-09-22');
+    expect(d.closed_via).toContain('discharged-by-trigger');
+    expect(d.closed_via).toContain('ADR-0082');
     expect(d.source_adr).toContain('0081');
     expect(d.review_at).toBe('2026-12-15');
-    expect(d.cadence_tier).toBe('quarterly');
     expect(d.unfreeze_if.check).toContain('2048');
     expect(d.rationale).toContain('340258');
   });
@@ -77,9 +79,17 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
 
   test('the t22 row is the declared carve-out form naming the round R2 touches', () => {
     const ti = readJson(TREND);
-    const row = ti.rounds[ti.rounds.length - 1];
-    expect(ti.rounds).toHaveLength(16);
-    expect(row.round).toBe('grill-t22-doc-round');
+    // grill-t23 landed its own row on top (adr-0082 + .github templates);
+    // the t22 row keeps its pinned shape, addressed by name not by position.
+    const row = ti.rounds.find((r) => r.round === 'grill-t22-doc-round');
+    expect(ti.rounds).toHaveLength(17);
+    const latest = ti.rounds[ti.rounds.length - 1];
+    expect(latest.round).toBe('grill-t23-front-face');
+    expect(latest.adr_added).toEqual(['0082']);
+    expect(latest.deferred_entry).toBe('defer-0068');
+    expect(latest.carve_out_used).toBe(1);
+    expect(latest.governance_tooling_diff.files).toContain('.github/PULL_REQUEST_TEMPLATE.md');
+    expect(latest.governance_tooling_diff.files).toContain('.github/ISSUE_TEMPLATE/measurement-discrepancy.md');
     expect(row.kind).toBe('documentation');
     expect(row.adr_added).toEqual(['0081']);
     expect(row.net_additions).toBe(1);
@@ -99,8 +109,8 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
     expect((r.stderr || '') + (r.stdout || '')).not.toContain('execFileSync');
   });
 
-  test('coverage leg: the committed diff anchored at the t22 round base validates the latest row', () => {
-    const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'check-governance-inventory.js'), '--coverage-base', 'b93a5df02853ab4ec33ca3eb6881b5576e05b5d9'], { cwd: ROOT, encoding: 'utf8' });
+  test('coverage leg: the committed diff anchored at the t23 round base validates the latest row', () => {
+    const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'check-governance-inventory.js'), '--coverage-base', '688e113b658411a1da8f2c838eb03dbdf3bd153d'], { cwd: ROOT, encoding: 'utf8' });
     expect(r.status).toBe(0);
   });
 
@@ -116,13 +126,13 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
 
   test('README index rebuilt: 81 records incl. ADR-0081', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('81 architecture decision records');
+    expect(r).toContain('82 architecture decision records');
     expect(r).toContain('0081-repair-window-amend-in-place-coverage-pairing-headroom-watch.md');
   });
 
   test('ci.yml suite parity declares 76 suites (the new wiring suite is counted)', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
-    expect(ci).toContain('--expected-suites 76');
+    expect(ci).toContain('--expected-suites 77');
   });
 
   test('coverageGaps pure export: the R2-undeclared defect shape still fails (regression pin)', () => {

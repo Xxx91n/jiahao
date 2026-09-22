@@ -1,333 +1,363 @@
 {
- "schema_version": 1,
- "_doc": "ADR-0064 D-F + ADR-0078 D-A: observational trend surface for governance. One row per round. Documentation rounds record net ADR additions + zero-product-diff flag and the carve-out burn-rate fields; fix rounds disclose R2 machinery hand-edits via the reused governance_tooling_diff channel and are exempt from the D-F deferred-entry assert. The trend anchor (base 63, K=2 consecutive doc rounds with net additions >0) emits ONE advisory ::warning:: and never blocks. A zero-product-diff documentation round landing a new ADR forces a deferred-registry entry.",
- "anchor": {
-  "adr_count_base": 63,
-  "K": 2,
-  "window": "documentation rounds",
-  "rule": "two consecutive documentation rounds with net ADR additions >0 emit one advisory warning (never block)"
- },
- "rounds": [
-  {
-   "round": "grill-t6-doc-round",
-   "date": "2026-09-14",
-   "kind": "documentation",
-   "adr_added": [
-    "0064"
-   ],
-   "adr_superseded_or_closed": [],
-   "net_additions": 1,
-   "zero_product_diff": true,
-   "deferred_entry": "defer-0040",
-   "advisory_fired": false
+  "schema_version": 1,
+  "_doc": "ADR-0064 D-F + ADR-0078 D-A: observational trend surface for governance. One row per round. Documentation rounds record net ADR additions + zero-product-diff flag and the carve-out burn-rate fields; fix rounds disclose R2 machinery hand-edits via the reused governance_tooling_diff channel and are exempt from the D-F deferred-entry assert. The trend anchor (base 63, K=2 consecutive doc rounds with net additions >0) emits ONE advisory ::warning:: and never blocks. A zero-product-diff documentation round landing a new ADR forces a deferred-registry entry.",
+  "anchor": {
+    "adr_count_base": 63,
+    "K": 2,
+    "window": "documentation rounds",
+    "rule": "two consecutive documentation rounds with net ADR additions >0 emit one advisory warning (never block)"
   },
-  {
-   "round": "grill-t7-doc-round",
-   "date": "2026-09-14",
-   "kind": "documentation",
-   "adr_added": [
-    "0065"
-   ],
-   "adr_superseded_or_closed": [],
-   "net_additions": 1,
-   "zero_product_diff": true,
-   "deferred_entry": "defer-0041",
-   "advisory_fired": true
-  },
-  {
-   "round": "grill-t8-doc-round",
-   "date": "2026-09-16",
-   "kind": "documentation",
-   "adr_added": [
-    "0069"
-   ],
-   "adr_superseded_or_closed": [],
-   "net_additions": 1,
-   "zero_product_diff": true,
-   "deferred_entry": "defer-0049",
-   "advisory_fired": false
-  },
-  {
-   "round": "grill-t10-doc-round",
-   "date": "2026-09-16",
-   "kind": "documentation",
-   "adr_added": [
-    "0070"
-   ],
-   "adr_superseded_or_closed": [],
-   "net_additions": 1,
-   "zero_product_diff": true,
-   "deferred_entry": "defer-0050",
-   "advisory_fired": false
-  },
-  {
-   "round": "grill-t11-doc-round",
-   "date": "2026-09-16",
-   "kind": "documentation",
-   "adr_added": [
-    "0072"
-   ],
-   "adr_superseded_or_closed": [],
-   "net_additions": 1,
-   "zero_product_diff": true,
-   "deferred_entry": "defer-0052",
-   "advisory_fired": false
-  },
-  {
-   "round": "grill-t12-doc-round",
-   "date": "2026-09-17",
-   "kind": "documentation",
-   "adr_added": [
-    "0073"
-   ],
-   "adr_superseded_or_closed": [],
-   "net_additions": 1,
-   "zero_product_diff": true,
-   "deferred_entry": "defer-0056",
-   "advisory_fired": false
-  },
-  {
-   "round": "grill-t13-doc-round",
-   "date": "2026-09-17",
-   "kind": "documentation",
-   "adr_added": [
-    "0074"
-   ],
-   "adr_superseded_or_closed": [],
-   "net_additions": 1,
-   "zero_product_diff": true,
-   "deferred_entry": "defer-0057",
-   "advisory_fired": false
-  },
-  {
-   "round": "grill-t14-doc-round",
-   "date": "2026-09-17",
-   "kind": "documentation",
-   "adr_added": [
-    "0075"
-   ],
-   "adr_superseded_or_closed": [],
-   "net_additions": 1,
-   "zero_product_diff": true,
-   "deferred_entry": "defer-0059",
-   "advisory_fired": false,
-   "governance_tooling_diff": {
-    "files": [
-     "scripts/build-rewrite-map.js"
-    ],
-    "reason": "F-4 disclosed deviation: shipped gate tooling edited inside the doc round (pre-taxonomy; retroactive annotation under ADR-0076 D-A/D-B semantics - not counted as a carve-out use)"
-   },
-   "carve_out_used": 0
-  },
-  {
-   "round": "grill-t15-doc-round",
-   "date": "2026-09-18",
-   "kind": "documentation",
-   "adr_added": [
-    "0076"
-   ],
-   "adr_superseded_or_closed": [],
-   "net_additions": 1,
-   "zero_product_diff": true,
-   "governance_tooling_diff": {
-    "files": [
-     "scripts/check-ci-jobs.js",
-     "scripts/surface-taxonomy.js",
-     "scripts/check-governance-inventory.js",
-     "scripts/build-governance-anchors.js",
-     ".github/workflows/ci.yml"
-    ],
-    "reason": "defer-0004 narrowed re-defer requires the verified_by predicate to match (D-003; permanently-SATISFIED alert fatigue banned) - the carve-out first registered use, baseline: consecutive counting starts here (ADR-0076 D-B). The other files are mechanism bootstrap disclosed in ADR-0076 D-B: taxonomy authority module, inventory recompute, anchors admission list, suite-count parity - mechanism creation, not carve-out uses."
-   },
-   "carve_out_used": 1,
-   "mechanism_output_diff": {
-    "files": [
-     "src/instrument-state.json",
-     "bench/research/out/g6-publish-replay.json"
-    ],
-    "reason": "additive-only annotation under ADR-0077 D-B (settles audit F-D): the two R2-surface touches this round were mechanism-output artifacts - instrument-state.json appended by the T-3 sign-off event and g6-publish-replay.json refreshed by the gate. Historical booleans untouched; carve_out_used:1 stands."
-   },
-   "deferred_entry": "defer-0061",
-   "advisory_fired": false
-  },
-  {
-   "round": "grill-t16-doc-round",
-   "date": "2026-09-18",
-   "kind": "documentation",
-   "adr_added": [
-    "0077"
-   ],
-   "adr_superseded_or_closed": [],
-   "net_additions": 1,
-   "zero_product_diff": true,
-   "carve_out_used": 0,
-   "mechanism_output_diff": {
-    "files": [
-     "bench/research/out/g6-publish-replay.json"
-    ],
-    "reason": "gate refresh during the R1 boundary battery and the R2 final battery - faithful regeneration by the registered generator (check-g6-publish.js) after the tarball grew with the new ADR and the new machinery script; first marker use under ADR-0077 D-B"
-   },
-   "deferred_entry": "defer-0062",
-   "advisory_fired": false
-  },
-  {
-   "round": "grill-t17-fix-round",
-   "date": "2026-09-18",
-   "kind": "fix",
-   "adr_added": [],
-   "adr_superseded_or_closed": [],
-   "net_additions": 0,
-   "zero_product_diff": true,
-   "carve_out_used": 0,
-   "mechanism_output_diff": {
-    "files": [
-     "bench/research/out/g6-publish-replay.json"
-    ],
-    "reason": "faithful regeneration via check-g6-publish re-run during the acceptance battery - the packaged build-round-facts.js grew with the proseScan export, moving the tarball byte record"
-   },
-   "advisory_fired": false,
-   "governance_tooling_diff": {
-    "files": [
-     "scripts/build-round-facts.js",
-     "scripts/check-governance-inventory.js"
-    ],
-    "reason": "Retroactive correction disclosed on the corrected line (audit-log convention, ADR-0078 D-B): this fix round was mislabeled kind:documentation under the closed enum before ADR-0078 admitted fix. The two R2 machinery hand-edits are backfilled: build-round-facts.js (proseScan export + author-time enforcement) and check-governance-inventory.js (loadTaxonomy hoist)."
-   }
-  },
-  {
-   "round": "grill-t18-fix-round",
-   "date": "2026-09-19",
-   "kind": "fix",
-   "adr_added": [
-    "0078"
-   ],
-   "adr_superseded_or_closed": [],
-   "net_additions": 1,
-   "zero_product_diff": true,
-   "governance_tooling_diff": {
-    "files": [
-     "scripts/build-governance-anchors.js",
-     "scripts/build-round-facts.js",
-     "scripts/check-governance-inventory.js"
-    ],
-    "reason": "Fix round R2 machinery hand-edits disclosed per ADR-0078 D-A (first compliant kind:fix row): build-round-facts.js (emit-exit helper + key-assign coverage + SCHEMA_KEYS single-source + reportPath single-read), check-governance-inventory.js (kind enum + fix-row shape enforcement), build-governance-anchors.js (t18 ledger admission row). zero_product_diff holds - no R1 runtime file touched (ADR-0076 D-A)."
-   },
-   "advisory_fired": false,
-   "mechanism_output_diff": {
-    "files": [
-     "bench/research/out/g6-publish-replay.json"
-    ],
-    "reason": "faithful regeneration via check-g6-publish re-run during the acceptance battery - the packaged build-round-facts.js grew with the R2 machinery edits, moving the tarball byte record (same mechanism the t17 row disclosed)"
-   }
-  },
-  {
-   "round": "grill-t19-fix-round",
-   "date": "2026-09-19",
-   "kind": "fix",
-   "adr_added": [],
-   "adr_superseded_or_closed": [],
-   "net_additions": 0,
-   "zero_product_diff": true,
-   "governance_tooling_diff": {
-    "files": [
-     "scripts/build-round-facts.js",
-     "scripts/check-governance-inventory.js"
-    ],
-    "reason": "Fix round R2 machinery hand-edits disclosed per ADR-0078 D-A: build-round-facts.js (main() crash-wrapper -> exit 2 verifier-broken + missing-factsFile boundary routing per the ADR-0077 D-A.1 missing-input clause), check-governance-inventory.js (kind:fix skip-not-reset streak guard + gtd non-empty files shape check). zero_product_diff holds - no R1 runtime file touched (ADR-0076 D-A)."
-   },
-   "advisory_fired": false,
-   "mechanism_output_diff": {
-    "files": [
-     "bench/research/out/g6-publish-replay.json"
-    ],
-    "reason": "faithful regeneration via check-g6-publish re-run during the acceptance battery - the packaged build-round-facts.js + check-governance-inventory.js grew with the R2 machinery edits, moving the tarball byte record (same mechanism the t17/t18 rows disclosed)"
-   }
-  },
-  {
-   "round": "grill-t20-doc-round",
-   "date": "2026-09-20",
-   "kind": "documentation",
-   "adr_added": [
-    "0079"
-   ],
-   "adr_superseded_or_closed": [],
-   "net_additions": 1,
-   "zero_product_diff": true,
-   "carve_out_used": 1,
-   "governance_tooling_diff": {
-    "files": [
-     ".github/workflows/ci.yml",
-     "README-zh-CN.md"
-    ],
-    "reason": "Retroactive correction under grill-t21 audit C-1 (2026-09-22): the t20-time zero-R2 registration was mechanically false - field-name/content mismatch disclosed: README-zh-CN.md was a taxonomy-residual misclassification (R2 by rule absence, not governance tooling in substance; reclassified R3 forward by the ADR-0080 README-* predicate) while .github/workflows/ci.yml is the genuine governance-tooling touch (suite-parity hand-edit forced by the ADR-0057 D-C count pin). Both files were R2 under the t20 taxonomy - the row keeps t20-time truth. The four prose claim sites carry Disclosed Repair markers (t20 ledger D-001, spec-t20 sections 0/1/8, next-round.md, t20 report) and the t21 taxonomy amendment closes the residual rule gap. Supersedes the 2026-09-20 carve_out_used:0 annotation form - the carve-out channel is used as designed."
-   },
-   "deferred_entry": "defer-0064",
-   "advisory_fired": false,
-   "mechanism_output_diff": {
-    "files": [
-     "bench/research/out/g6-publish-replay.json"
-    ],
-    "reason": "faithful regeneration via check-g6-publish re-run during the acceptance battery - the packaged script bytes moved the tarball byte record (same mechanism the t17/t18/t19 rows disclosed)"
-   }
-  },
-  {
-   "round": "grill-t21-doc-round",
-   "date": "2026-09-22",
-   "kind": "documentation",
-   "adr_added": [
-    "0080"
-   ],
-   "adr_superseded_or_closed": [],
-   "net_additions": 1,
-   "zero_product_diff": true,
-   "carve_out_used": 1,
-   "governance_tooling_diff": {
-    "files": [
-     ".github/workflows/ci.yml",
-     "bench/polygraph/thresholds.json",
-     "scripts/build-governance-anchors.js",
-     "scripts/check-governance-inventory.js",
-     "scripts/surface-taxonomy.js"
-    ],
-    "reason": "Declared carve-out (t21 D-001): the audit C-1 disposition requires machinery edits - the README-* R3 predicate + the reclassification grace (surface-taxonomy/check-governance-inventory), the t20-ledger anchors admission (build-governance-anchors), and the suite-count parity bump for the new wiring suite (ci.yml). ADR-0080 names each edit. Post-audit repair (t21 audit C-1, 2026-09-22): bench/polygraph/thresholds.json - the pack-cap _doc trim hand-edit - was omitted from this set at commit time (commit-prose disclosure only); registered retroactively. The checker coverage blind spot the audit proved is closed by the --coverage-base leg, which check-governance-inventory.js gained alongside the rc.from tightening in this same repair window."
-   },
-   "deferred_entry": "defer-0066",
-   "advisory_fired": false,
-   "mechanism_output_diff": {
-    "files": [
-     "bench/research/out/g6-publish-replay.json"
-    ],
-    "reason": "faithful regeneration via check-g6-publish re-run inside gate:all during the acceptance battery - same mechanism the t17/t18/t19/t20 rows disclosed"
-   }
-  },
-  {
-   "round": "grill-t22-doc-round",
-   "date": "2026-09-22",
-   "kind": "documentation",
-   "adr_added": [
-    "0081"
-   ],
-   "adr_superseded_or_closed": [],
-   "net_additions": 1,
-   "zero_product_diff": true,
-   "carve_out_used": 1,
-   "governance_tooling_diff": {
-    "files": [
-     ".github/workflows/ci.yml",
-     "bench/polygraph/thresholds.json",
-     "scripts/check-governance-inventory.js"
-    ],
-    "reason": "Declared carve-out (t22 D-001/D-003; audit-r2 R2-C-1/R2-C-3 dispositions): check-governance-inventory.js gains the keyed unresolvable-ref FAIL (try/catch around the execFileSync diff - R2-C-3 machinery repair); thresholds.json carries the pack-surface _doc* trims restoring headroom under the ADR-0039 D3 cap after the charter commit crossed it undisclosed (340258 > 340000 - the charter's own CONTEXT.md term addition; R2-C-1 physical repair, Disclosed Repair markers on the two stale ~6B-headroom claims); ci.yml carries the ADR-0057 D-C suite-parity bump 75->76 forced by the new adr-0081 wiring suite. No runtime surface moved."
-   },
-   "deferred_entry": "defer-0067",
-   "advisory_fired": false,
-   "mechanism_output_diff": {
-    "files": [
-     "bench/research/out/g6-publish-replay.json"
-    ],
-    "reason": "faithful regeneration via check-g6-publish re-run inside gate:all during the acceptance battery - same mechanism the t17/t18/t19/t20/t21 rows disclosed; the replay records the post-repair pack size against the committed record"
-   }
-  }
- ],
- "source_adr": "0064"
+  "rounds": [
+    {
+      "round": "grill-t6-doc-round",
+      "date": "2026-09-14",
+      "kind": "documentation",
+      "adr_added": [
+        "0064"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "deferred_entry": "defer-0040",
+      "advisory_fired": false
+    },
+    {
+      "round": "grill-t7-doc-round",
+      "date": "2026-09-14",
+      "kind": "documentation",
+      "adr_added": [
+        "0065"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "deferred_entry": "defer-0041",
+      "advisory_fired": true
+    },
+    {
+      "round": "grill-t8-doc-round",
+      "date": "2026-09-16",
+      "kind": "documentation",
+      "adr_added": [
+        "0069"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "deferred_entry": "defer-0049",
+      "advisory_fired": false
+    },
+    {
+      "round": "grill-t10-doc-round",
+      "date": "2026-09-16",
+      "kind": "documentation",
+      "adr_added": [
+        "0070"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "deferred_entry": "defer-0050",
+      "advisory_fired": false
+    },
+    {
+      "round": "grill-t11-doc-round",
+      "date": "2026-09-16",
+      "kind": "documentation",
+      "adr_added": [
+        "0072"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "deferred_entry": "defer-0052",
+      "advisory_fired": false
+    },
+    {
+      "round": "grill-t12-doc-round",
+      "date": "2026-09-17",
+      "kind": "documentation",
+      "adr_added": [
+        "0073"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "deferred_entry": "defer-0056",
+      "advisory_fired": false
+    },
+    {
+      "round": "grill-t13-doc-round",
+      "date": "2026-09-17",
+      "kind": "documentation",
+      "adr_added": [
+        "0074"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "deferred_entry": "defer-0057",
+      "advisory_fired": false
+    },
+    {
+      "round": "grill-t14-doc-round",
+      "date": "2026-09-17",
+      "kind": "documentation",
+      "adr_added": [
+        "0075"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "deferred_entry": "defer-0059",
+      "advisory_fired": false,
+      "governance_tooling_diff": {
+        "files": [
+          "scripts/build-rewrite-map.js"
+        ],
+        "reason": "F-4 disclosed deviation: shipped gate tooling edited inside the doc round (pre-taxonomy; retroactive annotation under ADR-0076 D-A/D-B semantics - not counted as a carve-out use)"
+      },
+      "carve_out_used": 0
+    },
+    {
+      "round": "grill-t15-doc-round",
+      "date": "2026-09-18",
+      "kind": "documentation",
+      "adr_added": [
+        "0076"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "governance_tooling_diff": {
+        "files": [
+          "scripts/check-ci-jobs.js",
+          "scripts/surface-taxonomy.js",
+          "scripts/check-governance-inventory.js",
+          "scripts/build-governance-anchors.js",
+          ".github/workflows/ci.yml"
+        ],
+        "reason": "defer-0004 narrowed re-defer requires the verified_by predicate to match (D-003; permanently-SATISFIED alert fatigue banned) - the carve-out first registered use, baseline: consecutive counting starts here (ADR-0076 D-B). The other files are mechanism bootstrap disclosed in ADR-0076 D-B: taxonomy authority module, inventory recompute, anchors admission list, suite-count parity - mechanism creation, not carve-out uses."
+      },
+      "carve_out_used": 1,
+      "mechanism_output_diff": {
+        "files": [
+          "src/instrument-state.json",
+          "bench/research/out/g6-publish-replay.json"
+        ],
+        "reason": "additive-only annotation under ADR-0077 D-B (settles audit F-D): the two R2-surface touches this round were mechanism-output artifacts - instrument-state.json appended by the T-3 sign-off event and g6-publish-replay.json refreshed by the gate. Historical booleans untouched; carve_out_used:1 stands."
+      },
+      "deferred_entry": "defer-0061",
+      "advisory_fired": false
+    },
+    {
+      "round": "grill-t16-doc-round",
+      "date": "2026-09-18",
+      "kind": "documentation",
+      "adr_added": [
+        "0077"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "carve_out_used": 0,
+      "mechanism_output_diff": {
+        "files": [
+          "bench/research/out/g6-publish-replay.json"
+        ],
+        "reason": "gate refresh during the R1 boundary battery and the R2 final battery - faithful regeneration by the registered generator (check-g6-publish.js) after the tarball grew with the new ADR and the new machinery script; first marker use under ADR-0077 D-B"
+      },
+      "deferred_entry": "defer-0062",
+      "advisory_fired": false
+    },
+    {
+      "round": "grill-t17-fix-round",
+      "date": "2026-09-18",
+      "kind": "fix",
+      "adr_added": [],
+      "adr_superseded_or_closed": [],
+      "net_additions": 0,
+      "zero_product_diff": true,
+      "carve_out_used": 0,
+      "mechanism_output_diff": {
+        "files": [
+          "bench/research/out/g6-publish-replay.json"
+        ],
+        "reason": "faithful regeneration via check-g6-publish re-run during the acceptance battery - the packaged build-round-facts.js grew with the proseScan export, moving the tarball byte record"
+      },
+      "advisory_fired": false,
+      "governance_tooling_diff": {
+        "files": [
+          "scripts/build-round-facts.js",
+          "scripts/check-governance-inventory.js"
+        ],
+        "reason": "Retroactive correction disclosed on the corrected line (audit-log convention, ADR-0078 D-B): this fix round was mislabeled kind:documentation under the closed enum before ADR-0078 admitted fix. The two R2 machinery hand-edits are backfilled: build-round-facts.js (proseScan export + author-time enforcement) and check-governance-inventory.js (loadTaxonomy hoist)."
+      }
+    },
+    {
+      "round": "grill-t18-fix-round",
+      "date": "2026-09-19",
+      "kind": "fix",
+      "adr_added": [
+        "0078"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "governance_tooling_diff": {
+        "files": [
+          "scripts/build-governance-anchors.js",
+          "scripts/build-round-facts.js",
+          "scripts/check-governance-inventory.js"
+        ],
+        "reason": "Fix round R2 machinery hand-edits disclosed per ADR-0078 D-A (first compliant kind:fix row): build-round-facts.js (emit-exit helper + key-assign coverage + SCHEMA_KEYS single-source + reportPath single-read), check-governance-inventory.js (kind enum + fix-row shape enforcement), build-governance-anchors.js (t18 ledger admission row). zero_product_diff holds - no R1 runtime file touched (ADR-0076 D-A)."
+      },
+      "advisory_fired": false,
+      "mechanism_output_diff": {
+        "files": [
+          "bench/research/out/g6-publish-replay.json"
+        ],
+        "reason": "faithful regeneration via check-g6-publish re-run during the acceptance battery - the packaged build-round-facts.js grew with the R2 machinery edits, moving the tarball byte record (same mechanism the t17 row disclosed)"
+      }
+    },
+    {
+      "round": "grill-t19-fix-round",
+      "date": "2026-09-19",
+      "kind": "fix",
+      "adr_added": [],
+      "adr_superseded_or_closed": [],
+      "net_additions": 0,
+      "zero_product_diff": true,
+      "governance_tooling_diff": {
+        "files": [
+          "scripts/build-round-facts.js",
+          "scripts/check-governance-inventory.js"
+        ],
+        "reason": "Fix round R2 machinery hand-edits disclosed per ADR-0078 D-A: build-round-facts.js (main() crash-wrapper -> exit 2 verifier-broken + missing-factsFile boundary routing per the ADR-0077 D-A.1 missing-input clause), check-governance-inventory.js (kind:fix skip-not-reset streak guard + gtd non-empty files shape check). zero_product_diff holds - no R1 runtime file touched (ADR-0076 D-A)."
+      },
+      "advisory_fired": false,
+      "mechanism_output_diff": {
+        "files": [
+          "bench/research/out/g6-publish-replay.json"
+        ],
+        "reason": "faithful regeneration via check-g6-publish re-run during the acceptance battery - the packaged build-round-facts.js + check-governance-inventory.js grew with the R2 machinery edits, moving the tarball byte record (same mechanism the t17/t18 rows disclosed)"
+      }
+    },
+    {
+      "round": "grill-t20-doc-round",
+      "date": "2026-09-20",
+      "kind": "documentation",
+      "adr_added": [
+        "0079"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "carve_out_used": 1,
+      "governance_tooling_diff": {
+        "files": [
+          ".github/workflows/ci.yml",
+          "README-zh-CN.md"
+        ],
+        "reason": "Retroactive correction under grill-t21 audit C-1 (2026-09-22): the t20-time zero-R2 registration was mechanically false - field-name/content mismatch disclosed: README-zh-CN.md was a taxonomy-residual misclassification (R2 by rule absence, not governance tooling in substance; reclassified R3 forward by the ADR-0080 README-* predicate) while .github/workflows/ci.yml is the genuine governance-tooling touch (suite-parity hand-edit forced by the ADR-0057 D-C count pin). Both files were R2 under the t20 taxonomy - the row keeps t20-time truth. The four prose claim sites carry Disclosed Repair markers (t20 ledger D-001, spec-t20 sections 0/1/8, next-round.md, t20 report) and the t21 taxonomy amendment closes the residual rule gap. Supersedes the 2026-09-20 carve_out_used:0 annotation form - the carve-out channel is used as designed."
+      },
+      "deferred_entry": "defer-0064",
+      "advisory_fired": false,
+      "mechanism_output_diff": {
+        "files": [
+          "bench/research/out/g6-publish-replay.json"
+        ],
+        "reason": "faithful regeneration via check-g6-publish re-run during the acceptance battery - the packaged script bytes moved the tarball byte record (same mechanism the t17/t18/t19 rows disclosed)"
+      }
+    },
+    {
+      "round": "grill-t21-doc-round",
+      "date": "2026-09-22",
+      "kind": "documentation",
+      "adr_added": [
+        "0080"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "carve_out_used": 1,
+      "governance_tooling_diff": {
+        "files": [
+          ".github/workflows/ci.yml",
+          "bench/polygraph/thresholds.json",
+          "scripts/build-governance-anchors.js",
+          "scripts/check-governance-inventory.js",
+          "scripts/surface-taxonomy.js"
+        ],
+        "reason": "Declared carve-out (t21 D-001): the audit C-1 disposition requires machinery edits - the README-* R3 predicate + the reclassification grace (surface-taxonomy/check-governance-inventory), the t20-ledger anchors admission (build-governance-anchors), and the suite-count parity bump for the new wiring suite (ci.yml). ADR-0080 names each edit. Post-audit repair (t21 audit C-1, 2026-09-22): bench/polygraph/thresholds.json - the pack-cap _doc trim hand-edit - was omitted from this set at commit time (commit-prose disclosure only); registered retroactively. The checker coverage blind spot the audit proved is closed by the --coverage-base leg, which check-governance-inventory.js gained alongside the rc.from tightening in this same repair window."
+      },
+      "deferred_entry": "defer-0066",
+      "advisory_fired": false,
+      "mechanism_output_diff": {
+        "files": [
+          "bench/research/out/g6-publish-replay.json"
+        ],
+        "reason": "faithful regeneration via check-g6-publish re-run inside gate:all during the acceptance battery - same mechanism the t17/t18/t19/t20 rows disclosed"
+      }
+    },
+    {
+      "round": "grill-t22-doc-round",
+      "date": "2026-09-22",
+      "kind": "documentation",
+      "adr_added": [
+        "0081"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "carve_out_used": 1,
+      "governance_tooling_diff": {
+        "files": [
+          ".github/workflows/ci.yml",
+          "bench/polygraph/thresholds.json",
+          "scripts/check-governance-inventory.js"
+        ],
+        "reason": "Declared carve-out (t22 D-001/D-003; audit-r2 R2-C-1/R2-C-3 dispositions): check-governance-inventory.js gains the keyed unresolvable-ref FAIL (try/catch around the execFileSync diff - R2-C-3 machinery repair); thresholds.json carries the pack-surface _doc* trims restoring headroom under the ADR-0039 D3 cap after the charter commit crossed it undisclosed (340258 > 340000 - the charter's own CONTEXT.md term addition; R2-C-1 physical repair, Disclosed Repair markers on the two stale ~6B-headroom claims); ci.yml carries the ADR-0057 D-C suite-parity bump 75->76 forced by the new adr-0081 wiring suite. No runtime surface moved."
+      },
+      "deferred_entry": "defer-0067",
+      "advisory_fired": false,
+      "mechanism_output_diff": {
+        "files": [
+          "bench/research/out/g6-publish-replay.json"
+        ],
+        "reason": "faithful regeneration via check-g6-publish re-run inside gate:all during the acceptance battery - same mechanism the t17/t18/t19/t20/t21 rows disclosed; the replay records the post-repair pack size against the committed record"
+      }
+    },
+    {
+      "round": "grill-t23-front-face",
+      "date": "2026-09-22",
+      "kind": "documentation",
+      "adr_added": [
+        "0082"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "carve_out_used": 1,
+      "governance_tooling_diff": {
+        "files": [
+          ".github/ISSUE_TEMPLATE/bug-report.md",
+          ".github/ISSUE_TEMPLATE/config.yml",
+          ".github/ISSUE_TEMPLATE/measurement-discrepancy.md",
+          ".github/PULL_REQUEST_TEMPLATE.md",
+          ".github/workflows/ci.yml"
+        ],
+        "reason": "Declared carve-out (grill-t23 D-007(2)): .github/ISSUE_TEMPLATE/* + PULL_REQUEST_TEMPLATE.md land the GitHub front-face templates chartered by the task book (measurement-discrepancy is the README-documented reproduction channel; file-level disclosure comments inline); .github/workflows/ci.yml carries the ADR-0057 D-C suite-parity bump 76->77 forced by the new adr-0082 wiring suite. No runtime surface moved."
+      },
+      "deferred_entry": "defer-0068",
+      "advisory_fired": false,
+      "mechanism_output_diff": {
+        "files": [
+          "bench/research/out/g6-publish-replay.json"
+        ],
+        "reason": "faithful regeneration via check-g6-publish re-run inside gate:all during the acceptance battery - the replay records the post-amendment pack size against the committed record"
+      }
+    }
+  ],
+  "source_adr": "0064"
 }

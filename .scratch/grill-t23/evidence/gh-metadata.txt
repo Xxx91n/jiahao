@@ -1,0 +1,5 @@
+$ gh repo view --json nameWithOwner,description,repositoryTopics,url,isPrivate,pushedAt
+
+EXIT 0
+
+{"description":"Dual-profile prompt-as-mental-model harness for LLM agents — advisory generator profile in the working agent, blocking verifier profile in a separate audit agent; six-rung evidence ladder, hash-chained records, publicly failed measurement kept on the record.","isPrivate":false,"nameWithOwner":"Xxx91n/jiahao","pushedAt":"2026-09-22T07:34:46Z","repositoryTopics":[{"name":"agent-verification"},{"name":"claude-code"},{"name":"evidence-verification"},{"name":"llm-agents"},{"name":"mcp"},{"name":"prompt-engineering"},{"name":"verification"}],"url":"https://github.com/Xxx91n/jiahao"}
