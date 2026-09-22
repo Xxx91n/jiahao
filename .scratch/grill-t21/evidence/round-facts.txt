@@ -1,5 +1,5 @@
 $ node scripts/build-round-facts.js --round grill-t21 --check --report .scratch/grill-t21/reports/2026-09-22-report.md
 
-EXIT 0
+EXIT 2
 
-[round-facts] OK - facts and report region in sync
+build-round-facts: verifier broken - Command failed: D:\nodejs\node.exe D:\Aworker\jiahao\node_modules\jest\bin\jest.js --json --silent

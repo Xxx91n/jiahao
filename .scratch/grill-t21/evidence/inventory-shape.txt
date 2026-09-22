@@ -1,4 +1,4 @@
-$ node D:\Aworker\jiahao\node_modules\jest\bin\jest.js test/adr-0076-wiring.test.js -t fixture
+$ node D:\Aworker\jiahao\node_modules\jest\bin\jest.js test/adr-0076-wiring.test.js -t kind enum
 
 EXIT 0
 
@@ -39,8 +39,8 @@ PASS test/adr-0076-wiring.test.js
     ○ skipped anchors.json lists decision-ledger-t16.md under ADR-0077, content-equal to the scratch authority
     ○ skipped facts canon: artifact schema + deterministic render pin (ADR-0077 D-C)
   grill-t17 dispositions (ADR-0077 D-E appendix + residue registrations)
-    √ a quoted-stale-number fixture MUST fail --check (ADR-0077 D-E) (71 ms)
     ○ skipped proseScan export: unconditional - a quoted canon number is still a violation
+    ○ skipped a quoted-stale-number fixture MUST fail --check (ADR-0077 D-E)
     ○ skipped the t17 report renders the canon region and carries no canon number in prose
     ○ skipped ADR-0077 D-E appendix registers the unconditional scan + the evidence-file convention
     ○ skipped defer-0063 is the missing-convention smell ticket with the anti-rot quota
@@ -49,11 +49,8 @@ PASS test/adr-0076-wiring.test.js
     ○ skipped gen-docs invariant: every committed copy derives ROOT from __dirname (D-003 class-killer)
     ○ skipped the gen-docs template carries the frozen derived-ROOT header
   grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendix + doc hygiene)
-    √ doc-hygiene negative fixtures: the two real corruption samples are flagged (1 ms)
-    √ single-digit canon fixture: bare single-digit value walks free (declared floor gap), key-assign catches it (D-002) (2 ms)
-    √ key-assign fixture: every one of the eleven schema keys is enforced in prose (D-002) (2 ms)
+    √ kind enum: a fix row WITH governance_tooling_diff passes; WITHOUT it fails (ADR-0078 negative pin) (64 ms)
     ○ skipped ADR-0078 exists with live status, date, amends line, ledger + spec anchors
-    ○ skipped kind enum: a fix row WITH governance_tooling_diff passes; WITHOUT it fails (ADR-0078 negative pin)
     ○ skipped fix rows are exempt from the D-F deferred-entry assert; documentation rows are not (control)
     ○ skipped fix-row gtd files still classify against the taxonomy (R3 listing is mislabeled)
     ○ skipped carve_out_used may be omitted on fix rows and never feeds the burn-rate streak
@@ -64,13 +61,16 @@ PASS test/adr-0076-wiring.test.js
     ○ skipped CONTEXT terms verified pre-landed (D-005/D-007)
     ○ skipped AGENTS.md authoring-path clause (D-006)
     ○ skipped doc-hygiene pin: every committed .scratch/*.md is free of corruption signatures
+    ○ skipped doc-hygiene negative fixtures: the two real corruption samples are flagged
     ○ skipped the t17 next-round.md repair holds: restored paths + $names + zero signatures (H-1)
     ○ skipped t17 ledger carries the appended disclosure note (D-005)
+    ○ skipped single-digit canon fixture: bare single-digit value walks free (declared floor gap), key-assign catches it (D-002)
+    ○ skipped key-assign fixture: every one of the eleven schema keys is enforced in prose (D-002)
     ○ skipped PROSE_KEYS single-source: derived from SCHEMA_KEYS, all numeric-canon, no drift (D-003)
     ○ skipped emit-exit boundary: a multi-violation report exits 1 with every cause line (D-003/D-A.1)
   grill-t19 dispositions (ADR-0077 missing-input clause + ADR-0078 streak/gtd semantics + A-3 re-capture)
-    √ txt hygiene negative fixture: the voided A-3 capture bytes are flagged; the md control-byte set does not transfer (1 ms)
     ○ skipped txt hygiene pin: every committed .scratch/**/*.txt is free of the path-LF-break signature (D-006)
+    ○ skipped txt hygiene negative fixture: the voided A-3 capture bytes are flagged; the md control-byte set does not transfer
     ○ skipped the t18 check-ci-jobs-missing evidence is the re-captured verbatim output (Disclosed Re-Capture, D-006)
     ○ skipped CONTEXT carries the Disclosed Repair / Disclosed Re-Capture / Non-Interpolating Channel / Bilingual Mirror terms (D-002/D-006/D-007)
     ○ skipped CONTEXT clauses: trend-anchor streak populations + consuming-row missing-input (D-003/D-004)
@@ -90,7 +90,7 @@ PASS test/adr-0076-wiring.test.js
     ○ skipped ADR-0078 D-A registers the gtd escape-channel convention (D-005)
 
 Test Suites: 1 passed, 1 total
-Tests:       72 skipped, 5 passed, 77 total
+Tests:       76 skipped, 1 passed, 77 total
 Snapshots:   0 total
-Time:        0.59 s, estimated 1 s
-Ran all test suites matching /test\\adr-0076-wiring.test.js/i with tests matching "fixture".
+Time:        0.55 s, estimated 4 s
+Ran all test suites matching /test\\adr-0076-wiring.test.js/i with tests matching "kind enum".

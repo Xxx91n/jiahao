@@ -205,7 +205,29 @@ OK   .scratch/grill-t20/reports/2026-09-20-report.md
 OK   .scratch/grill-t20/spec-t20-disposition.md
 OK   .scratch/grill-t21/GOAL.md
 OK   .scratch/grill-t21/decision-ledger.md
+OK   .scratch/grill-t21/evidence/adr-0080-wiring.txt
+OK   .scratch/grill-t21/evidence/anchors.txt
+OK   .scratch/grill-t21/evidence/check-ci-jobs-missing.txt
+OK   .scratch/grill-t21/evidence/check-ci-jobs.txt
+OK   .scratch/grill-t21/evidence/check-deferred.txt
+OK   .scratch/grill-t21/evidence/clean-tree.txt
+OK   .scratch/grill-t21/evidence/gate-all.txt
+OK   .scratch/grill-t21/evidence/governance-inventory.txt
+OK   .scratch/grill-t21/evidence/h1-reread.txt
+OK   .scratch/grill-t21/evidence/instrument.txt
+OK   .scratch/grill-t21/evidence/liveness.txt
+OK   .scratch/grill-t21/evidence/pack-smoke.txt
+OK   .scratch/grill-t21/evidence/prose-fixtures.txt
+OK   .scratch/grill-t21/evidence/quoted-stale.fixture.md
+OK   .scratch/grill-t21/evidence/quoted-stale.txt
+OK   .scratch/grill-t21/evidence/reclass-shape.txt
+OK   .scratch/grill-t21/evidence/rewrite-map.txt
+OK   .scratch/grill-t21/evidence/round-facts.txt
+OK   .scratch/grill-t21/evidence/run-test-gate.txt
+OK   .scratch/grill-t21/handoffs/2026-09-22-audit-handoff.md
 OK   .scratch/grill-t21/handoffs/next-round.md
+OK   .scratch/grill-t21/reports/2026-09-22-audit.md
+OK   .scratch/grill-t21/reports/2026-09-22-report.md
 OK   .scratch/grill-t21/spec-t21-disposition.md
 OK   .scratch/grill-t6/audit/b7ccbeb/AGENTS.md
 OK   .scratch/grill-t6/audit/b7ccbeb/CONTEXT.md
@@ -358,4 +380,4 @@ OK   .scratch/grill-t9/reports/2026-09-16-post-round-audit.md
 OK   .scratch/grill-t9/reports/2026-09-16-pre-unlock-audit.md
 OK   .scratch/grill-t9/reports/2026-09-16-report.md
 OK   .scratch/grill-t9/spec-v3-collection.md
-independent scan: 286 committed .scratch/*.md + 70 committed .scratch/*.txt, 0 flagged
+independent scan: 290 committed .scratch/*.md + 88 committed .scratch/*.txt, 0 flagged

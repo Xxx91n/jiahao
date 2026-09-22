@@ -1,4 +1,4 @@
-$ node D:\nodejs\node_modules\npm\bin\npm-cli.js pack --pack-destination C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-XW5BED
+$ node D:\nodejs\node_modules\npm\bin\npm-cli.js pack --pack-destination C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-AGDU2t
 
 
 > jiahao@0.0.1 prepare
@@ -8,8 +8,8 @@ jiahao-0.0.1.tgz
 npm notice
 npm notice package: jiahao@0.0.1
 npm notice Tarball Contents
-npm notice 2.4kB AGENTS.md
-npm notice 137.0kB CONTEXT.md
+npm notice 2.3kB AGENTS.md
+npm notice 136.9kB CONTEXT.md
 npm notice 35.2kB README.md
 npm notice 258B adapters/aider/.aider.conf.yml
 npm notice 2.8kB adapters/aider/CONVENTIONS-generator.md
@@ -36,7 +36,7 @@ npm notice 2.8kB adapters/windsurf/jiahao-generator.md
 npm notice 6.6kB adapters/windsurf/jiahao.md
 npm notice 12.7kB bench/polygraph/README.md
 npm notice 6.4kB bench/polygraph/thresholds.json
-npm notice 908B docs/change-surface.json
+npm notice 904B docs/change-surface.json
 npm notice 2.5kB docs/coverage-map.json
 npm notice 71.7kB docs/deferred-registry.json
 npm notice 14.5kB docs/gates.json
@@ -69,7 +69,7 @@ npm notice 2.4kB scripts/check-falsify.js
 npm notice 6.2kB scripts/check-g6-equivalence.js
 npm notice 11.7kB scripts/check-g6-publish.js
 npm notice 2.6kB scripts/check-gate-params.js
-npm notice 14.1kB scripts/check-governance-inventory.js
+npm notice 15.2kB scripts/check-governance-inventory.js
 npm notice 7.4kB scripts/check-host-contracts.js
 npm notice 10.7kB scripts/check-mr-probes.js
 npm notice 5.6kB scripts/check-pack-smoke.js
@@ -125,15 +125,15 @@ npm notice Tarball Details
 npm notice name: jiahao
 npm notice version: 0.0.1
 npm notice filename: jiahao-0.0.1.tgz
-npm notice package size: 339.9 kB
+npm notice package size: 340.0 kB
 npm notice unpacked size: 1.2 MB
-npm notice shasum: 5668f744f26681f39af19638d596e920fb78e49d
-npm notice integrity: sha512-7ypldP945TDcQ[...]jy4b9FrvkuvIQ==
+npm notice shasum: 90dab2f70ca9088b3f20b3322774efbffab06479
+npm notice integrity: sha512-h+k7Yu1T/69kp[...]vtpmIm4TT4OMA==
 npm notice total files: 113
 npm notice
 
 tarball: jiahao-0.0.1.tgz extract exit=0
-$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-XW5BED\package\scripts\install.js --help (extracted tarball copy)
+$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-AGDU2t\package\scripts\install.js --help (extracted tarball copy)
 jiahao v0.0.1 — install .jiahao-profile flag
 
 Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
@@ -142,7 +142,7 @@ Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
 Writes ONLY C:\Users\Administrator\.jiahao-profile
 Tier 0 manual: echo "verifier" > C:\Users\Administrator\.jiahao-profile
 exit=0
-$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-XW5BED\package\scripts\install.js init -y --dry-run (extracted tarball copy)
+$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-AGDU2t\package\scripts\install.js init -y --dry-run (extracted tarball copy)
 [dry-run] would write "verifier" to C:\Users\Administrator\.jiahao-profile
 exit=0
 $ node jiahao-mcp/index.js <stdin: JSON-RPC initialize request>
