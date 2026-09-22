@@ -209,7 +209,7 @@ across turns, each turn opens with a `turn_init` record chained onto the
 previous tail hash, and `prev_hash` is INSIDE the hashed body
 (`H(canonical(record) || prev_hash)`, Crosby & Wallach 2009) — closing the
 tail-truncate-and-relink hole left by ADR-0007's hash-input exclusion.
-Linear chain only; Merkle trees and signatures remain deferred upgrades. Registered as defer-0003 in docs/deferred-registry.json (ADR-0033).
+Linear chain only; Merkle trees and signatures remain deferred upgrades (defer-0003; ADR-0033).
 _Avoid_: blockchain, Merkle log (different structures)
 
 **Composite Idempotency Key (复合幂等键)**:
@@ -884,7 +884,7 @@ Carrier-neutral shared modules depended on by every distribution carrier
 point inward, toward this core.
 _Avoid_: utils, common, lib
 
-ADRs live in `docs/adr/` (numbered, immutable once Accepted); the authoritative inventory is the derived index in README.md (ADR-0043), rebuilt by `node scripts/build-adr-index.js`.
+ADRs live in `docs/adr/` (numbered, immutable once Accepted); the inventory is the derived index in README.md (ADR-0043), rebuilt by `node scripts/build-adr-index.js`.
 
 **Escalate Verdict (升级裁决)**:
 Fourth ladder verdict emitted when the llm_critic rung is exercised but
@@ -1407,7 +1407,7 @@ _Avoid_: per-ADR ad-hoc strictness statements, defaulting
 integrity gates to observational, MISRA full deviation ceremony
 
 **Second-Line Independence (组件级第二线独立性)**:
-The component-scoped form of SR 11-7's second line (SR 11-7 was superseded by SR 26-2 on 2026-04-17; the principle survives), applied in
+The component-scoped form of SR 11-7's second line (SR 11-7 superseded by SR 26-2, 2026-04-17; the principle survives), applied in
 ADR-0031 D4: where the auditor and judge are the same deployable
 component, independence is enforced as an INPUT whitelist — the
 judge seam reads only the certificate triple {claim, toolResults,
@@ -2120,7 +2120,7 @@ expectation (ADR-0057 D-C). Precedent: johal.in postmortem test_gate.sh.
 _Avoid_: smoke test
 
 **Decision Family**:
-This project's pattern of one ADR carrying several clauses (D-A..D-N) that share a single decision theme and one set of Context forces. Industry has no named equivalent (research of 2026-09-10; Nygard and MADR require one decision per record, and Azure splits multi-phase decisions). A decision family is lawful only while every clause serves the same theme; ADR-0056/0057 demonstrate the split when themes diverge.
+This project's pattern of one ADR carrying several clauses (D-A..D-N) sharing one decision theme + Context-forces set - no named industry equivalent (2026-09-10 research; Nygard/MADR want one decision per record). Lawful only while every clause serves the same theme; ADR-0056/0057 show the split when themes diverge.
 _Avoid_: decision bundle, decision pack
 
 

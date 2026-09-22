@@ -1,6 +1,6 @@
 {
  "schema_version": 1,
- "_doc": "change-surface map (ADR-0046).",
+ "_doc": "change-surface (ADR-0046).",
  "source_adr": "docs/adr/0047-impact-tiered-instrument-change-control.md",
  "anchor": {
   "tokens": [

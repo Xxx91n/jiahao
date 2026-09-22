@@ -1,6 +1,6 @@
 {
  "schema_version": 1,
- "_doc": "chosen-to-defer registry (ADR-0033; check-deferred.js).",
+ "_doc": "chosen-to-defer registry (ADR-0033).",
  "entries": [
   {
    "id": "defer-0001",
@@ -1024,12 +1024,12 @@
   },
   {
       "id": "defer-0066",
-   "subject": "capture-harness hardening set (audit C-6) - merged ratchet row",
+   "subject": "capture-harness hardening (audit C-6) - merged ratchet row",
    "source_adr": "docs/adr/0080-readme-star-r3-predicate-and-taxonomy-reclassification-channel.md",
-   "rationale": "grill-t21 D-004: four C-6 harness smells ride the next harness-touching change. Ratchet: set only shrinks, never grows; instances individually closable. Owner: next harness-touching round; deadline: review_at; acceptance: all resolved or split; escalation: same-class recurrence splits the instance standalone.",
+   "rationale": "grill-t21 D-004: four C-6 harness smells ride the next harness-touching change. Ratchet: only shrinks, never grows; instances individually closable. Owner: next harness-touching round; deadline: review_at; acceptance: all resolved or split; escalation: same-class recurrence splits standalone.",
    "unfreeze_if": {
     "type": "free-text",
-    "check": "all four instances resolved or split; same-class recurrence splits the instance standalone"
+    "check": "all resolved or split; same-class recurrence splits standalone"
    },
    "instances": [
     "recapture-clean-tree clone -> shared clean-tree leg",

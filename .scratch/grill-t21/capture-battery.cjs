@@ -7,6 +7,11 @@
 //  - expected-suites 75 (the adr-0080 wiring suite lands this round)
 //  - adr-0080-wiring.txt leg captures the new suite verbatim
 //  - reclass-shape.txt leg exercises the ADR-0080 reclassification grace
+//  - coverage.txt leg: check-governance-inventory --coverage-base verifies
+//    the declared channels COVER the committed R2 diff (t21 audit C-1 fix)
+//  - inventory-shape.txt retained with a live filter (-t 'kind enum') -
+//    the t20-era -t 'grill-t19' went stale under the C-5 title renames; an
+//    earlier draft had dropped the leg silently (t21 audit C-3)
 //  - quoted-stale fixture carries the t21 canon values
 'use strict';
 const fs = require('fs');
@@ -52,6 +57,7 @@ cap('check-ci-jobs.txt', shownNode(['scripts/check-ci-jobs.js']), node('scripts/
 cap('check-ci-jobs-missing.txt', shownNode(['scripts/check-ci-jobs.js', '.scratch/grill-t21/evidence/no-such-ci.yml']), node('scripts/check-ci-jobs.js', ['.scratch/grill-t21/evidence/no-such-ci.yml']));
 cap('check-deferred.txt', shownNode(['scripts/check-deferred.js']), node('scripts/check-deferred.js'));
 cap('governance-inventory.txt', shownNode(['scripts/check-governance-inventory.js']), node('scripts/check-governance-inventory.js'));
+cap('coverage.txt', shownNode(['scripts/check-governance-inventory.js', '--coverage-base', 'dc6d21b95b7edc18d895ebbe41f649726ead3659']), node('scripts/check-governance-inventory.js', ['--coverage-base', 'dc6d21b95b7edc18d895ebbe41f649726ead3659']));
 cap('anchors.txt', shownNode(['scripts/build-governance-anchors.js', '--check']), node('scripts/build-governance-anchors.js', ['--check']));
 cap('rewrite-map.txt', shownNode(['scripts/build-rewrite-map.js', '--check']), node('scripts/build-rewrite-map.js', ['--check']));
 cap('round-facts.txt', shownNode(['scripts/build-round-facts.js', '--round', 'grill-t21', '--check', '--report', REPORT]), node('scripts/build-round-facts.js', ['--round', 'grill-t21', '--check', '--report', REPORT]));
@@ -67,6 +73,7 @@ fs.writeFileSync(path.join(EVD, 'quoted-stale.fixture.md'),
 cap('quoted-stale.txt', shownNode(['scripts/build-round-facts.js', '--round', 'grill-t21', '--check', '--report', '.scratch/grill-t21/evidence/quoted-stale.fixture.md']), node('scripts/build-round-facts.js', ['--round', 'grill-t21', '--check', '--report', '.scratch/grill-t21/evidence/quoted-stale.fixture.md']));
 
 cap('reclass-shape.txt', shownNode([JEST, 'test/adr-0080-wiring.test.js', '-t', 'reclass']), jest(['test/adr-0080-wiring.test.js', '-t', 'reclass']));
+cap('inventory-shape.txt', shownNode([JEST, 'test/adr-0076-wiring.test.js', '-t', 'kind enum']), jest(['test/adr-0076-wiring.test.js', '-t', 'kind enum']));
 cap('prose-fixtures.txt', shownNode([JEST, 'test/adr-0076-wiring.test.js', '-t', 'fixture']), jest(['test/adr-0076-wiring.test.js', '-t', 'fixture']));
 
 // h1-reread: independent byte scan over committed .scratch/*.md + *.txt.

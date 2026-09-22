@@ -14,14 +14,16 @@
 // exist, deferred_entry ids resolve in docs/deferred-registry.json, and the
 // advisory series is replayed (two consecutive doc rounds with net additions
 // >0 -> exactly one advisory; never a block).
+// Plus the opt-in coverage leg (--coverage-base <ref>): the latest row must
 //
-// Usage: node scripts/check-governance-inventory.js
+// Usage: node scripts/check-governance-inventory.js [--coverage-base <ref>]
 // Exit 0 pass (possibly with advisory warnings) / exit 1 fail.
 
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 const { requireCapabilities } = require('../src/shared/capability');
 const surfaceTaxonomy = require('./surface-taxonomy'); // ADR-0076 D-A: surface classification authority
 
@@ -118,15 +120,15 @@ function checkInventory(root, opts) {
     let carveStreak = 0;
     let closureSet = null;
     let mechOutputs = null;
-  let reclasses = null;
+    let reclasses = null;
+    const shapeBad = (d) => !d || typeof d !== 'object' || !Array.isArray(d.files) || !d.files.length || typeof d.reason !== 'string' || d.reason.length < 10;
     for (const r of ti.rounds || []) {
-      // ADR-0078 D-A: the kind enum admits documentation|fix. A fix row MUST
-      // disclose R2 machinery hand-edits via governance_tooling_diff (field
-      // reused, not paralleled); carve_out_used is not counted for fix rows;
-      // fix rows are exempt from the D-F deferred-entry assert.
+      // ADR-0078 D-A: kind admits documentation|fix. A fix row MUST
+      // disclose R2 hand-edits via governance_tooling_diff; carve_out_used
+      // is not counted for fix rows; exempt from the D-F deferred assert.
       if (r.kind !== 'documentation' && r.kind !== 'fix') { errors.push('trend round ' + r.round + ': kind must be documentation|fix (ADR-0078)'); continue; }
       if (r.kind === 'fix' && r.governance_tooling_diff === undefined) {
-        errors.push('trend round ' + r.round + ': fix rounds must disclose R2 machinery hand-edits via governance_tooling_diff (ADR-0078 D-A)');
+        errors.push('trend round ' + r.round + ': fix rounds must disclose R2 hand-edits via governance_tooling_diff (ADR-0078 D-A)');
       }
       for (const a of r.adr_added || []) {
         const file = '0000' + a;
@@ -141,14 +143,13 @@ function checkInventory(root, opts) {
           errors.push('trend round ' + r.round + ': zero-product-diff + new ADR requires a deferred-registry entry (D-F clause 3)');
         }
       }
-      // ADR-0076 D-B disclosure gate: a declared governance-tooling
-      // diff is recomputed against the taxonomy authority, never trusted -
-      // every listed file must classify R2 (R1 is a hard error: doc rounds
-      // never touch the runtime surface; R3 is a mislabeled row).
+      // ADR-0076 D-B: a declared gtd is recomputed against the taxonomy,
+      // never trusted - every listed file must classify R2 (R1 hard-fails;
+      // R3 is a mislabeled row).
       if (r.governance_tooling_diff !== undefined) {
         const gtd = r.governance_tooling_diff;
-        if (!gtd || typeof gtd !== 'object' || !Array.isArray(gtd.files) || !gtd.files.length || typeof gtd.reason !== 'string' || gtd.reason.length < 10) {
-          errors.push('trend round ' + r.round + ': governance_tooling_diff must be {files: non-empty string[], reason: string>=10} - an empty files list hard-fails; \'no carve-out used\' is carve_out_used:0 + field omitted (ADR-0076 D-B; ADR-0078 D-A grill-t19)');
+        if (shapeBad(gtd)) {
+          errors.push('trend round ' + r.round + ': governance_tooling_diff must be {files: non-empty string[], reason: string>=10} - a bare marker hard-fails (ADR-0076 D-B; carve_out_used:0 + field omitted is the no-carve-out form)');
         } else {
           if (!closureSet) closureSet = new Set(surfaceTaxonomy.computeRuntimeClosure(base));
           for (const f of gtd.files) {
@@ -156,16 +157,15 @@ function checkInventory(root, opts) {
             if (cls === 'R1') {
               errors.push('trend round ' + r.round + ': governance_tooling_diff lists runtime-surface file ' + f + ' - R1 is implementation-round territory absolutely (ADR-0076 D-A)');
             } else if (cls !== 'R2') {
-              // ADR-0080 D-B: taxonomy evolution is logged in surface-taxonomy.json
-              // reclassifications. A file moved off R2 by a rule effective AFTER the
-              // row's date was R2 at row time - the honest-list disclosure stays
-              // valid; a row dated on/after the effective date still fails.
+              // ADR-0080 D-B: a file moved off R2 by a reclassification
+              // effective AFTER the row's date was R2 at row time - excused;
+              // a row dated on/after the effective date still fails.
               if (!reclasses) {
                 const taxJson = surfaceTaxonomy.loadTaxonomy(base);
                 reclasses = Array.isArray(taxJson.reclassifications) ? taxJson.reclassifications : [];
               }
               const excused = reclasses.some(function (rc) {
-                if (!rc || rc.to !== cls || !r.date || !(r.date < rc.effective)) return false;
+                if (!rc || rc.from !== 'R2' || rc.to !== cls || !r.date || !(r.date < rc.effective)) return false;
                 try { return new RegExp(rc.pattern).test(f); } catch (e) { return false; }
               });
               if (!excused) {
@@ -175,20 +175,18 @@ function checkInventory(root, opts) {
           }
         }
         if (r.kind === 'documentation' && r.carve_out_used !== 0 && r.carve_out_used !== 1) {
-          errors.push('trend round ' + r.round + ': carve_out_used must be declared 0|1 alongside governance_tooling_diff (ADR-0076 D-B burn-rate)');
+          errors.push('trend round ' + r.round + ': carve_out_used must be 0|1 with governance_tooling_diff (ADR-0076 D-B)');
         }
       }
       if (r.carve_out_used === 1 && !(r.governance_tooling_diff && Array.isArray(r.governance_tooling_diff.files) && r.governance_tooling_diff.files.length)) {
-        errors.push('trend round ' + r.round + ': carve_out_used=1 requires a non-empty governance_tooling_diff.files disclosure');
+        errors.push('trend round ' + r.round + ': carve_out_used=1 requires non-empty governance_tooling_diff.files');
       }
       // ADR-0077 D-B sibling marker: mechanism_output_diff records faithful
-      // regenerations of mechanism-output artifacts for provenance - it never
-      // feeds burn-rate. Every listed file must be a member of the closed
-      // mechanism_outputs enumeration and classify R2; a bare marker with no
-      // files hard-fails (mirrors carve_out_used=1).
+      // regenerations of mechanism-output artifacts - it never feeds
+      // burn-rate. Files must be in the mechanism_outputs enum + R2.
       if (r.mechanism_output_diff !== undefined) {
         const mod = r.mechanism_output_diff;
-        if (!mod || typeof mod !== 'object' || !Array.isArray(mod.files) || !mod.files.length || typeof mod.reason !== 'string' || mod.reason.length < 10) {
+        if (shapeBad(mod)) {
           errors.push('trend round ' + r.round + ': mechanism_output_diff must be {files: non-empty string[], reason: string>=10} - a bare marker hard-fails (ADR-0077 D-B)');
         } else {
           if (!closureSet) closureSet = new Set(surfaceTaxonomy.computeRuntimeClosure(base));
@@ -206,10 +204,8 @@ function checkInventory(root, opts) {
         }
       }
       // ADR-0078 D-A (grill-t19): kind:fix rows are outside both advisory
-      // streak populations - skip-not-reset. A fix row never feeds the
-      // doc-round net-additions streak even when net_additions>0, and never
-      // resets either streak, so doc-fix-doc adjacency still counts
-      // consecutive for both streaks.
+      // streaks - skip-not-reset: never feed the net-additions streak,
+      // never reset either streak; doc-fix-doc adjacency still counts.
       if (r.kind === 'fix') continue;
       carveStreak = (r.carve_out_used === 1) ? carveStreak + 1 : 0;
       streak = (r.net_additions > 0) ? streak + 1 : 0;
@@ -226,14 +222,40 @@ function checkInventory(root, opts) {
     if (streak >= (ti.anchor && ti.anchor.K)) {
       warnings.push('::warning title=Governance trend anchor::two consecutive documentation rounds added ADRs (streak ' + streak + ' >= K=' + ti.anchor.K + ') - advisory only, never blocks (ADR-0064 D-F)');
     }
+    // --coverage-base (t21 audit C-1): every R2 file in the committed
+    // diff <base>..HEAD must ride a declared channel of the latest row;
+    // an R1 file fails.
+    if (o.coverageBase) {
+      if (!closureSet) closureSet = new Set(surfaceTaxonomy.computeRuntimeClosure(base));
+      const rows = ti.rounds || [];
+      const changed = execFileSync('git', ['diff', '--name-only', o.coverageBase, 'HEAD'], { cwd: base, encoding: 'utf8' })
+        .split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+      const gaps = coverageGaps(changed, rows[rows.length - 1] || {}, closureSet);
+      gaps.r1.forEach(function (f) { errors.push('coverage: ' + f + ' is R1 - zero_product_diff violated (ADR-0076 D-A)'); });
+      gaps.undeclaredR2.forEach(function (f) { errors.push('coverage: ' + f + ' is R2 but undeclared in the latest row (t21 audit C-1)'); });
+    }
   }
 
   return { errors: errors, warnings: warnings };
 }
 
+// Pure: committed paths + the coverage-budget row -> {r1, undeclaredR2}.
+// Declared = gtd.files + mechanism_output_diff.files (the sibling marker).
+function coverageGaps(changed, row, closureSet) {
+  const declared = new Set(((row.governance_tooling_diff || {}).files || []).concat(((row.mechanism_output_diff || {}).files || [])));
+  const r1 = [], undeclared = [];
+  for (const f of changed) {
+    const c = surfaceTaxonomy.classifyPath(f, closureSet);
+    if (c === 'R1') r1.push(f);
+    else if (c === 'R2' && !declared.has(f)) undeclared.push(f);
+  }
+  return { r1: r1, undeclaredR2: undeclared };
+}
+
 function main() {
   requireCapabilities('governance-inventory');
-  const out = checkInventory();
+  const ci = process.argv.indexOf('--coverage-base');
+  const out = checkInventory(ROOT, ci !== -1 ? { coverageBase: process.argv[ci + 1] } : undefined);
   for (const w of out.warnings) console.warn(w);
   for (const e of out.errors) console.error('FAIL: ' + e);
   if (out.errors.length) process.exit(1);
@@ -243,4 +265,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { checkInventory, adrHeader };
+module.exports = { checkInventory, adrHeader, coverageGaps };

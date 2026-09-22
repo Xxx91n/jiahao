@@ -70,14 +70,20 @@ describe('ADR-0080 doc surface (grill-t21 disposition round)', () => {
   });
 
   test('gtd recompute grace: pre-effective rows listing a reclassified file pass; post-effective rows still fail', () => {
-    const pre = docRow({ round: 'grill-tNN-pre-reclass', date: '2026-09-20', carve_out_used: 1,
-      governance_tooling_diff: { files: ['README-zh-CN.md'], reason: 'file was R2 at row time - the residual misclassification' } });
+    const pre = docRow({
+      round: 'grill-tNN-pre-reclass', date: '2026-09-20', carve_out_used: 1,
+      governance_tooling_diff: { files: ['README-zh-CN.md'], reason: 'file was R2 at row time - the residual misclassification' }
+    });
     expect(errsFor([pre])).toEqual([]);
-    const post = docRow({ round: 'grill-tNN-post-reclass', date: '2026-09-23', carve_out_used: 1,
-      governance_tooling_diff: { files: ['README-zh-CN.md'], reason: 'post-effective listing must still hard-fail' } });
+    const post = docRow({
+      round: 'grill-tNN-post-reclass', date: '2026-09-23', carve_out_used: 1,
+      governance_tooling_diff: { files: ['README-zh-CN.md'], reason: 'post-effective listing must still hard-fail' }
+    });
     expect(errsFor([post]).join(' ')).toContain('mislabeled disclosure');
-    const ctl = docRow({ round: 'grill-tNN-ctl', date: '2026-09-20', carve_out_used: 1,
-      governance_tooling_diff: { files: ['AGENTS.md'], reason: 'AGENTS.md was always R3 - no grace exists for it' } });
+    const ctl = docRow({
+      round: 'grill-tNN-ctl', date: '2026-09-20', carve_out_used: 1,
+      governance_tooling_diff: { files: ['AGENTS.md'], reason: 'AGENTS.md was always R3 - no grace exists for it' }
+    });
     expect(errsFor([ctl]).join(' ')).toContain('mislabeled disclosure');
   });
 
@@ -103,12 +109,46 @@ describe('ADR-0080 doc surface (grill-t21 disposition round)', () => {
     expect(r.carve_out_used).toBe(1);
     expect(r.governance_tooling_diff.files.slice().sort()).toEqual([
       '.github/workflows/ci.yml',
+      'bench/polygraph/thresholds.json',
       'scripts/build-governance-anchors.js',
       'scripts/check-governance-inventory.js',
       'scripts/surface-taxonomy.js',
     ]);
+    expect(r.governance_tooling_diff.reason).toContain('Post-audit repair');
     expect(r.deferred_entry).toBe('defer-0066');
     expect(errsFor([r])).toEqual([]);
+  });
+
+  test('coverage leg: the declared channels must cover the committed R2 diff (t21 audit C-1)', () => {
+    const closure = new Set(tax.computeRuntimeClosure(ROOT));
+    const row = {
+      governance_tooling_diff: { files: ['scripts/check-governance-inventory.js'], reason: 'x'.repeat(12) },
+      mechanism_output_diff: { files: ['bench/research/out/g6-publish-replay.json'], reason: 'y'.repeat(12) },
+    };
+    const gaps = cgi.coverageGaps(
+      ['scripts/check-governance-inventory.js', 'bench/polygraph/thresholds.json', 'bench/research/out/g6-publish-replay.json', 'README.md'],
+      row, closure);
+    expect(gaps.undeclaredR2).toEqual(['bench/polygraph/thresholds.json']);
+    expect(gaps.r1).toEqual([]);
+    const covered = Object.assign({}, row, {
+      governance_tooling_diff: { files: row.governance_tooling_diff.files.concat('bench/polygraph/thresholds.json'), reason: row.governance_tooling_diff.reason },
+    });
+    expect(cgi.coverageGaps(['bench/polygraph/thresholds.json'], covered, closure).undeclaredR2).toEqual([]);
+  });
+
+  test('reclass grace requires from:R2 in the log entry (over-exemption tightened)', () => {
+    // The excusal must only fire when the log records the file WAS R2 - a
+    // looser entry must not excuse. checkInventory loads the taxonomy from
+    // disk, so pin the predicate at source level and keep a positive
+    // control: a pre-effective row listing README-zh-CN.md passes under the
+    // real log entry (from:R2 -> to:R3).
+    const src = read(path.join(ROOT, 'scripts', 'check-governance-inventory.js'));
+    expect(src).toContain("rc.from !== 'R2'");
+    const positive = docRow({
+      round: 'grill-tNN-fromctl', date: '2026-09-20', carve_out_used: 1,
+      governance_tooling_diff: { files: ['README-zh-CN.md'], reason: 'grace fires only because the log records from:R2' }
+    });
+    expect(errsFor([positive])).toEqual([]);
   });
 
   test('defer-0066 is the merged ratchet row: four instances + the four elements (D-004)', () => {

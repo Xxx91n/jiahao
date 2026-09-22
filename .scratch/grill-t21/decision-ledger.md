@@ -40,7 +40,7 @@ Records append-only; revisions create new IDs, never edit in place.
 
 ## Closeout (2026-09-22) - disposition round complete
 
-- T-1 done (commit vvy / 845999a): the four zero-R2 claim sites rewritten to the canonical "R1 zero-touch + two R2 files retro-acknowledged via the declared carve-out" form with reason+when+who triples (t20 ledger D-001, spec-t20 sections 0/1/8, next-round.md, t20 report), superseding the 2026-09-20 `carve_out_used:0`-annotation markers; AGENTS.md gained the C-7 split-form evidence-count convention (+ checklist position + two-round lookback). One AGENTS.md write corrupted by `String.replace` `` $` `` substitution was caught by the byte-check and restored pre-commit.
+- T-1 done (commit vvy / 845999a): the four zero-R2 claim sites rewritten to the canonical "R1 zero-touch + two R2 files retro-acknowledged via the declared carve-out" form with reason+when+who triples (t20 ledger D-001, spec-t20 sections 0/1/8, next-round.md, t20 report), superseding the 2026-09-20 `carve_out_used:0`-annotation markers; AGENTS.md gained the C-7 split-form evidence-count convention (+ checklist position + two-round lookback). One AGENTS.md write corrupted by `String.replace`'s dollar-backtick substitution pattern was caught by the byte-check and restored pre-commit.
 - T-2 done (commit orv / 6e83350): surface-taxonomy.js `R3_README_ROOT` predicate; surface-taxonomy.json rule text + `reclassifications` log; check-governance-inventory.js reclass grace (t20-time truth preserved, post-effective listings still hard-fail); build-governance-anchors.js admits `decision-ledger-t20.md` (content-equal copy); ADR-0080 authored; deferred-registry gains `defer-0066` (merged ratchet row, four instances, four elements); wiring pins resynced (index 80, published_tip -> dc6d21b, seed inventory 60, ci.yml suite parity 75); pack-cap surface compression (_doc trims + terse row).
 - T-3 done: battery re-run verbatim `--round grill-t21`; facts canon collected + spliced; clean-tree via Disclosed Re-Capture; this report with `report_commit` null.
 
@@ -66,3 +66,13 @@ Records append-only; revisions create new IDs, never edit in place.
 ### Lookback
 
 - C-7 effectiveness lookback registered for the next two rounds (grill-t22, grill-t23): check that committed prose holds the split-form evidence-count convention.
+
+## Post-audit repairs (2026-09-22, second-party audit of t21 - PASS WITH FINDINGS)
+
+Audit report: `.scratch/grill-t21/reports/2026-09-22-audit.md`; evidence `.scratch/grill-t21/audit-evidence/` (never-commit).
+
+- C-1 (disposed, structural): `bench/polygraph/thresholds.json` - the orv pack-cap `_doc` hand-edit - classified R2 but rode neither gtd.files nor mechanism_output_diff (commit-prose disclosure only). Repaired: the t21 row now lists it (retroactive correction disclosed in the row reason), ADR-0080 names it, and the checker gained the `--coverage-base` coverage leg closing the declared-set-vs-coverage blind spot (the same defect class recurring inside its own repair round). The grace now also requires `rc.from` = 'R2' (over-exemption tightened).
+- C-2 (disposed): the spec-4 '18 evidence files' repair object never existed - the line lives only in immutable commit message a47cde1 and the t20-era repair already landed on the handoff (2026-09-20-round-complete.md:36). Sub-item disposition = rejected-with-rationale; spec-4 marker added; the report closure row split accordingly.
+- C-3 (disposed): the battery regained the inventory-shape leg with a live filter (`-t 'kind enum'` - the t20-era `-t 'grill-t19'` went stale under the C-5 title renames); the header comment now discloses additions AND the restored leg. A coverage leg joined the battery.
+- C-4/C-5 (nits, disposed): report wording corrected - the count-pin resync spanned seven wiring files, not six; the C-5 row is verified-plus-routine-repin, not repaired (the fix landed at t20 post-closeout; ADR-0080 D-E wording was already accurate).
+- Judgment items: check-governance-inventory.js indentation slip fixed; `rc.from` validated by the grace (see C-1); defer-0066 prose-carried elements satisfy the literal requirement (left as-is); the shape-validation duplication noted, not fixed (out of disposition scope).

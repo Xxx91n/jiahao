@@ -284,11 +284,12 @@
    "governance_tooling_diff": {
     "files": [
      ".github/workflows/ci.yml",
+     "bench/polygraph/thresholds.json",
      "scripts/build-governance-anchors.js",
      "scripts/check-governance-inventory.js",
      "scripts/surface-taxonomy.js"
     ],
-    "reason": "Declared carve-out (t21 D-001): the audit C-1 disposition requires machinery edits - the README-* R3 predicate + the reclassification grace (surface-taxonomy/check-governance-inventory), the t20-ledger anchors admission (build-governance-anchors), and the suite-count parity bump for the new wiring suite (ci.yml). ADR-0080 names each edit."
+    "reason": "Declared carve-out (t21 D-001): the audit C-1 disposition requires machinery edits - the README-* R3 predicate + the reclassification grace (surface-taxonomy/check-governance-inventory), the t20-ledger anchors admission (build-governance-anchors), and the suite-count parity bump for the new wiring suite (ci.yml). ADR-0080 names each edit. Post-audit repair (t21 audit C-1, 2026-09-22): bench/polygraph/thresholds.json - the pack-cap _doc trim hand-edit - was omitted from this set at commit time (commit-prose disclosure only); registered retroactively. The checker coverage blind spot the audit proved is closed by the --coverage-base leg, which check-governance-inventory.js gained alongside the rc.from tightening in this same repair window."
    },
    "deferred_entry": "defer-0066",
    "advisory_fired": false,

@@ -29,17 +29,15 @@ docs/agents/domain.md.
   filename or repo-relative path.
 - Committed documentation artifacts (specs, plans, ledgers, handoffs, ADRs,
   registry/JSON syncs) are authored via `fs.writeFileSync` or file-edit
-  tools only — never through escape-interpreting shell layers (heredoc,
-  `echo`, inline `node -e` strings), which eat backslashes, `$names`, and
-  octal sequences (grill-t18 D-006). Post-write: re-read the file and
-  byte-check the critical fragments before committing.
+  tools only — never through escape-interpreting shell layers, which eat
+  backslashes, `$names`, and octal sequences (grill-t18 D-006). Post-write:
+  re-read the file and byte-check the critical fragments before committing.
 - A captured-evidence `$` line names the verbatim argv or is explicitly
   marked display-form (grill-t20, audit B-2 convention).
 - Evidence counts in committed prose write split form ("17 captures + 1
-  fixture"); a bare total is forbidden where a capture/fixture split
-  exists (grill-t21, audit C-7 convention). Checklist tick in the
-  closeout/audit loop; a two-round effectiveness lookback is registered
-  in the round ledger.
+  fixture"); bare totals forbidden where a capture/fixture split exists
+  (grill-t21 C-7; checklist tick in closeout; two-round lookback in the
+  round ledger).
 - Intermediate commits inside a round may be red (t12 audit O-B); only the
   round-final state must be green. A red mid-round commit is not a defect —
   it is disclosed in the round report rather than silently amended.

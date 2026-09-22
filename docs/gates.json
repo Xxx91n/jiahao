@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "_doc": "CI gate family registry (ADR-0034; run-gates.js).",
+  "_doc": "CI gate registry (ADR-0034).",
   "entries": [
     {
       "name": "gates-alignment",

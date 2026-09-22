@@ -1,6 +1,6 @@
 {
  "schema_version": 1,
- "_doc": "iron-law coverage map (ADR-0032 D3).",
+ "_doc": "coverage map (ADR-0032 D3).",
  "laws": {
   "L1": {
    "state": "covered",
