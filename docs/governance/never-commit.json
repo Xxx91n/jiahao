@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0083 D-B: the single source of truth for never-commit labels. Task books and capture harnesses reference rule ids (nc-NNN), never freehand paths; a new label requires the registry extension in the same commit (ADR-0027 coupling precedent). Rules are deprecated, never deleted - 'status' carries the lifecycle, 'since' the registration date.",
+  "rules": [
+    {
+      "id": "nc-001",
+      "pattern": "^\\.scratch/[^/]+/audit\\d*-evidence/",
+      "reason": "audit evidence trees are examiner work product - verbatim captures stay untracked so the audited surface carries no audit-side residue (task-book convention since grill-t13; audit2-evidence second-window trees included)",
+      "since": "2026-09-15",
+      "status": "active"
+    },
+    {
+      "id": "nc-002",
+      "pattern": "\\.patch$",
+      "reason": "round-diff patch files are evidence byproducts of a diff, not records - the commits themselves are the record",
+      "since": "2026-09-15",
+      "status": "active"
+    },
+    {
+      "id": "nc-003",
+      "pattern": "round-commits\\.txt$",
+      "reason": "per-round commit listings are capture artifacts; they regenerate from git log and must never be committed",
+      "since": "2026-09-15",
+      "status": "active"
+    },
+    {
+      "id": "nc-004",
+      "pattern": "^\\.scratch/[^/]+/ref-assets/",
+      "reason": "task-book labeled reference-asset class: user-side raster references, not pipeline inputs (grill-t23 T4-C-2 - the instance that motivated the registry)",
+      "since": "2026-09-22",
+      "status": "active"
+    },
+    {
+      "id": "nc-005",
+      "pattern": "^\\.(codex-tmp|omx|codegraph)/",
+      "reason": "external agent-tool workdirs - generated outside the repo's own pipeline, never part of the tracked surface",
+      "since": "2026-09-15",
+      "status": "active"
+    },
+    {
+      "id": "nc-006",
+      "pattern": "^(bench|probe|test|mr)-artifacts/",
+      "reason": "gate output directories - isomorphic evidence regenerated per run (ADR-0027 D4)",
+      "since": "2026-09-15",
+      "status": "active"
+    },
+    {
+      "id": "nc-007",
+      "pattern": "\\.tgz$",
+      "reason": "derived pack artifacts never enter git (grill-t11 audit F-A1, ADR-0073 D-C)",
+      "since": "2026-09-15",
+      "status": "active"
+    },
+    {
+      "id": "nc-008",
+      "pattern": "\\.log$",
+      "reason": "run logs are host-local evidence byproducts; committed evidence lives under .scratch/*/evidence/ in the capture format",
+      "since": "2026-09-15",
+      "status": "active"
+    },
+    {
+      "id": "nc-009",
+      "pattern": "^host-config-backup/",
+      "reason": "host configuration backups never enter git-tracked dirs (ADR-0073 D-C O-2 forward rule); the private/ secrets dir is .gitignore jurisdiction (ADR-0014) and deliberately keeps one tracked fixture, so it stays out of this registry",
+      "since": "2026-09-15",
+      "status": "active"
+    }
+  ]
+}

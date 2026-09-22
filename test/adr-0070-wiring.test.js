@@ -146,7 +146,7 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () => 
 
   test('the README ADR index carries ADR-0070 (rebuilt, 70 records)', () => {
     const r = read(README);
-    expect(r).toContain('82 architecture decision records');
+    expect(r).toContain('83 architecture decision records');
     expect(r).toContain('[ADR-0070](docs/adr/0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md)');
   });
 

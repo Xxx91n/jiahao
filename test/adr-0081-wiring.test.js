@@ -80,11 +80,12 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
   test('the t22 row is the declared carve-out form naming the round R2 touches', () => {
     const ti = readJson(TREND);
     // grill-t23 landed its own row on top (adr-0082 + .github templates);
-    // the t22 row keeps its pinned shape, addressed by name not by position.
+    // grill-t24 landed its row on top of that (adr-0083 + ci.yml sync);
+    // both keep their pinned shape, addressed by name not by position.
     const row = ti.rounds.find((r) => r.round === 'grill-t22-doc-round');
-    expect(ti.rounds).toHaveLength(17);
-    const latest = ti.rounds[ti.rounds.length - 1];
-    expect(latest.round).toBe('grill-t23-front-face');
+    expect(ti.rounds).toHaveLength(18);
+    const latest = ti.rounds.find((r) => r.round === 'grill-t23-front-face');
+    expect(latest).toBeDefined();
     expect(latest.adr_added).toEqual(['0082']);
     expect(latest.deferred_entry).toBe('defer-0068');
     expect(latest.carve_out_used).toBe(1);
@@ -109,8 +110,8 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
     expect((r.stderr || '') + (r.stdout || '')).not.toContain('execFileSync');
   });
 
-  test('coverage leg: the committed diff anchored at the t23 round base validates the latest row', () => {
-    const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'check-governance-inventory.js'), '--coverage-base', '688e113b658411a1da8f2c838eb03dbdf3bd153d'], { cwd: ROOT, encoding: 'utf8' });
+  test('coverage leg: the committed diff anchored at the t24 round base validates the latest row (re-anchored grill-t24)', () => {
+    const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'check-governance-inventory.js'), '--coverage-base', 'c526de301c5d2d25e653bc910a80a9ae56dd252a'], { cwd: ROOT, encoding: 'utf8' });
     expect(r.status).toBe(0);
   });
 
@@ -126,13 +127,13 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
 
   test('README index rebuilt: 81 records incl. ADR-0081', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('82 architecture decision records');
+    expect(r).toContain('83 architecture decision records');
     expect(r).toContain('0081-repair-window-amend-in-place-coverage-pairing-headroom-watch.md');
   });
 
   test('ci.yml suite parity declares 76 suites (the new wiring suite is counted)', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
-    expect(ci).toContain('--expected-suites 77');
+    expect(ci).toContain('--expected-suites 78');
   });
 
   test('coverageGaps pure export: the R2-undeclared defect shape still fails (regression pin)', () => {

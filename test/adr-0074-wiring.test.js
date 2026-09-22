@@ -142,7 +142,7 @@ describe('README + governance-surface sync', () => {
 
   test('the README ADR index carries ADR-0074 (rebuilt, 74 records)', () => {
     const r = read(README);
-    expect(r).toContain('82 architecture decision records');
+    expect(r).toContain('83 architecture decision records');
     expect(r).toContain('0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md');
   });
 
@@ -199,7 +199,7 @@ describe('R2 action round (2026-09-17): map, re-verification note, dispositions'
     const m = readJson(path.join(ROOT, 'docs', 'rewrite-map.json'));
     expect(m.schema_version).toBe(1);
     expect(m.generated_by).toBe('scripts/build-rewrite-map.js');
-    expect(m.published_tip).toBe('688e113b658411a1da8f2c838eb03dbdf3bd153d'); // grill-t21: tip advanced to the t20 post-repair fixpoint base (stale pin re-pinned, disclosed); grill-t23: published side advanced to the t22 tip (gb-local/main caught up) - re-pinned, disclosed
+    expect(m.published_tip).toBe('c526de301c5d2d25e653bc910a80a9ae56dd252a'); // grill-t21: tip advanced to the t20 post-repair fixpoint base (stale pin re-pinned, disclosed); grill-t23: published side advanced to the t22 tip (gb-local/main caught up) - re-pinned, disclosed; grill-t24: tip advanced to the t23 merge c526de3 after the old-side ref restore (gb-local/pre-purge-line -> 2c93a30) - re-pinned, disclosed
     expect(m.commits.length).toBe(15);
     expect(m.counts.doc_refs).toBe(m.doc_refs.length);
     expect(m.doc_refs.length).toBeGreaterThan(0);

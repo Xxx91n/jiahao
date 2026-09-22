@@ -41,3 +41,9 @@ docs/agents/domain.md.
 - Intermediate commits inside a round may be red (t12 audit O-B); only the
   round-final state must be green. A red mid-round commit is not a defect —
   it is disclosed in the round report rather than silently amended.
+- `but commit` runs with an explicit path/hunk-id allowlist — every id is
+  named in the command; a bare `but commit` (staged-pool sweep) is forbidden
+  for round work (ADR-0083 D-C).
+- After every `but commit`, run `git show --name-only <sha>` and verify the
+  landed file list equals the intended set; any tool sweep past the filter
+  is disclosed in the round report, not silently repaired (ADR-0083 D-C).
