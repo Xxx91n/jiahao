@@ -2412,4 +2412,15 @@ D-004).
 _Avoid_: single-file bilingual mixing; letting the mirror masquerade as
 the pinned text; numeric or dynamic badges
 
+**Declared-vs-Actual Drift (声明-实际漂移)**:
+The governance failure class where a declared intent silently diverges from
+the produced state - a committed evidence artifact frozen at a stale run
+while the report claims green, a never-commit label whose path a tool sweep
+committed anyway, a file allowlist a commit helper ignored. Narrow terms:
+frozen-tree final re-capture (evidence freshness), never-commit
+single-sourcing, commit allowlist + post-commit inspection (ledger t24
+D-001..D-004; convention home ADR-0083).
+_Avoid_: config drift (infrastructure state divergence); any divergence
+not between a declaration and its produced outcome
+
 *End of Glossary*
