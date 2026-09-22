@@ -1,7 +1,8 @@
 // grill-t23 clean-tree re-capture (Disclosed Re-Capture channel): run AFTER
 // the closeout commits land, so the committed evidence reflects the final
 // tree state - not a mid-round state byte-patched to look clean.
-// NEVER_COMMIT: audit\d*-evidence/ + *.patch + round-commits.txt.
+// NEVER_COMMIT: audit\d*-evidence/ + *.patch + round-commits.txt +
+// .scratch/grill-t23/ref-assets/ (task-book labeled never-commit; T4-C-2).
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -9,7 +10,7 @@ const { spawnSync } = require('child_process');
 const ROOT = path.join(__dirname, '..', '..');
 const EVD = path.join(ROOT, '.scratch', 'grill-t23', 'evidence');
 const SELF = '.scratch/grill-t23/evidence/clean-tree.txt';
-const NEVER_COMMIT = /^\.scratch\/[^/]+\/audit\d*-evidence\/|\.patch$|round-commits\.txt$/;
+const NEVER_COMMIT = /^\.scratch\/[^/]+\/audit\d*-evidence\/|\.patch$|round-commits\.txt$|^\.scratch\/grill-t23\/ref-assets\//;
 const st = spawnSync('git', ['status', '--porcelain'], { cwd: ROOT, encoding: 'utf8' });
 const porcelain = (st.stdout || '').split('\n').map(function (s) { return s.replace(/\r$/, ''); }).filter(Boolean);
 const trackedDiffs = porcelain.filter(function (l) { return l.slice(0, 2) !== '??'; });

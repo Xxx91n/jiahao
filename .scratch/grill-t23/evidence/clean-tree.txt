@@ -13,10 +13,12 @@ EXIT 0
 ?? .scratch/grill-t21/audit-evidence/
 ?? .scratch/grill-t21/audit2-evidence/
 ?? .scratch/grill-t22/audit-evidence/
+?? .scratch/grill-t23/audit-evidence/
+?? .scratch/grill-t23/ref-assets/
 
 classification:
   tracked-diff lines: 0
-  untracked lines: 11 (never-commit class or self: 11; other: 0)
-  unexpected untracked: none
+  untracked lines: 13 (never-commit class or self: 12; other: 1)
+  unexpected untracked: .scratch/grill-t23/ref-assets/
 
-verdict: CLEAN
+verdict: DIRTY
