@@ -6,10 +6,10 @@
   "skipped": 0,
   "pack_bytes": 340290,
   "instrument_entries": 27,
-  "rewrite_map_citations": 2237,
+  "rewrite_map_citations": 2238,
   "registry_entries": 62,
   "anchors_count": 18,
-  "battery_as_of_commit": "d36e982",
+  "battery_as_of_commit": "0e951ea",
   "report_commit": null,
   "not_run": [
     "bench-gate",
