@@ -47,13 +47,15 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
     expect(a).toContain('headroom');
   });
 
-  test('defer-0067 registers the pack-cap headroom watch (pending-evaluation, armed band)', () => {
+  test('defer-0067 discharged-by-trigger via the ADR-0082 amendment (grill-t23; registration facts retained)', () => {
     const d = readJson(REG).entries.find((e) => e.id === 'defer-0067');
     expect(d).toBeDefined();
-    expect(d.status).toBe('pending-evaluation');
+    expect(d.status).toBe('closed');
+    expect(d.closed_at).toBe('2026-09-22');
+    expect(d.closed_via).toContain('discharged-by-trigger');
+    expect(d.closed_via).toContain('ADR-0082');
     expect(d.source_adr).toContain('0081');
     expect(d.review_at).toBe('2026-12-15');
-    expect(d.cadence_tier).toBe('quarterly');
     expect(d.unfreeze_if.check).toContain('2048');
     expect(d.rationale).toContain('340258');
   });
@@ -116,13 +118,13 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
 
   test('README index rebuilt: 81 records incl. ADR-0081', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('81 architecture decision records');
+    expect(r).toContain('82 architecture decision records');
     expect(r).toContain('0081-repair-window-amend-in-place-coverage-pairing-headroom-watch.md');
   });
 
   test('ci.yml suite parity declares 76 suites (the new wiring suite is counted)', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
-    expect(ci).toContain('--expected-suites 76');
+    expect(ci).toContain('--expected-suites 77');
   });
 
   test('coverageGaps pure export: the R2-undeclared defect shape still fails (regression pin)', () => {

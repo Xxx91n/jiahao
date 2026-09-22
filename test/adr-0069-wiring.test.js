@@ -304,7 +304,7 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () => 
 
   test('the README ADR index carries ADR-0069 (rebuilt, 77 records)', () => {
     const r = read(README);
-    expect(r).toContain('81 architecture decision records'); // ADR-0077 landed (grill-t16)
+    expect(r).toContain('82 architecture decision records'); // ADR-0077 landed (grill-t16)
     expect(r).toContain('[ADR-0069](docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md)');
   });
 

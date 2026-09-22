@@ -305,7 +305,7 @@ the frozen v3 corpus via `node scripts/check-pairer-regression.js`.
 ## Develop
 
 ```bash
-npm test                              # 1300 tests across 76 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 1307 tests across 77 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
@@ -320,7 +320,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `hooks/` — 6 hook scripts + hooks.json + runtime.js
 - `adapters/` — generated per-host adapters (11 host directories / 23 generated files; ADR-0028 D5)
 - `jiahao-mcp/` — MCP-only adapter (profile parameter)
-- `test/` — 76 test suites, 1300 tests
+- `test/` — 77 test suites, 1307 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 - `private/bench-corpus/` — answer corpora (gitignored, ADR-0036 D2): resolved via JIAHAO_CORPUS_DIR -> install-planted dir -> this repo dir; missing fails closed (ADR-0038 D2). npm consumers and public clones carry none.
 - `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). The index below is a derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js` — do not hand-edit:
@@ -339,7 +339,7 @@ flowchart LR
 <summary>ADR index — derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`</summary>
 
 <!-- adr-index:start -->
-- 81 architecture decision records:
+- 82 architecture decision records:
 - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
 - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
 - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
@@ -421,6 +421,7 @@ flowchart LR
 - [ADR-0079](docs/adr/0079-bilingual-readme-mirror-convention.md) — The Bilingual README Mirror Convention - EN-Primary Dual Files, Autonym Switch Line, Translation Baseline, English-Original Arbitration, Tarball Exemption, and Same-Commit Sync Discipline (grill-t20 documentation round)
 - [ADR-0080](docs/adr/0080-readme-star-r3-predicate-and-taxonomy-reclassification-channel.md) — The README-* R3 Predicate, the Taxonomy Reclassification Channel, and the grill-t20 C-1 Record Repair (grill-t21 documentation round)
 - [ADR-0081](docs/adr/0081-repair-window-amend-in-place-coverage-pairing-headroom-watch.md) — The Repair-Window Amend-in-Place Convention, the Coverage-Base Pairing, and the Pack-Cap Headroom Watch (grill-t22 documentation round)
+- [ADR-0082](docs/adr/0082-tarball-cap-trend-anchor-amendment-defer-0067-armed-band.md) — Tarball-Cap Trend-Anchor Amendment Under the defer-0067 Armed Band
 <!-- adr-index:end -->
 
 </details>
