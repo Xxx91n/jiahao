@@ -144,11 +144,12 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
 
   test('t24 capture artifacts carry the captured-at-head provenance header resolving to a commit', () => {
     const evd = path.join(ROOT, EVD_REL.split('/').join(path.sep));
+    const isCapture = function (f) { return /\.(txt|md)$/.test(f) && !/\.fixture\./.test(f); }; // *.fixture.* files are scan INPUTS, not captures
     const onDisk = fs.existsSync(evd)
-      ? fs.readdirSync(evd).filter(function (f) { return /\.(txt|md)$/.test(f); })
+      ? fs.readdirSync(evd).filter(isCapture)
       : [];
     expect(onDisk.length).toBeGreaterThanOrEqual(10); // floor: the acceptance battery leg set must exist on disk
-    const committed = committedUnder(EVD_REL).filter(function (f) { return /\.(txt|md)$/.test(f); });
+    const committed = committedUnder(EVD_REL).filter(isCapture);
     const names = committed.concat(onDisk.map(function (f) { return EVD_REL + '/' + f; }));
     const seen = new Set();
     for (const f of names) {
@@ -182,7 +183,7 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
       if (anchoring) { anchor = sha; break; }
     }
     expect(anchor).not.toBeNull();
-    for (const f of committedUnder(EVD_REL).filter(function (x) { return /\.(txt|md)$/.test(x); })) {
+    for (const f of committedUnder(EVD_REL).filter(function (x) { return /\.(txt|md)$/.test(x) && !/\.fixture\./.test(x); })) { // *.fixture.* = scan inputs, not captures
       const first = read(path.join(ROOT, f.split('/').join(path.sep))).split(/\r?\n/)[0];
       const m = first.match(HEAD_RE);
       expect(m).not.toBeNull();
