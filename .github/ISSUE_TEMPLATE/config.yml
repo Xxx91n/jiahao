@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Architecture decision records
+    url: https://github.com/Xxx91n/jiahao/tree/main/docs/adr
+    about: Design questions usually already have an ADR — check the index first.
+  - name: Measurement record
+    url: https://github.com/Xxx91n/jiahao#measurement-record
+    about: The adjudicated verdicts and the reproduction invitation live in the README.
