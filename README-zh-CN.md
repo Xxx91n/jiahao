@@ -1,6 +1,6 @@
 [English](README.md) | **中文**
 
-<!-- translation-baseline: 10c45a69cdb4f77067c817a53b95c95b2e2dd14e -->
+<!-- translation-baseline: d597c8a0a66aa4a76f93c6c939591920e4065698 -->
 
 # Jiahao（嘉豪）
 
