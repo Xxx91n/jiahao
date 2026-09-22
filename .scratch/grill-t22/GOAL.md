@@ -8,7 +8,7 @@ Source: t21 audit (PASS WITH FINDINGS, C-1..C-5) + audit handoff recommendation;
 
 ## This round's question
 
-The t21 post-audit repair window (fix(grill-t21) 715eef1 + cascade) repaired C-1..C-5 AND landed both structural candidates (check-governance-inventory --coverage-base leg; rc.from tightening) under its own battery re-run — but the repair chain itself is unaudited second-party, rc.from's policy home is thin (trend reason only), the repair-window amend-in-place convention is now 2x de facto (t20 abf2f83, t21 715eef1) and unwritten, and pack-cap headroom is ~6 bytes (339994/340000) with the cap-amendment path needing a pre-registered ADR slot.
+The t21 post-audit repair window (fix(grill-t21) 715eef1 + cascade) repaired C-1..C-5 AND landed both structural candidates (check-governance-inventory --coverage-base leg; rc.from tightening) under its own battery re-run — but the repair chain itself is unaudited second-party, rc.from's policy home is thin (trend reason only), the repair-window amend-in-place convention is now 2x de facto (t20 abf2f83, t21 715eef1) and unwritten, and pack-cap headroom is ~6 bytes (339994/340000) with the cap-amendment path needing a pre-registered ADR slot. [Disclosed Repair, 2026-09-22 - audit-r2 R2-C-1: at T-0 audit time the measured pack was 340258 - over cap; the charter's own CONTEXT.md addition crossed it undisclosed]
 
 ## Constraints
 

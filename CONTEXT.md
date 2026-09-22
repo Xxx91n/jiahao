@@ -2267,15 +2267,15 @@ t21 D-002; ADR-0078 D-B audit-log convention).
 _Avoid_: hard numeric cap on ADR count, blocking trend alarms
 
 **Repair Window (修复窗口)**:
-The bounded work session that repairs a round's audit findings before the
-next round opens. A repair window owns no trend row: its R2 touches
-register on the repaired round's row in place — governance_tooling_diff.files
-gains the newly touched R2 files and the reason gains a dated post-audit
-note — validated by the checker's --coverage-base leg anchored at the
-round base. The window's own claims are themselves audited by a
-second-party follow-up window before closure; the repair's own battery
-re-run is generator-side evidence only, never verification (ledger t22
-D-001..D-003; ADR-0081; ADR-0076 D-B).
+The bounded session repairing a round's audit findings before the next
+round opens. A repair window owns no trend row: its R2 touches register in
+place on the repaired round's row — governance_tooling_diff.files gains the
+newly touched R2 files, the reason gains a dated post-audit note — and the
+checker's --coverage-base leg, anchored at that row's own round base,
+validates the latest row. The window's claims are audited by a second-party
+follow-up window before closure; its battery re-run is generator-side
+evidence only, never verification (ledger t22 D-001..D-003; ADR-0081;
+ADR-0076 D-B).
 _Avoid_: repair window writing its own trend row; silent row mutation;
 repair accepted on its own battery without independent audit
 

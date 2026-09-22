@@ -8,7 +8,7 @@ Resident charter for any sub-agent executing grill-t22. Authoritative inputs:
 - Prior audit record: D:/Aworker/jiahao/.scratch/grill-t21/reports/2026-09-22-audit.md + handoffs/2026-09-22-audit-handoff.md (already absorbed by a8974cd)
 - GOAL: D:/Aworker/jiahao/.scratch/grill-t22/GOAL.md
 
-Baseline state (verified at grill close): 80 ADRs; 15 trend rows (last = grill-t21-doc-round, carve_out_used:1, gtd.files 5 entries incl. bench/polygraph/thresholds.json, deferred_entry defer-0066); 60 deferred entries; pack 339994/340000 (~6B headroom); check-governance-inventory.js carries the --coverage-base leg + rc.from tightening (both unaudited second-party).
+Baseline state (verified at grill close): 80 ADRs; 15 trend rows (last = grill-t21-doc-round, carve_out_used:1, gtd.files 5 entries incl. bench/polygraph/thresholds.json, deferred_entry defer-0066); 60 deferred entries; pack 339994/340000 (~6B headroom); check-governance-inventory.js carries the --coverage-base leg + rc.from tightening (both unaudited second-party). [Disclosed Repair, 2026-09-22 - grill-t22 fix/dev sub-agent, audit-r2 R2-C-1: the ~6B-headroom baseline was stale inside the charter commit's own shadow - 584f98e added the packed CONTEXT.md Repair Window term and the measured pack moved to 340258 > 340000; disposition per the registered channel, repaired by surface compression this round]
 
 ## T-0 — second-party audit window (runs BEFORE the round, outside it) [D-001, D-002, D-004]
 

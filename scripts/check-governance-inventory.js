@@ -228,8 +228,14 @@ function checkInventory(root, opts) {
     if (o.coverageBase) {
       if (!closureSet) closureSet = new Set(surfaceTaxonomy.computeRuntimeClosure(base));
       const rows = ti.rounds || [];
-      const changed = execFileSync('git', ['diff', '--name-only', o.coverageBase, 'HEAD'], { cwd: base, encoding: 'utf8' })
-        .split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+      let changed;
+      try {
+        changed = execFileSync('git', ['diff', '--name-only', o.coverageBase, 'HEAD'], { cwd: base, encoding: 'utf8' })
+          .split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+      } catch (e) {
+        errors.push('coverage: --coverage-base "' + o.coverageBase + '" unresolvable - git diff failed (audit-r2 R2-C-3)');
+        changed = [];
+      }
       const gaps = coverageGaps(changed, rows[rows.length - 1] || {}, closureSet);
       gaps.r1.forEach(function (f) { errors.push('coverage: ' + f + ' is R1 - zero_product_diff violated (ADR-0076 D-A)'); });
       gaps.undeclaredR2.forEach(function (f) { errors.push('coverage: ' + f + ' is R2 but undeclared in the latest row (t21 audit C-1)'); });
