@@ -2,6 +2,7 @@
 // the closeout commits land, so the committed evidence reflects the final
 // tree state - not a mid-round state byte-patched to look clean. Regex
 // widened: audit2-evidence/ joins audit-evidence/ in the never-commit class.
+'use strict';
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');

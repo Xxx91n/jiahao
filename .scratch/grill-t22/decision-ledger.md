@@ -18,6 +18,14 @@ Sole source of settled conclusions for this round. Columns: ID / original questi
 - defer-0066 (capture-harness ratchet): the t22 harness widened the never-commit regex to cover audit2-evidence - a live instance of the shared-leg smell class; the row stays pending-evaluation (the shared-module instance is the registered exit, not met this round).
 - defer-0067 (pack-cap headroom watch, new): registered armed - the trigger band was already entered at registration time (the charter commit measured 340258 > 340000); the ADR-0062 D-A / ADR-0071 pre-registered cap-amendment channel is the exit.
 
+Backfill (dated amend-in-place, 2026-09-22, grill-t23 disposition T3-C-2): the sweep above omitted chartered named lines; all states verified stable by direct registry/artifact reads, added here in place:
+
+- defer-0060 (CI gate-all channel permanently red - B64 corpus secret + 403 required-check, repository-admin surface): pending-evaluation, review_at 2026-12-15; untouched this round except its own rationale compression under the R2-C-1 registry-row tightening.
+- defer-0064 (build-round-facts collect() red-suite -> exit-2 conflation): pending-evaluation, review_at 2026-12-15; untouched, no action owed.
+- defer-0065 (build-round-facts --report bare-arg asymmetry): pending-evaluation, review_at 2026-12-15; untouched, no action owed.
+- sunset counter (docs/governance/sunset-counter.json, ADR-0075 D-C): consecutive_zeros = 1 of n_target 6, unchanged - no quarterly check-in fell due inside this window; no reset, no missed check-in, activation null.
+- never-commit set (.scratch/*/audit*-evidence/ incl. the widened audit2-evidence class, *.patch, round-commits.txt): present only as untracked working-tree files; none entered the commit surface (clean-tree leg verdict CLEAN).
+
 ### Per-finding closure (audit-r2 R2-C-1..R2-C-4)
 
 - R2-C-1 (material) -> repaired + disclosed: packed-surface compression (registry prose rows + thresholds _doc* trims + CONTEXT term tighten) restored headroom under the ADR-0039 D3 cap - measured 340258 -> under cap, verified by the pack-smoke leg; the cap value is untouched per the charter negative union; the two stale baseline claims carry Disclosed Repair markers; defer-0067 stands armed.
