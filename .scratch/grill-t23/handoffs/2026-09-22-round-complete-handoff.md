@@ -43,11 +43,14 @@ is local-only — **never pushed** (D-006: push not authorized). Base
 3. **Burn-rate advisory at 4 consecutive carve-out rounds** — the next
    round should prefer R3 surfaces; another R2 touch is legal but will
    re-fire the warning.
-4. **GitButler index desync**: `git status`/`ls-files` can show committed
-   files as `D`-staged and never-commit files as `A`. Before any
-   porcelain-based evidence leg, run `git reset -q HEAD` to resync.
-   `recapture-clean-tree.cjs` is the post-commit Disclosed Re-Capture
-   channel — run it after the closeout commits land.
+4. **GitButler index desync + sweep hazard**: `git status`/`ls-files` can
+   show committed files as `D`-staged and never-commit files as `A`. Two
+   commits this round accidentally absorbed never-commit files (`a2e5571`
+   via basename grep, `51a66d3` via the staged `A` pool); both reverted
+   with worktree bytes restored. Before porcelain-based evidence legs run
+   `git reset -q HEAD`; before any commit, diff the staged set against an
+   explicit intended-path allowlist. `recapture-clean-tree.cjs` is the
+   post-commit Disclosed Re-Capture channel — run it after closeout.
 5. **Regen-fixpoint order** (this round's exact recipe): commit content ->
    `build-round-facts --round <slug>` -> `build-rewrite-map` -> facts
    re-collect -> `--report` splice -> commit all three. The map cites
