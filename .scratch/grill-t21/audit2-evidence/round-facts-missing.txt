@@ -1,5 +1,0 @@
-$ node scripts/build-round-facts.js --round grill-t21-audit-nofacts --check --report .scratch/grill-t21/audit2-evidence/missing-facts.fixture.md
-
-EXIT 2
-
-build-round-facts: verifier broken - Command failed: D:\nodejs\node.exe D:\Aworker\jiahao\node_modules\jest\bin\jest.js --json --silent

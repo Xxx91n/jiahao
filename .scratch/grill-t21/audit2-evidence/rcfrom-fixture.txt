@@ -1,8 +1,0 @@
-$ node .scratchgrill-t21audit2-evidencecfrom-fixture.cjs
-
-EXIT 0
-
-A R1->R3 entry errors: ["trend round grill-tNN-fixture: governance_tooling_diff file README-zh-CN.md classifies R3, not R2 - mislabeled disclosure"]
-B R2->R3 entry errors: []
-C missing-from errors: ["trend round grill-tNN-fixture: governance_tooling_diff file README-zh-CN.md classifies R3, not R2 - mislabeled disclosure"]
-RC.FROM GUARD VERIFIED: R1->R3 and missing-from entries do not excuse; R2->R3 does

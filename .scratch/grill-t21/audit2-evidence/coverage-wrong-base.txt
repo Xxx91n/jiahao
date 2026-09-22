@@ -1,7 +1,0 @@
-$ node scripts/check-governance-inventory.js --coverage-base 2ecbddb
-
-EXIT 1
-
-::warning title=Governance carve-out burn-rate::2 consecutive documentation rounds used the governance carve-out - advisory only, never blocks (ADR-0076 D-B)
-::warning title=Governance trend anchor::two consecutive documentation rounds added ADRs (streak 12 >= K=2) - advisory only, never blocks (ADR-0064 D-F)
-FAIL: coverage: scripts/build-round-facts.js is R2 but undeclared in the latest row (t21 audit C-1)

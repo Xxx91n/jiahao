@@ -1,9 +1,0 @@
-$ node .scratch\grill-t21\audit2-evidence\coverage-fixture.cjs
-
-EXIT 0
-
-latest row: grill-t21-doc-round | gtd.files: [".github/workflows/ci.yml","bench/polygraph/thresholds.json","scripts/build-governance-anchors.js","scripts/check-governance-inventory.js","scripts/surface-taxonomy.js"]
-deficient-row coverage errors: ["coverage: bench/polygraph/thresholds.json is R2 but undeclared in the latest row (t21 audit C-1)"]
-real-row coverage errors: []
-pure-fn undeclaredR2: ["bench/polygraph/thresholds.json"] r1: []
-MUST-FAIL VERIFIED: the coverage leg rejects the C-1 defect shape

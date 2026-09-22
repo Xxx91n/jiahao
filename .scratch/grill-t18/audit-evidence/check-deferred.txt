@@ -1,3 +1,0 @@
-$ node scripts/check-deferred.js
-[deferred] OK - 57 entries (47 live, 10 closed/actioned) (no base ref: coupling skipped)
-EXIT 0

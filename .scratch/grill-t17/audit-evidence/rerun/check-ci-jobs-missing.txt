@@ -1,2 +1,0 @@
-
-[stderr] check-ci-jobs: verifier broken - ENOENT: no such file or directory, open 'D:\nonexistent.yml'

@@ -1,3 +1,0 @@
-$ node scripts/build-governance-anchors.js --check
-[governance-anchors] OK - 17 artifacts, digests in sync
-EXIT 0

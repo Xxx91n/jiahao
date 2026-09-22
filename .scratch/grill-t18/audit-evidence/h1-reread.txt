@@ -1,1 +1,0 @@
-scanned 261 committed .scratch/*.md files; 0 with signatures
