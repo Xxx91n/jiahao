@@ -1,0 +1,7 @@
+captured-at-head: 7690fec25d38e7f78c081faeb7887a881e488918
+$ node -e js-yaml parse .github/workflows/ci.yml
+
+EXIT 0
+
+js-yaml parse OK - top-level keys: name, on, jobs
+jobs: gate-all, test, summary

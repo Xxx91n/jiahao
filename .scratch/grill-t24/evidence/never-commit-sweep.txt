@@ -1,0 +1,35 @@
+captured-at-head: 7690fec25d38e7f78c081faeb7887a881e488918
+$ node <registry-driven untracked-path sweep>
+
+EXIT 1
+
+registry: docs/governance/never-commit.json (schema_version 1, 9 rules: 9 active, 0 deprecated)
+
+rule enumeration:
+  nc-001 [active] ^\.scratch/[^/]+/audit\d*-evidence/  (since 2026-09-15)
+  nc-002 [active] \.patch$  (since 2026-09-15)
+  nc-003 [active] round-commits\.txt$  (since 2026-09-15)
+  nc-004 [active] ^\.scratch/[^/]+/ref-assets/  (since 2026-09-22)
+  nc-005 [active] ^\.(codex-tmp|omx|codegraph)/  (since 2026-09-15)
+  nc-006 [active] ^(bench|probe|test|mr)-artifacts/  (since 2026-09-15)
+  nc-007 [active] \.tgz$  (since 2026-09-15)
+  nc-008 [active] \.log$  (since 2026-09-15)
+  nc-009 [active] ^host-config-backup/  (since 2026-09-15)
+
+untracked-path classification (14 entries):
+  nc-001+nc-002  .scratch/grill-t13/audit-evidence/r2-round-diff.patch
+  nc-001  .scratch/grill-t14/audit-evidence/
+  nc-001+nc-002  .scratch/grill-t15/audit-evidence/round-diff.patch
+  nc-001  .scratch/grill-t16/audit-evidence/
+  nc-001  .scratch/grill-t17/audit-evidence/
+  nc-001  .scratch/grill-t18/audit-evidence/
+  nc-001  .scratch/grill-t19/audit-evidence/
+  nc-001  .scratch/grill-t20/audit-evidence/
+  nc-001  .scratch/grill-t21/audit-evidence/
+  nc-001  .scratch/grill-t21/audit2-evidence/
+  nc-001  .scratch/grill-t22/audit-evidence/
+  nc-001  .scratch/grill-t23/audit-evidence/
+  nc-004  .scratch/grill-t23/ref-assets/
+  UNCOVERED .scratch/grill-t24/evidence/
+
+verdict: 1 UNCOVERED PATHS

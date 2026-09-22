@@ -1,0 +1,8 @@
+captured-at-head: 7690fec25d38e7f78c081faeb7887a881e488918
+$ node --check <round scripts + wiring suite>
+
+EXIT 0
+
+$ node --check .scratch/grill-t24/capture-battery.cjs -> 0
+$ node --check .scratch/grill-t24/recapture-clean-tree.cjs -> 0
+$ node --check test/adr-0083-wiring.test.js -> 0

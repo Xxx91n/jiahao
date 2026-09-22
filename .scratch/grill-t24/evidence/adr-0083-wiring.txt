@@ -1,0 +1,31 @@
+captured-at-head: 7690fec25d38e7f78c081faeb7887a881e488918
+$ node D:\Aworker\jiahao\node_modules\jest\bin\jest.js test/adr-0083-wiring.test.js
+
+EXIT 0
+
+PASS test/adr-0083-wiring.test.js
+  ADR-0083 doc surface (grill-t24 drift-clause round)
+    √ title, status, date, ledger + spec anchors (4 ms)
+    √ D-A evidence freshness: ordering invariant + idempotent endpoint + captured-at-head + qualification/archival split
+    √ D-B never-commit single-sourcing: id-referenced labels + same-commit coupling + deprecate-not-delete (1 ms)
+    √ D-C commit allowlist + post-commit inspection (self-drafted, receipts named)
+    √ D-D suite-count sync obligation codified
+    √ D-E audit-window inheritance: the three check lines declared mandatory scope (1 ms)
+    √ never-commit.json registry validity (schema + rule shape + compilable patterns) (5 ms)
+    √ registry seed covers the historical never-commit classes (positive probes + one negative) (1 ms)
+    √ tracked tree is clean of every active never-commit rule (git ls-tree -r HEAD) (41 ms)
+    √ AGENTS.md carries the commit allowlist + post-commit inspection clause (D-C) (1 ms)
+    √ t24 capture artifacts carry the captured-at-head provenance header resolving to a commit (442 ms)
+    √ D-A ordering invariant: every committed capture names a sha at-or-after the freshness anchor (280 ms)
+    √ ci.yml --expected-suites equals the live glob(test/*.test.js) count + lower bound + known-file hit (1 ms)
+    √ defer-0069 registers the audit-window check lines first live firing (pending-evaluation, tide) (2 ms)
+    √ the t24 trend row is the declared single-file carve-out form (1 ms)
+    √ coverage leg: the committed diff anchored at the t24 round base validates the latest row (119 ms)
+    √ CONTEXT umbrella term names the three narrow mechanisms verbatim (1 ms)
+    √ README index rebuilt: 83 records incl. ADR-0083
+
+Test Suites: 1 passed, 1 total
+Tests:       18 passed, 18 total
+Snapshots:   0 total
+Time:        1.301 s, estimated 2 s
+Ran all test suites matching /test\\adr-0083-wiring.test.js/i.

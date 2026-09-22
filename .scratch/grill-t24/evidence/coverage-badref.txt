@@ -1,0 +1,11 @@
+captured-at-head: 7690fec25d38e7f78c081faeb7887a881e488918
+$ node scripts/check-governance-inventory.js --coverage-base not-a-real-ref
+
+EXIT 1
+
+fatal: ambiguous argument 'not-a-real-ref': unknown revision or path not in the working tree.
+Use '--' to separate paths from revisions, like this:
+'git <command> [<revision>...] -- [<file>...]'
+::warning title=Governance carve-out burn-rate::5 consecutive documentation rounds used the governance carve-out - advisory only, never blocks (ADR-0076 D-B)
+::warning title=Governance trend anchor::two consecutive documentation rounds added ADRs (streak 15 >= K=2) - advisory only, never blocks (ADR-0064 D-F)
+FAIL: coverage: --coverage-base "not-a-real-ref" unresolvable - git diff failed (audit-r2 R2-C-3)

@@ -1,0 +1,27 @@
+captured-at-head: 7690fec25d38e7f78c081faeb7887a881e488918
+$ git status --porcelain
+
+EXIT 0
+
+ M bench/research/out/g6-publish-replay.json
+?? .scratch/grill-t13/audit-evidence/r2-round-diff.patch
+?? .scratch/grill-t14/audit-evidence/
+?? .scratch/grill-t15/audit-evidence/round-diff.patch
+?? .scratch/grill-t16/audit-evidence/
+?? .scratch/grill-t17/audit-evidence/
+?? .scratch/grill-t18/audit-evidence/
+?? .scratch/grill-t19/audit-evidence/
+?? .scratch/grill-t20/audit-evidence/
+?? .scratch/grill-t21/audit-evidence/
+?? .scratch/grill-t21/audit2-evidence/
+?? .scratch/grill-t22/audit-evidence/
+?? .scratch/grill-t23/audit-evidence/
+?? .scratch/grill-t23/ref-assets/
+?? .scratch/grill-t24/evidence/
+
+classification (registry docs/governance/never-commit.json, 9 active rules):
+  tracked-diff lines: 1
+  untracked lines: 14 (never-commit class or self: 13; other: 1)
+  unexpected untracked: .scratch/grill-t24/evidence/
+
+verdict: DIRTY
