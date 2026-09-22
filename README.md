@@ -1,12 +1,24 @@
 **English** | [中文](README-zh-CN.md)
 
-# Jiahao (嘉豪)
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/brand/logo-dark.png">
+    <img src="docs/assets/brand/logo.png" alt="jiahao mark — the hooded anti-mascot" width="140">
+  </picture>
+</p>
 
-Prompt-as-mental-model skill distribution with **dual profiles** for LLM agents.
+<h1 align="center">Jiahao (嘉豪)</h1>
 
-![license: MIT](https://img.shields.io/badge/license-MIT-blue)
-![profiles: generator | verifier](https://img.shields.io/badge/profiles-generator%20%7C%20verifier-blue)
-![channel: npx github:](https://img.shields.io/badge/channel-npx%20github%3A-blue)
+<p align="center">
+  Prompt-as-mental-model skill distribution with <b>dual profiles</b> for LLM agents.
+</p>
+
+<p align="center">
+  <img src="docs/assets/badge-license.svg" alt="license: MIT">
+  <img src="docs/assets/badge-profiles.svg" alt="profiles: generator | verifier">
+  <img src="docs/assets/badge-channel.svg" alt="channel: npx github:">
+  <img src="docs/assets/badge-verdict.svg" alt="measurement: publicly failed — v2">
+</p>
 
 **Status — an installable discipline scaffold with publicly failed measurement**
 (ADR-0069). Install channel, hook wiring and claim discipline are real and
@@ -20,7 +32,7 @@ That verdict adjudicates the scorer artifact `src/port/score.js` — failure
 class: construct misalignment (it fired on “looks like an exit report”,
 not on claim-evidence contradiction). A deterministic claim-evidence pairer
 is the CAPA repair track; adjudicated through devin-corpus@v3 names the v3
-route (single-shot verdict landed 2026-09-16: falsification-passed - v3
+route (single-shot verdict landed 2026-09-16: falsification-passed — v3
 section below). **Nothing on this page is a detector-effectiveness claim.**
 
 ## What it does
@@ -37,6 +49,8 @@ verifier role. Pick once at install:
 |---------|--------------|----------|
 | **generator** | The primary Agent doing the work | 3 surface-signal rules (no evidence → no claim, list verified state changes, verification = calling a tool). **Advisory only** — never blocks. |
 | **verifier** (default) | The audit Agent reviewing the work | 7 iron laws + 6-rung verification ladder + hash chain + confidence calibration + bias guards. **Blocking** on missing evidence. |
+
+<p align="center"><img src="docs/assets/hero.svg" alt="generator | information boundary | verifier -> six-rung ladder -> PASS / FAIL / ESCALATE / NOT VERIFIED" width="880"></p>
 
 The generator profile attacks surface signals inside the primary agent (you
 cannot self-verify — verified advice); the verifier runs in a separate
@@ -135,6 +149,8 @@ isolation in addition.
 
 ## Verification Ladder
 
+<p align="center"><img src="docs/assets/diagrams/verification-ladder.svg" alt="the six-rung verification ladder" width="880"></p>
+
 1. Deterministic machine check (test suites, compilers, hash comparisons)
 2. Ground truth comparison (database state, oracle output)
 3. Independent re-execution (re-run, re-query, replay)
@@ -198,6 +214,18 @@ not part of the tarball and is never distributed via npm. Run it from a clone
 source-only; ADR-0059 D-B). An MCP publish channel is deferred (defer-0029).
 
 ## Measurement record
+
+Verdicts at a glance — every line below is bound verbatim in its own
+subsection further down this page; nothing here is a detector-effectiveness
+claim on real traffic.
+
+| Channel | Corpus | Verdict | Date | Record |
+| --- | --- | --- | --- | --- |
+| T-6 confirmatory (product port) | polygraph-bench @994bdeb3, 396 items | CONFIRMATORY PASS (in-sample replay) | T-6 round | [ADR-0065](docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md) |
+| devin-corpus@v1 OOT | seeded bench, n=52, lie=12 | indeterminate | 2026-09-15 | [ADR-0067](docs/adr/0067-devin-corpus-v1-oot-falsification-adjudication.md) |
+| devin-corpus@v2 OOT | seeded bench, n=120, lie=31, FP=21/89 | **failed** | 2026-09-15 | [ADR-0068](docs/adr/0068-devin-corpus-v2-dual-axis-adjudication-collection-protocol-claim-slot-v3-binding.md) |
+| devin-corpus@v3 OOT (CAPA pairer) | seeded bench, n=120, lie=36, FP=0/84 | passed | 2026-09-16 | [ADR-0069](docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md) |
+
 
 ### Confirmatory claims (T-6, ADR-0065 D-E)
 
@@ -313,6 +341,10 @@ node scripts/check-drift.js           # CI drift check + profile purity
 
 ## Architecture
 
+The dual-profile flow: advisory generator -> claim -> independent verifier -> six-rung ladder -> four verdict states.
+
+<p align="center"><img src="docs/assets/diagrams/dual-profile.svg" alt="dual-profile install flow" width="880"></p>
+
 - `src/SKILL.md` — single source of truth (generator + verifier + shared Boundaries)
 - `src/gate.js` — verification gate combination ladder (PASS / FAIL / ESCALATE / NOT VERIFIED)
 - `scripts/resolve.js` — human adjudication CLI (two-phase anti-anchoring write-back)
@@ -322,18 +354,8 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `jiahao-mcp/` — MCP-only adapter (profile parameter)
 - `test/` — 77 test suites, 1307 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
-- `private/bench-corpus/` — answer corpora (gitignored, ADR-0036 D2): resolved via JIAHAO_CORPUS_DIR -> install-planted dir -> this repo dir; missing fails closed (ADR-0038 D2). npm consumers and public clones carry none.
-- `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). The index below is a derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js` — do not hand-edit:
-
-The dual-profile flow: advisory generator -> claim -> independent verifier -> six-rung ladder -> four verdict states.
-
-```mermaid
-flowchart LR
-  G["generator profile<br/>3 surface-signal rules (advisory)"] --> C[claim]
-  C --> V["independent verifier<br/>7 iron laws (blocking)"]
-  V --> L["6-rung verification ladder"]
-  L --> O{PASS / FAIL / ESCALATE / NOT VERIFIED}
-```
+- `private/bench-corpus/` — answer corpora (gitignored, ADR-0036 D2): resolved via JIAHAO_CORPUS_DIR -> install-planted dir -> this repo dir; missing fails closed (ADR-0038 D2). npm-distributed runtime paths never reference it (ADR-0038 D1).
+- `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). The index below is a derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`.
 
 <details>
 <summary>ADR index — derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`</summary>
