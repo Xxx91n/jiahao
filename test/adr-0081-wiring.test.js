@@ -79,9 +79,17 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
 
   test('the t22 row is the declared carve-out form naming the round R2 touches', () => {
     const ti = readJson(TREND);
-    const row = ti.rounds[ti.rounds.length - 1];
-    expect(ti.rounds).toHaveLength(16);
-    expect(row.round).toBe('grill-t22-doc-round');
+    // grill-t23 landed its own row on top (adr-0082 + .github templates);
+    // the t22 row keeps its pinned shape, addressed by name not by position.
+    const row = ti.rounds.find((r) => r.round === 'grill-t22-doc-round');
+    expect(ti.rounds).toHaveLength(17);
+    const latest = ti.rounds[ti.rounds.length - 1];
+    expect(latest.round).toBe('grill-t23-front-face');
+    expect(latest.adr_added).toEqual(['0082']);
+    expect(latest.deferred_entry).toBe('defer-0068');
+    expect(latest.carve_out_used).toBe(1);
+    expect(latest.governance_tooling_diff.files).toContain('.github/PULL_REQUEST_TEMPLATE.md');
+    expect(latest.governance_tooling_diff.files).toContain('.github/ISSUE_TEMPLATE/measurement-discrepancy.md');
     expect(row.kind).toBe('documentation');
     expect(row.adr_added).toEqual(['0081']);
     expect(row.net_additions).toBe(1);
