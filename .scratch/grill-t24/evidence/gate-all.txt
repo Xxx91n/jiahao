@@ -1,7 +1,7 @@
-captured-at-head: 9efe7b69c1cf1bbba8a9e8b4c0f047fd251198f5
+captured-at-head: 0debb5c3c2135ccb5aa12b0c29a9b3cc5783b70a
 $ node scripts/run-gates.js
 
-EXIT 1
+EXIT 0
 
 [0 gates-alignment] PASS
 gates alignment OK (35 entries, 3 meta-checks)
@@ -135,16 +135,16 @@ falsification OK: 12 twin pairs
 > jiahao@0.0.1 prepare
 > git config core.hooksPath .githooks || true
 
-(node:14088) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(node:19748) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 [197 governance-anchors] PASS
 [governance-anchors] OK - 18 artifacts, digests in sync
 [198 governance-inventory] PASS
 [governance-inventory] OK: 35 entries, live source_adr, unique commands, closed references
-[208 rewrite-map] FAIL
-[rewrite-map] FAIL: docs\rewrite-map.json is stale — regenerate with node scripts/build-rewrite-map.js
+[208 rewrite-map] PASS
+[rewrite-map] OK: map in sync (2491 doc citations classified)
 [218 secret-scan] PASS
 [secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 1201/1201/1201; oversized-skip 0
 ::warning title=gate:all::3 advisory/band warning(s) from gates: instrument-identity, governance-inventory
 ::error title=UNVERIFIABLE::4 gate(s) unverifiable: ci-wiring requires ci-mode, bench-gate requires ci-mode, probes requires ci-mode, mr-probes requires ci-mode
-gate:all exit 1 (35 entries, 4 unverifiable, fail-fast off)
+gate:all exit 0 (35 entries, 4 unverifiable, fail-fast off)
