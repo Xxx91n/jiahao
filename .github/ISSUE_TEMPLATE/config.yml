@@ -1,3 +1,8 @@
+# Carve-out disclosure (ADR-0076 D-B, grill-t23 D-007): this file is part of
+# the declared .github/ front-face carve-out — necessity: issue-template
+# contact links route reporters to the ADR index and the measurement record
+# instead of opening void issues; disclosure: this comment + the round
+# report's carve-out section + the trend row's governance_tooling_diff.
 blank_issues_enabled: true
 contact_links:
   - name: Architecture decision records

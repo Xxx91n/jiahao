@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-22T12:13:04.959Z",
+  "generated_at": "2026-09-22T13:11:50.274Z",
   "published_tip": "688e113b658411a1da8f2c838eb03dbdf3bd153d",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -23,11 +23,11 @@
     "published_only": 123,
     "removed": 0,
     "same": 278,
-    "doc_refs": 2246,
+    "doc_refs": 2318,
     "doc_refs_by_class": {
       "rewritten": 103,
-      "local-only": 786,
-      "published-unchanged": 1357
+      "local-only": 850,
+      "published-unchanged": 1365
     }
   },
   "commits": [
@@ -13695,6 +13695,37 @@
       "label": "unresolved hex literal"
     },
     {
+      "file": ".scratch/grill-t23/handoffs/2026-09-22-audit-handoff.md",
+      "line": 5,
+      "sha": "688e113",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/handoffs/2026-09-22-audit-handoff.md",
+      "line": 5,
+      "sha": "9b27a5e",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/handoffs/2026-09-22-audit-handoff.md",
+      "line": 20,
+      "sha": "8effaaf",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/handoffs/2026-09-22-audit-handoff.md",
+      "line": 23,
+      "sha": "51a66d3",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
       "file": ".scratch/grill-t23/handoffs/2026-09-22-round-complete-handoff.md",
       "line": 5,
       "sha": "688e113",
@@ -13740,6 +13771,327 @@
       "resolved_to": null
     },
     {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 5,
+      "sha": "688e113",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 5,
+      "sha": "9b27a5e",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 5,
+      "sha": "e77513e",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 5,
+      "sha": "a2e5571",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 5,
+      "sha": "837fca7",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 5,
+      "sha": "51a66d3",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 5,
+      "sha": "0e951ea",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 6,
+      "sha": "688e113",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 11,
+      "sha": "6e12154",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 23,
+      "sha": "688e113",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 41,
+      "sha": "688e113",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 41,
+      "sha": "688e113",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 42,
+      "sha": "6e12154",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 46,
+      "sha": "d597c8a",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 46,
+      "sha": "acf5388",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 46,
+      "sha": "8effaaf",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 46,
+      "sha": "e308d8e",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 50,
+      "sha": "8effaaf",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 53,
+      "sha": "688e113",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 54,
+      "sha": "688e113",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 59,
+      "sha": "a2e5571",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 59,
+      "sha": "837fca7",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 59,
+      "sha": "51a66d3",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 59,
+      "sha": "0e951ea",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 59,
+      "sha": "6e12154",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 61,
+      "sha": "51a66d3",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 61,
+      "sha": "8cf0625",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 61,
+      "sha": "9b27a5e",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 67,
+      "sha": "657d422",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 77,
+      "sha": "1c08356",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 78,
+      "sha": "58ba705",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 82,
+      "sha": "8effaaf",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 82,
+      "sha": "ec44625",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 82,
+      "sha": "d597c8a",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 85,
+      "sha": "51a66d3",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 85,
+      "sha": "6e12154",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 98,
+      "sha": "a2e5571",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 98,
+      "sha": "51a66d3",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 98,
+      "sha": "837fca7",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 98,
+      "sha": "0e951ea",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "line": 101,
+      "sha": "8effaaf",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 5,
       "sha": "688e113",
@@ -13749,7 +14101,7 @@
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 30,
-      "sha": "6e12154",
+      "sha": "0bf3394",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -13891,8 +14243,16 @@
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 53,
+      "sha": "e841ce5",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 54,
-      "sha": "ddab9b4",
+      "sha": "d6ac5d2",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -13900,7 +14260,7 @@
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 55,
-      "sha": "22f2053",
+      "sha": "1c08356",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -13908,7 +14268,7 @@
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 56,
-      "sha": "a2e5571",
+      "sha": "33e8597",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -13916,7 +14276,15 @@
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 57,
-      "sha": "837fca7",
+      "sha": "e92992e",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 57,
+      "sha": "16ff956",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -13924,15 +14292,7 @@
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 58,
-      "sha": "bda0227",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
-    },
-    {
-      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
-      "line": 58,
-      "sha": "2173d53",
+      "sha": "22f2053",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -13940,7 +14300,7 @@
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 59,
-      "sha": "d36e982",
+      "sha": "a2e5571",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -13948,7 +14308,7 @@
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 60,
-      "sha": "51a66d3",
+      "sha": "66995c7",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -13956,6 +14316,62 @@
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
       "line": 61,
+      "sha": "837fca7",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 62,
+      "sha": "ddab9b4",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 63,
+      "sha": "bda0227",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 63,
+      "sha": "2173d53",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 64,
+      "sha": "8cf0625",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 65,
+      "sha": "d36e982",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 67,
+      "sha": "51a66d3",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 68,
       "sha": "3762f6b",
       "class": "local-only",
       "resolved_to": null,
@@ -13963,7 +14379,7 @@
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
-      "line": 62,
+      "line": 69,
       "sha": "0e951ea",
       "class": "local-only",
       "resolved_to": null,
@@ -13971,7 +14387,7 @@
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
-      "line": 62,
+      "line": 69,
       "sha": "51a66d3",
       "class": "local-only",
       "resolved_to": null,
@@ -13979,7 +14395,55 @@
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
-      "line": 102,
+      "line": 70,
+      "sha": "1b505a4",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 71,
+      "sha": "6e12154",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 72,
+      "sha": "9b27a5e",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 73,
+      "sha": "154f918",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 74,
+      "sha": "0bf3394",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 78,
+      "sha": "6e12154",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 127,
       "sha": "a2e5571",
       "class": "local-only",
       "resolved_to": null,
@@ -13987,7 +14451,7 @@
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
-      "line": 103,
+      "line": 128,
       "sha": "837fca7",
       "class": "local-only",
       "resolved_to": null,
@@ -13995,21 +14459,69 @@
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
-      "line": 108,
+      "line": 133,
       "sha": "688e113",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
-      "line": 120,
+      "line": 145,
       "sha": "688e113",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
-      "line": 154,
+      "line": 173,
+      "sha": "657d422",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 173,
+      "sha": "3a8c3b2",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 181,
+      "sha": "154f918",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 186,
+      "sha": "0bf3394",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 190,
+      "sha": "8effaaf",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 193,
+      "sha": "51a66d3",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 218,
       "sha": "dba54e9",
       "class": "local-only",
       "resolved_to": null,
@@ -14017,7 +14529,7 @@
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
-      "line": 161,
+      "line": 225,
       "sha": "a2e5571",
       "class": "local-only",
       "resolved_to": null,
@@ -14025,7 +14537,7 @@
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
-      "line": 163,
+      "line": 227,
       "sha": "837fca7",
       "class": "local-only",
       "resolved_to": null,
@@ -14033,7 +14545,7 @@
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
-      "line": 165,
+      "line": 229,
       "sha": "51a66d3",
       "class": "local-only",
       "resolved_to": null,
@@ -14041,8 +14553,64 @@
     },
     {
       "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
-      "line": 166,
+      "line": 230,
       "sha": "0e951ea",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 237,
+      "sha": "8effaaf",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 239,
+      "sha": "ec44625",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 244,
+      "sha": "58ba705",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 245,
+      "sha": "0bf3394",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 247,
+      "sha": "51a66d3",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 249,
+      "sha": "8cf0625",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "line": 249,
+      "sha": "9b27a5e",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -14050,7 +14618,7 @@
     {
       "file": ".scratch/grill-t23/round-facts.json",
       "line": 12,
-      "sha": "6e12154",
+      "sha": "0bf3394",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
