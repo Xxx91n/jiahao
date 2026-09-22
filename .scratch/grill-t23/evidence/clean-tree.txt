@@ -18,7 +18,7 @@ EXIT 0
 
 classification:
   tracked-diff lines: 0
-  untracked lines: 13 (never-commit class or self: 12; other: 1)
-  unexpected untracked: .scratch/grill-t23/ref-assets/
+  untracked lines: 13 (never-commit class or self: 13; other: 0)
+  unexpected untracked: none
 
-verdict: DIRTY
+verdict: CLEAN
