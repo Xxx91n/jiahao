@@ -339,7 +339,7 @@ flowchart LR
 <summary>ADR index — derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`</summary>
 
 <!-- adr-index:start -->
-- 80 architecture decision records:
+- 81 architecture decision records:
 - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
 - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
 - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
@@ -420,6 +420,7 @@ flowchart LR
 - [ADR-0078](docs/adr/0078-fix-round-disclosure-taxonomy.md) — The Fix-Round Disclosure Taxonomy - kind:fix and the Reused governance_tooling_diff Channel (grill-t18 disposition round)
 - [ADR-0079](docs/adr/0079-bilingual-readme-mirror-convention.md) — The Bilingual README Mirror Convention - EN-Primary Dual Files, Autonym Switch Line, Translation Baseline, English-Original Arbitration, Tarball Exemption, and Same-Commit Sync Discipline (grill-t20 documentation round)
 - [ADR-0080](docs/adr/0080-readme-star-r3-predicate-and-taxonomy-reclassification-channel.md) — The README-* R3 Predicate, the Taxonomy Reclassification Channel, and the grill-t20 C-1 Record Repair (grill-t21 documentation round)
+- [ADR-0081](docs/adr/0081-repair-window-amend-in-place-coverage-pairing-headroom-watch.md) — The Repair-Window Amend-in-Place Convention, the Coverage-Base Pairing, and the Pack-Cap Headroom Watch (grill-t22 documentation round)
 <!-- adr-index:end -->
 
 </details>

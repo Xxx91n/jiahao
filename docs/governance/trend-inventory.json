@@ -299,6 +299,34 @@
     ],
     "reason": "faithful regeneration via check-g6-publish re-run inside gate:all during the acceptance battery - same mechanism the t17/t18/t19/t20 rows disclosed"
    }
+  },
+  {
+   "round": "grill-t22-doc-round",
+   "date": "2026-09-22",
+   "kind": "documentation",
+   "adr_added": [
+    "0081"
+   ],
+   "adr_superseded_or_closed": [],
+   "net_additions": 1,
+   "zero_product_diff": true,
+   "carve_out_used": 1,
+   "governance_tooling_diff": {
+    "files": [
+     ".github/workflows/ci.yml",
+     "bench/polygraph/thresholds.json",
+     "scripts/check-governance-inventory.js"
+    ],
+    "reason": "Declared carve-out (t22 D-001/D-003; audit-r2 R2-C-1/R2-C-3 dispositions): check-governance-inventory.js gains the keyed unresolvable-ref FAIL (try/catch around the execFileSync diff - R2-C-3 machinery repair); thresholds.json carries the pack-surface _doc* trims restoring headroom under the ADR-0039 D3 cap after the charter commit crossed it undisclosed (340258 > 340000 - the charter's own CONTEXT.md term addition; R2-C-1 physical repair, Disclosed Repair markers on the two stale ~6B-headroom claims); ci.yml carries the ADR-0057 D-C suite-parity bump 75->76 forced by the new adr-0081 wiring suite. No runtime surface moved."
+   },
+   "deferred_entry": "defer-0067",
+   "advisory_fired": false,
+   "mechanism_output_diff": {
+    "files": [
+     "bench/research/out/g6-publish-replay.json"
+    ],
+    "reason": "faithful regeneration via check-g6-publish re-run inside gate:all during the acceptance battery - same mechanism the t17/t18/t19/t20/t21 rows disclosed; the replay records the post-repair pack size against the committed record"
+   }
   }
  ],
  "source_adr": "0064"

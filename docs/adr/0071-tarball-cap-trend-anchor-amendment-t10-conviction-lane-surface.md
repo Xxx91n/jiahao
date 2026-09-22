@@ -1,6 +1,6 @@
 # ADR-0071: Tarball-Cap Trend-Anchor Amendment for the T-10 Conviction-Lane Surface
 
-Status: Accepted (user-ratified 2026-09-16 via grill-t10 decision ledger; second_reviewer countersign deferred to the next audit round - the ADR-0066 pattern)
+Status: Accepted (user-ratified 2026-09-16 via grill-t10 decision ledger; second_reviewer countersign discharged 2026-09-17 via the grill-t14 evidence packet, weak-independent - the "deferred to the next audit round" text was stale residue, corrected under audit-r2 R2-C-4 2026-09-22)
 Date: 2026-09-16
 
 Amends: ADR-0039 D3 (the periodic trend-anchor cap moves 300,000 -> 340,000
@@ -57,6 +57,8 @@ that already failed red.
 
 The second_reviewer countersign stays open; the review rides the
 deferred-registry tide as defer-0051 (review_at 2026-12-15).
+
+Post-audit note (2026-09-22, audit-r2 R2-C-4): the slot discharged 2026-09-17 via the grill-t14 second-party countersign (weak-independent) on the defer-0051 evidence packet - the "stays open" sentence and the status line were stale residue, corrected in place. The audit independently re-verified the amendment arithmetic (302,936 -> 340,000).
 
 ## Rejected
 

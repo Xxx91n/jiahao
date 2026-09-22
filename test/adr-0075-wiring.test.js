@@ -126,9 +126,9 @@ describe('registry + governance-surface sync', () => {
     // the R1->R2 boundary describe below (grill-t15 nit: no double assert).
   });
 
-  test('the README ADR index carries ADR-0075 (rebuilt, 76 records)', () => {
+  test('the README ADR index carries ADR-0075 (rebuilt, 81 records)', () => {
     const r = read(README);
-    expect(r).toContain('80 architecture decision records');
+    expect(r).toContain('81 architecture decision records');
     expect(r).toContain('0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md');
   });
 

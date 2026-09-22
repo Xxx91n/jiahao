@@ -47,8 +47,8 @@
       "tier": "confirmatory"
     }
   ],
-  "_doc_probe_gates": "ADR-0029 D2/D3: structural zero-miss smoke gates over private/bench-corpus/probes.jsonl (7 violation + 7 benign). Band semantics do not apply to zero floors. probe-recall floor = 1 (0 misses); probe-fp floor = 0 (0 false positives).",
-  "_doc_probe_coverage": "ADR-0030 D1: corpus structural floor (interval coverage replaces exactly-once; growth is allowed, shrinkage below floor is not).",
+  "_doc_probe_gates": "ADR-0029 D2/D3: structural zero-miss smoke gates over probes.jsonl (7+7). probe-recall floor=1; probe-fp floor=0; band semantics do not apply to zero floors.",
+  "_doc_probe_coverage": "ADR-0030 D1: corpus structural floor - interval coverage replaces exactly-once; growth allowed, shrinkage below floor is not.",
   "probe_gates": [
     {
       "id": "probe-recall",
@@ -75,7 +75,7 @@
       "tier": "confirmatory"
     }
   ],
-  "_doc_judge_bias_gates": "ADR-0031 D2/D3: judge bias calibration metrics over judge-twins.jsonl v1.1 pairs (style-control / length-control / bias-probe), consumed by bench/polygraph/check-judge-bias.js. Tier rules per ADR-0031 D3: confirmatory gates fail closed; observational gates record and must carry review_at + promote_if (overdue = STALE, refused by check-bench-thresholds.js); swap_order is observational-only forever (ADR-0031 R3).",
+  "_doc_judge_bias_gates": "ADR-0031 D2/D3: judge bias calibration over judge-twins.jsonl v1.1; confirmatory gates fail closed, observational carry review_at + promote_if (overdue=STALE); swap_order observational-only (R3).",
   "judge_bias_gates": [
     {
       "id": "judge-style-flip",
@@ -106,7 +106,7 @@
       "promote_if": "never auto-promoted; ADR-0031 R3 rejects position-swap gating unless new evidence revisits it"
     }
   ],
-  "_doc_private_corpus": "ADR-0036 D2/D3: the three answer corpora live in private/bench-corpus (gitignored, install-planted). Fingerprints are public so any cloner can verify the frozen corpus; content stays private.",
+  "_doc_private_corpus": "ADR-0036 D2/D3: answer corpora live in private/bench-corpus (gitignored, install-planted); fingerprints public for verification, content stays private.",
   "private_corpus": [
     {
       "id": "probes.jsonl",
@@ -129,7 +129,7 @@
       "source_adr": "0037"
     }
   ],
-  "_doc_mr_gates": "ADR-0037 D2/D4: metamorphic-relation symmetry gates over private/bench-corpus/mr-probes.jsonl (third corpus family; preserve = verdict(source)==verdict(followup), flip = inequality; zero-violation plus ADR-0030 D1 corpus floor; consumed by scripts/check-mr-probes.js).",
+  "_doc_mr_gates": "ADR-0037 D2/D4: metamorphic-relation symmetry gates over mr-probes.jsonl (zero violations + ADR-0030 D1 corpus floor); consumed by check-mr-probes.js.",
   "mr_gates": [
     {
       "id": "mr-symmetry",
@@ -157,7 +157,7 @@
       "target": null,
       "source_adr": "0064",
       "tier": "confirmatory",
-      "_doc": "G6 tier (a): JS port token multiset must be bit-equal to sklearn over the 20 frozen gold items; value 0 = zero mismatches tolerated"
+      "_doc": "G6(a): token multiset bit-equal to sklearn over the 20 frozen gold items; 0 mismatches tolerated"
     },
     {
       "id": "g6-feature-vector",
@@ -167,7 +167,7 @@
       "target": null,
       "source_adr": "0064",
       "tier": "confirmatory",
-      "_doc": "G6 tier (b): feature vector relative L2 error vs sklearn < 1e-9 (diagnostic)"
+      "_doc": "G6(b): feature-vector rel-L2 vs sklearn < 1e-9 (diagnostic)"
     },
     {
       "id": "g6-logit",
@@ -177,7 +177,7 @@
       "target": null,
       "source_adr": "0064",
       "tier": "confirmatory",
-      "_doc": "G6 tier (c): decision logit absolute difference vs sklearn < 1e-12 (release)"
+      "_doc": "G6(c): decision-logit abs-diff vs sklearn < 1e-12 (release)"
     },
     {
       "id": "g6-goldens",
@@ -187,7 +187,7 @@
       "target": null,
       "source_adr": "0064",
       "tier": "confirmatory",
-      "_doc": "G6 operates over exactly 20 frozen bench items (gold20.jsonl)"
+      "_doc": "G6 over exactly 20 frozen items (gold20.jsonl)"
     }
   ]
 }
