@@ -1,0 +1,12 @@
+$ node .scratch/grill-t23/check-svg-assets.cjs
+
+EXIT 0
+
+docs/assets/badge-channel.svg: OK
+docs/assets/badge-license.svg: OK
+docs/assets/badge-profiles.svg: OK
+docs/assets/badge-verdict.svg: OK
+docs/assets/diagrams/dual-profile.svg: OK
+docs/assets/diagrams/verification-ladder.svg: OK
+docs/assets/hero.svg: OK
+7 svg files, 0 failed

@@ -1,0 +1,19 @@
+$ node D:\Aworker\jiahao\node_modules\jest\bin\jest.js test/adr-0082-wiring.test.js
+
+EXIT 0
+
+PASS test/adr-0082-wiring.test.js
+  ADR-0082 doc surface (grill-t23 cap-amendment round)
+    √ title, status, date, amends + references anchors (5 ms)
+    √ policy before value: D-A clauses + pinned protocol + derived value + review slot (2 ms)
+    √ ADR-0039 D3 live anchor now reads the amended cap (1 ms)
+    √ defer-0067 discharged-by-trigger via this amendment (2 ms)
+    √ defer-0068 registers the second_reviewer countersign slot (pending-evaluation, tide) (1 ms)
+    √ README index rebuilt: 82 records incl. ADR-0082
+    √ ci.yml suite parity declares 77 suites (the new wiring suite is counted) (1 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       7 passed, 7 total
+Snapshots:   0 total
+Time:        0.452 s, estimated 1 s
+Ran all test suites matching /test\\adr-0082-wiring.test.js/i.

@@ -1,0 +1,50 @@
+$ git status --porcelain
+
+EXIT 0
+
+ M .scratch/grill-t23/reports/2026-09-22-report.md
+ M .scratch/grill-t23/round-facts.json
+?? .scratch/grill-t13/audit-evidence/r2-round-diff.patch
+?? .scratch/grill-t14/audit-evidence/
+?? .scratch/grill-t15/audit-evidence/round-diff.patch
+?? .scratch/grill-t16/audit-evidence/
+?? .scratch/grill-t17/audit-evidence/
+?? .scratch/grill-t18/audit-evidence/
+?? .scratch/grill-t19/audit-evidence/
+?? .scratch/grill-t20/audit-evidence/
+?? .scratch/grill-t21/audit-evidence/
+?? .scratch/grill-t21/audit2-evidence/
+?? .scratch/grill-t22/audit-evidence/
+?? .scratch/grill-t23/evidence/adr-0080-wiring.txt
+?? .scratch/grill-t23/evidence/adr-0081-wiring.txt
+?? .scratch/grill-t23/evidence/adr-0082-wiring.txt
+?? .scratch/grill-t23/evidence/anchors.txt
+?? .scratch/grill-t23/evidence/brand-regen.txt
+?? .scratch/grill-t23/evidence/check-ci-jobs-missing.txt
+?? .scratch/grill-t23/evidence/check-ci-jobs.txt
+?? .scratch/grill-t23/evidence/check-deferred.txt
+?? .scratch/grill-t23/evidence/clean-tree.txt
+?? .scratch/grill-t23/evidence/coverage-badref.txt
+?? .scratch/grill-t23/evidence/coverage.txt
+?? .scratch/grill-t23/evidence/gate-all.txt
+?? .scratch/grill-t23/evidence/governance-inventory.txt
+?? .scratch/grill-t23/evidence/h1-reread.txt
+?? .scratch/grill-t23/evidence/instrument.txt
+?? .scratch/grill-t23/evidence/inventory-shape.txt
+?? .scratch/grill-t23/evidence/liveness.txt
+?? .scratch/grill-t23/evidence/pack-smoke.txt
+?? .scratch/grill-t23/evidence/prose-fixtures.txt
+?? .scratch/grill-t23/evidence/quoted-stale.fixture.md
+?? .scratch/grill-t23/evidence/quoted-stale.txt
+?? .scratch/grill-t23/evidence/reclass-shape.txt
+?? .scratch/grill-t23/evidence/rewrite-map.txt
+?? .scratch/grill-t23/evidence/round-facts.txt
+?? .scratch/grill-t23/evidence/run-test-gate.txt
+?? .scratch/grill-t23/evidence/svg-assets.txt
+
+classification:
+  tracked-diff lines: 2
+  untracked lines: 37 (never-commit class or self: 12; other: 25)
+  unexpected untracked: .scratch/grill-t23/evidence/adr-0080-wiring.txt, .scratch/grill-t23/evidence/adr-0081-wiring.txt, .scratch/grill-t23/evidence/adr-0082-wiring.txt, .scratch/grill-t23/evidence/anchors.txt, .scratch/grill-t23/evidence/brand-regen.txt, .scratch/grill-t23/evidence/check-ci-jobs-missing.txt, .scratch/grill-t23/evidence/check-ci-jobs.txt, .scratch/grill-t23/evidence/check-deferred.txt, .scratch/grill-t23/evidence/coverage-badref.txt, .scratch/grill-t23/evidence/coverage.txt, .scratch/grill-t23/evidence/gate-all.txt, .scratch/grill-t23/evidence/governance-inventory.txt, .scratch/grill-t23/evidence/h1-reread.txt, .scratch/grill-t23/evidence/instrument.txt, .scratch/grill-t23/evidence/inventory-shape.txt, .scratch/grill-t23/evidence/liveness.txt, .scratch/grill-t23/evidence/pack-smoke.txt, .scratch/grill-t23/evidence/prose-fixtures.txt, .scratch/grill-t23/evidence/quoted-stale.fixture.md, .scratch/grill-t23/evidence/quoted-stale.txt, .scratch/grill-t23/evidence/reclass-shape.txt, .scratch/grill-t23/evidence/rewrite-map.txt, .scratch/grill-t23/evidence/round-facts.txt, .scratch/grill-t23/evidence/run-test-gate.txt, .scratch/grill-t23/evidence/svg-assets.txt
+
+verdict: DIRTY
