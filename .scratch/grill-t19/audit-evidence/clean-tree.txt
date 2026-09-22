@@ -1,0 +1,15 @@
+$ git status --porcelain
+
+EXIT 0
+
+tracked diffs: 0
+
+
+untracked (never-commit set): 7
+?? .scratch/grill-t13/audit-evidence/r2-round-diff.patch
+?? .scratch/grill-t14/audit-evidence/
+?? .scratch/grill-t15/audit-evidence/round-diff.patch
+?? .scratch/grill-t16/audit-evidence/
+?? .scratch/grill-t17/audit-evidence/
+?? .scratch/grill-t18/audit-evidence/
+?? .scratch/grill-t19/audit-evidence/
