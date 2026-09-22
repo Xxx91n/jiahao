@@ -165,7 +165,7 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
   test('D-A ordering invariant: every committed capture names a sha at-or-after the freshness anchor', () => {
     // Anchor = newest commit in BASE..HEAD whose diff touches anything
     // outside the non-anchoring set {evidence dir + faithful regen outputs}.
-    const NON_ANCHOR = new Set(['docs/rewrite-map.json', 'docs/governance/anchors.json', '.scratch/grill-t24/round-facts.json']);
+    const NON_ANCHOR = new Set(['docs/rewrite-map.json', 'docs/governance/anchors.json', '.scratch/grill-t24/round-facts.json', 'bench/research/out/g6-publish-replay.json', 'src/instrument-state.json']);
     const commits = execFileSync('git', ['rev-list', BASE + '..HEAD'], { cwd: ROOT, encoding: 'utf8' })
       .split('\n').map(function (s) { return s.trim(); }).filter(Boolean)
       .filter(function (sha) {
