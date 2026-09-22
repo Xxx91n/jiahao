@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-22T05:29:46.861Z",
+  "generated_at": "2026-09-22T05:39:47.113Z",
   "published_tip": "dc6d21b95b7edc18d895ebbe41f649726ead3659",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -23,11 +23,11 @@
     "published_only": 93,
     "removed": 0,
     "same": 278,
-    "doc_refs": 1924,
+    "doc_refs": 1928,
     "doc_refs_by_class": {
       "rewritten": 103,
-      "local-only": 796,
-      "published-unchanged": 1025
+      "local-only": 799,
+      "published-unchanged": 1026
     }
   },
   "commits": [
@@ -11036,7 +11036,7 @@
       "sha": "584f98e",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t21/handoffs/2026-09-22-audit-r2-handoff.md",
@@ -11123,7 +11123,7 @@
       "sha": "584f98e",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t21/reports/2026-09-22-audit-r2.md",
@@ -11131,7 +11131,7 @@
       "sha": "584f98e",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t21/reports/2026-09-22-audit-r2.md",
@@ -11170,7 +11170,7 @@
       "sha": "584f98e",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t21/reports/2026-09-22-audit-r2.md",
@@ -11194,7 +11194,7 @@
       "sha": "584f98e",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t21/reports/2026-09-22-audit-r2.md",
@@ -11231,7 +11231,7 @@
       "sha": "584f98e",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t21/reports/2026-09-22-audit-r2.md",
@@ -11247,7 +11247,7 @@
       "sha": "584f98e",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t21/reports/2026-09-22-audit-r2.md",
@@ -11262,7 +11262,7 @@
       "sha": "584f98e",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t21/reports/2026-09-22-audit-r2.md",
@@ -11692,7 +11692,7 @@
       "sha": "584f98e",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t22/handoffs/next-round.md",
@@ -15205,6 +15205,37 @@
       "sha": "a8e0bdb",
       "class": "published-unchanged",
       "resolved_to": null
+    },
+    {
+      "file": "docs/adr/0081-repair-window-amend-in-place-coverage-pairing-headroom-watch.md",
+      "line": 10,
+      "sha": "a8974cd",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": "docs/adr/0081-repair-window-amend-in-place-coverage-pairing-headroom-watch.md",
+      "line": 10,
+      "sha": "b93a5df",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": "docs/adr/0081-repair-window-amend-in-place-coverage-pairing-headroom-watch.md",
+      "line": 10,
+      "sha": "abf2f83",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": "docs/adr/0081-repair-window-amend-in-place-coverage-pairing-headroom-watch.md",
+      "line": 10,
+      "sha": "715eef1",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
     },
     {
       "file": "docs/gates.json",

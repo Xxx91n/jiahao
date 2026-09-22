@@ -1,0 +1,27 @@
+$ git status --porcelain
+
+EXIT 0
+
+ M bench/research/out/g6-publish-replay.json
+ M docs/rewrite-map.json
+?? .scratch/grill-t13/audit-evidence/r2-round-diff.patch
+?? .scratch/grill-t14/audit-evidence/
+?? .scratch/grill-t15/audit-evidence/round-diff.patch
+?? .scratch/grill-t16/audit-evidence/
+?? .scratch/grill-t17/audit-evidence/
+?? .scratch/grill-t18/audit-evidence/
+?? .scratch/grill-t19/audit-evidence/
+?? .scratch/grill-t20/audit-evidence/
+?? .scratch/grill-t21/audit-evidence/
+?? .scratch/grill-t21/audit2-evidence/
+?? .scratch/grill-t22/capture-battery.cjs
+?? .scratch/grill-t22/evidence/
+?? .scratch/grill-t22/reports/
+?? .scratch/grill-t22/round-facts.json
+
+classification:
+  tracked-diff lines: 2
+  untracked lines: 14 (never-commit class or self: 10; other: 4)
+  unexpected untracked: .scratch/grill-t22/capture-battery.cjs, .scratch/grill-t22/evidence/, .scratch/grill-t22/reports/, .scratch/grill-t22/round-facts.json
+
+verdict: DIRTY

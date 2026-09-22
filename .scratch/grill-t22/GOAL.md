@@ -1,5 +1,7 @@
 # grill-t22 — GOAL
 
+Status: SETTLED 2026-09-22. T-0 audit PASS WITH FINDINGS; all four findings disposed (R2-C-1 repaired + disclosed, R2-C-2..C-4 closed); ADR-0081 + defer-0067 landed; battery green. Report: reports/2026-09-22-report.md.
+
 Source: t21 audit (PASS WITH FINDINGS, C-1..C-5) + audit handoff recommendation; the recommended disposition was already consumed by the post-audit repair window (a8974cd..b93a5df).
 
 ## Pain (invariant)
