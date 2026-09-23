@@ -1,13 +1,13 @@
-captured-at-head: a8b18b43196aff80e712bade43da1ec1057bce37
+captured-at-head: 614e7a4a92c7bd82253ec5420b314c2c0ac5199f
 $ git clone --no-local . <tmp>; for-each-ref gb-local; --check; --published-only
 
 EXIT 1
 
-$ git clone --no-local . C:\Users\ADMINI~1\AppData\Local\Temp\jh-t25-clone-d7GQmr  -> exit 0
+$ git clone --no-local . C:\Users\ADMINI~1\AppData\Local\Temp\jh-t25-clone-Tld32l  -> exit 0
 $ git for-each-ref refs/remotes/gb-local/  -> "" (empty = the public-clone shape)
 $ node scripts/build-rewrite-map.js --check  -> exit 2 (expected 2: UNVERIFIABLE, never red)
 ::error title=UNVERIFIABLE,gate=rewrite-map,requires=old-side-refs::capability old-side-refs deterministically absent
 [rewrite-map] UNVERIFIABLE: declared capability old-side-refs is absent — the gb-local/* pre-rewrite refs exist only on the maintainer object store and never publish; on a public clone the clone-verifiable subset is node scripts/build-rewrite-map.js --published-only
 $ node scripts/build-rewrite-map.js --published-only  -> exit 1 (expected 0: the clone-verifiable subset)
 [rewrite-map] PUBLISHED-ONLY FAIL:
-doc citation coverage differs (first missing: .scratch/grill-t25/evidence/clone-acceptance.txt:1:9bd1afdaeee45b58bd288d04ed78d0a6cd2dff10, .scratch/grill-t25/handoffs/2026-09-24-round-handoff.md:21:bbf5259, .scratch/grill-t25/reports/2026-09-24-report.md:18:bbf5259)
+doc citation coverage differs (first missing: .scratch/grill-t25/evidence/clone-sim.txt:13:9bd1afdaeee45b58bd288d04ed78d0a6cd2dff10, .scratch/grill-t25/evidence/clone-sim.txt:13:bbf5259, .scratch/grill-t25/evidence/clone-sim.txt:13:bbf5259, .scratch/grill-t25/evidence/clone-sim.txt:1:a8b18b43196aff80e712bade43da1ec1057bce37)
