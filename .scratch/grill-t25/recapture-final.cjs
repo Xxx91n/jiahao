@@ -19,8 +19,10 @@ for (const d of ['grill-t24', 'grill-t25']) {
   leg(d, 'rewrite-map.txt', 'node scripts/build-rewrite-map.js --check', run(['scripts/build-rewrite-map.js', '--check']));
   leg(d, 'round-facts.txt', 'node scripts/build-round-facts.js --round ' + d + ' --check --report .scratch/' + d + '/reports/' + (d === 'grill-t24' ? '2026-09-23' : '2026-09-24') + '-report.md',
     run(['scripts/build-round-facts.js', '--round', d, '--check', '--report', '.scratch/' + d + '/reports/' + (d === 'grill-t24' ? '2026-09-23' : '2026-09-24') + '-report.md']));
-  leg(d, 'run-test-gate.txt', 'node scripts/run-test-gate.js --expected-suites ' + (d === 'grill-t24' ? '78' : '79'),
-    run(['scripts/run-test-gate.js', '--expected-suites', d === 'grill-t24' ? '78' : '79']));
+  // the recapture asserts the CURRENT gate contract (79 suites, ADR-0083 D-D) -
+  // the t24 evidence file records the verbatim argv of the re-run, not the era pin.
+  leg(d, 'run-test-gate.txt', 'node scripts/run-test-gate.js --expected-suites 79',
+    run(['scripts/run-test-gate.js', '--expected-suites', '79']));
 }
 leg('grill-t24', 'adr-0083-wiring.txt', 'node ' + JEST + ' test/adr-0083-wiring.test.js', run([JEST, 'test/adr-0083-wiring.test.js']));
 leg('grill-t25', 'rewrite-map-published.txt', 'node scripts/build-rewrite-map.js --published-only', run(['scripts/build-rewrite-map.js', '--published-only']));
