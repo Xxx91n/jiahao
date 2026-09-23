@@ -179,7 +179,7 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
       const files = execFileSync('git', ['diff-tree', '--no-commit-id', '--name-only', '-r', sha], { cwd: ROOT, encoding: 'utf8' })
         .split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
       const anchoring = files.some(function (f) {
-        return f.indexOf(EVD_REL + '/') !== 0 && !NON_ANCHOR.has(f);
+        return !/^\.scratch\/grill-t\d+\/evidence\//.test(f) && !NON_ANCHOR.has(f);
       });
       if (anchoring) { anchor = sha; break; }
     }
