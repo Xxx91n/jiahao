@@ -1,4 +1,6 @@
-captured-at-head: 320bd431bf9f05397b196df619c01de0caad919f
+captured-at-head: 07433c07f177d961bae84a0c95c6b799e5265f6f
 $ node scripts/build-governance-anchors.js --check
+
 EXIT 0
+
 [governance-anchors] OK - 18 artifacts, digests in sync
