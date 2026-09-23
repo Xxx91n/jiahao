@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-23T13:04:52.897Z",
+  "generated_at": "2026-09-23T13:08:12.983Z",
   "published_tip": "fc390d5e778db567d12b072f7a25cbf1e73b03f8",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -25,8 +25,8 @@
     "doc_refs": 2571,
     "doc_refs_by_class": {
       "rewritten": 104,
-      "local-only": 779,
-      "published-unchanged": 1688
+      "local-only": 781,
+      "published-unchanged": 1686
     }
   },
   "commits": [
@@ -16330,9 +16330,10 @@
     {
       "file": ".scratch/grill-t24/reports/2026-09-23-report.md",
       "line": 33,
-      "sha": "1271e63",
-      "class": "published-unchanged",
-      "resolved_to": null
+      "sha": "8814a68",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
     },
     {
       "file": ".scratch/grill-t24/reports/2026-09-23-report.md",
@@ -16540,9 +16541,10 @@
     {
       "file": ".scratch/grill-t24/round-facts.json",
       "line": 12,
-      "sha": "1271e63",
-      "class": "published-unchanged",
-      "resolved_to": null
+      "sha": "8814a68",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
     },
     {
       "file": ".scratch/grill-t25/GOAL.md",
