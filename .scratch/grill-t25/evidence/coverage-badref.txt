@@ -1,4 +1,4 @@
-captured-at-head: 22b1ed2b8a18d1182ae87c1922754e368b6a1ca1
+captured-at-head: 4fe3ccf9d4cf948ba98ca88ac9a7c1f668238ff1
 $ node scripts/check-governance-inventory.js --coverage-base not-a-real-ref
 
 EXIT 1

@@ -1,4 +1,4 @@
-captured-at-head: 22b1ed2b8a18d1182ae87c1922754e368b6a1ca1
+captured-at-head: 4fe3ccf9d4cf948ba98ca88ac9a7c1f668238ff1
 $ git status --porcelain
 
 EXIT 0
@@ -21,13 +21,19 @@ EXIT 0
  M .scratch/grill-t24/evidence/never-commit-sweep.txt
  M .scratch/grill-t24/evidence/pack-smoke.txt
  M .scratch/grill-t24/evidence/prose-fixtures.txt
- M .scratch/grill-t24/evidence/quoted-stale.fixture.md
  M .scratch/grill-t24/evidence/quoted-stale.txt
  M .scratch/grill-t24/evidence/reclass-shape.txt
  M .scratch/grill-t24/evidence/rewrite-map.txt
  M .scratch/grill-t24/evidence/round-facts.txt
  M .scratch/grill-t24/evidence/run-test-gate.txt
+ M .scratch/grill-t25/evidence/gate-all.txt
+ M .scratch/grill-t25/evidence/never-commit-sweep.txt
+ M .scratch/grill-t25/evidence/rewrite-map-published.txt
+ M .scratch/grill-t25/evidence/rewrite-map.txt
+ M .scratch/grill-t25/evidence/round-facts.txt
+ M .scratch/grill-t25/evidence/run-test-gate.txt
  M bench/research/out/g6-publish-replay.json
+ M docs/rewrite-map.json
 ?? .scratch/grill-t13/audit-evidence/r2-round-diff.patch
 ?? .scratch/grill-t14/audit-evidence/
 ?? .scratch/grill-t15/audit-evidence/round-diff.patch
@@ -43,7 +49,7 @@ EXIT 0
 ?? .scratch/grill-t23/ref-assets/
 
 classification (registry docs/governance/never-commit.json, 9 active rules):
-  tracked-diff lines: 25
+  tracked-diff lines: 31
   untracked lines: 13 (never-commit class or self: 13; other: 0)
   unexpected untracked: none
 
