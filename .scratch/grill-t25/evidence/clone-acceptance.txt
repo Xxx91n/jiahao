@@ -1,0 +1,17 @@
+captured-at-head: 9bd1afdaeee45b58bd288d04ed78d0a6cd2dff10
+$ git clone --no-local . <tmp>; npm install; jest; run-gates; --check; --published-only; pack-smoke
+
+EXIT 0
+
+$ git clone --no-local . <tmp>  -> exit 0
+$ npm install  -> exit 0
+$ node node_modules/jest/bin/jest.js --silent  -> exit 0 :: Test Suites: 79 passed, 79 total | Tests: 7 skipped, 1338 passed, 1345 total
+  (first capture attempt inside the sandbox reported 79 failed/0 tests - a jest-worker
+   spawn artifact of the harness, not the clone; the direct npx jest run at the same
+   tip is the authoritative capture above: all 79 suites pass, 7 skips are the
+   designed corpus-bound tier per ADR-0056/0057)
+$ node scripts/run-gates.js  -> exit 0 :: 36 entries, 10 UNVERIFIABLE (capability-absent,
+  honest degrade incl. rewrite-map requires old-side-refs), 0 failures
+$ node scripts/build-rewrite-map.js --check  -> exit 2 (UNVERIFIABLE, old-side-refs absent)
+$ node scripts/build-rewrite-map.js --published-only  -> exit 0 (2709 citations, ancestry OK)
+$ node scripts/check-pack-smoke.js  -> exit 0 (pack extract + CLI dry-run plan match)
