@@ -1,7 +1,6 @@
-captured-at-head: 6d5bce20704e21e19bc279efd4e27939fdcfc969
+captured-at-head: 9c1c5ad665b7c46eff55a759c8bb93785e0c1f37
 $ node scripts/build-rewrite-map.js --published-only
 
-EXIT 1
+EXIT 0
 
-[rewrite-map] PUBLISHED-ONLY FAIL:
-doc citation coverage differs (first missing: .scratch/grill-t25/evidence/clone-acceptance.txt:1:5ca4504ec131ba7abc7834ee12efb1bc6271be07)
+[rewrite-map] PUBLISHED-ONLY OK: 2747 citations covered, class enum + counts consistent, published-side ancestry verified against origin/main
