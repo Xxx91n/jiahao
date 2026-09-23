@@ -213,7 +213,7 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
     expect(row.adr_added).toEqual(['0084']);
     expect(row.net_additions).toBe(1);
     expect(row.deferred_entry).toBe('defer-0071');
-    expect(row.zero_product_diff).toBe(false);
+    expect(row.zero_product_diff).toBe(true);
     expect(row.governance_tooling_diff.files).toContain('scripts/build-rewrite-map.js');
     expect(row.governance_tooling_diff.files).toContain('src/shared/capability.js');
     expect(row.governance_tooling_diff.files).toContain('test/rewrite-map.test.js');

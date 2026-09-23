@@ -393,7 +393,7 @@
       ],
       "adr_superseded_or_closed": [],
       "net_additions": 1,
-      "zero_product_diff": false,
+      "zero_product_diff": true,
       "carve_out_used": 0,
       "governance_tooling_diff": {
         "files": [
