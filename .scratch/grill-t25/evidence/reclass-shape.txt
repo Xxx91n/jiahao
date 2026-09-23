@@ -5,8 +5,8 @@ EXIT 0
 
 PASS test/adr-0080-wiring.test.js
   ADR-0080 doc surface (grill-t21 disposition round)
-    √ taxonomy artifact carries the reclassifications log + the README-* rule text (4 ms)
-    √ gtd recompute grace: pre-effective rows listing a reclassified file pass; post-effective rows still fail (65 ms)
+    √ taxonomy artifact carries the reclassifications log + the README-* rule text (3 ms)
+    √ gtd recompute grace: pre-effective rows listing a reclassified file pass; post-effective rows still fail (62 ms)
     √ reclass grace requires from:R2 in the log entry (over-exemption tightened) (21 ms)
     ○ skipped title, status, date, ledger + spec anchors
     ○ skipped ADR-0080 registers the required policy content (audit C-1 contract)

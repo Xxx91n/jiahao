@@ -1,4 +1,4 @@
-captured-at-head: 5a66b30910df44a549c9ff6fe4961faf357dd9a2
+captured-at-head: 22b1ed2b8a18d1182ae87c1922754e368b6a1ca1
 $ node --check <round scripts + wiring suite>
 
 EXIT 0

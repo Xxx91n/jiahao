@@ -1,0 +1,10 @@
+captured-at-head: 22b1ed2b8a18d1182ae87c1922754e368b6a1ca1
+$ node --check <t25 round scripts + wiring suite>
+
+EXIT 0
+
+$ node --check .scratch/grill-t25/capture-battery.cjs -> 0
+$ node --check scripts/build-rewrite-map.js -> 0
+$ node --check scripts/check-secret-scan.js -> 0
+$ node --check src/shared/capability.js -> 0
+$ node --check test/adr-0084-wiring.test.js -> 0

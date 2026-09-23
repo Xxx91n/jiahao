@@ -1,0 +1,7 @@
+captured-at-head: 22b1ed2b8a18d1182ae87c1922754e368b6a1ca1
+$ node scripts/build-rewrite-map.js --published-only
+
+EXIT 1
+
+[rewrite-map] PUBLISHED-ONLY FAIL:
+doc citation coverage differs (first missing: .scratch/grill-t24/evidence/adr-0083-wiring.txt:1:22b1ed2b8a18d1182ae87c1922754e368b6a1ca1, .scratch/grill-t24/evidence/anchors.txt:1:22b1ed2b8a18d1182ae87c1922754e368b6a1ca1, .scratch/grill-t24/evidence/check-ci-jobs-missing.txt:1:22b1ed2b8a18d1182ae87c1922754e368b6a1ca1, .scratch/grill-t24/evidence/check-ci-jobs.txt:1:22b1ed2b8a18d1182ae87c1922754e368b6a1ca1, .scratch/grill-t24/evidence/check-deferred.txt:1:22b1ed2b8a18d1182ae87c1922754e368b6a1ca1)

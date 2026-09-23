@@ -135,7 +135,7 @@ falsification OK: 12 twin pairs
 > jiahao@0.0.1 prepare
 > git config core.hooksPath .githooks || true
 
-(node:2836) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(node:17120) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 [197 governance-anchors] PASS
 [governance-anchors] OK - 18 artifacts, digests in sync
@@ -145,7 +145,7 @@ falsification OK: 12 twin pairs
 [rewrite-map] FAIL: docs\rewrite-map.json is stale — regenerate with node scripts/build-rewrite-map.js
 [209 rewrite-map-published] FAIL
 [rewrite-map] PUBLISHED-ONLY FAIL:
-doc citation coverage differs (first missing: .scratch/grill-t25/reports/2026-09-24-report.md:18:8814a68, .scratch/grill-t25/reports/2026-09-24-report.md:28:bbf5259, .scratch/grill-t25/reports/2026-09-24-report.md:4:fc390d5, .scratch/grill-t25/round-facts.json:12:8814a68)
+doc citation coverage differs (first missing: .scratch/grill-t24/evidence/adr-0083-wiring.txt:1:22b1ed2b8a18d1182ae87c1922754e368b6a1ca1, .scratch/grill-t24/evidence/anchors.txt:1:22b1ed2b8a18d1182ae87c1922754e368b6a1ca1, .scratch/grill-t24/evidence/check-ci-jobs-missing.txt:1:22b1ed2b8a18d1182ae87c1922754e368b6a1ca1, .scratch/grill-t24/evidence/check-ci-jobs.txt:1:22b1ed2b8a18d1182ae87c1922754e368b6a1ca1, .scratch/grill-t24/evidence/check-deferred.txt:1:22b1ed2b8a18d1182ae87c1922754e368b6a1ca1)
 [218 secret-scan] PASS
 [secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 1215/1215/1215; oversized-skip 0; commit-messages 523
 ::warning title=gate:all::3 advisory/band warning(s) from gates: instrument-identity, governance-inventory

@@ -8,6 +8,7 @@ EXIT 0
  M .scratch/grill-t24/evidence/check-ci-jobs-missing.txt
  M .scratch/grill-t24/evidence/check-ci-jobs.txt
  M .scratch/grill-t24/evidence/check-deferred.txt
+ M .scratch/grill-t24/evidence/clean-tree.txt
  M .scratch/grill-t24/evidence/compile-node-check.txt
  M .scratch/grill-t24/evidence/compile-yaml.txt
  M .scratch/grill-t24/evidence/coverage-badref.txt
@@ -41,10 +42,11 @@ EXIT 0
 ?? .scratch/grill-t22/audit-evidence/
 ?? .scratch/grill-t23/audit-evidence/
 ?? .scratch/grill-t23/ref-assets/
+?? .scratch/grill-t25/evidence/
 
 classification (registry docs/governance/never-commit.json, 9 active rules):
-  tracked-diff lines: 25
-  untracked lines: 13 (never-commit class or self: 13; other: 0)
-  unexpected untracked: none
+  tracked-diff lines: 26
+  untracked lines: 14 (never-commit class or self: 13; other: 1)
+  unexpected untracked: .scratch/grill-t25/evidence/
 
 verdict: DIRTY
