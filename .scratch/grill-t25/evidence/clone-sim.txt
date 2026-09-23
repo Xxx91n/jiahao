@@ -1,13 +1,13 @@
-captured-at-head: b3d93427827c01fdfd76aac070de74d6708f3d31
+captured-at-head: e419e83eafaeb5e3129dae8eafb629f9bd963bae
 $ git clone --no-local . <tmp>; for-each-ref gb-local; --check; --published-only
 
 EXIT 1
 
-$ git clone --no-local . C:\Users\ADMINI~1\AppData\Local\Temp\jh-t25-clone-f7vKuo  -> exit 0
+$ git clone --no-local . C:\Users\ADMINI~1\AppData\Local\Temp\jh-t25-clone-BedPJV  -> exit 0
 $ git for-each-ref refs/remotes/gb-local/  -> "" (empty = the public-clone shape)
 $ node scripts/build-rewrite-map.js --check  -> exit 2 (expected 2: UNVERIFIABLE, never red)
 ::error title=UNVERIFIABLE,gate=rewrite-map,requires=old-side-refs::capability old-side-refs deterministically absent
 [rewrite-map] UNVERIFIABLE: declared capability old-side-refs is absent — the gb-local/* pre-rewrite refs exist only on the maintainer object store and never publish; on a public clone the clone-verifiable subset is node scripts/build-rewrite-map.js --published-only
 $ node scripts/build-rewrite-map.js --published-only  -> exit 1 (expected 0: the clone-verifiable subset)
 [rewrite-map] PUBLISHED-ONLY FAIL:
-doc citation coverage differs (first missing: .scratch/grill-t24/evidence/adr-0083-wiring.txt:1:c405d47f67478b00ac3180fa6418dddace7b0306, .scratch/grill-t24/evidence/anchors.txt:1:c405d47f67478b00ac3180fa6418dddace7b0306, .scratch/grill-t24/evidence/check-ci-jobs-missing.txt:1:c405d47f67478b00ac3180fa6418dddace7b0306, .scratch/grill-t24/evidence/check-ci-jobs.txt:1:c405d47f67478b00ac3180fa6418dddace7b0306, .scratch/grill-t24/evidence/check-deferred.txt:1:c405d47f67478b00ac3180fa6418dddace7b0306)
+doc citation coverage differs (first missing: .scratch/grill-t24/evidence/clean-tree.txt:1:b3d93427827c01fdfd76aac070de74d6708f3d31, .scratch/grill-t25/evidence/clean-tree.txt:1:b3d93427827c01fdfd76aac070de74d6708f3d31, .scratch/grill-t25/evidence/clone-sim.txt:13:c405d47f67478b00ac3180fa6418dddace7b0306, .scratch/grill-t25/evidence/clone-sim.txt:13:c405d47f67478b00ac3180fa6418dddace7b0306, .scratch/grill-t25/evidence/clone-sim.txt:13:c405d47f67478b00ac3180fa6418dddace7b0306)
