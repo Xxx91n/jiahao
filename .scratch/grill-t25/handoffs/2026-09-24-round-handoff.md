@@ -55,6 +55,11 @@ acceptance trio).
   sees them, `ls-tree HEAD` does not. Unstage before regen.
 - **Allowlist grep on basenames sweeps neighbors.** `clean-tree` matched
   prior rounds' `audit-evidence/` files; always allowlist by full path.
+- **`git rev-parse HEAD` is not a durable citation under GitButler lanes.**
+  With multiple branches applied, HEAD is the ephemeral Workspace Commit —
+  absent from any clone's object store. Cite the durable tip instead:
+  `git log -1 --invert-grep --grep=^GitButler Workspace Commit HEAD`
+  (the capture-battery scripts already do this; inline leg runners must too).
 - **canon as_of is terminal-stale by design.** `round-facts.json` embeds the
   collect-time map count; the closing wave's own header sites grow the map.
   The committed `--check --report` leg records the green at the wave anchor;
