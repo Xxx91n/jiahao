@@ -333,7 +333,7 @@ the frozen v3 corpus via `node scripts/check-pairer-regression.js`.
 ## Develop
 
 ```bash
-npm test                              # 1325 tests across 78 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 1345 tests across 79 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
@@ -352,7 +352,7 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 - `hooks/` — 6 hook scripts + hooks.json + runtime.js
 - `adapters/` — generated per-host adapters (11 host directories / 23 generated files; ADR-0028 D5)
 - `jiahao-mcp/` — MCP-only adapter (profile parameter)
-- `test/` — 78 test suites, 1325 tests
+- `test/` — 79 test suites, 1345 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 - `private/bench-corpus/` — answer corpora (gitignored, ADR-0036 D2): resolved via JIAHAO_CORPUS_DIR -> install-planted dir -> this repo dir; missing fails closed (ADR-0038 D2). npm-distributed runtime paths never reference it (ADR-0038 D1).
 - `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). The index below is a derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`.
