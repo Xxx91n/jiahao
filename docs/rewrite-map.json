@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-23T14:30:25.505Z",
+  "generated_at": "2026-09-23T14:36:09.339Z",
   "published_tip": "fc390d5e778db567d12b072f7a25cbf1e73b03f8",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -22,10 +22,10 @@
     "published_only": 210,
     "removed": 0,
     "same": 278,
-    "doc_refs": 2710,
+    "doc_refs": 2709,
     "doc_refs_by_class": {
       "rewritten": 104,
-      "local-only": 816,
+      "local-only": 815,
       "published-unchanged": 1790
     }
   },
@@ -12012,14 +12012,6 @@
       "sha": "715eef1",
       "class": "published-unchanged",
       "resolved_to": null
-    },
-    {
-      "file": ".scratch/grill-t22/audit-evidence/clean-tree.txt",
-      "line": 21,
-      "sha": "cdaa73da5faf",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t22/decision-ledger.md",
