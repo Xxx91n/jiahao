@@ -1,4 +1,4 @@
-captured-at-head: 43e1cf0d6a6dc0d4514d08a75262d84855389292
+captured-at-head: bbf52592072db608bdf159966766dbfc19c948c4
 $ node <registry-driven untracked-path sweep>
 
 EXIT 0

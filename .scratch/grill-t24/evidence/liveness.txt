@@ -1,5 +1,5 @@
-captured-at-head: 9efe7b69c1cf1bbba8a9e8b4c0f047fd251198f5
-$ node D:\nodejs\node_modules\npm\bin\npm-cli.js pack --pack-destination C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-bquUD8
+captured-at-head: bbf52592072db608bdf159966766dbfc19c948c4
+$ node D:\nodejs\node_modules\npm\bin\npm-cli.js pack --pack-destination C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-DETrg3
 
 
 > jiahao@0.0.1 prepare
@@ -39,7 +39,7 @@ npm notice 12.7kB bench/polygraph/README.md
 npm notice 5.8kB bench/polygraph/thresholds.json
 npm notice 904B docs/change-surface.json
 npm notice 2.5kB docs/coverage-map.json
-npm notice 73.3kB docs/deferred-registry.json
+npm notice 74.1kB docs/deferred-registry.json
 npm notice 14.5kB docs/gates.json
 npm notice 1.3kB hooks/jiahao-activate.js
 npm notice 1.5kB hooks/jiahao-hooks.json
@@ -126,15 +126,15 @@ npm notice Tarball Details
 npm notice name: jiahao
 npm notice version: 0.0.1
 npm notice filename: jiahao-0.0.1.tgz
-npm notice package size: 341.1 kB
+npm notice package size: 341.2 kB
 npm notice unpacked size: 1.2 MB
-npm notice shasum: 950d08fa718957d03bba0fff3ffd531fde162118
-npm notice integrity: sha512-DW1ohhBK8rCLJ[...]fhMpdn6O99o+Q==
+npm notice shasum: 618a2d534a95055909959d63874b4d583456b705
+npm notice integrity: sha512-GvdX1CGVVmN3o[...]LaCGKstd+iRyA==
 npm notice total files: 113
 npm notice
 
 tarball: jiahao-0.0.1.tgz extract exit=0
-$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-bquUD8\package\scripts\install.js --help (extracted tarball copy)
+$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-DETrg3\package\scripts\install.js --help (extracted tarball copy)
 jiahao v0.0.1 — install .jiahao-profile flag
 
 Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
@@ -143,7 +143,7 @@ Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
 Writes ONLY C:\Users\Administrator\.jiahao-profile
 Tier 0 manual: echo "verifier" > C:\Users\Administrator\.jiahao-profile
 exit=0
-$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-bquUD8\package\scripts\install.js init -y --dry-run (extracted tarball copy)
+$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-DETrg3\package\scripts\install.js init -y --dry-run (extracted tarball copy)
 [dry-run] would write "verifier" to C:\Users\Administrator\.jiahao-profile
 exit=0
 $ node jiahao-mcp/index.js <stdin: JSON-RPC initialize request>

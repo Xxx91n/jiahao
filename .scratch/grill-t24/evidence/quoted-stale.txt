@@ -1,4 +1,4 @@
-captured-at-head: 9efe7b69c1cf1bbba8a9e8b4c0f047fd251198f5
+captured-at-head: bbf52592072db608bdf159966766dbfc19c948c4
 $ node scripts/build-round-facts.js --round grill-t24 --check --report .scratch/grill-t24/evidence/quoted-stale.fixture.md
 
 EXIT 1

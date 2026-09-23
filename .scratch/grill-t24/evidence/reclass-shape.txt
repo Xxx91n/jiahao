@@ -1,4 +1,4 @@
-captured-at-head: 9efe7b69c1cf1bbba8a9e8b4c0f047fd251198f5
+captured-at-head: bbf52592072db608bdf159966766dbfc19c948c4
 $ node D:\Aworker\jiahao\node_modules\jest\bin\jest.js test/adr-0080-wiring.test.js -t reclass
 
 EXIT 0
@@ -6,8 +6,8 @@ EXIT 0
 PASS test/adr-0080-wiring.test.js
   ADR-0080 doc surface (grill-t21 disposition round)
     √ taxonomy artifact carries the reclassifications log + the README-* rule text (4 ms)
-    √ gtd recompute grace: pre-effective rows listing a reclassified file pass; post-effective rows still fail (68 ms)
-    √ reclass grace requires from:R2 in the log entry (over-exemption tightened) (23 ms)
+    √ gtd recompute grace: pre-effective rows listing a reclassified file pass; post-effective rows still fail (76 ms)
+    √ reclass grace requires from:R2 in the log entry (over-exemption tightened) (22 ms)
     ○ skipped title, status, date, ledger + spec anchors
     ○ skipped ADR-0080 registers the required policy content (audit C-1 contract)
     ○ skipped README-* root predicate: mirror + companions classify R3 (the residual gap is closed)
@@ -17,12 +17,12 @@ PASS test/adr-0080-wiring.test.js
     ○ skipped defer-0066 is the merged ratchet row: four instances + the four elements (D-004)
     ○ skipped anchors.json lists decision-ledger-t20.md under ADR-0080, content-equal to the scratch authority
     ○ skipped README index rebuilt: 81 records incl. ADR-0080
-    ○ skipped ci.yml suite parity declares 76 suites (the new wiring suite is counted)
+    ○ skipped ci.yml suite parity declares the live expected suite count
     ○ skipped CONTEXT.md clauses verified: trend-anchor disclosed-repair + registry merged-ratchet
     ○ skipped AGENTS.md carries the C-7 split-form evidence-count convention
 
 Test Suites: 1 passed, 1 total
 Tests:       12 skipped, 3 passed, 15 total
 Snapshots:   0 total
-Time:        0.574 s, estimated 1 s
+Time:        0.512 s, estimated 1 s
 Ran all test suites matching /test\\adr-0080-wiring.test.js/i with tests matching "reclass".

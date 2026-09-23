@@ -1,6 +1,24 @@
-captured-at-head: 27fdc59bb7cc9875ba668a6b42b295c81b373343
+captured-at-head: bbf52592072db608bdf159966766dbfc19c948c4
 $ node scripts/build-round-facts.js --round grill-t24 --check --report .scratch/grill-t24/reports/2026-09-23-report.md
 
-EXIT 0
+EXIT 1
 
-[round-facts] OK - facts and report region in sync
+FAIL: schema key suites assigned in report prose outside the sentinel region
+FAIL: canon number suites=78 appears in report prose outside the sentinel region (quoted or bare - cite an evidence path instead, ADR-0077 D-E)
+FAIL: schema key passed assigned in report prose outside the sentinel region
+FAIL: canon number passed=1325 appears in report prose outside the sentinel region (quoted or bare - cite an evidence path instead, ADR-0077 D-E)
+FAIL: schema key skipped assigned in report prose outside the sentinel region
+FAIL: schema key pack_bytes assigned in report prose outside the sentinel region
+FAIL: canon number pack_bytes=341056 appears in report prose outside the sentinel region (quoted or bare - cite an evidence path instead, ADR-0077 D-E)
+FAIL: schema key instrument_entries assigned in report prose outside the sentinel region
+FAIL: canon number instrument_entries=27 appears in report prose outside the sentinel region (quoted or bare - cite an evidence path instead, ADR-0077 D-E)
+FAIL: schema key rewrite_map_citations assigned in report prose outside the sentinel region
+FAIL: canon number rewrite_map_citations=2491 appears in report prose outside the sentinel region (quoted or bare - cite an evidence path instead, ADR-0077 D-E)
+FAIL: schema key registry_entries assigned in report prose outside the sentinel region
+FAIL: canon number registry_entries=63 appears in report prose outside the sentinel region (quoted or bare - cite an evidence path instead, ADR-0077 D-E)
+FAIL: schema key anchors_count assigned in report prose outside the sentinel region
+FAIL: canon number anchors_count=18 appears in report prose outside the sentinel region (quoted or bare - cite an evidence path instead, ADR-0077 D-E)
+FAIL: schema key battery_as_of_commit assigned in report prose outside the sentinel region
+FAIL: schema key report_commit assigned in report prose outside the sentinel region
+FAIL: schema key not_run assigned in report prose outside the sentinel region
+FAIL: skipped=0 appears in report prose outside the sentinel region
