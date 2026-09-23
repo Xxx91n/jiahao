@@ -1,48 +1,31 @@
-captured-at-head: 3e925f8af832b7bfd0ab5864ece2f936c208d58e
+captured-at-head: 6d5bce20704e21e19bc279efd4e27939fdcfc969
 $ node D:\Aworker\jiahao\node_modules\jest\bin\jest.js test/adr-0083-wiring.test.js
 
-EXIT 1
+EXIT 0
 
-FAIL test/adr-0083-wiring.test.js
+PASS test/adr-0083-wiring.test.js (5.042 s)
   ADR-0083 doc surface (grill-t24 drift-clause round)
-    √ title, status, date, ledger + spec anchors (4 ms)
+    √ title, status, date, ledger + spec anchors (3 ms)
     √ D-A evidence freshness: ordering invariant + idempotent endpoint + captured-at-head + qualification/archival split (1 ms)
     √ D-B never-commit single-sourcing: id-referenced labels + same-commit coupling + deprecate-not-delete (1 ms)
-    √ D-C commit allowlist + post-commit inspection (self-drafted, receipts named)
+    √ D-C commit allowlist + post-commit inspection (self-drafted, receipts named) (1 ms)
     √ D-D suite-count sync obligation codified
-    √ D-E audit-window inheritance: the three check lines declared mandatory scope (1 ms)
-    √ never-commit.json registry validity (schema + rule shape + compilable patterns) (7 ms)
-    √ registry seed covers the historical never-commit classes (positive probes + one negative) (1 ms)
+    √ D-E audit-window inheritance: the three check lines declared mandatory scope
+    √ never-commit.json registry validity (schema + rule shape + compilable patterns) (6 ms)
+    √ registry seed covers the historical never-commit classes (positive probes + one negative) (2 ms)
     √ tracked tree is clean of every active never-commit rule (git ls-tree -r HEAD) (41 ms)
     √ AGENTS.md carries the commit allowlist + post-commit inspection clause (D-C) (1 ms)
-    √ t24 capture artifacts carry the captured-at-head provenance header resolving to a commit (708 ms)
-    × D-A ordering invariant: every committed capture names a sha at-or-after the freshness anchor (3102 ms)
+    √ t24 capture artifacts carry the captured-at-head provenance header resolving to a commit (765 ms)
+    √ D-A ordering invariant: every committed capture names a sha at-or-after the freshness anchor (3765 ms)
     √ ci.yml --expected-suites equals the live glob(test/*.test.js) count + lower bound + known-file hit (1 ms)
-    √ defer-0069 discharged-by-trigger: the 2026-09-23 audit named all three scope lines with verdicts (1 ms)
-    √ the t24 trend row is the declared single-file carve-out form (2 ms)
-    √ coverage leg: the committed diff anchored at the current round base validates the latest row (131 ms)
+    √ defer-0069 discharged-by-trigger: the 2026-09-23 audit named all three scope lines with verdicts (2 ms)
+    √ the t24 trend row is the declared single-file carve-out form (1 ms)
+    √ coverage leg: the committed diff anchored at the current round base validates the latest row (125 ms)
     √ CONTEXT umbrella term names the three narrow mechanisms verbatim (2 ms)
     √ README index rebuilt: 84 records incl. ADR-0083 (1 ms)
 
-  ● ADR-0083 doc surface (grill-t24 drift-clause round) › D-A ordering invariant: every committed capture names a sha at-or-after the freshness anchor
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: 0
-    Received: 1
-
-    [0m [90m 190 |[39m       expect(m)[33m.[39mnot[33m.[39mtoBeNull()[33m;[39m
-     [90m 191 |[39m       [36mconst[39m r [33m=[39m spawnSync([32m'git'[39m[33m,[39m [[32m'merge-base'[39m[33m,[39m [32m'--is-ancestor'[39m[33m,[39m anchor[33m,[39m m[[35m1[39m]][33m,[39m { cwd[33m:[39m [33mROOT[39m })[33m;[39m
-    [31m[1m>[22m[39m[90m 192 |[39m       expect(r[33m.[39mstatus)[33m.[39mtoBe([35m0[39m)[33m;[39m [90m// anchor is ancestor-or-equal of the header sha: captured at-or-after the anchor[39m
-     [90m     |[39m                        [31m[1m^[22m[39m
-     [90m 193 |[39m     }
-     [90m 194 |[39m   })[33m;[39m
-     [90m 195 |[39m   test([32m'ci.yml --expected-suites equals the live glob(test/*.test.js) count + lower bound + known-file hit'[39m[33m,[39m () [33m=>[39m {[0m
-
-      at Object.toBe (test/adr-0083-wiring.test.js:192:24)
-
-Test Suites: 1 failed, 1 total
-Tests:       1 failed, 17 passed, 18 total
+Test Suites: 1 passed, 1 total
+Tests:       18 passed, 18 total
 Snapshots:   0 total
-Time:        4.606 s, estimated 12 s
+Time:        5.114 s, estimated 10 s
 Ran all test suites matching /test\\adr-0083-wiring.test.js/i.

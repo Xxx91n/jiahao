@@ -1,7 +1,7 @@
-captured-at-head: 3e925f8af832b7bfd0ab5864ece2f936c208d58e
+captured-at-head: 6d5bce20704e21e19bc279efd4e27939fdcfc969
 $ node scripts/build-rewrite-map.js --published-only
 
 EXIT 1
 
 [rewrite-map] PUBLISHED-ONLY FAIL:
-doc citation coverage differs (first missing: .scratch/grill-t24/evidence/adr-0083-wiring.txt:1:3e925f8af832b7bfd0ab5864ece2f936c208d58e, .scratch/grill-t24/evidence/anchors.txt:1:3e925f8af832b7bfd0ab5864ece2f936c208d58e, .scratch/grill-t24/evidence/check-ci-jobs-missing.txt:1:3e925f8af832b7bfd0ab5864ece2f936c208d58e, .scratch/grill-t24/evidence/check-ci-jobs.txt:1:3e925f8af832b7bfd0ab5864ece2f936c208d58e, .scratch/grill-t24/evidence/check-deferred.txt:1:3e925f8af832b7bfd0ab5864ece2f936c208d58e)
+doc citation coverage differs (first missing: .scratch/grill-t25/evidence/clone-acceptance.txt:1:5ca4504ec131ba7abc7834ee12efb1bc6271be07)

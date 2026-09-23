@@ -1,4 +1,4 @@
-captured-at-head: 3e925f8af832b7bfd0ab5864ece2f936c208d58e
+captured-at-head: 6d5bce20704e21e19bc279efd4e27939fdcfc969
 $ node scripts/build-rewrite-map.js --check
 
 EXIT 1
