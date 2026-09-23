@@ -1,4 +1,4 @@
-captured-at-head: b52a66547e0c21662cf5dc2eb0933a7aca2eb423
+captured-at-head: 98c5d4a71dae150b9066aaea44e62fdb5363b37a
 $ node scripts/run-gates.js
 
 EXIT 1
@@ -135,19 +135,18 @@ falsification OK: 12 twin pairs
 > jiahao@0.0.1 prepare
 > git config core.hooksPath .githooks || true
 
-(node:5980) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(node:14476) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 [197 governance-anchors] FAIL
 FAIL: docs\governance\anchors.json is stale - regenerate with node scripts/build-governance-anchors.js
 [198 governance-inventory] PASS
 [governance-inventory] OK: 36 entries, live source_adr, unique commands, closed references
-[208 rewrite-map] FAIL
-[rewrite-map] FAIL: docs\rewrite-map.json is stale — regenerate with node scripts/build-rewrite-map.js
-[209 rewrite-map-published] FAIL
-[rewrite-map] PUBLISHED-ONLY FAIL:
-doc citation coverage differs (first missing: .scratch/grill-t25/reports/2026-09-24-audit.md:103:24b1a5e, .scratch/grill-t25/reports/2026-09-24-audit.md:103:614e7a4, .scratch/grill-t25/reports/2026-09-24-audit.md:103:6c52b16, .scratch/grill-t25/reports/2026-09-24-audit.md:103:9bd1afd, .scratch/grill-t25/reports/2026-09-24-audit.md:103:a8b18b4)
+[208 rewrite-map] PASS
+[rewrite-map] OK: map in sync (2764 doc citations classified)
+[209 rewrite-map-published] PASS
+[rewrite-map] PUBLISHED-ONLY OK: 2764 citations covered, class enum + counts consistent, published-side ancestry verified against origin/main
 [218 secret-scan] PASS
-[secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 1246/1246/1246; oversized-skip 0; commit-messages 551
+[secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 1246/1246/1246; oversized-skip 0; commit-messages 552
 ::warning title=gate:all::3 advisory/band warning(s) from gates: instrument-identity, governance-inventory
 ::error title=UNVERIFIABLE::4 gate(s) unverifiable: ci-wiring requires ci-mode, bench-gate requires ci-mode, probes requires ci-mode, mr-probes requires ci-mode
 gate:all exit 1 (36 entries, 4 unverifiable, fail-fast off)

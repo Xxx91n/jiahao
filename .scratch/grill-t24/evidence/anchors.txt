@@ -1,6 +1,4 @@
-captured-at-head: b52a66547e0c21662cf5dc2eb0933a7aca2eb423
+captured-at-head: 320bd431bf9f05397b196df619c01de0caad919f
 $ node scripts/build-governance-anchors.js --check
-
-EXIT 1
-
-FAIL: docs\governance\anchors.json is stale - regenerate with node scripts/build-governance-anchors.js
+EXIT 0
+[governance-anchors] OK - 18 artifacts, digests in sync
