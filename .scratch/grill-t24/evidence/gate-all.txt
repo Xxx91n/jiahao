@@ -1,4 +1,4 @@
-captured-at-head: a9faaa95e6c97bce513ddcaab8a814f8cd344a1a
+captured-at-head: e202fd552b72e9d8b066e2446e503746f6233da5
 $ node scripts/run-gates.js
 
 EXIT 0
@@ -128,23 +128,23 @@ falsification OK: 12 twin pairs
 [195 gate-params] PASS
 [gate-params] OK: 35 entries, declared params match effective commands (ADR-0036 D4)
 [196 pack-smoke] PASS
-[pack-smoke] smoke OK: jiahao-0.0.1.tgz (341239 bytes, 113 files) extracted and its CLI dry-run plan matched
+[pack-smoke] smoke OK: jiahao-0.0.1.tgz (343273 bytes, 113 files) extracted and its CLI dry-run plan matched
 [pack-smoke] packaged surface excludes jiahao-mcp/ + test/ + docs/adr; includes src/SKILL.md + scripts/install.js + docs/gates.json + CONTEXT.md
-[pack-smoke] OK: budget 341239 < 380000 bytes (ADR-0039 D3)
+[pack-smoke] OK: budget 343273 < 380000 bytes (ADR-0039 D3)
 
 > jiahao@0.0.1 prepare
 > git config core.hooksPath .githooks || true
 
-(node:15096) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(node:5768) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 [197 governance-anchors] PASS
 [governance-anchors] OK - 18 artifacts, digests in sync
 [198 governance-inventory] PASS
 [governance-inventory] OK: 35 entries, live source_adr, unique commands, closed references
 [208 rewrite-map] PASS
-[rewrite-map] OK: map in sync (2529 doc citations classified)
+[rewrite-map] OK: map in sync (2579 doc citations classified)
 [218 secret-scan] PASS
-[secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 1204/1204/1204; oversized-skip 0
+[secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 1209/1209/1209; oversized-skip 0
 ::warning title=gate:all::3 advisory/band warning(s) from gates: instrument-identity, governance-inventory
 ::error title=UNVERIFIABLE::4 gate(s) unverifiable: ci-wiring requires ci-mode, bench-gate requires ci-mode, probes requires ci-mode, mr-probes requires ci-mode
 gate:all exit 0 (35 entries, 4 unverifiable, fail-fast off)

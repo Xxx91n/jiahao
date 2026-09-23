@@ -1,4 +1,4 @@
-captured-at-head: ad8c5a13c958dc461890dd42f4acfa30e9c950cc
+captured-at-head: e202fd552b72e9d8b066e2446e503746f6233da5
 $ node <doc-hygiene byte scan over committed .scratch/*.md + *.txt>
 
 EXIT 0
@@ -334,8 +334,13 @@ OK   .scratch/grill-t24/handoffs/2026-09-23-post-audit-handoff.md
 OK   .scratch/grill-t24/handoffs/2026-09-23-round-handoff.md
 OK   .scratch/grill-t24/handoffs/next-round.md
 OK   .scratch/grill-t24/reports/2026-09-23-audit.md
+OK   .scratch/grill-t24/reports/2026-09-23-repair-verification.md
 OK   .scratch/grill-t24/reports/2026-09-23-report.md
 OK   .scratch/grill-t24/spec-t24-disposition.md
+OK   .scratch/grill-t25/GOAL.md
+OK   .scratch/grill-t25/decision-ledger.md
+OK   .scratch/grill-t25/handoffs/next-round.md
+OK   .scratch/grill-t25/spec-t25-disposition.md
 OK   .scratch/grill-t6/audit/b7ccbeb/AGENTS.md
 OK   .scratch/grill-t6/audit/b7ccbeb/CONTEXT.md
 OK   .scratch/grill-t6/audit/b7ccbeb/README.md
@@ -487,4 +492,4 @@ OK   .scratch/grill-t9/reports/2026-09-16-post-round-audit.md
 OK   .scratch/grill-t9/reports/2026-09-16-pre-unlock-audit.md
 OK   .scratch/grill-t9/reports/2026-09-16-report.md
 OK   .scratch/grill-t9/spec-v3-collection.md
-independent scan: 322 committed .scratch/*.md + 162 committed .scratch/*.txt, 0 flagged
+independent scan: 327 committed .scratch/*.md + 162 committed .scratch/*.txt, 0 flagged

@@ -1,6 +1,6 @@
-captured-at-head: a9faaa95e6c97bce513ddcaab8a814f8cd344a1a
+captured-at-head: e202fd552b72e9d8b066e2446e503746f6233da5
 $ node scripts/build-round-facts.js --round grill-t24 --check --report .scratch/grill-t24/reports/2026-09-23-report.md
 
-EXIT 0
+EXIT 2
 
-[round-facts] OK - facts and report region in sync
+build-round-facts: verifier broken - Command failed: D:\nodejs\node.exe D:\Aworker\jiahao\node_modules\jest\bin\jest.js --json --silent

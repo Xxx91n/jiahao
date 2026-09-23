@@ -1,4 +1,4 @@
-captured-at-head: ad8c5a13c958dc461890dd42f4acfa30e9c950cc
+captured-at-head: e202fd552b72e9d8b066e2446e503746f6233da5
 $ node D:\Aworker\jiahao\node_modules\jest\bin\jest.js test/adr-0076-wiring.test.js -t kind enum
 
 EXIT 0
@@ -50,7 +50,7 @@ PASS test/adr-0076-wiring.test.js
     ○ skipped gen-docs invariant: every committed copy derives ROOT from __dirname (D-003 class-killer)
     ○ skipped the gen-docs template carries the frozen derived-ROOT header
   grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendix + doc hygiene)
-    √ kind enum: a fix row WITH governance_tooling_diff passes; WITHOUT it fails (ADR-0078 negative pin) (45 ms)
+    √ kind enum: a fix row WITH governance_tooling_diff passes; WITHOUT it fails (ADR-0078 negative pin) (43 ms)
     ○ skipped ADR-0078 exists with live status, date, amends line, ledger + spec anchors
     ○ skipped fix rows are exempt from the D-F deferred-entry assert; documentation rows are not (control)
     ○ skipped fix-row gtd files still classify against the taxonomy (R3 listing is mislabeled)
@@ -93,5 +93,5 @@ PASS test/adr-0076-wiring.test.js
 Test Suites: 1 passed, 1 total
 Tests:       76 skipped, 1 passed, 77 total
 Snapshots:   0 total
-Time:        0.507 s, estimated 2 s
+Time:        0.552 s, estimated 3 s
 Ran all test suites matching /test\\adr-0076-wiring.test.js/i with tests matching "kind enum".

@@ -1,5 +1,5 @@
-captured-at-head: ad8c5a13c958dc461890dd42f4acfa30e9c950cc
-$ node D:\nodejs\node_modules\npm\bin\npm-cli.js pack --pack-destination C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-9FQKnz
+captured-at-head: e202fd552b72e9d8b066e2446e503746f6233da5
+$ node D:\nodejs\node_modules\npm\bin\npm-cli.js pack --pack-destination C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-hUe05R
 
 
 > jiahao@0.0.1 prepare
@@ -55,7 +55,7 @@ npm notice 12.5kB scripts/bench-gate.js
 npm notice 15.0kB scripts/build-adapters.js
 npm notice 4.1kB scripts/build-adr-index.js
 npm notice 4.4kB scripts/build-governance-anchors.js
-npm notice 17.4kB scripts/build-rewrite-map.js
+npm notice 24.5kB scripts/build-rewrite-map.js
 npm notice 13.2kB scripts/build-round-facts.js
 npm notice 10.2kB scripts/check-bench-thresholds.js
 npm notice 5.7kB scripts/check-ci-jobs.js
@@ -116,7 +116,7 @@ npm notice 8.4kB src/port/score.js
 npm notice 4.9kB src/request-anchors.js
 npm notice 3.5kB src/reverify-schedule.js
 npm notice 7.9kB src/sentinel.js
-npm notice 8.0kB src/shared/capability.js
+npm notice 8.8kB src/shared/capability.js
 npm notice 4.7kB src/shared/falsify.js
 npm notice 4.1kB src/shared/paths.js
 npm notice 370B src/shared/prefix-vocab.js
@@ -126,15 +126,15 @@ npm notice Tarball Details
 npm notice name: jiahao
 npm notice version: 0.0.1
 npm notice filename: jiahao-0.0.1.tgz
-npm notice package size: 341.2 kB
+npm notice package size: 343.3 kB
 npm notice unpacked size: 1.2 MB
-npm notice shasum: 618a2d534a95055909959d63874b4d583456b705
-npm notice integrity: sha512-GvdX1CGVVmN3o[...]LaCGKstd+iRyA==
+npm notice shasum: 55dd6ec10e73635bea6cbb004d7e2a070084438f
+npm notice integrity: sha512-IHPdoldUnsQZ9[...]85HJSuC+zg3+Q==
 npm notice total files: 113
 npm notice
 
 tarball: jiahao-0.0.1.tgz extract exit=0
-$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-9FQKnz\package\scripts\install.js --help (extracted tarball copy)
+$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-hUe05R\package\scripts\install.js --help (extracted tarball copy)
 jiahao v0.0.1 — install .jiahao-profile flag
 
 Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
@@ -143,7 +143,7 @@ Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
 Writes ONLY C:\Users\Administrator\.jiahao-profile
 Tier 0 manual: echo "verifier" > C:\Users\Administrator\.jiahao-profile
 exit=0
-$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-9FQKnz\package\scripts\install.js init -y --dry-run (extracted tarball copy)
+$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-hUe05R\package\scripts\install.js init -y --dry-run (extracted tarball copy)
 [dry-run] would write "verifier" to C:\Users\Administrator\.jiahao-profile
 exit=0
 $ node jiahao-mcp/index.js <stdin: JSON-RPC initialize request>

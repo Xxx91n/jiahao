@@ -1,4 +1,4 @@
-captured-at-head: ad8c5a13c958dc461890dd42f4acfa30e9c950cc
+captured-at-head: e202fd552b72e9d8b066e2446e503746f6233da5
 $ node scripts/check-deferred.js
 
 EXIT 0
