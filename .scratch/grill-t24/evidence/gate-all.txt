@@ -1,4 +1,4 @@
-captured-at-head: 401e1f1dbab85b4c36e88fa2a4a2e532fcd62e7a
+captured-at-head: ad8c5a13c958dc461890dd42f4acfa30e9c950cc
 $ node scripts/run-gates.js
 
 EXIT 1
@@ -32,7 +32,7 @@ All 23 adapter files match src/SKILL.md (regen-diff clean)
 [141 research-baseline] PASS
 [research-baseline] OK: v2 core 47.92% @ 4.29% / score 0.265 recorded as-is (below floor), confirmatory surface frozen
 [145 corpus-leak] PASS
-[corpus-leak] clean: 4 corpora, 54 line fingerprints, 435 files scanned (ADR-0036 D6)
+[corpus-leak] clean: 4 corpora, 54 line fingerprints, 434 files scanned (ADR-0036 D6)
 [150 bench-gate] UNVERIFIABLE
 [151 confirmatory-bench] PASS
 [confirmatory] char-3|count|lr|C1.0|df2: recall@FP0 1.000000 vs floor 0.563863135740939; fp_default 0.000000 vs margin 0.045 -> PASS
@@ -135,7 +135,7 @@ falsification OK: 12 twin pairs
 > jiahao@0.0.1 prepare
 > git config core.hooksPath .githooks || true
 
-(node:2324) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(node:16276) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 [197 governance-anchors] PASS
 [governance-anchors] OK - 18 artifacts, digests in sync
@@ -144,7 +144,7 @@ falsification OK: 12 twin pairs
 [208 rewrite-map] FAIL
 [rewrite-map] FAIL: docs\rewrite-map.json is stale — regenerate with node scripts/build-rewrite-map.js
 [218 secret-scan] PASS
-[secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 1203/1204/1204; oversized-skip 0
+[secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 1204/1204/1204; oversized-skip 0
 ::warning title=gate:all::3 advisory/band warning(s) from gates: instrument-identity, governance-inventory
 ::error title=UNVERIFIABLE::4 gate(s) unverifiable: ci-wiring requires ci-mode, bench-gate requires ci-mode, probes requires ci-mode, mr-probes requires ci-mode
 gate:all exit 1 (35 entries, 4 unverifiable, fail-fast off)

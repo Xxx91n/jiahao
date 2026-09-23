@@ -1,4 +1,4 @@
-captured-at-head: 401e1f1dbab85b4c36e88fa2a4a2e532fcd62e7a
+captured-at-head: ad8c5a13c958dc461890dd42f4acfa30e9c950cc
 $ git status --porcelain
 
 EXIT 0
@@ -26,11 +26,6 @@ EXIT 0
  M .scratch/grill-t24/evidence/rewrite-map.txt
  M .scratch/grill-t24/evidence/round-facts.txt
  M .scratch/grill-t24/evidence/run-test-gate.txt
-D  .scratch/grill-t24/fix-report.cjs
-MM .scratch/grill-t24/reports/2026-09-23-report.md
-MM test/adr-0033-wiring.test.js
-MM test/adr-0080-wiring.test.js
-?? %TEMP%jt.json
 ?? .scratch/grill-t13/audit-evidence/r2-round-diff.patch
 ?? .scratch/grill-t14/audit-evidence/
 ?? .scratch/grill-t15/audit-evidence/round-diff.patch
@@ -44,11 +39,10 @@ MM test/adr-0080-wiring.test.js
 ?? .scratch/grill-t22/audit-evidence/
 ?? .scratch/grill-t23/audit-evidence/
 ?? .scratch/grill-t23/ref-assets/
-?? .scratch/grill-t24/fix-report.cjs
 
 classification (registry docs/governance/never-commit.json, 9 active rules):
-  tracked-diff lines: 27
-  untracked lines: 15 (never-commit class or self: 13; other: 2)
-  unexpected untracked: %TEMP%jt.json, .scratch/grill-t24/fix-report.cjs
+  tracked-diff lines: 23
+  untracked lines: 13 (never-commit class or self: 13; other: 0)
+  unexpected untracked: none
 
 verdict: DIRTY
