@@ -1,4 +1,4 @@
-captured-at-head: 335333befef1a90f340c43820fd2941bbbef9f0f
+captured-at-head: a8b18b43196aff80e712bade43da1ec1057bce37
 $ node <doc-hygiene byte scan over committed .scratch/*.md + *.txt>
 
 EXIT 0
@@ -345,6 +345,7 @@ OK   .scratch/grill-t25/evidence/check-ci-jobs-missing.txt
 OK   .scratch/grill-t25/evidence/check-ci-jobs.txt
 OK   .scratch/grill-t25/evidence/check-deferred.txt
 OK   .scratch/grill-t25/evidence/clean-tree.txt
+OK   .scratch/grill-t25/evidence/clone-acceptance.txt
 OK   .scratch/grill-t25/evidence/clone-sim.txt
 OK   .scratch/grill-t25/evidence/compile-node-check.txt
 OK   .scratch/grill-t25/evidence/compile-yaml.txt
@@ -366,6 +367,7 @@ OK   .scratch/grill-t25/evidence/rewrite-map-published.txt
 OK   .scratch/grill-t25/evidence/rewrite-map.txt
 OK   .scratch/grill-t25/evidence/round-facts.txt
 OK   .scratch/grill-t25/evidence/run-test-gate.txt
+OK   .scratch/grill-t25/handoffs/2026-09-24-round-handoff.md
 OK   .scratch/grill-t25/handoffs/next-round.md
 OK   .scratch/grill-t25/human-authority-package.md
 OK   .scratch/grill-t25/reports/2026-09-24-report.md
@@ -521,4 +523,4 @@ OK   .scratch/grill-t9/reports/2026-09-16-post-round-audit.md
 OK   .scratch/grill-t9/reports/2026-09-16-pre-unlock-audit.md
 OK   .scratch/grill-t9/reports/2026-09-16-report.md
 OK   .scratch/grill-t9/spec-v3-collection.md
-independent scan: 330 committed .scratch/*.md + 188 committed .scratch/*.txt, 0 flagged
+independent scan: 331 committed .scratch/*.md + 189 committed .scratch/*.txt, 0 flagged
