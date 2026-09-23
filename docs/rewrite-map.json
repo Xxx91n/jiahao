@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-23T14:58:32.152Z",
+  "generated_at": "2026-09-23T15:00:10.360Z",
   "published_tip": "fc390d5e778db567d12b072f7a25cbf1e73b03f8",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -22,11 +22,11 @@
     "published_only": 210,
     "removed": 0,
     "same": 278,
-    "doc_refs": 2714,
+    "doc_refs": 2710,
     "doc_refs_by_class": {
       "rewritten": 104,
-      "local-only": 817,
-      "published-unchanged": 1793
+      "local-only": 815,
+      "published-unchanged": 1791
     }
   },
   "commits": [
@@ -16675,37 +16675,7 @@
     {
       "file": ".scratch/grill-t25/evidence/clone-sim.txt",
       "line": 1,
-      "sha": "614e7a4a92c7bd82253ec5420b314c2c0ac5199f",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
-    },
-    {
-      "file": ".scratch/grill-t25/evidence/clone-sim.txt",
-      "line": 13,
-      "sha": "9bd1afdaeee45b58bd288d04ed78d0a6cd2dff10",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
-    },
-    {
-      "file": ".scratch/grill-t25/evidence/clone-sim.txt",
-      "line": 13,
-      "sha": "bbf5259",
-      "class": "published-unchanged",
-      "resolved_to": null
-    },
-    {
-      "file": ".scratch/grill-t25/evidence/clone-sim.txt",
-      "line": 13,
-      "sha": "bbf5259",
-      "class": "published-unchanged",
-      "resolved_to": null
-    },
-    {
-      "file": ".scratch/grill-t25/evidence/clone-sim.txt",
-      "line": 13,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
+      "sha": "f18f66fac643947e0d20e9ead2e3ce832c25e8d7",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
