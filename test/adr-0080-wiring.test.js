@@ -182,7 +182,7 @@ describe('ADR-0080 doc surface (grill-t21 disposition round)', () => {
     expect(r).toContain('0080-readme-star-r3-predicate-and-taxonomy-reclassification-channel.md');
   });
 
-  test('ci.yml suite parity declares 76 suites (the new wiring suite is counted)', () => {
+  test('ci.yml suite parity declares the live expected suite count', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
     expect(ci).toContain('--expected-suites 78');
   });

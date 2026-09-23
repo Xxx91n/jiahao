@@ -70,7 +70,7 @@ describe('ADR-0082 doc surface (grill-t23 cap-amendment round)', () => {
     expect(r).toContain('0082-tarball-cap-trend-anchor-amendment-defer-0067-armed-band.md');
   });
 
-  test('ci.yml suite parity declares 77 suites (the new wiring suite is counted)', () => {
+  test('ci.yml suite parity declares the live expected suite count', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
     expect(ci).toContain('--expected-suites 78');
   });

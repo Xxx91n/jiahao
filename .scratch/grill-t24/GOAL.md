@@ -31,4 +31,4 @@
 
 ## State
 
-Grilling in progress - no source changes; ledger at .scratch/grill-t24/decision-ledger.md
+Grilling landed - documentation round closed and audited (PASS WITH FINDINGS; repair window disposed T5-C-1..C-5); ledger at .scratch/grill-t24/decision-ledger.md

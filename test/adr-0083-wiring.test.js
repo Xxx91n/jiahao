@@ -201,10 +201,11 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
     expect(suites).toContain('adr-0083-wiring.test.js'); // known-file hit: the glob saw this very suite
   });
 
-  test('defer-0069 registers the audit-window check lines first live firing (pending-evaluation, tide)', () => {
+  test('defer-0069 discharged-by-trigger: the 2026-09-23 audit named all three scope lines with verdicts', () => {
     const d = readJson(REG).entries.find(function (e) { return e.id === 'defer-0069'; });
     expect(d).toBeDefined();
-    expect(d.status).toBe('pending-evaluation');
+    expect(d.status).toBe('closed');
+    expect(d.closed_via).toContain('2026-09-23');
     expect(d.source_adr).toContain('0083');
     expect(d.review_at).toBe('2026-12-15');
     expect(d.cadence_tier).toBe('quarterly');

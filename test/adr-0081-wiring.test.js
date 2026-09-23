@@ -131,7 +131,7 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
     expect(r).toContain('0081-repair-window-amend-in-place-coverage-pairing-headroom-watch.md');
   });
 
-  test('ci.yml suite parity declares 76 suites (the new wiring suite is counted)', () => {
+  test('ci.yml suite parity declares the live expected suite count', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
     expect(ci).toContain('--expected-suites 78');
   });
