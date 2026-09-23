@@ -1,4 +1,4 @@
-captured-at-head: e202fd552b72e9d8b066e2446e503746f6233da5
+captured-at-head: 555d75679d36ee4ee752519d350ba7fbe4ffffeb
 $ node scripts/build-round-facts.js --round grill-t24 --check --report .scratch/grill-t24/reports/2026-09-23-report.md
 
 EXIT 2

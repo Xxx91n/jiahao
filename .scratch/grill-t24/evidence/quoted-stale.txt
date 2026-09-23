@@ -1,8 +1,7 @@
-captured-at-head: e202fd552b72e9d8b066e2446e503746f6233da5
+captured-at-head: 555d75679d36ee4ee752519d350ba7fbe4ffffeb
 $ node scripts/build-round-facts.js --round grill-t24 --check --report .scratch/grill-t24/evidence/quoted-stale.fixture.md
 
 EXIT 1
 
 FAIL: schema key suites assigned in report prose outside the sentinel region
-FAIL: canon number suites=78 appears in report prose outside the sentinel region (quoted or bare - cite an evidence path instead, ADR-0077 D-E)
 FAIL: canon number passed=1325 appears in report prose outside the sentinel region (quoted or bare - cite an evidence path instead, ADR-0077 D-E)

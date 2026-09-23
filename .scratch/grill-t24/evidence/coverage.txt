@@ -1,10 +1,8 @@
-captured-at-head: e202fd552b72e9d8b066e2446e503746f6233da5
-$ node scripts/check-governance-inventory.js --coverage-base c526de301c5d2d25e653bc910a80a9ae56dd252a
+captured-at-head: 555d75679d36ee4ee752519d350ba7fbe4ffffeb
+$ node scripts/check-governance-inventory.js --coverage-base fc390d5e778db567d12b072f7a25cbf1e73b03f8
 
-EXIT 1
+EXIT 0
 
+[governance-inventory] OK: 36 entries, live source_adr, unique commands, closed references
 ::warning title=Governance carve-out burn-rate::5 consecutive documentation rounds used the governance carve-out - advisory only, never blocks (ADR-0076 D-B)
 ::warning title=Governance trend anchor::two consecutive documentation rounds added ADRs (streak 15 >= K=2) - advisory only, never blocks (ADR-0064 D-F)
-FAIL: coverage: scripts/build-rewrite-map.js is R2 but undeclared in the latest row (t21 audit C-1)
-FAIL: coverage: src/shared/capability.js is R2 but undeclared in the latest row (t21 audit C-1)
-FAIL: coverage: test/rewrite-map.test.js is R2 but undeclared in the latest row (t21 audit C-1)

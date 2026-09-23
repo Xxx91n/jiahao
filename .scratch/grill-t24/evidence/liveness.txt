@@ -1,5 +1,5 @@
-captured-at-head: e202fd552b72e9d8b066e2446e503746f6233da5
-$ node D:\nodejs\node_modules\npm\bin\npm-cli.js pack --pack-destination C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-hUe05R
+captured-at-head: 555d75679d36ee4ee752519d350ba7fbe4ffffeb
+$ node D:\nodejs\node_modules\npm\bin\npm-cli.js pack --pack-destination C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-6L4fwR
 
 
 > jiahao@0.0.1 prepare
@@ -10,8 +10,8 @@ npm notice
 npm notice package: jiahao@0.0.1
 npm notice Tarball Contents
 npm notice 2.7kB AGENTS.md
-npm notice 138.3kB CONTEXT.md
-npm notice 37.5kB README.md
+npm notice 138.7kB CONTEXT.md
+npm notice 37.9kB README.md
 npm notice 258B adapters/aider/.aider.conf.yml
 npm notice 2.8kB adapters/aider/CONVENTIONS-generator.md
 npm notice 6.6kB adapters/aider/CONVENTIONS.md
@@ -39,8 +39,8 @@ npm notice 12.7kB bench/polygraph/README.md
 npm notice 5.8kB bench/polygraph/thresholds.json
 npm notice 904B docs/change-surface.json
 npm notice 2.5kB docs/coverage-map.json
-npm notice 74.1kB docs/deferred-registry.json
-npm notice 14.5kB docs/gates.json
+npm notice 80.1kB docs/deferred-registry.json
+npm notice 14.9kB docs/gates.json
 npm notice 1.3kB hooks/jiahao-activate.js
 npm notice 1.5kB hooks/jiahao-hooks.json
 npm notice 1.7kB hooks/jiahao-mode-tracker.js
@@ -78,7 +78,7 @@ npm notice 3.2kB scripts/check-pairer-regression.js
 npm notice 3.1kB scripts/check-plan-baseline.js
 npm notice 9.1kB scripts/check-probes.js
 npm notice 6.9kB scripts/check-research-baseline.js
-npm notice 4.5kB scripts/check-secret-scan.js
+npm notice 5.9kB scripts/check-secret-scan.js
 npm notice 2.9kB scripts/check-skip-reasons.js
 npm notice 24.7kB scripts/collect-devin-corpus.js
 npm notice 3.5kB scripts/collect-holdout.js
@@ -116,7 +116,7 @@ npm notice 8.4kB src/port/score.js
 npm notice 4.9kB src/request-anchors.js
 npm notice 3.5kB src/reverify-schedule.js
 npm notice 7.9kB src/sentinel.js
-npm notice 8.8kB src/shared/capability.js
+npm notice 9.4kB src/shared/capability.js
 npm notice 4.7kB src/shared/falsify.js
 npm notice 4.1kB src/shared/paths.js
 npm notice 370B src/shared/prefix-vocab.js
@@ -126,15 +126,15 @@ npm notice Tarball Details
 npm notice name: jiahao
 npm notice version: 0.0.1
 npm notice filename: jiahao-0.0.1.tgz
-npm notice package size: 343.3 kB
+npm notice package size: 345.3 kB
 npm notice unpacked size: 1.2 MB
-npm notice shasum: 55dd6ec10e73635bea6cbb004d7e2a070084438f
-npm notice integrity: sha512-IHPdoldUnsQZ9[...]85HJSuC+zg3+Q==
+npm notice shasum: 7203f09cae68f4b43154d4e62935226ddbd527a6
+npm notice integrity: sha512-31GOMpjSgLNQb[...]gMhLsn8Kj7HLA==
 npm notice total files: 113
 npm notice
 
 tarball: jiahao-0.0.1.tgz extract exit=0
-$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-hUe05R\package\scripts\install.js --help (extracted tarball copy)
+$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-6L4fwR\package\scripts\install.js --help (extracted tarball copy)
 jiahao v0.0.1 — install .jiahao-profile flag
 
 Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
@@ -143,7 +143,7 @@ Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
 Writes ONLY C:\Users\Administrator\.jiahao-profile
 Tier 0 manual: echo "verifier" > C:\Users\Administrator\.jiahao-profile
 exit=0
-$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-hUe05R\package\scripts\install.js init -y --dry-run (extracted tarball copy)
+$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-6L4fwR\package\scripts\install.js init -y --dry-run (extracted tarball copy)
 [dry-run] would write "verifier" to C:\Users\Administrator\.jiahao-profile
 exit=0
 $ node jiahao-mcp/index.js <stdin: JSON-RPC initialize request>
