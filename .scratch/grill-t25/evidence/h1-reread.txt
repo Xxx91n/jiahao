@@ -1,4 +1,4 @@
-captured-at-head: a8b18b43196aff80e712bade43da1ec1057bce37
+captured-at-head: 6c52b16af4464402a22f6e0d58a545ff61a2d8f9
 $ node <doc-hygiene byte scan over committed .scratch/*.md + *.txt>
 
 EXIT 0

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-23T14:50:09.751Z",
+  "generated_at": "2026-09-23T14:57:14.523Z",
   "published_tip": "fc390d5e778db567d12b072f7a25cbf1e73b03f8",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -22,11 +22,11 @@
     "published_only": 210,
     "removed": 0,
     "same": 278,
-    "doc_refs": 2726,
+    "doc_refs": 2715,
     "doc_refs_by_class": {
       "rewritten": 104,
-      "local-only": 827,
-      "published-unchanged": 1795
+      "local-only": 820,
+      "published-unchanged": 1791
     }
   },
   "commits": [
@@ -15046,7 +15046,7 @@
     {
       "file": ".scratch/grill-t24/evidence/adr-0083-wiring.txt",
       "line": 1,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
+      "sha": "24b1a5ee3f35ad67eaab720370c0a45dc9dfbf0d",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -15086,7 +15086,7 @@
     {
       "file": ".scratch/grill-t24/evidence/clean-tree.txt",
       "line": 1,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
+      "sha": "6c52b16af4464402a22f6e0d58a545ff61a2d8f9",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -15133,7 +15133,7 @@
     {
       "file": ".scratch/grill-t24/evidence/gate-all.txt",
       "line": 1,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
+      "sha": "24b1a5ee3f35ad67eaab720370c0a45dc9dfbf0d",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -15163,28 +15163,6 @@
       "label": "unresolved hex literal"
     },
     {
-      "file": ".scratch/grill-t24/evidence/gate-all.txt",
-      "line": 148,
-      "sha": "9bd1afdaeee45b58bd288d04ed78d0a6cd2dff10",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
-    },
-    {
-      "file": ".scratch/grill-t24/evidence/gate-all.txt",
-      "line": 148,
-      "sha": "bbf5259",
-      "class": "published-unchanged",
-      "resolved_to": null
-    },
-    {
-      "file": ".scratch/grill-t24/evidence/gate-all.txt",
-      "line": 148,
-      "sha": "bbf5259",
-      "class": "published-unchanged",
-      "resolved_to": null
-    },
-    {
       "file": ".scratch/grill-t24/evidence/governance-inventory.txt",
       "line": 1,
       "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
@@ -15195,7 +15173,7 @@
     {
       "file": ".scratch/grill-t24/evidence/h1-reread.txt",
       "line": 1,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
+      "sha": "6c52b16af4464402a22f6e0d58a545ff61a2d8f9",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -15984,7 +15962,7 @@
     {
       "file": ".scratch/grill-t24/evidence/rewrite-map.txt",
       "line": 1,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
+      "sha": "24b1a5ee3f35ad67eaab720370c0a45dc9dfbf0d",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -15992,7 +15970,7 @@
     {
       "file": ".scratch/grill-t24/evidence/round-facts.txt",
       "line": 1,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
+      "sha": "24b1a5ee3f35ad67eaab720370c0a45dc9dfbf0d",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -16000,7 +15978,7 @@
     {
       "file": ".scratch/grill-t24/evidence/run-test-gate.txt",
       "line": 1,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
+      "sha": "24b1a5ee3f35ad67eaab720370c0a45dc9dfbf0d",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -16681,7 +16659,7 @@
     {
       "file": ".scratch/grill-t25/evidence/clean-tree.txt",
       "line": 1,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
+      "sha": "6c52b16af4464402a22f6e0d58a545ff61a2d8f9",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -16689,7 +16667,7 @@
     {
       "file": ".scratch/grill-t25/evidence/clone-acceptance.txt",
       "line": 1,
-      "sha": "9bd1afdaeee45b58bd288d04ed78d0a6cd2dff10",
+      "sha": "6c52b16af4464402a22f6e0d58a545ff61a2d8f9",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -16697,7 +16675,7 @@
     {
       "file": ".scratch/grill-t25/evidence/clone-sim.txt",
       "line": 1,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
+      "sha": "6c52b16af4464402a22f6e0d58a545ff61a2d8f9",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -16705,7 +16683,7 @@
     {
       "file": ".scratch/grill-t25/evidence/clone-sim.txt",
       "line": 13,
-      "sha": "9bd1afdaeee45b58bd288d04ed78d0a6cd2dff10",
+      "sha": "24b1a5ee3f35ad67eaab720370c0a45dc9dfbf0d",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -16713,16 +16691,34 @@
     {
       "file": ".scratch/grill-t25/evidence/clone-sim.txt",
       "line": 13,
-      "sha": "bbf5259",
-      "class": "published-unchanged",
-      "resolved_to": null
+      "sha": "24b1a5ee3f35ad67eaab720370c0a45dc9dfbf0d",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
     },
     {
       "file": ".scratch/grill-t25/evidence/clone-sim.txt",
       "line": 13,
-      "sha": "bbf5259",
-      "class": "published-unchanged",
-      "resolved_to": null
+      "sha": "24b1a5ee3f35ad67eaab720370c0a45dc9dfbf0d",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t25/evidence/clone-sim.txt",
+      "line": 13,
+      "sha": "24b1a5ee3f35ad67eaab720370c0a45dc9dfbf0d",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t25/evidence/clone-sim.txt",
+      "line": 13,
+      "sha": "24b1a5ee3f35ad67eaab720370c0a45dc9dfbf0d",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
     },
     {
       "file": ".scratch/grill-t25/evidence/compile-node-check.txt",
@@ -16766,7 +16762,7 @@
     {
       "file": ".scratch/grill-t25/evidence/gate-all.txt",
       "line": 1,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
+      "sha": "24b1a5ee3f35ad67eaab720370c0a45dc9dfbf0d",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -16796,46 +16792,6 @@
       "label": "unresolved hex literal"
     },
     {
-      "file": ".scratch/grill-t25/evidence/gate-all.txt",
-      "line": 148,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
-    },
-    {
-      "file": ".scratch/grill-t25/evidence/gate-all.txt",
-      "line": 148,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
-    },
-    {
-      "file": ".scratch/grill-t25/evidence/gate-all.txt",
-      "line": 148,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
-    },
-    {
-      "file": ".scratch/grill-t25/evidence/gate-all.txt",
-      "line": 148,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
-    },
-    {
-      "file": ".scratch/grill-t25/evidence/gate-all.txt",
-      "line": 148,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
-    },
-    {
       "file": ".scratch/grill-t25/evidence/governance-inventory.txt",
       "line": 1,
       "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
@@ -16846,7 +16802,7 @@
     {
       "file": ".scratch/grill-t25/evidence/h1-reread.txt",
       "line": 1,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
+      "sha": "6c52b16af4464402a22f6e0d58a545ff61a2d8f9",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -17595,7 +17551,7 @@
     {
       "file": ".scratch/grill-t25/evidence/never-commit-sweep.txt",
       "line": 1,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
+      "sha": "24b1a5ee3f35ad67eaab720370c0a45dc9dfbf0d",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -17635,47 +17591,7 @@
     {
       "file": ".scratch/grill-t25/evidence/rewrite-map-published.txt",
       "line": 1,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
-    },
-    {
-      "file": ".scratch/grill-t25/evidence/rewrite-map-published.txt",
-      "line": 7,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
-    },
-    {
-      "file": ".scratch/grill-t25/evidence/rewrite-map-published.txt",
-      "line": 7,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
-    },
-    {
-      "file": ".scratch/grill-t25/evidence/rewrite-map-published.txt",
-      "line": 7,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
-    },
-    {
-      "file": ".scratch/grill-t25/evidence/rewrite-map-published.txt",
-      "line": 7,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
-      "class": "local-only",
-      "resolved_to": null,
-      "label": "local object"
-    },
-    {
-      "file": ".scratch/grill-t25/evidence/rewrite-map-published.txt",
-      "line": 7,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
+      "sha": "24b1a5ee3f35ad67eaab720370c0a45dc9dfbf0d",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -17683,7 +17599,7 @@
     {
       "file": ".scratch/grill-t25/evidence/rewrite-map.txt",
       "line": 1,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
+      "sha": "24b1a5ee3f35ad67eaab720370c0a45dc9dfbf0d",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -17691,7 +17607,7 @@
     {
       "file": ".scratch/grill-t25/evidence/round-facts.txt",
       "line": 1,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
+      "sha": "24b1a5ee3f35ad67eaab720370c0a45dc9dfbf0d",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
@@ -17699,7 +17615,7 @@
     {
       "file": ".scratch/grill-t25/evidence/run-test-gate.txt",
       "line": 1,
-      "sha": "a8b18b43196aff80e712bade43da1ec1057bce37",
+      "sha": "24b1a5ee3f35ad67eaab720370c0a45dc9dfbf0d",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
