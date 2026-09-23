@@ -1,4 +1,4 @@
-captured-at-head: 555d75679d36ee4ee752519d350ba7fbe4ffffeb
+captured-at-head: 5a66b30910df44a549c9ff6fe4961faf357dd9a2
 $ git status --porcelain
 
 EXIT 0
@@ -21,7 +21,6 @@ EXIT 0
  M .scratch/grill-t24/evidence/never-commit-sweep.txt
  M .scratch/grill-t24/evidence/pack-smoke.txt
  M .scratch/grill-t24/evidence/prose-fixtures.txt
- M .scratch/grill-t24/evidence/quoted-stale.fixture.md
  M .scratch/grill-t24/evidence/quoted-stale.txt
  M .scratch/grill-t24/evidence/reclass-shape.txt
  M .scratch/grill-t24/evidence/rewrite-map.txt
@@ -43,7 +42,7 @@ EXIT 0
 ?? .scratch/grill-t23/ref-assets/
 
 classification (registry docs/governance/never-commit.json, 9 active rules):
-  tracked-diff lines: 25
+  tracked-diff lines: 24
   untracked lines: 13 (never-commit class or self: 13; other: 0)
   unexpected untracked: none
 

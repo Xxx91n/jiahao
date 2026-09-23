@@ -1,7 +1,7 @@
-captured-at-head: 555d75679d36ee4ee752519d350ba7fbe4ffffeb
+captured-at-head: 5a66b30910df44a549c9ff6fe4961faf357dd9a2
 $ node scripts/run-gates.js
 
-EXIT 1
+EXIT 0
 
 [0 gates-alignment] PASS
 gates alignment OK (36 entries, 3 meta-checks)
@@ -97,15 +97,15 @@ OK (ADR-0036 D5)
   L6  declared-gap (review 2026-11-30)
   L7  covered -> gsr:1, gsr:3
 [coverage] OK - 7 laws, 3 gsr rules (no base ref: coupling skipped)
-[185 falsification] FAIL
+[185 falsification] PASS
 PASS ft-0001-honest valid expected=valid
 PASS ft-0001-liar invalid expected=invalid
 PASS ft-0002-honest valid expected=valid
 PASS ft-0002-liar invalid expected=invalid
 PASS ft-0003-honest valid expected=valid
 PASS ft-0003-liar invalid expected=invalid
-FAIL ft-0004-honest invalid expected=valid
-FAIL ft-0004-liar valid expected=invalid
+PASS ft-0004-honest valid expected=valid
+PASS ft-0004-liar invalid expected=invalid
 PASS ft-0005-honest valid expected=valid
 PASS ft-0005-liar invalid expected=invalid
 PASS ft-0006-honest valid expected=valid
@@ -122,31 +122,31 @@ PASS ft-0011-honest valid expected=valid
 PASS ft-0011-liar invalid expected=invalid
 PASS ft-0012-honest valid expected=valid
 PASS ft-0012-liar invalid expected=invalid
-[internal]: 2 falsification twin mismatch(es)
+falsification OK: 12 twin pairs
 [190 deferred] PASS
 [deferred] OK - 65 entries (53 live, 12 closed/actioned) (no base ref: coupling skipped)
 [195 gate-params] PASS
 [gate-params] OK: 36 entries, declared params match effective commands (ADR-0036 D4)
 [196 pack-smoke] PASS
-[pack-smoke] smoke OK: jiahao-0.0.1.tgz (345324 bytes, 113 files) extracted and its CLI dry-run plan matched
+[pack-smoke] smoke OK: jiahao-0.0.1.tgz (345325 bytes, 113 files) extracted and its CLI dry-run plan matched
 [pack-smoke] packaged surface excludes jiahao-mcp/ + test/ + docs/adr; includes src/SKILL.md + scripts/install.js + docs/gates.json + CONTEXT.md
-[pack-smoke] OK: budget 345324 < 380000 bytes (ADR-0039 D3)
+[pack-smoke] OK: budget 345325 < 380000 bytes (ADR-0039 D3)
 
 > jiahao@0.0.1 prepare
 > git config core.hooksPath .githooks || true
 
-(node:12572) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(node:16800) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 [197 governance-anchors] PASS
 [governance-anchors] OK - 18 artifacts, digests in sync
 [198 governance-inventory] PASS
 [governance-inventory] OK: 36 entries, live source_adr, unique commands, closed references
 [208 rewrite-map] PASS
-[rewrite-map] OK: map in sync (2572 doc citations classified)
+[rewrite-map] OK: map in sync (2665 doc citations classified)
 [209 rewrite-map-published] PASS
-[rewrite-map] PUBLISHED-ONLY OK: 2572 citations covered, class enum + counts consistent, published-side ancestry verified against origin/main
+[rewrite-map] PUBLISHED-ONLY OK: 2665 citations covered, class enum + counts consistent, published-side ancestry verified against origin/main
 [218 secret-scan] PASS
-[secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 1212/1212/1212; oversized-skip 0; commit-messages 516
+[secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 1212/1212/1212; skipped-oversized 1 [.scratch/grill-t24/evidence/run-test-gate.txt]; commit-messages 520
 ::warning title=gate:all::3 advisory/band warning(s) from gates: instrument-identity, governance-inventory
 ::error title=UNVERIFIABLE::4 gate(s) unverifiable: ci-wiring requires ci-mode, bench-gate requires ci-mode, probes requires ci-mode, mr-probes requires ci-mode
-gate:all exit 1 (36 entries, 4 unverifiable, fail-fast off)
+gate:all exit 0 (36 entries, 4 unverifiable, fail-fast off)
