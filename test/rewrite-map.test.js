@@ -1,6 +1,8 @@
 // test/rewrite-map.test.js \u2014 ADR-0074 D-C wiring: generated rewrite map
 // completeness, classification truth, and the secret-scan tripwire (defer-0054).
-const { execFileSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
+
+
 const fs = require('fs');
 const path = require('path');
 
@@ -8,6 +10,18 @@ const ROOT = path.join(__dirname, '..');
 const MAP_PATH = path.join(ROOT, 'docs', 'rewrite-map.json');
 const MAP = JSON.parse(fs.readFileSync(MAP_PATH, 'utf8'));
 const CLASSES = ['rewritten', 'local-only', 'published-unchanged'];
+
+// Clone-degradability contract (grill-t25): the old-side gb-local/* refs are a
+// maintainer-object-store asset that never publishes. Where they are absent
+// (fresh public clone) --check/--verify exit 2 UNVERIFIABLE instead of a red
+// run; --published-only covers the clone-verifiable subset everywhere.
+const HAS_OLD_SIDE = (function () {
+  try {
+    return execFileSync('git', ['for-each-ref', '--format=%(refname)', 'refs/remotes/gb-local/'], { cwd: ROOT, encoding: 'utf8' })
+      .split('\n').some(function (r) { return r.trim() && r.indexOf('gitbutler') === -1; });
+  } catch (e) { return false; }
+})();
+
 
 function run(args) {
   return execFileSync('node', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
@@ -77,14 +91,34 @@ describe('rewrite-map.json \u2014 generated single translation point', () => {
     expect(emptyNew).toContain('e54c267');
   });
 
-  test('--check exits 0 against the committed map', () => {
-    const out = run(['scripts/build-rewrite-map.js', '--check']);
-    expect(out).toContain('[rewrite-map] OK');
+  test('--check green with old-side refs, exit-2 UNVERIFIABLE on a clone', () => {
+    const r = spawnSync('node', ['scripts/build-rewrite-map.js', '--check'], { cwd: ROOT, encoding: 'utf8' });
+    const both = (r.stdout || '') + (r.stderr || '');
+    if (HAS_OLD_SIDE) {
+      expect(r.status).toBe(0);
+      expect(r.stdout).toContain('[rewrite-map] OK');
+    } else {
+      expect(r.status).toBe(2);
+      expect(both).toContain('UNVERIFIABLE');
+      expect(both).toContain('old-side-refs');
+    }
   });
 
-  test('--verify re-derives classifications and boundary truth', () => {
-    const out = run(['scripts/build-rewrite-map.js', '--verify']);
-    expect(out).toContain('[rewrite-map] VERIFY OK');
+  test('--verify re-derives classifications and boundary truth (old-side present only)', () => {
+    const r = spawnSync('node', ['scripts/build-rewrite-map.js', '--verify'], { cwd: ROOT, encoding: 'utf8' });
+    if (HAS_OLD_SIDE) {
+      expect(r.status).toBe(0);
+      expect(r.stdout).toContain('[rewrite-map] VERIFY OK');
+    } else {
+      expect(r.status).toBe(2);
+      expect((r.stdout || '') + (r.stderr || '')).toContain('UNVERIFIABLE');
+    }
+  });
+
+  test('--published-only asserts the clone-verifiable subset everywhere', () => {
+    const r = spawnSync('node', ['scripts/build-rewrite-map.js', '--published-only'], { cwd: ROOT, encoding: 'utf8' });
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain('[rewrite-map] PUBLISHED-ONLY OK');
   });
 
   test('gate registered in docs/gates.json', () => {

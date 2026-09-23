@@ -24,11 +24,18 @@
 // excluded); --verify re-derives each row's truth from git (subjects, empties,
 // boundary trees) and asserts doc_refs completeness. The map file itself is
 // excluded from the citation scan (self-reference would make regen unstable).
+// --published-only asserts only the published-side subset (committed-map
+// internal consistency: citation coverage, class enum, count self-consistency,
+// published-side ancestry) - it needs no old-side refs and runs identically
+// on a fresh clone. Clone-degradability contract (grill-t25): old-side refs
+// are a maintainer-only asset; when none exist --check/--verify/default-write
+// exit 2 UNVERIFIABLE, never 1 - absence is a capability negative, not a red
+// map.
 
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
-const { requireCapabilities } = require('../src/shared/capability');
+const { requireCapabilities, unverifiableLines } = require('../src/shared/capability');
 
 const ROOT = path.join(__dirname, '..');
 const OUT_REL = path.join('docs', 'rewrite-map.json');
@@ -100,6 +107,39 @@ function isEmptyCommit(sha) {
   return out.trim() === '';
 }
 
+// Doc citation token scan (the map file itself excluded - generated, not a
+// source). Enumeration is the UNION of index + committed tree (the F-1
+// lesson: GitButler's virtual index lags HEAD by committed files, so an
+// index-only scan silently misses tracked docs). Untracked worktree files
+// are deliberately NOT scanned - a doc joins the tracked surface only via
+// a commit, so the map regen that follows the doc commit picks it up.
+// Returns raw occurrences [{file, line (1-based), sha}]: classification
+// needs the old-side object sets, but --published-only needs only this raw
+// coverage set, so the scan is shared and the class pass is not.
+function scanDocTokens() {
+  const files = Array.from(new Set(
+    git(['ls-files']).split('\n').concat(git(['ls-tree', '-r', 'HEAD', '--name-only']).split('\n'))
+  )).map(function (x) { return x.trim(); }).filter(Boolean)
+    .filter(function (f) { return f !== SELF && DOC_PATH_RE.test(f) && DOC_EXT_RE.test(f); }).sort();
+  const out = [];
+  for (const f of files) {
+    const abs = path.join(ROOT, f.split('/').join(path.sep));
+    let text;
+    try { text = fs.readFileSync(abs, 'utf8'); } catch (e) { continue; }
+    const lines = text.split('\n');
+    for (let li = 0; li < lines.length; li++) {
+      HEX_RE.lastIndex = 0;
+      let m;
+      while ((m = HEX_RE.exec(lines[li]))) {
+        const token = m[2];
+        if (!/[a-f]/.test(token)) continue;
+        out.push({ file: f, line: li + 1, sha: token });
+      }
+    }
+  }
+  return out;
+}
+
 function build(oldRefs, newRef) {
   const oldLog = [];
   const seenOld = {};
@@ -164,48 +204,29 @@ function build(oldRefs, newRef) {
   removed.forEach(function (m) { removedSet[m.sha] = 1; });
   const objSorted = Array.from(new Set(Array.from(pubObjects).concat(Array.from(oldObjects), Array.from(allObjects)))).sort();
 
-  // doc citation scan (the map file itself excluded \u2014 generated, not a
-  // source). Enumeration is the UNION of index + committed tree (the F-1
-  // lesson: GitButler's virtual index lags HEAD by committed files, so an
-  // index-only scan silently misses tracked docs). Untracked worktree files
-  // are deliberately NOT scanned - a doc joins the tracked surface only via
-  // a commit, so the map regen that follows the doc commit picks it up.
-  const files = Array.from(new Set(
-    git(['ls-files']).split('\n').concat(git(['ls-tree', '-r', 'HEAD', '--name-only']).split('\n'))
-  )).map(function (s) { return s.trim(); }).filter(Boolean)
-    .filter(function (f) { return f !== SELF && DOC_PATH_RE.test(f) && DOC_EXT_RE.test(f); }).sort();
+  // doc citation classification over the shared token scan (see
+  // scanDocTokens - the raw occurrence set is also the --published-only
+  // coverage oracle).
   const docRefs = [];
   const problems = [];
-  for (const f of files) {
-    const abs = path.join(ROOT, f.split('/').join(path.sep));
-    let text;
-    try { text = fs.readFileSync(abs, 'utf8'); } catch (e) { continue; }
-    const lines = text.split('\n');
-    for (let li = 0; li < lines.length; li++) {
-      const line = lines[li];
-      HEX_RE.lastIndex = 0;
-      let m;
-      while ((m = HEX_RE.exec(line))) {
-        const token = m[2];
-        if (!/[a-f]/.test(token)) continue;
-        const hit = prefixLookup(commitPool, token);
-        let cls, resolvedTo = null, label;
-        if (hit === 'ambiguous') { problems.push(f + ':' + (li + 1) + ' ambiguous sha ' + token); continue; }
-        if (hit && newSet[hit]) { cls = 'published-unchanged'; }
-        else if (hit && oldPairMap[hit]) { cls = 'rewritten'; resolvedTo = oldPairMap[hit]; }
-        else if (hit && removedSet[hit]) { cls = 'local-only'; label = 'old-side commit (removed by purge)'; }
-        else if (hit) { cls = 'local-only'; label = 'local commit'; }
-        else {
-          const ohit = prefixLookup(objSorted, token);
-          if (ohit === 'ambiguous') { problems.push(f + ':' + (li + 1) + ' ambiguous object ' + token); continue; }
-          if (ohit && pubObjects.has(ohit)) cls = 'published-unchanged';
-          else if (ohit && oldObjects.has(ohit)) { cls = 'local-only'; label = 'pre-purge object'; }
-          else if (ohit) { cls = 'local-only'; label = 'local object'; }
-          else { cls = 'local-only'; label = 'unresolved hex literal'; }
-        }
-        docRefs.push({ file: f, line: li + 1, sha: token, 'class': cls, resolved_to: resolvedTo, label: label });
-      }
+  for (const occ of scanDocTokens()) {
+    const f = occ.file, li = occ.line, token = occ.sha;
+    const hit = prefixLookup(commitPool, token);
+    let cls, resolvedTo = null, label;
+    if (hit === 'ambiguous') { problems.push(f + ':' + li + ' ambiguous sha ' + token); continue; }
+    if (hit && newSet[hit]) { cls = 'published-unchanged'; }
+    else if (hit && oldPairMap[hit]) { cls = 'rewritten'; resolvedTo = oldPairMap[hit]; }
+    else if (hit && removedSet[hit]) { cls = 'local-only'; label = 'old-side commit (removed by purge)'; }
+    else if (hit) { cls = 'local-only'; label = 'local commit'; }
+    else {
+      const ohit = prefixLookup(objSorted, token);
+      if (ohit === 'ambiguous') { problems.push(f + ':' + li + ' ambiguous object ' + token); continue; }
+      if (ohit && pubObjects.has(ohit)) cls = 'published-unchanged';
+      else if (ohit && oldObjects.has(ohit)) { cls = 'local-only'; label = 'pre-purge object'; }
+      else if (ohit) { cls = 'local-only'; label = 'local object'; }
+      else { cls = 'local-only'; label = 'unresolved hex literal'; }
     }
+    docRefs.push({ file: f, line: li, sha: token, 'class': cls, resolved_to: resolvedTo, label: label });
   }
   if (problems.length) throw new Error('unresolvable citations:\n' + problems.join('\n'));
 
@@ -275,21 +296,111 @@ function verify(map) {
   return errs;
 }
 
+// --published-only (grill-t25 clone-degradability contract): the
+// clone-verifiable subset of the map contract. Old-side refs never publish,
+// so a fresh clone cannot re-derive the old-side join; what it CAN prove is
+// (a) citation coverage - every hex citation in tracked docs appears in
+// doc_refs, (b) class enum validity, and (c) count + published-side-ancestry
+// self-consistency. Every check below derives from published objects alone.
+function verifyPublishedOnly(map, newRef) {
+  const errs = [];
+  const HEX40 = /^[0-9a-f]{40}$/;
+  const CLASSES = ['rewritten', 'local-only', 'published-unchanged'];
+  const anc = function (sha, ref) { return gitOk(['merge-base', '--is-ancestor', sha, ref]); };
+
+  if (map.schema_version !== 1) errs.push('schema_version ' + map.schema_version + ' != 1');
+  if (map.generated_by !== 'scripts/build-rewrite-map.js') errs.push('generated_by drift: ' + map.generated_by);
+  const b = map.boundary || {};
+  for (const k of ['shared_base', 'old_tip', 'new_counterpart']) {
+    if (!HEX40.test(b[k] || '')) errs.push('boundary.' + k + ' is not a full sha');
+  }
+  if (HEX40.test(b.shared_base || '') && !anc(b.shared_base, newRef)) errs.push('boundary.shared_base not on ' + newRef);
+  if (HEX40.test(b.new_counterpart || '') && !anc(b.new_counterpart, newRef)) errs.push('boundary.new_counterpart not on ' + newRef);
+  if (!HEX40.test(map.published_tip || '')) errs.push('published_tip is not a full sha');
+  else if (!anc(map.published_tip, newRef)) errs.push('published_tip not on ' + newRef);
+  if (!Array.isArray(map.sides && map.sides.new_refs) || map.sides.new_refs.indexOf(newRef) === -1) {
+    errs.push('sides.new_refs does not name ' + newRef);
+  }
+  for (const c of map.commits || []) {
+    if (!HEX40.test(c.old || '') || !HEX40.test(c.new || '')) { errs.push('commit row shape: ' + JSON.stringify(c).slice(0, 80)); continue; }
+    if (!anc(c.new, newRef)) errs.push('commits[].new off published line: ' + c.new);
+    if (c.empty === true && !isEmptyCommit(c.new)) errs.push('empty claim fails on published side: ' + c.new);
+    if (c.empty !== true && isEmptyCommit(c.new)) errs.push('empty flag missing on published side: ' + c.new);
+  }
+  for (const sm of map.same || []) {
+    if (!HEX40.test(sm.sha || '')) errs.push('same row shape: ' + JSON.stringify(sm).slice(0, 80));
+    else if (HEX40.test(b.shared_base || '') && !anc(sm.sha, b.shared_base)) errs.push('same[] not under shared_base: ' + sm.sha);
+  }
+  for (const p of map.published_only || []) {
+    if (!HEX40.test(p.new || '') || !anc(p.new, newRef)) errs.push('published_only[].new off line: ' + p.new);
+  }
+  for (const r of map.removed || []) {
+    if (HEX40.test(r.old || '') && anc(r.old, newRef)) errs.push('removed commit is on published side: ' + r.old);
+  }
+  const docRefs = map.doc_refs || [];
+  for (const d of docRefs) {
+    if (CLASSES.indexOf(d['class']) === -1) { errs.push('doc_refs class outside enum: ' + d['class']); continue; }
+    if (d['class'] === 'rewritten' && (!HEX40.test(d.resolved_to || '') || !anc(d.resolved_to, newRef))) {
+      errs.push('doc_refs rewritten target off published line: ' + d.sha + ' -> ' + d.resolved_to);
+    }
+  }
+  // citation coverage: re-scan the tracked doc surface; the map must name
+  // every hex citation. Classification is the old-side part and is
+  // deliberately not re-derived here - coverage alone is clone-verifiable.
+  const live = scanDocTokens().map(function (o) { return o.file + ':' + o.line + ':' + o.sha; }).sort();
+  const recorded = docRefs.map(function (d) { return d.file + ':' + d.line + ':' + d.sha; }).sort();
+  if (JSON.stringify(live) !== JSON.stringify(recorded)) {
+    const have = {}; recorded.forEach(function (k) { have[k] = 1; });
+    const missing = live.filter(function (k) { return !have[k]; });
+    errs.push('doc citation coverage differs (first missing: ' + missing.slice(0, 5).join(', ') + ')');
+  }
+  const counts = map.counts || {};
+  const expect = {
+    commits: (map.commits || []).length,
+    published_only: (map.published_only || []).length,
+    removed: (map.removed || []).length,
+    same: (map.same || []).length,
+    doc_refs: docRefs.length
+  };
+  for (const k in expect) if (counts[k] !== expect[k]) errs.push('counts.' + k + ' = ' + counts[k] + ', recomputes to ' + expect[k]);
+  const byClass = counts.doc_refs_by_class || {};
+  for (const c of CLASSES) {
+    const n = docRefs.filter(function (d) { return d['class'] === c; }).length;
+    if (byClass[c] !== n) errs.push('counts.doc_refs_by_class.' + c + ' = ' + byClass[c] + ', recomputes to ' + n);
+  }
+  return errs;
+}
 function stableCopy(m) { const c = JSON.parse(JSON.stringify(m)); delete c.generated_at; return c; }
 
 function main() {
   const args = process.argv.slice(2);
   const oldArgs = [];
-  let newRef = 'origin/main', check = false, verifyMode = false;
+  let newRef = 'origin/main', check = false, verifyMode = false, publishedOnly = false;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--old') oldArgs.push(args[++i]);
     else if (args[i] === '--new') newRef = args[++i];
     else if (args[i] === '--check') check = true;
     else if (args[i] === '--verify') verifyMode = true;
+    else if (args[i] === '--published-only') publishedOnly = true;
     else if (args[i] === '--help' || args[i] === '-h') {
-      console.log('usage: node scripts/build-rewrite-map.js [--check|--verify] [--old <ref>]... [--new <ref>]');
+      console.log('usage: node scripts/build-rewrite-map.js [--check|--verify|--published-only] [--old <ref>]... [--new <ref>]');
       return;
     }
+  }
+  if (publishedOnly) {
+    // Published-side consistency only - deliberately bypasses the registry
+    // 'rewrite-map' capability set (which includes the old-side asset): the
+    // whole point of this mode is running where the old side is absent.
+    requireCapabilities(['repo-tree']);
+    const mapAbs = path.join(ROOT, OUT_REL);
+    if (!fs.existsSync(mapAbs)) { console.error('[rewrite-map] PUBLISHED-ONLY FAIL: ' + OUT_REL + ' missing - the committed map is the assertion target'); process.exit(1); }
+    let committed;
+    try { committed = JSON.parse(fs.readFileSync(mapAbs, 'utf8')); }
+    catch (e) { console.error('[rewrite-map] PUBLISHED-ONLY FAIL: ' + OUT_REL + ' unreadable: ' + (e && e.message)); process.exit(1); }
+    const errs = verifyPublishedOnly(committed, newRef);
+    if (errs.length) { console.error('[rewrite-map] PUBLISHED-ONLY FAIL:' + '\n' + errs.join('\n')); process.exit(1); }
+    console.log('[rewrite-map] PUBLISHED-ONLY OK: ' + (committed.doc_refs || []).length + ' citations covered, class enum + counts consistent, published-side ancestry verified against ' + newRef);
+    return;
   }
   requireCapabilities('rewrite-map');
   // Post-purge branches can predate the current tip without being pre-purge
@@ -311,7 +422,17 @@ function main() {
     // ENOENT: first generation - tip-only test.
   }
   const oldRefs = oldArgs.length ? oldArgs : discoverOldRefs(newRef, publishedSide);
-  if (!oldRefs.length) { console.error('[rewrite-map] FAIL: no old-side refs discovered (no gb-local/* carries objects absent from ' + newRef + ' and not descended from published-side anchors)'); process.exit(1); }
+  if (!oldRefs.length) {
+    // grill-t25 clone-degradability contract: gb-local/* old-side refs are a
+    // maintainer-object-store asset that never publishes. Absence is a
+    // deterministic capability negative - exit 2 UNVERIFIABLE, never a red
+    // --check on a public clone. The published-side subset stays checkable
+    // everywhere via --published-only.
+    const lines = unverifiableLines('rewrite-map', 'old-side-refs');
+    process.stdout.write(lines[0] + '\n');
+    process.stderr.write(lines[1] + '\n');
+    process.exit(2);
+  }
   const map = build(oldRefs, newRef);
   if (verifyMode) {
     const errs = verify(map);
@@ -336,4 +457,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { build, verify, discoverOldRefs, prefixLookup, isEmptyCommit };
+module.exports = { build, verify, verifyPublishedOnly, scanDocTokens, discoverOldRefs, prefixLookup, isEmptyCommit };

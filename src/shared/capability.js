@@ -33,6 +33,7 @@ const HINTS = {
   'bench-corpus': 'the bench corpus is a maintainer/CI asset and is not distributed in the npm package or a public git clone (ADR-0038 D2); set JIAHAO_CORPUS_DIR if you legitimately hold it (ADR-0038 D3)',
   'docs-adr': 'docs/adr/ lives in the git tree and is deliberately absent from the npm tarball (ADR-0039); run from a git checkout',
   'ci-mode': 'a CI environment is expected (GITHUB_ACTIONS or CI env var non-empty)',
+  'old-side-refs': 'the gb-local/* pre-rewrite refs exist only on the maintainer object store and never publish; on a public clone the clone-verifiable subset is node scripts/build-rewrite-map.js --published-only',
   'transcript-file': 'the host delivers a transcript file (ADR-0070 D-C(c)); for script-level consumers declare it explicitly via JIAHAO_TRANSCRIPT_FILE=<path-to-existing-file> — per-event hook delivery (transcript_path on the stop-family stdin) and per-host reachability are recorded in the host-contract registry',
 };
 
