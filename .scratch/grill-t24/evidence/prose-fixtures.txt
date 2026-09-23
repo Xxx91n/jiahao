@@ -1,4 +1,4 @@
-captured-at-head: c405d47f67478b00ac3180fa6418dddace7b0306
+captured-at-head: b3d93427827c01fdfd76aac070de74d6708f3d31
 $ node D:\Aworker\jiahao\node_modules\jest\bin\jest.js test/adr-0076-wiring.test.js -t fixture
 
 EXIT 0
@@ -93,5 +93,5 @@ PASS test/adr-0076-wiring.test.js
 Test Suites: 1 passed, 1 total
 Tests:       72 skipped, 5 passed, 77 total
 Snapshots:   0 total
-Time:        0.507 s, estimated 1 s
+Time:        0.49 s, estimated 1 s
 Ran all test suites matching /test\\adr-0076-wiring.test.js/i with tests matching "fixture".

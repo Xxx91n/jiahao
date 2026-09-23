@@ -1,4 +1,4 @@
-captured-at-head: c405d47f67478b00ac3180fa6418dddace7b0306
+captured-at-head: b3d93427827c01fdfd76aac070de74d6708f3d31
 $ node scripts/instrument.js --check
 
 EXIT 0

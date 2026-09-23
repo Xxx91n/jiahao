@@ -1,4 +1,4 @@
-captured-at-head: c405d47f67478b00ac3180fa6418dddace7b0306
+captured-at-head: b3d93427827c01fdfd76aac070de74d6708f3d31
 $ node D:\Aworker\jiahao\node_modules\jest\bin\jest.js test/adr-0084-wiring.test.js
 
 EXIT 1
@@ -8,22 +8,22 @@ warning: in the working copy of 'scripts/build-rewrite-map.js', LF will be repla
 warning: in the working copy of 'src/shared/capability.js', LF will be replaced by CRLF the next time Git touches it
 FAIL test/adr-0084-wiring.test.js
   ADR-0084 public-clone verifiability contract (grill-t25 fix round)
-    √ title, status, date, ledger + spec anchors (4 ms)
-    √ D-A clone-degradability: capability name verbatim + exit-2 channel + --published-only subsets (2 ms)
-    √ D-B fourth mandatory audit line: public clone is the verification surface (3 ms)
-    √ D-C landing-tail + D-D exception narrowness + D-E tag timing + D-F first-disclosure (6 ms)
-    √ ADR-0083 gains only the pointer line - its own audit lines remain three (6 ms)
-    √ capability registration: closed enum + probe + gate requires (46 ms)
-    √ clone-sim: a git-init tree without gb-local/* degrades to exit-2 UNVERIFIABLE (244 ms)
-    √ t25 capture artifacts carry the captured-at-head provenance header resolving to a commit (758 ms)
-    × D-A ordering invariant re-roll: every committed t25 capture names a sha at-or-after the freshness anchor (863 ms)
-    √ coverage leg re-anchored at the t25 base validates the latest row (118 ms)
+    √ title, status, date, ledger + spec anchors (3 ms)
+    √ D-A clone-degradability: capability name verbatim + exit-2 channel + --published-only subsets (1 ms)
+    √ D-B fourth mandatory audit line: public clone is the verification surface (1 ms)
+    √ D-C landing-tail + D-D exception narrowness + D-E tag timing + D-F first-disclosure (1 ms)
+    √ ADR-0083 gains only the pointer line - its own audit lines remain three (1 ms)
+    √ capability registration: closed enum + probe + gate requires (29 ms)
+    √ clone-sim: a git-init tree without gb-local/* degrades to exit-2 UNVERIFIABLE (248 ms)
+    √ t25 capture artifacts carry the captured-at-head provenance header resolving to a commit (727 ms)
+    × D-A ordering invariant re-roll: every committed t25 capture names a sha at-or-after the freshness anchor (918 ms)
+    √ coverage leg re-anchored at the t25 base validates the latest row (117 ms)
     √ defer-0070 CI-red history + defer-0071 generalized-monitoring registrations (2 ms)
-    √ countersign queue: all 10 labels are ID-level-only with a return condition + date (7 ms)
-    √ Re-Execution Prior: bbf5259 registered as the first directional event (1 ms)
-    √ secret-scan: commit-message surface is enumerated (the fourth surface) (42 ms)
+    √ countersign queue: all 10 labels are ID-level-only with a return condition + date (6 ms)
+    √ Re-Execution Prior: bbf5259 registered as the first directional event
+    √ secret-scan: commit-message surface is enumerated (the fourth surface) (41 ms)
     √ the t25 trend row: kind fix + adr_added 0084 + declared R2 hand-edits (1 ms)
-    √ README index rebuilt: 84 records incl. ADR-0084 (1 ms)
+    √ README index rebuilt: 84 records incl. ADR-0084
 
   ● ADR-0084 public-clone verifiability contract (grill-t25 fix round) › D-A ordering invariant re-roll: every committed t25 capture names a sha at-or-after the freshness anchor
 
@@ -45,5 +45,5 @@ FAIL test/adr-0084-wiring.test.js
 Test Suites: 1 failed, 1 total
 Tests:       1 failed, 15 passed, 16 total
 Snapshots:   0 total
-Time:        2.596 s, estimated 5 s
+Time:        2.516 s, estimated 5 s
 Ran all test suites matching /test\\adr-0084-wiring.test.js/i.

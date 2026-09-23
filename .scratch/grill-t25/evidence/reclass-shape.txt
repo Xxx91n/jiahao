@@ -1,4 +1,4 @@
-captured-at-head: c405d47f67478b00ac3180fa6418dddace7b0306
+captured-at-head: b3d93427827c01fdfd76aac070de74d6708f3d31
 $ node D:\Aworker\jiahao\node_modules\jest\bin\jest.js test/adr-0080-wiring.test.js -t reclass
 
 EXIT 0
@@ -6,8 +6,8 @@ EXIT 0
 PASS test/adr-0080-wiring.test.js
   ADR-0080 doc surface (grill-t21 disposition round)
     √ taxonomy artifact carries the reclassifications log + the README-* rule text (3 ms)
-    √ gtd recompute grace: pre-effective rows listing a reclassified file pass; post-effective rows still fail (62 ms)
-    √ reclass grace requires from:R2 in the log entry (over-exemption tightened) (19 ms)
+    √ gtd recompute grace: pre-effective rows listing a reclassified file pass; post-effective rows still fail (61 ms)
+    √ reclass grace requires from:R2 in the log entry (over-exemption tightened) (21 ms)
     ○ skipped title, status, date, ledger + spec anchors
     ○ skipped ADR-0080 registers the required policy content (audit C-1 contract)
     ○ skipped README-* root predicate: mirror + companions classify R3 (the residual gap is closed)
@@ -24,5 +24,5 @@ PASS test/adr-0080-wiring.test.js
 Test Suites: 1 passed, 1 total
 Tests:       12 skipped, 3 passed, 15 total
 Snapshots:   0 total
-Time:        0.467 s, estimated 1 s
+Time:        0.469 s, estimated 1 s
 Ran all test suites matching /test\\adr-0080-wiring.test.js/i with tests matching "reclass".
