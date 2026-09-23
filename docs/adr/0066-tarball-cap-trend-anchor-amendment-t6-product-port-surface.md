@@ -1,6 +1,6 @@
 # ADR-0066: Tarball-Cap Trend-Anchor Amendment for the T-6 Product Port Surface
 
-Status: Accepted (user-ratified 2026-09-14 via grill-t7 decision ledger D-003 T-1 stop-condition; second_reviewer countersign deferred to the next audit round - the ADR-0065 ratification pattern)
+Status: Accepted (user-ratified 2026-09-14 via grill-t7 decision ledger D-003 T-1 stop-condition; second_reviewer countersign deferred to the next audit round - the ADR-0065 ratification pattern; grill-t25 label: the deferred second_reviewer countersign is ID-level-only, awaiting entity-level - return condition: the 2026-12-15 audit-window review records the entity-level countersign verdict or a formal downgrade; return-by: 2026-12-15)
 Date: 2026-09-14
 
 Amends: ADR-0039 D3 (the periodic trend-anchor cap moves 230,000 -> 300,000

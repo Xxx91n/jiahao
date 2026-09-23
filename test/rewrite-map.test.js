@@ -159,6 +159,20 @@ describe('check-secret-scan.js \u2014 defer-0054 tripwire (<=3 rules)', () => {
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
+  test('commit-message surface: enumeration covers reachable history (grill-t25 fourth surface)', () => {
+    const { commitMessages } = require('../scripts/check-secret-scan.js');
+    const msgs = commitMessages();
+    expect(msgs.length).toBeGreaterThan(0);
+    // HEAD is always in the enumeration; bodies are non-empty strings
+    expect(msgs.some(function (m) { return m.sha.length === 40; })).toBe(true);
+  });
+
+  test('commit-message surface: a planted token in a message body is caught', () => {
+    const { scanMessage } = require('../scripts/check-secret-scan.js');
+    const hits = scanMessage('a'.repeat(40), 'docs: adjust ' + 'ghp_' + 'abcdefghijklmnopqrstuvwxyz0123456789');
+    expect(hits.map(function (h) { return h.rule; })).toContain('R2-provider-token');
+    expect(hits[0].file).toBe('commit:aaaaaaaaaaaa');
+  });
   test('enumeration covers the committed tree, not just the index (T-3 F-1)', () => {
     const { trackedFiles } = require('../scripts/check-secret-scan.js');
     const files = trackedFiles();

@@ -1,6 +1,6 @@
 # ADR-0067: devin-corpus@v1 OOT Falsification Adjudication - Eval-Plan Registration, Claim Surface, Branch Policy
 
-Status: Accepted (user-ratified 2026-09-15 via grill-t7 decision ledger D-007..D-011; second_reviewer countersign deferred to the next audit round - the ADR-0065/0066 ratification pattern)
+Status: Accepted (user-ratified 2026-09-15 via grill-t7 decision ledger D-007..D-011; second_reviewer countersign deferred to the next audit round - the ADR-0065/0066 ratification pattern; grill-t25 label: the deferred second_reviewer countersign is ID-level-only, awaiting entity-level - return condition: the 2026-12-15 audit-window review records the entity-level countersign verdict or a formal downgrade; return-by: 2026-12-15)
 Date: 2026-09-15
 
 References: ADR-0027 D2 (same-commit registry discipline), ADR-0030 (growth

@@ -569,6 +569,8 @@ corrections are invisible to the count). Registered conventions: audit
 findings merge into the count at closeout; the first self-disclosure
 case is a directional event — separately registered, never an in-place
 number change.
+Registered directional events (the separately-registered list the convention names):
+- (1) `bbf5259` (grill-t25, 2026-09-24) — first internal-disclosure-channel case: the t24 repair-window commit carried a corrupted report blob disclosed by the round's own handoff, not caught by re-execution or independent audit. Classified by first-disclosing channel per ADR-0084 D-F; the n=19 snapshot is untouched.
 _Avoid_: reading it as an extrapolated rate; treating small n as license
 to drop the prior (ledger t11 D-004)
 

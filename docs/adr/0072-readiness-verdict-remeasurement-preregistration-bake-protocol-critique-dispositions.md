@@ -1,6 +1,6 @@
 # ADR-0072: Readiness Verdict (Usable + Testable), Pre-Registered Re-Measurement (b2 Method + Lane Exercise), Owner-Dogfood Bake Protocol, ADR-0070 Tier-2 Amendment, and Critique Dispositions P-1/P-2/P-4/P-5
 
-Status: Accepted (user-ratified 2026-09-16 via grill-t11 decision ledger D-001..D-005; second_reviewer countersign deferred to the next audit round - the ADR-0065/0066/0067/0069/0070 ratification pattern)
+Status: Accepted (user-ratified 2026-09-16 via grill-t11 decision ledger D-001..D-005; second_reviewer countersign deferred to the next audit round - the ADR-0065/0066/0067/0069/0070 ratification pattern; grill-t25 label: the deferred second_reviewer countersign is ID-level-only, awaiting entity-level - return condition: the 2026-12-15 audit-window review records the entity-level countersign verdict or a formal downgrade; return-by: 2026-12-15)
 Date: 2026-09-16
 
 References: ADR-0069 D-D (the b-line readiness contract this round executes), ADR-0070 (the conviction lane; its frozen promotion gate is amended at D-D and its claim sentence 1 at D-F below), ADR-0067 (appended appendix, P-4), ADR-0047 (appended note, P-1), ADR-0040 (capability three-state vocabulary), ADR-0061 D-E (governance anchors; the t11 ledger joins under this ADR), ADR-0062/0066/0071 (frozen-artifact amendment discipline precedent), ADR-0033/0035 (deferred-registry row discipline), decision-ledger-t11 (.scratch/grill-t11/decision-ledger.md - git-tracked; the governance copy is docs/governance/decision-ledger-t11.md).

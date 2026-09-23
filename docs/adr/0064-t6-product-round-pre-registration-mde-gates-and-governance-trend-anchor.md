@@ -1,6 +1,6 @@
 # ADR-0064: T-6 Product Round Pre-Registration - MDE Stage-Gates, Golden-Sample Equivalence, Governance Trend Anchor
 
-Status: Accepted (user-ratified 2026-09-14 via grill-t6 decision ledger D-001..D-006; second_reviewer countersign deferred to the next audit round)
+Status: Accepted (user-ratified 2026-09-14 via grill-t6 decision ledger D-001..D-006; second_reviewer countersign deferred to the next audit round; grill-t25 label: the deferred second_reviewer countersign is ID-level-only, awaiting entity-level - return condition: the 2026-12-15 audit-window review records the entity-level countersign verdict or a formal downgrade; return-by: 2026-12-15)
 Date: 2026-09-14
 
 Amends: ADR-0059 D-C (the "research round carries no metric commitment" general

@@ -2,7 +2,11 @@
 'use strict';
 // scripts/check-secret-scan.js — defer-0054 actioned (authority: ADR-0074 R2-
 // dispositions bullet + t13 ledger "T-2 dispositions"; not the D-E plan itself):
-// repo-side pattern scanner, <=3 rules, zero dependencies, tracked-scope.
+// repo-side pattern scanner, <=3 rules, zero dependencies. Scope: tracked files
+// (index union committed tree) PLUS the commit-message surface (grill-t25,
+// ADR-0084 D-G) - the GitHub-official push-protection enumeration does not
+// cover commit-message bodies; a token pasted into a message is the same
+// exposure class, so the same three rules scan it.
 // Spec deviation registered (T-3 F-7): the spec'd cheap high-entropy check is
 // substituted by R3 purged-path classes — a generic entropy rule false-positives
 // on the sha256 digests throughout .scratch reports; entropy detection stays on
@@ -75,23 +79,46 @@ function trackedFiles() {
   return union;
 }
 
+// Fourth enumeration surface (grill-t25, ADR-0084 D-G): commit messages.
+// Reachable history on HEAD is the public surface - the maintainer-only
+// gb-local/* messages are deliberately NOT enumerated (the published tree is
+// the contract). Same content rules, pseudo-path commit:<sha12>.
+function commitMessages() {
+  const raw = execFileSync('git', ['log', '--format=%H%x1f%B%x1e'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  return raw.split('\x1e').map(function (rec) {
+    const i = rec.indexOf('\x1f');
+    if (i === -1) return null;
+    return { sha: rec.slice(0, i).trim(), body: rec.slice(i + 1) };
+  }).filter(function (r) { return r && /^[0-9a-f]{40}$/.test(r.sha); });
+}
+
+function scanMessage(sha, body) {
+  const hits = [];
+  for (const r of RULES) {
+    if (r.kind === 'content' && r.re.test(body)) hits.push({ file: 'commit:' + sha.slice(0, 12), rule: r.id });
+  }
+  return hits;
+}
+
 function main() {
   if (process.argv.indexOf('--help') !== -1 || process.argv.indexOf('-h') !== -1) {
-    console.log('usage: node scripts/check-secret-scan.js  (scans git ls-files; exit 1 on any hit)');
+    console.log('usage: node scripts/check-secret-scan.js  (scans tracked files + commit messages; exit 1 on any hit)');
     return;
   }
   requireCapabilities('secret-scan');
   const hits = [];
   for (const f of trackedFiles()) hits.push.apply(hits, scanFile(f));
+  const msgs = commitMessages();
+  for (const m of msgs) hits.push.apply(hits, scanMessage(m.sha, m.body));
   if (hits.length) {
     console.error('[secret-scan] FAIL - ' + hits.length + ' hit(s):');
     for (const h of hits) console.error('  ' + h.rule + '  ' + h.file);
     process.exit(1);
   }
   const extra = ' - enum index/tree/union ' + enumCounts.index + '/' + enumCounts.tree + '/' + enumCounts.union +
-    (oversized.length ? '; skipped-oversized ' + oversized.length + ' [' + oversized.join(', ') + ']' : '; oversized-skip 0');
+    (oversized.length ? '; skipped-oversized ' + oversized.length + ' [' + oversized.join(', ') + ']' : '; oversized-skip 0') + '; commit-messages ' + msgs.length;
   console.log('[secret-scan] OK - ' + RULES.length + ' rules, 0 hits' + extra);
 }
 
 if (require.main === module) main();
-module.exports = { RULES, scanFile, trackedFiles, oversized, enumCounts };
+module.exports = { RULES, scanFile, scanMessage, trackedFiles, commitMessages, oversized, enumCounts };

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-23T12:22:50.142Z",
+  "generated_at": "2026-09-23T12:29:14.480Z",
   "published_tip": "fc390d5e778db567d12b072f7a25cbf1e73b03f8",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -22,11 +22,11 @@
     "published_only": 210,
     "removed": 0,
     "same": 278,
-    "doc_refs": 2569,
+    "doc_refs": 2572,
     "doc_refs_by_class": {
       "rewritten": 104,
       "local-only": 779,
-      "published-unchanged": 1686
+      "published-unchanged": 1689
     }
   },
   "commits": [
@@ -19752,6 +19752,13 @@
       "label": "unresolved hex literal"
     },
     {
+      "file": "CONTEXT.md",
+      "line": 573,
+      "sha": "bbf5259",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
       "file": "README.md",
       "line": 80,
       "sha": "051744a7a1b4027a42720814c819bf051e0831a8",
@@ -20168,6 +20175,20 @@
       "file": "docs/adr/0083-declared-vs-actual-drift-clauses.md",
       "line": 59,
       "sha": "e23579c",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": "docs/adr/0084-public-clone-verifiability-clone-degradability-landing-tail-exception-tag-timing-first-disclosure.md",
+      "line": 40,
+      "sha": "bbf5259",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": "docs/deferred-registry.json",
+      "line": 1121,
+      "sha": "fc390d5e778db567d12b072f7a25cbf1e73b03f8",
       "class": "published-unchanged",
       "resolved_to": null
     },

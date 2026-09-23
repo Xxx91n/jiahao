@@ -1,6 +1,6 @@
 # ADR-0070: Hook-Side Conviction Lane — CAPA Pairer Shadow Wiring, Frozen Shadow→Enforce Promotion Gate, Product Shape, Claim Form, and F-A Carry-Over Dispositions
 
-Status: Accepted (user-ratified 2026-09-16 via grill-t10 decision ledger D-001..D-007; second_reviewer countersign deferred to the next audit round - the ADR-0065/0066/0067/0069 ratification pattern)
+Status: Accepted (user-ratified 2026-09-16 via grill-t10 decision ledger D-001..D-007; second_reviewer countersign deferred to the next audit round - the ADR-0065/0066/0067/0069 ratification pattern; grill-t25 label: the deferred second_reviewer countersign is ID-level-only, awaiting entity-level - return condition: the 2026-12-15 audit-window review records the entity-level countersign verdict or a formal downgrade; return-by: 2026-12-15)
 Date: 2026-09-16
 Amended by: ADR-0072 D-D (G2 gains independent second-line review before the flip is evaluated) and D-F (claim sentence-1 parenthetical: `present` disclosed as documented-to-deliver); ADR-0073 D-B (G1 narrowed to organic events under provenance-tiered counting) and D-C (O-1: `measured-present` flip executed; claim sentence-1 parenthetical superseded with the evidence layer; O-2/W-1 dispositions)
 

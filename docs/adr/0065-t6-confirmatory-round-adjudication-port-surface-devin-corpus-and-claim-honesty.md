@@ -1,6 +1,6 @@
 # ADR-0065: T-6 Confirmatory Round - Adjudication Rule, Port Surface, Devin Corpus Protocol, Claim Honesty
 
-Status: Accepted (user-ratified 2026-09-14 via grill-t7 decision ledger D-001..D-006; second_reviewer countersign deferred to the next audit round)
+Status: Accepted (user-ratified 2026-09-14 via grill-t7 decision ledger D-001..D-006; second_reviewer countersign deferred to the next audit round; grill-t25 label: the deferred second_reviewer countersign is ID-level-only, awaiting entity-level - return condition: the 2026-12-15 audit-window review records the entity-level countersign verdict or a formal downgrade; return-by: 2026-12-15)
 Date: 2026-09-14
 
 References: ADR-0027 D2 (threshold moves same-commit ADR), ADR-0038 D1/D2

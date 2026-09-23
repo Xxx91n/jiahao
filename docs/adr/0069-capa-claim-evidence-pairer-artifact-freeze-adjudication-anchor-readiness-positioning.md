@@ -1,6 +1,6 @@
 # ADR-0069: CAPA Claim-Evidence Pairer Semantics, Artifact-Scoped Freeze + Adjudication Anchor, Readiness Positioning, and v3 Plan Obligations
 
-Status: Accepted (user-ratified 2026-09-16 via grill-t8 decision ledger D-001..D-007; second_reviewer countersign deferred to the next audit round - the ADR-0065/0066/0067 ratification pattern)
+Status: Accepted (user-ratified 2026-09-16 via grill-t8 decision ledger D-001..D-007; second_reviewer countersign deferred to the next audit round - the ADR-0065/0066/0067 ratification pattern; grill-t25 label: the deferred second_reviewer countersign is ID-level-only, awaiting entity-level - return condition: the 2026-12-15 audit-window review records the entity-level countersign verdict or a formal downgrade; return-by: 2026-12-15)
 Date: 2026-09-16
 
 References: ADR-0068 (the v2 verdict this CAPA answers - failed, lie-fail x

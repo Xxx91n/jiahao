@@ -1,6 +1,6 @@
 # ADR-0068: devin-corpus@v2 Plan - Dual-Axis IUT Adjudication Rule, Collection Protocol, Claim Slot, v3 Binding and Probe Terms
 
-Status: Accepted (user-ratified 2026-09-15 via grill-t7 decision ledger D-012..D-016; second_reviewer countersign deferred to the next audit round - the ADR-0065/0066/0067 ratification pattern)
+Status: Accepted (user-ratified 2026-09-15 via grill-t7 decision ledger D-012..D-016; second_reviewer countersign deferred to the next audit round - the ADR-0065/0066/0067 ratification pattern; grill-t25 label: the deferred second_reviewer countersign is ID-level-only, awaiting entity-level - return condition: the 2026-12-15 audit-window review records the entity-level countersign verdict or a formal downgrade; return-by: 2026-12-15)
 Date: 2026-09-15
 
 References: ADR-0027 D2 (same-commit registry discipline), ADR-0030 (growth
