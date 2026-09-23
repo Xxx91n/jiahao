@@ -1,21 +1,27 @@
-# grill-t24 post-audit handoff — audit PASS WITH FINDINGS (2026-09-23)
+# grill-t24 post-audit handoff — audit PASS, repair verified (2026-09-23)
 
 Audit report (authoritative — do not duplicate its tables):
 `D:/Aworker/jiahao/.scratch/grill-t24/reports/2026-09-23-audit.md`
+Repair verification (final verdict):
+`D:/Aworker/jiahao/.scratch/grill-t24/reports/2026-09-23-repair-verification.md`
 Round report: `D:/Aworker/jiahao/.scratch/grill-t24/reports/2026-09-23-report.md`
-Branch `grill-t24-docs`, base `c526de3`, durable tip `28cb29a`, local-only, never pushed.
+Branch `grill-t24-docs`, base `c526de3`, durable tip `4a18262`, local-only, never pushed.
 
-## Audit verdict
+## Audit verdict — FINAL: PASS
 
-**PASS WITH FINDINGS.** All three ADR-0083 D-E mandatory scope lines pass
-mechanically (evidence-freshness ordering vs anchor `9efe7b6`; never-commit
-registry coverage nc-001..009; per-commit `git show --name-only` conformance
-over 23 durable commits). Hard acceptance rerun green on the committed tree
-(78/1325/0, gate:all exit 0, pack 341,056 B, liveness chain incl. MCP
-initialize). defer-0069's unfreeze condition is met — discharge it at the next
-bookkeeping pass.
+**PASS.** First pass was PASS WITH FINDINGS (T5-C-1..C-5); the repair window
+(`bbf5259`..`4a18262`, 17 commits, anchors `bbf5259`/`401e1f1`/`ad8c5a1`)
+disposed all five and the re-audit confirmed each disposition against the
+object store — including the disclosed `bbf5259` corrupted report blob (9
+interleaved copies; `String.replace` `` $` ``-expansion root cause, fixed in
+`fix-report.cjs`). All three ADR-0083 D-E mandatory scope lines re-verified
+green at tip `4a18262` (anchor `ad8c5a1`, 0 ordering violations, per-commit
+file lists conform). Hard acceptance rerun green (78/1325/0, rewrite-map 2529
+citations, pack 341,239 B, liveness chain incl. MCP initialize).
+**defer-0069 discharged** (`closed` / discharged-by-trigger — this audit named
+all three lines with PASS verdicts; wiring pin updated to assert `closed`).
 
-## T5-C findings for next-round T-0 disposition (per precedent)
+## T5-C findings — all DISPOSED in the repair window (verified)
 
 - T5-C-1 (medium): consent sweep dropped standing rows defer-0060/0064/0065 —
   dated backfill in the report (same repair shape as t23's defer-0066 fix).
@@ -30,22 +36,23 @@ bookkeeping pass.
   "Grilling in progress", commit 0ef7239's "nc-007" mislabel (actual nc-004),
   check-ci-jobs EXIT 1 glossed as "real parse OK".
 
-## URGENT — worktree state before any next-round work
+All five verified disposed — per-disposition evidence in
+`reports/2026-09-23-repair-verification.md` §T5-C dispositions.
 
-The main worktree `D:/Aworker/jiahao` currently holds **24 polluted evidence
-files** (uncommitted): a post-closeout capture run executed under **bun**
-(execPath inheritance), producing red bytes — gate-all bun panic, jest 78/78
-fail, npm-cli path miss — all stamped `captured-at-head: 28cb29a`. The durable
-commits are intact. Before the next round: restore the evidence dir to the
-committed bytes (`git checkout`/discard of those uncommitted writes) or
-re-capture under node; do NOT commit the red set. Side effect while polluted:
-`rewrite-map --check` and `round-facts --check` go red (headers are doc
-citations) — clears when the tree is clean. Capture harness needs a node
-runtime pin or a non-node refusal — candidate instance for defer-0066.
+## Worktree state — RESOLVED (was URGENT)
+
+The 24 polluted evidence files (bun-runtime capture, red bytes stamped
+`captured-at-head: 28cb29a`) were restored to committed bytes before the
+repair window opened — the red set never entered the durable tree. Repair
+window registered the harness lesson as **defer-0066 instance 5** (capture
+harness inherits `process.execPath`; needs a node pin or a non-node refusal).
+Current porcelain: only the 13 registry-covered untracked paths; clean-tree
+leg committed CLEAN.
 
 ## Next grill direction (per audit + standing advisories)
 
-1. T-0: absorb this audit + the round report pair; dispose T5-C-1..C-5.
+1. T-0: absorb this repair-verification + handoff revision (both uncommitted;
+   the round report + prior audit were already absorbed at `bbf5259`).
 2. Natural themes: defer-0066 burn-down (capture-harness hardening — now with
    the execPath-portability instance), the never-commit registry's first
    deprecate-cycle exercise, or an R1/R3 runtime round (burn-rate advisory
