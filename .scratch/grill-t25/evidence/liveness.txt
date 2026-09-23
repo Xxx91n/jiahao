@@ -1,5 +1,5 @@
-captured-at-head: 1ef243849ec596fd7d630bfd0b65cc98f5955989
-$ node D:\nodejs\node_modules\npm\bin\npm-cli.js pack --pack-destination C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-w3cQ5O
+captured-at-head: c405d47f67478b00ac3180fa6418dddace7b0306
+$ node D:\nodejs\node_modules\npm\bin\npm-cli.js pack --pack-destination C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-uq8glf
 
 
 > jiahao@0.0.1 prepare
@@ -128,13 +128,13 @@ npm notice version: 0.0.1
 npm notice filename: jiahao-0.0.1.tgz
 npm notice package size: 345.3 kB
 npm notice unpacked size: 1.2 MB
-npm notice shasum: 1c1ae0b04778d60950e5c9ac9a22c1313d497534
-npm notice integrity: sha512-fGjBYvRLBbq4o[...]Bg85VM6d92+vg==
+npm notice shasum: 18e9ea5f083d6fe905e862f4e7c9479eabafb0ba
+npm notice integrity: sha512-y4SWSnJvGQuqD[...]xYeUHdohP5v+w==
 npm notice total files: 113
 npm notice
 
 tarball: jiahao-0.0.1.tgz extract exit=0
-$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-w3cQ5O\package\scripts\install.js --help (extracted tarball copy)
+$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-uq8glf\package\scripts\install.js --help (extracted tarball copy)
 jiahao v0.0.1 — install .jiahao-profile flag
 
 Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
@@ -143,7 +143,7 @@ Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
 Writes ONLY C:\Users\Administrator\.jiahao-profile
 Tier 0 manual: echo "verifier" > C:\Users\Administrator\.jiahao-profile
 exit=0
-$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-w3cQ5O\package\scripts\install.js init -y --dry-run (extracted tarball copy)
+$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-uq8glf\package\scripts\install.js init -y --dry-run (extracted tarball copy)
 [dry-run] would write "verifier" to C:\Users\Administrator\.jiahao-profile
 exit=0
 $ node jiahao-mcp/index.js <stdin: JSON-RPC initialize request>
