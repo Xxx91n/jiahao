@@ -176,9 +176,9 @@ describe('ADR-0080 doc surface (grill-t21 disposition round)', () => {
     expect(gov).toBe(scr);
   });
 
-  test('README index rebuilt: 81 records incl. ADR-0080', () => {
+  test('README index rebuilt: 84 records incl. ADR-0080', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('83 architecture decision records');
+    expect(r).toContain('84 architecture decision records');
     expect(r).toContain('0080-readme-star-r3-predicate-and-taxonomy-reclassification-channel.md');
   });
 

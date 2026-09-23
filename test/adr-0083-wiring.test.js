@@ -216,8 +216,8 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
 
   test('the t24 trend row is the declared single-file carve-out form', () => {
     const ti = readJson(TREND);
-    const row = ti.rounds[ti.rounds.length - 1];
-    expect(row.round).toBe('grill-t24-doc-round');
+    const row = ti.rounds.find(function (r) { return r.round === 'grill-t24-doc-round'; }); // named, not positional - later rounds append rows (grill-t25)
+    expect(row).toBeTruthy();
     expect(row.kind).toBe('documentation');
     expect(row.adr_added).toEqual(['0083']);
     expect(row.net_additions).toBe(1);
@@ -243,9 +243,9 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
     expect(term).toContain('ADR-0083');
   });
 
-  test('README index rebuilt: 83 records incl. ADR-0083', () => {
+  test('README index rebuilt: 84 records incl. ADR-0083', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('83 architecture decision records');
+    expect(r).toContain('84 architecture decision records');
     expect(r).toContain('0083-declared-vs-actual-drift-clauses.md');
   });
 });

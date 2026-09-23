@@ -399,11 +399,12 @@
         "files": [
           "scripts/build-rewrite-map.js",
           "src/shared/capability.js",
+          "src/shared/falsify.js",
           "test/rewrite-map.test.js",
           "scripts/check-secret-scan.js",
           ".github/workflows/ci.yml"
         ],
-        "reason": "grill-t25 fix round (ADR-0084): build-rewrite-map.js gains the clone-degradability degrade + --published-only mode; capability.js registers old-side-refs (enum/probe/exitUnverifiable); rewrite-map.test.js gains degrade-aware legs; check-secret-scan.js adds the commit-message enumeration surface; ci.yml bumps --expected-suites 78->79 for the adr-0084 wiring suite. All are R2 machinery hand-edits disclosed per ADR-0078."
+        "reason": "grill-t25 fix round (ADR-0084): build-rewrite-map.js gains the clone-degradability degrade + --published-only mode; capability.js registers old-side-refs (enum/probe/exitUnverifiable); falsify.js re-points ft-0004 to the 6-capability enum (twin pair kept honest/liar); rewrite-map.test.js gains degrade-aware legs + the commit-message surface legs; check-secret-scan.js adds the commit-message enumeration surface; ci.yml bumps --expected-suites 78->79 for the adr-0084 wiring suite. All are R2 machinery hand-edits disclosed per ADR-0078."
       },
       "deferred_entry": "defer-0071",
       "advisory_fired": false,

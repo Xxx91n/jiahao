@@ -38,7 +38,7 @@ describe('ADR-0059 external critique closure', () => {
     expect(text).toContain('defer-0031');
   });
 
-  test('ADR-0059 records the ADR-0038 D1 amendment (source-only MCP tier)', () => {
+  test('ADR-84 records the ADR-0038 D1 amendment (source-only MCP tier)', () => {
     expect(adr()).toContain('ADR-0038 D1');
   });
 

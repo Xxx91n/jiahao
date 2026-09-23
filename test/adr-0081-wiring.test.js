@@ -83,7 +83,7 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
     // grill-t24 landed its row on top of that (adr-0083 + ci.yml sync);
     // both keep their pinned shape, addressed by name not by position.
     const row = ti.rounds.find((r) => r.round === 'grill-t22-doc-round');
-    expect(ti.rounds).toHaveLength(18);
+    expect(ti.rounds).toHaveLength(19);
     const latest = ti.rounds.find((r) => r.round === 'grill-t23-front-face');
     expect(latest).toBeDefined();
     expect(latest.adr_added).toEqual(['0082']);
@@ -125,9 +125,9 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
     expect(term).toContain('_Avoid_');
   });
 
-  test('README index rebuilt: 81 records incl. ADR-0081', () => {
+  test('README index rebuilt: 84 records incl. ADR-0081', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('83 architecture decision records');
+    expect(r).toContain('84 architecture decision records');
     expect(r).toContain('0081-repair-window-amend-in-place-coverage-pairing-headroom-watch.md');
   });
 

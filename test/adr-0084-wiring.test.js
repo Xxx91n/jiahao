@@ -75,7 +75,7 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
     expect(a).toContain('ADR-0084 D-B');
     // the D-E list itself is untouched: three bullets, no fourth added
     const de = a.split('### D-E')[1].split('###')[0];
-    expect(de.match(/^- (i+)/gm).length).toBe(3);
+    expect(de.match(/^- \(i+\)/gm).length).toBe(3);
   });
 
   test('capability registration: closed enum + probe + gate requires', () => {

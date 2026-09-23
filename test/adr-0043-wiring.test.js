@@ -109,7 +109,7 @@ describe('ADR-0043 D-C --check executable contract', () => {
   });
 
   test('tampered index: --check exit 1 and names the drift (positive control)', () => {
-    const stale = '<!-- adr-index:start -->\n- 999 architecture decision records:\n<!-- adr-index:end -->';
+    const stale = '<!-- adr-index:start -->\n- 84 architecture decision records:\n<!-- adr-index:end -->';
     const tmp = mkTree(stale);
     const r = run(tmp, ['--check']);
     expect(r.status).toBe(1);
