@@ -78,9 +78,25 @@ describe('ADR-0040 D1/D3 capability helper', () => {
     expect(cap.validateRequires(bad.entries).some(m => /unknown capability/.test(m))).toBe(true);
   });
 
-  test('D1 content anchor: every capability name appears verbatim in ADR-0040', () => {
-    const adr = fs.readFileSync(path.join(ROOT, 'docs', 'adr', '0040-gate-runtime-capability-declaration-three-state-exit-honest-unverifiable.md'), 'utf8');
-    for (const c of cap.CAPABILITIES) expect(adr).toContain(c);
+  test('D1 content anchor: every capability name appears verbatim in its chartering ADR', () => {
+    // Charter map (ADR-0084 amendment): a capability name's verbatim anchor is
+    // the ADR that registered it. 0040 charters the original five; 0084
+    // charters old-side-refs. ADRs are append-only, so a new name must not
+    // force an edit into frozen normative text.
+    const CHARTER = {
+      'repo-tree': '0040', 'bench-corpus': '0040', 'docs-adr': '0040',
+      'ci-mode': '0040', 'transcript-file': '0040', 'old-side-refs': '0084',
+    };
+    const adrs = fs.readdirSync(path.join(ROOT, 'docs', 'adr'));
+    const adrText = function (n) {
+      const f = adrs.find(function (x) { return x.indexOf(n + '-') === 0; });
+      expect(f).toBeTruthy();
+      return fs.readFileSync(path.join(ROOT, 'docs', 'adr', f), 'utf8');
+    };
+    for (const c of cap.CAPABILITIES) {
+      expect(CHARTER[c]).toBeTruthy();
+      expect(adrText(CHARTER[c])).toContain(c);
+    }
   });
 });
 

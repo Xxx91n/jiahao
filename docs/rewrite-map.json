@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-23T12:16:44.736Z",
+  "generated_at": "2026-09-23T12:22:50.142Z",
   "published_tip": "fc390d5e778db567d12b072f7a25cbf1e73b03f8",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -20166,7 +20166,7 @@
     },
     {
       "file": "docs/adr/0083-declared-vs-actual-drift-clauses.md",
-      "line": 57,
+      "line": 59,
       "sha": "e23579c",
       "class": "published-unchanged",
       "resolved_to": null

@@ -21,12 +21,13 @@
 'use strict';
 
 const fs = require('fs');
+const { execFileSync } = require('child_process');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..', '..');
 const REGISTRY_REL = path.join('docs', 'gates.json');
 
-const CAPABILITIES = ['repo-tree', 'bench-corpus', 'docs-adr', 'ci-mode', 'transcript-file'];
+const CAPABILITIES = ['repo-tree', 'bench-corpus', 'docs-adr', 'ci-mode', 'transcript-file', 'old-side-refs'];
 
 const HINTS = {
   'repo-tree': 'a git worktree is expected (.git missing at the tree root); gates run from the repo or a full checkout, not from the npm tarball',
@@ -82,6 +83,13 @@ function probe(name, opts) {
       return fs.existsSync(path.join(root, 'docs', 'adr'));
     case 'ci-mode':
       return Boolean(env.GITHUB_ACTIONS || env.CI);
+    case 'old-side-refs':
+      // ADR-0084 D-A: the gb-local/* pre-rewrite refs exist only on the
+      // maintainer object store and never publish. Existence only - which
+      // commits they carry stays with the gate. No catch on purpose (D3):
+      // a git-less environment is a repo-tree negative, already probed.
+      return execFileSync('git', ['for-each-ref', '--format=%(refname)', 'refs/remotes/gb-local/'], { cwd: root, encoding: 'utf8' })
+        .split('\n').some(function (r) { return r.trim() && r.indexOf('gitbutler') === -1; });
     case 'transcript-file':
       // ADR-0070 D-C(c): existence-only — an operator-declared transcript
       // file path. The hook lane's per-event delivery (transcript_path on the

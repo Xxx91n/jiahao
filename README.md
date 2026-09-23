@@ -361,7 +361,7 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 <summary>ADR index — derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`</summary>
 
 <!-- adr-index:start -->
-- 83 architecture decision records:
+- 84 architecture decision records:
 - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
 - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
 - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
@@ -445,6 +445,7 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 - [ADR-0081](docs/adr/0081-repair-window-amend-in-place-coverage-pairing-headroom-watch.md) — The Repair-Window Amend-in-Place Convention, the Coverage-Base Pairing, and the Pack-Cap Headroom Watch (grill-t22 documentation round)
 - [ADR-0082](docs/adr/0082-tarball-cap-trend-anchor-amendment-defer-0067-armed-band.md) — Tarball-Cap Trend-Anchor Amendment Under the defer-0067 Armed Band
 - [ADR-0083](docs/adr/0083-declared-vs-actual-drift-clauses.md) — The Declared-vs-Actual Drift Clauses — Frozen-Tree Evidence Re-Capture, Never-Commit Single-Sourcing, Commit Allowlist Discipline, and the Suite-Count Sync Obligation (grill-t24 documentation round)
+- [ADR-0084](docs/adr/0084-public-clone-verifiability-clone-degradability-landing-tail-exception-tag-timing-first-disclosure.md) — The Public-Clone Verifiability Contract - Clone-Degradable Old-Side Verification, the Fourth Mandatory Audit Line, the Landing-Tail Wave Convention, Stop-Bleed Exception Narrowness, Tag Timing, and the First-Disclosure-Channel Rule (grill-t25 fix round)
 <!-- adr-index:end -->
 
 </details>

@@ -51,6 +51,8 @@ Every subsequent audit window's scope MUST include — declared mandatory here p
 
 `defer-0069` registers the first live firing of these lines at the next audit window (structured follow-up — an unregistered first firing is how preventive clauses silently die). Semantic verification stays human: mechanizing "does this evidence support this claim" was explicitly rejected (a false-consistency machine is worse than a checklist).
 
+- grill-t25 amendment: a fourth audit-window line (public-clone jest + gate:all green at the tip) is registered by ADR-0084 D-B; this ADR's own audit lines remain three.
+
 ### D-F — Registrations and round bookkeeping (ledger D-004)
 
 - `defer-0069` — new row: the three audit-window check lines' first live firing; `pending-evaluation`, `review_at` rides the 2026-12-15 tide.

@@ -391,7 +391,7 @@ function main() {
     // Published-side consistency only - deliberately bypasses the registry
     // 'rewrite-map' capability set (which includes the old-side asset): the
     // whole point of this mode is running where the old side is absent.
-    requireCapabilities(['repo-tree']);
+    requireCapabilities('rewrite-map-published');
     const mapAbs = path.join(ROOT, OUT_REL);
     if (!fs.existsSync(mapAbs)) { console.error('[rewrite-map] PUBLISHED-ONLY FAIL: ' + OUT_REL + ' missing - the committed map is the assertion target'); process.exit(1); }
     let committed;

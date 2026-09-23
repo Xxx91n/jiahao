@@ -411,7 +411,8 @@
         "check": true
       },
       "requires": [
-        "repo-tree"
+        "repo-tree",
+        "old-side-refs"
       ]
     },
     {
@@ -424,6 +425,19 @@
         "repo-tree"
       ],
       "params": {}
+    },
+    {
+      "name": "rewrite-map-published",
+      "command": "node scripts/build-rewrite-map.js --published-only",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0084-public-clone-verifiability-clone-degradability-landing-tail-exception-tag-timing-first-disclosure.md",
+      "order": 209,
+      "params": {
+        "published-only": true
+      },
+      "requires": [
+        "repo-tree"
+      ]
     }
   ]
 }
