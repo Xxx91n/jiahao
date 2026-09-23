@@ -1,4 +1,4 @@
-captured-at-head: bbf52592072db608bdf159966766dbfc19c948c4
+captured-at-head: 401e1f1dbab85b4c36e88fa2a4a2e532fcd62e7a
 $ node scripts/build-governance-anchors.js --check
 
 EXIT 0

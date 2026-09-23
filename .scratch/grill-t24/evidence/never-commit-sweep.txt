@@ -1,7 +1,7 @@
-captured-at-head: bbf52592072db608bdf159966766dbfc19c948c4
+captured-at-head: 401e1f1dbab85b4c36e88fa2a4a2e532fcd62e7a
 $ node <registry-driven untracked-path sweep>
 
-EXIT 0
+EXIT 1
 
 registry: docs/governance/never-commit.json (schema_version 1, 9 rules: 9 active, 0 deprecated)
 
@@ -16,7 +16,8 @@ rule enumeration:
   nc-008 [active] \.log$  (since 2026-09-15)
   nc-009 [active] ^host-config-backup/  (since 2026-09-15)
 
-untracked-path classification (13 entries):
+untracked-path classification (15 entries):
+  UNCOVERED %TEMP%jt.json
   nc-001+nc-002  .scratch/grill-t13/audit-evidence/r2-round-diff.patch
   nc-001  .scratch/grill-t14/audit-evidence/
   nc-001+nc-002  .scratch/grill-t15/audit-evidence/round-diff.patch
@@ -30,5 +31,6 @@ untracked-path classification (13 entries):
   nc-001  .scratch/grill-t22/audit-evidence/
   nc-001  .scratch/grill-t23/audit-evidence/
   nc-004  .scratch/grill-t23/ref-assets/
+  UNCOVERED .scratch/grill-t24/fix-report.cjs
 
-verdict: ALL COVERED
+verdict: 2 UNCOVERED PATHS

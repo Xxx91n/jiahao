@@ -1,4 +1,4 @@
-captured-at-head: bbf52592072db608bdf159966766dbfc19c948c4
+captured-at-head: 401e1f1dbab85b4c36e88fa2a4a2e532fcd62e7a
 $ node D:\Aworker\jiahao\node_modules\jest\bin\jest.js test/adr-0076-wiring.test.js -t fixture
 
 EXIT 0
@@ -40,7 +40,7 @@ PASS test/adr-0076-wiring.test.js
     ○ skipped anchors.json lists decision-ledger-t16.md under ADR-0077, content-equal to the scratch authority
     ○ skipped facts canon: artifact schema + deterministic render pin (ADR-0077 D-C)
   grill-t17 dispositions (ADR-0077 D-E appendix + residue registrations)
-    √ a quoted-stale-number fixture MUST fail --check (ADR-0077 D-E) (65 ms)
+    √ a quoted-stale-number fixture MUST fail --check (ADR-0077 D-E) (74 ms)
     ○ skipped proseScan export: unconditional - a quoted canon number is still a violation
     ○ skipped the t17 report renders the canon region and carries no canon number in prose
     ○ skipped ADR-0077 D-E appendix registers the unconditional scan + the evidence-file convention
@@ -93,5 +93,5 @@ PASS test/adr-0076-wiring.test.js
 Test Suites: 1 passed, 1 total
 Tests:       72 skipped, 5 passed, 77 total
 Snapshots:   0 total
-Time:        0.478 s, estimated 1 s
+Time:        0.618 s, estimated 1 s
 Ran all test suites matching /test\\adr-0076-wiring.test.js/i with tests matching "fixture".

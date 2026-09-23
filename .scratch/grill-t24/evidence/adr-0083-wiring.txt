@@ -1,28 +1,28 @@
-captured-at-head: bbf52592072db608bdf159966766dbfc19c948c4
+captured-at-head: 401e1f1dbab85b4c36e88fa2a4a2e532fcd62e7a
 $ node D:\Aworker\jiahao\node_modules\jest\bin\jest.js test/adr-0083-wiring.test.js
 
 EXIT 1
 
 FAIL test/adr-0083-wiring.test.js
   ADR-0083 doc surface (grill-t24 drift-clause round)
-    √ title, status, date, ledger + spec anchors (4 ms)
+    √ title, status, date, ledger + spec anchors (8 ms)
     √ D-A evidence freshness: ordering invariant + idempotent endpoint + captured-at-head + qualification/archival split (1 ms)
     √ D-B never-commit single-sourcing: id-referenced labels + same-commit coupling + deprecate-not-delete (1 ms)
-    √ D-C commit allowlist + post-commit inspection (self-drafted, receipts named) (1 ms)
+    √ D-C commit allowlist + post-commit inspection (self-drafted, receipts named)
     √ D-D suite-count sync obligation codified (1 ms)
     √ D-E audit-window inheritance: the three check lines declared mandatory scope (1 ms)
     √ never-commit.json registry validity (schema + rule shape + compilable patterns) (8 ms)
-    √ registry seed covers the historical never-commit classes (positive probes + one negative) (2 ms)
-    √ tracked tree is clean of every active never-commit rule (git ls-tree -r HEAD) (41 ms)
+    √ registry seed covers the historical never-commit classes (positive probes + one negative) (3 ms)
+    √ tracked tree is clean of every active never-commit rule (git ls-tree -r HEAD) (59 ms)
     √ AGENTS.md carries the commit allowlist + post-commit inspection clause (D-C) (1 ms)
-    √ t24 capture artifacts carry the captured-at-head provenance header resolving to a commit (696 ms)
-    × D-A ordering invariant: every committed capture names a sha at-or-after the freshness anchor (818 ms)
+    √ t24 capture artifacts carry the captured-at-head provenance header resolving to a commit (837 ms)
+    × D-A ordering invariant: every committed capture names a sha at-or-after the freshness anchor (1115 ms)
     √ ci.yml --expected-suites equals the live glob(test/*.test.js) count + lower bound + known-file hit (1 ms)
     √ defer-0069 discharged-by-trigger: the 2026-09-23 audit named all three scope lines with verdicts (2 ms)
     √ the t24 trend row is the declared single-file carve-out form (1 ms)
-    √ coverage leg: the committed diff anchored at the t24 round base validates the latest row (119 ms)
+    √ coverage leg: the committed diff anchored at the t24 round base validates the latest row (123 ms)
     √ CONTEXT umbrella term names the three narrow mechanisms verbatim (1 ms)
-    √ README index rebuilt: 83 records incl. ADR-0083 (1 ms)
+    √ README index rebuilt: 83 records incl. ADR-0083
 
   ● ADR-0083 doc surface (grill-t24 drift-clause round) › D-A ordering invariant: every committed capture names a sha at-or-after the freshness anchor
 
@@ -44,5 +44,5 @@ FAIL test/adr-0083-wiring.test.js
 Test Suites: 1 failed, 1 total
 Tests:       1 failed, 17 passed, 18 total
 Snapshots:   0 total
-Time:        2.141 s, estimated 5 s
+Time:        2.839 s, estimated 5 s
 Ran all test suites matching /test\\adr-0083-wiring.test.js/i.
