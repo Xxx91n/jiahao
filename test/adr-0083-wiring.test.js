@@ -19,6 +19,7 @@ const CTX = path.join(ROOT, 'CONTEXT.md');
 const AGENTS = path.join(ROOT, 'AGENTS.md');
 const EVD_REL = '.scratch/grill-t24/evidence';
 const BASE = 'c526de301c5d2d25e653bc910a80a9ae56dd252a'; // t24 round base (t23 merge)
+const COVERAGE_BASE = 'fc390d5e778db567d12b072f7a25cbf1e73b03f8'; // t25 re-anchor: the latest row is now grill-t25's, so the coverage diff window pairs with the t25 base (ADR-0081 D-A convention, re-anchored grill-t25)
 const HEAD_RE = /^captured-at-head: ([0-9a-f]{7,40})$/;
 
 function committedUnder(relDir) {
@@ -197,7 +198,7 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
     expect(m).not.toBeNull();
     const suites = fs.readdirSync(path.join(ROOT, 'test')).filter(function (f) { return /\.test\.js$/.test(f); });
     expect(Number(m[1])).toBe(suites.length);
-    expect(suites.length).toBeGreaterThanOrEqual(78); // lower bound: a broken glob returning 0 cannot pass
+    expect(suites.length).toBeGreaterThanOrEqual(79); // lower bound: a broken glob returning 0 cannot pass
     expect(suites).toContain('adr-0083-wiring.test.js'); // known-file hit: the glob saw this very suite
   });
 
@@ -227,8 +228,8 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
     expect(row.mechanism_output_diff.files).toContain('bench/research/out/g6-publish-replay.json');
   });
 
-  test('coverage leg: the committed diff anchored at the t24 round base validates the latest row', () => {
-    const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'check-governance-inventory.js'), '--coverage-base', BASE], { cwd: ROOT, encoding: 'utf8' });
+  test('coverage leg: the committed diff anchored at the current round base validates the latest row', () => {
+    const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'check-governance-inventory.js'), '--coverage-base', COVERAGE_BASE], { cwd: ROOT, encoding: 'utf8' });
     expect(r.status).toBe(0);
   });
 

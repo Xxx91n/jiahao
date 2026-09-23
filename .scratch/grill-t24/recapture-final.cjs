@@ -38,7 +38,7 @@ function jest(args) { return node(JEST, args); }
 const wave = process.argv[2];
 
 if (wave === 'jest-wave') {
-  cap('run-test-gate.txt', shownNode(['scripts/run-test-gate.js', '--expected-suites', '78']), node('scripts/run-test-gate.js', ['--expected-suites', '78']));
+  cap('run-test-gate.txt', shownNode(['scripts/run-test-gate.js', '--expected-suites', '79']), node('scripts/run-test-gate.js', ['--expected-suites', '79']));
   cap('adr-0083-wiring.txt', shownNode([JEST, 'test/adr-0083-wiring.test.js']), jest(['test/adr-0083-wiring.test.js']));
   cap('round-facts.txt', shownNode(['scripts/build-round-facts.js', '--round', 'grill-t24', '--check', '--report', REPORT]), node('scripts/build-round-facts.js', ['--round', 'grill-t24', '--check', '--report', REPORT]));
   cap('never-commit-sweep.txt', shownNode(['<registry-driven untracked-path sweep>']), (function () {

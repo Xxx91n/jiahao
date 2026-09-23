@@ -111,7 +111,7 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
   });
 
   test('coverage leg: the committed diff anchored at the t24 round base validates the latest row (re-anchored grill-t24)', () => {
-    const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'check-governance-inventory.js'), '--coverage-base', 'c526de301c5d2d25e653bc910a80a9ae56dd252a'], { cwd: ROOT, encoding: 'utf8' });
+    const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'check-governance-inventory.js'), '--coverage-base', 'fc390d5e778db567d12b072f7a25cbf1e73b03f8'], { cwd: ROOT, encoding: 'utf8' }); // re-anchored grill-t25: the latest row is now grill-t25's, so the window pairs with the t25 base
     expect(r.status).toBe(0);
   });
 
@@ -133,7 +133,7 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
 
   test('ci.yml suite parity declares the live expected suite count', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
-    expect(ci).toContain('--expected-suites 78');
+    expect(ci).toContain('--expected-suites 79');
   });
 
   test('coverageGaps pure export: the R2-undeclared defect shape still fails (regression pin)', () => {

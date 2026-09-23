@@ -1,24 +1,18 @@
-// grill-t24 closeout battery capture (Non-Interpolating Channel, ledger
-// lineage t20..t23): the grill-t23 battery parameterized --round grill-t24.
+// grill-t25 acceptance battery capture (Non-Interpolating Channel, ledger
+// lineage t20..t24): the grill-t24 battery re-parameterized --round grill-t25.
 // Every leg runs through a spawnSync arg array - never an escape-interpreting
 // string layer - and each evidence file is written via fs in the
 // "captured-at-head: <sha>\n$ <command>\n\nEXIT <n>\n\n<output>" shape.
-// t24 deltas (ADR-0083 first live firing):
-//  - D-A provenance: EVERY capture carries the captured-at-head header naming
-//    the newest durable commit at capture time (in-toto gitCommit binding
-//    semantics); the ordering invariant is pinned by test/adr-0083-wiring.
-//  - D-B: the clean-tree + never-commit-sweep legs classify untracked paths
-//    through docs/governance/never-commit.json - the registry is the single
-//    source, not a hand-written regex in this script.
-//  - D-D: expected-suites 78 (the adr-0083 wiring suite lands this round).
-//  - coverage.txt leg re-anchors at the t24 round base c526de3 (ADR-0081 D-A:
-//    the base pairs with the latest row's own round).
+// t25 deltas (ADR-0084 first live firing):
+//  - clone-sim legs: a real git clone to a fresh temp dir - no gb-local/* refs
+//    - runs --check (expected exit 2 UNVERIFIABLE, the degrade IS the verdict)
+//    and --published-only (expected exit 0, the clone-verifiable subset).
+//  - D-D: expected-suites 79 (the adr-0084 wiring suite lands this round).
+//  - coverage.txt leg anchors at the t25 round base fc390d5.
 //  - facts legs are CHECK-ONLY here: collect/write/splice runs in the
-//    closeout orchestration so the acceptance battery never rewrites the
-//    canon mid-run (D-A qualification/archival split).
-//  - adr-0083-wiring.txt leg captures the new suite verbatim.
-//  - never-commit-sweep.txt leg: registry-driven consent sweep - every rule
-//    enumerated, every untracked path classified by rule id.
+//    closeout orchestration (same ADR-0083 D-A split).
+//  - adr-0084-wiring.txt leg captures the new suite verbatim.
+//  - never-commit-sweep.txt: registry-driven consent sweep, SELF = t25 dir.
 
 'use strict';
 const fs = require('fs');
@@ -26,12 +20,11 @@ const path = require('path');
 const os = require('os');
 const { spawnSync, execFileSync } = require('child_process');
 const ROOT = path.join(__dirname, '..', '..');
-const EVD = path.join(ROOT, '.scratch', 'grill-t24', 'evidence');
-const REPORT = '.scratch/grill-t24/reports/2026-09-23-report.md';
-const ROUND_BASE = 'fc390d5e778db567d12b072f7a25cbf1e73b03f8'; // t25 re-anchor: re-runs validate the latest row, which is now grill-t25's
+const EVD = path.join(ROOT, '.scratch', 'grill-t25', 'evidence');
+const REPORT = '.scratch/grill-t25/reports/2026-09-24-report.md';
+const ROUND_BASE = 'fc390d5e778db567d12b072f7a25cbf1e73b03f8';
 fs.mkdirSync(EVD, { recursive: true });
 
-// D-A provenance: the newest durable (non-workspace) commit at capture time.
 const HEAD = execFileSync('git', ['log', '-1', '--format=%H', '--invert-grep', '--grep=^GitButler Workspace Commit', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
 
 function run(cmd, args, opts) {
@@ -58,7 +51,7 @@ function npm(args) { return node(NPMCLI, args); }
 // record inside it, so the facts canon collects against the fresh replay.
 cap('gate-all.txt', shownNode(['scripts/run-gates.js']), node('scripts/run-gates.js'));
 
-// compile-tier legs: byte-parse ci.yml + node --check over the round's new scripts
+// compile-tier legs: byte-parse ci.yml + node --check over the round's touched scripts + wiring suite
 cap('compile-yaml.txt', shownNode(['-e', 'js-yaml parse .github/workflows/ci.yml']), (function () {
   try {
     const yaml = require('js-yaml');
@@ -66,8 +59,8 @@ cap('compile-yaml.txt', shownNode(['-e', 'js-yaml parse .github/workflows/ci.yml
     return { status: 0, out: 'js-yaml parse OK - top-level keys: ' + Object.keys(doc).join(', ') + '\njobs: ' + Object.keys(doc.jobs || {}).join(', ') + '\n' };
   } catch (e) { return { status: 1, out: 'yaml parse failed: ' + e.message + '\n' }; }
 })());
-cap('compile-node-check.txt', shownNode(['--check', '<round scripts + wiring suite>']), (function () {
-  const files = ['.scratch/grill-t24/capture-battery.cjs', '.scratch/grill-t24/recapture-clean-tree.cjs', 'test/adr-0083-wiring.test.js'];
+cap('compile-node-check.txt', shownNode(['--check', '<t25 round scripts + wiring suite>']), (function () {
+  const files = ['.scratch/grill-t25/capture-battery.cjs', 'scripts/build-rewrite-map.js', 'scripts/check-secret-scan.js', 'src/shared/capability.js', 'test/adr-0084-wiring.test.js'];
   const out = [];
   let worst = 0;
   for (const f of files) {
@@ -80,23 +73,47 @@ cap('compile-node-check.txt', shownNode(['--check', '<round scripts + wiring sui
 
 // verbatim battery legs
 cap('check-ci-jobs.txt', shownNode(['scripts/check-ci-jobs.js']), node('scripts/check-ci-jobs.js'));
-cap('check-ci-jobs-missing.txt', shownNode(['scripts/check-ci-jobs.js', '.scratch/grill-t24/evidence/no-such-ci.yml']), node('scripts/check-ci-jobs.js', ['.scratch/grill-t24/evidence/no-such-ci.yml']));
+cap('check-ci-jobs-missing.txt', shownNode(['scripts/check-ci-jobs.js', '.scratch/grill-t25/evidence/no-such-ci.yml']), node('scripts/check-ci-jobs.js', ['.scratch/grill-t25/evidence/no-such-ci.yml']));
 cap('check-deferred.txt', shownNode(['scripts/check-deferred.js']), node('scripts/check-deferred.js'));
 cap('governance-inventory.txt', shownNode(['scripts/check-governance-inventory.js']), node('scripts/check-governance-inventory.js'));
 cap('coverage.txt', shownNode(['scripts/check-governance-inventory.js', '--coverage-base', ROUND_BASE]), node('scripts/check-governance-inventory.js', ['--coverage-base', ROUND_BASE]));
 cap('coverage-badref.txt', shownNode(['scripts/check-governance-inventory.js', '--coverage-base', 'not-a-real-ref']), node('scripts/check-governance-inventory.js', ['--coverage-base', 'not-a-real-ref']));
 cap('anchors.txt', shownNode(['scripts/build-governance-anchors.js', '--check']), node('scripts/build-governance-anchors.js', ['--check']));
 cap('rewrite-map.txt', shownNode(['scripts/build-rewrite-map.js', '--check']), node('scripts/build-rewrite-map.js', ['--check']));
-cap('round-facts.txt', shownNode(['scripts/build-round-facts.js', '--round', 'grill-t24', '--check', '--report', REPORT]), node('scripts/build-round-facts.js', ['--round', 'grill-t24', '--check', '--report', REPORT]));
+cap('rewrite-map-published.txt', shownNode(['scripts/build-rewrite-map.js', '--published-only']), node('scripts/build-rewrite-map.js', ['--published-only']));
+cap('round-facts.txt', shownNode(['scripts/build-round-facts.js', '--round', 'grill-t25', '--check', '--report', REPORT]), node('scripts/build-round-facts.js', ['--round', 'grill-t25', '--check', '--report', REPORT]));
 cap('instrument.txt', shownNode(['scripts/instrument.js', '--check']), node('scripts/instrument.js', ['--check']));
 cap('pack-smoke.txt', shownNode(['scripts/check-pack-smoke.js']), node('scripts/check-pack-smoke.js'));
 cap('run-test-gate.txt', shownNode(['scripts/run-test-gate.js', '--expected-suites', '79']), node('scripts/run-test-gate.js', ['--expected-suites', '79']));
-cap('adr-0083-wiring.txt', shownNode([JEST, 'test/adr-0083-wiring.test.js']), jest(['test/adr-0083-wiring.test.js']));
+cap('adr-0084-wiring.txt', shownNode([JEST, 'test/adr-0084-wiring.test.js']), jest(['test/adr-0084-wiring.test.js']));
 
-// never-commit-sweep: the D-B registry-driven consent sweep. Every active
-// rule is enumerated; every untracked path is classified by rule id (SELF
-// exempt for this sweep's own artifact); tracked-tree matches beyond the
-// grandfathered LEGACY set would read DIRTY.
+// clone-sim legs: the ADR-0084 acceptance boundary. A real git clone into a
+// fresh temp dir carries refs/heads + tags only - never the maintainer-side
+// gb-local/* remote-tracking refs - which is exactly the public-clone shape.
+(function () {
+  const cloneDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-t25-clone-'));
+  const cl = run('git', ['clone', '--no-local', '.', cloneDir]);
+  if (cl.status !== 0) {
+    capText('clone-sim.txt', 'git clone --no-local . <tmp> + verifier legs', 1, 'clone failed: ' + cl.out);
+    return;
+  }
+  const body = [];
+  let worst = 0;
+  body.push('$ git clone --no-local . ' + cloneDir + '  -> exit ' + cl.status);
+  const refs = run('git', ['for-each-ref', '--format=%(refname)', 'refs/remotes/gb-local/'], { cwd: cloneDir });
+  body.push('$ git for-each-ref refs/remotes/gb-local/  -> "' + refs.out.trim() + '" (empty = the public-clone shape)');
+  const chk = run(process.execPath, ['scripts/build-rewrite-map.js', '--check'], { cwd: cloneDir });
+  body.push('$ node scripts/build-rewrite-map.js --check  -> exit ' + chk.status + ' (expected 2: UNVERIFIABLE, never red)');
+  body.push(chk.out.trim());
+  if (chk.status !== 2) worst = 1;
+  const pub = run(process.execPath, ['scripts/build-rewrite-map.js', '--published-only'], { cwd: cloneDir });
+  body.push('$ node scripts/build-rewrite-map.js --published-only  -> exit ' + pub.status + ' (expected 0: the clone-verifiable subset)');
+  body.push(pub.out.trim());
+  if (pub.status !== 0) worst = 1;
+  capText('clone-sim.txt', 'git clone --no-local . <tmp>; for-each-ref gb-local; --check; --published-only', worst, body.join('\n') + '\n');
+})();
+
+// never-commit-sweep: registry-driven consent sweep over untracked paths.
 cap('never-commit-sweep.txt', shownNode(['<registry-driven untracked-path sweep>']), (function () {
   const reg = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'governance', 'never-commit.json'), 'utf8'));
   const active = reg.rules.filter(function (r) { return r.status === 'active'; });
@@ -104,7 +121,7 @@ cap('never-commit-sweep.txt', shownNode(['<registry-driven untracked-path sweep>
   const st = run('git', ['status', '--porcelain']);
   const lines = st.out.split('\n').map(function (s) { return s.replace(/\r$/, ''); }).filter(Boolean);
   const untracked = lines.filter(function (l) { return l.slice(0, 2) === '??'; }).map(function (l) { return l.slice(3).replace(/^"|"$/g, ''); });
-  const SELF = '.scratch/grill-t24/evidence/never-commit-sweep.txt';
+  const SELF = '.scratch/grill-t25/evidence/never-commit-sweep.txt';
   const body = [];
   body.push('registry: docs/governance/never-commit.json (schema_version ' + reg.schema_version + ', ' + reg.rules.length + ' rules: ' + active.length + ' active, ' + deprecated.length + ' deprecated)');
   body.push('');
@@ -126,10 +143,10 @@ cap('never-commit-sweep.txt', shownNode(['<registry-driven untracked-path sweep>
 
 // quoted-stale fixture (must-fail leg): a bare canon value + a schema-key
 // assign - the unconditional scan must reject it.
-const facts = JSON.parse(fs.readFileSync(path.join(ROOT, '.scratch', 'grill-t24', 'round-facts.json'), 'utf8'));
+const facts = JSON.parse(fs.readFileSync(path.join(ROOT, '.scratch', 'grill-t25', 'round-facts.json'), 'utf8'));
 fs.writeFileSync(path.join(EVD, 'quoted-stale.fixture.md'),
-  '# grill-t24 quoted-stale fixture (must-fail evidence)\n\nA canon number in prose, e.g. `' + facts.passed + '` tests, plus a bare\nschema-key assign suites: 79 - the unconditional scan must reject this.\n', 'utf8');
-cap('quoted-stale.txt', shownNode(['scripts/build-round-facts.js', '--round', 'grill-t24', '--check', '--report', '.scratch/grill-t24/evidence/quoted-stale.fixture.md']), node('scripts/build-round-facts.js', ['--round', 'grill-t24', '--check', '--report', '.scratch/grill-t24/evidence/quoted-stale.fixture.md']));
+  '# grill-t25 quoted-stale fixture (must-fail evidence)\n\nA canon number in prose, e.g. `' + facts.passed + '` tests, plus a bare\nschema-key assign suites: 79 - the unconditional scan must reject this.\n', 'utf8');
+cap('quoted-stale.txt', shownNode(['scripts/build-round-facts.js', '--round', 'grill-t25', '--check', '--report', '.scratch/grill-t25/evidence/quoted-stale.fixture.md']), node('scripts/build-round-facts.js', ['--round', 'grill-t25', '--check', '--report', '.scratch/grill-t25/evidence/quoted-stale.fixture.md']));
 
 cap('reclass-shape.txt', shownNode([JEST, 'test/adr-0080-wiring.test.js', '-t', 'reclass']), jest(['test/adr-0080-wiring.test.js', '-t', 'reclass']));
 cap('inventory-shape.txt', shownNode([JEST, 'test/adr-0076-wiring.test.js', '-t', 'kind enum']), jest(['test/adr-0076-wiring.test.js', '-t', 'kind enum']));
@@ -151,13 +168,15 @@ function mdHygiene(buf) {
   return hits;
 }
 function txtHygiene(buf) {
-  return /[A-Za-z]:(?:[\\/][A-Za-z0-9_.-]+)*\\\r?\n[A-Za-z0-9_.-]+\.[A-Za-z]{2,5}/.test(buf.toString('utf8')) ? ['path-LF-break signature'] : [];
+  const t = buf.toString('utf8');
+  // path-LF-break signature: a backslash-continued path split across lines
+  return /\\\r?\n[A-Za-z0-9_.-]+\.[A-Za-z]{2,5}/.test(t) ? ['path-LF-break signature'] : [];
 }
 const tracked = run('git', ['ls-files']).out.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
 let bad = 0, mdN = 0, txtN = 0;
 const scanLines = [];
 for (const f of tracked) {
-  if (!/^\.scratch\/.+\.(md|txt)$/.test(f)) continue;
+  if (!(f.indexOf('.scratch/') === 0 && /\.(md|txt)$/.test(f))) continue;
   const hits = /\.md$/.test(f) ? (mdN++, mdHygiene(fs.readFileSync(path.join(ROOT, f)))) : (txtN++, txtHygiene(fs.readFileSync(path.join(ROOT, f))));
   if (hits.length) { bad++; scanLines.push('FAIL ' + f + ' :: ' + hits.join(' | ')); } else { scanLines.push('OK   ' + f); }
 }
@@ -190,7 +209,7 @@ console.log('[' + lstatus + '] liveness.txt <- pack/extract/install/init/mcp');
 // clean-tree leg: committed git-status evidence. Tracked diffs must be
 // zero; every untracked entry must be never-commit class (registry-driven)
 // or self-disclosed.
-const SELF = '.scratch/grill-t24/evidence/clean-tree.txt';
+const SELF = '.scratch/grill-t25/evidence/clean-tree.txt';
 const reg2 = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'governance', 'never-commit.json'), 'utf8'));
 const RULES = reg2.rules.filter(function (r) { return r.status === 'active'; }).map(function (r) { return new RegExp(r.pattern); });
 const st = run('git', ['status', '--porcelain']);
