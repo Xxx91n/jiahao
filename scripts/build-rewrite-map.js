@@ -35,7 +35,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
-const { requireCapabilities, unverifiableLines } = require('../src/shared/capability');
+const { requireCapabilities, exitUnverifiable } = require('../src/shared/capability');
 
 const ROOT = path.join(__dirname, '..');
 const OUT_REL = path.join('docs', 'rewrite-map.json');
@@ -428,10 +428,7 @@ function main() {
     // deterministic capability negative - exit 2 UNVERIFIABLE, never a red
     // --check on a public clone. The published-side subset stays checkable
     // everywhere via --published-only.
-    const lines = unverifiableLines('rewrite-map', 'old-side-refs');
-    process.stdout.write(lines[0] + '\n');
-    process.stderr.write(lines[1] + '\n');
-    process.exit(2);
+    exitUnverifiable('rewrite-map', 'old-side-refs');
   }
   const map = build(oldRefs, newRef);
   if (verifyMode) {

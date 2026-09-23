@@ -116,6 +116,18 @@ function unverifiableLines(gate, cap) {
   ];
 }
 
+// Post-discovery degrade (grill-t25): a gate may learn mid-run that a
+// declared capability is absent (the existence question it was probing is
+// deterministic, e.g. zero qualifying refs). The exit-2 channel is still the
+// registered two-line form - kept here so gate scripts carry zero
+// process.exit(2) sites of their own (ADR-0041 wiring pin).
+function exitUnverifiable(gate, cap) {
+  const lines = unverifiableLines(gate, cap);
+  process.stdout.write(lines[0] + '\n');
+  process.stderr.write(lines[1] + '\n');
+  process.exit(2);
+}
+
 // Probe declared requires: a gate NAME resolves through the registry (single
 // source of truth), an ARRAY declares inline (non-registry consumer, ADR-0058
 // R8); each deterministic miss degrades honestly, then exit 2. Inline arrays
@@ -151,4 +163,4 @@ function validateRequires(entries) {
   return errors;
 }
 
-module.exports = { CAPABILITIES, probe, requireCapabilities, unverifiableLines, validateRequires, escWf };
+module.exports = { CAPABILITIES, probe, requireCapabilities, unverifiableLines, exitUnverifiable, validateRequires, escWf };
