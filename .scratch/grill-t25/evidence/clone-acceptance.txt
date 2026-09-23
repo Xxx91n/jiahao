@@ -1,8 +1,17 @@
-captured-at-head: 715c93c6007998c943b87dec33540426406b5296
-$ git clone --no-local . <tmp>; for-each-ref gb-local; --check; --published-only   (phase-A: citation-durability repair; full install/jest/gates acceptance re-run lands in the terminal capture)
+captured-at-head: 342250806d2c234967808bf185de5b768f7d906b
+$ git clone --no-local . <tmp>; npm install; jest; run-gates; --check; --published-only; pack-smoke   (phase-B terminal: full acceptance loop on the durable-citation tip)
 
 EXIT 0
 
-clone exit 0 | gb-local refs: 0 | --check exit 2 | --published-only exit 1
-
-NOTE: this intermediate capture repairs the ephemeral-workspace-sha citation defect (prior headers named the GitButler Workspace Commit, unresolvable in a public clone - the clone ordering legs caught it). The terminal capture re-runs the full acceptance loop green.
+$ git clone --no-local . <tmp>  -> exit 0 (refs/**/gb-local: 0)
+$ npm install  -> exit 0
+$ npx jest --silent  -> exit 0 :: Test Suites: 79 passed, 79 total | Tests: 7 skipped, 1338 passed, 1345 total
+  (the 7 skips are the designed corpus-bound tier per ADR-0056/0057; the earlier
+   sandboxed-spawn artifact and the ephemeral-workspace-sha ordering reds are
+   both resolved - every committed header now names a durable branch commit)
+$ node scripts/run-gates.js  -> exit 0 :: 36 entries, 10 UNVERIFIABLE (capability-absent,
+  honest degrade incl. rewrite-map requires old-side-refs), 0 failures
+$ node scripts/build-rewrite-map.js --check  -> exit 2 (UNVERIFIABLE, old-side-refs absent)
+$ node scripts/build-rewrite-map.js --published-only  -> exit 0 (2749 citations covered,
+  published-side ancestry verified against origin/main)
+$ node scripts/check-pack-smoke.js  -> exit 0 (pack extract + CLI dry-run plan match)
