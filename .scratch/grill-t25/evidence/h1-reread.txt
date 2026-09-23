@@ -1,4 +1,4 @@
-captured-at-head: 6c52b16af4464402a22f6e0d58a545ff61a2d8f9
+captured-at-head: b52a66547e0c21662cf5dc2eb0933a7aca2eb423
 $ node <doc-hygiene byte scan over committed .scratch/*.md + *.txt>
 
 EXIT 0
@@ -370,6 +370,7 @@ OK   .scratch/grill-t25/evidence/run-test-gate.txt
 OK   .scratch/grill-t25/handoffs/2026-09-24-round-handoff.md
 OK   .scratch/grill-t25/handoffs/next-round.md
 OK   .scratch/grill-t25/human-authority-package.md
+OK   .scratch/grill-t25/reports/2026-09-24-audit.md
 OK   .scratch/grill-t25/reports/2026-09-24-report.md
 OK   .scratch/grill-t25/spec-t25-disposition.md
 OK   .scratch/grill-t6/audit/b7ccbeb/AGENTS.md
@@ -523,4 +524,4 @@ OK   .scratch/grill-t9/reports/2026-09-16-post-round-audit.md
 OK   .scratch/grill-t9/reports/2026-09-16-pre-unlock-audit.md
 OK   .scratch/grill-t9/reports/2026-09-16-report.md
 OK   .scratch/grill-t9/spec-v3-collection.md
-independent scan: 331 committed .scratch/*.md + 189 committed .scratch/*.txt, 0 flagged
+independent scan: 332 committed .scratch/*.md + 189 committed .scratch/*.txt, 0 flagged
