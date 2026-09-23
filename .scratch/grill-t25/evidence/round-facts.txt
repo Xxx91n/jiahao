@@ -1,6 +1,6 @@
-captured-at-head: b3d93427827c01fdfd76aac070de74d6708f3d31
+captured-at-head: ef776b896f3592845b8dd1e6c5b45fce820c322e
 $ node scripts/build-round-facts.js --round grill-t25 --check --report .scratch/grill-t25/reports/2026-09-24-report.md
 
-EXIT 2
+EXIT 1
 
-build-round-facts: verifier broken - Command failed: D:\nodejs\node.exe D:\Aworker\jiahao\node_modules\jest\bin\jest.js --json --silent
+FAIL: .scratch/grill-t25/round-facts.json is stale - regenerate with node scripts/build-round-facts.js --round grill-t25
