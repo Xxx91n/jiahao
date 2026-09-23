@@ -151,14 +151,14 @@ describe('ADR-0080 doc surface (grill-t21 disposition round)', () => {
     expect(errsFor([positive])).toEqual([]);
   });
 
-  test('defer-0066 is the merged ratchet row: four instances + the four elements (D-004)', () => {
+  test('defer-0066 is the merged ratchet row: five instances + the four elements (D-004)', () => {
     const reg = readJson(REG);
     const d = reg.entries.find((e) => e.id === 'defer-0066');
     expect(d).toBeDefined();
     expect(d.status).toBe('pending-evaluation');
     expect(d.unfreeze_if.type).toBe('free-text');
     expect(d.review_at).toBe('2026-12-15');
-    expect(d.instances.length).toBe(4);
+    expect(d.instances.length).toBe(5);
     expect(d.rationale).toContain('only shrinks, never grows');
     expect(d.rationale).toContain('Owner:');
     expect(d.rationale).toContain('acceptance:');
