@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-24T03:35:21.345Z",
+  "generated_at": "2026-09-24T03:37:34.211Z",
   "published_tip": "fc390d5e778db567d12b072f7a25cbf1e73b03f8",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -16667,7 +16667,7 @@
     {
       "file": ".scratch/grill-t25/evidence/clone-acceptance.txt",
       "line": 1,
-      "sha": "f6f15eaa6581eecf8568866a6b0c78d70a721c60",
+      "sha": "7c41c01dc4266fadb55d659bb0dc52c8bdf7526e",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
