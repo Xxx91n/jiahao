@@ -1,5 +1,5 @@
-captured-at-head: 3e925f8af832b7bfd0ab5864ece2f936c208d58e
-$ node D:\nodejs\node_modules\npm\bin\npm-cli.js pack --pack-destination C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-uxYNHg
+captured-at-head: 8e177d2417eada69ff36b600aae74aa94c24ee34
+$ node D:\nodejs\node_modules\npm\bin\npm-cli.js pack --pack-destination C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-MJaRLV
 
 
 > jiahao@0.0.1 prepare
@@ -134,7 +134,7 @@ npm notice total files: 113
 npm notice
 
 tarball: jiahao-0.0.1.tgz extract exit=0
-$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-uxYNHg\package\scripts\install.js --help (extracted tarball copy)
+$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-MJaRLV\package\scripts\install.js --help (extracted tarball copy)
 jiahao v0.0.1 — install .jiahao-profile flag
 
 Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
@@ -143,7 +143,7 @@ Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
 Writes ONLY C:\Users\Administrator\.jiahao-profile
 Tier 0 manual: echo "verifier" > C:\Users\Administrator\.jiahao-profile
 exit=0
-$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-uxYNHg\package\scripts\install.js init -y --dry-run (extracted tarball copy)
+$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-MJaRLV\package\scripts\install.js init -y --dry-run (extracted tarball copy)
 [dry-run] would write "verifier" to C:\Users\Administrator\.jiahao-profile
 exit=0
 $ node jiahao-mcp/index.js <stdin: JSON-RPC initialize request>

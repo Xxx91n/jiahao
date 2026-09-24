@@ -1,6 +1,6 @@
-captured-at-head: 9c1c5ad665b7c46eff55a759c8bb93785e0c1f37
+captured-at-head: 8e177d2417eada69ff36b600aae74aa94c24ee34
 $ node scripts/build-rewrite-map.js --check
 
-EXIT 0
+EXIT 1
 
-[rewrite-map] OK: map in sync (2747 doc citations classified)
+[rewrite-map] FAIL: docs\rewrite-map.json is stale — regenerate with node scripts/build-rewrite-map.js

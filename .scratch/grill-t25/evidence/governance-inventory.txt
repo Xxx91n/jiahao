@@ -1,4 +1,4 @@
-captured-at-head: 3e925f8af832b7bfd0ab5864ece2f936c208d58e
+captured-at-head: 8e177d2417eada69ff36b600aae74aa94c24ee34
 $ node scripts/check-governance-inventory.js
 
 EXIT 0

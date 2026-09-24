@@ -1,4 +1,4 @@
-captured-at-head: 3e925f8af832b7bfd0ab5864ece2f936c208d58e
+captured-at-head: 8e177d2417eada69ff36b600aae74aa94c24ee34
 $ node scripts/check-pack-smoke.js
 
 EXIT 0
@@ -10,5 +10,5 @@ EXIT 0
 > jiahao@0.0.1 prepare
 > git config core.hooksPath .githooks || true
 
-(node:5152) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(node:8172) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
 (Use `node --trace-deprecation ...` to show where the warning was created)
