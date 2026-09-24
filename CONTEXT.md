@@ -2425,4 +2425,30 @@ D-001..D-004; convention home ADR-0083).
 _Avoid_: config drift (infrastructure state divergence); any divergence
 not between a declaration and its produced outcome
 
+**Claim Point (认领点)**:
+The commit point where freshness enforcement fires under the two-layer anchor
+semantics (ADR-0085): a commit touching a registered claim surface (round-dir
+`reports/` or `handoffs/`) must hold committed captures naming a sha
+at-or-after the floor — the last hard-anchoring commit strictly before it.
+Pure claim commits never raise the floor, so consecutive claims stop forcing
+re-capture waves; staleness between claims is a metadata downgrade — stale is
+not invalid: labeled staleness stays lawful, unlabeled staleness beside a
+green claim is the violation.
+_Avoid_: evaluating freshness continuously at HEAD; letting a claim commit
+itself move the evidence floor; treating stale bytes as void
+
+**Seal Boundary (封存界)**:
+The terminal per-round freeze under ADR-0085: a committed
+`.scratch/grill-<id>/SEAL` declaration (`seal:` sha + `recorded_at:` date)
+pins the round's last substantive commit — claim commits count for the seal —
+and flips the suite from live walking to `anchor := declared`. Post-seal byte
+edits to the evidence dir turn red (regression sentinel); the
+`adjudicated/<round>` tag either co-names the declared sha, diverges as the
+explicit `drift` code, or is `absent` (declaration-only degrade) — all
+recorded states, never silent. Back-registrations name the derived anchor with
+the writing date; no historical bytes are rewritten.
+_Avoid_: sealing the tip instead of the last substantive commit; treating a
+missing tag as silent success or hard failure; retro-tagging history
+
+
 *End of Glossary*

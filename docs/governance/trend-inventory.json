@@ -414,6 +414,39 @@
         ],
         "reason": "faithful regeneration via check-g6-publish re-run inside gate:all during the acceptance battery - same mechanism the t17..t24 rows disclosed"
       }
+    },
+    {
+      "round": "grill-t26",
+      "date": "2026-09-24",
+      "kind": "fix",
+      "adr_added": [
+        "0085"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": true,
+      "carve_out_used": 0,
+      "governance_tooling_diff": {
+        "files": [
+          ".github/workflows/ci.yml",
+          "scripts/build-rewrite-map.js",
+          "scripts/check-secret-scan.js",
+          "scripts/evidence-freshness.js",
+          "src/shared/capability.js",
+          "src/shared/falsify.js",
+          "test/freshness-checker.test.js",
+          "test/rewrite-map.test.js"
+        ],
+        "reason": "grill-t26 anchor-semantics round (ADR-0085): evidence-freshness.js is the single shared checker (anchoring classification + claim-point detection + seal resolution + evaluate-at-commit); freshness-checker.test.js is its fixture suite; ci.yml bumps --expected-suites 79->81. The list is cumulative per the coverage-budget rule (t21 audit C-1): the latest row must cover every R2 file in the committed diff since the earliest in-use coverage base (c526de3), so the grill-t25 machinery set is redeclared here."
+      },
+      "deferred_entry": "defer-0070",
+      "advisory_fired": false,
+      "mechanism_output_diff": {
+        "files": [
+          "bench/research/out/g6-publish-replay.json"
+        ],
+        "reason": "faithful regeneration via check-g6-publish re-run inside gate:all during the acceptance battery - same mechanism the t17..t25 rows disclosed; docs-surface regenerations (rewrite-map.json, governance anchors.json, README adr index) are R3, outside the ADR-0077 enumeration"
+      }
     }
   ],
   "source_adr": "0064"

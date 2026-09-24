@@ -8,6 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync, execFileSync } = require('child_process');
+const fresh = require('../scripts/evidence-freshness');
 const ROOT = path.join(__dirname, '..');
 const read = (p) => fs.readFileSync(p, 'utf8');
 const readJson = (p) => JSON.parse(read(p));
@@ -20,7 +21,7 @@ const AGENTS = path.join(ROOT, 'AGENTS.md');
 const EVD_REL = '.scratch/grill-t24/evidence';
 const BASE = 'c526de301c5d2d25e653bc910a80a9ae56dd252a'; // t24 round base (t23 merge)
 const COVERAGE_BASE = 'fc390d5e778db567d12b072f7a25cbf1e73b03f8'; // t25 re-anchor: the latest row is now grill-t25's, so the coverage diff window pairs with the t25 base (ADR-0081 D-A convention, re-anchored grill-t25)
-const HEAD_RE = /^captured-at-head: ([0-9a-f]{7,40})$/;
+const HEAD_RE = fresh.HEAD_RE; // single source: scripts/evidence-freshness.js (audit cleanup)
 
 function committedUnder(relDir) {
   return execFileSync('git', ['ls-tree', '-r', 'HEAD', '--name-only', '--', relDir], { cwd: ROOT, encoding: 'utf8' })
@@ -164,33 +165,27 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
     }
   });
 
-  test('D-A ordering invariant: every committed capture names a sha at-or-after the freshness anchor', () => {
-    // Anchor = newest commit in BASE..HEAD whose diff touches anything
-    // outside the non-anchoring set {evidence dir + faithful regen outputs}.
-    const NON_ANCHOR = new Set(['docs/rewrite-map.json', 'docs/governance/anchors.json', '.scratch/grill-t24/round-facts.json', 'bench/research/out/g6-publish-replay.json', 'src/instrument-state.json']);
-    const commits = execFileSync('git', ['rev-list', BASE + '..HEAD'], { cwd: ROOT, encoding: 'utf8' })
-      .split('\n').map(function (s) { return s.trim(); }).filter(Boolean)
-      .filter(function (sha) {
-        const subj = execFileSync('git', ['log', '--format=%s', '-1', sha], { cwd: ROOT, encoding: 'utf8' }).trim();
-        return subj.indexOf('GitButler Workspace Commit') !== 0;
-      });
-    let anchor = null;
-    for (const sha of commits) {
-      const files = execFileSync('git', ['diff-tree', '--no-commit-id', '--name-only', '-r', sha], { cwd: ROOT, encoding: 'utf8' })
-        .split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
-      const anchoring = files.some(function (f) {
-        return !/^\.scratch\/grill-t\d+\/evidence\//.test(f) && !NON_ANCHOR.has(f);
-      });
-      if (anchoring) { anchor = sha; break; }
+  test('D-A freshness under ADR-0085: claim-point conformance + t24 terminal seal at 8e177d24', () => {
+    // Shared checker (scripts/evidence-freshness.js); this suite carries the
+    // {id, base} config + assertions only — the walk is never re-rolled here.
+    const f = fresh.loadFreshness(ROOT);
+    const cfg = fresh.roundConfig(f, 'grill-t24'); // the rounds registry is the consumed source (D-005)
+    expect(cfg.base).toBe(BASE); // the suite literal pins the registry row — drift fails here
+    const r = fresh.evaluateRound(ROOT, f, cfg);
+    for (const c of r.claims) {
+      expect(c.bad).toEqual([]); // at each claim commit, every capture names a sha >= the floor strictly before it
     }
-    expect(anchor).not.toBeNull();
-    for (const f of committedUnder(EVD_REL).filter(function (x) { return /\.(txt|md)$/.test(x) && !/\.fixture\./.test(x); })) { // *.fixture.* = scan inputs, not captures
-      const first = read(path.join(ROOT, f.split('/').join(path.sep))).split(/\r?\n/)[0];
-      const m = first.match(HEAD_RE);
-      expect(m).not.toBeNull();
-      const r = spawnSync('git', ['merge-base', '--is-ancestor', anchor, m[1]], { cwd: ROOT });
-      expect(r.status).toBe(0); // anchor is ancestor-or-equal of the header sha: captured at-or-after the anchor
-    }
+    expect(r.unregisteredClaims).toEqual([]); // fail-closed signal: nothing claim-like outside the registered enum
+    expect(r.seal.present).toBe(true);
+    expect(r.seal.declared).toBe('8e177d2417eada69ff36b600aae74aa94c24ee34');
+    expect(r.seal.recorded_at).toMatch(/^\d{4}-\d{2}-\d{2}$/); // back-registration: recorded_at is the writing date, not back-dated
+    expect(r.seal.inFlightClean).toBe(true); // nothing anchoring between the declared anchor and the declaration
+    expect(r.seal.amended).toBe(false); // the SEAL file has exactly one touch — the declaration
+    expect(r.seal.capturesAtSealOk).toBe(true); // terminal wave: captures at the declaration satisfy the declared anchor
+    expect(r.seal.freezeViolations).toEqual([]); // post-seal byte edits to sealed evidence turn red
+    // t24 carries no adjudicated tag: absent is the recorded degrade — no
+    // backfill (ADR-0050 forward sealing), never silent.
+    expect(r.seal.tag.state).toBe('absent');
   });
   test('ci.yml --expected-suites equals the live glob(test/*.test.js) count + lower bound + known-file hit', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
@@ -243,9 +238,9 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
     expect(term).toContain('ADR-0083');
   });
 
-  test('README index rebuilt: 84 records incl. ADR-0083', () => {
+  test('README index rebuilt: 85 records incl. ADR-0083', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('84 architecture decision records');
+    expect(r).toContain('85 architecture decision records');
     expect(r).toContain('0083-declared-vs-actual-drift-clauses.md');
   });
 });

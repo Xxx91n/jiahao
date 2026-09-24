@@ -1,0 +1,8 @@
+captured-at-head: 3225ca31b3739728cacdd24ee1cd3e0f35d9cc46
+$ node scripts/check-governance-inventory.js --coverage-base bde0570be2caaf982d3d8c531c565bea2b069638
+
+[governance-inventory] OK: 36 entries, live source_adr, unique commands, closed references
+::warning title=Governance carve-out burn-rate::5 consecutive documentation rounds used the governance carve-out - advisory only, never blocks (ADR-0076 D-B)
+::warning title=Governance trend anchor::two consecutive documentation rounds added ADRs (streak 15 >= K=2) - advisory only, never blocks (ADR-0064 D-F)
+
+EXIT 0

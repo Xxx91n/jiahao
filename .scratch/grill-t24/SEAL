@@ -1,0 +1,3 @@
+# SEAL declaration - grill-t24 (ADR-0085 anchor semantics). Back-registration from grill-t26: declares the last anchoring commit of the round window; no historical bytes rewritten.
+seal: 8e177d2417eada69ff36b600aae74aa94c24ee34
+recorded_at: 2026-09-24

@@ -27,6 +27,8 @@ Every audit window MUST additionally verify from a clean public clone, not the m
 
 The branch tip commit at round close MUST be a re-capture wave (the non-anchoring class of ADR-0083 D-A.2): evidence headers then name the last anchoring commit and the landed tip is self-consistent. Merge commits are naturally non-anchoring - `git diff-tree` on a merge is empty against the first parent - so a merged tip stays green under the ordering invariant.
 
+- grill-t26 amendment: the landing tail now ends on the SEAL declaration (ADR-0085 D-E) — last anchoring commit → terminal wave → SEAL (non-anchoring) → regeneration-only commits; the wave-only tail becomes the seal's terminal wave.
+
 ### D-D - Exception narrowness (stop-bleed direct-push class)
 
 Direct push to `main` applies ONLY to stop-bleed-class commits: evidence re-capture waves plus the degrade code required for clone-red repair, each disclosed per round in the report (break-glass audit-log equivalent). The exception channel never generalizes into the norm - normative content always rides the PR lane (NIST exception-channel precedent: exceptions without narrow scoping calcify).

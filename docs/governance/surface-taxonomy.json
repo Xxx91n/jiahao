@@ -105,5 +105,64 @@
         "replay_verified": true
       }
     ]
+  },
+  "freshness": {
+    "_doc": "ADR-0085 two-layer anchor semantics for evidence freshness (grill-t26). claim_surfaces = closed enum of green-verdict-bearing round-dir surfaces; a commit touching them is a claim commit, evaluated at its own commit point by scripts/evidence-freshness.js (single source, no per-suite re-roll). non_anchoring_classes registers the exempt classes; anything unclassified anchors (fail-closed). The SEAL-declaration class is registered non-anchoring effective this round — back-registration for grill-t24/grill-t25 (D-004), in-round for grill-t26. rounds[] registers the round-scoped suites the shared checker serves.",
+    "source_adr": "docs/adr/0085-anchor-semantics-claim-point-seal-boundary.md",
+    "claim_surfaces": {
+      "closed_enum": [
+        "reports/",
+        "handoffs/"
+      ],
+      "scope": "round dir .scratch/grill-<id>/",
+      "exceptions": [
+        "handoffs/next-round.md"
+      ],
+      "unregistered_signal": "warning — fail-closed signaling, not silent pass (D-003 hedge 4)"
+    },
+    "non_anchoring_classes": {
+      "evidence_dirs": [
+        "evidence/"
+      ],
+      "seal_file": "SEAL",
+      "round_bookkeeping": [
+        "GOAL.md",
+        "decision-ledger.md",
+        "round-facts.json",
+        "human-authority-package.md",
+        "handoffs/next-round.md"
+      ],
+      "round_bookkeeping_glob": [
+        "spec-*.md"
+      ],
+      "mechanism_regen_outputs": [
+        "docs/rewrite-map.json",
+        "docs/governance/anchors.json",
+        "bench/research/out/g6-publish-replay.json",
+        "src/instrument-state.json"
+      ]
+    },
+    "seal": {
+      "fields": [
+        "seal",
+        "recorded_at"
+      ],
+      "tag_convention": "adjudicated/<round> annotated tag co-names the declared sha (bare sha in the annotation); divergence = explicit drift code; absent tag degrades to declaration-only + recorded state (never silent, never fail-closed)",
+      "retires": "the cross-round recursive-invalidation (live-HEAD-walk) invariant and its re-capture waves — retired whole, registered here per D-001 anti-ratchet"
+    },
+    "rounds": [
+      {
+        "id": "grill-t24",
+        "base": "c526de301c5d2d25e653bc910a80a9ae56dd252a"
+      },
+      {
+        "id": "grill-t25",
+        "base": "fc390d5e778db567d12b072f7a25cbf1e73b03f8"
+      },
+      {
+        "id": "grill-t26",
+        "base": "bde0570be2caaf982d3d8c531c565bea2b069638"
+      }
+    ]
   }
 }
