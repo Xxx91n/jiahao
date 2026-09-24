@@ -1,7 +1,6 @@
-captured-at-head: 04201a46a95a37676ba9ce5509ad49289d75a16a
+captured-at-head: 4c07ab9ba0f67472773a99fe6b3e5b5dfbe6dc2c
 $ node scripts/build-rewrite-map.js --published-only
 
-EXIT 1
+EXIT 0
 
-[rewrite-map] PUBLISHED-ONLY FAIL:
-doc citation coverage differs (first missing: .scratch/grill-t25/evidence/adr-0084-wiring.txt:1:04201a46a95a37676ba9ce5509ad49289d75a16a, .scratch/grill-t25/evidence/gate-all.txt:148:04201a46a95a37676ba9ce5509ad49289d75a16a, .scratch/grill-t25/evidence/gate-all.txt:148:04201a46a95a37676ba9ce5509ad49289d75a16a, .scratch/grill-t25/evidence/gate-all.txt:148:bbf5259, .scratch/grill-t25/evidence/gate-all.txt:1:04201a46a95a37676ba9ce5509ad49289d75a16a)
+[rewrite-map] PUBLISHED-ONLY OK: 2757 citations covered, class enum + counts consistent, published-side ancestry verified against origin/main
