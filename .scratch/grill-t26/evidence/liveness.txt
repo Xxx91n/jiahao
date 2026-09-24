@@ -1,7 +1,7 @@
-captured-at-head: 9be511b0418a42c242a396aaa8bc4980264d782f
+captured-at-head: 3225ca31b3739728cacdd24ee1cd3e0f35d9cc46
 $ pack/extract/install/mcp probe
 
-$ npm pack --pack-destination C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-MfbBk5
+$ npm pack --pack-destination C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-AERUdy
 
 > jiahao@0.0.1 prepare
 > git config core.hooksPath .githooks || true
@@ -135,8 +135,8 @@ npm notice integrity: sha512-A+0YjkGqBl00+[...]/GNKX90ovML0g==
 npm notice total files: 114
 npm notice
 exit=0
-tarball: C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-MfbBk5\jiahao-0.0.1.tgz extract exit=0 
-$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-MfbBk5\package\scripts\install.js --help (extracted tarball copy)
+tarball: C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-AERUdy\jiahao-0.0.1.tgz extract exit=0 
+$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-AERUdy\package\scripts\install.js --help (extracted tarball copy)
 jiahao v0.0.1 — install .jiahao-profile flag
 
 Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
@@ -145,7 +145,7 @@ Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
 Writes ONLY C:\Users\Administrator\.jiahao-profile
 Tier 0 manual: echo "verifier" > C:\Users\Administrator\.jiahao-profile
 exit=0
-$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-MfbBk5\package\scripts\install.js init -y --dry-run (extracted tarball copy)
+$ node C:\Users\ADMINI~1\AppData\Local\Temp\jh-live-AERUdy\package\scripts\install.js init -y --dry-run (extracted tarball copy)
 [dry-run] would write "verifier" to C:\Users\Administrator\.jiahao-profile
 exit=0
 $ node jiahao-mcp/index.js <stdin: JSON-RPC initialize request>
