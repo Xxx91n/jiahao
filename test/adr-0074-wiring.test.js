@@ -140,9 +140,9 @@ describe('README + governance-surface sync', () => {
     expect(r).not.toContain('suspended pending re-verification');
   });
 
-  test('the README ADR index carries ADR-0074 (rebuilt, 84 records)', () => {
+  test('the README ADR index carries ADR-0074 (rebuilt, 85 records)', () => {
     const r = read(README);
-    expect(r).toContain('84 architecture decision records');
+    expect(r).toContain('85 architecture decision records');
     expect(r).toContain('0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md');
   });
 
@@ -199,7 +199,7 @@ describe('R2 action round (2026-09-17): map, re-verification note, dispositions'
     const m = readJson(path.join(ROOT, 'docs', 'rewrite-map.json'));
     expect(m.schema_version).toBe(1);
     expect(m.generated_by).toBe('scripts/build-rewrite-map.js');
-    expect(m.published_tip).toBe('fc390d5e778db567d12b072f7a25cbf1e73b03f8'); // grill-t21: tip advanced to the t20 post-repair fixpoint base (stale pin re-pinned, disclosed); grill-t23: published side advanced to the t22 tip (gb-local/main caught up) - re-pinned, disclosed; grill-t24: tip advanced to the t23 merge c526de3 after the old-side ref restore (gb-local/pre-purge-line -> 2c93a30) - re-pinned, disclosed; grill-t25: tip advanced to the t24 absorb fc390d5 (public tip at round start) - re-pinned, disclosed
+    expect(m.published_tip).toBe('bde0570be2caaf982d3d8c531c565bea2b069638'); // grill-t21: tip advanced to the t20 post-repair fixpoint base (stale pin re-pinned, disclosed); grill-t23: published side advanced to the t22 tip (gb-local/main caught up) - re-pinned, disclosed; grill-t24: tip advanced to the t23 merge c526de3 after the old-side ref restore (gb-local/pre-purge-line -> 2c93a30) - re-pinned, disclosed; grill-t25: tip advanced to the t24 absorb fc390d5 (public tip at round start) - re-pinned, disclosed; grill-t26: tip advanced to the t25 landed tip bde0570b (post-tag public tip) - re-pinned, disclosed
     expect(m.commits.length).toBe(15);
     expect(m.counts.doc_refs).toBe(m.doc_refs.length);
     expect(m.doc_refs.length).toBeGreaterThan(0);

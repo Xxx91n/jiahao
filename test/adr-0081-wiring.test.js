@@ -125,9 +125,9 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
     expect(term).toContain('_Avoid_');
   });
 
-  test('README index rebuilt: 84 records incl. ADR-0081', () => {
+  test('README index rebuilt: 85 records incl. ADR-0081', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('84 architecture decision records');
+    expect(r).toContain('85 architecture decision records');
     expect(r).toContain('0081-repair-window-amend-in-place-coverage-pairing-headroom-watch.md');
   });
 
