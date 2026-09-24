@@ -22,6 +22,7 @@ const TREND = path.join(ROOT, 'docs', 'governance', 'trend-inventory.json');
 const REG = path.join(ROOT, 'docs', 'deferred-registry.json');
 const CTX = path.join(ROOT, 'CONTEXT.md');
 const cap = require('../src/shared/capability');
+const fresh = require('../scripts/evidence-freshness');
 const EVD_REL = '.scratch/grill-t25/evidence';
 const BASE = 'fc390d5e778db567d12b072f7a25cbf1e73b03f8'; // t25 round base (public tip at round start)
 const HEAD_RE = /^captured-at-head: ([0-9a-f]{7,40})$/;
@@ -133,29 +134,24 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
     if (fs.existsSync(evd)) expect(onDisk.length).toBeGreaterThanOrEqual(10);
   });
 
-  test('D-A ordering invariant re-roll: every committed t25 capture names a sha at-or-after the freshness anchor', () => {
-    const NON_ANCHOR = new Set(['docs/rewrite-map.json', 'docs/governance/anchors.json', '.scratch/grill-t25/round-facts.json', 'bench/research/out/g6-publish-replay.json', 'src/instrument-state.json']);
-    const commits = execFileSync('git', ['rev-list', BASE + '..HEAD'], { cwd: ROOT, encoding: 'utf8' })
-      .split('\n').map(function (s) { return s.trim(); }).filter(Boolean)
-      .filter(function (sha) {
-        const subj = execFileSync('git', ['log', '--format=%s', '-1', sha], { cwd: ROOT, encoding: 'utf8' }).trim();
-        return subj.indexOf('GitButler Workspace Commit') !== 0;
-      });
-    let anchor = null;
-    for (const sha of commits) {
-      const files = execFileSync('git', ['diff-tree', '--no-commit-id', '--name-only', '-r', sha], { cwd: ROOT, encoding: 'utf8' })
-        .split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
-      const anchoring = files.some(function (f) { return !/^\.scratch\/grill-t\d+\/evidence\//.test(f) && !NON_ANCHOR.has(f); });
-      if (anchoring) { anchor = sha; break; }
+  test('D-A freshness under ADR-0085: claim-point conformance + t25 terminal seal at 8e177d24', () => {
+    const r = fresh.evaluateRound(ROOT, fresh.loadFreshness(ROOT), { id: 'grill-t25', base: BASE });
+    for (const c of r.claims) {
+      expect(c.bad).toEqual([]);
     }
-    expect(anchor).not.toBeNull();
-    for (const f of committedUnder(EVD_REL).filter(function (x) { return /\.(txt|md)$/.test(x) && !/\.fixture\./.test(x); })) {
-      const first = read(path.join(ROOT, f.split('/').join(path.sep))).split(/\r?\n/)[0];
-      const m = first.match(HEAD_RE);
-      expect(m).not.toBeNull();
-      const r = spawnSync('git', ['merge-base', '--is-ancestor', anchor, m[1]], { cwd: ROOT });
-      expect(r.status).toBe(0);
-    }
+    expect(r.unregisteredClaims).toEqual([]);
+    expect(r.seal.present).toBe(true);
+    expect(r.seal.declared).toBe('8e177d2417eada69ff36b600aae74aa94c24ee34');
+    expect(r.seal.recorded_at).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(r.seal.inFlightClean).toBe(true);
+    expect(r.seal.amended).toBe(false);
+    expect(r.seal.capturesAtSealOk).toBe(true);
+    expect(r.seal.freezeViolations).toEqual([]);
+    // The adjudicated/grill-t25 tag pre-dates the co-naming contract: it names
+    // the landed tip bde0570b, not the seal — explicit drift code, disclosed
+    // in the t26 round report, never silent.
+    expect(r.seal.tag.state).toBe('drift');
+    expect(r.seal.tag.target).toBe('bde0570be2caaf982d3d8c531c565bea2b069638');
   });
 
   test('coverage leg re-anchored at the t25 base validates the latest row', () => {
@@ -180,7 +176,7 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
   });
 
   test('countersign queue: all 10 labels are ID-level-only with a return condition + date', () => {
-    const nums = ['0064','0065','0066','0067','0068','0069','0070','0072','0073','0074'];
+    const nums = ['0064', '0065', '0066', '0067', '0068', '0069', '0070', '0072', '0073', '0074'];
     const adrs = fs.readdirSync(path.join(ROOT, 'docs', 'adr'));
     for (const n of nums) {
       const f = adrs.find(function (x) { return x.indexOf(n + '-') === 0; });
