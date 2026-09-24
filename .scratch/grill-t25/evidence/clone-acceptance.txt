@@ -1,15 +1,14 @@
-captured-at-head: f6f15eaa6581eecf8568866a6b0c78d70a721c60
-$ git clone --no-local . <tmp>; npm install; jest; run-gates; --check; --published-only; pack-smoke   (phase-A transitional: closeout-restack tip; terminal phase-B follows)
+captured-at-head: 7c41c01dc4266fadb55d659bb0dc52c8bdf7526e
+$ git clone --no-local . <tmp>; npm install; jest; run-gates; --check; --published-only; pack-smoke   (phase-B terminal: full acceptance loop, closeout tip)
 
-EXIT 1
+EXIT 0
 
 $ git clone --no-local . <tmp>  -> exit 0 (refs/**/gb-local: 0)
 $ npm install  -> exit 0
-$ npx jest --silent  -> exit 1 :: Test Suites: 2 failed, 77 passed, 79 total | Tests: 2 failed, 7 skipped, 1336 passed, 1345 total
-  (transitional red, disclosed: the two failures are the ADR-0083 + ADR-0084
-   ordering legs - this file's own header and the t24 battery headers still
-   cited pre-closeout anchors at capture time; terminal phase-B recaptures
-   after the header fixpoint)
+$ npx jest --silent  -> exit 0 :: Test Suites: 79 passed, 79 total | Tests: 7 skipped, 1338 passed, 1345 total
+  (the 7 skips are the designed corpus-bound tier per ADR-0056/0057; ordering and
+   provenance legs pass in the clone - every committed header names a durable
+   branch commit, no ephemeral workspace shas)
 $ node scripts/run-gates.js  -> exit 0 :: 36 entries, 10 UNVERIFIABLE (capability-absent,
   honest degrade incl. rewrite-map requires old-side-refs), 0 failures
 $ node scripts/build-rewrite-map.js --check  -> exit 2 (UNVERIFIABLE, old-side-refs absent)
