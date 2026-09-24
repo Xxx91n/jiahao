@@ -1,7 +1,7 @@
 # grill-t25 audit handoff — 2026-09-24
 
 Role: second-party audit window. Two passes: initial audit (report
-`reports/2026-09-24-audit.md`, commit `3ddbdbf` on lane `grill-t25-audit`)
+`reports/2026-09-24-audit.md`, commit `cb03a1a` on lane `grill-t25-audit` (restacked atop the fix lane))
 returned F-A..F-D; rework re-audited at tip `3c53175` — **PASS**.
 
 ## Verdict

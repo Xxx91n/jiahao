@@ -57,7 +57,10 @@ acceptance trio).
   prior rounds' `audit-evidence/` files; always allowlist by full path.
 - **`git rev-parse HEAD` is not a durable citation under GitButler lanes.**
   With multiple branches applied, HEAD is the ephemeral Workspace Commit —
-  absent from any clone's object store. Cite the durable tip instead:
+  historical Workspace Commits never reach a public clone's object store
+  (the checked-out HEAD's own workspace commit can ride along via HEAD
+  resolution — it is still not a stable citation). Cite the durable tip
+  instead:
   `git log -1 --invert-grep --grep=^GitButler Workspace Commit HEAD`
   (the capture-battery scripts already do this; inline leg runners must too).
 - **canon as_of is terminal-stale by design.** `round-facts.json` embeds the
