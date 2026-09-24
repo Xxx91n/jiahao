@@ -1,0 +1,4 @@
+# SEAL declaration - grill-t26 (ADR-0085 anchor semantics). Declares the round's last substantive commit - the claim commit carrying the report + handoff + facts canon. Everything after it is non-anchoring (evidence waves, this declaration, regen-only commits).
+# Disclosure: the terminal wave's rewrite-map legs record the regen-boundary red verbatim - the wave's own captured-at-head headers are citation sites, so the map can only resync in a post-seal regen commit. Same disclosed shape as the grill-t25 canon-as_of drift; not a defect.
+seal: 53bff916d798adbb0b8219f822b1ffdc88df070b
+recorded_at: 2026-09-24
