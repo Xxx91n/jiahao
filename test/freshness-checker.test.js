@@ -143,9 +143,30 @@ describe('shared freshness checker (fixture repo)', () => {
     expect(r.seal.expectedAnchor).toBe(real);
   });
 
+  test('tag co-naming: the annotation must pin the bare sha, not just the target', () => {
+    // t99 is sealed at C4. A tag naming the right sha but lacking the bare-sha
+    // annotation is divergence, not endorsement (D-C byte-equivalence
+    // precondition; audit F-2).
+    execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'tag', '-a', 'adjudicated/grill-t99', C4, '-m', 'adjudicated without the sha'], { cwd: ROOT });
+    let r = evalT99();
+    expect(r.seal.tag.state).toBe('drift');
+    expect(r.seal.tag.messageHasSha).toBe(false);
+    g(['tag', '-d', 'adjudicated/grill-t99']);
+    execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'tag', '-a', 'adjudicated/grill-t99', C4, '-m', 'adjudicated seal ' + C4], { cwd: ROOT });
+    r = evalT99();
+    expect(r.seal.tag.state).toBe('co-named');
+    expect(r.seal.tag.messageHasSha).toBe(true);
+    g(['tag', '-d', 'adjudicated/grill-t99']);
+  });
+
   test('unregistered claim-like files produce a warning signal', () => {
     commit('unregistered verdict doc', { '.scratch/grill-t99/audit-evidence/audit-report.md': '# pass\n' });
+    // added-then-removed still warns — the HEAD-tree leg alone misses it (audit F-6)
+    commit('transient verdict add', { '.scratch/grill-t99/verdicts.md': '# v\n' });
+    execFileSync('git', ['rm', '-q', '.scratch/grill-t99/verdicts.md'], { cwd: ROOT });
+    execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'transient verdict removed'], { cwd: ROOT });
     const r = evalT99();
     expect(r.unregisteredClaims).toContain('.scratch/grill-t99/audit-evidence/audit-report.md');
+    expect(r.unregisteredClaims).toContain('.scratch/grill-t99/verdicts.md');
   });
 });

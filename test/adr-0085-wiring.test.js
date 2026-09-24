@@ -64,22 +64,23 @@ describe('ADR-0085 anchor semantics (grill-t26: claim-point pinning + terminal s
   });
 
   test('t26 round evaluation: claims conform; nothing claim-like is unregistered', () => {
-    const r = fresh.evaluateRound(ROOT, fresh.loadFreshness(ROOT), { id: 'grill-t26', base: BASE });
+    const f = fresh.loadFreshness(ROOT);
+    const cfg = fresh.roundConfig(f, 'grill-t26'); // the rounds registry is the consumed source (D-005)
+    expect(cfg.base).toBe(BASE); // the suite literal pins the registry row — drift fails here
+    const r = fresh.evaluateRound(ROOT, f, cfg);
     for (const c of r.claims) {
       expect(c.bad).toEqual([]); // at each claim commit, captures name a sha >= the floor strictly before it
     }
     expect(r.unregisteredClaims).toEqual([]);
-    if (r.seal.present) {
-      // once the terminal seal lands (T-4) its invariants activate: declared
-      // sha == last substantive commit, in-flight clean, frozen thereafter;
-      // drift is never a lawful state for the in-round seal.
-      expect(r.seal.declared).toBe(r.seal.expectedAnchor);
-      expect(r.seal.inFlightClean).toBe(true);
-      expect(r.seal.amended).toBe(false);
-      expect(r.seal.capturesAtSealOk).toBe(true);
-      expect(r.seal.freezeViolations).toEqual([]);
-      expect(['absent', 'co-named']).toContain(r.seal.tag.state);
-    }
+    // t26 is sealed — the seal invariants are unconditional (audit F-5: a
+    // conditional block would let a deleted SEAL silently deactivate them).
+    expect(r.seal.present).toBe(true);
+    expect(r.seal.declared).toBe(r.seal.expectedAnchor);
+    expect(r.seal.inFlightClean).toBe(true);
+    expect(r.seal.amended).toBe(false);
+    expect(r.seal.capturesAtSealOk).toBe(true);
+    expect(r.seal.freezeViolations).toEqual([]);
+    expect(['absent', 'co-named']).toContain(r.seal.tag.state); // drift is never lawful for the in-round seal
   });
 
   test('defer-0070 stays quarantined: owner + review date + the three named suite legs', () => {

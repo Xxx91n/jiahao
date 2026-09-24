@@ -33,6 +33,8 @@ const { execFileSync, spawnSync } = require('child_process');
 const HEAD_RE = /^captured-at-head: ([0-9a-f]{7,40})$/;
 const CAPTURE_RE = /\.(txt|md)$/;
 const FIXTURE_RE = /\.fixture\./;
+// Ephemeral GitButler workspace merge objects never reach a public clone —
+// the walk drops them: they neither anchor nor count as claims.
 const WORKSPACE_SUBJECT = 'GitButler Workspace Commit';
 // Claim-like heuristic for the unregistered-claim warning (D-003 hedge 4):
 // verdict-shaped filenames under a round dir that escaped the closed enum.
@@ -44,6 +46,8 @@ function git(root, args) {
 function gitOk(root, args) {
   return spawnSync('git', args, { cwd: root }).status === 0;
 }
+
+const gitLines = (root, args) => git(root, args).split('\n').filter(Boolean);
 
 function loadFreshness(root) {
   const tax = JSON.parse(fs.readFileSync(path.join(root, 'docs', 'governance', 'surface-taxonomy.json'), 'utf8'));
@@ -66,6 +70,7 @@ function classifiers(fresh) {
     regen: new Set(na.mechanism_regen_outputs),
     claim: new RegExp('^' + rr + '(?:' + fresh.claim_surfaces.closed_enum.map(escRe).join('|') + ')'),
     claimDirs: fresh.claim_surfaces.closed_enum,
+    claimExceptions: fresh.claim_surfaces.exceptions || [],
   };
 }
 
@@ -81,16 +86,19 @@ function classifyFile(f, cx) {
 
 function commitFiles(root, sha) {
   try {
-    return git(root, ['diff-tree', '--no-commit-id', '--name-only', '-r', sha]).split('\n').filter(Boolean);
+    return gitLines(root, ['diff-tree', '--no-commit-id', '--name-only', '-r', sha]);
   } catch (e) {
-    return []; // merge commits produce no first-parent diff listing
+    return null; // unreadable diff — callers must not silently classify as exempt
   }
 }
 
 // classes: Set of per-file classes; anchoring = has a hard-anchoring file;
 // substantive = anchoring OR claim (the seal counts the round's last act).
+// An unreadable commit is treated as anchoring (fail-closed inside a
+// fail-closed checker — an anomaly raises the floor rather than hiding).
 function commitInfo(root, sha, cx) {
   const files = commitFiles(root, sha);
+  if (files === null) return { sha, files: [], anchoring: true, substantive: true, unreadable: true };
   const classes = new Set(files.map((f) => classifyFile(f, cx)));
   return {
     sha,
@@ -102,31 +110,30 @@ function commitInfo(root, sha, cx) {
 
 // rev-list <range>, newest first, ephemeral GitButler workspace commits dropped.
 function walk(root, range) {
-  return git(root, ['rev-list', range]).split('\n').filter(Boolean)
+  return gitLines(root, ['rev-list', range])
     .filter((sha) => !git(root, ['log', '--format=%s', '-1', sha]).startsWith(WORKSPACE_SUBJECT));
 }
 
-// Last commit in base..ref with a hard-anchoring file (pure claims excluded).
-function lastFloorAnchor(root, cx, base, ref) {
+// Last commit in base..ref whose commitInfo satisfies pred — the shared walk
+// for both anchor notions (audit cleanup: the two walks were verbatim twins).
+function lastAnchor(root, cx, base, ref, pred) {
   for (const sha of walk(root, base + '..' + ref)) {
-    if (commitInfo(root, sha, cx).anchoring) return sha;
+    if (pred(commitInfo(root, sha, cx))) return sha;
   }
   return null;
 }
-
-// Last commit in base..ref with any non-exempt file (claims count) — the
-// seal-anchor derivation. ref is inclusive (BASE..D names the declaration).
-function lastSealAnchor(root, cx, base, ref) {
-  for (const sha of walk(root, base + '..' + ref)) {
-    if (commitInfo(root, sha, cx).substantive) return sha;
-  }
-  return null;
-}
+// Hard-anchoring file (pure claims excluded) — the claim-point floor.
+const lastFloorAnchor = (root, cx, base, ref) => lastAnchor(root, cx, base, ref, (c) => c.anchoring);
+// Any non-exempt file, claims included — the seal-anchor derivation.
+// ref is inclusive (BASE..D names the declaration).
+const lastSealAnchor = (root, cx, base, ref) => lastAnchor(root, cx, base, ref, (c) => c.substantive);
 
 // A claim commit OF round `dir`: a file under <dir>/<claim-surface> that is
-// not excepted (the next-round taskbook is bookkeeping, not a claim).
+// not excepted (the next-round taskbook is bookkeeping, not a claim). The
+// registered claim_surfaces.exceptions list is honored directly.
 function isClaimFor(dir, cx) {
-  return (f) => cx.claimDirs.some((d) => f.startsWith(dir + '/' + d)) && classifyFile(f, cx) === 'claim';
+  const exempt = new Set(cx.claimExceptions.map((e) => dir + '/' + e));
+  return (f) => !exempt.has(f) && cx.claimDirs.some((d) => f.startsWith(dir + '/' + d)) && classifyFile(f, cx) === 'claim';
 }
 
 function showAt(root, ref, file) {
@@ -139,8 +146,7 @@ function showAt(root, ref, file) {
 
 // Committed captures under <evd> in the tree AT ref, with header sha per file.
 function capturesAt(root, ref, evd) {
-  const files = git(root, ['ls-tree', '-r', ref, '--name-only', '--', evd])
-    .split('\n').filter(Boolean)
+  const files = gitLines(root, ['ls-tree', '-r', ref, '--name-only', '--', evd])
     .filter((f) => CAPTURE_RE.test(f) && !FIXTURE_RE.test(f));
   return files.map((f) => {
     const content = showAt(root, ref, f);
@@ -179,18 +185,22 @@ function tagState(root, roundId, declared) {
   try {
     messageHasSha = git(root, ['tag', '-l', '--format=%(contents)', tag]).indexOf(declared) !== -1;
   } catch (e) { /* stays null */ }
-  return { tag, state: target === declared ? 'co-named' : 'drift', target, messageHasSha };
+  // co-named requires BOTH the right target AND the bare-sha annotation
+  // (D-C.1 byte-equivalence precondition): a right-target/wrong-message tag
+  // is divergence, not endorsement — explicit drift, never silent.
+  return { tag, state: target === declared && messageHasSha === true ? 'co-named' : 'drift', target, messageHasSha };
 }
 
-// Unregistered claim-like committed files under the round dir (warning signal,
+// Unregistered claim-like files under the round dir (warning signal,
 // not a failure — the fail-closed SIGNAL is the requirement, D-003 hedge 4).
-function unregisteredClaims(root, cx, dir) {
-  const tracked = git(root, ['ls-tree', '-r', 'HEAD', '--name-only', '--', dir])
-    .split('\n').filter(Boolean);
-  return tracked.filter((f) => {
-    const k = classifyFile(f, cx);
-    return (k === 'anchoring') && CLAIM_LIKE_RE.test(f);
-  });
+// Two legs: the HEAD tree, plus the add-side of the round's history — a
+// claim-like file committed then removed is invisible to a tree-only scan
+// (audit finding F-6).
+function unregisteredClaims(root, cx, dir, base) {
+  const escaped = (f) => classifyFile(f, cx) === 'anchoring' && CLAIM_LIKE_RE.test(f);
+  const current = gitLines(root, ['ls-tree', '-r', 'HEAD', '--name-only', '--', dir]).filter(escaped);
+  const added = gitLines(root, ['log', '--diff-filter=A', '--format=', '--name-only', base + '..HEAD', '--', dir]).filter(escaped);
+  return [...new Set(current.concat(added))];
 }
 
 // Evaluate one round-scoped suite at HEAD.
@@ -209,7 +219,10 @@ function evaluateRound(root, fresh, cfg) {
   // every capture committed in <evd> at C names a sha >= the floor anchor
   // strictly before C (floor := last hard-anchoring commit; BASE if none).
   const claims = commits
-    .filter((sha) => commitFiles(root, sha).some(claimOfRound))
+    .filter((sha) => {
+      const files = commitFiles(root, sha);
+      return files !== null && files.some(claimOfRound);
+    })
     .reverse()
     .map((sha) => {
       const floor = lastFloorAnchor(root, cx, cfg.base, sha + '^') || cfg.base;
@@ -230,8 +243,8 @@ function evaluateRound(root, fresh, cfg) {
   const parsed = parseSeal(sealText);
   let seal = { present: false };
   if (parsed) {
-    const touches = git(root, ['log', '--format=%H', '--', sealPath]).split('\n').filter(Boolean);
-    const added = git(root, ['log', '--diff-filter=A', '--format=%H', '--', sealPath]).split('\n').filter(Boolean);
+    const touches = gitLines(root, ['log', '--format=%H', '--', sealPath]);
+    const added = gitLines(root, ['log', '--diff-filter=A', '--format=%H', '--', sealPath]);
     const declarationCommit = added.length ? added[0] : null;
     const expected = declarationCommit ? lastSealAnchor(root, cx, cfg.base, declarationCommit) : null;
     // Terminal wave: captures in the tree AT the declaration commit must
@@ -269,7 +282,7 @@ function evaluateRound(root, fresh, cfg) {
     base: cfg.base,
     claims,
     seal,
-    unregisteredClaims: unregisteredClaims(root, cx, dir),
+    unregisteredClaims: unregisteredClaims(root, cx, dir, cfg.base),
   };
 }
 
@@ -281,11 +294,13 @@ function roundConfig(fresh, id) {
 
 module.exports = {
   HEAD_RE,
+  WORKSPACE_SUBJECT,
   loadFreshness,
   classifiers,
   classifyFile,
   commitInfo,
   walk,
+  lastAnchor,
   lastFloorAnchor,
   lastSealAnchor,
   capturesAt,

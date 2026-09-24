@@ -25,7 +25,7 @@ const cap = require('../src/shared/capability');
 const fresh = require('../scripts/evidence-freshness');
 const EVD_REL = '.scratch/grill-t25/evidence';
 const BASE = 'fc390d5e778db567d12b072f7a25cbf1e73b03f8'; // t25 round base (public tip at round start)
-const HEAD_RE = /^captured-at-head: ([0-9a-f]{7,40})$/;
+const HEAD_RE = fresh.HEAD_RE; // single source: scripts/evidence-freshness.js (audit cleanup)
 
 function committedUnder(relDir) {
   return execFileSync('git', ['ls-tree', '-r', 'HEAD', '--name-only', '--', relDir], { cwd: ROOT, encoding: 'utf8' })
@@ -135,7 +135,10 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
   });
 
   test('D-A freshness under ADR-0085: claim-point conformance + t25 terminal seal at 8e177d24', () => {
-    const r = fresh.evaluateRound(ROOT, fresh.loadFreshness(ROOT), { id: 'grill-t25', base: BASE });
+    const f = fresh.loadFreshness(ROOT);
+    const cfg = fresh.roundConfig(f, 'grill-t25'); // the rounds registry is the consumed source (D-005)
+    expect(cfg.base).toBe(BASE); // the suite literal pins the registry row — drift fails here
+    const r = fresh.evaluateRound(ROOT, f, cfg);
     for (const c of r.claims) {
       expect(c.bad).toEqual([]);
     }

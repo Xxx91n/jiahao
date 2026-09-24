@@ -21,7 +21,7 @@ const AGENTS = path.join(ROOT, 'AGENTS.md');
 const EVD_REL = '.scratch/grill-t24/evidence';
 const BASE = 'c526de301c5d2d25e653bc910a80a9ae56dd252a'; // t24 round base (t23 merge)
 const COVERAGE_BASE = 'fc390d5e778db567d12b072f7a25cbf1e73b03f8'; // t25 re-anchor: the latest row is now grill-t25's, so the coverage diff window pairs with the t25 base (ADR-0081 D-A convention, re-anchored grill-t25)
-const HEAD_RE = /^captured-at-head: ([0-9a-f]{7,40})$/;
+const HEAD_RE = fresh.HEAD_RE; // single source: scripts/evidence-freshness.js (audit cleanup)
 
 function committedUnder(relDir) {
   return execFileSync('git', ['ls-tree', '-r', 'HEAD', '--name-only', '--', relDir], { cwd: ROOT, encoding: 'utf8' })
@@ -168,7 +168,10 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
   test('D-A freshness under ADR-0085: claim-point conformance + t24 terminal seal at 8e177d24', () => {
     // Shared checker (scripts/evidence-freshness.js); this suite carries the
     // {id, base} config + assertions only — the walk is never re-rolled here.
-    const r = fresh.evaluateRound(ROOT, fresh.loadFreshness(ROOT), { id: 'grill-t24', base: BASE });
+    const f = fresh.loadFreshness(ROOT);
+    const cfg = fresh.roundConfig(f, 'grill-t24'); // the rounds registry is the consumed source (D-005)
+    expect(cfg.base).toBe(BASE); // the suite literal pins the registry row — drift fails here
+    const r = fresh.evaluateRound(ROOT, f, cfg);
     for (const c of r.claims) {
       expect(c.bad).toEqual([]); // at each claim commit, every capture names a sha >= the floor strictly before it
     }
