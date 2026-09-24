@@ -1,6 +1,6 @@
 [English](README.md) | **中文**
 
-<!-- translation-baseline: 1fa7223ca4e41bd52d7e8b58a44a0caf243a72dc -->
+<!-- translation-baseline: edefb509219ecc3050be2de0f27ea0777759011f -->
 
 <p align="center">
   <picture>
