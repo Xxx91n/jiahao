@@ -83,7 +83,7 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
     // grill-t24 landed its row on top of that (adr-0083 + ci.yml sync);
     // both keep their pinned shape, addressed by name not by position.
     const row = ti.rounds.find((r) => r.round === 'grill-t22-doc-round');
-    expect(ti.rounds).toHaveLength(19);
+    expect(ti.rounds).toHaveLength(20);
     const latest = ti.rounds.find((r) => r.round === 'grill-t23-front-face');
     expect(latest).toBeDefined();
     expect(latest.adr_added).toEqual(['0082']);
@@ -133,7 +133,7 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
 
   test('ci.yml suite parity declares the live expected suite count', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
-    expect(ci).toContain('--expected-suites 79');
+    expect(ci).toContain('--expected-suites 81');
   });
 
   test('coverageGaps pure export: the R2-undeclared defect shape still fails (regression pin)', () => {

@@ -184,7 +184,7 @@ describe('ADR-0080 doc surface (grill-t21 disposition round)', () => {
 
   test('ci.yml suite parity declares the live expected suite count', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
-    expect(ci).toContain('--expected-suites 79');
+    expect(ci).toContain('--expected-suites 81');
   });
 
   test('CONTEXT.md clauses verified: trend-anchor disclosed-repair + registry merged-ratchet', () => {

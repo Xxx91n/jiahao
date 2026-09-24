@@ -21,6 +21,8 @@ The grill-t23 audit cycle surfaced three same-shaped governance gaps — one cla
 
 Rejected shapes (ledger D-003): per-artifact attested-surface bookkeeping (β — a bookkeeping table whose own drift is isomorphic to the incident it guards); dual-reading co-citation (γ — canonizes the defect form by letting stale bytes stand next to green).
 
+- grill-t26 amendment: the D-A walk form (evaluate `BASE..HEAD` continuously) is superseded by ADR-0085 — freshness is enforced at claim points and the round is closed by a terminal seal boundary; the `captured-at-head` header contract and the qualification/archival split carry over unchanged. The live-HEAD-walk invariant is retired whole.
+
 ### D-B — Never-commit single-sourcing (G2; ledger D-002.2, D-004.1/2)
 
 1. `docs/governance/never-commit.json` is the single source of truth: `{rules:[{id:"nc-NNN", pattern, reason, since, status}]}` where `pattern` is a regex over repo-relative paths.

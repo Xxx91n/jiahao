@@ -203,7 +203,7 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
 
   test('the t25 trend row: kind fix + adr_added 0084 + declared R2 hand-edits', () => {
     const ti = readJson(TREND);
-    const row = ti.rounds[ti.rounds.length - 1];
+    const row = ti.rounds.find(function (r) { return r.round === 'grill-t25'; }); // addressed by name, not by position - later rounds land on top
     expect(row.round).toBe('grill-t25');
     expect(row.kind).toBe('fix');
     expect(row.adr_added).toEqual(['0084']);
