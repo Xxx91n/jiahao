@@ -1,4 +1,4 @@
-captured-at-head: 3e925f8af832b7bfd0ab5864ece2f936c208d58e
+captured-at-head: f6f15eaa6581eecf8568866a6b0c78d70a721c60
 $ node scripts/check-governance-inventory.js --coverage-base fc390d5e778db567d12b072f7a25cbf1e73b03f8
 
 EXIT 0

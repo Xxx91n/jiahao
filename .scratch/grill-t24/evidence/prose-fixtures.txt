@@ -1,4 +1,4 @@
-captured-at-head: 3e925f8af832b7bfd0ab5864ece2f936c208d58e
+captured-at-head: f6f15eaa6581eecf8568866a6b0c78d70a721c60
 $ node D:\Aworker\jiahao\node_modules\jest\bin\jest.js test/adr-0076-wiring.test.js -t fixture
 
 EXIT 0
@@ -40,7 +40,7 @@ PASS test/adr-0076-wiring.test.js
     ○ skipped anchors.json lists decision-ledger-t16.md under ADR-0077, content-equal to the scratch authority
     ○ skipped facts canon: artifact schema + deterministic render pin (ADR-0077 D-C)
   grill-t17 dispositions (ADR-0077 D-E appendix + residue registrations)
-    √ a quoted-stale-number fixture MUST fail --check (ADR-0077 D-E) (77 ms)
+    √ a quoted-stale-number fixture MUST fail --check (ADR-0077 D-E) (71 ms)
     ○ skipped proseScan export: unconditional - a quoted canon number is still a violation
     ○ skipped the t17 report renders the canon region and carries no canon number in prose
     ○ skipped ADR-0077 D-E appendix registers the unconditional scan + the evidence-file convention
@@ -51,7 +51,7 @@ PASS test/adr-0076-wiring.test.js
     ○ skipped the gen-docs template carries the frozen derived-ROOT header
   grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendix + doc hygiene)
     √ doc-hygiene negative fixtures: the two real corruption samples are flagged (2 ms)
-    √ single-digit canon fixture: bare single-digit value walks free (declared floor gap), key-assign catches it (D-002) (3 ms)
+    √ single-digit canon fixture: bare single-digit value walks free (declared floor gap), key-assign catches it (D-002) (2 ms)
     √ key-assign fixture: every one of the eleven schema keys is enforced in prose (D-002) (2 ms)
     ○ skipped ADR-0078 exists with live status, date, amends line, ledger + spec anchors
     ○ skipped kind enum: a fix row WITH governance_tooling_diff passes; WITHOUT it fails (ADR-0078 negative pin)
@@ -93,5 +93,5 @@ PASS test/adr-0076-wiring.test.js
 Test Suites: 1 passed, 1 total
 Tests:       72 skipped, 5 passed, 77 total
 Snapshots:   0 total
-Time:        0.609 s, estimated 1 s
+Time:        0.703 s, estimated 1 s
 Ran all test suites matching /test\\adr-0076-wiring.test.js/i with tests matching "fixture".
