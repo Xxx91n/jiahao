@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-24T15:02:20.942Z",
+  "generated_at": "2026-09-24T15:11:20.562Z",
   "published_tip": "bde0570be2caaf982d3d8c531c565bea2b069638",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -22,11 +22,11 @@
     "published_only": 294,
     "removed": 0,
     "same": 278,
-    "doc_refs": 2761,
+    "doc_refs": 2763,
     "doc_refs_by_class": {
       "rewritten": 104,
       "local-only": 763,
-      "published-unchanged": 1894
+      "published-unchanged": 1896
     }
   },
   "commits": [
@@ -21804,6 +21804,20 @@
       "file": "docs/adr/0084-public-clone-verifiability-clone-degradability-landing-tail-exception-tag-timing-first-disclosure.md",
       "line": 42,
       "sha": "bbf5259",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": "docs/adr/0085-anchor-semantics-claim-point-seal-boundary.md",
+      "line": 25,
+      "sha": "8e177d24",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": "docs/adr/0085-anchor-semantics-claim-point-seal-boundary.md",
+      "line": 33,
+      "sha": "bde0570b",
       "class": "published-unchanged",
       "resolved_to": null
     },
