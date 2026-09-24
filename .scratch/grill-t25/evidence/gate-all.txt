@@ -1,4 +1,4 @@
-captured-at-head: 8e177d2417eada69ff36b600aae74aa94c24ee34
+captured-at-head: 04201a46a95a37676ba9ce5509ad49289d75a16a
 $ node scripts/run-gates.js
 
 EXIT 1
@@ -135,7 +135,7 @@ falsification OK: 12 twin pairs
 > jiahao@0.0.1 prepare
 > git config core.hooksPath .githooks || true
 
-(node:8932) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(node:12124) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 [197 governance-anchors] PASS
 [governance-anchors] OK - 18 artifacts, digests in sync
@@ -145,9 +145,9 @@ falsification OK: 12 twin pairs
 [rewrite-map] FAIL: docs\rewrite-map.json is stale — regenerate with node scripts/build-rewrite-map.js
 [209 rewrite-map-published] FAIL
 [rewrite-map] PUBLISHED-ONLY FAIL:
-doc citation coverage differs (first missing: .scratch/grill-t25/handoffs/2026-09-24-audit-handoff.md:14:3c53175, .scratch/grill-t25/handoffs/2026-09-24-audit-handoff.md:24:f805e46, .scratch/grill-t25/handoffs/2026-09-24-audit-handoff.md:31:6c52b16, .scratch/grill-t25/handoffs/2026-09-24-audit-handoff.md:4:cb03a1a, .scratch/grill-t25/handoffs/2026-09-24-audit-handoff.md:5:3c53175)
+doc citation coverage differs (first missing: .scratch/grill-t25/evidence/adr-0084-wiring.txt:1:04201a46a95a37676ba9ce5509ad49289d75a16a, .scratch/grill-t25/evidence/run-test-gate.txt:1:04201a46a95a37676ba9ce5509ad49289d75a16a, .scratch/grill-t25/evidence/run-test-gate.txt:254:bbf5259)
 [218 secret-scan] PASS
-[secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 1247/1247/1247; oversized-skip 0; commit-messages 573
+[secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 1247/1247/1247; oversized-skip 0; commit-messages 577
 ::warning title=gate:all::3 advisory/band warning(s) from gates: instrument-identity, governance-inventory
 ::error title=UNVERIFIABLE::4 gate(s) unverifiable: ci-wiring requires ci-mode, bench-gate requires ci-mode, probes requires ci-mode, mr-probes requires ci-mode
 gate:all exit 1 (36 entries, 4 unverifiable, fail-fast off)
