@@ -1,31 +1,11 @@
-captured-at-head: f6f15eaa6581eecf8568866a6b0c78d70a721c60
+captured-at-head: 9a3edb4116f84c08ff3747e60bd4ff8366358a42
 $ git status --porcelain
 
 EXIT 0
 
- M .scratch/grill-t24/evidence/adr-0083-wiring.txt
- M .scratch/grill-t24/evidence/anchors.txt
- M .scratch/grill-t24/evidence/check-ci-jobs-missing.txt
- M .scratch/grill-t24/evidence/check-ci-jobs.txt
- M .scratch/grill-t24/evidence/check-deferred.txt
- M .scratch/grill-t24/evidence/compile-node-check.txt
- M .scratch/grill-t24/evidence/compile-yaml.txt
- M .scratch/grill-t24/evidence/coverage-badref.txt
- M .scratch/grill-t24/evidence/coverage.txt
- M .scratch/grill-t24/evidence/gate-all.txt
- M .scratch/grill-t24/evidence/governance-inventory.txt
- M .scratch/grill-t24/evidence/h1-reread.txt
- M .scratch/grill-t24/evidence/instrument.txt
- M .scratch/grill-t24/evidence/inventory-shape.txt
- M .scratch/grill-t24/evidence/liveness.txt
- M .scratch/grill-t24/evidence/never-commit-sweep.txt
- M .scratch/grill-t24/evidence/pack-smoke.txt
- M .scratch/grill-t24/evidence/prose-fixtures.txt
- M .scratch/grill-t24/evidence/quoted-stale.txt
- M .scratch/grill-t24/evidence/reclass-shape.txt
- M .scratch/grill-t24/evidence/rewrite-map.txt
  M .scratch/grill-t24/evidence/round-facts.txt
- M .scratch/grill-t24/evidence/run-test-gate.txt
+ M .scratch/grill-t25/evidence/round-facts.txt
+?? .scratch/clean-tree-pair.cjs
 ?? .scratch/grill-t13/audit-evidence/r2-round-diff.patch
 ?? .scratch/grill-t14/audit-evidence/
 ?? .scratch/grill-t15/audit-evidence/round-diff.patch
@@ -39,10 +19,11 @@ EXIT 0
 ?? .scratch/grill-t22/audit-evidence/
 ?? .scratch/grill-t23/audit-evidence/
 ?? .scratch/grill-t23/ref-assets/
+?? .scratch/recapture-closeout.cjs
 
 classification (registry docs/governance/never-commit.json, 9 active rules):
-  tracked-diff lines: 23
-  untracked lines: 13 (never-commit class or self: 13; other: 0)
+  tracked-diff lines: 2
+  untracked lines: 15 (never-commit class or self: 15; other: 0)
   unexpected untracked: none
 
-verdict: DIRTY
+verdict: CLEAN
