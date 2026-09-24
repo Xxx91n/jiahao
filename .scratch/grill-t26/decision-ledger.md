@@ -29,6 +29,7 @@
   - 退役对象登记 = 现行活 HEAD 游走不变式（走既有治理流程）
   - γ 形态在 ADR 中明示为三先例（TUF/checkpoint/SCT）结构类比而非逐字引用
   - 声明落盘时『无在途 anchoring 提交』须可被机械核验
+- **审计裁决补记** (2026-09-25，maintainer xxx91n 授权): 「钉最后一笔 anchoring 提交」的规范化措辞以 ADR-0085 D-A.2 为准——seal 钉 last substantive（claim 计入），否则承载报告/handoff 的 claim 提交自身落在封存界外，与 D-E 尾序自洽。分歧为措辞层，实现不返工。
 - **状态**: current
 
 ## D-003 — 轮内新鲜度粒度：认领点钉扎（ii′ 三补偿）

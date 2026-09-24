@@ -11,7 +11,9 @@ const { execFileSync, spawnSync } = require('child_process');
 const ROOT = path.join(__dirname, '..', '..');
 const EVD = path.join(ROOT, '.scratch', 'grill-t26', 'evidence');
 
-const HEAD = execFileSync('git', ['log', '-1', '--invert-grep', '--grep=^GitButler Workspace Commit', '--format=%H'], { cwd: ROOT, encoding: 'utf8' }).trim();
+const { WORKSPACE_SUBJECT } = require(path.join(ROOT, 'scripts', 'evidence-freshness.js')); // single source, not a second literal
+
+const HEAD = execFileSync('git', ['log', '-1', '--invert-grep', '--grep=^' + WORKSPACE_SUBJECT, '--format=%H'], { cwd: ROOT, encoding: 'utf8' }).trim();
 
 function run(argv, opts) {
   const r = spawnSync(argv[0], argv.slice(1), Object.assign({ cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }, opts || {}));
@@ -89,5 +91,5 @@ for (const [name, disp, argv] of legs) {
   write(name, disp, run(argv));
 }
 if (!only || only.includes('freshness-eval.txt')) write('freshness-eval.txt', 'node -e <evaluateRound summary over registered rounds>', freshnessEval());
-if (!only || only.includes('liveness.txt')) write('liveness.txt', 'pack/extract/install/mcp probe', liveness());
+if (!only || only.includes('liveness.txt')) write('liveness.txt', 'display-form: npm pack -> tar extract -> install.js --help -> install.js init -y --dry-run -> mcp initialize', liveness());
 console.log('battery done at', HEAD);
