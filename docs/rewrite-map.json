@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-24T15:37:36.612Z",
+  "generated_at": "2026-09-24T16:40:29.606Z",
   "published_tip": "bde0570be2caaf982d3d8c531c565bea2b069638",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -22,11 +22,11 @@
     "published_only": 294,
     "removed": 0,
     "same": 278,
-    "doc_refs": 2817,
+    "doc_refs": 2825,
     "doc_refs_by_class": {
       "rewritten": 104,
-      "local-only": 795,
-      "published-unchanged": 1918
+      "local-only": 800,
+      "published-unchanged": 1921
     }
   },
   "commits": [
@@ -18203,14 +18203,14 @@
     },
     {
       "file": ".scratch/grill-t26/decision-ledger.md",
-      "line": 51,
+      "line": 52,
       "sha": "8e177d24",
       "class": "published-unchanged",
       "resolved_to": null
     },
     {
       "file": ".scratch/grill-t26/decision-ledger.md",
-      "line": 57,
+      "line": 58,
       "sha": "8e177d24",
       "class": "published-unchanged",
       "resolved_to": null
@@ -18453,6 +18453,67 @@
       "sha": "bbf5259",
       "class": "published-unchanged",
       "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t26/handoffs/2026-09-24-audit-handoff.md",
+      "line": 8,
+      "sha": "2ac1f00a",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t26/handoffs/2026-09-24-audit-handoff.md",
+      "line": 8,
+      "sha": "8e177d241",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t26/handoffs/2026-09-24-audit-handoff.md",
+      "line": 8,
+      "sha": "8e177d241",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t26/handoffs/2026-09-24-audit-handoff.md",
+      "line": 8,
+      "sha": "53bff916d",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t26/handoffs/2026-09-24-audit-handoff.md",
+      "line": 12,
+      "sha": "2ac1f00a",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t26/handoffs/2026-09-24-audit-handoff.md",
+      "line": 12,
+      "sha": "bde0570b",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t26/handoffs/2026-09-24-audit-handoff.md",
+      "line": 12,
+      "sha": "9674439f",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t26/handoffs/2026-09-24-audit-handoff.md",
+      "line": 13,
+      "sha": "53bff916d798adbb0b8219f822b1ffdc88df070b",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
     },
     {
       "file": ".scratch/grill-t26/handoffs/2026-09-24-round-handoff.md",
