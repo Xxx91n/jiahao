@@ -68,7 +68,9 @@ function liveness() {
   const pack = run([process.execPath, npmCli, 'pack', '--pack-destination', tmp]);
   lines.push('$ npm pack --pack-destination ' + tmp + '\n' + pack.out + 'exit=' + pack.code);
   const tgz = path.join(tmp, 'jiahao-0.0.1.tgz');
-  const ex = run(['tar', '-xzf', tgz, '-C', tmp]);
+  // GNU tar parses a drive-letter path as <host>:<path> — extract with a
+  // relative filename inside the temp dir instead.
+  const ex = run(['tar', '-xzf', 'jiahao-0.0.1.tgz'], { cwd: tmp });
   lines.push('tarball: ' + tgz + ' extract exit=' + ex.code + ' ' + ex.out);
   const pkg = path.join(tmp, 'package');
   const help = run([process.execPath, path.join(pkg, 'scripts', 'install.js'), '--help']);
