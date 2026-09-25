@@ -1,0 +1,51 @@
+captured-at-head: a1776ddeff55e01ea7defde8bc5fade94e4e01ce
+$ node -e <evaluateRound summary over registered rounds>
+
+{
+ "grill-t24": {
+  "claims": 7,
+  "claimFailures": 0,
+  "seal": {
+   "declared": "8e177d241",
+   "inFlightClean": true,
+   "amended": false,
+   "capturesAtSealOk": true,
+   "freezeViolations": 0,
+   "tag": "absent"
+  },
+  "unregisteredClaims": []
+ },
+ "grill-t25": {
+  "claims": 7,
+  "claimFailures": 0,
+  "seal": {
+   "declared": "8e177d241",
+   "inFlightClean": true,
+   "amended": false,
+   "capturesAtSealOk": true,
+   "freezeViolations": 0,
+   "tag": "drift"
+  },
+  "unregisteredClaims": []
+ },
+ "grill-t26": {
+  "claims": 2,
+  "claimFailures": 0,
+  "seal": {
+   "declared": "53bff916d",
+   "inFlightClean": true,
+   "amended": false,
+   "capturesAtSealOk": true,
+   "freezeViolations": 0,
+   "tag": "co-named"
+  },
+  "unregisteredClaims": []
+ },
+ "grill-t27": {
+  "claims": 0,
+  "claimFailures": 0,
+  "seal": null,
+  "unregisteredClaims": []
+ }
+}
+EXIT 0

@@ -1,0 +1,21 @@
+captured-at-head: a1776ddeff55e01ea7defde8bc5fade94e4e01ce
+$ git status --porcelain
+
+ M bench/research/out/g6-publish-replay.json
+?? .scratch/grill-t13/audit-evidence/r2-round-diff.patch
+?? .scratch/grill-t14/audit-evidence/
+?? .scratch/grill-t15/audit-evidence/round-diff.patch
+?? .scratch/grill-t16/audit-evidence/
+?? .scratch/grill-t17/audit-evidence/
+?? .scratch/grill-t18/audit-evidence/
+?? .scratch/grill-t19/audit-evidence/
+?? .scratch/grill-t20/audit-evidence/
+?? .scratch/grill-t21/audit-evidence/
+?? .scratch/grill-t21/audit2-evidence/
+?? .scratch/grill-t22/audit-evidence/
+?? .scratch/grill-t23/audit-evidence/
+?? .scratch/grill-t23/ref-assets/
+?? .scratch/grill-t26/audit-evidence/
+?? .scratch/grill-t27/evidence/
+
+EXIT 0

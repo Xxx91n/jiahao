@@ -1,0 +1,9 @@
+captured-at-head: a1776ddeff55e01ea7defde8bc5fade94e4e01ce
+$ display-form: private/bench-corpus -> tgz -> scripts/restore-bench-corpus.js -> manifest verdict
+
+$ tar -czf corpus.tgz bench-corpus (cwd=private/)
+exit=0
+$ node scripts/restore-bench-corpus.js <real-corpus.tgz> <dest>
+[restore-bench-corpus] validated 4 manifest file(s), placed C:\Users\ADMINI~1\AppData\Local\Temp\jh-t27-corpus-31KbHQ\dest\bench-corpus (fingerprints.json, judge-twins.jsonl, mr-probes.jsonl, probes.jsonl, twins.jsonl)
+exit=0
+EXIT 0

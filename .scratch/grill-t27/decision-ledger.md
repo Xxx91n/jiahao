@@ -112,3 +112,30 @@
   - run 计数限"连续 UNVERIFIABLE"——间有真绿 run 则计数清零
 - **状态**: current
 
+
+## D-009 - convergence measurement: definitions + verdict (T-5 closeout record)
+
+**Definitions (verbatim contract, decided before numbers were read):**
+
+- *t25-legacy wave grouping*: every capture-battery invocation counts as one
+  wave, whether or not its output is ever committed.
+- *anchored capture event* (ADR-0085 refined): a capture event counts iff its
+  files are committed inside a claim commit - only then do their
+  captured-at-head headers constrain the claim-point floor.
+- *anchored shadow*: a committed capture whose at-head is strictly older than
+  the claim commit's floor anchor (would-be-stale evidence retained in the
+  claim).
+- *claim freshness outcome per claim commit*: first-pass (all its committed
+  captures name at-head >= floor), recapture (some captures re-taken after a
+  floor move), stale-retained (committed captures older than floor kept
+  anyway - always a defect).
+
+**Verdict (raw data in round-facts.json):** this round ran the battery 4
+times (waves at 9c733e13, 74654ce8, e7285086, a1776dde); each of waves 1-3
+surfaced a real red leg that drove the next fix commit - the machinery paid
+for itself in diagnostics, not ceremony. Under the anchored definition,
+exactly ONE capture event feeds the round's single claim commit (the
+terminal wave at a1776dde), with 0 anchored shadows and a first-pass
+freshness outcome. Total landed commits on the grill-t27 lane: 10
+(incl. claim commit + SEAL + post-seal regen), plus 1 disclosed undone sweep
+commit. n=1 single-round observation - measured, not generalized.
