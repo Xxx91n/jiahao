@@ -139,3 +139,24 @@ terminal wave at a1776dde), with 0 anchored shadows and a first-pass
 freshness outcome. Total landed commits on the grill-t27 lane: 10
 (incl. claim commit + SEAL + post-seal regen), plus 1 disclosed undone sweep
 commit. n=1 single-round observation - measured, not generalized.
+
+## D-010 - post-seal disclosure addendum: restack aftermath (never repaired, always disclosed)
+
+- **Lane restack rewrote lane shas.** `but move grill-t27 --above
+  grill-t27-docs` (needed because the claim commit modified ledger +
+  next-round.md - files owned by the docs lane) rebased every grill-t27
+  commit. Consequence: the claim commit 2aa02dd9's embedded evidence
+  headers name a1776dde (pre-rebase tip), which is no longer an ancestor of
+  the rebased floor ee43e172 -> the freshness walk reports 13 claim-level
+  `header < floor` flags for grill-t27. That flag is a TRUE record of a
+  mid-round structural event; repairing it would mean rewriting a
+  committed claim commit (forbidden). The post-claim terminal wave
+  (headers 5cb2a9fe) satisfies the declaration-tree contract.
+- **First SEAL issuance wrong, undone once.** The first SEAL commit
+  declared the claim commit 2aa02dd9 as anchor; the freshness walk then
+  correctly reported inFlightClean=false because the post-claim anchoring
+  commit 5cb2a9fe (baseline re-pin after restack) was the true last
+  substantive commit. The first SEAL commit and its regen tail were undone
+  (`but undo` x2, unpushed lane history) and the SEAL was re-issued once
+  declaring 5cb2a9fe. Recorded here per the no-silent-repair rule.
+- **Sweep commit undo** (a9d60dc5) already disclosed in the report §6.
