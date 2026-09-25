@@ -160,3 +160,32 @@ commit. n=1 single-round observation - measured, not generalized.
   (`but undo` x2, unpushed lane history) and the SEAL was re-issued once
   declaring 5cb2a9fe. Recorded here per the no-silent-repair rule.
 - **Sweep commit undo** (a9d60dc5) already disclosed in the report §6.
+
+## D-011 - audit-window rework disposition (post-seal, disclosed)
+
+Second-party audit verdict PASS with findings. Rework commits ride after the
+SEAL; the declared anchor 5cb2a9fe is unchanged (the eval anchors at the
+declaration commit), so these are post-seal substantive commits - disclosed
+here, not hidden.
+
+- **F-1 (implemented):** defer-0073 registered - base64-tarball -> OIDC
+  controlled channel (spec section 2/3, D-002(iv)/D-003(iii)); adr-0033 seed
+  pin 66->67 same-commit; CONTEXT.md UNVERIFIABLE entry anchors the id.
+- **F-2/F-3/F-6 (errata):** ERRATA E-10 (report freshness row vs
+  claimFailures:1 + SEAL phrase half-accuracy), E-11 (D-009 '10 commits' ->
+  13 lane +1 docs), E-12 (stale a1776dde in pinned artifacts).
+- **F-4 (implemented):** ci.yml decode step `|| true` - malformed base64 now
+  routes through validate-or-absent -> UNVERIFIABLE instead of step RED.
+- **F-5 (implemented):** verbatim ADR-0040/0061 D-F quote now in the
+  operational closure template (next-round.md; pinned handoff errata'd).
+- **F-7/F-8 (implemented):** capture-battery npm-cli resolves both layouts +
+  PATH fallback; tarball name derived from package.json; restore script's
+  `describe` renamed verdictSummary.
+- **F-9 (rejected-with-reason):** the audit«a»s enumeration nit is superseded
+  by the ADR-0076 surface taxonomy - gtd.files enumerates R2 files only and
+  test/adr-*-wiring.test.js classifies R3 (documentation surface); its
+  omission is correct, not inconsistent. sentinel-ownership.test.js (R2,
+  non-wiring test) stays listed. An attempted row edit adding the R3 file
+  was caught by check-governance-inventory«a»s mislabeled-disclosure check
+  and reverted. validateCorpusDir sha256-absent tolerance stays informational
+  (covered by the manifest-shape leg).
