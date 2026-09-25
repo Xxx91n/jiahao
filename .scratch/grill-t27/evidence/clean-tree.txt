@@ -1,0 +1,34 @@
+captured-at-head: 5cb2a9fe6d27df5bd3dededddbb469ef42fdab03
+$ git status --porcelain
+
+ M .scratch/grill-t27/evidence/adr-index.txt
+ M .scratch/grill-t27/evidence/anchors.txt
+ M .scratch/grill-t27/evidence/check-deferred.txt
+ M .scratch/grill-t27/evidence/clean-tree.txt
+ M .scratch/grill-t27/evidence/corpus-restore.txt
+ M .scratch/grill-t27/evidence/freshness-eval.txt
+ M .scratch/grill-t27/evidence/gate-all.txt
+ M .scratch/grill-t27/evidence/governance-inventory.txt
+ M .scratch/grill-t27/evidence/liveness.txt
+ M .scratch/grill-t27/evidence/pack-smoke.txt
+ M .scratch/grill-t27/evidence/rewrite-map-published.txt
+ M .scratch/grill-t27/evidence/rewrite-map.txt
+ M .scratch/grill-t27/evidence/run-test-gate.txt
+ M bench/research/out/g6-publish-replay.json
+?? .scratch/grill-t13/audit-evidence/r2-round-diff.patch
+?? .scratch/grill-t14/audit-evidence/
+?? .scratch/grill-t15/audit-evidence/round-diff.patch
+?? .scratch/grill-t16/audit-evidence/
+?? .scratch/grill-t17/audit-evidence/
+?? .scratch/grill-t18/audit-evidence/
+?? .scratch/grill-t19/audit-evidence/
+?? .scratch/grill-t20/audit-evidence/
+?? .scratch/grill-t21/audit-evidence/
+?? .scratch/grill-t21/audit2-evidence/
+?? .scratch/grill-t22/audit-evidence/
+?? .scratch/grill-t23/audit-evidence/
+?? .scratch/grill-t23/ref-assets/
+?? .scratch/grill-t26/audit-evidence/
+?? .scratch/grill-t27/SEAL
+
+EXIT 0

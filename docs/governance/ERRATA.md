@@ -110,3 +110,63 @@ already existed; verbatim use was the missing step (E-4/E-5 pattern: the
 obligation binds events appended from the registration boundary forward).
 Not gated in the instrument CLI: the authorization field is verbatim human
 text, not a machine-readable field.
+
+## E-8 grill-t26 audit ACCEPTED-AS-IS: cx/evd/rr identifier naming (reopen-trigger registered)
+
+Observed 2026-09-25 (grill-t27 D-005 residual-scope bookkeeping): the t26
+dual-axis review dispositioned the audit's mysterious-identifier finding
+(provenance legs named cx/evd/rr across the 0083/0084 wiring suites) as
+ACCEPTED-AS-IS - a judgement call: rename churn is not worth a
+sealed-machinery diff. The disposition stays terminal and the pinned t26
+claim artifacts are NOT edited; this erratum appends the reopen trigger
+from the t27 side (append-only correction channel, D-005(ii)):
+
+reopen-trigger: reopen iff the sealed machinery is unsealed for another
+reason, OR evidence shows the naming difference causes a real defect.
+
+## E-9 grill-t26 audit ACCEPTED-AS-IS: report evidence-index tabulates wave-1 (reopen-trigger registered)
+
+Observed 2026-09-25 (grill-t27 D-005 residual-scope bookkeeping): the t26
+round report's evidence index tabulates wave-1 (all EXIT 0) while the
+committed evidence files are the terminal wave carrying the 3
+regen-boundary red legs - disclosed in SEAL/commit/handoff, and the t26
+audit dispositioned it ACCEPTED-AS-IS (the committed report is a pinned
+claim artifact; post-hoc edits would rewrite a claim). The disposition
+stays terminal; this erratum appends the reopen trigger from the t27 side
+(append-only, D-005(ii)):
+
+reopen-trigger: reopen iff the index error makes a claim unverifiable; the
+correction is then an appended erratum pointing at the terminal wave, never
+an edit of the pinned report.
+
+## E-10 - grill-t27 report freshness row vs committed terminal-wave evidence
+
+The t27 report section 2 freshness row ('all rounds clean; t27 pre-seal evaluated 0
+claims') describes the claim-commit-time capture only. The committed terminal
+wave (captured-at-head 5cb2a9fe) and the audit-window re-evaluation both show
+`claimFailures: 1` for grill-t27 - the 13 `header < floor` flags produced when
+`but move grill-t27 --above grill-t27-docs` rebased the lane and orphaned the
+pre-restack `a1776dde` capture heads. The flags are honestly disclosed in the
+SEAL comments + ledger D-010; the SEAL's phrase 'disclosed in the ledger
+addendum + report' is half-accurate - the pinned report never carries them.
+Correction channel: this erratum, per the append-only rule for pinned claim
+artifacts (disposition of the t27 second-party audit, F-2).
+
+## E-11 - grill-t27 ledger D-009 commit count
+
+Ledger D-009 records 'Total landed commits on the grill-t27 lane: 10 (incl.
+claim commit + SEAL + post-seal regen)' - a claim-time projection stated as
+final. The landed lane holds 13 commits (+1 on grill-t27-docs = 14); the count
+omits the SEAL-declared last-substantive 5cb2a9fe (zh-CN baseline re-pin after
+the restack) plus the regen cfcdda8d and terminal-wave 67521393 commits.
+Corrected count (audit-window re-verified): 13 lane commits + 1 docs-lane
+commit, plus 3 disclosed undone commits (sweep a9d60dc5, first SEAL + first
+post-seal regen). (t27 audit F-3.)
+
+## E-12 - stale non-ancestral sha in pinned t27 artifacts
+
+The pinned handoff `2026-09-25-handoff.md` and the claim commit's embedded
+evidence still name `a1776dde` - non-ancestral after the lane restack. The
+operational copies are corrected in `handoffs/next-round.md` (bookkeeping
+channel); the pinned artifacts stay byte-stable per the append-only rule.
+(t27 audit F-6.)

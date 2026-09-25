@@ -162,6 +162,10 @@
       {
         "id": "grill-t26",
         "base": "bde0570be2caaf982d3d8c531c565bea2b069638"
+      },
+      {
+        "id": "grill-t27",
+        "base": "0ca482f7f098735b9fc35ad46a163bbb9e61249d"
       }
     ]
   }

@@ -447,6 +447,40 @@
         ],
         "reason": "faithful regeneration via check-g6-publish re-run inside gate:all during the acceptance battery - same mechanism the t17..t25 rows disclosed; docs-surface regenerations (rewrite-map.json, governance anchors.json, README adr index) are R3, outside the ADR-0077 enumeration"
       }
+    },
+    {
+      "round": "grill-t27",
+      "date": "2026-09-25",
+      "kind": "fix",
+      "adr_added": [],
+      "adr_superseded_or_closed": [],
+      "net_additions": 0,
+      "zero_product_diff": true,
+      "carve_out_used": 0,
+      "governance_tooling_diff": {
+        "files": [
+          ".github/workflows/ci.yml",
+          "scripts/build-rewrite-map.js",
+          "scripts/check-secret-scan.js",
+          "scripts/evidence-freshness.js",
+          "scripts/restore-bench-corpus.js",
+          "src/shared/capability.js",
+          "src/shared/falsify.js",
+          "test/corpus-restore.test.js",
+          "test/freshness-checker.test.js",
+          "test/rewrite-map.test.js",
+          "test/sentinel-ownership.test.js"
+        ],
+        "reason": "grill-t27 fix round (ledger D-002/D-003/D-004): ci.yml 'restore bench corpus' becomes validate-or-absent - extract to a sibling temp dir, validate the required-file set against the versioned private_corpus manifest (filename+sha256, consumed never hardcoded), delete on mismatch, atomic rename into place - implemented by the new scripts/restore-bench-corpus.js; test/corpus-restore.test.js rehearses complete/partial/stale-sha/layout-drift/corrupt tarballs; test/sentinel-ownership.test.js D2b switches to a deterministic rename-over inode implant (POSIX rename(2) / MoveFileEx(REPLACE_EXISTING)); ci.yml --expected-suites 81->82 for the new suite and the three hardcoded drift pins (adr-0080/0081/0082 wiring, R3 surface) move with it per ADR-0057 D-C. Classification anchor (verbatim, ADR-0040 header as amended by ADR-0061 D-F): 'an existing-but-empty dir is a deterministic negative -> exit 2 UNVERIFIABLE, so a stale/partial corpus restore degrades honestly instead of running its gates and failing red on a capability that was never there'. FAIL->UNVERIFIABLE restores already-registered semantics - patch-level repair, zero new ADR (anti-ratchet evidence point, V6 item 5 counterpoint). The files list is cumulative per the coverage-budget rule (t21 audit C-1): the committed diff since coverage base fc390d5e also carries the grill-t25/t26 machinery set, redeclared here."
+      },
+      "deferred_entry": "defer-0072",
+      "advisory_fired": false,
+      "mechanism_output_diff": {
+        "files": [
+          "bench/research/out/g6-publish-replay.json"
+        ],
+        "reason": "faithful regeneration via check-g6-publish re-run inside gate:all during the acceptance battery - same mechanism the t17..t26 rows disclosed; docs-surface regenerations (rewrite-map.json, governance anchors.json, README adr index) are R3, outside the ADR-0077 enumeration"
+      }
     }
   ],
   "source_adr": "0064"

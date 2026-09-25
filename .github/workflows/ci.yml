@@ -36,25 +36,29 @@ jobs:
       # --ignore-scripts: keep prepare (hooksPath) off CI runners
       - run: npm install --ignore-scripts
       # ADR-0036: the private bench corpus is not in git; restore it from a
-      # base64 tar.gz secret into $RUNNER_TEMP. Without the secret the
-      # corpus-dependent gates fail closed (intended posture).
+      # base64 tar.gz secret into $RUNNER_TEMP. grill-t27 D-002 makes the step
+      # validate-or-absent: extraction lands in a sibling temp dir, the
+      # required-file set is validated against the git-versioned manifest
+      # (bench/polygraph/thresholds.json private_corpus - filename+sha256,
+      # consumed never hardcoded), and only a matching tree is renamed into
+      # place atomically. A stale or partial tarball leaves NO bench-corpus/
+      # behind - the capability probe then judges the corpus absent and the
+      # four corpus gates degrade to exit-2 UNVERIFIABLE (non-blocking,
+      # ::error-annotated, ADR-0040/0061 D-F) instead of running on a corpus
+      # the repo never declared and failing red.
       - name: restore bench corpus
         env:
           JIAHAO_BENCH_CORPUS_B64: ${{ secrets.JIAHAO_BENCH_CORPUS_B64 }}
         # secrets cannot be used in step-level if:, so guard inside the shell.
         run: |
           if [ -z "$JIAHAO_BENCH_CORPUS_B64" ]; then
-            echo "JIAHAO_BENCH_CORPUS_B64 not set; corpus gates will fail closed"
+            echo "::warning title=corpus-restore::JIAHAO_BENCH_CORPUS_B64 not set; corpus gates degrade to UNVERIFIABLE"
           else
-            echo "$JIAHAO_BENCH_CORPUS_B64" | base64 -d | tar -xz -C "$RUNNER_TEMP"
-            # B7 diagnostics: make the next run self-explanatory. Every line is
-            # failure-proof (|| true / 2>/dev/null) so bash -e never trips here.
-            echo "corpus restored into $RUNNER_TEMP (JIAHAO_CORPUS_DIR=$RUNNER_TEMP/bench-corpus)"
-            ls -la "$RUNNER_TEMP" || true
-            ls -la "$RUNNER_TEMP/bench-corpus" 2>/dev/null || echo "(no $RUNNER_TEMP/bench-corpus directory)"
-            if [ ! -f "$RUNNER_TEMP/bench-corpus/mr-probes.jsonl" ]; then
-              echo "::warning title=corpus-restore::$RUNNER_TEMP/bench-corpus/mr-probes.jsonl is absent after extraction: either JIAHAO_BENCH_CORPUS_B64 is stale, or the tarball's top-level layout does not place the corpus under bench-corpus/"
-            fi
+            # F-4 rework: a malformed secret must degrade through validate-or-absent, not
+            # fail the step under bash -e - hand the (possibly garbage) bytes to the
+            # restore script, which emits ::error + absent -> registered UNVERIFIABLE.
+            echo "$JIAHAO_BENCH_CORPUS_B64" | base64 -d > "$RUNNER_TEMP/bench-corpus.tgz" || true
+            node scripts/restore-bench-corpus.js "$RUNNER_TEMP/bench-corpus.tgz" "$RUNNER_TEMP"
           fi
       - run: npm run gate:all
         env:
@@ -100,7 +104,7 @@ jobs:
           cache: npm
       - run: npm install --ignore-scripts
       # ADR-0057 D-C: the suite-count assertion lives on this call line now.
-      - run: node scripts/run-test-gate.js --expected-suites 81
+      - run: node scripts/run-test-gate.js --expected-suites 82
 
   # ADR-0058 D-B/D-G: the CI-layer convergence point. Branch protection
   # requires ONLY this job, so the internal job names may change freely.

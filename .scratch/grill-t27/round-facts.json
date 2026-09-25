@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0077 D-C facts canon: regenerable at the closing step; the report facts section renders deterministically from this artifact. report_commit stays null - the report cannot cite its own commit. Not an anchors-chain member (per-round regeneration would churn the digest chain). convergence_measurement = grill-t27 D-006 raw data; definitions+verdict in decision-ledger D-009, validity limits in the round report.",
+  "suites": 82,
+  "passed": 1367,
+  "skipped": 0,
+  "pack_bytes": 353706,
+  "instrument_entries": 27,
+  "rewrite_map_citations": 2836,
+  "registry_entries": 66,
+  "anchors_count": 18,
+  "battery_as_of_commit": "a1776dde",
+  "report_commit": null,
+  "not_run": [
+    "bench-gate",
+    "ci-wiring",
+    "mr-probes",
+    "probes"
+  ],
+  "convergence_measurement": {
+    "round_commits_landed": 7,
+    "commits_undone_disclosed": 1,
+    "capture_events_legacy_t25_grouping": 4,
+    "capture_events_anchored": 1,
+    "anchored_shadow_captures": 0,
+    "claim_commits": 1,
+    "claim_freshness_outcomes": {
+      "first_pass": 1,
+      "recapture": 0,
+      "stale_retained": 0
+    },
+    "note": "legacy grouping counts every battery invocation as a wave (4: at 9c733e13, 74654ce8, e7285086, a1776dde - each wave2/3 red leg drove the next fix commit); anchored counting under ADR-0085 counts only capture events whose at-head actually feeds a claim commit (the terminal wave at a1776dde; earlier waves were overwritten uncommitted diagnostics)"
+  }
+}
