@@ -1,4 +1,4 @@
-captured-at-head: a1776ddeff55e01ea7defde8bc5fade94e4e01ce
+captured-at-head: 5cb2a9fe6d27df5bd3dededddbb469ef42fdab03
 $ node -e <evaluateRound summary over registered rounds>
 
 {
@@ -42,8 +42,8 @@ $ node -e <evaluateRound summary over registered rounds>
   "unregisteredClaims": []
  },
  "grill-t27": {
-  "claims": 0,
-  "claimFailures": 0,
+  "claims": 1,
+  "claimFailures": 1,
   "seal": null,
   "unregisteredClaims": []
  }

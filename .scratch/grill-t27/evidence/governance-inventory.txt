@@ -1,4 +1,4 @@
-captured-at-head: a1776ddeff55e01ea7defde8bc5fade94e4e01ce
+captured-at-head: 5cb2a9fe6d27df5bd3dededddbb469ef42fdab03
 $ node scripts/check-governance-inventory.js --coverage-base fc390d5e778db567d12b072f7a25cbf1e73b03f8
 
 [governance-inventory] OK: 36 entries, live source_adr, unique commands, closed references

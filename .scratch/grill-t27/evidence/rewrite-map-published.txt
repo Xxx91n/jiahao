@@ -1,6 +1,7 @@
-captured-at-head: a1776ddeff55e01ea7defde8bc5fade94e4e01ce
+captured-at-head: 5cb2a9fe6d27df5bd3dededddbb469ef42fdab03
 $ node scripts/build-rewrite-map.js --published-only
 
-[rewrite-map] PUBLISHED-ONLY OK: 2836 citations covered, class enum + counts consistent, published-side ancestry verified against origin/main
+[rewrite-map] PUBLISHED-ONLY FAIL:
+doc citation coverage differs (first missing: .scratch/grill-t27/evidence/adr-index.txt:1:5cb2a9fe6d27df5bd3dededddbb469ef42fdab03, .scratch/grill-t27/evidence/anchors.txt:1:cfcdda8d697b756e1e3680c2058919c7d93665da, .scratch/grill-t27/evidence/check-deferred.txt:1:5cb2a9fe6d27df5bd3dededddbb469ef42fdab03, .scratch/grill-t27/evidence/clean-tree.txt:1:cfcdda8d697b756e1e3680c2058919c7d93665da, .scratch/grill-t27/evidence/corpus-restore.txt:1:cfcdda8d697b756e1e3680c2058919c7d93665da)
 
-EXIT 0
+EXIT 1

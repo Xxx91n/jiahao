@@ -1,4 +1,4 @@
-captured-at-head: a1776ddeff55e01ea7defde8bc5fade94e4e01ce
+captured-at-head: 5cb2a9fe6d27df5bd3dededddbb469ef42fdab03
 $ node scripts/run-gates.js
 
 [0 gates-alignment] PASS
@@ -133,20 +133,21 @@ falsification OK: 12 twin pairs
 > jiahao@0.0.1 prepare
 > git config core.hooksPath .githooks || true
 
-(node:10476) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(node:14016) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 [197 governance-anchors] PASS
 [governance-anchors] OK - 18 artifacts, digests in sync
 [198 governance-inventory] PASS
 [governance-inventory] OK: 36 entries, live source_adr, unique commands, closed references
-[208 rewrite-map] PASS
-[rewrite-map] OK: map in sync (2836 doc citations classified)
-[209 rewrite-map-published] PASS
-[rewrite-map] PUBLISHED-ONLY OK: 2836 citations covered, class enum + counts consistent, published-side ancestry verified against origin/main
+[208 rewrite-map] FAIL
+[rewrite-map] FAIL: docs\rewrite-map.json is stale — regenerate with node scripts/build-rewrite-map.js
+[209 rewrite-map-published] FAIL
+[rewrite-map] PUBLISHED-ONLY FAIL:
+doc citation coverage differs (first missing: .scratch/grill-t27/evidence/adr-index.txt:1:cfcdda8d697b756e1e3680c2058919c7d93665da, .scratch/grill-t27/evidence/anchors.txt:1:cfcdda8d697b756e1e3680c2058919c7d93665da, .scratch/grill-t27/evidence/check-deferred.txt:1:cfcdda8d697b756e1e3680c2058919c7d93665da, .scratch/grill-t27/evidence/clean-tree.txt:1:cfcdda8d697b756e1e3680c2058919c7d93665da, .scratch/grill-t27/evidence/corpus-restore.txt:1:cfcdda8d697b756e1e3680c2058919c7d93665da)
 [218 secret-scan] PASS
-[secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 1283/1283/1283; oversized-skip 0; commit-messages 618
+[secret-scan] OK - 3 rules, 0 hits - enum index/tree/union 1299/1299/1299; oversized-skip 0; commit-messages 621
 ::warning title=gate:all::3 advisory/band warning(s) from gates: instrument-identity, governance-inventory
 ::error title=UNVERIFIABLE::4 gate(s) unverifiable: ci-wiring requires ci-mode, bench-gate requires ci-mode, probes requires ci-mode, mr-probes requires ci-mode
-gate:all exit 0 (36 entries, 4 unverifiable, fail-fast off)
+gate:all exit 1 (36 entries, 4 unverifiable, fail-fast off)
 
-EXIT 0
+EXIT 1
