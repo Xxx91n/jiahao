@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-25T06:57:26.636Z",
+  "generated_at": "2026-09-25T07:15:23.933Z",
   "published_tip": "0ca482f7f098735b9fc35ad46a163bbb9e61249d",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -22,11 +22,11 @@
     "published_only": 316,
     "removed": 0,
     "same": 278,
-    "doc_refs": 2834,
+    "doc_refs": 2836,
     "doc_refs_by_class": {
       "rewritten": 104,
       "local-only": 770,
-      "published-unchanged": 1960
+      "published-unchanged": 1962
     }
   },
   "commits": [
@@ -22994,9 +22994,23 @@
       "resolved_to": null
     },
     {
+      "file": "docs/governance/surface-taxonomy.json",
+      "line": 168,
+      "sha": "0ca482f7f098735b9fc35ad46a163bbb9e61249d",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
       "file": "docs/governance/trend-inventory.json",
       "line": 440,
       "sha": "c526de3",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": "docs/governance/trend-inventory.json",
+      "line": 474,
+      "sha": "fc390d5e",
       "class": "published-unchanged",
       "resolved_to": null
     },

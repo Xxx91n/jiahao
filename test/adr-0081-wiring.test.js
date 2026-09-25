@@ -82,8 +82,10 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
     // grill-t23 landed its own row on top (adr-0082 + .github templates);
     // grill-t24 landed its row on top of that (adr-0083 + ci.yml sync);
     // both keep their pinned shape, addressed by name not by position.
+    // grill-t25/t26/t27 rows landed on top (fix rounds, kind:fix); the t22/t23
+    // pinned shapes below are still addressed by name, never by position.
     const row = ti.rounds.find((r) => r.round === 'grill-t22-doc-round');
-    expect(ti.rounds).toHaveLength(20);
+    expect(ti.rounds).toHaveLength(21);
     const latest = ti.rounds.find((r) => r.round === 'grill-t23-front-face');
     expect(latest).toBeDefined();
     expect(latest.adr_added).toEqual(['0082']);
