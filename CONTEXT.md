@@ -1700,7 +1700,10 @@ occur ONLY on a probed-and-negated path; crashes, IO errors and helper bugs stay
 and expose themselves. Surfaced as a two-line message (a ::error annotation line on stdout with
 comma-separated properties + a human line on stderr; channel corrected by ADR-0041 D5)
 and listed as its own column by run-gates. Never recorded
-in degradation.schema.json (that vocabulary means "ran but degraded").
+in degradation.schema.json (that vocabulary means "ran but degraded"). Never silent: the public-clone corpus
+restore degrade is tracked as defer-0072 (grill-t27) - a registered
+dual-gate trigger (10 consecutive UNVERIFIABLE runs or 2026-10-15)
+forces owner adjudication, never an automatic flip.
 _Avoid_: folding infrastructure failures into the verdict vocabulary (Bazel
 TEST_INFRASTRUCTURE_FAILURE_FILE precedent)
 

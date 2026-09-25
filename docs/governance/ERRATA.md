@@ -110,3 +110,31 @@ already existed; verbatim use was the missing step (E-4/E-5 pattern: the
 obligation binds events appended from the registration boundary forward).
 Not gated in the instrument CLI: the authorization field is verbatim human
 text, not a machine-readable field.
+
+## E-8 grill-t26 audit ACCEPTED-AS-IS: cx/evd/rr identifier naming (reopen-trigger registered)
+
+Observed 2026-09-25 (grill-t27 D-005 residual-scope bookkeeping): the t26
+dual-axis review dispositioned the audit's mysterious-identifier finding
+(provenance legs named cx/evd/rr across the 0083/0084 wiring suites) as
+ACCEPTED-AS-IS - a judgement call: rename churn is not worth a
+sealed-machinery diff. The disposition stays terminal and the pinned t26
+claim artifacts are NOT edited; this erratum appends the reopen trigger
+from the t27 side (append-only correction channel, D-005(ii)):
+
+reopen-trigger: reopen iff the sealed machinery is unsealed for another
+reason, OR evidence shows the naming difference causes a real defect.
+
+## E-9 grill-t26 audit ACCEPTED-AS-IS: report evidence-index tabulates wave-1 (reopen-trigger registered)
+
+Observed 2026-09-25 (grill-t27 D-005 residual-scope bookkeeping): the t26
+round report's evidence index tabulates wave-1 (all EXIT 0) while the
+committed evidence files are the terminal wave carrying the 3
+regen-boundary red legs - disclosed in SEAL/commit/handoff, and the t26
+audit dispositioned it ACCEPTED-AS-IS (the committed report is a pinned
+claim artifact; post-hoc edits would rewrite a claim). The disposition
+stays terminal; this erratum appends the reopen trigger from the t27 side
+(append-only, D-005(ii)):
+
+reopen-trigger: reopen iff the index error makes a claim unverifiable; the
+correction is then an appended erratum pointing at the terminal wave, never
+an edit of the pinned report.

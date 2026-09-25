@@ -1134,6 +1134,20 @@
       "cadence_tier": "quarterly",
       "registered_at": "2026-09-24",
       "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0072",
+      "subject": "corpus-gate public-surface UNVERIFIABLE degrade pending JIAHAO_BENCH_CORPUS_B64 secret refresh - successor tracker to defer-0070's red-history account (grill-t27 D-002/D-007)",
+      "source_adr": "docs/adr/0084-public-clone-verifiability-clone-degradability-landing-tail-exception-tag-timing-first-disclosure.md",
+      "rationale": "The t27 restore-step repair makes a stale/partial corpus tarball deterministically absent, so the four corpus gates (corpus-leak / corpus-freshness / corpus-classes / mr-probes) report the registered exit-2 UNVERIFIABLE degrade until the owner refreshes the secret - the write is owner-side (agent-prepared package: .scratch/grill-t27/secret-refresh-package.md). Degraded-state existence consumes budget (SRE burn-rate spirit, D-007), so it is tracked rather than silently tolerated. Pre-registered upgrade hook (D-003 channel ii): on the first real trigger firing, an ADR-0061-style revision ADR is minted - the decision is deferred to decision time. Owner: Xxx91n.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "whichever fires first (grill-t27 D-008 dual gate): the corpus gates run verifiably green on an origin/main workflow run after the secret refresh (degrade discharged - close on landing), OR the registered trigger fires: 10 consecutive origin/main runs with corpus gates UNVERIFIABLE, or review_at 2026-10-15 reached - a forced adjudication moment (owner picks: refresh the secret / formally accept the permanent degrade / approve the UNVERIFIABLE-to-fail flip); the trigger never auto-flips semantics"
+      },
+      "review_at": "2026-10-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-25",
+      "status": "pending-evaluation"
     }
   ]
 }
