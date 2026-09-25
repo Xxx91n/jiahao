@@ -66,7 +66,7 @@ function validateCorpusDir(dir, manifest) {
   return { missing: missing, mismatched: mismatched };
 }
 
-function describe(verdict) {
+function verdictSummary(verdict) {
   const parts = [];
   if (verdict.missing.length) parts.push('missing: ' + verdict.missing.join(', '));
   if (verdict.mismatched.length) parts.push('sha256 mismatch: ' + verdict.mismatched.join(', '));
@@ -103,7 +103,7 @@ function restore(opts) {
     return degrade('tarball top-level layout lacks bench-corpus/');
   }
   const verdict = validateCorpusDir(stagedDir, manifest);
-  if (verdict.missing.length || verdict.mismatched.length) return degrade(describe(verdict));
+  if (verdict.missing.length || verdict.mismatched.length) return degrade(verdictSummary(verdict));
 
   // Atomic placement: same-parent rename. The dest never pre-exists on a
   // fresh runner; the rm is the local-rehearsal path only.

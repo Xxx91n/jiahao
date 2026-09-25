@@ -1704,6 +1704,9 @@ in degradation.schema.json (that vocabulary means "ran but degraded"). Never sil
 restore degrade is tracked as defer-0072 (grill-t27) - a registered
 dual-gate trigger (10 consecutive UNVERIFIABLE runs or 2026-10-15)
 forces owner adjudication, never an automatic flip.
+The base64-tarball -> OIDC controlled channel for the corpus secret transport
+is tracked as defer-0073 (grill-t27 audit-window rework row; the migration is not
+a grill-t27 deliverable, the registry row is).
 _Avoid_: folding infrastructure failures into the verdict vocabulary (Bazel
 TEST_INFRASTRUCTURE_FAILURE_FILE precedent)
 

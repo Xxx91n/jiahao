@@ -54,7 +54,10 @@ jobs:
           if [ -z "$JIAHAO_BENCH_CORPUS_B64" ]; then
             echo "::warning title=corpus-restore::JIAHAO_BENCH_CORPUS_B64 not set; corpus gates degrade to UNVERIFIABLE"
           else
-            echo "$JIAHAO_BENCH_CORPUS_B64" | base64 -d > "$RUNNER_TEMP/bench-corpus.tgz"
+            # F-4 rework: a malformed secret must degrade through validate-or-absent, not
+            # fail the step under bash -e - hand the (possibly garbage) bytes to the
+            # restore script, which emits ::error + absent -> registered UNVERIFIABLE.
+            echo "$JIAHAO_BENCH_CORPUS_B64" | base64 -d > "$RUNNER_TEMP/bench-corpus.tgz" || true
             node scripts/restore-bench-corpus.js "$RUNNER_TEMP/bench-corpus.tgz" "$RUNNER_TEMP"
           fi
       - run: npm run gate:all

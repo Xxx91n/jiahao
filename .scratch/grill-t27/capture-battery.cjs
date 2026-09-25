@@ -85,13 +85,22 @@ function freshnessEval() {
 function liveness() {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-live-'));
   const lines = [];
-  const npmCli = path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js'); // npm sits beside node on this host family
+  // Dual-layout npm-cli resolution (mirrors test/adr-0079-wiring D5): npm sits
+  // beside node on Windows installs and under ../lib/node_modules on unix
+  // layout; PATH resolution is the last resort. Same resolver family, kept
+  // inline so this harness stays a single self-contained file.
+  const bindir = path.dirname(process.execPath);
+  const npmCli = [path.join(bindir, 'node_modules', 'npm', 'bin', 'npm-cli.js'),
+    path.join(bindir, '..', 'lib', 'node_modules', 'npm', 'bin', 'npm-cli.js')].find(fs.existsSync)
+    || (() => { const probe = spawnSync(process.platform === 'win32' ? 'where.exe' : 'which', ['npm'], { encoding: 'utf8' }).stdout.trim().split('\n')[0].trim()
+      return probe ? path.join(path.dirname(fs.realpathSync(probe)), '..', 'lib', 'node_modules', 'npm', 'bin', 'npm-cli.js') : null; })();
+  const tgzName = (() => { const pj = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')); return pj.name + '-' + pj.version + '.tgz'; })();
   const pack = run([process.execPath, npmCli, 'pack', '--pack-destination', tmp]);
   lines.push('$ npm pack --pack-destination ' + tmp + '\n' + pack.out + 'exit=' + pack.code);
-  const tgz = path.join(tmp, 'jiahao-0.0.1.tgz');
+  const tgz = path.join(tmp, tgzName);
   // GNU tar parses a drive-letter path as <host>:<path> - extract with a
   // relative filename inside the temp dir instead.
-  const ex = run(['tar', '-xzf', 'jiahao-0.0.1.tgz'], { cwd: tmp });
+  const ex = run(['tar', '-xzf', tgzName], { cwd: tmp });
   lines.push('tarball: ' + tgz + ' extract exit=' + ex.code + ' ' + ex.out);
   const pkg = path.join(tmp, 'package');
   const help = run([process.execPath, path.join(pkg, 'scripts', 'install.js'), '--help']);
