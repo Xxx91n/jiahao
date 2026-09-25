@@ -133,7 +133,7 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
 
   test('ci.yml suite parity declares the live expected suite count', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
-    expect(ci).toContain('--expected-suites 81');
+    expect(ci).toContain('--expected-suites 82');
   });
 
   test('coverageGaps pure export: the R2-undeclared defect shape still fails (regression pin)', () => {

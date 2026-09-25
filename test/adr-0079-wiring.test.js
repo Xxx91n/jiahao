@@ -51,8 +51,40 @@ describe('ADR-0079 bilingual mirror convention (grill-t20)', () => {
     // the empirical check the convention depends on: npm's always-include
     // readme.* glob must not catch the hyphenated basename (a dotted
     // README.* name would be force-packed - see ADR-0079 D1 filename note)
-    const NPMCLI = path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js');
-    const r = spawnSync(process.execPath, [NPMCLI, 'pack', '--dry-run'], { cwd: ROOT, encoding: 'utf8' });
+    // npm-cli.js lives beside the node binary by install layout (grill-t27
+    // D-004 D5): win32 <bindir>/node_modules/npm/bin, unix
+    // <bindir>/../lib/node_modules/npm/bin. PATH fallback derives it from the
+    // npm launcher - realpath() resolves the unix symlink into npm-cli.js, the
+    // win32 npm.cmd sits beside node_modules/npm/. Bare spawnSync('npm.cmd')
+    // is EINVAL under CVE-2024-27980 hardening; shell:true + args array is
+    // DEP0190 - both rejected, so the launcher spawn carries cmd.exe on win32.
+    const BINDIR = path.dirname(process.execPath);
+    const candidates = [
+      path.join(BINDIR, 'node_modules', 'npm', 'bin', 'npm-cli.js'),
+      path.join(BINDIR, '..', 'lib', 'node_modules', 'npm', 'bin', 'npm-cli.js'),
+    ];
+    let NPMCLI = candidates.filter(function (c) { return fs.existsSync(c); })[0];
+    if (!NPMCLI) {
+      const probe = spawnSync(process.platform === 'win32' ? 'where.exe' : 'which', ['npm'], { encoding: 'utf8' });
+      const hits = String(probe.stdout || '').split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
+      for (const h of hits) {
+        const bases = [h];
+        try { bases.push(fs.realpathSync(h)); } catch (e) {}
+        for (const b of bases) {
+          const derived = [/npm-cli\.js$/i.test(b) ? b : null,
+            path.join(path.dirname(b), 'node_modules', 'npm', 'bin', 'npm-cli.js'),
+            path.join(path.dirname(b), '..', 'lib', 'node_modules', 'npm', 'bin', 'npm-cli.js')];
+          NPMCLI = derived.filter(function (d) { return d && fs.existsSync(d); })[0] || NPMCLI;
+          if (NPMCLI) break;
+        }
+        if (NPMCLI) break;
+      }
+    }
+    const r = NPMCLI
+      ? spawnSync(process.execPath, [NPMCLI, 'pack', '--dry-run'], { cwd: ROOT, encoding: 'utf8' })
+      : (process.platform === 'win32'
+        ? spawnSync('cmd.exe', ['/d', '/s', '/c', 'npm', 'pack', '--dry-run'], { cwd: ROOT, encoding: 'utf8' })
+        : spawnSync('npm', ['pack', '--dry-run'], { cwd: ROOT, encoding: 'utf8' }));
     expect(r.status).toBe(0);
     const packed = (r.stdout + r.stderr).split('\n').filter(function (l) { return /zh-CN/i.test(l); });
     expect(packed).toEqual([]);

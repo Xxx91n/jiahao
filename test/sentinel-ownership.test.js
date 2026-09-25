@@ -92,8 +92,15 @@ test('D2b: sameFile() — inode identity check', () => {
   fs.writeFileSync(f1, 'x');
   const s0 = fs.statSync(f1);
   expect(sameFile(s0, fs.statSync(f1))).toBe(true);
-  fs.unlinkSync(f1);
-  fs.writeFileSync(f1, 'y'); // new inode, same name
+  // rename-over, not unlink+create: the temp file already holds a
+  // coexisting inode, so the same-path-new-inode precondition is
+  // deterministic (POSIX rename(2) atomic replace; MoveFileEx(REPLACE_EXISTING)
+  // on Windows). unlink+create leaves a nonexistent-path window AND relies on
+  // the fs allocator not reusing the just-freed inode - legal on Linux, which
+  // is what made this leg red on the public runner (grill-t27 D-004).
+  const implant = path.join(DIR, 'a.tmp.implant');
+  fs.writeFileSync(implant, 'y');
+  fs.renameSync(implant, f1); // new inode, same name
   const s1 = fs.statSync(f1);
   expect(sameFile(s0, s1)).toBe(false);
   expect(sameFile(s0, null)).toBe(false);
