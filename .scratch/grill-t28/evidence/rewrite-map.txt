@@ -1,0 +1,4 @@
+captured-at-head: 94918154dbe3d0a23f27370a80aff49843cd19de
+$ node scripts/build-rewrite-map.js --check
+
+[rewrite-map] OK: map in sync (3029 doc citations classified)

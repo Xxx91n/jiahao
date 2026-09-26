@@ -1,0 +1,5 @@
+captured-at-head: 94918154dbe3d0a23f27370a80aff49843cd19de
+$ node -e <js-yaml load over .github/workflows/*.yml + adapters/**/*.yml>
+
+2 yaml files parsed via js-yaml load
+all parse OK

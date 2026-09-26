@@ -1,0 +1,4 @@
+captured-at-head: 94918154dbe3d0a23f27370a80aff49843cd19de
+$ node scripts/build-rewrite-map.js --check --published-only
+
+[rewrite-map] PUBLISHED-ONLY OK: 3029 citations covered, class enum + counts consistent, published-side ancestry verified against origin/main
