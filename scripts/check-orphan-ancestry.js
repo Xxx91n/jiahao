@@ -18,7 +18,7 @@ const ROOT = path.join(__dirname, '..');
 const GATE = 'orphan-ancestry';
 
 function main() {
-  requireCapabilities(GATE);
+  requireCapabilities('orphan-ancestry');
   const cfg = fresh.loadFreshness(ROOT);
   const r = fresh.orphanAncestry(ROOT, cfg, {});
   for (const v of r.violations) {

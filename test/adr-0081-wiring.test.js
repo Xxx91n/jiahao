@@ -84,8 +84,10 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
     // both keep their pinned shape, addressed by name not by position.
     // grill-t25/t26/t27 rows landed on top (fix rounds, kind:fix); the t22/t23
     // pinned shapes below are still addressed by name, never by position.
+    // grill-t28 landed its kind:fix row (D-005/D-006 orphan-ancestry machinery
+    // + defer-0074; zero new ADRs) - the count moves 21 -> 22.
     const row = ti.rounds.find((r) => r.round === 'grill-t22-doc-round');
-    expect(ti.rounds).toHaveLength(21);
+    expect(ti.rounds).toHaveLength(22);
     const latest = ti.rounds.find((r) => r.round === 'grill-t23-front-face');
     expect(latest).toBeDefined();
     expect(latest.adr_added).toEqual(['0082']);
