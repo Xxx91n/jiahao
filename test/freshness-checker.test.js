@@ -250,7 +250,7 @@ describe('orphan-ancestry leg (grill-t28 D-005/D-006)', () => {
     expect(r.trigger.seal.seal).toBe(c1);
     // a restacked workspace that no longer descends from the seal: red
     const tree = gg(['write-tree']);
-    const alien = gg(['commit-tree', tree, '-m', 'restacked workspace tip']);
+    const alien = gg(['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit-tree', tree, '-m', 'restacked workspace tip']);
     gg(['update-ref', 'refs/heads/gitbutler/workspace', alien]);
     r = run(dir);
     expect(r.trigger.state).toBe('violation');
