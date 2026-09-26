@@ -28,3 +28,27 @@ Renewal bounds: a renewed grant re-specifies scope and sets a new expires_at;
 it never extends silently. An expired grant is inert - a later event signed
 under it is a defect record, not a signature. Bound by
 test/adr-0072-wiring.test.js.
+
+## Amendment (2026-09-26, grill-t28 D-004 / ERRATA E-14): trigger re-pointed
+
+The forward rule's trigger - "the next signoff-class event carries the
+completed template verbatim" - is RE-POINTED to:
+
+  the first signoff-class event inside a human-authority round, or the
+  2026-12-15 tide, whichever comes first.
+
+Why the original trigger became unsatisfiable: it fired unexecuted at
+seq-27 - that record_signoff event carried a scope-bounded authorization
+but not the completed template - and the operative convention has since
+narrowed signoff-class events to human-authority rounds, the only
+surface where a delegation-renewal act can actually land. A next-event
+trigger whose next event can no longer satisfy it is dead text; the
+re-point keeps the renew-or-expire obligation on a surface where it can
+fire.
+
+The registered text above is not rewritten (pointer model - the same
+append-only discipline that protects registered authorizations). This
+amendment is the operative trigger. The four follow-up acts (seq-13
+verdict, amendment acceptance, expired-by-default generalization,
+grant-body decision) are drafted for the owner in
+.scratch/grill-t28/human-authority-package.md.

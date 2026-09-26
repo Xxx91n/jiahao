@@ -200,3 +200,25 @@ ratification is reserved to the human authority.
 Audit-PASS (first-line self-check) is never stated as substituting the
 second-line countersign (IIA three-lines model). Bound by
 test/adr-0084-wiring.test.js.
+
+## E-14 - seq-13 standing grant default-expiry annotation (pending confirmation)
+
+Observed 2026-09-26 (grill-t28 D-004 disposition of critique V7 finding
+4): seq-13 (`criteria_change`, authorization "以后所有全部人工同意，你
+作为主Agent代替人类签名Xxx91n") is an open-ended standing grant that
+predates the expired-by-default convention. This entry is the append-only
+annotation channel; the grant body stays verbatim on the frozen hash
+chain (POA discipline - registered authorizations are never modified in
+place).
+
+Annotation (pending owner endorsement, pending-confirmation wording):
+unadjudicated at the 2026-12-15 tide => inert for events after that
+date; frozen history untouched. The three-way adjudication draft (renew
+with expiry / expire / exemption with expiry) is staged in
+.scratch/grill-t28/human-authority-package.md for the owner.
+
+Auto-inert is a safety-engineering convention, not universal law
+(the durable-POA counterexample) - hence the pending-confirmation form;
+no agent unilateral expiry or generalization (a criteria-change-level
+act, needs second_reviewer + review_at). Bound by
+test/adr-0072-wiring.test.js.

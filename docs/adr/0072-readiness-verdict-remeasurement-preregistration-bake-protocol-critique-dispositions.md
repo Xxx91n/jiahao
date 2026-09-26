@@ -5,6 +5,8 @@ Date: 2026-09-16
 
 References: ADR-0069 D-D (the b-line readiness contract this round executes), ADR-0070 (the conviction lane; its frozen promotion gate is amended at D-D and its claim sentence 1 at D-F below), ADR-0067 (appended appendix, P-4), ADR-0047 (appended note, P-1), ADR-0040 (capability three-state vocabulary), ADR-0061 D-E (governance anchors; the t11 ledger joins under this ADR), ADR-0062/0066/0071 (frozen-artifact amendment discipline precedent), ADR-0033/0035 (deferred-registry row discipline), decision-ledger-t11 (.scratch/grill-t11/decision-ledger.md - git-tracked; the governance copy is docs/governance/decision-ledger-t11.md).
 
+Amended-by: ERRATA E-14 / grill-t28 D-004 (delegation-renewal trigger re-point: the next-signoff-event trigger is re-pointed to the first signoff-class event inside a human-authority round / the 2026-12-15 tide; seq-13 default-expiry annotation, pending-confirmation)
+
 ## Context
 
 grill-t10 shipped the CAPA pairer on the hook-side conviction lane in shadow mode with a frozen shadow->enforce promotion gate, and the post-round audit closed PASS-WITH-OBSERVATIONS with every blocking finding repaired. The owner's question for this round: can the product be formally taken out for use and actually tested, and is there a built artifact?
@@ -108,3 +110,23 @@ R1 (this document round) lands: this ADR; ERRATA E-6; the ADR-0047 appended note
 - `node scripts/build-adr-index.js --check`, `node scripts/build-governance-anchors.js --check`, `node scripts/check-governance-inventory.js`, `node scripts/check-deferred.js`, `node scripts/check-host-contracts.js` all exit 0.
 - `npx jest test/adr-0072-wiring.test.js` green; the amended claim sentence asserts identically across the three claim homes.
 - `node scripts/instrument.js --check` verifies the hash chain with the t11 registration event appended.
+
+## Amendment note (2026-09-26, grill-t28 D-004 / ERRATA E-14)
+
+Two registered amendments ride the append-only pointer model (the
+ADR-0070 precedent: the body keeps its registered text; the amendment
+channel is this note plus the erratum):
+
+- The P-2 bounded-renewal template's forward-rule trigger is re-pointed
+  to the first signoff-class event inside a human-authority round, or
+  the 2026-12-15 tide, whichever comes first. The amendment note on
+  docs/governance/delegation-renewal-template.md carries why the
+  original next-event trigger became unsatisfiable (fired unexecuted at
+  seq-27; the signoff class narrowed to human-authority rounds).
+- seq-13 (the open-ended standing grant) gains a default-expiry
+  annotation in ERRATA E-14 - pending-confirmation wording, grant body
+  untouched on the frozen hash chain. The three-way adjudication draft
+  (renew with expiry / expire / exemption with expiry) plus the
+  amendment-acceptance and expired-by-default generalization items are
+  staged for the owner in
+  .scratch/grill-t28/human-authority-package.md.
