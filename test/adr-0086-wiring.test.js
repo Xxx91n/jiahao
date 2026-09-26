@@ -161,10 +161,11 @@ describe('conventions landed', () => {
     expect(err).toContain('161');
   });
 
-  test('t28 report prose corrected: 161, not 180+', () => {
+  test('t28 report prose corrected: the claim row reads 161, not 180+', () => {
     const rpt = fs.readFileSync(path.join(ROOT, '.scratch/grill-t28/reports/2026-09-26-report.md'), 'utf8');
-    expect(rpt).not.toContain('180+');
-    expect(rpt).toContain('161');
+    expect(rpt).not.toContain('over 180+ shipped'); // the claim form is gone
+    expect(rpt).toContain('over 161 shipped'); // corrected forward (ERRATA E-16)
+    expect(rpt).toContain('Correction (grill-t29'); // transparent correction note
   });
 
   test('tide adjudication packet + defer-0075 tide-capacity row registered', () => {
@@ -183,7 +184,9 @@ describe('conventions landed', () => {
     const tr = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs/governance/trend-inventory.json'), 'utf8'));
     const row = tr.rounds.find((r) => r.round === 'grill-t29');
     expect(row).toBeTruthy();
-    expect(row.gtd.files.length).toBeGreaterThan(0);
+    expect(row.kind).toBe('fix');
+    expect(row.governance_tooling_diff.files.length).toBeGreaterThan(0);
+    expect(row.deferred_entry).toBe('defer-0075');
   });
 });
 
