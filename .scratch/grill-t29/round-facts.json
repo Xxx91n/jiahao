@@ -1,0 +1,53 @@
+{
+ "schema_version": 1,
+ "round": "grill-t29",
+ "kind": "fix",
+ "date": "2026-09-27",
+ "base": "c7ae4f81d4f13f9ddca829694bd2ae7fea750960",
+ "lane": "grill-t29-impl (parallel to grill-t29-docs)",
+ "covered_decisions": [
+  "D-001",
+  "D-002",
+  "D-003",
+  "D-004",
+  "D-005",
+  "D-006"
+ ],
+ "new_adrs": [
+  "0086 (registry field governance: fenced/editorial/exception-channel + pending-confirmation lifecycle)"
+ ],
+ "errata": [
+  "E-15 (F-8 exception append procedural defect, pending-confirmation)",
+  "E-16 (F-9 180+->161 correction + F-10 ADR-0084 second appended line disclosure)"
+ ],
+ "registry": {
+  "added": [
+   "defer-0075 (tide-capacity observation)",
+   "freshness.rounds += grill-t29",
+   "field_governance block (ADR-0086)"
+  ],
+  "closed": [],
+  "live_successors": [
+   "defer-0072",
+   "defer-0073",
+   "defer-0074"
+  ]
+ },
+ "machinery": {
+  "gate_legs_added": [
+   "exception-channel (order 220, confirmatory)",
+   "classification-consistency (order 221, confirmatory)",
+   "test-git-hermetic (order 222, confirmatory)",
+   "anchoring-footer (order 223, confirmatory)"
+  ],
+  "helpers": [
+   "test/helpers/git-hermetic.js (ambient-config-hermetic git for test repos)"
+  ],
+  "hardened": [
+   "evidence-freshness.js F-1..F-5 (registered patterns, recorded_at fallback, natural sort, loose enumerator, prefix-aware exemptions)"
+  ],
+  "trend_row": "grill-t29 kind:fix"
+ },
+ "human_authority_package": ".scratch/grill-t29/tide-adjudication-packet.md (drafts only)",
+ "seal_declares": null
+}
