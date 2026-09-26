@@ -140,9 +140,9 @@ describe('README + governance-surface sync', () => {
     expect(r).not.toContain('suspended pending re-verification');
   });
 
-  test('the README ADR index carries ADR-0074 (rebuilt, 85 records)', () => {
+  test('the README ADR index carries ADR-0074 (rebuilt, 86 records)', () => {
     const r = read(README);
-    expect(r).toContain('85 architecture decision records');
+    expect(r).toContain('86 architecture decision records');
     expect(r).toContain('0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md');
   });
 
