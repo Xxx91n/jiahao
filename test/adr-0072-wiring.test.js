@@ -123,6 +123,41 @@ describe('critique dispositions (ADR-0072 D-E)', () => {
     expect(t).toContain('ADR-0072 D-E P-2');
   });
 
+  test('grill-t28 D-004: the template trigger is pointer-amended, never rewritten', () => {
+    const t = read(path.join(ROOT, 'docs', 'governance', 'delegation-renewal-template.md'));
+    expect(t).toContain('## Amendment (2026-09-26, grill-t28 D-004 / ERRATA E-14)');
+    expect(t).toContain('the first signoff-class event inside a human-authority round, or the');
+    expect(t).toContain('2026-12-15 tide');
+    expect(t).toContain('fired unexecuted at');
+    expect(t).toContain('seq-27');
+    expect(t).toContain('dead text');
+    // registered text intact (pointer model)
+    expect(t).toContain('the completed template below verbatim');
+    expect(t).toContain('renew-or-expire act is forced by');
+  });
+
+  test('grill-t28 D-004: ADR-0072 carries the amendment pointer (ADR-0070 precedent)', () => {
+    const a = read(ADR);
+    expect(a).toContain('Amended-by: ERRATA E-14 / grill-t28 D-004');
+    expect(a).toContain('## Amendment note (2026-09-26, grill-t28 D-004 / ERRATA E-14)');
+    expect(a).toContain('human-authority-package.md');
+    expect(a).toContain('pending-confirmation');
+  });
+
+  test('grill-t28 D-004: ERRATA E-14 annotates seq-13 default-expiry, grant body frozen', () => {
+    const e = read(path.join(ROOT, 'docs', 'governance', 'ERRATA.md'));
+    expect(e).toContain('## E-14');
+    expect(e).toContain('seq-13');
+    expect(e).toContain('inert for events after that');
+    expect(e).toContain('frozen history untouched');
+    expect(e).toContain('pending-confirmation');
+    // the grant body stays verbatim - seq 13 byte-stable pin below unchanged
+    const st = readJson(path.join(ROOT, 'src', 'instrument-state.json'));
+    const s13 = st.history.find(function (x) { return x.seq === 13; });
+    expect(s13.event_hash).toBe('d025289f5279c3751f0f50abbb331893861bed412eeb072e3d7e13be4e6b4006');
+    expect(s13.authorization).toContain('Xxx91n');
+  });
+
   test('P-4: ADR-0067 carries the appended INDETERMINATE appendix', () => {
     const a = read(path.join(ROOT, 'docs', 'adr', '0067-devin-corpus-v1-oot-falsification-adjudication.md'));
     expect(a).toContain('Appendix (2026-09-16, ADR-0072 D-E P-4): INDETERMINATE de facto claim treatment');

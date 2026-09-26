@@ -1,0 +1,5 @@
+captured-at-head: c9fda727f9eb1ca33e70b80eec5a2d9135feb29f
+$ node --check <every *.js under scripts/ src/ test/>
+
+161 files checked
+all syntax OK

@@ -67,3 +67,5 @@ Ask B packet (frozen): "Please ratify or reject the defer-0051 evidence packet `
 - The sunset counter survives ledger rewrites, audit passes, and defer-0055's own lifecycle (watchdog independence).
 - Burn-rate advisories give the carve-out a ratchet: two consecutive uses surface to the owner without ever blocking a round.
 - Spec-code pairs now have a pre-registered convention: pin mechanism vocabulary bidirectionally, never prose.
+
+- Errata pointer (2026-09-26, ERRATA E-13, grill-t28 D-002): second_reviewer countersign obligation presumed subsisting - the bare form since t15 is unregistered drift, pending entity-level adjudication; the nine bare-form ADRs (0076..0081, 0083..0085) merge into the countersign queue (10 -> 19) for the 2026-12-15 entity-level tide - defer-0074. Reversal path: a lightweight registration ADR if consensus evidence for the bare form surfaces.

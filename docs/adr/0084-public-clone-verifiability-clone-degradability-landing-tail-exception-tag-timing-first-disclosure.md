@@ -56,3 +56,7 @@ Corrections classify by the channel that disclosed them FIRST; later independent
 - The landing-tail convention makes the ordering invariant convergent instead of open-ended: every round terminates on a re-capture wave.
 - Exception, tag, and disclosure rules are written where the next round reads them - the human authority steps are declared dependencies, not silent pendings.
 - Wiring pins: `test/adr-0084-wiring.test.js` pins the clause set, the capability registration + probe shape, the `rewrite-map-published` gate entry, the published-only exit-2 degrade on a git-init clone-sim, the trend row, the defer registrations, the countersign labels with return conditions, and the fourth secret-scan surface.
+
+- Errata pointer (2026-09-26, ERRATA E-13, grill-t28 D-002): second_reviewer countersign obligation presumed subsisting - the bare form since t15 is unregistered drift, pending entity-level adjudication; the nine bare-form ADRs (0076..0081, 0083..0085) merge into the countersign queue (10 -> 19) for the 2026-12-15 entity-level tide - defer-0074. Reversal path: a lightweight registration ADR if consensus evidence for the bare form surfaces.
+
+- Queue note (2026-09-26, grill-t28 D-002): the "Countersign queue (10 entries, ADR-0064..ADR-0074 subset)" bullet above is the registered-at-writing enumeration; the queue now runs 19 rows - the nine bare-form ADRs merged via ERRATA E-13 / defer-0074 for the same 2026-12-15 tide.

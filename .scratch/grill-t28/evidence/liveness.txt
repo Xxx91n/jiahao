@@ -1,0 +1,14 @@
+captured-at-head: c9fda727f9eb1ca33e70b80eec5a2d9135feb29f
+$ display-form: npm pack -> tar extract -> install.js --help -> install.js init -y --dry-run
+
+tarball: jiahao-0.0.1.tgz
+
+jiahao v0.0.1 — install .jiahao-profile flag
+
+Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
+       jiahao resolve [--verdict pass|fail --reason <text> --reviewer <id>]
+
+Writes ONLY C:\Users\Administrator\.jiahao-profile
+Tier 0 manual: echo "verifier" > C:\Users\Administrator\.jiahao-profile
+
+[dry-run] would write "verifier" to C:\Users\ADMINI~1\AppData\Local\Temp\tmp.7b5Tq4p0bH\home\.jiahao-profile

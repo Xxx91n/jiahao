@@ -32,3 +32,5 @@ The grill-t17 audit closed PASS WITH FINDINGS (H-1..H-5 plus nits). H-5a named t
 - A fix round can no longer be filed as a documentation round: the kind enum makes the distinction explicit and the missing-governance_tooling_diff pin makes silence ungreen-able.
 - One disclosure channel serves both round shapes; the taxonomy surface gains no third field and `kind` carries no second meaning.
 - History stays an audit log: corrections land with their reason on the corrected line, matching the Amend-Riding Discipline's immutable-history rule for sha references.
+
+- Errata pointer (2026-09-26, ERRATA E-13, grill-t28 D-002): second_reviewer countersign obligation presumed subsisting - the bare form since t15 is unregistered drift, pending entity-level adjudication; the nine bare-form ADRs (0076..0081, 0083..0085) merge into the countersign queue (10 -> 19) for the 2026-12-15 entity-level tide - defer-0074. Reversal path: a lightweight registration ADR if consensus evidence for the bare form surfaces.

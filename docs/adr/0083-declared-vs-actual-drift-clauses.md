@@ -69,3 +69,5 @@ Every subsequent audit window's scope MUST include — declared mandatory here p
 - Commit-tool interop has a written contract — the allowlist + `git show --name-only` loop is cheap, mechanical, and already dogfooded this round.
 - Suite-count drift becomes self-announcing: the glob-equality pin with its floor and known-file hit cannot pass on a broken enumeration.
 - Wiring pins: `test/adr-0083-wiring.test.js` pins the registry schema and seed coverage, the AGENTS.md clause presence, the provenance-header shape on committed captures, the ci.yml-count-equals-glob invariant, the defer-0069 registration, the trend-row shape, and the CONTEXT term's three narrow mechanisms.
+
+- Errata pointer (2026-09-26, ERRATA E-13, grill-t28 D-002): second_reviewer countersign obligation presumed subsisting - the bare form since t15 is unregistered drift, pending entity-level adjudication; the nine bare-form ADRs (0076..0081, 0083..0085) merge into the countersign queue (10 -> 19) for the 2026-12-15 entity-level tide - defer-0074. Reversal path: a lightweight registration ADR if consensus evidence for the bare form surfaces.
