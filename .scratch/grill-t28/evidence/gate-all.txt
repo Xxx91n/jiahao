@@ -1,4 +1,4 @@
-captured-at-head: 088f9c45ac86ee88ddc0d159e308d54dc0d1d7c2
+captured-at-head: c9fda727f9eb1ca33e70b80eec5a2d9135feb29f
 $ node scripts/run-gates.js
 
 [governance-anchors] OK - 18 artifacts, digests in sync
