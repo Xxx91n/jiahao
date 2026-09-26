@@ -47,3 +47,11 @@ docs/agents/domain.md.
 - After every `but commit`, run `git show --name-only <sha>` and verify the
   landed file list equals the intended set; any tool sweep past the filter
   is disclosed in the round report, not silently repaired (ADR-0083 D-C).
+
+- Audit reports are claim artifacts: they live in the registered claim
+  surfaces (`<round>/reports/` or `<round>/handoffs/`), never under
+  `audit-evidence/` (examiner work product, never-commit nc-001). A
+  report may only claim committed-surface-reachable evidence; untracked
+  captures are referenced by path/count pointers, never copied into the
+  committed surface (grill-t28 D-003). Artifact residence is not
+  adjudication - verdict issuance stays owner-side.

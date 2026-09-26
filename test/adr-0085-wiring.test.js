@@ -106,3 +106,34 @@ describe('ADR-0085 anchor semantics (grill-t26: claim-point pinning + terminal s
     expect(row.deferred_entry).toBe('defer-0070');
   });
 });
+
+describe('grill-t28 D-003 audit-artifact residence restoration', () => {
+  test('migrated audit reports sit in the registered claim surface, byte-verbatim residences', () => {
+    for (const rd of ['grill-t26', 'grill-t27']) {
+      expect(fs.existsSync(path.join(ROOT, '.scratch', rd, 'reports', 'audit-report.md'))).toBe(true);
+      expect(fs.existsSync(path.join(ROOT, '.scratch', rd, 'audit-evidence', 'audit-report.md'))).toBe(false);
+    }
+  });
+
+  test('the relocated files are registered claim-surface exceptions - residence, not a new claim act', () => {
+    const f = fresh.loadFreshness(ROOT);
+    expect(f.claim_surfaces.exceptions).toContain('reports/audit-report.md');
+    expect(f.claim_surfaces.exceptions).toContain('handoffs/next-round.md');
+    // sealed rounds stay clean: the restoration commit is not a claim commit
+    const r26 = fresh.evaluateRound(ROOT, f, fresh.roundConfig(f, 'grill-t26'));
+    for (const c of r26.claims) expect(c.bad).toEqual([]);
+    expect(r26.seal.freezeViolations).toEqual([]);
+  });
+
+  test('report-writing convention registered in AGENTS.md; nc-001 untouched', () => {
+    const ag = read(path.join(ROOT, 'AGENTS.md'));
+    expect(ag).toContain('committed-surface-reachable evidence');
+    expect(ag).toContain('path/count pointers');
+    expect(ag).toContain('verdict issuance stays owner-side');
+    const nc = readJson(path.join(ROOT, 'docs', 'governance', 'never-commit.json'));
+    const nc1 = (nc.rules || []).find(function (r) { return r.id === 'nc-001'; });
+    expect(nc1).toBeDefined();
+    expect(nc1.pattern).toContain('audit');
+    expect(nc1.status).not.toBe('deprecated');
+  });
+});
