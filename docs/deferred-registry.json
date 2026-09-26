@@ -1115,11 +1115,23 @@
    "review_at": "2026-10-15",
    "cadence_tier": "quarterly",
    "registered_at": "2026-09-24",
-   "status": "pending-evaluation",
+   "status": "closed",
    "last_check_in": {
     "date": "2026-09-24",
     "note": "grill-t26 quarantine (executed, non-blocking, owner Xxx91n, review 2026-10-15): the three failing suite legs on origin/main are named for t27 triage — adr-0069-wiring (git-tag resolution exit-128), sentinel-ownership (environment-sensitive assertion), adr-0079-wiring (public-history SHA pin). Unfreeze condition unchanged: first workflow run on origin/main concluding success; closes on the first green run."
-   }
+   },
+   "closure_grade": "yellow",
+   "closure": {
+    "run_id": "36142965743",
+    "conclusion": "success",
+    "verifiable_composition": "gate:all exit 0 (36 entries, 8 unverifiable, fail-fast off); verbatim UNVERIFIABLE leg ids from run 36142965743: corpus-leak (requires bench-corpus), probe-corpus (requires bench-corpus), probes (requires bench-corpus), corpus-freshness (requires bench-corpus), corpus-classes (requires bench-corpus), judge-bias (requires bench-corpus), mr-probes (requires bench-corpus), rewrite-map (requires old-side-refs)",
+    "degradation_semantics": "exit-2 UNVERIFIABLE is non-blocking - ADR-0040 D3: \"2 = UNVERIFIABLE (a declared capability is deterministically absent)\"; ADR-0040 D5: \"UNVERIFIABLE [is] counted separately from violations ... and never merged into failures nor silently skipped\"; carried by ADR-0061 D-F round sequencing",
+    "degradation_cause": "stale JIAHAO_BENCH_CORPUS_B64 secret - refresh is a human action item tracked by defer-0072 (restore-bench-corpus verbatim: \"refresh JIAHAO_BENCH_CORPUS_B64 with a full private/bench-corpus tarball\")",
+    "successor_defer_id": "defer-0072",
+    "closure_rule_verbatim": "a workflow run on origin/main concludes success; on landing, close this entry and record the first green run id - applied literally: run 36142965743 on origin/main @ c8613f55c8ac3d83486437703e5bb36964e80ab8 concluded success (first green after the 40-failure streak); this entry closes on that run id"
+   },
+   "closed_at": "2026-09-26",
+   "closed_via": "grill-t28 decision-ledger D-001 (t27 D-007 seven-field closure schema); run 36142965743"
   },
   {
    "id": "defer-0071",

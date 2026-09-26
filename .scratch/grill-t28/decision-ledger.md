@@ -108,3 +108,16 @@ tests + trend row + append-only ADR-0085 pointer), not a new ADR.
 Logged here for the owner countersign; the agent does not self-certify
 the classification. Promotion hook stands registered on the ADR-0085
 pointer line.
+
+### defer-0070 closure record (2026-09-26, T-5 - ledger note for closed_via)
+
+Registered trigger fired: run `36142965743` on `origin/main` @
+`c8613f55c8ac3d83486437703e5bb36964e80ab8` concluded `success` - the
+first green run after the 40-failure streak (t27 audit-handoff verified,
+re-verified via `gh run view 36142965743` + `gh run view --log` this
+round). The closure executes the registered condition literally; grade
+is **yellow** (degraded green, never unqualified): the closing run
+carried 8 UNVERIFIABLE legs (7 requiring `bench-corpus` + `rewrite-map`
+requiring `old-side-refs`), whose coverage gap stays open under
+successor defer-0072. The seven-field row sits on the registry entry;
+the red-history ledger is closed, the corpus-coverage ledger is not.

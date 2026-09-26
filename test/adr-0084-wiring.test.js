@@ -166,12 +166,30 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
     const reg = readJson(REG);
     const d70 = reg.entries.find(function (e) { return e.id === 'defer-0070'; });
     expect(d70).toBeDefined();
-    expect(d70.status).toBe('pending-evaluation');
+    // grill-t28 D-001 (t27 D-007 schema): the registered trigger fired -
+    // run 36142965743 concluded success; closed grade=yellow (degraded green)
+    expect(d70.status).toBe('closed');
+    expect(d70.closure_grade).toBe('yellow');
     expect(d70.review_at).toBe('2026-10-15');
     expect(d70.cadence_tier).toBe('quarterly');
     expect(d70.registered_at).toBe('2026-09-24');
     expect(d70.rationale).toContain('Xxx91n');
     expect(d70.unfreeze_if.check).toContain('concludes success');
+    // seven-field closure row (t27 D-007)
+    const c = d70.closure;
+    expect(c.run_id).toBe('36142965743');
+    expect(c.conclusion).toBe('success');
+    expect(c.verifiable_composition).toContain('gate:all exit 0');
+    for (const leg of ['corpus-leak', 'probe-corpus', 'probes', 'corpus-freshness', 'corpus-classes', 'judge-bias', 'mr-probes', 'rewrite-map']) {
+      expect(c.verifiable_composition).toContain(leg);
+    }
+    expect(c.degradation_semantics).toContain('UNVERIFIABLE');
+    expect(c.degradation_semantics).toContain('ADR-0040');
+    expect(c.degradation_cause).toContain('JIAHAO_BENCH_CORPUS_B64');
+    expect(c.degradation_cause).toContain('defer-0072');
+    expect(c.successor_defer_id).toBe('defer-0072');
+    expect(c.closure_rule_verbatim).toContain('a workflow run on origin/main concludes success');
+    expect(c.closure_rule_verbatim).toContain('applied literally');
     const d71 = reg.entries.find(function (e) { return e.id === 'defer-0071'; });
     expect(d71).toBeDefined();
     expect(d71.status).toBe('pending-evaluation');

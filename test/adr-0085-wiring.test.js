@@ -83,10 +83,12 @@ describe('ADR-0085 anchor semantics (grill-t26: claim-point pinning + terminal s
     expect(['absent', 'co-named']).toContain(r.seal.tag.state); // drift is never lawful for the in-round seal
   });
 
-  test('defer-0070 stays quarantined: owner + review date + the three named suite legs', () => {
+  test('defer-0070 closed grade=yellow on the fired trigger; successor defer-0072 stays live', () => {
     const reg = readJson(REG);
     const d = reg.entries.find((e) => e.id === 'defer-0070');
-    expect(d.status).toBe('pending-evaluation');
+    expect(d.status).toBe('closed');
+    expect(d.closure_grade).toBe('yellow');
+    expect(d.closure.run_id).toBe('36142965743');
     expect(d.review_at).toBe('2026-10-15');
     expect(d.rationale).toContain('Xxx91n');
     for (const s of ['adr-0069-wiring', 'sentinel-ownership', 'adr-0079-wiring']) {
