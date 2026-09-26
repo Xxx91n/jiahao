@@ -1188,6 +1188,24 @@
    "cadence_tier": "quarterly",
    "registered_at": "2026-09-26",
    "status": "pending-evaluation"
+  },
+  {
+   "id": "defer-0075",
+   "subject": "2026-12-15 tide adjudication capacity: 20 countersign entries (19 merged + ADR-0086) plus five substantive items - owner may bulk-ratify routine entries at an earlier interim authority event (grill-t29 D-005)",
+   "source_adr": "docs/adr/0086-registry-field-governance-fenced-editorial-exception-channel-pending-confirmation-lifecycle.md",
+   "rationale": "The grill-t29 tide packet front-loads five substantive adjudications (F-8 retro-ratification, seq-13 three-way, ratchet-brake adoption, F-12 errata-vs-reseal, adjudicated/grill-t27 tag) and stages the countersign queue as routine bulk. Tide capacity is an owner-context observation: routine countersign items may be discharged early by bulk ratification without waiting for the tide; substantive adjudications stay scheduled. Registering the observation keeps the capacity risk tracked rather than silently absorbed. Owner: Xxx91n.",
+   "unfreeze_if": {
+    "type": "external-event",
+    "check": "the 2026-12-15 entity-level tide discharges the countersign queue (bulk or per-entry) and adjudicates the substantive items; closes at the tide alongside defer-0074"
+   },
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-27",
+   "status": "pending-evaluation",
+   "last_check_in": {
+    "date": "2026-09-27",
+    "note": "registered this round (grill-t29 D-005); the tide-capacity observation is owner context - substantive adjudications stay scheduled at 2026-12-15"
+   }
   }
  ]
 }

@@ -52,9 +52,24 @@ function checkFooters(root) {
   if (!reg) { errors.push('anchoring-footer: registration commit not found (script never landed?)'); return { errors, checked: 0 }; }
   const parented = git(['rev-parse', '-q', '--verify', reg + '^']) !== '';
   const range = parented ? reg + '^..HEAD' : 'HEAD';
+  const regDate = git(['log', '-1', '--format=%ct', reg]);
+  // Scope = commits CREATED after registration: descendants of the
+  // registration commit OR commits with a later committer-date. A parallel
+  // lane's pre-registration commits land in HEAD's ancestry via the
+  // workspace merge but were created before the convention existed - they
+  // stay exempt (forward-only: history is never rewritten).
   const commits = git(['rev-list', '--no-merges', range])
     .split('\n').filter(Boolean)
-    .filter((sha) => !git(['log', '-1', '--format=%s', sha]).startsWith(WORKSPACE_SUBJECT));
+    .filter((sha) => !git(['log', '-1', '--format=%s', sha]).startsWith(WORKSPACE_SUBJECT))
+    .filter((sha) => {
+      const cdate = git(['log', '-1', '--format=%ct', sha]);
+      if (Number(cdate) > Number(regDate)) return true;
+      return spawnSyncInlineAncestor(sha);
+    });
+  function spawnSyncInlineAncestor(sha) {
+    const r = require('child_process').spawnSync('git', ['merge-base', '--is-ancestor', reg, sha], { cwd: ROOT });
+    return r.status === 0 || sha === reg;
+  }
   let checked = 0;
   for (const sha of commits) {
     const landed = landedFiles(sha);

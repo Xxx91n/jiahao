@@ -2484,4 +2484,36 @@ closure, never a silent pass.
 _Avoid_: unqualified-green closure language; treating exit-2 as a fail;
 dropping UNVERIFIABLE legs from the run report
 
+
+**Field Governance Classes (字段治理分级)**:
+ADR-0086 three-class taxonomy over every field of surface-taxonomy.json:
+fenced (semantics-bearing, consumed by gates - changes ride an ADR plus
+countersign), exception-channel (deviation entries under the
+pending-confirmation lifecycle), editorial (bookkeeping/provenance, free
+edits). The field_governance.classification map is the machine-checkable
+registry; the classification-consistency leg enforces coverage (every leaf
+classified), staleness (no dead registrations), and consumption (every path
+really read by gate code resolves and is classified).
+_Avoid_: a new registry field consumed by machinery while unclassified;
+re-rolling private copies of registered patterns in checker code
+
+**Pending-Confirmation (待确认生效)**:
+The exception-channel lifecycle: registration is effective immediately
+(the entry covers its scenario on landing), expires_at is mandatory and
+scope is literal-only, an unadjudicated entry auto-lapses at expiry
+(inert, and red until adjudicated/renewed/removed - expiry forces action),
+and ratify/revoke/delete/narrow are owner-only acts. Effectiveness is
+evaluated at the commit date: lapse withdraws future coverage, never
+convicts history retroactively; revocation is retroactive by owner verdict.
+_Avoid_: exceptions without expiry; wildcard scopes; silent conversion of
+pending entries to permanent; agent-side revocation or narrowing
+
+**ANCHORING Footer (锚定尾注)**:
+Round-lane commits self-describe their landed file set in a commit-message
+footer line [ANCHORING] <files>, derived from the but-commit allowlist
+resolved to paths and verified by the anchoring-footer leg against git show
+--name-only. The footer is a replayable record - forensic honesty, not
+forgery prevention; committer and writer share a trust domain.
+_Avoid_: hand-typed footer lists; treating the footer as a security
+control; retro-editing historical commit messages
 *End of Glossary*

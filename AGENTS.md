@@ -62,4 +62,28 @@ docs/agents/domain.md.
   resume claims/seal only afterward. The `orphan-ancestry` gate leg
   enforces the standing contract mechanically - a red leg means no new
   claims and no seal (red-light response - rebuild, re-seal, or declared
-  drift - is a human call).
+  drift - is a human call). The residual exposure window is the interval
+  between the mutating act and the next gate evaluation - this ritual is
+  the contract covering it (grill-t29 F-6). Human-only adjudication
+  points (grill-t29 F-7): errata adjudication, re-seal authorization,
+  trigger interpretation, and waiver issuance are owner acts - the agent
+  reports state, never issues verdicts.
+- Hermetic test repos (grill-t29 D-004, F-14 candidate): every git WRITE
+  op in `test/**.js` (`commit`, `commit-tree`, `tag`, `merge`, `init`,
+  `add`, `rm`, `update-ref`, `branch`, `config`, ...) routes through
+  `test/helpers/git-hermetic.js`, which injects inline `-c` identity and
+  `GIT_CONFIG_NOSYSTEM`/`GIT_CONFIG_GLOBAL`/`GIT_CONFIG_SYSTEM` isolation
+  so ambient machine config can neither supply identity nor leak into
+  fixture repos. Read-verb calls may stay raw; write ops bypassing the
+  helper fail the `test-git-hermetic` gate leg.
+- `[ANCHORING]` footer (grill-t29 D-006): every non-merge, non-"GitButler
+  Workspace Commit" commit created on a round lane after this
+  convention's registration carries a footer line
+  `[ANCHORING] <space-separated file list>` whose file set equals the
+  commit's landed set (`git show --name-only`). The list is DERIVED from
+  the `but commit` allowlist ids resolved to paths - never hand-typed.
+  The footer is a replayable self-description: forensic, not preventive
+  (committer and writer share a trust domain; it cannot stop forgery);
+  live verification is always `git show --name-only`, which the
+  `anchoring-footer` leg rechecks. Forward-only scope: history is never
+  rewritten; merge commits and workspace commits are exempt.
