@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-26T06:33:36.728Z",
+  "generated_at": "2026-09-26T07:25:04.296Z",
   "published_tip": "c8613f55c8ac3d83486437703e5bb36964e80ab8",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -22,11 +22,11 @@
     "published_only": 335,
     "removed": 0,
     "same": 278,
-    "doc_refs": 3057,
+    "doc_refs": 3074,
     "doc_refs_by_class": {
       "rewritten": 104,
-      "local-only": 824,
-      "published-unchanged": 2129
+      "local-only": 835,
+      "published-unchanged": 2135
     }
   },
   "commits": [
@@ -20424,6 +20424,136 @@
       "sha": "5cb2a9fe",
       "class": "published-unchanged",
       "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t28/reports/audit-report.md",
+      "line": 1,
+      "sha": "848c014a",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t28/reports/audit-report.md",
+      "line": 6,
+      "sha": "c8613f55",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t28/reports/audit-report.md",
+      "line": 6,
+      "sha": "848c014a",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t28/reports/audit-report.md",
+      "line": 7,
+      "sha": "8592485a",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t28/reports/audit-report.md",
+      "line": 8,
+      "sha": "c9fda727",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t28/reports/audit-report.md",
+      "line": 9,
+      "sha": "6def5532",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t28/reports/audit-report.md",
+      "line": 38,
+      "sha": "c9fda727f",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t28/reports/audit-report.md",
+      "line": 46,
+      "sha": "c8613f55",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t28/reports/audit-report.md",
+      "line": 46,
+      "sha": "c8613f55",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t28/reports/audit-report.md",
+      "line": 47,
+      "sha": "c9fda727",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t28/reports/audit-report.md",
+      "line": 47,
+      "sha": "c9fda727",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t28/reports/audit-report.md",
+      "line": 106,
+      "sha": "c8613f55",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t28/reports/audit-report.md",
+      "line": 113,
+      "sha": "c8613f55",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t28/reports/audit-report.md",
+      "line": 175,
+      "sha": "c1e708f4",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t28/reports/audit-report.md",
+      "line": 181,
+      "sha": "c8613f55",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t28/reports/audit-report.md",
+      "line": 182,
+      "sha": "c9fda727",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t28/reports/audit-report.md",
+      "line": 182,
+      "sha": "6def5532",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
     },
     {
       "file": ".scratch/grill-t28/round-facts.json",
