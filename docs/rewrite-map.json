@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-26T19:18:51.363Z",
+  "generated_at": "2026-09-26T19:27:10.721Z",
   "published_tip": "c7ae4f81d4f13f9ddca829694bd2ae7fea750960",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -22,11 +22,11 @@
     "published_only": 359,
     "removed": 0,
     "same": 278,
-    "doc_refs": 3080,
+    "doc_refs": 3079,
     "doc_refs_by_class": {
       "rewritten": 104,
       "local-only": 810,
-      "published-unchanged": 2166
+      "published-unchanged": 2165
     }
   },
   "commits": [
@@ -20650,13 +20650,6 @@
       "file": ".scratch/grill-t28/spec-t28-disposition.md",
       "line": 50,
       "sha": "5cb2a9fe",
-      "class": "published-unchanged",
-      "resolved_to": null
-    },
-    {
-      "file": ".scratch/grill-t29/handoffs/next-round.md",
-      "line": 18,
-      "sha": "c7ae4f81",
       "class": "published-unchanged",
       "resolved_to": null
     },
