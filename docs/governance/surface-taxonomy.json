@@ -136,10 +136,10 @@
      "path": "reports/2026-09-26-report.md",
      "status": "pending-confirmation",
      "requested_by": "grill-t29 F-9 correction wave (t28 audit finding - imprecise prose claim)",
-     "reason": "forward correction of the sealed t28 report (180+ -> 161); the correction commit is surgical - bound to exactly this commit sha so no later edit rides the exception silently",
+     "reason": "forward correction of the sealed t28 report (180+ -> 161); the correction commit is surgical - bound to exactly this commit sha so no later edit rides the exception silently; rebound post-restack ac525728 -> 40362867 (same diff, lane move rebased it)",
      "expires_at": "2026-12-15",
      "scope": "round .scratch/grill-t28 only, single commit",
-     "for_commit": "ac52572841d910e049062e7861e84cab44037a97"
+     "for_commit": "40362867f207180bc3cdfc3388d176bb374cde2a"
     }
    ],
    "unregistered_signal": "warning — fail-closed signaling, not silent pass (D-003 hedge 4)"
