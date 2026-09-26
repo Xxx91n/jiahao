@@ -216,7 +216,7 @@ describe('orphan-ancestry leg (grill-t28 D-005/D-006)', () => {
     ci('capture');
     // a commit object on NO ancestor path (rootless tree-commit: restack orphan analog)
     const tree = gg(['write-tree']);
-    const orphan = gg(['commit-tree', tree, '-m', 'orphaned commit']);
+    const orphan = gg(['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit-tree', tree, '-m', 'orphaned commit']);
     put('.scratch/grill-t1/evidence/orphan.txt', 'captured-at-head: ' + orphan + '\norphan wave\n');
     ci('orphan wave committed');
     const r = run(dir);
