@@ -21,6 +21,11 @@ const TAXONOMY = {
     round_bookkeeping_glob: ['spec-*.md'],
     mechanism_regen_outputs: ['docs/rewrite-map.json'],
   },
+  orphan_ancestry: {
+    artifact_scope: '\\.scratch/grill-[^/]+/',
+    workspace_ref: 'refs/heads/gitbutler/workspace',
+    errata_exemptions: [],
+  },
 };
 
 let ROOT;
@@ -168,5 +173,87 @@ describe('shared freshness checker (fixture repo)', () => {
     const r = evalT99();
     expect(r.unregisteredClaims).toContain('.scratch/grill-t99/audit-evidence/audit-report.md');
     expect(r.unregisteredClaims).toContain('.scratch/grill-t99/verdicts.md');
+  });
+});
+
+describe('orphan-ancestry leg (grill-t28 D-005/D-006)', () => {
+  // fresh repo helper: a committed evidence pin + a SEAL on a tiny history
+  const buildRepo = (dir) => {
+    const gg = (args) => execFileSync('git', args, { cwd: dir, encoding: 'utf8' }).trim();
+    execFileSync('git', ['init', '-q'], { cwd: dir });
+    execFileSync('git', ['config', 'commit.gpgsign', 'false'], { cwd: dir });
+    const put = (rel, body) => { const p = path.join(dir, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); execFileSync('git', ['add', rel], { cwd: dir }); };
+    const ci = (m) => { execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', m], { cwd: dir }); return gg(['rev-parse', 'HEAD']); };
+    return { gg, put, ci };
+  };
+  const run = (dir, cfg) => fresh.orphanAncestry(dir, cfg || TAXONOMY, {});
+
+  test('ancestor-positive: committed pins resolve ancestral - leg green', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-orphan-pos-'));
+    const { put, ci } = buildRepo(dir);
+    const a1 = ci('machinery');
+    put('.scratch/grill-t1/evidence/run.txt', 'captured-at-head: ' + a1 + '\nok\n');
+    ci('capture');
+    put('.scratch/grill-t1/reports/r.md', '# pass\n');
+    const c1 = ci('claim');
+    put('.scratch/grill-t1/evidence/run.txt', 'captured-at-head: ' + c1 + '\nok\n');
+    ci('recapture');
+    put('.scratch/grill-t1/SEAL', 'seal: ' + c1 + '\nrecorded_at: 2026-09-26\n');
+    ci('seal');
+    const r = run(dir);
+    expect(r.pinCount).toBeGreaterThanOrEqual(2);
+    expect(r.violations).toEqual([]);
+    expect(r.red).toBe(false);
+    // workspace ref absent in the fixture => clause reported, never silently skipped
+    expect(r.trigger.state).toBe('not-evaluated');
+  });
+
+  test('orphaned pin: a non-ancestor sha in a committed artifact turns the leg red', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-orphan-neg-'));
+    const { gg, put, ci } = buildRepo(dir);
+    const a1 = ci('machinery');
+    put('.scratch/grill-t1/evidence/run.txt', 'captured-at-head: ' + a1 + '\nok\n');
+    ci('capture');
+    // a commit object on NO ancestor path (rootless tree-commit: restack orphan analog)
+    const tree = gg(['write-tree']);
+    const orphan = gg(['commit-tree', tree, '-m', 'orphaned commit']);
+    put('.scratch/grill-t1/evidence/orphan.txt', 'captured-at-head: ' + orphan + '\norphan wave\n');
+    ci('orphan wave committed');
+    const r = run(dir);
+    const bad = r.violations.filter((v) => v.file.endsWith('orphan.txt'));
+    expect(bad.length).toBe(1);
+    expect(bad[0].sha).toBe(orphan);
+    expect(r.red).toBe(true);
+    // a registered errata entry suppresses THAT pin only - reported, never silent
+    const cfg2 = JSON.parse(JSON.stringify(TAXONOMY));
+    cfg2.orphan_ancestry.errata_exemptions = [{ sha: orphan, file: '.scratch/grill-t1/evidence/orphan.txt', errata: 'E-99' }];
+    const r2 = run(dir, cfg2);
+    expect(r2.violations).toEqual([]);
+    expect(r2.exempted.length).toBe(1);
+    expect(r2.exempted[0].errata).toBe('E-99');
+    expect(r2.red).toBe(false);
+  });
+
+  test('workspace trigger: non-fast-forward vs the last seal record turns the leg red', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-orphan-ws-'));
+    const { gg, put, ci } = buildRepo(dir);
+    const a1 = ci('machinery');
+    put('.scratch/grill-t1/evidence/run.txt', 'captured-at-head: ' + a1 + '\nok\n');
+    ci('capture');
+    const c1 = ci('substantive');
+    put('.scratch/grill-t1/SEAL', 'seal: ' + c1 + '\nrecorded_at: 2026-09-26\n');
+    const d = ci('seal decl');
+    // workspace descending from the seal: green
+    gg(['branch', '-f', 'gitbutler/workspace', 'HEAD']);
+    let r = run(dir);
+    expect(r.trigger.state).toBe('ok');
+    expect(r.trigger.seal.seal).toBe(c1);
+    // a restacked workspace that no longer descends from the seal: red
+    const tree = gg(['write-tree']);
+    const alien = gg(['commit-tree', tree, '-m', 'restacked workspace tip']);
+    gg(['update-ref', 'refs/heads/gitbutler/workspace', alien]);
+    r = run(dir);
+    expect(r.trigger.state).toBe('violation');
+    expect(r.red).toBe(true);
   });
 });

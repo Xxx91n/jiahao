@@ -137,3 +137,69 @@ describe('grill-t28 D-003 audit-artifact residence restoration', () => {
     expect(nc1.status).not.toBe('deprecated');
   });
 });
+
+describe('grill-t28 D-005/D-006 orphan-ancestry leg', () => {
+  test('gates.json registers the standing leg (confirmatory, repo-tree only, source ADR-0085)', () => {
+    const g = readJson(path.join(ROOT, 'docs', 'gates.json'));
+    const e = g.entries.find(function (x) { return x.name === 'orphan-ancestry'; });
+    expect(e).toBeDefined();
+    expect(e.command).toBe('node scripts/check-orphan-ancestry.js');
+    expect(e.tier).toBe('confirmatory');
+    expect(e.source_adr).toContain('0085-anchor-semantics');
+    expect(e.requires).toEqual(['repo-tree']);
+    expect(e.params).toEqual({});
+    expect(Number.isInteger(e.order)).toBe(true);
+  });
+
+  test('taxonomy registers freshness.orphan_ancestry + the t28 round; script is the shared checker', () => {
+    const f = fresh.loadFreshness(ROOT);
+    expect(f.orphan_ancestry).toBeDefined();
+    expect(f.orphan_ancestry.artifact_scope).toContain('grill-');
+    expect(f.orphan_ancestry.workspace_ref).toBe('refs/heads/gitbutler/workspace');
+    expect(Array.isArray(f.orphan_ancestry.errata_exemptions)).toBe(true);
+    const r28 = f.rounds.find(function (x) { return x.id === 'grill-t28'; });
+    expect(r28).toBeDefined();
+    expect(r28.base).toBe('c8613f55c8ac3d83486437703e5bb36964e80ab8');
+    // single-source: the thin CLI carries no re-rolled walk (D-005 hedge)
+    const cli = read(path.join(ROOT, 'scripts', 'check-orphan-ancestry.js'));
+    expect(cli).not.toContain('rev-list');
+    expect(cli).not.toContain('merge-base');
+    expect(cli).toContain('evidence-freshness');
+    expect(read(path.join(ROOT, 'scripts', 'evidence-freshness.js'))).toContain('orphanAncestry');
+  });
+
+  test('ADR-0085 carries the verbatim derivation + promotion hook; AGENTS.md carries the ritual', () => {
+    const a = read(path.join(ROOT, 'docs', 'adr', '0085-anchor-semantics-claim-point-seal-boundary.md'));
+    expect(a).toContain('Mechanization note (2026-09-26, grill-t28 D-005/D-006)');
+    expect(a).toContain('pinned-sha ancestry assertion mechanized - violation-instance of the existing claim-point contract; the non-ff trigger maps to the existing post-seal-edit red state, no new normative state introduced');
+    expect(a).toContain('if a second independent violation form of the ancestry contract appears, or the assertion\'s semantics diverge from the claim-point walk, mint a first-class ADR at that point');
+    expect(a).toContain('lane-ownership precheck is rejected');
+    expect(a).toContain('pending owner countersign');
+    const ag = read(path.join(ROOT, 'AGENTS.md'));
+    expect(ag).toContain('Post-restack ritual');
+    expect(ag).toContain('evaluateRound');
+    expect(ag).toContain('claims and no seal');
+  });
+
+  test('live leg state: every committed pin is ancestral; trigger evaluated or reported', () => {
+    const f = fresh.loadFreshness(ROOT);
+    const r = fresh.orphanAncestry(ROOT, f, {});
+    expect(r.pinCount).toBeGreaterThan(0);
+    expect(r.violations).toEqual([]);
+    expect(['ok', 'not-evaluated']).toContain(r.trigger.state);
+    expect(r.red).toBe(false);
+  });
+
+  test('t28 trend row: kind fix + gtd names the new machinery + defer-0074', () => {
+    const t = readJson(TREND);
+    const row = t.rounds.find(function (r) { return r.round === 'grill-t28'; });
+    expect(row).toBeDefined();
+    expect(row.kind).toBe('fix');
+    expect(row.net_additions).toBe(0);
+    expect(row.zero_product_diff).toBe(true);
+    expect(row.deferred_entry).toBe('defer-0074');
+    for (const f of ['scripts/check-orphan-ancestry.js', 'scripts/evidence-freshness.js', 'test/freshness-checker.test.js']) {
+      expect(row.governance_tooling_diff.files).toContain(f);
+    }
+  });
+});

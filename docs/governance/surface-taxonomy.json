@@ -167,7 +167,21 @@
    {
     "id": "grill-t27",
     "base": "0ca482f7f098735b9fc35ad46a163bbb9e61249d"
+   },
+   {
+    "id": "grill-t28",
+    "base": "c8613f55c8ac3d83486437703e5bb36964e80ab8"
    }
-  ]
+  ],
+  "orphan_ancestry": {
+   "_doc": "grill-t28 D-005/D-006: standing pinned-sha ancestry leg - a violation-instance of the existing claim-point contract (ADR-0085 amendment note 2026-09-26). pin_patterns are strict line forms over committed round artifacts; errata_exemptions is THE registered errata list for suppressed orphans (empty = none); the workspace trigger clause evaluates only where the GitButler workspace ref exists (maintainer lane) - absent on public clones/CI it reports not-evaluated, never a silent pass.",
+   "artifact_scope": "\\.scratch/grill-[^/]+/",
+   "pin_patterns": [
+    "^captured-at-head:\\s*([0-9a-f]{7,40})\\s*$",
+    "^seal:\\s*([0-9a-f]{7,40})\\s*$"
+   ],
+   "workspace_ref": "refs/heads/gitbutler/workspace",
+   "errata_exemptions": []
+  }
  }
 }

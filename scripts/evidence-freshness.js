@@ -292,6 +292,115 @@ function roundConfig(fresh, id) {
   return row;
 }
 
+// ---------------------------------------------------------------------------
+// grill-t28 D-005/D-006: pinned-sha ancestry assertion (standing leg).
+// Violation-instance of the existing claim-point contract - every strict pin
+// (`captured-at-head:` / `seal:` line forms) inside committed round artifacts
+// must resolve to an ancestor of HEAD; the gitbutler/workspace non-ff trigger
+// maps to the existing post-seal-edit red state. No new normative state.
+// Registered config lives in surface-taxonomy.json freshness.orphan_ancestry.
+// ---------------------------------------------------------------------------
+
+const ORPHAN_PIN_RES = [
+  { kind: 'captured-at-head', re: /^captured-at-head:\s*([0-9a-f]{7,40})\s*$/ },
+  { kind: 'seal', re: /^seal:\s*([0-9a-f]{7,40})\s*$/ },
+];
+const ORPHAN_SCOPE_RE = /^\.scratch\/grill-[^/]+\//;
+
+function orphanConfig(fresh) {
+  const cfg = (fresh || {}).orphan_ancestry;
+  if (!cfg) throw new Error('surface-taxonomy.json lacks the freshness.orphan_ancestry block (grill-t28 D-005 registration missing)');
+  return cfg;
+}
+
+// Every strict pin line inside committed round artifacts at ref, minus files
+// under never-commit conventions (untracked by definition at any ref).
+function pinnedShas(root, cfg, ref) {
+  const scopeRe = new RegExp('^' + (cfg.artifact_scope || '\\.scratch/grill-[^/]+/'));
+  const files = gitLines(root, [
+    'grep', '-l', '-E', '^(captured-at-head|seal):[[:space:]]*[0-9a-f]{7,40}$', ref || 'HEAD', '--', '.scratch',
+  ]).map((f) => f.replace(/^[^:]*:/, '')) // git grep prefixes hits with <rev>:
+    .filter((f) => scopeRe.test(f));
+  const pins = [];
+  for (const f of files) {
+    const content = showAt(root, ref || 'HEAD', f);
+    if (content === null) continue;
+    for (const line of content.split(/\r?\n/)) {
+      for (const p of ORPHAN_PIN_RES) {
+        const m = line.match(p.re);
+        if (m) pins.push({ file: f, kind: p.kind, sha: m[1] });
+      }
+    }
+  }
+  return pins;
+}
+
+function refExists(root, ref) {
+  return spawnSync('git', ['rev-parse', '--verify', '-q', ref], { cwd: root }).status === 0;
+}
+
+// The latest committed SEAL record across rounds (max recorded_at; ties go to
+// the higher round dir) - the trigger's "last seal anchor record".
+function lastSealRecord(root, ref) {
+  const seals = gitLines(root, ['ls-tree', '-r', ref || 'HEAD', '--name-only', '--', '.scratch'])
+    .filter((f) => /\/SEAL$/.test(f));
+  let best = null;
+  for (const f of seals) {
+    const p = parseSeal(showAt(root, ref || 'HEAD', f));
+    if (p && p.seal && (!best || String(p.recorded_at) > String(best.recorded_at) || (String(p.recorded_at) === String(best.recorded_at) && f > best.file))) {
+      best = { file: f, seal: p.seal, recorded_at: p.recorded_at };
+    }
+  }
+  return best;
+}
+
+// opts.exemptions: [{sha, file?, errata}] - a failing pin is suppressed only
+// when an exemption names the sha (and the file, when the entry carries one).
+// Suppressed pins are reported as errata-exempt, never silently passed.
+function orphanAncestry(root, fresh, opts) {
+  const cfg = orphanConfig(fresh);
+  const o = opts || {};
+  const ref = o.ref || 'HEAD';
+  const exemptions = cfg.errata_exemptions || [];
+  const pins = o.pins || pinnedShas(root, cfg, ref);
+  const violations = [];
+  const exempted = [];
+  for (const pin of pins) {
+    const exempt = exemptions.find((x) => x.sha === pin.sha && (!x.file || x.file === pin.file));
+    if (!resolvesToCommit(root, pin.sha)) {
+      (exempt ? exempted : violations).push({ file: pin.file, kind: pin.kind, sha: pin.sha, reason: 'pinned sha does not resolve to a commit', errata: exempt && exempt.errata });
+    } else if (!gitOk(root, ['merge-base', '--is-ancestor', pin.sha, ref])) {
+      (exempt ? exempted : violations).push({ file: pin.file, kind: pin.kind, sha: pin.sha, reason: 'pinned sha not ancestor of ' + ref, errata: exempt && exempt.errata });
+    }
+  }
+  // Mechanized ritual trigger: gitbutler/workspace HEAD must be a
+  // fast-forward descendant of the last seal-anchor record. Ref absent on
+  // public clones / plain CI checkouts => clause not evaluated (reported,
+  // never silently skipped).
+  const wsRef = cfg.workspace_ref || 'refs/heads/gitbutler/workspace';
+  let trigger = { state: 'not-evaluated', ref: wsRef, reason: 'workspace ref absent on this surface (no GitButler lane; non-ff clause vacuous here)' };
+  if (refExists(root, wsRef)) {
+    const last = lastSealRecord(root, ref);
+    if (!last) {
+      trigger = { state: 'ok', ref: wsRef, seal: null, reason: 'no committed SEAL record - nothing to compare' };
+    } else if (gitOk(root, ['merge-base', '--is-ancestor', last.seal, wsRef])) {
+      trigger = { state: 'ok', ref: wsRef, seal: last, reason: 'workspace descends from last seal ' + last.seal.slice(0, 9) + ' (' + last.file + ')' };
+    } else {
+      trigger = { state: 'violation', ref: wsRef, seal: last, reason: 'workspace HEAD does not descend from last seal ' + last.seal.slice(0, 9) + ' (' + last.file + ') - restack orphaned the seal anchor' };
+    }
+  }
+  return {
+    ref,
+    pins,
+    pinCount: pins.length,
+    uniqueShas: [...new Set(pins.map((p) => p.sha))].length,
+    violations,
+    exempted,
+    trigger,
+    red: violations.length > 0 || trigger.state === 'violation',
+  };
+}
+
 module.exports = {
   HEAD_RE,
   WORKSPACE_SUBJECT,
@@ -308,4 +417,8 @@ module.exports = {
   tagState,
   evaluateRound,
   roundConfig,
+  ORPHAN_PIN_RES,
+  pinnedShas,
+  lastSealRecord,
+  orphanAncestry,
 };

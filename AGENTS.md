@@ -55,3 +55,11 @@ docs/agents/domain.md.
   captures are referenced by path/count pointers, never copied into the
   committed surface (grill-t28 D-003). Artifact residence is not
   adjudication - verdict issuance stays owner-side.
+- Post-restack ritual (grill-t28 D-005): after any `but move`,
+  restack, or undo on a lane containing claim commits, re-run the full
+  `evaluateRound` for the affected round(s) before new claims or
+  seals; route any orphaned pinned sha through a registered erratum and
+  resume claims/seal only afterward. The `orphan-ancestry` gate leg
+  enforces the standing contract mechanically - a red leg means no new
+  claims and no seal (red-light response - rebuild, re-seal, or declared
+  drift - is a human call).

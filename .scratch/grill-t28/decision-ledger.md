@@ -96,3 +96,15 @@
   - human-only：α 分类批准、晋升裁决、仪式红灯响应裁决（重建/重 seal/declared drift）、errata 提起
 - **状态**: current
 
+
+## Round addendum (2026-09-26 - alpha classification logged, pending owner sign)
+
+The orphan-ancestry leg's carrier classification (D-006 α): the pinned-sha
+ancestry assertion is a **violation-instance of the existing claim-point
+contract** (ADR-0085), and the gitbutler/workspace non-fast-forward
+trigger maps to the existing post-seal-edit red state - zero new
+normative state, so the carrier is machinery (gates.json + wiring
+tests + trend row + append-only ADR-0085 pointer), not a new ADR.
+Logged here for the owner countersign; the agent does not self-certify
+the classification. Promotion hook stands registered on the ADR-0085
+pointer line.
