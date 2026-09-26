@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-26T06:31:07.611Z",
+  "generated_at": "2026-09-26T06:33:36.728Z",
   "published_tip": "c8613f55c8ac3d83486437703e5bb36964e80ab8",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -22,10 +22,10 @@
     "published_only": 335,
     "removed": 0,
     "same": 278,
-    "doc_refs": 3056,
+    "doc_refs": 3057,
     "doc_refs_by_class": {
       "rewritten": 104,
-      "local-only": 823,
+      "local-only": 824,
       "published-unchanged": 2129
     }
   },
@@ -20317,6 +20317,14 @@
     },
     {
       "file": ".scratch/grill-t28/evidence/rewrite-map.txt",
+      "line": 1,
+      "sha": "c9fda727f9eb1ca33e70b80eec5a2d9135feb29f",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t28/evidence/run-test-gate.txt",
       "line": 1,
       "sha": "c9fda727f9eb1ca33e70b80eec5a2d9135feb29f",
       "class": "local-only",
