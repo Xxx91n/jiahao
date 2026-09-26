@@ -170,3 +170,33 @@ evidence still name `a1776dde` - non-ancestral after the lane restack. The
 operational copies are corrected in `handoffs/next-round.md` (bookkeeping
 channel); the pinned artifacts stay byte-stable per the append-only rule.
 (t27 audit F-6.)
+## E-13 - ADR approval-surface drift: bare `- Status: Accepted` form since t15 (unregistered, pending confirmation)
+
+Observed 2026-09-26 (grill-t28 D-002 disposition of critique V7 finding 1):
+ADR-0076 through ADR-0085 in the bare form (0076, 0077, 0078, 0079, 0080,
+0081, 0083, 0084, 0085 - ADR-0082 keeps the older countersign-slot form
+via defer-0068) carry `- Status: Accepted` with no `second_reviewer`
+countersign slot. Archaeology (grill-t28 D-002 record): the bare form was
+born at ADR-0076 (t15, commit e03324e3) as an ADR-FORMAT.md
+minimal-template adoption artifact - no decision record exists in the
+t15/t16 ledgers, specs, reports, audit reports, or PR history. Two
+approval forms therefore coexisted unregistered from t15 until this
+entry.
+
+Registration (pending-confirmation wording - the accidental-stripping
+characterization is NOT asserted as adjudicated fact): the
+`second_reviewer` countersign obligation is presumed subsisting on all
+nine ADRs; the bare form since t15 is registered here as unregistered
+drift pending entity-level adjudication. The nine ADRs merge into the
+countersign queue (10 -> 19 rows) for the 2026-12-15 entity-level tide,
+tracked by defer-0074; each affected ADR carries an appended
+pointer-annotation line naming this erratum. NO new ADR is minted -
+archaeology proved nobody decided the form change; the sole reversal
+path (consensus evidence for the bare form surfacing later) is
+pre-registered as a lightweight registration ADR. Whether the errata
+adoption itself needs the same-level approval as the original
+ratification is reserved to the human authority.
+
+Audit-PASS (first-line self-check) is never stated as substituting the
+second-line countersign (IIA three-lines model). Bound by
+test/adr-0084-wiring.test.js.

@@ -2457,4 +2457,19 @@ _Avoid_: sealing the tip instead of the last substantive commit; treating a
 missing tag as silent success or hard failure; retro-tagging history
 
 
+
+**Countersign Queue (会签队列)**:
+The second-line sign-off ledger for ADRs accepted under delegated signing
+authority: a `second_reviewer` countersign obligation is discharged
+on-commit or rides the deferred-registry tide. Two approval forms coexist
+on the committed surface - the explicit-slot form (the Status line carries
+`ID-level-only, awaiting entity-level` plus a return-by date) and the
+bare `- Status: Accepted` form (since t15) - the latter registered as
+unregistered drift pending entity-level adjudication (ERRATA E-13;
+boundary row defer-0074; queue expanded 10 -> 19 for the 2026-12-15
+tide).
+_Avoid_: audit-PASS as a countersign substitute (first-line self-check vs
+second-line sign-off, IIA three-lines); silent approval-form drift;
+prose queue lists without a registry row
+
 *End of Glossary*

@@ -42,3 +42,5 @@ The t20 trend row is corrected to `carve_out_used:1` with `governance_tooling_di
 - The gtd recompute check is unchanged for every file not named in the reclassifications log; the grace is dated and pattern-scoped, never a blanket R3 pass.
 - Two consecutive `carve_out_used:1` rows (t20 corrected, t21 declared) raise the burn-rate advisory - advisory only, disclosed in the t21 report.
 - Wiring pins: `test/adr-0080-wiring.test.js` pins the predicate behavior, the reclassification log, the corrected t20 row shape, the defer-0066 ratchet row, the anchors admission, and the README index count.
+
+- Errata pointer (2026-09-26, ERRATA E-13, grill-t28 D-002): second_reviewer countersign obligation presumed subsisting - the bare form since t15 is unregistered drift, pending entity-level adjudication; the nine bare-form ADRs (0076..0081, 0083..0085) merge into the countersign queue (10 -> 19) for the 2026-12-15 entity-level tide - defer-0074. Reversal path: a lightweight registration ADR if consensus evidence for the bare form surfaces.

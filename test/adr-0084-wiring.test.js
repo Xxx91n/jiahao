@@ -226,3 +226,42 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
     expect(r).toContain('0084-public-clone-verifiability');
   });
 });
+
+describe('grill-t28 D-002 approval-surface errata (ERRATA E-13)', () => {
+  test('the nine bare-form ADRs carry the appended pending-confirmation pointer line', () => {
+    const nums = ['0076', '0077', '0078', '0079', '0080', '0081', '0083', '0084', '0085'];
+    const adrs = fs.readdirSync(path.join(ROOT, 'docs', 'adr'));
+    for (const n of nums) {
+      const f = adrs.find(function (x) { return x.indexOf(n + '-') === 0; });
+      expect(f).toBeTruthy();
+      const a = read(path.join(ROOT, 'docs', 'adr', f));
+      expect(a).toContain('Errata pointer (2026-09-26, ERRATA E-13, grill-t28 D-002)');
+      expect(a).toContain('second_reviewer countersign obligation presumed subsisting');
+      expect(a).toContain('unregistered drift, pending entity-level adjudication');
+      expect(a).toContain('defer-0074');
+    }
+    // the original queue labels and the registered 10-entry enumeration stay
+    // byte-stable - the queue merges, it never strips pinned text
+    const a84 = read(ADR);
+    expect(a84).toContain('Countersign queue (10 entries');
+    expect(a84).toContain('queue now runs 19 rows');
+  });
+
+  test('ERRATA E-13 master record + defer-0074 boundary row + CONTEXT term', () => {
+    const e = read(path.join(ROOT, 'docs', 'governance', 'ERRATA.md'));
+    expect(e).toContain('## E-13');
+    expect(e).toContain('pending entity-level adjudication');
+    expect(e).toContain('NOT asserted as adjudicated fact');
+    const reg = readJson(REG);
+    const d74 = reg.entries.find(function (x) { return x.id === 'defer-0074'; });
+    expect(d74).toBeDefined();
+    expect(d74.status).toBe('pending-evaluation');
+    expect(d74.review_at).toBe('2026-12-15');
+    expect(d74.rationale).toContain('E-13');
+    expect(d74.rationale).toContain('lightweight endorsement');
+    expect(read(CTX)).toContain('Countersign Queue');
+    // pending-confirmation discipline: the accidental-stripping story is not
+    // written as adjudicated fact anywhere on the registered surface
+    expect(e.split('## E-13')[1]).not.toContain('stripped by accident');
+  });
+});

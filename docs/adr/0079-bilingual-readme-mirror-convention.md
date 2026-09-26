@@ -52,3 +52,5 @@ The t19 audit's two judgment/edge findings are dispositioned as named registry r
 
 - `defer-0064` - build-round-facts collect() red-suite -> exit-2 conflation (audit B-4): `type=free-text`, `status=pending-evaluation`, `cadence_tier=quarterly`, `review_at=2026-12-15`; trigger - when the exit contract next opens, add the precision clause.
 - `defer-0065` - build-round-facts `--report` bare-arg exit asymmetry (audit B-5): `type=free-text`, `status=pending-evaluation`, `cadence_tier=quarterly`, `review_at=2026-12-15`; trigger - when an arg-validation convention next forms.
+
+- Errata pointer (2026-09-26, ERRATA E-13, grill-t28 D-002): second_reviewer countersign obligation presumed subsisting - the bare form since t15 is unregistered drift, pending entity-level adjudication; the nine bare-form ADRs (0076..0081, 0083..0085) merge into the countersign queue (10 -> 19) for the 2026-12-15 entity-level tide - defer-0074. Reversal path: a lightweight registration ADR if consensus evidence for the bare form surfaces.

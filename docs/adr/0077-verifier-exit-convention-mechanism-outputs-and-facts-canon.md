@@ -80,3 +80,5 @@ Judgment line (the D-002 shape applied): "the report is narrative, never the hom
 - The multi-row union exit class is dead by convention: one live consumer = one keyed exit; the selector activates only when a second consumer exists.
 - Mechanism outputs get provenance without polluting the burn-rate signal; a hand-edited output is a heavier named violation, not a diff that can hide behind regeneration wording.
 - The report can never host stale numbers again: the facts artifact is regenerated at close, the section renders deterministically, and the self-reference hole is disclosed as null instead of filled with a fake value.
+
+- Errata pointer (2026-09-26, ERRATA E-13, grill-t28 D-002): second_reviewer countersign obligation presumed subsisting - the bare form since t15 is unregistered drift, pending entity-level adjudication; the nine bare-form ADRs (0076..0081, 0083..0085) merge into the countersign queue (10 -> 19) for the 2026-12-15 entity-level tide - defer-0074. Reversal path: a lightweight registration ADR if consensus evidence for the bare form surfaces.
