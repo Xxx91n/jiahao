@@ -449,6 +449,50 @@
    "requires": [
     "repo-tree"
    ]
+  },
+  {
+   "name": "exception-channel",
+   "command": "node scripts/check-exception-channel.js",
+   "tier": "confirmatory",
+   "source_adr": "docs/adr/0086-registry-field-governance-fenced-editorial-exception-channel-pending-confirmation-lifecycle.md",
+   "order": 220,
+   "params": {},
+   "requires": [
+    "repo-tree"
+   ]
+  },
+  {
+   "name": "classification-consistency",
+   "command": "node scripts/check-classification-consistency.js",
+   "tier": "confirmatory",
+   "source_adr": "docs/adr/0086-registry-field-governance-fenced-editorial-exception-channel-pending-confirmation-lifecycle.md",
+   "order": 221,
+   "params": {},
+   "requires": [
+    "repo-tree"
+   ]
+  },
+  {
+   "name": "test-git-hermetic",
+   "command": "node scripts/check-test-git-hermetic.js",
+   "tier": "confirmatory",
+   "source_adr": "docs/adr/0086-registry-field-governance-fenced-editorial-exception-channel-pending-confirmation-lifecycle.md",
+   "order": 222,
+   "params": {},
+   "requires": [
+    "repo-tree"
+   ]
+  },
+  {
+   "name": "anchoring-footer",
+   "command": "node scripts/check-anchoring-footer.js",
+   "tier": "confirmatory",
+   "source_adr": "docs/adr/0086-registry-field-governance-fenced-editorial-exception-channel-pending-confirmation-lifecycle.md",
+   "order": 223,
+   "params": {},
+   "requires": [
+    "repo-tree"
+   ]
   }
  ]
 }

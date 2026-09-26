@@ -28,7 +28,7 @@ describe('ADR-0085 anchor semantics (grill-t26: claim-point pinning + terminal s
   test('taxonomy registers the closed claim-surface enum + non-anchoring classes + rounds', () => {
     const f = fresh.loadFreshness(ROOT);
     expect(f.claim_surfaces.closed_enum).toEqual(['reports/', 'handoffs/']);
-    expect(f.claim_surfaces.exceptions).toContain('handoffs/next-round.md');
+    expect(f.claim_surfaces.exceptions.map((e) => (typeof e === 'string' ? e : e.path))).toContain('handoffs/next-round.md');
     expect(f.non_anchoring_classes.seal_file).toBe('SEAL');
     expect(f.non_anchoring_classes.evidence_dirs).toEqual(['evidence/']);
     expect(f.non_anchoring_classes.round_bookkeeping).toContain('decision-ledger.md');
@@ -119,8 +119,9 @@ describe('grill-t28 D-003 audit-artifact residence restoration', () => {
 
   test('the relocated files are registered claim-surface exceptions - residence, not a new claim act', () => {
     const f = fresh.loadFreshness(ROOT);
-    expect(f.claim_surfaces.exceptions).toContain('reports/audit-report.md');
-    expect(f.claim_surfaces.exceptions).toContain('handoffs/next-round.md');
+    const paths = f.claim_surfaces.exceptions.map((e) => (typeof e === 'string' ? e : e.path));
+    expect(paths).toContain('reports/audit-report.md');
+    expect(paths).toContain('handoffs/next-round.md');
     // sealed rounds stay clean: the restoration commit is not a claim commit
     const r26 = fresh.evaluateRound(ROOT, f, fresh.roundConfig(f, 'grill-t26'));
     for (const c of r26.claims) expect(c.bad).toEqual([]);

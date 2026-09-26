@@ -12,6 +12,9 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawnSync, execFileSync } = require('child_process');
+// grill-t29 D-004: temp-repo git writes route through the hermetic helper
+// (inline identity + config-source isolation) - ambient config cannot leak.
+const hg = require('./helpers/git-hermetic');
 const ROOT = path.join(__dirname, '..');
 const read = (p) => fs.readFileSync(p, 'utf8');
 const readJson = (p) => JSON.parse(read(p));
@@ -103,9 +106,9 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
     fs.copyFileSync(path.join(ROOT, 'scripts', 'build-rewrite-map.js'), path.join(tmp, 'scripts', 'build-rewrite-map.js'));
     fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'capability.js'), path.join(tmp, 'src', 'shared', 'capability.js'));
     fs.copyFileSync(path.join(ROOT, 'docs', 'gates.json'), path.join(tmp, 'docs', 'gates.json'));
-    execFileSync('git', ['init', '-q'], { cwd: tmp });
-    execFileSync('git', ['add', '-A'], { cwd: tmp });
-    execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'init'], { cwd: tmp });
+    hg.mkRepo(tmp);
+    hg.git(tmp, ['add', '-A']);
+    hg.git(tmp, ['commit', '-qm', 'init']);
     const r = spawnSync(process.execPath, ['scripts/build-rewrite-map.js', '--check'], { cwd: tmp, encoding: 'utf8' });
     expect(r.status).toBe(2);
     expect(r.stdout).toContain('::error title=UNVERIFIABLE,gate=rewrite-map,requires=old-side-refs::');
