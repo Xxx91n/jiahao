@@ -538,17 +538,22 @@
      "scripts/check-orphan-ancestry.js",
      "scripts/check-secret-scan.js",
      "scripts/check-test-git-hermetic.js",
+     "scripts/derive-anchoring-footer.js",
      "scripts/evidence-freshness.js",
      "scripts/restore-bench-corpus.js",
      "src/shared/capability.js",
      "src/shared/falsify.js",
      "test/corpus-restore.test.js",
+     "test/fixtures/hermetic-scan/comment-prose.src.txt",
+     "test/fixtures/hermetic-scan/indirect-nonparam.src.txt",
+     "test/fixtures/hermetic-scan/runner-read.src.txt",
+     "test/fixtures/hermetic-scan/runner-write.src.txt",
      "test/freshness-checker.test.js",
      "test/helpers/git-hermetic.js",
      "test/rewrite-map.test.js",
      "test/sentinel-ownership.test.js"
     ],
-    "reason": "grill-t29 t28-audit disposition round (implementation territory - R2 edits are in-surface, carve_out_used=0). ADR-0086 lands the exception-channel machinery (check-exception-channel.js [220], check-classification-consistency.js [221]), the hermetic-git lint leg (check-test-git-hermetic.js [222] + test/helpers/git-hermetic.js), and the anchoring-footer leg (check-anchoring-footer.js [223]). evidence-freshness.js hardened per F-1..F-5: registered pin_patterns/seal_file consumption, recorded_at commit-date fallback, natural round sort, loose enumerator + strict parse, scope-derived scan root, prefix-aware exemption binding. freshness-checker.test.js migrated to the hermetic helper + carries the new fixtures. The files list is cumulative per the coverage-budget rule (t21 audit C-1): the committed diff since coverage base c526de3 also carries the t25..t28 machinery set, redeclared here."
+    "reason": "grill-t29 t28-audit disposition round (implementation territory - R2 edits are in-surface, carve_out_used=0). ADR-0086 lands the exception-channel machinery (check-exception-channel.js [220], check-classification-consistency.js [221]), the hermetic-git lint leg (check-test-git-hermetic.js [222] + test/helpers/git-hermetic.js), and the anchoring-footer leg (check-anchoring-footer.js [223]). evidence-freshness.js hardened per F-1..F-5: registered pin_patterns/seal_file consumption, recorded_at commit-date fallback, natural round sort, loose enumerator + strict parse, scope-derived scan root, prefix-aware exemption binding. freshness-checker.test.js migrated to the hermetic helper + carries the new fixtures. The files list is cumulative per the coverage-budget rule (t21 audit C-1): the committed diff since coverage base c526de3 also carries the t25..t28 machinery set, redeclared here. Audit-repair wave (2026-09-27 audit FAIL rework): derive-anchoring-footer.js (A-4c derivation tool) + 4 hermetic-scan fixture sources + evidence-freshness/check-* A-5..A-9 fixes ride the same R2 channel."
    },
    "deferred_entry": "defer-0075",
    "advisory_fired": false,
