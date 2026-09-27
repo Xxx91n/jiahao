@@ -254,3 +254,28 @@ bullet alongside the E-13 pointer line. The append was registered at
 landing time but was not called out in the t28 report; it is named here.
 
 Bound by test/adr-0086-wiring.test.js.
+## E-17 - terminal-wave ordering defect: rewrite-map regenerated before the final re-pin (grill-t29 audit A-1)
+
+Observed 2026-09-27 (grill-t29 second-party audit, fix-window rework): the
+terminal wave commit c2768fc8 regenerated docs/rewrite-map.json while the
+evidence headers still pinned bd10ef66, then re-pinned all captures to
+f9bcc13f inside the same commit - the committed tree was stale at landing
+("docsewrite-map.json is stale", legs 208/209 red at audit HEAD). The
+"green terminal" the round report cited measured a pre-re-pin intermediate
+tree that existed in no commit. Root cause: the post-claim re-capture
+convention lacks a "regen derived artifacts AFTER the final pin" step.
+
+Repair path (fix window, this lane): the wave commit was uncommitted
+pre-push (t27 precedent), the defect corrected by regenerating the map
+only after all pins and doc cites were final, and the wave+SEAL re-issued
+at the true terminal tip. The stale window (c2768fc8..HEAD at audit time)
+is disclosed in the round report deviations (P-1/P-2); the discarded
+commit shas remain reachable only as objects - disclosed, not hidden.
+
+Convention tightening: the terminal-wave order is now explicit -
+re-capture first, derived-artifact regen last, verify --check/--published-
+only against the post-commit tree, then declare. Owner may elect to keep
+the E-numbering or fold this into a process note; registered here per the
+audit window's recommendation.
+
+Bound by test/adr-0086-wiring.test.js + the 208/209 legs themselves.

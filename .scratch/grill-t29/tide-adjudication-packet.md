@@ -247,6 +247,12 @@ Signature: ____________________  Date: ____________
 
 ## Context items (no signature required — owner awareness)
 
+- **Carve-out burn-rate (advisory, spec §7):** 5 consecutive documentation
+  rounds used the governance carve-out — the trend-inventory advisory
+  fired this round and is discharged as `observed, closed` (the counter
+  itself is the mitigation; the ratchet-brake policy above it is item 3
+  for the tide). (grill-t29 audit A-4a: this row was omitted at draft;
+  registered here on repair.)
 - **Tide capacity (defer-0075):** 20 countersign entries + 5 substantive
   items is a real load; routine items are interim-eligible for early
   bulk ratification if you want the tide lighter.

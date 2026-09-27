@@ -204,7 +204,7 @@ errata-vs-reseal, alpha-classification countersign (t28 carryover),
 Per audit §7 plus this round's additions:
 
     node scripts/check-orphan-ancestry.js
-    node scripts/run-test-gate.js --expected-suites 82
+    node scripts/run-test-gate.js --expected-suites 83
     node scripts/run-gates.js          # gate:all incl. new legs
     node scripts/check-deferred.js
     # + evaluateRound(grill-t29): inFlightClean, capturesAtSealOk,

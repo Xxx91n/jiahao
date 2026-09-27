@@ -208,7 +208,18 @@
     "^seal:\\s*([0-9a-f]{7,40})\\s*$"
    ],
    "workspace_ref": "refs/heads/gitbutler/workspace",
-   "errata_exemptions": []
+   "errata_exemptions": [
+    {
+     "status": "pending-confirmation",
+     "requested_by": "grill-t29 fix window (audit A-1 repair)",
+     "reason": "audit window captured-at-head pin names b61d7951, the t29 post-seal claim commit; the fix-window uncommit of terminal wave c2768fc8 (E-17) rebased that claim to a new sha - the pinned sha survives only as an orphan object, an expected consequence of the disclosed repair",
+     "expires_at": "2026-12-15",
+     "scope": ".scratch/grill-t29/reports/audit-report.md",
+     "file": ".scratch/grill-t29/reports/audit-report.md",
+     "sha": "b61d7951",
+     "errata": "E-17"
+    }
+   ]
   }
  },
  "field_governance": {

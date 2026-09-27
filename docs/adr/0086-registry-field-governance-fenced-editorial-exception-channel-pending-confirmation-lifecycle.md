@@ -91,7 +91,10 @@ Two new confirmatory gate legs in `docs/gates.json`:
   and be classified (phantom-read and consumption-drift detection).
 
 Two further legs land under this round's ledger authority (the convention
-they enforce is registered in AGENTS.md, not a new ADR):
+they enforce is registered in AGENTS.md, not a new ADR; their
+`source_adr` points here because this ADR is the carrier record for
+D-004/D-006 — the operative convention text lives in AGENTS.md,
+`derive-anchoring-footer.js` is the footer-derivation tool D-006 names):
 
 - `test-git-hermetic` (order 222): every git write op in `test/**.js`
   routes through `test/helpers/git-hermetic.js` (inline identity +
@@ -117,6 +120,17 @@ self-audit obligation:
    F-8 exception is re-registered through the channel pending owner
    ratification at the 2026-12-15 tide (defer-0075 carries the tide-
    capacity observation).
+6. Cost dimensions (spec §3 / audit A-4b): the channel is **hard to
+   retire** — removing it requires adjudicating every in-flight exception
+   entry (nothing may silently carry over); and it trades **agile waiver
+   against governance rigidity** — pending-confirmation grants immediate
+   coverage at the price of a mandatory expiry + owner adjudication queue,
+   so every fast exit creates a scheduled return (the ratchet the t28
+   audit's trend advisory watches).
+7. Repair-round honesty (audit A-5..A-9): this ADR's own machinery shipped
+   three private-copy recurrences and two fail-open edges, repaired in the
+   post-audit fix wave and recorded in ERRATA — the lesion class is now
+   covered by regression fixtures in `test/freshness-checker.test.js`.
 
 This ADR joins the countersign queue (bare `- Status:` approval-surface
 form, ERRATA E-13 queue merged 10 -> 19 -> 20 with this entry) — pending

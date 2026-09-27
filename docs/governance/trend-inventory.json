@@ -557,7 +557,21 @@
      "bench/research/out/g6-publish-replay.json"
     ],
     "reason": "unchanged since t28 - carried forward; docs-surface regenerations (rewrite-map.json, governance anchors.json) are R3, outside the ADR-0077 enumeration"
-   }
+   },
+   "advisory_dispositions": [
+    {
+     "advisory": "adr-streak",
+     "disposition": "mitigated, closed",
+     "basis": "D-005(iv): the ADR-0086 D-D self-audit line carries the mechanism - the streak advisory is discharged at registration, not deferred",
+     "recorded_at": "2026-09-27"
+    },
+    {
+     "advisory": "carve-out burn-rate",
+     "disposition": "observed, closed",
+     "basis": "the counter is the mitigation; the ratchet-brake policy decision is tide item 3 (defer-0075/packet)",
+     "recorded_at": "2026-09-27"
+    }
+   ]
   }
  ],
  "source_adr": "0064"
