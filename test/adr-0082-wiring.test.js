@@ -40,10 +40,10 @@ describe('ADR-0082 doc surface (grill-t23 cap-amendment round)', () => {
 
   test('ADR-0039 D3 live anchor now reads the amended cap', () => {
     const a39 = read(ADR39);
-    expect(a39).toContain('out.size < 380,000 bytes');
+    expect(a39).toContain('out.size < 470,000 bytes');
     expect(a39).not.toContain('out.size < 340,000 bytes');
     expect(a39).toContain('ADR-0082');
-    expect(packCapBytes()).toBe(380000);
+    expect(packCapBytes()).toBe(470000);
   });
 
   test('defer-0067 discharged-by-trigger via this amendment', () => {

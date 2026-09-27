@@ -1,6 +1,6 @@
 [English](README.md) | **中文**
 
-<!-- translation-baseline: 5cd29278d2be2c1a16ebcdbad8ad31368827d845 -->
+<!-- translation-baseline: 2c4f92846e5231e252d8ca53dfd4c00c87deb701 -->
 
 <p align="center">
   <picture>
@@ -142,6 +142,7 @@ Jiahao 的词表与检测逻辑**不是隐藏秘密**：工作目录内任何有
 | Hook tier | claude-code | Verifier exit-2 blocking semantics | Claude Code 插件 —— 见 `hooks/jiahao-hooks.json` |
 | Hook tier | codex | Verifier exit-2 blocking semantics | 复制 `adapters/codex/hooks.json` -> `.codex/hooks.json` + hook 脚本 -> `.codex/hooks/` |
 | Hook tier | copilot, qoder | Verifier exit-2 blocking semantics | 按对应 adapter README 使用生成的 `adapters/<host>/` 文件 |
+| Hook tier | codebuddy | Verifier deny-channel blocking semantics | Claude-Code-compatible plugin bundle —— 见 `adapters/codebuddy/README.md` |
 | Instruction tier | cursor, windsurf, cline, opencode, aider, instruction-tier (AGENTS.md) | Advisory-only soft injection | 复制 verifier 适配文件（如 `adapters/cursor/jiahao.mdc`）或 `*-generator.*` 变体 —— 均由 `src/SKILL.md` 生成 |
 | MCP (source-only) | jiahao-mcp (git tree) | Profile parameter; relies on client policy. Not in the npm tarball | clone + `npm install` inside `jiahao-mcp/` (experimental) |
 
@@ -276,9 +277,9 @@ v2 裁决冻结于带注释标签 `adjudicated/devin-corpus-v2`（commit 8807a61
 ## Develop
 
 ```bash
-npm test                              # 1419 tests across 83 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 1470 tests across 86 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
-node scripts/build-adapters.js        # regenerate 23 adapter files (11 hosts)
+node scripts/build-adapters.js        # regenerate 54 adapter files (12 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
 ```
 
@@ -288,10 +289,10 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `src/gate.js` —— 验证门组合阶梯（PASS / FAIL / ESCALATE / NOT VERIFIED）
 - `scripts/resolve.js` —— 人工裁决 CLI（两阶段反锚定写回）
 - `hooks/jiahao-profile.js` —— 配置模块（拆分与选择的 SSOT）
-- `hooks/` —— 6 个 hook 脚本 + hooks.json + runtime.js
-- `adapters/` —— 生成的分宿主适配（11 个宿主目录 / 23 个生成文件；ADR-0028 D5）
+- `hooks/` —— 7 个 hook 脚本 + hooks.json + runtime.js
+- `adapters/` —— 生成的分宿主适配（12 个宿主目录 / 54 个生成文件；ADR-0028 D5）
 - `jiahao-mcp/` —— 仅 MCP 适配器（配置参数）
-- `test/` —— 83 test suites, 1419 tests
+- `test/` —— 86 test suites, 1470 tests
 - `bench/polygraph/` —— ADR-0015 基准适配器 + 冻结开发切分语料（ADR-0019 运行诚实 FAIL、ADR-0020 运行 PASS 优于 b2；见其 README）
 - `private/bench-corpus/` —— 答案语料（probes/judge-twins/twins + 指纹；gitignored，ADR-0036 D2）。门脚本经 JIAHAO_CORPUS_DIR 解析，其次安装植入目录（`jiahao init` 自包内植入），再次维护者树内本仓库私有目录；处处皆无则失败关闭（exit 1: config；能力探针先将缺失语料目录降级为 exit 2 UNVERIFIABLE，ADR-0041 D2）。npm 消费者与公开 git clone 完全不含语料 —— 语料门是维护者/CI 专属契约，设计上失败关闭（ADR-0038 D2）。
 - `docs/adr/` —— 架构决策记录（git 树开发面；ADR-0039）。下方索引为派生工件（ADR-0043），由 `node scripts/build-adr-index.js` 重建 —— 勿手改：
