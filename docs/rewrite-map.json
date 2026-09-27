@@ -22252,7 +22252,7 @@
       "sha": "cf5e42c7",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t30/reports/2026-09-27-reaudit-report.md",
@@ -22268,7 +22268,7 @@
       "sha": "8a6855f3",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t30/reports/2026-09-27-reaudit-report.md",
@@ -22276,7 +22276,7 @@
       "sha": "0c9b1c94",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t30/reports/2026-09-27-reaudit-report.md",
@@ -22284,7 +22284,7 @@
       "sha": "c22c01ae",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t30/reports/2026-09-27-reaudit-report.md",
@@ -22380,7 +22380,7 @@
       "sha": "cf5e42c7",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t30/reports/2026-09-27-reaudit-report.md",
@@ -22388,7 +22388,7 @@
       "sha": "8a6855f3",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t30/reports/2026-09-27-reaudit-report.md",
@@ -22420,7 +22420,7 @@
       "sha": "8a6855f3",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t30/reports/2026-09-27-reaudit-report.md",
@@ -22428,7 +22428,7 @@
       "sha": "c22c01ae",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t30/reports/2026-09-27-reaudit-report.md",
@@ -22444,7 +22444,7 @@
       "sha": "cf5e42c7",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t30/reports/2026-09-27-reaudit-report.md",
@@ -22492,7 +22492,7 @@
       "sha": "cf5e42c7",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t30/reports/2026-09-27-reaudit-report.md",
@@ -22500,7 +22500,7 @@
       "sha": "8a6855f3",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t30/reports/2026-09-27-reaudit-report.md",
@@ -26719,7 +26719,7 @@
       "sha": "c22c01ae",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": "docs/governance/ERRATA.md",
@@ -26735,7 +26735,7 @@
       "sha": "cf5e42c7",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": "docs/governance/ERRATA.md",
@@ -26743,7 +26743,7 @@
       "sha": "8a6855f3",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": "docs/governance/ERRATA.md",
@@ -26751,7 +26751,7 @@
       "sha": "0c9b1c94",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": "docs/governance/ERRATA.md",
@@ -26767,7 +26767,7 @@
       "sha": "c22c01ae",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": "docs/governance/audit-report-adr0058.md",
@@ -27423,7 +27423,7 @@
       "sha": "c22c01ae",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": "docs/governance/surface-taxonomy.json",
