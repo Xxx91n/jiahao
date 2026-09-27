@@ -1,0 +1,51 @@
+captured-at-head: 68c8ec2f87d4a48ea67bc81c5d1575845ea47a42
+
+$ git status --porcelain
+
+AM .scratch/grill-t29/SEAL
+AM .scratch/grill-t29/evidence/adr-index.txt
+AM .scratch/grill-t29/evidence/anchoring-footer.txt
+AM .scratch/grill-t29/evidence/anchors.txt
+AM .scratch/grill-t29/evidence/check-deferred.txt
+AM .scratch/grill-t29/evidence/classification-consistency.txt
+AM .scratch/grill-t29/evidence/clean-tree.txt
+AM .scratch/grill-t29/evidence/compile-node-check.txt
+AM .scratch/grill-t29/evidence/compile-yaml.txt
+AM .scratch/grill-t29/evidence/exception-channel.txt
+AM .scratch/grill-t29/evidence/freshness-eval.txt
+AM .scratch/grill-t29/evidence/gate-all.txt
+AM .scratch/grill-t29/evidence/governance-inventory.txt
+AM .scratch/grill-t29/evidence/liveness.txt
+AM .scratch/grill-t29/evidence/orphan-ancestry.txt
+AM .scratch/grill-t29/evidence/pack-smoke.txt
+AM .scratch/grill-t29/evidence/rewrite-map-published.txt
+AM .scratch/grill-t29/evidence/rewrite-map.txt
+AM .scratch/grill-t29/evidence/run-test-gate.txt
+AM .scratch/grill-t29/evidence/secret-scan.txt
+AM .scratch/grill-t29/evidence/test-git-hermetic.txt
+MM bench/research/out/g6-publish-replay.json
+ M docs/governance/anchors.json
+MM docs/rewrite-map.json
+?? .scratch/grill-t13/audit-evidence/r2-round-diff.patch
+?? .scratch/grill-t14/audit-evidence/
+?? .scratch/grill-t15/audit-evidence/round-diff.patch
+?? .scratch/grill-t16/audit-evidence/
+?? .scratch/grill-t17/audit-evidence/
+?? .scratch/grill-t18/audit-evidence/
+?? .scratch/grill-t19/audit-evidence/
+?? .scratch/grill-t20/audit-evidence/
+?? .scratch/grill-t21/audit-evidence/
+?? .scratch/grill-t21/audit2-evidence/
+?? .scratch/grill-t22/audit-evidence/
+?? .scratch/grill-t23/audit-evidence/
+?? .scratch/grill-t23/ref-assets/
+?? .scratch/grill-t26/audit-evidence/
+?? .scratch/grill-t27/audit-evidence/
+?? .scratch/grill-t27/handoffs/2026-09-25-audit-handoff.md
+?? .scratch/grill-t28/audit-evidence/
+?? .scratch/grill-t28/handoffs/2026-09-26-audit-handoff.md
+?? .scratch/grill-t29/audit-evidence/
+
+summary: 43 dirty paths = 18 never-commit pools + 21 terminal-wave files (this wave) + 1 regen outputs (map/anchors/replay - ride the wave)
+
+EXIT=0

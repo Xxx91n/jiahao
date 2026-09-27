@@ -245,9 +245,9 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () => 
     expect(copy).toBe(read(path.join(ROOT, '.scratch', 'grill-t11', 'decision-ledger.md')));
   });
 
-  test('the README ADR index carries ADR-0072 (rebuilt, 85 records)', () => {
+  test('the README ADR index carries ADR-0072 (rebuilt, 86 records)', () => {
     const r = read(README);
-    expect(r).toContain('85 architecture decision records');
+    expect(r).toContain('86 architecture decision records');
     expect(r).toContain('[ADR-0072](docs/adr/0072-readiness-verdict-remeasurement-preregistration-bake-protocol-critique-dispositions.md)');
   });
 

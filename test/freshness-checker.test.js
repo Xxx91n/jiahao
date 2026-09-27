@@ -9,11 +9,14 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { execFileSync } = require('child_process');
 const fresh = require('../scripts/evidence-freshness');
+// grill-t29 D-004: all git invocations in this suite route through the
+// ambient-config-hermetic helper (identity injected per call, config sources
+// isolated) - never a raw execFileSync('git', ...).
+const hg = require('./helpers/git-hermetic');
 
 const TAXONOMY = {
-  claim_surfaces: { closed_enum: ['reports/', 'handoffs/'] },
+  claim_surfaces: { closed_enum: ['reports/', 'handoffs/'], exceptions: [] },
   non_anchoring_classes: {
     evidence_dirs: ['evidence/'],
     seal_file: 'SEAL',
@@ -23,21 +26,25 @@ const TAXONOMY = {
   },
   orphan_ancestry: {
     artifact_scope: '\\.scratch/grill-[^/]+/',
+    pin_patterns: [
+      '^captured-at-head:\\s*([0-9a-f]{7,40})\\s*$',
+      '^seal:\\s*([0-9a-f]{7,40})\\s*$',
+    ],
     workspace_ref: 'refs/heads/gitbutler/workspace',
     errata_exemptions: [],
   },
 };
 
 let ROOT;
-const g = (args) => execFileSync('git', args, { cwd: ROOT, encoding: 'utf8' }).trim();
+const g = (args) => hg.git(ROOT, args);
 function commit(msg, files) {
   for (const [rel, body] of Object.entries(files)) {
     const p = path.join(ROOT, rel);
     fs.mkdirSync(path.dirname(p), { recursive: true });
     fs.writeFileSync(p, body);
-    execFileSync('git', ['add', rel], { cwd: ROOT });
+    hg.git(ROOT, ['add', rel]);
   }
-  execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', msg], { cwd: ROOT });
+  hg.git(ROOT, ['commit', '-qm', msg]);
   return g(['rev-parse', 'HEAD']);
 }
 const evalT99 = () => fresh.evaluateRound(ROOT, TAXONOMY, { id: 'grill-t99', base: BASE });
@@ -45,8 +52,7 @@ let BASE, A2, C4;
 
 beforeAll(() => {
   ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-freshness-'));
-  execFileSync('git', ['init', '-q'], { cwd: ROOT });
-  execFileSync('git', ['config', 'commit.gpgsign', 'false'], { cwd: ROOT });
+  hg.mkRepo(ROOT);
 });
 
 describe('shared freshness checker (fixture repo)', () => {
@@ -134,10 +140,10 @@ describe('shared freshness checker (fixture repo)', () => {
     // rewind is not available on the same repo; build the negative on a fresh
     // repo where the declared sha predates the real last substantive commit.
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-fresh-neg-'));
-    const gg = (args) => execFileSync('git', args, { cwd: tmp, encoding: 'utf8' }).trim();
-    execFileSync('git', ['init', '-q'], { cwd: tmp });
-    const put = (rel, body) => { const p = path.join(tmp, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); execFileSync('git', ['add', rel], { cwd: tmp }); };
-    const ci = (m) => { execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', m], { cwd: tmp }); return gg(['rev-parse', 'HEAD']); };
+    const gg = (args) => hg.git(tmp, args);
+    hg.mkRepo(tmp);
+    const put = (rel, body) => { const p = path.join(tmp, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); hg.git(tmp, ['add', rel]); };
+    const ci = (m) => { hg.git(tmp, ['commit', '-q', '--allow-empty', '-m', m]); return gg(['rev-parse', 'HEAD']); };
     const base = ci('base');
     put('src/x.js', '1\n');
     const real = ci('real last substantive');
@@ -152,12 +158,12 @@ describe('shared freshness checker (fixture repo)', () => {
     // t99 is sealed at C4. A tag naming the right sha but lacking the bare-sha
     // annotation is divergence, not endorsement (D-C byte-equivalence
     // precondition; audit F-2).
-    execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'tag', '-a', 'adjudicated/grill-t99', C4, '-m', 'adjudicated without the sha'], { cwd: ROOT });
+    hg.git(ROOT, ['tag', '-a', 'adjudicated/grill-t99', C4, '-m', 'adjudicated without the sha']);
     let r = evalT99();
     expect(r.seal.tag.state).toBe('drift');
     expect(r.seal.tag.messageHasSha).toBe(false);
     g(['tag', '-d', 'adjudicated/grill-t99']);
-    execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'tag', '-a', 'adjudicated/grill-t99', C4, '-m', 'adjudicated seal ' + C4], { cwd: ROOT });
+    hg.git(ROOT, ['tag', '-a', 'adjudicated/grill-t99', C4, '-m', 'adjudicated seal ' + C4]);
     r = evalT99();
     expect(r.seal.tag.state).toBe('co-named');
     expect(r.seal.tag.messageHasSha).toBe(true);
@@ -168,8 +174,8 @@ describe('shared freshness checker (fixture repo)', () => {
     commit('unregistered verdict doc', { '.scratch/grill-t99/audit-evidence/audit-report.md': '# pass\n' });
     // added-then-removed still warns — the HEAD-tree leg alone misses it (audit F-6)
     commit('transient verdict add', { '.scratch/grill-t99/verdicts.md': '# v\n' });
-    execFileSync('git', ['rm', '-q', '.scratch/grill-t99/verdicts.md'], { cwd: ROOT });
-    execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'transient verdict removed'], { cwd: ROOT });
+    hg.git(ROOT, ['rm', '-q', '.scratch/grill-t99/verdicts.md']);
+    hg.git(ROOT, ['commit', '-qm', 'transient verdict removed']);
     const r = evalT99();
     expect(r.unregisteredClaims).toContain('.scratch/grill-t99/audit-evidence/audit-report.md');
     expect(r.unregisteredClaims).toContain('.scratch/grill-t99/verdicts.md');
@@ -179,11 +185,10 @@ describe('shared freshness checker (fixture repo)', () => {
 describe('orphan-ancestry leg (grill-t28 D-005/D-006)', () => {
   // fresh repo helper: a committed evidence pin + a SEAL on a tiny history
   const buildRepo = (dir) => {
-    const gg = (args) => execFileSync('git', args, { cwd: dir, encoding: 'utf8' }).trim();
-    execFileSync('git', ['init', '-q'], { cwd: dir });
-    execFileSync('git', ['config', 'commit.gpgsign', 'false'], { cwd: dir });
-    const put = (rel, body) => { const p = path.join(dir, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); execFileSync('git', ['add', rel], { cwd: dir }); };
-    const ci = (m) => { execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', m], { cwd: dir }); return gg(['rev-parse', 'HEAD']); };
+    const gg = (args) => hg.git(dir, args);
+    hg.mkRepo(dir);
+    const put = (rel, body) => { const p = path.join(dir, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); hg.git(dir, ['add', rel]); };
+    const ci = (m) => { hg.git(dir, ['commit', '-q', '--allow-empty', '-m', m]); return gg(['rev-parse', 'HEAD']); };
     return { gg, put, ci };
   };
   const run = (dir, cfg) => fresh.orphanAncestry(dir, cfg || TAXONOMY, {});
@@ -216,7 +221,7 @@ describe('orphan-ancestry leg (grill-t28 D-005/D-006)', () => {
     ci('capture');
     // a commit object on NO ancestor path (rootless tree-commit: restack orphan analog)
     const tree = gg(['write-tree']);
-    const orphan = gg(['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit-tree', tree, '-m', 'orphaned commit']);
+    const orphan = gg(['commit-tree', tree, '-m', 'orphaned commit']);
     put('.scratch/grill-t1/evidence/orphan.txt', 'captured-at-head: ' + orphan + '\norphan wave\n');
     ci('orphan wave committed');
     const r = run(dir);
@@ -224,14 +229,33 @@ describe('orphan-ancestry leg (grill-t28 D-005/D-006)', () => {
     expect(bad.length).toBe(1);
     expect(bad[0].sha).toBe(orphan);
     expect(r.red).toBe(true);
-    // a registered errata entry suppresses THAT pin only - reported, never silent
+    // a registered errata entry suppresses THAT pin only - reported, never silent.
+    // ADR-0086 channel schema: the entry carries the five required fields;
+    // pending-confirmation is effective on registration.
     const cfg2 = JSON.parse(JSON.stringify(TAXONOMY));
-    cfg2.orphan_ancestry.errata_exemptions = [{ sha: orphan, file: '.scratch/grill-t1/evidence/orphan.txt', errata: 'E-99' }];
+    cfg2.orphan_ancestry.errata_exemptions = [{
+      sha: orphan, file: '.scratch/grill-t1/evidence/orphan.txt', errata: 'E-99',
+      status: 'pending-confirmation', requested_by: 'fixture', reason: 'suppression fixture',
+      expires_at: '2099-12-31', scope: 'the pinned sha in this fixture file only',
+    }];
     const r2 = run(dir, cfg2);
     expect(r2.violations).toEqual([]);
     expect(r2.exempted.length).toBe(1);
     expect(r2.exempted[0].errata).toBe('E-99');
     expect(r2.red).toBe(false);
+    // ...but a LAPSED entry suppresses nothing (auto-lapse is fail-closed)
+    cfg2.orphan_ancestry.errata_exemptions[0].expires_at = '2020-01-01';
+    const r3 = run(dir, cfg2);
+    expect(r3.exempted.length).toBe(0);
+    expect(r3.violations.length).toBe(1);
+    expect(r3.red).toBe(true);
+    // ...and a short-sha binding works either direction (F-5 normalize)
+    cfg2.orphan_ancestry.errata_exemptions[0].expires_at = '2099-12-31';
+    cfg2.orphan_ancestry.errata_exemptions[0].sha = orphan.slice(0, 12);
+    expect(run(dir, cfg2).violations).toEqual([]);
+    cfg2.orphan_ancestry.errata_exemptions[0].sha = orphan;
+    cfg2.orphan_ancestry.errata_exemptions[0].file = undefined;
+    expect(run(dir, cfg2).violations).toEqual([]);
   });
 
   test('workspace trigger: non-fast-forward vs the last seal record turns the leg red', () => {
@@ -250,10 +274,225 @@ describe('orphan-ancestry leg (grill-t28 D-005/D-006)', () => {
     expect(r.trigger.seal.seal).toBe(c1);
     // a restacked workspace that no longer descends from the seal: red
     const tree = gg(['write-tree']);
-    const alien = gg(['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit-tree', tree, '-m', 'restacked workspace tip']);
+    const alien = gg(['commit-tree', tree, '-m', 'restacked workspace tip']);
     gg(['update-ref', 'refs/heads/gitbutler/workspace', alien]);
     r = run(dir);
     expect(r.trigger.state).toBe('violation');
     expect(r.red).toBe(true);
+  });
+});
+
+describe('orphan-ancestry hardening (grill-t29 F-1..F-5)', () => {
+  const buildRepo = (dir) => {
+    const gg = (args) => hg.git(dir, args);
+    hg.mkRepo(dir);
+    const put = (rel, body) => { const p = path.join(dir, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); hg.git(dir, ['add', rel]); };
+    const ci = (m) => { hg.git(dir, ['commit', '-q', '--allow-empty', '-m', m]); return gg(['rev-parse', 'HEAD']); };
+    return { gg, put, ci };
+  };
+
+  test('F-1/F-2: the registered pin_patterns table drives enumeration - a third registered kind is picked up', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-orphan-reg-'));
+    const { gg, put, ci } = buildRepo(dir);
+    const a1 = ci('machinery');
+    // a pin form the private hardcoded list could never see: a new field
+    // registered only in the taxonomy table
+    const cfg = JSON.parse(JSON.stringify(TAXONOMY));
+    cfg.orphan_ancestry.pin_patterns.push('^meta-sha:\\s*([0-9a-f]{7,40})\\s*$');
+    const tree = gg(['write-tree']);
+    const orphan = gg(['commit-tree', tree, '-m', 'orphan']);
+    put('.scratch/grill-t1/evidence/extra.txt', 'meta-sha: ' + orphan + '\n');
+    ci('extra pin committed');
+    const r = fresh.orphanAncestry(dir, cfg, {});
+    expect(r.violations.some((v) => v.kind === 'meta-sha' && v.sha === orphan)).toBe(true);
+    expect(r.red).toBe(true);
+    expect(a1).toBeTruthy();
+  });
+
+  test('F-4: a pin with trailing whitespace still binds (loose enumerator, strict parse)', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-orphan-ws-'));
+    const { gg, put, ci } = buildRepo(dir);
+    ci('machinery');
+    const tree = gg(['write-tree']);
+    const orphan = gg(['commit-tree', tree, '-m', 'orphan']);
+    put('.scratch/grill-t1/evidence/pad.txt', 'captured-at-head: ' + orphan + '   \n');
+    ci('whitespace pin committed');
+    const r = fresh.orphanAncestry(dir, TAXONOMY, {});
+    expect(r.violations.some((v) => v.sha === orphan)).toBe(true);
+    expect(r.red).toBe(true);
+  });
+
+  test('F-3: an undated seal never outranks a real recorded_at; commit date is the fallback', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-seal-order-'));
+    const { put, ci } = buildRepo(dir);
+    ci('machinery');
+    // grill-t1 SEAL with a literal junk recorded_at, committed FIRST
+    put('.scratch/grill-t1/SEAL', 'seal: ' + 'a'.repeat(40) + '\nrecorded_at: null\n');
+    ci('undated seal');
+    // grill-t2 SEAL with a real (later-than-any-commit-date) recorded_at
+    put('.scratch/grill-t2/SEAL', 'seal: ' + 'b'.repeat(40) + '\nrecorded_at: 2099-01-01\n');
+    ci('dated seal');
+    const last = fresh.lastSealRecord(dir, 'HEAD', TAXONOMY);
+    expect(last.file).toBe('.scratch/grill-t2/SEAL'); // 'null' must not lexically outrank a date
+    // remove the dated seal: the undated one falls back to its commit date
+    hg.git(dir, ['rm', '-q', '.scratch/grill-t2/SEAL']);
+    ci('dated seal removed');
+    const last2 = fresh.lastSealRecord(dir, 'HEAD', TAXONOMY);
+    expect(last2.file).toBe('.scratch/grill-t1/SEAL');
+    expect(last2.order_source).toBe('commit-date');
+    expect(last2.order_day).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  test('F-5: same-day seal ties break on natural round order (t9 < t10, not lexical)', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-seal-tie-'));
+    const { put, ci } = buildRepo(dir);
+    ci('machinery');
+    put('.scratch/grill-t10/SEAL', 'seal: ' + 'a'.repeat(40) + '\n');
+    ci('t10 seal');
+    put('.scratch/grill-t9/SEAL', 'seal: ' + 'b'.repeat(40) + '\n');
+    ci('t9 seal');
+    // both undated -> both fall back to commit date (today) -> tie -> round num
+    const last = fresh.lastSealRecord(dir, 'HEAD', TAXONOMY);
+    expect(last.file).toBe('.scratch/grill-t10/SEAL');
+  });
+});
+
+describe('exception channel semantics (ADR-0086)', () => {
+  test('exceptionActive: pending-confirmation effective on registration until expiry; revoked/lapsed never', () => {
+    const e = { status: 'pending-confirmation', expires_at: '2099-12-31' };
+    expect(fresh.exceptionActive(e, { when: '2026-09-27' })).toBe(true);
+    e.expires_at = '2026-09-27';
+    expect(fresh.exceptionActive(e, { when: '2026-09-27' })).toBe(true); // inclusive through the date
+    expect(fresh.exceptionActive(e, { when: '2026-09-28' })).toBe(false); // auto-lapsed
+    e.status = 'ratified'; e.expires_at = '2099-12-31';
+    expect(fresh.exceptionActive(e, { when: '2026-09-27' })).toBe(true);
+    e.status = 'revoked';
+    expect(fresh.exceptionActive(e, { when: '2026-01-01' })).toBe(false);
+    e.status = 'lapsed';
+    expect(fresh.exceptionActive(e, { when: '2026-01-01' })).toBe(false);
+    e.status = 'pending-confirmation'; e.expires_at = '2099-12-31'; e.for_commit = 'a'.repeat(40);
+    expect(fresh.exceptionActive(e, { when: '2026-09-27', sha: 'a'.repeat(40) })).toBe(true);
+    expect(fresh.exceptionActive(e, { when: '2026-09-27', sha: 'b'.repeat(40) })).toBe(false);
+  });
+
+  test('claim-surface exception is effective at the commit date - pending-confirmation excepts, expired does not', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-exc-'));
+    const gg = (args) => hg.git(dir, args);
+    hg.mkRepo(dir);
+    const put = (rel, body) => { const p = path.join(dir, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); hg.git(dir, ['add', rel]); };
+    const ci = (m) => { hg.git(dir, ['commit', '-q', '--allow-empty', '-m', m]); return gg(['rev-parse', 'HEAD']); };
+    const base = ci('base');
+    put('.scratch/grill-t1/GOAL.md', '# g\n');
+    ci('machinery');
+    const exceptPath = 'reports/audit-report.md';
+    put('.scratch/grill-t1/' + exceptPath, '# audit\n');
+    const auditCommit = ci('audit report lands');
+    const cfg = JSON.parse(JSON.stringify(TAXONOMY));
+    cfg.claim_surfaces.exceptions = [{
+      path: exceptPath, status: 'pending-confirmation', requested_by: 'fixture',
+      reason: 'examiner report rests on the claim surface', expires_at: '2099-12-31',
+      scope: 'the literal path only',
+    }];
+    const today = new Date().toISOString().slice(0, 10);
+    let r = fresh.evaluateRound(dir, cfg, { id: 'grill-t1', base });
+    expect(r.claims.map((c) => c.commit)).not.toContain(auditCommit); // exempted at its commit date
+    cfg.claim_surfaces.exceptions[0].expires_at = '2020-01-01'; // lapsed before the commit -> claim again
+    r = fresh.evaluateRound(dir, cfg, { id: 'grill-t1', base });
+    expect(r.claims.map((c) => c.commit)).toContain(auditCommit);
+    expect(today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  // grill-t29 audit rework (A-5..A-9 latent-defect repairs)
+  test('A-7: a for_commit-bound entry never fires sha-less (fail-closed binding)', () => {
+    const e = { status: 'pending-confirmation', expires_at: '2099-12-31', for_commit: 'a'.repeat(40) };
+    expect(fresh.exceptionActive(e, { when: '2026-09-27' })).toBe(false); // sha-less: bound entry does not fire
+    expect(fresh.exceptionActive(e, { when: '2026-09-27', sha: 'a'.repeat(40) })).toBe(true);
+    expect(fresh.exceptionActive(e, { when: '2026-09-27', sha: 'b'.repeat(40) })).toBe(false);
+  });
+
+  test('A-8: the capture-header regex is compiled from the registered pin_patterns, not a private literal', () => {
+    const re = fresh.capturedHeaderRe(TAXONOMY);
+    expect('captured-at-head: ' + 'a'.repeat(40)).toMatch(re);
+    // whitespace-lenient per the registered strict pattern
+    expect('captured-at-head:   ' + 'b'.repeat(12) + '  ').toMatch(re);
+    const missing = JSON.parse(JSON.stringify(TAXONOMY));
+    missing.orphan_ancestry.pin_patterns = missing.orphan_ancestry.pin_patterns.filter((p) => p.indexOf('captured-at-head') === -1);
+    expect(() => fresh.capturedHeaderRe(missing)).toThrow(/captured-at-head/);
+  });
+
+  test('A-6: class regexes derive from the registered artifact_scope - a narrower scope narrows the class table', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-scope-'));
+    const { put, ci } = (function () {
+      const gg = (a) => hg.git(dir, a);
+      hg.mkRepo(dir);
+      const p = (rel, body) => { const q = path.join(dir, rel); fs.mkdirSync(path.dirname(q), { recursive: true }); fs.writeFileSync(q, body); hg.git(dir, ['add', rel]); };
+      return { gg, put: p, ci: (m) => { hg.git(dir, ['commit', '-q', '--allow-empty', '-m', m]); return gg(['rev-parse', 'HEAD']); } };
+    })();
+    const base = ci('base');
+    const cfg = JSON.parse(JSON.stringify(TAXONOMY));
+    cfg.orphan_ancestry.artifact_scope = '\\.scratch/grill-x/';
+    cfg.rounds = [];
+    // a report commit under a scope outside artifact_scope is invisible to
+    // the round machinery entirely (claim dirs are scoped by rr)
+    expect(() => fresh.evaluateRound(dir, cfg, { id: 'grill-t1', base })).not.toThrow();
+    // and without the registration at all the class table cannot be built (fail-closed)
+    delete cfg.orphan_ancestry;
+    expect(() => fresh.evaluateRound(dir, cfg, { id: 'grill-t1', base })).toThrow(/artifact_scope/);
+  });
+});
+
+describe('anchoring-footer leg (grill-t29 D-006 + A-9 fix)', () => {
+  test('registration commit at the repo root does not crash the leg', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-anchor-root-'));
+    hg.mkRepo(dir);
+    const put = (rel, body) => { const p = path.join(dir, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); hg.git(dir, ['add', rel]); };
+    // the ROOT commit adds the checker -> registration commit has no parent
+    put('scripts/check-anchoring-footer.js', '// registered\n');
+    hg.git(dir, ['commit', '-qm', 'root adds the leg']);
+    const foot = require('../scripts/check-anchoring-footer');
+    expect(() => foot.checkFooters(dir)).not.toThrow();
+    const out = foot.checkFooters(dir);
+    expect(out.errors.length).toBe(0); // pre-registration window -> nothing in scope
+  });
+
+  test('post-registration commits in a fixture repo need the footer; exempt shapes pass', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-anchor-'));
+    hg.mkRepo(dir);
+    const put = (rel, body) => { const p = path.join(dir, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); hg.git(dir, ['add', rel]); };
+    put('scripts/check-anchoring-footer.js', '// registered\n');
+    hg.git(dir, ['commit', '-qm', 'registration']);
+    put('a.txt', 'x\n');
+    hg.git(dir, ['commit', '-qm', 'plain work - no footer']);
+    const foot = require('../scripts/check-anchoring-footer');
+    const bad = foot.checkFooters(dir);
+    expect(bad.errors.some((e) => /lacks the \[ANCHORING\] footer/.test(e))).toBe(true);
+    put('b.txt', 'y\n');
+    hg.git(dir, ['commit', '-qm', 'with footer\n\n[ANCHORING] b.txt']);
+    const after = foot.checkFooters(dir);
+    // history is never rewritten: the footerless commit stays flagged; the
+    // footered commit is the one verified (checked counts footer-bearing
+    // commits whose set matched - the footerless one errors instead)
+    expect(after.errors.length).toBe(1);
+    expect(after.errors[0]).toMatch(/lacks the \[ANCHORING\] footer/);
+    expect(after.checked).toBe(1);
+  });
+});
+
+describe('test-git-hermetic leg (grill-t29 D-004 + A-9 fix)', () => {
+  // Fixture sources live as .txt data under test/fixtures/hermetic-scan/ -
+  // embedding spawn-shaped code as .js string literals would make this very
+  // file look like a scan target to the leg (string-embedded code is
+  // indistinguishable from real code at source level).
+  const leg = require('../scripts/check-test-git-hermetic');
+  const fx = (name) => fs.readFileSync(path.join(__dirname, 'fixtures', 'hermetic-scan', name), 'utf8');
+  test('spawn-shaped text inside comments is prose, not a call site', () => {
+    expect(leg.scanSource(fx('comment-prose.src.txt'), 't.js')).toEqual([]);
+  });
+  test('indirect argv not bound to a runner parameter is unclassifiable -> red (fail-closed)', () => {
+    expect(leg.scanSource(fx('indirect-nonparam.src.txt'), 't.js').some((e) => /not a runner parameter/.test(e))).toBe(true);
+  });
+  test('runner-param argv still classifies call sites; write verbs flag red', () => {
+    expect(leg.scanSource(fx('runner-read.src.txt'), 't.js')).toEqual([]);
+    expect(leg.scanSource(fx('runner-write.src.txt'), 't.js').some((e) => /bypasses/.test(e))).toBe(true);
   });
 });

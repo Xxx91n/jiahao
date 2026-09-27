@@ -12,6 +12,9 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawnSync, execFileSync } = require('child_process');
+// grill-t29 D-004: temp-repo git writes route through the hermetic helper
+// (inline identity + config-source isolation) - ambient config cannot leak.
+const hg = require('./helpers/git-hermetic');
 const ROOT = path.join(__dirname, '..');
 const read = (p) => fs.readFileSync(p, 'utf8');
 const readJson = (p) => JSON.parse(read(p));
@@ -25,7 +28,10 @@ const cap = require('../src/shared/capability');
 const fresh = require('../scripts/evidence-freshness');
 const EVD_REL = '.scratch/grill-t25/evidence';
 const BASE = 'fc390d5e778db567d12b072f7a25cbf1e73b03f8'; // t25 round base (public tip at round start)
-const HEAD_RE = fresh.HEAD_RE; // single source: scripts/evidence-freshness.js (audit cleanup)
+// single source: the registered pin_patterns entry (kind 'captured-at-head')
+// via fresh.capturedHeaderRe(freshness) - resolved lazily at call time
+// (grill-t29 A-8: no private copy, no module-level literal).
+const HEAD_RE_TAX = () => fresh.capturedHeaderRe(fresh.loadFreshness(ROOT));
 
 function committedUnder(relDir) {
   return execFileSync('git', ['ls-tree', '-r', 'HEAD', '--name-only', '--', relDir], { cwd: ROOT, encoding: 'utf8' })
@@ -103,9 +109,9 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
     fs.copyFileSync(path.join(ROOT, 'scripts', 'build-rewrite-map.js'), path.join(tmp, 'scripts', 'build-rewrite-map.js'));
     fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'capability.js'), path.join(tmp, 'src', 'shared', 'capability.js'));
     fs.copyFileSync(path.join(ROOT, 'docs', 'gates.json'), path.join(tmp, 'docs', 'gates.json'));
-    execFileSync('git', ['init', '-q'], { cwd: tmp });
-    execFileSync('git', ['add', '-A'], { cwd: tmp });
-    execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'init'], { cwd: tmp });
+    hg.mkRepo(tmp);
+    hg.git(tmp, ['add', '-A']);
+    hg.git(tmp, ['commit', '-qm', 'init']);
     const r = spawnSync(process.execPath, ['scripts/build-rewrite-map.js', '--check'], { cwd: tmp, encoding: 'utf8' });
     expect(r.status).toBe(2);
     expect(r.stdout).toContain('::error title=UNVERIFIABLE,gate=rewrite-map,requires=old-side-refs::');
@@ -126,7 +132,7 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
       if (seen.has(f)) continue;
       seen.add(f);
       const first = read(path.join(ROOT, f.split('/').join(path.sep))).split(/\r?\n/)[0];
-      const m = first.match(HEAD_RE);
+      const m = first.match(HEAD_RE_TAX());
       expect(m).not.toBeNull();
       const kind = execFileSync('git', ['cat-file', '-t', m[1]], { cwd: ROOT, encoding: 'utf8' }).trim();
       expect(kind).toBe('commit');
@@ -238,9 +244,9 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
     expect(row.governance_tooling_diff.files).toContain('.github/workflows/ci.yml');
   });
 
-  test('README index rebuilt: 85 records incl. ADR-0084', () => {
+  test('README index rebuilt: 86 records incl. ADR-0084', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('85 architecture decision records');
+    expect(r).toContain('86 architecture decision records');
     expect(r).toContain('0084-public-clone-verifiability');
   });
 });

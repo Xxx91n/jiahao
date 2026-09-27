@@ -64,14 +64,14 @@ describe('ADR-0082 doc surface (grill-t23 cap-amendment round)', () => {
     expect(d.registered_at).toBe('2026-09-22');
   });
 
-  test('README index rebuilt: 85 records incl. ADR-0082', () => {
+  test('README index rebuilt: 86 records incl. ADR-0082', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('85 architecture decision records');
+    expect(r).toContain('86 architecture decision records');
     expect(r).toContain('0082-tarball-cap-trend-anchor-amendment-defer-0067-armed-band.md');
   });
 
   test('ci.yml suite parity declares the live expected suite count', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
-    expect(ci).toContain('--expected-suites 82');
+    expect(ci).toContain('--expected-suites 83');
   });
 });

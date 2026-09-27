@@ -30,7 +30,18 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync, spawnSync } = require('child_process');
 
-const HEAD_RE = /^captured-at-head: ([0-9a-f]{7,40})$/;
+// grill-t29 audit A-8: no private copy of the capture-header pattern - the
+// strict form is compiled from freshness.orphan_ancestry.pin_patterns
+// (kind 'captured-at-head') wherever it is needed, via capturedHeaderRe.
+// A module-level const would necessarily be a second literal (taxonomy is
+// loaded per-eval), so the registry owns the pattern and this module owns
+// only the lookup.
+function capturedHeaderRe(fresh) {
+  const cfg = orphanConfig(fresh);
+  const p = pinPatterns(cfg).find((x) => x.kind === 'captured-at-head');
+  if (!p) throw new Error('pin_patterns lacks a captured-at-head kind (A-8)');
+  return p.re;
+}
 const CAPTURE_RE = /\.(txt|md)$/;
 const FIXTURE_RE = /\.fixture\./;
 // Ephemeral GitButler workspace merge objects never reach a public clone —
@@ -59,7 +70,10 @@ const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // Build the compiled class table from the registered taxonomy block.
 function classifiers(fresh) {
-  const rr = '\\.scratch/grill-[^/]+/';
+  // grill-t29 audit A-6: the scope literal is consumed from the registered
+  // artifact_scope - a private copy here was the same drift class as F-1.
+  const rr = ((fresh || {}).orphan_ancestry || {}).artifact_scope;
+  if (!rr) throw new Error('freshness.orphan_ancestry.artifact_scope missing - class regexes derive from the registered scope (grill-t29 A-6)');
   const na = fresh.non_anchoring_classes;
   const bookTerms = na.round_bookkeeping.map(escRe)
     .concat((na.round_bookkeeping_glob || []).map((g) => escRe(g).replace(/\\\*/g, '[^/]*')));
@@ -128,11 +142,52 @@ const lastFloorAnchor = (root, cx, base, ref) => lastAnchor(root, cx, base, ref,
 // ref is inclusive (BASE..D names the declaration).
 const lastSealAnchor = (root, cx, base, ref) => lastAnchor(root, cx, base, ref, (c) => c.substantive);
 
+// ---------------------------------------------------------------------------
+// ADR-0086 (grill-t29): exception-channel entries. Every entry in a
+// taxonomy field classified `exception-channel` is an object carrying the
+// registered schema (field_governance.exception_channel): status /
+// requested_by / reason / expires_at / scope, plus optional `for_commit`
+// binding the exception to exactly one commit sha. `pending-confirmation`
+// entries are effective on registration - that is the channel contract
+// (D-002(ii)); `ratified` entries are effective until their own expires_at;
+// `revoked` and `lapsed` entries are never effective. Effectiveness is
+// evaluated AT the commit's own date (commit-point semantics, ADR-0085): a
+// commit made while an entry was effective stays governed by it; lapse only
+// withdraws future coverage - it never retro-convicts sealed history, and a
+// pending entry past expiry silently converts to nothing.
+// ---------------------------------------------------------------------------
+
+const EXCEPTION_REQUIRED_FIELDS = ['status', 'requested_by', 'reason', 'expires_at', 'scope'];
+const EXCEPTION_STATUS_ENUM = ['pending-confirmation', 'ratified', 'revoked', 'lapsed'];
+const ISO_DATE_ONLY = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+
+// ctx: { when: 'YYYY-MM-DD' (commit date or evaluation date), sha: commit sha }
+function exceptionActive(entry, ctx) {
+  if (!entry || typeof entry !== 'object') return false;
+  const o = ctx || {};
+  // A-7: a for_commit-bound entry never fires sha-less - the binding is a
+  // positive match requirement, not a soft preference (fail-closed on the
+  // binding dimension).
+  if (entry.for_commit && entry.for_commit !== o.sha) return false;
+  if (entry.status !== 'pending-confirmation' && entry.status !== 'ratified') return false;
+  const exp = String(entry.expires_at || '');
+  if (!ISO_DATE_ONLY.test(exp)) return false;
+  const when = String(o.when || new Date().toISOString().slice(0, 10)).slice(0, 10);
+  return when <= exp; // expires_at is inclusive through the named date
+}
+
 // A claim commit OF round `dir`: a file under <dir>/<claim-surface> that is
 // not excepted (the next-round taskbook is bookkeeping, not a claim). The
-// registered claim_surfaces.exceptions list is honored directly.
-function isClaimFor(dir, cx) {
-  const exempt = new Set(cx.claimExceptions.map((e) => dir + '/' + e));
+// registered claim_surfaces.exceptions entries are honored per-entry:
+// pending-confirmation/ratified + unexpired at the commit's own date, and
+// for_commit-bound when the entry carries that pin (ADR-0086).
+function isClaimFor(dir, cx, when, sha) {
+  const ctx = { when: when, sha: sha };
+  const exempt = new Set(
+    cx.claimExceptions
+      .filter((e) => e && typeof e === 'object' && exceptionActive(e, ctx))
+      .map((e) => dir + '/' + e.path)
+  );
   return (f) => !exempt.has(f) && cx.claimDirs.some((d) => f.startsWith(dir + '/' + d)) && classifyFile(f, cx) === 'claim';
 }
 
@@ -145,13 +200,15 @@ function showAt(root, ref, file) {
 }
 
 // Committed captures under <evd> in the tree AT ref, with header sha per file.
-function capturesAt(root, ref, evd) {
+// The header pattern comes from the registered pin_patterns (A-8).
+function capturesAt(root, fresh, ref, evd) {
+  const headRe = capturedHeaderRe(fresh);
   const files = gitLines(root, ['ls-tree', '-r', ref, '--name-only', '--', evd])
     .filter((f) => CAPTURE_RE.test(f) && !FIXTURE_RE.test(f));
   return files.map((f) => {
     const content = showAt(root, ref, f);
     const first = content === null ? '' : content.split(/\r?\n/)[0];
-    const m = first.match(HEAD_RE);
+    const m = first.match(headRe);
     return { file: f, sha: m ? m[1] : null };
   });
 }
@@ -164,11 +221,19 @@ function resolvesToCommit(root, sha) {
   }
 }
 
-function parseSeal(text) {
+// F-2: the SEAL field names are consumed from the registered
+// freshness.seal.fields list; callers pass it through. The canonical
+// default keeps fixture consumers working when no registry is in play.
+const SEAL_FIELD_DEFAULTS = ['seal', 'recorded_at'];
+function parseSeal(text, fields) {
   if (text === null) return null;
-  const seal = (text.match(/^seal:\s*([0-9a-f]{7,40})$/m) || [])[1] || null;
-  const rec = (text.match(/^recorded_at:\s*(\S+)$/m) || [])[1] || null;
-  return { seal, recorded_at: rec };
+  const names = Array.isArray(fields) && fields.length ? fields : SEAL_FIELD_DEFAULTS;
+  const out = {};
+  for (const name of names) {
+    const m = text.match(new RegExp('^' + name + ':\\s*(\\S+)\\s*$', 'm'));
+    out[name] = m ? m[1] : null;
+  }
+  return out;
 }
 
 function tagState(root, roundId, declared) {
@@ -211,22 +276,24 @@ function evaluateRound(root, fresh, cfg) {
   const dir = '.scratch/' + cfg.id;
   const evd = dir + '/evidence';
   const sealPath = dir + '/' + fresh.non_anchoring_classes.seal_file;
-  const claimOfRound = isClaimFor(dir, cx);
 
   const commits = walk(root, cfg.base + '..HEAD');
 
   // Upper layer — claim-point evaluation (D-003): at each claim commit C,
   // every capture committed in <evd> at C names a sha >= the floor anchor
   // strictly before C (floor := last hard-anchoring commit; BASE if none).
+  // Exception-channel entries evaluate at C's own commit date (ADR-0086).
+  const commitDate = (sha) => git(root, ['show', '-s', '--format=%cs', sha]);
   const claims = commits
     .filter((sha) => {
       const files = commitFiles(root, sha);
-      return files !== null && files.some(claimOfRound);
+      if (files === null || !files.some((f) => cx.claimDirs.some((d) => f.startsWith(dir + '/' + d)))) return false;
+      return files.some(isClaimFor(dir, cx, commitDate(sha), sha));
     })
     .reverse()
     .map((sha) => {
       const floor = lastFloorAnchor(root, cx, cfg.base, sha + '^') || cfg.base;
-      const caps = capturesAt(root, sha, evd);
+      const caps = capturesAt(root, fresh, sha, evd);
       const bad = [];
       for (const cap of caps) {
         if (!cap.sha) { bad.push({ file: cap.file, reason: 'no captured-at-head header' }); continue; }
@@ -240,7 +307,7 @@ function evaluateRound(root, fresh, cfg) {
 
   // Lower layer — seal resolution + declaration validity (D-002/D-004).
   const sealText = showAt(root, 'HEAD', sealPath);
-  const parsed = parseSeal(sealText);
+  const parsed = parseSeal(sealText, (fresh.seal || {}).fields);
   let seal = { present: false };
   if (parsed) {
     const touches = gitLines(root, ['log', '--format=%H', '--', sealPath]);
@@ -251,7 +318,7 @@ function evaluateRound(root, fresh, cfg) {
     // satisfy the declared anchor.
     const sealBad = [];
     if (declarationCommit) {
-      for (const cap of capturesAt(root, declarationCommit, evd)) {
+      for (const cap of capturesAt(root, fresh, declarationCommit, evd)) {
         if (!cap.sha || !gitOk(root, ['merge-base', '--is-ancestor', parsed.seal, cap.sha])) {
           sealBad.push({ file: cap.file, sha: cap.sha });
         }
@@ -301,24 +368,67 @@ function roundConfig(fresh, id) {
 // Registered config lives in surface-taxonomy.json freshness.orphan_ancestry.
 // ---------------------------------------------------------------------------
 
-const ORPHAN_PIN_RES = [
-  { kind: 'captured-at-head', re: /^captured-at-head:\s*([0-9a-f]{7,40})\s*$/ },
-  { kind: 'seal', re: /^seal:\s*([0-9a-f]{7,40})\s*$/ },
-];
-const ORPHAN_SCOPE_RE = /^\.scratch\/grill-[^/]+\//;
-
 function orphanConfig(fresh) {
   const cfg = (fresh || {}).orphan_ancestry;
   if (!cfg) throw new Error('surface-taxonomy.json lacks the freshness.orphan_ancestry block (grill-t28 D-005 registration missing)');
   return cfg;
 }
 
+// F-1/F-2 (t28 audit): the pin patterns and the seal-file name are consumed
+// from the registered taxonomy table — private copies in this file were the
+// drift the audit caught. Compile them once per config.
+// F-4: enumeration is deliberately LOOSE (field-name prefix only) so
+// whitespace/stray-content variants still reach the strict parser; the
+// registered pattern decides validity. The loose enumerator itself is
+// derived from the registered field names — one source, no second copy.
+function pinPatterns(cfg) {
+  const pats = cfg && cfg.pin_patterns;
+  if (!Array.isArray(pats) || !pats.length) {
+    throw new Error('freshness.orphan_ancestry.pin_patterns missing or empty (grill-t28 D-005 registration)');
+  }
+  return pats.map((src) => {
+    const field = (String(src).match(/^\^?([A-Za-z][\w-]*):/) || [])[1];
+    if (!field) throw new Error('pin_pattern lacks a leading <field>: prefix: ' + src);
+    return { kind: field, re: new RegExp(src) };
+  });
+}
+
+// The git-grep enumerator pattern (loose): `^(field1|field2):` derived from
+// the registered strict patterns' field names.
+function pinEnumPattern(cfg) {
+  const fields = pinPatterns(cfg).map((p) => p.kind.replace(/[^A-Za-z0-9-]/g, ''));
+  return '^(' + fields.join('|') + '):'; // POSIX ERE: plain group, no (?:..)
+}
+
+// F-5: the git-grep pathspec is derived from the registered artifact_scope
+// (longest leading literal path, then its directory); artifact_scope remains
+// the filtering authority — the pathspec only bounds the search.
+function scanRoot(artifactScope) {
+  const s = String(artifactScope || '').replace(/^\^/, '');
+  let lit = '';
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (ch === '\\') {
+      const n = s[i + 1];
+      if (n === '.' || n === '/' || n === '-' || n === '_') { lit += n; i++; continue; }
+      break;
+    }
+    if (/[\w\-./]/.test(ch)) { lit += ch; continue; }
+    break;
+  }
+  if (!lit) return '.';
+  const cut = lit.lastIndexOf('/');
+  return cut === -1 ? lit : lit.slice(0, cut) || '.';
+}
+
 // Every strict pin line inside committed round artifacts at ref, minus files
 // under never-commit conventions (untracked by definition at any ref).
 function pinnedShas(root, cfg, ref) {
-  const scopeRe = new RegExp('^' + (cfg.artifact_scope || '\\.scratch/grill-[^/]+/'));
+  if (!cfg.artifact_scope) throw new Error('freshness.orphan_ancestry.artifact_scope missing (grill-t29 A-6)');
+  const scopeRe = new RegExp('^' + cfg.artifact_scope);
+  const pats = pinPatterns(cfg);
   const files = gitLines(root, [
-    'grep', '-l', '-E', '^(captured-at-head|seal):[[:space:]]*[0-9a-f]{7,40}$', ref || 'HEAD', '--', '.scratch',
+    'grep', '-l', '-E', pinEnumPattern(cfg), ref || 'HEAD', '--', scanRoot(cfg.artifact_scope),
   ]).map((f) => f.replace(/^[^:]*:/, '')) // git grep prefixes hits with <rev>:
     .filter((f) => scopeRe.test(f));
   const pins = [];
@@ -326,47 +436,95 @@ function pinnedShas(root, cfg, ref) {
     const content = showAt(root, ref || 'HEAD', f);
     if (content === null) continue;
     for (const line of content.split(/\r?\n/)) {
-      for (const p of ORPHAN_PIN_RES) {
+      for (const p of pats) {
         const m = line.match(p.re);
         if (m) pins.push({ file: f, kind: p.kind, sha: m[1] });
       }
     }
   }
+  // F-5: natural round order in output (grill-t9 before grill-t10), then path.
+  pins.sort((a, b) => (roundNumOf(a.file) - roundNumOf(b.file)) || (a.file < b.file ? -1 : a.file > b.file ? 1 : 0));
   return pins;
+}
+
+// F-5: exemption sha binding is prefix-aware — a registered exemption may
+// name the intended short sha while the artifact pins the full form (or
+// vice versa). Both must still be hex >= 7 chars (git abbrev floor).
+function shaMatch(a, b) {
+  const x = String(a || '').toLowerCase();
+  const y = String(b || '').toLowerCase();
+  if (!/^[0-9a-f]{7,40}$/.test(x) || !/^[0-9a-f]{7,40}$/.test(y)) return false;
+  return x === y || x.startsWith(y) || y.startsWith(x);
 }
 
 function refExists(root, ref) {
   return spawnSync('git', ['rev-parse', '--verify', '-q', ref], { cwd: root }).status === 0;
 }
 
-// The latest committed SEAL record across rounds (max recorded_at; ties go to
-// the higher round dir) - the trigger's "last seal anchor record".
-function lastSealRecord(root, ref) {
-  const seals = gitLines(root, ['ls-tree', '-r', ref || 'HEAD', '--name-only', '--', '.scratch'])
-    .filter((f) => /\/SEAL$/.test(f));
+// F-3 (t28 audit): latest-seal ordering must never let an absent or junk
+// recorded_at outrank a real date. Order key: the recorded_at date when it
+// parses as an ISO date; otherwise the file's last-touching commit date
+// (a real timestamp); a still-undated record sorts last. Same-day ties go
+// to the higher round id (natural sort: grill-t9 < grill-t10), then the
+// path - fully deterministic.
+const roundNumOf = (f) => { const m = /grill-t(\d+)/.exec(f); return m ? Number(m[1]) : 0; };
+
+function sealRank(root, ref, f, sealFields) {
+  const p = parseSeal(showAt(root, ref || 'HEAD', f), sealFields);
+  if (!p || !p.seal) return null;
+  const rec = String(p.recorded_at || '');
+  let day = ISO_DATE_ONLY.test(rec) ? rec : null;
+  let source = day ? 'recorded_at' : 'commit-date';
+  if (!day) {
+    try {
+      const d = git(root, ['log', '-1', '--format=%cs', ref || 'HEAD', '--', f]);
+      if (ISO_DATE_ONLY.test(d)) day = d;
+    } catch (e) { /* unreachable ref - day stays null, sorts last */ }
+  }
+  return { file: f, seal: p.seal, recorded_at: p.recorded_at, order_day: day, order_source: source, round_num: roundNumOf(f) };
+}
+
+// The latest committed SEAL record across rounds - the trigger's "last seal
+// anchor record". The SEAL filename + scan root + field names are consumed
+// from the registered taxonomy (freshness.non_anchoring_classes.seal_file /
+// orphan_ancestry.artifact_scope / seal.fields), not private literals.
+function lastSealRecord(root, ref, fresh) {
+  const name = ((fresh || {}).non_anchoring_classes || {}).seal_file || 'SEAL';
+  const scope = orphanConfig(fresh).artifact_scope;
+  const fields = ((fresh || {}).seal || {}).fields;
+  const seals = gitLines(root, ['ls-tree', '-r', ref || 'HEAD', '--name-only', '--', scanRoot(scope)])
+    .filter((f) => f.slice(-(name.length + 1)) === '/' + name);
   let best = null;
   for (const f of seals) {
-    const p = parseSeal(showAt(root, ref || 'HEAD', f));
-    if (p && p.seal && (!best || String(p.recorded_at) > String(best.recorded_at) || (String(p.recorded_at) === String(best.recorded_at) && f > best.file))) {
-      best = { file: f, seal: p.seal, recorded_at: p.recorded_at };
+    const r = sealRank(root, ref, f, fields);
+    if (!r) continue;
+    if (!best
+      || (r.order_day || '') > (best.order_day || '')
+      || ((r.order_day || '') === (best.order_day || '') && (r.round_num > best.round_num || (r.round_num === best.round_num && f > best.file)))) {
+      best = r;
     }
   }
   return best;
 }
 
-// opts.exemptions: [{sha, file?, errata}] - a failing pin is suppressed only
-// when an exemption names the sha (and the file, when the entry carries one).
-// Suppressed pins are reported as errata-exempt, never silently passed.
+// cfg.errata_exemptions: exception-channel entries ({sha, file?, errata} +
+// the ADR-0086 channel fields). A failing pin is suppressed only by an
+// EFFECTIVE entry naming the sha - prefix-aware either direction, hex >= 7
+// (F-5) - and the file, when the entry carries one. Lapsed/revoked entries
+// suppress nothing (fail-closed). Suppressed pins are reported as
+// errata-exempt, never silently passed.
 function orphanAncestry(root, fresh, opts) {
   const cfg = orphanConfig(fresh);
   const o = opts || {};
   const ref = o.ref || 'HEAD';
-  const exemptions = cfg.errata_exemptions || [];
+  const today = o.now || new Date().toISOString().slice(0, 10);
+  const exemptions = (cfg.errata_exemptions || [])
+    .filter((x) => x && typeof x === 'object' && exceptionActive(x, { when: today }));
   const pins = o.pins || pinnedShas(root, cfg, ref);
   const violations = [];
   const exempted = [];
   for (const pin of pins) {
-    const exempt = exemptions.find((x) => x.sha === pin.sha && (!x.file || x.file === pin.file));
+    const exempt = exemptions.find((x) => shaMatch(x.sha, pin.sha) && (!x.file || x.file === pin.file));
     if (!resolvesToCommit(root, pin.sha)) {
       (exempt ? exempted : violations).push({ file: pin.file, kind: pin.kind, sha: pin.sha, reason: 'pinned sha does not resolve to a commit', errata: exempt && exempt.errata });
     } else if (!gitOk(root, ['merge-base', '--is-ancestor', pin.sha, ref])) {
@@ -380,7 +538,7 @@ function orphanAncestry(root, fresh, opts) {
   const wsRef = cfg.workspace_ref || 'refs/heads/gitbutler/workspace';
   let trigger = { state: 'not-evaluated', ref: wsRef, reason: 'workspace ref absent on this surface (no GitButler lane; non-ff clause vacuous here)' };
   if (refExists(root, wsRef)) {
-    const last = lastSealRecord(root, ref);
+    const last = lastSealRecord(root, ref, fresh);
     if (!last) {
       trigger = { state: 'ok', ref: wsRef, seal: null, reason: 'no committed SEAL record - nothing to compare' };
     } else if (gitOk(root, ['merge-base', '--is-ancestor', last.seal, wsRef])) {
@@ -402,8 +560,11 @@ function orphanAncestry(root, fresh, opts) {
 }
 
 module.exports = {
-  HEAD_RE,
+  capturedHeaderRe,
   WORKSPACE_SUBJECT,
+  EXCEPTION_REQUIRED_FIELDS,
+  EXCEPTION_STATUS_ENUM,
+  exceptionActive,
   loadFreshness,
   classifiers,
   classifyFile,
@@ -417,7 +578,10 @@ module.exports = {
   tagState,
   evaluateRound,
   roundConfig,
-  ORPHAN_PIN_RES,
+  pinPatterns,
+  pinEnumPattern,
+  scanRoot,
+  shaMatch,
   pinnedShas,
   lastSealRecord,
   orphanAncestry,
