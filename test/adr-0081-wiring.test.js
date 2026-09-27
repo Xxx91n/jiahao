@@ -88,7 +88,7 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
     // + defer-0074; zero new ADRs) - the count moves 21 -> 22.
     // grill-t29 landed its kind:fix row (ADR-0086 exception-channel + legs) - the count moves 22 -> 23.
     const row = ti.rounds.find((r) => r.round === 'grill-t22-doc-round');
-    expect(ti.rounds).toHaveLength(23);
+    expect(ti.rounds).toHaveLength(24);
     const latest = ti.rounds.find((r) => r.round === 'grill-t23-front-face');
     expect(latest).toBeDefined();
     expect(latest.adr_added).toEqual(['0082']);
@@ -132,13 +132,13 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
 
   test('README index rebuilt: 86 records incl. ADR-0081', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('86 architecture decision records');
+    expect(r).toContain('87 architecture decision records');
     expect(r).toContain('0081-repair-window-amend-in-place-coverage-pairing-headroom-watch.md');
   });
 
   test('ci.yml suite parity declares the live expected suite count', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
-    expect(ci).toContain('--expected-suites 83');
+    expect(ci).toContain('--expected-suites 86');
   });
 
   test('coverageGaps pure export: the R2-undeclared defect shape still fails (regression pin)', () => {

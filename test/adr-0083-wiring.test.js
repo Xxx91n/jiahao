@@ -244,7 +244,7 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
 
   test('README index rebuilt: 86 records incl. ADR-0083', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('86 architecture decision records');
+    expect(r).toContain('87 architecture decision records');
     expect(r).toContain('0083-declared-vs-actual-drift-clauses.md');
   });
 });

@@ -46,7 +46,12 @@ describe('ADR-0032 D2 gsr headers', () => {
   test('headers travel into every generator-tier adapter (injection proof)', () => {
     const adapters = buildAdapters(); // throws if gsr validation fails
     const seen = [];
+    // ADR-0087: adapters/codebuddy/ vendors the repo runtime byte-verbatim
+    // (src/, hooks/, jiahao-mcp/, scripts/) - those are support inputs, not
+    // generator-tier outputs; the rules/ profile files remain in scope.
+    const VENDORED_RE = /^adapters\/codebuddy\/(src|hooks|jiahao-mcp|scripts)\//;
     for (const [rel, content] of Object.entries(adapters)) {
+      if (VENDORED_RE.test(rel)) continue;
       if (rel.includes('generator')) seen.push(rel);
       expect(content.includes('gsr:')).toBe(rel.includes('generator'));
     }

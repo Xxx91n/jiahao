@@ -105,6 +105,11 @@ its provenance in ERRATA E-17; this ADR names its registration only —
 the leg's semantics are deliberately not restated here (ledger
 D-005(vi): same round, different clause).
 
+This ADR also carries this round's gate-amendment: it applies the
+ADR-0062 D-B periodic trend-anchor rule to the pack cap, moving the
+ADR-0039 D3 bound to `out.size < 470,000 bytes` (M_latest = 418,319
+bytes measured at the t30 vendored-bundle surface).
+
 ## Rejected alternatives (ledger Q2'/Q3'/Q5')
 
 - **β compatibility-note-only** — a declaration is not an execution

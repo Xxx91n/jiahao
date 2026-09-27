@@ -126,11 +126,14 @@ Exa/Tavily/AnySearch, 17 primary-source fetches, cross-verified):
   Fowler's build-task-to-website are the isomorphic industry forms; we
   build none of them today.)
 - D3 Measured-anchor budget. The adr-0038-wiring test and the pack-smoke gate
-  assert `out.size < 380,000 bytes` (amended 2026-09-13 by ADR-0062 to
+  assert `out.size < 470,000 bytes` (amended 2026-09-13 by ADR-0062 to
   230,000, again 2026-09-14 by ADR-0066 to 300,000 for the T-6 product
   port surface, again 2026-09-16 by ADR-0071 to 340,000 for the T-10
-  conviction-lane surface, and again 2026-09-22 by ADR-0082 to 380,000
-  under the defer-0067 armed-band channel (M = 339,408 re-measured); the original 200,000-byte value and its one-shot
+  conviction-lane surface, again 2026-09-22 by ADR-0082 to 380,000
+  under the defer-0067 armed-band channel (M = 339,408 re-measured), and
+  again 2026-09-27 by ADR-0087 to 470,000 for the grill-t30 CodeBuddy
+  vendored plugin-bundle surface (M = 418,319 measured via `npm pack
+  --dry-run --json`; ceil_to_10_000(418,319 x 1.10) = 470,000); the original 200,000-byte value and its one-shot
   narrowing-round M anchor are superseded by the periodic trend anchor). The cap
   value must appear verbatim in this ADR's text (content anchor, reusing
   the ADR-0027 D2(a) mechanism: every gate value appears in its source_adr
