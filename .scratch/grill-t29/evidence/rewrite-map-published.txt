@@ -1,0 +1,8 @@
+captured-at-head: 68c8ec2f87d4a48ea67bc81c5d1575845ea47a42
+
+$ node scripts/build-rewrite-map.js --published-only
+
+[rewrite-map] PUBLISHED-ONLY FAIL:
+doc citation coverage differs (first missing: .scratch/grill-t29/evidence/orphan-ancestry.txt:5:b61d7951, .scratch/grill-t29/evidence/orphan-ancestry.txt:6:c9fda727f)
+
+EXIT=1

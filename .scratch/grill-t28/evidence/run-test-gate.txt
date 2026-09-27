@@ -1,0 +1,11 @@
+captured-at-head: c9fda727f9eb1ca33e70b80eec5a2d9135feb29f
+$ node scripts/run-test-gate.js --expected-suites 82
+
+    √ ERRATA E-13 master record + defer-0074 boundary row + CONTEXT term (5 ms)
+
+Test Suites: 82 passed, 82 total
+Tests:       1384 passed, 1384 total
+Snapshots:   0 total
+Time:        79.523 s, estimated 80 s
+Ran all test suites.
+[test] OK: 82 suites, 1384 tests, 0 skipped (ADR-0057 D-C)

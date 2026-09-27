@@ -1,0 +1,15 @@
+ .github/workflows/ci.yml                           |   2 +-
+ README.md                                          |  19 +-
+ bench/research/devin-corpus/eval-plan.json         | 207 ++++++++
+ bench/research/devin-oot.js                        | 539 +++++++++++++++++++++
+ bench/research/out/claim-template.md               |   8 +
+ bench/research/out/devin-oot-report.json           | 536 ++++++++++++++++++++
+ bench/research/out/devin-oot-report.md             | 106 ++++
+ bench/research/out/g6-publish-replay.json          |   2 +-
+ ...vin-corpus-v1-oot-falsification-adjudication.md | 142 ++++++
+ docs/deferred-registry.json                        |  36 ++
+ docs/gates.json                                    |  14 +
+ test/adr-0033-wiring.test.js                       |   5 +-
+ test/adr-0060-wiring.test.js                       |   6 +-
+ test/adr-0067-wiring.test.js                       | 440 +++++++++++++++++
+ 14 files changed, 2054 insertions(+), 8 deletions(-)

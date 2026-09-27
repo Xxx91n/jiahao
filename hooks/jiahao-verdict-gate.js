@@ -12,7 +12,8 @@
 //       between primary and subagent finish events.
 
 const fs = require('fs');
-const { flagPath, evidencePath } = require('../src/shared/paths');
+const path = require('path');
+const { flagPath } = require('../src/shared/paths');
 const { readProfile } = require('./jiahao-profile');
 const { createEvidenceLog } = require('../src/evidence-log');
 const { kappaAdvisory, loadKappaBaseline } = require('../src/calibration');
@@ -27,6 +28,14 @@ if (!fs.existsSync(flagPath())) {
 const profile = readProfile();
 const isGenerator = profile === 'generator';
 
+// ADR-0030 D4 dead-man switch (hook-tier hosts): the judge seam re-verification
+// deadline is machine-readable. The state is DERIVED from the content-anchored
+// deadline constants + the append-only reverify ledger tail, never stored --
+// deleting a state file cannot silence it (missing ledger = degraded). When the
+// bench assets are absent entirely, load() returns null and behavior is unchanged.
+let reverifyDeg = null;
+try { reverifyDeg = require('../src/reverify-schedule').load(path.join(__dirname, '..')); } catch (e) { reverifyDeg = null; }
+
 let input = '';
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', chunk => input += chunk);
@@ -40,24 +49,45 @@ process.stdin.on('end', () => {
     process.exit(0);
   }
 
-  // Read the evidence chain. We do NOT delete the file afterwards (D4);
-  // the chain has to survive SubagentStop and any repeat fire of Stop.
-  let evidenceChain = null;
-  try {
-    const raw = fs.readFileSync(evidencePath(), 'utf8').trim();
-    if (raw.length > 0) {
-      const data = JSON.parse(raw);
-      if (Array.isArray(data) && data.length > 0) {
-        evidenceChain = data;
-      }
-    }
-  } catch (e) { /* no file or invalid JSON = no evidence */ }
+  // ADR-0070 D-A: the conviction lane rides this invocation — transcript_path
+  // -> transcript adapter -> pairItem -> source:pairer-instrument shadow
+  // record. Shadow records are telemetry: they never enter the severity
+  // matrix below and never satisfy the no-evidence check. The lane is
+  // fail-open: a lane-internal error is a record reason, never a hook failure.
+  let laneResult = null;
+  try { laneResult = require('../src/pairer-lane').run(parsed, { evidenceLog: evidenceLog }); } catch (e) { laneResult = null; }
+  let laneText = '';
+  if (laneResult && laneResult.lane === 'recorded' && laneResult.state === 'flagged') {
+    laneText = ' Conviction lane (' + laneResult.mode + '): pairer flagged ' +
+      (laneResult.family || 'unsupported') + ' — claim ' + JSON.stringify(laneResult.claim) +
+      ' vs evidence ' + JSON.stringify(laneResult.evidence) +
+      ' (telemetry; resolve via jiahao resolve if wrong).';
+  }
+
+  // Read the evidence chain through the EvidenceLog factory (ADR-0026 D1/D5):
+  // storage is a segmented log directory; legacy single-file arrays remain
+  // readable in read-only legacy mode until the first write migrates them.
+  // We never delete the log (D4); the chain has to survive SubagentStop
+  // and any repeat fire of Stop.
+  const rawChain = evidenceLog.readAll();
+  // ADR-0070: shadow pairer-lane records are instrument telemetry, not agent
+  // verification evidence — a chain holding only shadow records still means
+  // "no evidence" for the Case A check below. Enforce-mode records
+  // (shadow:false) DO enter the matrix and stay visible here.
+  const effective = rawChain ? rawChain.filter(function (r) {
+    return !(r && r.detector && r.detector.source === 'pairer-instrument' && r.detector.shadow === true);
+  }) : rawChain;
+  const evidenceChain = (effective && effective.length === 0) ? null : effective;
 
   // ADR-0013 D4: chain-corruption detection runs BEFORE any severity case.
   // A broken chain is treated as missing evidence in verifier profile
   // (block, exit 2); advisory-only in generator profile.
   if (evidenceChain) {
-    const chainCheck = evidenceLog.verify(evidenceChain);
+    // ADR-0013 D4 + ADR-0026 D4: verifyTail hot path — active segment plus
+    // previous-segment anchor prechecks. Legacy files are whole-chain
+    // verified inside verifyTail. Cold full verification lives in
+    // scripts/verify-evidence.js and is deliberately NOT in the per-turn path.
+    const chainCheck = evidenceLog.verifyTail();
     if (!chainCheck.valid) {
       const msg = 'JIAHAO CHAIN CORRUPTION: evidence chain invalid at ' +
         'index ' + chainCheck.broken_at + ' (' + chainCheck.reason + '). ' +
@@ -86,6 +116,7 @@ process.stdin.on('end', () => {
         ' (advisory — resolve via: jiahao resolve --verdict pass|fail --reason <text> --reviewer <id>).';
     }
   }
+  pendingText += laneText;
 
   // ADR-0018 D4: κ governance RE-ALIGN advisory (never changes exit codes).
   if (evidenceChain) {
@@ -94,6 +125,10 @@ process.stdin.on('end', () => {
     } catch (e) { /* advisory must never break the gate */ }
   }
 
+  // ADR-0030 D4: soft-deadline banner rides pendingText (advisory only,
+  // never changes exit codes -- same discipline as the kappa advisory).
+  if (reverifyDeg && reverifyDeg.state.state === 'warn' && reverifyDeg.banner) pendingText += ' ' + reverifyDeg.banner;
+
   // ---- Case A: no evidence at all --------------------------------------
   // Behaviour unchanged from ADR-0010: block verifier, advisory generator.
   if (!evidenceChain) {
@@ -101,7 +136,7 @@ process.stdin.on('end', () => {
       console.log(JSON.stringify({
         decision: 'allow',
         systemMessage: 'JIAHAO ADVISORY: Verification has no evidence — ' +
-          'run deterministic checks before claiming done.',
+          'run deterministic checks before claiming done.' + pendingText,
       }));
       process.exit(0);
     }
@@ -121,6 +156,8 @@ process.stdin.on('end', () => {
   // non-suspicious records (a benign claim on a truncated view still gates).
   let coveragePartial = null;
   for (const rec of evidenceChain) {
+    // ADR-0070 D-B: shadow records never enter the severity matrix.
+    if (rec && rec.detector && rec.detector.shadow === true) continue;
     if (rec && rec.detector) {
       if (rec.detector.coverage === 'partial' && !coveragePartial) coveragePartial = rec.detector;
     }
@@ -165,19 +202,35 @@ process.stdin.on('end', () => {
   // Verifier profile: high-severity + suspicious and no independently-checked
   // evidence → block. Low severity → advisory only.
   if (highestSeverity === 'high') {
-    // We do not try to be clever about "no independent evidence" here —
-    // the deterministic/checklist records are by definition self-reported.
-    // The block reason pins the location of the suspicion so escalations
-    // stay triage-able.
-    console.log(JSON.stringify({
-      decision: 'block',
-      reason:
-        'JIAHAO VERIFIER BLOCK (high severity): completion-language detector ' +
-        'matched [' + matchedPhrases.slice(0, 5).join(', ') + '] on the ' +
-        'evidence chain. Re-verify the underlying state changes with rung ' +
-        '1-3 of the ladder before allowing this stop.' + pendingText,
-    }));
-    process.exit(2);
+    // ADR-0030 D4: past the hard deadline the judge seam is advisory-only.
+    // Suspicion blocking degrades to advisory; chain-corruption, no-evidence
+    // and coverage fail-closed paths stay blocking (different invariants).
+    if (reverifyDeg && reverifyDeg.state.state === 'degraded') {
+      // Audit F1: partial coverage is a different invariant than suspicion; it
+      // must not ride the advisory bypass. Fall through to the coverage
+      // ESCALATE branch below instead of allowing.
+      if (!coveragePartial) {
+        console.log(JSON.stringify({
+          decision: 'allow',
+          systemMessage: reverifyDeg.banner + ' Original finding (high severity, unblocked): completion-language detector matched [' + matchedPhrases.slice(0, 5).join(', ') + '].' + pendingText,
+        }));
+        process.exit(0);
+      }
+    } else {
+      // We do not try to be clever about "no independent evidence" here —
+      // the deterministic/checklist records are by definition self-reported.
+      // The block reason pins the location of the suspicion so escalations
+      // stay triage-able.
+      console.log(JSON.stringify({
+        decision: 'block',
+        reason:
+          'JIAHAO VERIFIER BLOCK (high severity): completion-language detector ' +
+          'matched [' + matchedPhrases.slice(0, 5).join(', ') + '] on the ' +
+          'evidence chain. Re-verify the underlying state changes with rung ' +
+          '1-3 of the ladder before allowing this stop.' + pendingText,
+      }));
+      process.exit(2);
+    }
   }
 
   // ADR-0022 D4: fail-closed on coverage. A verdict on partial evidence is
@@ -206,7 +259,7 @@ process.stdin.on('end', () => {
     process.exit(0);
   }
 
-// No suspicion on any record
+  // No suspicion on any record
   // D4: do NOT consume the evidence file. Idempotent under repeat Stop /
   // SubagentStop fire.
   // ADR-0017 D4: pending escalations surface even on the quiet path.

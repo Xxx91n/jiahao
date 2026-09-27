@@ -45,7 +45,10 @@ without new facts): industrial verifiable-log wheels (hypercore / ssb /
 Rekor — size-correct ~150-line chain stays self-maintained; trigger for
 Rekor remains cross-host audit per ADR-0013); `hooks/jiahao-profile.js`
 relocation and `src/detector.js` configDir dedup; dependency-cruiser or
-ESLint no-restricted-imports boundary enforcement.
+ESLint no-restricted-imports boundary enforcement. Sub-item (i) is registered
+as `defer-0027` (pending-evaluation, yearly, review_at 2027-09-01); sub-items
+(ii) and (iii) stay in this prose - no live trigger, no registry entry
+(ADR-0033 D4).
 
 ## Consequences
 

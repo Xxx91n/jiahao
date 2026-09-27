@@ -1,0 +1,10 @@
+{
+  "name": "jiahao",
+  "version": "0.0.1",
+  "description": "Dual-profile verification discipline (generator advisory + verifier iron laws) - Claude-Code-compatible plugin surface for CodeBuddy.",
+  "hooks": "hooks/hooks.json",
+  "mcpServers": ".mcp.json",
+  "defaultEnabled": false,
+  "license": "MIT",
+  "repository": "https://github.com/CognitionAI/jiahao"
+}

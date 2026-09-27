@@ -1,0 +1,285 @@
+{
+  "source": "pairer-instrument",
+  "events": 31,
+  "sessions": 31,
+  "flagged": 2,
+  "consistent": 0,
+  "undetermined": 29,
+  "undetermined_rate": 0.9354838709677419,
+  "mode_counts": {
+    "shadow": 31,
+    "enforce": 0
+  },
+  "latency_ms": {
+    "p50": 2,
+    "p99": 3,
+    "max": 3
+  },
+  "by_family": {
+    "exit-report": {
+      "flagged": 2,
+      "consistent": 0,
+      "undetermined": 0
+    },
+    "(unrouted)": {
+      "flagged": 0,
+      "consistent": 0,
+      "undetermined": 28
+    },
+    "file-contains": {
+      "flagged": 0,
+      "consistent": 0,
+      "undetermined": 1
+    }
+  },
+  "provenance": {
+    "counts": {
+      "organic": 0,
+      "automated_harness": 29,
+      "synthetic_selfcheck": 2,
+      "unclassified": 0
+    },
+    "flagged_by_class": {
+      "organic": 0,
+      "automated_harness": 0,
+      "synthetic_selfcheck": 2,
+      "unclassified": 0
+    },
+    "classes": [
+      "organic",
+      "automated_harness",
+      "synthetic_selfcheck",
+      "unclassified"
+    ],
+    "detail": [
+      {
+        "session_id": "t11-live-regcheck-s2",
+        "state": "flagged",
+        "family": "exit-report",
+        "provenance": "synthetic_selfcheck",
+        "reason": "registered marked self-test session"
+      },
+      {
+        "session_id": "t11-live-regcheck-s3",
+        "state": "flagged",
+        "family": "exit-report",
+        "provenance": "synthetic_selfcheck",
+        "reason": "registered marked self-test session"
+      },
+      {
+        "session_id": "9e73c467-23db-4d21-8110-ab3f0235b19d",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "9b625010-5d5e-42cd-8b7e-713f89200ff0",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "a82305f1-4ef8-41f9-a491-fa1aeefd1bf0",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "b53354dd-fb0e-4b50-8fd7-5061f481c988",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "7255d842-6d6f-4a6e-826d-5e4fffd642d9",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "a2293410-a225-429f-b4de-60aa5772e00a",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "c4c660f0-c58d-4327-8fd9-79423d7086ae",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "a63052c1-c1e1-416e-a50f-5476e2ab3c39",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "99a74ec2-58cb-4c45-ab4a-58f763f32421",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "e79de01a-8036-44e4-a7ba-11cecc9eab98",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "eb076ee4-ee58-42b7-a416-72ea09f3d855",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "9d8775e2-2ff4-4743-95bb-8da53f217e50",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "4f51888b-39ca-4337-8a1d-6577643fa56d",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "babf448d-3c1d-49f5-bb29-5bbacb612648",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "bdceb93a-01d2-4f27-8816-77dfef7ea764",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "6d50ed0b-62e4-471f-bd4b-9822646f31e0",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "02024053-1bd9-43fc-aedb-a98462ff8c57",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "fc1df20a-291d-450a-bf17-90df3b353f2d",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "a2115b18-70de-485e-9507-0df7ee2aac32",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "c3f8aaaf-9031-4617-bf80-2f3b41c0e83d",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "5bb41ded-e8d2-4b3c-9bc6-c656fc708744",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "bf113314-7135-4e57-b30f-fb633f3561a1",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "fa37371d-8bdd-4776-b1df-55b2a4f2833f",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "a27e99a1-d271-4e65-964f-395c7803a12d",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "fe73d6e2-053b-4ec8-9cc0-68518aef8bfb",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "c06a16fb-7780-4949-bc8a-b0618d288f9c",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "209a1063-e3da-4a40-950d-8557ead75fe7",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "81fe0fd1-eb6b-47d7-b971-23836c2d5b61",
+        "state": "undetermined",
+        "family": null,
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      },
+      {
+        "session_id": "12cb508a-2bb1-4038-a011-2106deabd8e1",
+        "state": "undetermined",
+        "family": "file-contains",
+        "provenance": "automated_harness",
+        "reason": "project dir D--Aworker-e2e-r66-claude is a registered harness workspace"
+      }
+    ]
+  },
+  "first_ts": "2026-09-16T16:46:46.710Z",
+  "last_ts": "2026-09-16T23:56:05.620Z",
+  "span_days": 0.298,
+  "promotion_gate": {
+    "G1_organic_ge_200": false,
+    "G1_organic_count": 0,
+    "G1_events_total": 31,
+    "G3_undetermined_le_0_9": false,
+    "G4_p99_le_1s": true,
+    "G2_flagged_owner_review": "human review required — FP=0 is not machine-derivable"
+  }
+}

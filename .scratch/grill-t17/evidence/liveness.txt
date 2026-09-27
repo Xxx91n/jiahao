@@ -1,0 +1,19 @@
+$ npm pack --pack-destination <tmp>
+npm notice
+jiahao-0.0.1.tgz
+tarball: jiahao-0.0.1.tgz
+$ node scripts/install.js --help (from extracted package)
+jiahao v0.0.1 — install .jiahao-profile flag
+
+Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
+       jiahao resolve [--verdict pass|fail --reason <text> --reviewer <id>]
+
+Writes ONLY C:\Users\Administrator\.jiahao-profile
+Tier 0 manual: echo "verifier" > C:\Users\Administrator\.jiahao-profile
+exit: 0
+$ node scripts/install.js init -y --dry-run (from extracted package)
+[dry-run] would write "verifier" to C:\Users\Administrator\.jiahao-profile
+exit: 0
+$ printf initialize | node jiahao-mcp/index.js (repo copy)
+{"result":{"protocolVersion":"2024-11-05","capabilities":{"prompts":{"listChanged":true},"tools":{"listChanged":true}},"serverInfo":{"name":"jiahao","version":"1.0.0"}},"jsonrpc":"2.0","id":1}
+exit: 0

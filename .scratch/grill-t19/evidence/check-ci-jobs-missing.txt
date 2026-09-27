@@ -1,0 +1,5 @@
+$ node scripts/check-ci-jobs.js .scratch/grill-t19/evidence/no-such-ci.yml
+
+EXIT 2
+
+check-ci-jobs: verifier broken - ENOENT: no such file or directory, open 'D:\Aworker\jiahao\.scratch\grill-t19\evidence\no-such-ci.yml'

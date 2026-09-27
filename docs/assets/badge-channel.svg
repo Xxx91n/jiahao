@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="20" viewBox="0 0 1400 200" role="img" aria-labelledby="t">
+  <title id="t">channel: npx github:</title>
+  <rect width="1400" height="200" rx="30" fill="#555"/>
+  <rect x="550" width="850" height="200" fill="#24292f"/>
+  <rect x="550" width="40" height="200" fill="#24292f"/>
+  <g fill="#fff" font-family="Verdana,DejaVu Sans,sans-serif" font-size="110" text-anchor="middle">
+    <text x="275" y="140" fill="#010101" opacity="0.25" transform="translate(0,10)">channel</text>
+    <text x="275" y="140">channel</text>
+    <text x="975" y="140" fill="#010101" opacity="0.25" transform="translate(0,10)">npx github:</text>
+    <text x="975" y="140">npx github:</text>
+  </g>
+</svg>

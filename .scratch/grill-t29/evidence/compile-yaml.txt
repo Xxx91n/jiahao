@@ -1,0 +1,7 @@
+captured-at-head: 68c8ec2f87d4a48ea67bc81c5d1575845ea47a42
+
+$ node -e const y=require('js-yaml'),fs=require('fs');for(const p of ['.github/workflows/ci.yml','.aider.conf.yml','.github/dependabot.yml'].filter(p=>fs.existsSync(p)))y.load(fs.readFileSync(p,'utf8'));console.log('yaml parse OK')
+
+yaml parse OK
+
+EXIT=0

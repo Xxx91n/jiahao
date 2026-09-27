@@ -1,0 +1,75 @@
+$ npx jest test/adr-0076-wiring.test.js -t grill-t18
+
+EXIT 0
+
+PASS test/adr-0076-wiring.test.js
+  ADR-0076 doc surface (grill-t15 disposition + mechanism round)
+    ○ skipped title, status, date, ledger anchor
+    ○ skipped decision clauses D-A..D-E land
+    ○ skipped CONTEXT.md carries the two new terms + the amended Sunset Trigger
+    ○ skipped README index rebuilt: 76 records incl. ADR-0076
+    ○ skipped AGENTS.md carries the single pointer line
+    ○ skipped anchors.json lists decision-ledger-t15.md under ADR-0076, content-equal to the scratch authority
+  surface taxonomy artifact (ADR-0076 D-A)
+    ○ skipped the R1 set is exactly the computed require-closure (authority is the scan, not the list)
+    ○ skipped every git-tracked file classifies into exactly one surface
+    ○ skipped the surface rules pin representative paths to their class
+  registry dispositions (ADR-0076 D-E)
+    ○ skipped defer-0026 actioned with the limitation field
+    ○ skipped defer-0060 is the sole live 403 tracker: external-event, pending-evaluation, no verified_by
+    ○ skipped defer-0055 sunset pointer is pure (audit F-3): pointer only, no clause restatement
+    ○ skipped defer-0061 tally row registered for the +1 round
+  owner asks frozen, never bundled (ADR-0076 D-E)
+    ○ skipped both ask packets are frozen verbatim with their types
+  ADR-0077 amendments (grill-t16 fix + mechanism round, data-surface assertions)
+    ○ skipped ADR-0077 exists with live status, date, amends line, and ledger anchor
+    ○ skipped ADR-0076 carries the Amended-by pointer and the D-B(2) superseded-phrase annotation
+    ○ skipped mechanism_outputs is a closed enumeration: every entry classifies R2 and names an existing generator
+    ○ skipped the two F-D artifacts are the enumeration members
+    ○ skipped diff_semantics reworded: machinery-source hand-edits + faithful regeneration + mechanism_output_diff entry
+    ○ skipped t15 trend row annotation is additive-only: historical booleans untouched
+    ○ skipped t16 row: +1 ADR-0077, zero product diff, carve-out not invoked (streak resets)
+    ○ skipped no unlisted file claims the output exemption (mechanism_output_diff files are always inside the enumeration)
+    ○ skipped CONTEXT.md carries the Consuming-Row Exit + Facts Canon terms and the carve-out gloss restored the inventory channel
+    ○ skipped defer-0004 rationale cites ADR-0058 D-C explicitly (settles F-C)
+    ○ skipped defer-0062 tally row registered closed for the +1 round
+    ○ skipped README index rebuilt: 77 records incl. ADR-0077
+    ○ skipped the ledger carries the convention verbatim and the consent-sweep lines
+    ○ skipped mechanism_output_diff marker: checker accepts members, hard-fails bare markers and unlisted files
+    ○ skipped anchors.json lists decision-ledger-t16.md under ADR-0077, content-equal to the scratch authority
+    ○ skipped facts canon: artifact schema + deterministic render pin (ADR-0077 D-C)
+  grill-t17 dispositions (ADR-0077 D-E appendix + residue registrations)
+    ○ skipped proseScan export: unconditional - a quoted canon number is still a violation
+    ○ skipped a quoted-stale-number fixture MUST fail --check (ADR-0077 D-E)
+    ○ skipped the t17 report renders the canon region and carries no canon number in prose
+    ○ skipped ADR-0077 D-E appendix registers the unconditional scan + the evidence-file convention
+    ○ skipped defer-0063 is the missing-convention smell ticket with the anti-rot quota
+    ○ skipped ERRATA E-7 registers the seq-27 classification + the literal-token convention
+    ○ skipped CONTEXT carries the Re-Execution Prior snapshot v2 and the sharpened delegation convention
+    ○ skipped gen-docs invariant: every committed copy derives ROOT from __dirname (D-003 class-killer)
+    ○ skipped the gen-docs template carries the frozen derived-ROOT header
+  grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendix + doc hygiene)
+    √ ADR-0078 exists with live status, date, amends line, ledger + spec anchors (4 ms)
+    √ kind enum: a fix row WITH governance_tooling_diff passes; WITHOUT it fails (ADR-0078 negative pin) (47 ms)
+    √ fix rows are exempt from the D-F deferred-entry assert; documentation rows are not (control) (44 ms)
+    √ fix-row gtd files still classify against the taxonomy (R3 listing is mislabeled) (55 ms)
+    √ carve_out_used may be omitted on fix rows and never feeds the burn-rate streak (43 ms)
+    √ the grill-t17 row is corrected disclosed: kind fix + gtd backfill + retroactive first line, history untouched (22 ms)
+    √ README index rebuilt: 78 records incl. ADR-0078 (1 ms)
+    √ ADR-0077 grill-t18 amendments: D-A.1 appendix + floor registration + regen-boundary sentence (2 ms)
+    √ CONTEXT terms verified pre-landed (D-005/D-007) (2 ms)
+    √ AGENTS.md authoring-path clause (D-006) (1 ms)
+    √ doc-hygiene pin: every committed .scratch/*.md is free of corruption signatures (136 ms)
+    √ doc-hygiene negative fixtures: the two real corruption samples are flagged (1 ms)
+    √ the t17 next-round.md repair holds: restored paths + $names + zero signatures (H-1) (2 ms)
+    √ t17 ledger carries the appended disclosure note (D-005) (1 ms)
+    √ single-digit canon fixture: bare single-digit value walks free (declared floor gap), key-assign catches it (D-002) (1 ms)
+    √ key-assign fixture: every one of the eleven schema keys is enforced in prose (D-002) (1 ms)
+    √ PROSE_KEYS single-source: derived from SCHEMA_KEYS, all numeric-canon, no drift (D-003) (3 ms)
+    √ emit-exit boundary: a multi-violation report exits 1 with every cause line (D-003/D-A.1) (79 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       39 skipped, 18 passed, 57 total
+Snapshots:   0 total
+Time:        1.017 s, estimated 3 s
+Ran all test suites matching /test\\adr-0076-wiring.test.js/i with tests matching "grill-t18".

@@ -1,0 +1,17 @@
+{
+  "name": "jiahao-mcp",
+  "version": "1.0.0",
+  "description": "MCP server exposing jiahao verifier discipline for MCP-only agent hosts.",
+  "private": true,
+  "main": "index.js",
+  "bin": {
+    "jiahao-mcp": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "zod": "^3.23.0"
+  }
+}

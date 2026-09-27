@@ -1,0 +1,6 @@
+# Jiahao discipline injection (advisory-only; aider has no hooks)
+# Loader is explicit configuration, not discovery
+# (aider.chat/docs/config/aider_conf.html; conventions guide recommends
+# read: over the stale read-only: spelling).
+read:
+  - CONVENTIONS.md

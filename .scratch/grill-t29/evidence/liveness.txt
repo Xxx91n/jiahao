@@ -1,0 +1,17 @@
+captured-at-head: 68c8ec2f87d4a48ea67bc81c5d1575845ea47a42
+
+$ npm pack (tarball 372596 B / 121 files) ; tar -xzf -C <tmp> ; node package/scripts/install.js --help ; node package/scripts/install.js init -y --dry-run
+
+--- install.js --help (exit 0) ---
+jiahao v0.0.1 — install .jiahao-profile flag
+
+Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]
+       jiahao resolve [--verdict pass|fail --reason <text> --reviewer <id>]
+
+Writes ONLY C:\Users\Administrator\.jiahao-profile
+Tier 0 manual: echo "verifier" > C:\Users\Administrator\.jiahao-profile
+
+--- init -y --dry-run (exit 0) ---
+[dry-run] would write "verifier" to C:\Users\Administrator\.jiahao-profile
+
+EXIT=0

@@ -1,0 +1,534 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0033: registry of chosen-to-defer (pending-activation) items only. Declared-gap permanents live in coverage-map.json; chosen-not-to-build items (e.g. judgeSeam, ADR-0019 D4) stay in ADRs per MADR. review_at expiry is fail-closed: activate, re-defer with new review_at + rationale, or remove. Anchors are existence-based: source_adr file must exist and the entry id must appear in any docs/adr/*.md or CONTEXT.md (typically the registering ADR). Enforced by scripts/check-deferred.js (deferred:gate). ADR-0035 additions: every entry carries cadence_tier (quarterly|half-yearly|yearly, review cadence ladder D1) and registered_at (D2 residency SLA: pending-evaluation may not outstay min(2 cycles, 12 months)); external-event entries carry last_check_in{date,note} with at least one check-in per cycle (warn-level, D3); presence-condition/count-threshold entries must carry verified_by pointing to an existing assertion script or be downgraded to pending-evaluation (D6, fail-closed).",
+  "entries": [
+    {
+      "id": "defer-0001",
+      "subject": "supply-chain signing (sigstore keyless / SLSA provenance)",
+      "source_adr": "docs/adr/0029-verifier-effectiveness-behavioral-probe-gate.md",
+      "rationale": "Single maintainer, local-only distribution (no remote, no npm publish, no CI): signing infrastructure buys nothing until at least one distribution channel exists. ADR-0029 D7 registers signing as a rejected-for-now item with explicit re-activation conditions.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the project gains a publish pipeline AND a remote + GitHub Actions (or equivalent OIDC issuer) exists AND artifact inventory (tarball, adapters manifest) is formalized"
+      },
+      "review_at": "2027-02-28",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-08-30",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0002",
+      "subject": "L1/L2 golden gate deepening for the 8 long-tail host adapters (upstream copilot-cli bugs)",
+      "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
+      "rationale": "L1/L2 golden conformance is suspended while upstream copilot-cli sessionStart bugs are unresolved; shipping L1 gates on buggy session semantics would codify breakage as gold. Partial fulfillment as of 2026-08-30: issues 2415/2142 closed, 1730/2201 still open (ADR-0035 D4 narrows this entry to the pure external-event; the host-protocol verification moved to defer-0005).",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the copilot-cli sessionStart bugs (issues 1730, 2201, 2415, 2142) resolved upstream"
+      },
+      "review_at": "2026-11-30",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-08-30",
+      "last_check_in": {
+        "date": "2026-08-30",
+        "note": "upstream verified via atomcode research: 2415/2142 closed, 1730/2201 open; condition not yet fulfilled"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0003",
+      "subject": "Merkle tree / signature upgrade of the evidence hash chain",
+      "source_adr": "CONTEXT.md",
+      "rationale": "Single-repo single-actor chains gain nothing from Merkle batching; the current linear hash chain is auditable end-to-end. Deferred per CONTEXT.md Cross-Turn Hash Chain terminology.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "a second-party consumer of the evidence log exists outside the producing repository, OR a cross-machine verification requirement appears"
+      },
+      "review_at": "2027-08-31",
+      "cadence_tier": "yearly",
+      "registered_at": "2026-08-30",
+      "last_check_in": {
+        "date": "2026-08-30",
+        "note": "checked, nothing changed: no second-party evidence-log consumer, no cross-machine verification requirement"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0004",
+      "subject": "generated ci.yml from docs/gates.json (C-style render + regen-diff uplift)",
+      "source_adr": "docs/adr/0034-gate-registry-single-entrypoint-orchestration.md",
+      "rationale": "ADR-0034 R4: ci.yml is a single-consumer ~30-line file; a renderer would hide intent drift behind a build step (ADR-0032 D2 anti-precedent). The D5 line-level wiring assertion (scripts/check-ci-wiring.js) covers the drift risk at zero build-layer cost.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "ci.yml declares more than one top-level job",
+        "verified_by": "scripts/check-ci-jobs.js"
+      },
+      "review_at": "2027-08-31",
+      "cadence_tier": "yearly",
+      "registered_at": "2026-08-30",
+      "status": "deferred"
+    },
+    {
+      "id": "defer-0005",
+      "subject": "verify the 8 long-tail host protocols against official documentation",
+      "source_adr": "docs/adr/0035-deferred-registry-cadence-checkin-verifiedby-honesty-corrections.md",
+      "rationale": "Split out of defer-0002 by ADR-0035 D4 (one entry, one condition type). L1/L2 golden conformance for the 8 long-tail hosts must not ship until each protocol is verified against its official documentation; serial atomcode research per host is the verification channel. Stays in this registry, not coverage-map.json (ADR-0035 R5: different namespace).",
+      "unfreeze_if": {
+        "type": "free-text",
+        "check": "all 8 long-tail host protocols (incl. copilot, qoder, opencode, aider) verified against official docs and recorded in host-contracts.json"
+      },
+      "review_at": "2026-11-30",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-08-30",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0006",
+      "subject": "MR corpus v2 pipeline: LLM-generated candidate transforms + independent semantic-preservation judge (ASE 2026 two-layer, different model family) + paired McNemar (Amazon LLM-Accuracy-Stats) + FWER control",
+      "source_adr": "docs/adr/0037-metamorphic-relations-third-corpus-family-staged-hybrid.md",
+      "rationale": "v1 is hand-authored because judge-validated machine generation cannot feed a zero-false-positive corpus (LLMorph: unverified transforms are only ~42-60% true positives). Scaling past ~12 pairs needs the two-layer pipeline and paired statistics; both are buildable on demand, so v1 is frozen instead of pre-built.",
+      "unfreeze_if": {
+        "type": "count-threshold",
+        "check": "any single MR family accumulates >= 30 real cases (the ADR-0029 D3 graduation line), OR a freshness cycle demands corpus regeneration at a scale hand-authoring cannot carry"
+      },
+      "review_at": "2027-02-28",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-08-31",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0007",
+      "subject": "private-registry corpus distribution channel (publish=false / access-controlled npm registry package, Cargo/Turborepo internal-package pattern)",
+      "source_adr": "docs/adr/0038-npm-runtime-artifact-surface-corpus-distribution-boundary.md",
+      "rationale": "No external consumer demand exists today; the maintainer/CI channel (CI secret tar) covers all real reproduction needs. Building the channel now would pay the two-package version-sync cost for zero demand (ADR-0038 R1 reasoning).",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a real external consumer of the benchmark corpus exists (an external team attempting reproduction) AND an access-controlled private channel is provisioned"
+      },
+      "review_at": "2027-02-28",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-08-31",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0008",
+      "subject": "local-file:<path> escape form for gate capability probing (one-off custom gates)",
+      "source_adr": "docs/adr/0040-gate-runtime-capability-declaration-three-state-exit-honest-unverifiable.md",
+      "rationale": "The four-capability closed enum covers all 18 current gates; an unconstrained escape slides toward an expression language. systemd precedent: X- prefix is a reserved namespace, not an open verb; if built, it must be prefix-scoped, relative-path-only, and inside the coupling guard's scan range.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a real gate needs an arbitrary-path capability outside the closed enum"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-01",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0009",
+      "subject": "implement check-falsify.js and register falsification in docs/gates.json",
+      "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
+      "rationale": "ADR-0044 is a document-round decision only. The executable falsification gate and registry wiring belong to the next implementation round.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the ADR-0044 implementation round opens"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-04",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0010",
+      "subject": "define and commit the first 12 falsification-twins with claim_id, claim_type, and falsification_cmd entries",
+      "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
+      "rationale": "The first twin batch is a structural killing-power check, not statistical coverage. Its fixtures are created in the implementation round once the record and gate contract are wired.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the ADR-0044 implementation round opens and check-falsify.js exists"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-04",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0011",
+      "subject": "add statistical falsification metrics and threshold enforcement after the structural gate is green",
+      "source_adr": "docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md",
+      "rationale": "Statistics would pretend to measure what the first structural gate cannot yet support. It follows a green structural falsification gate and a larger twin corpus.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "defer-0009 is implemented and the structural falsification gate is green"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-04",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0012",
+      "subject": "scoring-function isolation for capable-optimizer defense",
+      "source_adr": "docs/adr/0045-stochastic-deterministic-boundary-evidence-path-verification.md",
+      "rationale": "ADR-0036 already isolates corpus data; ADR-0045 records the separate execution-boundary concern. Scoring code must not be readable or mutable by the generator before it runs, but there is no current score-bearing verifier implementation to protect.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a scoring-mode verifier or LLM-judge runtime exists and is reachable by the generator"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-05",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0013",
+      "subject": "Lyft-style prompt contradiction and dead-path linting",
+      "source_adr": "docs/adr/0045-stochastic-deterministic-boundary-evidence-path-verification.md",
+      "rationale": "Current adapter drift and structural checks catch shape drift, not contradictory or dead instruction paths. Adding an LLM-level prompt linter would introduce a new review dependency before the existing static gates demonstrate the need.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "adapter drift and structural gates have produced a reproducible missed contradiction case"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-05",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0015",
+      "subject": "Human-labeled anchor corpus and annotation manual for the judge revalidation admission gate",
+      "source_adr": "docs/adr/0046-instrument-drift-recalibration.md",
+      "rationale": "The human-anchor admission gate (ADR-0046 D-D) requires a frozen human-labeled corpus with a human-human kappa baseline, expert rotation, and a 60-90 day refresh; that asset does not exist yet.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the ADR-0046 implementation round opens and a frozen human-labeled anchor corpus with annotation manual is commissioned"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-05",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0018",
+      "subject": "silent-drift anytime-valid auto-detection: anchor e-process + guard-window attribution to {none, system, judge}",
+      "source_adr": "docs/adr/0047-impact-tiered-instrument-change-control.md",
+      "rationale": "ADR-0047 D-E defers silent provider drift detection behind its two prerequisites: the human-labeled anchor corpus (defer-0015) and a trustworthy scheduler carrier (CONTEXT.md Reverification Runbook rejects cron/CI without a trusted remote executor). Building before the anchor set exists would replicate the naive-z ~75% false-alarm failure.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "defer-0015's frozen human-labeled anchor corpus with annotation manual is committed and schema-valid, AND a trustworthy scheduler carrier exists (CI cron with a trusted remote executor, or equivalent), AND the reverify pipeline wires the ADR-0046 D-A identity triple"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-05",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0019",
+      "subject": "data-driven calibration interval and offset-band feedback (staircase / reliability-ratio + guard-band)",
+      "source_adr": "docs/adr/0047-impact-tiered-instrument-change-control.md",
+      "rationale": "ADR-0047 D-F keeps the 6/9-month dead-man clock as initial interval and floor while the reverify ledger accumulates as-found/as-left history. Data-driven interval adjustment needs enough same-identity cycles and flip-eligible samples plus the anchor set before a control decision is statistically honest.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the same identity has accumulated >= 2-3 complete reverify cycles AND >= 30 flip-eligible samples (ADR-0029 D3 graduation line) AND defer-0015's anchor set is available"
+      },
+      "review_at": "2027-03-01",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-05",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0023",
+      "subject": "criteria-change pointwise replay (as-left re-projection pipeline)",
+      "source_adr": "docs/adr/0049-decision-rule-anchor-and-metrological-ledger-completion.md",
+      "rationale": "ADR-0049 D-D requires pointwise replayable judge input before a criteria change can produce a genuine as-left re-projection. The current ledger retains aggregate values only, so criteria change must fall back to restatement mapping until input retention and the anchor set exist.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the metrological ledger is authoritative AND pointwise judge input retention (claim/toolResults/heuristicVerdict) is implemented AND defer-0015's anchor set is available"
+      },
+      "review_at": "2026-12-06",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-06",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0024",
+      "subject": "external witness / second-copy anchor for the evidence-log tip and genesis (independent-domain mirror: transparency log / timestamp / DNS TXT / second host)",
+      "source_adr": "docs/adr/0050-append-only-hardening-external-head-anchor-and-genesis-anchoring.md",
+      "rationale": "ADR-0050 D-B lands the install-time local genesis anchor and tail sidecar first. An external second copy raises detection strength from same-host to cross-domain (detection strength equals anchor independence) but requires network or a third-party trust domain; deferred until a cross-machine verification requirement or second-party consumer exists.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "a cross-machine verification requirement or a second-party consumer of the evidence log exists outside the producing host"
+      },
+      "review_at": "2027-09-01",
+      "cadence_tier": "yearly",
+      "registered_at": "2026-09-07",
+      "last_check_in": {
+        "date": "2026-09-13",
+        "note": "minimal unlock (ADR-0061 D-E C-2): authoritative governance copies now live in git-tracked docs/governance/ with machine-generated witnessed digests (anchors.json), giving a same-repo second copy. BAR STATEMENT (SPEC-3 repair, 2026-09-13): this git-commit witness does NOT satisfy the unfreeze condition and must not be recorded as if it did. ADR-0050/ADR-0061 D-E state explicitly that git alone is not tamper-proof, so a same-repo git copy is not an independent-domain witness - it shares the producing host, the repository, and the trust domain of the very record it would corroborate (detection strength equals anchor independence). The external/cross-domain half of the unfreeze condition therefore remains UNMET; defer-0024 stays open. External witness deadline for the next mandatory check-in: 2027-09-01 (this entry's review_at), with an interim obligation to re-check at each full-year tide."
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0025",
+      "subject": "host-native directory synchronization capability upgrade",
+      "source_adr": "docs/adr/0051-closed-persistence-capability-class.md",
+      "rationale": "ADR-0051 records the closed persistence capability class. The current runtime uses dir-sync-unsupported on Windows; promoting it to dir-sync-durable requires a documented portable directory-fsync primitive from Node or Windows, not a local adapter or new dependency.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the target runtime exposes a documented and supported portable directory-fsync primitive"
+      },
+      "review_at": "2027-03-09",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-09",
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0026",
+      "subject": "independent CI test job with always() summary (status-check visibility for the test layer)",
+      "source_adr": "docs/adr/0057-test-skip-honesty-and-suite-count-assertion.md",
+      "rationale": "ADR-0057 D-D: splitting test out of gate:all into a parallel job with an always() summary reverses the platform skipped=success default, but requires amending ADR-0034 D5 wording and the check-ci-wiring blocklist; landing ADR-0056/0057 inside the existing test gate comes first. Activation also satisfies the defer-0004 presence condition, whose evaluation must run in the same round.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "ci.yml declares a dedicated test job independent of gate:all plus an always() summary job",
+        "verified_by": "scripts/check-ci-jobs.js"
+      },
+      "review_at": "2027-09-10",
+      "cadence_tier": "yearly",
+      "registered_at": "2026-09-10",
+      "status": "deferred"
+    },
+    {
+      "id": "defer-0027",
+      "subject": "verifiable-log wheels (hypercore/ssb/Rekor) for the evidence hash chain",
+      "source_adr": "docs/adr/0016-evidencelog-gateladder-split-shared-core.md",
+      "rationale": "ADR-0016 D4 sub-item (i): industrial verifiable-log wheels deferred because single-repo single-actor chains gain nothing from Merkle batching; the current linear hash chain (~100 lines, zero-dep) is auditable end-to-end. Trigger condition for activation remains cross-host audit per ADR-0013. Sub-items (ii) (profile.js relocation + configDir dedup) and (iii) (lint boundary) have no live trigger and stay in ADR prose.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "a second-party consumer of the evidence log exists outside the producing repository, OR a cross-machine verification requirement appears"
+      },
+      "review_at": "2027-09-01",
+      "cadence_tier": "yearly",
+      "registered_at": "2026-09-12",
+      "last_check_in": {
+        "date": "2026-09-12",
+        "note": "registered from ADR-0016 D4 prose; no second-party evidence-log consumer, no cross-machine verification requirement"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0028",
+      "subject": "npm scoped publish channel (@<org>/jiahao) + name squat declaration",
+      "source_adr": "docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md",
+      "rationale": "The unprefixed npm name jiahao is a third-party 2019 test package; the project has never published (defer-0001). Tier 1 moves to a name-independent github: channel now; a scoped @<org>/jiahao identity is reserved so a future legitimate channel exists. Scoped and unprefixed names do not conflict; creating the npm user/org for the scope is cheap and time-sensitive (names are first-come, hard to transfer).",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a publish pipeline exists AND a remote exists AND an OIDC issuer (npm trusted publishing) is available AND an artifact inventory is formalized (all four defer-0001 conditions)"
+      },
+      "review_at": "2027-02-28",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-12",
+      "last_check_in": {
+        "date": "2026-09-12",
+        "note": "registered at ADR-0059; <org> placeholder unset — run a candidate-name availability scan (normalized variants) before any publication"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0029",
+      "subject": "MCP distribution channel revival (jiahao-mcp publishable as its own artifact)",
+      "source_adr": "docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md",
+      "rationale": "ADR-0059 D-B removes jiahao-mcp/ from the tarball to restore ADR-0009 opt-in intent (nested package.json deps are not installed from tarballs — npm by design). The component stays source-only in the git tree. Revival is deferred until a real channel exists, mirroring the defer-0007 presence-condition pattern.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a real external MCP-only consumer exists AND a working publish channel exists (defer-0001/defer-0028 conditions satisfiable)"
+      },
+      "review_at": "2027-09-01",
+      "cadence_tier": "yearly",
+      "registered_at": "2026-09-12",
+      "last_check_in": {
+        "date": "2026-09-12",
+        "note": "source-only tier active; no external MCP-only consumer on record"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0030",
+      "subject": "heterogeneous-model independent review channel (independent review layer)",
+      "source_adr": "docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md",
+      "rationale": "ADR-0059 D-D: wiring tests are coherence-tier limited assurance; same-author verification cannot claim IEEE 1012 independence. A cross-family model review channel converts the unfalsifiable same-boundary charge into a measurable, bookable engineering object. Honest bound: it provides partial technical independence only — managerial/financial independence is out of reach and labeled as such (cross-family confident errors partially shared, rho ~0.47).",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "at least one usable audit channel from a different model family exists AND a review-tasks.json schema is landed"
+      },
+      "review_at": "2026-12-12",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-12",
+      "last_check_in": {
+        "date": "2026-09-12",
+        "note": "MVP scope: reports stay inside the repository (defer-0024 external-event NOT triggered); must not merge into defer-0015 (ADR-0035 D4 single-condition discipline)"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0031",
+      "subject": "full-document polish pass over src/SKILL.md",
+      "source_adr": "docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md",
+      "rationale": "Prompt assets change via eval-carrying diffs (OpenAI/Braintrust prompt-versioning practice; RFC errata / camera-ready freeze patterns); a whole-document sweep has no industrial counterpart and would breach the 57-byte tarball margin plus trigger CONTEXT.md glossary ripple. Facts-correction edits (e.g. D-004 wording) remain licensed at any time; polish requires anchored defects.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the product round (D-C) or the hetero audit (defer-0030) has produced >=N falsifiable SKILL.md defects each anchored to bench/GSR/audit evidence AND the tarball-budget round (ADR-0058 R4) has landed"
+      },
+      "review_at": "2027-03-12",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-12",
+      "last_check_in": {
+        "date": "2026-09-12",
+        "note": "exit criteria pre-registered in ADR-0059 D-E (trigger-attributed commits, green GSR+wiring, pre/post bench verdict invariance, pack under the ADR-0039 D3 cap (200,000), glossary sync)"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0032",
+      "subject": "judge-twins corpus expansion to n>=100 flip-eligible",
+      "source_adr": "docs/adr/0060-judge-conformity-sampling-power-indeterminate-state-and-conditional-certification.md",
+      "rationale": "ADR-0060 D-A pre-registers min_n=100: below it the guarded-acceptance rule is structurally inoperable (the guard band consumes the spec limit, so no observation can return pass). The frozen judge-twins corpus has 26 entries / 22 flip-eligible, so reaching the operable region requires expanding the corpus, which is a corpus rebaseline (ADR-0047 corpus surface) and therefore its own round.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a corpus authoring round has produced judge-twins.jsonl with >= 100 flip-eligible entries and a new frozen content fingerprint"
+      },
+      "review_at": "2027-03-12",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-09-12",
+      "last_check_in": {
+        "date": "2026-09-12",
+        "note": "registered at ADR-0060; current corpus has 22 flip-eligible entries (n < min_n=100)"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0033",
+      "subject": "judge-quality CAPA: flip rate to <= 0.05",
+      "source_adr": "docs/adr/0060-judge-conformity-sampling-power-indeterminate-state-and-conditional-certification.md",
+      "rationale": "The as-found revalidation measured a flip rate of 0.13636 (3/22) against spec_limit 0.10 - a real judge-quality gap, not a sampling artifact (at p=0.136 no sample size can pass). The conditional certification carries this CAPA; the spec limit is NOT loosened to make existing data pass (ADR-0060 D-D).",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a judge-quality round has driven the flip rate to <= 0.05 and a fresh revalidation records conformity=pass"
+      },
+      "review_at": "2026-12-11",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-12",
+      "last_check_in": {
+        "date": "2026-09-12",
+        "note": "conditional certification expires 2026-12-11 (fail-closed on expiry)"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0034",
+      "subject": "eval surface that actually exercises the src/SKILL.md prompt",
+      "source_adr": "docs/adr/0060-judge-conformity-sampling-power-indeterminate-state-and-conditional-certification.md",
+      "rationale": "The judge-twins evaluation path is deterministic (identical per-entry outcomes across runs; no provider call observed), so the TOST no-regression argument establishes \"no regression on the evaluated surface\", not \"the prompt has no behavioural effect\". A prompt-exercising eval surface is the declared gap.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "an eval harness exists whose inputs actually exercise the SKILL.md prompt and whose results are recorded in the reverify ledger"
+      },
+      "review_at": "2027-09-01",
+      "cadence_tier": "yearly",
+      "registered_at": "2026-09-12",
+      "last_check_in": {
+        "date": "2026-09-12",
+        "note": "declared gap in ADR-0060 Consequences"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0035",
+      "subject": "model identity sub-declaration re-verification (UNRESOLVED tagging must not be open-ended)",
+      "source_adr": "docs/adr/0061-pre-registered-gate-amendment-closure-surface-narrowed-judge-identity-and-output-tethered-convergence.md",
+      "rationale": "ADR-0061 D-C: declaration-scoped tagging requires a recorded re-verification path and a deadline; without one the tag degrades into an open-ended concession (IATF / ADR-0060 D-D precedent).",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a re-pinned or formally dispositioned model_checkpoint/model_identity declaration exists in the reverify ledger, signed via the P-A1 path"
+      },
+      "review_at": "2026-12-11",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-13",
+      "last_check_in": {
+        "date": "2026-09-13",
+        "note": "registered in the ADR-0061 doc round"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0036",
+      "subject": "zero-movement trigger N and the exemption-counting rule for output-tethered convergence",
+      "source_adr": "docs/adr/0061-pre-registered-gate-amendment-closure-surface-narrowed-judge-identity-and-output-tethered-convergence.md",
+      "rationale": "ADR-0061 D-D/D-F: the convergence criterion (N consecutive zero-movement rounds triggers the governance-diet agenda; exemption rounds excluded, 3 consecutive exemptions alert) has no numeric N until the implementation round sets it under ADR-0060 min_n power discipline.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "an ADR or gate fixture defines N and the exemption-counting rule with a power-analysis justification"
+      },
+      "review_at": "2026-12-06",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-13",
+      "last_check_in": {
+        "date": "2026-09-13",
+        "note": "registered in the ADR-0061 doc round"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0037",
+      "subject": "tarball-cap trend-anchor review (ADR-0062 amendment closure)",
+      "source_adr": "docs/adr/0062-pre-registered-tarball-cap-amendment-policy-before-value-trend-anchor.md",
+      "rationale": "ADR-0062 D-A/D-E: the cap amendment carries a review_at and must ride the deferred-registry tide like every other pre-registered gate revision; the live value stays anchored in ADR-0039 D3.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the ADR-0062 review_at (2026-12-13) is checked in and the trend anchor is re-measured under the pinned protocol (npm pack --dry-run --json, size field)"
+      },
+      "review_at": "2026-12-13",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-13",
+      "last_check_in": {
+        "date": "2026-09-13",
+        "note": "registered in the ADR-0061 T-2 implementation round"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0038",
+      "subject": "surface-narrowed judge identity anchor review (ADR-0063 re-pin closure)",
+      "source_adr": "docs/adr/0063-surface-narrowed-judge-identity-anchor-semantic-digest-rejected.md",
+      "rationale": "ADR-0063 D-D: the narrowing moves the resolved rules_digest and re-pins the judge identity under a conditional certification (reverify tail indeterminate, ADR-0060 D-B); the review_at must ride the deferred-registry tide like every other pre-registered identity change.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the ADR-0063 review_at (2026-12-11) is checked in and the judge identity is either re-certified by a full signoff (reverify tail conformity=pass) or the conditional CAPA is dispositioned"
+      },
+      "review_at": "2026-12-11",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-13",
+      "last_check_in": {
+        "date": "2026-09-13",
+        "note": "registered in the ADR-0061 T-3 implementation round"
+      },
+      "status": "pending-evaluation"
+    },
+    {
+      "id": "defer-0039",
+      "subject": "first evaluation of the ADR net-addition governance trend anchor (ADR-0064 D-F)",
+      "source_adr": "docs/adr/0064-t6-product-round-pre-registration-mde-gates-and-governance-trend-anchor.md",
+      "rationale": "ADR-0064 D-F sets an observational trend anchor (63 + K=2, two consecutive documentation rounds with net additions > 0 raise one advisory line). The first evaluation cannot be pre-empted; it rides the registry tide like every other pre-registered review (ADR-0033).",
+      "unfreeze_if": {
+        "type": "free-text",
+        "check": "review_at reached; the trend anchor has either fired advisedly or is re-anchored by a same-commit ADR"
+      },
+      "review_at": "2026-12-14",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-14",
+      "last_check_in": {
+        "date": "2026-09-14",
+        "note": "registered in the grill-t6 documentation round"
+      },
+      "status": "pending-evaluation"
+    }
+  ]
+}

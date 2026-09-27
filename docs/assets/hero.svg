@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 150" role="img" aria-labelledby="t d">
+  <title id="t">dual-profile split and six-rung evidence ladder</title>
+  <desc id="d">The jiahao motif: a generator profile and a verifier profile split by an information boundary; the six-rung verification ladder climbs between them toward four verdict states.</desc>
+  <style>
+    .ink{fill:#24292f}.mut{fill:#57606a}.box{fill:#f6f8fa;stroke:#8c959f;stroke-width:1.5}
+    .seam{stroke:#24292f;stroke-width:2}.acc{fill:#cf222e}
+    .rung{fill:#eaeef2;stroke:#8c959f}.lbl{font:600 15px system-ui,Segoe UI,sans-serif;fill:#24292f}
+    .sml{font:400 12.5px system-ui,Segoe UI,sans-serif;fill:#57606a}
+    @media (prefers-color-scheme: dark){
+      .ink{fill:#e6edf3}.mut{fill:#8b949e}.box{fill:#161b22;stroke:#30363d}
+      .seam{stroke:#e6edf3}.acc{fill:#f85149}
+      .rung{fill:#21262d;stroke:#30363d}.lbl{fill:#e6edf3}.sml{fill:#8b949e}
+    }
+  </style>
+  <!-- dual-profile split mark -->
+  <g transform="translate(300,18)">
+    <rect x="0" y="0" width="92" height="92" rx="20" class="box"/>
+    <rect x="92" y="0" width="92" height="92" rx="20" class="box"/>
+    <line x1="92" y1="0" x2="92" y2="92" class="seam"/>
+    <circle cx="46" cy="40" r="19" class="mut" opacity="0.85"/>
+    <rect x="29" y="64" width="34" height="13" rx="6" class="mut" opacity="0.55"/>
+    <circle cx="138" cy="40" r="19" class="ink"/>
+    <rect x="121" y="64" width="34" height="13" rx="6" class="ink" opacity="0.8"/>
+    <text x="46" y="114" text-anchor="middle" class="sml">generator</text>
+    <text x="138" y="114" text-anchor="middle" class="sml">verifier</text>
+    <text x="92" y="134" text-anchor="middle" class="sml" font-size="10.5">information boundary</text>
+  </g>
+  <!-- six-rung ladder rising between the profiles and the verdict rail -->
+  <g transform="translate(570,30)">
+    <rect x="0" y="82" width="20" height="14" rx="3" class="rung"/>
+    <rect x="26" y="63" width="20" height="33" rx="3" class="rung"/>
+    <rect x="52" y="44" width="20" height="52" rx="3" class="rung"/>
+    <rect x="78" y="25" width="20" height="71" rx="3" class="rung"/>
+    <rect x="104" y="6" width="20" height="90" rx="3" class="rung"/>
+    <rect x="130" y="0" width="20" height="96" rx="3" class="acc" opacity="0.9"/>
+    <text x="75" y="124" text-anchor="middle" class="sml">six-rung ladder</text>
+  </g>
+  <!-- verdict rail -->
+  <g transform="translate(830,24)">
+    <rect x="0" y="0" width="120" height="24" rx="6" class="rung"/><text x="60" y="16" text-anchor="middle" class="sml" fill="#24292f">PASS</text>
+    <rect x="0" y="32" width="120" height="24" rx="6" class="acc"/><text x="60" y="48" text-anchor="middle" fill="#fff" font-family="system-ui" font-weight="600" font-size="12.5">FAIL</text>
+    <rect x="0" y="64" width="120" height="24" rx="6" class="rung"/><text x="60" y="80" text-anchor="middle" class="sml">ESCALATE</text>
+    <rect x="0" y="96" width="120" height="24" rx="6" class="rung"/><text x="60" y="112" text-anchor="middle" class="sml">NOT VERIFIED</text>
+  </g>
+  <line x1="120" y1="75" x2="280" y2="75" class="seam" opacity="0.3"/>
+  <line x1="520" y1="75" x2="560" y2="75" class="seam" opacity="0.3"/>
+  <line x1="740" y1="75" x2="810" y2="75" class="seam" opacity="0.3"/>
+  <text x="200" y="68" text-anchor="middle" class="sml">claim</text>
+  <text x="775" y="68" text-anchor="middle" class="sml">verdict</text>
+</svg>

@@ -1,0 +1,8 @@
+captured-at-head: 68c8ec2f87d4a48ea67bc81c5d1575845ea47a42
+
+$ node scripts/check-orphan-ancestry.js
+
+[orphan-ancestry] errata-exempt pin: .scratch/grill-t29/reports/audit-report.md b61d7951 (E-17)
+[orphan-ancestry] OK - 99 pin(s) / 14 unique sha(s) ancestral of HEAD; trigger: ok (workspace descends from last seal c9fda727f (.scratch/grill-t28/SEAL)); 1 errata-exempt
+
+EXIT=0

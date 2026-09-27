@@ -1,0 +1,29 @@
+captured-at-head: 9a3edb4116f84c08ff3747e60bd4ff8366358a42
+$ git status --porcelain
+
+EXIT 0
+
+ M .scratch/grill-t24/evidence/round-facts.txt
+ M .scratch/grill-t25/evidence/round-facts.txt
+?? .scratch/clean-tree-pair.cjs
+?? .scratch/grill-t13/audit-evidence/r2-round-diff.patch
+?? .scratch/grill-t14/audit-evidence/
+?? .scratch/grill-t15/audit-evidence/round-diff.patch
+?? .scratch/grill-t16/audit-evidence/
+?? .scratch/grill-t17/audit-evidence/
+?? .scratch/grill-t18/audit-evidence/
+?? .scratch/grill-t19/audit-evidence/
+?? .scratch/grill-t20/audit-evidence/
+?? .scratch/grill-t21/audit-evidence/
+?? .scratch/grill-t21/audit2-evidence/
+?? .scratch/grill-t22/audit-evidence/
+?? .scratch/grill-t23/audit-evidence/
+?? .scratch/grill-t23/ref-assets/
+?? .scratch/recapture-closeout.cjs
+
+classification (registry docs/governance/never-commit.json, 9 active rules):
+  tracked-diff lines: 2
+  untracked lines: 15 (never-commit class or self: 15; other: 0)
+  unexpected untracked: none
+
+verdict: CLEAN

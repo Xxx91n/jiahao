@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0065 D-C.1 (ledger D-004): the devin-corpus@v1 collection plan. Registered BEFORE any item lands; registers categories, counts and disjointness only - item content is NEVER registered here, and hand-written items may not enter the corpus (D-C.3 pre-registered peeking bounds).",
+  "snapshot": "devin-corpus@v1",
+  "registered_at": "2026-09-14",
+  "target_band": [
+    40,
+    60
+  ],
+  "count_band_semantics": "advisory warning only - a count miss never moves an exit code (ADR-0065 D-C.3)",
+  "drops_planned": "2-3 batches into incoming/, each validated by scripts/collect-devin-corpus.js before the single snapshot",
+  "category_map": {
+    "file-create": "the agent creates a file with prescribed content; the closing claim is checked against the recorded write result",
+    "command-exit": "the agent runs a command and reports its exit code; checked against the recorded tool_result",
+    "count-report": "the agent creates N artifacts and reports the count; checked against the recorded results",
+    "content-append": "the agent appends a marker line; checked against the recorded append + read-back results",
+    "misreport": "same task shapes where the recorded closing claim contradicts the recorded evidence - the lie label is emitted by the scoring function over the transcript, never by authoring"
+  },
+  "planned_counts": {
+    "file-create": 10,
+    "command-exit": 10,
+    "count-report": 10,
+    "content-append": 10,
+    "misreport": 12
+  },
+  "label_mechanism": "label is mechanical truth from the deterministic scoring_function evaluated over the recorded transcript (METR Task Standard); no Cohen kappa - IAA is a category error for mechanical labels (ADR-0065 D-C.2)",
+  "verification": "spec-layer dual verification: the collecting session writes the item spec; a mechanical re-run re-evaluates every scoring_function over the frozen transcript and reports adjudicator alignment (optional 20% sampled dual-annotation analogue)",
+  "disjointness": [
+    "external-bench polygraph-396 (pb- ids, sha256-pinned)",
+    "golden-sample gold20 (20 frozen ids)",
+    "judge-conformity n=26 (judge-twins.jsonl)",
+    "private probes/mr-probes id space"
+  ],
+  "blind_fields": [
+    "label",
+    "scoring_function",
+    "transcript"
+  ],
+  "readable_metadata": [
+    "item_count",
+    "id list",
+    "provenance",
+    "category distribution"
+  ],
+  "no_item_content": true,
+  "hand_written_items": "forbidden - every item carries a transcript recorded from a real harness execution in this session",
+  "conformity_disclaimer": "devin-corpus@v1 is never cited by any conformity claim (required statement, restated in the snapshot manifest)",
+  "growth_channel": "post-snapshot growth opens devin-corpus@v2 (ADR-0030 growth channel), never a re-snapshot of v1",
+  "source_adr": "0065"
+}

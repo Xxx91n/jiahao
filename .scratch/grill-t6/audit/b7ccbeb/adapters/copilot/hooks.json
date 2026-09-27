@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "command": "node .github/jiahao/hooks/jiahao-activate.js",
+        "timeoutSec": 10
+      }
+    ],
+    "userPromptSubmitted": [
+      {
+        "type": "command",
+        "command": "node .github/jiahao/hooks/jiahao-mode-tracker.js",
+        "timeoutSec": 10
+      }
+    ],
+    "subagentStart": [
+      {
+        "type": "command",
+        "command": "node .github/jiahao/hooks/jiahao-subagent.js",
+        "timeoutSec": 10
+      }
+    ],
+    "agentStop": [
+      {
+        "type": "command",
+        "command": "node .github/jiahao/hooks/jiahao-verdict-gate.js",
+        "timeoutSec": 30
+      }
+    ],
+    "sessionEnd": [
+      {
+        "type": "command",
+        "command": "node .github/jiahao/hooks/jiahao-sweep.js",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}

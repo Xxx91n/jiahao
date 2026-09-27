@@ -4,8 +4,10 @@
 // (build-adapters.js is the sole distributor — silent-drift guardrail).
 // ADR-0014: also plants private/phrases.json into ~/.jiahao/private/ so the
 // wordlist is NOT inside the shared cwd anymore.
+// ADR-0036 D2: also plants private/bench-corpus/ (answer corpora + fingerprints).
 
 const fs = require('fs');
+const path = require('path');
 const { profilePath, configDir } = require('../src/shared/paths');
 const pkg = require('../package.json');
 
@@ -117,7 +119,43 @@ async function main() {
     }
   } catch (e) { console.warn('wordlist plant skipped: ' + e.message); }
 
+  // ADR-0036 D2: plant the private bench corpus (probes / judge-twins / twins
+  // + fingerprints.json) next to the wordlist, outside the cwd.
+  try {
+    const p = require('path');
+    const src = p.join(__dirname, '..', 'private', 'bench-corpus');
+    const dest = p.join(configDir(), 'private', 'bench-corpus');
+    if (fs.existsSync(src)) {
+      fs.mkdirSync(dest, { recursive: true });
+      for (const f of fs.readdirSync(src)) fs.copyFileSync(p.join(src, f), p.join(dest, f));
+      console.log('Planted private bench corpus at ' + dest);
+    }
+  } catch (e) { console.warn('corpus plant skipped: ' + e.message); }
+
   console.log(REMINDER);
+
+  // ADR-0050 D-B/D-D: retrofit the existing local chain with a forward seal
+  // and protected genesis anchor; a first install with no evidence is a no-op.
+  try {
+    const seal = require('../src/evidence-log').createEvidenceLog(configDir()).sealForwardIfNeeded();
+    if (seal.status === 'first_seal') console.log('Sealed existing evidence chain at ' + seal.sealed_seq);
+  } catch (e) {
+    console.warn('anchor seal skipped: ' + e.message);
+  }
+
+  // ADR-0051 D-B: probe directory-fsync capability and record the observed
+  // class. An existing operator declaration stays authoritative.
+  try {
+    const el = require('../src/evidence-log');
+    const declFile = path.join(configDir(), el.PERSISTENCE_DECLARATION_FILENAME);
+    let decl = {};
+    try { decl = JSON.parse(fs.readFileSync(declFile, 'utf8')); } catch (e) { /* first install */ }
+    decl.probed = el.probePersistenceCapability(configDir());
+    decl.probed_at = new Date().toISOString();
+    fs.writeFileSync(declFile, JSON.stringify(decl, null, 2) + '\n', 'utf8');
+    console.log('Persistence capability: probed=' + decl.probed +
+      (decl.declared ? ' declared=' + decl.declared + ' (declaration wins)' : ''));
+  } catch (e) { console.warn('persistence probe skipped: ' + e.message); }
 }
 
 main().catch(e => { console.error(e.message); process.exit(1); });

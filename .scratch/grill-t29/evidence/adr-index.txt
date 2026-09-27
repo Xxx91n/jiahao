@@ -1,0 +1,7 @@
+captured-at-head: 68c8ec2f87d4a48ea67bc81c5d1575845ea47a42
+
+$ node -e const fs2=require('fs');const d=fs2.readdirSync('docs/adr').filter(f=>/^d+.*.md$/.test(f));console.log('adr index:',d.length,'records')
+
+adr index: 0 records
+
+EXIT=0

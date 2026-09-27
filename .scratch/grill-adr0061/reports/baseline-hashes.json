@@ -1,0 +1,57 @@
+{
+  "_doc": "Pre-repair baseline: historical event hashes that MUST remain byte-identical after the R-1 repair (append-only proof).",
+  "captured_at": "2026-09-13",
+  "history_length": 10,
+  "events": [
+    {
+      "seq": 1,
+      "kind": "genesis",
+      "event_hash": "ba9e18f8c865ce6e9e163df2bd81f66b9b243b18489ca3fe7edcff52b976f357"
+    },
+    {
+      "seq": 2,
+      "kind": "quarantine",
+      "event_hash": "cc010774f93b424579b438621075130df4ff9511cbe42282620f4472624f8a7b"
+    },
+    {
+      "seq": 3,
+      "kind": "conditional_signoff",
+      "event_hash": "3e6a2d3faf67e061e1e76966adcc4498a963776f2398da9c2c61990e0811c899"
+    },
+    {
+      "seq": 4,
+      "kind": "record_only_change",
+      "event_hash": "cd386d61fea16d7b1f517dcc3d81f2bf3a49bec8712981a50d25277563d2c181"
+    },
+    {
+      "seq": 5,
+      "kind": "record_signoff",
+      "event_hash": "d3bc927753db31c33d7f34f6188107d8798c42f1fd065b6c6f5158ca6c0728ed"
+    },
+    {
+      "seq": 6,
+      "kind": "criteria_change",
+      "event_hash": "17de5b7c8b765216c40f35b429e368f181073ba8ae212f760640a51847060355"
+    },
+    {
+      "seq": 7,
+      "kind": "record_only_change",
+      "event_hash": "935f767c1d023685dff9be37a12b991b6078cf6d21793299a0cab8f23048fdbe"
+    },
+    {
+      "seq": 8,
+      "kind": "record_signoff",
+      "event_hash": "bf69c66557d72e756360226f125fa7d0d3d3846f72677010c56c8627ba9f6652"
+    },
+    {
+      "seq": 9,
+      "kind": "quarantine",
+      "event_hash": "d08e50df93cdf1cf523f33485efa3e2f21f6044643c9aec8a8526cc9a4506a63"
+    },
+    {
+      "seq": 10,
+      "kind": "conditional_signoff",
+      "event_hash": "09b9413e34658d55a49b9ddfb6a86790fafca5e6e21555a7e09508d7a1315d3d"
+    }
+  ]
+}

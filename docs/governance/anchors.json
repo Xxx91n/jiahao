@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0061 D-E: authoritative governance copies outside the tarball whitelist; digests are machine-generated and regen-and-diff checked.",
+  "witness": "git-tracked commit (the second copy); a full external/cross-domain witness remains deferred as defer-0024 (minimal unlock, ADR-0061 D-E C-2)",
+  "artifacts": [
+    {
+      "file": "decision-ledger-adr0059.md",
+      "origin": ".scratch/grill-adr0059/decision-ledger.md",
+      "adr": "ADR-0059",
+      "bytes": 24624,
+      "sha256": "5b559580c5b006c4d0ca99f4ddb509f9872ddfdfb667a3de8a73c0c529728dde"
+    },
+    {
+      "file": "decision-ledger-adr0061.md",
+      "origin": ".scratch/grill-adr0061/decision-ledger.md",
+      "adr": "ADR-0061",
+      "bytes": 10501,
+      "sha256": "53e8564ecccc78b62d7093c7d247c8c76a305baa38efb011f3d349fbe1b2699f"
+    },
+    {
+      "file": "audit-report-adr0058.md",
+      "origin": ".scratch/grill-adr0058/reports/2026-09-12-audit-report.md",
+      "adr": "ADR-0058",
+      "bytes": 30790,
+      "sha256": "e442b1ba0ff0d95a1ffc7230090cd1d26ec1559beab3109e8643e3915927bd52"
+    },
+    {
+      "file": "decision-ledger-t6.md",
+      "origin": ".scratch/grill-t6/decision-ledger.md",
+      "adr": "ADR-0064",
+      "bytes": 13504,
+      "sha256": "0fba3ebaf894bfb3a87df82f88e53f07546af79ccbf96a3d5154195d15ec5fa5"
+    },
+    {
+      "file": "decision-ledger-t7.md",
+      "origin": ".scratch/grill-t7/decision-ledger.md",
+      "adr": "ADR-0065",
+      "bytes": 25774,
+      "sha256": "06ff25bf41022029340f5ab19de9e74d23e1124bf5cbfc7997b633c30c170123"
+    },
+    {
+      "file": "decision-ledger-t8.md",
+      "origin": ".scratch/grill-t8/decision-ledger.md",
+      "adr": "ADR-0069",
+      "bytes": 9823,
+      "sha256": "9e09abc402e04afce0c44877f6e37a065cb54b03e5e41e0e41f8f407cda00bca"
+    },
+    {
+      "file": "decision-ledger-t10.md",
+      "origin": ".scratch/grill-t10/decision-ledger.md",
+      "adr": "ADR-0070",
+      "bytes": 8883,
+      "sha256": "eac74067ea9f70470bf46fa9d0d03e6451194f3120d45582304c57987c652f29"
+    },
+    {
+      "file": "decision-ledger-t11.md",
+      "origin": ".scratch/grill-t11/decision-ledger.md",
+      "adr": "ADR-0072",
+      "bytes": 6434,
+      "sha256": "cedfcb6c14414fbb579b061f505d4ba867e897717b0e3d17d563ad94ca321e1a"
+    },
+    {
+      "file": "decision-ledger-t12.md",
+      "origin": ".scratch/grill-t12/decision-ledger.md",
+      "adr": "ADR-0073",
+      "bytes": 6495,
+      "sha256": "6fdcb1cf132f29dc17e2a03bf9a54e44be396c0080ca5ed1a74ec253e3b61d4a"
+    },
+    {
+      "file": "decision-ledger-t13.md",
+      "origin": ".scratch/grill-t13/decision-ledger.md",
+      "adr": "ADR-0074",
+      "bytes": 13409,
+      "sha256": "b7e57e91e3e5032fbf890aca72ab1b825b09ac491627850fba8a690620d769d4"
+    },
+    {
+      "file": "decision-ledger-t14.md",
+      "origin": ".scratch/grill-t14/decision-ledger.md",
+      "adr": "ADR-0075",
+      "bytes": 9788,
+      "sha256": "c51fb6a08726c6b411f549c83993f7bcfa5d10ecac02b495b7c1e006ecc93cee"
+    },
+    {
+      "file": "decision-ledger-t15.md",
+      "origin": ".scratch/grill-t15/decision-ledger.md",
+      "adr": "ADR-0076",
+      "bytes": 20979,
+      "sha256": "69bdff733bb0d9426bc865ccbb4da13b38d8d55d2a2fbab24e908889cd70b6af"
+    },
+    {
+      "file": "decision-ledger-t16.md",
+      "origin": ".scratch/grill-t16/decision-ledger.md",
+      "adr": "ADR-0077",
+      "bytes": 16974,
+      "sha256": "033439ecb11d1e4631d98a1ca6607177bc86d6510cecbda973f126acdc33bdf1"
+    },
+    {
+      "file": "decision-ledger-t18.md",
+      "origin": ".scratch/grill-t18/decision-ledger.md",
+      "adr": "ADR-0078",
+      "bytes": 18400,
+      "sha256": "da500a1e10df28348d8ab168e77e32c58928fb7cf923338ef238294ff8f43e32"
+    },
+    {
+      "file": "decision-ledger-t20.md",
+      "origin": ".scratch/grill-t20/decision-ledger.md",
+      "adr": "ADR-0080",
+      "bytes": 13348,
+      "sha256": "168e1c71221bbfd092e81347cb43d22418e271c4eb10ae7a092c488c720838b4"
+    },
+    {
+      "file": "ERRATA.md",
+      "origin": "(authored in place)",
+      "adr": "ADR-0061",
+      "bytes": 15840,
+      "sha256": "96dc44d0183c7072ce7a87d5ea239d9c6a68a8517b448753a82bbbe414b9f3fe"
+    },
+    {
+      "file": "trend-inventory.json",
+      "origin": "(authored in place)",
+      "adr": "ADR-0064",
+      "bytes": 26358,
+      "sha256": "cd1828d8ae074704622ce0a30184ecfa0ede65bf1edd953b065b7d1ec012b842"
+    },
+    {
+      "file": "sunset-counter.json",
+      "origin": "(authored in place)",
+      "adr": "ADR-0076",
+      "bytes": 2048,
+      "sha256": "5e9f1ffcc05959969fe925f621ecb23201b9fe1710abaac6f5c4221dc8b9d345"
+    }
+  ]
+}

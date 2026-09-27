@@ -6,7 +6,9 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const TMP = path.join(os.tmpdir(), 'jiahao-adr0022-test').replace(/\\/g, '/');
+// O-A (R2 hygiene): unique per-run temp dir — fixed-name dirs were the jest
+// parallel-flake vector (t12 audit O-A). mkdtempSync wins over pid+random.
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-adr0022-')).replace(/\\/g, '/');
 
 function runGate(profile, records) {
   fs.mkdirSync(TMP, { recursive: true });

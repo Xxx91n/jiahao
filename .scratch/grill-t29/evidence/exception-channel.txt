@@ -1,0 +1,7 @@
+captured-at-head: 68c8ec2f87d4a48ea67bc81c5d1575845ea47a42
+
+$ node scripts/check-exception-channel.js
+
+[exception-channel] OK: 2 channel fields, 4 entries complete and in-force (ADR-0086)
+
+EXIT=0

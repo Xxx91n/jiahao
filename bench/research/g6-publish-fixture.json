@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0065 D-B.3: sha256-anchored expectations for the G6 publish gate. Carries no item text (corpus doors stay out of the npm surface); the replay text comes from gold20.jsonl whose whole-file digest is anchored here. Regenerate: node scripts/check-g6-publish.js --freeze.",
+  "source_adr": "0064/0065",
+  "gold20_file": "bench/research/gold20.jsonl",
+  "gold20_sha256": "3a727fd38060956c72744ce2f3ef31e6d1814195d339e11873816cc6be0c271b",
+  "item_count": 20,
+  "tolerances": {
+    "token_multiset": 0,
+    "rel_l2": 1e-9,
+    "logit": 1e-12
+  },
+  "expectations": [
+    {
+      "id": "pb-core-l1a-0263",
+      "tokens_sha256": "e9e968320c929b5b432e444baeecf590627f3fd3adbe889d8695172ae995c65c",
+      "logit": 4.758834166228714
+    },
+    {
+      "id": "pb-core-l1a-0257",
+      "tokens_sha256": "295ce503a2adfc3aaa7319deaa118642081946ad0051d1a769163a216091a271",
+      "logit": 5.260968904550932
+    },
+    {
+      "id": "pb-hard-l6-2791",
+      "tokens_sha256": "7f8a48e4d708c72a2cd5f685ba305ac8a8656192a57697b9ffd6759f69f10041",
+      "logit": 4.421472719013291
+    },
+    {
+      "id": "pb-hard-l7-0215",
+      "tokens_sha256": "2039cd41b9ac0902d84593fb3cd245229b0652975aae55bb779aac66fff257df",
+      "logit": 5.877582086639936
+    },
+    {
+      "id": "pb-hard-l4-0336",
+      "tokens_sha256": "289516c0487a21ec6d20703e8427b84967110b1ab46fcec180df3ddc0c1be748",
+      "logit": 4.929451120828286
+    },
+    {
+      "id": "pb-core-l2a-0266",
+      "tokens_sha256": "17792254fb442fb2af6e2d405a8a5a70a74b33eb16610d9dfb75f339bfa38b1b",
+      "logit": 6.944518446990575
+    },
+    {
+      "id": "pb-core-l1b-0261",
+      "tokens_sha256": "36203bf727164cbfb457af18e7fdb78f4503e40b4b5c7286d2475d6740c63aec",
+      "logit": 6.051701866664528
+    },
+    {
+      "id": "pb-core-l2b-0269",
+      "tokens_sha256": "743784346bac6e6a13769bbec9d18ce16e9a08951a56ebad0360f3208f148578",
+      "logit": 17.467381403858838
+    },
+    {
+      "id": "pb-core-l1a-0260",
+      "tokens_sha256": "d8300ca1d926a2f1a72c23c4d5deb72191144f882129b312ccc58ce371d4d7c2",
+      "logit": 5.416891238387681
+    },
+    {
+      "id": "pb-core-l2a-0263",
+      "tokens_sha256": "4ab56b0356562e8cd1ffca14e693988096bce474d798050484d91b00ac398b1f",
+      "logit": 4.33881338567158
+    },
+    {
+      "id": "pb-hard-h6-0267",
+      "tokens_sha256": "adf88b2f37f9de96204e2cabec079d870c475bd1340ca7418efd3645019856cc",
+      "logit": -6.229397303106489
+    },
+    {
+      "id": "pb-core-h1-recov-0897",
+      "tokens_sha256": "c122d75c0fdb6d96aa7a9848c9a06b7883025d0efa66eccf09c02b71d5eb67ee",
+      "logit": -12.199824450189169
+    },
+    {
+      "id": "pb-hard-h7-0268",
+      "tokens_sha256": "ffd3895bb37acc60b28aa6acdd69ad2119321bb382a95bc6c153048f5bc00b32",
+      "logit": -6.671803075181951
+    },
+    {
+      "id": "pb-hard-h5-0069",
+      "tokens_sha256": "9c400b764277d460ed6e82066a3e8e0f4dce997480e20dbd05716d3862963d12",
+      "logit": -6.2039639055974165
+    },
+    {
+      "id": "pb-core-h1-recov-0881",
+      "tokens_sha256": "66313fd29849a1e411e960e3da81b5e50e6daa7783d64e3ee033a60ce06c26b4",
+      "logit": -12.306326687104974
+    },
+    {
+      "id": "pb-core-h1-recov-0903",
+      "tokens_sha256": "d5ce2d6f018d1bc2a449dbd60e68778c58d49671a75d769f6d4cad12f38a2134",
+      "logit": -8.675549434686896
+    },
+    {
+      "id": "pb-hard-h7-0264",
+      "tokens_sha256": "0dfaa34cdbf98e0e7c638e0d4d87ad0b731baaf1619a6c7beae68f0f225e1d23",
+      "logit": -6.364412479280152
+    },
+    {
+      "id": "pb-core-h1-recov-0886",
+      "tokens_sha256": "c0888228b3c8688c92e35480b2cecdccc1da0d26dda3ab955b3372e80cf9e474",
+      "logit": -11.803576363737712
+    },
+    {
+      "id": "pb-hard-h8-plain-0034",
+      "tokens_sha256": "69e49f823c8fd0ca6fb8d7425e7473a7a4f80f4c4ea6d3e159c49d120da74417",
+      "logit": -8.089688429767914
+    },
+    {
+      "id": "pb-core-h1-recov-0891",
+      "tokens_sha256": "bcf2ab5ab3e70cb93ddacf9f302f00b6a94257bdfb66a01d202a7b36521e47e8",
+      "logit": -6.967749230515586
+    }
+  ]
+}

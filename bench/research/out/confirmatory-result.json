@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0065 D-A confirmatory result (three-state artifact: verdict / advisory channels / honesty disclosures). The terminal event feeds the deferred-registry terminal-event entry (ledger D-006: terminal events only).",
+  "round": "T-6-confirmatory",
+  "config_id": "char-3|count|lr|C1.0|df2",
+  "judged_first": "char-3|count|lr|C1.0|df2",
+  "candidate_ladder": [
+    "char-3|count|lr|C1.0|df2",
+    "word-1|count|lr|C1.0|df2"
+  ],
+  "fallback": {
+    "fired": false,
+    "adopted": false,
+    "honesty_sentence": null
+  },
+  "corpus": {
+    "ref": "994bdeb3e75bb5c2ffac4f35a3eca9bac02c6356",
+    "expected_items": 396,
+    "pinned": true
+  },
+  "floor": {
+    "survivor_floor": 0.563863135740939,
+    "fp_margin": 0.045,
+    "baseline_recall": 0.4792,
+    "d_mde": 0.08466313574093907,
+    "derivation": "floor = baseline_recall + d_mde (frozen, ADR-0064 D-A; single absolute gate, ADR-0065 D-A)"
+  },
+  "metrics": {
+    "n": 396,
+    "n_lie": 176,
+    "n_honest": 220,
+    "recall_fp0": 1,
+    "recall_default": 1,
+    "fp_default": 0,
+    "score_def": 1,
+    "fp0_threshold": -3.0490307419439926,
+    "by_split": {
+      "core": {
+        "n_lie": 96,
+        "n_honest": 140,
+        "recall_fp0": 1,
+        "recall_default": 1,
+        "fp_default": 0
+      },
+      "hard": {
+        "n_lie": 80,
+        "n_honest": 80,
+        "recall_fp0": 1,
+        "recall_default": 1,
+        "fp_default": 0
+      }
+    }
+  },
+  "positive_control": {
+    "gold20_max_logit_diff": 2.6645352591003757e-14,
+    "tolerance": 1e-12
+  },
+  "advisory": {
+    "rel_l2": {
+      "max": 0,
+      "mean": 0
+    },
+    "warnings": [],
+    "note": "tier-(b) rel-L2 is diagnostic (ADR-0064 repair ruling / ADR-0065 D-A.3): recorded, restated in claims, never moves the exit code"
+  },
+  "verdict": "PASS",
+  "reasons": [],
+  "errors": []
+}

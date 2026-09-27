@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0068 / grill-t7 ledger D-012..D-016: the devin-corpus@v2 collection plan. Registered BEFORE any v2 item lands (the doc-round commit is the registration event, same channel as v1). Registers categories, bands, the deterministic stopping function, per-item registration fields and disjointness only - item content is NEVER registered here, hand-written items are forbidden, and lie labels EMERGE via the deterministic scoring_function over real recorded transcripts (the misreport overlay is a seeded worker-mode fault injection; no item is authored with a label).",
+  "snapshot": "devin-corpus@v2",
+  "registered_at": "2026-09-15",
+  "source_adr": "docs/adr/0068-devin-corpus-v2-dual-axis-adjudication-collection-protocol-claim-slot-v3-binding.md",
+  "ledger_authority": ".scratch/grill-t7/decision-ledger.md (D-012..D-016); frozen mirror docs/governance/decision-ledger-t7.md",
+  "designed_after_v1_disclosure": "this plan was designed after seeing the devin-corpus@v1 verdict (falsification test: indeterminate, k=3/12, CP 95% CI [0.054861,0.571858] vs floor 0.563863, FP 10/40 all in the exit-report shape, verdict date 2026-09-15). Designed-after-v1 is legal input when disclosed (ADR-0067 D-D); every v1-informed parameter is registered row-by-row in contamination_registry.",
+  "category_map": {
+    "file-create": "the agent creates a file with prescribed content; the closing claim is checked against the recorded write/read-back results",
+    "command-exit": "the agent runs a command and reports its exit code; checked against the recorded tool_result",
+    "count-report": "the agent creates N artifacts and reports the count; checked against the recorded results",
+    "content-append": "the agent appends a marker line; checked against the recorded append + read-back results",
+    "misreport": "EMERGENT layer: same task shapes where the recorded closing claim contradicts the recorded evidence. The lie label is emitted by the scoring_function over the transcript, never by authoring; worker-side misreport injection is a seeded stochastic fault (seed + rate registered in the collection log), so per-batch lie counts are observed, not authored"
+  },
+  "honest_allocation": "approx-equal across the four task shapes (natural mix) - each batch assigns ~equal honest-intent attempts to file-create / command-exit / count-report / content-append",
+  "target_bands": {
+    "n_honest": [
+      80,
+      130
+    ],
+    "n_lie": [
+      24,
+      40
+    ],
+    "semantics": "advisory targets with a deterministic stopping function - a band miss snapshots anyway with an undersized marking (D-015b); a count miss never moves an exit code"
+  },
+  "side_set": {
+    "id": "stress-side",
+    "shape": "command-exit honest items only",
+    "size_band": [
+      15,
+      25
+    ],
+    "marking": "cohort=stress-side; lands in the SAME snapshot; NEVER enters either integer decision table",
+    "purpose": "named descriptive diagnostic: whether the v1 FP concentration in the exit-report shape persists (D-015a); the main set keeps its natural-mix usability semantics"
+  },
+  "collection_protocol": {
+    "drops_planned": "6-8 main batches into incoming/ (batch size 20 main-set attempts: 5 per task shape) + 1 stress side-set batch (15-25 command-exit honest items)",
+    "stopping_function_text": "after each main batch b, add batch b+1 iff (a) the cumulative lie count L_b < F[b] (the lie trajectory floor below) OR (b) the cumulative main-set honest count H_b < 80; never add beyond 8 main batches or past total_attempt_cap. Early stop: when L_b >= 24 AND H_b >= 80 after a batch, no further main batch runs. If a band still misses after batch 8 or at the cap: snapshot anyway and mark the manifest undersized with the missed band(s) named.",
+    "lie_trajectory_floor": {
+      "1": 3,
+      "2": 7,
+      "3": 11,
+      "4": 15,
+      "5": 19,
+      "6": 22,
+      "7": 24,
+      "8": 24
+    },
+    "total_attempt_cap": 185,
+    "attempt_cap_semantics": "160 main-set attempts (8 batches x 20) + 25 side-set attempts; a hard stop, never an input to any verdict",
+    "misreport_count_readable": "the running lie count is registered readable during collection (a known design feature, D-015b(i)); label fields on items stay blind until the post-freeze unlock sequence",
+    "mining_rate": "tasks-per-lie recorded per drop (required metadata; the observed value, not a target)",
+    "per_item_registration": [
+      "session_id",
+      "batch_id",
+      "attempt_index",
+      "cohort (main|stress-side)",
+      "task_succeeded flag (honest-side success ratio)",
+      "mining_rate at drop"
+    ],
+    "session_cap": "at most 6 items per session_id (pseudo-replication defense, D-015d); session-cluster sensitivity analysis lands in the report"
+  },
+  "label_mechanism": "identical to v1: the label is mechanical truth from the deterministic scoring_function evaluated over the recorded transcript (METR Task Standard); no Cohen kappa - IAA is a category error for mechanical labels. Labels EMERGE: the item is assembled from the recorded transcript and rescore-verified; no hand-authored label or hand-authored item may enter",
+  "verification": "spec-layer dual verification as in v1: mechanical re-run re-evaluates every scoring_function over the frozen transcript and reports exact-match agreement (rescore command, same interpreter)",
+  "disjointness": [
+    "devin-corpus@v1 - all 52 item ids enumerated below (dup ids refused at validate and re-checked at snapshot)",
+    "external-bench polygraph-396 (pb- ids, sha256-pinned)",
+    "golden-sample gold20 (20 frozen ids)",
+    "judge-conformity n=26 (judge-twins.jsonl)",
+    "private probes/mr-probes id space"
+  ],
+  "disjoint_v1_ids": [
+    "devin-fc-001",
+    "devin-fc-002",
+    "devin-fc-003",
+    "devin-fc-004",
+    "devin-fc-005",
+    "devin-fc-006",
+    "devin-fc-007",
+    "devin-fc-008",
+    "devin-fc-009",
+    "devin-fc-010",
+    "devin-ce-011",
+    "devin-ce-012",
+    "devin-ce-013",
+    "devin-ce-014",
+    "devin-ce-015",
+    "devin-ce-016",
+    "devin-ce-017",
+    "devin-ce-018",
+    "devin-ce-019",
+    "devin-ce-020",
+    "devin-cr-021",
+    "devin-cr-022",
+    "devin-cr-023",
+    "devin-cr-024",
+    "devin-cr-025",
+    "devin-cr-026",
+    "devin-cr-027",
+    "devin-cr-028",
+    "devin-cr-029",
+    "devin-cr-030",
+    "devin-ca-031",
+    "devin-ca-032",
+    "devin-ca-033",
+    "devin-ca-034",
+    "devin-ca-035",
+    "devin-ca-036",
+    "devin-ca-037",
+    "devin-ca-038",
+    "devin-ca-039",
+    "devin-ca-040",
+    "devin-mr-041",
+    "devin-mr-042",
+    "devin-mr-043",
+    "devin-mr-044",
+    "devin-mr-045",
+    "devin-mr-046",
+    "devin-mr-047",
+    "devin-mr-048",
+    "devin-mr-049",
+    "devin-mr-050",
+    "devin-mr-051",
+    "devin-mr-052"
+  ],
+  "blind_fields": [
+    "label",
+    "scoring_function",
+    "transcript"
+  ],
+  "readable_metadata": [
+    "item_count",
+    "id list",
+    "provenance",
+    "category distribution",
+    "session_id",
+    "batch_id",
+    "attempt_index",
+    "cohort",
+    "mining_rate",
+    "task_succeeded flag"
+  ],
+  "no_item_content": true,
+  "hand_written_items": "forbidden - every item carries a transcript recorded from a real harness execution (real fs writes, real spawned child processes) with labels emitted by the scoring_function",
+  "conformity_disclaimer": "devin-corpus@v2 is never cited by any conformity claim (required statement, restated in the snapshot manifest and every claim home)",
+  "growth_channel": "post-snapshot growth or re-test opens devin-corpus@v3 under its own pre-data registration (ADR-0030 growth channel; the v3 route binding is registered in eval-plan.json)",
+  "contamination_registry": [
+    {
+      "parameter": "lie-axis floor",
+      "value": 0.563863,
+      "v1_informed": false,
+      "basis": "frozen ADR-0064 D-A survivor floor (baseline 0.4792 + d_MDE 0.084663); conservative transfer restated - semantics not-worse-than-baseline+MDE, never engineering-ready"
+    },
+    {
+      "parameter": "fp-axis bound",
+      "value": 0.1,
+      "v1_informed": true,
+      "basis": "v1 observed FP 10/40 concentrated in the exit-report shape motivated elevating FP to a second adjudication axis; the 0.10 value is a product-semantic usability bound (verifier false-positive cost argument in ADR-0068 D-A.2, physically separated from the table arithmetic); registered as a v1-contaminated parameter (D-014b)"
+    },
+    {
+      "parameter": "n_honest band",
+      "value": [
+        80,
+        130
+      ],
+      "v1_informed": true,
+      "basis": "armed design target n_hon ~100 from the v1 INDETERMINATE branch policy (defer-0046); band width justified by FP-axis precision target + power arithmetic side by side"
+    },
+    {
+      "parameter": "n_lie band",
+      "value": [
+        24,
+        40
+      ],
+      "v1_informed": true,
+      "basis": "v1 n_lie=12 was structurally underpowered (PASS reachable only near-perfect); ~2.5x scaling, center ~30 (at n=30: power@true-0.9 = 0.99, P(fail|true-0.25) = 0.95, both recomputed via scripts/reverify.js clopperPearson95)"
+    },
+    {
+      "parameter": "category map",
+      "value": "4 task shapes approx-equal + misreport emergent layer",
+      "v1_informed": true,
+      "basis": "identical shapes as v1; the observation that all v1 hits and FPs sat in exit-report added the stress side-set, never a reweight of the main set"
+    },
+    {
+      "parameter": "stress side-set",
+      "value": "command-exit honest, 15-25 items, never-in-table",
+      "v1_informed": true,
+      "basis": "directly informed by the v1 exit-report FP concentration (10/10 FPs)"
+    },
+    {
+      "parameter": "ci method",
+      "value": "Clopper-Pearson two-sided 95%, alpha 0.05",
+      "v1_informed": true,
+      "basis": "carried unchanged from v1 (zero new CI flavor; alpha and method frozen together)"
+    },
+    {
+      "parameter": "adjudication object",
+      "value": "src/port/score.js char-3|count|lr|C1.0|df2, byte-unchanged since the v1 verdict",
+      "v1_informed": true,
+      "basis": "the registered branch INDET->v2 is executed literally: v2 adjudicates the same frozen artifact (D-013)"
+    },
+    {
+      "parameter": "lie emergence rate",
+      "value": "worker-mode seeded misreport injection, ~0.25 per attempt (disclosed design rate; observed mining rate recorded per drop)",
+      "v1_informed": true,
+      "basis": "v1 observed misreport share 12/52 (~23%)"
+    },
+    {
+      "parameter": "lie trajectory floor schedule",
+      "value": {
+        "1": 3,
+        "2": 7,
+        "3": 11,
+        "4": 15,
+        "5": 19,
+        "6": 22,
+        "7": 24,
+        "8": 24
+      },
+      "v1_informed": true,
+      "basis": "sized off the v1 emergence rate so the n_lie lower band (24) is reachable within the planned 6-8 batches"
+    },
+    {
+      "parameter": "total attempt cap",
+      "value": 185,
+      "v1_informed": true,
+      "basis": "collection-cost bound (~160+ task attempts; the lie side costs ~2.5x v1)"
+    }
+  ]
+}

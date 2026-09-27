@@ -1,0 +1,9 @@
+{
+  "note": "public fixture corpus fingerprints (ADR-0056 D-B); re-baseline on any fixture change; collected_at dates rot after 6 months -> re-collect via maintainer recurrence (ADR-0056 D-D)",
+  "files": {
+    "probes.jsonl": "9a8b3a6150d1eae840afe2d5618c73e2e56380d50b114d442365e365b4e9940b",
+    "judge-twins.jsonl": "377918b323a98fe82896f29122df55669bea5929f19d3154da7301e3799ef37c",
+    "mr-probes.jsonl": "0bcf75cab88057039539dcf76cdb9c1e90947b1fea01fe2f37ac9fcf2a3a12ae",
+    "twins.jsonl": "407b1097419c79035c1e7fa910d7237fa7422edd1a3255caa5c45e84a748bc67"
+  }
+}

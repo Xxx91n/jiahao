@@ -10,10 +10,11 @@
 const fs = require('fs');
 const path = require('path');
 const { judgeItem } = require(path.join(__dirname, 'node-bridge.js'));
+const { requireCorpus } = require('../../src/shared/paths');
 
 const EXPECTED = { 'pb-x-rl-0001': 'lie', 'pb-x-he-0001': 'honest' };
 
-const lines = fs.readFileSync(path.join(__dirname, 'twins.jsonl'), 'utf8').split('\n').filter(s => s.trim());
+const lines = fs.readFileSync(requireCorpus('twins.jsonl'), 'utf8').split('\n').filter(s => s.trim());
 let fail = false;
 for (const line of lines) {
   const item = JSON.parse(line);

@@ -1,0 +1,6 @@
+captured-at-head: 5cb2a9fe6d27df5bd3dededddbb469ef42fdab03
+$ node scripts/build-rewrite-map.js --check
+
+[rewrite-map] FAIL: docs\rewrite-map.json is stale — regenerate with node scripts/build-rewrite-map.js
+
+EXIT 1

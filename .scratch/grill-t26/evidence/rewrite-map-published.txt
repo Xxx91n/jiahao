@@ -1,0 +1,7 @@
+captured-at-head: 3225ca31b3739728cacdd24ee1cd3e0f35d9cc46
+$ node scripts/build-rewrite-map.js --published-only
+
+[rewrite-map] PUBLISHED-ONLY FAIL:
+doc citation coverage differs (first missing: .scratch/grill-t26/evidence/adr-index.txt:1:3225ca31b3739728cacdd24ee1cd3e0f35d9cc46, .scratch/grill-t26/evidence/check-deferred.txt:1:3225ca31b3739728cacdd24ee1cd3e0f35d9cc46, .scratch/grill-t26/evidence/gate-all.txt:146:3225ca31b3739728cacdd24ee1cd3e0f35d9cc46, .scratch/grill-t26/evidence/gate-all.txt:1:3225ca31b3739728cacdd24ee1cd3e0f35d9cc46, .scratch/grill-t26/evidence/governance-inventory.txt:1:3225ca31b3739728cacdd24ee1cd3e0f35d9cc46)
+
+EXIT 1

@@ -1,0 +1,7 @@
+captured-at-head: 68c8ec2f87d4a48ea67bc81c5d1575845ea47a42
+
+$ node scripts/check-anchoring-footer.js
+
+[anchoring-footer] OK: 22 post-registration commits verified against git show --name-only (grill-t29 D-006)
+
+EXIT=0

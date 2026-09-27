@@ -10,7 +10,9 @@
 // 4. deriveThresholds(model, targetPrecision) — compute new band from calibrated curve
 
 const fs = require('fs');
+const path = require('path');
 const { configDir } = require('./shared/paths');
+const { loadPin } = require('./instrument-identity');
 
 // Default static band (ADR-0004, from FutureAGI research)
 const STATIC_BAND = { low: 0.4, high: 0.7 };
@@ -154,7 +156,9 @@ const crypto = require('crypto');
 
 // Judge version: bump when the critic prompt changes; kappa reports are
 // versioned per judge prompt hash (maf-evals: recalibrate after judge change).
-const JUDGE_VERSION = 'critic-v1';
+// ADR-0046 moves the source of truth for the full identity into
+// src/instrument-identity.json while preserving this field for older callers.
+const JUDGE_VERSION = loadPin(path.join(__dirname, '..')).rules_version;
 
 // Fraction of eligible human-verdict points required before few-shot
 // injection is allowed (fail-open below this, same posture as fitPlatt's

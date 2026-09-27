@@ -35,12 +35,17 @@ test('createEvidence produces hash-chained record', () => {
 });
 
 
-test('writeEvidence writes to file', () => {
+test('writeEvidence writes to the genesis segment', () => {
   const TMP = require('os').tmpdir().replace(/\\/g, '/');
   const chain = [createEvidence('t', 'deterministic', 'passed', 'ok', 0.9)];
   writeEvidence(chain, TMP);
-  const read = fs.readFileSync(TMP + '/.jiahao-evidence', 'utf8');
-  expect(JSON.parse(read)).toHaveLength(1);
+  // ADR-0026 D1/D3: .jiahao-evidence is a directory of JSONL segments;
+  // reads go through the factory, not the raw path.
+  expect(fs.existsSync(TMP + '/.jiahao-evidence/00000000000000000000.jsonl')).toBe(true);
+  const log = createEvidenceLog(TMP);
+  const read = log.readAll();
+  expect(read).toHaveLength(1);
+  expect(read[0].gate_id).toBe('t');
   clearEvidence(TMP);
 });
 
@@ -134,28 +139,24 @@ test('canonicalJSON sorts keys deterministically', () => {
 // ADR-0013 D3: appendEvidence dedups on _idem (same Stop re-fire → no-op).
 test('ADR-0013 D3: appendEvidence idempotent skip on duplicate _idem', () => {
   const { createEvidenceLog: mkLog } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
-  const file = TMP + '/.jiahao-evidence';
-  try { fs.unlinkSync(file); } catch (e) {}
-  try { fs.unlinkSync(TMP + '/.jiahao-evidence.keys'); } catch (e) {}
+  mkLog(TMP).clear(); // ADR-0026: evidence path may be a segment directory
   const rec = (i) => ({ gate_id: 'det-' + i, status: 'passed', prev_hash: null, _idem: 'k' + i });
   mkLog(TMP).append([rec(0)]);
   mkLog(TMP).append([rec(0), rec(1)]); // k0 replayed, k1 new
-  const chain = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const chain = mkLog(TMP).readAll();
   expect(chain).toHaveLength(2);
   expect(chain.map(r => r.gate_id)).toEqual(['det-0', 'det-1']);
 });
 
 test('ADR-0013 D3: appendEvidence rejects records whose prev_hash does not match the chain tail', () => {
   const { createEvidenceLog: mkLog } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
-  const file = TMP + '/.jiahao-evidence';
-  try { fs.unlinkSync(file); } catch (e) {}
-  try { fs.unlinkSync(TMP + '/.jiahao-evidence.keys'); } catch (e) {}
+  mkLog(TMP).clear(); // ADR-0026: evidence path may be a segment directory
   const tail = { gate_id: 'det-0', status: 'passed', prev_hash: null, event_hash: 'a'.repeat(64), _idem: 'k0' };
   mkLog(TMP).append([tail]);
   // Record claims a different prev_hash than the current tail — must be skipped.
   const bad = { gate_id: 'det-1', status: 'passed', prev_hash: 'b'.repeat(64), _idem: 'k1' };
   mkLog(TMP).append([bad]);
-  const chain = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const chain = mkLog(TMP).readAll();
   expect(chain).toHaveLength(1);
   expect(chain[0].gate_id).toBe('det-0');
 });

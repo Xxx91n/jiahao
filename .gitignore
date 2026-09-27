@@ -1,8 +1,46 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Agent runtimes / scratch spaces
 .omx/
 .codex-tmp/
-node_modules/
-dist/
-*.log
-nul
-.scratch
 .codegraph/
+
+# .scratch/ is git-tracked since 2026-09-15 (issue tracker + round records);
+# only volatile tool workdirs stay ignored:
+.scratch/pack-smoke/
+.scratch/g6-publish/
+.scratch/.tmp-*
+
+# Logs
+*.log
+
+# OS / shell noise
+nul
+Thumbs.db
+.DS_Store
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets (ADR-0014 convention)
+private/
+
+# Project-local gate artifacts (ADR-0027 D4 isomorphic evidence)
+bench-artifacts/
+probe-artifacts/
+test-artifacts/
+mr-artifacts/
+__pycache__/
+
+# Derived pack artifacts are never committed (grill-t11 audit F-A1, ADR-0073 D-C)
+/*.tgz
+
+# Host configuration backups never enter git-tracked dirs (ADR-0073 D-C O-2 forward rule)
+host-config-backup/

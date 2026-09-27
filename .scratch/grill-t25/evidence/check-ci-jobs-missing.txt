@@ -1,0 +1,6 @@
+captured-at-head: 8e177d2417eada69ff36b600aae74aa94c24ee34
+$ node scripts/check-ci-jobs.js .scratch/grill-t25/evidence/no-such-ci.yml
+
+EXIT 2
+
+check-ci-jobs: verifier broken - ENOENT: no such file or directory, open 'D:\Aworker\jiahao\.scratch\grill-t25\evidence\no-such-ci.yml'

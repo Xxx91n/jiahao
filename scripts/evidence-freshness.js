@@ -1,0 +1,588 @@
+'use strict';
+// scripts/evidence-freshness.js — ADR-0085 two-layer anchor semantics.
+//
+// Single source for the evidence-freshness invariant (D-005): anchoring
+// classification, claim-point detection, seal resolution, evaluate-at-commit.
+// Lives on the R2 machinery surface (scripts/) — NOT src/shared/ (the R1
+// require chain is the shipped product). Round-scoped wiring suites carry
+// {round, base} config + assertions only; the walk is never re-rolled per
+// suite.
+//
+// Metz fallback clause (D-005 hedge 3): a round needing genuinely different
+// walk semantics DECLARES the deviation in its decision ledger and inlines a
+// local implementation in its own suite — never pile conditionals into this
+// shared file.
+//
+// Two anchor notions, deliberate (grill-t26 D-002/D-003):
+//   floor-anchor (claim-point, upper layer): the last commit strictly before
+//     the claim commit touching a non-exempt, non-claim file. A claim asserts
+//     state — it does not change what the evidence must be fresh against, so
+//     pure-claim commits never raise the floor (the treadmill fix).
+//   seal-anchor (terminal, lower layer): the last commit touching any
+//     non-exempt file, claims included — the seal pins the round's last
+//     substantive act, not the tip.
+// File classes are registered in docs/governance/surface-taxonomy.json
+// ("freshness" block) — this module reads that registry; it does not carry a
+// private copy. Classification order: evidence > seal > bookkeeping > regen >
+// claim > anchoring. Anything unclassified is anchoring (fail-closed).
+
+const fs = require('fs');
+const path = require('path');
+const { execFileSync, spawnSync } = require('child_process');
+
+// grill-t29 audit A-8: no private copy of the capture-header pattern - the
+// strict form is compiled from freshness.orphan_ancestry.pin_patterns
+// (kind 'captured-at-head') wherever it is needed, via capturedHeaderRe.
+// A module-level const would necessarily be a second literal (taxonomy is
+// loaded per-eval), so the registry owns the pattern and this module owns
+// only the lookup.
+function capturedHeaderRe(fresh) {
+  const cfg = orphanConfig(fresh);
+  const p = pinPatterns(cfg).find((x) => x.kind === 'captured-at-head');
+  if (!p) throw new Error('pin_patterns lacks a captured-at-head kind (A-8)');
+  return p.re;
+}
+const CAPTURE_RE = /\.(txt|md)$/;
+const FIXTURE_RE = /\.fixture\./;
+// Ephemeral GitButler workspace merge objects never reach a public clone —
+// the walk drops them: they neither anchor nor count as claims.
+const WORKSPACE_SUBJECT = 'GitButler Workspace Commit';
+// Claim-like heuristic for the unregistered-claim warning (D-003 hedge 4):
+// verdict-shaped filenames under a round dir that escaped the closed enum.
+const CLAIM_LIKE_RE = /(?:^|\/)[^/]*(?:report|handoff|audit|verdict|closeout|signoff|attest)[^/]*\.(?:md|txt)$/i;
+
+function git(root, args) {
+  return execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).trim();
+}
+function gitOk(root, args) {
+  return spawnSync('git', args, { cwd: root }).status === 0;
+}
+
+const gitLines = (root, args) => git(root, args).split('\n').filter(Boolean);
+
+function loadFreshness(root) {
+  const tax = JSON.parse(fs.readFileSync(path.join(root, 'docs', 'governance', 'surface-taxonomy.json'), 'utf8'));
+  if (!tax.freshness) throw new Error('surface-taxonomy.json lacks the freshness block (ADR-0085 registration missing)');
+  return tax.freshness;
+}
+
+const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Build the compiled class table from the registered taxonomy block.
+function classifiers(fresh) {
+  // grill-t29 audit A-6: the scope literal is consumed from the registered
+  // artifact_scope - a private copy here was the same drift class as F-1.
+  const rr = ((fresh || {}).orphan_ancestry || {}).artifact_scope;
+  if (!rr) throw new Error('freshness.orphan_ancestry.artifact_scope missing - class regexes derive from the registered scope (grill-t29 A-6)');
+  const na = fresh.non_anchoring_classes;
+  const bookTerms = na.round_bookkeeping.map(escRe)
+    .concat((na.round_bookkeeping_glob || []).map((g) => escRe(g).replace(/\\\*/g, '[^/]*')));
+  return {
+    evidence: new RegExp('^' + rr + '(?:' + na.evidence_dirs.map(escRe).join('|') + ')'),
+    seal: new RegExp('^' + rr + escRe(na.seal_file) + '$'),
+    bookkeeping: new RegExp('^' + rr + '(?:' + bookTerms.join('|') + ')$'),
+    regen: new Set(na.mechanism_regen_outputs),
+    claim: new RegExp('^' + rr + '(?:' + fresh.claim_surfaces.closed_enum.map(escRe).join('|') + ')'),
+    claimDirs: fresh.claim_surfaces.closed_enum,
+    claimExceptions: fresh.claim_surfaces.exceptions || [],
+  };
+}
+
+// evidence > seal > bookkeeping > regen > claim > anchoring
+function classifyFile(f, cx) {
+  if (cx.evidence.test(f)) return 'evidence';
+  if (cx.seal.test(f)) return 'seal';
+  if (cx.bookkeeping.test(f)) return 'bookkeeping';
+  if (cx.regen.has(f)) return 'regen';
+  if (cx.claim.test(f)) return 'claim';
+  return 'anchoring';
+}
+
+function commitFiles(root, sha) {
+  try {
+    return gitLines(root, ['diff-tree', '--no-commit-id', '--name-only', '-r', sha]);
+  } catch (e) {
+    return null; // unreadable diff — callers must not silently classify as exempt
+  }
+}
+
+// classes: Set of per-file classes; anchoring = has a hard-anchoring file;
+// substantive = anchoring OR claim (the seal counts the round's last act).
+// An unreadable commit is treated as anchoring (fail-closed inside a
+// fail-closed checker — an anomaly raises the floor rather than hiding).
+function commitInfo(root, sha, cx) {
+  const files = commitFiles(root, sha);
+  if (files === null) return { sha, files: [], anchoring: true, substantive: true, unreadable: true };
+  const classes = new Set(files.map((f) => classifyFile(f, cx)));
+  return {
+    sha,
+    files,
+    anchoring: classes.has('anchoring'),
+    substantive: classes.has('anchoring') || classes.has('claim'),
+  };
+}
+
+// rev-list <range>, newest first, ephemeral GitButler workspace commits dropped.
+function walk(root, range) {
+  return gitLines(root, ['rev-list', range])
+    .filter((sha) => !git(root, ['log', '--format=%s', '-1', sha]).startsWith(WORKSPACE_SUBJECT));
+}
+
+// Last commit in base..ref whose commitInfo satisfies pred — the shared walk
+// for both anchor notions (audit cleanup: the two walks were verbatim twins).
+function lastAnchor(root, cx, base, ref, pred) {
+  for (const sha of walk(root, base + '..' + ref)) {
+    if (pred(commitInfo(root, sha, cx))) return sha;
+  }
+  return null;
+}
+// Hard-anchoring file (pure claims excluded) — the claim-point floor.
+const lastFloorAnchor = (root, cx, base, ref) => lastAnchor(root, cx, base, ref, (c) => c.anchoring);
+// Any non-exempt file, claims included — the seal-anchor derivation.
+// ref is inclusive (BASE..D names the declaration).
+const lastSealAnchor = (root, cx, base, ref) => lastAnchor(root, cx, base, ref, (c) => c.substantive);
+
+// ---------------------------------------------------------------------------
+// ADR-0086 (grill-t29): exception-channel entries. Every entry in a
+// taxonomy field classified `exception-channel` is an object carrying the
+// registered schema (field_governance.exception_channel): status /
+// requested_by / reason / expires_at / scope, plus optional `for_commit`
+// binding the exception to exactly one commit sha. `pending-confirmation`
+// entries are effective on registration - that is the channel contract
+// (D-002(ii)); `ratified` entries are effective until their own expires_at;
+// `revoked` and `lapsed` entries are never effective. Effectiveness is
+// evaluated AT the commit's own date (commit-point semantics, ADR-0085): a
+// commit made while an entry was effective stays governed by it; lapse only
+// withdraws future coverage - it never retro-convicts sealed history, and a
+// pending entry past expiry silently converts to nothing.
+// ---------------------------------------------------------------------------
+
+const EXCEPTION_REQUIRED_FIELDS = ['status', 'requested_by', 'reason', 'expires_at', 'scope'];
+const EXCEPTION_STATUS_ENUM = ['pending-confirmation', 'ratified', 'revoked', 'lapsed'];
+const ISO_DATE_ONLY = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+
+// ctx: { when: 'YYYY-MM-DD' (commit date or evaluation date), sha: commit sha }
+function exceptionActive(entry, ctx) {
+  if (!entry || typeof entry !== 'object') return false;
+  const o = ctx || {};
+  // A-7: a for_commit-bound entry never fires sha-less - the binding is a
+  // positive match requirement, not a soft preference (fail-closed on the
+  // binding dimension).
+  if (entry.for_commit && entry.for_commit !== o.sha) return false;
+  if (entry.status !== 'pending-confirmation' && entry.status !== 'ratified') return false;
+  const exp = String(entry.expires_at || '');
+  if (!ISO_DATE_ONLY.test(exp)) return false;
+  const when = String(o.when || new Date().toISOString().slice(0, 10)).slice(0, 10);
+  return when <= exp; // expires_at is inclusive through the named date
+}
+
+// A claim commit OF round `dir`: a file under <dir>/<claim-surface> that is
+// not excepted (the next-round taskbook is bookkeeping, not a claim). The
+// registered claim_surfaces.exceptions entries are honored per-entry:
+// pending-confirmation/ratified + unexpired at the commit's own date, and
+// for_commit-bound when the entry carries that pin (ADR-0086).
+function isClaimFor(dir, cx, when, sha) {
+  const ctx = { when: when, sha: sha };
+  const exempt = new Set(
+    cx.claimExceptions
+      .filter((e) => e && typeof e === 'object' && exceptionActive(e, ctx))
+      .map((e) => dir + '/' + e.path)
+  );
+  return (f) => !exempt.has(f) && cx.claimDirs.some((d) => f.startsWith(dir + '/' + d)) && classifyFile(f, cx) === 'claim';
+}
+
+function showAt(root, ref, file) {
+  try {
+    return git(root, ['show', ref + ':' + file]);
+  } catch (e) {
+    return null;
+  }
+}
+
+// Committed captures under <evd> in the tree AT ref, with header sha per file.
+// The header pattern comes from the registered pin_patterns (A-8).
+function capturesAt(root, fresh, ref, evd) {
+  const headRe = capturedHeaderRe(fresh);
+  const files = gitLines(root, ['ls-tree', '-r', ref, '--name-only', '--', evd])
+    .filter((f) => CAPTURE_RE.test(f) && !FIXTURE_RE.test(f));
+  return files.map((f) => {
+    const content = showAt(root, ref, f);
+    const first = content === null ? '' : content.split(/\r?\n/)[0];
+    const m = first.match(headRe);
+    return { file: f, sha: m ? m[1] : null };
+  });
+}
+
+function resolvesToCommit(root, sha) {
+  try {
+    return git(root, ['cat-file', '-t', sha]) === 'commit';
+  } catch (e) {
+    return false;
+  }
+}
+
+// F-2: the SEAL field names are consumed from the registered
+// freshness.seal.fields list; callers pass it through. The canonical
+// default keeps fixture consumers working when no registry is in play.
+const SEAL_FIELD_DEFAULTS = ['seal', 'recorded_at'];
+function parseSeal(text, fields) {
+  if (text === null) return null;
+  const names = Array.isArray(fields) && fields.length ? fields : SEAL_FIELD_DEFAULTS;
+  const out = {};
+  for (const name of names) {
+    const m = text.match(new RegExp('^' + name + ':\\s*(\\S+)\\s*$', 'm'));
+    out[name] = m ? m[1] : null;
+  }
+  return out;
+}
+
+function tagState(root, roundId, declared) {
+  const tag = 'adjudicated/' + roundId;
+  const ref = 'refs/tags/' + tag;
+  let target = null;
+  try {
+    target = git(root, ['rev-parse', '-q', '--verify', ref + '^{commit}']);
+  } catch (e) {
+    target = null;
+  }
+  if (!target) return { tag, state: 'absent', target: null, messageHasSha: null };
+  let messageHasSha = null;
+  try {
+    messageHasSha = git(root, ['tag', '-l', '--format=%(contents)', tag]).indexOf(declared) !== -1;
+  } catch (e) { /* stays null */ }
+  // co-named requires BOTH the right target AND the bare-sha annotation
+  // (D-C.1 byte-equivalence precondition): a right-target/wrong-message tag
+  // is divergence, not endorsement — explicit drift, never silent.
+  return { tag, state: target === declared && messageHasSha === true ? 'co-named' : 'drift', target, messageHasSha };
+}
+
+// Unregistered claim-like files under the round dir (warning signal,
+// not a failure — the fail-closed SIGNAL is the requirement, D-003 hedge 4).
+// Two legs: the HEAD tree, plus the add-side of the round's history — a
+// claim-like file committed then removed is invisible to a tree-only scan
+// (audit finding F-6).
+function unregisteredClaims(root, cx, dir, base) {
+  const escaped = (f) => classifyFile(f, cx) === 'anchoring' && CLAIM_LIKE_RE.test(f);
+  const current = gitLines(root, ['ls-tree', '-r', 'HEAD', '--name-only', '--', dir]).filter(escaped);
+  const added = gitLines(root, ['log', '--diff-filter=A', '--format=', '--name-only', base + '..HEAD', '--', dir]).filter(escaped);
+  return [...new Set(current.concat(added))];
+}
+
+// Evaluate one round-scoped suite at HEAD.
+// cfg: { id: 'grill-tNN', base: '<round base sha>' }
+// Returns a structured verdict; suites assert on the parts they pin.
+function evaluateRound(root, fresh, cfg) {
+  const cx = classifiers(fresh);
+  const dir = '.scratch/' + cfg.id;
+  const evd = dir + '/evidence';
+  const sealPath = dir + '/' + fresh.non_anchoring_classes.seal_file;
+
+  const commits = walk(root, cfg.base + '..HEAD');
+
+  // Upper layer — claim-point evaluation (D-003): at each claim commit C,
+  // every capture committed in <evd> at C names a sha >= the floor anchor
+  // strictly before C (floor := last hard-anchoring commit; BASE if none).
+  // Exception-channel entries evaluate at C's own commit date (ADR-0086).
+  const commitDate = (sha) => git(root, ['show', '-s', '--format=%cs', sha]);
+  const claims = commits
+    .filter((sha) => {
+      const files = commitFiles(root, sha);
+      if (files === null || !files.some((f) => cx.claimDirs.some((d) => f.startsWith(dir + '/' + d)))) return false;
+      return files.some(isClaimFor(dir, cx, commitDate(sha), sha));
+    })
+    .reverse()
+    .map((sha) => {
+      const floor = lastFloorAnchor(root, cx, cfg.base, sha + '^') || cfg.base;
+      const caps = capturesAt(root, fresh, sha, evd);
+      const bad = [];
+      for (const cap of caps) {
+        if (!cap.sha) { bad.push({ file: cap.file, reason: 'no captured-at-head header' }); continue; }
+        if (!resolvesToCommit(root, cap.sha)) { bad.push({ file: cap.file, reason: 'header sha not a commit: ' + cap.sha }); continue; }
+        if (!gitOk(root, ['merge-base', '--is-ancestor', floor, cap.sha])) {
+          bad.push({ file: cap.file, reason: 'header ' + cap.sha.slice(0, 9) + ' < floor ' + floor.slice(0, 9) });
+        }
+      }
+      return { commit: sha, floor, total: caps.length, bad };
+    });
+
+  // Lower layer — seal resolution + declaration validity (D-002/D-004).
+  const sealText = showAt(root, 'HEAD', sealPath);
+  const parsed = parseSeal(sealText, (fresh.seal || {}).fields);
+  let seal = { present: false };
+  if (parsed) {
+    const touches = gitLines(root, ['log', '--format=%H', '--', sealPath]);
+    const added = gitLines(root, ['log', '--diff-filter=A', '--format=%H', '--', sealPath]);
+    const declarationCommit = added.length ? added[0] : null;
+    const expected = declarationCommit ? lastSealAnchor(root, cx, cfg.base, declarationCommit) : null;
+    // Terminal wave: captures in the tree AT the declaration commit must
+    // satisfy the declared anchor.
+    const sealBad = [];
+    if (declarationCommit) {
+      for (const cap of capturesAt(root, fresh, declarationCommit, evd)) {
+        if (!cap.sha || !gitOk(root, ['merge-base', '--is-ancestor', parsed.seal, cap.sha])) {
+          sealBad.push({ file: cap.file, sha: cap.sha });
+        }
+      }
+    }
+    // Freeze: no commit after the declaration may touch the sealed evidence
+    // dir or re-amend the SEAL file (regression-sentinel role, D-004).
+    const postSeal = declarationCommit ? walk(root, declarationCommit + '..HEAD') : [];
+    const freezeViolations = postSeal.filter((sha) =>
+      commitFiles(root, sha).some((f) => f.startsWith(evd + '/') || f === sealPath));
+    seal = {
+      present: true,
+      declared: parsed.seal,
+      recorded_at: parsed.recorded_at,
+      declarationCommit,
+      amended: touches.length > 1,
+      expectedAnchor: expected,
+      inFlightClean: expected !== null && expected === parsed.seal,
+      capturesAtSealOk: sealBad.length === 0,
+      sealBad,
+      freezeViolations,
+      tag: parsed.seal ? tagState(root, cfg.id, parsed.seal) : null,
+    };
+  }
+
+  return {
+    round: cfg.id,
+    base: cfg.base,
+    claims,
+    seal,
+    unregisteredClaims: unregisteredClaims(root, cx, dir, cfg.base),
+  };
+}
+
+function roundConfig(fresh, id) {
+  const row = (fresh.rounds || []).find((r) => r.id === id);
+  if (!row) throw new Error('round not registered in taxonomy freshness.rounds: ' + id);
+  return row;
+}
+
+// ---------------------------------------------------------------------------
+// grill-t28 D-005/D-006: pinned-sha ancestry assertion (standing leg).
+// Violation-instance of the existing claim-point contract - every strict pin
+// (`captured-at-head:` / `seal:` line forms) inside committed round artifacts
+// must resolve to an ancestor of HEAD; the gitbutler/workspace non-ff trigger
+// maps to the existing post-seal-edit red state. No new normative state.
+// Registered config lives in surface-taxonomy.json freshness.orphan_ancestry.
+// ---------------------------------------------------------------------------
+
+function orphanConfig(fresh) {
+  const cfg = (fresh || {}).orphan_ancestry;
+  if (!cfg) throw new Error('surface-taxonomy.json lacks the freshness.orphan_ancestry block (grill-t28 D-005 registration missing)');
+  return cfg;
+}
+
+// F-1/F-2 (t28 audit): the pin patterns and the seal-file name are consumed
+// from the registered taxonomy table — private copies in this file were the
+// drift the audit caught. Compile them once per config.
+// F-4: enumeration is deliberately LOOSE (field-name prefix only) so
+// whitespace/stray-content variants still reach the strict parser; the
+// registered pattern decides validity. The loose enumerator itself is
+// derived from the registered field names — one source, no second copy.
+function pinPatterns(cfg) {
+  const pats = cfg && cfg.pin_patterns;
+  if (!Array.isArray(pats) || !pats.length) {
+    throw new Error('freshness.orphan_ancestry.pin_patterns missing or empty (grill-t28 D-005 registration)');
+  }
+  return pats.map((src) => {
+    const field = (String(src).match(/^\^?([A-Za-z][\w-]*):/) || [])[1];
+    if (!field) throw new Error('pin_pattern lacks a leading <field>: prefix: ' + src);
+    return { kind: field, re: new RegExp(src) };
+  });
+}
+
+// The git-grep enumerator pattern (loose): `^(field1|field2):` derived from
+// the registered strict patterns' field names.
+function pinEnumPattern(cfg) {
+  const fields = pinPatterns(cfg).map((p) => p.kind.replace(/[^A-Za-z0-9-]/g, ''));
+  return '^(' + fields.join('|') + '):'; // POSIX ERE: plain group, no (?:..)
+}
+
+// F-5: the git-grep pathspec is derived from the registered artifact_scope
+// (longest leading literal path, then its directory); artifact_scope remains
+// the filtering authority — the pathspec only bounds the search.
+function scanRoot(artifactScope) {
+  const s = String(artifactScope || '').replace(/^\^/, '');
+  let lit = '';
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (ch === '\\') {
+      const n = s[i + 1];
+      if (n === '.' || n === '/' || n === '-' || n === '_') { lit += n; i++; continue; }
+      break;
+    }
+    if (/[\w\-./]/.test(ch)) { lit += ch; continue; }
+    break;
+  }
+  if (!lit) return '.';
+  const cut = lit.lastIndexOf('/');
+  return cut === -1 ? lit : lit.slice(0, cut) || '.';
+}
+
+// Every strict pin line inside committed round artifacts at ref, minus files
+// under never-commit conventions (untracked by definition at any ref).
+function pinnedShas(root, cfg, ref) {
+  if (!cfg.artifact_scope) throw new Error('freshness.orphan_ancestry.artifact_scope missing (grill-t29 A-6)');
+  const scopeRe = new RegExp('^' + cfg.artifact_scope);
+  const pats = pinPatterns(cfg);
+  const files = gitLines(root, [
+    'grep', '-l', '-E', pinEnumPattern(cfg), ref || 'HEAD', '--', scanRoot(cfg.artifact_scope),
+  ]).map((f) => f.replace(/^[^:]*:/, '')) // git grep prefixes hits with <rev>:
+    .filter((f) => scopeRe.test(f));
+  const pins = [];
+  for (const f of files) {
+    const content = showAt(root, ref || 'HEAD', f);
+    if (content === null) continue;
+    for (const line of content.split(/\r?\n/)) {
+      for (const p of pats) {
+        const m = line.match(p.re);
+        if (m) pins.push({ file: f, kind: p.kind, sha: m[1] });
+      }
+    }
+  }
+  // F-5: natural round order in output (grill-t9 before grill-t10), then path.
+  pins.sort((a, b) => (roundNumOf(a.file) - roundNumOf(b.file)) || (a.file < b.file ? -1 : a.file > b.file ? 1 : 0));
+  return pins;
+}
+
+// F-5: exemption sha binding is prefix-aware — a registered exemption may
+// name the intended short sha while the artifact pins the full form (or
+// vice versa). Both must still be hex >= 7 chars (git abbrev floor).
+function shaMatch(a, b) {
+  const x = String(a || '').toLowerCase();
+  const y = String(b || '').toLowerCase();
+  if (!/^[0-9a-f]{7,40}$/.test(x) || !/^[0-9a-f]{7,40}$/.test(y)) return false;
+  return x === y || x.startsWith(y) || y.startsWith(x);
+}
+
+function refExists(root, ref) {
+  return spawnSync('git', ['rev-parse', '--verify', '-q', ref], { cwd: root }).status === 0;
+}
+
+// F-3 (t28 audit): latest-seal ordering must never let an absent or junk
+// recorded_at outrank a real date. Order key: the recorded_at date when it
+// parses as an ISO date; otherwise the file's last-touching commit date
+// (a real timestamp); a still-undated record sorts last. Same-day ties go
+// to the higher round id (natural sort: grill-t9 < grill-t10), then the
+// path - fully deterministic.
+const roundNumOf = (f) => { const m = /grill-t(\d+)/.exec(f); return m ? Number(m[1]) : 0; };
+
+function sealRank(root, ref, f, sealFields) {
+  const p = parseSeal(showAt(root, ref || 'HEAD', f), sealFields);
+  if (!p || !p.seal) return null;
+  const rec = String(p.recorded_at || '');
+  let day = ISO_DATE_ONLY.test(rec) ? rec : null;
+  let source = day ? 'recorded_at' : 'commit-date';
+  if (!day) {
+    try {
+      const d = git(root, ['log', '-1', '--format=%cs', ref || 'HEAD', '--', f]);
+      if (ISO_DATE_ONLY.test(d)) day = d;
+    } catch (e) { /* unreachable ref - day stays null, sorts last */ }
+  }
+  return { file: f, seal: p.seal, recorded_at: p.recorded_at, order_day: day, order_source: source, round_num: roundNumOf(f) };
+}
+
+// The latest committed SEAL record across rounds - the trigger's "last seal
+// anchor record". The SEAL filename + scan root + field names are consumed
+// from the registered taxonomy (freshness.non_anchoring_classes.seal_file /
+// orphan_ancestry.artifact_scope / seal.fields), not private literals.
+function lastSealRecord(root, ref, fresh) {
+  const name = ((fresh || {}).non_anchoring_classes || {}).seal_file || 'SEAL';
+  const scope = orphanConfig(fresh).artifact_scope;
+  const fields = ((fresh || {}).seal || {}).fields;
+  const seals = gitLines(root, ['ls-tree', '-r', ref || 'HEAD', '--name-only', '--', scanRoot(scope)])
+    .filter((f) => f.slice(-(name.length + 1)) === '/' + name);
+  let best = null;
+  for (const f of seals) {
+    const r = sealRank(root, ref, f, fields);
+    if (!r) continue;
+    if (!best
+      || (r.order_day || '') > (best.order_day || '')
+      || ((r.order_day || '') === (best.order_day || '') && (r.round_num > best.round_num || (r.round_num === best.round_num && f > best.file)))) {
+      best = r;
+    }
+  }
+  return best;
+}
+
+// cfg.errata_exemptions: exception-channel entries ({sha, file?, errata} +
+// the ADR-0086 channel fields). A failing pin is suppressed only by an
+// EFFECTIVE entry naming the sha - prefix-aware either direction, hex >= 7
+// (F-5) - and the file, when the entry carries one. Lapsed/revoked entries
+// suppress nothing (fail-closed). Suppressed pins are reported as
+// errata-exempt, never silently passed.
+function orphanAncestry(root, fresh, opts) {
+  const cfg = orphanConfig(fresh);
+  const o = opts || {};
+  const ref = o.ref || 'HEAD';
+  const today = o.now || new Date().toISOString().slice(0, 10);
+  const exemptions = (cfg.errata_exemptions || [])
+    .filter((x) => x && typeof x === 'object' && exceptionActive(x, { when: today }));
+  const pins = o.pins || pinnedShas(root, cfg, ref);
+  const violations = [];
+  const exempted = [];
+  for (const pin of pins) {
+    const exempt = exemptions.find((x) => shaMatch(x.sha, pin.sha) && (!x.file || x.file === pin.file));
+    if (!resolvesToCommit(root, pin.sha)) {
+      (exempt ? exempted : violations).push({ file: pin.file, kind: pin.kind, sha: pin.sha, reason: 'pinned sha does not resolve to a commit', errata: exempt && exempt.errata });
+    } else if (!gitOk(root, ['merge-base', '--is-ancestor', pin.sha, ref])) {
+      (exempt ? exempted : violations).push({ file: pin.file, kind: pin.kind, sha: pin.sha, reason: 'pinned sha not ancestor of ' + ref, errata: exempt && exempt.errata });
+    }
+  }
+  // Mechanized ritual trigger: gitbutler/workspace HEAD must be a
+  // fast-forward descendant of the last seal-anchor record. Ref absent on
+  // public clones / plain CI checkouts => clause not evaluated (reported,
+  // never silently skipped).
+  const wsRef = cfg.workspace_ref || 'refs/heads/gitbutler/workspace';
+  let trigger = { state: 'not-evaluated', ref: wsRef, reason: 'workspace ref absent on this surface (no GitButler lane; non-ff clause vacuous here)' };
+  if (refExists(root, wsRef)) {
+    const last = lastSealRecord(root, ref, fresh);
+    if (!last) {
+      trigger = { state: 'ok', ref: wsRef, seal: null, reason: 'no committed SEAL record - nothing to compare' };
+    } else if (gitOk(root, ['merge-base', '--is-ancestor', last.seal, wsRef])) {
+      trigger = { state: 'ok', ref: wsRef, seal: last, reason: 'workspace descends from last seal ' + last.seal.slice(0, 9) + ' (' + last.file + ')' };
+    } else {
+      trigger = { state: 'violation', ref: wsRef, seal: last, reason: 'workspace HEAD does not descend from last seal ' + last.seal.slice(0, 9) + ' (' + last.file + ') - restack orphaned the seal anchor' };
+    }
+  }
+  return {
+    ref,
+    pins,
+    pinCount: pins.length,
+    uniqueShas: [...new Set(pins.map((p) => p.sha))].length,
+    violations,
+    exempted,
+    trigger,
+    red: violations.length > 0 || trigger.state === 'violation',
+  };
+}
+
+module.exports = {
+  capturedHeaderRe,
+  WORKSPACE_SUBJECT,
+  EXCEPTION_REQUIRED_FIELDS,
+  EXCEPTION_STATUS_ENUM,
+  exceptionActive,
+  loadFreshness,
+  classifiers,
+  classifyFile,
+  commitInfo,
+  walk,
+  lastAnchor,
+  lastFloorAnchor,
+  lastSealAnchor,
+  capturesAt,
+  parseSeal,
+  tagState,
+  evaluateRound,
+  roundConfig,
+  pinPatterns,
+  pinEnumPattern,
+  scanRoot,
+  shaMatch,
+  pinnedShas,
+  lastSealRecord,
+  orphanAncestry,
+};

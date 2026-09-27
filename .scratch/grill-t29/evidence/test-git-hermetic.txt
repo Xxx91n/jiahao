@@ -1,0 +1,7 @@
+captured-at-head: 68c8ec2f87d4a48ea67bc81c5d1575845ea47a42
+
+$ node scripts/check-test-git-hermetic.js
+
+[test-git-hermetic] OK: every git write op in test/**.js routes through the hermetic helper (grill-t29 D-004)
+
+EXIT=0

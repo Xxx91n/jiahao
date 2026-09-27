@@ -1,0 +1,4 @@
+# SEAL declaration - grill-t27 (ADR-0085 anchor semantics). Declares the round's last substantive commit (the zh-CN baseline re-pin that followed the mid-round lane restack). The claim commit 2aa02dd9 - report + handoff + facts canon + claim-point evidence wave - sits inside the sealed span.
+# Disclosure: (i) the committed terminal evidence wave names captured-at-head 5cb2a9fe == declared anchor (post-claim re-capture per the declaration-tree contract). (ii) The claim commit's embedded wave names a1776dde, which became non-ancestral when `but move grill-t27 --above grill-t27-docs` rebased the lane - the freshness walk flags those 13 headers as < floor ee43e172; disclosed in the ledger addendum + report, never repaired. (iii) A first SEAL commit + first post-seal regen commit were undone and re-issued once, to declare the true last-substantive anchor; disclosed in the ledger addendum.
+seal: 5cb2a9fe6d27df5bd3dededddbb469ef42fdab03
+recorded_at: 2026-09-25

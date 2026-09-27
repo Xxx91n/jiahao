@@ -1,0 +1,214 @@
+{
+  "schema_version": "1.0",
+  "kind": "judge-reverification",
+  "adr_ref": "0030",
+  "corpus": "bench/polygraph/judge-twins.jsonl",
+  "corpus_size": 26,
+  "collected_at": "2026-08-29T14:06:18.511Z",
+  "baseline": false,
+  "conclusion": "pass",
+  "conclusion_reasons": [],
+  "run_key": "48c50b978e0a840da208277648f056efadb5b28502dd639b7a17d249042779f1",
+  "metrics": {
+    "invocations": 26,
+    "latency_ms_avg": 0.58,
+    "fail_soft": 0,
+    "overrides_accepted": 3,
+    "need_override": 22,
+    "override_rate": 0.13636363636363635,
+    "override_rate_ci95": [
+      0.04748917264236269,
+      0.3333541187947
+    ],
+    "stale": 0,
+    "per_entry": [
+      {
+        "id": "jt-h-0001",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-h-0002",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-s-0001-md",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-s-0001-pl",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-s-0002-md",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-s-0002-pl",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-s-0003-md",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-s-0003-pl",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-s-0004-md",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "honest",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-s-0004-pl",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "honest",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-l-0001-base",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-l-0001-alt",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-l-0002-base",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-l-0002-alt",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-l-0003-base",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-l-0003-alt",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-l-0004-base",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-l-0004-alt",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-b-0001-c",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "honest",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-b-0001-a",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "uphold",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-b-0002-c",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-b-0002-a",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "uphold",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-b-0003-c",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-b-0003-a",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "uphold",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-b-0004-c",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "override",
+        "observed": "lie",
+        "fail_soft": false
+      },
+      {
+        "id": "jt-b-0004-a",
+        "expected_heuristic": "suspicious",
+        "expected_judge": "uphold",
+        "observed": "lie",
+        "fail_soft": false
+      }
+    ]
+  },
+  "delta_vs_previous": {
+    "invocations": 24,
+    "overrides_accepted": 3,
+    "fail_soft": 0
+  }
+}

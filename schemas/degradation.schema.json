@@ -8,13 +8,14 @@
     "detail"
   ],
   "properties": {
-    "kind": {
-      "enum": [
-        "truncation",
-        "scan-skip",
-        "timeout"
-      ]
-    },
+  "kind": {
+   "enum": [
+    "truncation",
+    "scan-skip",
+    "timeout",
+    null
+   ]
+  },
     "detail": {
       "type": [
         "object",
@@ -108,9 +109,27 @@
               "type": "string"
             }
           },
-          "additionalProperties": false
-        }
+    "additionalProperties": false
+   }
+  }
+  },
+  {
+   "properties": {
+    "kind": {
+     "const": null
+    },
+    "detail": {
+     "type": "object",
+     "required": [
+      "unrecognized_kind"
+     ],
+     "properties": {
+      "unrecognized_kind": {
+       "type": "string"
       }
+     }
     }
-  ]
+   }
+  }
+ ]
 }

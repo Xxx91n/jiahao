@@ -8,6 +8,11 @@
 
 Accepted
 
+## Amended by
+
+ADR-0059 D-A — the Tier 1 install channel is name-independent; the
+unprefixed `npx jiahao init` prescription below is superseded, not rewritten.
+
 ## Context
 
 Three open questions from the ADR-0010 handoff required grill resolution:

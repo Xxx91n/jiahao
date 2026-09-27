@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="206" height="20" viewBox="0 0 2060 200" role="img" aria-labelledby="t">
+  <title id="t">profiles: generator × verifier</title>
+  <rect width="2060" height="200" rx="30" fill="#555"/>
+  <rect x="620" width="1440" height="200" fill="#24292f"/>
+  <rect x="620" width="40" height="200" fill="#24292f"/>
+  <g fill="#fff" font-family="Verdana,DejaVu Sans,sans-serif" font-size="110" text-anchor="middle">
+    <text x="310" y="140" fill="#010101" opacity="0.25" transform="translate(0,10)">profiles</text>
+    <text x="310" y="140">profiles</text>
+    <text x="1340" y="140" fill="#010101" opacity="0.25" transform="translate(0,10)">generator × verifier</text>
+    <text x="1340" y="140">generator × verifier</text>
+  </g>
+</svg>

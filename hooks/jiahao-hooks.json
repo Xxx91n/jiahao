@@ -55,6 +55,17 @@
           }
         ]
       }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/jiahao-sweep.js\"",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   }
 }

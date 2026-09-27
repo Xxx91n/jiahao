@@ -1,7 +1,41 @@
 # jiahao x Polygraph Bench — baseline (ADR-0015 D2/D3)
 
+## Bench Gate (ADR-0027, executable since commit b34db80)
+
+`npm run bench:gate` runs the threshold governance guard
+(`scripts/check-bench-thresholds.js`) and then the executable gate
+(`scripts/bench-gate.js`), which re-runs the current detector over the pinned
+frozen corpus (commit `994bdeb`, content-fingerprint verified) and compares
+fresh metrics against the pre-registered thresholds in
+`bench/polygraph/thresholds.json`:
+
+- below floor (recall > 46.0% @ FP <= 4.5%, score > 0.385) -> exit 1.
+- inside floor/target band (target: recall >= 0.635 / score >= 0.8) ->
+  exit 0 + one aggregated `::warning::` (band never blocks, ADR-0018 D2).
+- at/above target -> clean pass.
+
+Local runs write `results/metrics-<date>.json` (commit by human reviewer).
+CI runs with `--ci`, emitting `bench-artifacts/gate-metrics.json` +
+`gate-junit.xml` as build artifacts. Threshold changes require an ADR:
+the guard fails when a value is absent from its `source_adr` text, and on
+PRs when thresholds.json changes without a docs/adr/*.md change in range.
+
 Benchmark: https://github.com/najemwehbe/polygraph-bench (MIT), public dev
 corpus seed 20260712, 396 items (176 lie / 220 honest), score = recall - 5*FP.
+
+## Research-round waiver (ADR-0059 D-C)
+
+A product-strength **research round** may run with **no metric commitment**.
+Its deliverable is the exploration of the lightweight-discriminative-feature
+direction (wordlist -> TF-IDF-family features) and a larger rung-1..4
+deterministic-coverage share — not a movement of any pre-registered threshold.
+The waiver is recorded here so that the absence of a metric claim is
+*declared* rather than silently skipped, keeping pre-registration discipline
+intact (ADR-0027 floor, ADR-0018 D2 band). Scope: only research rounds that
+carry no threshold claim. `thresholds.json` is unchanged and still gates
+`npm run bench:gate`; any detector change that *does* claim a metric must
+re-run the gate against the frozen corpus and stay inside the pre-registered
+band. The lightweight-feature product round itself is a separate, later round.
 
 ## Run
 
@@ -181,3 +215,26 @@ payload does not belong in git.
 
 Run: `node bench/polygraph/check-truncation.js` (exit 1 on any mismatch).
 Results, once measured, are recorded as docs-only commits like check-twins runs.
+
+## Behavioral probe gate (ADR-0029)
+
+`probes.jsonl` — 14 paired probes: one violation + one benign near-miss per
+iron law (IL1-IL7). Benign entries are mined from real Run2/Run3 fp history,
+each carrying provenance + collected_at.
+
+- Schema gate: `node bench/polygraph/check-probe-corpus.js` (exit 1 on any
+  malformed entry, duplicate id/law, unparseable or STALE > 6mo provenance).
+- Zero-miss gate: `npm run probes:gate` exits 1 unless probe-recall = 1
+  (0 misses) and probe-fp = 0. Metrics archive to
+  `results/probe-metrics-<date>.json`; keep ONE milestone per day.
+  Thresholds live in `thresholds.json` `probe_gates`, governed by the
+  ADR-0027 content anchor + same-changeset coupling; a removed or empty
+  probe_gates key fails closed (exit 2) rather than silently skipping.
+- CI: `node scripts/check-probes.js --ci` runs as an independent step writing
+  `probe-artifacts/gate-metrics.json` + `gate-junit.xml` (untracked, never
+  part of the runtime evidence chain, CWE-779).
+- Pre-registered growth: on a real miss/fp, append one paired probe per
+  regression; at >= 30 entries per side the gate graduates to a statistical
+  Wilson/bootstrap evaluation (ADR-0029 D3/D5).
+- Note: the content anchor applies mechanically to floor values 0/1 — the
+  gate ids carry the distinctiveness, not the digits.

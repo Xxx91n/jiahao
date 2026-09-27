@@ -1,0 +1,7 @@
+captured-at-head: 68c8ec2f87d4a48ea67bc81c5d1575845ea47a42
+
+$ node -e const a=require('./docs/governance/anchors.json');console.log('anchors:',(a.artifacts||[]).length,'artifacts')
+
+anchors: 18 artifacts
+
+EXIT=0

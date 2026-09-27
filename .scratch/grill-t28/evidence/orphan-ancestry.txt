@@ -1,0 +1,4 @@
+captured-at-head: c9fda727f9eb1ca33e70b80eec5a2d9135feb29f
+$ node scripts/check-orphan-ancestry.js
+
+[orphan-ancestry] OK - 80 pin(s) / 11 unique sha(s) ancestral of HEAD; trigger: ok (workspace descends from last seal 5cb2a9fe6 (.scratch/grill-t27/SEAL))

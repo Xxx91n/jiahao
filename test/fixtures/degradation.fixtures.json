@@ -46,5 +46,15 @@
         "orphaned_at": "2026-08-28T00:00:01.000Z"
       }
     }
+  },
+  {
+    "name": "unknown-kind-null-fallback",
+    "expected": {
+      "kind": null,
+      "detail": {
+        "reason": "demo",
+        "unrecognized_kind": "power-loss"
+      }
+    }
   }
 ]

@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0030 D4: machine-readable re-verification deadline constants (Python __future__.MandatoryRelease shape). State is DERIVED from the ledger tail, never stored: deleting a state file cannot silence the switch. The values are content-anchored to ADR-0030 text by scripts/check-bench-thresholds.js.",
+  "source_adr": "0030",
+  "interval_months": 6,
+  "hard_interval_months": 9,
+  "recovery_condition": "complete the ADR-0030 D3 re-verification (npm run reverify) and commit bench/polygraph/results/reverify-<date>.json plus the appended ledger entry"
+}

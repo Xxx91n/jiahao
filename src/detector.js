@@ -169,7 +169,9 @@ function isErrorResult(r) {
   // A clean pass summary ("58/12 passed ..., 0 failed") is evidence, not an error —
   // sniffing "failed" out of "0 failed" is the v1 artifact that hides the
   // strongest passing-state signal from suppression (ADR-0019 D2).
-  if ((/\bpassed\b/i.test(out) || /^\s*ok\b/i.test(out)) && /\b0\s+fail(ed|ures?|s)?\b/i.test(out)) return false;
+  // Symmetric zero-count exemptions: a pass summary carrying "0 errors" /"0 warnings"
+  // is evidence, not an error (same v1-artifact class as "0 failed", ADR-0019 D2).
+  if ((/\bpassed\b/i.test(out) || /^\s*ok\b/i.test(out)) && /\b0\s+(?:fail(?:ed|ures?|s)?|errors?|warnings?)\b/i.test(out)) return false;
   if (r.is_error === true) return true;
   return /error|exception|fail(ed|ure)?|exit\s*code\s*[1-9]\d*/i.test(out);
 }
@@ -465,22 +467,114 @@ function detectFull(signalInput) {
   }
   const coverage = degradation.kind !== null ? "partial" : "full";
   const anchors = anchorPassThrough(toolResults);
-  return { suspicious: s.fired || w.matched.length > 0, coverage, degradation, structural_hits: s.hits, request_anchors: anchors, structural_any: s.any, structural_count: lCount, suppressed: s.suppressed, matched_phrases: w.matched, severity, family_hits: { high: w.matchedHigh.length, low: w.matchedLow.length }, wordlist_degraded: w.degraded };
+  const verdict = { suspicious: s.fired || w.matched.length > 0, coverage, degradation, structural_hits: s.hits, request_anchors: anchors, structural_any: s.any, structural_count: lCount, suppressed: s.suppressed, matched_phrases: w.matched, severity, family_hits: { high: w.matchedHigh.length, low: w.matchedLow.length }, wordlist_degraded: w.degraded };
+  // ADR-0025 D2/D3: seam routing -- the seam is exercised only on
+  // suspicious turns (k8s matchConditions shape: judge never sees clean
+  // traffic, so the p95 of honest turns is untouched). judge_override is
+  // null until a scoring-mode verifier lands; the telemetry snapshot
+  // rides into the evidence chain with this verdict record.
+  if (verdict.suspicious) {
+    // ADR-0031 D4: judge input is built through the whitelist builder;
+    // heuristic internals stay out of hands with no reasoning chain.
+    const jin = buildJudgeInput(closing.text, toolResults, verdict);
+    verdict.judge_override = judgeSeam(jin.claim, jin.toolResults, jin.heuristicVerdict);
+    verdict.judge_telemetry = judgeTelemetry();
+  }
+  return verdict;
 }
 
 if (!_phrasesState.ok) {
   try { process.stderr.write("jiahao detector: wordlist degraded (" + _phrasesState.error + "); L1-L3 structural detection remains active.\n"); } catch (e) {}
 }
 
-// ADR-0019 D4 — Judge seam (interface reserved; implementation forbidden).
-// Future judge signature: judge(claim, toolResults, heuristicVerdict) ->
-// override|null, escalate = "honest_only" (may only rescue heuristic misses,
-// never produce a new FP), fail-soft (judge unavailable/timeout/malformed ->
-// the heuristic verdict stands, counted honest). Any implementation must
-// first pass the ADR-0015 D3 internal-holdout FP gap <= 3pp gate; a runtime
-// judge function existing in this module is a spec violation this round.
+// ADR-0019 D4 + ADR-0025 -- Judge seam (signature locked; runtime forbidden).
+// Locked signature (ADR-0025 D2):
+//   judgeSeam(claim, toolResults, heuristicVerdict) ->
+//     { verdict: "override" | "uphold", confidence: <number 0..1>,
+//       evidence: <string[]> } | null
+// Semantics unchanged from ADR-0019 D4: escalate = "honest_only" (may only
+// rescue heuristic misses, never produce a new FP), fail-soft (judge
+// unavailable/timeout/malformed -> the heuristic verdict stands, counted
+// honest). Form convergence (ADR-0025 D1): the only acceptable future
+// runtime is a scoring-mode small verifier (probability output + calibrated
+// threshold band, sized for the <5s hook budget); a prompt-style generic LLM
+// judge is rejected (b3: FP 5.5% > 4.5% budget, 4.6s latency, temp-0 bit
+// instability -- FAGEN concurs: judges AUROC <= 0.65 on false success).
+// The ADR-0015 D3 internal-holdout FP gap <= 3pp gate must pass before any
+// runtime lands.
+//
+// Telemetry contract (ADR-0025 D3): four metrics live on this seam path --
+// invocations (suspicious-route rate numerator), latency total (ms),
+// fail_soft count, overrides_accepted -- exposed via judgeTelemetry() and
+// snapshotted into every suspicious detectFull record so observations ride
+// the evidence chain. Minimal set only (Motion 52-flags counterexample).
+//
 /**
- * @typedef {null} JudgeOverride
+ * @typedef {{ verdict: "override" | "uphold", confidence: number, evidence: string[] }} JudgeOverride
  */
+// ADR-0031 D4 judge certificate isolation: the judge input is EXACTLY the
+// whitelist triple { claim, toolResults, heuristicVerdict }. Forbidden in the
+// triple: auditor intermediate verdicts, probe/pressure history, prior judge
+// outputs (judge_override / judge_telemetry), heuristic reasoning chains
+// (matched_phrases / structural_hits / escalation internals). heuristicVerdict
+// is reduced to the final-pointer reduction { suspicious, severity }.
+const JUDGE_INPUT_KEYS = ['claim', 'toolResults', 'heuristicVerdict'];
+const JUDGE_INPUT_FORBIDDEN = ['auditor', 'pressure', 'probe', 'probes', 'judge_override', 'judge_telemetry', 'matched_phrases', 'structural_hits', 'severity_band', 'reasoning'];
+function buildJudgeInput(claim, toolResults, heuristicVerdict) {
+  const v = heuristicVerdict && typeof heuristicVerdict === 'object' ? heuristicVerdict : {};
+  return {
+    claim: typeof claim === 'string' ? claim : '',
+    toolResults: Array.isArray(toolResults) ? toolResults.slice() : [],
+    heuristicVerdict: {
+      suspicious: v.suspicious === true,
+      severity: v.severity === 'high' || v.severity === 'low' ? v.severity : null,
+    },
+  };
+}
+// validateJudgeInput(obj) -> problems[]; [] = schema-clean whitelist triple.
+// Fail-closed on wrong types and on any injected extra key, including the
+// ADR-0031 D4 forbidden-lexicon ("auditor*" keys are rejected outright).
+function validateJudgeInput(obj) {
+  const problems = [];
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return ['root:not-object'];
+  const keys = Object.keys(obj);
+  for (const k of keys) {
+    if (JUDGE_INPUT_KEYS.indexOf(k) < 0) problems.push('extra-key:' + k);
+    if (JUDGE_INPUT_FORBIDDEN.some(f => k === f || k.startsWith(f))) problems.push('forbidden-key:' + k);
+  }
+  for (const k of JUDGE_INPUT_KEYS) if (keys.indexOf(k) < 0) problems.push('missing-key:' + k);
+  if (typeof obj.claim !== 'string') problems.push('claim:not-string');
+  if (!Array.isArray(obj.toolResults)) problems.push('toolResults:not-array');
+  const hv = obj.heuristicVerdict;
+  if (!hv || typeof hv !== 'object' || Array.isArray(hv)) {
+    problems.push('heuristicVerdict:not-object');
+  } else {
+    const hk = Object.keys(hv);
+    for (const k of hk) if (k !== 'suspicious' && k !== 'severity') problems.push('heuristicVerdict:poisoned:' + k);
+    if (typeof hv.suspicious !== 'boolean') problems.push('heuristicVerdict.suspicious:not-boolean');
+    if (!(hv.severity === 'high' || hv.severity === 'low' || hv.severity === null)) problems.push('heuristicVerdict.severity:invalid');
+  }
+  return problems;
+}
 
-module.exports = { detect, detectFull, capField, INPUT_CAP_BYTES, TRUNC_MARKER, structuralDetect, l1_errorConcealment, l2_completionVsEvidence, l3_narrativeVsAssertion, l1Suppression, l2Suppression, l3Suppression, wordlistMatch, loadPhrases, resolvePhrasesPath, anchorRescue, anchorConviction, anchorPassThrough, hasSuccessClaim, EXPECTED_PHRASES_SHA256, PHRASES_STATE: _phrasesState };
+const _judgeTelemetry = { invocations: 0, latencyMsTotal: 0, failSoft: 0, overridesAccepted: 0 };
+function judgeSeam(claim, toolResults, heuristicVerdict) {
+  const t0 = Date.now();
+  _judgeTelemetry.invocations++;
+  try {
+    // No runtime judge this round; ADR-0019 D4 stands.
+    return null;
+  } finally {
+    _judgeTelemetry.latencyMsTotal += Date.now() - t0;
+  }
+}
+function judgeTelemetry() {
+  return {
+    invocations: _judgeTelemetry.invocations,
+    fail_soft: _judgeTelemetry.failSoft,
+    overrides_accepted: _judgeTelemetry.overridesAccepted,
+    latency_ms_total: _judgeTelemetry.latencyMsTotal
+  };
+}
+
+module.exports = { detect, detectFull, capField, INPUT_CAP_BYTES, TRUNC_MARKER, structuralDetect, l1_errorConcealment, l2_completionVsEvidence, l3_narrativeVsAssertion, l1Suppression, l2Suppression, l3Suppression, wordlistMatch, loadPhrases, resolvePhrasesPath, anchorRescue, anchorConviction, anchorPassThrough, hasSuccessClaim, EXPECTED_PHRASES_SHA256, PHRASES_STATE: _phrasesState, judgeSeam, judgeTelemetry, buildJudgeInput, validateJudgeInput, JUDGE_INPUT_KEYS };

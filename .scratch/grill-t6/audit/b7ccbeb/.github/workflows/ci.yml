@@ -1,0 +1,131 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # ADR-0058 D-E (amending ADR-0034 D5): gate:all is the single entrypoint for
+  # the GATE layer only. The gate inventory lives in docs/gates.json and the
+  # registry-to-ci wiring is machine-asserted by scripts/check-ci-wiring.js,
+  # which runs first as a meta-check (order 0-99). The test layer is NOT a
+  # gate-layer member: it is an independent CI-layer job (see the test job).
+  #
+  # The job id is gate-all, not gate:all, because a GitHub Actions job_id may
+  # contain only alphanumeric characters, - and _ (a colon is rejected). The
+  # gate:all SCRIPT name invoked below is unchanged.
+  gate-all:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # checkout's default fetch-depth=1 leaves PR base SHAs unfetched, so
+          # git diff base...HEAD in the coupling guards dies with
+          # "fatal: bad object". Full history keeps the coupling check real.
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      # --ignore-scripts: keep prepare (hooksPath) off CI runners
+      - run: npm install --ignore-scripts
+      # ADR-0036: the private bench corpus is not in git; restore it from a
+      # base64 tar.gz secret into $RUNNER_TEMP. Without the secret the
+      # corpus-dependent gates fail closed (intended posture).
+      - name: restore bench corpus
+        env:
+          JIAHAO_BENCH_CORPUS_B64: ${{ secrets.JIAHAO_BENCH_CORPUS_B64 }}
+        # secrets cannot be used in step-level if:, so guard inside the shell.
+        run: |
+          if [ -z "$JIAHAO_BENCH_CORPUS_B64" ]; then
+            echo "JIAHAO_BENCH_CORPUS_B64 not set; corpus gates will fail closed"
+          else
+            echo "$JIAHAO_BENCH_CORPUS_B64" | base64 -d | tar -xz -C "$RUNNER_TEMP"
+            # B7 diagnostics: make the next run self-explanatory. Every line is
+            # failure-proof (|| true / 2>/dev/null) so bash -e never trips here.
+            echo "corpus restored into $RUNNER_TEMP (JIAHAO_CORPUS_DIR=$RUNNER_TEMP/bench-corpus)"
+            ls -la "$RUNNER_TEMP" || true
+            ls -la "$RUNNER_TEMP/bench-corpus" 2>/dev/null || echo "(no $RUNNER_TEMP/bench-corpus directory)"
+            if [ ! -f "$RUNNER_TEMP/bench-corpus/mr-probes.jsonl" ]; then
+              echo "::warning title=corpus-restore::$RUNNER_TEMP/bench-corpus/mr-probes.jsonl is absent after extraction: either JIAHAO_BENCH_CORPUS_B64 is stale, or the tarball's top-level layout does not place the corpus under bench-corpus/"
+            fi
+          fi
+      - run: npm run gate:all
+        env:
+          # PR base for the same-commit coupling guards (ADR-0027 D2);
+          # empty on push events, which the guards treat as "no base".
+          CI_BASE_REF: ${{ github.event.pull_request.base.sha }}
+          # ADR-0036: corpus restored above; the resolver also falls back to
+          # the install dir and the repo-private default (dev machines).
+          JIAHAO_CORPUS_DIR: ${{ runner.temp }}/bench-corpus
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bench-gate
+          path: |
+            bench-artifacts/gate-metrics.json
+            bench-artifacts/gate-junit.xml
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: probe-gate
+          path: |
+            probe-artifacts/gate-metrics.json
+            probe-artifacts/gate-junit.xml
+          if-no-files-found: ignore
+
+  # ADR-0058 D-F/D-I: the test gate (order 100) was physically removed from
+  # docs/gates.json. Order 100 is a retired slot - not renumbered, not a
+  # tombstone. The suite-count wrapper moved here with the gate.
+  # ADR-0058 D-H: this job always runs the public tier so a fork PR and main
+  # behave identically; it must never reference the bench corpus secret.
+  test:
+    runs-on: ubuntu-latest
+    env:
+      JIAHAO_TEST_TIER: public
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm install --ignore-scripts
+      # ADR-0057 D-C: the suite-count assertion lives on this call line now.
+      - run: node scripts/run-test-gate.js --expected-suites 55
+
+  # ADR-0058 D-B/D-G: the CI-layer convergence point. Branch protection
+  # requires ONLY this job, so the internal job names may change freely.
+  summary:
+    if: always()
+    needs: [gate-all, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: success-only aggregation
+        run: |
+          # D-B: green requires every needed job result to strictly equal
+          # success; failure / cancelled / skipped / unknown are all red.
+          # The canonical richja pattern (success || skipped) is forbidden:
+          # GitHub masks failed legs as skipped on a partial re-run
+          # (#26822, ju-manns 2025-02-26), so skipped MUST read red.
+          # A3 (audit repair): the number of results actually seen is asserted
+          # against the needs count, so an empty/unknown expansion cannot
+          # zero-iterate into a false green.
+          results="${{ needs.gate-all.result }} ${{ needs.test.result }}"
+          expected=2   # == length of the needs list above
+          echo "needed job results: [$results] (expected $expected)"
+          seen=0
+          for r in $results; do
+            seen=$((seen + 1))
+            if [ "$r" != "success" ]; then
+              echo "::error::aggregate red - needed job result $r is not success (ADR-0058 D-B)"
+              exit 1
+            fi
+          done
+          if [ "$seen" -ne "$expected" ]; then
+            echo "::error::aggregate red - saw $seen results, expected $expected (ADR-0058 D-B: unknown/empty reads red)"
+            exit 1
+          fi
+          echo "aggregate green - all $expected needed jobs report success"

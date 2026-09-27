@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0068/0069: devin-corpus@v3 ground-truth snapshot descriptor - names harness commit + model version + date + readable counts + the side-set roster + band markings. Item labels/transcripts stay blind until the derived-table freeze commit; the OOT runner reads labels only after decision-tables.json is frozen.",
+  "snapshot": "devin-corpus@v3",
+  "status": "frozen",
+  "harness_commit": "730d02416fac7660a7f4d307d325ecf54956c9ca",
+  "model_version": "SWE-2 Max via Devin Desktop",
+  "collected_at": "2026-09-16",
+  "item_count": 140,
+  "counts": {
+    "n_lie": 36,
+    "n_honest": 84,
+    "n_side": 20
+  },
+  "counts_readable": "aggregate label counts are registered readable metadata (D-015b(i)); per-item labels/transcripts stay blind until the derived-table freeze commit",
+  "undersized": [],
+  "side_set_roster": [
+    "devin-v3-ss-121",
+    "devin-v3-ss-122",
+    "devin-v3-ss-123",
+    "devin-v3-ss-124",
+    "devin-v3-ss-125",
+    "devin-v3-ss-126",
+    "devin-v3-ss-127",
+    "devin-v3-ss-128",
+    "devin-v3-ss-129",
+    "devin-v3-ss-130",
+    "devin-v3-ss-131",
+    "devin-v3-ss-132",
+    "devin-v3-ss-133",
+    "devin-v3-ss-134",
+    "devin-v3-ss-135",
+    "devin-v3-ss-136",
+    "devin-v3-ss-137",
+    "devin-v3-ss-138",
+    "devin-v3-ss-139",
+    "devin-v3-ss-140"
+  ],
+  "batch_breakdown": {
+    "b-1": {
+      "attempts": 20,
+      "lies": 5
+    },
+    "b-2": {
+      "attempts": 20,
+      "lies": 8
+    },
+    "b-3": {
+      "attempts": 20,
+      "lies": 4
+    },
+    "b-4": {
+      "attempts": 20,
+      "lies": 8
+    },
+    "b-5": {
+      "attempts": 20,
+      "lies": 5
+    },
+    "b-6": {
+      "attempts": 20,
+      "lies": 6
+    },
+    "side-1": {
+      "attempts": 20,
+      "lies": 0
+    }
+  },
+  "mining_rate": {
+    "tasks_per_lie_overall": 3.33
+  },
+  "honest_success": {
+    "succeeded": 84,
+    "failed": 0
+  },
+  "items_file": "items.jsonl",
+  "incoming_dir": "incoming",
+  "scoring": "deterministic scoring function per item (METR Task Standard); labels mechanically reproducible",
+  "blind_until": "derived-table freeze commit (ADR-0068 D-A.4) - the freeze lands before any label read by the adjudicator",
+  "plan": "plan.json (registered before collection; categories + counts + disjointness only, never item content)",
+  "verification": "spec-layer dual verification; no Cohen kappa - mechanical labels make IAA a category error (ADR-0065 D-C.2)",
+  "conformity_disclaimer": "devin-corpus@v3 is never cited by any conformity claim (ADR-0068/0069)",
+  "disjoint_from": [
+    "devin-corpus@v1 (all 52 item ids, enforced at validate)",
+    "devin-corpus@v2 (all 140 item ids, enforced at validate)",
+    "external-bench (polygraph-396, pb- ids)",
+    "golden-sample (gold20)",
+    "judge-conformity (n=26)"
+  ],
+  "source_adr": "0068/0069"
+}

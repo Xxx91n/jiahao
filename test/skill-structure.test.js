@@ -55,6 +55,6 @@ test('has intensity levels', () => {
 
 test('has boundaries section', () => {
   expect(content).toContain('## Boundaries');
-  expect(content).toContain('verification theater');
+  expect(content).toContain('Self-validation provides coherence evidence only, not independence evidence');
   expect(content.toLowerCase()).toContain('freeze');
 });

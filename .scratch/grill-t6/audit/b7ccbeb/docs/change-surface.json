@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0047 D-A machine fact-source. Each validated change surface maps to its tiered response and accepted human attestations. Changes to this file are protected by the ADR-0027 coupling guard through scripts/instrument.js --check when CI_BASE_REF is set.",
+  "source_adr": "docs/adr/0047-impact-tiered-instrument-change-control.md",
+  "anchor": {
+    "tokens": [
+      "identity",
+      "corpus",
+      "threshold",
+      "schedule_gate",
+      "quarantine",
+      "rebaseline",
+      "criteria-change",
+      "record",
+      "certify",
+      "approve"
+    ]
+  },
+  "surfaces": {
+    "identity": {
+      "response": "quarantine",
+      "revalidation": "npm run reverify && npm run judge:bias",
+      "attestations": [
+        "certify"
+      ]
+    },
+    "corpus": {
+      "response": "rebaseline",
+      "revalidation": "npm run reverify",
+      "attestations": [
+        "approve",
+        "certify"
+      ]
+    },
+    "threshold": {
+      "response": "criteria-change",
+      "revalidation": "criteria replay",
+      "attestations": [
+        "approve"
+      ]
+    },
+    "schedule_gate": {
+      "response": "record",
+      "revalidation": "record only",
+      "attestations": [
+        "approve"
+      ]
+    }
+  }
+}

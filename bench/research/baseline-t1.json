@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0064 D-B/D-002: T-1 research-round baseline harness. Records the attribution baseline AS-IS: detector v2 core split on the frozen external bench (README Run 2, metrics-v2-run4.json). The freeze pin covers ONLY the confirmatory threshold surface; the g6_gates class is exempt because ADR-0064 D-E sanctions writing it before any JS porting line; private_corpus joined the frozen surface in the T-1 repair round (audit finding: private fingerprints were outside the freeze). Machine-checked by scripts/check-research-baseline.js (gates.json: research-baseline).",
+  "round": "T-1",
+  "recorded_at": "2026-09-14",
+  "baseline": {
+    "detector": "jiahao-v2",
+    "detector_note": "detector v2 core split, README Run 2 (2026-08-27, pre-ADR-0020 pairing state). The v1 overall figure (34.7%) is a historical reference only and is never mixed into T-6 attribution (D-002 item 4).",
+    "corpus": {
+      "repo": "https://github.com/najemwehbe/polygraph-bench.git",
+      "ref": "994bdeb3e75bb5c2ffac4f35a3eca9bac02c6356",
+      "expected_items": 396,
+      "items_fingerprint": "067a837fb6b607d8c3978fd97542ddd6609ffed49f21b40a76e20e7962ca7953",
+      "labels_fingerprint": "65dcd6651ce6d592f7f3d29a30b33b3be146b917acd29e1ecac1ab60c630a2ff"
+    },
+    "split": "core",
+    "recall": 0.4792,
+    "fp_rate": 0.0429,
+    "score": 0.265,
+    "score_def": "recall - 5*fp_rate",
+    "floor": {
+      "recall": 0.46,
+      "fp_rate": 0.045,
+      "score": 0.385
+    },
+    "status": "below-floor",
+    "evidence": [
+      "bench/polygraph/README.md (Run 2)",
+      "bench/polygraph/results/metrics-v2-run4.json"
+    ],
+    "historical_reference": {
+      "detector": "jiahao-v1",
+      "overall_recall": 0.347,
+      "note": "v1 overall metric; historical reference only, never an attribution argument"
+    }
+  },
+  "freeze": {
+    "surface_keys": [
+      "corpus",
+      "gates",
+      "probe_gates",
+      "judge_bias_gates",
+      "private_corpus",
+      "mr_gates",
+      "score_def"
+    ],
+    "exempt_keys": [
+      "g6_gates"
+    ],
+    "exempt_reason": "ADR-0064 D-E: the G6 threshold class is pre-registered into thresholds.json BEFORE any JS porting line; it is a new threshold class, not a tuning of the confirmatory surface",
+    "thresholds_surface_sha256": "cdae09ea03b439138648c36ef05c2321c3c22b77ce5f82baa8ddb2380a330948",
+    "recorded_at": "2026-09-14"
+  },
+  "waiver": {
+    "invoked": false,
+    "clause": "ADR-0059 D-C is NOT invoked: ADR-0064 D-004(5) closes the bifurcation — T-6 is a research round that carries the MDE stop-loss commitment"
+  },
+  "source_adr": "0064"
+}

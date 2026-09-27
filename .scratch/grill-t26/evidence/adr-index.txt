@@ -1,0 +1,6 @@
+captured-at-head: 3225ca31b3739728cacdd24ee1cd3e0f35d9cc46
+$ node scripts/build-adr-index.js --check
+
+README ADR index in sync with docs/adr
+
+EXIT 0

@@ -1,0 +1,1889 @@
+$ node scripts/run-test-gate.js --expected-suites 76
+
+EXIT 0
+
+  console.log
+    drop-1: 20 attempts, lies=5 honest=15 (cum L=5 H=15, floor 3)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-2: 20 attempts, lies=8 honest=12 (cum L=13 H=27, floor 7)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-3: 20 attempts, lies=4 honest=16 (cum L=17 H=43, floor 11)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-4: 20 attempts, lies=8 honest=12 (cum L=25 H=55, floor 15)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-5: 20 attempts, lies=5 honest=15 (cum L=30 H=70, floor 19)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-6: 20 attempts, lies=6 honest=14 (cum L=36 H=84, floor 22)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    early stop: both lower bounds met after batch 6
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:218:39)
+
+  console.log
+    drop-side: 20 stress-side honest command-exit items
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:233:11)
+
+  console.log
+    drop-1.jsonl: 20 items {"honest":15,"lie":5}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-2.jsonl: 20 items {"lie":8,"honest":12}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-3.jsonl: 20 items {"honest":16,"lie":4}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-4.jsonl: 20 items {"lie":8,"honest":12}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-5.jsonl: 20 items {"honest":15,"lie":5}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-6.jsonl: 20 items {"lie":6,"honest":14}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-side.jsonl: 20 items {"honest":20}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    total 140 items (140 attempts) written to incoming/ + collection-log.json
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:250:11)
+
+  console.log
+    landed: n_lie=36 n_hon=84 n_side=20 (bands [24,40] / [80,130] / [15,25])
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:251:11)
+
+  console.log
+    drop-1: 20 attempts, lies=5 honest=15 (cum L=5 H=15, floor 3)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-2: 20 attempts, lies=8 honest=12 (cum L=13 H=27, floor 7)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-3: 20 attempts, lies=4 honest=16 (cum L=17 H=43, floor 11)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-4: 20 attempts, lies=8 honest=12 (cum L=25 H=55, floor 15)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-5: 20 attempts, lies=5 honest=15 (cum L=30 H=70, floor 19)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    drop-6: 20 attempts, lies=6 honest=14 (cum L=36 H=84, floor 22)
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:217:13)
+
+  console.log
+    early stop: both lower bounds met after batch 6
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:218:39)
+
+  console.log
+    drop-side: 20 stress-side honest command-exit items
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:233:11)
+
+  console.log
+    drop-1.jsonl: 20 items {"honest":15,"lie":5}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-2.jsonl: 20 items {"lie":8,"honest":12}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-3.jsonl: 20 items {"honest":16,"lie":4}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-4.jsonl: 20 items {"lie":8,"honest":12}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-5.jsonl: 20 items {"honest":15,"lie":5}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-6.jsonl: 20 items {"lie":6,"honest":14}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    drop-side.jsonl: 20 items {"honest":20}
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:246:13)
+
+  console.log
+    total 140 items (140 attempts) written to incoming/ + collection-log.json
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:250:11)
+
+  console.log
+    landed: n_lie=36 n_hon=84 n_side=20 (bands [24,40] / [80,130] / [15,25])
+
+      at Object.log [as collect] (.scratch/grill-t9/devin-collect-v3.js:251:11)
+
+[test] OK: 76 suites, 1300 tests, 0 skipped (ADR-0057 D-C)
+PASS test/host-contracts.test.js (5.126 s)
+  registry integrity
+    √ schema_version 1 with _doc header (19 ms)
+    √ every adapters/<host> directory has a contract entry and lifecycle state (10 ms)
+    √ every term anchors a CONTEXT.md glossary term (6 ms)
+    √ every source_adr file exists (8 ms)
+  D3 executable-hook conformance
+    √ claude-verdict-gate: flag off -> exit 0 passthrough (121 ms)
+    √ codex-verdict-gate: flag off -> exit 0 passthrough (132 ms)
+    √ copilot-verdict-gate: flag off -> exit 0 passthrough (112 ms)
+    √ qoder-verdict-gate: flag off -> exit 0 passthrough (115 ms)
+    √ claude-verdict-gate: advisory allow -> exit 0 + decision JSON (147 ms)
+    √ codex-verdict-gate: advisory allow -> exit 0 + decision JSON (133 ms)
+    √ copilot-verdict-gate: advisory allow -> exit 0 + decision JSON (142 ms)
+    √ qoder-verdict-gate: advisory allow -> exit 0 + decision JSON (136 ms)
+    √ claude-verdict-gate: block -> exit 2 + {decision,reason} (141 ms)
+    √ codex-verdict-gate: block -> exit 2 + {decision,reason} (145 ms)
+    √ copilot-verdict-gate: block -> exit 2 + {decision,reason} (165 ms)
+    √ qoder-verdict-gate: block -> exit 2 + {decision,reason} (156 ms)
+    √ claude-verdict-gate: decision values stay within contract (1 ms)
+    √ codex-verdict-gate: decision values stay within contract (1 ms)
+    √ copilot-verdict-gate: decision values stay within contract (1 ms)
+    √ qoder-verdict-gate: decision values stay within contract (1 ms)
+    claude-failsoft (fail-soft)
+      √ jiahao-activate.js exits 0 on empty stdin (137 ms)
+      √ jiahao-subagent.js exits 0 on empty stdin (143 ms)
+      √ jiahao-mode-tracker.js exits 0 on empty stdin (140 ms)
+      √ jiahao-sweep.js exits 0 on empty stdin (131 ms)
+      √ jiahao-activate.js exits 0 on garbage stdin (161 ms)
+      √ jiahao-subagent.js exits 0 on garbage stdin (142 ms)
+      √ jiahao-mode-tracker.js exits 0 on garbage stdin (127 ms)
+      √ jiahao-sweep.js exits 0 on garbage stdin (114 ms)
+    codex-failsoft (fail-soft)
+      √ jiahao-activate.js exits 0 on empty stdin (129 ms)
+      √ jiahao-subagent.js exits 0 on empty stdin (137 ms)
+      √ jiahao-mode-tracker.js exits 0 on empty stdin (125 ms)
+      √ jiahao-sweep.js exits 0 on empty stdin (119 ms)
+      √ jiahao-activate.js exits 0 on garbage stdin (181 ms)
+      √ jiahao-subagent.js exits 0 on garbage stdin (146 ms)
+      √ jiahao-mode-tracker.js exits 0 on garbage stdin (265 ms)
+      √ jiahao-sweep.js exits 0 on garbage stdin (125 ms)
+  D3 config-level conformance
+    √ claude-config registers all expected events (7 ms)
+    √ codex-config registers all expected events (1 ms)
+    √ copilot-config registers all expected events (2 ms)
+    √ qoder-config registers all expected events (2 ms)
+  D3 instruction-tier conformance
+    √ cursor-instruction files exist and carry jiahao content (2 ms)
+    √ windsurf-instruction files exist and carry jiahao content (1 ms)
+    √ cline-instruction files exist and carry jiahao content (2 ms)
+    √ instruction-tier-injection files exist and carry jiahao content (3 ms)
+    √ mcp-stub files exist and carry jiahao content (1 ms)
+    √ opencode-instruction files exist and carry jiahao content (3 ms)
+    √ aider-instruction files exist and carry jiahao content (3 ms)
+  D4 coupling guard negative paths (shared couplingViolation)
+    √ contract change without ADR or CONTEXT.md in range fails (3 ms)
+    √ contract change with an ADR in range passes (1 ms)
+    √ contract change with a CONTEXT.md change in range passes (1 ms)
+    √ unrelated changes without the registry pass (1 ms)
+    √ default opts keep ADR-0027 thresholds semantics unchanged (1 ms)
+
+PASS test/hooks.test.js (5.279 s)
+  √ all 5 hook files exist (19 ms)
+  √ jiahao-hooks.json is valid JSON with 4 events (3 ms)
+  √ D5: SubagentStop is registered next to Stop (parity) (3 ms)
+  √ runtime detectHost returns a string (7 ms)
+  √ runtime writeHookOutput respects 10k cap (2 ms)
+  √ activate script runs and outputs SKILL.md content (155 ms)
+  √ mode-tracker responds to /jiahao full command (238 ms)
+  √ verdict-gate blocks without evidence (249 ms)
+  √ verdict-gate passes with evidence (248 ms)
+  √ verdict-gate blocks with empty JSON array evidence (232 ms)
+  √ verdict-gate blocks with plain text evidence (not JSON) (247 ms)
+  √ shared paths module exports flagPath and evidencePath (3 ms)
+  √ verdict-gate respects stop_hook_active (262 ms)
+  √ D4: verdict-gate with evidence is idempotent (file NOT consumed, second fire also passes) (597 ms)
+  √ D2: generator profile never blocks on high-severity suspicion (advisory only) (339 ms)
+  √ D2: verifier profile blocks on high-severity suspicion (298 ms)
+  √ D2: verifier profile low-severity suspicion = advisory, not block (278 ms)
+  √ D2: verifier profile with clean evidence (no detector field) passes silently (313 ms)
+  √ ADR-0013 D1: recordHash hashes the prev_hash field (5 ms)
+  √ ADR-0013 D3: idempotency key is deterministic composite (2 ms)
+  √ ADR-0013 D4: verdict-gate blocks on broken chain (verifier) (382 ms)
+  √ ADR-0017: verifier gate surfaces pending escalation count (advisory, exit 0) (322 ms)
+
+PASS test/adr-0044-wiring.test.js (7.443 s)
+  ADR-0044 falsification core
+    √ the record is exactly the normative five-tuple (20 ms)
+    √ exit code maps to the evidence tri-state (1 ms)
+    √ the first batch has exactly 12 paired twins (11 ms)
+    √ runTwin maps timeout to missing and can widen the budget for slow hosts (3223 ms)
+  ADR-0044 registry wiring
+    √ falsification is registered at order 185 with the ADR-0044 source (2 ms)
+    √ ADR-0044 text anchors the record and tri-state vocabulary (4 ms)
+  ADR-0044 spawn locks
+    √ check-falsify passes in a repo-tree and fails honestly without one (3097 ms)
+
+(node:15632) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+PASS test/adr-0065-impl-wiring.test.js (7.69 s)
+  T-1 product port (ADR-0065 D-B.1/D-B.2)
+    √ src/port/score.js exists and exports the product + gate seams (17 ms)
+    √ purity: the port source carries no fs/net/process dependencies (6 ms)
+    √ score(text) contract: {logits:number, verdict:lie|honest} (2 ms)
+    √ manifest ships inside src/ as float64 JSON (no quantization) (18 ms)
+    √ positive control: a corrupted manifest changes logits (detectable) (7 ms)
+    √ pyJsonNum edge: |v|>=1e21 expands to Python int digits, small exponents pad to 2 (2 ms)
+    √ score() is deterministic (same input -> identical logits) (1 ms)
+    √ itemText serializer is byte-equal to sklearn item_text on gold20 (17 ms)
+  T-2 confirmatory adjudication (ADR-0065 D-A / ledger D-002)
+    √ the floor is read from the frozen constants and re-derived fail-closed (2 ms)
+    √ tamper: a frozen file that disagrees with its own arithmetic fails closed (261 ms)
+    √ the pre-registered ladder is exactly the two survivors (cap 2, third rejected) (2 ms)
+    √ adjudicate: PASS needs recall@FP0 >= floor AND fp_default <= margin (1 ms)
+    √ positive control: poisoned idf/manifest is caught by the goldens replay (57 ms)
+    √ rel-L2 is advisory: warnings are recorded, verdict unaffected (18 ms)
+    √ fallback semantics: the same floor applies and the honesty sentence is mandatory
+    √ the fallback manifest is a runnable bench-side artifact (never shipped) (2468 ms)
+    √ fallback leg fires for real: a tampered floor fails primary then judges word-1 at the same floor (211 ms)
+    √ the committed result artifact is a terminal event with honest shape (2 ms)
+    √ live replay: the shipped port re-derives the committed verdict (305 ms)
+  T-3 G6 publish gate (ADR-0065 D-B.3)
+    √ prepublishOnly runs the publish gate (pack itself is never blocked) (1 ms)
+    √ the gate is registered in gates.json with source_adr 0065 (2 ms)
+    √ the fixture anchors gold20 by sha256 and carries 20 expectations (3 ms)
+    √ positive control: replay rejects a corrupted manifest (42 ms)
+    √ the tarball ships the port surface (score.js + manifest) (3018 ms)
+    √ the gate persists a deterministic replay log (D-005(b) closure artifact) (1 ms)
+  T-4 devin-corpus@v1 (ADR-0065 D-C / ledger D-004)
+    √ plan.json is registered with categories/counts/disjointness, no item content (2 ms)
+    √ the snapshot is frozen exactly once with required metadata (3 ms)
+    √ every item validates, is disjoint, and carries a mechanical label (90 ms)
+    √ rescore replays every stored label mechanically (the 52/52 figure is rerunnable) (8 ms)
+    √ drops are consumed by the single snapshot (no pending drops) (1 ms)
+  T-5 claim template + governance (ADR-0065 D-E / ledger D-006)
+    √ claim-template.md carries the six fixed facts (1 ms)
+    √ the verbatim block is repeated in the confirmatory report and README (4 ms)
+    √ defer-0042 registers the ADR-0066 amendment review slot (4 ms)
+    √ D-006(a): the registry holds this round's net-addition row + the single terminal event (3 ms)
+    √ trend inventory stays documentation-round only (impl rounds do not feed it) (2 ms)
+  D-001 scope + D-003 surface
+    √ ADR-0066 exists with live status and anchors the moved cap (1 ms)
+    √ confirmatory-bench is registered as a confirmatory gate (1 ms)
+    √ gate orders are unique (2 ms)
+
+PASS test/adr-0079-wiring.test.js
+  ADR-0079 bilingual mirror convention (grill-t20)
+    √ D1: the zh-CN mirror exists beside the primary (7 ms)
+    √ D2: the autonym language-switch pair opens both files (current bold + unlinked) (5 ms)
+    √ D3: the baseline comment carries a 40-hex sha that exists in git history (99 ms)
+    √ skeleton: both files share the same top-level ## heading skeleton (3 ms)
+    √ D4: translated pinned blocks carry the English-original-prevails pointer (1 ms)
+    √ D5: the mirror is absent from the package files and the npm tarball (2834 ms)
+    √ D6 drift pin: git log -1 README.md equals the recorded baseline sha (41 ms)
+    √ D6 semantics + Context sentence: re-pin rhythm, same-commit rule, policy-home line (1 ms)
+
+PASS test/adr-0055-wiring.test.js
+  ADR-0055 D-A plan anchor contract
+    √ valid anchor normalizes and invalid fields are reported (10 ms)
+    √ tail anchor writer only persists declared witness fields (12 ms)
+  ADR-0055 D-C speculative merge checker
+    √ current upstream produces clean merge evidence; stale upstream exits 1 (726 ms)
+  ADR-0055 D-E bounded seal verification
+    √ verifyTail reads a bounded window while verifyFull reads the cold chain (351 ms)
+    √ ordinary append does not materialize the historical chain (274 ms)
+    √ seal sidecar is validated against the segment containing an old seal (1586 ms)
+    √ seal sidecar ahead of the chain is rejected (222 ms)
+
+PASS test/adr-0068-wiring.test.js
+  ADR-0068 doc surface (D-016 doc round)
+    √ ADR-0068 exists with title, status, date and ledger anchor (2 ms)
+    √ all four decision clauses land (adjudication rule, collection protocol, claim slot, delivery boundary) (2 ms)
+    √ the ADR anchors the round tally row defer-0047
+    √ dual-axis rule: floor conservative transfer + usability bound + worst-of (2 ms)
+    √ stage gates stated in the ADR (2 ms)
+    √ rejected clauses land (R1-R7) (2 ms)
+  devin-corpus-v2 plan.json (registered before any v2 item)
+    √ plan exists with schema_version 1 + v2 snapshot + ledger authority (2 ms)
+    √ registration precedes collection: the plan commit predates the items commit (275 ms)
+    √ designed-after-v1 disclosure is registered (1 ms)
+    √ category map: four task shapes + the misreport emergent layer (1 ms)
+    √ target bands + undersized marking (1 ms)
+    √ stress side-set: command-exit honest, 15-25, never-in-table, same snapshot (1 ms)
+    √ deterministic stopping function text + trajectory floor + attempt cap (2 ms)
+    √ per-item registration fields + session cap (2 ms)
+    √ disjointness enumerates all 52 v1 item ids (3 ms)
+    √ blind fields + readable metadata + forbidden surfaces (1 ms)
+    √ contamination registry: per-parameter rows with v1_informed + basis (4 ms)
+  devin-corpus-v2 eval-plan.json (pre-registered dual-axis rule)
+    √ schema, snapshot, anchors + designed-after-v1 disclosure (2 ms)
+    √ instrument: same frozen scorer, shipped operating point, banned threshold carried (1 ms)
+    √ serialization: v1 whitelist carried; v2 metadata never serialized (2 ms)
+    √ lie axis: floor 0.563863 conservative transfer, mde-freeze re-derivation (2 ms)
+    √ fp axis: usability bound 0.10, never named non-inferiority, rationale physically separated (2 ms)
+    √ CI flavor frozen + derivation oracle = scripts/reverify.js clopperPearson95 (2 ms)
+    √ table derivation rule: landed n, blind labels, own freeze commit, then unlock (211 ms)
+    √ combination: worst-of / IUT with pre-registered 2D operating characteristics (1 ms)
+    √ INDET quadrant semantics + FP sub-items + single shot + probe channel (3 ms)
+    √ full report obligation carries every v2-required field (3 ms)
+  v2 claim slot + binding (ADR-0068 D-C / ledger D-009 mechanism)
+    √ eval-plan claim block: v2 fact-line template + limitation + INDET wording (2 ms)
+    √ ADR carries the fact-line template shape verbatim (1 ms)
+    √ claim-template.md holds the LANDED v2 slot (verdict filled, verbatim binding) (2 ms)
+  registry + boundaries (D-006, ADR-0027 D2)
+    √ defer-0047 lands as this round net-addition tally row (2 ms)
+    √ devin-corpus-v2 stays off the npm whitelist (ADR-0038 D2) (2 ms)
+    √ v2 replay gate registered at closure (D-016): gates.json entry + green --replay (1 ms)
+  v1 frozen surfaces untouched (the v2 round never disturbs them)
+    √ v1 eval-plan sha256 equals the stored v1 report anchor (1 ms)
+    √ v1 manifest stays frozen at 52 items; v1 items file untouched (52 lines) (2 ms)
+  T-2 --snapshot-dir parameterization (ADR-0068 D-D.2)
+    √ collector: closed-enum snapshot registry (v1 default + v2 + v3 registered) (5 ms)
+    √ collector: unknown --snapshot-dir is a closed-enum refusal (exit 1) (113 ms)
+    √ collector: v1 default validate unchanged (52 frozen items) (126 ms)
+    √ collector: v2 validate on the frozen snapshot is clean (140 items, drops consumed) (119 ms)
+    √ collector: v2 item schema requires the registration fields (v1 schema unchanged) (2 ms)
+    √ collector: v2 validate refuses a drop colliding with a v1 item id (123 ms)
+    √ devin-oot: closed-enum snapshot registry maps v2 report + gate names (20 ms)
+    √ devin-oot: unknown --snapshot-dir fails closed (128 ms)
+    √ devin-oot v2: loadPlanV2 fail-closes when decision-tables.json is absent (3 ms)
+    √ v1 corpus artifacts stay byte-pinned through the parameterization (3 ms)
+    √ v1 runner unchanged: --validate and --replay still green on the default dir (453 ms)
+  T-5 closure: landed verdict + claim wiring (ADR-0068 D-C/D-E)
+    √ the stored v2 report is the single completed shot (single_shot, completed) (1 ms)
+    √ landed verdict pins: failed, lie-fail x fp-fail quadrant (2 ms)
+    √ exit-report concentration: all 21 FPs are exit-report; the 60% trigger fired (1 ms)
+    √ stress side-set stayed out of the tables and reports its diagnostic (1 ms)
+    √ claim homes carry the fact line + limitation verbatim (D-009 mechanism) (2 ms)
+    √ single-shot burn: a second run is refused (exit 1, REFUSED, [config] prefix) (141 ms)
+    √ v2 replay re-derives the stored artifact cleanly (gate wired) (145 ms)
+    √ defer-0048 lands as the v2 terminal event row (D-006(a)(ii), one per round) (2 ms)
+    √ manifest.counts + collection-log agree with the derived tables (2 ms)
+    √ collection-log registered the deterministic stopping function + mining rate (1 ms)
+    √ positive control: a tampered interior band boundary makes loadPlanV2 fail closed (F-2) (329 ms)
+
+PASS test/adr-0076-wiring.test.js
+  ADR-0076 doc surface (grill-t15 disposition + mechanism round)
+    √ title, status, date, ledger anchor (2 ms)
+    √ decision clauses D-A..D-E land (2 ms)
+    √ CONTEXT.md carries the two new terms + the amended Sunset Trigger (2 ms)
+    √ README index rebuilt: 81 records incl. ADR-0076 (1 ms)
+    √ AGENTS.md carries the single pointer line (1 ms)
+    √ anchors.json lists decision-ledger-t15.md under ADR-0076, content-equal to the scratch authority (2 ms)
+  surface taxonomy artifact (ADR-0076 D-A)
+    √ the R1 set is exactly the computed require-closure (authority is the scan, not the list) (7 ms)
+    √ every git-tracked file classifies into exactly one surface (88 ms)
+    √ the surface rules pin representative paths to their class (5 ms)
+  registry dispositions (ADR-0076 D-E)
+    √ defer-0026 actioned with the limitation field (1 ms)
+    √ defer-0060 is the sole live 403 tracker: external-event, pending-evaluation, no verified_by (2 ms)
+    √ defer-0055 sunset pointer is pure (audit F-3): pointer only, no clause restatement (1 ms)
+    √ defer-0061 tally row registered for the +1 round (2 ms)
+  owner asks frozen, never bundled (ADR-0076 D-E)
+    √ both ask packets are frozen verbatim with their types (1 ms)
+  ADR-0077 amendments (grill-t16 fix + mechanism round, data-surface assertions)
+    √ ADR-0077 exists with live status, date, amends line, and ledger anchor (1 ms)
+    √ ADR-0076 carries the Amended-by pointer and the D-B(2) superseded-phrase annotation (3 ms)
+    √ mechanism_outputs is a closed enumeration: every entry classifies R2 and names an existing generator (5 ms)
+    √ the two F-D artifacts are the enumeration members
+    √ diff_semantics reworded: machinery-source hand-edits + faithful regeneration + mechanism_output_diff entry (1 ms)
+    √ t15 trend row annotation is additive-only: historical booleans untouched (1 ms)
+    √ t16 row: +1 ADR-0077, zero product diff, carve-out not invoked (streak resets) (2 ms)
+    √ no unlisted file claims the output exemption (mechanism_output_diff files are always inside the enumeration) (8 ms)
+    √ CONTEXT.md carries the Consuming-Row Exit + Facts Canon terms and the carve-out gloss restored the inventory channel (1 ms)
+    √ defer-0004 rationale cites ADR-0058 D-C explicitly (settles F-C) (1 ms)
+    √ defer-0062 tally row registered closed for the +1 round (1 ms)
+    √ README index rebuilt: 81 records incl. ADR-0077 (1 ms)
+    √ the ledger carries the convention verbatim and the consent-sweep lines (1 ms)
+    √ mechanism_output_diff marker: checker accepts members, hard-fails bare markers and unlisted files (143 ms)
+    √ anchors.json lists decision-ledger-t16.md under ADR-0077, content-equal to the scratch authority (2 ms)
+    √ facts canon: artifact schema + deterministic render pin (ADR-0077 D-C) (2 ms)
+  grill-t17 dispositions (ADR-0077 D-E appendix + residue registrations)
+    √ proseScan export: unconditional - a quoted canon number is still a violation (4 ms)
+    √ a quoted-stale-number fixture MUST fail --check (ADR-0077 D-E) (114 ms)
+    √ the t17 report renders the canon region and carries no canon number in prose (2 ms)
+    √ ADR-0077 D-E appendix registers the unconditional scan + the evidence-file convention (1 ms)
+    √ defer-0063 is the missing-convention smell ticket with the anti-rot quota (2 ms)
+    √ ERRATA E-7 registers the seq-27 classification + the literal-token convention (1 ms)
+    √ CONTEXT carries the Re-Execution Prior snapshot v2 and the sharpened delegation convention (1 ms)
+    √ gen-docs invariant: every committed copy derives ROOT from __dirname (D-003 class-killer) (58 ms)
+    √ the gen-docs template carries the frozen derived-ROOT header (2 ms)
+  grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendix + doc hygiene)
+    √ ADR-0078 exists with live status, date, amends line, ledger + spec anchors (1 ms)
+    √ kind enum: a fix row WITH governance_tooling_diff passes; WITHOUT it fails (ADR-0078 negative pin) (90 ms)
+    √ fix rows are exempt from the D-F deferred-entry assert; documentation rows are not (control) (70 ms)
+    √ fix-row gtd files still classify against the taxonomy (R3 listing is mislabeled) (56 ms)
+    √ carve_out_used may be omitted on fix rows and never feeds the burn-rate streak (62 ms)
+    √ the grill-t17 row is corrected disclosed: kind fix + gtd backfill + retroactive first line, history untouched (50 ms)
+    √ the grill-t18 row is the first compliant kind:fix row (gtd + mechanism output disclosed, exempt D-F) (37 ms)
+    √ README index rebuilt: 81 records incl. ADR-0078 (1 ms)
+    √ ADR-0077 grill-t18 amendments: D-A.1 appendix + floor registration + regen-boundary sentence (2 ms)
+    √ CONTEXT terms verified pre-landed (D-005/D-007) (4 ms)
+    √ AGENTS.md authoring-path clause (D-006) (1 ms)
+    √ doc-hygiene pin: every committed .scratch/*.md is free of corruption signatures (287 ms)
+    √ doc-hygiene negative fixtures: the two real corruption samples are flagged (1 ms)
+    √ the t17 next-round.md repair holds: restored paths + $names + zero signatures (H-1) (3 ms)
+    √ t17 ledger carries the appended disclosure note (D-005) (1 ms)
+    √ single-digit canon fixture: bare single-digit value walks free (declared floor gap), key-assign catches it (D-002) (1 ms)
+    √ key-assign fixture: every one of the eleven schema keys is enforced in prose (D-002) (3 ms)
+    √ PROSE_KEYS single-source: derived from SCHEMA_KEYS, all numeric-canon, no drift (D-003) (6 ms)
+    √ emit-exit boundary: a multi-violation report exits 1 with every cause line (D-003/D-A.1) (138 ms)
+  grill-t19 dispositions (ADR-0077 missing-input clause + ADR-0078 streak/gtd semantics + A-3 re-capture)
+    √ txt hygiene pin: every committed .scratch/**/*.txt is free of the path-LF-break signature (D-006) (117 ms)
+    √ txt hygiene negative fixture: the voided A-3 capture bytes are flagged; the md control-byte set does not transfer (1 ms)
+    √ the t18 check-ci-jobs-missing evidence is the re-captured verbatim output (Disclosed Re-Capture, D-006) (1 ms)
+    √ CONTEXT carries the Disclosed Repair / Disclosed Re-Capture / Non-Interpolating Channel / Bilingual Mirror terms (D-002/D-006/D-007) (3 ms)
+    √ CONTEXT clauses: trend-anchor streak populations + consuming-row missing-input (D-003/D-004) (2 ms)
+    √ ADR-0077 D-A.1 registers the missing-input clause (D-004) (1 ms)
+    √ the t18 artifacts carry the restored defer-0060 named lines (A-1 Disclosed Repair) (1 ms)
+    √ the t18 report carries the export-misreport by-design note + the true green statement (A-2/A-5) (2 ms)
+    √ a corrupt facts artifact exits 2 verifier-broken - a crash never masquerades as unsatisfied (D-004/A-6) (127 ms)
+    √ missing factsFile routes to the drift channel: FAIL + boundary exit 1, report phase skipped (D-004/A-8) (2 ms)
+    √ the missing-facts branch is a boundary-route shape, not an early exit (D-004 structure pin) (1 ms)
+    √ kind:fix rows are transparent to the ADR streak - net_additions>0 on a fix row never feeds it (D-003 negative) (35 ms)
+    √ B-1 discriminating pin: [fix(+1), doc(+1)] stays silent - under feed-semantics this scenario fires the trend-anchor advisory (audit B-1) (39 ms)
+    √ doc-fix-doc adjacency counts consecutive for both streaks (D-003 skip-not-reset positive) (71 ms)
+    √ a fix row never resets a running streak - streak state is preserved across the row (D-003) (33 ms)
+    √ ADR-0078 D-A registers the streak-population sentence (D-003)
+    √ gtd presence implies non-empty files: kind:fix + {files:[]} hard-fails (D-005 negative) (31 ms)
+    √ documentation + {files:[]} hard-fails too - the escape channel is closed for both kinds (D-005) (28 ms)
+    √ ADR-0078 D-A registers the gtd escape-channel convention (D-005) (1 ms)
+
+PASS test/adr-0057-wiring.test.js
+  √ ADR-0057 file exists with accepted status (2 ms)
+  √ all four decision clauses are recorded (3 ms)
+  √ defer-0026 is registered and anchored to this ADR (2 ms)
+  √ glossary terms landed in CONTEXT.md (2 ms)
+  √ skip-reasons gate is registered in gates.json (1 ms)
+  √ test gate runs through the suite-count wrapper (D-C) (22 ms)
+  √ static skip scan ships and passes on the current tree (D-A) (47 ms)
+  √ skip helper throws on an empty reason (D-A) (25 ms)
+  √ test-artifacts is gitignored and junit reporter exists (D-C) (1 ms)
+  √ tier none yields at least one skipped test in a corpus suite (D-B, live) (2843 ms)
+
+PASS test/adr-0064-t1-wiring.test.js (10.902 s)
+  T-1 baseline harness (D-002)
+    √ baseline record exists and pins the v2 core numbers as-is (18 ms)
+    √ below-floor state is recorded honestly, not laundered (2 ms)
+    √ baseline numbers are anchored in ADR-0064 text (2 ms)
+    √ baseline numbers recompute from the committed run-4 artifact (1 ms)
+    √ thresholds freeze pin matches the live confirmatory surface (5 ms)
+    √ waiver bifurcation is closed: ADR-0059 D-C not invoked (1 ms)
+    √ check-research-baseline gate passes on the real tree (10 ms)
+    √ check-research-baseline catches a moved floor (negative) (3 ms)
+  T-2 four-class corpus wiring (D-003/D-005)
+    √ manifest registers exactly the four pre-registered classes (2 ms)
+    √ check-corpus-classes passes on the maintainer tree (30 ms)
+    √ judge-conformity stays indeterminate and out of rung statistics (2 ms)
+    √ devin-truth is registered collecting and blind to rung 1 (2 ms)
+    √ disjointness: a devin item without the devin- prefix is rejected (13 ms)
+    √ disjointness: a devin item colliding with a gold20 id is rejected (9 ms)
+    √ devin collector: item validator enforces the METR contract (10 ms)
+  T-3 rung ladder G1-G5 (D-004)
+    √ MDE was frozen before execution and recomputes from its seed recalls (3 ms)
+    √ rung-1 grid is the pre-registered 4x2x2 over 5 seeds, task-disjoint (29 ms)
+    √ G1 verdicts re-derive from trials (frozen floor, FP margin) (11 ms)
+    √ G2 keeps at most two survivors ranked by bench score (20 ms)
+    √ rung-2 stays inside the <=12-config survivor neighborhood, no new family (31 ms)
+    √ dual negative controls are recorded (trigger-mask + non-closing) (2 ms)
+    √ trials ledger is append-only ordered and waiver-free (65 ms)
+  T-4 G6 golden-sample equivalence gate (D-005)
+    √ g6_gates class is pre-registered in thresholds.json (before port) (2 ms)
+    √ manifest records the ported config + analyzer + corpus pin (6 ms)
+    √ gold20 is 20 frozen items, stratified 10 lie + 10 honest (16 ms)
+    √ check-g6-equivalence passes on committed goldens (71 ms)
+    √ positive control: corrupted manifest is rejected (gate cannot rubber-stamp) (48 ms)
+    √ analyzer corruption is caught by tier (a) bit-equality (27 ms)
+    √ vocabulary corruption is caught by tier (b) rel-L2 (25 ms)
+    √ hand-written port: tokenize/vectorize/logit seams are exported (2 ms)
+  T-5 governance: zero-product-diff event + inventory gate (D-006)
+    √ governance-inventory gate passes on the real tree (55 ms)
+    √ zero-product-diff doc-round event is logged and registered (3 ms)
+    √ inventory gate catches a duplicated command (negative) (36 ms)
+    √ inventory gate catches an unclosed Supersedes edge (negative) (8 ms)
+    √ trend anchor fires exactly one advisory at K=2 consecutive doc rounds (37 ms)
+    √ net_additions is recomputed, not trusted (negative) (40 ms)
+    √ anchors.json witnesses the trend inventory (ADR-0061 D-E surface) (1 ms)
+    √ governance_tooling_diff disclosure is accepted when files classify R2 (ADR-0076 D-B) (36 ms)
+    √ a runtime-surface file in a doc-round governance diff hard-fails (R1 is never carve-out-able) (35 ms)
+  T-3 python lane: rung_ladder.py executes on a fixture corpus
+    √ freeze phase produces a valid frozen MDE on the 12-item fixture (5099 ms)
+
+(node:13556) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+PASS test/adr-0038-wiring.test.js
+  D1: files whitelist = runtime artifact surface
+    √ files whitelist matches the ADR-0039 D1 narrowed set (2 ms)
+    √ npm pack dry-run tarball: no test/, no docs/adr, no bench fixtures, thresholds.json present, under the ADR-0039 D3 cap (3015 ms)
+  ADR-0039 D3: cap content anchor
+    √ the amended cap appears verbatim in ADR-0039 (ADR-0062 trend anchor) (2 ms)
+  D3: honest three-state missing-corpus message
+    √ env tier names the broken override
+    √ maintainer tree tier keeps the init hint
+    √ third-party tier tells the truth and never instructs an impossible init (1 ms)
+  D2 / D4: documented boundary and deferred channel
+    √ README carries the distribution boundary section incl. the clone sentence (2 ms)
+    √ defer-0007 registers the private-registry channel as pending-evaluation (2 ms)
+
+PASS test/bench-gate.test.js
+  evaluate (unit)
+    √ below floor -> fail (2 ms)
+    √ fp above budget -> fail
+    √ inside band -> warn (exit 0 at CLI level, warning emitted)
+    √ at/above all targets -> clean pass (1 ms)
+    √ null metric (empty split) -> fail-closed (1 ms)
+  bench-gate CLI (real re-run over corpuses)
+    √ forge: corpus with zero detected lies -> exit 1 (186 ms)
+    √ band corpus -> exit 0 + exactly one aggregated ::warning:: (183 ms)
+    √ --ci writes metrics + junit artifacts, never results/ archive (192 ms)
+    √ local run writes milestone metrics-<date>.json in results/ (166 ms)
+  check-bench-thresholds guard
+    √ real thresholds.json anchors -> exit 0 (124 ms)
+    √ content anchor: forged value absent from ADR -> exit 1 (11 ms)
+    √ content anchor: forged target absent from its ADR -> error (4 ms)
+    √ coupling: base=HEAD -> empty range -> no error; invalid base -> error (92 ms)
+    √ coupling semantic (function-level): thresholds change without ADR fails, with ADR passes (169 ms)
+    √ couplingViolation pure rule: both polarities (ADR-0027 acceptance) (1 ms)
+
+PASS test/adr-0030-wiring.test.js
+  ADR-0030 D4 hook wiring (audit T1)
+    √ degraded (10mo ledger): high severity degrades to advisory, exit 0 (440 ms)
+    √ audit F1: degraded + partial coverage still ESCALATEs, exit 2 (507 ms)
+    √ fresh ledger + high severity still blocks, exit 2 (control) (409 ms)
+    √ warn (7mo ledger): soft-deadline banner rides pendingText on quiet path (370 ms)
+    √ audit F3: tampered ledger tail is treated as broken chain -> degraded (363 ms)
+
+PASS test/adr-0036-wiring.test.js
+  D2 corpus resolution
+    √ corpusPath falls back to install dir; JIAHAO_CORPUS_DIR wins (7 ms)
+    √ repo-private corpus is readable from the maintainer tree (1 ms)
+    √ requireCorpus exits 1 [config]: with the ADR-0038 D3 env-override hint when the corpus is truly absent (ADR-0041 D3 cutover) (148 ms)
+  D2 thresholds.json private_corpus anchors
+    √ private_corpus lists the four corpora with sha256 (1 ms)
+    √ public anchors match the local corpus bytes (3 ms)
+  D6 check-corpus-leak
+    √ real worktree scan carries no content beyond the committed fixture home (568 ms)
+    √ planted copy in a scanned dir is detected (line + whole file) (4 ms)
+    √ skip list excludes the corpus home and node_modules from walking (1 ms)
+    √ canary GUID is optional detection-only (env-driven) (4 ms)
+  D4 gate params declaration-vs-execution
+    √ parseFlags extracts bool and value flags (1 ms)
+    √ every gates.json entry declares params that match its command (2 ms)
+    √ drift is caught: undeclared flag or wrong value fails (1 ms)
+  D5 corpus freshness ladder
+    √ 6/9 = 6 x 1.5 and 18 = 12 x 1.5 (the ADR-0030 dead-man re-derivation) (1 ms)
+    √ state machine: fresh < tier <= warn < tier*mult <= stale; unknown fact = stale (1 ms)
+    √ config tiers and multiplier as declared (half-yearly 6, yearly 12, mult 1.5) (1 ms)
+    √ the CLI is green against the current corpus + ledger (151 ms)
+  ADR-0036 audit follow-ups (2026-08-31)
+    √ freshness: a future timestamp fails closed (stale, never fresh) (1 ms)
+    √ leak gate D6 scope: whole-line match only (Deviation D6a locks the semantics) (7 ms)
+    √ anchor validation checks the id set, not just the count (fail closed) (5 ms)
+    √ leak CLI also scans the evidence log outside the worktree (748 ms)
+
+error: --verdict must be 'pass' or 'fail'
+PASS test/adr-0060-wiring.test.js
+  ADR-0060 document + distribution anchors
+    √ the ADR records all five decisions and the min_n anchor (4 ms)
+    √ ADR-0039 D3 records no recompute (M=140,778); CONTEXT.md stays in the tarball (D1) (4 ms)
+    √ the three ADR-0060 deferred work items are registered (3 ms)
+  ADR-0060 D-A/D-B: sampling-plan power and indeterminate conformity
+    √ min_n is pre-registered and the spec limit is NOT loosened (D-D) (1 ms)
+    √ below min_n the statement is indeterminate, never fail (1 ms)
+    √ an unknown sample size fails closed (no silent bypass of D-A) (1 ms)
+    √ at/above min_n the guarded acceptance statement applies unchanged (4 ms)
+    √ conclude maps indeterminate only when no hard finding is present (1 ms)
+    √ the run key covers the rule version (a rule change appends a row) (2 ms)
+  ADR-0060 D-C/D-E: conditional certification axis
+    √ conditional sign-off keeps the two-state contract and records the second axis (6 ms)
+    √ the expiry is fail-closed (2 ms)
+    √ a conditional sign-off without an expiry or CAPA is refused (66 ms)
+    √ the live CLI refuses a certify sign-off on a non-pass ledger tail (D-E) (241 ms)
+    √ ADR-0060 D-D: an open-ended conditional window is refused (220 ms)
+    √ the live CLI refuses a conditional sign-off without --capa-ref (191 ms)
+    √ P-A1: a sign-off without an explicit authorisation is refused (138 ms)
+    √ the ADR-0049 D-E look-back is discharged as a chain-anchored record (3 ms)
+    √ the live --check passes while the conditional certification is unexpired (145 ms)
+    √ STD-1: the live conditional_signoff tail carries expires_at and capa_ref (6 ms)
+    √ STD-1: every conditional_signoff at/after the repair carries the fields (2 ms)
+    √ STD-1: the transition carries the expiry/CAPA onto the event, not only top-level (1 ms)
+    √ P-1: a criteria_change event carries the authorisation it exercises (3 ms)
+    √ P-1: a record_signoff event carries the authorisation it exercises (3 ms)
+    √ P-1: the live criteria_change record now persists its authorisation (4 ms)
+  ADR-0060 D-C/D-E: fixture-tree CLI guards (expired / hard fail / default window)
+    √ --check exits 1 once the conditional certification expires (191 ms)
+    √ --conditional-signoff refuses a hard fail (227 ms)
+    √ omitting --expires-at applies the 90-day default window (D-D) (230 ms)
+
+error: --reviewer is required (attribution; Ed25519 signing is the ADR-0013 D5 upgrade path)
+error: --reason is required (NIST AU-10 non-repudiation needs the why)
+jiahao resolve: evidence chain is empty — nothing to adjudicate.
+PASS test/resolve.test.js
+  √ phase 1 only: no --verdict => preview prints evidence, no write (221 ms)
+  √ full adjudication: appends human_verdict, chain valid, calibration point written (255 ms)
+  √ schema validation: bad verdict / missing reviewer / missing reason => exit 2 (578 ms)
+  √ empty chain => exit 1, nothing to adjudicate (184 ms)
+
+PASS test/adr-0070-pairer-lane.test.js
+  conviction lane: record semantics (shadow mode default)
+    √ flagged -> suspicious+high shadow record with the pairer block (23 ms)
+    √ consistent -> telemetry record, never suspicious (16 ms)
+    √ undetermined -> telemetry record, never a flag (13 ms)
+    √ missing transcript_path -> lane absent, nothing written (2 ms)
+    √ kill switch (.jiahao-conviction-off) makes the lane inert (6 ms)
+    √ enforce marker (.jiahao-conviction-enforce) drops the shadow bit (14 ms)
+    √ idempotent: a re-fired Stop with identical transcript dedups via _idem (17 ms)
+    √ unreadable transcript file -> undetermined telemetry, never absent-silent (11 ms)
+  conviction lane: Stop hook end-to-end (shadow)
+    √ shadow flag is recorded but the gate does not block on it; no-evidence still gates (277 ms)
+    √ verifier profile: a shadow-flagged lane-only chain still reports no-evidence (block) (272 ms)
+
+PASS test/sentinel-ownership.test.js
+  √ D1: fresh lock held by a live owner — reconcile skips, no record, file kept (23 ms)
+  √ D1: owner gone (lock released) — residual is healed with ownership=locked (25 ms)
+  √ D1: SIGKILLed holder — fresh lock still held (skip), then stale reclaim heals (140 ms)
+  √ D2a: concurrent appends from two processes do not lose records (572 ms)
+  √ D2b: sameFile() — inode identity check (5 ms)
+  √ D3: sweep script exits 0 and heals residuals (SessionEnd e2e) (130 ms)
+  √ D3: SessionEnd registered in both hook manifests (3 ms)
+
+PASS test/adr-0046-wiring.test.js
+  ADR-0046 identity pin
+    √ the real source resolves to the committed immutable triple (3 ms)
+    √ each identity axis mismatch is named and fails closed (1 ms)
+    √ inference config mismatch is named (1 ms)
+  ADR-0046 quarantine state machine
+    √ the committed state chain is valid and starts authoritative (6 ms)
+    √ identity-change, sign-off, and rollback follow the two-state contract (61 ms)
+    √ sign-off refuses a fingerprint that does not match quarantine (6 ms)
+  ADR-0046 executable wiring
+    √ instrument-identity is a confirmatory functional gate at order 105 (2 ms)
+    √ the real repo passes the live CLI (140 ms)
+    √ tampered source fails resolve-then-pin through the live CLI (177 ms)
+    √ quarantine records a pin-mismatching identity instead of deadlocking (176 ms)
+    √ signoff without required arguments emits the usage prefix (138 ms)
+
+jiahao detector: wordlist degraded (phrases.json not readable: ENOENT: no such file or directory, open 'C:\Users\ADMINI~1\AppData\Local\Temp\jiahao-no-such-2088.json'); L1-L3 structural detection remains active.
+PASS test/install.test.js
+  √ --profile verifier writes flag and matches readProfile (161 ms)
+  √ --profile generator writes generator (132 ms)
+  √ invalid --profile exits 2 (106 ms)
+  √ non-interactive without --profile prints command and exits 1 (95 ms)
+  √ -y accepts default verifier (143 ms)
+  √ --dry-run prints target without writing (111 ms)
+  √ unknown subcommand exits 1 with message (119 ms)
+  √ --profile without value exits 1 with argument-missing message (132 ms)
+  √ --help exits 0 and documents usage (119 ms)
+  √ ADR-0014 D2: install plants private wordlist outside cwd (157 ms)
+
+PASS test/adr-0069-v3-collection.test.js (14.032 s)
+  drops + collection log land with registered-readable metadata only
+    √ incoming drops + collection-log.json exist; seed/rate/stopping text registered verbatim (16 ms)
+    √ drop entries carry only registered fields (batch counts + lie trajectory + floor checks) (6 ms)
+  item contract (v3 snapshot rules)
+    √ every emitted item passes the collector validateItem under devin-corpus-v3 (3 ms)
+    √ labels emerge mechanically: stored label === rescore oracle (count-only assertion) (4 ms)
+    √ ids: devin-v3- prefixed, unique, disjoint from every v1+v2 item id (37 ms)
+    √ registration fields + session cap 6 + v3s- session naming (83 ms)
+    √ transcripts carry recorded-attempt structure (defect-scan class; no content asserted) (64 ms)
+  stopping function + caps (from registered log fields)
+    √ batch count / attempt cap / continuation rule hold verbatim (1 ms)
+  task surface + determinism
+    √ task wording stays v2-isomorphic with fresh v3 tokens only (no v2 strings leak) (6 ms)
+    √ frozen seed reproduces the same drop (id/task/spec/label agreement; tmp ws paths excluded) (87 ms)
+  derive-devin-v3-tables (blind-label table derivation contract)
+    √ derives the v3 axis schema (n_lie / n_honest per axis) from landed counts only (553 ms)
+    √ every per-k cell equals the repo CP oracle; bands partition 0..n with rule-consistent verdicts (1033 ms)
+    √ fail-closed: missing manifest exits 1 (process.exit stubbed) (33 ms)
+  T-4 closure: single-shot report + replay gate + claim binding
+    √ the stored v3 report is completed + single-shot; a re-run is REFUSED [config] exit 1 (119 ms)
+    √ the v3 fact line + limitation sentence co-occur verbatim in all claim homes (6 ms)
+    √ every devin-corpus@v3 claim-context mention in a claim home carries the v3 fact line (3 ms)
+    √ devin-oot-v3-replay: registered gate re-derives the stored artifact green (143 ms)
+    √ rescore dual verification: stored labels === mechanical re-derivation (count-only) (1 ms)
+
+PASS test/adr-0050-wiring.test.js
+  ADR-0050 D-A tail anchor sidecar
+    √ anchor is written after each anchored commit and round-trips (64 ms)
+  ADR-0050 D-B protected genesis anchor
+    √ old chain is never_anchored and keeps verifying; install seal writes genesis outside data dir (51 ms)
+  ADR-0050 D-C structured anchor tri-state
+    √ KNOWN_ANCHOR_STATUS registry and unreadable sidecar fail closed (40 ms)
+  ADR-0050 D-D forward seal
+    √ seal record pins the current head and is idempotent (58 ms)
+    √ seal does not refresh a genesis anchor that no longer matches the first record (47 ms)
+    √ append does not advance the tail anchor when genesis no longer matches (55 ms)
+  ADR-0050 D-E failure and recovery states
+    √ anchor-behind is recoverable; anchor-ahead and count-mismatch are fail-closed (111 ms)
+    √ segment data is fsynced before the tail anchor is advanced (66 ms)
+    √ anchor rename fsyncs its parent directory on non-Windows hosts (30 ms)
+  ADR-0050 executable wiring
+    √ instrument check/classify and verify-evidence --full run against real state (450 ms)
+
+PASS test/adr-0043-wiring.test.js
+  ADR-0043 D-E prefix vocabulary fact source
+    √ frozen closed enum with the ADR-0041 D3 values (5 ms)
+    √ vocab values appear verbatim in the normative ADR-0041 text (D-H) (2 ms)
+  ADR-0043 D-B generator pure core
+    √ renders one link line per ADR, filename-sorted, H1-derived (2 ms)
+    √ spliceRegion replaces the sentinel region wholesale and is idempotent (2 ms)
+    √ spliceRegion fails closed on missing/inverted sentinels (30 ms)
+    √ spliceRegion fails closed on a duplicate start sentinel (2 ms)
+    √ spliceRegion fails closed on a duplicate end sentinel (4 ms)
+  ADR-0043 D-C --check executable contract
+    √ fresh region: --check exit 0; write then check is idempotent (237 ms)
+    √ tampered index: --check exit 1 and names the drift (positive control) (113 ms)
+    √ missing sentinel: fail-closed exit 1 with the config prefix from the vocab (127 ms)
+  ADR-0043 D-C registry registration
+    √ adr-index is a confirmatory functional entry at order 115 wired to this ADR (1 ms)
+    √ the real repo passes the registered command and the drift-positive control holds (118 ms)
+  ADR-0043 D-F/D-H symbol references
+    √ every registry node script referencing the vocab imports prefix-vocab; the enum literals exist only in the fact source (22 ms)
+    √ paths.js fail-closed head is built from the vocab (1 ms)
+  ADR-0043 D-G run-gates choke check
+    √ an unknown [word]: prefix in child output fails the gate even though the child exited 0 (2 ms)
+    √ closed enum prefixes from the vocab pass the choke check (1 ms)
+
+PASS test/rewrite-map.test.js (14.205 s)
+  rewrite-map.json — generated single translation point
+    √ shape + committed-file invariants (20 ms)
+    √ every doc citation carries one of the three registered classes (453 ms)
+    √ known anchors classify correctly (13 ms)
+    √ commits rows: every pair shares subject; published_only recorded (5 ms)
+    √ --check exits 0 against the committed map (3795 ms)
+    √ --verify re-derives classifications and boundary truth (8240 ms)
+    √ gate registered in docs/gates.json (2 ms)
+  check-secret-scan.js — defer-0054 tripwire (<=3 rules)
+    √ rule count is the registered <=3 shape (2 ms)
+    √ planted samples are blocked by the expected rule (30 ms)
+    √ enumeration covers the committed tree, not just the index (T-3 F-1) (114 ms)
+    √ clean tree passes the gate command (469 ms)
+    √ gate registered in docs/gates.json (1 ms)
+
+PASS test/adr-0022-hardening.test.js
+  ADR-0022 D1/D3/D5 truncation gate + degradation contract
+    √ small input: coverage full, degradation null (5 ms)
+    √ capField never splits a surrogate pair (5 ms)
+    √ D7 fixture: 10 MB transcript — no crash, censoring metadata, coverage partial (24 ms)
+    √ D7 fixture: closingText over threshold — marker + kind, claim beyond face not matched (16 ms)
+  ADR-0022 D2: pages cap
+    √ D7 fixture: 8001 pages — no RangeError, exhaustion pairing abandoned (189 ms)
+  ADR-0022 audit-fix G2: wordlist missing => scan-skip
+    √ isolated module with broken wordlist => degradation scan-skip + partial coverage (11 ms)
+  ADR-0022 D4: gate profile split on coverage
+    √ record keeps coverage+degradation on chain (4 ms)
+    √ verifier: partial coverage routes to ESCALATE (block, exit 2) (284 ms)
+    √ generator: partial coverage is advisory only (allow, exit 0) (322 ms)
+
+PASS test/adr-0058-wiring.test.js
+  ADR-0058 D-006/D-009 registry narrowing
+    √ gates.json does not contain a test gate entry (4 ms)
+    √ no gate entry exists at order 100 (retired, do not reuse) (2 ms)
+    √ ADR-0058 prose records order 100 as retired (1 ms)
+  ADR-0058 D-004/D-005 ci.yml job topology
+    √ every job id is a valid GitHub Actions job_id (charset has no colon) (5 ms)
+    √ ci.yml contains exactly one npm run gate:all (single gate-layer entrypoint) (1 ms)
+    √ the gate-all job no longer carries the test step (1 ms)
+    √ no path filter can silently skip the test job (1 ms)
+  ADR-0058 D-007/D-002 summary aggregation
+    √ summary job uses if: always() unconditionally (not !cancelled()) (3 ms)
+    √ summary job needs the full parallel set (gate-all + test) (1 ms)
+    √ aggregation is success-only: skipped/failure/cancelled all read red (2 ms)
+  ADR-0058 D-008 test-layer tier contract
+    √ test job sets JIAHAO_TEST_TIER=public (3 ms)
+    √ test job does not reference the bench corpus secret (1 ms)
+    √ registered suite count on the ci.yml call line matches the on-disk suite count (1 ms)
+  ADR-0058 D-005/D-006 blocklist narrowing
+    √ run-test-gate.js and npm test are no longer blocked tokens (2 ms)
+  ADR-0058 R8 test-job capability declaration (audit A1)
+    √ the wrapper no longer resolves a removed registry entry
+    √ the wrapper declares its capabilities inline, inside the closed enum (2 ms)
+    √ the public-tier test job does not declare bench-corpus (2 ms)
+    √ array form: present capability passes, absent one exits 2 honestly (250 ms)
+    √ an unknown name in the array is still a registry violation, never exit 2 (86 ms)
+    √ a multi-element inline declaration cannot inject a property separator (96 ms)
+  ADR-0058 R9 summary result-count guard (audit A3)
+    √ the aggregator counts results and asserts seen == expected (1 ms)
+    √ expected equals the parsed needs count (cannot drift) (1 ms)
+  ADR-0058 R11 adjacent-doc truth (audit A4)
+    √ ADR-0057 Context no longer claims the test gate is the current home (1 ms)
+  ADR-0058 R12 gitignore hygiene (audit A5)
+    √ mr-artifacts/ is ignored alongside its three siblings (1 ms)
+  defer-0004 narrowed trigger (grill-t15 D-003 re-defer)
+    √ negative fixture: the live shape (single workflow, 3 jobs, no matrix) does NOT satisfy the narrowed trigger (2 ms)
+    √ positive fixtures: multi-workflow OR any matrix OR >3 jobs each satisfy the narrowed trigger (1 ms)
+    √ boundary: exactly three jobs with no matrix stays deferred (1 ms)
+    √ the live ci.yml reports defer0004 unmet and defer0026 satisfied (1 ms)
+    √ the registry row carries the narrowed prose trigger with the same verified_by (2 ms)
+  ADR-0077 D-A consuming-row exit semantics (grill-t16)
+    √ the consuming row is defer0004 (the only live consumer) (1 ms)
+    √ direction 1 - consuming row satisfied -> exit 0 (126 ms)
+    √ direction 2 - consuming row unmet -> exit 1 (live shape) (105 ms)
+    √ direction 3 - a regressed non-consuming row stays diagnostic: exit 0 with defer0026=unmet printed (114 ms)
+    √ a crash exits 2 with a stderr line - never masquerades as unsatisfied (164 ms)
+    √ the header registers the convention verbatim and the discharge re-point clause (1 ms)
+
+PASS test/adr-0041-wiring.test.js
+  ADR-0041 D3 prefix vocabulary
+    √ the closed enum appears verbatim in ADR-0041 (5 ms)
+    √ no registry gate script exits 2 outside src/shared/capability.js (17 ms)
+    √ ConfigLoadError is a checked registry-load failure (46 ms)
+    √ missing gates.json spawn fails closed with [config]: prefix and no stack (111 ms)
+    √ reference integrity: every registry command and source ADR exists (26 ms)
+    √ warning rule codes are title-only and do not use [jiahao] identity (1 ms)
+  ADR-0041 D5 annotation format
+    √ comma-separated properties on the machine line (1 ms)
+    √ escWf escapes %/CR/LF in property order (percent first)
+    √ escWf escapes the property separators , and : (complete by construction) (1 ms)
+  ADR-0041 D3 run-gates child-exit-2 aggregation
+    √ child exit 2 lands in the unverifiable column and never trips fail (2 ms)
+    √ all children exit 2 -> unverifiable-only run exits 0
+  ADR-0041 D2 spawn locks
+    √ mr-probes in a tree without corpus: exit 2, annotation on stdout (119 ms)
+    √ mr-probes with a corrupted corpus: exit 1 and [config]: prefix (156 ms)
+    √ check-probes with an unknown arg: exit 1 and [usage]: prefix (147 ms)
+    √ bench-gate with an unknown arg: exit 1 and [usage]: prefix (155 ms)
+    √ corpus-freshness with a bad fail_multiplier: exit 1 and [config]: prefix (145 ms)
+  ADR-0041 D4 consumer-side registry wiring
+    √ probe-corpus and judge-bias are registered with requires ["bench-corpus"] (2 ms)
+    √ both scripts call requireCapabilities with their registry names (1 ms)
+
+PASS test/adr-0040-wiring.test.js
+  ADR-0040 D1/D3 capability helper
+    √ probe: existence verdicts on a synthetic root (8 ms)
+    √ probe: bench-corpus follows the ADR-0036 D2 resolution chain (12 ms)
+    √ probe: ci-mode needs GITHUB_ACTIONS or CI (1 ms)
+    √ unregistered name throws (registry violation - never exit 2) (25 ms)
+    √ message assembly: machine line, then human line (ADR-0041 D5 format) (2 ms)
+    √ validateRequires: closed enum + required field (2 ms)
+    √ D1 content anchor: every capability name appears verbatim in ADR-0040 (1 ms)
+  ADR-0040 D5 run-gates precheck
+    √ missing capability marks the gate unverifiable and does not run it (3 ms)
+    √ unverifiable never merges into fail and does not trip fail-fast (1 ms)
+    √ gates with all capabilities present run normally (2 ms)
+  ADR-0040 D7b exit-2 spawn locks
+    √ repo-tree via gates-coupling (138 ms)
+    √ docs-adr via bench-thresholds (130 ms)
+    √ bench-corpus via probes (161 ms)
+    √ ci-mode via ci-wiring (150 ms)
+    √ audit F5/F2 companion: empty corpus fails closed exit 1 [config]: (probes; ADR-0041 D3 cutover) (155 ms)
+  ADR-0040 D7d static wiring anchor
+    √ gate gates-alignment source calls requireCapabilities by name (2 ms)
+    √ gate ci-wiring source calls requireCapabilities by name (1 ms)
+    √ gate gates-coupling source calls requireCapabilities by name (1 ms)
+    √ gate skip-reasons source calls requireCapabilities by name (1 ms)
+    √ gate instrument-identity source calls requireCapabilities by name
+    √ gate drift source calls requireCapabilities by name
+    √ gate adr-index source calls requireCapabilities by name (1 ms)
+    √ gate adapters-golden source calls requireCapabilities by name (1 ms)
+    √ gate host-contracts source calls requireCapabilities by name (1 ms)
+    √ gate bench-thresholds source calls requireCapabilities by name (1 ms)
+    √ gate research-baseline source calls requireCapabilities by name (1 ms)
+    √ gate corpus-leak source calls requireCapabilities by name
+    √ gate bench-gate source calls requireCapabilities by name
+    √ gate g6-equivalence source calls requireCapabilities by name
+    √ gate probe-corpus source calls requireCapabilities by name (4 ms)
+    √ gate probes source calls requireCapabilities by name (1 ms)
+    √ gate corpus-freshness source calls requireCapabilities by name (1 ms)
+    √ gate corpus-classes source calls requireCapabilities by name (1 ms)
+    √ gate judge-bias source calls requireCapabilities by name (1 ms)
+    √ gate mr-probes source calls requireCapabilities by name (1 ms)
+    √ gate coverage source calls requireCapabilities by name (1 ms)
+    √ gate falsification source calls requireCapabilities by name (1 ms)
+    √ gate deferred source calls requireCapabilities by name
+    √ gate gate-params source calls requireCapabilities by name (1 ms)
+    √ gate pack-smoke source calls requireCapabilities by name
+    √ gate governance-anchors source calls requireCapabilities by name
+    √ gate governance-inventory source calls requireCapabilities by name (1 ms)
+    √ gate confirmatory-bench source calls requireCapabilities by name (1 ms)
+    √ gate g6-publish source calls requireCapabilities by name (1 ms)
+    √ gate devin-oot-replay source calls requireCapabilities by name (2 ms)
+    √ gate devin-oot-v2-replay source calls requireCapabilities by name (2 ms)
+    √ gate devin-oot-v3-replay source calls requireCapabilities by name (4 ms)
+    √ gate pairer-regression source calls requireCapabilities by name (4 ms)
+    √ gate rewrite-map source calls requireCapabilities by name (3 ms)
+    √ gate secret-scan source calls requireCapabilities by name (3 ms)
+
+PASS test/dual-profile.test.js
+  √ SKILL.md has both profile sections (2 ms)
+  √ generator profile does NOT contain verifier-only terms (1 ms)
+  √ verifier profile contains all required terms (1 ms)
+  √ generator adapter has surface signal rules (1 ms)
+  √ generator adapter does NOT contain verifier tools (1 ms)
+  √ build-adapters generator output produces both profiles (178 ms)
+  √ activate hook uses generator profile when flag set (194 ms)
+  √ verdict-gate advisory mode for generator profile (333 ms)
+
+PASS test/adr-0053-wiring.test.js
+  ADR-0053 D-A re-anchor triggers
+    √ commit-count trigger appends a second seal (136 ms)
+    √ elapsed TTL trigger with injected clock re-anchors after new data (108 ms)
+    √ either trigger suffices (both configured) (101 ms)
+    √ default anchored re-anchor cadence activates after 72h (94 ms)
+  ADR-0053 D-A anchor freshness
+    √ TTL expiry with no new data renews freshness without a new seal (62 ms)
+    √ seal record carries the injected-clock timestamp (52 ms)
+  ADR-0053 D-B last-good-seal fallback
+    √ lost tail witness on a sealed chain verifies against the last good seal (76 ms)
+    √ never-sealed chains keep pre-0053 behavior (no witness problem, no fallback) (9 ms)
+    √ unacceptable seal leaves witness loss fail-closed (92 ms)
+    √ lost genesis witness on a sealed chain also carries last-good-seal fallback (48 ms)
+  ADR-0053 D-C status registry closure
+    √ KNOWN_ANCHOR_STATUS unchanged by re-anchoring (95 ms)
+
+jiahao evidence-log: WITNESS UNAVAILABLE for 169h (soft deadline 72h) — explicit degraded write continues; consumer: human_auditor (ADR-0052)
+PASS test/adr-0054-wiring.test.js
+  ADR-0054 wiring
+    √ D-A fallback identity and D-B rebuild disposition in one live loop (126 ms)
+    √ D-B rebuild without a seal basis records null (36 ms)
+    √ D-C missing config defaults, operator overrides, and injected overrides (12 ms)
+    √ D-C malformed config fails closed with ConfigLoadError (83 ms)
+    √ D-D freshness axis stays separate from integrity (60 ms)
+    √ D-E verify remains read-only while sealForwardIfNeeded owns maintenance writes (69 ms)
+    √ D-D freshness uses the tail anchor across a segment boundary (84 ms)
+    √ CLI maps warn to exit 0 and hard_stale to exit 1 (412 ms)
+
+PASS test/adr-0067-wiring.test.js
+  ADR-0067 registration (ledger D-008..D-011)
+    √ the ADR exists with live status and names its ledger authority (3 ms)
+    √ all five decision clauses are recorded (3 ms)
+    √ the ADR anchors the defer-0045 net-addition row (6 ms)
+  eval-plan.json frozen surface (pre-registration, D-008/D-011)
+    √ the plan exists bench-side only and points at ADR-0067 (3 ms)
+    √ the frozen integer decision table matches the ledger verbatim (9 ms)
+    √ the floor is the conservative transfer of the frozen 0.563863 (2 ms)
+    √ the in-sample -3.049 threshold is banned and recall@FP0 is diagnostic-only (2 ms)
+    √ serialization whitelist + abort-on-defect are registered (2 ms)
+    √ single-shot burn + falsification-first semantics are explicit (1 ms)
+    √ the claim block is registered verbatim (fact line + bound limitation) (3 ms)
+    √ the three-line branch-mapping policy is registered (1 ms)
+    √ the full-report obligation names every required field (1 ms)
+  T-2 runner seam (ADR-0067 D-B/D-E)
+    √ the adapter whitelist is mechanical: label/scoring_function/id never reach the serializer (4 ms)
+    √ scorer path purity: serializeAndScore performs no fs I/O (4 ms)
+    √ eval-plan tamper fails closed: drifted CI table or floor is rejected (154 ms)
+    √ mde-freeze internal disagreement fails closed (24 ms)
+    √ malformed items abort the whole run: defects -> no rows (no partial adjudication) (4 ms)
+    √ duplicate ids and wrong label values are defects (fail-closed) (21 ms)
+    √ the integer decision table adjudicates: 0-2 failed, 3-10 indeterminate, 11-12 passed (30 ms)
+    √ cpInterval recomputation matches the frozen table within 1e-5 (27 ms)
+    √ rule-of-three upper bound for 0/40 is ~0.0722 (1 ms)
+    √ the corrupted-manifest positive control exercises the real itemText (F-2) (15 ms)
+    √ an aborted run writes run_status=aborted and never a verdict (F-3) (13 ms)
+    √ replay fails closed when the artifact is absent or tampered (20 ms)
+  T-4 claim surface (ADR-0067 D-C)
+    √ the stored artifact exists and its verdict is truthful-naming only (483 ms)
+    √ the fact line + limitation sentence co-occur verbatim in all three claim homes (3 ms)
+    √ every devin-corpus mention in a claim home is bound to the fact line (2 ms)
+    √ the fact line carries @v1 + verdict date + the CI lower bound (1 ms)
+    √ no superlatives or max-of-trials framing in the OOT claim block (1 ms)
+    √ INDETERMINATE wording: the integer table assigns the band; never failed-to-reach (4 ms)
+    √ per-mention binding: every devin-corpus mention is bound or registered-exempt (F-4) (4 ms)
+    √ the conformity surface is untouched: the six fixed facts still hold (5 ms)
+  T-5 closure: replay gate + settlement (ADR-0067 D-E)
+    √ the replay gate is registered in gates.json, confirmatory tier, repo-tree only (2 ms)
+    √ replay re-derives the stored artifact cleanly and never opens the corpus (43 ms)
+    √ the corpus manifest is untouched: frozen status, 52 items, blind metadata intact (3 ms)
+    √ defer-0046 registers the INDETERMINATE terminal event (3 ms)
+    √ the report carries every obligated field (full-report obligation) (2 ms)
+
+PASS test/adr-0052-wiring.test.js
+  ADR-0052 status migration matrix
+    √ never-sealed chain keeps ADR-0050 ENOENT auto-write behavior (78 ms)
+    √ torn witness -> witness_unavailable; present-but-wrong stays corruption family (52 ms)
+    √ sealed chain with missing genesis anchor reports witness_unavailable (55 ms)
+  ADR-0052 no silent rewrite + fail-closed verify
+    √ seal and append never rewrite a lost genesis anchor silently (80 ms)
+    √ verify fails closed when the last good seal is unacceptable (54 ms)
+  ADR-0052 degraded append policy with injected clock
+    √ breakpoint record, soft warning, hard stop with explicit code (145 ms)
+    √ hard deadline alone without post-detection appends allows one more append (66 ms)
+    √ bookkeeping records after detection do not count toward the hard stop (85 ms)
+    √ a witness scan read failure is refused loudly, not silently continued (54 ms)
+  ADR-0052 rebuild behind the human review gate
+    √ rebuild is denied without reviewer, reason, or approval (101 ms)
+    √ rebuild refuses to whitewash a corrupt chain (40 ms)
+    √ authorized rebuild: audit record, generation++, forced full verify, recovery (114 ms)
+
+PASS test/adapters.test.js
+  √ build-adapters.js exists (3 ms)
+  √ check-drift.js exists (2 ms)
+  √ build-adapters generates all adapter files (180 ms)
+  √ instruction-tier adapters contain SKILL.md body (2 ms)
+  √ codex hooks.json is valid JSON with 4 events (1 ms)
+  √ cursor adapter has frontmatter (1 ms)
+  √ build-adapters --check is green on the committed tree (ADR-0028 D2) (208 ms)
+  √ unifiedDiff emits unified hunks with -/+ lines (ADR-0028 D2) (8 ms)
+  √ checkAll reports a missing adapter file (ADR-0028 D2) (10 ms)
+  √ check-drift passes after build (385 ms)
+
+PASS test/adr-0069-wiring.test.js
+  ADR-0069 doc surface (grill-t8 doc round)
+    √ ADR-0069 exists with title, status, date and ledger anchor (2 ms)
+    √ all six decision clauses land (pairer, clauses, binding, positioning, v3 obligations, G6) (1 ms)
+    √ the ADR anchors the round tally row defer-0049 (1 ms)
+    √ rejected clauses land (R1-R8) (2 ms)
+  pairer semantics package (ADR-0069 D-A)
+    √ proven-contradiction flag + never-flags-on-resemblance (1 ms)
+    √ undetermined third state: collapses to unflagged, conservative on both axes, inside n (1 ms)
+    √ four check families + rules-before-data extension + detector.js boundary (2 ms)
+  three pre-registered clauses (ADR-0069 D-B)
+    √ port zero-verdict telemetry + disclosure-only divergence + meta-circularity ban (2 ms)
+  artifact-scoped freeze + adjudication anchor (ADR-0069 D-C)
+    √ the ADR carries both sha256 pins verbatim (1 ms)
+    √ the two adjudicated artifacts are byte-frozen at HEAD (any touch fails) (2 ms)
+    √ the anchor tag exists, is annotated, and points at the v2 verdict commit (166 ms)
+    √ the tagged commit carries the frozen bytes (anchor binds the adjudicated state) (240 ms)
+    √ fallback variant registered but not selected (1 ms)
+  readiness positioning contract (ADR-0069 D-D)
+    √ the failed fact line + limitation sit verbatim on the first screen (1 ms)
+    √ existing claim homes stay byte-untouched (verbatim fact + limitation) (2 ms)
+    √ no unbounded effectiveness claim survives on the first screen (1 ms)
+    √ b2 fail-branch + b3 invitation-only + b4 out are registered in the ADR (1 ms)
+  v3 contamination-registry framework (ADR-0069 D-E.6)
+    √ framework exists with schema, snapshot, source ADR and row shape (2 ms)
+    √ rows are well-formed and carry the v2_informed axis (6 ms)
+    √ registered rows cover the v3 obligations (floor, bound, disposition, pin, undetermined) (2 ms)
+  stage gates + scope clamps (this round)
+    √ v3 single-shot report + rescore artifact landed (blind-label order completed) (2 ms)
+    √ the derived-table freeze was its own commit, after the manifest freeze (ADR-0068 D-A.4 carried) (228 ms)
+    √ npm surface unchanged: no bench/ leak beyond the one registered pin (ADR-0038 D2) (1 ms)
+    √ CONTEXT.md carries the nine t8 glossary terms (2 ms)
+  registry + ceremony rows (ADR-0027 D2 same-commit discipline)
+    √ defer-0049 lands as this round net-addition tally row (2 ms)
+    √ trend-inventory gains the grill-t8 doc-round row (2 ms)
+    √ anchors.json lists decision-ledger-t8.md under ADR-0069 (2 ms)
+    √ the README ADR index carries ADR-0069 (rebuilt, 77 records) (1 ms)
+    √ the instrument-side registration event is recorded on the hash chain (2 ms)
+    √ the ADR names the instrument registration channel (1 ms)
+
+PASS test/adr-0035-wiring.test.js
+  ADR-0035 D1 cadence ladder fields
+    √ every entry carries a valid cadence_tier and registered_at (20 ms)
+    √ ladder review_at assignments match ADR-0035 D1 (2 ms)
+    √ negative: missing cadence_tier / registered_at is a shape error (5 ms)
+  ADR-0035 D2 residency SLA
+    √ negative: pending-evaluation entry past min(2 cycles, 12 months) fails (50 ms)
+    √ special case: SLA failure is fail-closed even before review_at expiry (36 ms)
+  ADR-0035 D3 check-in discipline (warn-level)
+    √ real registry has no discipline warnings today (1 ms)
+    √ warn: stale last_check_in and missing last_check_in are warnings, not errors (38 ms)
+    √ negative: malformed last_check_in is a shape error (3 ms)
+  ADR-0035 D5/D6 verified_by semantics
+    √ defer-0004 carries verified_by pointing at a real assertion script (1 ms)
+    √ negative: evaluable type without verified_by is forced to pending-evaluation (42 ms)
+    √ negative: verified_by pointing at a missing script is a shape error (3 ms)
+    √ check-ci-jobs countJobs counts top-level jobs only (2 ms)
+    √ check-ci-jobs on real ci.yml: defer0004 unmet on the narrowed predicate -> exit 1 (deferral remains valid) (158 ms)
+    √ evalSuggestions: satisfied assertion suggests, unsatisfied stays silent (241 ms)
+    √ audit fix: crashing verifier surfaces as WARN, not silent "not satisfied" (94 ms)
+  ADR-0035 D4 defer-0002 split
+    √ defer-0002 is pure external-event with upstream-issue check; defer-0005 carries the protocol verification (1 ms)
+
+PASS test/adr-0049-wiring.test.js
+  ADR-0049 D-A declared no-adjustment
+    √ no adjustment row: no_adjustment declared, no as-left copy (34 ms)
+    √ adjustment event carries as-left paired with its date (29 ms)
+    √ rebaseline adjustment declares cross-baseline non-comparable, no silent subtraction (18 ms)
+  ADR-0049 D-B decision-rule anchor
+    √ guarded acceptance default: w=1, k=2, acceptance_limit recorded per row (11 ms)
+    √ simple acceptance requires negotiated TUR >= 4:1 (58 ms)
+    √ guard-band conditional yields no pass statement through conclude (2 ms)
+    √ conformity fail routes as drift exposure with look-back reason (1 ms)
+  ADR-0049 D-C corpus_ref row identity
+    √ corpus digest matches thresholds fingerprint definition (1 ms)
+    √ cross-baseline subtraction is forbidden: drift is non-comparable without same corpus_ref (18 ms)
+    √ same corpus_ref keeps drift comparable (23 ms)
+  ADR-0049 D-D criteria-change replay precondition (defer-0023)
+    √ criteria_change without restatement_of is refused fail-closed (23 ms)
+    √ pointwise replay claim is refused while defer-0023 is pending (5 ms)
+    √ restatement mapping succeeds and is carried on the chain (6 ms)
+    √ defer-0023 stays pending-evaluation in the real registry (1 ms)
+  ADR-0049 D-E affected sign-off look-back
+    √ look-back evidence kinds are registered and hash-chained (3 ms)
+    √ drift exposure marks prior-interval sign-offs affected/under-review (19 ms)
+    √ disposition closes the exposure via the look-back evidence kinds (7 ms)
+    √ disposition without an open exposure fails closed (4 ms)
+  ADR-0049 executable wiring
+    √ real repo passes instrument check and schedule_gate classification (336 ms)
+
+PASS test/adr-0081-wiring.test.js
+  ADR-0081 doc surface (grill-t22 disposition round)
+    √ title, status, date, ledger + spec anchors (1 ms)
+    √ D-A records the amend-in-place canonical form + the coverage-base pairing rule (audit-r2 adjudication b) (1 ms)
+    √ D-B records the rc.from adjudication: conformance to ADR-0080 D-B, no separate ADR (2 ms)
+    √ D-E names defer-0067 and records the defer-0042 countersign + defer-0051 reconciliation (3 ms)
+    √ defer-0067 registers the pack-cap headroom watch (pending-evaluation, armed band) (3 ms)
+    √ defer-0042 check-in records the audit-r2 countersign; row stays pending-evaluation (2 ms)
+    √ defer-0051 rationale no longer claims an open second_reviewer slot (R2-C-4) (4 ms)
+    √ the t22 row is the declared carve-out form naming the round R2 touches (3 ms)
+    √ coverage leg: unresolvable base ref is a keyed FAIL, not an uncaught crash (audit-r2 R2-C-3) (270 ms)
+    √ coverage leg: the committed diff anchored at the t22 round base validates the latest row (245 ms)
+    √ CONTEXT Repair Window term stands alone referencing ADR-0081 + ADR-0076 with _Avoid_ (2 ms)
+    √ README index rebuilt: 81 records incl. ADR-0081 (1 ms)
+    √ ci.yml suite parity declares 76 suites (the new wiring suite is counted) (1 ms)
+    √ coverageGaps pure export: the R2-undeclared defect shape still fails (regression pin) (7 ms)
+
+PASS test/adr-0034-wiring.test.js
+  ADR-0034 D1/D4 registry schema
+    √ real registry validates (10 ms)
+    √ CRTM-as-entry: meta-checks hold the minimal orders (3 ms)
+    √ negative: missing order is a schema violation (fail-closed) (4 ms)
+    √ negative: unknown tier is rejected (ADR-0031 D3 vocabulary) (3 ms)
+    √ negative: duplicate order is rejected (5 ms)
+    √ negative: meta-check displaced from the minimal orders fails (4 ms)
+    √ negative: source_adr must resolve to an existing file (3 ms)
+  ADR-0034 D2/D5 registry to package.json alignment
+    √ real package.json aligns (1 ms)
+    √ negative: gate:all script must be the single entrypoint (1 ms)
+    √ negative: alias part with no registry entry is caught (1 ms)
+  ADR-0034 D5 registry to ci.yml wiring
+    √ real ci.yml passes (exactly one gate:all, no direct invocations) (5 ms)
+    √ negative: if-masked duplicate gate:all fails closed (1 ms)
+    √ negative: direct gate invocation fails closed (2 ms)
+    √ negative: trailing comment does not hide a direct invocation (3 ms)
+    √ negative: a commented-out gate:all does not count as the invocation (2 ms)
+    √ multi-line run block counts one gate:all and catches direct calls (2 ms)
+    √ negative: direct run-gates.js invocation is a second entrypoint (S1) (1 ms)
+    √ negative: npm alias wrapping a gate command fails closed even without :gate suffix (S2)
+  ADR-0034 D3 execution semantics (stubbed exec)
+    √ default complete-run aggregates all breaches (decision/evidence separation) (1 ms)
+    √ --fail-fast short-circuits confirmatory failures only (1 ms)
+    √ observational failure never blocks the run (1 ms)
+    √ advisory warnings aggregate and strip child annotations (ADR-0027 D3) (1 ms)
+  ADR-0034 smoke (real child processes)
+    √ --check-alignment exits 0 (151 ms)
+    √ check-ci-wiring exits 0 on the real ci.yml (161 ms)
+    √ --check-coupling without a base ref skips green (187 ms)
+
+PASS test/adr-0048-wiring.test.js
+  ADR-0048 D-C vocabulary content anchor
+    √ real anchor passes config shape and verbatim token check (4 ms)
+    √ negative: a missing canonical token is caught by whole-word existence (1 ms)
+  ADR-0048 D-B record-only projection
+    √ record_only_change stays authoritative; signoff projects pending to certified (14 ms)
+    √ record signoff rejects a missing mandatory reason (41 ms)
+  ADR-0048 D-A metrological ledger
+    √ Clopper-Pearson exact interval handles small/extreme samples (5 ms)
+    √ appendEntry declares no_adjustment once; as-left appears only on adjustment (ADR-0049 D-A) (15 ms)
+  ADR-0048 executable wiring
+    √ real repo passes instrument check and schedule_gate classification (365 ms)
+
+PASS test/adr-0069-v3-plan.test.js
+  v3 plan freeze: registered obligations
+    √ plan + eval-plan exist, schema/snapshot/registration bound (2 ms)
+    √ adjudicated object is the pairer, pinned by content hash of the worktree artifact (6 ms)
+    √ undetermined collapse + divergence clause + 60% disposition registered (14 ms)
+    √ carried v2 invariants: floor/bound/CI/table rule/verdict names/single shot (3 ms)
+    √ designed-after-v2 contamination rows: 13 rows, populated, shaped (8 ms)
+    √ disjointness: all 52 v1 ids + all 140 v2 ids enumerated (10 ms)
+    √ claim contract: @v3 template, limitation, branch mapping, no-data honesty (1 ms)
+  stage gate: v3 adjudicated - single shot burned, replay gate live
+    √ v3 snapshot + derived tables + landed report exist (blind-label order completed) (2 ms)
+    √ loadPlanV3 accepts the frozen derived tables and re-verifies every cell (the freeze stage gate lifted) (295 ms)
+    √ the v3 replay gate is registered (it landed with the v3 report commit) (4 ms)
+    √ runner exposes the v3 seam (serializeAndPair / adjudicateV3 / replayCheckV3) (1 ms)
+
+PASS test/adr-0047-wiring.test.js
+  ADR-0047 change-surface fact source
+    √ the real classifier maps every surface to its tiered response (4 ms)
+  ADR-0047 instrument identity refinement
+    √ model axis is UNRESOLVED when tag has no immutable snapshot/weights (1 ms)
+    √ inference hash excludes observational metadata (1 ms)
+  ADR-0047 authoritative state-machine event types
+    √ corpus_rebaseline and criteria_change append evidence while authoritative (9 ms)
+    √ failed rebaseline without rollback escalates to quarantine (6 ms)
+    √ signoff requires certify attestation (41 ms)
+  ADR-0047 executable wiring
+    √ the real repo passes the live instrument gate and classifies a surface (357 ms)
+
+PASS test/adr-0037-wiring.test.js
+  D4 pure core: verdict-symmetry oracle
+    √ preserve pair passes only when verdicts match (2 ms)
+    √ flip pair passes only when verdicts differ (1 ms)
+    √ judge crash never masquerades as symmetry (1 ms)
+    √ mrMetrics + evaluateMrGates: zero violations pass, any violation fails, floor enforced (2 ms)
+    √ mrGatesConfigError fail-closed (S-1) (3 ms)
+    √ toJunitMr emits failure only for failed checks (1 ms)
+  D3 provenance schema gate
+    √ valid pair passes; broken pairs fail closed (2 ms)
+  registration wiring (ADR-0031 D1: assert the state the gates actually read)
+    √ mr gate registered in thresholds (source_adr 0037) and gates.json (2 ms)
+    √ corpus registered in leak anchors (private_corpus sha matches), freshness tier, fingerprints (3 ms)
+    √ coverage-map mr_gaps: IL5/IL6 declared-gap with live review dates (2 ms)
+    √ deferred-registry: defer-0006 (v2 pipeline, pending-evaluation) + defer-0007 (private-registry channel) (2 ms)
+    √ resolved corpus: schema-valid MR pairs (full tier: 12 pairs, 3 families, per-IL preserve+flip) (7 ms)
+    √ missing corpus fails closed with exit 2 (ADR-0036 D2 resolver posture) (159 ms)
+    √ corrupted corpus JSONL fails closed exit 1 [config]: (audit F1/F8 regression lock; ADR-0041 D3) (170 ms)
+
+PASS test/adr-0033-wiring.test.js
+  ADR-0033 D2 entry schema
+    √ real registry passes shape + entries (39 ms)
+    √ seed inventory matches ADR-0033 D5 + ADR-0035 D4/D6 corrections (9 ms)
+    √ negative: review_at with impossible calendar date is rejected (audit 2026-08-30) (8 ms)
+    √ negative: missing mandatory field and bad id are caught (12 ms)
+    √ negative: duplicate ids are caught (15 ms)
+  ADR-0033 D3 pending-evaluation discipline
+    √ negative: external-event with status deferred is rejected (33 ms)
+    √ negative: presence-condition with verified_by but pending-evaluation status is rejected (ADR-0035 D6) (32 ms)
+  ADR-0033 D4 expiry forces action + anchors
+    √ negative: stale review_at fails closed (30 ms)
+    √ negative: dangling source_adr file is caught (66 ms)
+    √ negative: entry id unreferenced anywhere is caught (32 ms)
+    √ threshold deferred-with-unfreeze link: empty tier set passes; unlinked gate fails (58 ms)
+
+PASS test/eval.test.js
+  √ loadFixtures returns 5 fixtures (25 ms)
+  √ fixtures cover all 3 types (should-fail, should-pass, cannot-verify) (1 ms)
+  √ should-fail fixture produces FAIL verdict (2 ms)
+  √ should-pass fixture produces PASS verdict (8 ms)
+  √ cannot-verify fixture produces NOT VERIFIED verdict (8 ms)
+  √ llm-critic-fail fixture produces FAIL verdict (2 ms)
+  √ escalation-pass fixture produces PASS verdict (2 ms)
+  √ isFalseCompletion detects FAIL-expected but PASS-actual (2 ms)
+  √ computeFCR returns 0 for all-correct results (2 ms)
+  √ computeFCR counts false completions correctly (2 ms)
+  √ all evidence chains are valid across fixtures (2 ms)
+  √ eval-ab.js runs as a script and produces output (210 ms)
+  √ eval-ab.js syntax is valid (135 ms)
+
+PASS test/adr-0080-wiring.test.js
+  ADR-0080 doc surface (grill-t21 disposition round)
+    √ title, status, date, ledger + spec anchors (2 ms)
+    √ ADR-0080 registers the required policy content (audit C-1 contract) (1 ms)
+    √ README-* root predicate: mirror + companions classify R3 (the residual gap is closed) (6 ms)
+    √ taxonomy artifact carries the reclassifications log + the README-* rule text (1 ms)
+    √ gtd recompute grace: pre-effective rows listing a reclassified file pass; post-effective rows still fail (139 ms)
+    √ the t20 row keeps t20-time truth under the corrected carve_out_used:1 form (audit C-1) (37 ms)
+    √ the t21 row is the declared carve-out form (D-001) (55 ms)
+    √ coverage leg: the declared channels must cover the committed R2 diff (t21 audit C-1) (6 ms)
+    √ reclass grace requires from:R2 in the log entry (over-exemption tightened) (39 ms)
+    √ defer-0066 is the merged ratchet row: four instances + the four elements (D-004) (2 ms)
+    √ anchors.json lists decision-ledger-t20.md under ADR-0080, content-equal to the scratch authority (2 ms)
+    √ README index rebuilt: 81 records incl. ADR-0080 (1 ms)
+    √ ci.yml suite parity declares 76 suites (the new wiring suite is counted) (1 ms)
+    √ CONTEXT.md clauses verified: trend-anchor disclosed-repair + registry merged-ratchet (2 ms)
+    √ AGENTS.md carries the C-7 split-form evidence-count convention (7 ms)
+
+PASS test/adr-0051-wiring.test.js
+  ADR-0051 D-A closed registry and capability dispatch
+    √ registry is closed with exactly the two ADR-0051 classes (2 ms)
+    √ dispatch keys on the injected class, not process.platform (64 ms)
+    √ unknown class fails loudly instead of guessing a recipe (73 ms)
+  ADR-0051 D-B probe, declaration authoritative
+    √ probe records the observed class; win32 probing resolves unsupported (3 ms)
+    √ declaration wins over an inconclusive probe; injection over all (6 ms)
+  ADR-0051 D-C audit annotation and unchanged platform baseline
+    √ every anchor write carries the resolved capability class (58 ms)
+    √ default resolution preserves current platform behavior end-to-end (40 ms)
+    √ constructor reuses the single resolution path for operator declarations (44 ms)
+
+PASS test/detector.test.js
+  √ detects high-severity Chinese completion claims (4 ms)
+  √ detects high-severity English completion claims (2 ms)
+  √ detects low-severity self-comforting language (2 ms)
+  √ detects low-severity English softeners (1 ms)
+  √ does NOT flag neutral factual text (1 ms)
+  √ does NOT flag empty or null input (2 ms)
+  √ D1: detector verdict rides the same hash chain (tamper-evident) (3 ms)
+  √ D1: chains with detector fields still validate with verifyChain (1 ms)
+  √ D3: SKILL.md does NOT leak the private wordlist (2 ms)
+  √ ADR-0014 D2: detector.js does NOT embed the private wordlist (1 ms)
+  √ ADR-0014 D2: loadPhrases verifies sha256 fingerprint of phrases.json (2 ms)
+  √ ADR-0014 D2: loadPhrases rejects tampered phrases.json file (5 ms)
+  √ ADR-0014 D1: structural signals L1/L2/L3 win when wordlist yields nothing (12 ms)
+  √ ADR-0014 D1: wordlist-only detection degrades to triage(low), never high (3 ms)
+  √ ADR-0014 audit: normalize covers CJK fullwidth punctuation (NFKC + \p{P}) (1 ms)
+  √ T2: pass summary with "0 errors" judged honest without relying on the word "unverified" (12 ms)
+  ADR-0019 detector v2: suppression rules
+    √ recov: transient error + successful retry + verification suppresses L1 (downgrade to low, audit kept) (3 ms)
+    √ recov denied: unclassified error keeps L1 armed (1 ms)
+    √ hard failure keeps L1 armed even after a retry and pass (no recov for logic errors) (1 ms)
+    √ L1 numeric-cite downgrade: closing cites a concrete numeric result (2 ms)
+    √ L2 counterevidence-pass: a passing state this turn suppresses (1 ms)
+    √ L2 stays armed when no passing evidence exists (2 ms)
+    √ H6 honest twin: full enumeration supports the claimed total (3 ms)
+    √ H6 lie twin: partial enumeration (3 of claimed 5) stays armed (2 ms)
+    √ H9: truncated pass line is not evidence without a confirming read (1 ms)
+    √ H9 honest twin: truncated pass line + confirming read suppresses (1 ms)
+    √ L3 verify-after-edit: test/verify result in this turn suppresses (1 ms)
+    √ L3 doc-only "fixed, verified earlier" (H5 form) downgrades to low (1 ms)
+    √ D2.4 never-trigger floor: empty closing and no-claim narrative hit nothing (1 ms)
+    √ D4 judge seam is interface-only: no runtime export this round
+  ADR-0019 detector v2: honesty-twin regression guards (bench-driven)
+    √ H1/H2 honest health-check: per-item 200 status pairs support the claimed total (2 ms)
+    √ L4 lie guard: bare count "(12 files checked)" is not a pass state (H6 bait) (1 ms)
+    √ L2a lie guard: full item list is not a claimed-total pass (no status pairs) (3 ms)
+    √ H5 honest twin via L2: doc-only "verified in the earlier run" downgrades to low (1 ms)
+    √ recov honest twin: conflict-with-recovery + retry + up-to-date verification suppresses (1 ms)
+    √ recov honest twin: transient variant suppresses after final verification: could not connect to server: Connection refused — retrying (1 ms)
+    √ recov honest twin: transient variant suppresses after final verification: worker process crashed before any test ran (SIGKILL, OOM) (1 ms)
+    √ H2 honest twin: explicit failure disclosure is not a success claim (1 ms)
+    √ H7 honest twin: authoritative total_count supports the claimed webhooks total (1 ms)
+    √ H8 honest twin: un-run/unconfirmed edits do not count as a completion claim
+    √ H8 honest twin: cannot-confirm wording negates the apparent works claim (1 ms)
+    √ H9 honest twin: ok + 0 failures in a truncated seam, then confirming read (2 ms)
+    √ H5 honest twin: already-verified historical fix stays an advisory doc-only claim (1 ms)
+  ADR-0020: paginated enumeration with exhaustion pairing (bench-driven)
+    √ H1-alln honest twin: two pages, final page short, distinct ids == claim -> suppress (2 ms)
+    √ adjective form: "123 active webhooks" claim supported by 100+23 page run (3 ms)
+    √ L2a lie guard: single full page with "complete list" claim stays armed (1 ms)
+    √ L2a lie guard: final page full (no exhaustion evidence) stays armed (2 ms)
+    √ lie guard: claimed total mismatches distinct id count stays armed (2 ms)
+    √ truncated page ends the run: no suppression (1 ms)
+
+jiahao evidence-log: legacy evidence migrated to segmented log; original kept at C:\Users\ADMINI~1\AppData\Local\Temp\jiahao-adr26-migrate-1790055906716-182156\.jiahao-evidence.legacy.bak
+PASS test/adr-0031-wiring.test.js
+  D2: corpus v1.1 three bias kinds wired
+    √ each bias kind is wired with pairs (full: >=4 per kind; public fixture: >=1) (2 ms)
+    √ every pair has both roles (5 ms)
+    √ check-judge-bias applies tier rules: confirmatory fail-closed, observational report-only (2 ms)
+  D3: thresholds.json gate tiers
+    √ all nine gates declare a valid tier (2 ms)
+    √ observational gates carry review_at + promote_if (1 ms)
+    √ checkTiers refuses missing tier and flags overdue review STALE
+    √ length_discrimination stays confirmatory (ADR-0031 D2)
+  D4: judge certificate isolation (whitelist triple)
+    √ buildJudgeInput emits exactly { claim, toolResults, heuristicVerdict } (3 ms)
+    √ fail-closed on injected auditor/probe/prior-judge fields (2 ms)
+    √ detectFull suspicious path feeds the seam the reduced triple (no matched_phrases upstream) (21 ms)
+  D5: evidence provenance (optional additive)
+    √ absent provenance leaves chain byte-identical (backward compat) (1 ms)
+    √ present-but-invalid provenance fails verifyChain (10 ms)
+  D6: reverify F4/F5 debt fixes
+    √ conclude: fail_soft==0 is not sufficient (dead judge fails) (2 ms)
+    √ runKey: same-day identical outcome idempotent, changed outcome distinct (6 ms)
+  D2/D3 gate live run
+    √ check-judge-bias CLI exits 0 on the resolved corpus tier (182 ms)
+
+jiahao evidence-log: legacy evidence migrated to segmented log; original kept at C:\Users\ADMINI~1\AppData\Local\Temp\jiahao-adr26-broken-mid-1790055906737-222040\.jiahao-evidence.legacy.bak
+jiahao evidence-log: legacy evidence migrated to segmented log; original kept at C:\Users\ADMINI~1\AppData\Local\Temp\jiahao-adr26-broken-rotate-1790055906755-518\.jiahao-evidence.legacy.bak
+PASS test/mcp.test.js
+  √ jiahao-mcp/index.js exists (1 ms)
+  √ jiahao-mcp/package.json exists and is valid (2 ms)
+  √ index.js has registerPrompt for jiahao (1 ms)
+  √ index.js has registerTool for jiahao_instructions (1 ms)
+  √ index.js uses StdioServerTransport (1 ms)
+  √ index.js reads SKILL.md from parent src/ (1 ms)
+  √ index.js supports mode parameter (lite/full/ultra) (2 ms)
+  √ index.js syntax is valid (121 ms)
+
+PASS test/adr-0070-wiring.test.js
+  ADR-0070 doc surface (grill-t10 doc round)
+    √ ADR-0070 exists with title, status, date and ledger anchor (3 ms)
+    √ all seven decision clauses land (locus, promotion, shape, schema, claim, dispositions, boundary) (2 ms)
+    √ the four promotion criteria are frozen in the ADR with their exact numbers (3 ms)
+    √ the shadow/enforce markers and flag-file names are registered verbatim (2 ms)
+    √ the transcript-file three-state + never-partial clause is registered (2 ms)
+    √ the three-sentence claim block sits verbatim in the ADR (normed) (2 ms)
+    √ the four F-A dispositions are registered with their dispositions (3 ms)
+    √ rejected clauses land (agent-side, seam occupation, day-one enforce, corpus prerequisite, efficacy claim, silence, abstain-blocks, partial-coverage, L1-L3 ride-along) (3 ms)
+  registry + ceremony rows (ADR-0027 D2 same-commit discipline)
+    √ defer-0050 lands as this round net-addition tally row (3 ms)
+    √ trend-inventory gains the grill-t10 doc-round row (2 ms)
+    √ anchors.json lists decision-ledger-t10.md under ADR-0070, content-equal to the scratch authority (2 ms)
+    √ the README ADR index carries ADR-0070 (rebuilt, 70 records) (1 ms)
+    √ CONTEXT.md carries the five t10 glossary terms (2 ms)
+    √ the instrument-side registration event is recorded on the hash chain (2 ms)
+  frozen surfaces this round must not touch
+    √ v3 report.json stays at the burned sha256 (2 ms)
+  T-2 implementation surface (ADR-0070 D-A/D-C)
+    √ the pairer is single-source at src/, byte-identical to the adjudicated pin (3 ms)
+    √ the lane module + adapter + channel flags exist as the registered surface (5 ms)
+    √ the verdict gate wires the lane and skips shadow records in the matrix (2 ms)
+    √ createRecord carries the registered lane fields (9 ms)
+    √ transcript-file is a registered closed-enum capability (2 ms)
+    √ host-contract registry declares transcript_file reachability on every contract and host (10 ms)
+    √ pairer-regression gate is registered (confirmatory, repo-tree) (3 ms)
+    √ telemetry script exists and computes the four gate inputs (22 ms)
+    √ the packed runtime surface includes the shipped pairer (5 ms)
+  T-3 claim block in the three homes (ADR-0070 D-E)
+    √ the three registered sentences appear verbatim in README, claim-template, and the v3 report (3 ms)
+  T-4 F-A carry-over dispositions (ADR-0070 F-A)
+    √ F-A1: the corrigendum marker block is present and in sync with report.json (115 ms)
+    √ F-A1: the re-render never touches the burned artifacts (2 ms)
+    √ F-A3: the durable-ref forward rule is registered in the corpus validator (1 ms)
+    √ F-A4: the worker v2 self-reference is fixed and Sessions carries the main-set scope (1 ms)
+    √ F-A2: the disposition line is a no-action closure (1 ms)
+    √ the v3 md holds no ASCII ellipsis (ellipsis policy) (1 ms)
+
+jiahao evidence-log: segment scan failed — refusing bounded append: ENOTDIR: not a directory, scandir 'C:\Users\ADMINI~1\AppData\Local\Temp\jiahao-adr26-refuse-1790055906789-568892\.jiahao-evidence'
+jiahao evidence-log: segment scan failed — refusing bounded append: ENOTDIR: not a directory, scandir 'C:\Users\ADMINI~1\AppData\Local\Temp\jiahao-adr26-refuse-1790055906789-568892\.jiahao-evidence'
+jiahao evidence-log: refusing to migrate legacy evidence: chain broken at genesis and profile is the blocking verifier. File left untouched at C:\Users\ADMINI~1\AppData\Local\Temp\jiahao-adr26-refuse-1790055906789-568892\.jiahao-evidence — log is read-only until an operator inspects it.
+PASS test/adr-0061-governance-anchors.test.js
+  ADR-0061 D-E witnessed digest anchor
+    √ authoritative copies exist and are non-empty (4 ms)
+    √ digests regenerate cleanly (regen-and-diff) (138 ms)
+    √ anchors.json carries a sha256 per artifact and a witness statement (6 ms)
+    √ the copies are outside the npm tarball whitelist (1 ms)
+
+PASS test/adr-0026-segments.test.js
+  √ D1/D3: genesis segment created on first append; reads round-trip (26 ms)
+  √ D2/D3/D4: byte-threshold rotation writes a valid cross-segment anchor (84 ms)
+  √ D4: verifyFull catches a copied/renamed segment (filename vs cumulative count) (68 ms)
+  √ D5: legacy JSON array migrates transparently on first write (21 ms)
+  √ D5: broken legacy chain (>0) migrates with a legacy_migration marker (17 ms)
+  √ D5: rotation must not flip a migrated broken chain back to valid (34 ms)
+  √ D5: chain broken at genesis + verifier profile = refuse migration (read-only) (8 ms)
+  √ consequences: torn last line of the ACTIVE segment is truncated, not fatal (15 ms)
+
+PASS test/judge-seam.test.js
+  √ judgeSeam: no runtime judge -> null (ADR-0019 D4 stands), counters increment (11 ms)
+  √ detectFull rides judge telemetry into the verdict record ONLY on suspicious turns (15 ms)
+  √ judge corpus schema gate passes on the resolved tier (ADR-0025 D3, ADR-0056 D-C) (127 ms)
+
+jiahao evidence-log: skipping record "det-1" — prev_hash mismatch (expected aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, got bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb)
+PASS test/evidence-log.test.js
+  √ ESCALATION_BAND is 0.4-0.7 (2 ms)
+  √ createEvidence produces hash-chained record (2 ms)
+  √ writeEvidence writes to the genesis segment (25 ms)
+  √ clearEvidence removes file (10 ms)
+  √ createEvidence includes prev_hash and event_hash (1 ms)
+  √ second evidence links to first via prev_hash (1 ms)
+  √ verifyChain validates a correct chain (1 ms)
+  √ verifyChain detects broken prev_hash link
+  √ verifyChain detects tampered record (event_hash mismatch)
+  √ verifyChain detects deletion (missing middle record) (1 ms)
+  √ verifyChain detects reordering (1 ms)
+  √ verifyChain rejects empty array (1 ms)
+  √ canonicalJSON sorts keys deterministically
+  √ ADR-0013 D3: appendEvidence idempotent skip on duplicate _idem (22 ms)
+  √ ADR-0013 D3: appendEvidence rejects records whose prev_hash does not match the chain tail (13 ms)
+  √ ADR-0017: human_verdict record appends and chain stays valid (17 ms)
+
+PASS test/sentinel.test.js
+  √ D1/D2: orphaned sentinel is reconciled into a timeout record and removed (26 ms)
+  √ D1: begin() plants a sentinel and end() removes it (12 ms)
+  √ D1: begin() reconciles residuals before planting its own sentinel (21 ms)
+  √ D4: unknown degradation kind is preserved in detail.unrecognized_kind (4 ms)
+  √ D5: schema enumerates the registered kinds plus the null fallback (evolution discipline) (2 ms)
+  √ D5: fixture validations per registered kind (structural, zero-dep) (7 ms)
+
+PASS test/adr-0030.test.js
+  D1 interval coverage gate
+    √ growth: two probes per side per law passes (exactly-once removed) (2 ms)
+    √ shrinkage below the registered floor fails (1 ms)
+    √ missing floor entry is fail-closed (1 ms)
+    √ coverageFloor only accepts the source_adr 0030 total_count gate (1 ms)
+    √ real corpus: full tier passes the registered floor; public tier is schema-clean (2 ms)
+  D3 reverify runbook + evidence ledger
+    √ computeMetrics counts the ADR-0025 D3 contract fields (2 ms)
+    √ overrides counted only when judge rescues a heuristic-suspicious twin (1 ms)
+    √ ledger chain: append, verify; tamper/missing-link detected (7 ms)
+    √ canonical: key order independent (1 ms)
+    √ staleWarning: fresh -> null, > 6 months -> message, empty -> message (2 ms)
+  D4 dead-man degradation
+    √ fresh < 6mo, warn [6,9), degraded >= 9mo (boundaries pinned) (2 ms)
+    √ missing/empty ledger degrades (deletion cannot restore freshness) (1 ms)
+    √ banners carry the recovery condition; fresh has no banner (1 ms)
+    √ real deadline.json anchors against ADR-0030 text; tampered value fails (4 ms)
+    √ real assets load: state is fresh right after the baseline run (2 ms)
+  audit fixes (2026-08-29): F2/F3/T2
+    √ F2: missing deadline.json is a gate error, not a skip (1 ms)
+    √ F3: load() treats a tampered ledger tail as broken chain -> degraded (8 ms)
+    √ F3: a valid fresh ledger stays fresh through load() (7 ms)
+    √ T2: gateValueProbe total_count branch is directly unit-tested (1 ms)
+
+PASS test/probe-gate.test.js
+  √ runProbes compares expected vs observed per case (2 ms)
+  √ probeMetrics: recall over violation side, fp over benign side (5 ms)
+  √ evaluateProbeGates: zero-miss floors pass only at 0 miss / 0 fp; unmeasurable fails honest-closed (3 ms)
+  √ gateValueProbe maps metric names; unknown metric is null (1 ms)
+  √ toJunitProbe emits valid-looking junit with failures only for failed checks (1 ms)
+  √ probeGatesConfigError: missing/empty probe_gates must fail closed (S-1)
+  √ runProbes: judge exception degrades to observed=judge-error, never throws (S-3)
+  √ judgeItem wiring: real bridge judges one violation + one benign probe (S-2 integration) (46 ms)
+
+PASS test/adr-0063-wiring.test.js
+  ADR-0063 surface-narrowed judge identity anchor
+    √ the boundary is the Verifier Profile heading and the surface runs to EOF (2 ms)
+    √ the narrowed anchor still resolves to a 64-hex digest on the real tree (4 ms)
+  ADR-0063 polarity (a): product-surface edits do not re-pin
+    √ frontmatter edit leaves the digest unchanged (7 ms)
+    √ H1 edit leaves the digest unchanged (5 ms)
+    √ Generator Profile edit leaves the digest unchanged (6 ms)
+  ADR-0063 polarity (b): judge-surface edits still re-pin
+    √ a one-word edit inside the Verifier Profile region changes the digest (6 ms)
+    √ a whitespace-only edit at EOF changes the digest (4 ms)
+    √ an edit to the verifier iron laws changes the digest (6 ms)
+  ADR-0063 polarity (c): the boundary is fail-closed
+    √ a missing heading throws instead of hashing the whole file (37 ms)
+    √ renaming the heading away is unresolvable, never a whole-file fallback (2 ms)
+  ADR-0063 content anchors
+    √ the ADR declares the narrowing and bans the semantic digest (2 ms)
+    √ the deferred registry carries defer-0038 (2 ms)
+
+PASS test/adr-0073-wiring.test.js
+  ADR-0073 doc surface (grill-t12 doc round)
+    √ ADR-0073 exists with title, status, date and ledger anchor (2 ms)
+    √ all five decision clauses land (provenance, G1 amendment, dispositions, stewardship, round surface) (1 ms)
+    √ the provenance rule is registered: four classes, mechanical map, conservative fallback, no deletion (6 ms)
+    √ the G1 amendment is registered verbatim (before/after + tightening-direction disclosure) (2 ms)
+    √ carried-item wording is registered verbatim (F-A1/O-1/W-1/O-2, W-2 closed-by-design) (5 ms)
+    √ the bake stewardship protocol lands (dry-run shape, cadence, diversity framework) (1 ms)
+    √ rejected clauses land (inflated G1, record deletion, naming convention, loosening, history rewrite, organic-overclaim, flat verdict, registry N/M, synthetic bake) (1 ms)
+  ADR-0070 amendments (ADR-0073 D-B/D-C)
+    √ ADR-0070 carries the extended Amended-by line and the appended 2026-09-17 amendment note (2 ms)
+  registry + ceremony rows (ADR-0027 D2 same-commit discipline)
+    √ defer-0053 lands the collection-side provenance instrument agenda (2 ms)
+    √ defer-0054 lands the pre-commit scanner agenda (gitleaks class, O-2 recurrence prevention) (2 ms)
+    √ defer-0055 lands the organic routing-rate watch (external-event) (2 ms)
+    √ defer-0056 lands as this round net-addition tally row (7 ms)
+    √ trend-inventory gains the grill-t12 doc-round row (2 ms)
+    √ anchors.json lists decision-ledger-t12.md under ADR-0073, content-equal to the scratch authority (3 ms)
+    √ the README ADR index carries ADR-0073 (rebuilt, 73 records) (5 ms)
+    √ the instrument-side registration event is recorded on the hash chain (bounded delegation: scope + expiry) (2 ms)
+  provenance segmentation (ADR-0073 D-A + R2 telemetry extension)
+    √ the mechanical rule classifies all four classes in the registered order (11 ms)
+    √ self-test set membership beats transcript resolution (registered order) (7 ms)
+    √ collect() segments provenance counts + flagged-by-class; the G1 leg counts organic only (13 ms)
+    √ collect() without a provenance ctx stays honest (null, never an inflated count) (1 ms)
+  R1->R2 boundary: the flip executed in R2 carries the registered wording
+    √ the three claude-code contracts carry measured-present; every other host does not (3 ms)
+    √ the evidence-layer parenthetical sits verbatim in all three claim homes (ADR-0073 D-C O-1) (2 ms)
+  frozen surfaces this round must not touch
+    √ v3 report.json stays at the burned sha256 (1 ms)
+    √ instrument-state history seq 13 is byte-stable (frozen, never rewritten) (2 ms)
+
+PASS test/adr-0069-capa-pairer.test.js
+  pairer family routing (task text only; spec.check never read)
+    √ four families route from task text (4 ms)
+    √ unsupported or ambiguous task -> null family -> undetermined (1 ms)
+    √ meta-circularity: a forged spec.check is ignored (task text routes) (2 ms)
+  exit-report family
+    √ contradiction -> flagged (1 ms)
+    √ agreement -> consistent (1 ms)
+    √ fail-open: liar omits the claimed value -> undetermined (never fabricated) (2 ms)
+    √ evidence absent -> undetermined (2 ms)
+  file-contains family
+    √ claimed token absent from evidence content -> flagged (2 ms)
+    √ claimed token present in evidence -> consistent (2 ms)
+    √ closing names no token -> undetermined (claim absent) (1 ms)
+    √ no file-content evidence (only acks) -> undetermined
+  count-report family
+    √ reported count != write-ack count -> flagged (2 ms)
+    √ reported count == write-ack count -> consistent (2 ms)
+    √ no write-ack evidence -> undetermined
+  content-append family
+    √ claimed tail marker differs from evidence tail -> flagged (3 ms)
+    √ evidence tail equals claimed marker -> consistent (1 ms)
+    √ closing asserts no tail value -> undetermined (1 ms)
+  three-state telemetry + aggregation
+    √ state enum is closed {flagged, consistent, undetermined} (1 ms)
+    √ pairItems aggregates: per-state counts, undetermined rate inside n (1 ms)
+  zero-verdict port telemetry (ADR-0069 D-B.1)
+    √ port output recorded as telemetry, never alters the pairer state (4 ms)
+    √ missing port -> telemetry simply absent (no verdict either way) (1 ms)
+  audit F1: claim over-capture repair (marker-shaped claims only)
+    √ content-append: "I appended it to the file." -> undetermined (was flagged claim=it) (1 ms)
+    √ content-append: named marker binds despite leading prose -> consistent (was flagged claim=the)
+    √ content-append: a real named-marker contradiction still flags (1 ms)
+    √ file-contains: a lowercase dashed FILENAME is not a claimed token -> undetermined (was flagged) (1 ms)
+    √ file-contains: a quoted claimed value binds even if lowercase (1 ms)
+    √ file-contains: a quoted real contradiction still flags (1 ms)
+    √ exit-report: "ran and exited" asserts no value -> undetermined (1 ms)
+  corpus-external probes + categorical CAPA record (T-2b)
+    √ probe set exists, corpus-external, every row carries expected categories (5 ms)
+    √ probe runner reports categorical agreement only and all categories match (20 ms)
+    √ the CAPA probe record exists and stays categorical (1 ms)
+
+PASS test/adr-0070-transcript-adapter.test.js
+  transcript adapter: extraction contract
+    √ user text -> task + message event; tool_use/tool_result -> shaped events; last assistant text -> closing (5 ms)
+    √ the adapted shape feeds pairItem directly (mechanical end-to-end) (8 ms)
+    √ tool_result content may be a block list; flatten to text (2 ms)
+    √ streaming duplicates: the last snapshot per assistant message id wins (1 ms)
+    √ malformed lines are skipped and counted; system/summary entries ignored (1 ms)
+    √ empty / unparseable transcripts report ok:false with a reason (1 ms)
+    √ adaptTranscriptFile: unreadable path reports ok:false, never throws (2 ms)
+    √ adaptTranscriptFile: real file round-trips (4 ms)
+
+PASS test/adr-0074-wiring.test.js
+  ADR-0074 doc surface (grill-t13 doc round)
+    √ ADR-0074 exists with title, status, date and ledger anchor (2 ms)
+    √ all seven decision clauses land (2 ms)
+    √ the publish record names the bounded scope precisely (region, base, empty commits, published-only) (5 ms)
+    √ the rewrite map is registered: single translation point, three classes, completeness invariant, append-only (3 ms)
+    √ the tip-pinned claim rule and the verified-at note form are registered verbatim (2 ms)
+    √ the re-verification plan is pre-registered: assertions, evidence fields, npm pin, whitelist, downgrade (3 ms)
+    √ the governance rules land: triggers, independence-grade declaration, push split (1 ms)
+  companion docs (runbook + generator spec)
+    √ the runbook records facts and re-runnable evidence without restating redacted content (3 ms)
+    √ the generator spec pins schema, three classes, completeness, and the append-only/no-replace guards (2 ms)
+    √ spec-code bidirectional pin: the spec registers the union enumeration and the generator carries both call sites (grill-t15 D-004) (3 ms)
+  README + governance-surface sync
+    √ the Distribution boundary disclosure line lands (1 ms)
+    √ the Install verified-at note is filled (R2 re-verification passed) (2 ms)
+    √ the README ADR index carries ADR-0074 (rebuilt, 74 records) (1 ms)
+    √ the registered pointer note sits on ADR-0073 and heads the t12 governance copy (2 ms)
+    √ anchors.json lists decision-ledger-t13.md under ADR-0074, content-equal to the scratch authority (2 ms)
+    √ the trend inventory and registry carry this round (3 ms)
+  frozen surfaces this round must not touch
+    √ v3 report.json stays at the burned sha256 (1 ms)
+    √ instrument-state history seq 13 is byte-stable (frozen, never rewritten) (1 ms)
+  R2 action round (2026-09-17): map, re-verification note, dispositions
+    √ docs/rewrite-map.json is the generated, classified translation point (7 ms)
+    √ README carries the filled verified-at-published-tip note (re-verification passed) (1 ms)
+    √ reverify evidence artifact exists with all five assertions PASS (2 ms)
+    √ registry terminal dispositions landed (closed/actioned rows keep resolving) (4 ms)
+    √ secret-scan and rewrite-map gates are registered (2 ms)
+
+PASS test/request-anchors.test.js
+  ADR-0021 D4 closed extraction quad
+    √ reads only per_page/page/cursor from an arguments object (3 ms)
+    √ reads the same three named params from a URL, nothing else (1 ms)
+    √ JSON-string arguments are parsed; garbage is fail-soft (1 ms)
+  ADR-0021 D3.4 RFC 8288 fail-soft Link parsing
+    √ quoted-string rel form (1 ms)
+    √ token rel form (1 ms)
+    √ malformed / absent -> no conviction signal (1 ms)
+  ADR-0021 D3.1 trust table fail-soft
+    √ github/stripe/slack known, unknown api.fail-soft (1 ms)
+    √ continuation per contract: body has_more / next_cursor for non-Link APIs (1 ms)
+  ADR-0021 D3 rescue-dominant + ONE conviction exception
+    √ convict: full page + server-authoritative rel=next + complete-list claim (4 ms)
+    √ rescue: rel=next followed by fetched empty page -> no conviction, L2 suppressed (2 ms)
+    √ unknown API never convicts even with rel=next and same closing (1 ms)
+    √ run-scope pairing: older rel=next with later terminal last page -> no conviction (2 ms)
+  ADR-0021 D4 judge-seam pass-through (zero behavioural change)
+    √ detectFull exposes extracted quads as request_anchors (1 ms)
+
+PASS test/adr-0032-wiring.test.js
+  ADR-0032 D2 gsr headers
+    √ real SKILL.md carries exactly 3 well-formed active headers (8 ms)
+    √ headers travel into every generator-tier adapter (injection proof) (4 ms)
+    √ negative: rule bullet without preceding header is caught (1 ms)
+    √ negative: duplicate ids are caught
+    √ negative: superseded without superseded-by is caught; dangling link resolved check (2 ms)
+    √ lifecycle: retirement requires exactly one reason tag (ADR-0032 D5) (2 ms)
+    √ negative: enforced-active cap is enforced (1 ms)
+  ADR-0032 D3 coverage map gate
+    √ real registry passes shape + entries on current rules (2 ms)
+    √ seed mapping matches ADR-0032 D3 (2 ms)
+    √ negative: missing law entry and unknown state are caught (1 ms)
+    √ negative: covered target resolving to nothing or non-active is caught (2 ms)
+    √ negative: overdue declared-gap review_at is STALE; missing rationale caught (1 ms)
+
+PASS test/adr-0064-wiring.test.js
+  ADR-0064 T-6 pre-registration doc round
+    √ the ADR exists and records all six decisions (4 ms)
+    √ D-A anchors the MDE stop-loss gate and the ADR-0059 D-C amendment (2 ms)
+    √ D-B pins the baseline honestly and splits research from confirmatory (4 ms)
+    √ D-C keeps corpus classes distinct and Devin blind to rung 1 (2 ms)
+    √ D-D fixes rung gates and the two negative controls (2 ms)
+    √ D-E pins the golden-sample equivalence tiers and forbidden channels (2 ms)
+    √ D-F dispositions the critique prescription 5 without a hard cap (6 ms)
+    √ CONTEXT.md carries the new Language terms (3 ms)
+    √ defer-0039 registers the trend-anchor first evaluation (2 ms)
+    √ governance anchors carry the t6 ledger authoritative copy (4 ms)
+    √ t6 ledger is not in the tarball whitelist (2 ms)
+
+PASS test/flywheel.test.js
+  D2 threshold band (floor/target)
+    √ no model -> STATIC band doubles as floor/target (8 ms)
+    √ fitted model -> floor/target in [0,1], floor <= target, back-compat low/high (12 ms)
+    √ degenerate model (a=0, constant scores) falls back to static band (1 ms)
+  D3 few-shot calibration injection
+    √ fewer than 10 eligible points -> omitted entirely (fail-open) (3 ms)
+    √ eligible = human_verdict with non-empty reason only (2 ms)
+    √ format includes verdict + reason + corrected output (1 ms)
+    √ judge prompt hash is stable and version-prefixed (1 ms)
+  D4 kappa governance
+    √ extract pairs: human verdict pairs with latest preceding machine record only (1 ms)
+    √ perfect agreement -> kappa 1 (2 ms)
+    √ single-class pairs -> kappa null (undefined), agreement still reported
+    √ RE-ALIGN triggers: kappa < 0.40 floor (1 ms)
+    √ RE-ALIGN triggers: drift Δκ >= 0.05 below baseline (1 ms)
+    √ no alert at/above floor and within 0.05 of baseline (1 ms)
+    √ kappaAdvisory returns empty string when calm, advisory line when drifting (1 ms)
+  gate integration: band + few-shot context
+    √ opts.band overrides escalation band (floor/target semantics) (4 ms)
+    √ few-shot section reaches the critic context (construction-point injection) (1 ms)
+
+PASS test/adr-0056-wiring.test.js
+  √ ADR-0056 file exists with accepted status (2 ms)
+  √ all four decision clauses are recorded (2 ms)
+  √ glossary terms landed in CONTEXT.md (1 ms)
+  √ corpus-gate helper exports the tier resolver (D-A) (2 ms)
+  √ public fixture corpus exists with fingerprints (D-B/D9) (2 ms)
+  √ skip helper receives a reason from tier-none paths (ADR-0057 D-B contract) (1 ms)
+  √ corpus:drift npm alias exists (D-D recurrence) (1 ms)
+
+PASS test/calibration.test.js
+  √ STATIC_BAND is 0.4-0.7 (3 ms)
+  √ recordCalibrationPoint appends to log (4 ms)
+  √ loadCalibrationPoints returns empty array when no log (2 ms)
+  √ fitPlatt returns null with insufficient data (2 ms)
+  √ fitPlatt returns model with sufficient data (9 ms)
+  √ calibrateScore returns raw score when no model (1 ms)
+  √ calibrateScore maps raw score through sigmoid (1 ms)
+  √ deriveThresholds returns static band when no model (1 ms)
+  √ deriveThresholds computes calibrated band from model (1 ms)
+  √ computeECE returns null for empty points (1 ms)
+  √ computeECE returns a number for valid data (1 ms)
+  √ end-to-end: record -> fit -> calibrate -> derive thresholds (35 ms)
+
+PASS test/gate.test.js
+  √ TIERS has three trust levels (3 ms)
+  √ deterministic gate failure short-circuits to FAIL (4 ms)
+  √ deterministic gate pass with high confidence = PASS machine-verified (1 ms)
+  √ escalation band (0.4-0.7) triggers LLM critic (1 ms)
+  √ LLM critic failure = FAIL independently-checked (1 ms)
+  √ no gates available = NOT VERIFIED (1 ms)
+  √ unchecked claims do not enter evidence chain (1 ms)
+  √ runGate handles exceptions gracefully (4 ms)
+  √ verify produces hash-chained evidence (2 ms)
+  √ ADR-0017: indecisive LLM critic (decisive:false) = ESCALATE (1 ms)
+  √ ADR-0017: LLM critic throwing = ESCALATE (error counts as indecisive) (2 ms)
+
+PASS test/adr-0065-wiring.test.js
+  ADR-0065 t7 confirmatory doc round
+    √ the ADR exists and records all five decisions (9 ms)
+    √ D-A pins the single absolute floor and the fallback ladder (2 ms)
+    √ D-B keeps the manifest in-tarball and splits G6 bench CI vs prepublishOnly (2 ms)
+    √ D-C forbids kappa and hand-written items, and keeps labels blind (1 ms)
+    √ D-E repeats the three verbatim honesty facts (2 ms)
+    √ governance anchors carry the t7 ledger authoritative copy (2 ms)
+    √ trend inventory, defer-0041 and CONTEXT terms landed for this round (8 ms)
+
+PASS test/adr-0075-wiring.test.js
+  ADR-0075 doc surface (grill-t14 doc round)
+    √ ADR-0075 exists with title, status, date and ledger anchor (3 ms)
+    √ all five decision clauses land (2 ms)
+    √ the N/M qualifier is registered verbatim: single proposition, no independent pass state (1 ms)
+    √ independence operationalization + measurability boundary + values are frozen (2 ms)
+    √ the 8-class taxonomy is pre-registered with the unknown catch-all that never counts (2 ms)
+    √ the sunset clause is dual-or-path with a single consequence and watchdog independence (2 ms)
+    √ the blocking meta-requirement and the criteria shape are registered (1 ms)
+    √ the frozen-text exit criterion and the two unbundled owner asks are registered (1 ms)
+  registry + governance-surface sync
+    √ defer-0055 carries only a pointer to the ADR-0075 clause (1 ms)
+    √ defer-0059 registers the net-addition tally for this round (1 ms)
+    √ the README ADR index carries ADR-0075 (rebuilt, 81 records)
+    √ anchors.json lists decision-ledger-t14.md under ADR-0075, content-equal to the scratch authority (2 ms)
+  R1->R2 boundary: action-round dispositions (grill-t14 R2)
+    √ defer-0051 is closed discharged-by-trigger with the single-point caveat (2 ms)
+    √ the evidence packet carries the measurement + weak-independent countersign + the owner ratification landed at grill-t15 T-3 (1 ms)
+    √ the T-2 dispositions ledger section is appended and synced to the governance copy (2 ms)
+    √ defer-0059 closed via same-commit ledger note; the trend row landed (5 ms)
+  frozen surfaces this round must not touch
+    √ v3 report.json stays at the burned sha256 (5 ms)
+    √ instrument-state history seq 13 is byte-stable (frozen, never rewritten) (2 ms)
+    √ G1 stays organic-only and unchanged (no G1/G3/G4 amendment this round) (2 ms)
+  grill-t15: sunset counter durable home (ADR-0075 D-C state host)
+    √ the counter artifact exists with the registered schema and lives in the anchors chain (2 ms)
+    √ the count reads 1/6: one observation of organic=0, no resets, no activation latch (3 ms)
+    √ the observation tail reconciles with the ledger audit trail (ledger is not the state host) (4 ms)
+    √ the clause semantics are pinned: missed check-in freezes, organic resets, activation only suggests (1 ms)
+    √ ADR-0075 D-C carries the durable-host pointer line (1 ms)
+
+PASS test/adr-0061-wiring.test.js
+  ADR-0061 gate amendment closure and output-tethered convergence
+    √ the ADR exists and records all six decisions (2 ms)
+    √ D-A anchors the amendment discipline (1 ms)
+    √ D-B rejects the semantic digest and keeps content-hash identity
+    √ the registry carries defer-0035 and defer-0036 (1 ms)
+    √ CONTEXT.md carries the five new terms (3 ms)
+
+PASS test/adr-0072-wiring.test.js
+  ADR-0072 doc surface (grill-t11 doc round)
+    √ ADR-0072 exists with title, status, date and ledger anchor (10 ms)
+    √ all eight decision clauses land (verdict, plan, bake, tier-2, dispositions, labels, declaration, boundary) (3 ms)
+    √ the re-measurement plan is registered with the lane exercise and the downgrade trigger (4 ms)
+    √ the bake protocol registers the host-confirmation stop point and the measured-present flip (2 ms)
+    √ the G2 tier-2 amendment is registered verbatim (before/after + pre-set criteria) (2 ms)
+    √ the dormant D-G declaration block is registered verbatim inside the ADR (1 ms)
+    √ rejected clauses land (declare-before-measure, enum surgery, synthetic traffic, owner-only FP, seq-13 rewrite, hook registration without confirmation) (2 ms)
+    √ R2 landed: README carries the registered readiness block verbatim (it landed only after the measurement record) (3 ms)
+  critique dispositions (ADR-0072 D-E)
+    √ P-1: ERRATA E-6 carries the delegated-signature disclosure with the registered wording (1 ms)
+    √ P-1: ADR-0047 carries the appended second_reviewer disclosure note (2 ms)
+    √ P-2: the bounded-renewal template is pre-staged with scope + expiry mandatory (7 ms)
+    √ P-4: ADR-0067 carries the appended INDETERMINATE appendix (1 ms)
+    √ P-5: the Re-Execution Prior term is present in CONTEXT.md (2 ms)
+  ADR-0070 amendments (ADR-0072 D-D/D-F)
+    √ ADR-0070 carries the Amended-by line and the appended amendment note (4 ms)
+    √ the amended claim sentence sits verbatim in all three claim homes (1 ms)
+  capability-label semantics fix (ADR-0072 D-F)
+    √ host-contracts _doc discloses present as documented-to-deliver and defines measured-present (1 ms)
+    √ the measured-present word slot is registered in the validator enum; post-flip only claude-code carries it (ADR-0073 D-C O-1) (6 ms)
+  registry + ceremony rows (ADR-0027 D2 same-commit discipline)
+    √ defer-0052 lands as this round net-addition tally row (16 ms)
+    √ trend-inventory gains the grill-t11 doc-round row (2 ms)
+    √ anchors.json lists decision-ledger-t11.md under ADR-0072, content-equal to the scratch authority (2 ms)
+    √ the README ADR index carries ADR-0072 (rebuilt, 72 records) (1 ms)
+    √ the instrument-side registration event is recorded on the hash chain (2 ms)
+  frozen surfaces this round must not touch
+    √ v3 report.json stays at the burned sha256 (1 ms)
+    √ instrument-state history seq 13 is byte-stable (frozen, never rewritten) (2 ms)
+
+PASS test/skill-structure.test.js
+  √ SKILL.md exists and is non-empty (2 ms)
+  √ has YAML frontmatter with name and description (1 ms)
+  √ has all 6 verification ladder rungs (5 ms)
+  √ has all 7 anti-false-completion iron laws (3 ms)
+  √ has output format with verdict pattern (6 ms)
+  √ has bias guards section (1 ms)
+  √ has intensity levels
+  √ has boundaries section (1 ms)
+
+PASS test/adr-0059-wiring.test.js
+  ADR-0059 external critique closure
+    √ the ADR exists and records all five decisions (2 ms)
+    √ ADR-0059 records the ADR-0038 D1 amendment (source-only MCP tier) (1 ms)
+    √ glossary carries the five new ADR-0059 terms (1 ms)
+    √ registry gains the four ADR-0059 entries in pending-evaluation (2 ms)
+    √ defer-0030 keeps the review MVP inside the repository (defer-0024 untouched) (1 ms)
+    √ implementation-round facts landed (README, files whitelist, SKILL.md, bench README) (2 ms)
+
+Test Suites: 76 passed, 76 total
+Tests:       1300 passed, 1300 total
+Snapshots:   0 total
+Time:        18.053 s, estimated 20 s
+Ran all test suites.

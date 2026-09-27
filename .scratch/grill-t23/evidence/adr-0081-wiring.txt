@@ -1,0 +1,26 @@
+$ node D:\Aworker\jiahao\node_modules\jest\bin\jest.js test/adr-0081-wiring.test.js
+
+EXIT 0
+
+PASS test/adr-0081-wiring.test.js
+  ADR-0081 doc surface (grill-t22 disposition round)
+    √ title, status, date, ledger + spec anchors (3 ms)
+    √ D-A records the amend-in-place canonical form + the coverage-base pairing rule (audit-r2 adjudication b) (1 ms)
+    √ D-B records the rc.from adjudication: conformance to ADR-0080 D-B, no separate ADR (1 ms)
+    √ D-E names defer-0067 and records the defer-0042 countersign + defer-0051 reconciliation (1 ms)
+    √ defer-0067 discharged-by-trigger via the ADR-0082 amendment (grill-t23; registration facts retained) (1 ms)
+    √ defer-0042 check-in records the audit-r2 countersign; row stays pending-evaluation (1 ms)
+    √ defer-0051 rationale no longer claims an open second_reviewer slot (R2-C-4) (1 ms)
+    √ the t22 row is the declared carve-out form naming the round R2 touches (3 ms)
+    √ coverage leg: unresolvable base ref is a keyed FAIL, not an uncaught crash (audit-r2 R2-C-3) (116 ms)
+    √ coverage leg: the committed diff anchored at the t23 round base validates the latest row (124 ms)
+    √ CONTEXT Repair Window term stands alone referencing ADR-0081 + ADR-0076 with _Avoid_ (2 ms)
+    √ README index rebuilt: 81 records incl. ADR-0081 (1 ms)
+    √ ci.yml suite parity declares 76 suites (the new wiring suite is counted)
+    √ coverageGaps pure export: the R2-undeclared defect shape still fails (regression pin) (4 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       14 passed, 14 total
+Snapshots:   0 total
+Time:        0.689 s, estimated 1 s
+Ran all test suites matching /test\\adr-0081-wiring.test.js/i.

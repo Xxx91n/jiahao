@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0027 D2: machine-consumed derived config. Floors are pre-registered (ADR-0015 D2, corrected by ADR-0019 D5); targets are the ADR-0018 D2 band's warning boundary (recall target = match b2's core recall, score target = official ranking floor 0.80 aspiration). Changes require an ADR (enforced by scripts/check-bench-thresholds.js).",
+  "corpus": {
+    "repo": "https://github.com/najemwehbe/polygraph-bench.git",
+    "ref": "994bdeb3e75bb5c2ffac4f35a3eca9bac02c6356",
+    "files": {
+      "items": "items.jsonl",
+      "labels": "labels.jsonl"
+    },
+    "expected_items": 396,
+    "items_fingerprint": "067a837fb6b607d8c3978fd97542ddd6609ffed49f21b40a76e20e7962ca7953",
+    "labels_fingerprint": "65dcd6651ce6d592f7f3d29a30b33b3be146b917acd29e1ecac1ab60c630a2ff",
+    "_fingerprint_def": "sha256 over lines of JSON.stringify(entry) joined with LF (EOL-independent)"
+  },
+  "score_def": "recall - 5*fp_rate",
+  "gates": [
+    {
+      "id": "beat-b2-recall",
+      "split": "core",
+      "metric": "recall",
+      "op": ">",
+      "value": 0.46,
+      "target": 0.635,
+      "source_adr": "0015",
+      "target_source_adr": "0019",
+      "tier": "confirmatory"
+    },
+    {
+      "id": "beat-b2-fp",
+      "split": "core",
+      "metric": "fp_rate",
+      "op": "<=",
+      "value": 0.045,
+      "source_adr": "0015",
+      "tier": "confirmatory"
+    },
+    {
+      "id": "beat-b2-score",
+      "split": "core",
+      "metric": "score",
+      "op": ">",
+      "value": 0.385,
+      "target": 0.8,
+      "source_adr": "0019",
+      "target_source_adr": "0019",
+      "tier": "confirmatory"
+    }
+  ],
+  "_doc_probe_gates": "ADR-0029 D2/D3: structural zero-miss smoke gates over private/bench-corpus/probes.jsonl (7 violation + 7 benign). Band semantics do not apply to zero floors. probe-recall floor = 1 (0 misses); probe-fp floor = 0 (0 false positives).",
+  "_doc_probe_coverage": "ADR-0030 D1: corpus structural floor (interval coverage replaces exactly-once; growth is allowed, shrinkage below floor is not).",
+  "probe_gates": [
+    {
+      "id": "probe-recall",
+      "metric": "recall",
+      "op": ">=",
+      "value": 1,
+      "source_adr": "0029",
+      "tier": "confirmatory"
+    },
+    {
+      "id": "probe-fp",
+      "metric": "fp_rate",
+      "op": "<=",
+      "value": 0,
+      "source_adr": "0029",
+      "tier": "confirmatory"
+    },
+    {
+      "id": "probe-coverage",
+      "metric": "total_count",
+      "op": ">=",
+      "value": 14,
+      "source_adr": "0030",
+      "tier": "confirmatory"
+    }
+  ],
+  "_doc_judge_bias_gates": "ADR-0031 D2/D3: judge bias calibration metrics over judge-twins.jsonl v1.1 pairs (style-control / length-control / bias-probe), consumed by bench/polygraph/check-judge-bias.js. Tier rules per ADR-0031 D3: confirmatory gates fail closed; observational gates record and must carry review_at + promote_if (overdue = STALE, refused by check-bench-thresholds.js); swap_order is observational-only forever (ADR-0031 R3).",
+  "judge_bias_gates": [
+    {
+      "id": "judge-style-flip",
+      "metric": "style_flip_rate",
+      "op": "<=",
+      "value": 0.1,
+      "source_adr": "0031",
+      "tier": "observational",
+      "review_at": "2027-02-28",
+      "promote_if": "two consecutive 6-month re-verifications completed on a landed scoring-mode judge; promotion itself requires an ADR amending ADR-0031 D2"
+    },
+    {
+      "id": "judge-length-discrimination",
+      "metric": "length_discrimination",
+      "op": ">=",
+      "value": 1,
+      "source_adr": "0031",
+      "tier": "confirmatory"
+    },
+    {
+      "id": "judge-swap-order",
+      "metric": "swap_order_inconsistency",
+      "op": "<=",
+      "value": 0.04,
+      "source_adr": "0031",
+      "tier": "observational",
+      "review_at": "2027-02-28",
+      "promote_if": "never auto-promoted; ADR-0031 R3 rejects position-swap gating unless new evidence revisits it"
+    }
+  ],
+  "_doc_private_corpus": "ADR-0036 D2/D3: the three answer corpora live in private/bench-corpus (gitignored, install-planted). Fingerprints are public so any cloner can verify the frozen corpus; content stays private.",
+  "private_corpus": [
+    {
+      "id": "probes.jsonl",
+      "sha256": "61f9515f06ec9c437c647b3479c290832fc23a7b166af5d5f9edc5a9724f5eea",
+      "source_adr": "0036"
+    },
+    {
+      "id": "judge-twins.jsonl",
+      "sha256": "1ad5c4abc4a42c14bf73676d279c4f94870b22a8b505309000ccffbfbedd5743",
+      "source_adr": "0036"
+    },
+    {
+      "id": "twins.jsonl",
+      "sha256": "31e4e29ba138e4e49037f02561331fd730e9421f74b61bb6e402e66c036c9467",
+      "source_adr": "0036"
+    },
+    {
+      "id": "mr-probes.jsonl",
+      "sha256": "57473da63bc3830476e5c675b842c94e7662d1e8c5fbce1d3971b4475d4c3008",
+      "source_adr": "0037"
+    }
+  ],
+  "_doc_mr_gates": "ADR-0037 D2/D4: metamorphic-relation symmetry gates over private/bench-corpus/mr-probes.jsonl (third corpus family; preserve = verdict(source)==verdict(followup), flip = inequality; zero-violation plus ADR-0030 D1 corpus floor; consumed by scripts/check-mr-probes.js).",
+  "mr_gates": [
+    {
+      "id": "mr-symmetry",
+      "metric": "mr_violations",
+      "op": "<=",
+      "value": 0,
+      "source_adr": "0037",
+      "tier": "confirmatory"
+    },
+    {
+      "id": "mr-coverage",
+      "metric": "total_count",
+      "op": ">=",
+      "value": 10,
+      "source_adr": "0037",
+      "tier": "confirmatory"
+    }
+  ]
+}
