@@ -222,6 +222,16 @@
           "file": ".scratch/grill-t29/reports/audit-report.md",
           "sha": "b61d7951",
           "errata": "E-17"
+        },
+        {
+          "status": "pending-confirmation",
+          "requested_by": "grill-t30 fix window (audit-repair restack)",
+          "reason": "audit report captured-at-head names 8942e2d8 - the impl-lane tip at audit entry; the fix-window uncommit+rebuild of the closeout tail orphaned it (E-18 class, disclosed in the audit report itself)",
+          "expires_at": "2026-12-15",
+          "scope": ".scratch/grill-t30/reports/2026-09-27-audit-report.md",
+          "file": ".scratch/grill-t30/reports/2026-09-27-audit-report.md",
+          "sha": "8942e2d8",
+          "errata": "E-18"
         }
       ]
     }
