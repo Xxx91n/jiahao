@@ -27,54 +27,61 @@ const SELF_REL = 'scripts/check-anchoring-footer.js';
 const FOOTER_RE = /^\[ANCHORING\]\s+(.*)$/m;
 const WORKSPACE_SUBJECT = 'GitButler Workspace Commit';
 
-const git = (args) => execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }).trim();
+const gitAt = (root) => (args) =>
+  execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }).trim();
 
-function registrationCommit() {
+function registrationCommit(root) {
+  const git = gitAt(root);
   // oldest commit that added this script = the convention's registration point
   const adds = git(['log', '--diff-filter=A', '--format=%H', '--', SELF_REL]).split('\n').filter(Boolean);
   return adds.length ? adds[adds.length - 1] : null;
 }
 
-function landedFiles(sha) {
-  return git(['show', '--name-only', '--format=', sha]).split('\n').map((s) => s.trim()).filter(Boolean).sort();
+function landedFiles(root, sha) {
+  return gitAt(root)(['show', '--name-only', '--format=', sha]).split('\n').map((s) => s.trim()).filter(Boolean).sort();
 }
 
-function footerFiles(sha) {
-  const msg = git(['log', '-1', '--format=%B', sha]);
+function footerFiles(root, sha) {
+  const msg = gitAt(root)(['log', '-1', '--format=%B', sha]);
   const m = msg.match(FOOTER_RE);
   if (!m) return null;
   return m[1].trim().split(/\s+/).filter(Boolean).sort();
 }
 
 function checkFooters(root) {
+  const git = gitAt(root);
   const errors = [];
-  const reg = registrationCommit();
+  const reg = registrationCommit(root);
   if (!reg) { errors.push('anchoring-footer: registration commit not found (script never landed?)'); return { errors, checked: 0 }; }
-  const parented = git(['rev-parse', '-q', '--verify', reg + '^']) !== '';
+  // Root-commit safe: rev-parse of <root>^ exits nonzero - a repo whose
+  // registration commit IS the root must not crash the leg (grill-t29 A-9).
+  const parented = (function () {
+    try { return git(['rev-parse', '-q', '--verify', reg + '^']) !== ''; }
+    catch (e) { return false; }
+  })();
   const range = parented ? reg + '^..HEAD' : 'HEAD';
   const regDate = git(['log', '-1', '--format=%ct', reg]);
   // Scope = commits CREATED after registration: descendants of the
   // registration commit OR commits with a later committer-date. A parallel
   // lane's pre-registration commits land in HEAD's ancestry via the
   // workspace merge but were created before the convention existed - they
-  // stay exempt (forward-only: history is never rewritten).
+  // stay exempt (forward-only: history is never rewritten). Same-second
+  // committer-dates (fixtures) fall to the ancestry test.
   const commits = git(['rev-list', '--no-merges', range])
     .split('\n').filter(Boolean)
     .filter((sha) => !git(['log', '-1', '--format=%s', sha]).startsWith(WORKSPACE_SUBJECT))
     .filter((sha) => {
       const cdate = git(['log', '-1', '--format=%ct', sha]);
       if (Number(cdate) > Number(regDate)) return true;
-      return spawnSyncInlineAncestor(sha);
+      const r = require('child_process').spawnSync('git', ['merge-base', '--is-ancestor', reg, sha], { cwd: root });
+      return r.status === 0 || sha === reg;
     });
-  function spawnSyncInlineAncestor(sha) {
-    const r = require('child_process').spawnSync('git', ['merge-base', '--is-ancestor', reg, sha], { cwd: ROOT });
-    return r.status === 0 || sha === reg;
-  }
   let checked = 0;
   for (const sha of commits) {
-    const landed = landedFiles(sha);
+    if (sha === reg) continue; // the registration commit precedes its own rule - always exempt
+    const landed = landedFiles(root, sha);
     if (!landed.length) continue; // empty commits carry nothing to name
-    const foot = footerFiles(sha);
+    const foot = footerFiles(root, sha);
     if (foot === null) {
       errors.push('anchoring-footer: ' + sha.slice(0, 9) + ' lacks the [ANCHORING] footer (post-registration commit; AGENTS.md convention, grill-t29 D-006)');
       continue;

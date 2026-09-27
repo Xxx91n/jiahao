@@ -1,0 +1,2 @@
+const cp = require('child_process');
+function f(x) { cp.execFileSync('git', argv2); }

@@ -112,10 +112,40 @@ function listTestFiles(dir) {
   return out;
 }
 
+// Blank out // and /* */ comments positionally (lengths preserved so line
+// numbers survive) - spawn-shaped text inside comments is prose, not a call
+// site (grill-t29 A-9 false-positive fix). Strings are not stripped, so a
+// literal like '//' inside quotes is left alone.
+function stripComments(text) {
+  const out = text.split('');
+  let i = 0, quote = null;
+  while (i < out.length) {
+    const c = out[i], n = out[i + 1];
+    if (quote) {
+      if (c === '\\') { i += 2; continue; }
+      if (c === quote) quote = null;
+      i++; continue;
+    }
+    if (c === "'" || c === '"' || c === '`') { quote = c; i++; continue; }
+    if (c === '/' && n === '/') {
+      while (i < out.length && out[i] !== '\n') { out[i] = ' '; i++; }
+      continue;
+    }
+    if (c === '/' && n === '*') {
+      out[i] = ' '; out[i + 1] = ' '; i += 2;
+      while (i < out.length && !(out[i] === '*' && out[i + 1] === '/')) { if (out[i] !== '\n') out[i] = ' '; i++; }
+      if (i < out.length) { out[i] = ' '; out[i + 1] = ' '; i += 2; }
+      continue;
+    }
+    i++;
+  }
+  return out.join('');
+}
+
 // Scan one source text; returns violation strings (file-relative lines).
-function scanSource(text, rel) {
+function scanSource(rawText, rel) {
+  const text = stripComments(rawText);
   const errors = [];
-  const runners = new Map(); // runner name -> list of def positions
   // Pass 1: literal-argv spawn sites + runner discovery.
   const spawns = [];
   let m;
@@ -127,20 +157,36 @@ function scanSource(text, rel) {
       const toks = argvTokens(read.argv);
       spawns.push({ at: at, verb: verbOf(read.argv), toks: toks });
     } else {
-      // indirect argv: the enclosing function is a raw-git runner; its call
-      // sites get classified instead.
+      // indirect argv: lawful only when the argument is a bare identifier
+      // bound to a declared parameter of the enclosing function (a raw-git
+      // runner) - call sites of that runner are then classified instead.
+      // Anything else (expressions, member calls, ternaries) is
+      // unclassifiable and red - never fail-open (grill-t29 A-9).
       const arg = read.argExpr;
       let runner = null;
+      let params = [];
       DEF_RE.lastIndex = 0;
       let d;
-      while ((d = DEF_RE.exec(text)) && d.index < at) runner = d[1] || d[2];
-      spawns.push({ at: at, runner: runner || null, arg: arg });
+      while ((d = DEF_RE.exec(text)) && d.index < at) {
+        const name = d[1] || d[2];
+        if (name === undefined) continue;
+        runner = name;
+        // capture the param list of `function name(` / `const name = (`
+        const after = d.index + d[0].length;
+        const pm = text.slice(after).match(/^\s*[(]([^)]*)[)]|^\s*=\s*[(]?([^)=>]+)[)]?\s*=>/);
+        if (pm) params = (pm[1] !== undefined ? pm[1] : pm[2]).split(',').map((s) => s.trim()).filter(Boolean);
+      }
+      const argIsRunnerParam = arg !== null && /^[A-Za-z_$][\w$]*$/.test(arg) && params.indexOf(arg) !== -1;
+      spawns.push({ at: at, runner: argIsRunnerParam ? runner : null, arg: arg, unclassifiableIndirect: !argIsRunnerParam });
     }
   }
   const lineOf = (i) => text.slice(0, i).split('\n').length;
   for (const s of spawns) {
+    if (s.unclassifiableIndirect) {
+      errors.push(rel + ':' + lineOf(s.at) + ': git argv is indirect and not a runner parameter (' + JSON.stringify(s.arg) + ') - unclassifiable; route through the hermetic helper');
+      continue;
+    }
     if (s.runner) {
-      runners.set(s.runner, true);
       // classify every literal call site of the runner
       const callRe = new RegExp('\\b' + s.runner.replace(/[$]/g, '\\$') + '\\s*\\(', 'g');
       let c;

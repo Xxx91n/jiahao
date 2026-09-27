@@ -23,7 +23,10 @@ const ROOT = path.join(__dirname, '..');
 const TAX_REL = path.join('docs', 'governance', 'surface-taxonomy.json');
 const ISO_DATE = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
 const WILDCARD = /[*?%[\]{}]/;
-const ALLOWED_BINDING = ['path', 'sha', 'file', 'errata', 'for_commit'];
+// grill-t29 audit A-5: the binding-key allowlist is consumed from the
+// registered field_governance.exception_channel.required_fields +
+// optional_fields - a private copy here is the same F-1 drift class the
+// audit documented.
 
 // Walk the classification map; collect paths classed `exception-channel`.
 function channelPaths(map, prefix, out) {
@@ -76,8 +79,9 @@ function checkChannel(tax, today) {
           errors.push(tag + ': binding path must be a literal repo-relative path (no wildcards, no .., no leading /)');
         }
       }
+      const allowedBinding = Array.isArray(spec.optional_fields) ? spec.optional_fields : [];
       for (const k of Object.keys(e)) {
-        if (required.indexOf(k) === -1 && ALLOWED_BINDING.indexOf(k) === -1) {
+        if (required.indexOf(k) === -1 && allowedBinding.indexOf(k) === -1) {
           errors.push(tag + ': unregistered field ' + JSON.stringify(k) + ' - extend the channel schema via an ADR');
         }
       }

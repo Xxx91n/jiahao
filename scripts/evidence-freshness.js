@@ -30,7 +30,18 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync, spawnSync } = require('child_process');
 
-const HEAD_RE = /^captured-at-head: ([0-9a-f]{7,40})$/;
+// grill-t29 audit A-8: no private copy of the capture-header pattern - the
+// strict form is compiled from freshness.orphan_ancestry.pin_patterns
+// (kind 'captured-at-head') wherever it is needed, via capturedHeaderRe.
+// A module-level const would necessarily be a second literal (taxonomy is
+// loaded per-eval), so the registry owns the pattern and this module owns
+// only the lookup.
+function capturedHeaderRe(fresh) {
+  const cfg = orphanConfig(fresh);
+  const p = pinPatterns(cfg).find((x) => x.kind === 'captured-at-head');
+  if (!p) throw new Error('pin_patterns lacks a captured-at-head kind (A-8)');
+  return p.re;
+}
 const CAPTURE_RE = /\.(txt|md)$/;
 const FIXTURE_RE = /\.fixture\./;
 // Ephemeral GitButler workspace merge objects never reach a public clone —
@@ -59,7 +70,10 @@ const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // Build the compiled class table from the registered taxonomy block.
 function classifiers(fresh) {
-  const rr = '\\.scratch/grill-[^/]+/';
+  // grill-t29 audit A-6: the scope literal is consumed from the registered
+  // artifact_scope - a private copy here was the same drift class as F-1.
+  const rr = ((fresh || {}).orphan_ancestry || {}).artifact_scope;
+  if (!rr) throw new Error('freshness.orphan_ancestry.artifact_scope missing - class regexes derive from the registered scope (grill-t29 A-6)');
   const na = fresh.non_anchoring_classes;
   const bookTerms = na.round_bookkeeping.map(escRe)
     .concat((na.round_bookkeeping_glob || []).map((g) => escRe(g).replace(/\\\*/g, '[^/]*')));
@@ -151,7 +165,10 @@ const ISO_DATE_ONLY = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
 function exceptionActive(entry, ctx) {
   if (!entry || typeof entry !== 'object') return false;
   const o = ctx || {};
-  if (o.sha && entry.for_commit && entry.for_commit !== o.sha) return false;
+  // A-7: a for_commit-bound entry never fires sha-less - the binding is a
+  // positive match requirement, not a soft preference (fail-closed on the
+  // binding dimension).
+  if (entry.for_commit && entry.for_commit !== o.sha) return false;
   if (entry.status !== 'pending-confirmation' && entry.status !== 'ratified') return false;
   const exp = String(entry.expires_at || '');
   if (!ISO_DATE_ONLY.test(exp)) return false;
@@ -183,13 +200,15 @@ function showAt(root, ref, file) {
 }
 
 // Committed captures under <evd> in the tree AT ref, with header sha per file.
-function capturesAt(root, ref, evd) {
+// The header pattern comes from the registered pin_patterns (A-8).
+function capturesAt(root, fresh, ref, evd) {
+  const headRe = capturedHeaderRe(fresh);
   const files = gitLines(root, ['ls-tree', '-r', ref, '--name-only', '--', evd])
     .filter((f) => CAPTURE_RE.test(f) && !FIXTURE_RE.test(f));
   return files.map((f) => {
     const content = showAt(root, ref, f);
     const first = content === null ? '' : content.split(/\r?\n/)[0];
-    const m = first.match(HEAD_RE);
+    const m = first.match(headRe);
     return { file: f, sha: m ? m[1] : null };
   });
 }
@@ -274,7 +293,7 @@ function evaluateRound(root, fresh, cfg) {
     .reverse()
     .map((sha) => {
       const floor = lastFloorAnchor(root, cx, cfg.base, sha + '^') || cfg.base;
-      const caps = capturesAt(root, sha, evd);
+      const caps = capturesAt(root, fresh, sha, evd);
       const bad = [];
       for (const cap of caps) {
         if (!cap.sha) { bad.push({ file: cap.file, reason: 'no captured-at-head header' }); continue; }
@@ -299,7 +318,7 @@ function evaluateRound(root, fresh, cfg) {
     // satisfy the declared anchor.
     const sealBad = [];
     if (declarationCommit) {
-      for (const cap of capturesAt(root, declarationCommit, evd)) {
+      for (const cap of capturesAt(root, fresh, declarationCommit, evd)) {
         if (!cap.sha || !gitOk(root, ['merge-base', '--is-ancestor', parsed.seal, cap.sha])) {
           sealBad.push({ file: cap.file, sha: cap.sha });
         }
@@ -405,7 +424,8 @@ function scanRoot(artifactScope) {
 // Every strict pin line inside committed round artifacts at ref, minus files
 // under never-commit conventions (untracked by definition at any ref).
 function pinnedShas(root, cfg, ref) {
-  const scopeRe = new RegExp('^' + (cfg.artifact_scope || '\\.scratch/grill-[^/]+/'));
+  if (!cfg.artifact_scope) throw new Error('freshness.orphan_ancestry.artifact_scope missing (grill-t29 A-6)');
+  const scopeRe = new RegExp('^' + cfg.artifact_scope);
   const pats = pinPatterns(cfg);
   const files = gitLines(root, [
     'grep', '-l', '-E', pinEnumPattern(cfg), ref || 'HEAD', '--', scanRoot(cfg.artifact_scope),
@@ -470,7 +490,7 @@ function sealRank(root, ref, f, sealFields) {
 // orphan_ancestry.artifact_scope / seal.fields), not private literals.
 function lastSealRecord(root, ref, fresh) {
   const name = ((fresh || {}).non_anchoring_classes || {}).seal_file || 'SEAL';
-  const scope = ((fresh || {}).orphan_ancestry || {}).artifact_scope || '\\.scratch';
+  const scope = orphanConfig(fresh).artifact_scope;
   const fields = ((fresh || {}).seal || {}).fields;
   const seals = gitLines(root, ['ls-tree', '-r', ref || 'HEAD', '--name-only', '--', scanRoot(scope)])
     .filter((f) => f.slice(-(name.length + 1)) === '/' + name);
@@ -540,7 +560,7 @@ function orphanAncestry(root, fresh, opts) {
 }
 
 module.exports = {
-  HEAD_RE,
+  capturedHeaderRe,
   WORKSPACE_SUBJECT,
   EXCEPTION_REQUIRED_FIELDS,
   EXCEPTION_STATUS_ENUM,

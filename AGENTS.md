@@ -80,8 +80,12 @@ docs/agents/domain.md.
   Workspace Commit" commit created on a round lane after this
   convention's registration carries a footer line
   `[ANCHORING] <space-separated file list>` whose file set equals the
-  commit's landed set (`git show --name-only`). The list is DERIVED from
-  the `but commit` allowlist ids resolved to paths - never hand-typed.
+  commit's landed set (`git show --name-only`). The list is DERIVED, never
+  hand-typed: `node scripts/derive-anchoring-footer.js --ids <id> ...`
+  resolves the `but commit` allowlist ids to paths and prints the exact
+  footer line to paste into `-m`; `--commit <sha>` reproduces it from the
+  landed set for replay (grill-t29 A-4c - the derivation is now a tool,
+  not a convention claim).
   The footer is a replayable self-description: forensic, not preventive
   (committer and writer share a trust domain; it cannot stop forgery);
   live verification is always `git show --name-only`, which the

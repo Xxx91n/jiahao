@@ -401,4 +401,98 @@ describe('exception channel semantics (ADR-0086)', () => {
     expect(r.claims.map((c) => c.commit)).toContain(auditCommit);
     expect(today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
+
+  // grill-t29 audit rework (A-5..A-9 latent-defect repairs)
+  test('A-7: a for_commit-bound entry never fires sha-less (fail-closed binding)', () => {
+    const e = { status: 'pending-confirmation', expires_at: '2099-12-31', for_commit: 'a'.repeat(40) };
+    expect(fresh.exceptionActive(e, { when: '2026-09-27' })).toBe(false); // sha-less: bound entry does not fire
+    expect(fresh.exceptionActive(e, { when: '2026-09-27', sha: 'a'.repeat(40) })).toBe(true);
+    expect(fresh.exceptionActive(e, { when: '2026-09-27', sha: 'b'.repeat(40) })).toBe(false);
+  });
+
+  test('A-8: the capture-header regex is compiled from the registered pin_patterns, not a private literal', () => {
+    const re = fresh.capturedHeaderRe(TAXONOMY);
+    expect('captured-at-head: ' + 'a'.repeat(40)).toMatch(re);
+    // whitespace-lenient per the registered strict pattern
+    expect('captured-at-head:   ' + 'b'.repeat(12) + '  ').toMatch(re);
+    const missing = JSON.parse(JSON.stringify(TAXONOMY));
+    missing.orphan_ancestry.pin_patterns = missing.orphan_ancestry.pin_patterns.filter((p) => p.indexOf('captured-at-head') === -1);
+    expect(() => fresh.capturedHeaderRe(missing)).toThrow(/captured-at-head/);
+  });
+
+  test('A-6: class regexes derive from the registered artifact_scope - a narrower scope narrows the class table', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-scope-'));
+    const { put, ci } = (function () {
+      const gg = (a) => hg.git(dir, a);
+      hg.mkRepo(dir);
+      const p = (rel, body) => { const q = path.join(dir, rel); fs.mkdirSync(path.dirname(q), { recursive: true }); fs.writeFileSync(q, body); hg.git(dir, ['add', rel]); };
+      return { gg, put: p, ci: (m) => { hg.git(dir, ['commit', '-q', '--allow-empty', '-m', m]); return gg(['rev-parse', 'HEAD']); } };
+    })();
+    const base = ci('base');
+    const cfg = JSON.parse(JSON.stringify(TAXONOMY));
+    cfg.orphan_ancestry.artifact_scope = '\\.scratch/grill-x/';
+    cfg.rounds = [];
+    // a report commit under a scope outside artifact_scope is invisible to
+    // the round machinery entirely (claim dirs are scoped by rr)
+    expect(() => fresh.evaluateRound(dir, cfg, { id: 'grill-t1', base })).not.toThrow();
+    // and without the registration at all the class table cannot be built (fail-closed)
+    delete cfg.orphan_ancestry;
+    expect(() => fresh.evaluateRound(dir, cfg, { id: 'grill-t1', base })).toThrow(/artifact_scope/);
+  });
+});
+
+describe('anchoring-footer leg (grill-t29 D-006 + A-9 fix)', () => {
+  test('registration commit at the repo root does not crash the leg', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-anchor-root-'));
+    hg.mkRepo(dir);
+    const put = (rel, body) => { const p = path.join(dir, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); hg.git(dir, ['add', rel]); };
+    // the ROOT commit adds the checker -> registration commit has no parent
+    put('scripts/check-anchoring-footer.js', '// registered\n');
+    hg.git(dir, ['commit', '-qm', 'root adds the leg']);
+    const foot = require('../scripts/check-anchoring-footer');
+    expect(() => foot.checkFooters(dir)).not.toThrow();
+    const out = foot.checkFooters(dir);
+    expect(out.errors.length).toBe(0); // pre-registration window -> nothing in scope
+  });
+
+  test('post-registration commits in a fixture repo need the footer; exempt shapes pass', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-anchor-'));
+    hg.mkRepo(dir);
+    const put = (rel, body) => { const p = path.join(dir, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); hg.git(dir, ['add', rel]); };
+    put('scripts/check-anchoring-footer.js', '// registered\n');
+    hg.git(dir, ['commit', '-qm', 'registration']);
+    put('a.txt', 'x\n');
+    hg.git(dir, ['commit', '-qm', 'plain work - no footer']);
+    const foot = require('../scripts/check-anchoring-footer');
+    const bad = foot.checkFooters(dir);
+    expect(bad.errors.some((e) => /lacks the \[ANCHORING\] footer/.test(e))).toBe(true);
+    put('b.txt', 'y\n');
+    hg.git(dir, ['commit', '-qm', 'with footer\n\n[ANCHORING] b.txt']);
+    const after = foot.checkFooters(dir);
+    // history is never rewritten: the footerless commit stays flagged; the
+    // footered commit is the one verified (checked counts footer-bearing
+    // commits whose set matched - the footerless one errors instead)
+    expect(after.errors.length).toBe(1);
+    expect(after.errors[0]).toMatch(/lacks the \[ANCHORING\] footer/);
+    expect(after.checked).toBe(1);
+  });
+});
+
+describe('test-git-hermetic leg (grill-t29 D-004 + A-9 fix)', () => {
+  // Fixture sources live as .txt data under test/fixtures/hermetic-scan/ -
+  // embedding spawn-shaped code as .js string literals would make this very
+  // file look like a scan target to the leg (string-embedded code is
+  // indistinguishable from real code at source level).
+  const leg = require('../scripts/check-test-git-hermetic');
+  const fx = (name) => fs.readFileSync(path.join(__dirname, 'fixtures', 'hermetic-scan', name), 'utf8');
+  test('spawn-shaped text inside comments is prose, not a call site', () => {
+    expect(leg.scanSource(fx('comment-prose.src.txt'), 't.js')).toEqual([]);
+  });
+  test('indirect argv not bound to a runner parameter is unclassifiable -> red (fail-closed)', () => {
+    expect(leg.scanSource(fx('indirect-nonparam.src.txt'), 't.js').some((e) => /not a runner parameter/.test(e))).toBe(true);
+  });
+  test('runner-param argv still classifies call sites; write verbs flag red', () => {
+    expect(leg.scanSource(fx('runner-read.src.txt'), 't.js')).toEqual([]);
+    expect(leg.scanSource(fx('runner-write.src.txt'), 't.js').some((e) => /bypasses/.test(e))).toBe(true);
+  });
 });

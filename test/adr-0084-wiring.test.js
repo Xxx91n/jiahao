@@ -28,7 +28,10 @@ const cap = require('../src/shared/capability');
 const fresh = require('../scripts/evidence-freshness');
 const EVD_REL = '.scratch/grill-t25/evidence';
 const BASE = 'fc390d5e778db567d12b072f7a25cbf1e73b03f8'; // t25 round base (public tip at round start)
-const HEAD_RE = fresh.HEAD_RE; // single source: scripts/evidence-freshness.js (audit cleanup)
+// single source: the registered pin_patterns entry (kind 'captured-at-head')
+// via fresh.capturedHeaderRe(freshness) - resolved lazily at call time
+// (grill-t29 A-8: no private copy, no module-level literal).
+const HEAD_RE_TAX = () => fresh.capturedHeaderRe(fresh.loadFreshness(ROOT));
 
 function committedUnder(relDir) {
   return execFileSync('git', ['ls-tree', '-r', 'HEAD', '--name-only', '--', relDir], { cwd: ROOT, encoding: 'utf8' })
@@ -129,7 +132,7 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
       if (seen.has(f)) continue;
       seen.add(f);
       const first = read(path.join(ROOT, f.split('/').join(path.sep))).split(/\r?\n/)[0];
-      const m = first.match(HEAD_RE);
+      const m = first.match(HEAD_RE_TAX());
       expect(m).not.toBeNull();
       const kind = execFileSync('git', ['cat-file', '-t', m[1]], { cwd: ROOT, encoding: 'utf8' }).trim();
       expect(kind).toBe('commit');
