@@ -55,6 +55,14 @@ docs/agents/domain.md.
   captures are referenced by path/count pointers, never copied into the
   committed surface (grill-t28 D-003). Artifact residence is not
   adjudication - verdict issuance stays owner-side.
+- Wave-closeout order (E-17, grill-t30 D-004): re-capture evidence pins
+  -> regenerate derived artifacts (rewrite-map LAST) -> `node
+  scripts/build-rewrite-map.js --check` + `--published-only` clean ->
+  declare. The `map-freshness` gate leg (order 224) asserts it per
+  claim-surface commit; `.githooks/pre-commit-user` blocks a staged
+  claim-surface commit while the map is stale. `but commit` bypasses the
+  hook by construction — the leg is the authority; repair = regen +
+  follow-up wave, never a bot auto-commit (ADR-0083 D-C).
 - Post-restack ritual (grill-t28 D-005): after any `but move`,
   restack, or undo on a lane containing claim commits, re-run the full
   `evaluateRound` for the affected round(s) before new claims or
