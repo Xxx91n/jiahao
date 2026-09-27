@@ -311,3 +311,41 @@ two objects.
 Bound by the erratum convention and leg 219 (orphan-ancestry): neither
 orphan sits on a pin_patterns line, so no errata_exemptions row is
 required - the registration is documentary.
+## E-19 - grill-t30 closeout orphans, second recurrence: intermediate seal/claim waves + audit-lane pin (loop-2 re-audit)
+
+Observed 2026-09-27 (grill-t30 loop-2 re-audit, fix window): the same
+E-17/leg-224 drift class recurred a third time inside the repair window
+itself. The tail rebuild that replaced seal wave `ad5a6393` + claim wave
+`7aa9391d` with the README-sync chain orphaned both; report rev-2
+section 3.3 cites them by sha in prose ("discarded waves ... remain
+objects" - the disclosure is factual, the cites are kept) while the map
+labels drifted to `unresolved hex literal`. Their live counterparts are
+the successor waves re-landed on `grill-t30-impl` (named by role, not
+sha - the successors' own shas shifted again under this rebuild, the
+class's whole point).
+
+Full orphan roster cited by committed round artifacts across the
+rebuilds (all pre-push, objects retained, disclosed): `a15e8c0f`,
+`d6ffb5b8`, `703b935d`, `8942e2d8` (audit-report pin, exemption
+registered), `ad5a6393`, `7aa9391d`, `c22c01ae` (re-audit pin,
+exemption registered), `9b47afdf` (the first audit commit, superseded
+by its byte-identical re-lands on grill-t30-audit), plus the superseded
+waves of THIS rebuild (`cf5e42c7`, `8a6855f3`, `0c9b1c94`, `08a2ab9a`)
+which are cited only in commit messages and pool prose - not in
+committed doc files.
+
+Same event, audit lane: the loop-2 re-audit report pins
+`captured-at-head: c22c01ae` = the audit-lane content tip at re-audit
+entry. Any further tail rebuild (which this repair performs) restacks
+the audit lane and orphans that commit - prospectively registered in
+freshness.orphan_ancestry.errata_exemptions (file+sha bound, E-19).
+
+Convention tightening (the auditor's Reading B, adopted): the wave-
+closeout order gains an explicit final leg - after the LAST but mutation
+(commit/uncommit/move/restack) settles and before declaring, re-run
+`node scripts/build-rewrite-map.js --check` against the settled tree.
+Three recurrences (E-12, E-17, E-19) all lived in exactly that gap.
+Recorded in AGENTS.md wave-closeout bullet.
+
+Bound by the erratum convention and leg 219; pin-side exemptions carry
+the mechanical part.

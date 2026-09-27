@@ -58,8 +58,13 @@ docs/agents/domain.md.
 - Wave-closeout order (E-17, grill-t30 D-004): re-capture evidence pins
   -> regenerate derived artifacts (rewrite-map LAST) -> `node
   scripts/build-rewrite-map.js --check` + `--published-only` clean ->
-  declare. The `map-freshness` gate leg (order 224) asserts it per
-  claim-surface commit; `.githooks/pre-commit-user` blocks a staged
+  declare. Final leg (E-19, grill-t30 loop-2 re-audit): after the LAST
+  `but` mutation (commit/uncommit/move/restack) settles and before
+  declaring, re-run `--check` against the settled tree — the interval
+  between a workspace rewrite and evaluation is the F-6 exposure
+  window; never declare inside it. The `map-freshness` gate leg (order
+  224) asserts it per claim-surface commit;
+  `.githooks/pre-commit-user` blocks a staged
   claim-surface commit while the map is stale. `but commit` bypasses the
   hook by construction — the leg is the authority; repair = regen +
   follow-up wave, never a bot auto-commit (ADR-0083 D-C).

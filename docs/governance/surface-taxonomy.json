@@ -232,6 +232,16 @@
           "file": ".scratch/grill-t30/reports/2026-09-27-audit-report.md",
           "sha": "8942e2d8",
           "errata": "E-18"
+        },
+        {
+          "status": "pending-confirmation",
+          "requested_by": "grill-t30 fix window (loop-2 re-audit restack)",
+          "reason": "re-audit report captured-at-head names c22c01ae - the audit-lane content tip at re-audit entry; the loop-2 repair restack of the audit lane orphans it (E-19 class)",
+          "expires_at": "2026-12-15",
+          "scope": ".scratch/grill-t30/reports/2026-09-27-reaudit-report.md",
+          "file": ".scratch/grill-t30/reports/2026-09-27-reaudit-report.md",
+          "sha": "c22c01ae",
+          "errata": "E-19"
         }
       ]
     }
