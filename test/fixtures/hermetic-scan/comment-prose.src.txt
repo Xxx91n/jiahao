@@ -1,0 +1,3 @@
+// never a raw execFileSync('git', ...)
+/* spawnSync('git', args) also prose */
+const x = 1;

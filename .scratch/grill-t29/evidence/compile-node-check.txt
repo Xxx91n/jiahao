@@ -1,0 +1,7 @@
+captured-at-head: 68c8ec2f87d4a48ea67bc81c5d1575845ea47a42
+
+$ node --check over 184 shipped .js (enumeration: scripts/src/test/bench/hooks/adapters)
+
+184 files checked, 0 failures
+
+EXIT=0

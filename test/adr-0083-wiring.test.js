@@ -21,7 +21,10 @@ const AGENTS = path.join(ROOT, 'AGENTS.md');
 const EVD_REL = '.scratch/grill-t24/evidence';
 const BASE = 'c526de301c5d2d25e653bc910a80a9ae56dd252a'; // t24 round base (t23 merge)
 const COVERAGE_BASE = 'fc390d5e778db567d12b072f7a25cbf1e73b03f8'; // t25 re-anchor: the latest row is now grill-t25's, so the coverage diff window pairs with the t25 base (ADR-0081 D-A convention, re-anchored grill-t25)
-const HEAD_RE = fresh.HEAD_RE; // single source: scripts/evidence-freshness.js (audit cleanup)
+// single source: the registered pin_patterns entry (kind 'captured-at-head')
+// via fresh.capturedHeaderRe(freshness) - resolved lazily at call time
+// (grill-t29 A-8: no private copy, no module-level literal).
+const HEAD_RE_TAX = () => fresh.capturedHeaderRe(fresh.loadFreshness(ROOT));
 
 function committedUnder(relDir) {
   return execFileSync('git', ['ls-tree', '-r', 'HEAD', '--name-only', '--', relDir], { cwd: ROOT, encoding: 'utf8' })
@@ -158,7 +161,8 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
       if (seen.has(f)) continue;
       seen.add(f);
       const first = read(path.join(ROOT, f.split('/').join(path.sep))).split(/\r?\n/)[0];
-      const m = first.match(HEAD_RE);
+      const m = first.match(HEAD_RE_TAX());
+
       expect(m).not.toBeNull();
       const kind = execFileSync('git', ['cat-file', '-t', m[1]], { cwd: ROOT, encoding: 'utf8' }).trim();
       expect(kind).toBe('commit');
@@ -238,9 +242,9 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
     expect(term).toContain('ADR-0083');
   });
 
-  test('README index rebuilt: 85 records incl. ADR-0083', () => {
+  test('README index rebuilt: 86 records incl. ADR-0083', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('85 architecture decision records');
+    expect(r).toContain('86 architecture decision records');
     expect(r).toContain('0083-declared-vs-actual-drift-clauses.md');
   });
 });

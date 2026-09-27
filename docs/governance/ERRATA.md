@@ -222,3 +222,60 @@ Auto-inert is a safety-engineering convention, not universal law
 no agent unilateral expiry or generalization (a criteria-change-level
 act, needs second_reviewer + review_at). Bound by
 test/adr-0072-wiring.test.js.
+
+## E-15 - claim_surfaces.exceptions registered agent-side without a channel (t28 audit F-8)
+
+Observed 2026-09-27 (grill-t29 T-2 disposition of t28 audit F-8): the
+t28 fix round appended reports/audit-report.md to
+claim_surfaces.exceptions as a bare string. The registration intent was
+correct (the second-party audit report legitimately rests on the claim
+surface; residence is not adjudication) but procedurally defective: no
+registered deviation channel existed to hold the append, so it bypassed
+the schema that now exists. Recorded as a process-improvement /
+channel-enablement defect - NOT a freeze violation: the append touched
+registry bookkeeping, never sealed evidence or a SEAL file.
+
+Disposition: re-registered through the exception channel as
+status: pending-confirmation / expires_at: 2026-12-15 (ADR-0086 D-B);
+owner ratify/revoke is item 1 of the t29 human-authority package.
+
+## E-16 - t28 report "180+" claim imprecise; ADR-0084 second appended line disclosed (F-9/F-10)
+
+Observed 2026-09-27 (grill-t29 T-8): .scratch/grill-t28/reports/
+2026-09-26-report.md claimed "node --check over 180+ shipped .js"; the
+verified count is 161. The claim artifact is sealed, so the correction
+rides the fix round as a forward commit to that file, bound to exactly
+that commit via a for_commit exception-channel entry
+(pending-confirmation, expires_at 2026-12-15) - not a history rewrite.
+
+Same round discloses F-10: ADR-0084 carries a second appended line
+("queue now runs 19 rows") reconciling the stale "(10 entries)"
+bullet alongside the E-13 pointer line. The append was registered at
+landing time but was not called out in the t28 report; it is named here.
+
+Bound by test/adr-0086-wiring.test.js.
+## E-17 - terminal-wave ordering defect: rewrite-map regenerated before the final re-pin (grill-t29 audit A-1)
+
+Observed 2026-09-27 (grill-t29 second-party audit, fix-window rework): the
+terminal wave commit c2768fc8 regenerated docs/rewrite-map.json while the
+evidence headers still pinned bd10ef66, then re-pinned all captures to
+f9bcc13f inside the same commit - the committed tree was stale at landing
+("docsewrite-map.json is stale", legs 208/209 red at audit HEAD). The
+"green terminal" the round report cited measured a pre-re-pin intermediate
+tree that existed in no commit. Root cause: the post-claim re-capture
+convention lacks a "regen derived artifacts AFTER the final pin" step.
+
+Repair path (fix window, this lane): the wave commit was uncommitted
+pre-push (t27 precedent), the defect corrected by regenerating the map
+only after all pins and doc cites were final, and the wave+SEAL re-issued
+at the true terminal tip. The stale window (c2768fc8..HEAD at audit time)
+is disclosed in the round report deviations (P-1/P-2); the discarded
+commit shas remain reachable only as objects - disclosed, not hidden.
+
+Convention tightening: the terminal-wave order is now explicit -
+re-capture first, derived-artifact regen last, verify --check/--published-
+only against the post-commit tree, then declare. Owner may elect to keep
+the E-numbering or fold this into a process note; registered here per the
+audit window's recommendation.
+
+Bound by test/adr-0086-wiring.test.js + the 208/209 legs themselves.

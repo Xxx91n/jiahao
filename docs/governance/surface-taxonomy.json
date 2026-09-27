@@ -116,8 +116,31 @@
    ],
    "scope": "round dir .scratch/grill-<id>/",
    "exceptions": [
-    "handoffs/next-round.md",
-    "reports/audit-report.md"
+    {
+     "path": "handoffs/next-round.md",
+     "status": "pending-confirmation",
+     "requested_by": "ADR-0085 registration, grill-t26 (carrier ADR itself awaits the 2026-12-15 countersign tide)",
+     "reason": "the standing next-round taskbook lives under the claim surface handoffs/ but is round bookkeeping, not a verdict claim",
+     "expires_at": "2026-12-15",
+     "scope": "the literal path handoffs/next-round.md inside .scratch/grill-<id>/"
+    },
+    {
+     "path": "reports/audit-report.md",
+     "status": "pending-confirmation",
+     "requested_by": "grill-t28 second-party audit - agent-side append to the then-string list; the registration predated the channel and is recorded as a procedural defect (ERRATA E-15), pending owner ratify/revoke (F-8)",
+     "reason": "the second-party audit report is examiner work product resting on the claim surface: residence is not adjudication",
+     "expires_at": "2026-12-15",
+     "scope": "the literal path reports/audit-report.md inside .scratch/grill-<id>/"
+    },
+    {
+     "path": "reports/2026-09-26-report.md",
+     "status": "pending-confirmation",
+     "requested_by": "grill-t29 F-9 correction wave (t28 audit finding - imprecise prose claim)",
+     "reason": "forward correction of the sealed t28 report (180+ -> 161); the correction commit is surgical - bound to exactly this commit sha so no later edit rides the exception silently; rebound post-restack ac525728 -> 40362867 (same diff, lane move rebased it)",
+     "expires_at": "2026-12-15",
+     "scope": "round .scratch/grill-t28 only, single commit",
+     "for_commit": "40362867f207180bc3cdfc3388d176bb374cde2a"
+    }
    ],
    "unregistered_signal": "warning — fail-closed signaling, not silent pass (D-003 hedge 4)"
   },
@@ -171,17 +194,101 @@
    {
     "id": "grill-t28",
     "base": "c8613f55c8ac3d83486437703e5bb36964e80ab8"
+   },
+   {
+    "id": "grill-t29",
+    "base": "c7ae4f81d4f13f9ddca829694bd2ae7fea750960"
    }
   ],
   "orphan_ancestry": {
-   "_doc": "grill-t28 D-005/D-006: standing pinned-sha ancestry leg - a violation-instance of the existing claim-point contract (ADR-0085 amendment note 2026-09-26). pin_patterns are strict line forms over committed round artifacts; errata_exemptions is THE registered errata list for suppressed orphans (empty = none); the workspace trigger clause evaluates only where the GitButler workspace ref exists (maintainer lane) - absent on public clones/CI it reports not-evaluated, never a silent pass.",
+   "_doc": "grill-t28 D-005/D-006: standing pinned-sha ancestry leg - a violation-instance of the existing claim-point contract (ADR-0085 amendment note 2026-09-26). pin_patterns are strict line forms over committed round artifacts; errata_exemptions is THE registered errata list for suppressed orphans (empty = none); the workspace trigger clause evaluates only where the GitButler workspace ref exists (maintainer lane) - absent on public clones/CI it reports not-evaluated, never a silent pass. Residual exposure window (F-6): the interval between a restack/undo that orphans a pinned sha and the next gate evaluation is covered by the post-restack ritual in AGENTS.md, not by this leg alone - the leg runs at gate time, the ritual is the human contract between evaluations. Human-only adjudication points (F-7): errata adjudication, re-seal authorization, trigger interpretation, and waiver issuance are owner acts - the agent reports state, never issues verdicts.",
    "artifact_scope": "\\.scratch/grill-[^/]+/",
    "pin_patterns": [
     "^captured-at-head:\\s*([0-9a-f]{7,40})\\s*$",
     "^seal:\\s*([0-9a-f]{7,40})\\s*$"
    ],
    "workspace_ref": "refs/heads/gitbutler/workspace",
-   "errata_exemptions": []
+   "errata_exemptions": [
+    {
+     "status": "pending-confirmation",
+     "requested_by": "grill-t29 fix window (audit A-1 repair)",
+     "reason": "audit window captured-at-head pin names b61d7951, the t29 post-seal claim commit; the fix-window uncommit of terminal wave c2768fc8 (E-17) rebased that claim to a new sha - the pinned sha survives only as an orphan object, an expected consequence of the disclosed repair",
+     "expires_at": "2026-12-15",
+     "scope": ".scratch/grill-t29/reports/audit-report.md",
+     "file": ".scratch/grill-t29/reports/audit-report.md",
+     "sha": "b61d7951",
+     "errata": "E-17"
+    }
+   ]
+  }
+ },
+ "field_governance": {
+  "_doc": "ADR-0086 (grill-t29): registry-field governance. Every field of this taxonomy carries exactly one class - fenced (semantics-bearing; consumed by gates/verifiers; changes ride an ADR + countersign), exception-channel (deviation entries; register-and-effective immediately under the pending-confirmation lifecycle), or editorial (bookkeeping/provenance; free edits). The classification map is nested: a string value classifies that subtree wholesale, an object descends to finer paths. The block itself is fenced. Enforcement legs: exception-channel completeness + consumption-vs-classification consistency (gates.json orders 220/221).",
+  "source_adr": "docs/adr/0086-registry-field-governance-fenced-editorial-exception-channel-pending-confirmation-lifecycle.md",
+  "class_enum": [
+   "fenced",
+   "exception-channel",
+   "editorial"
+  ],
+  "classification": {
+   "schema_version": "editorial",
+   "_doc": "editorial",
+   "source_adr": "editorial",
+   "seeds": "fenced",
+   "surfaces": "fenced",
+   "round_permissions": "fenced",
+   "diff_semantics": "fenced",
+   "reclassifications": "fenced",
+   "mechanism_outputs": "editorial",
+   "freshness": {
+    "_doc": "editorial",
+    "source_adr": "editorial",
+    "claim_surfaces": {
+     "closed_enum": "fenced",
+     "scope": "fenced",
+     "exceptions": "exception-channel",
+     "unregistered_signal": "fenced"
+    },
+    "non_anchoring_classes": "fenced",
+    "seal": {
+     "fields": "fenced",
+     "tag_convention": "fenced",
+     "retires": "editorial"
+    },
+    "rounds": "editorial",
+    "orphan_ancestry": {
+     "_doc": "editorial",
+     "artifact_scope": "fenced",
+     "pin_patterns": "fenced",
+     "workspace_ref": "fenced",
+     "errata_exemptions": "exception-channel"
+    }
+   },
+   "field_governance": "fenced"
+  },
+  "exception_channel": {
+   "required_fields": [
+    "status",
+    "requested_by",
+    "reason",
+    "expires_at",
+    "scope"
+   ],
+   "status_enum": [
+    "pending-confirmation",
+    "ratified",
+    "revoked",
+    "lapsed"
+   ],
+   "no_wildcard_scope": true,
+   "optional_fields": [
+    "path",
+    "sha",
+    "file",
+    "errata",
+    "for_commit"
+   ],
+   "lifecycle": "registration effective immediately; expires_at mandatory; unadjudicated pending entries auto-lapse at expiry (they suppress nothing and fail the completeness leg until adjudicated or removed); owner-only actions: ratify / revoke / delete / narrow; reversal path is a new ADR"
   }
  }
 }
