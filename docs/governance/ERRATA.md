@@ -260,7 +260,8 @@ Observed 2026-09-27 (grill-t29 second-party audit, fix-window rework): the
 terminal wave commit c2768fc8 regenerated docs/rewrite-map.json while the
 evidence headers still pinned bd10ef66, then re-pinned all captures to
 f9bcc13f inside the same commit - the committed tree was stale at landing
-("docsewrite-map.json is stale", legs 208/209 red at audit HEAD). The
+("docs
+ewrite-map.json is stale", legs 208/209 red at audit HEAD). The
 "green terminal" the round report cited measured a pre-re-pin intermediate
 tree that existed in no commit. Root cause: the post-claim re-capture
 convention lacks a "regen derived artifacts AFTER the final pin" step.
@@ -279,3 +280,34 @@ the E-numbering or fold this into a process note; registered here per the
 audit window's recommendation.
 
 Bound by test/adr-0086-wiring.test.js + the 208/209 legs themselves.
+
+## E-18 - grill-t30 closeout orphans: discarded wave sha + pre-restack fix sha cited in claim artifacts (audit A-2/A-3)
+
+Observed 2026-09-27 (grill-t30 second-party audit FAIL, fix window): two
+orphaned shas remained cited in the committed round artifacts after the
+closeout waves were rebuilt via `but uncommit` (t29 precedent, pre-push):
+
+- `52e857f5` - the discarded first terminal wave (seal-declares-78bbb3b8
+  generation). Cited at `.scratch/grill-t30/reports/2026-09-27-report.md`
+  line ~114 as the subject of the leg-224 closeout defect disclosure.
+  Live counterpart lineage: the rebuilt seal wave `a15e8c0f` (SEAL
+  declares substantive anchor `cba768aa`). The cite is retained in prose
+  because it names the object the defect report is about; this erratum is
+  its registration. Its map row is honestly labeled
+  `unresolved hex literal` - not rewritten.
+- `189e4e80` - the pre-restack sha of the leg-224 fix that landed as
+  `cba768aa` after the uncommit/re-commit sequence. Cited at report
+  §3.1 item 0 and handoff lines 7-8. Corrected in place (prose rebind
+  to `cba768aa`, t29 `bd10ef66` precedent) by the repair wave; the
+  orphan is recorded here. Handoff lines 7-8 additionally stated the
+  SEAL declares `189e4e80` while the committed SEAL names `cba768aa`
+  (audit A-3, claim-accuracy defect) - corrected by the same rebind.
+
+Process note (audit P-1): the red this erratum closes is the same failure
+class leg 224 was built for - stale-at-audit map after a wave rewrite. The
+repair discharges grill-t28 D-005 (post-restack orphan ritual) for these
+two objects.
+
+Bound by the erratum convention and leg 219 (orphan-ancestry): neither
+orphan sits on a pin_patterns line, so no errata_exemptions row is
+required - the registration is documentary.
