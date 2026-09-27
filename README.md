@@ -350,7 +350,7 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 - `src/gate.js` — verification gate combination ladder (PASS / FAIL / ESCALATE / NOT VERIFIED)
 - `scripts/resolve.js` — human adjudication CLI (two-phase anti-anchoring write-back)
 - `hooks/jiahao-profile.js` — profile module (SSOT for split + select)
-- `hooks/` — 6 hook scripts + hooks.json + runtime.js
+- `hooks/` — 7 hook scripts + hooks.json + runtime.js
 - `adapters/` — generated per-host adapters (12 host directories / 54 generated files; ADR-0028 D5)
 - `jiahao-mcp/` — MCP-only adapter (profile parameter)
 - `test/` — 86 test suites, 1451 tests
