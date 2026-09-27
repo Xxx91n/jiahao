@@ -18,7 +18,8 @@
  ],
  "errata": [
   "E-15 (F-8 exception append procedural defect, pending-confirmation)",
-  "E-16 (F-9 180+->161 correction + F-10 ADR-0084 second appended line disclosure)"
+  "E-16 (F-9 180+->161 correction + F-10 ADR-0084 second appended line disclosure)",
+  "E-17 (terminal-wave ordering defect, audit A-1 — wave re-issued at true tip)"
  ],
  "registry": {
   "added": [
@@ -41,13 +42,27 @@
    "anchoring-footer (order 223, confirmatory)"
   ],
   "helpers": [
-   "test/helpers/git-hermetic.js (ambient-config-hermetic git for test repos)"
+   "test/helpers/git-hermetic.js (ambient-config-hermetic git for test repos)",
+   "scripts/derive-anchoring-footer.js (D-006 footer derivation tool, audit A-4c)"
   ],
   "hardened": [
-   "evidence-freshness.js F-1..F-5 (registered patterns, recorded_at fallback, natural sort, loose enumerator, prefix-aware exemptions)"
+   "evidence-freshness.js F-1..F-5 (registered patterns, recorded_at fallback, natural sort, loose enumerator, prefix-aware exemptions)",
+   "evidence-freshness.js A-5..A-8 repairs (scope registry-derived, for_commit fail-closed sha-less, capturedHeaderRe from pin_patterns); check-anchoring-footer root-commit + root-arg fixes; check-test-hermetic comment-strip + fail-closed indirect argv"
   ],
   "trend_row": "grill-t29 kind:fix"
  },
  "human_authority_package": ".scratch/grill-t29/tide-adjudication-packet.md (drafts only)",
- "seal_declares": null
+ "seal_declares": null,
+ "audit_repair": {
+  "audit_commit": "68e23d9b",
+  "audit_lane": "grill-t29-audit",
+  "verdict": "FAIL -> reworked",
+  "repair_commits": [
+   "7781d683",
+   "ce398996",
+   "5cd29278",
+   "95866c2a"
+  ],
+  "reissued": "wave+SEAL re-committed at terminal tip (E-17; c2768fc8 uncommitted pre-push, b61d7951 rebased to 0c8f0d0b)"
+ }
 }
