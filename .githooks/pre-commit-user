@@ -9,3 +9,13 @@ node scripts/check-drift.js
 if git diff --cached --name-only 2>/dev/null | grep -qE '^(private/bench-corpus|bench/polygraph/(corpus-freshness\.json|reverify-ledger\.json))'; then
     node scripts/check-corpus-freshness.js --hook
 fi
+
+# grill-t30 D-004 (E-17 generation-end lock): a staged claim-surface commit
+# (.scratch/grill-*/reports|handoffs) may only proceed when the worktree map
+# still covers the post-change doc surface. Regen last, then re-stage:
+#   node scripts/build-rewrite-map.js && git add docs/rewrite-map.json
+# Failure path is block + manual regen (never auto-committed). Lane/but
+# commits bypass hooks by construction - the gate leg is the authority.
+if git diff --cached --name-only 2>/dev/null | grep -qE '^\.scratch/grill-[^/]+/(reports|handoffs)/'; then
+    node scripts/build-rewrite-map.js --published-only || exit 1
+fi

@@ -107,6 +107,19 @@ function isEmptyCommit(sha) {
   return out.trim() === '';
 }
 
+// grill-t30 D-004: root-parameterized variants so the per-commit freshness
+// leg can assert inside fixture repos / arbitrary checkouts, never silently
+// against the ambient worktree.
+function gitAt(root, args) {
+  return execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).trim();
+}
+function gitOkAt(root, args) {
+  try { gitAt(root, args); return true; } catch (e) { return false; }
+}
+function isEmptyCommitAt(root, sha) {
+  return gitAt(root, ['diff-tree', '--no-commit-id', '--name-only', '-r', sha]).trim() === '';
+}
+
 // Doc citation token scan (the map file itself excluded - generated, not a
 // source). Enumeration is the UNION of index + committed tree (the F-1
 // lesson: GitButler's virtual index lags HEAD by committed files, so an
@@ -138,6 +151,39 @@ function scanDocTokens() {
     }
   }
   return out;
+}
+
+// grill-t30 D-004 (E-17 leg): the same token scan evaluated inside an
+// arbitrary commit's tree — `git grep` at <ref> over the registered doc
+// pathspec, then the identical HEX_RE/[a-f] predicate client-side. Never
+// touches the worktree/index: the leg's verdict must be a pure function of
+// the commit under test (tree-internal inputs only). The map file itself is
+// excluded here exactly as above.
+function scanDocTokensAt(root, ref) {
+  let out;
+  try {
+    out = execFileSync('git', ['grep', '-n', '-E', '-e', '[0-9a-f]{7,40}', ref, '--', 'docs', '.scratch', 'README.md', 'AGENTS.md', 'CONTEXT.md'],
+      { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  } catch (e) {
+    if (e.status === 1) return []; // no matches at this ref
+    throw e;
+  }
+  const rows = [];
+  for (const line of out.split('\n')) {
+    if (!line) continue;
+    const m = /^(.*?):(\d+):(.*)$/.exec(line.slice(String(ref).length + 1));
+    if (!m) throw new Error('unparseable git grep row at ' + ref + ': ' + line.slice(0, 80));
+    const f = m[1], li = Number(m[2]), text = m[3];
+    if (f === SELF || !DOC_PATH_RE.test(f) || !DOC_EXT_RE.test(f)) continue;
+    HEX_RE.lastIndex = 0;
+    let hm;
+    while ((hm = HEX_RE.exec(text))) {
+      const token = hm[2];
+      if (!/[a-f]/.test(token)) continue;
+      rows.push({ file: f, line: li, sha: token });
+    }
+  }
+  return rows;
 }
 
 function build(oldRefs, newRef) {
@@ -302,11 +348,16 @@ function verify(map) {
 // (a) citation coverage - every hex citation in tracked docs appears in
 // doc_refs, (b) class enum validity, and (c) count + published-side-ancestry
 // self-consistency. Every check below derives from published objects alone.
-function verifyPublishedOnly(map, newRef) {
+// opts.occurrences (grill-t30 D-004): an externally-supplied citation set
+// replaces the worktree/index scan - the per-commit freshness leg passes the
+// citation set of the commit under test, keeping every input tree-internal.
+function verifyPublishedOnly(map, newRef, opts) {
   const errs = [];
   const HEX40 = /^[0-9a-f]{40}$/;
   const CLASSES = ['rewritten', 'local-only', 'published-unchanged'];
-  const anc = function (sha, ref) { return gitOk(['merge-base', '--is-ancestor', sha, ref]); };
+  const vRoot = (opts && opts.root) || ROOT;
+  const anc = function (sha, ref) { return gitOkAt(vRoot, ['merge-base', '--is-ancestor', sha, ref]); };
+  const isEmpty = function (sha) { return isEmptyCommitAt(vRoot, sha); };
 
   if (map.schema_version !== 1) errs.push('schema_version ' + map.schema_version + ' != 1');
   if (map.generated_by !== 'scripts/build-rewrite-map.js') errs.push('generated_by drift: ' + map.generated_by);
@@ -318,14 +369,23 @@ function verifyPublishedOnly(map, newRef) {
   if (HEX40.test(b.new_counterpart || '') && !anc(b.new_counterpart, newRef)) errs.push('boundary.new_counterpart not on ' + newRef);
   if (!HEX40.test(map.published_tip || '')) errs.push('published_tip is not a full sha');
   else if (!anc(map.published_tip, newRef)) errs.push('published_tip not on ' + newRef);
-  if (!Array.isArray(map.sides && map.sides.new_refs) || map.sides.new_refs.indexOf(newRef) === -1) {
+  if (opts && opts.commitBound) {
+    // Per-commit port (grill-t30 D-004): newRef is the commit under test, not
+    // a live refname - a map committed inside a historical tree names a REF
+    // ('origin/main'), which is ambient state, not tree-internal truth. The
+    // assertion degrades to shape-only; object anchoring is still proven by
+    // the published_tip/boundary ancestry checks against the commit.
+    if (!Array.isArray(map.sides && map.sides.new_refs) || map.sides.new_refs.length === 0) {
+      errs.push('sides.new_refs is missing or empty');
+    }
+  } else if (!Array.isArray(map.sides && map.sides.new_refs) || map.sides.new_refs.indexOf(newRef) === -1) {
     errs.push('sides.new_refs does not name ' + newRef);
   }
   for (const c of map.commits || []) {
     if (!HEX40.test(c.old || '') || !HEX40.test(c.new || '')) { errs.push('commit row shape: ' + JSON.stringify(c).slice(0, 80)); continue; }
     if (!anc(c.new, newRef)) errs.push('commits[].new off published line: ' + c.new);
-    if (c.empty === true && !isEmptyCommit(c.new)) errs.push('empty claim fails on published side: ' + c.new);
-    if (c.empty !== true && isEmptyCommit(c.new)) errs.push('empty flag missing on published side: ' + c.new);
+    if (c.empty === true && !isEmpty(c.new)) errs.push('empty claim fails on published side: ' + c.new);
+    if (c.empty !== true && isEmpty(c.new)) errs.push('empty flag missing on published side: ' + c.new);
   }
   for (const sm of map.same || []) {
     if (!HEX40.test(sm.sha || '')) errs.push('same row shape: ' + JSON.stringify(sm).slice(0, 80));
@@ -347,7 +407,7 @@ function verifyPublishedOnly(map, newRef) {
   // citation coverage: re-scan the tracked doc surface; the map must name
   // every hex citation. Classification is the old-side part and is
   // deliberately not re-derived here - coverage alone is clone-verifiable.
-  const live = scanDocTokens().map(function (o) { return o.file + ':' + o.line + ':' + o.sha; }).sort();
+  const live = ((opts && opts.occurrences) || scanDocTokens()).map(function (o) { return o.file + ':' + o.line + ':' + o.sha; }).sort();
   const recorded = docRefs.map(function (d) { return d.file + ':' + d.line + ':' + d.sha; }).sort();
   if (JSON.stringify(live) !== JSON.stringify(recorded)) {
     const have = {}; recorded.forEach(function (k) { have[k] = 1; });
@@ -454,4 +514,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { build, verify, verifyPublishedOnly, scanDocTokens, discoverOldRefs, prefixLookup, isEmptyCommit };
+module.exports = { build, verify, verifyPublishedOnly, scanDocTokens, scanDocTokensAt, discoverOldRefs, prefixLookup, isEmptyCommit };
