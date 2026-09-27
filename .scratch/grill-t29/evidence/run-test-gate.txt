@@ -1,0 +1,52 @@
+captured-at-head: 68c8ec2f87d4a48ea67bc81c5d1575845ea47a42
+
+$ node scripts/run-test-gate.js --expected-suites 83
+
+riant + idempotent endpoint + captured-at-head + qualification/archival split (2 ms)
+    √ D-B never-commit single-sourcing: id-referenced labels + same-commit coupling + deprecate-not-delete (2 ms)
+    √ D-C commit allowlist + post-commit inspection (self-drafted, receipts named) (2 ms)
+    √ D-D suite-count sync obligation codified (1 ms)
+    √ D-E audit-window inheritance: the three check lines declared mandatory scope (2 ms)
+    √ never-commit.json registry validity (schema + rule shape + compilable patterns) (19 ms)
+    √ registry seed covers the historical never-commit classes (positive probes + one negative) (5 ms)
+    √ tracked tree is clean of every active never-commit rule (git ls-tree -r HEAD) (82 ms)
+    √ AGENTS.md carries the commit allowlist + post-commit inspection clause (D-C) (1 ms)
+    √ t24 capture artifacts carry the captured-at-head provenance header resolving to a commit (1724 ms)
+    √ D-A freshness under ADR-0085: claim-point conformance + t24 terminal seal at 8e177d24 (81501 ms)
+    √ ci.yml --expected-suites equals the live glob(test/*.test.js) count + lower bound + known-file hit (2 ms)
+    √ defer-0069 discharged-by-trigger: the 2026-09-23 audit named all three scope lines with verdicts (2 ms)
+    √ the t24 trend row is the declared single-file carve-out form (1 ms)
+    √ coverage leg: the committed diff anchored at the current round base validates the latest row (187 ms)
+    √ CONTEXT umbrella term names the three narrow mechanisms verbatim (2 ms)
+    √ README index rebuilt: 86 records incl. ADR-0083 (1 ms)
+
+PASS test/adr-0084-wiring.test.js (94.031 s)
+  ADR-0084 public-clone verifiability contract (grill-t25 fix round)
+    √ title, status, date, ledger + spec anchors (19 ms)
+    √ D-A clone-degradability: capability name verbatim + exit-2 channel + --published-only subsets (3 ms)
+    √ D-B fourth mandatory audit line: public clone is the verification surface (1 ms)
+    √ D-C landing-tail + D-D exception narrowness + D-E tag timing + D-F first-disclosure (2 ms)
+    √ ADR-0083 gains only the pointer line - its own audit lines remain three (2 ms)
+    √ capability registration: closed enum + probe + gate requires (55 ms)
+    √ clone-sim: a git-init tree without gb-local/* degrades to exit-2 UNVERIFIABLE (550 ms)
+    √ t25 capture artifacts carry the captured-at-head provenance header resolving to a commit (1838 ms)
+    √ D-A freshness under ADR-0085: claim-point conformance + t25 terminal seal at 8e177d24 (90040 ms)
+    √ coverage leg re-anchored at the t25 base validates the latest row (193 ms)
+    √ defer-0070 CI-red history + defer-0071 generalized-monitoring registrations (3 ms)
+    √ countersign queue: all 10 labels are ID-level-only with a return condition + date (8 ms)
+    √ Re-Execution Prior: bbf5259 registered as the first directional event (2 ms)
+    √ secret-scan: commit-message surface is enumerated (the fourth surface) (57 ms)
+    √ the t25 trend row: kind fix + adr_added 0084 + declared R2 hand-edits (2 ms)
+    √ README index rebuilt: 86 records incl. ADR-0084 (1 ms)
+  grill-t28 D-002 approval-surface errata (ERRATA E-13)
+    √ the nine bare-form ADRs carry the appended pending-confirmation pointer line (6 ms)
+    √ ERRATA E-13 master record + defer-0074 boundary row + CONTEXT term (3 ms)
+
+Test Suites: 83 passed, 83 total
+Tests:       1419 passed, 1419 total
+Snapshots:   0 total
+Time:        94.535 s, estimated 99 s
+Ran all test suites.
+[test] OK: 83 suites, 1419 tests, 0 skipped (ADR-0057 D-C)
+
+EXIT=0

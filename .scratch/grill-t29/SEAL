@@ -1,0 +1,9 @@
+# grill-t29 terminal seal (re-issued 2026-09-27 - the audit FAIL rework).
+# Declares the last substantive commit of the round; captures pin >= declared.
+# Re-issue disclosure: the first wave+SEAL commit (c2768fc8) landed with the
+# map regenerated before the final re-pin - stale at landing (ERRATA E-17).
+# Uncommitted pre-push (t27 precedent) and re-issued at the true tip after
+# the audit-repair wave. The auditor pin b61d7951 is errata-exempt under E-17.
+
+seal: 68c8ec2f87d4a48ea67bc81c5d1575845ea47a42
+recorded_at: 2026-09-27
