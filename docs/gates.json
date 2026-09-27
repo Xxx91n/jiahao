@@ -498,7 +498,7 @@
       "name": "map-freshness",
       "command": "node scripts/check-map-freshness.js",
       "tier": "confirmatory",
-      "source_adr": "docs/adr/0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md",
+      "source_adr": "docs/adr/0087-codebuddy-host-adapter-first-external-effectiveness-trial.md",
       "order": 224,
       "params": {},
       "requires": [

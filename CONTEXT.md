@@ -2516,4 +2516,52 @@ resolved to paths and verified by the anchoring-footer leg against git show
 forgery prevention; committer and writer share a trust domain.
 _Avoid_: hand-typed footer lists; treating the footer as a security
 control; retro-editing historical commit messages
+
+**Claude-Code-Compatible Path (Claude-Code 兼容路径)**:
+A distribution-path family inside the hook tier (ADR-0087 extends
+ADR-0028 D6): the host recognizes `.claude-plugin/` and
+`${CLAUDE_PLUGIN_ROOT}` verbatim, so a self-contained plugin bundle ships
+the manifest dir + hooks.json + rules + vendored runtime under one name.
+CodeBuddy is the first admitted member; path compat covers file layout
+only - event/hook semantics are per-host and still need live probes.
+_Avoid_: assuming semantic parity from path parity; renaming the manifest
+dir per-host (breaks single-source distribution)
+
+**Declared-Unverified (声明未证实)**:
+The tiering word between verified and absent: a surface documented by the
+host vendor but never live-probed. It is claimed as *declared-unverified*
+with a pending-confirmation entry in the exception channel (ADR-0086) -
+expires_at forces adjudication, ratify/revoke is owner-only. CodeBuddy
+CLI settings-path hooks are verified; the IDE parity and plugin-bundle
+paths are declared-unverified.
+_Avoid_: silently upgrading documented-but-unprobed surfaces to verified;
+dropping declared-unverified rows instead of registering them
+
+**Preregistered Judgment Line (预注册判定线)**:
+A cross-phase conditional criterion landed on a persistent registry
+surface BEFORE the trial opens (OSF/Registered-Reports convention:
+immutable body, deviations ride errata records). Every line carries
+source_adr back to the admitting ADR. Hit/miss is the trial's legitimate
+output - never a post-hoc criterion tuned to fit observations.
+_Avoid_: editing a registered line after seeing data; judgment criteria
+living only in round scratch; inferential statistics on an N-of-1
+
+**SCED (单案例实验设计)**:
+Single-case experimental design - the multiphase A1-A2-A3 paradigm for
+the first external-effectiveness trial (grill-t30): the subject supplies
+its own cross-phase control via baseline/generator/verifier phases,
+isomorphic parallel task volumes prevent single-volume learning
+contamination, and within-phase replay of baseline-shaped tasks is the
+core control. Requires telemetry self-verification before trusting
+counters on an unprobed host.
+_Avoid_: reusing one task volume across phases; treating a single
+informal A/B run as a controlled experiment
+
+**Telemetry Self-Verification (遥测自校验)**:
+Phase-0 item 0 of the trial protocol: known-violation probes must
+demonstrate the deny counter and InstructionsLoaded telemetry actually
+fire on the target host before any measurement is trusted. An unverified
+counter produces unverified readings - the apparatus proves itself first.
+_Avoid_: skipping the self-check to reach "real" data faster; treating
+silent counters as zero events
 *End of Glossary*

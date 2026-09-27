@@ -343,6 +343,98 @@
       "source_adr": "docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md",
       "note": "Advisory-only: no hooks (#2557 closed stale). Loader is explicit configuration (read: list in .aider.conf.yml; git root/cwd/home search order); default installs inject nothing — the opt-in is the honest contract.",
       "transcript_file": "absent"
+    },
+    {
+      "id": "codebuddy-verdict-gate",
+      "host": "codebuddy",
+      "event": "Stop",
+      "hook": "hooks/jiahao-verdict-gate.js",
+      "exit_codes": {
+        "flag_off": 0,
+        "allow": 0,
+        "block": 2
+      },
+      "decision_keys": [
+        "decision",
+        "reason"
+      ],
+      "decision_values": {
+        "decision": [
+          "allow",
+          "block"
+        ]
+      },
+      "fail_soft": false,
+      "term": "Verification Gate",
+      "source_adr": "docs/adr/0087-codebuddy-host-adapter-first-external-effectiveness-trial.md",
+      "note": "First Claude-Code-compatible path host (plugin bundle). CLI settings-path hooks live-verified on CodeBuddy Code 2.151.0 (hook_event_name + hookSpecificOutput envelope); the plugin-bundle path and IDE parity are declared-unverified - pending-confirmation registered under taxonomy host_admission.",
+      "transcript_file": "unverifiable"
+    },
+    {
+      "id": "codebuddy-failsoft",
+      "host": "codebuddy",
+      "event": "SessionStart|SubagentStart|UserPromptSubmit|SessionEnd|InstructionsLoaded|PreToolUse",
+      "hooks": [
+        "hooks/jiahao-activate.js",
+        "hooks/jiahao-subagent.js",
+        "hooks/jiahao-mode-tracker.js",
+        "hooks/jiahao-sweep.js",
+        "hooks/jiahao-instructions-assert.js",
+        "hooks/jiahao-pretool-guard.js"
+      ],
+      "exit_codes": {
+        "any": 0
+      },
+      "decision_keys": [],
+      "decision_values": {},
+      "fail_soft": true,
+      "term": "Session-End Sweep",
+      "source_adr": "docs/adr/0087-codebuddy-host-adapter-first-external-effectiveness-trial.md",
+      "note": "Fail-soft fan-out. InstructionsLoaded is a telemetry-only integrity assertion (rules presence + sha256 into .jiahao-instructions.jsonl); the PreToolUse guard carries permissionDecision:deny on the hookSpecificOutput envelope - the decision rides the envelope, not the exit code.",
+      "transcript_file": "unverifiable"
+    },
+    {
+      "id": "codebuddy-config",
+      "host": "codebuddy",
+      "event": "config",
+      "config": "adapters/codebuddy/hooks/hooks.json",
+      "expect_events": [
+        "SessionStart",
+        "SubagentStart",
+        "UserPromptSubmit",
+        "Stop",
+        "SessionEnd",
+        "InstructionsLoaded",
+        "PreToolUse"
+      ],
+      "exit_codes": {},
+      "decision_keys": [],
+      "decision_values": {},
+      "fail_soft": true,
+      "term": "Host Contract",
+      "source_adr": "docs/adr/0087-codebuddy-host-adapter-first-external-effectiveness-trial.md",
+      "note": "Seven-event plugin map; SubagentStop intentionally not registered (not verified on the CodeBuddy surface). defaultEnabled:false - plugin hooks bypass the untrusted-frontmatter gate and execute on enable (README disclosure).",
+      "transcript_file": "unverifiable"
+    },
+    {
+      "id": "codebuddy-bundle",
+      "host": "codebuddy",
+      "event": "plugin-bundle",
+      "files": [
+        "adapters/codebuddy/.claude-plugin/plugin.json",
+        "adapters/codebuddy/.mcp.json",
+        "adapters/codebuddy/rules/jiahao-verifier.md",
+        "adapters/codebuddy/rules/jiahao-generator.md",
+        "adapters/codebuddy/README.md"
+      ],
+      "exit_codes": {},
+      "decision_keys": [],
+      "decision_values": {},
+      "fail_soft": true,
+      "term": "Protection Tier",
+      "source_adr": "docs/adr/0087-codebuddy-host-adapter-first-external-effectiveness-trial.md",
+      "note": "Bundle surface: manifest-dir-only plugin.json, rules dual-profile alwaysApply, bundled jiahao-mcp. Vendored runtime closure covered by the build-adapters --check golden layer (byte-verbatim).",
+      "transcript_file": "unverifiable"
     }
   ],
   "lifecycle": {
@@ -383,6 +475,10 @@
     "aider": {
       "state": "active",
       "note": "instruction tier; explicit-config loader, no auto-discovery"
+    },
+    "codebuddy": {
+      "state": "active",
+      "note": "first Claude-Code-compatible path host (ADR-0087); CLI settings surface live-verified (2.151.0); plugin-bundle path + IDE parity declared-unverified via pending-confirmation"
     }
   }
 }

@@ -45,7 +45,7 @@ test('runtime detectHost returns a string', () => {
   const { detectHost } = require(path.join(hooksDir, 'jiahao-runtime.js'));
   const host = detectHost();
   expect(typeof host).toBe('string');
-  expect(['claude', 'codex', 'copilot', 'qoder']).toContain(host);
+  expect(['claude', 'codex', 'copilot', 'qoder', 'codebuddy']).toContain(host);
 });
 
 test('runtime writeHookOutput respects 10k cap', () => {
