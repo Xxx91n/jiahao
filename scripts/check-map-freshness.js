@@ -6,8 +6,11 @@
 // claim-surface-touching commit C on the post-registration range:
 //   (a) coverage   - every hex citation inside C's tracked doc surface has a
 //                    doc_refs row in the docs/rewrite-map.json committed
-//                    INSIDE C's tree (the same file:line:sha key equality as
-//                    build-rewrite-map's --published-only coverage clause);
+//                    INSIDE C's tree, and no doc_refs row points at a file
+//                    present in C's tree but carrying a phantom cite;
+//                    rows for files absent from C's tree are tolerated
+//                    (the map is generated against the workspace union -
+//                    parallel-lane artifacts are non-applicable, not stale);
 //   (b) consistency - that map satisfies the --published-only internal
 //                    assertions with the published-line oracle bound to C:
 //                    ancestry is evaluated against C itself, never against
@@ -94,7 +97,10 @@ function checkCommit(root, sha) {
     return ['map-freshness: ' + sha.slice(0, 9) + ' ' + MAP_REL + ' unparseable at this commit: ' + e.message];
   }
   const occ = rm.scanDocTokensAt(root, sha);
-  const inner = rm.verifyPublishedOnly(map, sha, { occurrences: occ, commitBound: true, root: root });
+  const treeFiles = new Set(
+    gitAt(root)(['ls-tree', '-r', sha, '--name-only']).split('\n').filter(Boolean)
+  );
+  const inner = rm.verifyPublishedOnly(map, sha, { occurrences: occ, commitBound: true, root: root, treeFiles: treeFiles });
   for (const e of inner) errs.push('map-freshness: ' + sha.slice(0, 9) + ' ' + e);
   return errs;
 }

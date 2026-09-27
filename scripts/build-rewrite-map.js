@@ -162,7 +162,7 @@ function scanDocTokens() {
 function scanDocTokensAt(root, ref) {
   let out;
   try {
-    out = execFileSync('git', ['grep', '-n', '-E', '-e', '[0-9a-f]{7,40}', ref, '--', 'docs', '.scratch', 'README.md', 'AGENTS.md', 'CONTEXT.md'],
+    out = execFileSync('git', ['grep', '-a', '-n', '-E', '-e', '[0-9a-f]{7,40}', ref, '--', 'docs', '.scratch', 'README.md', 'AGENTS.md', 'CONTEXT.md'],
       { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   } catch (e) {
     if (e.status === 1) return []; // no matches at this ref
@@ -171,7 +171,7 @@ function scanDocTokensAt(root, ref) {
   const rows = [];
   for (const line of out.split('\n')) {
     if (!line) continue;
-    const m = /^(.*?):(\d+):(.*)$/.exec(line.slice(String(ref).length + 1));
+    const m = /^(.*?):(\d+):([\s\S]*)$/.exec(line.slice(String(ref).length + 1));
     if (!m) throw new Error('unparseable git grep row at ' + ref + ': ' + line.slice(0, 80));
     const f = m[1], li = Number(m[2]), text = m[3];
     if (f === SELF || !DOC_PATH_RE.test(f) || !DOC_EXT_RE.test(f)) continue;
@@ -412,7 +412,19 @@ function verifyPublishedOnly(map, newRef, opts) {
   if (JSON.stringify(live) !== JSON.stringify(recorded)) {
     const have = {}; recorded.forEach(function (k) { have[k] = 1; });
     const missing = live.filter(function (k) { return !have[k]; });
-    errs.push('doc citation coverage differs (first missing: ' + missing.slice(0, 5).join(', ') + ')');
+    const liveSet = {}; live.forEach(function (k) { liveSet[k] = 1; });
+    // Commit-bound mode (grill-t30 D-004): the map is generated against the
+    // whole GitButler workspace union, so a lane commit's tree legitimately
+    // omits files whose cites are recorded in the same committed map
+    // (parallel-lane artifacts). Extras are violations only when the cited
+    // file IS present in the commit's tree - a phantom row on a live file is
+    // drift; a row for an absent file is non-applicable at this commit.
+    const treeFiles = (opts && opts.treeFiles) || null;
+    const phantom = treeFiles
+      ? recorded.filter(function (k) { return !liveSet[k]; }).filter(function (k) { return treeFiles.has(k.slice(0, k.indexOf(':'))); })
+      : recorded.filter(function (k) { return !liveSet[k]; });
+    if (missing.length) errs.push('doc citation coverage differs (first missing: ' + missing.slice(0, 5).join(', ') + ')');
+    if (phantom.length) errs.push('map records cites absent from the commit tree on live files (first: ' + phantom.slice(0, 5).join(', ') + ')');
   }
   const counts = map.counts || {};
   const expect = {
