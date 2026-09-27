@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-27T13:36:13.077Z",
+  "generated_at": "2026-09-27T13:44:37.711Z",
   "published_tip": "8704ce24174841795e78a4ebbfa2517376c7ce2f",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -22188,7 +22188,7 @@
       "sha": "c22c01ae1d17d3097873691324883a6726c48903",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": ".scratch/grill-t30/reports/2026-09-27-reaudit-report.md",
@@ -27431,7 +27431,7 @@
       "sha": "c22c01ae",
       "class": "local-only",
       "resolved_to": null,
-      "label": "local object"
+      "label": "unresolved hex literal"
     },
     {
       "file": "docs/governance/trend-inventory.json",
