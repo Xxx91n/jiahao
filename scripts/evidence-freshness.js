@@ -85,6 +85,7 @@ function classifiers(fresh) {
     claim: new RegExp('^' + rr + '(?:' + fresh.claim_surfaces.closed_enum.map(escRe).join('|') + ')'),
     claimDirs: fresh.claim_surfaces.closed_enum,
     claimExceptions: fresh.claim_surfaces.exceptions || [],
+    scopeRe: new RegExp('^' + rr),
   };
 }
 

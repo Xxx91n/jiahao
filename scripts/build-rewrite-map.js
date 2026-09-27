@@ -162,16 +162,18 @@ function scanDocTokens() {
 function scanDocTokensAt(root, ref) {
   let out;
   try {
-    out = execFileSync('git', ['grep', '-a', '-n', '-E', '-e', '[0-9a-f]{7,40}', ref, '--', 'docs', '.scratch', 'README.md', 'AGENTS.md', 'CONTEXT.md'],
+    out = execFileSync('git', ['-c', 'core.quotepath=false', 'grep', '-a', '-n', '-E', '-e', '[0-9a-f]{7,40}', ref, '--', 'docs', '.scratch', 'README.md', 'AGENTS.md', 'CONTEXT.md'],
       { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   } catch (e) {
     if (e.status === 1) return []; // no matches at this ref
     throw e;
   }
+  const prefix = String(ref) + ':';
   const rows = [];
   for (const line of out.split('\n')) {
     if (!line) continue;
-    const m = /^(.*?):(\d+):([\s\S]*)$/.exec(line.slice(String(ref).length + 1));
+    if (!line.startsWith(prefix)) throw new Error('git grep row lacks the ref prefix at ' + ref + ': ' + line.slice(0, 80));
+    const m = /^(.*?):(\d+):([\s\S]*)$/.exec(line.slice(prefix.length));
     if (!m) throw new Error('unparseable git grep row at ' + ref + ': ' + line.slice(0, 80));
     const f = m[1], li = Number(m[2]), text = m[3];
     if (f === SELF || !DOC_PATH_RE.test(f) || !DOC_EXT_RE.test(f)) continue;
@@ -421,7 +423,7 @@ function verifyPublishedOnly(map, newRef, opts) {
     // drift; a row for an absent file is non-applicable at this commit.
     const treeFiles = (opts && opts.treeFiles) || null;
     const phantom = treeFiles
-      ? recorded.filter(function (k) { return !liveSet[k]; }).filter(function (k) { return treeFiles.has(k.slice(0, k.indexOf(':'))); })
+      ? docRefs.filter(function (d) { return !liveSet[d.file + ':' + d.line + ':' + d.sha] && treeFiles.has(d.file); }).map(function (d) { return d.file + ':' + d.line + ':' + d.sha; })
       : recorded.filter(function (k) { return !liveSet[k]; });
     if (missing.length) errs.push('doc citation coverage differs (first missing: ' + missing.slice(0, 5).join(', ') + ')');
     if (phantom.length) errs.push('map records cites absent from the commit tree on live files (first: ' + phantom.slice(0, 5).join(', ') + ')');

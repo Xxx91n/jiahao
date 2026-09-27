@@ -83,7 +83,6 @@ describe('preregistration file (judgment lines)', () => {
     expect(JL.frozen_detector.path).toBe('src/detector.js');
     expect(JL.frozen_detector.blob_sha256).toMatch(/^[0-9a-f]{64}$/);
     expect(JL.frozen_detector.landing_commit).toMatch(/^[0-9a-f]{40}$/);
-    hg.gitOk(ROOT, ['cat-file', '-e', JL.frozen_detector.landing_commit]);
     expect(hg.gitOk(ROOT, ['cat-file', '-e', JL.frozen_detector.landing_commit])).toBe(true);
   });
 

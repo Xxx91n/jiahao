@@ -48,27 +48,46 @@ const rm = require('./build-rewrite-map');
 const ROOT = path.join(__dirname, '..');
 const SELF_REL = 'scripts/check-map-freshness.js';
 const MAP_REL = 'docs/rewrite-map.json';
-const CLAIM_SCOPE_RE = /^\.scratch\/grill-[^/]+\//;
+const TAX_REL = 'docs/governance/surface-taxonomy.json';
 
-const gitAt = (root) => (args) =>
+const makeGit = (root) => (args) =>
   execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).trim();
 const gitOkAt = (root) => (args) => spawnSync('git', args, { cwd: root }).status === 0;
 
 function registrationCommit(root) {
-  const adds = gitAt(root)(['log', '--diff-filter=A', '--format=%H', '--', SELF_REL]).split('\n').filter(Boolean);
+  const adds = makeGit(root)(['log', '--diff-filter=A', '--format=%H', '--', SELF_REL]).split('\n').filter(Boolean);
   return adds.length ? adds[adds.length - 1] : null;
+}
+
+// Classifier built from the commit's OWN tree copy of the taxonomy
+// (grill-t30 audit B-2): the claim-commit scoping must be a pure function
+// of the commit under test exactly like the assertion core - a live
+// worktree read would let a fenced taxonomy change silently flip which
+// historical commits get checked.
+function classifiersAt(root, sha) {
+  const text = showAt(root, sha, TAX_REL);
+  if (text === null) return null;
+  try {
+    const tax = JSON.parse(text);
+    if (!tax.freshness) return null;
+    return fresh.classifiers(tax.freshness);
+  } catch (e) { return null; }
 }
 
 // Does commit `sha` land files on the claim surface that are not exempted
 // at the commit's own date? Same predicate family as evaluateRound's claim
 // walk (claim class + live exception channel), kept on exported parts.
+// Returns true/false, or null when the commit cannot be read (fail-closed:
+// the caller records an error rather than silently skipping).
 function isClaimCommit(root, sha, cx) {
-  const files = fresh.commitInfo(root, sha, cx).files;
+  const info = fresh.commitInfo(root, sha, cx);
+  if (info.unreadable) return null;
+  const files = info.files;
   if (!files || !files.length) return false;
-  const when = gitAt(root)(['log', '-1', '--format=%cs', sha]);
+  const when = makeGit(root)(['log', '-1', '--format=%cs', sha]);
   for (const f of files) {
     if (fresh.classifyFile(f, cx) !== 'claim') continue;
-    const dir = (f.match(CLAIM_SCOPE_RE) || [])[0];
+    const dir = (f.match(cx.scopeRe) || [])[0];
     if (!dir) continue;
     const under = cx.claimDirs.some((d) => f.startsWith(dir + d));
     if (!under) continue;
@@ -81,7 +100,7 @@ function isClaimCommit(root, sha, cx) {
 }
 
 function showAt(root, ref, file) {
-  try { return gitAt(root)(['show', ref + ':' + file]); } catch (e) { return null; }
+  try { return makeGit(root)(['show', ref + ':' + file]); } catch (e) { return null; }
 }
 
 // (a)+(b) for one commit: the map inside C's tree must cover C's own doc
@@ -98,7 +117,7 @@ function checkCommit(root, sha) {
   }
   const occ = rm.scanDocTokensAt(root, sha);
   const treeFiles = new Set(
-    gitAt(root)(['ls-tree', '-r', sha, '--name-only']).split('\n').filter(Boolean)
+    makeGit(root)(['ls-tree', '-r', sha, '--name-only']).split('\n').filter(Boolean)
   );
   const inner = rm.verifyPublishedOnly(map, sha, { occurrences: occ, commitBound: true, root: root, treeFiles: treeFiles });
   for (const e of inner) errs.push('map-freshness: ' + sha.slice(0, 9) + ' ' + e);
@@ -106,9 +125,8 @@ function checkCommit(root, sha) {
 }
 
 function checkFreshness(root) {
-  const git = gitAt(root);
+  const git = makeGit(root);
   const errors = [];
-  const cx = fresh.classifiers(fresh.loadFreshness(root));
   const reg = registrationCommit(root);
   if (!reg) { errors.push('map-freshness: registration commit not found (script never landed?)'); return { errors: errors, checked: 0 }; }
   const parented = (function () {
@@ -132,7 +150,17 @@ function checkFreshness(root) {
     });
   let checked = 0;
   for (const sha of commits) {
-    if (!isClaimCommit(root, sha, cx)) continue;
+    const cx = classifiersAt(root, sha);
+    if (cx === null) {
+      errors.push('map-freshness: ' + sha.slice(0, 9) + ' cannot load ' + TAX_REL + ' from its own tree - claim scoping unverifiable');
+      continue;
+    }
+    const isClaim = isClaimCommit(root, sha, cx);
+    if (isClaim === null) {
+      errors.push('map-freshness: ' + sha.slice(0, 9) + ' commit file list unreadable - claim-surface membership unverifiable (fail-closed)');
+      continue;
+    }
+    if (!isClaim) continue;
     checked++;
     errors.push.apply(errors, checkCommit(root, sha));
   }

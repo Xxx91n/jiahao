@@ -209,7 +209,7 @@ function buildAdapters() {
   // verbatim under jiahao-mcp/ inside the bundle; deps install per README.
   adapters[CB + '.mcp.json'] = JSON.stringify({
     mcpServers: {
-      jiahao: {
+      'jiahao-mcp': {
         command: 'node',
         args: ['${CLAUDE_PLUGIN_ROOT}/jiahao-mcp/index.js'],
         cwd: '${CLAUDE_PLUGIN_ROOT}/jiahao-mcp',

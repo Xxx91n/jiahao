@@ -7,7 +7,6 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { execFileSync } = require('child_process');
 const hg = require('./helpers/git-hermetic');
 
 const ROOT = path.join(__dirname, '..');
@@ -57,8 +56,10 @@ function mapJson(tip, base, docRefs) {
     published_tip: tip,
     boundary: { shared_base: base, old_tip: 'f'.repeat(40), new_counterpart: tip },
     sides: { old_refs: [], new_refs: ['origin/main'] },
-    counts: { commits: 0, published_only: 0, removed: 0, same: 0, doc_refs: n,
-      doc_refs_by_class: { rewritten: 0, 'local-only': n, 'published-unchanged': 0 } },
+    counts: {
+      commits: 0, published_only: 0, removed: 0, same: 0, doc_refs: n,
+      doc_refs_by_class: { rewritten: 0, 'local-only': n, 'published-unchanged': 0 }
+    },
     commits: [], removed: [], published_only: [], same: [], doc_refs: docRefs,
   }, null, 2) + '\n';
 }
