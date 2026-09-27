@@ -186,3 +186,27 @@ the next authority event; all t29 tide items unchanged.
     # + pending-confirmation entries present for every declared-unverified item
     # + evaluateRound(grill-t30) at closeout; anchoring footer on every
     #   non-merge commit (derived via scripts/derive-anchoring-footer.js)
+
+## 9. Audit-repair addenda (grill-t30 second-party audit, fix window 2026-09-27)
+
+- §2.1 granularity ruling: IDE-form injection points share one
+  pending-confirmation row ("CLI-vs-IDE hook parity"); rules/MCP/manifest
+  tiering rides that umbrella row rather than four separate rows.
+  Accepted granularity - registered here, not enlarged.
+- §2.2 literal deviation: the spec text says rules ship as
+  `.codebuddy/rules/*.md`; the bundle ships `rules/` (the plugin-path
+  convention), and README documents the settings-tier alias. The literal
+  is the deviation; the shipped layout stands - pending-confirmation row
+  covers the residual (rules load priority under non-alwaysApply).
+- D-001(iv) ruling: the "generator 规则命中率" capture point is served by
+  JL-3 (generator-side detect() overclaim channel) plus the
+  InstructionsLoaded captured-rule list - no separate counter exists.
+  Judgment lines stay frozen; this is a capture-point binding note, not
+  a line edit.
+- D-001(v) ruling: "宿主侧 hook 自描述断言" is satisfied by the
+  InstructionsLoaded integrity assertion (dual-profile presence check +
+  telemetry emission) - the host-side hook asserts its own apparatus.
+- B-1 record: the pre-commit lock runs `--check` where gb-local refs
+  exist, `--published-only` elsewhere (clone-degradability). First
+  landing ran published-only unconditionally; repaired 2026-09-27.
+
