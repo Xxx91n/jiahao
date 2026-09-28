@@ -32,6 +32,10 @@ const REGISTRY_REL = path.join('docs', 'governance', 'orphan-cites.json');
 const MAP_REL = path.join('docs', 'rewrite-map.json');
 const DISPOSITIONS = ['orphaned', 'revived'];
 const OBJECT_TYPES = ['commit', 'tag', 'tree', 'blob'];
+// ADR-0089 D-E registered constants (named, adjustable; order-of-magnitude
+// aligned with gc.pruneExpire ~= 2 weeks):
+const ORPHAN_AGE_DAYS = 14;          // transient-tolerance window (stage1 -> 2)
+const ORPHAN_REGISTER_GRACE_DAYS = 7; // grace past age threshold (stage2 -> 3)
 
 // ---------- registry IO ----------
 
@@ -354,4 +358,4 @@ function main(argv) {
 
 if (require.main === module) main(process.argv.slice(2));
 
-module.exports = { loadRegistry, validateRegistry, latestBySha, entryForToken, liveEntry, degradedEntry, cmdRegister, cmdBackfill, cmdCheck, REGISTRY_REL, DISPOSITIONS, OBJECT_TYPES };
+module.exports = { loadRegistry, validateRegistry, latestBySha, entryForToken, liveEntry, degradedEntry, cmdRegister, cmdBackfill, cmdCheck, REGISTRY_REL, DISPOSITIONS, OBJECT_TYPES, ORPHAN_AGE_DAYS, ORPHAN_REGISTER_GRACE_DAYS };

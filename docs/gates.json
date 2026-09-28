@@ -504,6 +504,17 @@
       "requires": [
         "repo-tree"
       ]
+    },
+    {
+      "name": "orphan-registration",
+      "command": "node scripts/check-orphan-registration.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0089-rewrite-map-classifier-declared-facts-contract.md",
+      "order": 225,
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ]
     }
   ]
 }
