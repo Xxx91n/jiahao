@@ -64,6 +64,20 @@
       "reason": "host configuration backups never enter git-tracked dirs (ADR-0073 D-C O-2 forward rule); the private/ secrets dir is .gitignore jurisdiction (ADR-0014) and deliberately keeps one tracked fixture, so it stays out of this registry",
       "since": "2026-09-15",
       "status": "active"
+    },
+    {
+      "id": "nc-010",
+      "pattern": "^bench/codebuddy-trial/claims/",
+      "reason": "verbatim claim bodies are Tier-1 capture artifacts (ADR-0088 clause 4) — resident for replay but never committed; committed claims live in manifests + judgment-lines",
+      "since": "2026-09-28",
+      "status": "active"
+    },
+    {
+      "id": "nc-011",
+      "pattern": "^bench/codebuddy-trial/captures/",
+      "reason": "normalized capture store is Tier-1 raw telemetry in committed dress — kept on disk for provenance, never committed (ADR-0088 clause 4)",
+      "since": "2026-09-28",
+      "status": "active"
     }
   ]
 }

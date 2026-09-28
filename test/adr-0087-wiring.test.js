@@ -139,3 +139,57 @@ describe('map-freshness leg (E-17, D-004)', () => {
     expect(typeof out.checked).toBe('number');
   });
 });
+
+describe('ADR-0088 eval-map / volumes -> registration-surface back-pointer chain (grill-t31 extension)', () => {
+  const EM = JSON.parse(fs.readFileSync(path.join(ROOT, 'bench/codebuddy-trial/eval-map.json'), 'utf8'));
+  const PINS = JSON.parse(fs.readFileSync(path.join(ROOT, 'bench/codebuddy-trial/frozen-sha256.json'), 'utf8'));
+  const VOLS = {};
+  for (const v of ['a', 'b', 'c']) VOLS[v] = JSON.parse(fs.readFileSync(path.join(ROOT, 'bench/codebuddy-trial/volumes', v + '.json'), 'utf8'));
+
+  test('eval-map detector pin mirrors the judgment-lines frozen_detector pin', () => {
+    expect(EM.detector.path).toBe(JL.frozen_detector.path);
+    expect(EM.detector.blob_sha256).toBe(JL.frozen_detector.blob_sha256);
+    expect(EM.detector.blob_sha256).toBe('a0ba70fbfb82229b41f538994c159c77cd379cfdc118994cc92c649273ec4960');
+  });
+
+  test('eval-map predicate ids exactly cover the five registered judgment lines', () => {
+    expect(Object.keys(EM.predicates).sort()).toEqual(JL.judgment_lines.map((l) => l.id).sort());
+    for (const l of JL.judgment_lines) {
+      expect(EM.predicates[l.id].indeterminate_reasons.length).toBeGreaterThan(0);
+    }
+  });
+
+  test('item-0 probe pin + dual rules expectations are registered in eval-map', () => {
+    expect(EM.probes.item0.task_id).toBe('item-0-telemetry-probe');
+    expect(EM.probes.item0.prompt_sha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(EM.probes.item0.prompt_sha256).toBe(
+      require('crypto').createHash('sha256').update(EM.probes.item0.prompt_text, 'utf8').digest('hex'));
+    expect(Object.keys(EM.bundle_expectations.rules).sort()).toEqual(['rules/jiahao-generator.md', 'rules/jiahao-verifier.md']);
+  });
+
+  test('each volume carries the declared_not_proven block + honesty clause (ADR-0088 clause 5)', () => {
+    for (const v of ['a', 'b', 'c']) {
+      expect(Object.keys(VOLS[v].declared_not_proven).sort()).toEqual([
+        'category_capability_equivalence', 'difficulty_equivalence',
+        'needle_inducement_equivalence', 'prompt_semantic_equivalence',
+      ]);
+      expect(VOLS[v].honesty_clause).toMatch(/declared/i);
+      expect(VOLS[v].needles.length).toBeGreaterThanOrEqual(4);
+    }
+  });
+
+  test('volume c replay tasks point back at A-shape groups (D-005 replay constitution)', () => {
+    const replays = VOLS.c.tasks.filter((t) => t.replay_shape_group !== null);
+    expect(replays.length).toBeGreaterThanOrEqual(2);
+    expect(replays.length).toBeLessThanOrEqual(3);
+    const aGroups = new Set(VOLS.a.tasks.map((t) => t.shape_group));
+    for (const r of replays) expect(aGroups.has(r.replay_shape_group)).toBe(true);
+  });
+
+  test('frozen-sha256 pins cover eval-map + all volumes + judgment-lines body', () => {
+    for (const k of ['eval-map.json', 'volumes/a.json', 'volumes/b.json', 'volumes/c.json', 'judgment-lines.json']) {
+      expect(PINS.pins[k]).toBeTruthy();
+    }
+    expect(PINS.pins['judgment-lines.json'].strip_fields).toEqual(['deviations']);
+  });
+});

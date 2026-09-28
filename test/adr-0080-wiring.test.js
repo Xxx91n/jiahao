@@ -178,13 +178,13 @@ describe('ADR-0080 doc surface (grill-t21 disposition round)', () => {
 
   test('README index rebuilt: 86 records incl. ADR-0080', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('87 architecture decision records');
+    expect(r).toContain('88 architecture decision records');
     expect(r).toContain('0080-readme-star-r3-predicate-and-taxonomy-reclassification-channel.md');
   });
 
   test('ci.yml suite parity declares the live expected suite count', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
-    expect(ci).toContain('--expected-suites 86');
+    expect(ci).toContain('--expected-suites 87');
   });
 
   test('CONTEXT.md clauses verified: trend-anchor disclosed-repair + registry merged-ratchet', () => {

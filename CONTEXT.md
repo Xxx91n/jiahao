@@ -2564,4 +2564,43 @@ fire on the target host before any measurement is trusted. An unverified
 counter produces unverified readings - the apparatus proves itself first.
 _Avoid_: skipping the self-check to reach "real" data faster; treating
 silent counters as zero events
+**Three-Tier Residence (三层居所)**:
+Evidence residence split for the trial harness (ADR-0088 clause 4): Tier-1
+never-commit raw captures, Tier-2 committed auditable backbone (run
+manifests + deviations ledger), Tier-3 registration surface
+(judgment-lines.json deviations[] as the sole append slot).
+_Avoid_: raw captures on the commit surface; backbone entries that cannot be
+replayed from Tier-1
+
+**Indeterminate (不定态)**:
+A judgment-line verdict value distinct from hit and miss — "insufficient
+evidence", produced by named reason codes (floor traps, degenerate
+baselines, contaminated phases, missing domains). It is never reduced to
+miss and never to an owner-side effectiveness claim; reduction is an owner
+act the harness cannot perform (ADR-0088 clause 2).
+_Avoid_: treating indeterminate as failure, as zero, or as absence
+
+**Declared-Not-Proven Block (声明不证区)**:
+The registered zone inside each frozen volume manifest where equivalence
+that cannot be mechanically asserted (difficulty, inducement strength,
+category comparability, prompt semantics) is DECLARED rather than
+claimed — contributing no evidence, and bounding formal equivalence to
+structural-site level only (ADR-0088 clause 5).
+_Avoid_: asserting equivalence the machinery never measured; smuggling
+declared zones into evidence claims
+
+**Meta-Sentinel (元哨兵)**:
+An acceptance fixture whose purpose is to prove the harness detects its
+own fabrications — doctored claim bodies, injected unowned events. The
+sentinel tests the test apparatus, not the product (ADR-0088 clause 6).
+_Avoid_: acceptance batteries that can only ever report green
+
+**Deviation Cursor (偏差游标)**:
+The last_aggregated_seq pointer over runs/deviations.jsonl recording how
+far the ledger has been folded into judgment-lines.json deviations[] —
+making aggregation idempotent, replayable, and tamper-evident; the
+selfcheck leg asserts cursor-vs-ledger coverage (ADR-0088 clause 7).
+_Avoid_: cursorless aggregation, rewriting deviations[] outside append,
+deviation rows bypassing the ledger
+
 *End of Glossary*

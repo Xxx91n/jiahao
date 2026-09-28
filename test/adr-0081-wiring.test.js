@@ -132,13 +132,13 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
 
   test('README index rebuilt: 86 records incl. ADR-0081', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('87 architecture decision records');
+    expect(r).toContain('88 architecture decision records');
     expect(r).toContain('0081-repair-window-amend-in-place-coverage-pairing-headroom-watch.md');
   });
 
   test('ci.yml suite parity declares the live expected suite count', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
-    expect(ci).toContain('--expected-suites 86');
+    expect(ci).toContain('--expected-suites 87');
   });
 
   test('coverageGaps pure export: the R2-undeclared defect shape still fails (regression pin)', () => {

@@ -185,9 +185,9 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () => 
     expect(copy).toBe(POINTER_HEAD + '\n\n' + scratch);
   });
 
-  test('the README ADR index carries ADR-0073 (rebuilt, 86 records)', () => {
+  test('the README ADR index carries ADR-0073 (rebuilt, 88 records)', () => {
     const r = read(README);
-    expect(r).toContain('87 architecture decision records');
+    expect(r).toContain('88 architecture decision records');
     expect(r).toContain('[ADR-0073](docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md)');
   });
 

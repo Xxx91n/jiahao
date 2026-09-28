@@ -334,7 +334,7 @@ the frozen v3 corpus via `node scripts/check-pairer-regression.js`.
 ## Develop
 
 ```bash
-npm test                              # 1471 tests across 86 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 1511 tests across 87 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 54 adapter files (12 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
@@ -353,7 +353,7 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 - `hooks/` — 7 hook scripts + hooks.json + runtime.js
 - `adapters/` — generated per-host adapters (12 host directories / 54 generated files; ADR-0028 D5)
 - `jiahao-mcp/` — MCP-only adapter (profile parameter)
-- `test/` — 86 test suites, 1471 tests
+- `test/` — 87 test suites, 1511 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 - `private/bench-corpus/` — answer corpora (gitignored, ADR-0036 D2): resolved via JIAHAO_CORPUS_DIR -> install-planted dir -> this repo dir; missing fails closed (ADR-0038 D2). npm-distributed runtime paths never reference it (ADR-0038 D1).
 - `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). The index below is a derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`.
@@ -362,7 +362,7 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 <summary>ADR index — derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`</summary>
 
 <!-- adr-index:start -->
-- 87 architecture decision records:
+- 88 architecture decision records:
 - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
 - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
 - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
@@ -450,6 +450,7 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 - [ADR-0085](docs/adr/0085-anchor-semantics-claim-point-seal-boundary.md) — Anchor Semantics — Claim-Point Pinning, the Terminal Seal Boundary, the Declaration/Tag Co-Naming Contract, the Explicit Drift Code, and the Retirement of the Live-HEAD-Walk Invariant (grill-t26 anchor-semantics round)
 - [ADR-0086](docs/adr/0086-registry-field-governance-fenced-editorial-exception-channel-pending-confirmation-lifecycle.md) — Registry Field Governance — Fenced / Editorial / Exception-Channel Classes and the Pending-Confirmation Lifecycle (grill-t29 audit-disposition round)
 - [ADR-0087](docs/adr/0087-codebuddy-host-adapter-first-external-effectiveness-trial.md) — CodeBuddy Host Adapter — First Claude-Code-Compatible Path, Pending-Confirmation Tiering, and the First External-Effectiveness Trial Protocol (grill-t30)
+- [ADR-0088](docs/adr/0088-codebuddy-trial-harness-seven-clause-apparatus-trust-contract.md) — CodeBuddy Trial Harness — Seven-Clause Apparatus-Trust Contract (grill-t31)
 <!-- adr-index:end -->
 
 </details>

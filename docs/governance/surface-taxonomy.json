@@ -202,6 +202,10 @@
       {
         "id": "grill-t30",
         "base": "8704ce24174841795e78a4ebbfa2517376c7ce2f"
+      },
+      {
+        "id": "grill-t31",
+        "base": "58d06e20a1385affb71c86c2c70dead2f001dde7"
       }
     ],
     "orphan_ancestry": {
@@ -357,6 +361,20 @@
             "reason": "the .claude-plugin/ + CLAUDE_PLUGIN_ROOT bundle path is officially documented as recognized verbatim, but the live-verified CLI surface is .codebuddy/settings.json hooks; bundle-path firing on CLI is unprobed",
             "expires_at": "2026-12-15",
             "scope": "CodeBuddy Code CLI plugin-bundle hook path"
+          },
+          {
+            "status": "pending-confirmation",
+            "requested_by": "grill-t31 D-004/D-009 (ADR-0088)",
+            "reason": "whether the CodeBuddy session emits a stable session_id for the whole task lifecycle is declared but unprobed — adjudicated by the item-0 probe + RUNBOOK measurement on first trial run",
+            "expires_at": "2026-12-15",
+            "scope": "CodeBuddy trial session_id lifecycle (telemetry sink identity)"
+          },
+          {
+            "status": "pending-confirmation",
+            "requested_by": "grill-t31 D-004/D-009 (ADR-0088)",
+            "reason": "whether Claude-Code-compatible transcripts land reachable at a stable path the collector can read is declared but unprobed — adjudicated by the item-0 probe reachability check on first trial run",
+            "expires_at": "2026-12-15",
+            "scope": "CodeBuddy trial transcript reachability (collector input path)"
           }
         ]
       }
