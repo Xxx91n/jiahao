@@ -246,7 +246,7 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
 
   test('README index rebuilt: 86 records incl. ADR-0084', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('88 architecture decision records');
+    expect(r).toContain('89 architecture decision records');
     expect(r).toContain('0084-public-clone-verifiability');
   });
 });

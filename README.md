@@ -362,7 +362,7 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 <summary>ADR index — derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`</summary>
 
 <!-- adr-index:start -->
-- 88 architecture decision records:
+- 89 architecture decision records:
 - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
 - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
 - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
@@ -451,6 +451,7 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 - [ADR-0086](docs/adr/0086-registry-field-governance-fenced-editorial-exception-channel-pending-confirmation-lifecycle.md) — Registry Field Governance — Fenced / Editorial / Exception-Channel Classes and the Pending-Confirmation Lifecycle (grill-t29 audit-disposition round)
 - [ADR-0087](docs/adr/0087-codebuddy-host-adapter-first-external-effectiveness-trial.md) — CodeBuddy Host Adapter — First Claude-Code-Compatible Path, Pending-Confirmation Tiering, and the First External-Effectiveness Trial Protocol (grill-t30)
 - [ADR-0088](docs/adr/0088-codebuddy-trial-harness-seven-clause-apparatus-trust-contract.md) — CodeBuddy Trial Harness — Seven-Clause Apparatus-Trust Contract (grill-t31)
+- [ADR-0089](docs/adr/0089-rewrite-map-classifier-declared-facts-contract.md) — Rewrite-Map Classifier Declared-Facts Contract — Orphan-Cite Registry, Lifecycle Ladder, and the Atomic Cutover (grill-t32)
 <!-- adr-index:end -->
 
 </details>
