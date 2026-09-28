@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-28T10:12:11.544Z",
+  "generated_at": "2026-09-28T10:15:42.687Z",
   "published_tip": "58d06e20a1385affb71c86c2c70dead2f001dde7",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -22,10 +22,10 @@
     "published_only": 416,
     "removed": 0,
     "same": 278,
-    "doc_refs": 3538,
+    "doc_refs": 3546,
     "doc_refs_by_class": {
       "rewritten": 104,
-      "local-only": 1066,
+      "local-only": 1074,
       "published-unchanged": 2368
     }
   },
@@ -23860,8 +23860,72 @@
     },
     {
       "file": ".scratch/grill-t31/reports/2026-09-28-repair-report.md",
-      "line": 48,
-      "sha": "b0504f28",
+      "line": 53,
+      "sha": "aab0a3b4",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t31/reports/2026-09-28-repair-report.md",
+      "line": 54,
+      "sha": "b9396688",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t31/reports/2026-09-28-repair-report.md",
+      "line": 54,
+      "sha": "b9396688",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t31/reports/2026-09-28-repair-report.md",
+      "line": 55,
+      "sha": "bf900a3b",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t31/reports/2026-09-28-repair-report.md",
+      "line": 55,
+      "sha": "162da5d2",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t31/reports/2026-09-28-repair-report.md",
+      "line": 56,
+      "sha": "49700fac",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t31/reports/2026-09-28-repair-report.md",
+      "line": 56,
+      "sha": "d7ddd772",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t31/reports/2026-09-28-repair-report.md",
+      "line": 57,
+      "sha": "6e2334bf",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "unresolved hex literal"
+    },
+    {
+      "file": ".scratch/grill-t31/reports/2026-09-28-repair-report.md",
+      "line": 58,
+      "sha": "b9396688",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"

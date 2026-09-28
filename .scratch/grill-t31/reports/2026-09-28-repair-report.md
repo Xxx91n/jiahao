@@ -45,6 +45,15 @@ this claim wave. No effectiveness verdict issued — owner-side by design.
 
 The first seal (`seal: f4ea1a38` @ `bf900a3b`) was superseded: audit FAIL
 opened the repair window; the unpublished seal+claim tail was uncommitted and
-reissued. New seal declares `b0504f28` (last substantive = repair-docs wave).
-Superseded objects registered in ERRATA E-20; evaluateRound final state is
-re-run in the claim-wave verification block of the handoff.
+reissued. The repair seal went through two restacks — one disclosed process
+defect is recorded here: the wave-A commit's hunk-id had bound pre-repair
+`evaluate.js` bytes (the repair body missed the landed commit; the committed
+test battery passed on the worktree but the committed tree alone was
+incomplete). Detected by `git diff HEAD` residue sweep, corrected by
+re-landing the impl body as `aab0a3b4` and the second-generation errata as
+`b9396688`. The terminal seal declares `b9396688`; all superseded objects
+(first seal `bf900a3b`, repair seal `mut/162da5d2`, intermediate claim/map
+commits `mpk/srr/wlr/uur`, and the earlier orphans `49700fac`/`d7ddd772`/
+`6e2334bf`) are registered in ERRATA.md E-20. evaluateRound terminal state:
+declared = expected `b9396688`, amended:false, inFlightClean:true,
+freezeViolations/sealBad empty, capturesAtSealOk:true, claims clean.
