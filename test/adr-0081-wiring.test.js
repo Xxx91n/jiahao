@@ -87,8 +87,10 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
     // grill-t28 landed its kind:fix row (D-005/D-006 orphan-ancestry machinery
     // + defer-0074; zero new ADRs) - the count moves 21 -> 22.
     // grill-t29 landed its kind:fix row (ADR-0086 exception-channel + legs) - the count moves 22 -> 23.
+    // grill-t30/t31 fix rows landed (24 -> 25); grill-t32's fix row (ADR-0089
+    // declared-facts cutover) lands here - the count moves 25 -> 26.
     const row = ti.rounds.find((r) => r.round === 'grill-t22-doc-round');
-    expect(ti.rounds).toHaveLength(25);
+    expect(ti.rounds).toHaveLength(26);
     const latest = ti.rounds.find((r) => r.round === 'grill-t23-front-face');
     expect(latest).toBeDefined();
     expect(latest.adr_added).toEqual(['0082']);
@@ -138,7 +140,7 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
 
   test('ci.yml suite parity declares the live expected suite count', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
-    expect(ci).toContain('--expected-suites 87');
+    expect(ci).toContain('--expected-suites 89');
   });
 
   test('coverageGaps pure export: the R2-undeclared defect shape still fails (regression pin)', () => {
