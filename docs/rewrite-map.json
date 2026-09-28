@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-28T11:52:27.113Z",
+  "generated_at": "2026-09-28T12:04:54.643Z",
   "published_tip": "58d06e20a1385affb71c86c2c70dead2f001dde7",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -22,10 +22,10 @@
     "published_only": 416,
     "removed": 0,
     "same": 278,
-    "doc_refs": 3594,
+    "doc_refs": 3600,
     "doc_refs_by_class": {
       "rewritten": 104,
-      "local-only": 1121,
+      "local-only": 1127,
       "published-unchanged": 2369
     }
   },
@@ -23496,6 +23496,54 @@
       "file": ".scratch/grill-t31/handoffs/2026-09-28-handoff.md",
       "line": 100,
       "sha": "f4ea1a38",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t31/handoffs/2026-09-28-t32-handoff.md",
+      "line": 9,
+      "sha": "b9396688d9f06f8d3349202582bb141576a89d77",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t31/handoffs/2026-09-28-t32-handoff.md",
+      "line": 9,
+      "sha": "be81e11a",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t31/handoffs/2026-09-28-t32-handoff.md",
+      "line": 10,
+      "sha": "af7d2a65",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t31/handoffs/2026-09-28-t32-handoff.md",
+      "line": 10,
+      "sha": "25a75d16",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t31/handoffs/2026-09-28-t32-handoff.md",
+      "line": 10,
+      "sha": "c4302993",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t31/handoffs/2026-09-28-t32-handoff.md",
+      "line": 11,
+      "sha": "17e6ba60",
       "class": "local-only",
       "resolved_to": null,
       "label": "local object"
