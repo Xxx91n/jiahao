@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // bench/codebuddy-trial/tools/lib/common.js — grill-t31 D-001/D-002 shared
 // primitives for the SCED trial harness. Zero-dependency CommonJS, matching
 // repo convention. Nothing in lib/ adjudicates: these are mechanics only.
@@ -34,6 +33,14 @@ function readJsonl(file) {
     rows.push({ line_no: i + 1, text, obj, parse_error: err, line_sha256: sha256(text) });
   }
   return { file, file_sha256: sha256(raw), rows };
+}
+
+// Capture-row dedup key: sink \x00 file \x00 line_no \x00 line_sha256 — shared
+// by collect.js append-dedup and evaluate.js cross-run dedup (audit t31:
+// the '\x00' separator used to be hand-typed in three places).
+function captureKey(source) {
+  if (!source) return null;
+  return source.sink + '|\x00|' + source.file + '|\x00|' + source.line_no + '|\x00|' + source.line_sha256;
 }
 
 // Manifest/spec files are committed artifacts; writes go through writeFileSync
@@ -85,6 +92,7 @@ function fail(msg, code) {
 function usageExit(msg) { fail('usage: ' + msg, 64); }
 
 module.exports = {
+  captureKey,
   ISO_UTC_RE, isIsoUtc, sha256, sha256File, readJsonl, writeJson,
   appendJsonl, fsyncFile, parseArgs, fail, usageExit,
 };

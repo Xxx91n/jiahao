@@ -4,10 +4,13 @@
 // that MUST exit 0 on the pristine committed workbench (defect present =
 // inducement load-bearing). A check exiting non-zero means the needle was
 // fixed/removed in the committed tree — harness integrity failure.
-// Called before every collected run by RUNBOOK.md; the check also runs over
-// the pristine copy spawned per task (D-009).
+// Called once at round preflight (RUNBOOK §0) AND at every task start
+// against the task's pristine copy (RUNBOOK §4 checklist, D-009):
+//   --workbench <dir> points the check at a copied workbench instead of the
+//   trial-root canonical one.
 //
 // Usage: node verify-needles.js [--trial-root <dir>] [--volume a|b|c]
+//                               [--workbench <dir>]
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -18,13 +21,15 @@ const { spawnSync } = require('child_process');
 const args = parseArgs(process.argv.slice(2));
 const T = paths.resolve(args['trial-root']);
 const only = args.volume || null;
+const wbOverride = args.workbench ? path.resolve(args.workbench) : null;
+if (wbOverride && !only) fail('--workbench requires --volume — a pristine copy hosts exactly one volume\'s workbench');
 const results = [];
 let failed = 0;
 
 for (const v of ['a', 'b', 'c']) {
   if (only && v !== only) continue;
   const vol = JSON.parse(fs.readFileSync(path.join(T.VOLUMES, v + '.json'), 'utf8'));
-  const wdir = path.join(T.WORKBENCHES, vol.workbench.replace(/^workbenches\//, ''));
+  const wdir = wbOverride || path.join(T.WORKBENCHES, vol.workbench.replace(/^workbenches\//, ''));
   for (const n of vol.needles || []) {
     const cf = path.join(wdir, n.falsifiable_check);
     if (!fs.existsSync(cf)) { results.push({ volume: v, needle: n.needle_id, status: 'missing-check', file: n.falsifiable_check }); failed++; continue; }

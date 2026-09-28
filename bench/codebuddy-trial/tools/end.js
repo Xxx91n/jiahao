@@ -92,13 +92,10 @@ for (const sid of spanning.slice()) {
 // 4. Session -> task binding: first user-prompt sha256 against the frozen
 // volume manifest prompt_sha256 pins + the item-0 probe pin (eval-map).
 const vol = JSON.parse(fs.readFileSync(path.join(T.VOLUMES, m.volume + '.json'), 'utf8'));
+const evalMap = fs.existsSync(T.EVAL_MAP) ? JSON.parse(fs.readFileSync(T.EVAL_MAP, 'utf8')) : null;
 const promptToTask = new Map();
 for (const t of vol.tasks) promptToTask.set(t.prompt_sha256, t.task_id);
-let item0Sha = null;
-if (fs.existsSync(T.EVAL_MAP)) {
-  const em = JSON.parse(fs.readFileSync(T.EVAL_MAP, 'utf8'));
-  item0Sha = em.probes && em.probes.item0 ? em.probes.item0.prompt_sha256 : null;
-}
+const item0Sha = evalMap && evalMap.probes && evalMap.probes.item0 ? evalMap.probes.item0.prompt_sha256 : null;
 if (item0Sha) promptToTask.set(item0Sha, M.ITEM0_TASK_ID);
 
 const tr = trEarly;
@@ -109,26 +106,26 @@ for (const sid of observedIds.concat(spanning)) {
   if (!t) { binding.set(sid, null); anomalies.push({ sid, kind: 'transcript-missing' }); continue; }
   if (t.mtime_unstable) anomalies.push({ sid, kind: 'transcript-mtime-unstable' });
   if (t.user_prompts.length > 1) { binding.set(sid, 'multi-prompt'); anomalies.push({ sid, kind: 'multi-user-prompt', count: t.user_prompts.length }); continue; }
-  const task = t.first_prompt_sha256 ? (promptToTask.get(t.first_prompt_sha256) || null) : null;
+  if (!t.first_prompt_sha256) { binding.set(sid, null); anomalies.push({ sid, kind: 'no-user-prompt' }); continue; }
+  const task = promptToTask.get(t.first_prompt_sha256) || null;
   binding.set(sid, task);
-  if (task === null) anomalies.push({ sid, kind: 'unbound-session' });
+  if (task === null) anomalies.push({ sid, kind: 'unbound-first-prompt-sha' });
 }
 for (const a of anomalies) {
-  D.append(T, { run_id: m.run_id, type: 'binding-' + a.kind, description: 'session ' + a.sid + ' ' + a.kind + (a.count ? ' (' + a.count + ' user prompts)' : ''), discovered_by: 'end', severity: (a.kind === 'multi-user-prompt' || a.kind === 'unbound-session') ? 'high' : 'medium' });
+  D.append(T, { run_id: m.run_id, type: 'binding-' + a.kind, description: 'session ' + a.sid + ' ' + a.kind + (a.count ? ' (' + a.count + ' user prompts)' : ''), discovered_by: 'end', severity: (a.kind === 'multi-user-prompt' || a.kind === 'unbound-first-prompt-sha') ? 'high' : 'medium' });
 }
 
 // 5. Probes outcome (registered into the sealed manifest).
 const item0Sessions = observedIds.filter((sid) => binding.get(sid) === M.ITEM0_TASK_ID);
 const denies = norm.rows.filter((r) => r.source.sink === 'pretool' && r.record && r.record.decision === 'deny');
 const loads = norm.rows.filter((r) => r.source.sink === 'instructions' && r.record && r.record.event === 'InstructionsLoaded');
-let evalMap = null;
-if (fs.existsSync(T.EVAL_MAP)) evalMap = JSON.parse(fs.readFileSync(T.EVAL_MAP, 'utf8'));
 const expectSha = evalMap && evalMap.bundle_expectations ? evalMap.bundle_expectations.rules : {};
 const item0Deny = item0Sessions.length > 0 && denies.some((r) => item0Sessions.indexOf(r.session_id) >= 0);
 const item0Load = loads.filter((r) => item0Sessions.indexOf(r.session_id) >= 0);
 const instrProbe = item0Load.length > 0 && item0Load.some((r) => {
   const res = (r.record && r.record.results) || [];
-  return res.length === 2 && res.every((x) => x.present && expectSha[x.file] && x.sha256 === expectSha[x.file]);
+  const expLen = Object.keys(expectSha).length;
+  return res.length === expLen && res.every((x) => x.present && expectSha[x.file] && x.sha256 === expectSha[x.file]);
 });
 const reach = item0Sessions.length === 0 ? 'untested' : (item0Sessions.every((sid) => tr.sessions.has(sid)) ? 'reachable' : 'unreachable');
 const probes = {
@@ -137,7 +134,7 @@ const probes = {
   deny_probe: item0Sessions.length === 0 ? 'untested' : (item0Deny ? 'pass' : 'fail'),
   instructions_probe: item0Sessions.length === 0 ? 'untested' : (instrProbe ? 'pass' : 'fail'),
   transcript_reachability: reach,
-  session_id_lifecycle: anomalies.some((a) => a.kind === 'unbound-session' || a.kind === 'multi-user-prompt') ? 'collision-suspect' : 'unique-binding-observed',
+  session_id_lifecycle: anomalies.some((a) => a.kind === 'unbound-first-prompt-sha' || a.kind === 'multi-user-prompt') ? 'collision-suspect' : 'unique-binding-observed',
 };
 
 // 6. Tally: planned vs observed task set — recorded, never smoothed.

@@ -106,7 +106,7 @@ function checkCursor(T) {
   for (const d of jl.deviations || []) {
     const src = bySeq.get(d.seq);
     if (!src) { errs.push('deviations[] seq ' + d.seq + ' has no jsonl source row'); continue; }
-    if (src.type !== d.type || src.source_run_id !== undefined && src.run_id !== d.source_run_id) {
+    if (src.type !== d.type || (src.run_id || null) !== (d.source_run_id || null)) {
       errs.push('deviations[] seq ' + d.seq + ' diverges from jsonl source row');
     }
   }

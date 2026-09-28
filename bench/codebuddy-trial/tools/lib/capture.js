@@ -106,7 +106,11 @@ function extractTranscript(file) {
     files_edited: [], verify_run: false, session_id: null,
     parse_errors: 0,
   };
-  const VERIFY_RE = /\b(npms+(test|runs+test)|npxs+jest|jest|nodes+--test|pytest|gos+test|cargos+test|dotnets+test|mvns+test|gradle(w)?s+test|makes+test)\b/i;
+  // audit-grill-t31 R-1: the whitespace classes were eaten at authoring
+  // (literal `s` where `\s` belonged — escape-layer signature). Covers
+  // npm/npx/pnpm/yarn/node/go/cargo/dotnet/mvn/gradle(w)/make and the bare
+  // runner words jest/vitest/pytest.
+  const VERIFY_RE = /\b(?:npm\s+(?:test|run\s+test)|npx\s+(?:jest|vitest|mocha|pytest)|pnpm\s+(?:test|run\s+test)|yarn\s+test|node\s+--test|go\s+test|cargo\s+test|dotnet\s+test|mvn\s+test|gradle(?:w)?\s+test|make\s+test|jest|vitest|pytest)\b/i;
   for (const r of parsed.rows) {
     if (r.parse_error) { info.parse_errors++; continue; }
     const o = r.obj;

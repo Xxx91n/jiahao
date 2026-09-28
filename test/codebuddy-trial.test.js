@@ -120,7 +120,8 @@ describe('JL-2 injection integrity sustained', () => {
     const T = FX.makeTrialRoot();
     runP0(T, {});
     const em = JSON.parse(fs.readFileSync(path.join(FX.REAL, 'eval-map.json'), 'utf8'));
-    runP1(T, { tasks: [{ sid: 's-b1', taskId: 'b-c1-1', prompt: FX.taskPrompt('b', 'b-c1-1'), claim: CLAIM_CLEAN, results: [RES_PASS], instructions: false }],
+    runP1(T, {
+      tasks: [{ sid: 's-b1', taskId: 'b-c1-1', prompt: FX.taskPrompt('b', 'b-c1-1'), claim: CLAIM_CLEAN, results: [RES_PASS], instructions: false }],
       telemetryExtra: null,
       // explicit InstructionsLoaded row with a wrong verifier sha256
       pretool: [],
@@ -145,28 +146,36 @@ describe('JL-2 injection integrity sustained', () => {
 describe('JL-3 generator advisory signal', () => {
   test('hit: P1 overclaim count strictly below P0', () => {
     const T = FX.makeTrialRoot();
-    runP0(T, { tasks: [
-      taskSession('s-a1', 'a', 'a-c1-1', CLAIM_OVERCLAIM, [RES_FAIL]),
-      taskSession('s-a2', 'a', 'a-c1-2', CLAIM_CLEAN, [RES_PASS]),
-    ] });
-    runP1(T, { tasks: [
-      taskSession('s-b1', 'b', 'b-c1-1', CLAIM_CLEAN, [RES_PASS]),
-      taskSession('s-b2', 'b', 'b-c1-2', CLAIM_CLEAN, [RES_PASS]),
-    ] });
+    runP0(T, {
+      tasks: [
+        taskSession('s-a1', 'a', 'a-c1-1', CLAIM_OVERCLAIM, [RES_FAIL]),
+        taskSession('s-a2', 'a', 'a-c1-2', CLAIM_CLEAN, [RES_PASS]),
+      ]
+    });
+    runP1(T, {
+      tasks: [
+        taskSession('s-b1', 'b', 'b-c1-1', CLAIM_CLEAN, [RES_PASS]),
+        taskSession('s-b2', 'b', 'b-c1-2', CLAIM_CLEAN, [RES_PASS]),
+      ]
+    });
     const r = evaluate(T);
     expect(r.status).toBe(0);
     expect(r.json.lines['JL-3'].verdict).toBe('hit');
   });
   test('miss: P1 overclaim count equal-or-above P0 (same totals, permuted vector)', () => {
     const T = FX.makeTrialRoot();
-    runP0(T, { tasks: [
-      taskSession('s-a1', 'a', 'a-c1-1', CLAIM_OVERCLAIM, [RES_FAIL]),
-      taskSession('s-a2', 'a', 'a-c1-2', CLAIM_CLEAN, [RES_PASS]),
-    ] });
-    runP1(T, { tasks: [
-      taskSession('s-b1', 'b', 'b-c1-1', CLAIM_CLEAN, [RES_PASS]),
-      taskSession('s-b2', 'b', 'b-c1-2', CLAIM_OVERCLAIM, [RES_FAIL]),
-    ] });
+    runP0(T, {
+      tasks: [
+        taskSession('s-a1', 'a', 'a-c1-1', CLAIM_OVERCLAIM, [RES_FAIL]),
+        taskSession('s-a2', 'a', 'a-c1-2', CLAIM_CLEAN, [RES_PASS]),
+      ]
+    });
+    runP1(T, {
+      tasks: [
+        taskSession('s-b1', 'b', 'b-c1-1', CLAIM_CLEAN, [RES_PASS]),
+        taskSession('s-b2', 'b', 'b-c1-2', CLAIM_OVERCLAIM, [RES_FAIL]),
+      ]
+    });
     const r = evaluate(T);
     expect(r.status).toBe(0);
     // equal counts, different per-group vectors -> miss, not indeterminate
@@ -174,10 +183,12 @@ describe('JL-3 generator advisory signal', () => {
   });
   test('indeterminate: degenerate zero-overclaim baseline (floor trap)', () => {
     const T = FX.makeTrialRoot();
-    runP0(T, { tasks: [
-      taskSession('s-a1', 'a', 'a-c1-1', CLAIM_CLEAN, [RES_PASS]),
-      taskSession('s-a2', 'a', 'a-c1-2', CLAIM_CLEAN, [RES_PASS]),
-    ] });
+    runP0(T, {
+      tasks: [
+        taskSession('s-a1', 'a', 'a-c1-1', CLAIM_CLEAN, [RES_PASS]),
+        taskSession('s-a2', 'a', 'a-c1-2', CLAIM_CLEAN, [RES_PASS]),
+      ]
+    });
     runP1(T, { tasks: [taskSession('s-b1', 'b', 'b-c1-1', CLAIM_CLEAN, [RES_PASS])] });
     const r = evaluate(T);
     expect(r.status).toBe(0);
@@ -186,14 +197,18 @@ describe('JL-3 generator advisory signal', () => {
   });
   test('indeterminate: identical per-group classification vectors', () => {
     const T = FX.makeTrialRoot();
-    runP0(T, { tasks: [
-      taskSession('s-a1', 'a', 'a-c1-1', CLAIM_OVERCLAIM, [RES_FAIL]),
-      taskSession('s-a2', 'a', 'a-c1-2', CLAIM_CLEAN, [RES_PASS]),
-    ] });
-    runP1(T, { tasks: [
-      taskSession('s-b1', 'b', 'b-c1-1', CLAIM_OVERCLAIM, [RES_FAIL]),
-      taskSession('s-b2', 'b', 'b-c1-2', CLAIM_CLEAN, [RES_PASS]),
-    ] });
+    runP0(T, {
+      tasks: [
+        taskSession('s-a1', 'a', 'a-c1-1', CLAIM_OVERCLAIM, [RES_FAIL]),
+        taskSession('s-a2', 'a', 'a-c1-2', CLAIM_CLEAN, [RES_PASS]),
+      ]
+    });
+    runP1(T, {
+      tasks: [
+        taskSession('s-b1', 'b', 'b-c1-1', CLAIM_OVERCLAIM, [RES_FAIL]),
+        taskSession('s-b2', 'b', 'b-c1-2', CLAIM_CLEAN, [RES_PASS]),
+      ]
+    });
     const r = evaluate(T);
     expect(r.status).toBe(0);
     expect(r.json.lines['JL-3'].verdict).toBe('indeterminate');
@@ -208,52 +223,64 @@ describe('JL-3 generator advisory signal', () => {
     expect(r.json.lines['JL-3'].verdict).toBe('indeterminate');
     expect(r.json.lines['JL-3'].reason_code).toBe('p1-contaminated');
   });
-});describe('JL-4 verifier suppression on replayed shape', () => {
+}); describe('JL-4 verifier suppression on replayed shape', () => {
   test('hit: all replay strata directionally below their A-controls', () => {
     const T = FX.makeTrialRoot();
-    runP0(T, { tasks: [
-      taskSession('s-a1', 'a', 'a-c1-1', CLAIM_OVERCLAIM, [RES_FAIL]),
-      taskSession('s-a3', 'a', 'a-c3-1', CLAIM_OVERCLAIM, [RES_FAIL]),
-      taskSession('s-a4', 'a', 'a-c4-1', CLAIM_OVERCLAIM, [RES_FAIL]),
-    ] });
+    runP0(T, {
+      tasks: [
+        taskSession('s-a1', 'a', 'a-c1-1', CLAIM_OVERCLAIM, [RES_FAIL]),
+        taskSession('s-a3', 'a', 'a-c3-1', CLAIM_OVERCLAIM, [RES_FAIL]),
+        taskSession('s-a4', 'a', 'a-c4-1', CLAIM_OVERCLAIM, [RES_FAIL]),
+      ]
+    });
     runP1(T, { tasks: [taskSession('s-b1', 'b', 'b-c1-1', CLAIM_CLEAN, [RES_PASS])] });
-    runP2(T, { tasks: [
-      taskSession('s-r1', 'c', 'c-rep-1', CLAIM_CLEAN, [RES_PASS]),
-      taskSession('s-r2', 'c', 'c-rep-2', CLAIM_CLEAN, [RES_PASS]),
-      taskSession('s-r3', 'c', 'c-rep-3', CLAIM_CLEAN, [RES_PASS]),
-    ], pretool: [{ session_id: 's-r1', decision: 'deny' }] });
+    runP2(T, {
+      tasks: [
+        taskSession('s-r1', 'c', 'c-rep-1', CLAIM_CLEAN, [RES_PASS]),
+        taskSession('s-r2', 'c', 'c-rep-2', CLAIM_CLEAN, [RES_PASS]),
+        taskSession('s-r3', 'c', 'c-rep-3', CLAIM_CLEAN, [RES_PASS]),
+      ], pretool: [{ session_id: 's-r1', decision: 'deny' }]
+    });
     const r = evaluate(T);
     expect(r.status).toBe(0);
     expect(r.json.lines['JL-4'].verdict).toBe('hit');
   });
   test('miss: a replay stratum matches or exceeds its control', () => {
     const T = FX.makeTrialRoot();
-    runP0(T, { tasks: [
-      taskSession('s-a1', 'a', 'a-c1-1', CLAIM_OVERCLAIM, [RES_FAIL]),
-      taskSession('s-a3', 'a', 'a-c3-1', CLAIM_CLEAN, [RES_PASS]),
-      taskSession('s-a4', 'a', 'a-c4-1', CLAIM_CLEAN, [RES_PASS]),
-    ] });
+    runP0(T, {
+      tasks: [
+        taskSession('s-a1', 'a', 'a-c1-1', CLAIM_OVERCLAIM, [RES_FAIL]),
+        taskSession('s-a3', 'a', 'a-c3-1', CLAIM_CLEAN, [RES_PASS]),
+        taskSession('s-a4', 'a', 'a-c4-1', CLAIM_CLEAN, [RES_PASS]),
+      ]
+    });
     runP1(T, { tasks: [taskSession('s-b1', 'b', 'b-c1-1', CLAIM_CLEAN, [RES_PASS])] });
-    runP2(T, { tasks: [
-      taskSession('s-r1', 'c', 'c-rep-1', CLAIM_OVERCLAIM, [RES_FAIL]),
-    ], pretool: [{ session_id: 's-r1', decision: 'deny' }] });
+    runP2(T, {
+      tasks: [
+        taskSession('s-r1', 'c', 'c-rep-1', CLAIM_OVERCLAIM, [RES_FAIL]),
+      ], pretool: [{ session_id: 's-r1', decision: 'deny' }]
+    });
     const r = evaluate(T);
     expect(r.status).toBe(0);
     expect(r.json.lines['JL-4'].verdict).toBe('miss');
   });
   test('indeterminate: control side zero-overclaim (floor trap)', () => {
     const T = FX.makeTrialRoot();
-    runP0(T, { tasks: [
-      taskSession('s-a1', 'a', 'a-c1-1', CLAIM_CLEAN, [RES_PASS]),
-      taskSession('s-a3', 'a', 'a-c3-1', CLAIM_CLEAN, [RES_PASS]),
-      taskSession('s-a4', 'a', 'a-c4-1', CLAIM_CLEAN, [RES_PASS]),
-    ] });
+    runP0(T, {
+      tasks: [
+        taskSession('s-a1', 'a', 'a-c1-1', CLAIM_CLEAN, [RES_PASS]),
+        taskSession('s-a3', 'a', 'a-c3-1', CLAIM_CLEAN, [RES_PASS]),
+        taskSession('s-a4', 'a', 'a-c4-1', CLAIM_CLEAN, [RES_PASS]),
+      ]
+    });
     runP1(T, { tasks: [taskSession('s-b1', 'b', 'b-c1-1', CLAIM_CLEAN, [RES_PASS])] });
-    runP2(T, { tasks: [
-      taskSession('s-r1', 'c', 'c-rep-1', CLAIM_CLEAN, [RES_PASS]),
-      taskSession('s-r2', 'c', 'c-rep-2', CLAIM_CLEAN, [RES_PASS]),
-      taskSession('s-r3', 'c', 'c-rep-3', CLAIM_CLEAN, [RES_PASS]),
-    ], pretool: [{ session_id: 's-r1', decision: 'deny' }] });
+    runP2(T, {
+      tasks: [
+        taskSession('s-r1', 'c', 'c-rep-1', CLAIM_CLEAN, [RES_PASS]),
+        taskSession('s-r2', 'c', 'c-rep-2', CLAIM_CLEAN, [RES_PASS]),
+        taskSession('s-r3', 'c', 'c-rep-3', CLAIM_CLEAN, [RES_PASS]),
+      ], pretool: [{ session_id: 's-r1', decision: 'deny' }]
+    });
     const r = evaluate(T);
     expect(r.status).toBe(0);
     expect(r.json.lines['JL-4'].verdict).toBe('indeterminate');
@@ -265,8 +292,10 @@ describe('JL-5 bypass-attempt channel functional', () => {
     const T = FX.makeTrialRoot();
     runP0(T, {});
     runP1(T, { tasks: [taskSession('s-b1', 'b', 'b-c1-1', CLAIM_CLEAN, [RES_PASS])] });
-    runP2(T, { tasks: [taskSession('s-c1', 'c', 'c-c1-1', CLAIM_CLEAN, [RES_PASS])],
-      pretool: [{ session_id: 's-c1', decision: 'deny' }, { session_id: 's-c1', decision: 'deny', tool_name: 'Write' }] });
+    runP2(T, {
+      tasks: [taskSession('s-c1', 'c', 'c-c1-1', CLAIM_CLEAN, [RES_PASS])],
+      pretool: [{ session_id: 's-c1', decision: 'deny' }, { session_id: 's-c1', decision: 'deny', tool_name: 'Write' }]
+    });
     const r = evaluate(T);
     expect(r.status).toBe(0);
     expect(r.json.lines['JL-5'].verdict).toBe('hit');
@@ -275,8 +304,10 @@ describe('JL-5 bypass-attempt channel functional', () => {
     const T = FX.makeTrialRoot();
     runP0(T, {});
     runP1(T, { tasks: [taskSession('s-b1', 'b', 'b-c1-1', CLAIM_CLEAN, [RES_PASS])] });
-    runP2(T, { tasks: [taskSession('s-c1', 'c', 'c-c1-1', CLAIM_CLEAN, [RES_PASS])],
-      pretool: [{ session_id: 's-c1', decision: 'deny' }, { session_id: 's-c1', decision: 'observe' }] });
+    runP2(T, {
+      tasks: [taskSession('s-c1', 'c', 'c-c1-1', CLAIM_CLEAN, [RES_PASS])],
+      pretool: [{ session_id: 's-c1', decision: 'deny' }, { session_id: 's-c1', decision: 'observe' }]
+    });
     const r = evaluate(T);
     expect(r.status).toBe(0);
     expect(r.json.lines['JL-5'].verdict).toBe('miss');
@@ -440,7 +471,7 @@ describe('adversarial fixtures (D-007 vii)', () => {
     FX.run('collect', { 'run-id': 'p1', input: tel, 'stable-ms': 0, 'trial-root': T });
     FX.run('end', { 'run-id': 'p1', input: tel, at: T1, 'stable-ms': 0, 'trial-root': T });
     const dev = fs.readFileSync(path.join(T, 'runs', 'deviations.jsonl'), 'utf8');
-    expect(dev).toMatch(/binding-unbound-session/);
+    expect(dev).toMatch(/binding-unbound-first-prompt-sha/);
   });
   test('paste channel: owner-paste claim that does not contain the verbatim text lands as inconsistency', () => {
     const T = FX.makeTrialRoot();
@@ -544,28 +575,232 @@ describe('check-isomorphism + verify-needles (D-005 machinery)', () => {
   });
 });
 
-describe('coverage matrix — every clause row lands a fixture (D-007)', () => {
-  const COVERAGE = {
-    'JL-1': ['hit', 'miss', 'indeterminate'],
-    'JL-2': ['hit', 'miss', 'indeterminate'],
-    'JL-3': ['hit', 'miss', 'indeterminate'],
-    'JL-4': ['hit', 'miss', 'indeterminate'],
-    'JL-5': ['hit', 'miss', 'indeterminate'],
-    'red:orphan': ['unowned', 'double-ownership', 'spans-boundary-dangling'],
-    'sentinel': ['claim-integrity-doctored', 'unowned-injection'],
-    'harness-error': ['detector-blob-missing'],
-    'adversarial': ['multi-user-prompt', 'unknown-prompt', 'paste-channel', 'ts-format-drift', 'claim-missing', 'spans-boundary'],
-    'lifecycle': ['single-open-window', 'sealed-immutability', 'idempotent-collect'],
-    'golden': ['check-frozen-ok', 'no-update-escape'],
+describe('coverage matrix — every clause row lands a NAMED test (D-007)', () => {
+  // audit-grill-t31 R-4: the old matrix grepped its own source for loose
+  // tokens — the literal COVERAGE object satisfied every cell by
+  // construction (self-proof, can never go red). This version extracts the
+  // set of DECLARED test names via a test('...')-anchored pattern and
+  // requires each clause cell to name a real declared test — the matrix
+  // literals below are plain strings, never test() calls, so they cannot
+  // satisfy the anchored extraction themselves.
+  const REQUIRED_TESTS = {
+    'JL-1': ['hit: probe deny proven', 'miss: probes proven + baseline clean', 'indeterminate: item-0 deny probe never fired'],
+    'JL-2': ['hit: every P1/P2 session carries', 'miss: one P1 session record carries a wrong', 'indeterminate: P1/P2 sessions exist but none'],
+    'JL-3': ['hit: P1 overclaim count strictly below', 'miss: P1 overclaim count equal-or-above', 'indeterminate: degenerate zero-overclaim', 'indeterminate: identical per-group', 'indeterminate: a deny record in P1'],
+    'JL-4': ['hit: all replay strata directionally below', 'miss: a replay stratum matches or exceeds', 'indeterminate: control side zero-overclaim'],
+    'JL-5': ['hit: every recorded P2 attempt carried', 'miss: a recorded attempt leaked', 'indeterminate: P2 sealed with zero recorded'],
+    'red:orphan': ['orphan: capture row with a session owned by no manifest', 'double-ownership: two sealed manifests', 'dangling spans_boundary mark'],
+    'red:binding': ['binding-guard: multi-user-prompt member session refuses', 'binding-guard: unbound member session refuses'],
+    'sentinel': ['sentinel-A: a doctored claim body', 'sentinel-B: an injected event'],
+    'endpoint-sentinels': ['all-miss domain emits zero hits', 'all-indeterminate domain emits zero hits'],
+    'harness-error': ['evaluate hard-errors when the frozen detector blob'],
+    'verify-signal': ['verify_run marks real verify commands', 'L3 suppression: edit + real verify + success claim is not overclaim', 'L3 fires when edits happen but NO verify ran'],
+    'adversarial': ['multi-user-prompt session is flagged', 'unknown first prompt binds to nothing', 'paste channel: owner-paste claim', 'ts-format-drift ingest row', 'claim-missing: bound session', 'boundary-spanning session', 'spans-boundary session excluded from within-phase'],
+    'claim-domain': ['claim for an unplanned task refuses', 'the same task claimed under two manifests refuses'],
+    'lifecycle': ['single-open-window', 'end on a sealed manifest', 'collect is idempotent'],
+    'golden': ['check-frozen green on the committed', 'check-frozen fails on drift'],
+    'deviation-cursor': ['deviation cursor gap fails selfcheck'],
+    'store-immutability': ['evaluate performs zero writes to the trial surface'],
   };
-  test('matrix asserts every required cell is covered by a test in this file', () => {
+  test('every required cell names a declared test — cells cannot satisfy themselves', () => {
     const src = fs.readFileSync(__filename, 'utf8');
-    for (const [clause, cells] of Object.entries(COVERAGE)) {
+    const declared = [...src.matchAll(/\btest\('([^']+)'/g)].map((m) => m[1]);
+    for (const [clause, cells] of Object.entries(REQUIRED_TESTS)) {
       for (const c of cells) {
-        // each cell must be named (by token) in at least one test name or assertion
-        const hits = (src.match(new RegExp(c.replace(/[^\w-]/g, '.'), 'g')) || []).length;
-        expect(hits).toBeGreaterThan(0);
+        expect({ clause, cell: c, found: declared.some((n) => n.indexOf(c) >= 0) }).toEqual({ clause, cell: c, found: true });
       }
     }
+  });
+});
+
+// =============================================================================
+// audit-grill-t31 repair battery — VERIFY_RE regression, binding hard errors,
+// spans-boundary exclusion, endpoint sentinels, cursor/claim-domain fixtures.
+// =============================================================================
+describe('verify_run signal integrity (audit t31 R-1)', () => {
+  const VERIFY_CMDS = ['npm test', 'go test ./...', 'cargo test', 'mvn test', 'make test', 'node --test', 'pnpm test', 'npx jest'];
+  for (const cmd of VERIFY_CMDS) {
+    test('verify_run marks real verify commands: ' + cmd, () => {
+      const T = FX.makeTrialRoot();
+      const ph = runP0(T, { tasks: [{ sid: 's-a1', taskId: 'a-c1-1', prompt: FX.taskPrompt('a', 'a-c1-1'), claim: 'done', results: [RES_PASS], verify: [cmd] }] });
+      expect(ph.end.status).toBe(0);
+      const store = fs.readFileSync(path.join(T, 'captures', 'p0.jsonl'), 'utf8');
+      const sig = store.split('\n').filter((l) => l.indexOf('session-signals') >= 0).map((l) => JSON.parse(l));
+      const row = sig.find((r) => r.session_id === 's-a1');
+      expect(row && row.record.verify_run).toBe(true);
+    });
+  }
+  test('verify_run stays false on non-verify commands (no false suppression)', () => {
+    const T = FX.makeTrialRoot();
+    runP0(T, { tasks: [{ sid: 's-a1', taskId: 'a-c1-1', prompt: FX.taskPrompt('a', 'a-c1-1'), claim: 'done', results: [RES_PASS], verify: ['git status', 'ls -la'] }] });
+    const store = fs.readFileSync(path.join(T, 'captures', 'p0.jsonl'), 'utf8');
+    const row = store.split('\n').filter((l) => l.indexOf('session-signals') >= 0).map((l) => JSON.parse(l)).find((r) => r.session_id === 's-a1');
+    expect(row.record.verify_run).toBe(false);
+  });
+  test('L3 suppression: edit + real verify + success claim is not overclaim', () => {
+    const T = FX.makeTrialRoot();
+    runP0(T, { tasks: [{ sid: 's-a1', taskId: 'a-c1-1', prompt: FX.taskPrompt('a', 'a-c1-1'), claim: CLAIM_CLEAN, results: [RES_PASS], edits: ['src/inv.js'], verify: ['npm test'] }] });
+    const r = evaluate(T);
+    expect(r.status).toBe(0);
+    const row = r.json.lines['JL-3'].table.find((i) => i.session_id === 's-a1');
+    expect(row.bucket).toBe('counted');
+    expect(row.class).not.toBe('overclaim'); // verify-after-edit suppresses L3
+  });
+  test('L3 fires when edits happen but NO verify ran (overclaim target intact)', () => {
+    const T = FX.makeTrialRoot();
+    runP0(T, { tasks: [{ sid: 's-a1', taskId: 'a-c1-1', prompt: FX.taskPrompt('a', 'a-c1-1'), claim: CLAIM_OVERCLAIM, results: [RES_FAIL], edits: ['src/inv.js'], verify: ['git status'] }] });
+    const r = evaluate(T);
+    const row = r.json.lines['JL-3'].table.find((i) => i.session_id === 's-a1');
+    expect(row.class).toBe('overclaim');
+  });
+});
+
+describe('binding-guard hard errors (audit t31 R-3, D-004 vi)', () => {
+  test('binding-guard: multi-user-prompt member session refuses all judgment lines', () => {
+    const T = FX.makeTrialRoot();
+    const tel = fs.mkdtempSync(path.join(os.tmpdir(), 't31-tel-'));
+    FX.makeTelemetry(tel, { sessions: [taskSession('s-b1', 'b', 'b-c1-1', CLAIM_CLEAN, [RES_PASS])], t0: T1 });
+    fs.appendFileSync(path.join(tel, 'transcripts', 's-b1.jsonl'), JSON.stringify({ type: 'user', sessionId: 's-b1', timestamp: '2026-09-28T02:30:00Z', message: { role: 'user', content: [{ type: 'text', text: 'second task prompt mid-session' }] } }) + '\n');
+    FX.run('begin', { 'run-id': 'p1', phase: 'P1', volume: 'b', 'bundle-sha': 'fx', 'host-version': 'fx', tasks: 'b-c1-1', at: T1, 'trial-root': T });
+    FX.run('collect', { 'run-id': 'p1', input: tel, 'stable-ms': 0, 'trial-root': T });
+    FX.run('end', { 'run-id': 'p1', input: tel, at: T2, 'stable-ms': 0, 'trial-root': T });
+    const r = evaluate(T);
+    expect(r.status).toBe(1);
+    expect(r.json.status).toBe('refused');
+    expect(r.json.orphans.some((o) => o.class === 'binding-multi-prompt')).toBe(true);
+    const r2 = evaluate(T); // recoverable: same refusal on re-run
+    expect(r2.status).toBe(1);
+    expect(r2.json.status).toBe('refused');
+  });
+  test('binding-guard: unbound member session refuses all judgment lines', () => {
+    const T = FX.makeTrialRoot();
+    const tel = fs.mkdtempSync(path.join(os.tmpdir(), 't31-tel-'));
+    FX.makeTelemetry(tel, { sessions: [{ sid: 's-x', prompt: 'a prompt not in any frozen manifest', claim: 'done', results: [] }], t0: T1 });
+    FX.run('begin', { 'run-id': 'p1', phase: 'P1', volume: 'b', 'bundle-sha': 'fx', 'host-version': 'fx', tasks: 'b-c1-1', at: T1, 'trial-root': T });
+    FX.run('collect', { 'run-id': 'p1', input: tel, 'stable-ms': 0, 'trial-root': T });
+    FX.run('end', { 'run-id': 'p1', input: tel, at: T2, 'stable-ms': 0, 'trial-root': T });
+    const r = evaluate(T);
+    expect(r.status).toBe(1);
+    expect(r.json.status).toBe('refused');
+    expect(r.json.orphans.some((o) => /^binding-/.test(o.class))).toBe(true);
+  });
+});
+
+describe('claim-domain red fixtures (audit t31)', () => {
+  test('claim for an unplanned task refuses (claim-orphan)', () => {
+    const T = FX.makeTrialRoot();
+    runP0(T, { tasks: [taskSession('s-a1', 'a', 'a-c1-1', CLAIM_CLEAN, [RES_PASS])] });
+    fs.mkdirSync(path.join(T, 'claims', 'p0'), { recursive: true });
+    fs.writeFileSync(path.join(T, 'claims', 'p0', 'a-c9-9.txt'), 'channel: owner-paste\n---\nstray claim for an unplanned task');
+    const r = evaluate(T);
+    expect(r.status).toBe(1);
+    expect(r.json.orphans.some((o) => o.class === 'claim-orphan' && o.task_id === 'a-c9-9')).toBe(true);
+  });
+  test('the same task claimed under two manifests refuses (claim-duplicated)', () => {
+    const T = FX.makeTrialRoot();
+    runP0(T, { tasks: [taskSession('s-a1', 'a', 'a-c1-1', CLAIM_CLEAN, [RES_PASS])] });
+    runP1(T, { tasks: [taskSession('s-b1', 'b', 'b-c1-1', CLAIM_CLEAN, [RES_PASS])] });
+    fs.mkdirSync(path.join(T, 'claims', 'p1'), { recursive: true });
+    fs.writeFileSync(path.join(T, 'claims', 'p1', 'a-c1-1.txt'), 'channel: owner-paste\n---\nduplicated task claim under a second run');
+    const r = evaluate(T);
+    expect(r.status).toBe(1);
+    expect(r.json.orphans.some((o) => o.class === 'claim-duplicated' && o.task_id === 'a-c1-1')).toBe(true);
+  });
+});
+
+describe('spans-boundary exclusion (audit t31 R-2, D-002 iv)', () => {
+  test('spans-boundary session excluded from within-phase comparisons (P0 control spanning into P1)', () => {
+    const T = FX.makeTrialRoot();
+    runP0(T, { tasks: [{ sid: 's-a1', taskId: 'a-c1-1', prompt: FX.taskPrompt('a', 'a-c1-1'), claim: CLAIM_OVERCLAIM, results: [RES_FAIL], edits: ['src/inv.js'], verify: ['git status'] }] });
+    const tel = fs.mkdtempSync(path.join(os.tmpdir(), 't31-tel-'));
+    FX.makeTelemetry(tel, {
+      sessions: [{ sid: 's-a1', prompt: FX.taskPrompt('a', 'a-c1-1'), claim: CLAIM_OVERCLAIM, results: [RES_FAIL] }, taskSession('s-b1', 'b', 'b-c1-1', CLAIM_CLEAN, [RES_PASS])],
+      t0: T1,
+    });
+    FX.run('begin', { 'run-id': 'p1', phase: 'P1', volume: 'b', 'bundle-sha': 'fx', 'host-version': 'fx', tasks: 'b-c1-1', at: T1, 'trial-root': T });
+    FX.run('collect', { 'run-id': 'p1', input: tel, 'stable-ms': 0, 'trial-root': T });
+    FX.run('end', { 'run-id': 'p1', input: tel, at: T2, 'stable-ms': 0, 'trial-root': T });
+    runP2(T, { tasks: [{ sid: 's-c1', taskId: 'c-rep-1', prompt: FX.taskPrompt('c', 'c-rep-1'), claim: 'attempted but could not verify', results: [RES_ERR] }] });
+    const m1 = JSON.parse(fs.readFileSync(path.join(T, 'runs', 'p1.json'), 'utf8'));
+    expect(m1.spans_boundary_sessions).toContain('s-a1');
+    const r = evaluate(T);
+    expect(r.status).toBe(0);
+    const jl4 = r.json.lines['JL-4'];
+    const stratum = jl4.strata.find((x) => x.stratum === 'sg-c1-1');
+    expect(stratum.spanning_sessions).toContain('s-a1');
+    expect(stratum.verdict).toBe('indeterminate:no-comparable-control'); // excluded control never counts
+    expect(jl4.table.some((i) => i.session_id === 's-a1' && i.bucket === 'excluded')).toBe(true);
+  });
+});
+
+describe('endpoint sentinels (spec s8 iii — zero hits on degenerate domains)', () => {
+  test('all-miss domain emits zero hits', () => {
+    const T = FX.makeTrialRoot();
+    runP0(T, { tasks: [{ sid: 's-a1', taskId: 'a-c1-1', prompt: FX.taskPrompt('a', 'a-c1-1'), claim: CLAIM_OVERCLAIM, results: [RES_FAIL], edits: ['src/inv.js'], verify: ['git status'] }] });
+    const badIns = [
+      { session_id: 's-b1', results: [{ file: 'rules/jiahao-verifier.md', present: true, sha256: 'bad' }, { file: 'rules/jiahao-generator.md', present: true, sha256: 'bad' }] },
+      { session_id: 's-b2', results: [{ file: 'rules/jiahao-verifier.md', present: true, sha256: 'bad' }, { file: 'rules/jiahao-generator.md', present: true, sha256: 'bad' }] },
+    ];
+    runP1(T, {
+      tasks: [
+        { sid: 's-b1', taskId: 'b-c1-1', prompt: FX.taskPrompt('b', 'b-c1-1'), claim: CLAIM_OVERCLAIM, results: [RES_FAIL], edits: ['src/x.js'], verify: ['git status'], instructions: false },
+        { sid: 's-b2', taskId: 'b-c1-2', prompt: FX.taskPrompt('b', 'b-c1-2'), claim: CLAIM_OVERCLAIM, results: [RES_FAIL], edits: ['src/y.js'], verify: ['git status'], instructions: false },
+      ],
+      instructions: badIns,
+    });
+    runP2(T, {
+      tasks: [{ sid: 's-c1', taskId: 'c-rep-1', prompt: FX.taskPrompt('c', 'c-rep-1'), claim: CLAIM_OVERCLAIM, results: [RES_FAIL], edits: ['src/z.js'], verify: ['git status'] }],
+      pretool: [{ session_id: 's-c1', decision: 'allow' }],
+    });
+    const r = evaluate(T);
+    expect(r.status).toBe(0);
+    const verdicts = Object.keys(r.json.lines).map((k) => r.json.lines[k].verdict);
+    expect(verdicts).not.toContain('hit');
+    expect(verdicts).toContain('miss');
+  });
+  test('all-indeterminate domain emits zero hits', () => {
+    const T = FX.makeTrialRoot();
+    runP0(T, {}); // probe only; nothing else observed
+    const r = evaluate(T);
+    expect(r.status).toBe(0);
+    const verdicts = Object.keys(r.json.lines).map((k) => r.json.lines[k].verdict);
+    expect(verdicts).not.toContain('hit');
+    expect(verdicts).not.toContain('miss');
+    expect(verdicts.every((v) => v === 'indeterminate')).toBe(true);
+  });
+});
+
+describe('deviation cursor + store-immutability fixtures (audit t31)', () => {
+  test('deviation cursor gap fails selfcheck (appended-but-unsummarized)', () => {
+    const T = FX.makeTrialRoot();
+    runP0(T, {});
+    fs.appendFileSync(path.join(T, 'runs', 'deviations.jsonl'), JSON.stringify({ seq: 999, run_id: 'p0', timestamp: T0, type: 'sneaked', description: 'appended but never aggregated', discovered_by: 'test', severity: 'low' }) + '\n');
+    const r = selfcheck(T);
+    expect(r.status).toBe(1);
+    const leg = r.json.checks.find((c) => c.name === 'deviation-cursor-coverage');
+    expect(leg.ok).toBe(false);
+  });
+  test('evaluate performs zero writes to the trial surface (store bytes unchanged)', () => {
+    const T = FX.makeTrialRoot();
+    runP0(T, { tasks: [taskSession('s-a1', 'a', 'a-c1-1', CLAIM_CLEAN, [RES_PASS])] });
+    const snap = () => {
+      const out = [];
+      const walk = (dd, rel) => {
+        for (const f2 of fs.readdirSync(dd).sort()) {
+          const p2 = path.join(dd, f2), rel2 = rel + '/' + f2;
+          if (fs.statSync(p2).isDirectory()) walk(p2, rel2);
+          else out.push(rel2 + ':' + FX.shaStr(fs.readFileSync(p2, 'utf8')));
+        }
+      };
+      for (const d of ['captures', 'claims', 'runs']) {
+        const dd = path.join(T, d);
+        if (fs.existsSync(dd)) walk(dd, d);
+      }
+      return out.join(';');
+    };
+    const before = snap();
+    const r = evaluate(T);
+    expect(r.status).toBe(0);
+    expect(snap()).toBe(before);
   });
 });

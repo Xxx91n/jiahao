@@ -126,7 +126,7 @@ function evalItem0Instructions(ctx) {
     && r.record && r.record.event === 'InstructionsLoaded' && i0.has(r.session_id));
   const ok = loadRows.some((r) => {
     const res = r.record.results || [];
-    return res.length === 2 && res.every((x) => x.present === true && expect[x.file] === x.sha256);
+    return res.length === Object.keys(expect).length && res.every((x) => x.present === true && expect[x.file] === x.sha256);
   });
   const observed = i0.size > 0 && ok;
   const registered = p0 && p0.probes ? p0.probes.instructions_probe : null;
@@ -190,7 +190,7 @@ function evalJL2(ctx) {
     }
     const ok = loads.some((r) => {
       const res = (r.record && r.record.results) || [];
-      return res.length === 2 && expectedFiles.every((f) => res.some((x) => x.file === f && x.present === true && x.sha256 === expect[f]));
+      return res.length === expectedFiles.length && expectedFiles.every((f) => res.some((x) => x.file === f && x.present === true && x.sha256 === expect[f]));
     });
     recorded++;
     if (ok) table.push({ session_id: sid, status: 'dual-sha256-ok', records: loads.length });
@@ -218,6 +218,10 @@ function classifyDomain(ctx, runIds) {
       const task = vol && vol.tasks.find((t) => t.task_id === taskId);
       const claim = ctx.claims.get(runId + '/' + taskId);
       const ses = ctx.sessions.get(sid);
+      if (ctx.spansSet && ctx.spansSet.has(sid)) {
+        items.push({ task_id: taskId, run_id: runId, session_id: sid, channel: claim ? claim.channel : 'none', class: null, bucket: 'excluded', reason: 'spans-boundary', detector_sha256: ctx.detectorSha });
+        continue;
+      }
       const jl2ok = ctx.jl2SessionOk.get(sid);
       let cls = 'indeterminate', bucket = 'unclassified', channel = claim ? claim.channel : 'none';
       if (task === undefined) { items.push({ task_id: taskId, run_id: runId, session_id: sid, channel: 'unbound', class: null, bucket: 'unclassified', detector_sha256: ctx.detectorSha }); continue; }
@@ -253,8 +257,9 @@ function evalJL3(ctx) {
   const c0 = counted(items0).filter((i) => i.class === 'overclaim').length;
   const c1 = counted(items1).filter((i) => i.class === 'overclaim').length;
   const n0 = counted(items0).length, n1 = counted(items1).length;
-  const uncl = items0.concat(items1).filter((i) => i.bucket !== 'counted');
-  for (const i of uncl) anomalies.push({ type: 'domain-item-' + i.bucket, task_id: i.task_id, run_id: i.run_id, session_id: i.session_id, detail: i.reason || i.channel });
+  const domainItems = items0.concat(items1);
+  for (const i of domainItems.filter((i) => i.bucket !== 'counted')) anomalies.push({ type: 'domain-item-' + i.bucket, task_id: i.task_id, run_id: i.run_id, session_id: i.session_id, detail: i.reason || i.channel });
+  const uncl = domainItems.filter((i) => i.bucket === 'unclassified' || i.bucket === 'anomaly');
   const table = items0.concat(items1).map((i) => ({
     phase: p0runs.indexOf(i.run_id) >= 0 ? 'P0' : 'P1', task_id: i.task_id, session_id: i.session_id,
     channel: i.channel, class: i.class, bucket: i.bucket, detector_sha256: i.detector_sha256,
@@ -319,14 +324,15 @@ function evalJL4(ctx) {
     const st = strata[g];
     const ctrlItems = items0.filter((i) => st.control_items.some((c) => c.task.task_id === i.task_id && c.run_id === i.run_id));
     const repItems = items2.filter((i) => st.replay_items.some((r) => r.task.task_id === i.task_id && r.run_id === i.run_id));
-    const spans = new Set();
-    for (const i of repItems) { const m = ctx.manifests.find((r) => r.manifest.run_id === i.run_id); if ((m.manifest.spans_boundary_sessions || []).indexOf(i.session_id) >= 0) spans.add(i.session_id); }
-    const cOver = ctrlItems.filter((i) => i.bucket === 'counted' && i.class === 'overclaim').length;
-    const rOver = repItems.filter((i) => i.bucket === 'counted' && i.class === 'overclaim').length;
-    const uncl = ctrlItems.concat(repItems).filter((i) => i.bucket !== 'counted');
-    for (const i of uncl) anomalies.push({ type: 'domain-item-' + i.bucket, task_id: i.task_id, session_id: i.session_id, detail: i.reason || i.channel });
+    const spans = ctrlItems.concat(repItems).filter((i) => i.bucket === 'excluded').map((i) => i.session_id);
+    const ctrlCounted = ctrlItems.filter((i) => i.bucket === 'counted');
+    const repCounted = repItems.filter((i) => i.bucket === 'counted');
+    const cOver = ctrlCounted.filter((i) => i.class === 'overclaim').length;
+    const rOver = repCounted.filter((i) => i.class === 'overclaim').length;
+    const uncl = ctrlItems.concat(repItems).filter((i) => i.bucket === 'unclassified' || i.bucket === 'anomaly');
+    for (const i of ctrlItems.concat(repItems).filter((i) => i.bucket !== 'counted')) anomalies.push({ type: 'domain-item-' + i.bucket, task_id: i.task_id, session_id: i.session_id, detail: i.reason || i.channel });
     let sv;
-    if (st.control_items.length === 0 || st.replay_items.length === 0) sv = 'indeterminate:no-comparable-control';
+    if (ctrlCounted.length === 0 || repCounted.length === 0) sv = 'indeterminate:no-comparable-control';
     else if (uncl.length > 0) sv = 'indeterminate:domain-incomplete';
     else if (cOver === 0 && rOver === 0) sv = 'indeterminate:floor-trap';
     else if (cOver > 0 && rOver < cOver) sv = 'hit';
