@@ -31,11 +31,23 @@
 // are a maintainer-only asset; when none exist --check/--verify/default-write
 // exit 2 UNVERIFIABLE, never 1 - absence is a capability negative, not a red
 // map.
+//
+// ADR-0089 (grill-t32) supersedes the classification input surface: classes
+// derive from four declared facts - pair/removed tables, pinned published_tip
+// ancestry, cat-file object existence, orphan-cites registry membership.
+// Ref topology is demoted to the per-row `qualifiers.reachable_via` field
+// (written, displayed, never judged). --check compares classes/pairs/
+// resolved_to/counts only; qualifiers are exempt but weakly consistency-
+// checked. `unresolved` rows (absent AND unregistered) are hard red.
+// Injectable seams for the acceptance battery: opts.exec (low-level git call
+// failures only) + opts.now (clock) + opts.root (fixture repos).
 
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const { requireCapabilities, exitUnverifiable } = require('../src/shared/capability');
+const { forRoot, NO_REPLACE_ENV } = require('./git-facade');
+const oc = require('./orphan-cites');
 
 const ROOT = path.join(__dirname, '..');
 const OUT_REL = path.join('docs', 'rewrite-map.json');
@@ -44,8 +56,15 @@ const HEX_RE = /(^|[^0-9a-zA-Z_])([0-9a-f]{7,40})(?![0-9a-zA-Z_])/g;
 const DOC_PATH_RE = /^(docs\/|README\.md$|AGENTS\.md$|CONTEXT\.md$|\.scratch\/)/;
 const DOC_EXT_RE = /\.(md|json|txt|patch|jsonl)$/;
 
+// ADR-0089 D-006 seam: every git call on this path goes through git()/gitOk()
+// which dispatch to the injected executor when tests set one, and always run
+// under GIT_NO_REPLACE_OBJECTS=1 (replace semantics never enter declared
+// facts - ADR-0089 D-D). _root moves git+fs reads together for fixture repos.
+let _execOverride = null; // fn(args, opts) -> stdout string; throw on non-zero
+let _root = ROOT;
 function git(args, opts) {
-  return execFileSync('git', args, Object.assign({ cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }, opts || {}));
+  if (_execOverride) return String(_execOverride(args, opts));
+  return execFileSync('git', args, Object.assign({ cwd: _root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, env: NO_REPLACE_ENV }, opts || {}));
 }
 function gitOk(args) {
   try { git(args); return true; } catch (e) { return false; }
@@ -89,18 +108,6 @@ function discoverOldRefs(newRef, publishedSide) {
   });
 }
 
-// prefix-match a token against a sorted sha array; returns the match or null,
-// or the string 'ambiguous' when more than one object shares the prefix.
-function prefixLookup(sorted, token) {
-  let lo = 0, hi = sorted.length;
-  while (lo < hi) { const mid = (lo + hi) >> 1; if (sorted[mid] < token) lo = mid + 1; else hi = mid; }
-  const hits = [];
-  for (let i = lo; i < sorted.length && sorted[i].indexOf(token) === 0 && hits.length < 2; i++) hits.push(sorted[i]);
-  if (hits.length === 0) return null;
-  if (hits.length > 1) return 'ambiguous';
-  return hits[0];
-}
-
 function isEmptyCommit(sha) {
   // diff-tree with no output = empty commit (first-parent diff).
   const out = git(['diff-tree', '--no-commit-id', '--name-only', '-r', sha]);
@@ -111,7 +118,7 @@ function isEmptyCommit(sha) {
 // leg can assert inside fixture repos / arbitrary checkouts, never silently
 // against the ambient worktree.
 function gitAt(root, args) {
-  return execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).trim();
+  return execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, env: NO_REPLACE_ENV }).trim();
 }
 function gitOkAt(root, args) {
   try { gitAt(root, args); return true; } catch (e) { return false; }
@@ -136,7 +143,7 @@ function scanDocTokens() {
     .filter(function (f) { return f !== SELF && DOC_PATH_RE.test(f) && DOC_EXT_RE.test(f); }).sort();
   const out = [];
   for (const f of files) {
-    const abs = path.join(ROOT, f.split('/').join(path.sep));
+    const abs = path.join(_root, f.split('/').join(path.sep));
     let text;
     try { text = fs.readFileSync(abs, 'utf8'); } catch (e) { continue; }
     const lines = text.split('\n');
@@ -188,15 +195,89 @@ function scanDocTokensAt(root, ref) {
   return rows;
 }
 
-function build(oldRefs, newRef) {
+// ---- ADR-0089 D-006 injectable seams -------------------------------------
+// opts.exec(args, opts) -> stdout string, throws on non-zero: the ONLY mock
+// surface; tests delegate everything they do not fail to real git.
+// opts.now -> ISO timestamp string: ladder/exists_at clock injection.
+// opts.root: fixture-repo root (git cwd + doc-scan + registry load all move).
+function withSeams(opts, body) {
+  const o = opts || {};
+  const prevExec = _execOverride, prevRoot = _root;
+  if (o.exec) _execOverride = o.exec;
+  if (o.root) _root = o.root;
+  try { return body(); } finally { _execOverride = prevExec; _root = prevRoot; }
+}
+
+// Batch object facts for every unique cited token in one cat-file process
+// (declared fact 3: existence). Returns Map token -> {status:'ok',sha,type,
+// size} | {status:'absent'} | {status:'ambiguous'}. Ambiguous input lines are
+// re-resolved individually so 'ambiguous' is certain, never guessed.
+function batchObjectFacts(tokens) {
+  const facts = new Map();
+  let out;
+  try {
+    out = git(['cat-file', '--batch-check=%(objectname) %(objecttype) %(objectsize)'], { input: tokens.join('\n') + '\n' });
+  } catch (e) {
+    out = String(e.stdout || '');
+  }
+  const lines = String(out).split('\n');
+  const needsSolo = [];
+  for (let i = 0; i < tokens.length; i++) {
+    const line = (lines[i] || '').trim();
+    const m = /^([0-9a-f]{40}) (\S+) (\d+)$/.exec(line);
+    if (m) facts.set(tokens[i], { status: 'ok', sha: m[1], type: m[2], size: parseInt(m[3], 10) });
+    else if (/ missing$/.test(line)) facts.set(tokens[i], { status: 'absent' });
+    else needsSolo.push(tokens[i]);
+  }
+  for (const t of needsSolo) {
+    try {
+      const sha = git(['rev-parse', '--verify', '--quiet', t + '^{object}']).trim();
+      const ty = git(['cat-file', '-t', sha]).trim();
+      const sz = parseInt(git(['cat-file', '-s', sha]).trim(), 10);
+      facts.set(t, { status: 'ok', sha: sha, type: ty, size: sz });
+    } catch (e) {
+      if (/ambiguous/i.test(String(e.stderr || e.message))) facts.set(t, { status: 'ambiguous' });
+      else facts.set(t, { status: 'absent' });
+    }
+  }
+  return facts;
+}
+
+// committer/tagger timestamp for commit/tag objects (one spawn each - the
+// intrinsic mtime; blob/tree objects have none and get loose-file mtime or
+// null). Snapshot fields ride along for the registry-facing record.
+function commitMeta(sha) {
+  const text = git(['cat-file', 'commit', sha]);
+  const head = text.split('\n\n')[0].split('\n');
+  const f = function (k) { return head.filter(function (l) { return l.indexOf(k + ' ') === 0; }).map(function (l) { return l.slice(k.length + 1); }); };
+  const cts = />\s*(\d+)(\s|$)/.exec(f('committer')[0] || '');
+  return {
+    subject: text.split('\n\n').slice(1).join('\n\n').split('\n')[0] || null,
+    committer_ts: cts ? parseInt(cts[1], 10) : null,
+  };
+}
+function objectMtime(sha, type) {
+  if (type === 'commit') return commitMeta(sha).committer_ts;
+  if (type === 'tag') {
+    const text = git(['cat-file', 'tag', sha]);
+    const m = /tagger\s.*>\s+(\d+)/.exec(text);
+    return m ? parseInt(m[1], 10) : null;
+  }
+  const loose = path.join(_root, '.git', 'objects', sha.slice(0, 2), sha.slice(2));
+  try { return Math.floor(fs.statSync(loose).mtimeMs / 1000); } catch (e) { return null; }
+}
+
+function build(oldRefs, newRef, opts) {
+  return withSeams(opts, function () { return buildInner(oldRefs, newRef, opts || {}); });
+}
+function buildInner(oldRefs, newRef, o) {
+  const now = typeof o.now === 'function' ? o.now() : (o.now || new Date().toISOString());
   const oldLog = [];
   const seenOld = {};
   for (const r of oldRefs) {
     for (const m of logMeta(r)) { if (!seenOld[m.sha]) { seenOld[m.sha] = 1; oldLog.push(m); } }
   }
   const newLog = logMeta(newRef);
-  const newSet = {};
-  newLog.forEach(function (m) { newSet[m.sha] = 1; });
   const oldSet = {};
   oldLog.forEach(function (m) { oldSet[m.sha] = 1; });
 
@@ -240,41 +321,84 @@ function build(oldRefs, newRef) {
   oldOnly.forEach(function (m, i) { oldOrder[m.sha] = i; });
   commits.sort(function (a, b) { return oldOrder[a.old] - oldOrder[b.old]; });
 
-  // object sets for citation resolution
-  const pubObjects = new Set(revListObjects(newRef));
-  const oldObjects = new Set();
-  for (const r of oldRefs) for (const o of revListObjects(r)) oldObjects.add(o);
-  const allObjects = new Set(revListObjects('--all'));
-  const commitPool = Array.from(new Set(newLog.concat(oldLog).map(function (m) { return m.sha; }))).sort();
+  // ---- ADR-0089 declared-facts classification ----------------------------
+  // fact 1: the pair/removed tables (commits/removed, built above).
   const oldPairMap = {};
   commits.forEach(function (c) { oldPairMap[c.old] = c.new; });
   const removedSet = {};
   removed.forEach(function (m) { removedSet[m.sha] = 1; });
-  const objSorted = Array.from(new Set(Array.from(pubObjects).concat(Array.from(oldObjects), Array.from(allObjects)))).sort();
+  // fact 2: the pinned published_tip ancestry set.
+  const publishedObjects = new Set(revListObjects(newRef));
+  // fact 4: orphan-cites registry membership (load fails = fail-closed).
+  const registry = oc.loadRegistry(_root).reg;
+  const regErrors = oc.validateRegistry(registry);
+  if (regErrors.length) throw new Error('orphan-cites registry fails self-consistency:\n' + regErrors.join('\n'));
+  // fact 3: object existence, resolved in ONE batched cat-file process.
+  const occurrences = scanDocTokens();
+  const uniqTokens = Array.from(new Set(occurrences.map(function (x) { return x.sha; })));
+  const facts = batchObjectFacts(uniqTokens);
 
-  // doc citation classification over the shared token scan (see
-  // scanDocTokens - the raw occurrence set is also the --published-only
-  // coverage oracle).
+  // qualifier input only: reachable_via over display refs (per-ref object
+  // sets cached on this run - written and displayed, never judged).
+  const displayRefs = git(['for-each-ref', '--format=%(refname)']).split('\n')
+    .map(function (s) { return s.trim(); }).filter(Boolean)
+    .filter(function (r) { return r.indexOf('gitbutler') === -1 && r.indexOf('refs/replace/') !== 0 });
+  const refObjCache = new Map();
+  const objectsOf = function (ref) {
+    if (!refObjCache.has(ref)) refObjCache.set(ref, new Set(revListObjects(ref)));
+    return refObjCache.get(ref);
+  };
+  const reachableVia = function (sha) {
+    const via = [];
+    for (const r of displayRefs) {
+      try { if (objectsOf(r).has(sha)) via.push(r); } catch (e) { /* a ref failing enumeration is not reachability */ }
+    }
+    return via;
+  };
+
+  const nowTs = Date.parse(now) / 1000;
+  const mtimeCache = new Map();
   const docRefs = [];
   const problems = [];
-  for (const occ of scanDocTokens()) {
+  const warnings = [];
+  for (const occ of occurrences) {
     const f = occ.file, li = occ.line, token = occ.sha;
-    const hit = prefixLookup(commitPool, token);
+    const fact = facts.get(token);
+    if (fact && fact.status === 'ambiguous') { problems.push(f + ':' + li + ' ambiguous sha ' + token + ' (fail-closed)'); continue; }
+    let ent = null;
+    try { ent = oc.entryForToken(registry, token); }
+    catch (e) { problems.push(f + ':' + li + ' ' + e.message); continue; }
+    const orphanedAdj = ent !== null && ent.disposition === 'orphaned';
+    const sha40 = fact && fact.status === 'ok' ? fact.sha : null;
     let cls, resolvedTo = null, label;
-    if (hit === 'ambiguous') { problems.push(f + ':' + li + ' ambiguous sha ' + token); continue; }
-    if (hit && newSet[hit]) { cls = 'published-unchanged'; }
-    else if (hit && oldPairMap[hit]) { cls = 'rewritten'; resolvedTo = oldPairMap[hit]; }
-    else if (hit && removedSet[hit]) { cls = 'local-only'; label = 'old-side commit (removed by purge)'; }
-    else if (hit) { cls = 'local-only'; label = 'local commit'; }
-    else {
-      const ohit = prefixLookup(objSorted, token);
-      if (ohit === 'ambiguous') { problems.push(f + ':' + li + ' ambiguous object ' + token); continue; }
-      if (ohit && pubObjects.has(ohit)) cls = 'published-unchanged';
-      else if (ohit && oldObjects.has(ohit)) { cls = 'local-only'; label = 'pre-purge object'; }
-      else if (ohit) { cls = 'local-only'; label = 'local object'; }
-      else { cls = 'local-only'; label = 'unresolved hex literal'; }
+    if (sha40 && oldPairMap[sha40]) { cls = 'rewritten'; resolvedTo = oldPairMap[sha40]; }
+    else if (sha40 && publishedObjects.has(sha40)) { cls = 'published-unchanged'; }
+    else if (sha40 && removedSet[sha40]) { cls = 'local-only'; label = 'old-side commit (removed by purge)'; }
+    else if (orphanedAdj) { cls = 'orphaned-cite'; }
+    else if (sha40) { cls = 'local-only'; label = fact.type === 'commit' ? 'local commit' : 'local object'; }
+    else { cls = 'unresolved'; }
+    const via = sha40 ? reachableVia(sha40) : [];
+    let mt = null;
+    if (sha40) { if (!mtimeCache.has(sha40)) mtimeCache.set(sha40, objectMtime(sha40, fact.type)); mt = mtimeCache.get(sha40); }
+    // stage-2 (ADR-0089 D-E): exists + unreachable + unregistered + over-age
+    // -> map warning channel ("register while alive"); the leg owns stage 3.
+    if (sha40 && cls === 'local-only' && !ent && via.length === 0) {
+      const ageDays = mt === null ? Infinity : (nowTs - mt) / 86400;
+      if (ageDays > oc.ORPHAN_AGE_DAYS) {
+        warnings.push({ sha: sha40, file: f, line: li, age_days: mt === null ? null : Math.floor(ageDays), kind: 'orphan-window-open' });
+      }
     }
-    docRefs.push({ file: f, line: li, sha: token, 'class': cls, resolved_to: resolvedTo, label: label });
+    docRefs.push({
+      file: f, line: li, sha: token, 'class': cls, resolved_to: resolvedTo,
+      label: label,
+      qualifiers: {
+        exists_at: now,
+        object_mtime: mt,
+        object_type: sha40 ? fact.type : null,
+        object_size: sha40 ? fact.size : null,
+        reachable_via: via,
+      },
+    });
   }
   if (problems.length) throw new Error('unresolvable citations:\n' + problems.join('\n'));
 
@@ -290,8 +414,8 @@ function build(oldRefs, newRef) {
   const same = sameRaw ? sameRaw.split('\n').map(function (l) { const z = l.indexOf('\u0000'); return { sha: l.slice(0, z), subject: l.slice(z + 1) }; }) : [];
 
   return {
-    schema_version: 1,
-    _doc: 'ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.',
+    schema_version: 2,
+    _doc: 'ADR-0074 D-C + ADR-0089: append-only, tool-generated single translation point. Classes derive from declared facts (pair/removed tables, pinned published_tip ancestry, cat-file existence, orphan-cites registry); ref topology lives only in qualifiers.reachable_via. Regenerate: node scripts/build-rewrite-map.js; verify: --check.',
     generated_by: 'scripts/build-rewrite-map.js',
     generated_at: new Date().toISOString(),
     published_tip: git(['rev-parse', newRef]).trim(),
@@ -306,18 +430,35 @@ function build(oldRefs, newRef) {
       doc_refs_by_class: {
         rewritten: docRefs.filter(function (d) { return d['class'] === 'rewritten'; }).length,
         'local-only': docRefs.filter(function (d) { return d['class'] === 'local-only'; }).length,
-        'published-unchanged': docRefs.filter(function (d) { return d['class'] === 'published-unchanged'; }).length
+        'published-unchanged': docRefs.filter(function (d) { return d['class'] === 'published-unchanged'; }).length,
+        'orphaned-cite': docRefs.filter(function (d) { return d['class'] === 'orphaned-cite'; }).length,
+        'unresolved': docRefs.filter(function (d) { return d['class'] === 'unresolved'; }).length
       }
     },
+    warnings: warnings,
     commits: commits,
     removed: removed.map(function (m) { return { old: m.sha, new: null, subject: m.subject }; }),
     published_only: publishedOnly,
     same: same,
-    doc_refs: docRefs.map(function (d) { const r = { file: d.file, line: d.line, sha: d.sha, 'class': d['class'], resolved_to: d.resolved_to }; if (d.label) r.label = d.label; return r; })
+    doc_refs: docRefs.map(function (d) {
+      const r = { file: d.file, line: d.line, sha: d.sha, 'class': d['class'], resolved_to: d.resolved_to };
+      if (d.label) r.label = d.label;
+      r.qualifiers = d.qualifiers;
+      return r;
+    })
   };
 }
 
-function verify(map) {
+// doc_refs equality domain (ADR-0089 D-F): qualifiers are exempt - strip them.
+function refFacts(rows) {
+  return (rows || []).map(function (d) {
+    const r = { file: d.file, line: d.line, sha: d.sha, 'class': d['class'], resolved_to: d.resolved_to };
+    if (d.label) r.label = d.label;
+    return r;
+  });
+}
+
+function verify(map, opts) {
   const errs = [];
   const newRef = map.sides.new_refs[0];
   for (const c of map.commits) {
@@ -338,8 +479,8 @@ function verify(map) {
     const d = git(['diff', '--name-only', map.boundary.old_tip, map.boundary.new_counterpart]);
     if (d.trim() !== '') errs.push('boundary trees differ: ' + d.trim().split('\n').join(', '));
   }
-  const re = build(map.sides.old_refs, newRef);
-  if (JSON.stringify(map.doc_refs) !== JSON.stringify(re.doc_refs)) errs.push('doc_refs re-derivation differs');
+  const re = build(map.sides.old_refs, newRef, opts);
+  if (JSON.stringify(refFacts(map.doc_refs)) !== JSON.stringify(refFacts(re.doc_refs))) errs.push('doc_refs re-derivation differs');
   if (JSON.stringify(map.commits) !== JSON.stringify(re.commits)) errs.push('commits re-derivation differs');
   return errs;
 }
@@ -356,12 +497,13 @@ function verify(map) {
 function verifyPublishedOnly(map, newRef, opts) {
   const errs = [];
   const HEX40 = /^[0-9a-f]{40}$/;
-  const CLASSES = ['rewritten', 'local-only', 'published-unchanged'];
+  // ADR-0089 D-B: five-value class enum (v2 maps); v1 maps carry the 3-subset.
+  const CLASSES = ['rewritten', 'local-only', 'published-unchanged', 'orphaned-cite', 'unresolved'];
   const vRoot = (opts && opts.root) || ROOT;
   const anc = function (sha, ref) { return gitOkAt(vRoot, ['merge-base', '--is-ancestor', sha, ref]); };
   const isEmpty = function (sha) { return isEmptyCommitAt(vRoot, sha); };
 
-  if (map.schema_version !== 1) errs.push('schema_version ' + map.schema_version + ' != 1');
+  if (map.schema_version !== 1 && map.schema_version !== 2) errs.push('schema_version ' + map.schema_version + ' outside {1,2}');
   if (map.generated_by !== 'scripts/build-rewrite-map.js') errs.push('generated_by drift: ' + map.generated_by);
   const b = map.boundary || {};
   for (const k of ['shared_base', 'old_tip', 'new_counterpart']) {
@@ -440,11 +582,89 @@ function verifyPublishedOnly(map, newRef, opts) {
   const byClass = counts.doc_refs_by_class || {};
   for (const c of CLASSES) {
     const n = docRefs.filter(function (d) { return d['class'] === c; }).length;
-    if (byClass[c] !== n) errs.push('counts.doc_refs_by_class.' + c + ' = ' + byClass[c] + ', recomputes to ' + n);
+    if (n > 0 && byClass[c] !== n) errs.push('counts.doc_refs_by_class.' + c + ' = ' + byClass[c] + ', recomputes to ' + n);
+  }
+
+  // ---- ADR-0089 D-H: clone-computable registry consistency + fail-closed --
+  // unresolved rows are hard red (absent AND unregistered must be disclosed,
+  // never carried silently). orphaned-cite rows must resolve to a committed
+  // registry entry adjudicating 'orphaned'. Both derive from tracked files.
+  const unresolved = docRefs.filter(function (d) { return d['class'] === 'unresolved'; });
+  if (unresolved.length) {
+    errs.push(unresolved.length + ' unresolved doc citation(s) - absent from the object DB and unregistered; disclose via orphan-cites.js (first: ' + unresolved.slice(0, 3).map(function (d) { return d.file + ':' + d.line + ':' + d.sha; }).join(', ') + ')');
+  }
+  const orphanRows = docRefs.filter(function (d) { return d['class'] === 'orphaned-cite'; });
+  if (orphanRows.length) {
+    // Registry source is tree-internal when commit-bound (the leg evaluates
+    // historical commits), else the worktree file.
+    let regText = null;
+    if (opts && opts.commitBound) {
+      try { regText = gitAt(vRoot, ['show', newRef + ':docs/governance/orphan-cites.json']); } catch (e) { regText = null; }
+    } else {
+      const rp = path.join(vRoot, 'docs', 'governance', 'orphan-cites.json');
+      if (fs.existsSync(rp)) { try { regText = fs.readFileSync(rp, 'utf8'); } catch (e) { regText = null; } }
+    }
+    if (regText === null) {
+      errs.push('doc_refs carry orphaned-cite rows but docs/governance/orphan-cites.json is absent at this revision');
+    } else {
+      let reg = null;
+      try { reg = JSON.parse(regText); } catch (e) { errs.push('orphan-cites.json unparseable: ' + e.message); }
+      if (reg) {
+        for (const d of orphanRows) {
+          let ent = null;
+          try { ent = oc.entryForToken(reg, d.sha); } catch (e) { errs.push('orphaned-cite ' + d.sha + ' ambiguous in registry: ' + e.message); continue; }
+          if (!ent) errs.push('orphaned-cite ' + d.sha + ' has no registry entry');
+          else if (ent.disposition !== 'orphaned') errs.push('orphaned-cite ' + d.sha + ' resolved by a ' + ent.disposition + ' entry');
+        }
+      }
+    }
+  }
+  // qualifier weak-consistency: reachable_via non-empty contradicts a class
+  // asserting non-reachability (orphaned-cite/unresolved) - flag, never equal.
+  for (const d of docRefs) {
+    const q = d.qualifiers;
+    if (!q) continue;
+    if ((d['class'] === 'orphaned-cite' || d['class'] === 'unresolved') && Array.isArray(q.reachable_via) && q.reachable_via.length) {
+      errs.push('qualifier inconsistency: ' + d.sha + ' classified ' + d['class'] + ' but reachable_via = [' + q.reachable_via.join(', ') + '] (register a revived entry if resurrected)');
+    }
+    if (q.object_type !== null && q.object_type !== undefined && ['commit', 'tag', 'tree', 'blob'].indexOf(q.object_type) === -1) {
+      errs.push('qualifier inconsistency: ' + d.sha + ' object_type outside git enum: ' + q.object_type);
+    }
   }
   return errs;
 }
-function stableCopy(m) { const c = JSON.parse(JSON.stringify(m)); delete c.generated_at; return c; }
+// ADR-0089 D-F: --check equality domain = declared facts + counts + classes.
+// Exempt (still written, weak-consistency-checked): generated_at, warnings,
+// every row's qualifiers object.
+function stableCopy(m) {
+  const c = JSON.parse(JSON.stringify(m));
+  delete c.generated_at;
+  delete c.warnings;
+  for (const d of c.doc_refs || []) delete d.qualifiers;
+  return c;
+}
+
+// Weak-consistency check over a generated map's qualifiers (spec 6.1):
+// contradictions between class and reachable_via/type are errors, and any
+// 'unresolved' row is hard red (absent AND unregistered - ADR-0089 D-E stage 4).
+function consistencyErrors(map) {
+  const errs = [];
+  for (const d of map.doc_refs || []) {
+    const q = d.qualifiers;
+    if (!q) continue;
+    if ((d['class'] === 'orphaned-cite' || d['class'] === 'unresolved') && Array.isArray(q.reachable_via) && q.reachable_via.length) {
+      errs.push(d.file + ':' + d.line + ' ' + d.sha + ' classified ' + d['class'] + ' but reachable_via = [' + q.reachable_via.join(', ') + ']');
+    }
+    if (q.object_type !== null && q.object_type !== undefined && oc.OBJECT_TYPES.indexOf(q.object_type) === -1) {
+      errs.push(d.file + ':' + d.line + ' ' + d.sha + ' object_type outside git enum: ' + q.object_type);
+    }
+  }
+  const unresolved = (map.doc_refs || []).filter(function (d) { return d['class'] === 'unresolved'; });
+  if (unresolved.length) {
+    errs.push(unresolved.length + ' unresolved citation(s) (absent AND unregistered) - disclose via node scripts/orphan-cites.js backfill; first: ' + unresolved.slice(0, 5).map(function (d) { return d.file + ':' + d.line + ':' + d.sha; }).join(', '));
+  }
+  return errs;
+}
 
 function main() {
   const args = process.argv.slice(2);
@@ -514,6 +734,11 @@ function main() {
   if (check) {
     if (!fs.existsSync(outAbs)) { console.error('[rewrite-map] FAIL: ' + OUT_REL + ' missing \u2014 run the generator'); process.exit(1); }
     const committed = JSON.parse(fs.readFileSync(outAbs, 'utf8'));
+    const consErrs = consistencyErrors(map);
+    if (consErrs.length) {
+      console.error('[rewrite-map] FAIL: consistency violations:\n' + consErrs.join('\n'));
+      process.exit(1);
+    }
     if (JSON.stringify(stableCopy(committed)) !== JSON.stringify(stableCopy(map))) {
       console.error('[rewrite-map] FAIL: ' + OUT_REL + ' is stale \u2014 regenerate with node scripts/build-rewrite-map.js');
       process.exit(1);
@@ -525,7 +750,11 @@ function main() {
   console.log('[rewrite-map] wrote ' + OUT_REL + ': ' + map.counts.commits + ' rewritten, ' +
     map.counts.removed + ' removed, ' + map.counts.published_only + ' published-only, ' +
     map.counts.doc_refs + ' doc citations');
+  if (map.warnings && map.warnings.length) {
+    // ADR-0089 D-E stage 2: the orphan window is open - register while alive.
+    console.error('[rewrite-map] note: ' + map.warnings.length + ' unreachable unregistered cite(s) past the age threshold - register while alive: node scripts/orphan-cites.js register <sha> --reason <text> (or backfill)');
+  }
 }
 
 if (require.main === module) main();
-module.exports = { build, verify, verifyPublishedOnly, scanDocTokens, scanDocTokensAt, discoverOldRefs, prefixLookup, isEmptyCommit };
+module.exports = { build, verify, verifyPublishedOnly, scanDocTokens, scanDocTokensAt, discoverOldRefs, isEmptyCommit, stableCopy, consistencyErrors, refFacts };
