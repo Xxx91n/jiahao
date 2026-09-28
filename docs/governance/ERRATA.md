@@ -363,6 +363,11 @@ restack orphaned:
   seal commit, uncommit-ed during the disclosed repair) and `d7ddd772`.
   The `seal:` pin itself names `f4ea1a38` — live and ancestral; only the
   comment prose holds orphans.
+- The repair-window restack itself orphaned a second generation: seal
+  commits `nwo`/`uoq`/`mut` (162da5d2, declared b0504f28 before the
+  evaluate.js residue commit surfaced), claim-wave commits `mpk`
+  (12cf8e5a), `srr`, `wlr`, `uur` (4c0fa399) — cited only in the SEAL
+  prose comment and this entry; objects retained, disclosed.
 
 None sits on a pin_patterns line (`seal:`/`captured-at-head:`), so no
 errata_exemptions row applies; this documentary entry is the
