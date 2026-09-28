@@ -1,6 +1,6 @@
 # ADR-0089: Rewrite-Map Classifier Declared-Facts Contract — Orphan-Cite Registry, Lifecycle Ladder, and the Atomic Cutover (grill-t32)
 
-- Status: Proposed — joins the countersign queue pending entity-level adjudication (ERRATA E-13 bare-form convention; queue 20 -> 21 with this entry); return condition: the 2026-12-15 tide; return-by: 2026-12-15
+- Status: Accepted — ID-level-only, awaiting entity-level countersign; return condition: the 2026-12-15 tide; return-by: 2026-12-15
 - Date: 2026-09-28
 - Ledger: `.scratch/grill-t32/decision-ledger.md` — grill-t32 D-001..D-006 (all current)
 - Spec: `.scratch/grill-t32/spec-t32-classifier.md`

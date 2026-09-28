@@ -75,7 +75,9 @@ function checkLeg(opts) {
   const hasOldSide = o.hasOwnProperty('oldSide') ? o.oldSide : probe('old-side-refs', { root: root });
   let purgePending = 0;
   if (hasOldSide) {
-    for (const e of loaded.reg.entries || []) {
+    // latest entry per cited_sha - a purge observation appended later
+    // discharges the mark obligation (append-only adjudication).
+    for (const e of latest.values()) {
       if (e.disposition !== 'orphaned' || !e.snapshot || e.object_purged_at) continue;
       const res = gitx.resolveToken(e.cited_sha);
       if (res.status === 'ok') {

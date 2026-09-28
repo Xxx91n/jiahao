@@ -107,6 +107,10 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
     fs.mkdirSync(path.join(tmp, 'src', 'shared'), { recursive: true });
     fs.mkdirSync(path.join(tmp, 'docs'), { recursive: true });
     fs.copyFileSync(path.join(ROOT, 'scripts', 'build-rewrite-map.js'), path.join(tmp, 'scripts', 'build-rewrite-map.js'));
+    // ADR-0089 dependencies: the generator requires the shared git facade and
+    // the orphan-cites registry CLI at module load.
+    fs.copyFileSync(path.join(ROOT, 'scripts', 'git-facade.js'), path.join(tmp, 'scripts', 'git-facade.js'));
+    fs.copyFileSync(path.join(ROOT, 'scripts', 'orphan-cites.js'), path.join(tmp, 'scripts', 'orphan-cites.js'));
     fs.copyFileSync(path.join(ROOT, 'src', 'shared', 'capability.js'), path.join(tmp, 'src', 'shared', 'capability.js'));
     fs.copyFileSync(path.join(ROOT, 'docs', 'gates.json'), path.join(tmp, 'docs', 'gates.json'));
     hg.mkRepo(tmp);

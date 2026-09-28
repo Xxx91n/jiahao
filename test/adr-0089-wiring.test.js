@@ -29,7 +29,7 @@ describe('ADR-0089 carrier (grill-t32 doc round)', () => {
   test('exists with title, status, and the ledger anchor', () => {
     const a = read(ADR);
     expect(a).toContain('ADR-0089:');
-    expect(a).toContain('Status: Proposed'); // countersign-queue ADR: never Accepted pre-adjudication
+    expect(a).toContain('Status: Accepted — ID-level-only'); // countersign-queue convention (ERRATA E-13)
     expect(a).toContain('grill-t32');
   });
 
@@ -45,7 +45,7 @@ describe('ADR-0089 carrier (grill-t32 doc round)', () => {
     expect(a).toContain('orphan window open');
     expect(a).toContain('register while');
     expect(a).toContain('unresolved');
-    for (const s of ['backfill', 'migrate', 'one commit']) {
+    for (const s of ['backfill', 'migration', 'one commit']) {
       expect(a.toLowerCase()).toContain(s.toLowerCase());
     }
   });
