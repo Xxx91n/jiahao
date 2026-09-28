@@ -11,7 +11,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const { parseArgs, fail, usageExit, sha256File, readJsonl } = require('./lib/common');
+const { parseArgs, fail, usageExit, sha256File, readJsonl, captureKey } = require('./lib/common');
 const M = require('./lib/manifest');
 const paths = require('./lib/paths');
 const CL = require('./lib/claims');
@@ -53,18 +53,34 @@ for (const r of sealed) for (const sid of r.manifest.spans_boundary_sessions || 
 // session ownership, not by store).
 const allRows = [];
 const seenRow = new Set();
-const storesByRun = new Map();
+const bindings = new Map(), bindingFull = new Map(), claims = new Map(), sessions = new Map();
 for (const r of sealed) {
   const sf = T.captureStore(r.manifest.run_id);
-  const rows = [];
-  storesByRun.set(r.manifest.run_id, rows);
   if (!fs.existsSync(sf)) continue;
+  for (const c of CL.listClaims(T.CLAIMS, r.manifest.run_id)) {
+    const taskId = path.basename(c.file, '.txt');
+    claims.set(r.manifest.run_id + '/' + taskId, c);
+  }
   for (const row of readJsonl(sf).rows) {
     if (row.parse_error || !row.obj) continue;
     const o = row.obj;
-    rows.push(o);
+    if (o.event_type === 'session-binding' && o.record) {
+      bindings.set(r.manifest.run_id + '/' + o.session_id, o.record.task_id);
+      bindingFull.set(r.manifest.run_id + '/' + o.session_id, o.record);
+    }
+    if (o.event_type === 'session-signals' && o.record) {
+      sessions.set(o.session_id, {
+        tool_results: (o.record.tool_results || []).map((t) => ({ content: t.content, truncated: t.truncated === true, is_error: t.is_error === true })),
+        files_edited: o.record.files_edited || [],
+        verify_run: o.record.verify_run === true,
+        user_prompt_count: o.record.user_prompt_count,
+        first_prompt_sha256: o.record.first_prompt_sha256,
+        claim_sha256: o.record.claim_sha256,
+        mtime_unstable: o.record.mtime_unstable === true,
+      });
+    }
     if (o.source) {
-      const k = o.source.sink + '|\x00|' + o.source.file + '|\x00|' + o.source.line_no + '|\x00|' + o.source.line_sha256;
+      const k = captureKey(o.source);
       if (seenRow.has(k)) continue;
       seenRow.add(k);
     }
@@ -87,6 +103,54 @@ for (const [sid, markedIn] of spansMarked) {
   const owners = owner.get(sid) || [];
   if (owners.length === 0) orphans.push({ session_id: sid, class: 'spans-boundary-dangling', marked_in: markedIn });
 }
+// D-004(vi) degraded channel: under owner-paste the guard degrades to PATH
+// binding — a member session whose transcript is entirely absent pairs to the
+// manifest's unclaimed owner-paste claim iff that pairing is unique in both
+// directions (one unbound transcript-less session, one unclaimed paste task).
+// Ambiguous elimination never binds — it stays unbound and refuses below.
+const pastePathBindings = [];
+for (const r of sealed) {
+  const mids = r.manifest.observed_session_ids || [];
+  const unboundNoT = mids.filter((sid) => {
+    const b = bindingFull.get(r.manifest.run_id + '/' + sid);
+    return !sessions.has(sid) && (!b || !b.task_id);
+  });
+  const boundTasks = new Set(mids.map((s2) => bindings.get(r.manifest.run_id + '/' + s2)).filter(Boolean));
+  const pasteTasks = [...claims.entries()]
+    .filter(([k, c]) => k.indexOf(r.manifest.run_id + '/') === 0 && c.channel === 'owner-paste')
+    .map(([k]) => k.slice(r.manifest.run_id.length + 1))
+    .filter((t) => (r.manifest.planned_task_ids || []).indexOf(t) >= 0 && !boundTasks.has(t));
+  if (unboundNoT.length === 1 && pasteTasks.length === 1) {
+    bindings.set(r.manifest.run_id + '/' + unboundNoT[0], pasteTasks[0]);
+    bindingFull.set(r.manifest.run_id + '/' + unboundNoT[0], { task_id: pasteTasks[0], violation: null, via: 'owner-paste-path' });
+    pastePathBindings.push({ run_id: r.manifest.run_id, session_id: unboundNoT[0], task_id: pasteTasks[0] });
+  }
+}
+
+// D-004(vi) binding guard — hard errors, same class as D-002(iii): a member
+// session must carry exactly one real task binding; a mismatch (ran the wrong
+// task, >1 user prompt incl. the paste-channel degraded scan, or a missing
+// transcript with no unique paste path) refuses the whole evaluation.
+for (const r of sealed) {
+  for (const sid of r.manifest.observed_session_ids || []) {
+    const b = bindingFull.get(r.manifest.run_id + '/' + sid);
+    const sig = sessions.get(sid);
+    if (sig && sig.user_prompt_count > 1) { orphans.push({ session_id: sid, class: 'binding-multi-prompt', run_id: r.manifest.run_id, count: sig.user_prompt_count }); continue; }
+    if (!b || !b.task_id) { orphans.push({ session_id: sid, class: 'binding-unbound', run_id: r.manifest.run_id, violation: b && b.violation ? b.violation : 'no-binding-row' }); continue; }
+    if (b.violation) orphans.push({ session_id: sid, class: 'binding-' + String(b.violation).split(':')[0], run_id: r.manifest.run_id, violation: b.violation });
+  }
+}
+const claimsByTask = new Map();
+for (const r of sealed) {
+  for (const key of [...claims.keys()].filter((k) => k.indexOf(r.manifest.run_id + '/') === 0)) {
+    const taskId = key.slice(r.manifest.run_id.length + 1);
+    if ((r.manifest.planned_task_ids || []).indexOf(taskId) < 0) orphans.push({ session_id: null, class: 'claim-orphan', run_id: r.manifest.run_id, task_id: taskId });
+    if (!claimsByTask.has(taskId)) claimsByTask.set(taskId, []);
+    claimsByTask.get(taskId).push(r.manifest.run_id);
+  }
+}
+for (const [t, runs] of claimsByTask) if (runs.length > 1) orphans.push({ session_id: null, class: 'claim-duplicated', task_id: t, runs });
+
 if (orphans.length) {
   console.log(JSON.stringify({
     status: 'refused',
@@ -97,37 +161,9 @@ if (orphans.length) {
   process.exit(1);
 }
 
-// Assemble evaluator ctx: bindings + session-signals rows live in the store;
-// claims live in claims/<run>/<task>.txt (Tier-1). rowsByRun returns rows
-// whose session is owned by the named manifest — attribution is session-
-// level, never store-level.
-const bindings = new Map(), claims = new Map(), sessions = new Map();
-for (const r of sealed) {
-  const sf = T.captureStore(r.manifest.run_id);
-  if (!fs.existsSync(sf)) continue;
-  for (const row of readJsonl(sf).rows) {
-    const o = row.obj;
-    if (!o || o.rejected) continue;
-    if (o.event_type === 'session-binding' && o.record) {
-      bindings.set(r.manifest.run_id + '/' + o.session_id, o.record.task_id);
-    }
-    if (o.event_type === 'session-signals' && o.record) {
-      sessions.set(o.session_id, {
-        tool_results: (o.record.tool_results || []).map((t) => ({ content: t.content, truncated: t.truncated === true, is_error: t.is_error === true })),
-        files_edited: o.record.files_edited || [],
-        verify_run: o.record.verify_run === true,
-        user_prompt_count: o.record.user_prompt_count,
-        first_prompt_sha256: o.record.first_prompt_sha256,
-        claim_sha256: o.record.claim_sha256,
-        mtime_unstable: o.record.mtime_unstable === true,
-      });
-    }
-  }
-  for (const c of CL.listClaims(T.CLAIMS, r.manifest.run_id)) {
-    const taskId = path.basename(c.file, '.txt');
-    claims.set(r.manifest.run_id + '/' + taskId, c);
-  }
-}
+// Claims loaded above (claims/<run>/<task>.txt, Tier-1). rowsByRun returns
+// rows whose session is owned by the named manifest — attribution is
+// session-level, never store-level.
 
 const volumes = {};
 for (const v of ['a', 'b', 'c']) {
@@ -135,6 +171,8 @@ for (const v of ['a', 'b', 'c']) {
   if (fs.existsSync(vf)) volumes[v] = JSON.parse(fs.readFileSync(vf, 'utf8'));
 }
 
+const spansSet = new Set();
+for (const r of sealed) for (const sid of r.manifest.spans_boundary_sessions || []) spansSet.add(sid);
 const manifestByRun = new Map(sealed.map((r) => [r.manifest.run_id, r.manifest]));
 const ctx = {
   manifests: sealed,
@@ -145,7 +183,7 @@ const ctx = {
     const owned = new Set(m.observed_session_ids || []);
     return allRows.filter((r) => r.session_id && owned.has(r.session_id));
   },
-  bindings, claims, sessions, volumes, evalMap, detectorSha, detector,
+  bindings, claims, sessions, volumes, evalMap, detectorSha, detector, spansSet,
   jl2SessionOk: new Map(),
 };
 
@@ -156,8 +194,20 @@ for (const row of jl2.table) {
   else ctx.jl2SessionOk.set(row.session_id, false);
 }
 
-// evidence ts monotonicity: non-monotonic = clock moved mid-run anomaly.
+// ts<->membership cross-check (D-002 ii): an event owned by a manifest but
+// timestamped outside its window is a logged anomaly, never a silent reassign.
 const anomalies = [];
+for (const r of sealed) {
+  const owned = new Set(r.manifest.observed_session_ids || []);
+  const t0 = Date.parse(r.manifest.opened_at), t1 = Date.parse(r.manifest.closed_at || r.manifest.opened_at);
+  for (const row of allRows) {
+    if (row.rejected || !row.session_id || !row.ts || !owned.has(row.session_id)) continue;
+    const t = Date.parse(row.ts);
+    if (t < t0 || t > t1) anomalies.push({ type: 'ts-membership-conflict', session_id: row.session_id, run_id: r.manifest.run_id, detail: 'event ts ' + row.ts + ' outside [' + r.manifest.opened_at + ', ' + (r.manifest.closed_at || '?') + '] for owner ' + r.manifest.run_id, source: row.source });
+  }
+}
+
+// evidence ts monotonicity: non-monotonic = clock moved mid-run anomaly.
 const evRows = allRows.filter((r) => !r.rejected && r.source.sink === 'evidence' && r.ts);
 for (let i = 1; i < evRows.length; i++) {
   if (evRows[i].ts < evRows[i - 1].ts) {
@@ -165,6 +215,8 @@ for (let i = 1; i < evRows.length; i++) {
     break;
   }
 }
+
+for (const p of pastePathBindings) anomalies.push({ type: 'binding-owner-paste-path', session_id: p.session_id, run_id: p.run_id, detail: 'transcript unreachable; bound to ' + p.task_id + ' by unique path-binding (D-004 vi degraded guard)' });
 
 const lines = {
   'JL-1': E.evalJL1(ctx),
