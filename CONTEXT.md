@@ -652,8 +652,11 @@ local-object-store-only after purge; rewriting already-depended-on history
 **Rewrite Map (重写映射表)**
 The append-only old→new SHA resolution table (docs/rewrite-map.json) generated
 by aligning pre-purge refs (gb-local) with published history via commit
-messages, plus a three-class classification of every SHA cited in tracked
-docs: rewritten→new / local-only / published-unchanged. It is the single
+messages, plus a five-class classification of every SHA cited in tracked docs
+on four declared facts (ADR-0089): rewritten→new / published-unchanged /
+local-only / orphaned-cite (registered orphan) / unresolved (absent AND
+unregistered — hard red). Ref topology lives only in per-row qualifiers
+(reachable_via), never in the verdict. It is the single
 translation point — append-only record files are never edited to add pointers,
 and governance-surface files carry one pointer note each (ledger t13 D-003).
 _Avoid_: editing historical records in place; hand-built mappings; expanding
@@ -2359,7 +2362,8 @@ registration, not an ask)
 Regeneration artifacts (rewrite-map, anchors, round-facts) ride plain
 commits, never an amend - an amend rewrites the commit sha, stranding any
 sha-shaped reference (battery_as_of_commit) into an unreachable object
-whose citation label flips to unresolved-hex-literal. Sha references pin
+whose citation class flips to unresolved (absent AND unregistered -
+ADR-0089). Sha references pin
 immutable history. See also Facts Canon (ledger t18 D-007).
 _Avoid_: regenerating a map or anchors artifact inside an amend; pinning
 an as_of sha on rewritable history

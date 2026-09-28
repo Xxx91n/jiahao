@@ -1,7 +1,8 @@
 # Rewrite-map generator spec — `scripts/build-rewrite-map.js` → `docs/rewrite-map.json`
 
-Registered under ADR-0074 D-C (ledger t13 D-003). This document is the spec;
-the generator lands in R2. The map is the single translation point for
+Registered under ADR-0074 D-C (ledger t13 D-003); the classification contract
+was re-based on declared facts by ADR-0089 (grill-t32). This document is the
+spec; the generator lands in R2. The map is the single translation point for
 pre-rewrite SHA citations — append-only record files are never edited to add
 pointers, and this file is never hand-edited.
 
@@ -47,28 +48,49 @@ pointers, and this file is never hand-edited.
    still ordinary old→new pairs; their emptiness is a property of the new
    commit, asserted by the map's `verify` mode, not a special class.
 
-## Doc-citation classification
+## Doc-citation classification (ADR-0089 declared-facts contract)
 
-For every `{file, line, sha}` hit, resolve `sha` against the object set:
+For every `{file, line, sha}` hit, class derives from four declared facts —
+ref topology is only a qualifier, never the verdict:
 
-- `rewritten` — sha names an old-side commit with a `new` counterpart; record
-  `{sha, class: "rewritten", resolved_to: <new-sha>}`.
-- `local-only` — sha names an object reachable only from pre-purge refs or
-  the local object store; record `{sha, class: "local-only", label}` — label
-  is a short role string (e.g. "t11 registration commit"), **never** content
-  metadata (minimal disclosure, ADR-0074 D-C).
-- `published-unchanged` — sha names a commit/blob in published history
-  unchanged; record `{sha, class: "published-unchanged"}`.
+1. **pair/removed tables** — the `commits`/`removed` join above.
+2. **pinned published_tip ancestry** — `rev-list --objects <newRef>` at the
+   pinned tip.
+3. **object existence** — `git cat-file` (existence, type, size); everything
+   runs under `GIT_NO_REPLACE_OBJECTS=1` (replace semantics never enter
+   declared facts).
+4. **orphan-cites registry membership** — `docs/governance/orphan-cites.json`
+   latest-`registered_at` adjudication.
+
+| class | binding fact |
+| --- | --- |
+| `rewritten` | pair-table hit → `resolved_to` = new-side counterpart |
+| `published-unchanged` | in the pinned-tip ancestry set |
+| `local-only` | exists locally, no published/pair hit, no orphan adjudication — `label` is a short role string, never content metadata (minimal disclosure, ADR-0074 D-C) |
+| `orphaned-cite` | latest registry entry adjudicates `disposition: "orphaned"` — terminal while the registry says so |
+| `unresolved` | object absent from the DB **and** unregistered — hard red: any such row fails `--check` |
+
+Every row also carries `qualifiers` (volatile metadata, exempt from `--check`
+equality but weak-consistency-checked): `exists_at` (classification instant),
+`object_mtime` (committer_ts for commits/tags, loose-file mtime else),
+`object_type`, `object_size`, `reachable_via` (display refs at generation
+time — written and displayed, never judged). A non-empty `reachable_via` on a
+class asserting non-reachability (`orphaned-cite`, `unresolved`) is flagged.
 
 **Completeness invariant**: every hex citation in tracked docs receives a
 class. An unclassified citation is a new inconsistency and fails `--check`.
+
+**Scan exemptions**: `docs/rewrite-map.json` (self) and
+`docs/governance/orphan-cites.json` (the registry's hex literals are payload
+fields — cited_sha, snapshot.parents, successor_sha — not claims; scanning
+them would recurse each registered orphan's ancestor chain into the map).
 
 ## Output shape
 
 ```json
 {
-  "schema_version": 1,
-  "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
+  "schema_version": 2,
+  "_doc": "ADR-0074 D-C + ADR-0089: append-only, tool-generated single translation point. …",
   "generated_by": "scripts/build-rewrite-map.js",
   "generated_at": "<ISO-8601>",
   "published_tip": "051744a7a1b4027a42720814c819bf051e0831a8",
@@ -76,23 +98,32 @@ class. An unclassified citation is a new inconsistency and fails `--check`.
   "sides": { "old_refs": ["gb-local/grill-t12-docs", "…"], "new_refs": ["origin/main"] },
   "commits": [ { "old": "05fa697…", "new": "2e9cdc9…", "subject": "…" } ],
   "published_only": [ { "new": "a6729a9…", "subject": "…" } ],
-  "doc_refs": [ { "file": "docs/adr/00xx-….md", "line": 12, "sha": "…", "class": "rewritten|local-only|published-unchanged", "resolved_to": "…|null" } ]
+  "warnings": [ { "sha": "…", "file": "…", "line": 0, "age_days": 0, "kind": "orphan-window-open" } ],
+  "doc_refs": [ { "file": "docs/adr/00xx-….md", "line": 12, "sha": "…", "class": "rewritten|local-only|published-unchanged|orphaned-cite|unresolved", "resolved_to": "…|null", "qualifiers": { "exists_at": "…", "object_mtime": 0, "object_type": "commit|tag|tree|blob|null", "object_size": 0, "reachable_via": [] } } ]
 }
 ```
 
-`generated_at` is the only volatile field; `--check` compares everything else
-(regen-and-diff). Abbreviated SHAs in `doc_refs` are resolved to full 40-char
-object names where unambiguous; ambiguous abbreviations fail `--check`.
+`--check` equality domain (ADR-0089 D-F): declared facts only — `class`,
+`pair`, `resolved_to`, `counts` (plus the other stable fields). Exempt but
+still written: `generated_at`, `warnings`, and each row's `qualifiers`
+(timestamp/ref-topology churn must not make the map permanently dirty).
+Abbreviated SHAs in `doc_refs` are resolved to full 40-char object names where
+unambiguous; ambiguous abbreviations fail `--check`. Presence of any
+`unresolved` row is hard red regardless of equality.
 
 ## Modes
 
 - default: write `docs/rewrite-map.json` (append-only: existing entries are
   preserved verbatim; new citations append new rows).
-- `--check`: regenerate in memory and diff — exit 1 on any drift (map is
-  stale, or a doc citation is unclassified, or an alignment is ambiguous).
+- `--check`: regenerate in memory and diff the stable domain — exit 1 on any
+  declared-fact drift (map stale, unclassified citation, ambiguous alignment,
+  any `unresolved` row, or a qualifier contradiction).
 - `--verify`: assert each `commits` pair shares its subject, each `empty`
   claim re-derives (`git show --stat` empty), and the boundary trees are
   identical (`git diff old_tip new_counterpart` empty).
+- `--published-only`: committed-map internal consistency verifiable on a
+  fresh clone — coverage, five-class enum, counts, published-side ancestry,
+  zero `unresolved`, and registry consistency for `orphaned-cite` rows.
 
 ## Non-goals / guards
 

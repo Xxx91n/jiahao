@@ -253,3 +253,24 @@ be introduced later. No day-1 persistence contract is invented now.
 - This ADR joins the countersign queue (bare `- Status:` approval-surface
   form, ERRATA E-13 queue 20 -> 21 with this entry) — pending entity-level
   adjudication, never self-certified.
+
+## Cutover notes (landed with the migration commit)
+
+- **Registry self-citation**: `docs/governance/orphan-cites.json` is exempt
+  from the doc-citation scan (alongside `docs/rewrite-map.json`). Its hex
+  literals — `cited_sha`, `snapshot.parents`, `successor_sha` — are payload
+  fields, not claims; scanning them would chase every registered orphan's
+  unreachable ancestor chain into the map.
+- **Token-to-entry adjudication order**: exact `cited_sha` match wins over
+  prefix expansion; prefix expansion across several distinct cited_shas is
+  ambiguous only when their latest entries' dispositions differ (same-verdict
+  collisions still answer) — ambiguity can only be allowed to fail closed,
+  never to shadow a same-verdict registration.
+- **Purge observations**: a registered live-snapshot object that later
+  disappears from the object store gets an appended degraded entry carrying
+  `object_purged_at` (backfill re-run writes it) — marked, not fresh damage;
+  an unmarked purge is a leg violation.
+- **Migration diff (v1 → v2)**: `local-only` collapsed 1040 → 7 rows
+  (dead-token labels became `orphaned-cite` under registry coverage, 1035
+  rows), `unresolved` 618 → 0, schema_version 1 → 2, every row gained the
+  `qualifiers` block.
