@@ -104,26 +104,40 @@ function latestBySha(reg) {
   return m;
 }
 
-// Resolve a cited TOKEN to its latest adjudicating entry. Matching is
-// prefix-tolerant in both directions (abbreviated cites vs stored
-// full/verbatim shas); multiple distinct cited_shas matching one token is
-// ambiguous -> throws (fail-closed, spec adversarial 3).
+// Resolve a cited TOKEN to its latest adjudicating entry.
+//   1. exact cited_sha match wins first - a verbatim token entry is never
+//      shadowed by a longer sha merely sharing its prefix;
+//   2. else prefix expansion in both directions (abbreviated cites vs stored
+//      full/verbatim shas);
+//   3. multiple DISTINCT cited_shas matching: ambiguity only matters if it
+//      could change the verdict - if every matched cited_sha's latest entry
+//      adjudicates identically, the newest entry answers; genuinely mixed
+//      verdicts throw (fail-closed, spec adversarial 3).
 function entryForToken(reg, token) {
-  const hits = [];
-  for (const e of (reg && reg.entries) || []) {
-    const s = e.cited_sha;
-    if (s === token || s.indexOf(token) === 0 || (token.length === 40 && token.indexOf(s) === 0)) hits.push(e);
+  const entries = (reg && reg.entries) || [];
+  const exact = entries.filter(function (e) { return e.cited_sha === token; });
+  const pool = exact.length ? exact : entries.filter(function (e) {
+    return e.cited_sha.indexOf(token) === 0 || (token.length === 40 && token.indexOf(e.cited_sha) === 0);
+  });
+  if (!pool.length) return null;
+  const latestByShaVal = {};
+  for (const e of pool) {
+    const cur = latestByShaVal[e.cited_sha];
+    if (!cur || e.registered_at >= cur.registered_at) latestByShaVal[e.cited_sha] = e;
   }
-  if (!hits.length) return null;
-  const distinct = new Set(hits.map(function (e) { return e.cited_sha; }));
-  if (distinct.size > 1) {
-    const err = new Error('token ' + token + ' matches ' + distinct.size + ' distinct registry cited_shas - ambiguous, fail-closed');
-    err.name = 'AmbiguousToken';
-    throw err;
+  const latests = Object.keys(latestByShaVal).map(function (s) { return latestByShaVal[s]; });
+  if (latests.length > 1) {
+    const disps = {};
+    for (const e of latests) disps[e.disposition] = true;
+    if (Object.keys(disps).length !== 1) {
+      const err = new Error('token ' + token + ' matches ' + latests.length + ' distinct registry cited_shas with mixed dispositions - ambiguous, fail-closed');
+      err.name = 'AmbiguousToken';
+      throw err;
+    }
   }
-  let latest = hits[0];
-  for (const e of hits) if (e.registered_at >= latest.registered_at) latest = e;
-  return latest;
+  let winner = latests[0];
+  for (const e of latests) if (e.registered_at >= winner.registered_at) winner = e;
+  return winner;
 }
 
 // ---------- entry construction ----------
@@ -309,11 +323,26 @@ function cmdBackfill(root, argv, opts) {
   for (const kv of byToken) {
     const token = kv[0], locs = kv[1];
     if (done.has(token)) { report.skipped_done.push(token); continue; }
-    let covered = false;
-    for (const s of registered.keys()) { if (s === token || s.indexOf(token) === 0 || (token.length === 40 && token.indexOf(s) === 0)) { covered = true; break; } }
-    if (covered) { report.skipped_registered.push(token); continue; }
+    let covered = false, coveredSha = null;
+    for (const s of registered.keys()) { if (s === token || s.indexOf(token) === 0 || (token.length === 40 && token.indexOf(s) === 0)) { covered = true; coveredSha = s; break; } }
 
     const res = gitx.resolveToken(token);
+    if (covered) {
+      // Purge observation (spec 6.2 registered-then-deleted): the latest entry
+      // was taken live (snapshot present, no purge mark) and the object is now
+      // absent - append a degraded purge entry; never rewrite the old one.
+      const latest = registered.get(coveredSha);
+      if (latest && latest.disposition === 'orphaned' && latest.snapshot && !latest.object_purged_at && res.status === 'absent') {
+        report.degraded.push(degradedEntry(coveredSha, locs, {
+          now: now, errataRef: errataRef,
+          reason: 'purge observation: registered live object no longer in the object store - marked, not fresh damage',
+        }));
+        continue;
+      }
+      report.skipped_registered.push(token);
+      continue;
+    }
+
     if (res.status === 'ambiguous') { report.errors.push(token + ': ambiguous'); continue; }
     if (res.status === 'absent') {
       report.degraded.push(degradedEntry(token, locs, { now: now, errataRef: errataRef, reason: reason }));

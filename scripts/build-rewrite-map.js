@@ -52,6 +52,11 @@ const oc = require('./orphan-cites');
 const ROOT = path.join(__dirname, '..');
 const OUT_REL = path.join('docs', 'rewrite-map.json');
 const SELF = 'docs/rewrite-map.json';
+// The orphan-cites registry is likewise exempt from the citation scan: its
+// hex literals are internal payload fields (cited_sha, snapshot.parents,
+// successor_sha), not claims needing adjudication - scanning them would
+// recurse the parent's unreachable ancestor chain into the registry.
+const REGISTRY_INPUT = 'docs/governance/orphan-cites.json';
 const HEX_RE = /(^|[^0-9a-zA-Z_])([0-9a-f]{7,40})(?![0-9a-zA-Z_])/g;
 const DOC_PATH_RE = /^(docs\/|README\.md$|AGENTS\.md$|CONTEXT\.md$|\.scratch\/)/;
 const DOC_EXT_RE = /\.(md|json|txt|patch|jsonl)$/;
@@ -140,7 +145,7 @@ function scanDocTokens() {
   const files = Array.from(new Set(
     git(['ls-files']).split('\n').concat(git(['ls-tree', '-r', 'HEAD', '--name-only']).split('\n'))
   )).map(function (x) { return x.trim(); }).filter(Boolean)
-    .filter(function (f) { return f !== SELF && DOC_PATH_RE.test(f) && DOC_EXT_RE.test(f); }).sort();
+    .filter(function (f) { return f !== SELF && f !== REGISTRY_INPUT && DOC_PATH_RE.test(f) && DOC_EXT_RE.test(f); }).sort();
   const out = [];
   for (const f of files) {
     const abs = path.join(_root, f.split('/').join(path.sep));
@@ -183,7 +188,7 @@ function scanDocTokensAt(root, ref) {
     const m = /^(.*?):(\d+):([\s\S]*)$/.exec(line.slice(prefix.length));
     if (!m) throw new Error('unparseable git grep row at ' + ref + ': ' + line.slice(0, 80));
     const f = m[1], li = Number(m[2]), text = m[3];
-    if (f === SELF || !DOC_PATH_RE.test(f) || !DOC_EXT_RE.test(f)) continue;
+    if (f === SELF || f === REGISTRY_INPUT || !DOC_PATH_RE.test(f) || !DOC_EXT_RE.test(f)) continue;
     HEX_RE.lastIndex = 0;
     let hm;
     while ((hm = HEX_RE.exec(text))) {
@@ -403,14 +408,16 @@ function buildInner(oldRefs, newRef, o) {
   if (problems.length) throw new Error('unresolvable citations:\n' + problems.join('\n'));
 
   const newest = commits.length ? commits[0] : null;
-  const oldTip = newest ? newest.old : git(['rev-parse', oldRefs[0]]).trim();
-  const base = git(['merge-base', oldTip, newRef]).trim();
+  // No old side at all (clone-side / fixtures): there is no fork point to
+  // pin - boundary fields stay null and `same` is empty by construction.
+  const oldTip = newest ? newest.old : (oldRefs.length ? git(['rev-parse', oldRefs[0]]).trim() : null);
+  const base = oldTip ? git(['merge-base', oldTip, newRef]).trim() : null;
 
   // Spec: commits present on both sides with the same SHA are emitted as
   // `same` rows (explicit is auditable; ~all commits at/below the shared
   // base). Removed pairs carry an explicit `new: null` rather than a
   // separate ad-hoc shape.
-  const sameRaw = git(['log', '--format=%H%x00%s', base]).trim();
+  const sameRaw = base ? git(['log', '--format=%H%x00%s', base]).trim() : '';
   const same = sameRaw ? sameRaw.split('\n').map(function (l) { const z = l.indexOf('\u0000'); return { sha: l.slice(0, z), subject: l.slice(z + 1) }; }) : [];
 
   return {
@@ -459,6 +466,9 @@ function refFacts(rows) {
 }
 
 function verify(map, opts) {
+  return withSeams(opts, function () { return verifyInner(map, opts); });
+}
+function verifyInner(map, opts) {
   const errs = [];
   const newRef = map.sides.new_refs[0];
   for (const c of map.commits) {

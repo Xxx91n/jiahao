@@ -1,0 +1,14 @@
+{
+  "_doc": "ADR-0089 golden matrix: the terminal class each fixture token must land. Keys are semantic names bound to fixture shas at runtime - the fact-domain fields (class/resolved_to/label) compare byte-exact; qualifiers are property-matched in the test.",
+  "rows": [
+    { "token": "O1", "class": "rewritten", "resolved_to": "N1", "label": null },
+    { "token": "A0", "class": "published-unchanged", "resolved_to": null, "label": null },
+    { "token": "O2", "class": "local-only", "resolved_to": null, "label": "old-side commit (removed by purge)" },
+    { "token": "OC", "class": "local-only", "resolved_to": null, "label": "local commit" },
+    { "token": "OCR", "class": "orphaned-cite", "resolved_to": null, "label": null },
+    { "token": "OCP", "class": "local-only", "resolved_to": null, "label": "local commit" },
+    { "token": "OC2", "class": "local-only", "resolved_to": null, "label": "local commit" },
+    { "token": "OB", "class": "local-only", "resolved_to": null, "label": "local object" },
+    { "token": "DEAD", "class": "unresolved", "resolved_to": null, "label": null }
+  ]
+}

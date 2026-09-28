@@ -9,7 +9,9 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const MAP_PATH = path.join(ROOT, 'docs', 'rewrite-map.json');
 const MAP = JSON.parse(fs.readFileSync(MAP_PATH, 'utf8'));
-const CLASSES = ['rewritten', 'local-only', 'published-unchanged'];
+// ADR-0089 (grill-t32): five-class enum. v1 committed maps carry the
+// 3-subset; v2 adds orphaned-cite + unresolved.
+const CLASSES = ['rewritten', 'local-only', 'published-unchanged', 'orphaned-cite', 'unresolved'];
 
 // Clone-degradability contract (grill-t25): the old-side gb-local/* refs are a
 // maintainer-object-store asset that never publishes. Where they are absent
@@ -29,7 +31,7 @@ function run(args) {
 
 describe('rewrite-map.json \u2014 generated single translation point', () => {
   test('shape + committed-file invariants', () => {
-    expect(MAP.schema_version).toBe(1);
+    expect([1, 2]).toContain(MAP.schema_version); // v1 pre-cutover, v2 post (ADR-0089)
     expect(MAP.generated_by).toBe('scripts/build-rewrite-map.js');
     expect(MAP.published_tip).toMatch(/^[0-9a-f]{40}$/);
     expect(MAP.boundary.shared_base).toMatch(/^[0-9a-f]{40}$/);
