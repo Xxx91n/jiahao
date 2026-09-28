@@ -293,6 +293,7 @@
         }
       },
       "field_governance": "fenced",
+      "docs/governance/orphan-cites.json": "fenced",
       "host_admission": {
         "_doc": "editorial",
         "source_adr": "editorial",

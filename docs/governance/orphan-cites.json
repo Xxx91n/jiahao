@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0089 (grill-t32) D-D: the orphan-cite registry - append-only, machine-readable classification input for the rewrite-map classifier. One entry type, purely declarative fields; entries are never edited or deleted, supersession is a newer registered_at. Written ONLY by the explicit verbs in scripts/orphan-cites.js (register / backfill) - the classifier never writes here. Human-facing disclosure lives in ERRATA.md; the two channels are independent. Adjudication: multiple entries per cited_sha resolve by latest registered_at; disposition:revived returns the cite to existence-fact classification.",
+  "source_adr": "docs/adr/0089-rewrite-map-classifier-declared-facts-contract.md",
+  "field_governance_class": "fenced",
+  "entries": []
+}
