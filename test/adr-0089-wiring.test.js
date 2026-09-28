@@ -29,7 +29,7 @@ describe('ADR-0089 carrier (grill-t32 doc round)', () => {
   test('exists with title, status, and the ledger anchor', () => {
     const a = read(ADR);
     expect(a).toContain('ADR-0089:');
-    expect(a).toContain('Status: Accepted');
+    expect(a).toContain('Status: Proposed'); // countersign-queue ADR: never Accepted pre-adjudication
     expect(a).toContain('grill-t32');
   });
 
