@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "_doc": "grill-t31 D-005/D-007: sha256 pins for the frozen trial artifacts. check-frozen.js asserts equality; drift = verdict-blocking harness error. There is no --update: re-pinning is a reseal act (new ledger D-record + fresh whole-file hash), never an in-place update. judgment-lines.json is pinned BODY-only (deviations stripped): its deviations[] array is the registered append-only amendment channel (D-006), so only the frozen registration body is hash-pinned.",
+  "pinned_at": "2026-09-28",
+  "pins": {
+    "eval-map.json": "2cd36d141ff4392508ec5b1b3312030770322cf30ee2f1226dce31460f05e96c",
+    "volumes/a.json": "7b97fc9239ef5a1c0ec46ea2d59746884d0bf3e4976f5d2306d6ab1927bed512",
+    "volumes/b.json": "a75861b5c8d222eedb184a4ffed079cacf064c397b7769a8b83b01af88226315",
+    "volumes/c.json": "7c67d6e1bbd637c1ab64b9bdd91dcdfcf86759978449f5ea9ecb5710c30646b2",
+    "judgment-lines.json": {
+      "sha256": "68d8c469a2b8e0c4ba8dc6b0c9ea28524fcdf90d546d8c226546c417f9396771",
+      "strip_fields": [
+        "deviations"
+      ]
+    }
+  }
+}
