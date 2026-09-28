@@ -2,8 +2,8 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-28T12:07:44.767Z",
-  "published_tip": "67785a34aed4f346ed8ec0a237639b515797fb48",
+  "generated_at": "2026-09-28T14:38:26.149Z",
+  "published_tip": "b06f4a970e8b0f005fee6cc22a68f2ad2a12b580",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
     "old_tip": "2c93a30a5495219d0d2385f25d19af23e729852f",
@@ -19,14 +19,14 @@
   },
   "counts": {
     "commits": 15,
-    "published_only": 436,
+    "published_only": 437,
     "removed": 0,
     "same": 278,
-    "doc_refs": 3600,
+    "doc_refs": 3609,
     "doc_refs_by_class": {
-      "rewritten": 104,
-      "local-only": 1040,
-      "published-unchanged": 2456
+      "rewritten": 105,
+      "local-only": 1042,
+      "published-unchanged": 2462
     }
   },
   "commits": [
@@ -110,6 +110,10 @@
   ],
   "removed": [],
   "published_only": [
+    {
+      "new": "b06f4a970e8b0f005fee6cc22a68f2ad2a12b580",
+      "subject": "post-cleanup rewrite-map regen: merged gb-local snapshot refs deleted changed ref reachability (436 published-only); standing drift class per D-011 pending"
+    },
     {
       "new": "67785a34aed4f346ed8ec0a237639b515797fb48",
       "subject": "post-land rewrite-map regen on origin/main state: landed lane commits shifted local-object -> published-* labels (435 published-only); required because but land changes ref reachability which the current classifier reads (D-011 pending)"
@@ -24359,6 +24363,71 @@
       "file": ".scratch/grill-t31/reports/2026-09-28-report.md",
       "line": 49,
       "sha": "3417dbae",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t32/handoffs/baseline.md",
+      "line": 3,
+      "sha": "b06f4a970e8b0f005fee6cc22a68f2ad2a12b580",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t32/handoffs/baseline.md",
+      "line": 4,
+      "sha": "36eaf052",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t32/handoffs/baseline.md",
+      "line": 5,
+      "sha": "13a20c94",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local object"
+    },
+    {
+      "file": ".scratch/grill-t32/handoffs/baseline.md",
+      "line": 10,
+      "sha": "67785a34",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t32/handoffs/baseline.md",
+      "line": 11,
+      "sha": "b06f4a97",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t32/handoffs/baseline.md",
+      "line": 31,
+      "sha": "05fa697",
+      "class": "rewritten",
+      "resolved_to": "2e9cdc9e45e49963e17568107d9efe3ec89b43cf"
+    },
+    {
+      "file": ".scratch/grill-t32/handoffs/baseline.md",
+      "line": 31,
+      "sha": "051744a",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t32/handoffs/baseline.md",
+      "line": 31,
+      "sha": "1ca81f5",
+      "class": "published-unchanged",
+      "resolved_to": null
+    },
+    {
+      "file": ".scratch/grill-t32/handoffs/baseline.md",
+      "line": 67,
+      "sha": "b06f4a97",
       "class": "published-unchanged",
       "resolved_to": null
     },
