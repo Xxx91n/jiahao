@@ -2,8 +2,8 @@
   "schema_version": 1,
   "_doc": "ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-28T12:05:59.827Z",
-  "published_tip": "a92efdf54b6fc5bd85afae38346bed036558029b",
+  "generated_at": "2026-09-28T12:07:44.767Z",
+  "published_tip": "67785a34aed4f346ed8ec0a237639b515797fb48",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
     "old_tip": "2c93a30a5495219d0d2385f25d19af23e729852f",
@@ -19,7 +19,7 @@
   },
   "counts": {
     "commits": 15,
-    "published_only": 435,
+    "published_only": 436,
     "removed": 0,
     "same": 278,
     "doc_refs": 3600,
@@ -110,6 +110,10 @@
   ],
   "removed": [],
   "published_only": [
+    {
+      "new": "67785a34aed4f346ed8ec0a237639b515797fb48",
+      "subject": "post-land rewrite-map regen on origin/main state: landed lane commits shifted local-object -> published-* labels (435 published-only); required because but land changes ref reachability which the current classifier reads (D-011 pending)"
+    },
     {
       "new": "a92efdf54b6fc5bd85afae38346bed036558029b",
       "subject": "grill-t31 closeout tail: t32 next-round handoff (D-011 pending decision + claim-duplicated boundary + t32 stubs + process notes) + rewrite-map regen covering its cites (3600)"
