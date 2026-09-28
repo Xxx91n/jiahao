@@ -88,7 +88,7 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
     // + defer-0074; zero new ADRs) - the count moves 21 -> 22.
     // grill-t29 landed its kind:fix row (ADR-0086 exception-channel + legs) - the count moves 22 -> 23.
     const row = ti.rounds.find((r) => r.round === 'grill-t22-doc-round');
-    expect(ti.rounds).toHaveLength(24);
+    expect(ti.rounds).toHaveLength(25);
     const latest = ti.rounds.find((r) => r.round === 'grill-t23-front-face');
     expect(latest).toBeDefined();
     expect(latest.adr_added).toEqual(['0082']);
