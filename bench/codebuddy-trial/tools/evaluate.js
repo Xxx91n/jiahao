@@ -1,17 +1,21 @@
 #!/usr/bin/env node
 // bench/codebuddy-trial/tools/evaluate.js — D-002/D-003: read-only judgment
 // evaluation. Computes the read-time membership join; refuses all judgment
-// lines on orphan captures (unowned or double-owned sessions, or dangling
-// spans_boundary marks). Runs JL-1..JL-5 pure functions + the item-0 self-
-// check cases, prints verdicts + classification tables, writes NOTHING.
-// Reducing indeterminate to an effect verdict is an owner-side act — this
-// tool never performs it.
+// lines on orphan captures: unattributed events (unowned/double-ownership),
+// dangling spans_boundary marks, member sessions without exactly one real
+// task binding (binding-multi-prompt/binding-unbound/binding-<violation>/
+// binding-unknown-task), and claim-domain orphans (claim-orphan/claim-
+// duplicated). spans_boundary member sessions are recorded in the `excluded`
+// bucket — visible in tables, never silently counted. Runs JL-1..JL-5 pure
+// functions + the item-0 self-check cases, prints verdicts + classification
+// tables, writes NOTHING. Reducing indeterminate to an effect verdict is an
+// owner-side act — this tool never performs it.
 //
 // Usage: node evaluate.js [--trial-root <dir>] [--repo <dir>]
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const { parseArgs, fail, usageExit, sha256File, readJsonl, captureKey } = require('./lib/common');
+const { parseArgs, fail, sha256File, readJsonl, captureKey } = require('./lib/common');
 const M = require('./lib/manifest');
 const paths = require('./lib/paths');
 const CL = require('./lib/claims');
@@ -32,6 +36,7 @@ if (detectorSha !== evalMap.detector.blob_sha256 || detectorSha !== jlDoc.frozen
   fail('harness-error: detector drift — sha256(' + evalMap.detector.path + ')=' + detectorSha + ' vs pin ' + evalMap.detector.blob_sha256);
 }
 const detector = require(path.join(repo, evalMap.detector.path));
+const item0Task = (evalMap.probes && evalMap.probes.item0 && evalMap.probes.item0.task_id) || M.ITEM0_TASK_ID;
 
 const manifests = M.listManifests(T);
 const sealed = manifests.filter((r) => r.manifest.status === 'sealed');
@@ -69,7 +74,7 @@ for (const r of sealed) {
       bindingFull.set(r.manifest.run_id + '/' + o.session_id, o.record);
     }
     if (o.event_type === 'session-signals' && o.record) {
-      sessions.set(o.session_id, {
+      sessions.set(r.manifest.run_id + '/' + o.session_id, {
         tool_results: (o.record.tool_results || []).map((t) => ({ content: t.content, truncated: t.truncated === true, is_error: t.is_error === true })),
         files_edited: o.record.files_edited || [],
         verify_run: o.record.verify_run === true,
@@ -86,6 +91,15 @@ for (const r of sealed) {
     }
     allRows.push(o);
   }
+}
+
+// Volume manifests: the binding guard below validates bound task ids against
+// each run's declared volume — a bound task outside that set is a forged or
+// corrupted store row, same hard-error class as any binding violation.
+const volumes = {};
+for (const v of M.VOLUMES) {
+  const vf = path.join(T.VOLUMES, v + '.json');
+  if (fs.existsSync(vf)) volumes[v] = JSON.parse(fs.readFileSync(vf, 'utf8'));
 }
 
 // Orphan gate: every attributed event session must resolve to EXACTLY one
@@ -113,7 +127,7 @@ for (const r of sealed) {
   const mids = r.manifest.observed_session_ids || [];
   const unboundNoT = mids.filter((sid) => {
     const b = bindingFull.get(r.manifest.run_id + '/' + sid);
-    return !sessions.has(sid) && (!b || !b.task_id);
+    return !sessions.has(r.manifest.run_id + '/' + sid) && (!b || !b.task_id);
   });
   const boundTasks = new Set(mids.map((s2) => bindings.get(r.manifest.run_id + '/' + s2)).filter(Boolean));
   const pasteTasks = [...claims.entries()]
@@ -132,12 +146,17 @@ for (const r of sealed) {
 // task, >1 user prompt incl. the paste-channel degraded scan, or a missing
 // transcript with no unique paste path) refuses the whole evaluation.
 for (const r of sealed) {
+  const volTasks = volumes[r.manifest.volume];
+  if (!volTasks) fail('harness-error: volume manifest missing for run ' + r.manifest.run_id + ': ' + r.manifest.volume);
+  const knownTasks = new Set(volTasks.tasks.map((t) => t.task_id));
+  knownTasks.add(item0Task);
   for (const sid of r.manifest.observed_session_ids || []) {
     const b = bindingFull.get(r.manifest.run_id + '/' + sid);
-    const sig = sessions.get(sid);
+    const sig = sessions.get(r.manifest.run_id + '/' + sid);
     if (sig && sig.user_prompt_count > 1) { orphans.push({ session_id: sid, class: 'binding-multi-prompt', run_id: r.manifest.run_id, count: sig.user_prompt_count }); continue; }
     if (!b || !b.task_id) { orphans.push({ session_id: sid, class: 'binding-unbound', run_id: r.manifest.run_id, violation: b && b.violation ? b.violation : 'no-binding-row' }); continue; }
-    if (b.violation) orphans.push({ session_id: sid, class: 'binding-' + String(b.violation).split(':')[0], run_id: r.manifest.run_id, violation: b.violation });
+    if (b.violation) { orphans.push({ session_id: sid, class: 'binding-' + String(b.violation).split(':')[0], run_id: r.manifest.run_id, violation: b.violation }); continue; }
+    if (!knownTasks.has(b.task_id)) orphans.push({ session_id: sid, class: 'binding-unknown-task', run_id: r.manifest.run_id, task_id: b.task_id });
   }
 }
 const claimsByTask = new Map();
@@ -164,12 +183,6 @@ if (orphans.length) {
 // Claims loaded above (claims/<run>/<task>.txt, Tier-1). rowsByRun returns
 // rows whose session is owned by the named manifest — attribution is
 // session-level, never store-level.
-
-const volumes = {};
-for (const v of ['a', 'b', 'c']) {
-  const vf = path.join(T.VOLUMES, v + '.json');
-  if (fs.existsSync(vf)) volumes[v] = JSON.parse(fs.readFileSync(vf, 'utf8'));
-}
 
 const spansSet = new Set();
 for (const r of sealed) for (const sid of r.manifest.spans_boundary_sessions || []) spansSet.add(sid);

@@ -12,7 +12,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const { parseArgs, fail, usageExit } = require('./lib/common');
+const { parseArgs, fail, usageExit, captureKey, DEFAULT_STABLE_MS } = require('./lib/common');
 const M = require('./lib/manifest');
 const paths = require('./lib/paths');
 const C = require('./lib/capture');
@@ -22,7 +22,9 @@ const CL = require('./lib/claims');
 const args = parseArgs(process.argv.slice(2));
 if (!args['run-id']) usageExit('collect --run-id <id> [--input dir] [--stable-ms N] [--no-aggregate] [--trial-root dir]');
 const T = paths.resolve(args['trial-root']);
-const stableMs = args['stable-ms'] !== undefined ? Number(args['stable-ms']) : 2000;
+const stableMs = args['stable-ms'] !== undefined ? Number(args['stable-ms']) : DEFAULT_STABLE_MS;
+// Tool-result text excerpt cap stored per row (provenance, not truncation policy).
+const TOOL_RESULT_EXCERPT_CHARS = 8192;
 
 const mfile = T.manifestPath(args['run-id']);
 if (!fs.existsSync(mfile)) fail('no such run manifest: ' + args['run-id']);
@@ -38,13 +40,13 @@ const seen = new Set();
 if (fs.existsSync(storeFile)) {
   for (const line of fs.readFileSync(storeFile, 'utf8').split(/\r?\n/)) {
     if (!line) continue;
-    try { const r = JSON.parse(line); if (r.source) seen.add(r.source.sink + '|\x00|' + r.source.file + '|\x00|' + r.source.line_no + '|\x00|' + r.source.line_sha256); } catch (e) {}
+    try { const r = JSON.parse(line); if (r.source) seen.add(captureKey(r.source)); } catch (e) { }
   }
 }
 const norm = C.normalizeSinks(inputDir);
 const appended = [];
 const appendRow = (row) => {
-  const key = row.source ? row.source.sink + '|\x00|' + row.source.file + '|\x00|' + row.source.line_no + '|\x00|' + row.source.line_sha256 : null;
+  const key = captureKey(row.source);
   if (key && seen.has(key)) return false;
   if (key) seen.add(key);
   fs.appendFileSync(storeFile, JSON.stringify(row) + '\n');
@@ -74,7 +76,7 @@ for (const [sid, info] of tr.sessions) {
       claim_sha256: info.claim_sha256,
       files_edited: info.files_edited,
       verify_run: info.verify_run,
-      tool_results: info.tool_results.map((t) => { const c = typeof t === 'object' && t !== null ? String(t.content || '') : String(t); return { content: c.slice(0, 8192), truncated: c.length > 8192, is_error: typeof t === 'object' && t !== null && t.is_error === true }; }),
+      tool_results: info.tool_results.map((t) => { const c = typeof t === 'object' && t !== null ? String(t.content || '') : String(t); return { content: c.slice(0, TOOL_RESULT_EXCERPT_CHARS), truncated: c.length > TOOL_RESULT_EXCERPT_CHARS, is_error: typeof t === 'object' && t !== null && t.is_error === true }; }),
       transcript_file: info.file,
       parse_errors: info.parse_errors,
       mtime_unstable: info.mtime_unstable,
@@ -86,7 +88,9 @@ for (const [sid, info] of tr.sessions) {
 // 3. Binding guard: session -> task via first user-prompt sha256 pinned by
 //    the frozen volume manifest (+ item-0 probe pin). >1 user prompt or an
 //    unknown prompt hash are loud anomalies — never silently bound.
-const vol = JSON.parse(fs.readFileSync(path.join(T.VOLUMES, m.volume + '.json'), 'utf8'));
+const volFile = path.join(T.VOLUMES, m.volume + '.json');
+if (!fs.existsSync(volFile)) fail('harness-error: volume manifest missing for run ' + m.run_id + ': ' + volFile);
+const vol = JSON.parse(fs.readFileSync(volFile, 'utf8'));
 const promptToTask = new Map();
 for (const t of vol.tasks) promptToTask.set(t.prompt_sha256, t.task_id);
 let item0Sha = null, item0Task = null;
@@ -99,7 +103,7 @@ if (item0Sha) promptToTask.set(item0Sha, item0Task);
 const bindings = [];
 for (const [sid, info] of tr.sessions) {
   let taskId = null, violation = null;
-  if (info.user_prompts.length > 1) violation = 'multi-user-prompt:' + info.user_prompts.length;
+  if (info.user_prompts.length > 1) violation = 'multi-prompt:' + info.user_prompts.length;
   else if (info.first_prompt_sha256 === null) violation = 'no-user-prompt';
   else taskId = promptToTask.get(info.first_prompt_sha256) || null;
   if (taskId === null && violation === null) violation = 'unbound-first-prompt-sha';

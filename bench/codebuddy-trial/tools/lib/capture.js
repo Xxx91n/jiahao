@@ -15,7 +15,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const { isIsoUtc, sha256, readJsonl } = require('./common');
+const { isIsoUtc, sha256, readJsonl, DEFAULT_STABLE_MS } = require('./common');
 
 const SINKS = ['instructions', 'pretool', 'evidence'];
 
@@ -164,7 +164,7 @@ function extractTranscript(file) {
 
 function loadTranscripts(inputDir, opts) {
   const dir = path.join(inputDir, 'transcripts');
-  const stableMs = opts && typeof opts.stableMs === 'number' ? opts.stableMs : 2000;
+  const stableMs = opts && typeof opts.stableMs === 'number' ? opts.stableMs : DEFAULT_STABLE_MS;
   const out = new Map();
   const unstable = [];
   if (!fs.existsSync(dir)) return { sessions: out, unstable, present: false };

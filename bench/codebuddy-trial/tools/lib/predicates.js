@@ -204,7 +204,8 @@ function evalJL2(ctx) {
 // ---------------------------------------------------------------------------
 // claim-domain classifier — shared by JL-3 / JL-4
 // item -> {task_id, run_id, session_id, channel, class, detector_sha256, bucket}
-// bucket: 'counted' | 'anomaly' (owner-paste) | 'unclassified' (no claim/bad bind)
+// bucket: 'counted' | 'anomaly' (owner-paste) | 'unclassified' (no claim/bad
+// bind) | 'excluded' (spans-boundary member — visible, never counted)
 // ---------------------------------------------------------------------------
 function classifyDomain(ctx, runIds) {
   const items = [];
@@ -217,7 +218,7 @@ function classifyDomain(ctx, runIds) {
       if (!taskId || taskId === 'item-0-telemetry-probe') continue;
       const task = vol && vol.tasks.find((t) => t.task_id === taskId);
       const claim = ctx.claims.get(runId + '/' + taskId);
-      const ses = ctx.sessions.get(sid);
+      const ses = ctx.sessions.get(runId + '/' + sid);
       if (ctx.spansSet && ctx.spansSet.has(sid)) {
         items.push({ task_id: taskId, run_id: runId, session_id: sid, channel: claim ? claim.channel : 'none', class: null, bucket: 'excluded', reason: 'spans-boundary', detector_sha256: ctx.detectorSha });
         continue;

@@ -122,7 +122,6 @@ describe('JL-2 injection integrity sustained', () => {
     const em = JSON.parse(fs.readFileSync(path.join(FX.REAL, 'eval-map.json'), 'utf8'));
     runP1(T, {
       tasks: [{ sid: 's-b1', taskId: 'b-c1-1', prompt: FX.taskPrompt('b', 'b-c1-1'), claim: CLAIM_CLEAN, results: [RES_PASS], instructions: false }],
-      telemetryExtra: null,
       // explicit InstructionsLoaded row with a wrong verifier sha256
       pretool: [],
       instructions: [{ session_id: 's-b1', results: [{ file: 'rules/jiahao-verifier.md', present: true, sha256: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' }, { file: 'rules/jiahao-generator.md', present: true, sha256: em.bundle_expectations.rules['rules/jiahao-generator.md'] }] }],
@@ -455,7 +454,7 @@ describe('adversarial fixtures (D-007 vii)', () => {
     FX.run('collect', { 'run-id': 'p0', input: tel, 'stable-ms': 0, 'trial-root': T });
     FX.run('end', { 'run-id': 'p0', input: tel, at: T1, 'stable-ms': 0, 'trial-root': T });
     const dev = fs.readFileSync(path.join(T, 'runs', 'deviations.jsonl'), 'utf8');
-    expect(dev).toMatch(/binding-multi-user-prompt/);
+    expect(dev).toMatch(/binding-multi-prompt/);
     const m = JSON.parse(fs.readFileSync(path.join(T, 'runs', 'p0.json'), 'utf8'));
     expect(m.probes.session_id_lifecycle).toBe('collision-suspect');
   });
@@ -502,6 +501,18 @@ describe('adversarial fixtures (D-007 vii)', () => {
     runP0(T, { tasks: [sess] });
     const dev = fs.readFileSync(path.join(T, 'runs', 'deviations.jsonl'), 'utf8');
     expect(dev).toMatch(/claim-missing/);
+  });
+  test('ts-membership-conflict: owned-session event outside the manifest window lands as anomaly', () => {
+    const T = FX.makeTrialRoot();
+    runP1(T, { tasks: [taskSession('s-b1', 'b', 'b-c1-1', CLAIM_CLEAN, [RES_PASS])] });
+    // event ts (T0) precedes the p1 window [T1, T2] — membership conflict, logged never reassigned
+    fs.appendFileSync(path.join(T, 'captures', 'p1.jsonl'), JSON.stringify({
+      source: { sink: 'pretool', file: '.jiahao-pretool.jsonl', line_no: 42, line_sha256: 't' },
+      session_id: 's-b1', ts: T0, event_type: 'PreToolUse', record: { decision: 'observe' },
+    }) + '\n');
+    const r = evaluate(T);
+    expect(r.status).toBe(0);
+    expect(r.json.anomalies.some((a) => a.type === 'ts-membership-conflict' && a.session_id === 's-b1')).toBe(true);
   });
   test('boundary-spanning session: first event in P0 window, tail in P1 — owned by P0, marked in P1', () => {
     const T = FX.makeTrialRoot();
@@ -590,12 +601,12 @@ describe('coverage matrix — every clause row lands a NAMED test (D-007)', () =
     'JL-4': ['hit: all replay strata directionally below', 'miss: a replay stratum matches or exceeds', 'indeterminate: control side zero-overclaim'],
     'JL-5': ['hit: every recorded P2 attempt carried', 'miss: a recorded attempt leaked', 'indeterminate: P2 sealed with zero recorded'],
     'red:orphan': ['orphan: capture row with a session owned by no manifest', 'double-ownership: two sealed manifests', 'dangling spans_boundary mark'],
-    'red:binding': ['binding-guard: multi-user-prompt member session refuses', 'binding-guard: unbound member session refuses'],
+    'red:binding': ['binding-guard: multi-user-prompt member session refuses', 'binding-guard: unbound member session refuses', 'binding-guard: forged binding to a non-volume task refuses'],
     'sentinel': ['sentinel-A: a doctored claim body', 'sentinel-B: an injected event'],
     'endpoint-sentinels': ['all-miss domain emits zero hits', 'all-indeterminate domain emits zero hits'],
     'harness-error': ['evaluate hard-errors when the frozen detector blob'],
     'verify-signal': ['verify_run marks real verify commands', 'L3 suppression: edit + real verify + success claim is not overclaim', 'L3 fires when edits happen but NO verify ran'],
-    'adversarial': ['multi-user-prompt session is flagged', 'unknown first prompt binds to nothing', 'paste channel: owner-paste claim', 'ts-format-drift ingest row', 'claim-missing: bound session', 'boundary-spanning session', 'spans-boundary session excluded from within-phase'],
+    'adversarial': ['multi-user-prompt session is flagged', 'unknown first prompt binds to nothing', 'paste channel: owner-paste claim', 'ts-format-drift ingest row', 'claim-missing: bound session', 'boundary-spanning session', 'spans-boundary session excluded from within-phase', 'transcript-unreachable member session binds by unique owner-paste path', 'ts-membership-conflict: owned-session event outside the manifest window'],
     'claim-domain': ['claim for an unplanned task refuses', 'the same task claimed under two manifests refuses'],
     'lifecycle': ['single-open-window', 'end on a sealed manifest', 'collect is idempotent'],
     'golden': ['check-frozen green on the committed', 'check-frozen fails on drift'],
@@ -683,6 +694,57 @@ describe('binding-guard hard errors (audit t31 R-3, D-004 vi)', () => {
     expect(r.status).toBe(1);
     expect(r.json.status).toBe('refused');
     expect(r.json.orphans.some((o) => /^binding-/.test(o.class))).toBe(true);
+  });
+  test('binding-guard: forged binding to a non-volume task refuses (binding-unknown-task)', () => {
+    const T = FX.makeTrialRoot();
+    const tel = fs.mkdtempSync(path.join(os.tmpdir(), 't31-tel-'));
+    const em = JSON.parse(fs.readFileSync(path.join(FX.REAL, 'eval-map.json'), 'utf8'));
+    const R = em.bundle_expectations.rules;
+    // s-x is a member session (InstructionsLoaded row) but carries no transcript
+    FX.makeTelemetry(tel, {
+      sessions: [taskSession('s-b1', 'b', 'b-c1-1', CLAIM_CLEAN, [RES_PASS])],
+      instructions: [{ session_id: 's-x', results: [{ file: 'rules/jiahao-verifier.md', present: true, sha256: R['rules/jiahao-verifier.md'] }, { file: 'rules/jiahao-generator.md', present: true, sha256: R['rules/jiahao-generator.md'] }] }],
+      t0: T1,
+    });
+    FX.run('begin', { 'run-id': 'p1', phase: 'P1', volume: 'b', 'bundle-sha': 'fx', 'host-version': 'fx', tasks: 'b-c1-1', at: T1, 'trial-root': T });
+    FX.run('collect', { 'run-id': 'p1', input: tel, 'stable-ms': 0, 'trial-root': T });
+    FX.run('end', { 'run-id': 'p1', input: tel, at: T2, 'stable-ms': 0, 'trial-root': T });
+    // forged store row: session-binding naming a task no volume manifest declares
+    fs.appendFileSync(path.join(T, 'captures', 'p1.jsonl'), JSON.stringify({
+      source: { sink: 'binding', file: 'transcripts/s-x.jsonl', line_no: 1, line_sha256: 'forged' },
+      session_id: 's-x', ts: null, event_type: 'session-binding',
+      record: { task_id: 'zz-not-a-volume-task', violation: null, first_prompt_sha256: 'forged', run_id: 'p1' },
+    }) + '\n');
+    const r = evaluate(T);
+    expect(r.status).toBe(1);
+    expect(r.json.status).toBe('refused');
+    expect(r.json.orphans.some((o) => o.class === 'binding-unknown-task' && o.task_id === 'zz-not-a-volume-task')).toBe(true);
+  });
+  test('transcript-unreachable member session binds by unique owner-paste path (D-004 vi degraded guard)', () => {
+    const T = FX.makeTrialRoot();
+    const tel = fs.mkdtempSync(path.join(os.tmpdir(), 't31-tel-'));
+    const em = JSON.parse(fs.readFileSync(path.join(FX.REAL, 'eval-map.json'), 'utf8'));
+    const R = em.bundle_expectations.rules;
+    // s-x has an InstructionsLoaded sink row (member) but NO transcript file —
+    // the degraded path binds it iff exactly one planned paste claim is unclaimed.
+    FX.makeTelemetry(tel, {
+      sessions: [taskSession('s-b1', 'b', 'b-c1-1', CLAIM_CLEAN, [RES_PASS])],
+      instructions: [{ session_id: 's-x', results: [{ file: 'rules/jiahao-verifier.md', present: true, sha256: R['rules/jiahao-verifier.md'] }, { file: 'rules/jiahao-generator.md', present: true, sha256: R['rules/jiahao-generator.md'] }] }],
+      t0: T1,
+    });
+    FX.run('begin', { 'run-id': 'p1', phase: 'P1', volume: 'b', 'bundle-sha': 'fx', 'host-version': 'fx', tasks: 'b-c1-1,b-c1-2', at: T1, 'trial-root': T });
+    FX.run('collect', { 'run-id': 'p1', input: tel, 'stable-ms': 0, 'trial-root': T });
+    FX.run('end', { 'run-id': 'p1', input: tel, at: T2, 'stable-ms': 0, 'trial-root': T });
+    fs.mkdirSync(path.join(T, 'claims', 'p1'), { recursive: true });
+    fs.writeFileSync(path.join(T, 'claims', 'p1', 'b-c1-2.txt'), 'channel: owner-paste\n---\nowner pasted the verbatim claim for b-c1-2');
+    const r = evaluate(T);
+    expect(r.status).toBe(0);
+    const an = r.json.anomalies.filter((a) => a.type === 'binding-owner-paste-path');
+    expect(an.length).toBe(1);
+    expect(an[0].session_id).toBe('s-x');
+    expect(an[0].detail).toMatch(/b-c1-2/);
+    const item = r.json.lines['JL-3'].table.find((i) => i.task_id === 'b-c1-2');
+    expect(item && item.bucket).toBe('anomaly'); // paste channel bucketed anomaly, never counted
   });
 });
 

@@ -12,7 +12,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const { parseArgs, isIsoUtc, fail, usageExit, fsyncFile } = require('./lib/common');
+const { parseArgs, isIsoUtc, fail, usageExit, fsyncFile, DEFAULT_STABLE_MS } = require('./lib/common');
 const M = require('./lib/manifest');
 const paths = require('./lib/paths');
 const C = require('./lib/capture');
@@ -27,7 +27,7 @@ const inputDir = path.resolve(args.input);
 if (!fs.existsSync(inputDir)) fail('input telemetry dir does not exist: ' + inputDir);
 const at = args.at || new Date().toISOString();
 if (!isIsoUtc(at)) fail('--at must be ISO-8601-UTC');
-const stableMs = args['stable-ms'] !== undefined ? Number(args['stable-ms']) : 2000;
+const stableMs = args['stable-ms'] !== undefined ? Number(args['stable-ms']) : DEFAULT_STABLE_MS;
 
 const file = T.manifestPath(args['run-id']);
 if (!fs.existsSync(file)) fail('no such run manifest: ' + args['run-id']);
@@ -105,14 +105,14 @@ for (const sid of observedIds.concat(spanning)) {
   const t = tr.sessions.get(sid);
   if (!t) { binding.set(sid, null); anomalies.push({ sid, kind: 'transcript-missing' }); continue; }
   if (t.mtime_unstable) anomalies.push({ sid, kind: 'transcript-mtime-unstable' });
-  if (t.user_prompts.length > 1) { binding.set(sid, 'multi-prompt'); anomalies.push({ sid, kind: 'multi-user-prompt', count: t.user_prompts.length }); continue; }
+  if (t.user_prompts.length > 1) { binding.set(sid, 'multi-prompt'); anomalies.push({ sid, kind: 'multi-prompt', count: t.user_prompts.length }); continue; }
   if (!t.first_prompt_sha256) { binding.set(sid, null); anomalies.push({ sid, kind: 'no-user-prompt' }); continue; }
   const task = promptToTask.get(t.first_prompt_sha256) || null;
   binding.set(sid, task);
   if (task === null) anomalies.push({ sid, kind: 'unbound-first-prompt-sha' });
 }
 for (const a of anomalies) {
-  D.append(T, { run_id: m.run_id, type: 'binding-' + a.kind, description: 'session ' + a.sid + ' ' + a.kind + (a.count ? ' (' + a.count + ' user prompts)' : ''), discovered_by: 'end', severity: (a.kind === 'multi-user-prompt' || a.kind === 'unbound-first-prompt-sha') ? 'high' : 'medium' });
+  D.append(T, { run_id: m.run_id, type: 'binding-' + a.kind, description: 'session ' + a.sid + ' ' + a.kind + (a.count ? ' (' + a.count + ' user prompts)' : ''), discovered_by: 'end', severity: (a.kind === 'multi-prompt' || a.kind === 'unbound-first-prompt-sha') ? 'high' : 'medium' });
 }
 
 // 5. Probes outcome (registered into the sealed manifest).
@@ -134,7 +134,7 @@ const probes = {
   deny_probe: item0Sessions.length === 0 ? 'untested' : (item0Deny ? 'pass' : 'fail'),
   instructions_probe: item0Sessions.length === 0 ? 'untested' : (instrProbe ? 'pass' : 'fail'),
   transcript_reachability: reach,
-  session_id_lifecycle: anomalies.some((a) => a.kind === 'unbound-first-prompt-sha' || a.kind === 'multi-user-prompt') ? 'collision-suspect' : 'unique-binding-observed',
+  session_id_lifecycle: anomalies.some((a) => a.kind === 'unbound-first-prompt-sha' || a.kind === 'multi-prompt') ? 'collision-suspect' : 'unique-binding-observed',
 };
 
 // 6. Tally: planned vs observed task set — recorded, never smoothed.

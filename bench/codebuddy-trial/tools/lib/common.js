@@ -13,6 +13,10 @@ const crypto = require('crypto');
 const ISO_UTC_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,9})?Z$/;
 function isIsoUtc(s) { return typeof s === 'string' && ISO_UTC_RE.test(s); }
 
+// Transcript mtime debounce default (ms) — shared by collect/end/capture so
+// the "recently-modified = unstable" window is one constant, not three.
+const DEFAULT_STABLE_MS = 2000;
+
 function sha256(buf) {
   return crypto.createHash('sha256').update(buf).digest('hex');
 }
@@ -93,6 +97,7 @@ function usageExit(msg) { fail('usage: ' + msg, 64); }
 
 module.exports = {
   captureKey,
+  DEFAULT_STABLE_MS,
   ISO_UTC_RE, isIsoUtc, sha256, sha256File, readJsonl, writeJson,
   appendJsonl, fsyncFile, parseArgs, fail, usageExit,
 };
