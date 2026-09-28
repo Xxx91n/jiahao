@@ -187,3 +187,22 @@ Anti-loss rule: every confirmed substantive conclusion appends a record here bef
   - 禁把回插任务放进被污染的基线——回插对照的唯一有效性=「仅内容不同」
   - 禁静默改向（调研与账本冲突走 revised+新记录程序）
 - **状态**: current
+
+## D-010 — 审计返修处置：A-1 必做七项 + 孤儿引用勘误 + 语义不变（α′）
+
+- **原问题**: 审计 FAIL 回打（`.scratch/grill-t31/reports/2026-09-28-audit-report.md`）列必做 7 项；其中 binding 守卫严重度（失配/多 prompt 升 orphan 硬错）与 spec 语义如何处置——按现行 D-004(vi) 硬化还是修订 spec。
+- **原回答原文**: 「返工」（审计判定 FAIL，回修复窗口）
+- **规范化需求**:
+  (i) 语义决策：按 D-004(vi) 原条文硬化——binding 失配/多 prompt/claim 孤儿·重复全部升级为 evaluate 拒绝（orphan 硬错同类），不修订 spec；语义不变，实现补齐；
+  (ii) VERIFY_RE 字节修复：`\s` 被 escape 层吃成 `s` 的署名缺陷恢复真 `\s`，覆盖 npm/npx/pnpm/yarn/node/go/cargo/dotnet/mvn/gradle(w)/make + 裸 jest/vitest/pytest；电池补 verify_run 断言与 L3 抑制双向用例；
+  (iii) spans_boundary：评估侧跨 manifest 查标——任一 manifest 标过即排除出 within-phase 比较域（记录非静默），成员归属不变；
+  (iv) coverage matrix 改非自证：按 `test('...')` 锚定提取声明名匹配必测清单，矩阵字面量永远无法自满足；
+  (v) RUNBOOK 补：item-0 两 owner 步骤（transcript-reachability + session_id-lifecycle，对齐 pending-confirmation）、逐任务 pristine checklist（`<trial-workspace>/<run_id>/<task_id>/` + P2 replay 行）、verify-needles `--workbench` 任务启动重验；
+  (vi) 双端哨兵：all-miss 平凡 run + all-indeterminate run 断言零 hit；
+  (vii) 勘误通道：报告/SEAL 内孤儿 sha 引用（d7ddd772/6e2334bf/49700fac）登记 ERRATA.md E-20（非 pin_patterns 行，无 exemption 行）；报告文本不回头编辑（claim 工件冻结惯例），事实性误差以勘误记；
+  (viii) 同波卫生项：deviations.js run_id 回指腿字段名、五元组补 store 零写断言、cursor-gap/claim-orphan/claim-duplicated 红 fixture、storesByRun 死码、EVAL_MAP 双读、res.length 魔数、common.js shebang、绑定守卫词汇表 collect/end 统一。
+- **显式约束/负向需求**:
+  - 禁借返修窗重写语义——spec/ledger 不动，实现对齐；
+  - 禁静默编辑已提交 claim 工件——误差走 ERRATA.md；
+  - 禁 claim 工件与 map 分离提交——leg-224 要求同提交。
+- **状态**: current

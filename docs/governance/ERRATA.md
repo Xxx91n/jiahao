@@ -349,3 +349,34 @@ Recorded in AGENTS.md wave-closeout bullet.
 
 Bound by the erratum convention and leg 219; pin-side exemptions carry
 the mechanical part.
+
+## E-20 - grill-t31 restack orphans: report cites pre-restack wave shas; SEAL lineage comment cites pre-restack seal (audit A-1)
+
+The t31 audit (`.scratch/grill-t31/reports/2026-09-28-audit-report.md`)
+found committed round artifacts citing commits that the closeout-tail
+restack orphaned:
+
+- `.scratch/grill-t31/reports/2026-09-28-report.md` L22-23 cite
+  `d7ddd772` (governance closeout, re-landed as `636f274b`) and
+  `6e2334bf` (folded into the terminal claim wave) — pre-restack objects.
+- `.scratch/grill-t31/SEAL` lineage comment cites `49700fac` (the first
+  seal commit, uncommit-ed during the disclosed repair) and `d7ddd772`.
+  The `seal:` pin itself names `f4ea1a38` — live and ancestral; only the
+  comment prose holds orphans.
+
+None sits on a pin_patterns line (`seal:`/`captured-at-head:`), so no
+errata_exemptions row applies; this documentary entry is the
+registration. The objects are retained in the object store; the rewrite
+map classifies them `unresolved hex literal` and `--check` is green
+again on the regenerated map.
+
+The same erratum records three report prose nits (fixed text, not
+re-edited — claim artifacts stay as-committed): "6 lib modules" should
+read 7 (tools/lib has seven files); the "24/24 defect checks" figure is
+the check-FILE count (8 per workbench); the wave table omits in-registry
+docs commits `c50518ea` and `453d13f7` which rode the same lane.
+
+Disposition: repair-window wave fixes the live defects (VERIFY_RE byte,
+spans exclusion, binding hard errors, matrix vacuity) and regenerates
+the map; this entry + a decision-ledger repair record carry the
+documentation half.
