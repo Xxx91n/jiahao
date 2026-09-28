@@ -385,3 +385,22 @@ Disposition: repair-window wave fixes the live defects (VERIFY_RE byte,
 spans exclusion, binding hard errors, matrix vacuity) and regenerates
 the map; this entry + a decision-ledger repair record carry the
 documentation half.
+
+## E-21 - grill-t31 repair handoff appendix: stale seal field (audit F-R2-2)
+
+The repair appendix of `.scratch/grill-t31/handoffs/2026-09-28-handoff.md`
+(L99) states "Seal re-issued: `seal: b0504f28` (post-repair substantive
+tip)". That sentence froze an intermediate state: two residue commits
+(`aab0a3b4`, `b9396688`) landed after it was drafted, and the terminal
+SEAL file declares `b9396688d9f06f8d3349202582bb141576a89d77` (seal
+commit `be81e11a` on the t31 lane). The stale sentence names the docs
+wave tip `b0504f28` — a real commit but not the declared tip.
+
+No correction is applied to the committed handoff text (claim artifacts
+are immutable once committed; E-20 registers the orphan family this
+lineage produced). This entry is the standing correction:
+
+- `seal:` declared tip = `b9396688` (see `.scratch/grill-t31/SEAL`),
+  not `b0504f28`.
+- Topology: `87192ded` impl -> `b0504f28` docs -> `aab0a3b4` impl
+  residue -> `b9396688` docs residue -> `be81e11a` SEAL -> claim wave.

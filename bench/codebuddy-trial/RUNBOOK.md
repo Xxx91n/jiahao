@@ -147,7 +147,8 @@ Emits per-line {verdict: hit|miss|indeterminate, reason_code, table,
 anomalies} + detector_sha256 + self-check cases + anomalies[]. Refuses (exit 1)
 on: unowned/double-owned event sessions (`unowned`/`double-ownership`),
 dangling spans_boundary marks (`spans-boundary-dangling`), binding violations
-on member sessions (`binding-unbound`/`binding-multi-prompt` — D-004(vi) same
+on member sessions (`binding-unbound`/`binding-multi-prompt`/
+`binding-unknown-task` — D-004(vi) same
 class as D-002(iii): a member session must bind exactly one real task), and
 claim-domain orphans (`claim-orphan`/`claim-duplicated`). Hard-errors on
 detector drift. A session marked spans_boundary is EXCLUDED from within-phase
