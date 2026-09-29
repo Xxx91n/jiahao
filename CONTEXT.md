@@ -1501,7 +1501,11 @@ gates can never be entries; enforcement is fail-closed via
 `scripts/check-deferred.js` with the ADR-0027 couplingViolation guard
 (registry diff requires a same-commit ADR change). Anchoring is
 existence-based (source_adr exists + entry id appears in ADR text or
-CONTEXT.md), never value-anchored. A merged row may register a class of
+CONTEXT.md), never value-anchored; the existence anchor is also what
+lets a registration carry no minted ADR — defer-0076 (declared-count
+generator bridge; ERRATA E-25) and defer-0077 (cap fifth-amendment
+distribution-form economics; ADR-0087) anchor at this paragraph
+(grill-t33). A merged row may register a class of
 same-type items with per-instance itemization (each instance
 individually closable), the four elements (owner, deadline, acceptance
 criterion, recurrence->split escalation trigger), and ratchet semantics

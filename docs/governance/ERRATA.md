@@ -478,3 +478,40 @@ R2-F4 (exists_at is equality-exempt; committed-map tampering could forge
 the stage-3 clock basis) is logged as a grill-t33 candidate - a future leg
 sanity-bound on exists_at vs commit time, not a current defect.
 
+## E-25 - public-CI five-run red streak undisclosed + audit re-run surface missing the CI test-job command (grill-t33 V8 critique, correction track)
+
+Three numbered items, terminal-state snapshot (registered once - the five
+failures are a consecutive-failure terminal statement, not a per-run log;
+the historical figures appear once as evidence text and never become an
+assertion pattern):
+
+1. **Event (terminal statement)**: five consecutive origin/main CI
+   failures, `a92efdf5` (2026-09-28T12:05Z) through `754e53c2`
+   (2026-09-29T06:20Z), tip run id 36530594835. The failing step in every
+   run is the test job's `node scripts/run-test-gate.js
+   --expected-suites` README declared-count assertion; README declared
+   1511 tests / 87 suites while the measured battery stood at 1571 / 89.
+   The gate-all job stayed green; the summary job's failure is the
+   success-only aggregation consequence of the failed test job.
+2. **Audit-surface fact**: the t32 round's three second-party audit
+   Hard-acceptance tables carry `npx jest` and `run-gates.js` rows and no
+   `run-test-gate.js` row - the single command the CI test job actually
+   runs. Recorded as the verifiable fact only; the critique's "surface
+   gap" characterization is cited as the critique's finding, not
+   countersigned here.
+3. **Disposition boundary**: correction lands this round (the README
+   declared-count repair and the countersign-queue authority closure);
+   the mechanism fix - audit re-run surface ⊇ CI test-job surface,
+   checklist generated from ci.yml - goes to the t34 contract round. The
+   erratum records facts and destination; it does not mint the mechanism.
+
+Posture: factual registration, no pending-confirmation wording - every
+asserted fact is mechanically verifiable (E-13-style pending wording is
+reserved for contested characterizations). Bound-by:
+convention-existence wiring asserting the defer-0076 bridge row and the
+AGENTS.md baseline-CI clause exist (T-8, home
+`test/adr-0033-wiring.test.js`); this is the first convention-existence
+binding - it asserts the presence of registered conventions, not a
+numeric count.
+
+

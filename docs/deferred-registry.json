@@ -1206,6 +1206,42 @@
     "date": "2026-09-27",
     "note": "registered this round (grill-t29 D-005); the tide-capacity observation is owner context - substantive adjudications stay scheduled at 2026-12-15"
    }
+  },
+  {
+   "id": "defer-0076",
+   "subject": "test/suite declared counts lack a single generator source (README hand-declared; the gate asserts equality only; no count synthesis exists) - recurrence risk registered pending the t34 contract round",
+   "source_adr": "docs/governance/ERRATA.md",
+   "rationale": "grill-t33 D-003(ii) bridge row: E-25 registers the five-run public-CI red streak whose failing step was the run-test-gate README declared-count assertion. The correction this round rewrites the numbers; it does not create a count generator - README declarations stay hand-maintained, so the same drift class can recur. Recurrence risk is registered here pending the t34 contract round, which owns the audit re-run surface mechanization (checklist generated from ci.yml).",
+   "unfreeze_if": {
+    "type": "presence-condition",
+    "check": "a registered artifact or ADR declares the audit re-run checklist is derived from ci.yml / the CI test-job command is inside the audit re-run table"
+   },
+   "review_at": "2026-10-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-29",
+   "status": "pending-evaluation",
+   "last_check_in": {
+    "date": "2026-09-29",
+    "note": "review_at value pinned by spec-t33-correction on 2026-09-29 (D-004(iii)⑥); linked to ERRATA E-25"
+   }
+  },
+  {
+   "id": "defer-0077",
+   "subject": "cap fifth-amendment distribution-form economics unpriced (vendored plugin bundle raised the pack floor ~64k); evaluate whether distribution-form cost accounting belongs in future cap-trend amendments",
+   "source_adr": "docs/adr/0087-codebuddy-host-adapter-first-external-effectiveness-trial.md",
+   "rationale": "grill-t33 D-004(ii) observation-home convention: out-of-round cost/governance observations register as pending-evaluation rows. The fifth cap amendment absorbed a distribution-form-driven floor raise (the vendored plugin bundle adds ~64k of packed surface) without a pricing model for distribution-form cost. The row registers the evaluation slot; the evaluation itself stays out-of-round.",
+   "unfreeze_if": {
+    "type": "external-event",
+    "check": "the next cap-trend amendment evaluation decides whether distribution-form cost accounting is priced inside the cap policy or stays unpriced"
+   },
+   "review_at": "2026-12-15",
+   "cadence_tier": "quarterly",
+   "registered_at": "2026-09-29",
+   "status": "pending-evaluation",
+   "last_check_in": {
+    "date": "2026-09-29",
+    "note": "registration in-round per spec-t33 section 5; the item itself stays out-of-round"
+   }
   }
  ]
 }
