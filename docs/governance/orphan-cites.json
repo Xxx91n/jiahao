@@ -8915,6 +8915,5501 @@
       "object_purged_at": "2026-09-28T15:41:49.101Z",
       "errata_ref": null,
       "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "ab92813e41f758ef8c6c75ea7d3e2407d45e2b9c",
+      "object_type": "blob",
+      "size": 8077,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1509
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "disposition": "orphaned",
+      "errata_ref": "E-22"
+    },
+    {
+      "cited_sha": "aac3c7a",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0058/decision-ledger.md",
+          "line": 223
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "c5245c73",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0058/reports/2026-09-12-audit-report.md",
+          "line": 71
+        },
+        {
+          "file": ".scratch/grill-adr0058/reports/2026-09-12-audit-report.md",
+          "line": 163
+        },
+        {
+          "file": ".scratch/grill-adr0058/reports/2026-09-12-audit-report.md",
+          "line": 239
+        },
+        {
+          "file": ".scratch/grill-t6/audit/b7ccbeb/docs/governance/audit-report-adr0058.md",
+          "line": 71
+        },
+        {
+          "file": ".scratch/grill-t6/audit/b7ccbeb/docs/governance/audit-report-adr0058.md",
+          "line": 163
+        },
+        {
+          "file": ".scratch/grill-t6/audit/b7ccbeb/docs/governance/audit-report-adr0058.md",
+          "line": 239
+        },
+        {
+          "file": "docs/governance/audit-report-adr0058.md",
+          "line": 71
+        },
+        {
+          "file": "docs/governance/audit-report-adr0058.md",
+          "line": 163
+        },
+        {
+          "file": "docs/governance/audit-report-adr0058.md",
+          "line": 239
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "57473da6",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0058/reports/2026-09-12-repair-report.md",
+          "line": 73
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "46f1d53637ed6a8d",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0059/reports/2026-09-12-report.md",
+          "line": 63
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "f84a6c955ec5663a",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0059/reports/2026-09-12-report.md",
+          "line": 64
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "46f1d536",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0059/reports/2026-09-12-report.md",
+          "line": 118
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "f84a6c95",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0059/reports/2026-09-12-report.md",
+          "line": 118
+        },
+        {
+          "file": ".scratch/grill-adr0059/reports/2026-09-12-report.md",
+          "line": 139
+        },
+        {
+          "file": ".scratch/grill-adr0059/reports/2026-09-12-report.md",
+          "line": 567
+        },
+        {
+          "file": ".scratch/grill-adr0061/handoffs/2026-09-13-t3-handoff.md",
+          "line": 25
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-report.md",
+          "line": 104
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "fb30005f0d053812",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0059/reports/2026-09-12-report.md",
+          "line": 119
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "ef9926697fa8",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0059/reports/2026-09-12-report.md",
+          "line": 140
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "06b8215b",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0059/reports/2026-09-12-report.md",
+          "line": 169
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "99a20aae",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0059/reports/2026-09-12-report.md",
+          "line": 169
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-audit-report.md",
+          "line": 95
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-repair-report.md",
+          "line": 69
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-report.md",
+          "line": 124
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-report.md",
+          "line": 126
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "f6c6c843",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0061/handoffs/2026-09-13-t3-handoff.md",
+          "line": 25
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-audit-report.md",
+          "line": 43
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-audit-report.md",
+          "line": 44
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-report.md",
+          "line": 104
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-report.md",
+          "line": 123
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-report.md",
+          "line": 127
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "fb30005f",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0061/handoffs/2026-09-13-t3-handoff.md",
+          "line": 26
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-report.md",
+          "line": 105
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "c68d49c6",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0061/handoffs/2026-09-13-t3-handoff.md",
+          "line": 26
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-report.md",
+          "line": 105
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-report.md",
+          "line": 122
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "f6c6c843c4ad4151",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-audit-report.md",
+          "line": 20
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-audit-report.md",
+          "line": 43
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-reaudit-report.md",
+          "line": 21
+        },
+        {
+          "file": ".scratch/grill-t17/evidence/gate-all.txt",
+          "line": 14
+        },
+        {
+          "file": ".scratch/grill-t17/evidence/instrument.txt",
+          "line": 2
+        },
+        {
+          "file": ".scratch/grill-t18/evidence/gate-all.txt",
+          "line": 13
+        },
+        {
+          "file": ".scratch/grill-t18/evidence/instrument.txt",
+          "line": 5
+        },
+        {
+          "file": ".scratch/grill-t19/evidence/gate-all.txt",
+          "line": 13
+        },
+        {
+          "file": ".scratch/grill-t19/evidence/instrument.txt",
+          "line": 5
+        },
+        {
+          "file": ".scratch/grill-t20/evidence/gate-all.txt",
+          "line": 13
+        },
+        {
+          "file": ".scratch/grill-t20/evidence/instrument.txt",
+          "line": 5
+        },
+        {
+          "file": ".scratch/grill-t21/evidence/gate-all.txt",
+          "line": 13
+        },
+        {
+          "file": ".scratch/grill-t21/evidence/instrument.txt",
+          "line": 5
+        },
+        {
+          "file": ".scratch/grill-t22/evidence/gate-all.txt",
+          "line": 13
+        },
+        {
+          "file": ".scratch/grill-t22/evidence/instrument.txt",
+          "line": 5
+        },
+        {
+          "file": ".scratch/grill-t23/evidence/gate-all.txt",
+          "line": 13
+        },
+        {
+          "file": ".scratch/grill-t23/evidence/instrument.txt",
+          "line": 5
+        },
+        {
+          "file": ".scratch/grill-t24/evidence/gate-all.txt",
+          "line": 14
+        },
+        {
+          "file": ".scratch/grill-t24/evidence/instrument.txt",
+          "line": 6
+        },
+        {
+          "file": ".scratch/grill-t25/evidence/gate-all.txt",
+          "line": 14
+        },
+        {
+          "file": ".scratch/grill-t25/evidence/instrument.txt",
+          "line": 6
+        },
+        {
+          "file": ".scratch/grill-t26/evidence/gate-all.txt",
+          "line": 12
+        },
+        {
+          "file": ".scratch/grill-t27/evidence/gate-all.txt",
+          "line": 12
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "17de5b7c",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-audit-report.md",
+          "line": 41
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-audit-report.md",
+          "line": 162
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-report.md",
+          "line": 20
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "09b9413e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-audit-report.md",
+          "line": 162
+        },
+        {
+          "file": ".scratch/grill-t6/audit/b7ccbeb/docs/adr/0063-surface-narrowed-judge-identity-anchor-semantic-digest-rejected.md",
+          "line": 100
+        },
+        {
+          "file": "docs/adr/0063-surface-narrowed-judge-identity-anchor-semantic-digest-rejected.md",
+          "line": 100
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "60127eb6",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-audit-report.md",
+          "line": 162
+        },
+        {
+          "file": ".scratch/grill-adr0061/reports/2026-09-13-report.md",
+          "line": 126
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "9ff2d0ad",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t10/handoffs/2026-09-16-audit-passed.md",
+          "line": 11
+        },
+        {
+          "file": ".scratch/grill-t10/handoffs/2026-09-16-audit-passed.md",
+          "line": 59
+        },
+        {
+          "file": ".scratch/grill-t10/handoffs/next-round.md",
+          "line": 9
+        },
+        {
+          "file": ".scratch/grill-t10/reports/2026-09-16-audit.md",
+          "line": 29
+        },
+        {
+          "file": ".scratch/grill-t10/reports/2026-09-16-audit.md",
+          "line": 123
+        },
+        {
+          "file": ".scratch/grill-t10/reports/2026-09-16-report.md",
+          "line": 40
+        },
+        {
+          "file": ".scratch/grill-t17/evidence/gate-all.txt",
+          "line": 70
+        },
+        {
+          "file": ".scratch/grill-t18/evidence/gate-all.txt",
+          "line": 69
+        },
+        {
+          "file": ".scratch/grill-t19/evidence/gate-all.txt",
+          "line": 69
+        },
+        {
+          "file": ".scratch/grill-t20/evidence/gate-all.txt",
+          "line": 69
+        },
+        {
+          "file": ".scratch/grill-t21/evidence/gate-all.txt",
+          "line": 69
+        },
+        {
+          "file": ".scratch/grill-t22/evidence/gate-all.txt",
+          "line": 69
+        },
+        {
+          "file": ".scratch/grill-t23/evidence/gate-all.txt",
+          "line": 69
+        },
+        {
+          "file": ".scratch/grill-t24/evidence/gate-all.txt",
+          "line": 70
+        },
+        {
+          "file": ".scratch/grill-t25/evidence/gate-all.txt",
+          "line": 70
+        },
+        {
+          "file": ".scratch/grill-t26/evidence/gate-all.txt",
+          "line": 68
+        },
+        {
+          "file": ".scratch/grill-t27/evidence/gate-all.txt",
+          "line": 68
+        },
+        {
+          "file": ".scratch/grill-t8/handoffs/2026-09-16-repair-handoff.md",
+          "line": 8
+        },
+        {
+          "file": ".scratch/grill-t8/reports/2026-09-16-reaudit-report.md",
+          "line": 38
+        },
+        {
+          "file": ".scratch/grill-t8/reports/2026-09-16-reaudit-report.md",
+          "line": 53
+        },
+        {
+          "file": ".scratch/grill-t8/reports/2026-09-16-repair-report.md",
+          "line": 96
+        },
+        {
+          "file": ".scratch/grill-t9/GOAL.md",
+          "line": 8
+        },
+        {
+          "file": ".scratch/grill-t9/handoffs/next-round.md",
+          "line": 12
+        },
+        {
+          "file": ".scratch/grill-t9/handoffs/next-round.md",
+          "line": 84
+        },
+        {
+          "file": ".scratch/grill-t9/reports/2026-09-16-post-round-audit.md",
+          "line": 52
+        },
+        {
+          "file": ".scratch/grill-t9/reports/2026-09-16-pre-unlock-audit.md",
+          "line": 32
+        },
+        {
+          "file": ".scratch/grill-t9/reports/2026-09-16-pre-unlock-audit.md",
+          "line": 35
+        },
+        {
+          "file": ".scratch/grill-t9/reports/2026-09-16-report.md",
+          "line": 91
+        },
+        {
+          "file": ".scratch/grill-t9/spec-v3-collection.md",
+          "line": 38
+        },
+        {
+          "file": "docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md",
+          "line": 136
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "fd6a0d42",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t10/handoffs/2026-09-16-audit-passed.md",
+          "line": 18
+        },
+        {
+          "file": ".scratch/grill-t10/handoffs/2026-09-16-audit-passed.md",
+          "line": 59
+        },
+        {
+          "file": ".scratch/grill-t10/reports/2026-09-16-audit.md",
+          "line": 123
+        },
+        {
+          "file": ".scratch/grill-t10/reports/2026-09-16-report.md",
+          "line": 23
+        },
+        {
+          "file": ".scratch/grill-t15/audit-evidence/audit-report-2026-09-18.md",
+          "line": 33
+        },
+        {
+          "file": ".scratch/grill-t9/reports/2026-09-16-post-round-audit.md",
+          "line": 23
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "57d44b89",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t10/handoffs/2026-09-16-audit-passed.md",
+          "line": 18
+        },
+        {
+          "file": ".scratch/grill-t10/handoffs/2026-09-16-audit-passed.md",
+          "line": 59
+        },
+        {
+          "file": ".scratch/grill-t10/reports/2026-09-16-audit.md",
+          "line": 123
+        },
+        {
+          "file": ".scratch/grill-t10/reports/2026-09-16-report.md",
+          "line": 23
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "1b9e6893c35e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t10/reports/2026-09-16-audit.md",
+          "line": 27
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "9ff2d0ada931",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t10/reports/2026-09-16-audit.md",
+          "line": 43
+        },
+        {
+          "file": ".scratch/grill-t10/reports/2026-09-16-report.md",
+          "line": 21
+        },
+        {
+          "file": ".scratch/grill-t8/reports/2026-09-16-reaudit-report.md",
+          "line": 38
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "9ff2d0ada931628b",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t10/reports/2026-09-16-audit.md",
+          "line": 43
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "fd6a0d42f5c0",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t10/reports/2026-09-16-audit.md",
+          "line": 49
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "57d44b89adb7",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t10/reports/2026-09-16-audit.md",
+          "line": 49
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "9e73c467",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t11/handoffs/2026-09-17-audit-closed.md",
+          "line": 29
+        },
+        {
+          "file": ".scratch/grill-t11/reports/2026-09-17-audit.md",
+          "line": 73
+        },
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 594
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 70
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 70
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 70
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 70
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "9b625010",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t11/handoffs/2026-09-17-audit-closed.md",
+          "line": 29
+        },
+        {
+          "file": ".scratch/grill-t11/reports/2026-09-17-audit.md",
+          "line": 73
+        },
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 601
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 77
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 77
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 77
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 77
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "a82305f1",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t11/handoffs/2026-09-17-audit-closed.md",
+          "line": 29
+        },
+        {
+          "file": ".scratch/grill-t11/reports/2026-09-17-audit.md",
+          "line": 73
+        },
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 608
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 84
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 84
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 84
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 84
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "0211bba71d2f58ba",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t11/readiness/b2-remeasurement-2026-09-16.md",
+          "line": 31
+        },
+        {
+          "file": ".scratch/grill-t8/readiness/b2-install-measurement.md",
+          "line": 26
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "c40db85d",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-commits.txt",
+          "line": 6
+        },
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 279
+        },
+        {
+          "file": ".scratch/grill-t12/reports/2026-09-17-audit.md",
+          "line": 34
+        },
+        {
+          "file": ".scratch/grill-t12/reports/2026-09-17-report.md",
+          "line": 42
+        },
+        {
+          "file": "docs/governance/sanitized-history-runbook-2026-09-17.md",
+          "line": 16
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "ab3f0235b19d",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 594
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 70
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 70
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 70
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 70
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "713f89200ff0",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 601
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 77
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 77
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 77
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 77
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "fa1aeefd1bf0",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 608
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 84
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 84
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 84
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 84
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "b53354dd",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 615
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 91
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 91
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 91
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 91
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "5061f481c988",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 615
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 91
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 91
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 91
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 91
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "7255d842",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 622
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 98
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 98
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 98
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 98
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "5e4fffd642d9",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 622
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 98
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 98
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 98
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 98
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "a2293410",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 629
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 105
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 105
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 105
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 105
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "60aa5772e00a",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 629
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 105
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 105
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 105
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 105
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "c4c660f0",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 636
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 112
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 112
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 112
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 112
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "79423d7086ae",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 636
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 112
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 112
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 112
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 112
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "a63052c1",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 643
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 119
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 119
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 119
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 119
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "5476e2ab3c39",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 643
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 119
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 119
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 119
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 119
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "99a74ec2",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 650
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 126
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 126
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 126
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 126
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "58f763f32421",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 650
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 126
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 126
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 126
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 126
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "e79de01a",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 657
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 133
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 133
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 133
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 133
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "11cecc9eab98",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 657
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 133
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 133
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 133
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 133
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "eb076ee4",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 664
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 140
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 140
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 140
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 140
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "72ea09f3d855",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 664
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 140
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 140
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 140
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 140
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "9d8775e2",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 671
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 147
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 147
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 147
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 147
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "8da53f217e50",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 671
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 147
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 147
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 147
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 147
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "4f51888b",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 678
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 154
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 154
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 154
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 154
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "6577643fa56d",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 678
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 154
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 154
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 154
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 154
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "babf448d",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 685
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 161
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 161
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 161
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 161
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "5bbacb612648",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 685
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 161
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 161
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 161
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 161
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "bdceb93a",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 692
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 168
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 168
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 168
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 168
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "77dfef7ea764",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 692
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 168
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 168
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 168
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 168
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "6d50ed0b",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 699
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 175
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 175
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 175
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 175
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "9822646f31e0",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 699
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 175
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 175
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 175
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 175
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "a98462ff8c57",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 706
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 182
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 182
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 182
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 182
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "fc1df20a",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 713
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 189
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 189
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 189
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 189
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "90df3b353f2d",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 713
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 189
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 189
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 189
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 189
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "a2115b18",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 720
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 196
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 196
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 196
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 196
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "0df7ee2aac32",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 720
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 196
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 196
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 196
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 196
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "c3f8aaaf",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 727
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 203
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 203
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 203
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 203
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "2f3b41c0e83d",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 727
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 203
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 203
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 203
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 203
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "5bb41ded",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 734
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 210
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 210
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 210
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 210
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "c656fc708744",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 734
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 210
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 210
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 210
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 210
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "bf113314",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 741
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 217
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 217
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 217
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 217
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "fb633f3561a1",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 741
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 217
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 217
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 217
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 217
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "fa37371d",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 748
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 224
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 224
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 224
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 224
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "55b2a4f2833f",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 748
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 224
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 224
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 224
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 224
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "a27e99a1",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 755
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 231
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 231
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 231
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 231
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "395c7803a12d",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 755
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 231
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 231
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 231
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 231
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "fe73d6e2",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 762
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 238
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 238
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 238
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 238
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "68518aef8bfb",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 762
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 238
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 238
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 238
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 238
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "c06a16fb",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 769
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 245
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 245
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 245
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 245
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "b0618d288f9c",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 769
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 245
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 245
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 245
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 245
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "209a1063",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 776
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 252
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 252
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 252
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 252
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "8557ead75fe7",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 776
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 252
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 252
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 252
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 252
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "81fe0fd1",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 783
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 259
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 259
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 259
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 259
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "23836c2d5b61",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 783
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 259
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 259
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 259
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 259
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "12cb508a",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 790
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 266
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 266
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 266
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 266
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "2106deabd8e1",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t12/audit-evidence/round-diff.patch",
+          "line": 790
+        },
+        {
+          "file": ".scratch/grill-t12/stewardship/pairer-lane-telemetry-2026-09-17.json",
+          "line": 266
+        },
+        {
+          "file": ".scratch/grill-t13/telemetry-checkpoint-2026-09-17.json",
+          "line": 266
+        },
+        {
+          "file": ".scratch/grill-t14/telemetry-checkpoint-2026-09-17.json",
+          "line": 266
+        },
+        {
+          "file": ".scratch/grill-t15/telemetry-checkpoint-2026-09-18.json",
+          "line": 266
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "f335fb05",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t13/reports/2026-09-17-report.md",
+          "line": 12
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "4af4c498",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+          "line": 33
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "41c7df6354424a59",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t17/evidence/gate-all.txt",
+          "line": 16
+        },
+        {
+          "file": ".scratch/grill-t17/evidence/instrument.txt",
+          "line": 4
+        },
+        {
+          "file": ".scratch/grill-t18/evidence/gate-all.txt",
+          "line": 15
+        },
+        {
+          "file": ".scratch/grill-t18/evidence/instrument.txt",
+          "line": 7
+        },
+        {
+          "file": ".scratch/grill-t19/evidence/gate-all.txt",
+          "line": 15
+        },
+        {
+          "file": ".scratch/grill-t19/evidence/instrument.txt",
+          "line": 7
+        },
+        {
+          "file": ".scratch/grill-t20/evidence/gate-all.txt",
+          "line": 15
+        },
+        {
+          "file": ".scratch/grill-t20/evidence/instrument.txt",
+          "line": 7
+        },
+        {
+          "file": ".scratch/grill-t21/evidence/gate-all.txt",
+          "line": 15
+        },
+        {
+          "file": ".scratch/grill-t21/evidence/instrument.txt",
+          "line": 7
+        },
+        {
+          "file": ".scratch/grill-t22/evidence/gate-all.txt",
+          "line": 15
+        },
+        {
+          "file": ".scratch/grill-t22/evidence/instrument.txt",
+          "line": 7
+        },
+        {
+          "file": ".scratch/grill-t23/evidence/gate-all.txt",
+          "line": 15
+        },
+        {
+          "file": ".scratch/grill-t23/evidence/instrument.txt",
+          "line": 7
+        },
+        {
+          "file": ".scratch/grill-t24/evidence/gate-all.txt",
+          "line": 16
+        },
+        {
+          "file": ".scratch/grill-t24/evidence/instrument.txt",
+          "line": 8
+        },
+        {
+          "file": ".scratch/grill-t25/evidence/gate-all.txt",
+          "line": 16
+        },
+        {
+          "file": ".scratch/grill-t25/evidence/instrument.txt",
+          "line": 8
+        },
+        {
+          "file": ".scratch/grill-t26/evidence/gate-all.txt",
+          "line": 14
+        },
+        {
+          "file": ".scratch/grill-t27/evidence/gate-all.txt",
+          "line": 14
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "e06bd7a76005eaee41c86357339d6f8534f8b8a7",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t18/evidence/liveness.txt",
+          "line": 129
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "159c620b24d60f553503e63a927628f62ef915ad",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t19/evidence/liveness.txt",
+          "line": 130
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "c597b3a0ca3d1bfd64853a0764b5e2678aea3e8c",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t20/evidence/liveness.txt",
+          "line": 130
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "90dab2f70ca9088b3f20b3322774efbffab06479",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t21/evidence/liveness.txt",
+          "line": 130
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "ba443b19533b5f4b3a0c613c7958ff1a7aca3daa",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t22/evidence/liveness.txt",
+          "line": 130
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "cdaa73da5faf",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t22/reports/2026-09-22-audit.md",
+          "line": 36
+        },
+        {
+          "file": ".scratch/grill-t22/reports/2026-09-22-audit.md",
+          "line": 87
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "d614769314feda14ae8839b968bab3b18553685b",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t23/evidence/liveness.txt",
+          "line": 130
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "18e9ea5f083d6fe905e862f4e7c9479eabafb0ba",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t24/evidence/liveness.txt",
+          "line": 131
+        },
+        {
+          "file": ".scratch/grill-t25/evidence/liveness.txt",
+          "line": 131
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "d966aa40f7612a6ddfa614884ca9ce899c719bf7",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t26/evidence/liveness.txt",
+          "line": 133
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "dec0f96b57be6a11a031655e0dd93bca4235eb9d",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t27/evidence/liveness.txt",
+          "line": 134
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "7169fc72",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t27/reports/2026-09-25-report.md",
+          "line": 53
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "060fac86",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t28/reports/2026-09-26-report.md",
+          "line": 25
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "56f21ad4",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t28/reports/2026-09-26-report.md",
+          "line": 25
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "a0ba70f",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t31/handoffs/2026-09-28-handoff.md",
+          "line": 26
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "994bdeb",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/audit/b7ccbeb/bench/polygraph/README.md",
+          "line": 8
+        },
+        {
+          "file": ".scratch/grill-t6/audit/b7ccbeb/docs/adr/0064-t6-product-round-pre-registration-mde-gates-and-governance-trend-anchor.md",
+          "line": 30
+        },
+        {
+          "file": ".scratch/grill-t6/audit/b7ccbeb/docs/governance/decision-ledger-t6.md",
+          "line": 21
+        },
+        {
+          "file": ".scratch/grill-t6/decision-ledger.md",
+          "line": 21
+        },
+        {
+          "file": ".scratch/grill-t6/handoffs/2026-09-14-t1-audit-pass.md",
+          "line": 40
+        },
+        {
+          "file": ".scratch/grill-t6/handoffs/2026-09-14-t1-handoff.md",
+          "line": 44
+        },
+        {
+          "file": "docs/adr/0064-t6-product-round-pre-registration-mde-gates-and-governance-trend-anchor.md",
+          "line": 33
+        },
+        {
+          "file": "docs/governance/decision-ledger-t6.md",
+          "line": 21
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "994bdeb3e75bb5c2ffac4f35a3eca9bac02c6356",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/audit/b7ccbeb/bench/polygraph/results/metrics-20260828.json",
+          "line": 5
+        },
+        {
+          "file": ".scratch/grill-t6/audit/b7ccbeb/bench/polygraph/results/metrics-20260829.json",
+          "line": 5
+        },
+        {
+          "file": ".scratch/grill-t6/audit/b7ccbeb/bench/polygraph/thresholds.json",
+          "line": 6
+        },
+        {
+          "file": ".scratch/grill-t6/handoffs/2026-09-14-t1-audit-pass.md",
+          "line": 40
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "53174063680558e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 2855
+        },
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 3869
+        },
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 4906
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "196245439203124e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 2896
+        },
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 4650
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "3150249148455668e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 3025
+        },
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 3095
+        },
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 3631
+        },
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 4009
+        },
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 4467
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "283059096726334e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 3542
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "004608704219169e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 3830
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "839469355913455e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 3911
+        },
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 3923
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "536928463375102e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 3969
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "462001944628711e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 4237
+        },
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 4254
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "5415680443108506e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 4629
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "209741745160587e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 4772
+        },
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 4830
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "7032435992363705e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 4777
+        },
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 4785
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "839340378783858e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 5010
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "378650340142624e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/audit/export2/g6-manifest.json",
+          "line": 5303
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "994bdeb3",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/audit/export2/out/attribution-report.md",
+          "line": 3
+        },
+        {
+          "file": ".scratch/grill-t6/audit/out-rerun/attribution-report.md",
+          "line": 3
+        },
+        {
+          "file": ".scratch/grill-t6/audit/out-rerun2/attribution-report.md",
+          "line": 3
+        },
+        {
+          "file": ".scratch/grill-t6/audit/regen/attribution-report.md",
+          "line": 3
+        },
+        {
+          "file": ".scratch/grill-t6/handoffs/2026-09-14-t1-audit-pass.md",
+          "line": 14
+        },
+        {
+          "file": ".scratch/grill-t6/reports/2026-09-14-audit-t1.md",
+          "line": 30
+        },
+        {
+          "file": ".scratch/grill-t7/decision-ledger.md",
+          "line": 10
+        },
+        {
+          "file": ".scratch/grill-t7/handoffs/impl-round-done.md",
+          "line": 20
+        },
+        {
+          "file": ".scratch/grill-t7/handoffs/impl-round-done.md",
+          "line": 67
+        },
+        {
+          "file": "README.md",
+          "line": 225
+        },
+        {
+          "file": "README.md",
+          "line": 247
+        },
+        {
+          "file": "docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md",
+          "line": 26
+        },
+        {
+          "file": "docs/gates.json",
+          "line": 334
+        },
+        {
+          "file": "docs/governance/decision-ledger-t7.md",
+          "line": 13
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "15e5a45d8fe6",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/reports/2026-09-14-audit-t1.md",
+          "line": 23
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "067a837f",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/reports/2026-09-14-audit-t1.md",
+          "line": 38
+        },
+        {
+          "file": ".scratch/grill-t6/reports/2026-09-14-report.md",
+          "line": 19
+        },
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit.md",
+          "line": 34
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "65dcd665",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/reports/2026-09-14-audit-t1.md",
+          "line": 38
+        },
+        {
+          "file": ".scratch/grill-t6/reports/2026-09-14-report.md",
+          "line": 19
+        },
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit.md",
+          "line": 34
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "1cbc62a2",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/reports/2026-09-14-audit-t1.md",
+          "line": 60
+        },
+        {
+          "file": ".scratch/grill-t6/reports/2026-09-14-report.md",
+          "line": 15
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "cdae09ea",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t6/reports/2026-09-14-audit-t1.md",
+          "line": 131
+        },
+        {
+          "file": ".scratch/grill-t6/reports/2026-09-14-report.md",
+          "line": 72
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "e1c2e66f",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/handoffs/unblind-round-audit-passed.md",
+          "line": 23
+        },
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit-unblind.md",
+          "line": 41
+        },
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit-unblind.md",
+          "line": 243
+        },
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit-v2round.md",
+          "line": 45
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "a1a6d03bae02b0ef",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/handoffs/v2-round-audit-passed.md",
+          "line": 21
+        },
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit-v2round.md",
+          "line": 43
+        },
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-report-v2round.md",
+          "line": 71
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "3a727fd3",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-14-report.md",
+          "line": 48
+        },
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit.md",
+          "line": 38
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "7ed23909",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit-unblind.md",
+          "line": 41
+        },
+        {
+          "file": ".scratch/grill-t8/handoffs/2026-09-16-audit-handoff.md",
+          "line": 14
+        },
+        {
+          "file": ".scratch/grill-t8/reports/2026-09-16-audit-report.md",
+          "line": 29
+        },
+        {
+          "file": ".scratch/grill-t8/reports/2026-09-16-reaudit-report.md",
+          "line": 63
+        },
+        {
+          "file": ".scratch/grill-t8/reports/2026-09-16-report.md",
+          "line": 20
+        },
+        {
+          "file": ".scratch/grill-t9/reports/2026-09-16-pre-unlock-audit.md",
+          "line": 34
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "e934c63a",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit-unblind.md",
+          "line": 41
+        },
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit-v2round.md",
+          "line": 45
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "0a49509280f8510c",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit-v2round.md",
+          "line": 43
+        },
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-report-v2round.md",
+          "line": 65
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "feb8ec04d921616b",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit-v2round.md",
+          "line": 43
+        },
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-report-v2round.md",
+          "line": 66
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "e3597028df5280ae",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit-v2round.md",
+          "line": 43
+        },
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-report-v2round.md",
+          "line": 67
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "1e07bbab0866d0dd",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit-v2round.md",
+          "line": 43
+        },
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-report-v2round.md",
+          "line": 68
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "cabf5c8ef95a0da6",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit-v2round.md",
+          "line": 43
+        },
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-report-v2round.md",
+          "line": 69
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "f836015b42532b41",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit-v2round.md",
+          "line": 43
+        },
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-report-v2round.md",
+          "line": 70
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "ffe3387a",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit-v2round.md",
+          "line": 45
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "f53fb1cf",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit-v2round.md",
+          "line": 45
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "83b9b808",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/2026-09-15-audit-v2round.md",
+          "line": 45
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "c9d07aa17dd11e4e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1433
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "134eafa151d8525e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1434
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "6808d2e00d47271d",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1435
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "4e52f86d0b1b6641",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1436
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "3efc0aeadd96ad6a",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1437
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "c9f8f313bc4e06c4",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1438
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "72e716f085fcdaaa",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1439
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "260fc99f6dbed2c2",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1440
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "d3af3410b8c6caaf",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1441
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "161d16a7a6083652",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1442
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "b232e8a74ee10bde",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1443
+        },
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1446
+        },
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1449
+        },
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1452
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "2c357cee4d6839eb",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1444
+        },
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1447
+        },
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1450
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "6309966c1ce65dd1",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1445
+        },
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1448
+        },
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1451
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "41de0f44e7f70471",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1453
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "96754e3ff2461019",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1454
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "956ff789ee0d1af7",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1455
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "235ac9e10349db9b",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1456
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "8ba820fc13899460",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1457
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "7f865627ae6b34ed",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1458
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "8d36f2a7fddf4b05",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1459
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "f0c3e70a8fe2283c",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1460
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "7d9e7000352fbefb",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1461
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "2fbf89fddc280955",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1462
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "de4ea37859df2390",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1463
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "df47ff99ad306a82",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1464
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "c69baeb6e7de89c0",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1465
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "5af14fecdf8222c1",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1466
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "0684e34bb3744054",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1467
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "34546f389826ac8e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1468
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "4dfff4caaea7dad5",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1469
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "08cee684e1ad708d",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1470
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "9eae775127fad7a6",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1471
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "c54165b2dd73281a",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1472
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "bd5b1a49db8a9262",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1473
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "ab8502a7018e39ec",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1474
+        },
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1478
+        },
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1482
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "0c3fbdfa86883c68",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1475
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "e66763a93c47c454",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1476
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "d154b98e8204668c",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1477
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "5d80f21f688f1eed",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1479
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "2e1a2db5a7b4b3d1",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1480
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "2bc1a7520bc425c9",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1481
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "3e027b97ed3bdaa3",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1483
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "a6fca539d6616604",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1484
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "e1c2e66fd0cc2712",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1488
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "7ed23909cb7c5f45",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1489
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "e934c63a6fa626f7",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1490
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "ffc61319",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t8/handoffs/2026-09-16-audit-handoff.md",
+          "line": 14
+        },
+        {
+          "file": ".scratch/grill-t8/reports/2026-09-16-audit-report.md",
+          "line": 29
+        },
+        {
+          "file": ".scratch/grill-t8/reports/2026-09-16-reaudit-report.md",
+          "line": 63
+        },
+        {
+          "file": ".scratch/grill-t8/reports/2026-09-16-report.md",
+          "line": 20
+        },
+        {
+          "file": ".scratch/grill-t9/reports/2026-09-16-pre-unlock-audit.md",
+          "line": 18
+        },
+        {
+          "file": ".scratch/grill-t9/reports/2026-09-16-pre-unlock-audit.md",
+          "line": 33
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "2383d75f",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t8/handoffs/2026-09-16-audit-handoff.md",
+          "line": 15
+        },
+        {
+          "file": ".scratch/grill-t8/handoffs/2026-09-16-repair-handoff.md",
+          "line": 9
+        },
+        {
+          "file": ".scratch/grill-t8/handoffs/round-closed-2026-09-16.md",
+          "line": 19
+        },
+        {
+          "file": ".scratch/grill-t8/reports/2026-09-16-audit-report.md",
+          "line": 36
+        },
+        {
+          "file": ".scratch/grill-t8/reports/2026-09-16-reaudit-report.md",
+          "line": 38
+        },
+        {
+          "file": ".scratch/grill-t8/reports/2026-09-16-repair-report.md",
+          "line": 39
+        },
+        {
+          "file": ".scratch/grill-t9/reports/2026-09-16-pre-unlock-audit.md",
+          "line": 35
+        },
+        {
+          "file": "docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md",
+          "line": 136
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "9e09abc4",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t8/reports/2026-09-16-audit-report.md",
+          "line": 41
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "e5aed3c2",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t9/reports/2026-09-16-post-round-audit.md",
+          "line": 54
+        }
+      ],
+      "registered_at": "2026-09-29T01:48:14.345Z",
+      "reason": "errata linkage: degraded-population back-pointer discharged via E-22",
+      "carried_log": [],
+      "object_purged_at": "2026-09-28T15:41:49.101Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "fc14edf19070cb72",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t32/reports/2026-09-29-audit-report.md",
+          "line": 195
+        }
+      ],
+      "registered_at": "2026-09-29T02:24:47.771Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "object_purged_at": "2026-09-29T02:24:47.771Z",
+      "errata_ref": "E-22",
+      "disposition": "orphaned"
     }
   ]
 }

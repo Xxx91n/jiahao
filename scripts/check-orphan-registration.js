@@ -34,7 +34,7 @@ const MAP_REL = path.join('docs', 'rewrite-map.json');
 function checkLeg(opts) {
   const o = opts || {};
   const root = o.root || ROOT;
-  const gitx = o.git || forRoot(root);
+  const gitx = o.git || forRoot(root, { env: o.env });
   const now = o.now || new Date().toISOString();
   const nowTs = Date.parse(now) / 1000;
   const errors = [];
@@ -46,8 +46,16 @@ function checkLeg(opts) {
   for (const e of regErrors) errors.push('registry: ' + e);
   const latest = oc.latestBySha(loaded.reg);
 
+  // Ambiguity is a distinct red signal, never silently the same as
+  // unregistered: entryForToken throws AmbiguousToken only on genuinely
+  // mixed verdicts (fail-closed by construction). Any other failure is
+  // likewise loud rather than a silent "uncovered".
   const covers = function (token) {
-    try { return oc.entryForToken(loaded.reg, token); } catch (e) { return null; }
+    try { return oc.entryForToken(loaded.reg, token); }
+    catch (e) {
+      if (e && e.name === 'AmbiguousToken') return 'ambiguous';
+      return 'error:' + (e && e.message);
+    }
   };
 
   // stage 3: present + unreachable + unregistered + past age+grace -> red.
@@ -56,7 +64,10 @@ function checkLeg(opts) {
     if (!q) continue; // v1 maps carry no qualifiers - pre-cutover tree
     if (d['class'] !== 'local-only') continue; // only unadjudicated existence
     if (!Array.isArray(q.reachable_via) || q.reachable_via.length) continue; // still reachable
-    if (covers(d.sha)) continue; // registered (any disposition)
+    const cov = covers(d.sha);
+    if (cov === 'ambiguous') { errors.push('stage3: ' + d.file + ':' + d.line + ' ' + d.sha + ' matches multiple registry cited_shas with mixed dispositions (ambiguous, fail-closed)'); continue; }
+    if (typeof cov === 'string' && cov.indexOf('error:') === 0) { errors.push('stage3: ' + d.file + ':' + d.line + ' ' + d.sha + ' registry lookup failed: ' + cov.slice(6)); continue; }
+    if (cov) continue; // registered (any disposition)
     if (q.object_mtime === null || q.object_mtime === undefined) {
       // unagable -> conservatively past stage 1 (ADR-0089 D-E age basis)
       errors.push('stage3: ' + d.file + ':' + d.line + ' ' + d.sha + ' object has no determinable mtime and is unregistered - register while alive');

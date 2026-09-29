@@ -1,6 +1,10 @@
 #!/usr/bin/env node
-// git-facade.js - ADR-0089 (grill-t32): the single injectable seam for every
-// git child-process call on the classifier/registry path. Zero-dependency.
+// git-facade.js - ADR-0089 (grill-t32): the shared injectable seam for git
+// child-process calls on the REGISTRY/LEG path (scripts/orphan-cites.js,
+// scripts/check-orphan-registration.js). Zero-dependency.
+// NOTE: scripts/build-rewrite-map.js keeps its own generator seam
+// (_execOverride, string-returning) - batch fact collection and the
+// two-process cat-file scan predate this facade and stay there.
 //
 // D-006 harness shape: only low-level call failures are mocked through here
 // (cat-file non-zero, rev-list crash, registry IO) - the callers never spawn
@@ -16,6 +20,7 @@
 // Usage:
 //   const gitx = require('./git-facade').forRoot(root);           // real git
 //   const gitx = require('./git-facade').forRoot(root, { exec }); // injected
+//   const gitx = require('./git-facade').forRoot(root, { env });  // hermetic env
 
 'use strict';
 
@@ -27,10 +32,15 @@ const NO_REPLACE_ENV = Object.assign({}, process.env, { GIT_NO_REPLACE_OBJECTS: 
 
 function forRoot(root, opts) {
   const o = opts || {};
+  // o.env pins the ambient env for the whole facade (hermetic test repos:
+  // GIT_CONFIG_NOSYSTEM/GLOBAL/SYSTEM isolation rides in here); default is
+  // the real process env.
+  const baseEnv = o.env || process.env;
+  const noReplaceEnv = o.env ? Object.assign({}, o.env, { GIT_NO_REPLACE_OBJECTS: '1' }) : NO_REPLACE_ENV;
   const exec = o.exec || function (args, env) {
     const r = spawnSync('git', args, {
       cwd: root, encoding: 'utf8',
-      env: env || process.env,
+      env: env || baseEnv,
       maxBuffer: 64 * 1024 * 1024,
     });
     return { status: r.status === null ? 1 : r.status, stdout: r.stdout || '', stderr: r.stderr || '' };
@@ -50,8 +60,8 @@ function forRoot(root, opts) {
   }
   function ok(args, env) { return exec(args, env).status === 0; }
   // nr = no-replace object-read forms.
-  const nr = (args) => run(args, NO_REPLACE_ENV);
-  const nrOk = (args) => ok(args, NO_REPLACE_ENV);
+  const nr = (args) => run(args, noReplaceEnv);
+  const nrOk = (args) => ok(args, noReplaceEnv);
 
   return {
     root: root,

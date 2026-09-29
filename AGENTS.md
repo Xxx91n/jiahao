@@ -104,3 +104,10 @@ docs/agents/domain.md.
   live verification is always `git show --name-only`, which the
   `anchoring-footer` leg rechecks. Forward-only scope: history is never
   rewritten; merge commits and workspace commits are exempt.
+- Bare-SHA citations in NEW committed prose should carry subject/date
+  context (editorial soft-constraint, grill-t32 D-001(c) / spec-t32 §7):
+  when new committed documentation cites a hex object, prefer a form that
+  names what the object is — `<sha-prefix> (<subject or date>)` — over a
+  bare SHA. Not mechanized, no gate; the classifier classifies the cite
+  identically either way, so this is a readability/debuggability clause —
+  it binds NEW prose only and never retro-edits historical claims.

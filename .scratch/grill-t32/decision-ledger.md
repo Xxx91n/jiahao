@@ -111,3 +111,26 @@ Anti-loss rule: every confirmed substantive conclusion appends a record here bef
   - golden 禁 -u 回写（漂移须走 errata 非快照刷新）。
 - **状态**: current
 
+## D-007 — unageable 对象的梯级语义（审计 F-9 / R5 调研裁决呈报）
+
+- **原问题**: 无法判定年龄的对象（packed blob/tree 的 object_mtime=null）在孤儿登记升级梯中应直接判 stage-3 红，还是仅视为越过 stage-1 进 stage-2 警告？ADR-0089 原文 'conservatively past stage 1' 与现行实现冲突。
+- **调研结论**（atomcode 三源交叉：PagerDuty severity-unknown→High urgency、K8s admission failurePolicy、fail-closed 文献）：fail-closed 立即红的适用对象是'已验证的违规事实'，不是'无法完成的测量'；unageable packed 对象是 git 常态产物，直判最高级红=把测量缺口当违规处罚，代价是 alert fatigue + 开发者无 action 路径。
+- **规范化需求（草案）**: (i) unageable=越过 stage-1（不给静默豁免）；(ii) stage-2 时钟起点=系统首次观察时间（exists_at），非对象 mtime（不可测）；(iii) stage-4（对象不在库且未登记）与年龄无关，维持立即硬红；(iv) 警告行携带 qualifier=unageable 标记。
+- **与现行账本关系**: 与 D-004 梯常数（14d+7d）不冲突——仅 age 缺失时的时钟基底定义。属新增子句，非 revised。
+- **状态**: pending-adjudication（呈报 owner 拍板）
+
+## D-008 — --check 对已提交 map 副本同跑弱自洽（审计 F-10 / R5 调研裁决呈报）
+
+- **原问题**: stableCopy 剥离 qualifier 后再比对的 --check 是否应同时对 committed map 副本跑 consistencyErrors（可达性矛盾/类型枚举/unresolved 红）？
+- **调研结论**（SLSA verifying-artifacts、in-toto monotonic-ignore、RFC 9162 CT 自洽性三源一致）：剥离出等价比对的字段仍须有完整性覆盖或自洽检查——SLSA 的 metadata 在签名内，in-toto 的 ignore 以 monotonic policy 为前提，CT 惯例正是'对 committed 副本跑自洽'。committed qualifier 篡改当前对 gate 不可见=真缺口。
+- **规范化需求（草案）**: --check 在 regenerated map 之外对 committed map 各跑一次 consistencyErrors；qualifier 的跨副本比对限于结构性矛盾（class-vs-reachable_via 不一致），不做字节级相等。
+- **与现行账本关系**: D-005/D-006 的窄比对域是 equality 域；本记录加的是 consistency 覆盖面——加法非改向。
+- **状态**: pending-adjudication（呈报 owner 拍板）
+
+## D-009 — successor 校验域收窄至 author+subject（审计 F-8 / R5 调研裁决呈报；关联 D-003(iv)）
+
+- **原问题**: register --successor 的一致性校验应覆盖全部 snapshot 字段（subject/author/committer_ts/parents），还是仅谱系不变量子集？D-003(iv) 现行措辞为'snapshot 字段与 successor 对象一致性比对'。
+- **调研结论**（in-toto digest-only、git replace 声明式先例、cherry-pick/rebase 不变量分析）：author+subject 是唯一既拦得住伪继任又放得过合法谱系 rewrite 的字段对；committer_ts/parents 在 cherry-pick/rebase 下必变，作为拒绝条件会产生误拒。
+- **规范化需求（草案）**: successor 校验=author+subject fail-closed；committer_ts/parents 仅观测留痕（写进条目不判）；non-commit 对象类型仍按 type 一致性校验。
+- **与现行账本关系**: 与 D-003(iv) 'snapshot 字段一致性比对' 措辞冲突——若采纳，D-003(iv) 该子句标记 revised（保留原文），本记录接替。
+- **状态**: pending-adjudication（呈报 owner 拍板）

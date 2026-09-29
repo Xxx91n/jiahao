@@ -404,3 +404,47 @@ lineage produced). This entry is the standing correction:
   not `b0504f28`.
 - Topology: `87192ded` impl -> `b0504f28` docs -> `aab0a3b4` impl
   residue -> `b9396688` docs residue -> `be81e11a` SEAL -> claim wave.
+
+## E-22 - grill-t32 cutover: 187 degraded registry entries - the purge-population documentary record (audit F-2)
+
+The grill-t32 cutover backfill registered 187 cited SHAs whose objects are
+absent from the object store (the pre-purge citation population - sanitized
+history rewrote them out; objects cannot resolve, so no live snapshot is
+possible). These entries carry the degraded form: snapshot=null,
+object_purged_at set at registration time, and now errata_ref=E-22 appended
+via the orphan-cites annotate verb (append-only: each degraded sha received
+a newer adjudicating copy carrying the back-pointer; originals untouched).
+
+This entry is the standing disclosure that population points to: the 187
+cites are historical claims to objects destroyed by the purge or never
+present - registration-as-orphaned is the correct terminal state, not a
+repair backlog. If any of these objects ever regains refs, the recorded
+path is register --revive (append, latest registered_at wins), not entry
+re-editing. Live-snapshot entries (90 at cutover) intentionally carry no
+errata_ref - they are live-object registrations, not this disclosure's
+subject.
+
+## E-23 - grill-t32 closeout accuracy: migration-diff figures + commit list (audit F-4/F-5)
+
+The committed round report (.scratch/grill-t32/reports/2026-09-28-report.md)
+and ADR-0089 cutover notes cite a migration diff of local-only 1040->7,
+unresolved 618->0, rewritten 104->105. Those v1-side endpoints are not
+reproducible from the committed cutover parent; they mix the round-open
+baseline (b06f4a97: 1040/104) with the cutover parent. The committed-parent
+truth (map inside 1f6bd1fd^):
+
+- v1 at cutover parent: doc_refs 3609; rewritten 105; published-unchanged
+  2462; local-only 1042 (= unresolved-hex-literal label 1034 + pre-purge
+  object 1 + local object 7). v1 carried no unresolved CLASS - unresolved
+  was a label under local-only; the claimed 618 appears in no committed map.
+- v2 (current): doc_refs 3611; rewritten 105; published-unchanged 2463;
+  local-only 8; orphaned-cite 1035; unresolved 0. The honest semantic delta
+  is the label->class promotion: the 1034 dead-label rows + 1 pre-purge row
+  moved to orphaned-cite (1035), the 7 live local objects kept local-only
+  (8 after later claim-file regens), rewritten unchanged at 105.
+
+The same erratum records the closeout document's stale commit enumeration
+(nww->kxx squash, mzm->mzmz rename, sor+tts unlisted; tts landed after the
+report commit). Claim artifacts are immutable once committed - this entry
+is the standing correction.
+

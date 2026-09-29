@@ -10,6 +10,8 @@
 //   node scripts/orphan-cites.js register <sha> --revive [--reason <text>]
 //   node scripts/orphan-cites.js backfill [--dry-run] [--checkpoint <file>]
 //       [--errata <E-xx>] [--reason <text>]
+//   node scripts/orphan-cites.js annotate --errata <E-xx> [--dry-run]
+//       (append errata linkage on the degraded population - spec 4.4)
 //   node scripts/orphan-cites.js check            (registry self-consistency)
 //
 // Entry shape (see ADR-0089 D-B/D-D):
@@ -208,7 +210,7 @@ function degradedEntry(token, locations, opts) {
 // --revive (a revival entry is appended when the object regained refs).
 function cmdRegister(root, argv, opts) {
   const o = opts || {};
-  const gitx = o.git || forRoot(root);
+  const gitx = o.git || forRoot(root, { env: o.env });
   const shaArg = argv[0];
   if (!shaArg) return { code: 2, out: 'register: <sha> required' };
   const flags = { successor: null, replaceRef: false, revive: false, reason: null, carried: [] };
@@ -284,7 +286,7 @@ function cmdRegister(root, argv, opts) {
 // Idempotent (registered shas skip), dry-run report-only, checkpointable.
 function cmdBackfill(root, argv, opts) {
   const o = opts || {};
-  const gitx = o.git || forRoot(root);
+  const gitx = o.git || forRoot(root, { env: o.env });
   let dryRun = false, checkpointFile = null, errataRef = null;
   let reason = 'grill-t32 cutover backfill (ADR-0089 D-G)';
   for (let i = 0; i < argv.length; i++) {
@@ -369,6 +371,49 @@ function cmdBackfill(root, argv, opts) {
   return { code: 0, report: report, out: 'backfill: appended ' + (report.live.length + report.degraded.length) + ' entries (' + report.live.length + ' live, ' + report.degraded.length + ' degraded)' };
 }
 
+// annotate: append an adjudicating copy carrying `errata_ref` for every
+// latest-adjudicated DEGRADED orphan that lacks one (spec 4.4 dead-object
+// form - the object_purged mark plus an ERRATA.md back-pointer). The original
+// entries stay untouched (append-only); latest registered_at adjudicates.
+// Idempotent: entries already carrying an errata_ref are skipped.
+//   orphan-cites.js annotate --errata <E-xx> [--dry-run]
+function cmdAnnotate(root, argv, opts) {
+  const o = opts || {};
+  let errataRef = null, dryRun = false;
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === '--errata') errataRef = argv[++i];
+    else if (a === '--dry-run') dryRun = true;
+    else return { code: 2, out: 'annotate: unknown flag ' + a };
+  }
+  if (!errataRef) return { code: 2, out: 'annotate: --errata <E-xx> required' };
+  const loaded = loadRegistry(root);
+  const reg = loaded.reg, file = loaded.file;
+  const verr = validateRegistry(reg);
+  if (verr.length) return { code: 1, out: 'registry corrupt, refusing to append:\n' + verr.join('\n') };
+  const latest = latestBySha(reg);
+  const now = o.now || new Date().toISOString();
+  const appended = [];
+  for (const e of latest.values()) {
+    if (e.disposition !== 'orphaned') continue;
+    if (!e.object_purged_at && e.snapshot) continue; // live snapshot, not degraded
+    if (e.errata_ref) continue;
+    const copy = Object.assign({}, e, {
+      registered_at: now,
+      reason: 'errata linkage: degraded-population back-pointer discharged via ' + errataRef,
+      errata_ref: errataRef,
+    });
+    appended.push(copy);
+  }
+  if (dryRun) {
+    return { code: 0, report: { appended: appended }, out: 'annotate --dry-run: ' + appended.length + ' degraded entries would gain errata_ref=' + errataRef };
+  }
+  reg.entries = reg.entries.concat(appended);
+  const text = JSON.stringify(reg, null, 2) + '\n';
+  if (o.writeFile) o.writeFile(file, text); else fs.writeFileSync(file, text);
+  return { code: 0, report: { appended: appended }, out: 'annotate: appended ' + appended.length + ' errata-linked entries (' + errataRef + ')' };
+}
+
 // check: registry self-consistency for the orphan-registration leg.
 function cmdCheck(root, opts) {
   const loaded = loadRegistry(root);
@@ -380,11 +425,12 @@ function main(argv) {
   const verb = argv[0];
   if (verb === 'register') { const r = cmdRegister(ROOT, argv.slice(1)); console.log(r.out); process.exit(r.code); }
   if (verb === 'backfill') { const r = cmdBackfill(ROOT, argv.slice(1)); console.log(r.out); process.exit(r.code); }
+  if (verb === 'annotate') { const r = cmdAnnotate(ROOT, argv.slice(1)); console.log(r.out); process.exit(r.code); }
   if (verb === 'check') { const r = cmdCheck(ROOT); if (r.errors.length) console.error(r.errors.join('\n')); else console.log('orphan-cites registry OK (' + r.entries + ' entries)'); process.exit(r.code); }
-  console.error('usage: orphan-cites.js register|backfill|check ...');
+  console.error('usage: orphan-cites.js register|backfill|annotate|check ...');
   process.exit(2);
 }
 
 if (require.main === module) main(process.argv.slice(2));
 
-module.exports = { loadRegistry, validateRegistry, latestBySha, entryForToken, liveEntry, degradedEntry, cmdRegister, cmdBackfill, cmdCheck, REGISTRY_REL, DISPOSITIONS, OBJECT_TYPES, ORPHAN_AGE_DAYS, ORPHAN_REGISTER_GRACE_DAYS };
+module.exports = { loadRegistry, validateRegistry, latestBySha, entryForToken, liveEntry, degradedEntry, cmdRegister, cmdBackfill, cmdAnnotate, cmdCheck, REGISTRY_REL, DISPOSITIONS, OBJECT_TYPES, ORPHAN_AGE_DAYS, ORPHAN_REGISTER_GRACE_DAYS };

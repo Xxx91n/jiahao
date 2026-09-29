@@ -46,7 +46,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const { requireCapabilities, exitUnverifiable } = require('../src/shared/capability');
-const { forRoot, NO_REPLACE_ENV } = require('./git-facade');
+const { NO_REPLACE_ENV } = require('./git-facade');
 const oc = require('./orphan-cites');
 
 const ROOT = path.join(__dirname, '..');
@@ -121,8 +121,10 @@ function isEmptyCommit(sha) {
 
 // grill-t30 D-004: root-parameterized variants so the per-commit freshness
 // leg can assert inside fixture repos / arbitrary checkouts, never silently
-// against the ambient worktree.
+// against the ambient worktree. Honors the same _execOverride seam as git()
+// so injected executors see every child-process call on this path.
 function gitAt(root, args) {
+  if (_execOverride) return String(_execOverride(args, { cwd: root }));
   return execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, env: NO_REPLACE_ENV }).trim();
 }
 function gitOkAt(root, args) {
@@ -174,10 +176,9 @@ function scanDocTokens() {
 function scanDocTokensAt(root, ref) {
   let out;
   try {
-    out = execFileSync('git', ['-c', 'core.quotepath=false', 'grep', '-a', '-n', '-E', '-e', '[0-9a-f]{7,40}', ref, '--', 'docs', '.scratch', 'README.md', 'AGENTS.md', 'CONTEXT.md'],
-      { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+    out = gitAt(root, ['-c', 'core.quotepath=false', 'grep', '-a', '-n', '-E', '-e', '[0-9a-f]{7,40}', ref, '--', 'docs', '.scratch', 'README.md', 'AGENTS.md', 'CONTEXT.md']);
   } catch (e) {
-    if (e.status === 1) return []; // no matches at this ref
+    if (e.status === 1 || e.code === 1) return []; // no matches at this ref
     throw e;
   }
   const prefix = String(ref) + ':';

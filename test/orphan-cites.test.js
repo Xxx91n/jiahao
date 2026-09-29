@@ -285,6 +285,39 @@ describe('registry verbs', () => {
     expect(fs.existsSync(ck)).toBe(true);
   });
 
+  test('annotate: appends errata linkage to degraded entries only, idempotent, dry-run writes nothing', () => {
+    const dir = mkDir();
+    const fx = fixture(dir);
+    writeMap(fx, buildMap(fx));
+    commit(dir, 'map');
+    oc.cmdBackfill(dir, [], { now: NOW0 });
+    const before = readReg(dir);
+    expect(before.entries.length).toBe(5);
+    // dry-run: report-only
+    const dry = oc.cmdAnnotate(dir, ['--errata', 'E-99', '--dry-run'], {});
+    expect(dry.code).toBe(0);
+    expect(dry.report.appended.length).toBe(1); // only the degraded DEAD entry
+    expect(readReg(dir).entries.length).toBe(5);
+    // real run: one appended adjudicating copy carrying errata_ref
+    const r = oc.cmdAnnotate(dir, ['--errata', 'E-99'], { now: NOW0 });
+    expect(r.code).toBe(0);
+    const reg = readReg(dir);
+    expect(reg.entries.length).toBe(6);
+    const latest = oc.latestBySha(reg).get(fx.DEAD);
+    expect(latest.errata_ref).toBe('E-99');
+    expect(latest.disposition).toBe('orphaned'); // adjudication unchanged
+    expect(latest.object_purged_at).toBeTruthy();
+    expect(oc.validateRegistry(reg)).toEqual([]);
+    // idempotent: second annotate appends nothing
+    const r2 = oc.cmdAnnotate(dir, ['--errata', 'E-99'], { now: NOW0 });
+    expect(r2.report.appended.length).toBe(0);
+    expect(readReg(dir).entries.length).toBe(6);
+    // live entries untouched: the 4 live-snapshot entries still carry no ref
+    expect(reg.entries.filter((e) => e.errata_ref).length).toBe(1);
+    // missing flag is a usage error, not a silent no-op
+    expect(oc.cmdAnnotate(dir, [], {}).code).toBe(2);
+  });
+
   test('injected fault seam: cat-file non-zero and registry IO error surface honestly', () => {
     const dir = mkDir();
     const fx = fixture(dir);

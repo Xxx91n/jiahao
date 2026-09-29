@@ -127,7 +127,11 @@ unambiguous; ambiguous abbreviations fail `--check`. Presence of any
 
 ## Non-goals / guards
 
-- No `refs/replace/` is written or read (ledger D-003 rejection).
+- `refs/replace/` materialization is OPTIONAL and lives exclusively in
+  `scripts/orphan-cites.js register --replace-ref` (ledger D-003 conditions:
+  explicit, opt-in, user-visible). The classifier and `--check` never read
+  replacement state — all object reads run under `GIT_NO_REPLACE_OBJECTS=1`,
+  so a replace ref can annotate a checkout without distorting classes.
 - The map never expands `local-only` rows beyond SHA+label.
 - Zero runtime dependencies (Node stdlib + `git` subprocess only) — same
   profile as every other gate script.
