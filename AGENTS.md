@@ -111,3 +111,23 @@ docs/agents/domain.md.
   bare SHA. Not mechanized, no gate; the classifier classifies the cite
   identically either way, so this is a readability/debuggability clause —
   it binds NEW prose only and never retro-edits historical claims.
+- Countersign-queue authority (grill-t33 D-002(vii)): queue membership is
+  authoritative on each ADR's own declaration surface — the three
+  registered awaiting forms (old-form `ID-level-only, awaiting
+  entity-level` labels, ERRATA E-13 pointer-annotation lines, new-form
+  `awaiting entity-level countersign` status) define the queue as a
+  derived set; `test/countersign-queue.test.js` reconciles membership
+  member-by-member. Count narratives ("N -> N+1" bump lines, "N entries"
+  enumerations) are display text: they stay byte-stable as history, and
+  NEW ADRs must not write count lines.
+- Baseline-CI clause (grill-t33 D-003(iv)): every round's T-0 baseline
+  recon MUST include a public-CI status check — the origin/main tip's
+  latest run conclusion and the failing step named. Two consecutive
+  rounds with the same undisclosed-red blind spot is a registered
+  finding class, not a coincidence.
+- Audit self-consistency (interim, grill-t33 D-004(i)): until the t34
+  audit-surface mechanization lands, every second-party audit re-run
+  table MUST manually include the full CI test-job command surface —
+  currently `node scripts/run-test-gate.js --expected-suites N`. The
+  clause retires when the generated checklist lands; t33's own audit
+  complies.
