@@ -125,8 +125,10 @@ Write path — explicit verbs only (`scripts/orphan-cites.js`):
 
 - `register <sha> [--successor <sha>] [--replace-ref]` — appends one entry
   after machine verification: the cited object exists; a named successor
-  exists and is reachable, and the entry's snapshot fields are
-  consistency-checked against the successor object; `--replace-ref`
+  exists and is reachable, and the fail-closed consistency pair is
+  `author` + `subject` (ledger D-009, adjudicated 2026-09-29 — stable
+  across cherry-pick/rebase; `committer_ts`/`parents` are written for
+  observation, never judged); `--replace-ref`
   additionally materializes `refs/replace/<old>` and the entry records that
   choice. Whenever replace refs exist, **all** classifier object reads run
   under `GIT_NO_REPLACE_OBJECTS=1` — replace semantics would silently
@@ -179,8 +181,14 @@ Registered constants (named, adjustable, order-of-magnitude aligned with
   ADR.
 
 Age basis: the object's own time (`committer_ts`/`tagger_ts`, else loose-file
-mtime, else undeterminable → treated as over-age: the obligation is
-register-while-alive, so an unagable object is conservatively past stage 1).
+mtime, else undeterminable → **unageable**). Adjudicated semantics
+(grill-t32 audit F-9 / ledger D-007, 2026-09-29): an unageable object is
+past stage 1 by construction — it enters the stage-2 warning channel at
+first observation (no silent window, since measurement cannot be deferred),
+and its stage-3 clock runs on the qualifier `exists_at` first-observation
+stamp (carried forward across regens — stable), never on the missing
+mtime. Stage 4 (object absent AND unregistered) stays age-independent
+hard red.
 Both the classifier and the leg accept an injectable `now()` so the ladder is
 tested without sleeps or clock patching.
 

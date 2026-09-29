@@ -45,7 +45,7 @@ Anti-loss rule: every confirmed substantive conclusion appends a record here bef
   (i) 居所=docs/governance/orphan-cites.json，独立 append-only JSON（与 map 派生工件结构性分离——regen 不覆盖手写登记）；首日以 fenced 类注册进 ADR-0086 field_governance.classification（被分类器消费=语义承载面）；
   (ii) 单一条目类型+纯声明字段（Rekor v1 十类型爆炸教训）；只登记终态断言不登记事件流（event-sourcing 诱惑拒绝）；
   (iii) schema：{cited_sha, object_type, size, snapshot:{subject,author,committer_ts,parents}, last_reachable_via, successor_sha|null, cite_locations[], registered_at, reason, carried_log[], object_purged_at?}；object_purged_at 为追加式观察字段——登记孤儿被 gc 物理删除后条目仍在但 cat-file 失败，审计不误报；
-  (iv) 写入=显式动词 orphan-cites.js register <sha> [--successor <sha>]——登记前机器验证：successor 在库可达 + snapshot 字段与 successor 对象一致性比对（snapshot 是引用快照非身份保证，验证前置非事后审）；可选 --replace-ref 物化 refs/replace/；
+  (iv) 写入=显式动词 orphan-cites.js register <sha> [--successor <sha>]——登记前机器验证：successor 在库可达 + snapshot 字段与 successor 对象一致性比对（snapshot 是引用快照非身份保证，验证前置非事后审）；可选 --replace-ref 物化 refs/replace/；【本子句的'snapshot 字段一致性比对'经 D-009 收窄为 author+subject fail-closed、committer_ts/parents 观测不判——revised-by D-009，原文保留】
   (v) 复活规则预定义：同 cited_sha 多条目按 registered_at 最新裁决，旧条目留历史（CT SCT 去重对偶）；
   (vi) 双职分离：registry=机读分类输入面；ERRATA.md=人读披露面；两通道独立演化；
   (vii) 触发点：reachable_via 转空且对象在库时物化登记（post-restack ritual/E-19 settled-tree 流程挂点）。
@@ -117,7 +117,7 @@ Anti-loss rule: every confirmed substantive conclusion appends a record here bef
 - **调研结论**（atomcode 三源交叉：PagerDuty severity-unknown→High urgency、K8s admission failurePolicy、fail-closed 文献）：fail-closed 立即红的适用对象是'已验证的违规事实'，不是'无法完成的测量'；unageable packed 对象是 git 常态产物，直判最高级红=把测量缺口当违规处罚，代价是 alert fatigue + 开发者无 action 路径。
 - **规范化需求（草案）**: (i) unageable=越过 stage-1（不给静默豁免）；(ii) stage-2 时钟起点=系统首次观察时间（exists_at），非对象 mtime（不可测）；(iii) stage-4（对象不在库且未登记）与年龄无关，维持立即硬红；(iv) 警告行携带 qualifier=unageable 标记。
 - **与现行账本关系**: 与 D-004 梯常数（14d+7d）不冲突——仅 age 缺失时的时钟基底定义。属新增子句，非 revised。
-- **状态**: pending-adjudication（呈报 owner 拍板）
+- **状态**: current（owner 2026-09-29 采纳）
 
 ## D-008 — --check 对已提交 map 副本同跑弱自洽（审计 F-10 / R5 调研裁决呈报）
 
@@ -125,7 +125,7 @@ Anti-loss rule: every confirmed substantive conclusion appends a record here bef
 - **调研结论**（SLSA verifying-artifacts、in-toto monotonic-ignore、RFC 9162 CT 自洽性三源一致）：剥离出等价比对的字段仍须有完整性覆盖或自洽检查——SLSA 的 metadata 在签名内，in-toto 的 ignore 以 monotonic policy 为前提，CT 惯例正是'对 committed 副本跑自洽'。committed qualifier 篡改当前对 gate 不可见=真缺口。
 - **规范化需求（草案）**: --check 在 regenerated map 之外对 committed map 各跑一次 consistencyErrors；qualifier 的跨副本比对限于结构性矛盾（class-vs-reachable_via 不一致），不做字节级相等。
 - **与现行账本关系**: D-005/D-006 的窄比对域是 equality 域；本记录加的是 consistency 覆盖面——加法非改向。
-- **状态**: pending-adjudication（呈报 owner 拍板）
+- **状态**: current（owner 2026-09-29 采纳）
 
 ## D-009 — successor 校验域收窄至 author+subject（审计 F-8 / R5 调研裁决呈报；关联 D-003(iv)）
 
@@ -133,4 +133,4 @@ Anti-loss rule: every confirmed substantive conclusion appends a record here bef
 - **调研结论**（in-toto digest-only、git replace 声明式先例、cherry-pick/rebase 不变量分析）：author+subject 是唯一既拦得住伪继任又放得过合法谱系 rewrite 的字段对；committer_ts/parents 在 cherry-pick/rebase 下必变，作为拒绝条件会产生误拒。
 - **规范化需求（草案）**: successor 校验=author+subject fail-closed；committer_ts/parents 仅观测留痕（写进条目不判）；non-commit 对象类型仍按 type 一致性校验。
 - **与现行账本关系**: 与 D-003(iv) 'snapshot 字段一致性比对' 措辞冲突——若采纳，D-003(iv) 该子句标记 revised（保留原文），本记录接替。
-- **状态**: pending-adjudication（呈报 owner 拍板）
+- **状态**: current（owner 2026-09-29 采纳）

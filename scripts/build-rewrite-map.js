@@ -386,12 +386,16 @@ function buildInner(oldRefs, newRef, o) {
     const via = sha40 ? reachableVia(sha40) : [];
     let mt = null;
     if (sha40) { if (!mtimeCache.has(sha40)) mtimeCache.set(sha40, objectMtime(sha40, fact.type)); mt = mtimeCache.get(sha40); }
-    // stage-2 (ADR-0089 D-E): exists + unreachable + unregistered + over-age
-    // -> map warning channel ("register while alive"); the leg owns stage 3.
+    // stage-2 (ADR-0089 D-E + D-007): exists + unreachable + unregistered +
+    // over-age -> map warning channel ("register while alive"); the leg owns
+    // stage 3. An unageable object (no object mtime - packed blob/tree) is
+    // past stage 1 by construction: it warns at first observation, and the
+    // leg's stage-3 clock for it runs on qualifiers.exists_at.
     if (sha40 && cls === 'local-only' && !ent && via.length === 0) {
-      const ageDays = mt === null ? Infinity : (nowTs - mt) / 86400;
-      if (ageDays > oc.ORPHAN_AGE_DAYS) {
-        warnings.push({ sha: sha40, file: f, line: li, age_days: mt === null ? null : Math.floor(ageDays), kind: 'orphan-window-open' });
+      const unageable = mt === null;
+      const ageDays = unageable ? null : (nowTs - mt) / 86400;
+      if (unageable || ageDays > oc.ORPHAN_AGE_DAYS) {
+        warnings.push({ sha: sha40, file: f, line: li, age_days: unageable ? null : Math.floor(ageDays), kind: 'orphan-window-open', unageable: unageable });
       }
     }
     docRefs.push({
@@ -658,6 +662,9 @@ function stableCopy(m) {
 // Weak-consistency check over a generated map's qualifiers (spec 6.1):
 // contradictions between class and reachable_via/type are errors, and any
 // 'unresolved' row is hard red (absent AND unregistered - ADR-0089 D-E stage 4).
+// D-008 (adjudicated): the check is bidirectional - --check runs it on the
+// COMMITTED map too. Exempt-from-equality is never exempt-from-consistency;
+// a committed qualifier contradiction is otherwise tamper-invisible.
 function consistencyErrors(map) {
   const errs = [];
   for (const d of map.doc_refs || []) {
@@ -675,6 +682,29 @@ function consistencyErrors(map) {
     errs.push(unresolved.length + ' unresolved citation(s) (absent AND unregistered) - disclose via node scripts/orphan-cites.js backfill; first: ' + unresolved.slice(0, 5).map(function (d) { return d.file + ':' + d.line + ':' + d.sha; }).join(', '));
   }
   return errs;
+}
+
+// D-007: exists_at is a FIRST-OBSERVATION stamp (the leg's unageable clock
+// basis) - carry it forward across regens for rows that persist at the same
+// file:line:sha. It is a qualifier, so the carry-forward never affects
+// --check equality; it only stabilizes the committed artifact's clock.
+function stabilizeExistsAt(map, prior) {
+  const prev = new Map();
+  for (const d of (prior && prior.doc_refs) || []) {
+    prev.set(d.file + ':' + d.line + ':' + d.sha, d.qualifiers && d.qualifiers.exists_at);
+  }
+  for (const d of map.doc_refs || []) {
+    const old = prev.get(d.file + ':' + d.line + ':' + d.sha);
+    if (old && d.qualifiers) d.qualifiers.exists_at = old;
+  }
+}
+
+// D-008: the --check consistency pair - weak self-consistency on BOTH the
+// committed artifact and the regenerated one. Equality stays on stableCopy
+// (qualifiers exempt); consistency never is.
+function checkMapConsistency(committed, regenerated) {
+  return consistencyErrors(regenerated).concat(
+    consistencyErrors(committed).map(function (e) { return 'committed map: ' + e; }));
 }
 
 function main() {
@@ -713,9 +743,10 @@ function main() {
   // discovery on the prior map's new-side identities when one is committed
   // (the first generation falls back to the tip-only test).
   let publishedSide = null;
+  let prior = null;
   const outAbs = path.join(ROOT, OUT_REL);
   try {
-    const prior = JSON.parse(fs.readFileSync(outAbs, 'utf8'));
+    prior = JSON.parse(fs.readFileSync(outAbs, 'utf8'));
     const rew = (prior.commits || []).map(function (c) { return c.new; }).filter(Boolean);
     if (prior.published_tip) rew.push(prior.published_tip);
     if (rew.length) publishedSide = rew;
@@ -736,6 +767,10 @@ function main() {
     exitUnverifiable('rewrite-map', 'old-side-refs');
   }
   const map = build(oldRefs, newRef);
+  // D-007: exists_at is the first-observation stamp the leg's unageable
+  // clock runs on - carry it forward for rows that persist (same
+  // file:line:sha), so regens do not restart the first-seen clock.
+  stabilizeExistsAt(map, prior);
   if (verifyMode) {
     const errs = verify(map);
     if (errs.length) { console.error('[rewrite-map] VERIFY FAIL:\n' + errs.join('\n')); process.exit(1); }
@@ -745,7 +780,7 @@ function main() {
   if (check) {
     if (!fs.existsSync(outAbs)) { console.error('[rewrite-map] FAIL: ' + OUT_REL + ' missing \u2014 run the generator'); process.exit(1); }
     const committed = JSON.parse(fs.readFileSync(outAbs, 'utf8'));
-    const consErrs = consistencyErrors(map);
+    const consErrs = checkMapConsistency(committed, map);
     if (consErrs.length) {
       console.error('[rewrite-map] FAIL: consistency violations:\n' + consErrs.join('\n'));
       process.exit(1);
@@ -768,4 +803,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { build, verify, verifyPublishedOnly, scanDocTokens, scanDocTokensAt, discoverOldRefs, isEmptyCommit, stableCopy, consistencyErrors, refFacts };
+module.exports = { build, verify, verifyPublishedOnly, scanDocTokens, scanDocTokensAt, discoverOldRefs, isEmptyCommit, stableCopy, consistencyErrors, checkMapConsistency, refFacts, stabilizeExistsAt };

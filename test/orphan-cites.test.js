@@ -318,6 +318,23 @@ describe('registry verbs', () => {
     expect(oc.cmdAnnotate(dir, [], {}).code).toBe(2);
   });
 
+  test('successor verify: author+subject fail-closed, committer_ts/parents observational (D-009)', () => {
+    const dir = mkDir();
+    const fx = fixture(dir);
+    // same subject, different author -> the author invariant refuses it
+    hg.git(dir, ['checkout', '-q', '-b', 'tmp-other-author']);
+    put(dir, 'oa.txt', 'other author\n');
+    const OA = commit(dir, 'subject pairwork', { GIT_AUTHOR_NAME: 'Other Author', GIT_AUTHOR_EMAIL: 'other@example.test' });
+    hg.git(dir, ['checkout', '-q', 'main']);
+    hg.git(dir, ['branch', '-D', 'tmp-other-author']);
+    const r = oc.cmdRegister(dir, [OA, '--successor', fx.N1, '--reason', 'x'], {});
+    expect(r.code).toBe(1);
+    expect(r.out).toContain('author mismatch');
+    // control: same author + same subject still registers (committer_ts and
+    // parents necessarily differ under a rewrite - observational only)
+    expect(oc.cmdRegister(dir, [fx.OCP, '--successor', fx.N1, '--reason', 'x'], {}).code).toBe(0);
+  });
+
   test('injected fault seam: cat-file non-zero and registry IO error surface honestly', () => {
     const dir = mkDir();
     const fx = fixture(dir);
@@ -388,6 +405,31 @@ describe('--check domain narrowing', () => {
     expect(errs[0]).toContain('backfill');
   });
 
+  test('committed-map qualifier tamper is consistency-visible (D-008)', () => {
+    const dir = mkDir();
+    const fx = fixture(dir);
+    expect(oc.cmdRegister(dir, [fx.OC, '--reason', 'x'], {}).code).toBe(0);
+    const regenerated = buildMap(fx);
+    const committed = JSON.parse(JSON.stringify(regenerated));
+    // tamper a committed qualifier only: orphaned-cite gains a fake reachability
+    const row = committed.doc_refs.find(function (d) { return d['class'] === 'orphaned-cite'; });
+    expect(row).toBeTruthy();
+    row.qualifiers.reachable_via = ['refs/heads/forged'];
+    // the pair check --check now runs flags the committed copy (regenerated
+    // legitimately carries the fixture's DEAD unresolved row - unprefixed)
+    const errs = rm.checkMapConsistency(committed, regenerated);
+    expect(errs.some(function (e) { return e.indexOf('committed map:') === 0 && e.indexOf('reachable_via') !== -1; })).toBe(true);
+    // a clean committed copy's only prefixed finding is the fixture's own
+    // DEAD row (unresolved is hard red on BOTH copies by design); the
+    // tampered copy adds the reachable_via contradiction on top
+    const cleanPair = rm.checkMapConsistency(regenerated, regenerated);
+    const prefixed = cleanPair.filter(function (e) { return e.indexOf('committed map:') === 0; });
+    expect(prefixed.length).toBe(1);
+    expect(prefixed[0]).toContain('unresolved');
+    const tamperedPrefixed = errs.filter(function (e) { return e.indexOf('committed map:') === 0; });
+    expect(tamperedPrefixed.length).toBe(2);
+  });
+
   test('qualifier weak-consistency: reachable_via contradicts a non-reachability class', () => {
     const map = { doc_refs: [{ file: 'd', line: 1, sha: 'abc1234', 'class': 'orphaned-cite', qualifiers: { exists_at: NOW0, object_mtime: null, object_type: 'commit', object_size: 1, reachable_via: ['refs/heads/main'] } }] };
     expect(rm.consistencyErrors(map).some(function (e) { return e.indexOf('reachable_via') !== -1; })).toBe(true);
@@ -440,6 +482,46 @@ describe('three-stage escalation ladder (injected now)', () => {
     const t30 = new Date(Date.parse(NOW0) + 30 * DAY * 1000).toISOString();
     lr = leg.checkLeg({ root: dir, now: t30, oldSide: true });
     expect(lr.errors.some(function (e) { return e.indexOf('stage3') !== -1 && e.indexOf(ocTok) !== -1; })).toBe(true);
+  });
+
+  test('unageable object: warns at first sight, stage-3 on the first-seen clock, exists_at stable (D-007)', () => {
+    const dir = mkDir();
+    const fx = fixture(dir);
+    // Inject a token that resolves as an existing BLOB with no backing loose
+    // file - the packed-object case where no per-object mtime is derivable.
+    const TOK = 'abc1234';
+    const FULL = TOK + '0'.repeat(33);
+    put(dir, 'docs/citing.md', fs.readFileSync(path.join(dir, 'docs', 'citing.md'), 'utf8') + 'unageable ' + TOK + '\n');
+    commit(dir, 'unageable cite');
+    const unageableExec = function (args, opts) {
+      if (args[0] === 'cat-file' && String(args[1]).indexOf('--batch-check') === 0) {
+        return String(realExec(dir)(args, opts)).replace(new RegExp('^' + TOK + ' missing$', 'm'), FULL + ' blob 7');
+      }
+      return realExec(dir)(args, opts);
+    };
+    const map = rm.build(['oldside'], 'main', { root: dir, now: NOW0, exec: unageableExec });
+    const row = rowFor(map, TOK);
+    expect(row['class']).toBe('local-only');
+    expect(row.qualifiers.object_mtime).toBe(null);
+    // past stage 1 by construction: the warning fires immediately, flagged
+    const w = map.warnings.find(function (x) { return x.sha === FULL; });
+    expect(w).toBeTruthy();
+    expect(w.kind).toBe('orphan-window-open');
+    expect(w.unageable).toBe(true);
+    writeMap(fx, map);
+    // first-seen clock: +10d green (inside age+grace from exists_at)
+    const t10 = new Date(Date.parse(NOW0) + 10 * DAY * 1000).toISOString();
+    const lr10 = leg.checkLeg({ root: dir, now: t10, oldSide: true });
+    expect(lr10.errors.filter(function (e) { return e.indexOf(TOK) !== -1; })).toEqual([]);
+    // +25d -> past 14+7 from first observation -> stage-3, named unageable
+    const t25 = new Date(Date.parse(NOW0) + 25 * DAY * 1000).toISOString();
+    const lr25 = leg.checkLeg({ root: dir, now: t25, oldSide: true });
+    expect(lr25.errors.some(function (e) { return e.indexOf('stage3') !== -1 && e.indexOf('unageable') !== -1 && e.indexOf(TOK) !== -1; })).toBe(true);
+    // exists_at carry-forward: regen does not restart the clock
+    const map2 = rm.build(['oldside'], 'main', { root: dir, now: t10, exec: unageableExec });
+    expect(rowFor(map2, TOK).qualifiers.exists_at).toBe(t10);
+    rm.stabilizeExistsAt(map2, map);
+    expect(rowFor(map2, TOK).qualifiers.exists_at).toBe(NOW0);
   });
 });
 

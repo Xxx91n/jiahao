@@ -122,8 +122,11 @@ physically deleted.
 
 - `node scripts/orphan-cites.js register <sha> [--successor <sha>]
   [--replace-ref]`: appends one entry. Before materializing, machine
-  verification: successor exists + reachable, and snapshot fields are
-  consistency-checked against the successor object. `--replace-ref`
+  verification: successor exists + reachable, and the fail-closed
+  consistency pair is `author` + `subject` (D-009, adjudicated
+  2026-09-29 — the only fields stable across cherry-pick/rebase);
+  `committer_ts`/`parents` are written for observation, never judged.
+  `--replace-ref`
   optionally materializes `refs/replace/`; if used, ALL classifier
   object reads MUST run with `GIT_NO_REPLACE_OBJECTS=1` (replace would
   silently redirect the old sha — re-introducing environment-driven

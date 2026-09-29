@@ -68,14 +68,26 @@ function checkLeg(opts) {
     if (cov === 'ambiguous') { errors.push('stage3: ' + d.file + ':' + d.line + ' ' + d.sha + ' matches multiple registry cited_shas with mixed dispositions (ambiguous, fail-closed)'); continue; }
     if (typeof cov === 'string' && cov.indexOf('error:') === 0) { errors.push('stage3: ' + d.file + ':' + d.line + ' ' + d.sha + ' registry lookup failed: ' + cov.slice(6)); continue; }
     if (cov) continue; // registered (any disposition)
+    // D-007 (adjudicated): an unageable object (packed blob/tree, no object
+    // mtime) is past stage 1 by construction - it entered the stage-2
+    // warning channel at first observation, and its stage-3 clock runs on
+    // qualifiers.exists_at (the stable first-seen stamp), never on the
+    // missing mtime. A missing exists_at itself is fail-closed red.
+    let ageDays;
+    let basis = 'mtime';
     if (q.object_mtime === null || q.object_mtime === undefined) {
-      // unagable -> conservatively past stage 1 (ADR-0089 D-E age basis)
-      errors.push('stage3: ' + d.file + ':' + d.line + ' ' + d.sha + ' object has no determinable mtime and is unregistered - register while alive');
-      continue;
+      basis = 'unageable';
+      const fs = q.exists_at ? Date.parse(q.exists_at) / 1000 : NaN;
+      if (isNaN(fs)) {
+        errors.push('stage3: ' + d.file + ':' + d.line + ' ' + d.sha + ' unageable and carries no exists_at first-observation stamp - register while alive');
+        continue;
+      }
+      ageDays = (nowTs - fs) / 86400;
+    } else {
+      ageDays = (nowTs - q.object_mtime) / 86400;
     }
-    const ageDays = (nowTs - q.object_mtime) / 86400;
     if (ageDays > oc.ORPHAN_AGE_DAYS + oc.ORPHAN_REGISTER_GRACE_DAYS) {
-      errors.push('stage3: ' + d.file + ':' + d.line + ' ' + d.sha + ' unreachable ' + Math.floor(ageDays) + 'd, past ' + (oc.ORPHAN_AGE_DAYS + oc.ORPHAN_REGISTER_GRACE_DAYS) + 'd grace - register: node scripts/orphan-cites.js register ' + d.sha + ' --reason <text>');
+      errors.push('stage3: ' + d.file + ':' + d.line + ' ' + d.sha + ' ' + (basis === 'unageable' ? 'unageable, first-observed ' : 'unreachable ') + Math.floor(ageDays) + 'd, past ' + (oc.ORPHAN_AGE_DAYS + oc.ORPHAN_REGISTER_GRACE_DAYS) + 'd grace - register: node scripts/orphan-cites.js register ' + d.sha + ' --reason <text>');
     }
   }
 

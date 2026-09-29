@@ -236,8 +236,10 @@ function cmdRegister(root, argv, opts) {
   const sha = res.sha;
 
   // successor verification: exists, reachable on a display ref, and (when the
-  // cited object is a commit) subject-equal - the same message-lineage
-  // convention the map alignment uses.
+  // cited object is a commit) author+subject equal - the fail-closed
+  // invariants per D-009 (adjudicated): both are the stable identity pair
+  // across cherry-pick/rebase. committer_ts/parents are observational only -
+  // they necessarily differ under any legitimate rewrite.
   if (flags.successor) {
     const sr = gitx.resolveToken(flags.successor);
     if (sr.status !== 'ok') return { code: 1, out: 'register: successor ' + flags.successor + ' does not resolve (' + sr.status + ')' };
@@ -248,6 +250,10 @@ function cmdRegister(root, argv, opts) {
     if (citedType === 'commit' && succType === 'commit') {
       const cs = gitx.objectSnapshot(sha); const ss = gitx.objectSnapshot(sr.sha);
       if (cs.subject !== ss.subject) return { code: 1, out: 'register: successor subject mismatch ("' + cs.subject + '" != "' + ss.subject + '") - snapshot/successor consistency failed' };
+      // author identity = name<email> only - the trailing timestamp/tz in the
+      // header necessarily differs across any rewrite and is observational.
+      const ident = function (s) { return String(s || '').replace(/\s+\d+\s+[+-]\d+\s*$/, ''); };
+      if (cs.author && ss.author && ident(cs.author) !== ident(ss.author)) return { code: 1, out: 'register: successor author mismatch ("' + cs.author + '" != "' + ss.author + '") - snapshot/successor consistency failed' };
     }
     flags.successor = sr.sha;
   }
