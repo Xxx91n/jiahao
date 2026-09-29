@@ -402,7 +402,10 @@ function cmdAnnotate(root, argv, opts) {
   const appended = [];
   for (const e of latest.values()) {
     if (e.disposition !== 'orphaned') continue;
-    if (!e.object_purged_at && e.snapshot) continue; // live snapshot, not degraded
+    // Degraded population = purge-stamped entries only (E-24 / loop-2 R2-F1):
+    // a LIVE entry may legitimately carry snapshot:null (non-commit objects
+    // have no commit snapshot) - snapshot-based inference let one through.
+    if (!e.object_purged_at) continue;
     if (e.errata_ref) continue;
     const copy = Object.assign({}, e, {
       registered_at: now,

@@ -14410,6 +14410,45 @@
       "object_purged_at": "2026-09-29T02:24:47.771Z",
       "errata_ref": "E-22",
       "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "ab92813e41f758ef8c6c75ea7d3e2407d45e2b9c",
+      "object_type": "blob",
+      "size": 8077,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t7/reports/audit-diff.patch",
+          "line": 1509
+        }
+      ],
+      "registered_at": "2026-09-29T04:17:30.406Z",
+      "reason": "correction append (loop-2 R2-F1): E-22 annotate predicate admitted a live null-snapshot entry; latest view restores no-errata_ref (mis-annotate disclosed via E-24)",
+      "carried_log": [],
+      "disposition": "orphaned",
+      "errata_ref": null
+    },
+    {
+      "cited_sha": "b83c39cfc3db963e878f6cbaff576c4af092d5a1",
+      "object_type": "commit",
+      "size": 1393,
+      "snapshot": {
+        "subject": "grill-t32 audit-repair wave-1 (R1-R4 spec gaps + R6 hygiene): AGENTS.md editorial soft-constraint (spec SS7); ERRATA E-22 degraded-population record + annotate verb + 188 errata_ref appends (F-2); ERRATA E-23 correcting migration-diff figures + stale commit list (F-4/F-5); generator-spec non-goal line corrected to conditional form (F-3); hygiene: dead forRoot import, facade header overclaim, scanDocTokensAt routed via gitAt (NO_REPLACE+injectable), covers() ambiguity/error signal preserved, facade env threading for hermetic isolation (F-6/7/12/13); annotate battery case (17 tests); audit report+handoff committed as claim artifacts; ledger D-007/8/9 drafts pending owner adjudication (F-8/9/10)",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790647140 +0800",
+        "committer_ts": 1790649506,
+        "parents": [
+          "9ab44789151152b457d34c800087caa5fccb7755"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [],
+      "registered_at": "2026-09-29T04:17:40.270Z",
+      "reason": "pre-reword wave-1 audit-repair sha (superseded by 951ccf8d via but reword); cited 4x by committed repair report+closeout; --successor is correctly fail-closed since the reword changed the subject line - registered without successor per owner adjudication",
+      "carried_log": [],
+      "disposition": "orphaned"
     }
   ]
 }

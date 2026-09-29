@@ -448,3 +448,33 @@ The same erratum records the closeout document's stale commit enumeration
 report commit). Claim artifacts are immutable once committed - this entry
 is the standing correction.
 
+## E-24 - grill-t32 repair round: annotate mis-admission + figure drift + pre-reword cite (loop-2 audit R2-F1/F-2/F-3)
+
+Three loop-2 audit disclosures, one entry:
+
+1. **Annotate predicate mis-admission (R2-F1)**: the `annotate --errata`
+   predicate originally skipped `!object_purged_at && snapshot` (live
+   snapshot), which admitted live entries whose snapshot is legitimately
+   null - blob `ab92813e41f758ef` (object alive, never purged) received an
+   E-22-linked adjudicating copy, making the annotated population 188
+   against E-22's own "degraded only" description. Registry is append-only
+   and the mis-annotate stays in history; a correction append restores the
+   latest view (no errata_ref on that sha), and the predicate now keys
+   degraded = `object_purged_at` set. The 187-entry degraded population is
+   as E-22 describes.
+2. **Pre-reword sha cited by repair artifacts (R2-F2)**: the repair report
+   and closeout cite `b83c39cf`, the wave-1 commit as-amended but
+   pre-reword. `but reword` superseded it (current wave-1: `951ccf8d`),
+   leaving the object alive but unreachable. It is registered as an orphan
+   cite without `--successor` - D-009 author+subject verification is
+   correctly fail-closed against a reworded successor (subject differs).
+   Owner-adjudicated route: plain registration, not an errata-exempt pin.
+3. **Report figure drift (R2-F3)**: the repair report's acceptance table
+   prints `--check` at 3618 citations; the settled map covers 3624 (the +6
+   are wave-3's own claim-surface cites - the same self-referential drift
+   class as E-23's F-4). Correct figure: 3624 at `lus` closeout.
+
+R2-F4 (exists_at is equality-exempt; committed-map tampering could forge
+the stage-3 clock basis) is logged as a grill-t33 candidate - a future leg
+sanity-bound on exists_at vs commit time, not a current defect.
+

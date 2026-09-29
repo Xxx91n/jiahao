@@ -318,6 +318,25 @@ describe('registry verbs', () => {
     expect(oc.cmdAnnotate(dir, [], {}).code).toBe(2);
   });
 
+  test('annotate skips live null-snapshot entries (loop-2 R2-F1 regression)', () => {
+    const dir = mkDir();
+    const fx = fixture(dir);
+    writeMap(fx, buildMap(fx));
+    commit(dir, 'map');
+    oc.cmdBackfill(dir, [], { now: NOW0 });
+    // inject a live-registered entry whose snapshot is legitimately null
+    // (non-commit objects carry no commit snapshot): old predicate inferred
+    // degraded from snapshot===null and would mis-annotate it.
+    const reg = readReg(dir);
+    reg.entries.push({ cited_sha: 'c'.repeat(40), object_type: 'blob', size: 1, snapshot: null, last_reachable_via: [], successor_sha: null, cite_locations: [], registered_at: NOW0, reason: 'live null-snapshot blob', carried_log: [], disposition: 'orphaned' });
+    fs.writeFileSync(path.join(dir, REG), JSON.stringify(reg, null, 2) + '\n');
+    const r = oc.cmdAnnotate(dir, ['--errata', 'E-98'], { now: NOW0 });
+    expect(r.code).toBe(0);
+    expect(r.report.appended.filter(function (e) { return e.cited_sha === 'c'.repeat(40); }).length).toBe(0);
+    // degraded (purge-stamped) rows still annotate normally
+    expect(r.report.appended.some(function (e) { return e.cited_sha === fx.DEAD; })).toBe(true);
+  });
+
   test('successor verify: author+subject fail-closed, committer_ts/parents observational (D-009)', () => {
     const dir = mkDir();
     const fx = fixture(dir);
