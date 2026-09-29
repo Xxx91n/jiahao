@@ -112,15 +112,15 @@
       "file": "ERRATA.md",
       "origin": "(authored in place)",
       "adr": "ADR-0061",
-      "bytes": 27118,
-      "sha256": "1e5a64d201a47d9ef79fa7d9169d7804258d52d80f8cbef38907ae7e7bb791f8"
+      "bytes": 29244,
+      "sha256": "61793dbb6a5d3d632ea4154b6e3907b0c7fd2edf74bda94760f18142bcd757b7"
     },
     {
       "file": "trend-inventory.json",
       "origin": "(authored in place)",
       "adr": "ADR-0064",
-      "bytes": 45263,
-      "sha256": "e0f706c7ea775cb860b58a8288c6d9258c250fcba18b013543d8b28522ed7120"
+      "bytes": 52281,
+      "sha256": "758f4e63f22b53d3c59dd00ec8f2507d98c7fbfca65946fce8ba58724383db34"
     },
     {
       "file": "sunset-counter.json",

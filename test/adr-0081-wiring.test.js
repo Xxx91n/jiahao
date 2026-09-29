@@ -90,7 +90,8 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
     // grill-t30/t31 fix rows landed (24 -> 25); grill-t32's fix row (ADR-0089
     // declared-facts cutover) lands here - the count moves 25 -> 26.
     const row = ti.rounds.find((r) => r.round === 'grill-t22-doc-round');
-    expect(ti.rounds).toHaveLength(26);
+    // grill-t33 appends the correction-round coverage row.
+    expect(ti.rounds).toHaveLength(27);
     const latest = ti.rounds.find((r) => r.round === 'grill-t23-front-face');
     expect(latest).toBeDefined();
     expect(latest.adr_added).toEqual(['0082']);
@@ -140,7 +141,9 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
 
   test('ci.yml suite parity declares the live expected suite count', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
-    expect(ci).toContain('--expected-suites 89');
+    // grill-t33: countersign-queue.test.js adds one suite -> 90 (ADR-0057 D-C
+    // parity: this pin tracks the call-line value, it does not mint it).
+    expect(ci).toContain('--expected-suites 90');
   });
 
   test('coverageGaps pure export: the R2-undeclared defect shape still fails (regression pin)', () => {
