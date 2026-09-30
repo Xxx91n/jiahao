@@ -22,8 +22,8 @@ requireCapabilities('check-test-manifest'); // ADR-0040 D7d: the leg declares it
 const ROOT = path.join(__dirname, '..');
 const README_PATHS = ['README.md', 'README-zh-CN.md'];
 
-// Extract the current region content between a sentinel pair (fail-closed via
-// spliceRegion's own validation - a throw IS the failure signal).
+// Extract the current region content between a sentinel pair (local fail-closed
+// validation: a throw IS the failure signal).
 function regionContent(text, pair, label) {
   // Extract from the ORIGINAL bytes between the sentinels - never splice the
   // expected content in first, or the equality check is a tautology (audit
