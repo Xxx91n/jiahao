@@ -1272,7 +1272,8 @@
           "test/sentinel-ownership.test.js",
           "test/sentinel-ownership.test.js [R2]",
           "test/test-manifest.test.js",
-          "test/test-manifest.test.js [R2]"
+          "test/test-manifest.test.js [R2]",
+          "package-lock.json"
         ],
         "reason": "grill-t34 derive-from-source round (ADR-0090/0091): build-test-manifest.js + docs/test-manifest.json (count manifest, sentinel README regions, argv retirement on run-test-gate + ci.yml), check-test-manifest leg (order 226), countersign-queue.js shared derivation + check-countersign-overdue leg (order 227), build-audit-checklist.js + docs/governance/audit-checklist.json (order 228), check-audit-surface leg (order 229), six wiring re-anchors, AGENTS.md interim clause retired to pointer, defer-0076 actioned, defer-0078..0084 registered. The files list is cumulative per the coverage-budget rule (t21 audit C-1): the t33 machinery set is redeclared here."
       }
