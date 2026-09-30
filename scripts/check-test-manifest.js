@@ -35,6 +35,7 @@ function regionContent(text, pair, label) {
   return text.slice(i + pair.begin.length + 1, j - 1);
 }
 
+function main() {
 const errors = [];
 let manifest = null;
 try {
@@ -85,5 +86,7 @@ if (errors.length) {
 }
 console.log('[check-test-manifest] OK: enumeration fresh (' + manifest.enumeration.suites + ' suites), 4 README sentinel regions == manifest-derived text (battery status not implied by this leg)');
 process.exit(0);
+}
+if (require.main === module) main();
 
 module.exports = { regionContent };

@@ -66,7 +66,7 @@ function firstDiffPath(a, b, prefix) {
 
 if (require.main === module) {
   const argv = process.argv.slice(2);
-  requireCapabilities(['repo-tree', 'docs-adr']);
+  requireCapabilities('audit-checklist'); // ADR-0040 D7d: the leg declares its own registry identity
   const outAbs = path.join(ROOT, OUT_REL);
   if (argv[0] === 'emit') {
     const c = JSON.parse(fs.readFileSync(outAbs, 'utf8'));
