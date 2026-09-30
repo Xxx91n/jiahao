@@ -13,82 +13,12 @@
 //   E13-PTR  - bare `- Status: Accepted` + the ERRATA E-13
 //              pointer-annotation line (9 members: 0076..0081, 0083..0085)
 //   NEW      - status `awaiting entity-level countersign` (0086+, 4)
-// Closed category set: {awaiting-old, awaiting-e13, awaiting-new,
-// countersigned-or-final, registered-exempt}; undeclared = fail.
-// Registered exemption: ADR-0082 - its countersign slot lives in the
-// deferred registry as defer-0068 (registered-exempt class).
+// grill-t34 D-003(vi): the derivation itself moved verbatim into
+// scripts/countersign-queue.js (the single shared surface); this suite keeps
+// its member-level reconciliation role unchanged.
 const fs = require('fs');
-const path = require('path');
-const ROOT = path.join(__dirname, '..');
-const ADR_DIR = path.join(ROOT, 'docs', 'adr');
-const REG = path.join(ROOT, 'docs', 'deferred-registry.json');
-
-const adrs = fs.readdirSync(ADR_DIR).filter(function (f) { return /^\d{4}-.+\.md$/.test(f); }).sort();
-const adrText = {};
-for (const f of adrs) adrText[f] = fs.readFileSync(path.join(ADR_DIR, f), 'utf8');
-
-const RE = {
-  // a Status surface in any registered shape: `Status: ...`,
-  // `- Status: ...`, or the heading form `## Status` (early ADRs)
-  statusLine: /^-?\s?\*?Status\*?\s*:|^## Status/im,
-  oldFormStatus: /Status[^\n]*ID-level-only, awaiting entity-level/i,
-  e13Pointer: /Errata pointer \(2026-09-26, ERRATA E-13, grill-t28 D-002\)/,
-  newFormStatus: /Status[^\n]*awaiting entity-level countersign/i,
-  countersignedStatus: /^-?\s?\*?Status\*?\s*:[^\n]*second_reviewer (?:countersigned|countersign discharged|countersign landed)/im,
-};
-
-// Registered-exempt declarations (form source = the ADR's own text +
-// registry row): extend only via a same-commit ADR/registry registration.
-const EXEMPTS = { '0082': /registered as defer-0068/ };
-
-// T-1's historical inventory contains these status-less ADR templates. Their
-// exact IDs are the registration boundary; a novel status-less ADR is not
-// accepted by shape alone.
-const STATUSLESS_FINAL = new Set([
-  '0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009',
-  '0016', '0017', '0018',
-]);
-
-function classify(f) {
-  const t = adrText[f];
-  const num = f.slice(0, 4);
-  // declaration surface = the ADR's Status field; body prose mentioning
-  // the queue (e.g. ADR-0084's byte-stable "Countersign queue (10
-  // entries)" bullet) is display text, never authority (D-002(iii)).
-  if (RE.newFormStatus.test(t)) return 'awaiting-new-form';
-  if (RE.oldFormStatus.test(t)) return 'awaiting-old-form';
-  if (RE.e13Pointer.test(t)) return 'awaiting-e13-pointer';
-  if (EXEMPTS[num] && EXEMPTS[num].test(t)) return 'registered-exempt';
-  // Era-honest finality (T-1 survey + grill-t33 audit F-4 rework): an ADR
-  // is countersigned-or-final ONLY under one of the era-attested
-  // declaration shapes, each verified on the file's own surface:
-  //   (a) explicit countersign/discharge record on the Status line
-  //       (0062/0063 "countersigned", 0071/0075 discharged/landed);
-  //   (b) the pre-queue bare approval form `Status: Accepted` (with or
-  //       without a leading dash/bold marks) AND the file is not a
-  //       queue-era ADR - queue-era members are numbered >= 0064
-  //       (0064..0074 old form, 0076..0085 E-13 pointer, 0082 exempt,
-  //       0086+ new form; a bare-Accepted file >= 0064 has no era
-  //       justification and falls to undeclared);
-  //   (c) a legacy heading form `## Status` whose body declares Accepted;
-  //   (d) the specifically registered status-less ADR templates in
-  //       STATUSLESS_FINAL, inventoried in T-1. No generic title/H1 fallback.
-  // Anything else (unparseable file, queue-era file with no registered
-  // declaration, novel status vocabulary) lands on undeclared = fail.
-  if (RE.countersignedStatus.test(t)) return 'countersigned-or-final'; // (a)
-  const n = parseInt(num, 10);
-  const legacyHeading = /^## Status\s*\n+\s*Accepted\b/im.test(t);
-  if (legacyHeading) return 'countersigned-or-final'; // (c)
-  if (RE.statusLine.test(t)) {
-    // (b): only the old pre-queue approval form is final absent an explicit
-    // countersign/discharge. The exact status line is matched, not body text.
-    const bareAccepted = /^-?\s?\*?Status\*?\s*:\s*Accepted(?:\s*\([^\n]*\))?\s*$/im.test(t);
-    if (bareAccepted && n < 64) return 'countersigned-or-final';
-    return 'undeclared'; // unregistered or novel status surface
-  }
-  if (STATUSLESS_FINAL.has(num) && /^# /m.test(t)) return 'countersigned-or-final'; // (d)
-  return 'undeclared';
-}
+const { adrs, adrText, classify, REG_ABS } = require('../scripts/countersign-queue');
+const REG = REG_ABS;
 
 describe('countersign queue authority closure (grill-t33 D-002)', () => {
   test('every ADR declaration surface classifies into the closed category set', () => {

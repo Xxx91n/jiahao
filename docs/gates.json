@@ -526,6 +526,17 @@
       "requires": [
         "repo-tree"
       ]
+    },
+    {
+      "name": "countersign-overdue",
+      "command": "node scripts/check-countersign-overdue.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0090-countersign-rejection-disposition-contract.md",
+      "order": 227,
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ]
     }
   ]
 }
