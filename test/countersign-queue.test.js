@@ -37,7 +37,7 @@ describe('countersign queue authority closure (grill-t33 D-002)', () => {
     // member sets, not counts - the ledger forbids total-equality assertions
     expect(queue['awaiting-old-form']).toEqual(['0064', '0065', '0066', '0067', '0068', '0069', '0070', '0072', '0073', '0074']);
     expect(queue['awaiting-e13-pointer']).toEqual(['0076', '0077', '0078', '0079', '0080', '0081', '0083', '0084', '0085']);
-    expect(queue['awaiting-new-form']).toEqual(['0086', '0087', '0088', '0089']);
+    expect(queue['awaiting-new-form']).toEqual(['0086', '0087', '0088', '0089', '0090', '0091']); // grill-t34: ADR-0090/0091 join as derived members
   });
 
   test('registered exemption: ADR-0082 carries the defer-0068 slot registration and stays out of the queue', () => {
