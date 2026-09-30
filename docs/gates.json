@@ -515,6 +515,17 @@
       "requires": [
         "repo-tree"
       ]
+    },
+    {
+      "name": "check-test-manifest",
+      "command": "node scripts/check-test-manifest.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0091-derive-from-source-mechanism-contract.md",
+      "order": 226,
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ]
     }
   ]
 }
