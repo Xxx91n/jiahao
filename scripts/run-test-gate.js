@@ -1,16 +1,20 @@
 #!/usr/bin/env node
-// scripts/run-test-gate.js - ADR-0057 D-C: the CI test job as a suite-count-
-// asserting wrapper over jest. Registered expectation lives on the ci.yml
-// test-job call line (--expected-suites, ADR-0036 D4 declaration parity).
-//
-// Fail-closed on every silent-green channel: jest exits non-zero on failure
-// AND on zero collected tests (no --passWithNoTests anywhere), the JUnit
-// artifact must exist after a green run (collection reporting intact), and
-// the collected suite count must equal the registered expectation - a silent
-// collection failure (.only residue, async-define swallowing, bad config)
-// cannot read green (johal.in postmortem pattern).
-
 'use strict';
+// scripts/run-test-gate.js - ADR-0057 D-C as carried forward by ADR-0091
+// (grill-t34 D-002(iii)(v)): the CI test job as a manifest-asserting wrapper
+// over jest. The --expected-suites argv is RETIRED - the registered
+// expectation now lives in the committed derived manifest
+// (docs/test-manifest.json, lockfile pattern), and the README declaration
+// check has moved to the static check-test-manifest leg: this gate no longer
+// reads README. Fail-closed on every silent-green channel: jest exits
+// non-zero on failure AND on zero collected tests (no --passWithNoTests
+// anywhere), the JUnit artifact must exist after a green run (collection
+// reporting intact), and post-jest the collected counts must equal the
+// manifest on BOTH channels - suites against the enumeration channel
+// (--listTests), tests against the blessed junit channel. A battery that
+// grew without a manifest regen, or a silent collection failure (.only
+// residue, async-define swallowing, bad config), cannot read green
+// (johal.in postmortem pattern).
 
 const { requireCapabilities } = require('../src/shared/capability');
 // ADR-0058 R8: no gates.json entry, so the test job declares inline; public tier (D-H) -> no bench-corpus.
@@ -22,16 +26,21 @@ const { spawnSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const OUT = path.join(ROOT, 'test-artifacts', 'junit.xml');
+const MANIFEST = path.join(ROOT, 'docs', 'test-manifest.json');
 
-function arg(name) {
-  const i = process.argv.indexOf('--' + name);
-  return i >= 0 ? process.argv[i + 1] : null;
+// Fail-closed: a missing/unreadable manifest is a red gate, never a skipped
+// assertion (the manifest is the registered expectation).
+let manifest;
+try {
+  manifest = JSON.parse(fs.readFileSync(MANIFEST, 'utf8'));
+} catch (e) {
+  console.error('run-test-gate: FAIL: docs/test-manifest.json unreadable - run: node scripts/build-test-manifest.js');
+  process.exit(1);
 }
-
-const expected = parseInt(arg('expected-suites'), 10);
-if (!Number.isInteger(expected) || expected <= 0) {
-  console.error('run-test-gate: --expected-suites <n> missing or invalid (registered on the ci.yml test-job call line, ADR-0057 D-C)');
-  process.exit(64);
+if (!Number.isInteger(manifest.enumeration && manifest.enumeration.suites) || manifest.enumeration.suites <= 0
+  || !Number.isInteger(manifest.junit && manifest.junit.tests) || manifest.junit.tests <= 0) {
+  console.error('run-test-gate: FAIL: manifest is missing positive enumeration.suites / junit.tests integers');
+  process.exit(1);
 }
 
 try { fs.unlinkSync(OUT); } catch (e) { /* first run: nothing to clear */ }
@@ -56,37 +65,24 @@ if (!fs.existsSync(OUT)) {
 const xml = fs.readFileSync(OUT, 'utf8');
 const suites = (xml.match(/<testsuite /g) || []).length;
 const head = xml.match(/<testsuites tests="(\d+)" failures="\d+" skipped="(\d+)"/);
-if (suites !== expected) {
-  console.error('FAIL: suite-count drift - collected ' + suites + ' suites, registered expectation ' + expected
-    + ' (ADR-0057 D-C). A silent collection failure or an intentional suite add/remove must update the ci.yml test-job call line in the same change.');
+if (suites !== manifest.enumeration.suites) {
+  console.error('FAIL: suite-count drift - collected ' + suites + ' suites, manifest enumeration declares ' + manifest.enumeration.suites
+    + ' (ADR-0091 D-002). A silent collection failure or an intentional suite add/remove must regenerate the manifest in the same change: node scripts/build-test-manifest.js');
   process.exit(1);
 }
-// ADR-0056/0057: the README's declared counts must match what actually ran.
-// Both declarations are checked: "N tests across M suites" (Develop) and
-// "M test suites, N tests" (Architecture). A drift fails the test job here,
-// in the same change that introduced it.
-const tests = head ? Number(head[1]) : null;
-if (tests === null) {
-  console.error('FAIL: JUnit header is missing the tests attribute - cannot check the README counts (ADR-0056/0057)');
+if (!head) {
+  console.error('FAIL: JUnit header is missing the tests attribute - cannot reconcile the manifest (ADR-0057 D-C)');
   process.exit(1);
 }
-const readme = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
-const declared = [
-  { what: 'Develop', re: /(\d+) tests across (\d+) suites/, testsIdx: 1, suitesIdx: 2 },
-  { what: 'Architecture', re: /(\d+) test suites, (\d+) tests/, testsIdx: 2, suitesIdx: 1 },
-];
-for (const d of declared) {
-  const m = readme.match(d.re);
-  if (!m) {
-    console.error('FAIL: README (' + d.what + ') is missing its declared count line (ADR-0056/0057)');
-    process.exit(1);
-  }
-  const got = { tests: Number(m[d.testsIdx]), suites: Number(m[d.suitesIdx]) };
-  if (got.tests !== tests || got.suites !== suites) {
-    console.error('FAIL: README (' + d.what + ') declares ' + got.tests + ' tests / ' + got.suites + ' suites, actual ' + tests + ' tests / ' + suites + ' suites (ADR-0056/0057: update the README in the same change)');
-    process.exit(1);
-  }
+const tests = Number(head[1]);
+// Post-jest dual-channel reconciliation (ADR-0091 D-002(v)). junit.tests
+// counts pending tests, so the assertion is tier-invariant; junit.skipped is
+// tier-variant and display-only (never asserted across tiers).
+if (tests !== manifest.junit.tests) {
+  console.error('FAIL: test-count drift - collected ' + tests + ' tests, manifest junit declares ' + manifest.junit.tests
+    + ' (ADR-0091 D-002). Regenerate the manifest in the same change: node scripts/build-test-manifest.js');
+  process.exit(1);
 }
 
-console.log('[test] OK: ' + suites + ' suites, ' + (head ? head[1] + ' tests' : 'n/a tests') + (head ? ', ' + head[2] + ' skipped' : '') + ' (ADR-0057 D-C)');
+console.log('[test] OK: ' + suites + ' suites, ' + tests + ' tests, ' + head[2] + ' skipped == docs/test-manifest.json (ADR-0057 D-C + ADR-0091 D-002)');
 process.exit(0);

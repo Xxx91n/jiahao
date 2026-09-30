@@ -1,7 +1,8 @@
 # Carve-out disclosure (ADR-0076 D-B, grill-t23 D-007 + grill-t24 D-002.5): this
-# file is part of the declared .github/ carve-outs — necessity: ADR-0057 D-C suite
-# parity (the expected-suites count must mirror the live test suite — now an
-# ADR-0083 D-D codified obligation);
+# file is part of the declared .github/ carve-outs — necessity: ADR-0057 D-C test-job
+# wiring (the registered suite/test expectation lives in the committed derived
+# manifest docs/test-manifest.json — ADR-0091 D-002; the ADR-0083 D-D codified
+# parity obligation now binds the manifest, not a call-line literal);
 # disclosure: this comment + the round report's carve-out section + the
 # trend row's governance_tooling_diff.
 name: ci
@@ -103,8 +104,9 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm install --ignore-scripts
-      # ADR-0057 D-C: the suite-count assertion lives on this call line now.
-      - run: node scripts/run-test-gate.js --expected-suites 90
+      # ADR-0057 D-C + ADR-0091 D-002: the registered expectation lives in the
+      # committed manifest (docs/test-manifest.json); the call line is bare.
+      - run: node scripts/run-test-gate.js
 
   # ADR-0058 D-B/D-G: the CI-layer convergence point. Branch protection
   # requires ONLY this job, so the internal job names may change freely.
