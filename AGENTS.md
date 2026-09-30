@@ -58,7 +58,7 @@ docs/agents/domain.md.
 - Wave-closeout order (E-17, grill-t30 D-004): re-capture evidence pins
   -> regenerate derived artifacts (rewrite-map LAST) -> `node
   scripts/build-rewrite-map.js --check` + `--published-only` clean ->
-  declare. Final leg (E-19, grill-t30 loop-2 re-audit): after the LAST
+  declare. Tide-eve disposition re-verification (grill-t34 D-003(vii), ADR-0090): before declaring, re-verify each queued member's registered disposition is current - a stale disposition is an errata, never silently executed; Final leg (E-19, grill-t30 loop-2 re-audit): after the LAST
   `but` mutation (commit/uncommit/move/restack) settles and before
   declaring, re-run `--check` against the settled tree — the interval
   between a workspace rewrite and evaluation is the F-6 exposure

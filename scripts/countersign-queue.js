@@ -2,10 +2,12 @@
 // scripts/countersign-queue.js - grill-t34 D-003(vi): the countersign-queue
 // derivation extracted into the single shared surface (evidence-freshness.js
 // precedent). Bound-by ADRs: ADR-0084 (original queue registration +
+// ID-level-only labels) and ADR-0086 (new-form status declaration). Authority
 // rule (t33 D-002(i)): each ADR's own declaration surface is the sole
 // authority; the queue is a MECHANICALLY DERIVED SET, never a maintained
 // count. Consumers: test/countersign-queue.test.js (member-level
 // reconciliation) and scripts/check-countersign-overdue.js (the
+// three-stage overdue leg).
 
 const fs = require('fs');
 const path = require('path');

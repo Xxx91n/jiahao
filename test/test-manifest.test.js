@@ -91,6 +91,16 @@ describe('test-manifest generator (ADR-0091, grill-t34 D-002)', () => {
     expect(() => spliceRegion(good + '\n' + MARKERS.develop.end, MARKERS.develop, 'x', 'r')).toThrow(/duplicate/);
   });
 
+  test('check-test-manifest regionContent extracts ORIGINAL bytes (negative: stale content is detectable, not spliced-in)', () => {
+    const { regionContent } = require('../scripts/check-test-manifest');
+    const good = MARKERS.develop.begin + '\nreal derived line\n' + MARKERS.develop.end;
+    expect(regionContent(good, MARKERS.develop, 'r')).toBe('real derived line');
+    const stale = MARKERS.develop.begin + '\nSTALE hand line 1580/90\n' + MARKERS.develop.end;
+    expect(regionContent(stale, MARKERS.develop, 'r')).toBe('STALE hand line 1580/90');
+    expect(() => regionContent('no sentinels', MARKERS.develop, 'r')).toThrow(/missing or inverted/);
+    expect(() => regionContent(MARKERS.develop.begin + '\nx\n' + MARKERS.develop.end + '\n' + MARKERS.develop.begin, MARKERS.develop, 'r')).toThrow(/duplicate/);
+  });
+
   test('pack exemption (ADR-0039 D3 headroom / ADR-0079 D5 pattern): the manifest never enters package.json files', () => {
     const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
     expect((pkg.files || []).some((f) => String(f).indexOf('test-manifest') !== -1)).toBe(false);

@@ -548,6 +548,20 @@
       "requires": [
         "repo-tree"
       ]
+    },
+    {
+      "name": "audit-checklist",
+      "command": "node scripts/build-audit-checklist.js --check",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0091-derive-from-source-mechanism-contract.md",
+      "order": 228,
+      "params": {
+        "check": true
+      },
+      "requires": [
+        "repo-tree",
+        "docs-adr"
+      ]
     }
   ]
 }

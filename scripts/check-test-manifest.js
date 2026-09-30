@@ -24,12 +24,15 @@ const README_PATHS = ['README.md', 'README-zh-CN.md'];
 
 // Extract the current region content between a sentinel pair (fail-closed via
 // spliceRegion's own validation - a throw IS the failure signal).
-function regionContent(text, pair, content, label) {
-  const spliced = spliceRegion(text, pair, content, label);
-  const i = spliced.indexOf(pair.begin) + pair.begin.length + 1;
-  const j = spliced.indexOf(pair.end);
-  // splice layout: begin+\n+content+\n+end - the content excludes the newline before the end sentinel.
-  return spliced.slice(i, j - 1);
+function regionContent(text, pair, label) {
+  // Extract from the ORIGINAL bytes between the sentinels - never splice the
+  // expected content in first, or the equality check is a tautology (audit
+  // C4). Sentinel validation stays fail-closed on the original text.
+  const i = text.indexOf(pair.begin);
+  const j = text.indexOf(pair.end);
+  if (i === -1 || j === -1 || j < i) throw new Error('[config] ' + label + ' sentinel region missing or inverted');
+  if (text.indexOf(pair.begin, i + 1) !== -1 || text.indexOf(pair.end, j + 1) !== -1) throw new Error('[config] duplicate ' + label + ' sentinel marker');
+  return text.slice(i + pair.begin.length + 1, j - 1);
 }
 
 const errors = [];
@@ -66,10 +69,10 @@ for (const rel of README_PATHS) {
     errors.push(rel + ' unreadable'); continue;
   }
   try {
-    const gotDev = regionContent(text, MARKERS.develop, lines.develop, rel + ': develop region');
+    const gotDev = regionContent(text, MARKERS.develop, rel + ': develop region');
     if (gotDev !== lines.develop) errors.push(rel + ' develop region != manifest-derived text');
     const wantArch = zh ? lines.architecture_zh : lines.architecture_en;
-    const gotArch = regionContent(text, MARKERS.architecture, wantArch, rel + ': architecture region');
+    const gotArch = regionContent(text, MARKERS.architecture, rel + ': architecture region');
     if (gotArch !== wantArch) errors.push(rel + ' architecture region != manifest-derived text');
   } catch (e) {
     errors.push(String(e.message).replace(/^\[config\] /, ''));
@@ -82,3 +85,5 @@ if (errors.length) {
 }
 console.log('[check-test-manifest] OK: enumeration fresh (' + manifest.enumeration.suites + ' suites), 4 README sentinel regions == manifest-derived text (battery status not implied by this leg)');
 process.exit(0);
+
+module.exports = { regionContent };

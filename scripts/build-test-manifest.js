@@ -63,8 +63,12 @@ function listTests(root) {
     cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, env: process.env,
   });
   if (r.error || r.status !== 0) throw new Error('[internal] jest --listTests failed: ' + (r.error ? r.error.message : 'exit ' + r.status));
+  // jest prints haste-map warnings on stdout alongside the file list: only
+  // *.test.js lines are suite paths (parse discipline - warning lines must
+  // never inflate the enumeration).
   return String(r.stdout || '').split(/\r?\n/).map(function (s) { return s.trim(); })
-    .filter(Boolean).map(function (f) { return path.relative(root, f).split(path.sep).join('/'); }).sort();
+    .filter(function (s) { return /\.test\.js$/.test(s); })
+    .map(function (f) { return path.relative(root, f).split(path.sep).join('/'); }).sort();
 }
 
 function gitRevParse(ref, root) {

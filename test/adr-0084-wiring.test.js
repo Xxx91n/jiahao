@@ -248,7 +248,7 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
     expect(row.governance_tooling_diff.files).toContain('.github/workflows/ci.yml');
   });
 
-  test('README index rebuilt: 86 records incl. ADR-0084', () => {
+  test('README index rebuilt: index-rebuilt incl. ADR-0084', () => {
     const r = read(path.join(ROOT, 'README.md'));
     expect(r).toContain('91 architecture decision records');
     expect(r).toContain('0084-public-clone-verifiability');
