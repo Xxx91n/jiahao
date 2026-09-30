@@ -537,6 +537,17 @@
       "requires": [
         "repo-tree"
       ]
+    },
+    {
+      "name": "audit-surface",
+      "command": "node scripts/check-audit-surface.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0091-derive-from-source-mechanism-contract.md",
+      "order": 229,
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ]
     }
   ]
 }

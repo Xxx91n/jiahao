@@ -125,9 +125,10 @@ docs/agents/domain.md.
   latest run conclusion and the failing step named. Two consecutive
   rounds with the same undisclosed-red blind spot is a registered
   finding class, not a coincidence.
-- Audit self-consistency (interim, grill-t33 D-004(i)): until the t34
-  audit-surface mechanization lands, every second-party audit re-run
-  table MUST manually include the full CI test-job command surface —
-  currently `node scripts/run-test-gate.js --expected-suites N`. The
-  clause retires when the generated checklist lands; t33's own audit
-  complies.
+- Audit coverage contract (grill-t34 D-004): second-party audit reports carry
+  a machine-readable `<!-- audit-coverage v1 -->` coverage block (ADR-0091);
+  the `audit-surface` leg asserts the latest in-scope report's block covers
+  the derived CI checklist; `node scripts/build-audit-checklist.js emit`
+  prints the current checklist for the auditor to attest. The interim manual
+  clause (grill-t33 D-004(i)) retired with the mechanism - no coexistence
+  window.
