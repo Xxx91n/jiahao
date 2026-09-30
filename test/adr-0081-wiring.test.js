@@ -91,7 +91,7 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
     // declared-facts cutover) lands here - the count moves 25 -> 26.
     const row = ti.rounds.find((r) => r.round === 'grill-t22-doc-round');
     // grill-t33 appends the correction-round coverage row.
-    expect(ti.rounds).toHaveLength(27);
+    expect(ti.rounds).toHaveLength(28); // grill-t34 adds round 27
     const latest = ti.rounds.find((r) => r.round === 'grill-t23-front-face');
     expect(latest).toBeDefined();
     expect(latest.adr_added).toEqual(['0082']);
@@ -135,7 +135,7 @@ describe('ADR-0081 doc surface (grill-t22 disposition round)', () => {
 
   test('README index rebuilt: 86 records incl. ADR-0081', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('89 architecture decision records');
+    expect(r).toContain('91 architecture decision records');
     expect(r).toContain('0081-repair-window-amend-in-place-coverage-pairing-headroom-watch.md');
   });
 

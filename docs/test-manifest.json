@@ -2,10 +2,10 @@
   "schema_version": 1,
   "_doc": "ADR-0091 (grill-t34 D-002): committed derived count manifest - lockfile pattern, hand-edit forbidden, regenerate + diff. enumeration = jest --listTests (suites derive here, NEVER from JUnit - forbidden circular field); junit = blessed jest run via scripts/jest-junit-lite.js (tests counts pending, tier-invariant; skipped is tier-variant and display-only). Live assertions: run-test-gate post-jest collected == manifest; check-test-manifest leg = enumeration freshness + README sentinel regions. Regenerate: node scripts/build-test-manifest.js [--junit <artifact>]; verify: --check (generated_at excluded).",
   "generated_by": "scripts/build-test-manifest.js",
-  "generated_at": "2026-09-30T08:32:07.243Z",
+  "generated_at": "2026-09-30T09:52:01.438Z",
   "enumeration": {
     "channel": "jest --listTests",
-    "suites": 90,
+    "suites": 94,
     "suite_files": [
       "test/adapters.test.js",
       "test/adr-0022-hardening.test.js",
@@ -70,11 +70,14 @@
       "test/adr-0086-wiring.test.js",
       "test/adr-0087-wiring.test.js",
       "test/adr-0089-wiring.test.js",
+      "test/audit-checklist.test.js",
+      "test/audit-surface.test.js",
       "test/bench-gate.test.js",
       "test/calibration.test.js",
       "test/codebuddy-adapter.test.js",
       "test/codebuddy-trial.test.js",
       "test/corpus-restore.test.js",
+      "test/countersign-overdue.test.js",
       "test/countersign-queue.test.js",
       "test/detector.test.js",
       "test/dual-profile.test.js",
@@ -96,12 +99,13 @@
       "test/rewrite-map.test.js",
       "test/sentinel-ownership.test.js",
       "test/sentinel.test.js",
-      "test/skill-structure.test.js"
+      "test/skill-structure.test.js",
+      "test/test-manifest.test.js"
     ]
   },
   "junit": {
     "tier": "full",
-    "tests": 1580,
+    "tests": 1603,
     "skipped": 0,
     "artifact": "test-artifacts/junit.xml"
   },

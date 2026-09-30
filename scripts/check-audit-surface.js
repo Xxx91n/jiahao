@@ -21,7 +21,7 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 const { requireCapabilities } = require('../src/shared/capability');
 
-requireCapabilities(['repo-tree']);
+requireCapabilities('audit-surface'); // ADR-0040 D7d: the leg declares its own registry identity
 
 const ROOT = path.join(__dirname, '..');
 const CHECKLIST_REL = path.join('docs', 'governance', 'audit-checklist.json');

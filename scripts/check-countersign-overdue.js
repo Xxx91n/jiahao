@@ -26,7 +26,7 @@
 const { requireCapabilities } = require('../src/shared/capability');
 const q = require('./countersign-queue');
 
-requireCapabilities(['repo-tree']);
+requireCapabilities('countersign-overdue'); // ADR-0040 D7d: the leg declares its own registry identity
 
 const TIDE = '2026-12-15';
 const GRACE_DAYS = 30;

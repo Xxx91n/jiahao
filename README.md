@@ -335,7 +335,7 @@ the frozen v3 corpus via `node scripts/check-pairer-regression.js`.
 
 ```bash
 # test-manifest:develop:begin (derived - do not hand-edit; node scripts/build-test-manifest.js)
-npm test                              # 1580 tests across 90 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 1603 tests across 94 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
 # test-manifest:develop:end
 npm test                              # 1580 tests across 90 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
@@ -357,7 +357,7 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 - `adapters/` — generated per-host adapters (12 host directories / 54 generated files; ADR-0028 D5)
 - `jiahao-mcp/` — MCP-only adapter (profile parameter)
 <!-- test-manifest:architecture:begin (derived - do not hand-edit; node scripts/build-test-manifest.js) -->
-- `test/` — 90 test suites, 1580 tests
+- `test/` — 94 test suites, 1603 tests
 <!-- test-manifest:architecture:end -->
 - `test/` — 90 test suites, 1580 tests
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
@@ -368,7 +368,7 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 <summary>ADR index — derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`</summary>
 
 <!-- adr-index:start -->
-- 89 architecture decision records:
+- 91 architecture decision records:
 - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
 - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
 - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
@@ -458,6 +458,8 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 - [ADR-0087](docs/adr/0087-codebuddy-host-adapter-first-external-effectiveness-trial.md) — CodeBuddy Host Adapter — First Claude-Code-Compatible Path, Pending-Confirmation Tiering, and the First External-Effectiveness Trial Protocol (grill-t30)
 - [ADR-0088](docs/adr/0088-codebuddy-trial-harness-seven-clause-apparatus-trust-contract.md) — CodeBuddy Trial Harness — Seven-Clause Apparatus-Trust Contract (grill-t31)
 - [ADR-0089](docs/adr/0089-rewrite-map-classifier-declared-facts-contract.md) — Rewrite-Map Classifier Declared-Facts Contract — Orphan-Cite Registry, Lifecycle Ladder, and the Atomic Cutover (grill-t32)
+- [ADR-0090](docs/adr/0090-countersign-rejection-disposition-contract.md) — Countersign Rejection Disposition Contract — Pre-Registered Exit Semantics, the Ratchet Tooth, and the Self-Row (grill-t34)
+- [ADR-0091](docs/adr/0091-derive-from-source-mechanism-contract.md) — Derive-from-Source Mechanism Contract — Test Manifest, Sentinel Declaration Regions, Audit Checklist, Coverage Block, and Argv Retirement (grill-t34)
 <!-- adr-index:end -->
 
 </details>

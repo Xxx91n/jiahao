@@ -17,7 +17,7 @@ const path = require('path');
 const { requireCapabilities } = require('../src/shared/capability');
 const { renderLines, spliceRegion, structuralErrors, MARKERS, MANIFEST_REL, listTests } = require('./build-test-manifest');
 
-requireCapabilities(['repo-tree']);
+requireCapabilities('check-test-manifest'); // ADR-0040 D7d: the leg declares its own registry identity
 
 const ROOT = path.join(__dirname, '..');
 const README_PATHS = ['README.md', 'README-zh-CN.md'];

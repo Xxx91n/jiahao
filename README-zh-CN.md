@@ -278,7 +278,7 @@ v2 裁决冻结于带注释标签 `adjudicated/devin-corpus-v2`（commit 8807a61
 
 ```bash
 # test-manifest:develop:begin (derived - do not hand-edit; node scripts/build-test-manifest.js)
-npm test                              # 1580 tests across 90 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 1603 tests across 94 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
 # test-manifest:develop:end
 npm test                              # 1580 tests across 90 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
@@ -296,7 +296,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `adapters/` —— 生成的分宿主适配（12 个宿主目录 / 54 个生成文件；ADR-0028 D5）
 - `jiahao-mcp/` —— 仅 MCP 适配器（配置参数）
 <!-- test-manifest:architecture:begin (derived - do not hand-edit; node scripts/build-test-manifest.js) -->
-- `test/` —— 90 test suites, 1580 tests
+- `test/` —— 94 test suites, 1603 tests
 <!-- test-manifest:architecture:end -->
 - `test/` —— 90 test suites, 1580 tests
 - `bench/polygraph/` —— ADR-0015 基准适配器 + 冻结开发切分语料（ADR-0019 运行诚实 FAIL、ADR-0020 运行 PASS 优于 b2；见其 README）
