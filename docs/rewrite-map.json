@@ -2,7 +2,7 @@
   "schema_version": 2,
   "_doc": "ADR-0074 D-C + ADR-0089: append-only, tool-generated single translation point. Classes derive from declared facts (pair/removed tables, pinned published_tip ancestry, cat-file existence, orphan-cites registry); ref topology lives only in qualifiers.reachable_via. Regenerate: node scripts/build-rewrite-map.js; verify: --check.",
   "generated_by": "scripts/build-rewrite-map.js",
-  "generated_at": "2026-09-30T10:00:39.457Z",
+  "generated_at": "2026-09-30T11:00:31.710Z",
   "published_tip": "89b9248722f322593a5b053c611052092341905e",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
@@ -22,11 +22,11 @@
     "published_only": 464,
     "removed": 0,
     "same": 278,
-    "doc_refs": 3758,
+    "doc_refs": 3775,
     "doc_refs_by_class": {
       "rewritten": 105,
-      "local-only": 28,
-      "published-unchanged": 2567,
+      "local-only": 39,
+      "published-unchanged": 2573,
       "orphaned-cite": 1058,
       "unresolved": 0
     }
@@ -84355,6 +84355,30 @@
       }
     },
     {
+      "file": ".scratch/grill-t34/handoffs/2026-09-30-closeout.md",
+      "line": 4,
+      "sha": "89b92487",
+      "class": "published-unchanged",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-09-30T11:00:12.751Z",
+        "object_mtime": 1790743825,
+        "object_type": "commit",
+        "object_size": 616,
+        "reachable_via": [
+          "refs/heads/grill-t34-docs",
+          "refs/heads/grill-t34-impl",
+          "refs/heads/main",
+          "refs/remotes/gb-local/HEAD",
+          "refs/remotes/gb-local/grill-t34-docs",
+          "refs/remotes/gb-local/grill-t34-impl",
+          "refs/remotes/gb-local/main",
+          "refs/remotes/origin/HEAD",
+          "refs/remotes/origin/main"
+        ]
+      }
+    },
+    {
       "file": ".scratch/grill-t34/handoffs/baseline.md",
       "line": 10,
       "sha": "89b92487",
@@ -84540,6 +84564,318 @@
           "refs/remotes/gb-local/main",
           "refs/remotes/origin/HEAD",
           "refs/remotes/origin/main"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+      "line": 3,
+      "sha": "89b92487",
+      "class": "published-unchanged",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-09-30T11:00:12.751Z",
+        "object_mtime": 1790743825,
+        "object_type": "commit",
+        "object_size": 616,
+        "reachable_via": [
+          "refs/heads/grill-t34-docs",
+          "refs/heads/grill-t34-impl",
+          "refs/heads/main",
+          "refs/remotes/gb-local/HEAD",
+          "refs/remotes/gb-local/grill-t34-docs",
+          "refs/remotes/gb-local/grill-t34-impl",
+          "refs/remotes/gb-local/main",
+          "refs/remotes/origin/HEAD",
+          "refs/remotes/origin/main"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+      "line": 13,
+      "sha": "cf90d660",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local commit",
+      "qualifiers": {
+        "exists_at": "2026-09-30T11:00:12.751Z",
+        "object_mtime": 1790756111,
+        "object_type": "commit",
+        "object_size": 500,
+        "reachable_via": [
+          "refs/heads/grill-t34-impl",
+          "refs/remotes/gb-local/grill-t34-impl"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+      "line": 13,
+      "sha": "89b92487",
+      "class": "published-unchanged",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-09-30T11:00:12.751Z",
+        "object_mtime": 1790743825,
+        "object_type": "commit",
+        "object_size": 616,
+        "reachable_via": [
+          "refs/heads/grill-t34-docs",
+          "refs/heads/grill-t34-impl",
+          "refs/heads/main",
+          "refs/remotes/gb-local/HEAD",
+          "refs/remotes/gb-local/grill-t34-docs",
+          "refs/remotes/gb-local/grill-t34-impl",
+          "refs/remotes/gb-local/main",
+          "refs/remotes/origin/HEAD",
+          "refs/remotes/origin/main"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+      "line": 14,
+      "sha": "25d0c1a5",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local commit",
+      "qualifiers": {
+        "exists_at": "2026-09-30T11:00:12.751Z",
+        "object_mtime": 1790758258,
+        "object_type": "commit",
+        "object_size": 648,
+        "reachable_via": [
+          "refs/heads/grill-t34-impl",
+          "refs/remotes/gb-local/grill-t34-impl"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+      "line": 15,
+      "sha": "63449eec",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local commit",
+      "qualifiers": {
+        "exists_at": "2026-09-30T11:00:12.751Z",
+        "object_mtime": 1790758260,
+        "object_type": "commit",
+        "object_size": 539,
+        "reachable_via": [
+          "refs/heads/grill-t34-impl",
+          "refs/remotes/gb-local/grill-t34-impl"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+      "line": 16,
+      "sha": "78c600c4",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local commit",
+      "qualifiers": {
+        "exists_at": "2026-09-30T11:00:12.751Z",
+        "object_mtime": 1790759077,
+        "object_type": "commit",
+        "object_size": 578,
+        "reachable_via": [
+          "refs/heads/grill-t34-impl",
+          "refs/remotes/gb-local/grill-t34-impl"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+      "line": 17,
+      "sha": "1585d418",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local commit",
+      "qualifiers": {
+        "exists_at": "2026-09-30T11:00:12.751Z",
+        "object_mtime": 1790759083,
+        "object_type": "commit",
+        "object_size": 759,
+        "reachable_via": [
+          "refs/heads/grill-t34-impl",
+          "refs/remotes/gb-local/grill-t34-impl"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+      "line": 19,
+      "sha": "9529ebf7",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local commit",
+      "qualifiers": {
+        "exists_at": "2026-09-30T11:00:12.751Z",
+        "object_mtime": 1790760099,
+        "object_type": "commit",
+        "object_size": 732,
+        "reachable_via": [
+          "refs/heads/grill-t34-impl",
+          "refs/remotes/gb-local/grill-t34-impl"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+      "line": 20,
+      "sha": "a0bfe705",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local commit",
+      "qualifiers": {
+        "exists_at": "2026-09-30T11:00:12.751Z",
+        "object_mtime": 1790760154,
+        "object_type": "commit",
+        "object_size": 804,
+        "reachable_via": [
+          "refs/heads/grill-t34-impl",
+          "refs/remotes/gb-local/grill-t34-impl"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+      "line": 45,
+      "sha": "89b92487",
+      "class": "published-unchanged",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-09-30T11:00:12.751Z",
+        "object_mtime": 1790743825,
+        "object_type": "commit",
+        "object_size": 616,
+        "reachable_via": [
+          "refs/heads/grill-t34-docs",
+          "refs/heads/grill-t34-impl",
+          "refs/heads/main",
+          "refs/remotes/gb-local/HEAD",
+          "refs/remotes/gb-local/grill-t34-docs",
+          "refs/remotes/gb-local/grill-t34-impl",
+          "refs/remotes/gb-local/main",
+          "refs/remotes/origin/HEAD",
+          "refs/remotes/origin/main"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+      "line": 85,
+      "sha": "89b92487",
+      "class": "published-unchanged",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-09-30T11:00:12.751Z",
+        "object_mtime": 1790743825,
+        "object_type": "commit",
+        "object_size": 616,
+        "reachable_via": [
+          "refs/heads/grill-t34-docs",
+          "refs/heads/grill-t34-impl",
+          "refs/heads/main",
+          "refs/remotes/gb-local/HEAD",
+          "refs/remotes/gb-local/grill-t34-docs",
+          "refs/remotes/gb-local/grill-t34-impl",
+          "refs/remotes/gb-local/main",
+          "refs/remotes/origin/HEAD",
+          "refs/remotes/origin/main"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+      "line": 95,
+      "sha": "d3adbd95",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local commit",
+      "qualifiers": {
+        "exists_at": "2026-09-30T11:00:12.751Z",
+        "object_mtime": 1790752833,
+        "object_type": "commit",
+        "object_size": 891,
+        "reachable_via": [
+          "refs/heads/grill-t34-docs",
+          "refs/remotes/gb-local/grill-t34-docs"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+      "line": 96,
+      "sha": "89b92487",
+      "class": "published-unchanged",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-09-30T11:00:12.751Z",
+        "object_mtime": 1790743825,
+        "object_type": "commit",
+        "object_size": 616,
+        "reachable_via": [
+          "refs/heads/grill-t34-docs",
+          "refs/heads/grill-t34-impl",
+          "refs/heads/main",
+          "refs/remotes/gb-local/HEAD",
+          "refs/remotes/gb-local/grill-t34-docs",
+          "refs/remotes/gb-local/grill-t34-impl",
+          "refs/remotes/gb-local/main",
+          "refs/remotes/origin/HEAD",
+          "refs/remotes/origin/main"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+      "line": 104,
+      "sha": "b21fc1f9",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local commit",
+      "qualifiers": {
+        "exists_at": "2026-09-30T11:00:12.751Z",
+        "object_mtime": 1790755147,
+        "object_type": "commit",
+        "object_size": 463,
+        "reachable_via": []
+      }
+    },
+    {
+      "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+      "line": 104,
+      "sha": "c22bdf2",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local commit",
+      "qualifiers": {
+        "exists_at": "2026-09-30T11:00:12.751Z",
+        "object_mtime": 1790755736,
+        "object_type": "commit",
+        "object_size": 463,
+        "reachable_via": []
+      }
+    },
+    {
+      "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+      "line": 104,
+      "sha": "cf90d660",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local commit",
+      "qualifiers": {
+        "exists_at": "2026-09-30T11:00:12.751Z",
+        "object_mtime": 1790756111,
+        "object_type": "commit",
+        "object_size": 500,
+        "reachable_via": [
+          "refs/heads/grill-t34-impl",
+          "refs/remotes/gb-local/grill-t34-impl"
         ]
       }
     },

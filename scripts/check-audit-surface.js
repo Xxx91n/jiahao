@@ -56,7 +56,10 @@ function firstCommitDate(rel) {
 function pickLatest(candidates, scopeDateMs) {
   let best = null;
   for (const c of candidates) {
-    const ms = c.date ? Date.parse(c.date) : Infinity;
+    // committed -> first-commit date; uncommitted -> file mtime (a workspace
+    // may carry foreign uncommitted claim files; mtime keeps them honest
+    // without granting them automatic precedence over committed reports).
+    const ms = c.date ? Date.parse(c.date) : (c.mtimeMs || 0);
     if (ms < scopeDateMs) continue;
     if (!best || ms >= best.ms) best = { rel: c.rel, ms: ms };
   }
@@ -83,7 +86,8 @@ if (require.main === module) {
       for (const f of fs.readdirSync(dir)) {
         if (!/^\d{4}-\d{2}-\d{2}-(audit|report)/.test(f) || !f.endsWith('.md')) continue;
         const rel = path.join('.scratch', round, sub, f).split(path.sep).join('/');
-        candidates.push({ rel: rel, date: firstCommitDate(rel) });
+        const date = firstCommitDate(rel);
+        candidates.push({ rel: rel, date: date, mtimeMs: date ? 0 : fs.statSync(path.join(ROOT, rel)).mtimeMs });
       }
     }
   }

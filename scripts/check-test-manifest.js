@@ -28,7 +28,8 @@ function regionContent(text, pair, content, label) {
   const spliced = spliceRegion(text, pair, content, label);
   const i = spliced.indexOf(pair.begin) + pair.begin.length + 1;
   const j = spliced.indexOf(pair.end);
-  return spliced.slice(i, j);
+  // splice layout: begin+\n+content+\n+end - the content excludes the newline before the end sentinel.
+  return spliced.slice(i, j - 1);
 }
 
 const errors = [];

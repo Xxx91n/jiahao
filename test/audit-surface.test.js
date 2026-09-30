@@ -21,7 +21,7 @@ describe('audit-surface leg (ADR-0091 D-004)', () => {
     const cands = [
       { rel: 't33/2026-09-29-report.md', date: '2026-09-29T10:00:00Z' },
       { rel: 't33/2026-09-30-audit-handoff.md', date: '2026-09-30T04:00:00Z' },
-      { rel: 't34/2026-09-30-report.md', date: '' },
+      { rel: 't34/2026-09-30-report.md', date: '', mtimeMs: Date.parse('2026-09-30T16:00:00Z') },
     ];
     const pick = pickLatest(cands, scope);
     expect(pick.rel).toBe('t34/2026-09-30-report.md');
