@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0091 (grill-t34 D-004): derived CI command-surface checklist - the audit re-run surface floor. Generated from ci.yml via the shared zero-dep parsers; hand-edit forbidden. node scripts/build-audit-checklist.js emit prints the commands array for the audit-coverage v1 block; the auditor attests what they ran - the generator never co-signs.",
+  "generated_by": "scripts/build-audit-checklist.js",
+  "generated_at": "2026-09-30T09:18:16.962Z",
+  "source": ".github/workflows/ci.yml",
+  "jobs": [
+    {
+      "job": "gate-all",
+      "run_lines": [
+        "npm install --ignore-scripts",
+        "if [ -z \"$JIAHAO_BENCH_CORPUS_B64\" ]; then",
+        "echo \"::warning title=corpus-restore::JIAHAO_BENCH_CORPUS_B64 not set; corpus gates degrade to UNVERIFIABLE\"",
+        "else",
+        "echo \"$JIAHAO_BENCH_CORPUS_B64\" | base64 -d > \"$RUNNER_TEMP/bench-corpus.tgz\" || true",
+        "node scripts/restore-bench-corpus.js \"$RUNNER_TEMP/bench-corpus.tgz\" \"$RUNNER_TEMP\"",
+        "fi",
+        "npm run gate:all"
+      ]
+    },
+    {
+      "job": "test",
+      "run_lines": [
+        "npm install --ignore-scripts",
+        "node scripts/run-test-gate.js"
+      ]
+    },
+    {
+      "job": "summary",
+      "run_lines": [
+        "results=\"${{ needs.gate-all.result }} ${{ needs.test.result }}\"",
+        "expected=2   # == length of the needs list above",
+        "echo \"needed job results: [$results] (expected $expected)\"",
+        "seen=0",
+        "for r in $results; do",
+        "seen=$((seen + 1))",
+        "if [ \"$r\" != \"success\" ]; then",
+        "echo \"::error::aggregate red - needed job result $r is not success (ADR-0058 D-B)\"",
+        "exit 1",
+        "fi",
+        "done",
+        "if [ \"$seen\" -ne \"$expected\" ]; then",
+        "echo \"::error::aggregate red - saw $seen results, expected $expected (ADR-0058 D-B: unknown/empty reads red)\"",
+        "exit 1",
+        "fi",
+        "echo \"aggregate green - all $expected needed jobs report success\""
+      ]
+    }
+  ],
+  "commands": [
+    "npm install --ignore-scripts",
+    "if [ -z \"$JIAHAO_BENCH_CORPUS_B64\" ]; then",
+    "echo \"::warning title=corpus-restore::JIAHAO_BENCH_CORPUS_B64 not set; corpus gates degrade to UNVERIFIABLE\"",
+    "else",
+    "echo \"$JIAHAO_BENCH_CORPUS_B64\" | base64 -d > \"$RUNNER_TEMP/bench-corpus.tgz\" || true",
+    "node scripts/restore-bench-corpus.js \"$RUNNER_TEMP/bench-corpus.tgz\" \"$RUNNER_TEMP\"",
+    "fi",
+    "npm run gate:all",
+    "npm install --ignore-scripts",
+    "node scripts/run-test-gate.js",
+    "results=\"${{ needs.gate-all.result }} ${{ needs.test.result }}\"",
+    "expected=2   # == length of the needs list above",
+    "echo \"needed job results: [$results] (expected $expected)\"",
+    "seen=0",
+    "for r in $results; do",
+    "seen=$((seen + 1))",
+    "if [ \"$r\" != \"success\" ]; then",
+    "echo \"::error::aggregate red - needed job result $r is not success (ADR-0058 D-B)\"",
+    "exit 1",
+    "fi",
+    "done",
+    "if [ \"$seen\" -ne \"$expected\" ]; then",
+    "echo \"::error::aggregate red - saw $seen results, expected $expected (ADR-0058 D-B: unknown/empty reads red)\"",
+    "exit 1",
+    "fi",
+    "echo \"aggregate green - all $expected needed jobs report success\""
+  ]
+}
