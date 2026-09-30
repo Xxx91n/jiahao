@@ -1244,6 +1244,132 @@
         "date": "2026-09-29",
         "note": "registration in-round per spec-t33 section 5; the item itself stays out-of-round"
       }
+    },
+    {
+      "id": "defer-0078",
+      "subject": "skip-attribution measurement protocol (R-6/LOOP-2 N-3): environment-controlled skip attribution so the \"skips 7 corpus-bound tests\" claim surface is mechanized",
+      "source_adr": "docs/governance/ERRATA.md",
+      "rationale": "t33-D-004(ii) convention: registered transfer from grill-t34 D-001(iii) - off-shape for the derive-from-source round, t35 candidate",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the registered evaluation surface adjudicates the item"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-30",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-09-30",
+        "note": "registered in-round per t33-D-004(ii) observation-home convention (cross-ledger derivation named in rationale)"
+      }
+    },
+    {
+      "id": "defer-0079",
+      "subject": "claim-commit map pairing recipe: the rewrite-map scan enumerates index/HEAD only, so claim commits need commit-then-amend mechanics - document the recipe or add generator support",
+      "source_adr": "docs/adr/0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md",
+      "rationale": "t33-D-004(ii) convention: registered transfer from grill-t34 D-001(iii)",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the registered evaluation surface adjudicates the item"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-30",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-09-30",
+        "note": "registered in-round per t33-D-004(ii) observation-home convention (cross-ledger derivation named in rationale)"
+      }
+    },
+    {
+      "id": "defer-0080",
+      "subject": "R2-F4: exists_at leg for the rewrite-map qualifiers (first-observation stamping already carried forward by stabilizeExistsAt)",
+      "source_adr": "docs/adr/0091-derive-from-source-mechanism-contract.md",
+      "rationale": "t33-D-004(ii) convention: t32 carry-over registered as grill-t34 D-001(iii) transfer",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the registered evaluation surface adjudicates the item"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-30",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-09-30",
+        "note": "registered in-round per t33-D-004(ii) observation-home convention (cross-ledger derivation named in rationale)"
+      }
+    },
+    {
+      "id": "defer-0081",
+      "subject": "F-11: dedupe/refactor of the parseJobs/runLines wiring helpers now shared by check-ci-jobs, check-ci-wiring and build-audit-checklist",
+      "source_adr": "docs/adr/0091-derive-from-source-mechanism-contract.md",
+      "rationale": "t33-D-004(ii) convention: t32 carry-over registered as grill-t34 D-001(iii) transfer",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the registered evaluation surface adjudicates the item"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-30",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-09-30",
+        "note": "registered in-round per t33-D-004(ii) observation-home convention (cross-ledger derivation named in rationale)"
+      }
+    },
+    {
+      "id": "defer-0082",
+      "subject": "settle-window batch + advisory-class batch (t32 carry-overs)",
+      "source_adr": "docs/adr/0091-derive-from-source-mechanism-contract.md",
+      "rationale": "t33-D-004(ii) convention: t32 carry-over registered as grill-t34 D-001(iii) transfer",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the registered evaluation surface adjudicates the item"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-30",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-09-30",
+        "note": "registered in-round per t33-D-004(ii) observation-home convention (cross-ledger derivation named in rationale)"
+      }
+    },
+    {
+      "id": "defer-0083",
+      "subject": "t27/t28 registration-surface asymmetry + errata_exemptions drift class (t32 carry-over; E-26 is a fresh instance registered in ERRATA this round)",
+      "source_adr": "docs/adr/0091-derive-from-source-mechanism-contract.md",
+      "rationale": "t33-D-004(ii) convention: t32 carry-over registered as grill-t34 D-001(iii) transfer",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the registered evaluation surface adjudicates the item"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-30",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-09-30",
+        "note": "registered in-round per t33-D-004(ii) observation-home convention (cross-ledger derivation named in rationale)"
+      }
+    },
+    {
+      "id": "defer-0084",
+      "subject": "ADR-0087/0088 rejection-disposition detail concretization (class rule landed in ADR-0090 D-B; the two rows carry class-level defaults until this in-tide follow-up names their machinery reverts precisely)",
+      "source_adr": "docs/adr/0090-countersign-rejection-disposition-contract.md",
+      "rationale": "registered by ADR-0090 D-B as the in-tide follow-up the spec allows for 0087/0088",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the registered evaluation surface adjudicates the item"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-09-30",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-09-30",
+        "note": "registered in-round per t33-D-004(ii) observation-home convention (cross-ledger derivation named in rationale)"
+      }
     }
   ]
 }

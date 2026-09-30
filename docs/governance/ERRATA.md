@@ -513,3 +513,18 @@ AGENTS.md baseline-CI clause exist (T-8, home
 `test/adr-0033-wiring.test.js`); this is the first convention-existence
 binding - it asserts the presence of registered conventions, not a
 numeric count.
+
+## E-26 (2026-09-30, grill-t34): t33 audit-handoff candidate list omitted the reject-branch transfer
+
+Fact: the registered t34 direction-candidate list in
+`.scratch/grill-t33/handoffs/2026-09-30-audit-handoff.md` omitted the
+countersign reject-branch pre-registration transfer that grill-t33 D-001
+registered for t34 - the list surfaced five candidates where the ledger
+registered six transfer classes. Registration-surface asymmetry, t27/t28
+class instance (D-005(ii) via spec-t34-derive section 5).
+
+Repair: the handoff document gained the missing row in the same round
+(disclosed addition, original ranking untouched); this erratum is the
+factual registration. Posture: factual registration, no
+pending-confirmation wording - the omission is mechanically verifiable
+against the t33 ledger's registered transfers.

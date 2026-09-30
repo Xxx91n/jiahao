@@ -66,6 +66,12 @@ landing is itself a registered milestone.
    origin/main advances past `754e53c2`: the map published_tip and the adr-0074
    pin will need the standard post-land regen + re-pin in a follow-up commit.
 
+6. **Countersign rejection pre-registration (registered transfer, t33 D-001(c))** —
+   pre-register the reject-branch exit semantics (ADR-0090 carrier): non-retroactivity,
+   disposition menu as default floor, status transition, and the countersign-overdue
+   ratchet leg. *(added 2026-09-30 by the t34 E-26 repair — this row was omitted from
+   the original registered candidate list; see ERRATA E-26; original ranking untouched)*
+
 ## Suggested skills
 
 - `$grill-with-docs` (or `$grill-me`) to open t34 from the candidates above.

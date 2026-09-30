@@ -82,6 +82,23 @@ The AGENTS.md manual audit-self-consistency clause (t33 D-004(i)) retired in
 the same commit as the mechanism it anticipated — no coexistence window. The
 clause's pointer names this ADR.
 
+## Registered transfers (floor, not ceiling)
+
+The transfer-list items this round registered instead of absorbing (the
+homogeneity test: same change class + same enforcement authority):
+
+- defer-0078 — skip-attribution measurement protocol (R-6/LOOP-2 N-3), t35
+  candidate;
+- defer-0079 — claim-commit map pairing recipe;
+- defer-0080 — R2-F4 exists_at leg;
+- defer-0081 — F-11 dedupe/refactor of the shared CI parsers;
+- defer-0082 — settle-window + advisory batch (t32 carry-over);
+- defer-0083 — t27/t28 registration-surface asymmetry + errata_exemptions
+  drift class (E-26 is a fresh instance of the same class).
+
+Nothing registered may be silently dropped; new admissions pass the same
+test.
+
 ## Boundaries
 
 No count-equality assertions exist anywhere in the derived surfaces; totals

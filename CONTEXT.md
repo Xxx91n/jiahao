@@ -783,6 +783,41 @@ _Avoid_: hand-written figures in report prose; annotating a restatable
 number instead of restating it; faking a self-referential field instead
 of leaving it honestly null
 
+**Test Manifest**:
+The committed derived count fact source (`docs/test-manifest.json`, ADR-0091):
+enumeration from jest --listTests, junit counts from the generator's blessed
+run. Hand-edit forbidden; regenerate + diff. A JUnit-derived suites field is
+the forbidden circular shape.
+_Avoid_: test inventory, suite list (those predate the generator)
+
+**Audit Checklist**:
+The derived CI command-surface artifact (`docs/governance/audit-checklist.json`,
+ADR-0091): every ci.yml job's ordered run lines, regenerated and diff-checked.
+The audit re-run surface floor.
+_Avoid_: test list, CI inventory
+
+**Audit Coverage Block**:
+The machine-readable block (`<!-- audit-coverage v1 -->` + fenced JSON array,
+ADR-0091) in an audit report naming the commands the auditor actually re-ran.
+The auditor attests; the generator never co-signs result truth.
+_Avoid_: coverage claim in prose (prose is not the asserted object)
+
+**Countersign Overdue**:
+The three-stage ladder state of an unadjudicated queue member past its
+return-by (ADR-0090): in-term advisory, grace-window advisory (+30d, one
+post-tide owner working window), past-grace FAIL naming rebuild / re-seal /
+declared-drift exits. Asserts no member is silently permanent, never that the
+owner must have acted.
+_Avoid_: late countersign (the leg is not a deadline enforcement)
+
+**Rejection Disposition**:
+The pre-registered exit semantics executed when a queued ADR is rejected at
+its tide (ADR-0090): non-retroactivity, the disposition menu as default floor
+(owner override via errata deviation note), and the rejected status
+transition.
+_Avoid_: rollback plan (rejection adjudication stays owner-side)
+
+
 ## Decision Log
 
 **Self-Preference Bias (自偏好偏差)**:
