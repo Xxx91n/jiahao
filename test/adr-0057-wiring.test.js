@@ -63,7 +63,12 @@ test('test gate runs through the suite-count wrapper (D-C)', () => {
   const { parseJobs } = require('../scripts/check-ci-jobs');
   const testJob = (parseJobs(ci)['test'] || []).join('\n');
   expect(testJob).toContain('scripts/run-test-gate.js');
-  expect(testJob).toMatch(/--expected-suites\s+\d+/);
+  // ADR-0091 D-002(iii): the call line is bare; the registered expectation
+  // lives in the committed manifest.
+  expect(testJob).toMatch(/run:\s*node scripts\/run-test-gate\.js\s*$/m);
+  expect(testJob).not.toMatch(/--expected-suites/);
+  const manifest = JSON.parse(read(path.join(__dirname, '..', 'docs', 'test-manifest.json')));
+  expect(manifest.enumeration.suites).toBeGreaterThan(0);
 });
 
 test('static skip scan ships and passes on the current tree (D-A)', () => {

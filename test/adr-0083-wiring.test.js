@@ -191,12 +191,12 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
     // backfill (ADR-0050 forward sealing), never silent.
     expect(r.seal.tag.state).toBe('absent');
   });
-  test('ci.yml --expected-suites equals the live glob(test/*.test.js) count + lower bound + known-file hit', () => {
-    const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
-    const m = ci.match(/--expected-suites\s+(\d+)/);
-    expect(m).not.toBeNull();
+  test('manifest enumeration.suites equals the live glob(test/*.test.js) count + lower bound + known-file hit (ADR-0091 D-002(vi) re-anchor)', () => {
+    // The argv-independence guard was already file-enumeration reconciliation;
+    // the registered expectation moved from the ci.yml literal to the manifest.
+    const manifest = readJson(path.join(ROOT, 'docs', 'test-manifest.json'));
     const suites = fs.readdirSync(path.join(ROOT, 'test')).filter(function (f) { return /\.test\.js$/.test(f); });
-    expect(Number(m[1])).toBe(suites.length);
+    expect(manifest.enumeration.suites).toBe(suites.length);
     expect(suites.length).toBeGreaterThanOrEqual(79); // lower bound: a broken glob returning 0 cannot pass
     expect(suites).toContain('adr-0083-wiring.test.js'); // known-file hit: the glob saw this very suite
   });

@@ -5,6 +5,9 @@
 // generator's own semantics.
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
+
 const {
   buildManifest,
   parseJunit,
@@ -86,6 +89,11 @@ describe('test-manifest generator (ADR-0091, grill-t34 D-002)', () => {
     expect(() => spliceRegion([MARKERS.develop.end, MARKERS.develop.begin].join('\n'), MARKERS.develop, 'x', 'r')).toThrow(/missing or inverted/);
     expect(() => spliceRegion(good + '\n' + MARKERS.develop.begin, MARKERS.develop, 'x', 'r')).toThrow(/duplicate/);
     expect(() => spliceRegion(good + '\n' + MARKERS.develop.end, MARKERS.develop, 'x', 'r')).toThrow(/duplicate/);
+  });
+
+  test('pack exemption (ADR-0039 D3 headroom / ADR-0079 D5 pattern): the manifest never enters package.json files', () => {
+    const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
+    expect((pkg.files || []).some((f) => String(f).indexOf('test-manifest') !== -1)).toBe(false);
   });
 
   test('equality domain (D-008): generated_at is excluded; real drift is detected with its path', () => {

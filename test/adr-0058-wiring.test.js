@@ -101,11 +101,13 @@ describe('ADR-0058 D-008 test-layer tier contract', () => {
     expect(body('test')).not.toMatch(/JIAHAO_BENCH_CORPUS_B64/);
   });
 
-  test('registered suite count on the ci.yml call line matches the on-disk suite count', () => {
-    const m = body('test').match(/--expected-suites\s+(\d+)/);
-    expect(m).toBeTruthy();
+  test('the bare call line delegates to the manifest, whose enumeration matches the on-disk suite count', () => {
+    // ADR-0091 D-002(vi) re-anchor: the ci.yml literal retired.
+    expect(body('test')).toMatch(/run:\s*node scripts\/run-test-gate\.js\s*$/m);
+    expect(body('test')).not.toMatch(/--expected-suites/);
+    const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'test-manifest.json'), 'utf8'));
     const onDisk = fs.readdirSync(path.join(ROOT, 'test')).filter(f => f.endsWith('.test.js')).length;
-    expect(Number(m[1])).toBe(onDisk);
+    expect(manifest.enumeration.suites).toBe(onDisk);
   });
 });
 

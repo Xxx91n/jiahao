@@ -182,11 +182,15 @@ describe('ADR-0080 doc surface (grill-t21 disposition round)', () => {
     expect(r).toContain('0080-readme-star-r3-predicate-and-taxonomy-reclassification-channel.md');
   });
 
-  test('ci.yml suite parity declares the live expected suite count', () => {
+  test('ci.yml suite parity: bare call line + committed manifest carries the expectation', () => {
     const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
-    // grill-t33: countersign-queue.test.js adds one suite -> 90 (ADR-0057 D-C
-    // parity: this pin tracks the call-line value, it does not mint it).
-    expect(ci).toContain('--expected-suites 90');
+    // grill-t34 (ADR-0091 D-002(vi) re-anchor): the call-line literal retired;
+    // this pin tracks the manifest enumeration, it does not mint it.
+    expect(ci).toMatch(/run:\s*node scripts\/run-test-gate\.js\s*$/m);
+    expect(ci).not.toContain('--expected-suites');
+    const manifest = readJson(path.join(ROOT, 'docs', 'test-manifest.json'));
+    const onDisk = fs.readdirSync(path.join(ROOT, 'test')).filter(f => f.endsWith('.test.js')).length;
+    expect(manifest.enumeration.suites).toBe(onDisk);
   });
 
   test('CONTEXT.md clauses verified: trend-anchor disclosed-repair + registry merged-ratchet', () => {
