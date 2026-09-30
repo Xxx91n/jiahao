@@ -13,7 +13,7 @@ here before further descent.
 - **规范化需求**:
   (i) 轮对象=correction track 四项：
     ① README 修红——声明计数 1511/87→1571/89 共 4 处声明点（README.md:337/356 + README-zh-CN.md:280/295），中英文同 commit（ADR-0079 双语镜像 + ADR-0056/0057 声明-实际对账）；附带核验 "skips 7 corpus-bound tests" 声明面（公开克隆实测 skipped=11，差额 4 属 bench/ci-mode 能力负 skip——声明域核验不偷偷改语义）；
-    ② E-25 注册——公开 CI 红 ×5 未披露（a92efdf→754e53c 五连 failure，唯一红为 test job README 计数断言）+ 三轮二方审计再执行面缺 run-test-gate.js 的 surface gap；T-0 baseline recon 增「公开 CI 状态」项；
+    ② E-25 注册——公开 CI 红 ×5 未披露（五连 failure 覆盖 a92efdf5（grill-t31 closeout tail, 2026-09-28）→754e53c2（grill-t32 post-land rewrite-map regen, 2026-09-29，审计窗 origin/main tip），唯一红为 test job README 计数断言）+ 三轮二方审计再执行面缺 run-test-gate.js 的 surface gap；T-0 baseline recon 增「公开 CI 状态」项；
     ③ 队列双通道收口紧随 ②——E-25 注册本身踩 countersign 队列注册通道（E-13 计数通道 vs ADR status 行自注册通道），先定边界再写 E-25，否则产生双写窗口；
     ④ 登记「计数单一来源」known-drift 桥接条款挂到 t34 契约轮——裸修数字不机制化计数来源=必然复发（correction 无 CA 支撑），桥接使复发风险有账；
   (ii) 显式移交清单：

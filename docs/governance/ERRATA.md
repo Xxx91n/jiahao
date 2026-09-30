@@ -513,5 +513,3 @@ AGENTS.md baseline-CI clause exist (T-8, home
 `test/adr-0033-wiring.test.js`); this is the first convention-existence
 binding - it asserts the presence of registered conventions, not a
 numeric count.
-
-

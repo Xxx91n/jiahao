@@ -1,8 +1,11 @@
 // ADR-0033 wiring assertions (ADR-0031 D1: every gate ships a wiring test).
 // Covers D2 (entry schema), D3 (pending-evaluation discipline), D4 (STALE
 // fail-closed, existence anchors, threshold link). grill-t33 D-003(iii):
-// convention-existence assertions only - assert a registered row/convention
-// exists, never a numeric count (cancellation-blindness).
+// the NEW convention assertions this round adds assert registered row/convention
+// existence and shape without treating inventory length as a t33 count claim.
+// The seed inventory's pre-existing member-list toEqual assertions (defer-0001..0077,
+// ordered by registration) are registry history pinned by earlier rounds;
+// this round's convention checks are the presence/shape assertions below.
 'use strict';
 
 const fs = require('fs');
