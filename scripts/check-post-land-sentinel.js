@@ -192,7 +192,7 @@ function checkSentinels(root) {
   //
   // Derivation is anchored at the leg own registration commit (forward-only) and
   // uses the registered claim predicate, not a re-stated one.
-﻿﻿  // The boundary: the newest claim-surface commit that is NOT the commit carrying
+  // The boundary: the newest claim-surface commit that is NOT the commit carrying
   // this block.
   //
   // Direction (round-2 audit R2-2): the truth is DERIVED from history and the

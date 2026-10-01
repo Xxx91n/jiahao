@@ -57,12 +57,20 @@ one shell round-trip away from corruption.
 **Declaration 1 of 3 - the enumeration-surface contract change is declared here,
 not made silently** (grill-t35 D-003 Δ2).
 
-(Audit note: the first draft numbered this as "Declaration 1 of 4" and also
-numbered the pairing-scan baseline in D-P1 as "Declaration 2 of 4" - but both
-were the SAME delta2 enumeration-surface change, so "of 4" counted one change
-twice. The distinct declared items are three: this enumeration-surface change, the
-defer-0030 subordination strengthening, and the anti-masking two-segment read with
-its TSA decision folded in. Numbering now matches the count.)
+(Audit note, round 3: an earlier draft of this note read "of 4" while the body
+carried three numbered declarations, and it described the labels inaccurately -
+it named defer-0030 as one of the numbered items although defer-0030 carries no
+number, and described the TSA decision as "folded in" although TSA is its own
+numbered declaration. A count sentence maintained beside the labels it describes
+drifts the moment a label moves; that is the rot class this round removed
+elsewhere. The numbered declarations are therefore now counted FROM the labels:
+this section is 1, the anti-masking two-segment read is 2, and the no-TSA
+decision with its armed trigger is 3. The defer-0030 subordination
+strengthening below is a real declared subject of this ADR and is required by
+spec §9, but it is prose inside D-M2 rather than a separately numbered
+declaration - it is not folded into any of the three, and it is not a fourth
+label. A grep for "Declaration N of M" must return exactly M hits for each M,
+which is the property to check if this note is ever edited again.)
 
 The per-commit embedded-map invariant is STRUCTURALLY UNSATISFIABLE under this
 landing model and is therefore withdrawn as a blocking assertion. The true root:

@@ -44,15 +44,40 @@ function docHygiene(buf) {
   //
   // Predicate: a TAB that is not at the start of its line. Indentation TABs
   // (the legitimate use, inside fenced code blocks) always sit at column 0;
-  // prose and tables never carry one mid-line. Measured over 848 committed
-  // md/txt files at registration: exactly ONE hit, and it is the R-A file
-  // itself - so the added strength costs zero false positives while closing
-  // the hole that let the second corruption land.
-  for (let i = 0; i < t.length; i++) {
-    if (t.charAt(i) !== '\t') continue;
+  // prose and tables never carry one mid-line. At registration this measured
+  // exactly ONE hit across the committed md/txt corpus, and it was the R-A file
+  // itself - so the added strength cost zero false positives while closing the
+  // hole that let the second corruption land. The corpus SIZE is deliberately
+  // not pinned here as a constant: it grows with the tree, so a written count is
+  // stale on arrival (the rot class M-8 caught in the handoff). Re-derive with
+  // `git ls-files | grep -cE '\.(md|txt)$'` if the figure is ever needed.
+  //
+  // SCOPE AND SIGNATURE LIMITS, stated because round 3 was bitten by them: this
+  // signature set is not an exhaustive byte sanitizer, and its blast radius is
+  // narrower than it looks. Two blind spots, open by declaration, not closed:
+  //   - SCOPE: callers choose which files are scanned, and at the M-7
+  //     measurement `scripts/**` was in no caller's scope at all - so a
+  //     governance script could carry corruption no caller would ever look at.
+  //   - SIGNATURE SET: a mid-file U+FEFF (EF BB BF) is in NEITHER the
+  //     control-byte branch NOR the C1 branch, and `docHygiene` returns [] on a
+  //     real file carrying one.
+  // Either closure is a signature-set/scope change and belongs in its own ADR
+  // round. Until then no claim that "byte corruption is closed" is supportable -
+  // only "the known instances are repaired".
+  // Indexed over the BYTE buffer, not over `t`. The byte loop above reports
+  // byte offsets; a second loop indexing the decoded string would put a
+  // CHARACTER index into the same hits array, and every multi-byte character
+  // earlier in the file would silently shift the second number. grill-t35 p-3
+  // measured exactly that: the shipped block printed `@1589` where the true
+  // byte index was 1597, because 8 bytes of preceding multi-byte text sat
+  // between them. A forensic address that is not replayable defeats the
+  // purpose of the convention that produced it - so one unit, everywhere.
+  // TAB and LF are single bytes in UTF-8, so byte indexing is exact here.
+  for (let i = 0; i < buf.length; i++) {
+    if (buf[i] !== 9) continue;
     let j = i - 1;
-    while (j >= 0 && t.charAt(j) !== '\n') j--;
-    if (i - 1 - j > 0) hits.push('mid-line TAB (eaten-$ class) @' + i);
+    while (j >= 0 && buf[j] !== 10) j--;
+    if (i - 1 - j > 0) hits.push('mid-line TAB (eaten-$ class) @' + i + ' (byte offset)');
   }
   return hits;
 }

@@ -33,7 +33,7 @@
 | B-1 | `post_land` judged the WORKSPACE (28 commits/3891 rows) while reporting itself as the landed tip | judges the NAMED tip tree (25 commits/3813 rows); both children take `--root` |
 | B-2 | sentinel wave range was the whole round, so the block invalidated itself | bounded by the declared `pre_land.last_claim_mutation`; sha validated as claim-surface ancestor |
 | M-1 | doc-hygiene copied, old copy still in `adr-0076-wiring` without the mid-line TAB branch | single shared definition; the R-A hole is closed in jest and CI |
-| M-2 | pack numbers wrong (471,521 / 432,782); derived cap did not follow from its input | measured 474,478 / 451,664; `ceil10k(474,478x1.10)`=530,000 |
+| M-2 | pack numbers wrong (471,521 / 432,782); derived cap did not follow from its input | figure restated as a measurement with a revision label, never a constant; the derived cap is stable at 530,000 (see owner-actions) |
 | M-3 | spec §9 gate 1 marked `met` against contradicting evidence | **NOT MET**, with the reason stated |
 | M-4 | `fileTracked` loosening undeclared and untested | declared in the code comment and pinned by two tests |
 | M-5 | mirror unenumerated (6 citations, 0 map rows); `613a2471` unregistered | `README*` prefix enumerated (6 rows); `613a2471` correctly NOT an orphan - E-28 |
@@ -41,46 +41,54 @@
 
 ## Reproduce before trusting
 
-```
-npm run gate:all                                    # 49 legs; reds are pack-cap + post-land (by design)
-node scripts/run-test-gate.js                      # 1631 tests; the only red is the pack cap
+Every figure below is a **measurement taken at the labelled revision**, not a
+property of the project. The pack size in particular grows with the tree, so a
+next-session agent who re-measures will get a LARGER number than the one printed
+here and that is expected, not a discrepancy. What must not vary between two
+places in this file is the *set* of figures — that is what the round-3 audit
+(M-8) caught here: three pack numbers, two "boundary" blocks, both stale.
+
+```sh
+git rev-parse --short HEAD                  # the revision these figures describe
+node scripts/run-test-gate.js               # 1636 tests; the 1 red IS the pack cap
 node scripts/check-post-land.js --pre-only --no-fetch   # exit 0 - all four subset checks green
 node scripts/check-post-land.js --post-only --no-fetch  # exit 1 - origin/main still carries R-A/R-B/R-C
-node scripts/build-rewrite-map.js --check          # exit 0
-npm pack --dry-run --json                          # 474291 vs the 470000 cap (owner-action)
+node scripts/build-rewrite-map.js --check                # exit 0
+node scripts/check-governance-inventory.js               # exit 0
+node scripts/build-readme-pairing-baseline.js --check    # exit 0
+npm pack --dry-run --json                  # packed size vs the 470000 cap (owner-action)
 ```
+
+Measured set (one set, one revision — see the pack row in owner-actions for the
+exact byte figure and the revision it was taken at):
+
+| quantity | value |
+|---|---|
+| tests | 1636 (1635 pass, 1 fail = the pack cap) |
+| test suites | 95 |
+| packed size | measured; grows with the tree — re-measure, do not copy a stale figure |
+| derived cap | 530,000 — **stable across every measurement this round** |
 
 ## Open owner-actions (do NOT self-mint)
 
 1. **Corpus tarball refresh** - the secret tarball lacks `mr-probes.jsonl` against
    the versioned manifest. Refresh deadline: 2026-12-15 cadence. Until then
    **public CI green is NOT claimed** - it is conditional on this refresh.
-2. **Pack-cap amendment** - the shipped tarball measures **474,478** packed bytes
-   (169 entries) against the ADR-0039 D3 cap of 470,000 (over by 4,291). The
-   pre-round baseline measured **451,664** (164 entries) in a clean worktree at
-   `78d8a14c`. The trend-derived figure is `ceil_to_10_000(474,478 x 1.10)` =
-   **530,000**, but bumping a cap is only ever an ADR. The `pack-smoke` /
-   `adr-0038-wiring` leg is therefore RED and is reported red.
-   (These are the CORRECTED figures; the first report's 471,521 / 432,782 were
-   wrong and `ceil10k(471,521x1.10)` is 520,000, not the 530,000 it claimed.)
+2. **Pack-cap amendment** - the shipped tarball measures over the ADR-0039 D3 cap
+   of 470,000 at every measurement this round (169 entries). The byte figure
+   itself is deliberately NOT written here: it grows with the tree, so a stale
+   copy in a trusted artifact is a defect, not a convenience - see M-8. Run
+   `npm pack --dry-run --json` for the current value. The decision input that
+   IS stable is the trend-derived cap, `ceil_to_10_000(size x 1.10)` =
+   **530,000**, which came out identical at every measurement. Bumping a cap is
+   only ever an ADR; the `pack-smoke` / `adr-0038-wiring` leg stays RED and is
+   reported red.
 3. **Last-wave residual window** - the F-6 narrowing is minutes, not zero. The
    residual is adjudicated by the post-land ritual; an expired refresh deadline
    escalates through the errata channel.
 
-## Boundary state (reproduce before trusting)
-
-```
-node scripts/run-test-gate.js                          # 1631 tests; the 1 red IS the pack cap
-node scripts/check-post-land.js --pre-only --no-fetch # exit 0 - all four subset checks green
-node scripts/check-post-land.js --post-only --no-fetch# exit 1 - origin/main still carries R-A/R-B/R-C
-node scripts/build-rewrite-map.js --check             # exit 0
-node scripts/check-governance-inventory.js            # exit 0
-node scripts/build-readme-pairing-baseline.js --check # exit 0
-npm pack --dry-run --json                             # 471,521 bytes vs 470,000 cap
-```
-
 The single red test is `test/adr-0038-wiring.test.js` D1 (pack cap). It is NOT
-a defect in this round's work; it is the registered owner-action above. Do not
+a defect in this round's work; it is the registered owner-action below. Do not
 "fix" it by bumping the cap without an ADR.
 
 ## For the next session

@@ -153,15 +153,18 @@ function runSubset(wt, opts) {
 
   // (3) map-freshness tip coverage at the tip. Spawned as a child so a leg
   // crash is a failed CHECK, not a crashed verifier.
-  // The child runs with cwd = the tree under judgment, so it reads THAT tree's
-  // map. The SCRIPT path comes from this module's own directory on purpose: a
-  // tip worktree may predate the script, so the maintainer's copy is the
-  // executable while the WORKTREE remains the subject under judgment.
-  // B-1 FIX: the child must be told WHICH tree to judge. `cwd` alone is not
-  // enough - the child's ROOT is module-relative, so it would judge the main repo
-  // and report the workspace's numbers under the label 'landed public tip'. That is
-  // exactly the substitution this round exists to forbid. --root is now mandatory
-  // for delegated invocation.
+  // The SCRIPT path comes from this module's own directory on purpose: a tip
+  // worktree may predate the script, so the maintainer's copy is the executable
+  // while the WORKTREE remains the subject under judgment.
+  // B-1 FIX: the child must be told WHICH tree to judge. Setting `cwd` to the
+  // worktree is NOT sufficient - check-map-freshness.js derives its ROOT from its
+  // own module path, so it would judge the main repository and report the
+  // WORKSPACE's numbers under the label 'landed public tip'. That is exactly the
+  // substitution this round exists to forbid, and it is a claim/state mismatch:
+  // the object the check verified was not the object the public receives. The
+  // earlier version of this comment asserted the cwd-only behaviour, i.e. it
+  // argued FOR the bug the same commit removed. --root is now mandatory for
+  // delegated invocation and is asserted by test/post-land-sentinel.test.js.
   const mf = sh(process.execPath, [path.join(ROOT, 'scripts', 'check-map-freshness.js'), '--root', wt].concat(mapArgs), { cwd: wt });
   checks.push({
     name: 'map-freshness',

@@ -158,6 +158,49 @@ describe('doc-hygiene signature set: the mid-line TAB predicate has a positive f
   test('NEGATIVE: a TAB at the start of a line in prose stays clean', () => {
     expect(docHygiene(Buffer.from('\tleading tab\n'))).toEqual([]);
   });
+
+  // Round-3 audit p-3: the hits array mixed two addressing units. The control
+  // byte branch iterates the BYTE buffer; the TAB branch iterated the decoded
+  // STRING, so its index was a character offset in a list of byte offsets. Any
+  // multi-byte character earlier in the file shifts that number silently - the
+  // shipped block printed @1589 where the true byte index was 1597. A forensic
+  // address an auditor cannot replay is worse than no address, so the unit is
+  // now pinned: every '@N' in the hits array is a byte offset.
+  test('ADDRESSING UNIT: the TAB offset is a BYTE offset, not a character offset', () => {
+    const eAcute = Buffer.from('\u00e9'); // 2 bytes in UTF-8, 1 JS char
+    expect(eAcute.length).toBe(2);
+    // 8 multi-byte CHARS = 16 bytes. `fill(buf)` repeats the buffer, so allocate
+    // the byte length, not the char count - that mistake is the same class of
+    // unit confusion this test exists to pin.
+    const buf = Buffer.concat([Buffer.alloc(16).fill(eAcute), Buffer.from('\tx')]);
+    const trueByteIndex = buf.indexOf(0x09);
+    expect(trueByteIndex).toBe(16); // 8 chars x 2 bytes
+    const hit = docHygiene(buf).find((h) => h.includes('mid-line TAB'));
+    expect(hit).toContain('@' + trueByteIndex);
+    // Under the old character-indexed code this read '@8' - the character index.
+    // Guard the regression by asserting the two units are distinguishable here.
+    expect(hit).not.toMatch(/@8\b/);
+    expect(hit).toContain('byte offset');
+  });
+
+  test('ADDRESSING UNIT: control-byte and TAB offsets share one unit', () => {
+    // 0x08 at byte 1420; then a line-start TAB (exempt) at 1422 and a mid-line
+    // TAB. Only the mid-line one may be reported, and it must be byte-addressed.
+    const buf = Buffer.concat([
+      Buffer.alloc(1420, 0x78),
+      Buffer.from([0x08]),
+      Buffer.from('\n\tindented\nmid\tline'),
+    ]);
+    const hits = docHygiene(buf);
+    const bs = hits.find((h) => h.includes('0x8'));
+    const tab = hits.find((h) => h.includes('mid-line TAB'));
+    expect(bs).toContain('@1420');
+    // buf.indexOf(0x09, 1421) is the EXEMPT line-start TAB; the reported one is
+    // the last TAB in the buffer.
+    expect(tab).toContain('@' + buf.lastIndexOf(0x09));
+    expect(tab).not.toContain('@1422');
+    expect(tab).toContain('byte offset');
+  });
 });
 
 // Round-2 audit R2-2b: the judgeSegment tests above only exercise ARITHMETIC.
