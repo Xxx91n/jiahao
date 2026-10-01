@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0091 (grill-t34 D-002): committed derived count manifest - lockfile pattern, hand-edit forbidden, regenerate + diff. enumeration = jest --listTests (suites derive here, NEVER from JUnit - forbidden circular field); junit = blessed jest run via scripts/jest-junit-lite.js (tests counts pending, tier-invariant; skipped is tier-variant and display-only). Live assertions: run-test-gate post-jest collected == manifest; check-test-manifest leg = enumeration freshness + README sentinel regions. Regenerate: node scripts/build-test-manifest.js [--junit <artifact>]; verify: --check (generated_at excluded).",
   "generated_by": "scripts/build-test-manifest.js",
-  "generated_at": "2026-10-01T13:06:07.702Z",
+  "generated_at": "2026-10-01T15:14:33.919Z",
   "enumeration": {
     "channel": "jest --listTests",
     "suites": 95,
@@ -106,7 +106,7 @@
   },
   "junit": {
     "tier": "full",
-    "tests": 1631,
+    "tests": 1636,
     "skipped": 0,
     "artifact": "test-artifacts/junit.xml"
   },
