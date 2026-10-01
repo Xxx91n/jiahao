@@ -165,6 +165,21 @@ describe('doc-hygiene signature set: the mid-line TAB predicate has a positive f
 // rule is under test: the wave boundary is derived from history and the block's
 // declaration is CHECKED AGAINST it. A stale block must be red.
 describe('checkSentinels provenance (round-2 audit R2-2b)', () => {
+  // Fixture repos live in the OS temp dir; this suite creates several per run and
+  // must not leave them behind (a leaked repo is a disk leak AND a confusing
+  // artifact for the next run).
+  const PROBE_DIRS = [];
+  const mkProbe = function () {
+    const d = require('fs').mkdtempSync(require('path').join(os.tmpdir(), 'pls-'));
+    PROBE_DIRS.push(d);
+    return d;
+  };
+  afterAll(function () {
+    for (const d of PROBE_DIRS) {
+      try { require('child_process').spawnSync('git', ['worktree', 'prune'], { cwd: d }); } catch (e) { /* best effort */ }
+      try { require('fs').rmSync(d, { recursive: true, force: true }); } catch (e) { /* best effort */ }
+    }
+  });
   const TAXONOMY = JSON.stringify({
     freshness: {
       claim_surfaces: { closed_enum: ['reports/', 'handoffs/'], scope: 'round dir .scratch/grill-<id>/', exceptions: [] },
@@ -209,7 +224,7 @@ describe('checkSentinels provenance (round-2 audit R2-2b)', () => {
   }
 
   test('a block naming the LATEST claim commit passes (the correct shape)', () => {
-    const dir = require('fs').mkdtempSync(require('path').join(os.tmpdir(), 'pls-'));
+    const dir = mkProbe();
     hg.mkRepo(dir);
     put(dir, 'docs/governance/surface-taxonomy.json', TAXONOMY);
     put(dir, 'docs/adr/0000-placeholder.md', 'x\n');
@@ -224,12 +239,12 @@ describe('checkSentinels provenance (round-2 audit R2-2b)', () => {
       blockFor(claim, new Date(Number(hg.git(dir, ['log', '-1', '--format=%ct', claim])) * 1000 + 60000).toISOString(), 'b'.repeat(40)));
     commitIn(dir, 'land block');
     const out = sentinel.checkSentinels(dir);
-    const stale = out.errors.filter((e) => /NOT the latest claim-surface commit/.test(e));
+    const stale = out.errors.filter((e) => /NOT the newest claim-surface commit/.test(e));
     expect(stale).toEqual([]);
   });
 
   test('a STALE block (naming an earlier claim commit) is RED - the R2-1 shape', () => {
-    const dir = require('fs').mkdtempSync(require('path').join(os.tmpdir(), 'pls-'));
+    const dir = mkProbe();
     hg.mkRepo(dir);
     put(dir, 'docs/governance/surface-taxonomy.json', TAXONOMY);
     put(dir, 'docs/adr/0000-placeholder.md', 'x\n');
@@ -242,18 +257,17 @@ describe('checkSentinels provenance (round-2 audit R2-2b)', () => {
     put(dir, '.scratch/grill-t99/handoffs/closeout.md',
       'wave report\n\n' + blockFor(older, new Date(Number(hg.git(dir, ['log', '-1', '--format=%ct', older])) * 1000 + 60000).toISOString(), 'b'.repeat(40)));
     commitIn(dir, 'land block');
-    // ...then a DIFFERENT claim-surface file is changed by a LATER claim commit
-    // and the block is NOT regenerated. This is the R2-1 shape: a claim commit
-    // landed after the block was written, so the block's declared boundary is no
-    // longer the latest claim change.
-    //
-    // Note the carrier exclusion does not hide this: that later commit does not
-    // touch the artifact carrying the block, so it is not a carrier and stays in
-    // the comparison set.
+    // ...then a LATER claim commit lands that does NOT touch the artifact (a
+    // non-carrier), and the block is NOT regenerated. This is the R2-1 shape.
     put(dir, '.scratch/grill-t99/reports/later.md', 'later claim change\n');
     commitIn(dir, 'later claim change elsewhere, block NOT regenerated');
+    // the block's own artifact is re-landed, making it the newest carrier;
+    // its declared boundary (the FIRST claim commit) now predates `later.md`.
+    put(dir, '.scratch/grill-t99/handoffs/closeout.md',
+      'wave report (touched again)\n\n' + blockFor(older, new Date(Number(hg.git(dir, ['log', '-1', '--format=%ct', older])) * 1000 + 60000).toISOString(), 'b'.repeat(40)));
+    commitIn(dir, 're-land the closeout, block NOT regenerated');
     const out = sentinel.checkSentinels(dir);
-    const stale = out.errors.filter((e) => /NOT the latest claim-surface commit/.test(e));
+    const stale = out.errors.filter((e) => /NOT the newest claim-surface commit/.test(e));
     expect(stale.length).toBe(1);
     expect(stale[0]).toContain('the block is stale');
   });

@@ -192,51 +192,51 @@ function checkSentinels(root) {
   //
   // Derivation is anchored at the leg own registration commit (forward-only) and
   // uses the registered claim predicate, not a re-stated one.
-  // The block-CARRIER exclusion. The commit that lands the artifact carrying this
-  // block is itself a claim-surface commit, so the raw "latest claim commit at
-  // HEAD" is always the carrier and a strict equality could never hold - which is
-  // exactly the unsatisfiable shape round 1 had, and what the round-1 "fix" hid
-  // by reading the oracle from the block instead.
+﻿﻿  // The boundary: the newest claim-surface commit that is NOT the commit carrying
+  // this block.
   //
-  // Excluding the carrier is not a relaxation, it is what makes a same-commit
-  // regeneration expressible: at the moment the block is WRITTEN the workspace
-  // HEAD is the last claim commit, and the block names it; the block then lands as
-  // a new claim commit. The carrier is identified structurally (it is a claim
-  // commit that touches the artifact under test), not by guessing a sha.
+  // Direction (round-2 audit R2-2): the truth is DERIVED from history and the
+  // block declaration is the thing under test. Round 1 read the boundary out of
+  // the block, so a stale block certified itself.
   //
-  // A later edit to the same artifact WITHOUT regenerating the block is still
-  // caught: that edit is itself a carrier of the older block, so the declared
-  // boundary is compared against the previous claim commit and the mismatch
-  // surfaces. That is the R2-1 shape.
-  const latestClaim = function (carrierFile) {
+  // Why the carrier is excluded: the commit that transports the block is itself a
+  // claim-surface commit, and a commit cannot contain its own sha, so a block can
+  // never legitimately name its own carrier. That single exclusion is what makes
+  // a same-commit regeneration expressible at all.
+  //
+  // Why order does NOT matter: a claim commit that landed AFTER the block - even
+  // one that does not touch the artifact - means the battery was not re-run after
+  // the last change, which is exactly what the assertion exists to catch. So the
+  // comparison set is every claim commit except the carrier, newest first,
+  // regardless of whether it sits above or below the carrier in time.
+  const claimCommits = function () {
     const shas = git(['rev-list', '--no-merges', reg + '..HEAD']).split('\n').filter(Boolean);
-    let best = null;
-    let bestMs = -1;
-    let carriers = 0;
+    const rows = [];
     for (const sha of shas) {
       const fl = git(['show', '--name-only', '--format=', sha]).split('\n').map((x) => x.trim()).filter(Boolean);
       if (!fl.some((f) => CLAIM_RE.test(f))) continue;
-      if (carrierFile && fl.indexOf(carrierFile) !== -1) { carriers++; continue; }
-      const ms = Number(git(['log', '-1', '--format=%ct', sha])) * 1000;
-      if (ms >= bestMs) { bestMs = ms; best = sha; }
+      rows.push({ sha: sha, ms: Number(git(['log', '-1', '--format=%ct', sha])) * 1000, files: fl });
     }
-    return { sha: best, ms: bestMs === -1 ? null : bestMs, scanned: shas.length, carriers: carriers };
+    rows.sort(function (a, b) { return b.ms - a.ms; });
+    return rows;
   };
-  const latestClaimTruth = latestClaim(latest.file);
+  const claimRows = claimCommits();
+  const carrier = (claimRows.find(function (r) { return r.files.indexOf(latest.file) !== -1; }) || {}).sha || null;
+  const expected = claimRows.filter(function (r) { return r.sha !== carrier; })[0] || null;
   const declaredSha = String(parsed.pre.last_claim_mutation || '');
   let lastClaimMs = null;
   if (!/^[0-9a-f]{7,40}$/.test(declaredSha)) {
     errors.push('post-land-sentinel: pre_land.last_claim_mutation is absent or not a sha (' +
       JSON.stringify(parsed.pre.last_claim_mutation) + ') - the wave boundary is a declared field and is CHECKED AGAINST history');
-  } else if (latestClaimTruth.sha === null) {
-    errors.push('post-land-sentinel: no claim-surface commit found since the leg registered (' + reg.slice(0, 9) + ')');
+  } else if (!expected) {
+    errors.push('post-land-sentinel: no claim-surface commit other than the block carrier was found since the leg registered (' + reg.slice(0, 9) + ')');
   } else {
-    if (declaredSha !== latestClaimTruth.sha) {
+    if (declaredSha !== expected.sha) {
       errors.push('post-land-sentinel: pre_land.last_claim_mutation ' + declaredSha.slice(0, 9) +
-        ' is NOT the latest claim-surface commit before this artifact landed (' + latestClaimTruth.sha.slice(0, 9) +
-        ') - the block is stale: regenerate it against the settled tree and land the regeneration in the same commit as the last claim change (E-19 forbids announcing inside the exposure window)');
+        ' is NOT the newest claim-surface commit other than this block carrier (' + expected.sha.slice(0, 9) +
+        ') - the block is stale: re-run the battery after the last claim change and land the regenerated block in the same commit as that change (E-19 forbids announcing inside the exposure window)');
     }
-    lastClaimMs = latestClaimTruth.ms;
+    lastClaimMs = expected.ms;
   }
   const ctx = { lastClaimMs: lastClaimMs };
 
