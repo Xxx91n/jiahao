@@ -33,7 +33,7 @@
 | B-1 | `post_land` judged the WORKSPACE (28 commits/3891 rows) while reporting itself as the landed tip | judges the NAMED tip tree (25 commits/3813 rows); both children take `--root` |
 | B-2 | sentinel wave range was the whole round, so the block invalidated itself | bounded by the declared `pre_land.last_claim_mutation`; sha validated as claim-surface ancestor |
 | M-1 | doc-hygiene copied, old copy still in `adr-0076-wiring` without the mid-line TAB branch | single shared definition; the R-A hole is closed in jest and CI |
-| M-2 | pack numbers wrong (471,521 / 432,782); derived cap did not follow from its input | measured 474,291 / 451,664; `ceil10k(474,291x1.10)`=530,000 |
+| M-2 | pack numbers wrong (471,521 / 432,782); derived cap did not follow from its input | measured 474,478 / 451,664; `ceil10k(474,478x1.10)`=530,000 |
 | M-3 | spec §9 gate 1 marked `met` against contradicting evidence | **NOT MET**, with the reason stated |
 | M-4 | `fileTracked` loosening undeclared and untested | declared in the code comment and pinned by two tests |
 | M-5 | mirror unenumerated (6 citations, 0 map rows); `613a2471` unregistered | `README*` prefix enumerated (6 rows); `613a2471` correctly NOT an orphan - E-28 |
@@ -55,10 +55,10 @@ npm pack --dry-run --json                          # 474291 vs the 470000 cap (o
 1. **Corpus tarball refresh** - the secret tarball lacks `mr-probes.jsonl` against
    the versioned manifest. Refresh deadline: 2026-12-15 cadence. Until then
    **public CI green is NOT claimed** - it is conditional on this refresh.
-2. **Pack-cap amendment** - the shipped tarball measures **474,291** packed bytes
+2. **Pack-cap amendment** - the shipped tarball measures **474,478** packed bytes
    (169 entries) against the ADR-0039 D3 cap of 470,000 (over by 4,291). The
    pre-round baseline measured **451,664** (164 entries) in a clean worktree at
-   `78d8a14c`. The trend-derived figure is `ceil_to_10_000(474,291 x 1.10)` =
+   `78d8a14c`. The trend-derived figure is `ceil_to_10_000(474,478 x 1.10)` =
    **530,000**, but bumping a cap is only ever an ADR. The `pack-smoke` /
    `adr-0038-wiring` leg is therefore RED and is reported red.
    (These are the CORRECTED figures; the first report's 471,521 / 432,782 were

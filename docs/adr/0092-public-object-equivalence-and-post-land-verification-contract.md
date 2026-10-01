@@ -87,8 +87,10 @@ attests its state (the ADR-0091 mechanism). It is not a gate. Demotion is
 explicit because an advisory nobody reads is the same as a deleted check, and the
 known-unsatisfiable class must stay visible rather than disappear with the code.
 
-Two consequences of the union shape are load-bearing and were established by
-measurement, not preference:
+THREE consequences of the union shape are load-bearing and were established by
+measurement, not preference. The first version of this ADR listed two; the third
+(a real coverage loosening) was added after the round-2 audit, and its omission is
+exactly the kind of quiet widening the round exists to prevent:
 
 - The union key is `file + sha`, NOT `file + line + sha`. Inside one tree the line
   number is stable and worth pinning, which is why the generator uses it; across a
@@ -100,6 +102,19 @@ measurement, not preference:
   the 8-char form). String equality called an already-registered citation
   uncovered. This is the same prefix rule `evidence-freshness.js` already applies
   to pins, used here for the same reason.
+- **A TRACKED-FILE SCOPE CLAUSE (`fileTracked`).** A citation is covered when the tip
+  map carries a row for its file+sha, OR when its FILE carries any tip-map row at
+  all. The second clause exists because the tip map is GENERATED FROM THE TIP, so
+  it cannot carry a row for a citation the tip no longer contains: when a round
+  re-pins a field, the historical commits that cited the OLD value would otherwise
+  demand a row at a line the tip has retired, which the generator cannot produce
+  by construction. **This is a real loosening and is declared as one.** It is
+  scoped to files the tip map still carries, so a citation in an untracked file
+  still fails; both branches are pinned by tests in `test/map-freshness.test.js`.
+  Measured on this tree at registration: 0 citations fell in the untracked-file
+  case, and all 7 that the clause admitted were retired-line relocations in one
+  tracked file. Per-tree row discipline is untouched and stays with
+  `build-rewrite-map.js --check` inside the tree it describes.
 
 This is declared as a **revision of ADR-0087/ADR-0089 coverage semantics**, and as
 a **strengthening of the defer-0030 subordination**: tip-map authority enlarges the

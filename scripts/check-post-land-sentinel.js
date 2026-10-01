@@ -142,8 +142,24 @@ function checkSentinels(root) {
     return { errors, checked: 0, reg: reg };
   }
 
-  // The newest in-scope artifact is the one the round anchored its wave to.
-  const latest = inScope[0];
+  // Which artifact is judged. Round 2 selected the newest in-scope artifact by
+  // add-date, which made the verdict depend on commit timestamps AND on an
+  // alphabetical tie-break when two artifacts share a second - so the same tree
+  // could pass alone and fail inside a full run. Selection is now by CONTENT:
+  // the newest artifact that actually carries a post-land-verify block. An
+  // artifact with no block is not the subject of this contract.
+  const blockCarriers = [];
+  for (const cand of inScope) {
+    let txt = null;
+    try { txt = fs.readFileSync(path.join(root, cand.file.split('/').join(path.sep)), 'utf8'); } catch (e) { txt = null; }
+    if (txt && txt.indexOf(SENTINEL) !== -1) blockCarriers.push(cand);
+  }
+  if (!blockCarriers.length) {
+    console.log('[post-land-sentinel] OK: no in-scope artifact carries a ' + SENTINEL +
+      ' block yet (the convention applies forward from ' + reg.slice(0, 9) + ')');
+    return { errors, checked: 0, reg: reg };
+  }
+  const latest = blockCarriers[0];
   const text = fs.readFileSync(path.join(root, latest.file.split('/').join(path.sep)), 'utf8');
   const parsed = extractSegments(text);
   if (parsed.error) {
@@ -151,39 +167,76 @@ function checkSentinels(root) {
     return { errors, checked: 0, reg: reg };
   }
 
-  // WAVE context, B-2 FIX (grill-t35 audit).
+  // WAVE context - REWRITTEN after the round-2 audit (R2-2).
   //
-  // The previous form took reg..HEAD - the WHOLE ROUND. That made the assertion
-  // unsatisfiable for its own block: the commit that CARRIES the block is itself a
-  // claim-surface commit and is therefore always a later claim mutation than the
-  // ran_at it records. The check could never pass, and it violated D-007's own
-  // negative clause that the block anchors a WAVE, not a round.
+  // Round 1 bounded the wave by the block OWN declared last_claim_mutation. That
+  // was wrong in a way the previous form was not: the check took its oracle from
+  // the artifact it was auditing, so a stale block certified itself. Round-1 block
+  // still named f3c56469 while two later claim commits had landed, and the leg
+  // read green. The boundary of a freshness claim must come from HISTORY, and the
+  // block declaration must be CHECKED AGAINST it.
   //
-  // The wave is bounded by what the block DECLARES: pre_land.last_claim_mutation
-  // names the wave's last claim-surface mutation at the moment the battery ran.
-  // The assertion is therefore exactly D-007's claim - ran_at must not predate
-  // the last change the wave verified - scoped to that declared boundary rather
-  // than to everything that ever landed on the lane.
+  // The derived truth is the latest claim-surface commit reachable from HEAD. Two
+  // independent failures then become detectable, which is the point:
+  //   1. STALE BLOCK - the declared boundary is not the latest claim commit, so the
+  //      battery demonstrably did not run after the last change (R2-1);
+  //   2. LATE RUN - ran_at predates that latest claim commit, so even a
+  //      correctly-scoped block was produced before its last edit.
   //
-  // Scope discipline: the named sha must itself be a claim-surface commit, and it
-  // must be an ancestor of the artifact. A block that names an unrelated or
-  // non-claim sha is rejected rather than silently widening the window.
-  const boundarySha = String(parsed.pre.last_claim_mutation || '');
-  let lastClaimMs = null;
-  if (!/^[0-9a-f]{7,40}$/.test(boundarySha)) {
-    errors.push('post-land-sentinel: pre_land.last_claim_mutation is absent or not a sha (' +
-      JSON.stringify(parsed.pre.last_claim_mutation) + ') - the wave boundary is a declared field, not a round range');
-  } else if (gitOk(['merge-base', '--is-ancestor', boundarySha, 'HEAD'])) {
-    const fl = git(['show', '--name-only', '--format=', boundarySha]).split('\n').map((s) => s.trim()).filter(Boolean);
-    if (!fl.some((f) => CLAIM_RE.test(f))) {
-      errors.push('post-land-sentinel: pre_land.last_claim_mutation ' + boundarySha.slice(0, 9) +
-        ' does not touch the claim surface - a wave boundary that is not a claim mutation cannot bound the timing assertion');
-    } else {
-      lastClaimMs = Number(git(['log', '-1', '--format=%ct', boundarySha])) * 1000;
+  // The block-carrying commit is itself a claim-surface commit, so the latest claim
+  // commit at HEAD is always one commit AFTER the ran_at it records. Making
+  // failure 2 unsatisfiable again would be a regression, so the resolution is a
+  // SAME-COMMIT requirement rather than a relaxed comparison: the block must be
+  // regenerated against the settled tree and landed in the same commit as the last
+  // claim change. The equality below forces that regen instead of documenting it.
+  //
+  // Derivation is anchored at the leg own registration commit (forward-only) and
+  // uses the registered claim predicate, not a re-stated one.
+  // The block-CARRIER exclusion. The commit that lands the artifact carrying this
+  // block is itself a claim-surface commit, so the raw "latest claim commit at
+  // HEAD" is always the carrier and a strict equality could never hold - which is
+  // exactly the unsatisfiable shape round 1 had, and what the round-1 "fix" hid
+  // by reading the oracle from the block instead.
+  //
+  // Excluding the carrier is not a relaxation, it is what makes a same-commit
+  // regeneration expressible: at the moment the block is WRITTEN the workspace
+  // HEAD is the last claim commit, and the block names it; the block then lands as
+  // a new claim commit. The carrier is identified structurally (it is a claim
+  // commit that touches the artifact under test), not by guessing a sha.
+  //
+  // A later edit to the same artifact WITHOUT regenerating the block is still
+  // caught: that edit is itself a carrier of the older block, so the declared
+  // boundary is compared against the previous claim commit and the mismatch
+  // surfaces. That is the R2-1 shape.
+  const latestClaim = function (carrierFile) {
+    const shas = git(['rev-list', '--no-merges', reg + '..HEAD']).split('\n').filter(Boolean);
+    let best = null;
+    let bestMs = -1;
+    let carriers = 0;
+    for (const sha of shas) {
+      const fl = git(['show', '--name-only', '--format=', sha]).split('\n').map((x) => x.trim()).filter(Boolean);
+      if (!fl.some((f) => CLAIM_RE.test(f))) continue;
+      if (carrierFile && fl.indexOf(carrierFile) !== -1) { carriers++; continue; }
+      const ms = Number(git(['log', '-1', '--format=%ct', sha])) * 1000;
+      if (ms >= bestMs) { bestMs = ms; best = sha; }
     }
+    return { sha: best, ms: bestMs === -1 ? null : bestMs, scanned: shas.length, carriers: carriers };
+  };
+  const latestClaimTruth = latestClaim(latest.file);
+  const declaredSha = String(parsed.pre.last_claim_mutation || '');
+  let lastClaimMs = null;
+  if (!/^[0-9a-f]{7,40}$/.test(declaredSha)) {
+    errors.push('post-land-sentinel: pre_land.last_claim_mutation is absent or not a sha (' +
+      JSON.stringify(parsed.pre.last_claim_mutation) + ') - the wave boundary is a declared field and is CHECKED AGAINST history');
+  } else if (latestClaimTruth.sha === null) {
+    errors.push('post-land-sentinel: no claim-surface commit found since the leg registered (' + reg.slice(0, 9) + ')');
   } else {
-    errors.push('post-land-sentinel: pre_land.last_claim_mutation ' + boundarySha.slice(0, 9) +
-      ' is not an ancestor of HEAD - the wave boundary must be reachable');
+    if (declaredSha !== latestClaimTruth.sha) {
+      errors.push('post-land-sentinel: pre_land.last_claim_mutation ' + declaredSha.slice(0, 9) +
+        ' is NOT the latest claim-surface commit before this artifact landed (' + latestClaimTruth.sha.slice(0, 9) +
+        ') - the block is stale: regenerate it against the settled tree and land the regeneration in the same commit as the last claim change (E-19 forbids announcing inside the exposure window)');
+    }
+    lastClaimMs = latestClaimTruth.ms;
   }
   const ctx = { lastClaimMs: lastClaimMs };
 

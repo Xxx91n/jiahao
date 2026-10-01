@@ -1293,10 +1293,12 @@
       "carve_out_used": 1,
       "governance_tooling_diff": {
         "files": [
+          "bench/research/out/g6-publish-replay.json",
           "scripts/build-audit-checklist.js",
-          "scripts/build-rewrite-map.js",
           "scripts/build-readme-pairing-baseline.js",
+          "scripts/build-rewrite-map.js",
           "scripts/check-map-freshness.js",
+          "scripts/check-orphan-ancestry.js",
           "scripts/check-post-land-sentinel.js",
           "scripts/check-post-land.js",
           "scripts/shared/doc-hygiene.js",

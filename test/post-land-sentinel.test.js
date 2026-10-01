@@ -7,6 +7,9 @@
 const fs = require('fs');
 const path = require('path');
 const sentinel = require('../scripts/check-post-land-sentinel');
+const hg = require('./helpers/git-hermetic');
+const os = require('os');
+const { execFileSync } = require('child_process');
 const { SENTINEL } = require('../scripts/check-post-land');
 
 function block(pre, post) {
@@ -130,5 +133,128 @@ describe('registration', () => {
     expect(flat).toMatch(/Not a gates\.json CI leg/);
     expect(flat).toContain('SUBORDINATES');
     expect(flat).toContain('forensic');
+  });
+});
+
+describe('doc-hygiene signature set: the mid-line TAB predicate has a positive fixture (round-2 audit)', () => {
+  const { docHygiene } = require('../scripts/shared/doc-hygiene');
+  test('POSITIVE: the exact R-A byte shape is flagged - TAB then a lowercase letter, mid-line', () => {
+    // The real corruption: '$trend-inventory.json' lost its $ and the t became a
+    // TAB. This is the SECOND R-A byte, the one the t18 set exempted and the
+    // battery let through in the same file that caught the first.
+    const corrupt = Buffer.concat([
+      Buffer.from('uncommitted docs/governance/anchors.json + '),
+      Buffer.from([0x09]),
+      Buffer.from('rend-inventory.json).\n'),
+    ]);
+    expect(docHygiene(corrupt).join(' | ')).toContain('mid-line TAB');
+  });
+
+  test('NEGATIVE: a TAB used as code-block indentation stays clean', () => {
+    const indented = Buffer.from('- example\n\n```\n\tindented code\n```\n');
+    expect(docHygiene(indented)).toEqual([]);
+  });
+
+  test('NEGATIVE: a TAB at the start of a line in prose stays clean', () => {
+    expect(docHygiene(Buffer.from('\tleading tab\n'))).toEqual([]);
+  });
+});
+
+// Round-2 audit R2-2b: the judgeSegment tests above only exercise ARITHMETIC.
+// These call checkSentinels end to end in a hermetic repo, so the PROVENANCE
+// rule is under test: the wave boundary is derived from history and the block's
+// declaration is CHECKED AGAINST it. A stale block must be red.
+describe('checkSentinels provenance (round-2 audit R2-2b)', () => {
+  const TAXONOMY = JSON.stringify({
+    freshness: {
+      claim_surfaces: { closed_enum: ['reports/', 'handoffs/'], scope: 'round dir .scratch/grill-<id>/', exceptions: [] },
+      non_anchoring_classes: {
+        evidence_dirs: ['evidence/'],
+        seal_file: 'SEAL',
+        round_bookkeeping: ['GOAL.md', 'decision-ledger.md', 'round-facts.json', 'handoffs/next-round.md'],
+        round_bookkeeping_glob: ['spec-*.md'],
+        mechanism_regen_outputs: ['docs/rewrite-map.json'],
+      },
+      rounds: { 'grill-t99': { base: null } },
+      orphan_ancestry: {
+        artifact_scope: '\\.scratch/grill-[^/]+/',
+        pin_patterns: ['^captured-at-head:\\s*([0-9a-f]{7,40})\\s*$'],
+        workspace_ref: 'refs/heads/gitbutler/workspace',
+        errata_exemptions: [],
+      },
+    },
+  });
+
+  function put(dir, rel, text) {
+    const p = require('path').join(dir, rel.split('/').join(require('path').sep));
+    require('fs').mkdirSync(require('path').dirname(p), { recursive: true });
+    require('fs').writeFileSync(p, text, 'utf8');
+  }
+  function commitIn(dir, msg) {
+    hg.git(dir, ['add', '-A']);
+    hg.git(dir, ['commit', '-q', '-m', msg]);
+    return hg.git(dir, ['rev-parse', 'HEAD']);
+  }
+  function blockFor(sha, ranAt, tipSha) {
+    return SENTINEL + '\n\n<!-- segment: pre_land -->\n```json\n' + JSON.stringify({
+      object: 'workspace merge tree',
+      last_claim_mutation: sha,
+      ran_at: ranAt,
+      checks: GREEN_CHECK,
+    }, null, 2) + '\n```\n\n<!-- segment: post_land -->\n```json\n' + JSON.stringify({
+      object: 'landed public tip',
+      tip: tipSha,
+      checks: GREEN_CHECK,
+    }, null, 2) + '\n```\n';
+  }
+
+  test('a block naming the LATEST claim commit passes (the correct shape)', () => {
+    const dir = require('fs').mkdtempSync(require('path').join(os.tmpdir(), 'pls-'));
+    hg.mkRepo(dir);
+    put(dir, 'docs/governance/surface-taxonomy.json', TAXONOMY);
+    put(dir, 'docs/adr/0000-placeholder.md', 'x\n');
+    commitIn(dir, 'seed');
+    // the leg registers here (its own file) -> the forward-only anchor
+    put(dir, 'scripts/check-post-land-sentinel.js', '// registration marker\n');
+    const reg = commitIn(dir, 'leg registers');
+    // a claim-surface commit, then the artifact carrying a block that names it
+    put(dir, '.scratch/grill-t99/reports/a.md', 'report\n');
+    const claim = commitIn(dir, 'claim change');
+    put(dir, '.scratch/grill-t99/handoffs/closeout.md',
+      blockFor(claim, new Date(Number(hg.git(dir, ['log', '-1', '--format=%ct', claim])) * 1000 + 60000).toISOString(), 'b'.repeat(40)));
+    commitIn(dir, 'land block');
+    const out = sentinel.checkSentinels(dir);
+    const stale = out.errors.filter((e) => /NOT the latest claim-surface commit/.test(e));
+    expect(stale).toEqual([]);
+  });
+
+  test('a STALE block (naming an earlier claim commit) is RED - the R2-1 shape', () => {
+    const dir = require('fs').mkdtempSync(require('path').join(os.tmpdir(), 'pls-'));
+    hg.mkRepo(dir);
+    put(dir, 'docs/governance/surface-taxonomy.json', TAXONOMY);
+    put(dir, 'docs/adr/0000-placeholder.md', 'x\n');
+    commitIn(dir, 'seed');
+    put(dir, 'scripts/check-post-land-sentinel.js', '// registration marker\n');
+    commitIn(dir, 'leg registers');
+    put(dir, '.scratch/grill-t99/handoffs/closeout.md', 'wave report, no block yet\n');
+    const older = commitIn(dir, 'first claim change');
+    // the block lands in that SAME artifact, naming the claim commit
+    put(dir, '.scratch/grill-t99/handoffs/closeout.md',
+      'wave report\n\n' + blockFor(older, new Date(Number(hg.git(dir, ['log', '-1', '--format=%ct', older])) * 1000 + 60000).toISOString(), 'b'.repeat(40)));
+    commitIn(dir, 'land block');
+    // ...then a DIFFERENT claim-surface file is changed by a LATER claim commit
+    // and the block is NOT regenerated. This is the R2-1 shape: a claim commit
+    // landed after the block was written, so the block's declared boundary is no
+    // longer the latest claim change.
+    //
+    // Note the carrier exclusion does not hide this: that later commit does not
+    // touch the artifact carrying the block, so it is not a carrier and stays in
+    // the comparison set.
+    put(dir, '.scratch/grill-t99/reports/later.md', 'later claim change\n');
+    commitIn(dir, 'later claim change elsewhere, block NOT regenerated');
+    const out = sentinel.checkSentinels(dir);
+    const stale = out.errors.filter((e) => /NOT the latest claim-surface commit/.test(e));
+    expect(stale.length).toBe(1);
+    expect(stale[0]).toContain('the block is stale');
   });
 });
