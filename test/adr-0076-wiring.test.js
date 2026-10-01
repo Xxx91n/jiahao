@@ -6,6 +6,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { execFileSync, spawnSync } = require('child_process');
 const ROOT = path.join(__dirname, '..');
+const { docHygiene } = require("../scripts/shared/doc-hygiene");
 
 
 // The ADR-record count is DERIVED (scripts/build-adr-index.js rebuilds the
@@ -552,27 +553,18 @@ describe('grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendi
     expect(ag).toContain('byte-check');
   });
 
-  // Doc-hygiene scanner (grill-t18 D-006): zero-dependency pin over committed
-  // .scratch/*.md. Registered signature set (extensible via defer-registry on
-  // newly demonstrated classes; not an exhaustive sanitizer):
-  //   banned control bytes x00-x08/x0B/x0C/x0E-x1F (tab+LF exempt, CR allowed
-  //   for CRLF files), lone CR not followed by LF, C1 octal-eaten chars,
-  //   stripped paths (backtick spans exempt for verbatim citation), stripped
-  //   $name bullets.
-  function docHygiene(buf) {
-    const hits = [];
-    for (let i = 0; i < buf.length; i++) {
-      const b = buf[i];
-      if (b < 9 || b === 11 || b === 12 || (b > 13 && b < 32)) hits.push('control byte 0x' + b.toString(16) + ' @' + i);
-      if (b === 13 && buf[i + 1] !== 10) hits.push('lone CR @' + i);
-    }
-    const t = buf.toString('utf8');
-    if (/[-]/.test(t)) hits.push('C1 control char (octal-eaten stray)');
-    const noTicks = t.replace(/`[^`]*`/g, '');
-    if (/[A-Za-z]:(?![\\\/])[A-Za-z0-9_.-]+\.[a-z]{2,5}/.test(noTicks)) hits.push('stripped-path signature (D:Aworker class)');
-    if (/^- {2,}—/m.test(t) || /^- -[a-z]/m.test(t)) hits.push('stripped $name bullet');
-    return hits;
-  }
+  // Doc-hygiene scanner: SHARED CORE (grill-t35, ADR-0092 D-M1).
+  //
+  // This used to be an inline copy living in this file. The round that widened
+  // the signature set (adding the mid-line TAB that catches the second R-A
+  // byte) shipped the widened version as a NEW shared module while this copy
+  // stayed behind - so the hole the round existed to close was still open in
+  // jest, in the CI test job and in gate:all. The pin below and
+  // scripts/check-post-land.js now call ONE function, so a signature change
+  // cannot land in one place and miss the other.
+  //
+  // The t18 negative fixtures further down remain the regression lock on the
+  // signature set itself.
 
   test('doc-hygiene pin: every committed .scratch/*.md is free of corruption signatures', () => {
     const files = tracked().filter(function (f) { return /^\.scratch\/.+\.md$/.test(f); });

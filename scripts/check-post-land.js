@@ -157,7 +157,12 @@ function runSubset(wt, opts) {
   // map. The SCRIPT path comes from this module's own directory on purpose: a
   // tip worktree may predate the script, so the maintainer's copy is the
   // executable while the WORKTREE remains the subject under judgment.
-  const mf = sh(process.execPath, [path.join(ROOT, 'scripts', 'check-map-freshness.js')].concat(mapArgs), { cwd: wt });
+  // B-1 FIX: the child must be told WHICH tree to judge. `cwd` alone is not
+  // enough - the child's ROOT is module-relative, so it would judge the main repo
+  // and report the workspace's numbers under the label 'landed public tip'. That is
+  // exactly the substitution this round exists to forbid. --root is now mandatory
+  // for delegated invocation.
+  const mf = sh(process.execPath, [path.join(ROOT, 'scripts', 'check-map-freshness.js'), '--root', wt].concat(mapArgs), { cwd: wt });
   checks.push({
     name: 'map-freshness',
     status: mf.code === 0 ? 'pass' : 'fail',
@@ -166,7 +171,7 @@ function runSubset(wt, opts) {
 
   // (4) strict pins resolve to ancestors of the tip (anchor/pin resolution).
   try {
-    const oa = sh(process.execPath, [path.join(__dirname, 'check-orphan-ancestry.js')], { cwd: wt });
+    const oa = sh(process.execPath, [path.join(ROOT, 'scripts', 'check-orphan-ancestry.js'), '--root', wt], { cwd: wt });
     checks.push({
       name: 'orphan-ancestry',
       status: oa.code === 0 ? 'pass' : 'fail',

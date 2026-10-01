@@ -112,8 +112,8 @@
       "file": "ERRATA.md",
       "origin": "(authored in place)",
       "adr": "ADR-0061",
-      "bytes": 35193,
-      "sha256": "3313509d0f31e23b8a59800a456757a8001eac72e82a0cab4b28c7b69c84ef85"
+      "bytes": 36804,
+      "sha256": "e83a76315478df19b457a7c3f928169e1ec907de4da3ba292a72a9280a6a066e"
     },
     {
       "file": "trend-inventory.json",

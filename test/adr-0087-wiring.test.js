@@ -139,7 +139,13 @@ describe('map-freshness leg (E-17, D-004)', () => {
     // claim commits; the per-commit form survives as advisoryPerCommit, which is
     // audited rather than gated. This test now asserts the authority, and pins the
     // advisory's continued export so the demotion stays visible.
-    const cov = mf.checkTipCoverage(ROOT, {});
+    // The authority is asserted against the WORKING TREE's map (tip: null),
+    // because that is the tree E-19 requires to be in sync at the wave boundary.
+    // Judging the committed HEAD map here would report red for a regeneration that
+    // has already happened but not yet landed - the same lane-vs-landed confusion
+    // this round exists to close. The committed-map verdict belongs to CI and to
+    // check-post-land.js --post-only, which name the tree explicitly.
+    const cov = mf.checkTipCoverage(ROOT, { tip: null, commitTip: 'HEAD' });
     expect(cov.errors).toEqual([]);
     expect(typeof cov.checked).toBe('number');
     expect(cov.missing).toEqual([]);

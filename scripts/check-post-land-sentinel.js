@@ -35,7 +35,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execFileSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
 const { requireCapabilities } = require('../src/shared/capability');
 const { SENTINEL } = require('./check-post-land');
 
@@ -46,6 +46,8 @@ const CLOSEOUT_RE = /(closeout|report)/;
 
 const gitAt = (root) => (args) =>
   execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).trim();
+
+const gitOk = (root) => (args) => spawnSync('git', args, { cwd: root }).status === 0;
 
 function registrationCommit(root) {
   const adds = gitAt(root)(['log', '--diff-filter=A', '--format=%H', '--', SELF_REL]).split('\n').filter(Boolean);
@@ -149,14 +151,39 @@ function checkSentinels(root) {
     return { errors, checked: 0, reg: reg };
   }
 
-  // Wave context: the last claim-surface mutation inside this round's range.
+  // WAVE context, B-2 FIX (grill-t35 audit).
+  //
+  // The previous form took reg..HEAD - the WHOLE ROUND. That made the assertion
+  // unsatisfiable for its own block: the commit that CARRIES the block is itself a
+  // claim-surface commit and is therefore always a later claim mutation than the
+  // ran_at it records. The check could never pass, and it violated D-007's own
+  // negative clause that the block anchors a WAVE, not a round.
+  //
+  // The wave is bounded by what the block DECLARES: pre_land.last_claim_mutation
+  // names the wave's last claim-surface mutation at the moment the battery ran.
+  // The assertion is therefore exactly D-007's claim - ran_at must not predate
+  // the last change the wave verified - scoped to that declared boundary rather
+  // than to everything that ever landed on the lane.
+  //
+  // Scope discipline: the named sha must itself be a claim-surface commit, and it
+  // must be an ancestor of the artifact. A block that names an unrelated or
+  // non-claim sha is rejected rather than silently widening the window.
+  const boundarySha = String(parsed.pre.last_claim_mutation || '');
   let lastClaimMs = null;
-  const commits = git(['rev-list', '--no-merges', reg + '..HEAD']).split('\n').filter(Boolean);
-  for (const sha of commits) {
-    const fl = git(['show', '--name-only', '--format=', sha]).split('\n').map((s) => s.trim()).filter(Boolean);
-    if (!fl.some((f) => CLAIM_RE.test(f))) continue;
-    const ms = Number(git(['log', '-1', '--format=%ct', sha])) * 1000;
-    if (lastClaimMs === null || ms > lastClaimMs) lastClaimMs = ms;
+  if (!/^[0-9a-f]{7,40}$/.test(boundarySha)) {
+    errors.push('post-land-sentinel: pre_land.last_claim_mutation is absent or not a sha (' +
+      JSON.stringify(parsed.pre.last_claim_mutation) + ') - the wave boundary is a declared field, not a round range');
+  } else if (gitOk(['merge-base', '--is-ancestor', boundarySha, 'HEAD'])) {
+    const fl = git(['show', '--name-only', '--format=', boundarySha]).split('\n').map((s) => s.trim()).filter(Boolean);
+    if (!fl.some((f) => CLAIM_RE.test(f))) {
+      errors.push('post-land-sentinel: pre_land.last_claim_mutation ' + boundarySha.slice(0, 9) +
+        ' does not touch the claim surface - a wave boundary that is not a claim mutation cannot bound the timing assertion');
+    } else {
+      lastClaimMs = Number(git(['log', '-1', '--format=%ct', boundarySha])) * 1000;
+    }
+  } else {
+    errors.push('post-land-sentinel: pre_land.last_claim_mutation ' + boundarySha.slice(0, 9) +
+      ' is not an ancestor of HEAD - the wave boundary must be reachable');
   }
   const ctx = { lastClaimMs: lastClaimMs };
 

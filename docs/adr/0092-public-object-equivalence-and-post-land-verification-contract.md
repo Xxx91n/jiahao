@@ -54,8 +54,15 @@ one shell round-trip away from corruption.
 
 ### D-M2 - map-freshness: tip-map authority, per-commit demoted to advisory
 
-**Declaration 1 of 4 - the enumeration-surface contract change is declared here,
+**Declaration 1 of 3 - the enumeration-surface contract change is declared here,
 not made silently** (grill-t35 D-003 Δ2).
+
+(Audit note: the first draft numbered this as "Declaration 1 of 4" and also
+numbered the pairing-scan baseline in D-P1 as "Declaration 2 of 4" - but both
+were the SAME delta2 enumeration-surface change, so "of 4" counted one change
+twice. The distinct declared items are three: this enumeration-surface change, the
+defer-0030 subordination strengthening, and the anti-masking two-segment read with
+its TSA decision folded in. Numbering now matches the count.)
 
 The per-commit embedded-map invariant is STRUCTURALLY UNSATISFIABLE under this
 landing model and is therefore withdrawn as a blocking assertion. The true root:
@@ -108,8 +115,9 @@ regeneration, never by passive absence.
 
 ### D-P1 - README/zh-CN pairing: a historical pairing scan with a ratchet baseline
 
-**Declaration 2 of 4 - the enumeration-surface contract change of Δ2 lands here**
-and is registered, not implied.
+**Declaration 1 (continued) - where the Δ2 enumeration change lands.** The
+pairing-scan surface registered above is extended here, in the same declaration, so
+there is one numbered declaration rather than two.
 
 The mirror's drift pin is withdrawn as an assertion object. It named a lane sha;
 restacking orphaned the pin, and re-pinning to another sha only relocates the same
@@ -153,7 +161,7 @@ observation keeps its trailing shape as the next round's T-0 entry (the D-002
 original clause, semantically refined: an unobserved public-green tip is not a
 closeout blocker, it is the next round's entry point).
 
-**Declaration 3 of 4 - anti-masking**: the two segments are read and judged
+**Declaration 2 of 3 - anti-masking**: the two segments are read and judged
 INDEPENDENTLY (ADR-0091 D-D). A green post-land never excuses a red pre-land.
 This is why they are separate segments with separate verdicts rather than one
 combined status.
@@ -169,7 +177,7 @@ sentinel leg (D-S1), which is a registry leg.
 
 ### D-PRE - Two-segment sentinel block
 
-**Declaration 4 of 4 - no TSA, with an armed trigger.** The closeout artifact
+**Declaration 3 of 3 - no TSA, with an armed trigger.** The closeout artifact
 carries `<!-- post-land-verify v1 -->` with two segments:
 
 - `pre_land` - the will-land object (the workspace merge tree: merge-group

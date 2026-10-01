@@ -115,7 +115,7 @@ describe('registration', () => {
   test('the ADR-0092 carrier exists and declares both segments independently', () => {
     const a = fs.readFileSync(path.join(__dirname, '..', 'docs', 'adr',
       '0092-public-object-equivalence-and-post-land-verification-contract.md'), 'utf8');
-    expect(a).toContain('Declaration 3 of 4');
+    expect(a).toContain('Declaration 2 of 3');
     expect(a).toContain('pre_land');
     expect(a).toContain('post_land');
     expect(a).toMatch(/read and judged\s*\n?INDEPENDENTLY/);

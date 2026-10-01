@@ -58,7 +58,13 @@ const SELF = 'docs/rewrite-map.json';
 // recurse the parent's unreachable ancestor chain into the registry.
 const REGISTRY_INPUT = 'docs/governance/orphan-cites.json';
 const HEX_RE = /(^|[^0-9a-zA-Z_])([0-9a-f]{7,40})(?![0-9a-zA-Z_])/g;
-const DOC_PATH_RE = /^(docs\/|README\.md$|AGENTS\.md$|CONTEXT\.md$|\.scratch\/)/;
+// grill-t35 D-003 delta2 / audit M-5: the bilingual mirror is a CITED doc
+// surface. README-zh-CN.md carries translation-baseline shas - including the
+// lane-orphan 613a2471 that opened this round - and until this change the
+// enumeration skipped it entirely, so those citations were never registered.
+// README* is matched as a root prefix (ADR-0080 already classifies the mirror
+// as R3), so widening the surface does not need a second edit per filename.
+const DOC_PATH_RE = /^(docs\/|README[^/]*\.md$|AGENTS\.md$|CONTEXT\.md$|\.scratch\/)/;
 const DOC_EXT_RE = /\.(md|json|txt|patch|jsonl)$/;
 
 // ADR-0089 D-006 seam: every git call on this path goes through git()/gitOk()
@@ -176,7 +182,7 @@ function scanDocTokens() {
 function scanDocTokensAt(root, ref) {
   let out;
   try {
-    out = gitAt(root, ['-c', 'core.quotepath=false', 'grep', '-a', '-n', '-E', '-e', '[0-9a-f]{7,40}', ref, '--', 'docs', '.scratch', 'README.md', 'AGENTS.md', 'CONTEXT.md']);
+    out = gitAt(root, ['-c', 'core.quotepath=false', 'grep', '-a', '-n', '-E', '-e', '[0-9a-f]{7,40}', ref, '--', 'docs', '.scratch', 'README*.md', 'AGENTS.md', 'CONTEXT.md']);
   } catch (e) {
     if (e.status === 1 || e.code === 1) return []; // no matches at this ref
     throw e;
@@ -231,7 +237,7 @@ function scanDocTokensAtMany(root, refs) {
     // from the chunk size rather than fixed by hope.
     const r = spawnSync('git',
       ['-c', 'core.quotepath=false', 'grep', '-a', '-n', '-E', '-e', '[0-9a-f]{7,40}']
-        .concat(chunk, ['--', 'docs', '.scratch', 'README.md', 'AGENTS.md', 'CONTEXT.md']),
+        .concat(chunk, ['--', 'docs', '.scratch', 'README*.md', 'AGENTS.md', 'CONTEXT.md']),
       { cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024 * 1024 });
     if (r.error) throw r.error;
     if (r.status !== 0 && r.status !== 1) {

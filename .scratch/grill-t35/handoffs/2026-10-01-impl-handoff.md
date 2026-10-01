@@ -1,7 +1,10 @@
-# grill-t35 implementation round → next-session handoff
+# grill-t35 implementation round → next-session handoff (POST-AUDIT-REWORK)
 
 - Date: 2026-10-01
 - Lane: `grill-t35-impl`
+- Status: **audited FAIL, reworked.** The D-004 audit returned 2 blocking +6 major;
+  all were reproduced against the tree and fixed. See the rework section of the
+  round report for the disposition table.
 - Round object: **public-object equivalence** - the object a check verifies must
   BE the object the public receives
 - Sole spec: `D:\Aworker\jiahao\.scratch\grill-t35\spec-t35-equivalence.md`
@@ -23,16 +26,43 @@
 | D-003 d4 | defer-0079 partial absorption declared with explicit residual | done |
 | D-008 | ADR-0092, order 230/231, shared lib, glossary terms, E-27, defer-0078 check-in | done |
 
+## What the rework changed (audit-driven)
+
+| id | was | now |
+|---|---|---|
+| B-1 | `post_land` judged the WORKSPACE (28 commits/3891 rows) while reporting itself as the landed tip | judges the NAMED tip tree (25 commits/3813 rows); both children take `--root` |
+| B-2 | sentinel wave range was the whole round, so the block invalidated itself | bounded by the declared `pre_land.last_claim_mutation`; sha validated as claim-surface ancestor |
+| M-1 | doc-hygiene copied, old copy still in `adr-0076-wiring` without the mid-line TAB branch | single shared definition; the R-A hole is closed in jest and CI |
+| M-2 | pack numbers wrong (471,521 / 432,782); derived cap did not follow from its input | measured 474,291 / 451,664; `ceil10k(474,291x1.10)`=530,000 |
+| M-3 | spec §9 gate 1 marked `met` against contradicting evidence | **NOT MET**, with the reason stated |
+| M-4 | `fileTracked` loosening undeclared and untested | declared in the code comment and pinned by two tests |
+| M-5 | mirror unenumerated (6 citations, 0 map rows); `613a2471` unregistered | `README*` prefix enumerated (6 rows); `613a2471` correctly NOT an orphan - E-28 |
+| M-6 | `gate:all` never run; leg 229 regression | `gate:all` run this wave; the coverage-block question is answered honestly in the report |
+
+## Reproduce before trusting
+
+```
+npm run gate:all                                    # 49 legs; reds are pack-cap + post-land (by design)
+node scripts/run-test-gate.js                      # 1631 tests; the only red is the pack cap
+node scripts/check-post-land.js --pre-only --no-fetch   # exit 0 - all four subset checks green
+node scripts/check-post-land.js --post-only --no-fetch  # exit 1 - origin/main still carries R-A/R-B/R-C
+node scripts/build-rewrite-map.js --check          # exit 0
+npm pack --dry-run --json                          # 474291 vs the 470000 cap (owner-action)
+```
+
 ## Open owner-actions (do NOT self-mint)
 
 1. **Corpus tarball refresh** - the secret tarball lacks `mr-probes.jsonl` against
    the versioned manifest. Refresh deadline: 2026-12-15 cadence. Until then
    **public CI green is NOT claimed** - it is conditional on this refresh.
-2. **Pack-cap amendment** - the shipped tarball measures 471,521 packed bytes
-   against the ADR-0039 D3 cap of 470,000 (over by 1,521). The trend-derived
-   figure is `ceil_to_10_000(471,521 x 1.10)` = 530,000, but bumping a cap is
-   only ever an ADR. The `pack-smoke` / `adr-0038-wiring` leg is therefore RED
-   and is reported red.
+2. **Pack-cap amendment** - the shipped tarball measures **474,291** packed bytes
+   (169 entries) against the ADR-0039 D3 cap of 470,000 (over by 4,291). The
+   pre-round baseline measured **451,664** (164 entries) in a clean worktree at
+   `78d8a14c`. The trend-derived figure is `ceil_to_10_000(474,291 x 1.10)` =
+   **530,000**, but bumping a cap is only ever an ADR. The `pack-smoke` /
+   `adr-0038-wiring` leg is therefore RED and is reported red.
+   (These are the CORRECTED figures; the first report's 471,521 / 432,782 were
+   wrong and `ceil10k(471,521x1.10)` is 520,000, not the 530,000 it claimed.)
 3. **Last-wave residual window** - the F-6 narrowing is minutes, not zero. The
    residual is adjudicated by the post-land ritual; an expired refresh deadline
    escalates through the errata channel.
@@ -40,7 +70,7 @@
 ## Boundary state (reproduce before trusting)
 
 ```
-node scripts/run-test-gate.js                          # 1628/1629; the 1 red IS the pack cap
+node scripts/run-test-gate.js                          # 1631 tests; the 1 red IS the pack cap
 node scripts/check-post-land.js --pre-only --no-fetch # exit 0 - all four subset checks green
 node scripts/check-post-land.js --post-only --no-fetch# exit 1 - origin/main still carries R-A/R-B/R-C
 node scripts/build-rewrite-map.js --check             # exit 0

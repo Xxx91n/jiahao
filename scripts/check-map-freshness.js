@@ -37,6 +37,7 @@
 // are exempt - forward-only, history is never rewritten.
 //
 // Usage: node scripts/check-map-freshness.js [--worktree|--tip <ref>] [--advisory]
+//                              [--root <path>]
 //                              [--advisory-only]
 
 const { execFileSync, spawnSync } = require('child_process');
@@ -350,6 +351,24 @@ function checkCommit(root, sha, precomputedOccurrences) {
 //                 so 'HEAD' would report red for a tree that is already
 //                 correct. Neither mode is silent: each prints which tree it
 //                 judged, and the commit leg below re-reads HEAD regardless.
+// B-1 FIX (grill-t35 audit): the assertion object must be EXPLICIT.
+//
+// Before this flag existed, ROOT was unconditionally path.join(__dirname,'..'),
+// so a caller that spawned this script with `cwd` set to some OTHER tree still
+// got verdicts about the main repo. That is precisely the lane-tree-vs-public-tip
+// confusion this round exists to close, reproduced inside the very script written
+// to detect it: check-post-land.js sets cwd to the tip worktree, and this script
+// silently judged the workspace instead. The caller now names the tree.
+//
+// Rule: ROOT is only ever what the CALLER says. With no --root it is the repo this
+// file lives in, which is correct for direct invocation and wrong for delegation -
+// so delegation must pass --root.
+function resolveRoot(argv) {
+  const i = (argv || []).indexOf('--root');
+  if (i !== -1 && argv[i + 1]) return path.resolve(argv[i + 1]);
+  return ROOT;
+}
+
 function authorityTip(argv) {
   if ((argv || []).indexOf('--worktree') !== -1) return null; // null = worktree
   const i = (argv || []).indexOf('--tip');
@@ -369,6 +388,11 @@ function mapAt(root, tip) {
 
 function main(argv) {
   const args = argv || [];
+  const ROOT_OVERRIDE = resolveRoot(args);
+  // ADR-0040 D7d requires the LITERAL name-keyed call form (the static anchor
+  // greps for it). grill-t35 B-1: a delegated caller must judge the tree it
+  // named, so ROOT_OVERRIDE threads through every read below; the capability probe
+  // stays keyed to this repo, which is where the delegation was launched from.
   requireCapabilities('map-freshness');
   const advisoryOnly = args.indexOf('--advisory-only') !== -1;
   const wantAdvisory = args.indexOf('--advisory') !== -1;
@@ -377,9 +401,9 @@ function main(argv) {
     const label = tip === null ? 'worktree' : String(tip);
     // The worktree form judges the WORKING TREE's map but still enumerates claim
     // commits on HEAD (a commit list cannot be read from an uncommitted tree).
-    const cov = checkTipCoverage(ROOT, { tip: tip, commitTip: tip === null ? 'HEAD' : tip });
+    const cov = checkTipCoverage(ROOT_OVERRIDE, { tip: tip, commitTip: tip === null ? 'HEAD' : tip });
     for (const e of cov.errors) console.error('FAIL: ' + e);
-    const cons = checkTipConsistency(ROOT, { tip: tip });
+    const cons = checkTipConsistency(ROOT_OVERRIDE, { tip: tip });
     for (const e of cons) console.error('FAIL: ' + e);
     if (cov.errors.length || cons.length) process.exit(1);
     console.log('[map-freshness] OK: tip map (' + label + ') covers ' + cov.checked + ' claim commit(s) (' + cov.missing.length +
@@ -400,7 +424,7 @@ function main(argv) {
     console.log('[map-freshness] advisory skipped (audit-time surface; run with --advisory to fold it in) - ADR-0092 D-M2');
     process.exit(0);
   }
-  const adv = advisoryPerCommit(ROOT, {});
+  const adv = advisoryPerCommit(ROOT_OVERRIDE, {});
   if (adv.errors.length) {
     console.log('[map-freshness] advisory (non-blocking, grill-t35 D-005): ' + adv.errors.length +
       ' historical per-commit embedded-map finding(s) across ' + adv.checked +

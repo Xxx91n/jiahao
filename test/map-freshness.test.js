@@ -188,6 +188,36 @@ describe('map-freshness authority (tip-map coverage, grill-t35 D-005)', () => {
   });
 });
 
+// M-4 (grill-t35 audit): the fileTracked scope clause is a REAL loosening and is
+// pinned here rather than left as a comment. Two branches, both asserted:
+//   - a citation in a file the tip map has NO row for stays uncovered (the
+//     loosening is scoped to TRACKED files, not a blanket pass);
+//   - a retired-line citation in a file the tip map DOES carry is covered
+//     (the clause's whole purpose: the tip map is generated FROM the tip, so it
+//     cannot carry a row for a citation the tip no longer contains).
+describe('map-freshness scope clause (ADR-0092 D-M2, grill-t35 audit M-4)', () => {
+  test('a citation in an UNTRACKED file stays uncovered (the loosening is narrow)', () => {
+    const dir = mkDir();
+    seedRepo(dir, 'see commit cafebabe42 for the boundary\n');
+    // docs/citing.md has a registered row; the new file does not.
+    put(dir, '.scratch/grill-t99/reports/fresh.md', 'see commit deadbeef99\n');
+    commit(dir, 'claim cites in a file with no tip-map row');
+    const out = mf.checkTipCoverage(dir, {});
+    expect(out.missing.map((m) => m.file)).toContain('.scratch/grill-t99/reports/fresh.md');
+  });
+
+  test('a retired-line citation in a TRACKED file is covered (the clause purpose)', () => {
+    const dir = mkDir();
+    // The seeded map carries exactly one row: docs/citing.md line 1.
+    seedRepo(dir, 'see commit cafebabe42 for the boundary\n');
+    // The claim commit INSERTS a line above the citation, retiring line 1.
+    put(dir, 'docs/citing.md', 'inserted above\nsee commit cafebabe42 for the boundary\n');
+    put(dir, '.scratch/grill-t99/reports/r.md', 'claim\n');
+    commit(dir, 'claim retires the registered line');
+    const out = mf.checkTipCoverage(dir, {});
+    expect(out.missing).toEqual([]);
+  });
+});
 describe('map-freshness advisory (audit-time, demoted per grill-t35 D-005)', () => {
   test('the per-commit advisory is still exported and still detects a stale embedded map', () => {
     const dir = mkDir();

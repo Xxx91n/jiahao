@@ -606,3 +606,28 @@ Repair: the handoff document gained the missing row in the same round
 factual registration. Posture: factual registration, no
 pending-confirmation wording - the omission is mechanically verifiable
 against the t33 ledger's registered transfers.
+## E-28 (2026-10-01, grill-t35 rework): enumeration-surface and claim-class disposition after the re-audit
+
+Recorded by the grill-t35 rework wave in response to the D-004 audit of
+`.scratch/grill-t35/reports/2026-10-01-report.md`.
+
+**1. The bilingual mirror is now an enumerated doc surface (D-003 delta2,
+audit M-5).** `build-rewrite-map.js` matched `README.md` exactly, so every hex
+citation in `README-zh-CN.md` was invisible to the classifier - including the
+lane-orphan pin that opened this round. Measured before the change: the mirror
+carried 6 distinct hex citations and the map carried **zero** rows for it.
+`DOC_PATH_RE` now matches the `README*` root prefix and both git-grep pathspecs
+admit it; after regeneration the mirror has 6 rows.
+
+**2. `613a2471` is NOT an orphan, and is deliberately NOT registered.** The audit
+asked for it in `docs/governance/orphan-cites.json`. Measured: the object exists
+locally and is reachable from `refs/remotes/gb-local/grill-t34-impl`, so the
+registry's own verb refuses it (`register: ... is still reachable ... - not an
+orphan`), which is the correct refusal. Its classified class is **`local-only`** -
+a declared ADR-0089 class meaning 'exists in the local object store, off the
+published line' - and that row is COMMITTED. `qualifiers.reachable_via` is
+--check-exempt by design, so a public clone reproduces the same class without the
+gb-local ref. Registering it would have asserted a false orphan fact.
+
+Disposition: enumeration extended (1); registry unchanged for this sha (2). The
+citation remains discoverable and classified; it is simply not an orphan.
