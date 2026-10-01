@@ -1,0 +1,64 @@
+atomcode: Resumed a session from another project — working directory switched to D:\ (was D:\Aworker\jiahao).
+[warning] 正在以管理员权限运行 — 模型可能可以访问系统文件。
+继续补足配额：再抓 3 篇原文（事故复盘、可验证构建论文、可复现构建解释）并补一个批评角度查询。补两篇与 R-B（restack/重写致孤儿对象）直接相关的原文，然后进入综合。调研配额已达成，综合输出评审结论。
+
+---
+
+# grill-t35 范围界定评审
+
+**Sufficiency Gate**: searches: 6 (Exa 4 + Tavily 2… 实计 web_search 4 / tavily 2 / anysearch 1) | angles: Official / Criticism / Currency / Community / Comparative 五类全覆盖 | full reads: 6 (slsa.dev×1, reproducible-builds.org, docs.github.com, devactivity 事故复盘, arXiv 2608.18180, keturn/jjmtaylor 两篇 squash 批评文) | gaps: 未找到与“落地边界后验证义务”逐字对位的单一权威文档——该心智模型是 merge-queue 语义 + SLSA 验证架构 + 重写历史批评三股合成的，下文如实标注合成依据。
+
+## 1) 账本/ADR/CONTEXT 心智模型回顾：与仓内纪律最一致者
+
+| 既有模型 | 对本裁决的含义 |
+|---|---|
+| **ADR-0084 D-B 第四审计线** | 已经确立了“维护者侧绿 ≠ 公共消费者所见绿”——公共 clone 才是消费者的对象库。本轮四根因全部是这一不对称的**再实例**，不是新缺陷类 |
+| **ADR-0085 claim-point 封印** | 验证是**时点断言**（“此证据在 header sha 处跑过”），不承诺连续为真——元类“被验证对象≠公开对象”正是该语义在 landing/restack 缝隙上的暴露 |
+| **defer-0070（CI 红史注册）** | 仓内已有“公开分支红束→诚实注册 + owner + review 日期”的先例处置形状 |
+| **ADR-0078 kind:fix** | 修复轮有现成披露通道（governance_tooling_diff），γ“纯修复轮不立契约”不缺载体但缺机制产出 |
+| **t34 D-001 同质性准入测试** | 新收项须同变更类+同执行权威。四根因同属“公开对象等价性”一类（R-A/R-C 文档事实面、R-B lane-sha 引用、R-D 供给面漂移致 UNVERIFIABLE），且执行权威同为既有 gate/断言体系——**通过准入测试** |
+| **defer-0076 注册钟 + D-001(iii) 注册地板** | β 把头号候选 defer-0078 继续推后，若红束拖过 2026-12-15 潮汐即打钟；γ 无机制产出，E-25 类漂移（已两次实发）继续靠自觉 |
+
+结论：与仓内纪律最一致的是**“公开树等价”这一契约形**，即 α′ 的骨架——它不是新发明，而是把 ADR-0084 第四审计线从“审计时点的义务”升格为“每轮 closeout 的机械断言”。
+
+## 2) 工业界心智模型（重点调研板块）
+
+**a. 验证对象=合并结果，非被审对象（merge queue 语义）**。GitHub 官方文档明确：merge queue 建 `gh-readonly-queue/*` 临时分支，required checks 跑在**目标分支最新态+队列前序变更的合成结果**上（docs.github.com Managing a merge queue，已读全文）。PR head 上的绿是**必要非充分**。2026-04-23 GitHub 自家 merge queue squash 事故（devactivity 复盘 + Discussion #193645，已读）：230 仓/2092 PR 的 HEAD 与“已合并 PR 内容”失配，且**未被自动化监控捕获**，靠客服工单 3.5 小时后发现——教训原文即“正确性监控”缺位。这正是本轮元类的工业镜像：declare 时点验证的对象与 landing 后公开对象是两个 commit，且该缝隙是事故高发区。
+
+**b. 公开对象的等价性验证要有可机械核对的绑定（SLSA）**。SLSA 验证规范（slsa.dev，已读）：验证的第一步是 `subject` 摘要必须匹配**在手的 artifact**，而非宣称的来源；expectations 与 provenance 分属两个绑定面。映射到本仓：**ADR 文档里 pin 的 lane sha 就是“声明”，公开历史才是“subject”**——R-B/R-C（引用公开历史不存在的 sha）在 SLSA 语义下就是验证直接 FAIL 的形状，不是“陈述瑕疵”。
+
+**c. 可复现构建的定义（reproducible-builds.org，已读）**：“可复现性**由逐位比对验证**”——验证永远落在公开可得的 artifact 字节上，作者环境里的绿不进入定义。AVP 论文（arXiv 2608.18180，已读）进一步给出实证：分散构建生态中验证失败的主因是**元数据恢复缺口**（来源 revision 不可恢复居首）——R-B 的孤立 lane sha 正是“验证者无法从公开侧恢复被引用对象”的实例。
+
+**d. 历史重写制造孤立对象是已知批评类**。keturn《What's Lost in the Squash》(2021，已读)与 jjmtaylor 的 squash 批评文（已读）记录了同一现象：squash/rebase 后原 commit 变成 "does not belong to any branch" 的孤儿，git 考古断裂；git-spice 把 stacked 分支被 squash restack 列为成文限制。R-B 的 `gb-local/*` restack 孤儿是该批评类在 GitButler 工作流下的具体化——工业界对策不是“禁止重写”，而是**重写后必须重锚引用**（restack ritual），这正是 α′ lane-sha 引文卫生腿的对应物。
+
+**e. 落地边界后验证义务的成熟形态**：trunk-based doctrine（比较角度检索命中）把 CI 分为 pre-merge 强制 / **post-merge build-publish-verify** / runtime smoke 三层，明确“merge 时绿”与“落地对象绿”是两层义务；SLSA 把验证架构列为 upload-time / consumer / **continuous monitor** 三选一并 SHOULD 至少择一。即：工业界不假设“声明时验证过”覆盖“落地后”，落地边界后的再验证是**独立义务**——α′ 的 post-land 验证义务条款与之同构。
+
+## 3) 推荐与理由
+
+**推荐 α′（公开树等价契约轮），带下述加宽**；β/γ 否决。
+
+- **否 β**：defer-0078 是 R-6/LOOP-2 N-3 的 skip 归因测量协议，与四根因**不同变更类**——把它与公开树红修复捆进一轮反而违反 D-001 同质性测试的正用；而“红束走轮外 hotfix”意味着文档引文卫生、末次变更电池覆盖继续无机制守门（E-25 类已两发），且 defer-0076 review 钟悬顶。
+- **否 γ**：ADR-0078 kind:fix 让 γ 程序上可行，但四根因暴露的是**契约缺口**（验证对象/公开对象无等价断言），纯修复只清 instances 不清类；t34 D-002(v)“遮蔽类消灭”的承诺会被 R-D 的 8 腿 UNVERIFIABLE 直接打脸——gate 不可验证与 gate 红同为绿承诺失效。
+
+**α′ 偏差/加宽建议**（对候选方案的修正，按优先序）：
+
+1. **R-D 应按 defer-0070 先例注册为供给面事件，而非仅轮内修复**。corpus tarball 缺 mr-probes.jsonl 是 CI **外部**供给漂移——轮内只能修 manifest/补文件，复发须有 unfreeze-able 登记（owner + review date），否则违反“已注册项禁静默丢弃”的对偶面：未注册的复发源禁静默留存。
+2. **lane-sha 引文卫生腿应优先复用既有 `rewrite-map-published` / orphan-ancestry 形状**（ADR-0084 D-A.4 `--published-only` 已有“引文覆盖+公开侧祖先”断言；ADR-0085 机制化注记已有 pinned-sha ancestry 腿）。加宽方向是**扩枚举面**（从 map 面扩到全部 doc 引文），不是新立机制——避免再造一个权威类。
+3. **post-land 验证义务条款应绑定 SEAL 语义而非另设时点**：落地尾（ADR-0084 D-C/ADR-0085 D-E）本就要求终末波+封印；post-land 义务的自然落点是“封印后对 origin/main tip 跑一次公开侧等价核对，结果作为下一轮的入口事实”——避免与 ADR-0085 的时点语义打架。
+4. **元类应升 CONTEXT.md 词条**（如 Public-Object Equivalence / 被验证对象≠公开对象），并按 t34-D-005(iii) 惯例在 spec 落地时定夺——不升账，属术语面。
+5. **R-A 的 0x08 腐蚀文档**走 F-D 类事实修正通道即可，但须按 ADR-0078 披露“该文件从未跑过电池”这一事实于轮报告——首次披露通道规则（ADR-0084 D-F）适用。
+
+**残余风险**：
+- 公开树等价腿的**自指税**：断言“公开 tip 绿”的腿自身也在公开 tip 上——GitHub 事故证明正确性监控自身会失明，需要轮外第二方审计（defer-0030 通道）兜底，不能闭环于自证。
+- lane-sha 卫生腿若枚举过宽会产生**误报噪声**（孤立但有意保留的引用，如 ADR-0085 t25 `drift` 保留实例、orphan-cites.json 留档）——需要白名单/分类豁免面，否则重蹈 alert-fatigue（defer-0004 已登记该反模式）。
+- post-land 义务与单人维护者的**人手依赖**：ADR-0084 D-E 已声明 tag 依赖人类可用性；post-land 核对若也绑人类步骤，红窗将复现 defer-0025 式 pending——应尽量机械化为 CI 腿。
+
+## 4) 与账本 current 决策的冲突检查
+
+- **α′ 本体**：与 D-001（derive-from-source 契约轮已完成、本轮是新变更类）、D-002（manifest 双通道——R-D 修复须遵守“suites 禁 JUnit 派生”红线）、D-003（ADR-0090 拒绝处置不回溯——**修 R-B/R-C 引文时不得追溯定罪历史 claim commit，只修当前事实面**）、D-004（audit-surface 腿——本轮落地的报告须是第一份带 coverage 块的报告，α′ 末次变更电池覆盖条款与之**同向强化**）、D-005（移交项居所——**defer-0078 续延必须走注册面 status/注记，不得静默换序**）均无冲突。
+- **一处需要显式登记的张力**：D-001(iii) 将“claim-commit map pairing 配方”登记为 defer-0079 移交项——R-C 的引文覆盖缺失与之**同族**。α′ 若在轮内立 lane-sha 卫生腿，须按 ADR-0086 pending-confirmation 生命周期**显式声明对 defer-0079 的部分吸收/前向取代**（ADR-0091 前向取代先例），否则构成注册面不对称（E-26 同类缺陷）。
+- **β/γ 各有一处硬冲突**：β 与 defer-0076 注册钟（滑过 2026-10-15/12-15 须事前 amend）及 D-001(iii)“已注册移交项禁静默降权”冲突；γ 与 D-004 的机制化裁决（“靠审计员自觉不成立，β=病灶只修一半”的 V8 诊断）直接抵触——γ 正是重新选择已被否决的“自觉”路线。
+
+**来源清单**（本轮实际已读）：GitHub 官方 Managing a merge queue（docs.github.com，Official）；devactivity GitHub Merge Queue Incident 复盘 2026-04-23（Criticism/Currency）；SLSA Verifying artifacts（slsa.dev，Official）；reproducible-builds.org Definitions（Official）；arXiv 2608.18180 Artifact Verifiability 2026-08（Official/学术）；keturn "What's Lost in the Squash" 2021-01（Community/Criticism）；jjmtaylor "The Squash Merge"（Community/Criticism）；trunk-workflow doctrine（Community/Comparative）。
+
+继续此会话，运行：atomcode -p "…" --resume 79045536-e489-4242-9186-8d3ecc3bbbdd
