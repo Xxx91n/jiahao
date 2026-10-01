@@ -1277,6 +1277,36 @@
         ],
         "reason": "grill-t34 derive-from-source round (ADR-0090/0091): build-test-manifest.js + docs/test-manifest.json (count manifest, sentinel README regions, argv retirement on run-test-gate + ci.yml), check-test-manifest leg (order 226), countersign-queue.js shared derivation + check-countersign-overdue leg (order 227), build-audit-checklist.js + docs/governance/audit-checklist.json (order 228), check-audit-surface leg (order 229), six wiring re-anchors, AGENTS.md interim clause retired to pointer, defer-0076 actioned, defer-0078..0084 registered. The files list is cumulative per the coverage-budget rule (t21 audit C-1): the t33 machinery set is redeclared here."
       }
+    },
+    {
+      "round": "grill-t35",
+      "date": "2026-10-01",
+      "kind": "documentation",
+      "adr_added": [
+        "0092"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 1,
+      "zero_product_diff": false,
+      "deferred_entry": "defer-0079",
+      "coverage_base": "78d8a14cbc90bbbe1f48a2931c69e41716738f6e",
+      "carve_out_used": 1,
+      "governance_tooling_diff": {
+        "files": [
+          "scripts/build-audit-checklist.js",
+          "scripts/build-rewrite-map.js",
+          "scripts/build-readme-pairing-baseline.js",
+          "scripts/check-map-freshness.js",
+          "scripts/check-post-land-sentinel.js",
+          "scripts/check-post-land.js",
+          "scripts/shared/doc-hygiene.js",
+          "scripts/shared/readme-pairing.js",
+          "test/countersign-queue.test.js",
+          "test/map-freshness.test.js",
+          "test/post-land-sentinel.test.js"
+        ],
+        "reason": "grill-t35 R2 carve-out (ADR-0076 D-B), disclosed in full. The round object is public-tree equivalence, so the work is contract MACHINERY plus the documentation surfaces that declare it. New legs: check-post-land.js (wave-time post-land re-verification against a fetched public tip) and check-post-land-sentinel.js (its authority-layer assertion leg), plus build-readme-pairing-baseline.js and the committed ratchet baseline it generates. New shared cores: scripts/shared/doc-hygiene.js (extracted from the adr-0076 wiring suite so the test and the post-land check assert ONE scanner) and scripts/shared/readme-pairing.js (one pairing-scan implementation behind the wiring test, the generator and the post-land subset). Restructured: check-map-freshness.js (grill-t35 D-005 - tip-map coverage promoted to the blocking authority, the per-commit embedded check demoted to an audit-time advisory, batched multi-tree citation scan added), build-rewrite-map.js (adds that batched scan + a registryFromWorktree seam so a worktree map is judged against the worktree registry), build-audit-checklist.js (derives the advisory surface so a demoted check is not a deleted check). Suite updates: map-freshness.test.js (rewritten for the authority contract, including regression locks on the two union-key subtleties and on batched/single scan parity), countersign-queue.test.js (suffix membership asserted structurally instead of by restated list), post-land-sentinel.test.js (new - anti-masking and F-6 window assertions). zero_product_diff is FALSE: scripts/ ships in the npm tarball, so this carve-out moves the measured packed size past the ADR-0039 D3 cap. The breach and its trend-derived remedy are registered in the round report as an owner-action; a cap amendment is an ADR and is NOT minted by the agent."
+      }
     }
   ],
   "source_adr": "0064"

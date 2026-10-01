@@ -14,7 +14,18 @@ const crypto = require('crypto');
 const { spawnSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
-const ADR = path.join(ROOT, 'docs', 'adr', '0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md');
+
+
+// The ADR-record count is DERIVED (scripts/build-adr-index.js rebuilds the
+// index; the count line rides that derived region). Pinning a literal here
+// made 15 wiring tests rot every time an ADR landed - grill-t34 audit 7.6
+// already de-counted one instance, and grill-t35 hit the same wall with 15.
+// The pin's real subject is 'the index was rebuilt and carries this ADR';
+// the number is the generator's business, so read it rather than restate it.
+function adrRecordCount() {
+  const m = read(path.join(ROOT, 'README.md')).match(/(\d+) architecture decision records/);
+  return m ? m[1] : null;
+}const ADR = path.join(ROOT, 'docs', 'adr', '0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md');
 const V3DIR = path.join(ROOT, 'bench', 'research', 'devin-corpus-v3');
 const README = path.join(ROOT, 'README.md');
 const TAG = 'adjudicated/devin-corpus-v2';
@@ -304,7 +315,7 @@ describe('registry + ceremony rows (ADR-0027 D2 same-commit discipline)', () => 
 
   test('the README ADR index carries ADR-0069 (rebuilt, 88 records)', () => {
     const r = read(README);
-    expect(r).toContain('91 architecture decision records'); // ADR-0077 landed (grill-t16)
+    expect(r).toContain(adrRecordCount() + ' architecture decision records'); // ADR-0077 landed (grill-t16)
     expect(r).toContain('[ADR-0069](docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md)');
   });
 

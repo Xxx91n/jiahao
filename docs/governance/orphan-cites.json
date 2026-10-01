@@ -14449,6 +14449,416 @@
       "reason": "pre-reword wave-1 audit-repair sha (superseded by 951ccf8d via but reword); cited 4x by committed repair report+closeout; --successor is correctly fail-closed since the reword changed the subject line - registered without successor per owner adjudication",
       "carried_log": [],
       "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "77e8bd97e83f008bee752ea7197bc71d36e287cd",
+      "object_type": "commit",
+      "size": 975,
+      "snapshot": {
+        "subject": "grill-t33 wave-1 mechanism+conventions: countersign-queue authority closure (member-level reconciliation test, closed category set {awaiting×3/countersigned-or-final/registered-exempt}, undeclared=fail, no count-equality); AGENTS.md queue-authority + baseline-CI + audit self-consistency clauses; CONTEXT.md queue term -> derived-membership semantics; ci.yml --expected-suites 89->90 rides the new suite; adr-0082-wiring parity pin resynced; T-0 baseline note (tip run 36530594835 fails at run-test-gate README assertion; queue derives 23 = 10+9+4)",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790682356 +0800",
+        "committer_ts": 1790698480,
+        "parents": [
+          "69d35fbe81ab4de43d54b55db9cc6593d895c6ff"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t33/handoffs/2026-09-30-closeout.md",
+          "line": 42
+        },
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-report.md",
+          "line": 7
+        }
+      ],
+      "registered_at": "2026-10-01T03:25:30.512Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "08d810c17c6051beb47b63f601bb9ca944d8beaa",
+      "object_type": "commit",
+      "size": 1012,
+      "snapshot": {
+        "subject": "grill-t33 wave-2 registrations: ERRATA E-25 (public-CI five-run red streak undisclosed, failing step = run-test-gate README count assertion; audit re-run surface missing the CI test-job command) + defer-0076 (declared-count generator bridge, presence-condition, review 2026-10-15, E-25-linked) + defer-0077 (cap fifth-amendment distribution-form economics, external-event pending-evaluation) anchored via CONTEXT.md Deferred Registry paragraph; adr-0033-wiring seed inventory -> 71 entries + convention-existence bindings (defer-0076 row shape, defer-0077 row, AGENTS.md baseline-CI clause) - presence assertions only, no count assertions",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790686302 +0800",
+        "committer_ts": 1790698523,
+        "parents": [
+          "77e8bd97e83f008bee752ea7197bc71d36e287cd"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t33/handoffs/2026-09-30-closeout.md",
+          "line": 42
+        }
+      ],
+      "registered_at": "2026-10-01T03:25:30.512Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "0a5295ee551073bcd867d34a1208b19c174b5909",
+      "object_type": "commit",
+      "size": 646,
+      "snapshot": {
+        "subject": "grill-t33 wave-3 closeout: README + zh-CN declared count repair to measured 1579/90; restore parity pins ADR-0080/0081; add t33 rolling-coverage trend row declaring cumulative R2 window; regenerate governance anchors",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790696807 +0800",
+        "committer_ts": 1790698565,
+        "parents": [
+          "08d810c17c6051beb47b63f601bb9ca944d8beaa"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t33/handoffs/2026-09-30-closeout.md",
+          "line": 42
+        }
+      ],
+      "registered_at": "2026-10-01T03:25:30.512Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "0a5295ee551073bcd867d34a1208b19c174b5909",
+      "object_type": "commit",
+      "size": 646,
+      "snapshot": {
+        "subject": "grill-t33 wave-3 closeout: README + zh-CN declared count repair to measured 1579/90; restore parity pins ADR-0080/0081; add t33 rolling-coverage trend row declaring cumulative R2 window; regenerate governance anchors",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790696807 +0800",
+        "committer_ts": 1790698565,
+        "parents": [
+          "08d810c17c6051beb47b63f601bb9ca944d8beaa"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-audit-report.md",
+          "line": 17
+        },
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-audit-report.md",
+          "line": 31
+        },
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-audit-report.md",
+          "line": 34
+        },
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-audit-report.md",
+          "line": 116
+        },
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-reaudit-loop2-report.md",
+          "line": 33
+        },
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-reaudit-loop2-report.md",
+          "line": 52
+        },
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-report.md",
+          "line": 26
+        }
+      ],
+      "registered_at": "2026-10-01T03:25:30.512Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "430218bec822177d5e186b7b4e26c426812f1302",
+      "object_type": "commit",
+      "size": 645,
+      "snapshot": {
+        "subject": "grill-t33 wave-3 closeout: README + zh-CN declared count repair to measured 1579/90; restore parity pins ADR-0080/0081; add t33 rolling-coverage trend row declaring cumulative R2 window; regenerate governance anchors [ANCHORING] README-zh-CN.md README.md docs/governance/anchors.json docs/governance/trend-inventory.json test/adr-0080-wiring.test.js test/adr-0081-wiring.test.js",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790696807 +0800",
+        "committer_ts": 1790696807,
+        "parents": [
+          "5722c522f42d699622d6b9d3fddbb67000837ec1"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-audit-report.md",
+          "line": 84
+        }
+      ],
+      "registered_at": "2026-10-01T03:25:30.512Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "5722c522f42d699622d6b9d3fddbb67000837ec1",
+      "object_type": "commit",
+      "size": 1011,
+      "snapshot": {
+        "subject": "grill-t33 wave-2 registrations: ERRATA E-25 (public-CI five-run red streak undisclosed, failing step = run-test-gate README count assertion; audit re-run surface missing the CI test-job command) + defer-0076 (declared-count generator bridge, presence-condition, review 2026-10-15, E-25-linked) + defer-0077 (cap fifth-amendment distribution-form economics, external-event pending-evaluation) anchored via CONTEXT.md Deferred Registry paragraph; adr-0033-wiring seed inventory -> 71 entries + convention-existence bindings (defer-0076 row shape, defer-0077 row, AGENTS.md baseline-CI clause) - presence assertions only, no count assertions [ANCHORING] CONTEXT.md docs/deferred-registry.json docs/governance/ERRATA.md test/adr-0033-wiring.test.js",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790686302 +0800",
+        "committer_ts": 1790686302,
+        "parents": [
+          "88efa2e87abda2452a147b2f96abbc173be3a30c"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-audit-report.md",
+          "line": 84
+        }
+      ],
+      "registered_at": "2026-10-01T03:25:30.512Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "88efa2e87abda2452a147b2f96abbc173be3a30c",
+      "object_type": "commit",
+      "size": 974,
+      "snapshot": {
+        "subject": "grill-t33 wave-1 mechanism+conventions: countersign-queue authority closure (member-level reconciliation test, closed category set {awaiting×3/countersigned-or-final/registered-exempt}, undeclared=fail, no count-equality); AGENTS.md queue-authority + baseline-CI + audit self-consistency clauses; CONTEXT.md queue term -> derived-membership semantics; ci.yml --expected-suites 89->90 rides the new suite; adr-0082-wiring parity pin resynced; T-0 baseline note (tip run 36530594835 fails at run-test-gate README assertion; queue derives 23 = 10+9+4) [ANCHORING] .github/workflows/ci.yml .scratch/grill-t33/handoffs/baseline.md AGENTS.md CONTEXT.md test/adr-0082-wiring.test.js test/countersign-queue.test.js",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790682356 +0800",
+        "committer_ts": 1790682356,
+        "parents": [
+          "69d35fbe81ab4de43d54b55db9cc6593d895c6ff"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-audit-report.md",
+          "line": 84
+        }
+      ],
+      "registered_at": "2026-10-01T03:25:30.512Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "77e8bd97e83f008bee752ea7197bc71d36e287cd",
+      "object_type": "commit",
+      "size": 975,
+      "snapshot": {
+        "subject": "grill-t33 wave-1 mechanism+conventions: countersign-queue authority closure (member-level reconciliation test, closed category set {awaiting×3/countersigned-or-final/registered-exempt}, undeclared=fail, no count-equality); AGENTS.md queue-authority + baseline-CI + audit self-consistency clauses; CONTEXT.md queue term -> derived-membership semantics; ci.yml --expected-suites 89->90 rides the new suite; adr-0082-wiring parity pin resynced; T-0 baseline note (tip run 36530594835 fails at run-test-gate README assertion; queue derives 23 = 10+9+4)",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790682356 +0800",
+        "committer_ts": 1790698480,
+        "parents": [
+          "69d35fbe81ab4de43d54b55db9cc6593d895c6ff"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-audit-report.md",
+          "line": 116
+        },
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-reaudit-loop2-report.md",
+          "line": 52
+        }
+      ],
+      "registered_at": "2026-10-01T03:25:30.512Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "08d810c17c6051beb47b63f601bb9ca944d8beaa",
+      "object_type": "commit",
+      "size": 1012,
+      "snapshot": {
+        "subject": "grill-t33 wave-2 registrations: ERRATA E-25 (public-CI five-run red streak undisclosed, failing step = run-test-gate README count assertion; audit re-run surface missing the CI test-job command) + defer-0076 (declared-count generator bridge, presence-condition, review 2026-10-15, E-25-linked) + defer-0077 (cap fifth-amendment distribution-form economics, external-event pending-evaluation) anchored via CONTEXT.md Deferred Registry paragraph; adr-0033-wiring seed inventory -> 71 entries + convention-existence bindings (defer-0076 row shape, defer-0077 row, AGENTS.md baseline-CI clause) - presence assertions only, no count assertions",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790686302 +0800",
+        "committer_ts": 1790698523,
+        "parents": [
+          "77e8bd97e83f008bee752ea7197bc71d36e287cd"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-audit-report.md",
+          "line": 116
+        },
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-reaudit-loop2-report.md",
+          "line": 52
+        }
+      ],
+      "registered_at": "2026-10-01T03:25:30.512Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "77e8bd97e83f008bee752ea7197bc71d36e287cd",
+      "object_type": "commit",
+      "size": 975,
+      "snapshot": {
+        "subject": "grill-t33 wave-1 mechanism+conventions: countersign-queue authority closure (member-level reconciliation test, closed category set {awaiting×3/countersigned-or-final/registered-exempt}, undeclared=fail, no count-equality); AGENTS.md queue-authority + baseline-CI + audit self-consistency clauses; CONTEXT.md queue term -> derived-membership semantics; ci.yml --expected-suites 89->90 rides the new suite; adr-0082-wiring parity pin resynced; T-0 baseline note (tip run 36530594835 fails at run-test-gate README assertion; queue derives 23 = 10+9+4)",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790682356 +0800",
+        "committer_ts": 1790698480,
+        "parents": [
+          "69d35fbe81ab4de43d54b55db9cc6593d895c6ff"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-report.md",
+          "line": 69
+        }
+      ],
+      "registered_at": "2026-10-01T03:25:30.512Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "08d810c17c6051beb47b63f601bb9ca944d8beaa",
+      "object_type": "commit",
+      "size": 1012,
+      "snapshot": {
+        "subject": "grill-t33 wave-2 registrations: ERRATA E-25 (public-CI five-run red streak undisclosed, failing step = run-test-gate README count assertion; audit re-run surface missing the CI test-job command) + defer-0076 (declared-count generator bridge, presence-condition, review 2026-10-15, E-25-linked) + defer-0077 (cap fifth-amendment distribution-form economics, external-event pending-evaluation) anchored via CONTEXT.md Deferred Registry paragraph; adr-0033-wiring seed inventory -> 71 entries + convention-existence bindings (defer-0076 row shape, defer-0077 row, AGENTS.md baseline-CI clause) - presence assertions only, no count assertions",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790686302 +0800",
+        "committer_ts": 1790698523,
+        "parents": [
+          "77e8bd97e83f008bee752ea7197bc71d36e287cd"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-report.md",
+          "line": 69
+        }
+      ],
+      "registered_at": "2026-10-01T03:25:30.512Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "0a5295ee551073bcd867d34a1208b19c174b5909",
+      "object_type": "commit",
+      "size": 646,
+      "snapshot": {
+        "subject": "grill-t33 wave-3 closeout: README + zh-CN declared count repair to measured 1579/90; restore parity pins ADR-0080/0081; add t33 rolling-coverage trend row declaring cumulative R2 window; regenerate governance anchors",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790696807 +0800",
+        "committer_ts": 1790698565,
+        "parents": [
+          "08d810c17c6051beb47b63f601bb9ca944d8beaa"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t33/reports/2026-09-30-report.md",
+          "line": 69
+        }
+      ],
+      "registered_at": "2026-10-01T03:25:30.512Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "b21fc1f97d395be3f2067ee1970e04a4d1fedc75",
+      "object_type": "commit",
+      "size": 463,
+      "snapshot": {
+        "subject": "grill-t34: T-0 baseline recon — baseline-CI green at 89b92487, four declaration sites pinned, enumeration/junit/id baselines recorded (D-001)",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790755147 +0800",
+        "committer_ts": 1790755147,
+        "parents": [
+          "89b9248722f322593a5b053c611052092341905e"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+          "line": 128
+        }
+      ],
+      "registered_at": "2026-10-01T03:25:30.512Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "c22bdf278df85f6a698b0ca2fd2b4bd0a99aee86",
+      "object_type": "commit",
+      "size": 463,
+      "snapshot": {
+        "subject": "grill-t34: T-0 baseline recon — baseline-CI green at 89b92487, four declaration sites pinned, enumeration/junit/id baselines recorded (D-001)",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790755147 +0800",
+        "committer_ts": 1790755736,
+        "parents": [
+          "89b9248722f322593a5b053c611052092341905e"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t34/reports/2026-09-30-report.md",
+          "line": 128
+        }
+      ],
+      "registered_at": "2026-10-01T03:25:30.512Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "8d3ecc3bbbdd",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t35/atomcode-q1-out.txt",
+          "line": 64
+        },
+        {
+          "file": ".scratch/grill-t35/decision-ledger.md",
+          "line": 17
+        }
+      ],
+      "registered_at": "2026-10-01T03:25:30.512Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "object_purged_at": "2026-10-01T03:25:30.512Z",
+      "errata_ref": null,
+      "disposition": "orphaned"
     }
   ]
 }

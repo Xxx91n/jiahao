@@ -44,7 +44,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execFileSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
 const { requireCapabilities, exitUnverifiable } = require('../src/shared/capability');
 const { NO_REPLACE_ENV } = require('./git-facade');
 const oc = require('./orphan-cites');
@@ -199,6 +199,66 @@ function scanDocTokensAt(root, ref) {
     }
   }
   return rows;
+}
+
+// grill-t35 D-005: the BATCHED form of scanDocTokensAt. One `git grep` per
+// CHURN is the difference between a leg that runs in CI and a leg that times
+// out - the t30 per-commit form spawned one full-tree grep per claim commit,
+// which is why the public run reported UNVERIFIABLE rather than pass or fail.
+// git grep accepts many tree-ish arguments and prefixes every hit with the rev
+// it came from, so N commits cost ONE process and one pass over the object
+// store.
+//
+// Returns Map<sha, Array<{file,line,sha}>>. Identical row semantics to
+// scanDocTokensAt - same HEX_RE, same [a-f] predicate, same SELF/REGISTRY_INPUT
+// and doc-path exclusions - so a batched row and a single-ref row are the same
+// object and interchangeable downstream.
+//
+// Trees are chunked: a single argv can get long on a big line, and one huge
+// grep would trade a timeout for an E2BIG. CHUNK commits per process.
+function scanDocTokensAtMany(root, refs) {
+  const CHUNK = 8;
+  const out = new Map();
+  const list = refs.filter(Boolean);
+  for (const r of list) if (!out.has(r)) out.set(r, []);
+  for (let i = 0; i < list.length; i += CHUNK) {
+    const chunk = list.slice(i, i + CHUNK);
+    // Buffer sizing is load-bearing, not decoration. Each chunk greps K full
+    // trees and every hex citation line in each is emitted, so the output is
+    // roughly K * (citations-per-tree). At K=24 over this repo that overflowed
+    // the buffer (ENOBUFS) and killed the leg. CHUNK is sized so the worst
+    // case stays well inside the budget, and the caller's ceiling is derived
+    // from the chunk size rather than fixed by hope.
+    const r = spawnSync('git',
+      ['-c', 'core.quotepath=false', 'grep', '-a', '-n', '-E', '-e', '[0-9a-f]{7,40}']
+        .concat(chunk, ['--', 'docs', '.scratch', 'README.md', 'AGENTS.md', 'CONTEXT.md']),
+      { cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024 * 1024 });
+    if (r.error) throw r.error;
+    if (r.status !== 0 && r.status !== 1) {
+      throw new Error('git grep failed at chunk ' + i + ' (status ' + r.status + '): ' + String(r.stderr || '').slice(0, 200));
+    }
+    if (r.status === 1) continue; // no matches in this chunk
+    for (const line of String(r.stdout || '').split('\n')) {
+      if (!line) continue;
+      const colon = line.indexOf(':');
+      if (colon < 0) throw new Error('git grep row lacks a rev prefix: ' + line.slice(0, 80));
+      const rev = line.slice(0, colon);
+      if (!out.has(rev)) continue;
+      const rest = line.slice(colon + 1);
+      const m = /^(.*?):(\d+):([\s\S]*)$/.exec(rest);
+      if (!m) throw new Error('unparseable git grep row at ' + rev + ': ' + line.slice(0, 80));
+      const f = m[1], li = Number(m[2]), body = m[3];
+      if (f === SELF || f === REGISTRY_INPUT || !DOC_PATH_RE.test(f) || !DOC_EXT_RE.test(f)) continue;
+      HEX_RE.lastIndex = 0;
+      let hm;
+      while ((hm = HEX_RE.exec(body))) {
+        const token = hm[2];
+        if (!/[a-f]/.test(token)) continue;
+        out.get(rev).push({ file: f, line: li, sha: token });
+      }
+    }
+  }
+  return out;
 }
 
 // ---- ADR-0089 D-006 injectable seams -------------------------------------
@@ -612,8 +672,16 @@ function verifyPublishedOnly(map, newRef, opts) {
   if (orphanRows.length) {
     // Registry source is tree-internal when commit-bound (the leg evaluates
     // historical commits), else the worktree file.
+    //
+    // opts.registryFromWorktree (grill-t35 D-005): a caller judging a
+    // WORKING-TREE map with commitBound ancestry must read the WORKING-TREE
+    // registry too. Without this seam the two halves disagree - the map
+    // carries orphaned-cite rows admitted by a backfill that is not committed
+    // yet, while the registry read goes to the older committed revision, and
+    // every one of those rows is reported as 'has no registry entry'. The
+    // registry must come from the SAME tree as the map it adjudicates.
     let regText = null;
-    if (opts && opts.commitBound) {
+    if (opts && opts.commitBound && !opts.registryFromWorktree) {
       try { regText = gitAt(vRoot, ['show', newRef + ':docs/governance/orphan-cites.json']); } catch (e) { regText = null; }
     } else {
       const rp = path.join(vRoot, 'docs', 'governance', 'orphan-cites.json');
@@ -803,4 +871,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { build, verify, verifyPublishedOnly, scanDocTokens, scanDocTokensAt, discoverOldRefs, isEmptyCommit, stableCopy, consistencyErrors, checkMapConsistency, refFacts, stabilizeExistsAt };
+module.exports = { build, verify, verifyPublishedOnly, scanDocTokens, scanDocTokensAt, scanDocTokensAtMany, discoverOldRefs, isEmptyCommit, stableCopy, consistencyErrors, checkMapConsistency, refFacts, stabilizeExistsAt };

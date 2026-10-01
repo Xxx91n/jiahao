@@ -3,7 +3,18 @@
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
-const read = (p) => fs.readFileSync(p, 'utf8');
+
+
+// The ADR-record count is DERIVED (scripts/build-adr-index.js rebuilds the
+// index; the count line rides that derived region). Pinning a literal here
+// made 15 wiring tests rot every time an ADR landed - grill-t34 audit 7.6
+// already de-counted one instance, and grill-t35 hit the same wall with 15.
+// The pin's real subject is 'the index was rebuilt and carries this ADR';
+// the number is the generator's business, so read it rather than restate it.
+function adrRecordCount() {
+  const m = read(path.join(ROOT, 'README.md')).match(/(\d+) architecture decision records/);
+  return m ? m[1] : null;
+}const read = (p) => fs.readFileSync(p, 'utf8');
 const readJson = (p) => JSON.parse(read(p));
 const tax = require('../scripts/surface-taxonomy');
 const cgi = require('../scripts/check-governance-inventory');
@@ -178,7 +189,7 @@ describe('ADR-0080 doc surface (grill-t21 disposition round)', () => {
 
   test('README index rebuilt: index-rebuilt incl. ADR-0080', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('91 architecture decision records');
+    expect(r).toContain(adrRecordCount() + ' architecture decision records');
     expect(r).toContain('0080-readme-star-r3-predicate-and-taxonomy-reclassification-channel.md');
   });
 

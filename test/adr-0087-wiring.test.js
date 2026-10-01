@@ -134,9 +134,16 @@ describe('map-freshness leg (E-17, D-004)', () => {
   });
 
   test('live-tree run is clean (no claim-surface commit left uncovered)', () => {
-    const out = mf.checkFreshness(ROOT);
-    expect(out.errors).toEqual([]);
-    expect(typeof out.checked).toBe('number');
+    // grill-t35 D-005 (ADR-0092 D-M2): the per-commit checkFreshness entry point
+    // was replaced. The AUTHORITY is tip-map coverage over the union of the line's
+    // claim commits; the per-commit form survives as advisoryPerCommit, which is
+    // audited rather than gated. This test now asserts the authority, and pins the
+    // advisory's continued export so the demotion stays visible.
+    const cov = mf.checkTipCoverage(ROOT, {});
+    expect(cov.errors).toEqual([]);
+    expect(typeof cov.checked).toBe('number');
+    expect(cov.missing).toEqual([]);
+    expect(typeof mf.advisoryPerCommit).toBe('function');
   });
 });
 

@@ -161,6 +161,18 @@
       ]
     },
     {
+      "name": "confirmatory-bench",
+      "command": "node bench/research/confirmatory.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md",
+      "order": 151,
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ],
+      "_doc": "ADR-0065 D-A (ledger D-002): the shipped port replays the pinned corpus (994bdeb3, self-cloning to the tmp cache like bench-gate) and is judged against the frozen single floor 0.563863 + FP margin 0.045; verdict lands in bench/research/out/confirmatory-result.json. Tier-(b) rel-L2 is advisory-only. Fallback word-1 same-floor leg runs via --manifest/--config-id when the primary fails."
+    },
+    {
       "name": "g6-equivalence",
       "command": "node scripts/check-g6-equivalence.js",
       "tier": "confirmatory",
@@ -172,6 +184,32 @@
       ]
     },
     {
+      "name": "g6-publish",
+      "command": "node scripts/check-g6-publish.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md",
+      "order": 153,
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ],
+      "_doc": "ADR-0065 D-B.3 (with ADR-0064 D-E): JS-only publish gate. Packs the tarball, replays the sha256-anchored gold20 expectations against the EXTRACTED src/port surface (tiers a/c blocking, b advisory), corrupted-port positive control must be rejected. Wired to prepublishOnly; never blocks local npm pack."
+    },
+    {
+      "name": "devin-oot-replay",
+      "command": "node bench/research/devin-oot.js --replay",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0067-devin-corpus-v1-oot-falsification-adjudication.md",
+      "order": 154,
+      "params": {
+        "replay": true
+      },
+      "requires": [
+        "repo-tree"
+      ],
+      "_doc": "ADR-0067 D-E (ledger D-008/D-011): replays the STORED devin-oot report artifact - re-derives every published number (k, fp_count, recall/FP, confusion, CI band, verdict, fact line) from the recorded per-item rows against the frozen eval-plan. Never re-runs the corpus; items.jsonl and the corpus manifest are never opened. Fail-closed on any drift."
+    },
+    {
       "name": "probe-corpus",
       "command": "node bench/polygraph/check-probe-corpus.js",
       "tier": "confirmatory",
@@ -181,6 +219,48 @@
       "requires": [
         "bench-corpus"
       ]
+    },
+    {
+      "name": "devin-oot-v2-replay",
+      "command": "node bench/research/devin-oot.js --snapshot-dir devin-corpus-v2 --replay",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0068-devin-corpus-v2-dual-axis-adjudication-collection-protocol-claim-slot-v3-binding.md",
+      "order": 156,
+      "params": {
+        "snapshot-dir": "devin-corpus-v2",
+        "replay": true
+      },
+      "requires": [
+        "repo-tree"
+      ],
+      "_doc": "ADR-0068 D-E (ledger D-016): replays the STORED devin-corpus@v2 report artifact - re-derives every published number (per-axis k/n, CIs, verdict, quadrant, fact line, side-set diagnostic) from the recorded per-item rows against the frozen eval-plan + derived decision tables. Never re-runs the corpus; items.jsonl and the corpus manifest are never opened. Fail-closed on any drift."
+    },
+    {
+      "name": "devin-oot-v3-replay",
+      "command": "node bench/research/devin-oot.js --snapshot-dir devin-corpus-v3 --replay",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md",
+      "order": 158,
+      "params": {
+        "snapshot-dir": "devin-corpus-v3",
+        "replay": true
+      },
+      "requires": [
+        "repo-tree"
+      ],
+      "_doc": "ADR-0069 / grill-t9 ledger D-001d: replays the STORED devin-corpus@v3 report artifact - re-derives every published number (per-axis k/n, CIs, verdict, quadrant, fact line, undetermined, confusion, side-set diagnostic, port-divergence cells) from the recorded per-item rows against the frozen eval-plan + derived decision tables. Never re-runs the corpus; items.jsonl and the corpus manifest are never opened. Fail-closed on any drift."
+    },
+    {
+      "name": "pairer-regression",
+      "command": "node scripts/check-pairer-regression.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md",
+      "order": 159,
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ],
+      "_doc": "ADR-0070 D-A clause 4: the frozen devin-corpus@v3 corpus converted to the pairer continuous regression gate. Replays items.jsonl through the SHIPPED artifact src/capa-pairer.js and diffs {family,state,claim,evidence,reason} against the stored v3 report rows; also re-derives the artifact sha256 against the registered pin. Not a re-adjudication: labels are never consulted, no verdict is recomputed. Fail-closed on drift."
     },
     {
       "name": "probes",
@@ -322,86 +402,6 @@
       ]
     },
     {
-      "name": "confirmatory-bench",
-      "command": "node bench/research/confirmatory.js",
-      "tier": "confirmatory",
-      "source_adr": "docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md",
-      "order": 151,
-      "params": {},
-      "requires": [
-        "repo-tree"
-      ],
-      "_doc": "ADR-0065 D-A (ledger D-002): the shipped port replays the pinned corpus (994bdeb3, self-cloning to the tmp cache like bench-gate) and is judged against the frozen single floor 0.563863 + FP margin 0.045; verdict lands in bench/research/out/confirmatory-result.json. Tier-(b) rel-L2 is advisory-only. Fallback word-1 same-floor leg runs via --manifest/--config-id when the primary fails."
-    },
-    {
-      "name": "g6-publish",
-      "command": "node scripts/check-g6-publish.js",
-      "tier": "confirmatory",
-      "source_adr": "docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md",
-      "order": 153,
-      "params": {},
-      "requires": [
-        "repo-tree"
-      ],
-      "_doc": "ADR-0065 D-B.3 (with ADR-0064 D-E): JS-only publish gate. Packs the tarball, replays the sha256-anchored gold20 expectations against the EXTRACTED src/port surface (tiers a/c blocking, b advisory), corrupted-port positive control must be rejected. Wired to prepublishOnly; never blocks local npm pack."
-    },
-    {
-      "name": "devin-oot-replay",
-      "command": "node bench/research/devin-oot.js --replay",
-      "tier": "confirmatory",
-      "source_adr": "docs/adr/0067-devin-corpus-v1-oot-falsification-adjudication.md",
-      "order": 154,
-      "params": {
-        "replay": true
-      },
-      "requires": [
-        "repo-tree"
-      ],
-      "_doc": "ADR-0067 D-E (ledger D-008/D-011): replays the STORED devin-oot report artifact - re-derives every published number (k, fp_count, recall/FP, confusion, CI band, verdict, fact line) from the recorded per-item rows against the frozen eval-plan. Never re-runs the corpus; items.jsonl and the corpus manifest are never opened. Fail-closed on any drift."
-    },
-    {
-      "name": "devin-oot-v2-replay",
-      "command": "node bench/research/devin-oot.js --snapshot-dir devin-corpus-v2 --replay",
-      "tier": "confirmatory",
-      "source_adr": "docs/adr/0068-devin-corpus-v2-dual-axis-adjudication-collection-protocol-claim-slot-v3-binding.md",
-      "order": 156,
-      "params": {
-        "snapshot-dir": "devin-corpus-v2",
-        "replay": true
-      },
-      "requires": [
-        "repo-tree"
-      ],
-      "_doc": "ADR-0068 D-E (ledger D-016): replays the STORED devin-corpus@v2 report artifact - re-derives every published number (per-axis k/n, CIs, verdict, quadrant, fact line, side-set diagnostic) from the recorded per-item rows against the frozen eval-plan + derived decision tables. Never re-runs the corpus; items.jsonl and the corpus manifest are never opened. Fail-closed on any drift."
-    },
-    {
-      "name": "devin-oot-v3-replay",
-      "command": "node bench/research/devin-oot.js --snapshot-dir devin-corpus-v3 --replay",
-      "tier": "confirmatory",
-      "source_adr": "docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md",
-      "order": 158,
-      "params": {
-        "snapshot-dir": "devin-corpus-v3",
-        "replay": true
-      },
-      "requires": [
-        "repo-tree"
-      ],
-      "_doc": "ADR-0069 / grill-t9 ledger D-001d: replays the STORED devin-corpus@v3 report artifact - re-derives every published number (per-axis k/n, CIs, verdict, quadrant, fact line, undetermined, confusion, side-set diagnostic, port-divergence cells) from the recorded per-item rows against the frozen eval-plan + derived decision tables. Never re-runs the corpus; items.jsonl and the corpus manifest are never opened. Fail-closed on any drift."
-    },
-    {
-      "name": "pairer-regression",
-      "command": "node scripts/check-pairer-regression.js",
-      "tier": "confirmatory",
-      "source_adr": "docs/adr/0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md",
-      "order": 159,
-      "params": {},
-      "requires": [
-        "repo-tree"
-      ],
-      "_doc": "ADR-0070 D-A clause 4: the frozen devin-corpus@v3 corpus converted to the pairer continuous regression gate. Replays items.jsonl through the SHIPPED artifact src/capa-pairer.js and diffs {family,state,claim,evidence,reason} against the stored v3 report rows; also re-derives the artifact sha256 against the registered pin. Not a re-adjudication: labels are never consulted, no verdict is recomputed. Fail-closed on drift."
-    },
-    {
       "name": "rewrite-map",
       "command": "node scripts/build-rewrite-map.js --check",
       "tier": "confirmatory",
@@ -416,17 +416,6 @@
       ]
     },
     {
-      "name": "secret-scan",
-      "command": "node scripts/check-secret-scan.js",
-      "tier": "confirmatory",
-      "source_adr": "docs/adr/0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md",
-      "order": 218,
-      "requires": [
-        "repo-tree"
-      ],
-      "params": {}
-    },
-    {
       "name": "rewrite-map-published",
       "command": "node scripts/build-rewrite-map.js --published-only",
       "tier": "confirmatory",
@@ -438,6 +427,17 @@
       "requires": [
         "repo-tree"
       ]
+    },
+    {
+      "name": "secret-scan",
+      "command": "node scripts/check-secret-scan.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md",
+      "order": 218,
+      "requires": [
+        "repo-tree"
+      ],
+      "params": {}
     },
     {
       "name": "orphan-ancestry",
@@ -539,17 +539,6 @@
       ]
     },
     {
-      "name": "audit-surface",
-      "command": "node scripts/check-audit-surface.js",
-      "tier": "confirmatory",
-      "source_adr": "docs/adr/0091-derive-from-source-mechanism-contract.md",
-      "order": 229,
-      "params": {},
-      "requires": [
-        "repo-tree"
-      ]
-    },
-    {
       "name": "audit-checklist",
       "command": "node scripts/build-audit-checklist.js --check",
       "tier": "confirmatory",
@@ -561,6 +550,41 @@
       "requires": [
         "repo-tree",
         "docs-adr"
+      ]
+    },
+    {
+      "name": "audit-surface",
+      "command": "node scripts/check-audit-surface.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0091-derive-from-source-mechanism-contract.md",
+      "order": 229,
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ]
+    },
+    {
+      "name": "readme-pairing",
+      "command": "node scripts/build-readme-pairing-baseline.js --check",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0092-public-object-equivalence-and-post-land-verification-contract.md",
+      "order": 230,
+      "params": {
+        "check": true
+      },
+      "requires": [
+        "repo-tree"
+      ]
+    },
+    {
+      "name": "post-land-sentinel",
+      "command": "node scripts/check-post-land-sentinel.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0092-public-object-equivalence-and-post-land-verification-contract.md",
+      "order": 231,
+      "params": {},
+      "requires": [
+        "repo-tree"
       ]
     }
   ]

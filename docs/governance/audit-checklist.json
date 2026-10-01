@@ -2,7 +2,7 @@
   "schema_version": 1,
   "_doc": "ADR-0091 (grill-t34 D-004): derived CI command-surface checklist - the audit re-run surface floor. Generated from ci.yml via the shared zero-dep parsers; hand-edit forbidden. node scripts/build-audit-checklist.js emit prints the commands array for the audit-coverage v1 block; the auditor attests what they ran - the generator never co-signs.",
   "generated_by": "scripts/build-audit-checklist.js",
-  "generated_at": "2026-09-30T09:18:16.962Z",
+  "generated_at": "2026-10-01T06:04:47.390Z",
   "source": ".github/workflows/ci.yml",
   "jobs": [
     {
@@ -74,5 +74,21 @@
     "exit 1",
     "fi",
     "echo \"aggregate green - all $expected needed jobs report success\""
+  ],
+  "advisories": [
+    {
+      "name": "map-freshness-per-commit-advisory",
+      "command": "node scripts/check-map-freshness.js --advisory-only",
+      "status": "advisory (non-blocking)",
+      "source_adr": "docs/adr/0092-public-object-equivalence-and-post-land-verification-contract.md",
+      "why": "grill-t35 D-005 demoted the per-commit embedded-map check to audit-time: it is structurally unsatisfiable under the GitButler multi-lane landing model. The blocking authority is tip-map coverage; this surface keeps the unsatisfiable class visible so the auditor attests it rather than rediscovering it."
+    },
+    {
+      "name": "post-land-subset",
+      "command": "node scripts/check-post-land.js",
+      "status": "wave-time (not a CI leg)",
+      "source_adr": "docs/adr/0092-public-object-equivalence-and-post-land-verification-contract.md",
+      "why": "grill-t35 D-004: re-verifies the LANDED public tip in a throwaway worktree. Deliberately not a CI job - CI observes the tree only after it is public, so it is the wrong observation point for a pre-public check. The auditor may re-run it to confirm the landed state."
+    }
   ]
 }

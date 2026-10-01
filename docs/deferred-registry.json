@@ -1259,8 +1259,9 @@
       "registered_at": "2026-09-30",
       "status": "pending-evaluation",
       "last_check_in": {
-        "date": "2026-09-30",
-        "note": "registered in-round per t33-D-004(ii) observation-home convention (cross-ledger derivation named in rationale)"
+        "date": "2026-10-01",
+        "note": "grill-t35 check-in: DEFERRED, not absorbed. D-002 registered this as a postponed check-in rather than a new registry row. The skip-attribution measurement protocol is off-shape for the public-tree equivalence round: that round object is tree-content equivalence, while an environment-controlled skip-attribution protocol measures a different surface (what the test battery claims to have run). Review trigger unchanged - the registered evaluation surface adjudicates the item at its 2026-12-15 cadence.",
+        "source_adr": "docs/adr/0092-public-object-equivalence-and-post-land-verification-contract.md"
       }
     },
     {
@@ -1279,6 +1280,20 @@
       "last_check_in": {
         "date": "2026-09-30",
         "note": "registered in-round per t33-D-004(ii) observation-home convention (cross-ledger derivation named in rationale)"
+      },
+      "partial_absorption": {
+        "absorbed_at": "2026-10-01",
+        "source_adr": "docs/adr/0092-public-object-equivalence-and-post-land-verification-contract.md",
+        "absorbed": [
+          "the citation-coverage half of the problem domain: grill-t35 D-M2 promotes tip-map coverage over the union of the published line to a BLOCKING authority, so a claim commit can no longer leave the map uncovered - which is the generator-side gap defer-0079 registered",
+          "the claim-commit / map pairing surface: it is now enumerated mechanically by check-map-freshness.js against a live registry, and the pairing scan ships as a committed ratchet baseline rather than a prose recipe"
+        ],
+        "residual": [
+          "the GENERATOR side of the recipe is unchanged and still deferred: build-rewrite-map.js still scans index/HEAD only, so a claim commit still needs the commit-then-amend dance (or a follow-up wave) to land its covering map. D-M2 made the resulting state VERIFIABLE and self-healing at the tip; it did not make the generator aware of an in-flight claim commit.",
+          "no exemption channel was introduced, per the D-005 negative requirement - the tip map is authoritative, so there is nothing to exempt"
+        ],
+        "criterion": "problem-domain overlap triggers an explicit declaration, not wholesale forward supersession (grill-t35 D-003 delta4). The residual above names precisely what defer-0079 still owns; it is NOT closed by this absorption.",
+        "status": "partially absorbed; the row remains open for the residual scope"
       }
     },
     {

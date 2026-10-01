@@ -514,6 +514,84 @@ AGENTS.md baseline-CI clause exist (T-8, home
 binding - it asserts the presence of registered conventions, not a
 numeric count.
 
+## E-27 (2026-10-01, grill-t35): the t34 landing carried a four-root red bundle into public history, undetected for ~17h
+
+Fact, mechanically verifiable at the t35 T-0 baseline (`gh run view 36743467940`,
+origin/main tip `78d8a14c`): public CI RED. Failing steps named: test job
+"Run node scripts/run-test-gate.js"; gate-all "npm run gate:all". Last green
+`89b92487` (grill-t33 closeout). Four roots, all registered here with their
+evidence-bearing repair:
+
+1. **Escape-eaten characters in a committed claim artifact** (R-A).
+   `.scratch/grill-t34/handoffs/2026-09-30-reaudit-handoff.md` carried TWO control
+   bytes: `0x08` where `$but land --yes` was intended and `0x09` (TAB) where
+   `$trend-inventory.json` was intended. Both produced by an escape-interpreting
+   shell layer, not by the author. Repair: the file is rewritten with correct text
+   in a new commit; the original commit `71f3d4df` (grill-t34 audit PASS) is cited
+   in display-form as the forensic record, and history is not rewritten.
+
+   The second byte is the finding that matters. The t18 doc-hygiene signature set
+   exempted TAB outright, so `0x08` was caught by the battery and `0x09` walked
+   straight through it in the same file. The signature set now includes a TAB that
+   is not at the start of its line; measured across the tracked text corpus at
+   registration that predicate has exactly one hit, and it is this file.
+
+2. **Lane-sha orphan pin** (R-B). `README-zh-CN.md` carried
+   `translation-baseline: 613a2471…`, which is unrepresentable in public history
+   (restacking rewrote the lane). Repair: the baseline is downgraded to a
+   display-form provenance record and re-pinned to the public README tip
+   `816e7bf3`; the 'exists / is an ancestor / equals git log -1' assertions are
+   withdrawn as restack-fragile and the same-commit obligation is mechanized as a
+   zero-sha historical pairing scan over a committed ratchet baseline
+   (ADR-0079 amendment, ADR-0092 D-P1).
+
+3. **Map coverage stale for four landed commits** (R-C). Commits `71f3d4df`,
+   `a0008b3f`, `c0195aaf`, `6d57f16d` each carried citations absent from their own
+   embedded map (24, 16, 10 and 9 rows respectively). True root, recorded because a
+   root is not the symptom: the per-commit embedded-map invariant is STRUCTURALLY
+   UNSATISFIABLE here. A lane-era commit's embedded map was correct for its own lane
+   tree; when the docs branch linearized, that commit's tree grew a documentation
+   surface, so the embedded map froze while the tree grew underneath it. Per-commit
+   self-consistency cannot hold once a lane commit is rebased onto a tree that did
+   not exist when it was written - so this is not drift that regeneration fixes.
+
+   Repair: tip-map coverage is promoted to the blocking authority over the union of
+   the line's claim commits, which is restack-immune by construction; the four
+   commits self-heal through the tip map with ZERO exemption entries and are not
+   amended (forward-only). The per-commit check is demoted to an audit-time advisory
+   enumerated in `docs/governance/audit-checklist.json` so the auditor attests it
+   rather than rediscovering it (ADR-0092 D-M2).
+
+   Compounding root, registered separately because it is why the defect was
+   INVISIBLE rather than merely unfixed: the per-commit leg spawned one full-tree
+   grep per claim commit and re-read a ~4 MB map per commit, measured at roughly
+   five minutes end to end. Under the CI timeout the gate reported UNVERIFIABLE, and
+   an unverifiable gate is not a green one - so the leg was neither passing nor
+   failing, and root 3 could not surface. The authority now answers the same
+   coverage question in about fifty seconds via a batched multi-tree scan.
+
+4. **Corpus manifest vs supply drift** (R-D). The corpus secret tarball lacks
+   `mr-probes.jsonl` against a versioned manifest; the repository requirement has
+   not changed since `89b92487`. This is a SUPPLY event, not an equivalence event,
+   and it is deliberately NOT in the contract core: the equivalence contract governs
+   tree content, and corpus fixture supply is a different class of fact.
+   Disposition: owner-action with a refresh deadline, recorded in the round report
+   (not in the deferred registry - a supply interruption is not a pending
+   evaluation item, and putting it there would quietly mis-file its semantics).
+   Public CI green is therefore CONDITIONAL on that refresh; this erratum does not
+   claim green.
+
+Detection-lag class, registered as a class: ~17 hours separated the defects becoming
+public and any check reporting them. The cause is structural, not clerical - a
+lane-local check cannot observe the landed public tree - so the repair is a
+contract (ADR-0092 D-L1, post-land re-verification against a fetched public tip)
+rather than a reminder.
+
+Posture: factual registration with mechanically verifiable evidence for every
+asserted root. No pending-confirmation wording is used because nothing here is a
+contested characterization - each root is reproducible from the named commands.
+Corpus refresh, deadline extension, and any errata adjudication remain owner acts.
+
 ## E-26 (2026-09-30, grill-t34): t33 audit-handoff candidate list omitted the reject-branch transfer
 
 Fact: the registered t34 direction-candidate list in

@@ -25,9 +25,9 @@ document: .scratch/grill-t34/reports/2026-09-30-audit-report.md
    declared-drift note naming the shas; (c) accept as lane residue and let
    the landing wave cover it (disclose). GitButler refused the registered
    commit-then-amend path (delta depends on llx).
-2. **Landing**: ut land --yes after owner review of D1; then the usual
+2. **Landing**: $but land --yes after owner review of D1; then the usual
    post-land re-pin rhythm (published_tip, zh-CN D6, ad-hoc leftovers:
-   uncommitted docs/governance/anchors.json + 	rend-inventory.json).
+   uncommitted docs/governance/anchors.json + $trend-inventory.json).
 3. **D2** (audit-surface coverage block) is **completed** by the audit
    window — no owner action.
 
@@ -59,3 +59,24 @@ document: .scratch/grill-t34/reports/2026-09-30-audit-report.md
 Errata adjudication, re-seal authorization, trigger interpretation,
 waiver issuance, countersign reject/ratify, t27 tag push, tide unbundling.
 The agent reports state; it never issues these verdicts.
+
+## Corruption disclosure (grill-t35 R-A fix-forward)
+
+This file was committed with two escape-eaten characters, both produced by
+an escape-interpreting shell layer rather than by its author:
+
+- `0x08` (BACKSPACE) where `$but land --yes` was intended - the layer ate `$b`
+  and emitted `\b`.
+- `0x09` (TAB) where `$trend-inventory.json` was intended - the layer ate `$t`
+  and emitted `\t`. The t18 doc-hygiene signature set exempted TAB outright,
+  which is why this second byte escaped a battery that caught its sibling.
+
+Both are repaired in the tree by this commit and the original commit
+`71f3d4df` (grill-t34 audit PASS) is cited in display-form as the forensic
+record of the corrupted bytes. History is never rewritten: the corrupted blob
+stays reachable at `71f3d4df` and at `origin/main`.
+
+The scanner itself was widened in the same wave
+(`scripts/shared/doc-hygiene.js`, ADR-0092 D-M1): a TAB that is not at the
+start of its line is now a registered signature. Measured across the tracked
+text corpus at registration, that predicate has exactly one hit - this file.

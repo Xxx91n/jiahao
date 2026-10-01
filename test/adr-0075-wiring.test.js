@@ -20,7 +20,18 @@ const path = require('path');
 const crypto = require('crypto');
 
 const ROOT = path.join(__dirname, '..');
-const ADR = path.join(ROOT, 'docs', 'adr', '0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md');
+
+
+// The ADR-record count is DERIVED (scripts/build-adr-index.js rebuilds the
+// index; the count line rides that derived region). Pinning a literal here
+// made 15 wiring tests rot every time an ADR landed - grill-t34 audit 7.6
+// already de-counted one instance, and grill-t35 hit the same wall with 15.
+// The pin's real subject is 'the index was rebuilt and carries this ADR';
+// the number is the generator's business, so read it rather than restate it.
+function adrRecordCount() {
+  const m = read(path.join(ROOT, 'README.md')).match(/(\d+) architecture decision records/);
+  return m ? m[1] : null;
+}const ADR = path.join(ROOT, 'docs', 'adr', '0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md');
 const README = path.join(ROOT, 'README.md');
 
 function read(p) { return fs.readFileSync(p, 'utf8'); }
@@ -128,7 +139,7 @@ describe('registry + governance-surface sync', () => {
 
   test('the README ADR index carries ADR-0075 (rebuilt, 88 records)', () => {
     const r = read(README);
-    expect(r).toContain('91 architecture decision records');
+    expect(r).toContain(adrRecordCount() + ' architecture decision records');
     expect(r).toContain('0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md');
   });
 

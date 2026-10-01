@@ -817,6 +817,44 @@ its tide (ADR-0090): non-retroactivity, the disposition menu as default floor
 transition.
 _Avoid_: rollback plan (rejection adjudication stays owner-side)
 
+**Public-Object Equivalence (公开对象等价)** (grill-t35):
+The contract that the object a check verifies IS the object the public receives.
+Under a multi-lane workflow that rewrites history on landing, these are different
+trees: the lane tree at declare time versus the landed tip after the rewrite. grill-t34
+closed its audit green against the first while the public received the second, and
+four defects landed. The consequence is methodological, not motivational: a green
+result about the wrong object is not a weaker result, it is a result about
+something else. Every local check was correct and irrelevant.
+_Avoid_: shipped parity, publish readiness (both can be true while this fails -
+the t34 case was a clean audit and a red public branch simultaneously)
+
+**Post-Land Verification (落地后重验)** (grill-t35, ADR-0092 D-L1):
+Re-running a bounded subset of the battery against the LANDED public tip, in a
+throwaway worktree materialized from a fetch, after every land/push wave - not
+only the last one. The last wave is not a special case; it is where the t34
+escape-eaten byte landed. Blocking object is the local re-verification; public CI
+observation stays a trailing next-round entry, because CI sees a tree only after
+it is already public.
+_Avoid_: CI re-run, release verification (neither observes a pre-public tree)
+
+**Wave-Bounded Subset (波界有界子集)** (grill-t35):
+The discipline that a repeated verification is scoped to what changed since the
+last verified wave, rather than re-walking all history each time. Bounds the cost
+so verification can actually run every wave; full-history walks belong to the round
+boundary. The bound must be honest - a subset chosen so the real defect falls
+outside it is not a subset, it is a hiding place.
+_Avoid_: sampling, spot check (a sample is statistical; this is a stated range)
+
+**Pre-Land Battery (落地前电池)** (grill-t35, ADR-0092 D-PRE):
+The verification run against the WILL-LAND object - the workspace merge tree,
+which is merge-group semantics simulated locally - recorded before landing, with
+the wave's last claim-mutation sha and the run timestamp. Paired with
+post-land verification so the two objects are each verified rather than one
+standing in for both. The timestamp is forensic, not preventive: it catches
+forgetfulness and not forgery, because writer and committer share a trust domain.
+_Avoid_: pre-commit check (a battery is the whole subset, not a single hook; a
+hook is bypassable by `but commit` and raw git alike)
+
 
 ## Decision Log
 

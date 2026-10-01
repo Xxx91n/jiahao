@@ -4,6 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execFileSync, spawnSync } = require('child_process');
+const pairing = require('../scripts/shared/readme-pairing');
 const ROOT = path.join(__dirname, '..');
 const README = path.join(ROOT, 'README.md');
 const MIRROR = path.join(ROOT, 'README-zh-CN.md');
@@ -29,12 +30,25 @@ describe('ADR-0079 bilingual mirror convention (grill-t20)', () => {
     expect(read(MIRROR)).toContain('[English](README.md) | **中文**');
   });
 
-  test('D3: the baseline comment carries a 40-hex sha that exists in git history', () => {
+  test('D3 (amended by ADR-0092 D-P1): the baseline comment carries a 40-hex sha, as a display-form provenance record', () => {
     const sha = baseline();
     expect(sha).not.toBeNull();
-    expect(git(['cat-file', '-t', sha])).toBe('commit');
-    // the recorded baseline is reachable from HEAD - not a dangling object
-    execFileSync('git', ['merge-base', '--is-ancestor', sha, 'HEAD'], { cwd: ROOT });
+    expect(sha).toMatch(/^[0-9a-f]{40}$/);
+    // WITHDRAWN (grill-t35 D-006): "the sha exists in git history" and "the sha is
+    // an ancestor of HEAD". Both asserted a lane-era object that the landing rewrite
+    // destroys - the t34 pin named 613a2471, unrepresentable in public history.
+    // Re-pinning only relocated the fragility. The record is kept; what is asserted
+    // is its SHAPE, so the provenance line cannot silently disappear. The enforced
+    // obligation moved to the D6 pairing scan below.
+  });
+
+  test('D3 amendment is registered in the ADR text, not only in a mirror comment (ADR-0083 D-003, no dual reading)', () => {
+    const a = read(path.join(ROOT, 'docs', 'adr', '0079-bilingual-readme-mirror-convention.md'));
+    expect(a).toContain('AMENDED by ADR-0092 D-P1');
+    expect(a).toContain('display-form provenance line');
+    expect(a).toContain('WITHDRAWN');
+    // the mirror comment must not be the only carrier of the downgrade
+    expect(read(MIRROR)).toContain('display-form provenance');
   });
 
   test('skeleton: both files share the same top-level ## heading skeleton', () => {
@@ -90,9 +104,56 @@ describe('ADR-0079 bilingual mirror convention (grill-t20)', () => {
     expect(packed).toEqual([]);
   });
 
-  test('D6 drift pin: git log -1 README.md equals the recorded baseline sha', () => {
-    const head = git(['log', '-1', '--format=%H', '--', 'README.md']);
-    expect(baseline()).toBe(head);
+  // D6 drift pin WITHDRAWN by ADR-0092 D-P1 (grill-t35 D-006): it asserted
+  // `git log -1 README.md` equals the recorded baseline sha - a restack-fragile
+  // assertion over a lane-era object. Replaced by the pairing scan below.
+
+  test('D6 (amended): every published-line README.md commit pairs the mirror in the same commit', () => {
+    // Zero sha names in the rule: a property of the published line, so a restack
+    // that renames every commit cannot invalidate it.
+    const live = pairing.scanViolations(ROOT, { tip: 'origin/main' });
+    expect(live.anchor).toBeTruthy();
+    const baselineFile = pairing.loadBaseline(ROOT);
+    expect(baselineFile).not.toBeNull();
+    const registered = new Set((baselineFile.entries || []).map((e) => e.sha));
+    const unsuppressed = live.violations.filter((v) => !registered.has(v.sha));
+    expect(unsuppressed.map((v) => v.sha + ' ' + v.subject)).toEqual([]);
+  });
+
+  test('D6 ratchet: baseline rows are real, current, and re-derived (no prose waiver channel)', () => {
+    const live = pairing.scanViolations(ROOT, { tip: 'origin/main' });
+    const baselineFile = pairing.loadBaseline(ROOT);
+    const real = new Set(live.violations.map((v) => v.sha));
+    const stale = (baselineFile.entries || []).filter((e) => !real.has(e.sha));
+    // A stale row is the classic baseline rot that hides a reintroduced drift of the
+    // same commit: the ratchet only ever moves DOWN.
+    expect(stale.map((e) => e.sha)).toEqual([]);
+    for (const e of baselineFile.entries || []) {
+      expect(e.sha).toMatch(/^[0-9a-f]{40}$/);
+      expect(typeof e.subject).toBe('string');
+    }
+    expect(baselineFile.anchor).toBe(live.anchor);
+    expect(baselineFile.generated_by).toBe('scripts/build-readme-pairing-baseline.js');
+  });
+
+  test('D6 scan is NOT remediation-aware (the three-step laundering window stays closed)', () => {
+    // Regression lock on the negative requirement. If the scan were made
+    // remediation-aware, a violation would be cleared by any LATER commit touching
+    // both files - exactly 'move README alone, then patch zh, then re-pin'. Every
+    // registered violation on this line IS followed by a both-file commit, so a
+    // remediation-aware rule would report zero violations and wash the backlog.
+    const live = pairing.scanViolations(ROOT, { tip: 'origin/main' });
+    const shas = pairing.rangeCommits(ROOT, live.anchor, 'origin/main');
+    let followedByBothFile = 0;
+    for (const v of live.violations) {
+      const idx = shas.indexOf(v.sha);
+      for (let k = shas.length - 1; k > idx; k--) {
+        const files = pairing.changedFiles(ROOT, shas[k]);
+        if (files.indexOf(pairing.EN) !== -1 && files.indexOf(pairing.ZH) !== -1) { followedByBothFile++; break; }
+      }
+    }
+    expect(live.violations.length).toBeGreaterThan(0);
+    expect(followedByBothFile).toBe(live.violations.length);
   });
 
   test('D6 semantics + Context sentence: re-pin rhythm, same-commit rule, policy-home line', () => {
@@ -100,5 +161,8 @@ describe('ADR-0079 bilingual mirror convention (grill-t20)', () => {
     expect(a).toContain('MUST update README-zh-CN.md in the same commit');
     expect(a).toContain('re-pin');
     expect(a).toContain('the convention needs a policy home');
+    // the amended clause names the retained obligation and its carrier
+    expect(a).toContain('historical pairing scan');
+    expect(a).toContain('readme-pairing-baseline.json');
   });
 });

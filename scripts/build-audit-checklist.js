@@ -22,6 +22,31 @@ const ROOT = path.join(__dirname, '..');
 const CI_REL = path.join('.github', 'workflows', 'ci.yml');
 const OUT_REL = path.join('docs', 'governance', 'audit-checklist.json');
 
+// ADR-0092 D-M2 (grill-t35 D-005): the audit-time ADVISORY surface.
+//
+// A demoted check that nothing surfaces is a deleted check. The per-commit
+// rewrite-map leg was demoted to audit-time precisely because it is structurally
+// unsatisfiable for lane commits rebased onto a grown tree - but that is exactly
+// the finding an auditor most needs to SEE, so it is enumerated here and the
+// auditor attests its state in the coverage block. The commands are derived here,
+// never hand-typed into a report.
+const ADVISORIES = [
+  {
+    name: 'map-freshness-per-commit-advisory',
+    command: 'node scripts/check-map-freshness.js --advisory-only',
+    status: 'advisory (non-blocking)',
+    source_adr: 'docs/adr/0092-public-object-equivalence-and-post-land-verification-contract.md',
+    why: 'grill-t35 D-005 demoted the per-commit embedded-map check to audit-time: it is structurally unsatisfiable under the GitButler multi-lane landing model. The blocking authority is tip-map coverage; this surface keeps the unsatisfiable class visible so the auditor attests it rather than rediscovering it.',
+  },
+  {
+    name: 'post-land-subset',
+    command: 'node scripts/check-post-land.js',
+    status: 'wave-time (not a CI leg)',
+    source_adr: 'docs/adr/0092-public-object-equivalence-and-post-land-verification-contract.md',
+    why: 'grill-t35 D-004: re-verifies the LANDED public tip in a throwaway worktree. Deliberately not a CI job - CI observes the tree only after it is public, so it is the wrong observation point for a pre-public check. The auditor may re-run it to confirm the landed state.',
+  },
+];
+
 function buildChecklist(opts) {
   opts = opts || {};
   const yml = opts.ymlText || fs.readFileSync(path.join(ROOT, CI_REL), 'utf8');
@@ -39,6 +64,7 @@ function buildChecklist(opts) {
     source: '.github/workflows/ci.yml',
     jobs: jobRows,
     commands: commands,
+    advisories: ADVISORIES,
   };
 }
 
@@ -70,7 +96,7 @@ if (require.main === module) {
   const outAbs = path.join(ROOT, OUT_REL);
   if (argv[0] === 'emit') {
     const c = JSON.parse(fs.readFileSync(outAbs, 'utf8'));
-    console.log(JSON.stringify(c.commands, null, 2));
+    console.log(JSON.stringify({ commands: c.commands, advisories: (c.advisories || []).map(function (a) { return a.command; }) }, null, 2));
     process.exit(0);
   }
   const check = argv.indexOf('--check') !== -1;

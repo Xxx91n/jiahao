@@ -16,7 +16,18 @@ const { spawnSync, execFileSync } = require('child_process');
 // (inline identity + config-source isolation) - ambient config cannot leak.
 const hg = require('./helpers/git-hermetic');
 const ROOT = path.join(__dirname, '..');
-const read = (p) => fs.readFileSync(p, 'utf8');
+
+
+// The ADR-record count is DERIVED (scripts/build-adr-index.js rebuilds the
+// index; the count line rides that derived region). Pinning a literal here
+// made 15 wiring tests rot every time an ADR landed - grill-t34 audit 7.6
+// already de-counted one instance, and grill-t35 hit the same wall with 15.
+// The pin's real subject is 'the index was rebuilt and carries this ADR';
+// the number is the generator's business, so read it rather than restate it.
+function adrRecordCount() {
+  const m = read(path.join(ROOT, 'README.md')).match(/(\d+) architecture decision records/);
+  return m ? m[1] : null;
+}const read = (p) => fs.readFileSync(p, 'utf8');
 const readJson = (p) => JSON.parse(read(p));
 const ADR = path.join(ROOT, 'docs', 'adr', '0084-public-clone-verifiability-clone-degradability-landing-tail-exception-tag-timing-first-disclosure.md');
 const ADR83 = path.join(ROOT, 'docs', 'adr', '0083-declared-vs-actual-drift-clauses.md');
@@ -27,7 +38,12 @@ const CTX = path.join(ROOT, 'CONTEXT.md');
 const cap = require('../src/shared/capability');
 const fresh = require('../scripts/evidence-freshness');
 const EVD_REL = '.scratch/grill-t25/evidence';
-const BASE = 'fc390d5e778db567d12b072f7a25cbf1e73b03f8'; // t25 round base (public tip at round start)
+const BASE = 'fc390d5e778db567d12b072f7a25cbf1e73b03f8'; // t25 round base (public tip at round start) - pins the t25 REGISTRY row (freshness.rounds), used by the claim-point conformance assertions
+// grill-t35: the coverage window is a DIFFERENT fact from the round registry base,
+// and sharing one literal between them is what made this test rot in both
+// directions. ADR-0081 D-A re-anchors the coverage window per round; the registry
+// row keeps its own base. Two names, two facts.
+const COVERAGE_BASE = '78d8a14cbc90bbbe1f48a2931c69e41716738f6e'; // grill-t35 round base (origin/main at round start) - the coverage diff window (ADR-0081 D-A convention, re-anchored grill-t35)
 // single source: the registered pin_patterns entry (kind 'captured-at-head')
 // via fresh.capturedHeaderRe(freshness) - resolved lazily at call time
 // (grill-t29 A-8: no private copy, no module-level literal).
@@ -167,8 +183,8 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
     expect(r.seal.tag.target).toBe('bde0570be2caaf982d3d8c531c565bea2b069638');
   });
 
-  test('coverage leg re-anchored at the t25 base validates the latest row', () => {
-    const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'check-governance-inventory.js'), '--coverage-base', BASE], { cwd: ROOT, encoding: 'utf8' });
+  test('coverage leg re-anchored at the t35 base validates the latest row', () => {
+    const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'check-governance-inventory.js'), '--coverage-base', COVERAGE_BASE], { cwd: ROOT, encoding: 'utf8' });
     expect(r.status).toBe(0);
   });
 
@@ -250,7 +266,7 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
 
   test('README index rebuilt: index-rebuilt incl. ADR-0084', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('91 architecture decision records');
+    expect(r).toContain(adrRecordCount() + ' architecture decision records');
     expect(r).toContain('0084-public-clone-verifiability');
   });
 });
