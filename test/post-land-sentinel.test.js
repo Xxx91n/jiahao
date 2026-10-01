@@ -176,7 +176,9 @@ describe('checkSentinels provenance (round-2 audit R2-2b)', () => {
   };
   afterAll(function () {
     for (const d of PROBE_DIRS) {
-      try { require('child_process').spawnSync('git', ['worktree', 'prune'], { cwd: d }); } catch (e) { /* best effort */ }
+      // git WRITE ops in tests route through the hermetic helper (grill-t29 D-004);
+      // 'worktree prune' is a write, so it is not exempt.
+      try { hg.git(d, ['worktree', 'prune']); } catch (e) { /* best effort */ }
       try { require('fs').rmSync(d, { recursive: true, force: true }); } catch (e) { /* best effort */ }
     }
   });
