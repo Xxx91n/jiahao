@@ -124,6 +124,32 @@ describe('registration', () => {
     expect(a).toMatch(/read and judged\s*\n?INDEPENDENTLY/);
   });
 
+  // The class form of the check ADR-0092's own note asks for ("a grep for
+  // 'Declaration N of M' must return exactly M hits"). A `toContain('Declaration
+  // 2 of 3')` asserts one label exists and says nothing about the count the
+  // document claims - which is precisely the claim/sample gap this round spent
+  // three waves learning, and precisely how an earlier draft of this ADR ended up
+  // describing three numbered declarations while labelling them "of 4".
+  test('ADR-0092 declaration labels are internally consistent: counted FROM the labels', () => {
+    const a = fs.readFileSync(path.join(__dirname, '..', 'docs', 'adr',
+      '0092-public-object-equivalence-and-post-land-verification-contract.md'), 'utf8');
+    const labels = [];
+    const re = /Declaration (\d+) of (\d+)/g;
+    for (let m = re.exec(a); m !== null; m = re.exec(a)) {
+      labels.push({ n: Number(m[1]), statedTotal: Number(m[2]) });
+    }
+    expect(labels.length).toBeGreaterThan(0);
+    // One declared total, not a document arguing with itself about how many
+    // declarations it carries.
+    const totals = new Set(labels.map((l) => l.statedTotal));
+    expect(Array.from(totals)).toEqual([labels[0].statedTotal]);
+    // The count of labels equals the count the labels state.
+    expect(labels.length).toBe(labels[0].statedTotal);
+    // And the ordinals are exactly 1..M with no gaps and no duplicates.
+    const ordinals = labels.map((l) => l.n).sort((p, q) => p - q);
+    expect(ordinals).toEqual(Array.from({ length: labels[0].statedTotal }, (unused, i) => i + 1));
+  });
+
   test('the post-land carrier names the subset and states its non-CI positioning', () => {
     const s = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'check-post-land.js'), 'utf8');
     // Matched with /\s+/ across line breaks: these phrases are wrapped in the

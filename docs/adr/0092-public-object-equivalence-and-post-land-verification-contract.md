@@ -52,6 +52,20 @@ literal characters. A literal C1 character is the byte class this round exists t
 repair; a scanner that cannot represent its own target class safely is a scanner
 one shell round-trip away from corruption.
 
+**Scope and signature limits, declared here because this clause otherwise
+overstates them.** The set above is not an exhaustive byte sanitizer and its
+blast radius is narrower than "the corruption scanner" suggests. Two blind spots
+are open by declaration: **scope** — callers choose which files are scanned, and
+at the M-7 measurement `scripts/**` was in no caller's scope, so a governance
+script could carry corruption no caller would look at; **signature set** — a
+mid-file U+FEFF (`EF BB BF`, the `Out-File -Encoding utf8` prefix) is in neither
+the control-byte branch nor the C1 branch, and `docHygiene` returns no hit for a
+real file carrying one. Closing either one changes the scanner's contract and
+belongs in its own ADR round, not in a repair wave. Until that happens the
+supportable claim is "the known instances are repaired", never "byte corruption
+is closed" — which is the sentence this round wrote into the code and now writes
+here, because the round that shipped M-7 was the round repairing byte corruption.
+
 ### D-M2 - map-freshness: tip-map authority, per-commit demoted to advisory
 
 **Declaration 1 of 3 - the enumeration-surface contract change is declared here,
