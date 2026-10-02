@@ -14859,6 +14859,85 @@
       "object_purged_at": "2026-10-01T03:25:30.512Z",
       "errata_ref": null,
       "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "cf79e810c0f29116f848125e3e9cddcd029b5b9b",
+      "object_type": "commit",
+      "size": 553,
+      "snapshot": {
+        "subject": "grill-t35: docs — public-tree equivalence contract round spec + ledger + task book",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790822813 +0800",
+        "committer_ts": 1790822813,
+        "parents": [
+          "78d8a14cbc90bbbe1f48a2931c69e41716738f6e"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t35/reports/2026-10-01-audit-report.md",
+          "line": 5
+        },
+        {
+          "file": ".scratch/grill-t35/reports/2026-10-01-audit-report.md",
+          "line": 127
+        }
+      ],
+      "registered_at": "2026-10-02T10:40:27.831Z",
+      "reason": "grill-t36 T-0 recon: round-workbench hex tokens (agent run id) not git objects; D-008 audit channel",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "5ed69c4184e9b192004a568fd4fd4d4d38ce5c0a",
+      "object_type": "commit",
+      "size": 1052,
+      "snapshot": {
+        "subject": "GitButler Workspace Commit",
+        "author": "GitButler <gitbutler@gitbutler.com> 1790835073 +0800",
+        "committer_ts": 1790836080,
+        "parents": [
+          "8235950c7926f81dd4d53c3e072082fe2e101534",
+          "cf79e810c0f29116f848125e3e9cddcd029b5b9b"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t35/reports/2026-10-01-audit-report.md",
+          "line": 5
+        },
+        {
+          "file": ".scratch/grill-t35/reports/2026-10-01-audit-report.md",
+          "line": 127
+        }
+      ],
+      "registered_at": "2026-10-02T10:40:27.831Z",
+      "reason": "grill-t36 T-0 recon: round-workbench hex tokens (agent run id) not git objects; D-008 audit channel",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "1be3834c",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t36/decision-ledger.md",
+          "line": 161
+        }
+      ],
+      "registered_at": "2026-10-02T10:48:51.848Z",
+      "reason": "grill-t36 T-0 recon: round-workbench non-git hex token disclosed via D-008 audit channel",
+      "carried_log": [],
+      "object_purged_at": "2026-10-02T10:48:51.848Z",
+      "errata_ref": null,
+      "disposition": "orphaned"
     }
   ]
 }

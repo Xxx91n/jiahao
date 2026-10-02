@@ -339,6 +339,19 @@ function objectMtime(sha, type) {
   try { return Math.floor(fs.statSync(loose).mtimeMs / 1000); } catch (e) { return null; }
 }
 
+// ADR-0093 D-6 (grill-t36 D-003): the ONE generation-side citation read.
+// Tree-internal at `ref` (the map's assertion object), re-sorted by (file, line)
+// so the emission order stays the sorted file order the worktree scan had;
+// within a line, in-text order is kept (the HEX_RE loop runs left to right).
+// buildInner and the coverage re-scan in verifyPublishedOnly both call THIS, so
+// the recorded set and the set coverage judges can never drift into two reads.
+function generationOccurrences(root, ref) {
+  return scanDocTokensAt(root, ref).sort(function (a, b) {
+    if (a.file !== b.file) return a.file < b.file ? -1 : 1;
+    return a.line - b.line;
+  });
+}
+
 function build(oldRefs, newRef, opts) {
   return withSeams(opts, function () { return buildInner(oldRefs, newRef, opts || {}); });
 }
@@ -406,7 +419,18 @@ function buildInner(oldRefs, newRef, o) {
   const regErrors = oc.validateRegistry(registry);
   if (regErrors.length) throw new Error('orphan-cites registry fails self-consistency:\n' + regErrors.join('\n'));
   // fact 3: object existence, resolved in ONE batched cat-file process.
-  const occurrences = scanDocTokens();
+  //
+  // ADR-0093 D-6 (grill-t36 D-003): the generation path is BOUND TO THE
+  // ASSERTION OBJECT. The citation set is read from the tree of `newRef` — the
+  // ref this map claims to describe — not from the workspace union
+  // (`ls-files` + worktree reads) the merging-tree `scanDocTokens()` used.
+  // That union is an observer choosing what it looks at: it enumerated files on
+  // unlanded lanes and baked their citations into a map that claimed to
+  // describe the public tip (the t35 landing's phantom rows, caught by leg 209).
+  // scanDocTokensAt() is the same token predicate (HEX_RE + the [a-f] test,
+  // SELF / REGISTRY_INPUT / doc-path / doc-ext filters identical) evaluated
+  // against a tree instead of the worktree — same rows, named source.
+  const occurrences = generationOccurrences(_root, newRef);
   const uniqTokens = Array.from(new Set(occurrences.map(function (x) { return x.sha; })));
   const facts = batchObjectFacts(uniqTokens);
 
@@ -495,6 +519,14 @@ function buildInner(oldRefs, newRef, o) {
     schema_version: 2,
     _doc: 'ADR-0074 D-C + ADR-0089: append-only, tool-generated single translation point. Classes derive from declared facts (pair/removed tables, pinned published_tip ancestry, cat-file existence, orphan-cites registry); ref topology lives only in qualifiers.reachable_via. Regenerate: node scripts/build-rewrite-map.js; verify: --check.',
     generated_by: 'scripts/build-rewrite-map.js',
+    // ADR-0093 D-6 (grill-t36 D-003) generation provenance, buildinfo shape:
+    // WHICH tree this map was generated from and HOW. `tree-ish` is the ref
+    // named by sides.new_refs[0] (the assertion object); `mode` is
+    // 'tree-internal' because the citation set is read from that tree, never
+    // from the workspace union. Machine-asserted by --published-only (see
+    // verifyPublishedOnly): a map without this field is a map that will not
+    // say which tree it describes, which is the phantom-row precondition.
+    generated_from: { 'tree-ish': newRef, mode: 'tree-internal' },
     generated_at: new Date().toISOString(),
     published_tip: git(['rev-parse', newRef]).trim(),
     boundary: { shared_base: base, old_tip: oldTip, new_counterpart: newest ? newest.new : null },
@@ -594,6 +626,29 @@ function verifyPublishedOnly(map, newRef, opts) {
   if (HEX40.test(b.new_counterpart || '') && !anc(b.new_counterpart, newRef)) errs.push('boundary.new_counterpart not on ' + newRef);
   if (!HEX40.test(map.published_tip || '')) errs.push('published_tip is not a full sha');
   else if (!anc(map.published_tip, newRef)) errs.push('published_tip not on ' + newRef);
+  // ADR-0093 D-6 (grill-t36 D-003): generation provenance, machine-asserted.
+  // A map that will not name the tree it was generated from is the phantom-row
+  // precondition, so presence + mode are required on the PRIMARY path (the leg
+  // this function serves), and `tree-ish` must name exactly the ref under test.
+  //
+  // Scope of the presence requirement, declared because it is not a weakening:
+  // under `commitBound` this function judges maps INSIDE historical commits —
+  // commits written before D-6 existed, which cannot be rewritten (forward-only).
+  // For those, the field is validated WHEN PRESENT (mode + tree-ish shape) and
+  // its absence is not an error; the registration-anchor exemption pattern this
+  // repo already uses for per-commit authorities. Blocking, non-commit-bound
+  // evaluation always requires it.
+  const gf = map.generated_from;
+  const commitBound = !!(opts && opts.commitBound);
+  if (!gf || typeof gf !== 'object') {
+    if (!commitBound) errs.push('generated_from missing - the map must name the tree it was generated from (ADR-0093 D-6)');
+  } else {
+    if (gf.mode !== 'tree-internal') errs.push('generated_from.mode = ' + JSON.stringify(gf.mode) + ' - expected tree-internal (ADR-0093 D-6)');
+    if (typeof gf['tree-ish'] !== 'string' || !gf['tree-ish']) errs.push('generated_from.tree-ish must name the generation tree');
+    else if (!commitBound && gf['tree-ish'] !== newRef) {
+      errs.push('generated_from.tree-ish = ' + gf['tree-ish'] + ' but this verification judges ' + newRef + ' (ADR-0093 D-6)');
+    }
+  }
   if (opts && opts.commitBound) {
     // Per-commit port (grill-t30 D-004): newRef is the commit under test, not
     // a live refname - a map committed inside a historical tree names a REF
@@ -632,7 +687,12 @@ function verifyPublishedOnly(map, newRef, opts) {
   // citation coverage: re-scan the tracked doc surface; the map must name
   // every hex citation. Classification is the old-side part and is
   // deliberately not re-derived here - coverage alone is clone-verifiable.
-  const live = ((opts && opts.occurrences) || scanDocTokens()).map(function (o) { return o.file + ':' + o.line + ':' + o.sha; }).sort();
+  //
+  // ADR-0093 D-6: when no caller supplies the citation set, the re-scan reads
+  // the TREE OF newRef - the same tree generation read - so "coverage" can no
+  // longer mean "coverage of whatever files happen to be checked out here"
+  // (the workspace-union read that let a map describe a tree it never read).
+  const live = ((opts && opts.occurrences) || generationOccurrences(vRoot, newRef)).map(function (o) { return o.file + ':' + o.line + ':' + o.sha; }).sort();
   const recorded = docRefs.map(function (d) { return d.file + ':' + d.line + ':' + d.sha; }).sort();
   if (JSON.stringify(live) !== JSON.stringify(recorded)) {
     const have = {}; recorded.forEach(function (k) { have[k] = 1; });
