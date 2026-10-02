@@ -586,6 +586,17 @@
       "requires": [
         "repo-tree"
       ]
+    },
+    {
+      "name": "claim-surface-roles",
+      "command": "node scripts/check-claim-surface-roles.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0093-observer-equivalence-contract.md",
+      "order": 232,
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ]
     }
   ]
 }

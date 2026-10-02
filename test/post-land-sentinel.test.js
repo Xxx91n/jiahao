@@ -227,6 +227,91 @@ describe('doc-hygiene signature set: the mid-line TAB predicate has a positive f
     expect(tab).not.toContain('@1422');
     expect(tab).toContain('byte offset');
   });
+// ADR-0093 D-2 (grill-t36 D-004, wave two): the signature set's two new
+// classes, with the positive AND negative fixture each one needs. A predicate
+// with no negative fixture is a predicate nobody has shown does not fire on
+// legitimate content, which is indistinguishable from a predicate that is
+// simply always on - and an always-on predicate is the always-green shape this
+// round exists to end.
+describe('doc-hygiene signature set: mid-file U+FEFF and the bidi directional-control family (ADR-0093 D-2)', () => {
+  const { docHygiene } = require('../scripts/shared/doc-hygiene');
+  const BOM = Buffer.from([0xef, 0xbb, 0xbf]);
+
+  test('POSITIVE: a mid-file U+FEFF is flagged, and the offset is a BYTE offset', () => {
+    // The Out-File -Encoding utf8 prefix shape that M-7 found inside a
+    // governance script. Preceded by multi-byte text on purpose: 6 CJK chars
+    // are 18 bytes and 6 characters, so a character-indexed implementation
+    // reports 6 where the replayable byte offset is 18. That is the p-3 two-unit
+    // bug, and this fixture is its guard on the new predicate.
+    const head = Buffer.from('中文中文中文', 'utf8');
+    expect(head.length).toBe(18);
+    const buf = Buffer.concat([head, BOM, Buffer.from('tail\n')]);
+    const hit = docHygiene(buf).find((h) => h.includes('U+FEFF'));
+    expect(hit).toBeDefined();
+    expect(hit).toContain('@18');
+    expect(hit).not.toMatch(/@6\b/);
+    expect(hit).toContain('byte offset');
+  });
+
+  test('NEGATIVE: a file carrying no BOM returns no U+FEFF hit (the predicate is not always on)', () => {
+    expect(docHygiene(Buffer.from('clean prose with CJK 中文 and no BOM\n'))).toEqual([]);
+    // And an EMPTY buffer, which is the boundary a naive length guard gets wrong.
+    expect(docHygiene(Buffer.alloc(0))).toEqual([]);
+    // Two bytes short of the triplet must not fire - the predicate is the
+    // 3-byte sequence, not a loose 'starts with EF' test.
+    expect(docHygiene(Buffer.from([0xef, 0xbb]))).toEqual([]);
+  });
+
+  test('the FEFF predicate is widened to ANY offset, including offset 0', () => {
+    // Offset 0 is inside the widening deliberately: this repo's own policy is
+    // UTF-8 without BOM, so a LEADING BOM is the same write path as the
+    // mid-file one. A rule that exempted the first byte would exempt the writer
+    // who chooses to put it there.
+    const lead = docHygiene(Buffer.concat([BOM, Buffer.from('# doc\n')]))
+      .find((h) => h.includes('U+FEFF'));
+    expect(lead).toContain('@0');
+  });
+
+  test('POSITIVE: every member of the bidi family is flagged, each named by codepoint', () => {
+    // The declared family: U+202A-202E, U+2066-2069, U+200E, U+200F, U+061C.
+    const FAMILY = ['\u202a', '\u202b', '\u202c', '\u202d', '\u202e',
+      '\u2066', '\u2067', '\u2068', '\u2069', '\u200e', '\u200f', '\u061c'];
+    for (const cp of FAMILY) {
+      const buf = Buffer.concat([Buffer.from('the class is never '), Buffer.from(cp, 'utf8'), Buffer.from('closed\n')]);
+      const hit = docHygiene(buf).find((h) => h.includes('bidi directional control'));
+      expect(hit).toBeDefined();
+      expect(hit).toContain('U+' + cp.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0'));
+      expect(hit).toContain('byte offset');
+    }
+  });
+
+  test('NEGATIVE: the family NOT taken stays clean - zero-width, NBSP, soft hyphen', () => {
+    // D-2's rejected item, pinned as a negative fixture so a later editor who
+    // "helpfully" admits them trips a test instead of quietly widening the set.
+    // This is a bilingual repository; these three have legitimate uses here,
+    // and admitting them would violate the measured-not-guessed criterion the
+    // ratchet baseline is registered under.
+    const zw = ['\u200b', '\u200c', '\u200d']; // zero-width space/non-joiner/joiner
+    for (const cp of zw.concat(['\u00a0', '\u00ad'])) {
+      const buf = Buffer.from('合法用途 legitimate ' + cp + ' usage\n', 'utf8');
+      expect(docHygiene(buf)).toEqual([]);
+    }
+    // Explicitly: an em-dash and CJK punctuation are also clean, so the
+    // negative is about the three named classes and not about non-ASCII.
+    expect(docHygiene(Buffer.from('范围：仅签名集。 — ok\n', 'utf8'))).toEqual([]);
+  });
+
+  test('a bidi sequence in the middle of a governance sentence is exactly the asserted threat', () => {
+    // The in-repo reason D-2 gives for acting on Trojan Source here: the
+    // rendering form of a governance document IS the assertion carrier. This
+    // fixture is the sentence the round is defending, with the RLO that would
+    // make it render as "closed" sitting inside it.
+    const buf = Buffer.from('known instances are repaired, never \u202eclosed\u202c\n', 'utf8');
+    const hits = docHygiene(buf);
+    expect(hits.filter((h) => h.includes('bidi directional control')).length).toBe(2);
+  });
+});
+
 });
 
 // Round-2 audit R2-2b: the judgeSegment tests above only exercise ARITHMETIC.
@@ -276,6 +361,25 @@ describe('checkSentinels provenance (round-2 audit R2-2b)', () => {
     require('fs').mkdirSync(require('path').dirname(p), { recursive: true });
     require('fs').writeFileSync(p, text, 'utf8');
   }
+  // ADR-0093 D-5 (grill-t36 D-005): the closeout selector reads the claim-surface
+  // role registry instead of matching filenames, so a fixture whose claim artifacts
+  // carry no rows is an unregistered claim surface - and the leg fails closed on
+  // that rather than reporting an empty candidate set. Registered here up front and
+  // committed by the fixtures' own `git add -A` (the registry file is not a claim
+  // path, so it does not enter the wave-boundary derivation these tests assert).
+  const ROLES = require('../scripts/shared/claim-surface-roles');
+  function registerClaims(dir, paths) {
+    put(dir, ROLES.REGISTRY_REL, JSON.stringify({
+      schema_version: 1,
+      _doc: 'fixture registry',
+      source_adr: 'docs/adr/0093-observer-equivalence-contract.md',
+      roles_enum: ROLES.ROLES.slice(),
+      field_governance: { classification: {} },
+      entries: paths.slice().sort().map((p) => ({
+        path: p, role: 'implementer', declared_by: 'fixture', declared_at: '2026-10-02', status: 'active',
+      })),
+    }, null, 2) + '\n');
+  }
   function commitIn(dir, msg) {
     hg.git(dir, ['add', '-A']);
     hg.git(dir, ['commit', '-q', '-m', msg]);
@@ -305,6 +409,7 @@ describe('checkSentinels provenance (round-2 audit R2-2b)', () => {
     const reg = commitIn(dir, 'leg registers');
     // a claim-surface commit, then the artifact carrying a block that names it
     put(dir, '.scratch/grill-t99/reports/a.md', 'report\n');
+    registerClaims(dir, ['.scratch/grill-t99/reports/a.md', '.scratch/grill-t99/handoffs/closeout.md']);
     const claim = commitIn(dir, 'claim change');
     put(dir, '.scratch/grill-t99/handoffs/closeout.md',
       blockFor(claim, new Date(Number(hg.git(dir, ['log', '-1', '--format=%ct', claim])) * 1000 + 60000).toISOString(), 'b'.repeat(40)));
@@ -323,6 +428,7 @@ describe('checkSentinels provenance (round-2 audit R2-2b)', () => {
     put(dir, 'scripts/check-post-land-sentinel.js', '// registration marker\n');
     commitIn(dir, 'leg registers');
     put(dir, '.scratch/grill-t99/handoffs/closeout.md', 'wave report, no block yet\n');
+    registerClaims(dir, ['.scratch/grill-t99/handoffs/closeout.md', '.scratch/grill-t99/reports/later.md']);
     const older = commitIn(dir, 'first claim change');
     // the block lands in that SAME artifact, naming the claim commit
     put(dir, '.scratch/grill-t99/handoffs/closeout.md',

@@ -52,19 +52,40 @@ literal characters. A literal C1 character is the byte class this round exists t
 repair; a scanner that cannot represent its own target class safely is a scanner
 one shell round-trip away from corruption.
 
-**Scope and signature limits, declared here because this clause otherwise
-overstates them.** The set above is not an exhaustive byte sanitizer and its
-blast radius is narrower than "the corruption scanner" suggests. Two blind spots
-are open by declaration: **scope** — callers choose which files are scanned, and
-at the M-7 measurement `scripts/**` was in no caller's scope, so a governance
-script could carry corruption no caller would look at; **signature set** — a
-mid-file U+FEFF (`EF BB BF`, the `Out-File -Encoding utf8` prefix) is in neither
-the control-byte branch nor the C1 branch, and `docHygiene` returns no hit for a
-real file carrying one. Closing either one changes the scanner's contract and
-belongs in its own ADR round, not in a repair wave. Until that happens the
-supportable claim is "the known instances are repaired", never "byte corruption
-is closed" — which is the sentence this round wrote into the code and now writes
-here, because the round that shipped M-7 was the round repairing byte corruption.
+**Scope and signature limits — the two blind spots named above are now closed
+by declaration (ADR-0093 D-1 and D-2).** The set above is still not an
+exhaustive byte sanitizer, and that statement is unchanged by this amendment.
+What changes is that the two holes this clause declared no longer exist:
+
+- **Scope, closed.** The caller-selected surface is withdrawn. The enumeration
+  is `scripts/shared/tracked-text.js`'s `trackedTextFiles(root)` — the
+  `gitattributes` `text` attribute as primary criterion, NUL sniffing as
+  fallback for files no attribute speaks for, an oversized-file skip disclosed
+  per run rather than swallowed, over the base of `git ls-files` taken as the
+  union of index and tree. Callers pass a root and nothing else. `scripts/**` is
+  inside the surface now, which is what it was not at the M-7 measurement.
+- **Signature set, closed.** Mid-file U+FEFF is asserted as the byte-level
+  `EF BB BF` triplet, widened by its own declared widening to any offset, and
+  the bidi directional-control family (U+202A–202E, U+2066–2069, U+200E,
+  U+200F, U+061C) is in the set beside it. The zero-width family, U+00A0 and
+  U+00AD were measured against this repository's bilingual corpus and left out;
+  they stay registered in the deferral registry rather than admitted on
+  assertion. The registered-set mechanism remains open — a new class is admitted
+  by measurement, not by assertion.
+
+The pre-existing violations that widening the surface made visible are
+registered in a committed ratchet baseline
+(`docs/governance/doc-hygiene-baseline.json`, ADR-0093 D-1), re-derived on every
+run. That is what keeps this leg red on new corruption instead of either waving
+the backlog through or staying permanently red.
+
+**What remains true, unchanged, and is the sentence this round still writes
+here:** the class is not closed. Two named holes were closed by declaration; a
+finite signature set with a disclosed boundary is one edit away from a class it
+does not name. The supportable claim is still "the known instances are
+repaired", never "byte corruption is closed" — and because the round that
+shipped M-7 was the round repairing byte corruption, that sentence belongs in
+the code and here, and must not be merged into the closure above.
 
 ### D-M2 - map-freshness: tip-map authority, per-commit demoted to advisory
 

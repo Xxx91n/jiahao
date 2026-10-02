@@ -7,6 +7,8 @@ const crypto = require('crypto');
 const { execFileSync, spawnSync } = require('child_process');
 const ROOT = path.join(__dirname, '..');
 const { docHygiene } = require("../scripts/shared/doc-hygiene");
+const trackedText = require('../scripts/shared/tracked-text');
+const baseline = require('../scripts/build-doc-hygiene-baseline');
 
 
 // The ADR-record count is DERIVED (scripts/build-adr-index.js rebuilds the
@@ -566,11 +568,59 @@ describe('grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendi
   // The t18 negative fixtures further down remain the regression lock on the
   // signature set itself.
 
-  test('doc-hygiene pin: every committed .scratch/*.md is free of corruption signatures', () => {
-    const files = tracked().filter(function (f) { return /^\.scratch\/.+\.md$/.test(f); });
-    expect(files.length).toBeGreaterThan(100);
-    for (const f of files) {
-      expect({ f: f, hits: docHygiene(fs.readFileSync(path.join(ROOT, f))) }).toEqual({ f: f, hits: [] });
+  // ADR-0093 D-1 (grill-t36 D-004, wave one): the pin's enumeration surface is
+  // no longer chosen here. It used to be the `.scratch` markdown subset - a
+  // caller-selected scope, which is the observer choosing what it will not look
+  // at, and at the M-7 measurement no caller's scope contained `scripts/**` at
+  // all. The surface now comes from trackedTextFiles(root), which takes a root
+  // and nothing else; this test cannot narrow it.
+  //
+  // The assertion is "no UNREGISTERED corruption", not "no corruption": the
+  // nine pre-existing instances that widening the surface made visible are
+  // registered in the ratchet baseline. Claiming an empty surface here would be
+  // a false green - it would read as a clean corpus over a tree that has known
+  // corruption in it, which is the always-green shape this baseline exists to
+  // prevent.
+  //
+  // The oversized skip is DISCLOSED here rather than swallowed: a skip whose
+  // set is invisible is an exemption, and an exemption nobody can see rots.
+  test('doc-hygiene pin: every tracked TEXT file is free of UNREGISTERED corruption signatures (ADR-0093 D-1)', () => {
+    const scan = trackedText.trackedTextScan(ROOT);
+    expect(scan.files.length).toBeGreaterThan(100);
+    expect(scan.unreadable).toEqual([]);
+    // The disclosed skip is named in the assertion surface, never dropped.
+    expect(Array.isArray(scan.oversized)).toBe(true);
+    expect(scan.files).not.toContain('docs/rewrite-map.json');
+    expect(scan.oversized).toContain('docs/rewrite-map.json');
+    const registered = new Set(baseline.reconcile(ROOT, {}).live.entries.map(baseline.baselineKey));
+    const unregistered = [];
+    for (const f of scan.files) {
+      for (const hit of docHygiene(fs.readFileSync(path.join(ROOT, f)))) {
+        const k = f + ' :: ' + baseline.signatureOf(hit);
+        if (!registered.has(k)) unregistered.push(k + ' -> ' + hit);
+      }
+    }
+    expect(unregistered).toEqual([]);
+  });
+
+  // The ratchet is what makes the widened surface landable: the backlog that
+  // widening made visible is registered, so the pin is red on NEW corruption
+  // only. Reconciled here rather than in the pin above so a registered
+  // instance and an unregistered one are distinguishable in the failure text.
+  test('doc-hygiene ratchet: the committed baseline reconciles and registers only real violations (ADR-0093 D-1)', () => {
+    const rec = baseline.reconcile(ROOT, {});
+    expect(rec.errors).toEqual([]);
+    expect(rec.live.entries.length).toBeGreaterThan(0);
+    const b = baseline.build(ROOT, {});
+    expect(b.source_adr).toBe('docs/adr/0093-observer-equivalence-contract.md');
+    expect(b.enumeration_surface.implementation).toContain('trackedTextFiles(root)');
+    // Every row is (path, signature, count) and carries no byte offset: an
+    // offset moves on any unrelated edit above it, which would make the
+    // baseline churn on changes that never touched the corruption.
+    for (const e of b.entries) {
+      expect(Object.keys(e).sort()).toEqual(['count', 'path', 'signature']);
+      expect(e.signature).not.toMatch(/@\d+/);
+      expect(e.count).toBeGreaterThan(0);
     }
   });
 
@@ -717,7 +767,11 @@ describe('grill-t19 dispositions (ADR-0077 missing-input clause + ADR-0078 strea
   }
 
   test('txt hygiene pin: every committed .scratch/**/*.txt is free of the path-LF-break signature (D-006)', () => {
-    const files = tracked().filter(function (f) { return /^\.scratch\/.+\.txt$/.test(f); });
+    // ADR-0093 D-1: the .txt leg keeps its OWN narrow signature set (per-type
+    // granularity is the t19 D-006 registration), but it no longer chooses its
+    // own FILE set - the paths come from the same tracked-text surface, so the
+    // two legs cannot disagree about which files exist.
+    const files = trackedText.trackedTextFiles(ROOT).filter(function (f) { return /\.txt$/.test(f); });
     expect(files.length).toBeGreaterThan(10);
     for (const f of files) {
       expect({ f: f, hits: txtHygiene(fs.readFileSync(path.join(ROOT, f))) }).toEqual({ f: f, hits: [] });

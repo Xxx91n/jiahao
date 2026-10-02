@@ -41,8 +41,17 @@ const { SENTINEL } = require('./check-post-land');
 
 const ROOT = path.join(__dirname, '..');
 const SELF_REL = 'scripts/check-post-land-sentinel.js';
-const CLAIM_RE = /^\.scratch\/grill-[^/]+\/(reports|handoffs)\//;
-const CLOSEOUT_RE = /(closeout|report)/;
+// The CLOSEOUT SELECTOR IS REGISTRY CONSUMPTION, NOT FILENAME MATCHING
+// (ADR-0093 D-5; grill-t36 D-5; grill-t36 D-005). `/(closeout|report)/` is
+// retired in the same commit that lands the registry leg - a coexistence window
+// between a regex and the registry is dual reading (ADR-0083 D-003). CLAIM_RE is
+// RETAINED, now from the shared lib so the two consumers cannot drift into two
+// range predicates: a range assertion ("is this path on a claim surface?") is
+// not a role assertion, and dropping it would widen what this leg treats as claim
+// surface. Filename freedom is the point: naming an artifact no longer changes
+// its governance.
+const roles = require('./shared/claim-surface-roles');
+const CLAIM_RE = roles.CLAIM_RE;
 
 const gitAt = (root) => (args) =>
   execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).trim();
@@ -124,8 +133,26 @@ function checkSentinels(root) {
   if (!reg) { errors.push('post-land-sentinel: registration commit not found (script never landed?)'); return { errors, checked: 0 }; }
   const regMs = Number(git(['log', '-1', '--format=%ct', reg])) * 1000;
 
-  const files = git(['ls-files']).split('\n').filter((f) =>
-    CLAIM_RE.test(f) && /\.md$/.test(f) && CLOSEOUT_RE.test(f));
+  // FAIL CLOSED on an unreadable declared surface. The selector below reads the
+  // role registry (ADR-0093 D-5); a missing or unparseable registry would
+  // otherwise make the candidate set EMPTY, and an empty set reads as "nothing
+  // to assert" - the silent-pass direction this round exists to close.
+  const loaded = roles.loadRegistry(root);
+  if (loaded.parseError || !loaded.registry) {
+    errors.push('post-land-sentinel: ' + (loaded.parseError || 'claim-surface role registry not found at ' + roles.REGISTRY_REL) +
+      ' - the closeout selector reads the registry, so an unreadable declared surface is a FAIL, not an empty candidate set');
+    return { errors, checked: 0 };
+  }
+  const registry = loaded.registry;
+
+  // Candidates: the REGISTERED claim artifacts (CLAIM_RE range n registry rows).
+  // Content decides the subject further down - an artifact with no block is not
+  // the subject of this contract - so the selector reads the registry, not names.
+  const registered = {};
+  roles.registeredPaths(registry).forEach(function (p) { registered[p] = true; });
+  const files = git(['ls-files']).split('\n').filter(function (f) {
+    return CLAIM_RE.test(f) && /\.md$/.test(f) && registered[f] === true;
+  });
   const inScope = [];
   for (const f of files) {
     let added = null;
