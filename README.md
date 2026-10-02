@@ -366,7 +366,7 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 <summary>ADR index — derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`</summary>
 
 <!-- adr-index:start -->
-- 92 architecture decision records:
+- 93 architecture decision records:
 - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
 - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
 - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
@@ -459,6 +459,7 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 - [ADR-0090](docs/adr/0090-countersign-rejection-disposition-contract.md) — Countersign Rejection Disposition Contract — Pre-Registered Exit Semantics, the Ratchet Tooth, and the Self-Row (grill-t34)
 - [ADR-0091](docs/adr/0091-derive-from-source-mechanism-contract.md) — Derive-from-Source Mechanism Contract — Test Manifest, Sentinel Declaration Regions, Audit Checklist, Coverage Block, and Argv Retirement (grill-t34)
 - [ADR-0092](docs/adr/0092-public-object-equivalence-and-post-land-verification-contract.md) — Public-Object Equivalence and the Post-Land Verification Contract (grill-t35)
+- [ADR-0093](docs/adr/0093-observer-equivalence-contract.md) — Observer Equivalence Contract — Byte Surface, Instrument Non-Intrusion, Claim-Surface Role Separation, and Generation Surface (grill-t36)
 <!-- adr-index:end -->
 
 </details>

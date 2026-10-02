@@ -130,9 +130,24 @@ describe('registration', () => {
   // document claims - which is precisely the claim/sample gap this round spent
   // three waves learning, and precisely how an earlier draft of this ADR ended up
   // describing three numbered declarations while labelling them "of 4".
-  test('ADR-0092 declaration labels are internally consistent: counted FROM the labels', () => {
-    const a = fs.readFileSync(path.join(__dirname, '..', 'docs', 'adr',
-      '0092-public-object-equivalence-and-post-land-verification-contract.md'), 'utf8');
+  //
+  // Extended to a per-carrier loop by grill-t36 (ADR-0093 adds its own
+  // independent N of M count: six declarations, and ADR-0092's existing "of 3"
+  // is NOT renumbered - a carrier that grows its label set does not renumber a
+  // sibling carrier's). The property is per-document, so the loop asserts it per
+  // document: a maintained list of totals would be the exact rot class this test
+  // was written to kill.
+  const DECLARATION_CARRIERS = [
+    '0092-public-object-equivalence-and-post-land-verification-contract.md',
+    '0093-observer-equivalence-contract.md',
+  ];
+
+  function readAdr(name) {
+    return fs.readFileSync(path.join(__dirname, '..', 'docs', 'adr', name), 'utf8');
+  }
+
+  function assertDeclarationLabelsSelfConsistent(name) {
+    const a = readAdr(name);
     const labels = [];
     const re = /Declaration (\d+) of (\d+)/g;
     for (let m = re.exec(a); m !== null; m = re.exec(a)) {
@@ -148,6 +163,34 @@ describe('registration', () => {
     // And the ordinals are exactly 1..M with no gaps and no duplicates.
     const ordinals = labels.map((l) => l.n).sort((p, q) => p - q);
     expect(ordinals).toEqual(Array.from({ length: labels[0].statedTotal }, (unused, i) => i + 1));
+  }
+
+  test.each(DECLARATION_CARRIERS)(
+    'declaration labels are internally consistent, counted FROM the labels: %s',
+    (name) => { assertDeclarationLabelsSelfConsistent(name); });
+
+  // grill-t36 (D-004 / D-003 / D-005 / D-006): ADR-0093 carries its own
+  // declaration count, so it joins DECLARATION_CARRIERS above and receives the
+  // same class check - no second copy of the counting logic, no restated total.
+  //
+  // The Δ2 channel is only real if the count is per-carrier: a carrier growing its
+  // own label set must not renumber a sibling carrier's. Asserted as each
+  // carrier's self-consistency (above) plus the header cross-references that make
+  // the supersession findable - never as a restated pair of totals, which is the
+  // maintained-count shape t33 D-002 forbade for the countersign queue.
+  test('ADR-0093 adds declarations without renumbering ADR-0092', () => {
+    const a92 = readAdr('0092-public-object-equivalence-and-post-land-verification-contract.md');
+    const a93 = readAdr('0093-observer-equivalence-contract.md');
+    expect(a92).toContain('Declaration 1 of 3');
+    expect(a92).toContain('Declaration 3 of 3');
+    expect(a93).toContain('Declaration 1 of 6');
+    expect(a93).toContain('Declaration 6 of 6');
+    // The cross-membership is stated in prose, not merely implied by two
+    // documents that happen to use different totals: ADR-0093's header names
+    // which prior clause it amends and which selectors it relieves, so a reader
+    // landing on 0093 alone can find the superseded selectors.
+    expect(a93).toMatch(/Amends:\s*ADR-0092 D-M1/);
+    expect(a93).toMatch(/Relieves:.*ADR-0091 D-E.*ADR-0092 D-S1/);
   });
 
   test('the post-land carrier names the subset and states its non-CI positioning', () => {
