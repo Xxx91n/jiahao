@@ -52,18 +52,22 @@ function docHygiene(buf) {
   // stale on arrival (the rot class M-8 caught in the handoff). Re-derive with
   // `git ls-files | grep -cE '\.(md|txt)$'` if the figure is ever needed.
   //
-  // SCOPE AND SIGNATURE LIMITS, stated because round 3 was bitten by them: this
-  // signature set is not an exhaustive byte sanitizer, and its blast radius is
-  // narrower than it looks. Two blind spots, open by declaration, not closed:
-  //   - SCOPE: callers choose which files are scanned, and at the M-7
-  //     measurement `scripts/**` was in no caller's scope at all - so a
-  //     governance script could carry corruption no caller would ever look at.
-  //   - SIGNATURE SET: a mid-file U+FEFF (EF BB BF) is in NEITHER the
-  //     control-byte branch NOR the C1 branch, and `docHygiene` returns [] on a
-  //     real file carrying one.
-  // Either closure is a signature-set/scope change and belongs in its own ADR
-  // round. Until then no claim that "byte corruption is closed" is supportable -
-  // only "the known instances are repaired".
+  // SCOPE AND SIGNATURE LIMITS, restated after ADR-0093 D-1/D-2 (grill-t36
+  // D-004). The two blind spots this comment used to declare OPEN are now
+  // closed BY DECLARATION, and the two sentences are deliberately separate:
+  //
+  //   Closed by declaration: the scope. `scripts/shared/tracked-text.js`
+  //   enumerates every tracked text file - gitattributes `text` primary,
+  //   NUL-sniff fallback, oversized disclosed skip, index-union-tree base -
+  //   and callers pass a root and nothing else. The caller-chosen blast radius
+  //   is withdrawn, so `scripts/**` is no longer outside every caller's view.
+  //
+  //   The class remains open: byte corruption. What is registered is a
+  //   SIGNATURE SET with a disclosed boundary (the oversized skip), not a
+  //   sanitizer, and a set that is finite is one edit away from a class it does
+  //   not name. Known instances are repaired, never closed. No sentence here
+  //   may merge the two claims.
+  //
   // Indexed over the BYTE buffer, not over `t`. The byte loop above reports
   // byte offsets; a second loop indexing the decoded string would put a
   // CHARACTER index into the same hits array, and every multi-byte character
@@ -78,6 +82,45 @@ function docHygiene(buf) {
     let j = i - 1;
     while (j >= 0 && buf[j] !== 10) j--;
     if (i - 1 - j > 0) hits.push('mid-line TAB (eaten-$ class) @' + i + ' (byte offset)');
+  }
+  // ADR-0093 D-2 (grill-t36 D-004, wave two): two signature classes join the
+  // set. Both are asserted at the BYTE layer, never the decoded-string layer,
+  // for the p-3 reason stated above - a reported offset an auditor cannot
+  // replay is worse than no offset at all.
+  //
+  // (1) U+FEFF, the `Out-File -Encoding utf8` / escape-eating prefix, as the
+  //     EF BB BF triplet. The predicate is widened to ANY OFFSET by its own
+  //     declared widening, separate from the two widenings named in D-1.
+  //     Offset 0 is inside "any offset" deliberately: this repository's own
+  //     policy is UTF-8 without BOM, so a leading BOM is not a legitimate
+  //     exception here - it is the same write path that produces the mid-file
+  //     case, and a rule that exempts the first byte exempts the writer that
+  //     chooses to put it there.
+  for (let i = 0; i + 2 < buf.length; i++) {
+    if (buf[i] === 0xef && buf[i + 1] === 0xbb && buf[i + 2] === 0xbf) {
+      hits.push('U+FEFF (EF BB BF, any offset) @' + i + ' (byte offset)');
+    }
+  }
+  // (2) The bidi directional-control family: U+202A-202E, U+2066-2069,
+  //     U+200E, U+200F, U+061C. Trojan Source (CVE-2021-42574) is the
+  //     external class; the in-repo reason is that the rendering form of a
+  //     governance document IS the assertion carrier, so a bidi sequence can
+  //     make "never closed" read as "closed" on the one surface a reader
+  //     trusts without inspecting bytes.
+  //     Written as \u escapes, never as literal characters - same escape
+  //     discipline as the C1 range above. A literal bidi control here would be
+  //     a byte this scanner is meant to flag, sitting inside the scanner.
+  const BIDI = ['\u202a', '\u202b', '\u202c', '\u202d', '\u202e',
+    '\u2066', '\u2067', '\u2068', '\u2069',
+    '\u200e', '\u200f', '\u061c'];
+  for (const cp of BIDI) {
+    const needle = Buffer.from(cp, 'utf8');
+    const at = buf.indexOf(needle);
+    if (at !== -1) {
+      hits.push('bidi directional control U+'
+        + cp.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0')
+        + ' @' + at + ' (byte offset)');
+    }
   }
   return hits;
 }

@@ -18,7 +18,7 @@
 //
 // WHAT IS IN THE SUBSET:
 //   - map-freshness tip coverage (authority, D-005)
-//   - doc-hygiene over the tip tree's committed .scratch markdown
+//   - doc-hygiene over the tip tree's tracked TEXT surface (ADR-0093 D-1)
 //   - anchor/pin resolution: strict pins resolve to ancestors of the tip
 //   - README/zh-CN pairing scan (D-006) reconciled against its baseline
 //
@@ -55,6 +55,8 @@ const path = require('path');
 const { execFileSync, spawnSync } = require('child_process');
 const { requireCapabilities, exitUnverifiable } = require('../src/shared/capability');
 const { docHygiene } = require('./shared/doc-hygiene');
+const trackedText = require('./shared/tracked-text');
+const docBaseline = require('./build-doc-hygiene-baseline');
 const pairing = require('./shared/readme-pairing');
 
 const ROOT = path.join(__dirname, '..');
@@ -108,26 +110,53 @@ function runSubset(wt, opts) {
   // committed map for the will-land object would judge a tree that is not the one
   // about to land - the exact lane-vs-public confusion this round exists to fix.
 
-  // (1) doc-hygiene over the tip tree's committed .scratch markdown. This is
+  // (1) doc-hygiene over the tip tree's tracked TEXT surface. This is
   // the leg that would have caught R-A: the corrupted handoff is IN the public
   // tree, and the battery that ran before landing never saw it.
+  //
+  // ADR-0093 D-1 (grill-t36 D-004, wave one): the subset is no longer chosen
+  // here. This used to be `ls-tree -r HEAD` filtered to `.scratch/**\/*.md`, so
+  // the leg's blast radius was a regex in this file - the observer choosing what
+  // it will not look at, judged against the PUBLIC tree. It now consumes
+  // trackedTextFiles(wt): the same shared enumeration the jest pin consumes,
+  // over the tip worktree, so the landed verdict and the local verdict are two
+  // verdicts about one surface.
+  //
+  // The ratchet is reconciled here too: the leg reports UNREGISTERED corruption,
+  // and the nine pre-existing registered instances do not read as a red public
+  // tip. Reading the baseline from the TIP worktree (not the workspace) is the
+  // point - the public tree's verdict must be the public tree's baseline.
   let hygieneHits = 0;
   let hygieneFiles = 0;
+  let hygieneOversized = [];
   try {
-    const files = gitAt(wt)(['ls-tree', '-r', 'HEAD', '--name-only'])
-      .split('\n').filter((f) => /^\.scratch\/.+\.md$/.test(f));
-    hygieneFiles = files.length;
+    const scan = trackedText.trackedTextScan(wt);
+    hygieneFiles = scan.files.length;
+    hygieneOversized = scan.oversized;
+    const rec = docBaseline.reconcile(wt, {});
+    const registered = new Set(rec.live.entries.map(docBaseline.baselineKey));
     const bad = [];
-    for (const f of files) {
+    for (const f of scan.files) {
       let buf;
-      try { buf = fs.readFileSync(path.join(wt, f.split('/').join(path.sep))); } catch (e) { continue; }
-      const hits = docHygiene(buf);
-      if (hits.length) { hygieneHits += hits.length; bad.push(f + ' -> ' + hits.join(', ')); }
+      try { buf = fs.readFileSync(path.join(wt, f.split('/').join(path.sep))); }
+      catch (e) { bad.push(f + ' -> unreadable: ' + e.message); continue; }
+      for (const hit of docHygiene(buf)) {
+        hygieneHits += 1;
+        if (!registered.has(f + ' :: ' + docBaseline.signatureOf(hit))) bad.push(f + ' -> ' + hit);
+      }
     }
+    // The baseline's own reconciliation errors are this leg's errors too: a stale
+    // row or a grown count at the tip is a public-tree drift, not a local
+    // bookkeeping detail.
+    for (const e of rec.errors) bad.push(e);
+    for (const rel of scan.unreadable) bad.push(rel + ' -> unreadable at the tip');
     checks.push({
       name: 'doc-hygiene',
       status: bad.length ? 'fail' : 'pass',
-      detail: bad.length ? bad.join(' | ') : (hygieneFiles + ' committed .scratch markdown file(s) clean'),
+      detail: bad.length ? bad.join(' | ')
+        : (hygieneFiles + ' tracked text file(s) clean of unregistered corruption; registered-backlog '
+          + rec.live.entries.length + '; oversized-disclosed ' + hygieneOversized.length
+          + (hygieneOversized.length ? ' [' + hygieneOversized.join(', ') + ']' : '')),
       files: hygieneFiles,
     });
   } catch (e) {
@@ -237,7 +266,7 @@ function lastClaimMutation(git, wave) {
 
 const SUBSET_SCOPE = [
   'map-freshness tip coverage (authority, ADR-0092 D-M2)',
-  'doc-hygiene over the tip tree committed .scratch markdown (D-M1)',
+  'doc-hygiene over the tip tree tracked TEXT surface, ratcheted vs the committed baseline (ADR-0093 D-1)',
   'orphan-ancestry strict-pin resolution',
   'README/zh-CN pairing scan vs committed baseline (D-P2)',
 ];

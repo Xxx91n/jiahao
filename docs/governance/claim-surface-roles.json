@@ -1,0 +1,1607 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0093 D-5 (grill-t36 D-005): the claim-surface ROLE REGISTRY. Role attribution used to be read off filename shape, so naming an artifact changed its governance; this surface makes it a declared fact and is what retires the filename selectors registered by ADR-0091 D-E and ADR-0092 D-S1. DECLARED FACTS, NOT A DERIVED SURFACE: role attribution is a discretionary judgment with no mechanical source, so `generated_from` is forbidden here (D-003 stamps that field on generator output; if the role were derivable this file would not exist). Consumed by scripts/check-audit-surface.js (order 229) and scripts/check-post-land-sentinel.js (order 231); asserted by scripts/check-claim-surface-roles.js (order 232), which owns the fail-closed direction - a tracked claim-surface artifact with no row is an error, because a file that calls itself an examiner report is invisible to a checker reading only examiner rows. BACKFILL (D-005 clause 4, this commit): the pre-existing claim surface is registered once as a SEMANTIC REGISTRATION, not a pardon; rows accumulate and are never deleted, a retired path becomes `archived`, and deleting a row is an owner act plus a Declaration. Roles were NOT inferred from filename tokens (that inference is the lesion): every pre-existing row is the registering agent's registration, and `mechanical` marks the machine-produced diff/hash captures only. THE EXAMINER CLASS IS OWNER-RATIFIED and is EMPTY here: examiner rows ride the ADR-0086 exception channel (requested_by / reason / expires_at / scope, then owner ratification naming a `ratified_by` that may never equal `declared_by`), and the registering agent may REQUEST a row but never self-certify one - so no agent-authored row asserts examiner authority anywhere in this file. Re-attributing an existing row is a fenced act (owner + Declaration), not an agent edit. CLAIM_RE (the claim-surface range) is retained in scripts/shared/claim-surface-roles.js: a range assertion is not a role assertion.",
+  "source_adr": "docs/adr/0093-observer-equivalence-contract.md",
+  "roles_enum": [
+    "examiner",
+    "implementer",
+    "mechanical"
+  ],
+  "field_governance": {
+    "_doc": "ADR-0086 three-class field governance, inherited by D-005: the path->role mapping is fenced (rule change = Declaration), examiner rows are the exception channel (owner-ratify), the descriptive header fields are editorial.",
+    "classification": {
+      "entries[].path": "fenced",
+      "entries[].role": "fenced",
+      "entries[].status": "fenced",
+      "entries[].declared_by": "fenced",
+      "entries[].examiner_channel": "exception-channel",
+      "_doc": "editorial",
+      "source_adr": "editorial",
+      "schema_version": "editorial"
+    }
+  },
+  "entries": [
+    {
+      "path": ".scratch/grill-adr0058/handoffs/2026-09-12-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0058/handoffs/2026-09-12-closing-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0058/handoffs/2026-09-12-final-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0058/handoffs/2026-09-12-repair-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0058/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0058/reports/2026-09-12-audit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0058/reports/2026-09-12-final-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0058/reports/2026-09-12-repair-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0058/reports/2026-09-12-repair-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0058/reports/2026-09-12-repair-round2-closure.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0058/reports/2026-09-12-repair-round2-final-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0058/reports/2026-09-12-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0058/reports/README.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0059/handoffs/2026-09-12-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0059/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0059/reports/2026-09-12-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0059/reports/2026-09-12-backreport-standing-rules.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0059/reports/2026-09-12-q7-disposition.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0059/reports/2026-09-12-q8-budget-gate-research.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0059/reports/2026-09-12-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0061/handoffs/2026-09-13-round-closed-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0061/handoffs/2026-09-13-t1-t2-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0061/handoffs/2026-09-13-t3-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0061/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0061/reports/2026-09-13-audit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0061/reports/2026-09-13-closure-verification.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0061/reports/2026-09-13-reaudit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0061/reports/2026-09-13-repair-order-2.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0061/reports/2026-09-13-repair-order.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0061/reports/2026-09-13-repair-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0061/reports/2026-09-13-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-adr0061/reports/baseline-hashes.json",
+      "role": "mechanical",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t10/handoffs/2026-09-16-audit-passed.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t10/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t10/reports/2026-09-16-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t10/reports/2026-09-16-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t11/handoffs/2026-09-16-round-closed.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t11/handoffs/2026-09-17-audit-closed.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t11/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t11/reports/2026-09-16-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t11/reports/2026-09-17-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t12/handoffs/2026-09-17-audit-closed.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t12/handoffs/2026-09-17-reaudit-closed.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t12/handoffs/2026-09-17-round-closed.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t12/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t12/reports/2026-09-17-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t12/reports/2026-09-17-reaudit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t12/reports/2026-09-17-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t13/handoffs/2026-09-17-t3-audit-passed.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t13/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t13/reports/2026-09-17-r2-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t13/reports/2026-09-17-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t13/reports/2026-09-17-t3-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t13/reports/2026-09-17-t3-fix-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t13/reports/2026-09-17-t3-reaudit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t14/handoffs/2026-09-17-audit-passed.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t14/handoffs/2026-09-17-r1-r2-executed.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t14/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t14/reports/2026-09-17-audit-pass.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t14/reports/2026-09-17-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t15/handoffs/2026-09-18-audit-passed-with-findings.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t15/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t15/reports/2026-09-18-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t16/handoffs/2026-09-18-audit-passed-with-findings.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t16/handoffs/2026-09-18-round-complete.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t16/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t16/reports/2026-09-18-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t16/reports/2026-09-18-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t17/handoffs/2026-09-18-audit-passed-with-findings.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t17/handoffs/2026-09-18-round-complete.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t17/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t17/reports/2026-09-18-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t17/reports/2026-09-18-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t18/handoffs/2026-09-19-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t18/handoffs/2026-09-19-round-complete.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t18/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t18/reports/2026-09-19-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t18/reports/2026-09-19-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t19/handoffs/2026-09-19-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t19/handoffs/2026-09-19-round-complete.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t19/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t19/reports/2026-09-19-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t19/reports/2026-09-19-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t20/handoffs/2026-09-20-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t20/handoffs/2026-09-20-round-complete.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t20/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t20/reports/2026-09-20-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t20/reports/2026-09-20-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t21/handoffs/2026-09-22-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t21/handoffs/2026-09-22-audit-r2-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t21/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t21/reports/2026-09-22-audit-r2.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t21/reports/2026-09-22-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t21/reports/2026-09-22-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t22/handoffs/2026-09-22-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t22/handoffs/2026-09-22-round-complete.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t22/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t22/reports/2026-09-22-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t22/reports/2026-09-22-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t23/handoffs/2026-09-22-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t23/handoffs/2026-09-22-next-round-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t23/handoffs/2026-09-22-round-complete-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t23/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t23/reports/2026-09-22-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t23/reports/2026-09-22-repair-verification.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t23/reports/2026-09-22-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t24/handoffs/2026-09-23-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t24/handoffs/2026-09-23-post-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t24/handoffs/2026-09-23-round-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t24/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t24/reports/2026-09-23-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t24/reports/2026-09-23-repair-verification.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t24/reports/2026-09-23-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t25/handoffs/2026-09-24-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t25/handoffs/2026-09-24-round-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t25/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t25/reports/2026-09-24-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t25/reports/2026-09-24-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t26/handoffs/2026-09-24-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t26/handoffs/2026-09-24-round-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t26/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t26/reports/2026-09-24-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t26/reports/audit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t27/handoffs/2026-09-25-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t27/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t27/reports/2026-09-25-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t27/reports/audit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t28/handoffs/2026-09-26-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t28/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t28/reports/2026-09-26-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t28/reports/audit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t29/handoffs/2026-09-27-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t29/handoffs/2026-09-27-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t29/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t29/reports/2026-09-27-reaudit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t29/reports/2026-09-27-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t29/reports/audit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t30/handoffs/2026-09-27-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t30/handoffs/2026-09-27-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t30/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t30/reports/2026-09-27-audit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t30/reports/2026-09-27-reaudit-report-2.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t30/reports/2026-09-27-reaudit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t30/reports/2026-09-27-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t31/handoffs/2026-09-28-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t31/handoffs/2026-09-28-t32-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t31/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t31/reports/2026-09-28-audit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t31/reports/2026-09-28-reaudit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t31/reports/2026-09-28-reaudit2-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t31/reports/2026-09-28-repair-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t31/reports/2026-09-28-repair2-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t31/reports/2026-09-28-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t32/handoffs/2026-09-28-closeout.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t32/handoffs/2026-09-29-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t32/handoffs/2026-09-29-reaudit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t32/handoffs/2026-09-29-reaudit2-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t32/handoffs/2026-09-29-repair-closeout.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t32/handoffs/baseline.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t32/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t32/reports/2026-09-28-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t32/reports/2026-09-29-audit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t32/reports/2026-09-29-reaudit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t32/reports/2026-09-29-reaudit2-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t32/reports/2026-09-29-repair-report-loop2.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t32/reports/2026-09-29-repair-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t33/handoffs/2026-09-30-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t33/handoffs/2026-09-30-closeout.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t33/handoffs/baseline.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t33/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t33/reports/2026-09-30-audit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t33/reports/2026-09-30-reaudit-loop2-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t33/reports/2026-09-30-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t34/handoffs/2026-09-30-closeout.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t34/handoffs/2026-09-30-reaudit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t34/handoffs/baseline.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t34/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t34/reports/2026-09-30-audit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t34/reports/2026-09-30-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t35/handoffs/2026-10-01-impl-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t35/handoffs/2026-10-01-loop-close-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t35/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t35/reports/2026-10-01-audit-report-r2.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t35/reports/2026-10-01-audit-report-r3.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t35/reports/2026-10-01-audit-report-r4.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t35/reports/2026-10-01-audit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t35/reports/2026-10-01-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t35/reports/2026-10-02-landing-closeout.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t36/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t36/handoffs/pending-t6-snapshot-registration.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t6/handoffs/2026-09-14-t1-audit-pass.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t6/handoffs/2026-09-14-t1-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t6/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t6/reports/2026-09-14-audit-t1.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t6/reports/2026-09-14-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t7/handoffs/audit-passed.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t7/handoffs/impl-round-done.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t7/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t7/handoffs/unblind-round-audit-passed.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t7/handoffs/v2-round-audit-passed.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t7/handoffs/v2-round-done.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t7/reports/2026-09-14-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t7/reports/2026-09-15-audit-unblind.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t7/reports/2026-09-15-audit-v2round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t7/reports/2026-09-15-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t7/reports/2026-09-15-report-v2round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t7/reports/2026-09-15-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t7/reports/2026-09-15-rework.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t7/reports/audit-diff-stat.txt",
+      "role": "mechanical",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t7/reports/audit-diff.patch",
+      "role": "mechanical",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t7/reports/audit-v2round-diffstat.txt",
+      "role": "mechanical",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t7/reports/audit-v2round.diff",
+      "role": "mechanical",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t8/handoffs/2026-09-16-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t8/handoffs/2026-09-16-repair-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t8/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t8/handoffs/round-closed-2026-09-16.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t8/reports/2026-09-16-audit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t8/reports/2026-09-16-reaudit-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t8/reports/2026-09-16-repair-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t8/reports/2026-09-16-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t9/handoffs/audit-passed-2026-09-16.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t9/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t9/handoffs/v3-round-done.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t9/reports/2026-09-16-post-round-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t9/reports/2026-09-16-pre-unlock-audit.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t9/reports/2026-09-16-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t36 T-7 (implementer agent)",
+      "declared_at": "2026-10-02",
+      "status": "active"
+    }
+  ]
+}

@@ -20,9 +20,23 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const { requireCapabilities } = require('../src/shared/capability');
+const roles = require('./shared/claim-surface-roles');
 
 requireCapabilities('audit-surface'); // ADR-0040 D7d: the leg declares its own registry identity
 
+// The AUDIT-REPORT SELECTOR IS REGISTRY CONSUMPTION, NOT FILENAME MATCHING
+// (ADR-0093 D-5; grill-t36 D-005). This supersedes the filename selector
+// registered by ADR-0091 D-E (the audit-surface coverage extractor and its
+// checklist consumer): the registered candidates are now the claim-surface role
+// registry's rows. The regex retired with this change - `^\d{4}-\d{2}-\d{2}-
+// (audit|report)` over the round reports/handoffs directories - and it retires in
+// the SAME commit as the registry leg: two mechanisms reading one surface across
+// a window is dual reading (ADR-0083 D-003). The registry rows are the candidate
+// set; the coverage block itself remains the assertion object, so an artifact is a
+// subject only when it carries the contract. CLAIM_RE survives in
+// scripts/shared/claim-surface-roles.js: a range assertion ("is this path on a
+// claim surface?") is not a role assertion, and dropping it would widen the
+// surface this leg treats as claim.
 const ROOT = path.join(__dirname, '..');
 const CHECKLIST_REL = path.join('docs', 'governance', 'audit-checklist.json');
 const SENTINEL = '<!-- audit-coverage v1 -->';
@@ -76,24 +90,33 @@ if (require.main === module) {
     process.exit(1);
   }
   const scopeDateMs = Date.parse(firstCommitDate(path.join('docs', 'adr', adr91)) || new Date().toISOString());
-  // candidates: dated audit/report files on the claim surfaces
+  // Candidates: the REGISTERED claim artifacts that actually carry the coverage
+  // contract. Registry enumeration is a committed surface, so workspace residue
+  // that is not registered is not a candidate - and the reverse direction (a
+  // registered-surface artifact with no row) is the claim-surface-roles leg's
+  // assertion, so this leg never has to police it to stay honest.
+  const loaded = roles.loadRegistry(ROOT);
+  if (loaded.parseError || !loaded.registry) {
+    // Fail closed on an unreadable declared surface: an empty candidate set would
+    // otherwise be reported as "no in-scope report", which is a different claim.
+    console.error('FAIL: ' + (loaded.parseError || 'claim-surface role registry not found at ' + roles.REGISTRY_REL) +
+      ' - the audit-report selector reads the registry, so an unreadable declared surface is a FAIL, not an empty candidate set');
+    process.exit(1);
+  }
+  const registry = loaded.registry;
   const candidates = [];
-  const scratch = path.join(ROOT, '.scratch');
-  for (const round of fs.readdirSync(scratch).filter(function (d) { return /^grill-/.test(d); })) {
-    for (const sub of ['reports', 'handoffs']) {
-      const dir = path.join(scratch, round, sub);
-      if (!fs.existsSync(dir)) continue;
-      for (const f of fs.readdirSync(dir)) {
-        if (!/^\d{4}-\d{2}-\d{2}-(audit|report)/.test(f) || !f.endsWith('.md')) continue;
-        const rel = path.join('.scratch', round, sub, f).split(path.sep).join('/');
-        const date = firstCommitDate(rel);
-        candidates.push({ rel: rel, date: date, mtimeMs: date ? 0 : fs.statSync(path.join(ROOT, rel)).mtimeMs });
-      }
-    }
+  for (const rel of roles.registeredPaths(registry)) {
+    const abs = path.join(ROOT, rel.split('/').join(path.sep));
+    if (!/\.md$/.test(rel) || !fs.existsSync(abs)) continue;
+    let text;
+    try { text = fs.readFileSync(abs, 'utf8'); } catch (e) { continue; }
+    if (text.indexOf(SENTINEL) === -1) continue;
+    const date = firstCommitDate(rel);
+    candidates.push({ rel: rel, date: date, mtimeMs: date ? 0 : fs.statSync(abs).mtimeMs, role: roles.roleOf(registry, rel) });
   }
   const latest = pickLatest(candidates, scopeDateMs);
   if (!latest) {
-    console.error('FAIL: no audit report authored on/after the ADR-0091 registration exists yet - the coverage contract has no in-scope report to assert (bootstrap: land the round report with an audit-coverage v1 block)');
+    console.error('FAIL: no REGISTERED claim artifact authored on/after the ADR-0091 registration carries an audit-coverage v1 block - the coverage contract has no in-scope subject to assert (bootstrap: land the round report with the block AND its registry row in the same commit)');
     process.exit(1);
   }
   const reportText = fs.readFileSync(path.join(ROOT, latest.rel), 'utf8');
@@ -110,6 +133,8 @@ if (require.main === module) {
     process.exit(1);
   }
   console.log('[audit-surface] OK: latest in-scope audit report (' + latest.rel + ') declares coverage of the full checklist (' + checklist.commands.length + ' commands); verdict authority stays with the audit protocol');
+  console.log('[audit-surface] subject selected from the claim-surface role registry (declared role: ' +
+    roles.roleOf(registry, latest.rel) + ') - the filename selector is retired; naming an artifact no longer changes its governance');
   process.exit(0);
 }
 
