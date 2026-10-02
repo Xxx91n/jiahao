@@ -193,7 +193,7 @@
       "requires": [
         "repo-tree"
       ],
-      "_doc": "ADR-0065 D-B.3 (with ADR-0064 D-E): JS-only publish gate. Packs the tarball, replays the sha256-anchored gold20 expectations against the EXTRACTED src/port surface (tiers a/c blocking, b advisory), corrupted-port positive control must be rejected. Wired to prepublishOnly; never blocks local npm pack."
+      "_doc": "ADR-0065 D-B.3 (with ADR-0064 D-E): JS-only publish gate. Packs the tarball, replays the sha256-anchored gold20 expectations against the EXTRACTED src/port surface (tiers a/c blocking, b advisory), corrupted-port positive control must be rejected. Wired to prepublishOnly; never blocks local npm pack. ADR-0093 D-3 (grill-t36 D-006): the default path is COMPARE form - it computes the replay and diffs it against the committed bench/research/out/g6-publish-replay.json without writing, and exits 1 with EVIDENCE-STALE on a mismatch. The log is a derived evidence log, not a locked baseline (the locked baseline is the ADR-0050 append-only g6-publish-fixture.json), so a compare failure is a staleness alarm fixed by regenerating and committing, not replay drift. Regenerate with: node scripts/check-g6-publish.js --write-log - the only path that writes it."
     },
     {
       "name": "devin-oot-replay",

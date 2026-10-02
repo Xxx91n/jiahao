@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0065 D-B.3 / D-005(b): persisted replay log of the G6 publish gate - extracted-surface digest, per-tier results, positive-control verdict. Deterministic content (no clock fields); a green re-run reproduces identical bytes.",
+  "_doc": "ADR-0065 D-B.3 / D-005(b): persisted replay log of the G6 publish gate - extracted-surface digest, per-tier results, positive-control verdict. Deterministic content (no clock fields); a green re-run reproduces identical bytes. ADR-0093 D-3: DERIVED EVIDENCE LOG, not a locked baseline - the default gate path compares against this file and never rewrites it; regenerate with: node scripts/check-g6-publish.js --write-log. A compare failure is an evidence-staleness alarm, not replay drift (replay correctness is asserted at tiers a/c against the ADR-0050 append-only fixture).",
   "gate": "g6-publish",
   "tarball": {
     "file": "jiahao-0.0.1.tgz",
-    "size": 474291
+    "size": 486139
   },
   "extracted_surface_sha256": "7d276bb757e27cf3dc566b2dfd882278b693da1ef6e087fe8774094dc5622174",
   "expectations": 20,
