@@ -36,6 +36,12 @@ const path = require('path');
 const { spawnSync, execFileSync } = require('child_process');
 const { probe, requireCapabilities, validateRequires } = require('../src/shared/capability');
 const { PREFIXES } = require('../src/shared/prefix-vocab'); // ADR-0043 D-E: prefix vocabulary fact source
+// ADR-0093 D-4 (grill-t36 D-006): the tracked-surface snapshot module. Required
+// DEFERRED inside runGates(), for the same reason checkCoupling defers
+// check-bench-thresholds (ADR-0040 D2): the --check-alignment / --check-coupling
+// paths and the registry-load failure path must not need runtime deps, and the
+// wiring tests spawn this file into a bare tmp tree that carries only the
+// modules those paths actually use.
 
 const ROOT = path.join(__dirname, '..');
 const REGISTRY_REL = path.join('docs', 'gates.json');
@@ -130,6 +136,19 @@ function runGates(reg, opts) {
   const schedule = reg.entries.slice().sort(function (a, b) { return a.order - b.order; });
   const results = [];
   let confirmFailed = false;
+  // ADR-0093 D-4: entry zero point over the whole tracked tree. This is
+  // wrapper-level instrumentation, not a gates.json leg - a leg is
+  // structurally unable to observe the other legs, and an observation point
+  // in the wrong place is the argument that rejected a CI leg in t35-D-L1.
+  // (Same shape, different substance: where a thing can see vs who can see
+  // what. The two rejections are written apart in the ADR on purpose.)
+  // Opt out with trackedSurface:false; there is deliberately NO per-leg
+  // exemption channel - a leg that must write a tracked path has a contract
+  // problem, and an exemption list is where that would go to hide.
+  const surface = o.trackedSurface === false ? null
+    : require('../src/shared/tracked-surface').trackedSurface({ root: o.root || ROOT });
+  const surfaceRows = [];
+  if (surface) surface.begin();
   schedule.forEach(function (e) {
     function skip(status) { results.push({ name: e.name, order: e.order, tier: e.tier, status: status, warnings: 0, output: '' }); }
     if (e.tier === 'deferred-with-unfreeze') return skip('skipped-deferred');
@@ -145,6 +164,15 @@ function runGates(reg, opts) {
       return;
     }
     const r = exec(e.command);
+    // ADR-0093 D-4: recompute after each leg. Attribution granularity is
+    // two-layer - leg number plus file - and the changed-path list is not
+    // expanded into a full diff.
+    if (surface) {
+      const changed = surface.checkpoint();
+      if (changed.length) {
+        surfaceRows.push({ order: e.order, name: e.name, files: changed });
+      }
+    }
     const lines = String(r.output || '').split(/\r?\n/);
     const warnLines = lines.filter(function (l) { return /^::warning/.test(l); });
     // ADR-0041 D2/D3: exit 2 has exactly one meaning - probed capability
@@ -177,8 +205,25 @@ function runGates(reg, opts) {
       output: lines.filter(function (l) { return !/^::warning/.test(l); }).join('\n'),
     });
   });
+  // ADR-0093 D-4: the synthetic result row. Its tier is confirmatory blocking
+  // and does not drop to advisory - a leg that mutates the tree it measured is
+  // exactly the lesion this contract exists to make visible, and a visible
+  // lesion that cannot block is a comment.
+  if (surface) {
+    const clean = surfaceRows.length === 0;
+    const lines = clean
+      ? ['no tracked file changed during this run (whole tracked tree hashed at entry and again after each leg)']
+      : surfaceRows.map(function (row) {
+        return 'leg ' + row.order + ' ' + row.name + ' mutated ' + row.files.length + ' tracked path(s): ' + row.files.join(', ');
+      });
+    results.push({
+      name: '- tracked-surface', order: 'D-4', tier: 'confirmatory',
+      status: clean ? 'pass' : 'fail', code: clean ? 0 : 1, warnings: 0,
+      output: lines.join('\n'),
+    });
+  }
   const exitCode = results.some(function (r) { return r.status === 'fail' && r.tier === 'confirmatory'; }) ? 1 : 0;
-  return { results: results, exitCode: exitCode };
+  return { results: results, exitCode: exitCode, trackedSurface: surfaceRows };
 }
 
 function checkCoupling(baseRef) {
