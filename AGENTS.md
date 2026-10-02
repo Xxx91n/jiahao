@@ -54,7 +54,14 @@ docs/agents/domain.md.
   report may only claim committed-surface-reachable evidence; untracked
   captures are referenced by path/count pointers, never copied into the
   committed surface (grill-t28 D-003). Artifact residence is not
-  adjudication - verdict issuance stays owner-side.
+  adjudication - verdict issuance stays owner-side. The nc-001 convention
+  semantics is ignored-by-design: never committed, NOT required to be
+  visible in `git status` (grill-t36 D-008 - the `.gitignore` collection of
+  `.scratch/*/audit*-evidence/` and `.scratch/*/audit-backup/` mechanizes
+  the convention at the channel level, so absence from status is the
+  convention working, not a gap; the tracked LEGACY instances named in
+  `test/adr-0083-wiring.test.js` stay readable because an ignore rule is
+  constructively inert on a tracked path).
 - Wave-closeout order (E-17, grill-t30 D-004): re-capture evidence pins
   -> regenerate derived artifacts (rewrite-map LAST) -> `node
   scripts/build-rewrite-map.js --check` + `--published-only` clean ->
@@ -132,3 +139,16 @@ docs/agents/domain.md.
   prints the current checklist for the auditor to attest. The interim manual
   clause (grill-t33 D-004(i)) retired with the mechanism - no coexistence
   window.
+- Class-vs-sample discipline (grill-t36 D-007): a claim about a class
+  requires verifying the class - name the enumeration surface or register the
+  residual; a passing sample is evidence about the sample, not the class
+  (ISA 530 / PCAOB AS 2315 prototype: a conclusion extrapolates only to the
+  population it names). The two sentence-forms never merge: a finite
+  enumeration hole is closed by declaration, an open byte class is repaired,
+  never closed. Worked instance, bounded to what was actually measured: the
+  "What I got wrong three times, in the same shape" section of
+  `.scratch/grill-t35/reports/2026-10-01-report.md` - three instances of one
+  shape, NOT a claim that four rounds share the root. Not mechanized here:
+  any gate or leg enforcing this must arrive through the Δ2/Declaration
+  channel, never as a quiet tooling change. Cross-ref CONTEXT.md
+  `Evidence-Tiered Readiness`.

@@ -162,6 +162,12 @@ check-in；defer-0084 随 2026-12-15 潮汐不变。[D-002, D-008#8]
 - 三修腿落地且本地 check-post-land 对落地 tip 绿（树内容等价恢复）；
 - ADR-0092 含四处显式声明（Δ2 契约变更 / defer-0030 从属强化 /
   反 masking / TSA 不引入+armed trigger）+ F-6 收窄措辞；
+  - **ERRATA（grill-t36 D-009(c) 裁定，editorial，一行措辞修订不改史）**：
+    上一条的「四处显式声明」是四个斜杠列举**主题**，不是编号标签计数。
+    编号标签以 ADR-0092 D-M2 审计注记（在先同题裁定，声明 1/2/3 of 3）
+    为准：defer-0030 从属强化是 D-M2 内散文、非第四标签。引该注记为据
+    以防 dual-reading；「四标签」读法被拒（与 t36 D-004 新 Declaration
+    挂 ADR-0093 独立 N of M、不动 0092 既有「1 of 3」正面冲突）。
 - ADR-0079 amendment 落地（注释 display-form 声明+配对扫描断言）；
 - E-27 + defer-0078/0079 注册行文落地；
 - closeout 工件带双段 sentinel 块；公开 CI 绿以密件恢复为条件——
