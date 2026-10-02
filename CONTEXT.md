@@ -855,6 +855,96 @@ forgetfulness and not forgery, because writer and committer share a trust domain
 _Avoid_: pre-commit check (a battery is the whole subset, not a single hook; a
 hook is bypassable by `but commit` and raw git alike)
 
+**Tracked-Text Enumeration (受跟踪文本枚举面)** (grill-t36, ledger D-004):
+The input surface a hygiene scanner reads: every tracked file git's text
+attribute classifies as text, NUL sniffing as the fallback classifier, and
+oversized files skipped by disclosure rather than by exemption - a skip that
+names itself is a capability boundary, a silent allowlist is a roster nobody
+curates. The enumeration is one shared function of a root and callers pass the
+root, never a narrowed subset: a caller-chosen surface is the observer choosing
+not to look, which is the pathology rather than a configuration. Its base is
+`git ls-files` index union tree, because the index alone is not authoritative
+(ledger t30 F-1).
+_Avoid_: the Test Manifest's enumeration (that counts test suites for a derived
+count fact-source; this is a scanner's input surface); extension-set enumeration;
+pure-sniff enumeration; path carve-outs; a caller-supplied file list; undisclosed
+oversized skips
+
+**Instrument Non-Intrusion (仪器无侵入)** (grill-t36, ledger D-006):
+The contract that the measuring apparatus does not change the thing it
+measures. Verification and mutation are two commands, never one command with two
+outcomes: the default path computes a candidate and diffs it against the
+committed artifact, exiting non-zero on mismatch, and only an explicit
+write-mode regenerates (`prettier --check` / `--write` shape). The class
+assertion sits at the gate runner's wrapper level and takes a tracked-tree hash
+baseline at entry, so a pre-existing dirty tree is recorded as found rather than
+penalized - it asserts "this run mutated nothing tracked", not "the tree is
+clean". Untracked paths are excluded by the ignore mechanism's own division of
+labour, and there is no legitimate-tracked-write exemption channel: the
+legitimate exits are the compare form and ignored paths.
+_Avoid_: reading it as the narrower Verifier Write Surface (that confines a
+verifier to its own trail versus the object's anchor surface; this widens the
+object to the whole tracked tree for the duration of one gate run); Instrument
+Identity / Instrument Quarantine (those name which apparatus and whether it is
+authoritative, not whether it writes); "the tree must be clean" as the same
+assertion; window-bounded proof read as a closed class
+
+**Claim-Surface Role Registry (claim 面角色注册表)** (grill-t36, ledger D-005):
+The committed registry that assigns every claim-surface artifact a role -
+examiner, implementer, or mechanical - so the checkers read a declared fact
+instead of pattern-matching filenames (CODEOWNERS family). It is a declared-facts
+surface, never a derived one: role assignment is a discretionary judgment with no
+mechanical source, which is exactly why it must not carry `generated_from` - if
+the role were derivable, the registry would not be needed. Consumption is
+fail-closed in the direction that matters, because a file that calls itself an
+examiner's report is invisible to a checker that only reads the registry's
+examiner rows. The registry is itself an asserted object: every registered path
+exists in the tree, every claim-surface artifact has a row, and every role is
+inside the closed enumeration.
+_Avoid_: filename-token conventions (disproved in grill-t35); front-matter
+self-declaration (self-attested labels plus a widened enumeration surface);
+splitting the claim surface by directory (relocates the pathology and hard-codes
+the move); grandfather exemptions; an M1-shaped ratchet backfill (M3's defect is
+wrong selection, not noise); stamping `generated_from` on it; letting the agent
+that requests an examiner row also write it
+
+**Generation-Surface Equivalence (生成面等价)** (grill-t36, ledger D-003):
+The contract that a generator reads exactly the object it is about to assert
+about. A generator's read scope is part of its claim: enumerating citations on a
+merge workspace that still contains an unlanded lane bakes references to files the
+published tree never had, so the derived artifact describes a tree that does not
+exist. Two obligations carry it - tree-internal reads, and a `generated_from`
+provenance field naming the tree-ish and the mode, which turns "which tree is
+this about" into a machine-assertable fact rather than an assumption. A tree has
+no absolute legitimacy: legitimacy is a function of the assertion context, so
+reading a merge tree is correct for a pre-land check and wrong for map
+generation, and that is the same tree under two assertion domains. Unlike a
+byte-surface disclosure, this one really closes - the defect is an ordinary
+repairable generation bug, and its repair is required.
+_Avoid_: reading it as Public-Object Equivalence (that pairs a check's object
+with the public's object across a landing rewrite; this pairs a generator's read
+scope with its own assertion target); "generator" in its profile sense (Generator
+Profile, gsr rule header - those name the primary agent's behavior, not a build
+script's read scope); lane isolation as the fix (a discipline is bypassable, a
+contract is not); importing M1's ratchet baseline here (this is a
+false-positive red, not always-green noise); borrowing M1's "repaired, never
+closed" phrasing - the two closabilities differ in kind
+
+**generated_from (派生源字段)** (grill-t36, ledger D-003):
+The provenance field a derived artifact carries - `{tree-ish, mode}` - naming the
+tree it was generated from and the read discipline used, in the buildinfo shape.
+Its purpose is to convert "which tree does this describe" from an assumption into
+a machine-assertable fact, so a consumer can refuse an artifact that describes a
+tree it was not asked about. Presence is the signal of derivation: a registry of
+declared facts must not carry it, because a field saying "I was computed from X"
+is an admission that the content is computed - and if the content were computed,
+the declaration would not be a discretionary judgment.
+_Avoid_: stamping it on every governance JSON (the declared-facts registries -
+orphan-cites, thresholds, the role registry - hold judgments, not computations);
+using it in place of the read-scope fix (it describes the scope, it does not
+constrain it); a bare commit sha without the mode (which tree and which read
+discipline are two fields, not one); inferring the mode from the tree-ish
+
 
 ## Decision Log
 
