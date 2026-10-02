@@ -156,6 +156,27 @@ function claimCommits(root, opts) {
 // four historically-broken lane commits self-heal: their citations are in the
 // union, the regenerated tip map covers them, and no historical commit is
 // touched. Zero exemption entries are involved (D-005 negative requirement).
+//
+// WHICH LINE (ADR-0093 D-6 legitimacy boundary, grill-t36 D-003): the judged
+// line is the tree the map SAYS it describes - `generated_from['tree-ish']` -
+// not whatever HEAD happens to be. In CI those coincide (HEAD is the published
+// tip); in a GitButler workspace they do not: HEAD is the merged workspace
+// including unlanded lanes, while the map - since D-6 - describes the published
+// tree. Judging a published map against the merge tree would make the consumer
+// and the generator speak about two different objects, which is the defect D-6
+// exists to end. Maps without the field (pre-D-6, committed history) keep the
+// HEAD fallback, because history is forward-only and cannot be re-declared.
+function declaredTreeAt(root, tip) {
+  const t = mapAt(root, tip);
+  if (t === null) return null;
+  try {
+    const m = JSON.parse(t);
+    const gf = m && m.generated_from;
+    if (gf && typeof gf['tree-ish'] === 'string' && gf['tree-ish']) return gf['tree-ish'];
+  } catch (e) { /* unparseable maps are reported by the caller's own map read */ }
+  return null;
+}
+
 function checkTipCoverage(root, opts) {
   const o = opts || {};
   const errors = [];
@@ -163,7 +184,20 @@ function checkTipCoverage(root, opts) {
   // default would silently coerce null back to HEAD and re-create the exact
   // bug this flag exists to avoid.
   const tip = (o.tip === undefined) ? 'HEAD' : o.tip;
-  const cc = claimCommits(root, { tip: (o.commitTip === undefined) ? tip : o.commitTip, reg: o.reg });
+  // ADR-0093 D-6 precedence (stated once, used by both authority reads):
+  //   AMBIENT tip (null = worktree, 'HEAD' = this leg's documented default)
+  //     -> the map's own declaration wins; 'HEAD' is only the ambient pointer,
+  //        while generated_from is the artifact's claim about its object.
+  //   EXPLICIT --tip <ref> -> the named ref wins, and a disagreement with the
+  //     declaration is an error (judging an object the map does not claim).
+  //   NO DECLARATION (pre-D-6 maps in history) -> the tip is used unchanged,
+  //     because history is forward-only and cannot be re-declared.
+  const ambient = (tip === null || tip === 'HEAD');
+  const declaredEarly = declaredTreeAt(root, tip);
+  const commitTip = (o.commitTip !== undefined)
+    ? o.commitTip
+    : (ambient && declaredEarly ? declaredEarly : tip);
+  const cc = claimCommits(root, { tip: commitTip, reg: o.reg });
   errors.push.apply(errors, cc.errors);
   if (!cc.reg) return { errors: errors, checked: 0, commits: 0, missing: [] };
 
@@ -287,14 +321,29 @@ function checkTipConsistency(root, opts) {
   let map;
   try { map = JSON.parse(mapText); }
   catch (e) { return ['map-freshness: ' + MAP_REL + ' unparseable: ' + e.message]; }
-  const occ = tip === null ? rm.scanDocTokens() : rm.scanDocTokensAt(root, tip);
-  const consistencyRef = tip === null ? 'HEAD' : tip;
+  // ADR-0093 D-6: same legitimacy boundary as coverage - in worktree mode the
+  // map's own declared tree is the object this check is authorized to judge.
+  const declared = (map.generated_from && typeof map.generated_from['tree-ish'] === 'string')
+    ? map.generated_from['tree-ish'] : null;
+  const ambient = (tip === null || tip === 'HEAD');
+  const consistencyRef = (ambient && declared) ? declared : tip;
+  // An EXPLICIT --tip that the map does not declare is a cross-domain reading:
+  // the map describes a tree other than the one under test. Fail it loudly
+  // rather than quietly judging one object while naming another. The ambient
+  // default carries no such error - there the declaration wins by design.
+  const errs = [];
+  if (!ambient && declared && declared !== tip) {
+    errs.push('map-freshness: ' + label + ' ' + MAP_REL + ' declares generated_from.tree-ish ' + declared + ' but is being judged against ' + tip + ' (ADR-0093 D-6: the consumer judges the tree the map names)');
+  }
+  const occ = consistencyRef === 'HEAD' && tip === null
+    ? rm.scanDocTokens()
+    : rm.scanDocTokensAt(root, consistencyRef);
   // treeFiles must come from a COMMIT, never from the worktree form's null tip
-  // (git rejects a null object name). The worktree map is judged against HEAD's
-  // tracked file set - the same set the scan above enumerated.
+  // (git rejects a null object name). The worktree map is judged against its
+  // declared tree's tracked file set - the same set the scan above enumerated.
   const treeFiles = new Set(makeGit(root)(['ls-tree', '-r', consistencyRef, '--name-only']).split('\n').filter(Boolean));
   const inner = rm.verifyPublishedOnly(map, consistencyRef, { occurrences: occ, commitBound: true, registryFromWorktree: tip === null, root: root, treeFiles: treeFiles });
-  return inner.map((e) => 'map-freshness: ' + label + ' ' + e);
+  return errs.concat(inner.map((e) => 'map-freshness: ' + label + ' ' + e));
 }
 
 // ---- (2) ADVISORY: the demoted per-commit embedded check -----------------
@@ -399,9 +448,14 @@ function main(argv) {
   if (!advisoryOnly) {
     const tip = authorityTip(args);
     const label = tip === null ? 'worktree' : String(tip);
-    // The worktree form judges the WORKING TREE's map but still enumerates claim
-    // commits on HEAD (a commit list cannot be read from an uncommitted tree).
-    const cov = checkTipCoverage(ROOT_OVERRIDE, { tip: tip, commitTip: tip === null ? 'HEAD' : tip });
+    // The worktree/HEAD form judges the map at the ambient tip but enumerates
+    // claim commits on the line the MAP DECLARES (ADR-0093 D-6 legitimacy
+    // boundary); a pre-D-6 map with no declared tree keeps HEAD, where the two
+    // coincided by construction in CI.
+    const declared = declaredTreeAt(ROOT_OVERRIDE, tip);
+    const ambient = (tip === null || tip === 'HEAD');
+    const judged = (ambient && declared) ? declared : tip;
+    const cov = checkTipCoverage(ROOT_OVERRIDE, { tip: tip, commitTip: judged });
     for (const e of cov.errors) console.error('FAIL: ' + e);
     const cons = checkTipConsistency(ROOT_OVERRIDE, { tip: tip });
     for (const e of cons) console.error('FAIL: ' + e);
