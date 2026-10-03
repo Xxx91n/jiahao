@@ -14,7 +14,7 @@ it.**
 
 Four separate defects in this repository's own governance machinery shared one
 shape, and not one of them was a bug inside a check. Each was a check whose
-*observation surface* was narrower than, or different from, the surface its
+_observation surface_ was narrower than, or different from, the surface its
 verdict was spoken about.
 
 1. **The corruption scanner's blast radius was smaller than its name.** ADR-0092
@@ -29,12 +29,12 @@ verdict was spoken about.
    shipping it, and no leg asserted that the recorded value equals a fresh
    measurement.
 3. **Role was inferred from filename shape.** `check-audit-surface` and the
-   post-land sentinel's closeout selector both decided what an artifact *was* by
+   post-land sentinel's closeout selector both decided what an artifact _was_ by
    matching its name. A file asserting examiner status without carrying the token
    was invisible to the very leg whose job is to police the audit surface — the
    trust-domain forgery boundary sits in the consumer, not in the label.
 4. **The generator read a wider scope than its assertion target.** The t35
-   landing closeout produced *phantom rows*: `build-rewrite-map.js` ran against
+   landing closeout produced _phantom rows_: `build-rewrite-map.js` ran against
    the GitButler workspace merge tree, enumerated citations from files on
    unlanded lanes through `git ls-files`, and baked those citations into a map
    that claimed to describe the landed public tip. The public leg caught it (209
@@ -70,21 +70,23 @@ every tracked text file in the tree:
 
 - **Primary criterion** — the `gitattributes` `text` attribute. **Fallback** — NUL
   sniffing, for files no attribute speaks for. **Disclosed skip** — oversized
-  files are skipped, and the skip is a *disclosure of a capability boundary*, not
+  files are skipped, and the skip is a _disclosure of a capability boundary_, not
   an exemption. The boundary is named here on purpose, so the skipped set cannot
   rot into a silent allowlist; `check-secret-scan`'s oversized disclosure is the
   in-repo precedent.
 - **One implementation, `trackedTextFiles(root)`**, in a shared library. Callers
   pass a root and nothing else. A caller that may narrow the surface is the
-**The consumer surface and the shared base are declared, both sides.** This
-enumeration base is shared with the M4 generation surface (D-6) and with the M2
-tracked-surface snapshot (D-4). Naming the base and both consuming sides here is
-mandatory: an M4 fix that arrived as a silent beneficiary of a widening recorded
-here would be an unregistered contract change, and the defer-0030 subordination
-would be weakened without a line of it being edited. Three widenings are declared
-independently — the any-offset FEFF predicate, the bidi family, and this
-full-surface enumeration — so that no single label can be read as covering two of
-them (ADR-0083 D-003, dual-reading).
+  **The consumer surface and the base are declared, both sides.** This
+  enumeration base (index UNION tree, via `trackedTextFiles`) is shared with the
+  M4 generation surface (D-6). The M2 tracked-surface snapshot (D-4) uses a
+  different base: `git ls-files` (index only), because it runs inside gate
+  execution where the working tree IS the index being mutated. Naming both bases
+  and both consuming sides here is mandatory: an M4 fix that arrived as a silent
+  beneficiary of a widening recorded here would be an unregistered contract change,
+  and the defer-0030 subordination would be weakened without a line of it being
+  edited. Three widenings are declared independently — the any-offset FEFF
+  predicate, the bidi family, and this full-surface enumeration — so that no
+  single label can be read as covering two of them (ADR-0083 D-003, dual-reading).
 
 The assertion leg extends the existing surfaces rather than opening a new one: the
 jest wiring pin's enumeration regular expression is replaced by
@@ -117,6 +119,7 @@ wave; and admitting the zero-width family.
 
 **Declaration 2 of 6 — the signature-set contract change is declared here, not
 made silently** (grill-t36 D-004, wave two; Δ2).
+
 ### D-3 — Instrument non-intrusion: the replay-log artifact contract
 
 **Declaration 3 of 6 — the artifact contract registered by ADR-0065 D-B.3
@@ -131,7 +134,7 @@ family: verification and mutation are two commands, not one command with two
 outcomes.
 
 **Artifact semantics, adjudicated rather than assumed.** `bench/research/out/g6-publish-replay.json`
-is a *derived evidence log*, not a locked baseline. The locked baseline is
+is a _derived evidence log_, not a locked baseline. The locked baseline is
 `g6-publish-fixture.json`, which ADR-0050 makes append-only. A compare failure is
 therefore an **evidence-staleness alarm** — the committed log no longer describes
 the current replay, so it is explicitly regenerated and committed — and **not**
@@ -168,15 +171,15 @@ can see what — and they are written separately here so they are not read as on
   file", not "the tree is clean". A pre-existing dirty surface is registered as
   the zero point verbatim — neither penalized nor swallowed — which is what keeps
   this compatible with the standing obligation never to discard blindly.
-**The secondary form was not activated.** M2 lands in its primary form. The
-D-001 secondary-form clause — ignore paths plus independent assertions over
-committed values, where the independent assertion must read the *committed* value
-— is not activated by this ADR, and it is retained forward-only rather than
-deleted. Its two clauses survive unexercised: a write to an ignored path does not
-count toward the wave's last-claim-mutation timestamp arithmetic, so ignoring a
-path cannot mask a claim by moving the clock; and an ignored-path artifact does not
-enter the split-form evidence count. A reader who finds these clauses here should
-know they describe a road not taken, not a rule in force.
+  **The secondary form was not activated.** M2 lands in its primary form. The
+  D-001 secondary-form clause — ignore paths plus independent assertions over
+  committed values, where the independent assertion must read the _committed_ value
+  — is not activated by this ADR, and it is retained forward-only rather than
+  deleted. Its two clauses survive unexercised: a write to an ignored path does not
+  count toward the wave's last-claim-mutation timestamp arithmetic, so ignoring a
+  path cannot mask a claim by moving the clock; and an ignored-path artifact does not
+  enter the split-form evidence count. A reader who finds these clauses here should
+  know they describe a road not taken, not a rule in force.
 
 Whether the implementation wave lands this wrapper before the claim wave or
 alongside it is an owner discretion point.
@@ -198,7 +201,7 @@ post-land sentinel's closeout selector consume the registry instead of matching
 filenames.
 
 - **Unregistered claim-surface artifact = red.** This is fail-closed, and it is a
-  *reverse* assertion. The anti-forgery boundary lives in the consumer: a file
+  _reverse_ assertion. The anti-forgery boundary lives in the consumer: a file
   claiming examiner status that has no examiner row in the registry is invisible
   to leg 229 by construction, so asserting the registry cannot catch it and only
   the fail-closed direction can (SLSA's Mini-Shai-Hulud lesson: inside a trust
@@ -215,11 +218,11 @@ filenames.
 - **Field-level governance, three classes, inherited from ADR-0086.** The
   path→role mapping is **fenced**. Adding or removing examiner rows is
   **exception-channel**. `_doc` / `source_adr` / `schema_version` are
-**Migration is a single commit, no coexistence window.** The filename regular
-expression and the registry leg retire together. Two mechanisms reading the same
-surface across a window is dual reading, which ADR-0083 D-003 forbids, and a
-coexistence window is how a registry comes to be trusted before it has been
-tested.
+  **Migration is a single commit, no coexistence window.** The filename regular
+  expression and the registry leg retire together. Two mechanisms reading the same
+  surface across a window is dual reading, which ADR-0083 D-003 forbids, and a
+  coexistence window is how a registry comes to be trusted before it has been
+  tested.
 
 **Selector release, named.** The filename selectors registered by **ADR-0091 D-E**
 (the audit-surface coverage extractor and its checklist consumer) and **ADR-0092
@@ -260,6 +263,7 @@ discharged.
 
 - **Primary fix** — bind the enumeration surface to the assertion object: the
   generation path moves to the `scanDocTokensAt`-shaped tree-internal form. The
+
 ## Known limitations
 
 ### L-1 — The block cannot describe the map that covers it
@@ -297,6 +301,20 @@ promotion to a `CONTEXT.md` term is considered at that point. Not before.
   boundary. The disclosure is the boundary; nobody may convert it into a quiet
   allowlist.
 
+### L-3 — An unrelated whole-repo snapshot is not covered by the never-commit
+
+convention
+
+`.scratch/grill-t6/audit/b7ccbeb/` is a whole-repo snapshot from an earlier
+round, tracked as-is; it is neither an audit-evidence capture tree nor a
+claim-surface artifact, so the nc-001 ignore pattern (`.scratch/*/audit*-evidence/`,
+`.scratch/*/audit-backup/`) does not and must not cover it. It is registered
+here as its own residue class so the non-coverage reads as a decision rather
+than an oversight. Disclosed hazard, not a defect to repair: the snapshot
+carries a jest-haste-map naming-conflict history, so a residue class that no
+automated rule governs is also a class nothing watches. Any future disposition
+of it is an owner act.
+
 ## Consequences
 
 - The observation surface of every mechanism this ADR touches is now named by a
@@ -333,11 +351,12 @@ This ADR's machinery reports state; it never issues those verdicts. The agent
 registers implementer and mechanical rows and reports; it never self-certifies an
 examiner row, and no statement in this ADR should be read as granting that
 authority.
-  file already carries two read disciplines, a merging-tree `scanDocTokens()` and
-  a tree-internal `scanDocTokensAt(root, ref)`; they unify onto the tree-internal
-  form.
+file already carries two read disciplines, a merging-tree `scanDocTokens()` and
+a tree-internal `scanDocTokensAt(root, ref)`; they unify onto the tree-internal
+form.
+
 - **Secondary fix** — the derived artifact carries a `generated_from:{tree-ish,
-  mode}` provenance field, in the buildinfo shape. This turns "which tree does
+mode}` provenance field, in the buildinfo shape. This turns "which tree does
   this map describe" into a machine-assertable self-certifying hook for
   `--published-only` (SLSA's `completeness.materials` and Quarkus's SBOM, which
   split manifests by assertion purpose, are the precedents).
@@ -367,7 +386,9 @@ assertion domain — that is the boundary, and it is why "the tree was fine" is 
 an answer.
 
 <!-- APPEND-MARKER -->
-  **editorial**.
+
+**editorial**.
+
 - **The registry is a declared-facts surface, not a derived one.** Role attribution
   is a discretionary fact with no mechanical source — if it were derivable, M3
   would not exist. It therefore carries **no `generated_from` field**; adding one
@@ -401,6 +422,7 @@ examiner artifacts and the second-party audit are bound more tightly to each
 other, not less.
 
 <!-- APPEND-MARKER -->
+
 - **Per-leg checkpoints.** Recompute after each leg. Attribution granularity is
   two-layer — leg number plus file. The changed-path list is not expanded into a
   full diff.
@@ -421,7 +443,7 @@ the F-6 exposure window; an evaluation performed inside that interval measures a
 tree that is no longer the tree the wave settled on. Landing this wrapper is what
 makes "settled" a checkable state rather than an adjective.
 
-**Residual disclosure.** The wrapper asserts that nothing changed *inside* the
+**Residual disclosure.** The wrapper asserts that nothing changed _inside_ the
 window; it asserts nothing about outside the window. This is a narrowing, not a
 closure, in the same shape as F-6's wording constraint.
 
@@ -435,7 +457,7 @@ closure, in the same shape as F-6's wording constraint.
 - **The bidi directional-control family is taken in by this same declaration, on
   purpose**: U+202A-202E, U+2066-2069, U+200E, U+200F, U+061C. Trojan Source
   (CVE-2021-42574) is the external class; the in-repo reason to act on it here is
-  that *the rendering form of a governance document is the assertion carrier*, so
+  that _the rendering form of a governance document is the assertion carrier_, so
   a bidi sequence can reorder a sentence's visual meaning — "never closed" can be
   made to read as "closed" on the page, which is the one surface a reader trusts
   without inspecting bytes.
@@ -449,12 +471,18 @@ closure, in the same shape as F-6's wording constraint.
   Without it, a full-surface enumeration detonates the test fixture corpus.
 
 <!-- APPEND-MARKER -->
-  original disease in a new location: an observer that selects what it will not
-  look at asserts about a sample while its verdict is phrased about the
-  population.
-- **The base enumeration is `git ls-files` over the union of index and tree.**
+
+original disease in a new location: an observer that selects what it will not
+look at asserts about a sample while its verdict is phrased about the
+population.
+
+- **M1's base enumeration is `git ls-files` over the union of index and tree.**
   The index alone is not authoritative (t30 F-1 precedent), so the union is the
-  floor and neither half may be used alone.
+  floor and neither half may be used alone. This is the base for the D-1 static
+  scan only (`trackedTextFiles`); the M2 runtime snapshot (D-4) uses `git ls-files`
+  (index only), as D-1 declares. "The base enumeration" is therefore qualified
+  wherever it appears — D-1 names both, and `doc-hygiene-baseline.json`'s
+  `enumeration_surface.base` describes M1's scanner, not the wrapper's.
 
 Existing violations are absorbed by a **committed ratchet baseline** at
 `docs/governance/doc-hygiene-baseline.json` — an entry-type registration
