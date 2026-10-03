@@ -145,7 +145,13 @@ describe('map-freshness leg (E-17, D-004)', () => {
     // has already happened but not yet landed - the same lane-vs-landed confusion
     // this round exists to close. The committed-map verdict belongs to CI and to
     // check-post-land.js --post-only, which name the tree explicitly.
-    const cov = mf.checkTipCoverage(ROOT, { tip: null, commitTip: 'HEAD' });
+    //
+    // The fixture below is the PRE-D-6 shape on purpose (a worktree map whose
+    // coverage is judged against the worktree): it pins the worktree branch,
+    // where the map in the tree under test must cover the tree under test.
+    // D-6 declared-tree coverage is asserted by check-post-land.js --post-only
+    // (which names the tree explicitly), not by a separate test fixture.
+    const cov = mf.checkTipCoverage(ROOT, { tip: null });
     expect(cov.errors).toEqual([]);
     expect(typeof cov.checked).toBe('number');
     expect(cov.missing).toEqual([]);
