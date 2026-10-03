@@ -5,7 +5,7 @@
   "generated_at": "2026-10-02T02:50:51.770Z",
   "enumeration": {
     "channel": "jest --listTests",
-    "suites": 95,
+    "suites": 99,
     "suite_files": [
       "test/adapters.test.js",
       "test/adr-0022-hardening.test.js",
@@ -70,6 +70,10 @@
       "test/adr-0086-wiring.test.js",
       "test/adr-0087-wiring.test.js",
       "test/adr-0089-wiring.test.js",
+      "test/adr-0093-m2-wiring.test.js",
+      "test/adr-0093-m3-wiring.test.js",
+      "test/adr-0093-m4-wiring.test.js",
+      "test/adr-0093-wiring.test.js",
       "test/audit-checklist.test.js",
       "test/audit-surface.test.js",
       "test/bench-gate.test.js",
