@@ -146,11 +146,13 @@ describe('map-freshness leg (E-17, D-004)', () => {
     // this round exists to close. The committed-map verdict belongs to CI and to
     // check-post-land.js --post-only, which name the tree explicitly.
     //
-    // The fixture below is the PRE-D-6 shape on purpose (a worktree map whose
-    // coverage is judged against the worktree): it pins the worktree branch,
-    // where the map in the tree under test must cover the tree under test.
-    // D-6 declared-tree coverage is asserted by check-post-land.js --post-only
-    // (which names the tree explicitly), not by a separate test fixture.
+    // The fixture below is the PRE-D-6 shape on purpose: the worktree map has no
+    // `generated_from` field, so `declaredTreeAt` returns null and `commitTip`
+    // resolves to `tip` (null = worktree). This asserts the "no declaration"
+    // fallback path: when the map declares no tree, the worktree map must cover
+    // the worktree tree. The D-6 declared-tree path (map declares a specific
+    // committed tree via `generated_from`) is exercised by the D-6 spec fixtures
+    // in the test suite, not by this fixture.
     const cov = mf.checkTipCoverage(ROOT, { tip: null });
     expect(cov.errors).toEqual([]);
     expect(typeof cov.checked).toBe('number');

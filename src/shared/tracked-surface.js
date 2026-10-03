@@ -12,9 +12,15 @@
 // about the window's outside. That is a narrowing, not a closure - the same
 // shape as F-6's wording constraint.
 //
-// Enumeration base: `git ls-files` over the union of index and tree. The index
-// alone is not authoritative (t30 F-1), so the union is the floor. The
-// untracked surface is excluded by construction - that is the ignore
+// Enumeration base: `git ls-files` (index only). The M2 runtime snapshot runs
+// inside a gate execution where the working tree IS the index being mutated,
+// so the index is the correct base here. The M1 static scan
+// (trackedTextFiles in scripts/shared/tracked-text.js) uses index UNION tree
+// because it runs outside gate execution where the tree is stable. ADR-0093
+// D-1 names both bases so neither side can silently narrow it; this file's
+// comment must not conflate the two.
+//
+// The untracked surface is excluded by construction - that is the ignore
 // mechanism's existing division of labour, not a narrowing of this surface.
 //
 // Cost is real and was measured, not guessed: ~1594 tracked files, ~80ms for
@@ -28,7 +34,7 @@ const crypto = require('crypto');
 const { execFileSync } = require('child_process');
 
 function listTrackedPaths(root) {
-  // index union tree - neither half alone is authoritative (t30 F-1).
+  // index only - see header for the M1/M2 base distinction (ADR-0093 D-1).
   const out = execFileSync('git', ['ls-files'], { cwd: root, encoding: 'utf8' });
   return out.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
 }
