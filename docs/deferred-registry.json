@@ -1385,6 +1385,24 @@
         "date": "2026-09-30",
         "note": "registered in-round per t33-D-004(ii) observation-home convention (cross-ledger derivation named in rationale)"
       }
+    },
+    {
+      "id": "defer-0085",
+      "subject": "Byte classes deliberately NOT taken into the doc-hygiene signature set by ADR-0093 D-2 (zero-width family, U+00A0, U+00AD) - the registered open set, to be re-measured rather than assumed",
+      "source_adr": "docs/adr/0093-observer-equivalence-contract.md",
+      "rationale": "ADR-0093 D-2 takes in the bidi directional-control family and mid-file U+FEFF, and leaves the zero-width family, U+00A0 and U+00AD OUT on the measured, not guessed criterion: this is a bilingual repository where those have legitimate uses, so admitting them without a measurement would be guessing. The open set stays open by registration, not by omission - a new class is admitted by measurement.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "a measurement over the tracked text surface shows the class has no legitimate in-repo use"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-10-02",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-10-02",
+        "note": "registered in-round by grill-t36 T-4/T-5 (ADR-0093 D-2); the not-taken classes are named in D-2 and in the doc-hygiene scanner comment"
+      }
     }
   ]
 }
