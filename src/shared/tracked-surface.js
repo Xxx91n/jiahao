@@ -1,9 +1,11 @@
 'use strict';
 // src/shared/tracked-surface.js - ADR-0093 D-4 (grill-t36 D-006): the
 // tracked-surface snapshot, shared by the run-gates wrapper (D-4) and, per
-// D-1, the same `git ls-files` index-union-tree enumeration base that
-// `trackedTextFiles()` consumes. One enumeration base, both consuming sides
-// named in the ADR, so neither side can silently narrow it.
+// D-1, the `git ls-files` (index) enumeration base. The M1 static scan
+// (trackedTextFiles in scripts/shared/tracked-text.js) uses index UNION tree;
+// this M2 runtime snapshot uses index only because it runs inside a gate
+// execution where the working tree IS the index being mutated. One enumeration
+// base per surface; the ADR names both so neither side can silently narrow it.
 //
 // WHAT THIS IS NOT, and why that is a finding rather than a caveat: it asserts
 // that nothing changed INSIDE the window in which it ran. It asserts nothing
