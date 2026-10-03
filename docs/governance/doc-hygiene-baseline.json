@@ -7,6 +7,7 @@
   "enumeration_surface": {
     "implementation": "scripts/shared/tracked-text.js trackedTextFiles(root)",
     "base": "git ls-files over the union of index and tree",
+    "base_scope": "M1's static scan only. The M2 runtime snapshot (D-4, src/shared/tracked-surface.js) uses git ls-files (index only) because it runs inside gate execution where the working tree IS the index being mutated; ADR-0093 D-1 declares both bases.",
     "primary_criterion": "gitattributes text attribute",
     "fallback": "NUL sniffing (first 8000 bytes, git's own window)",
     "disclosed_skip_max_bytes": 1048576,
