@@ -1309,6 +1309,48 @@
         ],
         "reason": "grill-t35 R2 carve-out (ADR-0076 D-B), disclosed in full. The round object is public-tree equivalence, so the work is contract MACHINERY plus the documentation surfaces that declare it. New legs: check-post-land.js (wave-time post-land re-verification against a fetched public tip) and check-post-land-sentinel.js (its authority-layer assertion leg), plus build-readme-pairing-baseline.js and the committed ratchet baseline it generates. New shared cores: scripts/shared/doc-hygiene.js (extracted from the adr-0076 wiring suite so the test and the post-land check assert ONE scanner) and scripts/shared/readme-pairing.js (one pairing-scan implementation behind the wiring test, the generator and the post-land subset). Restructured: check-map-freshness.js (grill-t35 D-005 - tip-map coverage promoted to the blocking authority, the per-commit embedded check demoted to an audit-time advisory, batched multi-tree citation scan added), build-rewrite-map.js (adds that batched scan + a registryFromWorktree seam so a worktree map is judged against the worktree registry), build-audit-checklist.js (derives the advisory surface so a demoted check is not a deleted check). Suite updates: map-freshness.test.js (rewritten for the authority contract, including regression locks on the two union-key subtleties and on batched/single scan parity), countersign-queue.test.js (suffix membership asserted structurally instead of by restated list), post-land-sentinel.test.js (new - anti-masking and F-6 window assertions). zero_product_diff is FALSE: scripts/ ships in the npm tarball, so this carve-out moves the measured packed size past the ADR-0039 D3 cap. The breach and its trend-derived remedy are registered in the round report as an owner-action; a cap amendment is an ADR and is NOT minted by the agent."
       }
+    },
+    {
+      "round": "grill-t36",
+      "date": "2026-10-02",
+      "kind": "documentation",
+      "adr_added": [
+        "0093",
+        "0094"
+      ],
+      "adr_superseded_or_closed": [],
+      "net_additions": 2,
+      "zero_product_diff": true,
+      "deferred_entry": "defer-0085",
+      "coverage_base": "0f58ba60477e4c927e65e40331328a34f6427e0a",
+      "carve_out_used": 1,
+      "governance_tooling_diff": {
+        "files": [
+          ".gitignore",
+          "bench/research/out/g6-publish-replay.json",
+          "scripts/build-audit-checklist.js",
+          "scripts/build-doc-hygiene-baseline.js",
+          "scripts/build-readme-pairing-baseline.js",
+          "scripts/build-rewrite-map.js",
+          "scripts/check-audit-surface.js",
+          "scripts/check-claim-surface-roles.js",
+          "scripts/check-g6-publish.js",
+          "scripts/check-map-freshness.js",
+          "scripts/check-orphan-ancestry.js",
+          "scripts/check-post-land-sentinel.js",
+          "scripts/check-post-land.js",
+          "scripts/run-gates.js",
+          "scripts/shared/claim-surface-roles.js",
+          "scripts/shared/doc-hygiene.js",
+          "scripts/shared/readme-pairing.js",
+          "scripts/shared/tracked-text.js",
+          "src/shared/tracked-surface.js",
+          "test/countersign-queue.test.js",
+          "test/map-freshness.test.js",
+          "test/post-land-sentinel.test.js"
+        ],
+        "reason": "grill-t36 R2 carve-out (ADR-0076 D-B), disclosed in full, twice over the window: this row lists (a) the R2 files grill-t36 touched and (b) the R2 files the PREVIOUS row declared, because the older wiring suites anchor their coverage leg at the t35 round base 78d8a14c and the diff window therefore still contains them. grill-t36 is the observer-is-part-of-the-observed round: every defect it repairs is a check whose OBSERVATION SURFACE was narrower than the surface its verdict was spoken about. New machinery, one leg per ADR-0093 member: scripts/shared/tracked-text.js (D-1 - the single tracked-text enumeration surface: gitattributes text attribute primary, NUL sniff fallback, oversized skip DISCLOSED not swallowed, base = git ls-files index UNION tree; callers pass a root and nothing else), scripts/build-doc-hygiene-baseline.js + docs/governance/doc-hygiene-baseline.json (D-1 ratchet - the pre-existing signature backlog ENUMERATED so the widened leg is red only on what is new), scripts/shared/claim-surface-roles.js + scripts/check-claim-surface-roles.js (D-5 - the claim-surface role REGISTRY and its fail-closed leg at gates.json order 232; role attribution stops being read off filename shape, which retires the ADR-0091 D-E and ADR-0092 D-S1 selectors in the same commit), scripts/run-gates.js (D-4 - a per-leg tracked-content hash baseline and post-leg recompute, so a gate leg that mutates a tracked file is red at confirmatory tier instead of silently dirtying the tree it measures), src/shared/tracked-surface.js (D-4 - the shared index-union-tree enumeration base the wrapper consumes; not reached by the install.js closure, hence R2 and not R1), scripts/check-g6-publish.js (D-3 - compare-by-default + explicit --write-log: the instrument stops overwriting the evidence it observes). Restructured, same declarations: scripts/build-rewrite-map.js (D-6 - generation reads the TREE OF THE ASSERTION OBJECT through generationOccurrences() instead of the workspace union, and the artifact now carries generated_from:{tree-ish,mode} that --published-only machine-asserts), scripts/check-map-freshness.js (D-6 consumer side - coverage and consistency judge the tree the map DECLARES, and an explicit --tip the map does not declare is a loud error), scripts/shared/doc-hygiene.js (D-2 - mid-file U+FEFF as the byte-level EF BB BF triplet widened to any offset, plus the bidi family; both asserted at byte offsets), scripts/check-audit-surface.js and scripts/check-post-land-sentinel.js (D-5 - registry consumption replaces the filename selectors), scripts/check-post-land.js (D-1/D-2 - the post-land subset consumes the shared enumeration and the baseline), .gitignore (D-008 - the audit*-evidence and audit-backup residue classes collected at the channel level so never-commit stops relying on status visibility), bench/research/out/g6-publish-replay.json (D-3 - the evidence log was REGENERATED by the new compare form rather than by the check writing over it), test/post-land-sentinel.test.js (D-2 - the FEFF and bidi positive AND negative fixtures; a predicate with no negative fixture is indistinguishable from an always-on one). zero_product_diff is TRUE in the ADR-0076 D-A sense - no R1 file is touched: the install.js require closure is unchanged, and src/shared/tracked-surface.js is not reached by it. The t35 disclosure that scripts/ ships and therefore moves the packed size still stands: the tarball is over the ADR-0039 D3 cap and the remedy is the drafted cap-amendment ADR-0094, which is NOT effective until the owner signs it."
+      }
     }
   ],
   "source_adr": "0064"
