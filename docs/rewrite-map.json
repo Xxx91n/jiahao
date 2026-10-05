@@ -6,8 +6,8 @@
     "tree-ish": "origin/main",
     "mode": "tree-internal"
   },
-  "generated_at": "2026-10-05T11:16:29.396Z",
-  "published_tip": "65b69ca7c2df36a404935c69e2e9dba4989bf044",
+  "generated_at": "2026-10-05T11:17:26.368Z",
+  "published_tip": "4759d243786753060e98ac47ca12c4c341c0d15b",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
     "old_tip": "2c93a30a5495219d0d2385f25d19af23e729852f",
@@ -23,15 +23,15 @@
   },
   "counts": {
     "commits": 15,
-    "published_only": 525,
+    "published_only": 526,
     "removed": 0,
     "same": 278,
-    "doc_refs": 5564,
+    "doc_refs": 5583,
     "doc_refs_by_class": {
       "rewritten": 125,
-      "local-only": 118,
-      "published-unchanged": 3796,
-      "orphaned-cite": 1525,
+      "local-only": 122,
+      "published-unchanged": 3802,
+      "orphaned-cite": 1534,
       "unresolved": 0
     }
   },
@@ -117,6 +117,10 @@
   ],
   "removed": [],
   "published_only": [
+    {
+      "new": "4759d243786753060e98ac47ca12c4c341c0d15b",
+      "subject": "grill-t37 post-land resync C: audit report section 9 closeout addendum carrying the wave-B post-land-verify sentinel (map-freshness segment honestly red - coverage repair shifted this file's section-8 cite lines; debt retires in wave-D regen) + map regenerated at 65b69ca7 + pin re-pin"
+    },
     {
       "new": "65b69ca7c2df36a404935c69e2e9dba4989bf044",
       "subject": "grill-t37 post-land resync B: audit-coverage block -> bare-array contract (leg requires JSON array, emit output is object) + g6 replay log refresh (tarball field) + map regenerated at landed tip a007aacb + pin re-pin"
@@ -115996,6 +116000,345 @@
         "object_type": "commit",
         "object_size": 1251,
         "reachable_via": []
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 371,
+      "sha": "a007aacb",
+      "class": "published-unchanged",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1791193712,
+        "object_type": "commit",
+        "object_size": 827,
+        "reachable_via": [
+          "refs/heads/main",
+          "refs/remotes/gb-local/grill-t37-postland-fix",
+          "refs/remotes/origin/HEAD",
+          "refs/remotes/origin/main"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 371,
+      "sha": "65b69ca7",
+      "class": "published-unchanged",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1791198613,
+        "object_type": "commit",
+        "object_size": 642,
+        "reachable_via": [
+          "refs/heads/main",
+          "refs/remotes/origin/HEAD",
+          "refs/remotes/origin/main"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 373,
+      "sha": "a7d7c226",
+      "class": "orphaned-cite",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": null,
+        "object_type": null,
+        "object_size": null,
+        "reachable_via": []
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 398,
+      "sha": "65b69ca7c2df36a404935c69e2e9dba4989bf044",
+      "class": "published-unchanged",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1791198613,
+        "object_type": "commit",
+        "object_size": 642,
+        "reachable_via": [
+          "refs/heads/main",
+          "refs/remotes/origin/HEAD",
+          "refs/remotes/origin/main"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 423,
+      "sha": "1c4c491f",
+      "class": "orphaned-cite",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1791185850,
+        "object_type": "commit",
+        "object_size": 1251,
+        "reachable_via": []
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 423,
+      "sha": "129a4eb9",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local commit",
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1791185850,
+        "object_type": "commit",
+        "object_size": 646,
+        "reachable_via": [
+          "refs/remotes/gb-local/grill-t37-fixes"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 423,
+      "sha": "1c4c491f",
+      "class": "orphaned-cite",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1791185850,
+        "object_type": "commit",
+        "object_size": 1251,
+        "reachable_via": []
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 423,
+      "sha": "1c4c491f",
+      "class": "orphaned-cite",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1791185850,
+        "object_type": "commit",
+        "object_size": 1251,
+        "reachable_via": []
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 423,
+      "sha": "129a4eb9",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local commit",
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1791185850,
+        "object_type": "commit",
+        "object_size": 646,
+        "reachable_via": [
+          "refs/remotes/gb-local/grill-t37-fixes"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 423,
+      "sha": "1c4c491f",
+      "class": "orphaned-cite",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1791185850,
+        "object_type": "commit",
+        "object_size": 1251,
+        "reachable_via": []
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 428,
+      "sha": "b9396688d",
+      "class": "published-unchanged",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1790590268,
+        "object_type": "commit",
+        "object_size": 514,
+        "reachable_via": [
+          "refs/heads/main",
+          "refs/remotes/gb-local/HEAD",
+          "refs/remotes/gb-local/grill-t32-docs",
+          "refs/remotes/gb-local/grill-t33-docs",
+          "refs/remotes/gb-local/grill-t34-docs",
+          "refs/remotes/gb-local/grill-t34-impl",
+          "refs/remotes/gb-local/grill-t35-docs",
+          "refs/remotes/gb-local/grill-t35-impl",
+          "refs/remotes/gb-local/grill-t36-docs",
+          "refs/remotes/gb-local/grill-t36-fixes",
+          "refs/remotes/gb-local/grill-t36-impl",
+          "refs/remotes/gb-local/grill-t37-docs",
+          "refs/remotes/gb-local/grill-t37-fixes",
+          "refs/remotes/gb-local/grill-t37-impl",
+          "refs/remotes/gb-local/grill-t37-postland-fix",
+          "refs/remotes/gb-local/main",
+          "refs/remotes/origin/HEAD",
+          "refs/remotes/origin/grill-t36-docs",
+          "refs/remotes/origin/grill-t36-fixes",
+          "refs/remotes/origin/grill-t36-impl",
+          "refs/remotes/origin/main"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 438,
+      "sha": "65b69ca7c2df36a404935c69e2e9dba4989bf044",
+      "class": "published-unchanged",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1791198613,
+        "object_type": "commit",
+        "object_size": 642,
+        "reachable_via": [
+          "refs/heads/main",
+          "refs/remotes/origin/HEAD",
+          "refs/remotes/origin/main"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 465,
+      "sha": "1c4c491f",
+      "class": "orphaned-cite",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1791185850,
+        "object_type": "commit",
+        "object_size": 1251,
+        "reachable_via": []
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 465,
+      "sha": "129a4eb9",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local commit",
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1791185850,
+        "object_type": "commit",
+        "object_size": 646,
+        "reachable_via": [
+          "refs/remotes/gb-local/grill-t37-fixes"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 465,
+      "sha": "1c4c491f",
+      "class": "orphaned-cite",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1791185850,
+        "object_type": "commit",
+        "object_size": 1251,
+        "reachable_via": []
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 465,
+      "sha": "1c4c491f",
+      "class": "orphaned-cite",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1791185850,
+        "object_type": "commit",
+        "object_size": 1251,
+        "reachable_via": []
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 465,
+      "sha": "129a4eb9",
+      "class": "local-only",
+      "resolved_to": null,
+      "label": "local commit",
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1791185850,
+        "object_type": "commit",
+        "object_size": 646,
+        "reachable_via": [
+          "refs/remotes/gb-local/grill-t37-fixes"
+        ]
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 465,
+      "sha": "1c4c491f",
+      "class": "orphaned-cite",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1791185850,
+        "object_type": "commit",
+        "object_size": 1251,
+        "reachable_via": []
+      }
+    },
+    {
+      "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+      "line": 470,
+      "sha": "b9396688d",
+      "class": "published-unchanged",
+      "resolved_to": null,
+      "qualifiers": {
+        "exists_at": "2026-10-05T11:17:00.781Z",
+        "object_mtime": 1790590268,
+        "object_type": "commit",
+        "object_size": 514,
+        "reachable_via": [
+          "refs/heads/main",
+          "refs/remotes/gb-local/HEAD",
+          "refs/remotes/gb-local/grill-t32-docs",
+          "refs/remotes/gb-local/grill-t33-docs",
+          "refs/remotes/gb-local/grill-t34-docs",
+          "refs/remotes/gb-local/grill-t34-impl",
+          "refs/remotes/gb-local/grill-t35-docs",
+          "refs/remotes/gb-local/grill-t35-impl",
+          "refs/remotes/gb-local/grill-t36-docs",
+          "refs/remotes/gb-local/grill-t36-fixes",
+          "refs/remotes/gb-local/grill-t36-impl",
+          "refs/remotes/gb-local/grill-t37-docs",
+          "refs/remotes/gb-local/grill-t37-fixes",
+          "refs/remotes/gb-local/grill-t37-impl",
+          "refs/remotes/gb-local/grill-t37-postland-fix",
+          "refs/remotes/gb-local/main",
+          "refs/remotes/origin/HEAD",
+          "refs/remotes/origin/grill-t36-docs",
+          "refs/remotes/origin/grill-t36-fixes",
+          "refs/remotes/origin/grill-t36-impl",
+          "refs/remotes/origin/main"
+        ]
       }
     },
     {
