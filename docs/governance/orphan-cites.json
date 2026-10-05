@@ -14938,6 +14938,458 @@
       "object_purged_at": "2026-10-02T10:48:51.848Z",
       "errata_ref": null,
       "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "1c4c491f67286534a661ab36e3f995d48e43486d",
+      "object_type": "commit",
+      "size": 1251,
+      "snapshot": {
+        "subject": "GitButler Workspace Commit",
+        "author": "GitButler <gitbutler@gitbutler.com> 1791178831 +0800",
+        "committer_ts": 1791185850,
+        "parents": [
+          "1dde1ca1b0c5b5093d140313eb33583eb1cd882c",
+          "129a4eb9bd2adf31e5ecaa34aca2641cc7da4225",
+          "c4361bb37c25a4d5427963059108fd217c0eb8ac"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+          "line": 13
+        },
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+          "line": 53
+        },
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+          "line": 55
+        },
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+          "line": 345
+        },
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+          "line": 348
+        }
+      ],
+      "registered_at": "2026-10-05T09:34:17.834Z",
+      "reason": "grill-t37 post-land resync: pre-land lane SHAs rewritten on land; digest-token cite removed from prose in same wave",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "4e58397237f5f484ed28407e158fc1abfbc598cb",
+      "object_type": "commit",
+      "size": 1251,
+      "snapshot": {
+        "subject": "GitButler Workspace Commit",
+        "author": "GitButler <gitbutler@gitbutler.com> 1791178831 +0800",
+        "committer_ts": 1791185314,
+        "parents": [
+          "1dde1ca1b0c5b5093d140313eb33583eb1cd882c",
+          "9afe3d62a91f129b881095f8e68880e8c43e33e4",
+          "c4361bb37c25a4d5427963059108fd217c0eb8ac"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+          "line": 52
+        },
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-rework-report.md",
+          "line": 70
+        }
+      ],
+      "registered_at": "2026-10-05T09:34:17.834Z",
+      "reason": "grill-t37 post-land resync: pre-land lane SHAs rewritten on land; digest-token cite removed from prose in same wave",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "1c4c491f67286534a661ab36e3f995d48e43486d",
+      "object_type": "commit",
+      "size": 1251,
+      "snapshot": {
+        "subject": "GitButler Workspace Commit",
+        "author": "GitButler <gitbutler@gitbutler.com> 1791178831 +0800",
+        "committer_ts": 1791185850,
+        "parents": [
+          "1dde1ca1b0c5b5093d140313eb33583eb1cd882c",
+          "129a4eb9bd2adf31e5ecaa34aca2641cc7da4225",
+          "c4361bb37c25a4d5427963059108fd217c0eb8ac"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+          "line": 191
+        },
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+          "line": 280
+        }
+      ],
+      "registered_at": "2026-10-05T09:34:17.834Z",
+      "reason": "grill-t37 post-land resync: pre-land lane SHAs rewritten on land; digest-token cite removed from prose in same wave",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "da04920c324985033dba47e747094abd394e159d",
+      "object_type": "commit",
+      "size": 1251,
+      "snapshot": {
+        "subject": "GitButler Workspace Commit",
+        "author": "GitButler <gitbutler@gitbutler.com> 1791169261 +0800",
+        "committer_ts": 1791174961,
+        "parents": [
+          "1dde1ca1b0c5b5093d140313eb33583eb1cd882c",
+          "b57f043be6567f0720ada5796f7a34524d830e74",
+          "c4361bb37c25a4d5427963059108fd217c0eb8ac"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-audit-report.md",
+          "line": 24
+        }
+      ],
+      "registered_at": "2026-10-05T09:34:17.834Z",
+      "reason": "grill-t37 post-land resync: pre-land lane SHAs rewritten on land; digest-token cite removed from prose in same wave",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "c13a8a5344055755bc881c2e292ab57f93d7783d",
+      "object_type": "commit",
+      "size": 1239,
+      "snapshot": {
+        "subject": "GitButler Workspace Commit",
+        "author": "GitButler <gitbutler@gitbutler.com> 1791169261 +0800",
+        "committer_ts": 1791169261,
+        "parents": [
+          "0f58ba60477e4c927e65e40331328a34f6427e0a",
+          "1dde1ca1b0c5b5093d140313eb33583eb1cd882c",
+          "8da36b02ef1babd9287816c2f94927f8fcad2a94",
+          "c4361bb37c25a4d5427963059108fd217c0eb8ac"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-audit-report.md",
+          "line": 24
+        },
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-rework-report.md",
+          "line": 69
+        }
+      ],
+      "registered_at": "2026-10-05T09:34:17.834Z",
+      "reason": "grill-t37 post-land resync: pre-land lane SHAs rewritten on land; digest-token cite removed from prose in same wave",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "da04920c324985033dba47e747094abd394e159d",
+      "object_type": "commit",
+      "size": 1251,
+      "snapshot": {
+        "subject": "GitButler Workspace Commit",
+        "author": "GitButler <gitbutler@gitbutler.com> 1791169261 +0800",
+        "committer_ts": 1791174961,
+        "parents": [
+          "1dde1ca1b0c5b5093d140313eb33583eb1cd882c",
+          "b57f043be6567f0720ada5796f7a34524d830e74",
+          "c4361bb37c25a4d5427963059108fd217c0eb8ac"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-audit-report.md",
+          "line": 110
+        },
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-audit-report.md",
+          "line": 199
+        }
+      ],
+      "registered_at": "2026-10-05T09:34:17.834Z",
+      "reason": "grill-t37 post-land resync: pre-land lane SHAs rewritten on land; digest-token cite removed from prose in same wave",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "c13a8a5344055755bc881c2e292ab57f93d7783d",
+      "object_type": "commit",
+      "size": 1239,
+      "snapshot": {
+        "subject": "GitButler Workspace Commit",
+        "author": "GitButler <gitbutler@gitbutler.com> 1791169261 +0800",
+        "committer_ts": 1791169261,
+        "parents": [
+          "0f58ba60477e4c927e65e40331328a34f6427e0a",
+          "1dde1ca1b0c5b5093d140313eb33583eb1cd882c",
+          "8da36b02ef1babd9287816c2f94927f8fcad2a94",
+          "c4361bb37c25a4d5427963059108fd217c0eb8ac"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-report.md",
+          "line": 36
+        },
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-report.md",
+          "line": 125
+        }
+      ],
+      "registered_at": "2026-10-05T09:34:17.834Z",
+      "reason": "grill-t37 post-land resync: pre-land lane SHAs rewritten on land; digest-token cite removed from prose in same wave",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "4e58397237f5f484ed28407e158fc1abfbc598cb",
+      "object_type": "commit",
+      "size": 1251,
+      "snapshot": {
+        "subject": "GitButler Workspace Commit",
+        "author": "GitButler <gitbutler@gitbutler.com> 1791178831 +0800",
+        "committer_ts": 1791185314,
+        "parents": [
+          "1dde1ca1b0c5b5093d140313eb33583eb1cd882c",
+          "9afe3d62a91f129b881095f8e68880e8c43e33e4",
+          "c4361bb37c25a4d5427963059108fd217c0eb8ac"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-rework-report.md",
+          "line": 91
+        },
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-rework-report.md",
+          "line": 180
+        }
+      ],
+      "registered_at": "2026-10-05T09:34:17.834Z",
+      "reason": "grill-t37 post-land resync: pre-land lane SHAs rewritten on land; digest-token cite removed from prose in same wave",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "e4d9111a83774870fc02a1c790fa161d6258c4a9",
+      "object_type": "commit",
+      "size": 440,
+      "snapshot": {
+        "subject": "grill-t31 seal re-issue: declared anchor moves 64a27a9a -> d7ddd772 (governance closeout wave landed post-seal; t30 re-issue convention)",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790577864 +0800",
+        "committer_ts": 1790577864,
+        "parents": [
+          "d7ddd772b11bd53ffa899fe3a222350dc48a4826"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": "docs/governance/contract-vocab.json",
+          "line": 395
+        },
+        {
+          "file": "docs/governance/contract-vocab.json",
+          "line": 2211
+        }
+      ],
+      "registered_at": "2026-10-05T09:34:17.834Z",
+      "reason": "grill-t37 post-land resync: pre-land lane SHAs rewritten on land; digest-token cite removed from prose in same wave",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "fd5582a28488043375a18371dd1ed8ad3a0176ca",
+      "object_type": "commit",
+      "size": 1617,
+      "snapshot": {
+        "subject": "grill-t29 machinery: ADR-0086 exception-channel + classification legs, orphan-leg hardening (F-1..F-5), hermetic git fixtures (D-004), anchoring-footer leg (D-006)",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1790449343 +0800",
+        "committer_ts": 1790449343,
+        "parents": [
+          "d97abbb2ec54bdf1c73796028fb921960f2b2fae"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": "docs/governance/contract-vocab.json",
+          "line": 435
+        },
+        {
+          "file": "docs/governance/contract-vocab.json",
+          "line": 2384
+        }
+      ],
+      "registered_at": "2026-10-05T09:34:17.834Z",
+      "reason": "grill-t37 post-land resync: pre-land lane SHAs rewritten on land; digest-token cite removed from prose in same wave",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "c91df33e",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t37/STATUS.md",
+          "line": 12
+        },
+        {
+          "file": ".scratch/grill-t37/decision-ledger.md",
+          "line": 32
+        },
+        {
+          "file": ".scratch/grill-t37/handoffs/next-round.md",
+          "line": 59
+        },
+        {
+          "file": ".scratch/grill-t37/spec-t37-status-inventory.md",
+          "line": 124
+        }
+      ],
+      "registered_at": "2026-10-05T09:34:17.834Z",
+      "reason": "grill-t37 post-land resync: pre-land lane SHAs rewritten on land; digest-token cite removed from prose in same wave",
+      "carried_log": [],
+      "object_purged_at": "2026-10-05T09:34:17.834Z",
+      "errata_ref": null,
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "92e8722f",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t37/STATUS.md",
+          "line": 12
+        },
+        {
+          "file": ".scratch/grill-t37/decision-ledger.md",
+          "line": 80
+        },
+        {
+          "file": ".scratch/grill-t37/handoffs/next-round.md",
+          "line": 59
+        },
+        {
+          "file": ".scratch/grill-t37/spec-t37-status-inventory.md",
+          "line": 124
+        }
+      ],
+      "registered_at": "2026-10-05T09:34:17.834Z",
+      "reason": "grill-t37 post-land resync: pre-land lane SHAs rewritten on land; digest-token cite removed from prose in same wave",
+      "carried_log": [],
+      "object_purged_at": "2026-10-05T09:34:17.834Z",
+      "errata_ref": null,
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "54f913b2",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t37/STATUS.md",
+          "line": 12
+        },
+        {
+          "file": ".scratch/grill-t37/decision-ledger.md",
+          "line": 130
+        },
+        {
+          "file": ".scratch/grill-t37/handoffs/next-round.md",
+          "line": 59
+        },
+        {
+          "file": ".scratch/grill-t37/spec-t37-status-inventory.md",
+          "line": 124
+        }
+      ],
+      "registered_at": "2026-10-05T09:34:17.834Z",
+      "reason": "grill-t37 post-land resync: pre-land lane SHAs rewritten on land; digest-token cite removed from prose in same wave",
+      "carried_log": [],
+      "object_purged_at": "2026-10-05T09:34:17.834Z",
+      "errata_ref": null,
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "c3e838119c53",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t37/decision-ledger.md",
+          "line": 32
+        }
+      ],
+      "registered_at": "2026-10-05T09:34:17.834Z",
+      "reason": "grill-t37 post-land resync: pre-land lane SHAs rewritten on land; digest-token cite removed from prose in same wave",
+      "carried_log": [],
+      "object_purged_at": "2026-10-05T09:34:17.834Z",
+      "errata_ref": null,
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "a7d7c226",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
+          "line": 185
+        }
+      ],
+      "registered_at": "2026-10-05T09:34:17.834Z",
+      "reason": "grill-t37 post-land resync: pre-land lane SHAs rewritten on land; digest-token cite removed from prose in same wave",
+      "carried_log": [],
+      "object_purged_at": "2026-10-05T09:34:17.834Z",
+      "errata_ref": null,
+      "disposition": "orphaned"
     }
   ]
 }
