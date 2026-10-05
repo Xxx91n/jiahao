@@ -309,7 +309,7 @@ describe('expected-red registry guard', () => {
   test('evaluateHooks: N consecutive matching runs fire the trigger', () => {
     const dir = tmpdir();
     const mk = function (name, rows) {
-      fs.writeFileSync(path.join(dir, name), JSON.stringify({ run_id: 'r', tree_sha: 't', rows: rows }));
+      fs.writeFileSync(path.join(dir, name), JSON.stringify({ run_id: 'r', tree_sha: 't', judged_surface: 'gates', rows: rows }));
     };
     mk('status-inventory.gates.aaa.json', [{ unit_kind: 'gate-leg', name: 'x', judged_surface: 'gates', status: 'unverifiable', reason_code: 'timeout' }]);
     // mtimes: make aaa newest-first ordering deterministic
@@ -501,8 +501,8 @@ describe('dirty-tree re-derivation', () => {
   });
 
   test('pickDerivation prefers the HEAD-tree derivation, falls back to the claimed ancestor', () => {
-    const headArt = { file: 'h.json', artifact: { tree_sha: HEX, rows: [{ unit_kind: 'gate-leg', name: 'x', judged_surface: 'gates' }] } };
-    const ancArt = { file: 'a.json', artifact: { tree_sha: OLD, rows: [] } };
+    const headArt = { file: 'h.json', artifact: { tree_sha: HEX, complete: true, rows: [{ unit_kind: 'gate-leg', name: 'x', judged_surface: 'gates' }] } };
+    const ancArt = { file: 'a.json', artifact: { tree_sha: OLD, complete: true, rows: [] } };
     const arts = [headArt, ancArt]; // newest-first list order
     expect(csi.pickDerivation('gates', OLD, HEX, { artifacts: arts }).file).toBe('h.json');
     // HEAD-tree derivation gone (rolled back / different branch): the claimed
@@ -518,5 +518,97 @@ describe('dirty-tree re-derivation', () => {
     const truth = inv.normalizeRow(Object.assign({}, member, { duration_ms: 99, evidence_ref: 'different-run' }));
     const diff = inv.diffMemberSets([claim], [truth]);
     expect(diff.equal).toBe(true); // volatile fields never enter the member view
+  });
+});
+
+// ---- grill-t37 rework pins (audit F-2/F-3/F-4/F-7) ---------------------------
+describe('audit rework pins', () => {
+  // F-2: an out-of-set declared_reason is OBSERVED output - the timedOut and
+  // exit-2 unverifiable early-returns must never swallow the registry
+  // violation (D-003.1: out-of-set fails the leg, unconditionally).
+  test('F-2: out-of-set declared_reason fails even when the leg exits 2', () => {
+    const dir = tmpdir();
+    const regX = { entries: [{ name: 'cap-absent', command: 'cX', tier: 'confirmatory', source_adr: 'x', order: 1 }] };
+    const res = gates.runGates(regX, {
+      exec: function () { return { code: 2, output: '::jiahao declared_reason=bogus-code\n' }; },
+      probe: function () { return true; },
+      emit: { dir: dir }, runId: FAKE_RUN, trackedSurface: false,
+    });
+    expect(res.results[0].status).toBe('fail');
+    expect(res.results[0].output).toContain('DECLARED-REASON violation');
+    expect(res.results[0].declared_reason).toBeNull();
+    const art = JSON.parse(fs.readFileSync(path.join(dir, 'status-inventory', 'status-inventory.' + FAKE_RUN.file_safe + '.json'), 'utf8'));
+    expect(art.rows[0].status).toBe('fail');
+    expect(art.rows[0].reason_code).toBeUndefined(); // ordinary fail carries no reason_code
+  });
+
+  test('F-2: out-of-set declared_reason fails even when the leg times out', () => {
+    const dir = tmpdir();
+    const regX = { entries: [{ name: 'slow', command: 'cX', tier: 'confirmatory', source_adr: 'x', order: 1, timeout_s: 5 }] };
+    const res = gates.runGates(regX, {
+      exec: function () { return { code: 1, output: '::jiahao declared_reason=bogus-code\n', timedOut: true }; },
+      probe: function () { return true; },
+      emit: { dir: dir }, runId: FAKE_RUN, trackedSurface: false,
+    });
+    expect(res.results[0].status).toBe('fail');
+    expect(res.results[0].timedOut).toBe(true); // the timeout fact stays on the row
+    expect(res.results[0].output).toContain('DECLARED-REASON violation');
+    expect(res.exitCode).toBe(1);
+  });
+
+  // F-3: artifact history interleaves surfaces on mtime; a hook's consecutive
+  // streak must be evaluated inside each surface's own sequence.
+  test('F-3: escalation streak is per-surface - interleaved artifacts do not break it', () => {
+    const dir = tmpdir();
+    const now = Date.now();
+    const mk = function (name, surface, rows, ms) {
+      fs.writeFileSync(path.join(dir, name), JSON.stringify({ run_id: 'r', tree_sha: 't', judged_surface: surface, rows: rows }));
+      fs.utimesSync(path.join(dir, name), new Date(ms), new Date(ms));
+    };
+    const hit = [{ unit_kind: 'gate-leg', name: 'x', judged_surface: 'gates', status: 'unverifiable', reason_code: 'timeout' }];
+    mk('status-inventory.gates.a.json', 'gates', hit, now);
+    mk('status-inventory.test.m.json', 'test', [], now - 500); // interleaved other-surface run
+    mk('status-inventory.gates.b.json', 'gates', hit, now - 1000);
+    const reg = { entries: [{ id: 'defer-0001', escalation_hook: { reason_code: 'timeout', key_prefix: 'gate-leg::::::x', consecutive_runs: 2 } }] };
+    const fired = er.evaluateHooks(reg, dir);
+    expect(fired.length).toBe(1);
+    expect(fired[0]).toContain('FIRED');
+    // the OTHER surface's streak is evaluated independently: a test-surface
+    // hook over jest rows counts test artifacts only
+    const hitT = [{ unit_kind: 'jest-test', name: 'y', suite: 's', filepath: 'f', judged_surface: 'test', status: 'fail', reason_code: 'timeout' }];
+    mk('status-inventory.test.c.json', 'test', hitT, now - 300);
+    mk('status-inventory.test.d.json', 'test', hitT, now - 400);
+    mk('status-inventory.gates.e.json', 'gates', [], now - 200); // newest gates run, no rows
+    const regT = { entries: [{ id: 'defer-0002', escalation_hook: { reason_code: 'timeout', key_prefix: 'jest-test', consecutive_runs: 2 } }] };
+    expect(er.evaluateHooks(regT, dir).length).toBe(1);
+  });
+
+  // F-4: a mid-run artifact (complete:false) is a partial inventory, never a
+  // derivation truth - selection skips it; a tree whose only artifact is
+  // in-flight is underivable.
+  const HEXF = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+  const OLDF = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+  test('F-4: pickDerivation never selects a complete:false mid-run artifact', () => {
+    const midRun = { file: 'mid.json', artifact: { tree_sha: HEXF, complete: false, rows: [{ unit_kind: 'gate-leg', name: 'partial', judged_surface: 'gates' }] } };
+    const done = { file: 'done.json', artifact: { tree_sha: OLDF, complete: true, rows: [] } };
+    expect(csi.pickDerivation('gates', OLDF, HEXF, { artifacts: [midRun, done] }).file).toBe('done.json');
+    expect(csi.pickDerivation('gates', OLDF, HEXF, { artifacts: [midRun] })).toBe(null);
+  });
+
+  // F-7: the marker binds an ADJACENT json fence only; a backticked or prose
+  // mention followed by some later ```json block mints no phantom block.
+  test('F-7: a backticked prose mention of the marker extracts no block', () => {
+    const rows = [{ unit_kind: 'gate-leg', name: 'x', status: 'fail', judged_surface: 'gates' }];
+    const real = inv.renderSentinel({ run_id: 'r', emitted_at: 't', rows: rows });
+    const prose = 'the marker `<!-- status-inventory v1 -->` in a table cell\n\n```json\n{"unrelated": true}\n```\n\n' + real;
+    const parsed = inv.extractSentinels(prose);
+    expect(parsed.errors).toEqual([]);
+    expect(parsed.blocks).toHaveLength(1);
+    expect(parsed.blocks[0].block.run_id).toBe('r');
+    // marker at EOF, prose mention, no fence: also just prose - no error
+    const onlyMention = 'docs mention <!-- status-inventory v1 --> inline\n';
+    const parsed2 = inv.extractSentinels(onlyMention);
+    expect(parsed2.blocks).toEqual([]);
+    expect(parsed2.errors).toEqual([]);
   });
 });

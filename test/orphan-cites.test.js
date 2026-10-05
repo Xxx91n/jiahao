@@ -33,9 +33,18 @@ function put(dir, rel, text) {
   fs.mkdirSync(path.dirname(p), { recursive: true });
   fs.writeFileSync(p, text, 'utf8');
 }
+// Fixture-era clock pin (grill-t37 rework, audit queue): the ladder's stage
+// windows are computed off object_mtime, which for commits is the COMMITTER
+// timestamp. Unpinned fixtures aged with the wall clock - a run later than
+// the +20d window measured a younger object and stage 2 never opened. Every
+// fixture commit lands at the same instant half a day before NOW0: stage1
+// sees a 0.5d-old orphan (silent), stage2 at +20d sees 20.5d (warning, still
+// inside age+grace), stage3 at +30d sees 30.5d (red). Caller env wins.
+const FIXTURE_TS = '2026-09-28T00:00:00.000Z'; // NOW0 minus 12h
 function commit(dir, msg, env) {
   hg.git(dir, ['add', '-A']);
-  hg.git(dir, ['commit', '-q', '-m', msg], env ? { env: env } : undefined);
+  const e = Object.assign({ GIT_AUTHOR_DATE: FIXTURE_TS, GIT_COMMITTER_DATE: FIXTURE_TS }, env);
+  hg.git(dir, ['commit', '-q', '-m', msg], { env: e });
   return hg.git(dir, ['rev-parse', 'HEAD']);
 }
 function plantRegistry(dir) {

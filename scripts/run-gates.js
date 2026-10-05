@@ -364,6 +364,25 @@ function runGates(reg, opts) {
     }
     const lines = keptLines;
     const warnLines = lines.filter(function (l) { return /^::warning/.test(l); });
+    // grill-t37 D-003.1 + rework F-2: an out-of-set declared_reason is a
+    // registry violation observed in the leg's output - it fails the leg
+    // BEFORE the timedOut/exit-2 branches, which would otherwise return
+    // unverifiable rows that silently swallow the violation.
+    if (declaredViolation) {
+      lines.push('DECLARED-REASON violation: ::jiahao declared_reason=' + declaredViolation + ' is outside the closed set [' + invLib().REASON_CODES.join(', ') + '] (grill-t37 D-003.1 - registry violation, never a certification)');
+      const vrow = {
+        name: e.name, order: e.order, tier: e.tier, status: 'fail',
+        code: r.timedOut ? 2 : r.code,
+        missing: null, timedOut: Boolean(r.timedOut), warnings: warnLines.length,
+        declared_reason: null, duration_ms: duration_ms,
+        output: lines.filter(function (l) { return !/^::warning/.test(l); }).join('\n'),
+      };
+      if (e.tier === 'confirmatory') confirmFailed = true;
+      results.push(vrow);
+      state.rows.push(rowForResult(e, vrow, state.surface));
+      emitInventory(state);
+      return;
+    }
     // grill-t37 D-003.3 timeout bucket: a leg the runner's clock killed is
     // UNVERIFIABLE with reason_code 'timeout' - the run produced no verdict
     // on it, which is honest, and never reads as a leg verdict.
@@ -407,13 +426,10 @@ function runGates(reg, opts) {
     if (badPrefix.length) {
       lines.push('PREFIX-VOCAB violation: unknown prefix(es) ' + badPrefix.map(function (l) { return l.split(':')[0] + ':'; }).join(', ') + ' (ADR-0043 D-G; closed enum: src/shared/prefix-vocab.js)');
     }
-    // grill-t37 D-003.1: out-of-set declared_reason = registry violation.
-    // Same class as a bad prefix - a self-report outside the closed set can
-    // never certify, it can only fail.
-    if (declaredViolation) {
-      lines.push('DECLARED-REASON violation: ::jiahao declared_reason=' + declaredViolation + ' is outside the closed set [' + invLib().REASON_CODES.join(', ') + '] (grill-t37 D-003.1 - registry violation, never a certification)');
-    }
-    const fail = r.code !== 0 || badPrefix.length > 0 || Boolean(declaredViolation);
+    // grill-t37 D-003.1: out-of-set declared_reason = registry violation -
+    // handled above the timedOut/exit-2 returns (rework F-2); this path is
+    // unreachable by construction.
+    const fail = r.code !== 0 || badPrefix.length > 0;
     if (fail && e.tier === 'confirmatory') confirmFailed = true;
     const row = {
       name: e.name, order: e.order, tier: e.tier,

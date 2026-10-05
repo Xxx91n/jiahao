@@ -44,7 +44,6 @@
 const crypto = require('crypto');
 
 const SENTINEL = '<!-- status-inventory v1 -->';
-const SENTINEL_RE = /<!--\s*status-inventory\s+v1\s*-->/g;
 const JOIN_KEY_VERSION = 'v1';
 
 const UNIT_KINDS = Object.freeze(['gate-leg', 'jest-suite', 'jest-test', 'instrument-failure']);
@@ -155,20 +154,24 @@ function renderSentinel(opts) {
 
 // extractSentinels(text) -> { blocks: [parsed], errors: [string] }
 // Fail-closed per block: a malformed block is an error row, never skipped.
+// grill-t37 rework F-7: the marker binds only to an ADJACENT ```json fence
+// (whitespace between, same adjacency the carrier candidacy regex uses). A
+// backticked or prose mention of the marker never mints a block - so a report
+// may name the convention without being judged on phantom content.
+const BLOCK_RE = /<!--\s*status-inventory\s+v1\s*-->\s*```json[ \t]*\r?\n/g;
 function extractSentinels(text) {
   const blocks = [];
   const errors = [];
   if (!text) return { blocks: blocks, errors: errors };
-  SENTINEL_RE.lastIndex = 0;
+  BLOCK_RE.lastIndex = 0;
   let m;
-  while ((m = SENTINEL_RE.exec(text)) !== null) {
+  while ((m = BLOCK_RE.exec(text)) !== null) {
     const at = m.index;
-    const fence = text.indexOf('```json', at);
-    if (fence < 0) { errors.push('status-inventory v1 block at offset ' + at + ' has no json fence'); continue; }
-    const end = text.indexOf('```', fence + 7);
+    const contentStart = at + m[0].length;
+    const end = text.indexOf('```', contentStart);
     if (end < 0) { errors.push('status-inventory v1 block at offset ' + at + ' json fence unterminated'); continue; }
     let obj;
-    try { obj = JSON.parse(text.slice(fence + 7, end)); }
+    try { obj = JSON.parse(text.slice(contentStart, end)); }
     catch (e) { errors.push('status-inventory v1 block at offset ' + at + ' is not valid JSON: ' + e.message); continue; }
     if (!obj || typeof obj !== 'object' || !Array.isArray(obj.rows)) {
       errors.push('status-inventory v1 block at offset ' + at + ' must be an object carrying a rows array');

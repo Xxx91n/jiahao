@@ -114,6 +114,9 @@ function validateHooks(defReg) {
 // N consecutive artifacts (newest backward, per surface) each carry at least
 // one row matching {key_prefix, reason_code}. Emission gaps (a surface with
 // no artifacts) skip without judgment - absence of history is not a streak.
+// grill-t37 rework F-3: the artifact directory mixes surfaces on mtime, so
+// the streak must be evaluated inside each judged_surface's own sequence -
+// an interleaved other-surface artifact is not a break.
 function evaluateHooks(defReg, artifactDir) {
   const dir = artifactDir || ARTIFACT_DIR;
   const fired = [];
@@ -122,25 +125,34 @@ function evaluateHooks(defReg, artifactDir) {
   const files = names.filter(function (n) { return n.indexOf('status-inventory.') === 0 && n.slice(-5) === '.json'; })
     .map(function (n) { return { n: n, ms: fs.statSync(path.join(dir, n)).mtimeMs }; })
     .sort(function (a, b) { return b.ms - a.ms; });
-  const artifacts = [];
+  const bySurface = new Map();
   for (const f of files) {
-    try { artifacts.push(JSON.parse(fs.readFileSync(path.join(dir, f.n), 'utf8'))); }
-    catch (e) { /* a corrupt artifact is skipped, never counted either way */ }
+    let a;
+    try { a = JSON.parse(fs.readFileSync(path.join(dir, f.n), 'utf8')); }
+    catch (e) { continue; } // a corrupt artifact is skipped, never counted either way
+    const surface = a && a.judged_surface;
+    if (typeof surface !== 'string' || !surface) continue;
+    if (!bySurface.has(surface)) bySurface.set(surface, []);
+    bySurface.get(surface).push(a);
   }
   for (const e of (defReg && defReg.entries) || []) {
     const h = e && e.escalation_hook;
     if (!h || typeof h !== 'object' || !h.key_prefix || !h.reason_code || !Number.isInteger(h.consecutive_runs)) continue;
-    let streak = 0;
-    for (const a of artifacts) {
-      const rows = Array.isArray(a.rows) ? a.rows : [];
-      const hit = rows.some(function (r) {
-        return r && typeof r.reason_code === 'string' && r.reason_code === h.reason_code &&
-          inv.joinKey(r).indexOf(h.key_prefix) === 0;
-      });
-      if (hit) streak++; else break; // consecutive means consecutive
-      if (streak >= h.consecutive_runs) break;
+    let maxStreak = 0;
+    for (const seq of bySurface.values()) {
+      let streak = 0;
+      for (const a of seq) {
+        const rows = Array.isArray(a.rows) ? a.rows : [];
+        const hit = rows.some(function (r) {
+          return r && typeof r.reason_code === 'string' && r.reason_code === h.reason_code &&
+            inv.joinKey(r).indexOf(h.key_prefix) === 0;
+        });
+        if (hit) streak++; else break; // consecutive means consecutive
+        if (streak >= h.consecutive_runs) break;
+      }
+      if (streak > maxStreak) maxStreak = streak;
     }
-    if (streak >= h.consecutive_runs) {
+    if (maxStreak >= h.consecutive_runs) {
       fired.push((e.id || '?') + ': escalation_hook FIRED - ' + h.consecutive_runs +
         ' consecutive runs with reason_code ' + h.reason_code + ' under ' + h.key_prefix +
         ' - forced adjudication point (owner: activate / accept / flip semantics)');

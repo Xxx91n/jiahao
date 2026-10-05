@@ -120,10 +120,15 @@ function artifactsFor(surface) {
 // per-run artifact dir. Preference order: the HEAD-tree derivation first, then
 // the run the block claims - a dirty worktree shares HEAD's tree_sha, so
 // derivation selection is tree-anchored, never dirty/clean split.
+// grill-t37 rework F-4: only complete===true artifacts are derivation truth.
+// Runners emit incrementally (complete:false mid-run); reconciling against a
+// partial inventory minted false member-level reds when the standalone path
+// ran during a battery. An in-flight-only tree is underivable -> the caller's
+// null path reports UNVERIFIABLE, never a fabricated verdict.
 function pickDerivation(surface, claimedSha, headSha, opts) {
   const list = (opts && opts.artifacts) || artifactsFor(surface);
   const byTree = function (sha) {
-    return list.find(function (a) { return a.artifact && a.artifact.tree_sha === sha; }) || null;
+    return list.find(function (a) { return a.artifact && a.artifact.complete === true && a.artifact.tree_sha === sha; }) || null;
   };
   return byTree(headSha) || byTree(claimedSha) || null;
 }
