@@ -482,7 +482,7 @@ describe('checkSentinels provenance (round-2 audit R2-2b)', () => {
     put(dir, '.scratch/grill-t99/reports/later.md', 'later claim change\n');
     commitIn(dir, 'later claim change elsewhere, block NOT regenerated');
     // the block's own artifact is re-landed, making it the newest carrier;
-    // its declared boundary (the FIRST claim commit) now predates `later.md`.
+    // its declared boundary (the FIRST claim commit) now predates later.md.
     put(dir, '.scratch/grill-t99/handoffs/closeout.md',
       'wave report (touched again)\n\n' + blockFor(older, new Date(Number(hg.git(dir, ['log', '-1', '--format=%ct', older])) * 1000 + 60000).toISOString(), 'b'.repeat(40)));
     commitIn(dir, 're-land the closeout, block NOT regenerated');

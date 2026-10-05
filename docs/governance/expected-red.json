@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "_doc": "grill-t37 D-001.2 / T-7: expected-red registry. A red inventory row is a LEGAL expected red iff a row here names its join key AND is unexpired AND carries a code inside codes_enum - all three conjuncts are mechanical (src/shared/status-inventory.js isExpectedRed). codes_enum is a CLOSED set: adding a member is a Declaration, not an edit. approved_by is a pointer to the owner-approval line (ledger record / ADR section / commit), never the registrant's own word. Entries with an expired deadline stop certifying - they are disclosed as expired, never silently deleted.",
+  "codes_enum": [
+    "repair-in-flight",
+    "introduction-day",
+    "external-state"
+  ],
+  "entries": []
+}

@@ -1352,6 +1352,34 @@
       "status": "active"
     },
     {
+      "path": ".scratch/grill-t37/handoffs/2026-10-03-audit-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t37 impl round (row lands with artifact per fail-closed rule; artifact committed under 1dde1ca1)",
+      "declared_at": "2026-10-05",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t37/handoffs/2026-10-05-handoff.md",
+      "role": "implementer",
+      "declared_by": "grill-t37 impl round (row lands with artifact per fail-closed rule)",
+      "declared_at": "2026-10-05",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t37/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t37 impl round (row lands with artifact per fail-closed rule; artifact committed under 1dde1ca1)",
+      "declared_at": "2026-10-05",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t37/reports/2026-10-05-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t37 impl round (row lands with artifact per fail-closed rule)",
+      "declared_at": "2026-10-05",
+      "status": "active"
+    },
+    {
       "path": ".scratch/grill-t6/handoffs/2026-09-14-t1-audit-pass.md",
       "role": "implementer",
       "declared_by": "grill-t36 T-7 (implementer agent)",

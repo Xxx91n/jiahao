@@ -20,7 +20,7 @@ const baseline = require('../scripts/build-doc-hygiene-baseline');
 function adrRecordCount() {
   const m = read(path.join(ROOT, 'README.md')).match(/(\d+) architecture decision records/);
   return m ? m[1] : null;
-}const ADR = path.join(ROOT, 'docs', 'adr', '0076-round-edit-surface-taxonomy-and-governance-carve-out.md');
+} const ADR = path.join(ROOT, 'docs', 'adr', '0076-round-edit-surface-taxonomy-and-governance-carve-out.md');
 const TAX = path.join(ROOT, 'docs', 'governance', 'surface-taxonomy.json');
 const tax = require('../scripts/surface-taxonomy');
 
@@ -781,8 +781,8 @@ describe('grill-t19 dispositions (ADR-0077 missing-input clause + ADR-0078 strea
   test('txt hygiene negative fixture: the voided A-3 capture bytes are flagged; the md control-byte set does not transfer', () => {
     // The voided first capture of .scratch/grill-t18/evidence/
     // check-ci-jobs-missing.txt (pre-re-capture bytes): the recorded command
-    // reads `D:` + literal LF + `onexistent.yml` and the ENOENT path reads
-    // `jiahao\` + literal LF + `onexistent.yml` - an escape-interpreting
+    // reads D: + literal LF + onexistent.yml and the ENOENT path reads
+    // jiahao\ + literal LF + onexistent.yml - an escape-interpreting
     // invocation layer ate the backslash-n sequences into real newlines.
     const a = Buffer.concat([
       Buffer.from('$ node scripts/check-ci-jobs.js D:'),

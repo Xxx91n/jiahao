@@ -10,7 +10,7 @@
 // ADR-0092 D-M1's declared blind spot and this file is its closure.
 //
 // THE CONTRACT (D-1), verbatim in mechanism:
-//   - Primary criterion: the `gitattributes` `text` attribute.
+//   - Primary criterion: the .gitattributes `text` attribute.
 //   - Fallback: NUL sniffing, for files no attribute speaks for.
 //   - Disclosed skip: oversized files are skipped, and the skip is a
 //     DISCLOSURE OF A CAPABILITY BOUNDARY, not an exemption. `check-secret-

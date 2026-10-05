@@ -125,7 +125,7 @@ function buildAdapters() {
   };
 
   // ---- CodeBuddy (ADR-0087): first Claude-Code-compatible path host ----
-  // The bundle is SELF-CONTAINED: CodeBuddy recognizes `.claude-plugin/` +
+  // The bundle is SELF-CONTAINED: CodeBuddy recognizes .claude-plugin/ +
   // `${CLAUDE_PLUGIN_ROOT}` verbatim (official compat chapter; the name is
   // kept unchanged to maximize single-source distribution). Hook scripts +
   // their static require() closure + src/SKILL.md + jiahao-mcp are vendored

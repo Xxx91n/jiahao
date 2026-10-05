@@ -147,7 +147,7 @@ describe('map-freshness leg (E-17, D-004)', () => {
     // check-post-land.js --post-only, which name the tree explicitly.
     //
     // The fixture below is the PRE-D-6 shape on purpose: the worktree map has no
-    // `generated_from` field, so `declaredTreeAt` returns null and `commitTip`
+    // `generated_from` field, so declaredTreeAt returns null and commitTip
     // resolves to `tip` (null = worktree). This asserts the "no declaration"
     // fallback path: when the map declares no tree, the worktree map must cover
     // the worktree tree. The D-6 declared-tree path (map declares a specific

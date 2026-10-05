@@ -18,8 +18,8 @@
 //      the landing channel, git author/committer shape), declared_at, and a
 //      status legal for that role;
 //   4. the exception channel on examiner rows: a pending request carries the
-//      ADR-0086 fields, and a ratified row names a `ratified_by` that may not
-//      equal `declared_by` - the mechanical form of "the agent registers and
+//      ADR-0086 fields, and a ratified row names a ratified_by that may not
+//      equal declared_by - the mechanical form of "the agent registers and
 //      reports; it never self-certifies";
 //   5. THE FAIL-CLOSED DIRECTION: every tracked claim-surface artifact has a
 //      row, and every non-archived row's path exists in the tree.
