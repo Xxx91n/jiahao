@@ -6,8 +6,8 @@
     "tree-ish": "origin/main",
     "mode": "tree-internal"
   },
-  "generated_at": "2026-10-05T11:03:10.307Z",
-  "published_tip": "a007aacb9e887cd02c907617a45ad95135b0958b",
+  "generated_at": "2026-10-05T11:16:29.396Z",
+  "published_tip": "65b69ca7c2df36a404935c69e2e9dba4989bf044",
   "boundary": {
     "shared_base": "1ca81f5418a44a5fcae81c3c51b47ffad4322190",
     "old_tip": "2c93a30a5495219d0d2385f25d19af23e729852f",
@@ -23,7 +23,7 @@
   },
   "counts": {
     "commits": 15,
-    "published_only": 524,
+    "published_only": 525,
     "removed": 0,
     "same": 278,
     "doc_refs": 5564,
@@ -117,6 +117,10 @@
   ],
   "removed": [],
   "published_only": [
+    {
+      "new": "65b69ca7c2df36a404935c69e2e9dba4989bf044",
+      "subject": "grill-t37 post-land resync B: audit-coverage block -> bare-array contract (leg requires JSON array, emit output is object) + g6 replay log refresh (tarball field) + map regenerated at landed tip a007aacb + pin re-pin"
+    },
     {
       "new": "a007aacb9e887cd02c907617a45ad95135b0958b",
       "subject": "grill-t37 post-land repair wave: public-tip derived-state resync — registry sort fix + loop-2 prose cite fix + adr-0074 pin re-pinned to landed tip + pairing baseline registers t36 violations + orphan-cites backfill (10 live + 5 degraded) + map/manifest regen at 32af9b5f"
@@ -115951,12 +115955,12 @@
     },
     {
       "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
-      "line": 345,
+      "line": 341,
       "sha": "1c4c491f",
       "class": "orphaned-cite",
       "resolved_to": null,
       "qualifiers": {
-        "exists_at": "2026-10-05T09:12:02.475Z",
+        "exists_at": "2026-10-05T11:16:02.841Z",
         "object_mtime": 1791185850,
         "object_type": "commit",
         "object_size": 1251,
@@ -115965,13 +115969,13 @@
     },
     {
       "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
-      "line": 346,
+      "line": 342,
       "sha": "129a4eb9",
       "class": "local-only",
       "resolved_to": null,
       "label": "local commit",
       "qualifiers": {
-        "exists_at": "2026-10-05T09:12:02.475Z",
+        "exists_at": "2026-10-05T11:16:02.841Z",
         "object_mtime": 1791185850,
         "object_type": "commit",
         "object_size": 646,
@@ -115982,12 +115986,12 @@
     },
     {
       "file": ".scratch/grill-t37/reports/2026-10-05-audit-loop2.md",
-      "line": 348,
+      "line": 344,
       "sha": "1c4c491f",
       "class": "orphaned-cite",
       "resolved_to": null,
       "qualifiers": {
-        "exists_at": "2026-10-05T09:12:02.475Z",
+        "exists_at": "2026-10-05T11:16:02.841Z",
         "object_mtime": 1791185850,
         "object_type": "commit",
         "object_size": 1251,
