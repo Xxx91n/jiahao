@@ -1436,9 +1436,23 @@
       "status": "active"
     },
     {
+      "path": ".scratch/grill-t38/reports/2026-10-06-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t38 landing wave (row lands with artifact per fail-closed rule)",
+      "declared_at": "2026-10-06",
+      "status": "active"
+    },
+    {
       "path": ".scratch/grill-t38/reports/2026-10-07-audit-report.md",
       "role": "implementer",
       "declared_by": "grill-t38 audit lane (row lands with artifact per fail-closed rule; examiner class NOT self-certified - it is owner-ratified per ADR-0093 D-5)",
+      "declared_at": "2026-10-07",
+      "status": "active"
+    },
+    {
+      "path": ".scratch/grill-t38/reports/2026-10-07-rework-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t38 rework wave (row lands with artifact per fail-closed rule)",
       "declared_at": "2026-10-07",
       "status": "active"
     },
