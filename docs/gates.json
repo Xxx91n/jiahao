@@ -597,6 +597,39 @@
       "requires": [
         "repo-tree"
       ]
+    },
+    {
+      "name": "expected-red",
+      "command": "node scripts/check-expected-red.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0095-round-contract-carryover-triage-source-adr-dual-authority.md",
+      "order": 233,
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ]
+    },
+    {
+      "name": "comment-refs",
+      "command": "node scripts/check-comment-refs.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0095-round-contract-carryover-triage-source-adr-dual-authority.md",
+      "order": 234,
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ]
+    },
+    {
+      "name": "status-inventory",
+      "command": "node scripts/check-status-inventory.js",
+      "tier": "confirmatory",
+      "source_adr": "docs/adr/0095-round-contract-carryover-triage-source-adr-dual-authority.md",
+      "order": 235,
+      "params": {},
+      "requires": [
+        "repo-tree"
+      ]
     }
   ]
 }
