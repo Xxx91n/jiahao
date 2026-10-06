@@ -38,8 +38,10 @@ const invLib = require('../src/shared/status-inventory');
 const { emitArtifact } = require('../src/shared/per-run-artifacts');
 const { buildRunId } = require('../src/shared/run-id');
 // grill-t38 D-004 (T-3): the SAME anchor derivation run-gates.js uses - one
-// implementation, two call sites (D-M1: a second classifier would drift).
-const { deriveAnchor } = require('./run-gates');
+// implementation, two call sites (D-M1: a second classifier would drift). It
+// lives in scripts/shared/status-leg.js (rework P2-16) so requiring it does not
+// drag the whole gate-runner module in at require time.
+const { deriveAnchor } = require('./shared/status-leg');
 
 const TEST_CMD = 'node scripts/run-test-gate.js';
 const RUN_ID = buildRunId({ surface: 'test', root: ROOT });

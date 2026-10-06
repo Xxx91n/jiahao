@@ -579,3 +579,40 @@ describe('test-git-hermetic leg (grill-t29 D-004 + A-9 fix)', () => {
     expect(leg.scanSource(fx('runner-write.src.txt'), 't.js').some((e) => /bypasses/.test(e))).toBe(true);
   });
 });
+
+describe('workspace-merge structural exclusion (grill-t38 rework P1-10)', () => {
+  const buildRepo = (dir) => {
+    const gg = (args) => hg.git(dir, args);
+    hg.mkRepo(dir);
+    const put = (rel, body) => { const p = path.join(dir, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); hg.git(dir, ['add', rel]); };
+    const ci = (m) => { hg.git(dir, ['commit', '-q', '--allow-empty', '-m', m]); return gg(['rev-parse', 'HEAD']); };
+    return { gg, put, ci };
+  };
+
+  test('the workspace ref tip is excluded by REF IDENTITY, never by its subject', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-ws-struct-'));
+    const { gg, put, ci } = buildRepo(dir);
+    ci('base');
+    put('.scratch/grill-t1/GOAL.md', '# g\n');
+    // a commit whose SUBJECT is the workspace marker but is NOT the workspace ref
+    // tip - the old subject-equality predicate would have dropped it
+    const decoy = ci('GitButler Workspace Commit');
+    // the registered workspace ref points at a NORMAL-subject commit - the old
+    // subject predicate would have kept it in the anchor set
+    const wsTip = ci('a plain normal commit message');
+    // advance the default branch past wsTip so it is NOT the workspace ref tip
+    ci('advance the default branch');
+    gg(['branch', '-f', 'gitbutler/workspace', wsTip]);
+
+    const tip = fresh.workspaceMergeTip(dir);
+    expect(tip).toBe(wsTip);
+    // structural: the ref tip is a workspace merge despite its normal subject
+    expect(fresh.isWorkspaceMerge(wsTip, tip)).toBe(true);
+    // and the subject-decoy is NOT excluded (subject alone is not the predicate)
+    expect(fresh.isWorkspaceMerge(decoy, tip)).toBe(false);
+    // liveAnchorRefs drops the workspace ref tip, keeps the ordinary branch
+    const refs = fresh.liveAnchorRefs(dir);
+    expect(refs).not.toContain('refs/heads/gitbutler/workspace');
+    expect(refs.length).toBeGreaterThan(0);
+  });
+});

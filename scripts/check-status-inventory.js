@@ -22,6 +22,13 @@
 //      lastClaimMutation classifier. A freshness failure is a VERDICT-level
 //      reason, NOT a C-1 row-level closed-set code (D-002.8).
 //
+//   ②' freshness RATCHET (DATE domain, D-001.7, rework P0-5): the interval
+//      assertion above is BOUNDED, so a claim mutation outside the window is a
+//      hiding place. The INDEPENDENT unbounded assertion: the anchor tree's LAST
+//      claim-surface mutation, over the anchor's whole history (the SAME shared
+//      lastClaimMutation classifier), must be <= emitted_at. Own reason
+//      vocabulary entry, own error line.
+//
 // DISAMBIGUATION (D-004.2 three rules):
 //   ① anchor.tree_sha = the ANCHOR authority; run_id = the ADDRESSING
 //      authority. This leg NEVER reverse-derives tree_sha from run_id for the
@@ -62,7 +69,8 @@
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
-const { requireCapabilities, exitUnverifiable } = require('../src/shared/capability');
+const { requireCapabilities } = require('../src/shared/capability');
+const { exitUnverifiableReason } = require('./shared/status-leg');
 const roles = require('./shared/claim-surface-roles');
 const { lastClaimMutation } = require('./shared/last-claim-mutation');
 const inv = require('../src/shared/status-inventory');
@@ -79,12 +87,15 @@ const ADR_DIR = path.join(ROOT, 'docs', 'adr');
 const ANCHOR_REASONS = Object.freeze({
   MISMATCH: 'anchor_run_id_tree_mismatch',
   MALFORMED: 'anchor_missing_post_registration',
+  BACKFILLED: 'anchor_backfilled_pre_registration',
   LEGACY: 'legacy_run_id_path',
 });
 const FRESHNESS_REASONS = Object.freeze({
   ANCHOR_NOT_ANCESTOR: 'anchor_not_ancestor_of_carrier',
   CLAIM_MUTATION: 'claim_mutation_in_interval',
   ANCHOR_UNRESOLVABLE: 'anchor_unresolvable',
+  // RATCHET (D-001.7, P0-5): the unbounded freshness assertion's own reason.
+  CLAIM_MUTATION_AFTER_EMIT: 'anchor_claim_mutation_after_emitted_at',
 });
 
 // Rows for these units can never be in the mid-run artifact when this leg
@@ -102,6 +113,12 @@ const git = function (args) {
 const gitBool = function (args) {
   try { execFileSync('git', args, { cwd: ROOT, stdio: 'ignore' }); return true; } catch (e) { return false; }
 };
+
+// ONE row formatter (rework P2-16: the identical closure was duplicated at the
+// member-drift and drift-disclosure sites).
+function fmtRow(r) {
+  return r.join_key + ' [' + r.status + (r.reason_code ? '/' + r.reason_code : '') + ']';
+}
 
 function registrationCommit() {
   const adds = git(['log', '--diff-filter=A', '--format=%H', '--', SELF_REL]).split('\n').filter(Boolean);
@@ -168,12 +185,15 @@ function artifactsFor(surface) {
     .filter(Boolean);
 }
 
-// LEGACY HELPER (kept exported for backward compatibility - the pre-anchor
-// selection: HEAD-tree derivation first, then the claimed tree). It is NO
-// LONGER on the assertion path (D-002.5 prefer-HEAD abolition); the assertion
-// domain selects by run_id via pickByRunId below. Retained so the historical
-// selection contract stays importable and testable.
-// grill-t37 rework F-4: only complete===true artifacts are derivation truth.
+// MANUAL STRONG-VERIFICATION TOOL - NOT on the assertion path (grill-t38
+// rework P1-11). The pre-anchor selection (HEAD-tree derivation first, then the
+// claimed tree) is RETIRED from the assertion domain (D-002.5 prefer-HEAD
+// abolition): the assertion selects by run_id via pickByRunId below. This helper
+// survives only as a manual strong-verification probe a human runs when
+// re-deriving a surface by hand; its prefer-HEAD semantics are deliberately NOT
+// pinned by the test suite as expected behaviour (the retired contract must not
+// read as current). grill-t37 rework F-4: only complete===true artifacts are
+// derivation truth.
 function pickDerivation(surface, claimedSha, headSha, opts) {
   const list = (opts && opts.artifacts) || artifactsFor(surface);
   const byTree = function (sha) {
@@ -197,6 +217,7 @@ function pickByRunId(surface, runId, opts) {
 // DISAMBIGUATION (D-004.2). Returns:
 //   { kind:'anchored', treeSha }        - anchor present and consistent with run_id
 //   { kind:'mismatch', reason, ... }    - anchor.tree_sha !== run_id tree segment
+//   { kind:'backfilled', reason, ... }  - anchor present on a PRE-registration block
 //   { kind:'malformed', reason }        - post-registration block with no anchor
 //   { kind:'legacy', treeSha, reason }  - pre-registration (or bootstrap) block
 // ctx: { anchorRegMs, blockMs }.
@@ -204,14 +225,23 @@ function classifyBlockAnchor(block, ctx) {
   const c = ctx || {};
   const runIdTree = String(block.run_id).split('.')[1];
   const anchor = block.anchor;
+  const anchorRegMs = c.anchorRegMs || 0;
+  const blockMs = c.blockMs || 0;
   if (anchor && typeof anchor === 'object') {
     if (anchor.tree_sha !== runIdTree) {
       return { kind: 'mismatch', reason: ANCHOR_REASONS.MISMATCH, runIdTree: runIdTree, anchorTree: anchor.tree_sha, treeSha: null };
     }
+    // D-001.8② (rework P0-6): forward-only. The anchor convention binds from
+    // its registration commit; a block whose CARRIER predates that commit
+    // cannot have carried a legitimate anchor, so the field could only have
+    // been back-filled afterwards - the escape hatch D-001.8 forbids. Route
+    // anchor-bearing blocks through the SAME blockMs/anchorRegMs judgment the
+    // absent-anchor path uses (the anchor is no longer a free pass).
+    if (anchorRegMs > 0 && blockMs > 0 && blockMs < anchorRegMs) {
+      return { kind: 'backfilled', reason: ANCHOR_REASONS.BACKFILLED, treeSha: anchor.tree_sha, blockMs: blockMs, anchorRegMs: anchorRegMs };
+    }
     return { kind: 'anchored', treeSha: anchor.tree_sha };
   }
-  const anchorRegMs = c.anchorRegMs || 0;
-  const blockMs = c.blockMs || 0;
   if (anchorRegMs > 0 && blockMs >= anchorRegMs) {
     return { kind: 'malformed', reason: ANCHOR_REASONS.MALFORMED, treeSha: null };
   }
@@ -279,6 +309,63 @@ function freshnessAssertion(anchorTreeSha, carrierRel, opts) {
   return { red: false, reason: null, detail: '', yellow: null, degraded: degraded };
 }
 
+// RATCHET (D-001.7, rework P0-5): the freshness interval assertion above is
+// BOUNDED by (anchor, carrier.parent] - a claim-surface mutation OUTSIDE that
+// window is a hiding place (the ledger's own warning: "a subset that happens to
+// cut the real defect out of the window"). This is the INDEPENDENT, UNBOUNDED
+// form: the anchor tree's LAST claim-surface mutation, over the anchor's whole
+// reachable history, must be at or before the block's emitted_at. It reuses the
+// ONE shared lastClaimMutation classifier - no second scanner (D-M1).
+//   opts: { git }
+// Returns { red, reason, detail }. A non-parsable emitted_at is not judged here
+// (the caller already fails a missing emitted_at); a mutation at or before
+// emitted_at, or no claim mutation at all, is green.
+function freshnessRatchet(anchorTreeSha, emittedAt, opts) {
+  const g = (opts && opts.git) || git;
+  const emitted = Date.parse(String(emittedAt));
+  if (!Number.isFinite(emitted)) return { red: false, reason: null, detail: '' };
+  let shas = [];
+  try {
+    shas = g(['log', '--format=%H', anchorTreeSha]).split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+  } catch (e) { shas = []; }
+  const last = lastClaimMutation(g, shas);
+  if (!last) return { red: false, reason: null, detail: '' };
+  let ms = NaN;
+  try { ms = Number(g(['log', '-1', '--format=%ct', last])) * 1000; } catch (e) { /* stays NaN */ }
+  if (Number.isFinite(ms) && ms > emitted) {
+    return { red: true, reason: FRESHNESS_REASONS.CLAIM_MUTATION_AFTER_EMIT,
+      detail: 'anchor tree ' + String(anchorTreeSha).slice(0, 9) + ' last claim mutation ' + String(last).slice(0, 9) +
+        ' (' + new Date(ms).toISOString() + ') post-dates emitted_at ' + String(emittedAt) };
+  }
+  return { red: false, reason: null, detail: '' };
+}
+
+// D-001.3 / P1-8: the join-key grammar version disposition. v1.1 is current;
+// the committed t37 sentinel carriers hold the legacy 'v1' grammar and are still
+// VERIFIED (legacy path + ::warning), never hard-failed. Anything else is a
+// re-render red.
+function joinKeyVersionDisposition(version) {
+  if (version === inv.JOIN_KEY_VERSION) return { ok: true, legacy: false };
+  if (inv.LEGACY_JOIN_KEY_VERSIONS.indexOf(version) !== -1) return { ok: true, legacy: true };
+  return { ok: false, legacy: false };
+}
+
+// P1-9 / D-004.3/.4: consumer-side closed-enum validation. The emitter only ever
+// writes MODES / REF_CONTEXT members, but a HAND-WRITTEN block could carry an
+// out-of-enum value and pass un-judged - the consumer validates against the same
+// EXPORTED closed sets (never re-declared here). Returns error strings.
+function anchorEnumViolations(anchor) {
+  const out = [];
+  if (!anchor || typeof anchor !== 'object') return out;
+  if (inv.MODES.indexOf(anchor.mode) === -1) {
+    out.push('anchor.mode ' + JSON.stringify(anchor.mode) + ' outside the closed set [' + inv.MODES.join(', ') + '] (D-004.3)');
+  }
+  if (inv.REF_CONTEXT.indexOf(anchor.ref_context) === -1) {
+    out.push('anchor.ref_context ' + JSON.stringify(anchor.ref_context) + ' outside the closed set [' + inv.REF_CONTEXT.join(', ') + '] (D-004.4)');
+  }
+  return out;
+}
+
 // DRIFT OBSERVATION (D-002.5): a same-tree OTHER-run artifact whose member set
 // differs from the block's. Yellow disclosure only - never red. Returns null
 // when there is no such artifact or the member sets agree.
@@ -295,12 +382,14 @@ function driftDisclosure(surface, anchorTreeSha, ownRunId, claimRows, opts) {
 }
 
 function main() {
-  // ADR-0058 R8 inline declaration until the registry entry lands with its
-  // ADR (the leg's gates.json row is a Declaration-surface change): probe the
-  // capabilities this leg actually needs, don't fake a registry identity.
+  // ADR-0058 R8 / grill-t38 R3: the registry entry HAS landed (docs/gates.json
+  // name 'status-inventory', order 235), so the capability probe resolves through
+  // the registry (single source of truth) rather than an inline array. The probe
+  // runs BEFORE the leg's own reads (ADR-0040 D2).
   requireCapabilities('status-inventory');
   const errors = [];
   const freshnessErrors = [];
+  const ratchetErrors = [];
   const warnings = [];
   const unverifiable = [];
 
@@ -369,10 +458,18 @@ function main() {
     if (typeof block.emitted_at !== 'string' || !block.emitted_at) {
       errors.push(tag + ': emitted_at missing (freshness is self-described, D-005.4)');
     }
-    if (block.normalized_join_key_version !== inv.JOIN_KEY_VERSION) {
+    const jkv = joinKeyVersionDisposition(block.normalized_join_key_version);
+    if (!jkv.ok) {
       errors.push(tag + ': normalized_join_key_version ' + JSON.stringify(block.normalized_join_key_version) +
-        ' != ' + inv.JOIN_KEY_VERSION + ' - the join-key grammar moved; re-render the block');
+        ' is neither the current ' + inv.JOIN_KEY_VERSION + ' nor a registered legacy grammar [' +
+        inv.LEGACY_JOIN_KEY_VERSIONS.join(', ') + '] - the join-key grammar moved; re-render the block');
       continue;
+    }
+    if (jkv.legacy) {
+      // D-001.3 / P1-8: a legacy-grammar block is still VERIFIED (legacy path),
+      // disclosed as a yellow ::warning, never hard-failed.
+      warnings.push(tag + ': normalized_join_key_version ' + JSON.stringify(block.normalized_join_key_version) +
+        ' is the pre-' + inv.JOIN_KEY_VERSION + ' legacy grammar; still verified via the legacy path (re-render to ' + inv.JOIN_KEY_VERSION + ')');
     }
     if (!inv.sentinelSelfConsistent(block)) {
       errors.push(tag + ': rows_digest does not recompute over the declared rows (hand-edited snapshot)');
@@ -386,6 +483,14 @@ function main() {
       continue;
     }
 
+    // P1-9 (D-004.3/.4): consumer-side closed-enum validation of the anchor
+    // fields - a hand-written out-of-enum mode/ref_context must not pass.
+    const enumErrs = anchorEnumViolations(block.anchor);
+    if (enumErrs.length) {
+      for (const e of enumErrs) errors.push(tag + ': ' + e);
+      continue;
+    }
+
     // DISAMBIGUATION (D-004.2). The anchor judgment never reverse-derives
     // tree_sha from run_id: when an anchor is present the anchor's tree is the
     // authority; a disagreement is an independent red; an absent anchor is
@@ -394,6 +499,10 @@ function main() {
     if (cls.kind === 'mismatch') {
       errors.push(tag + ': ' + cls.reason + ' - anchor.tree_sha ' + JSON.stringify(cls.anchorTree) +
         ' != run_id tree segment ' + JSON.stringify(cls.runIdTree) + ' (emission self-contradiction, D-004.2 rule 2)');
+      continue;
+    }
+    if (cls.kind === 'backfilled') {
+      errors.push(tag + ': ' + cls.reason + ' - block carrier predates the anchor-convention registration but carries an anchor; the anchor could only have been back-filled (D-001.8\u2461, forward-only)');
       continue;
     }
     if (cls.kind === 'malformed') {
@@ -410,9 +519,22 @@ function main() {
       // (D-002.7 "restack = false red"). Keep the pre-anchor freshness check
       // (HEAD-or-ancestor-or-resolvable) and disclose the legacy judgment.
       warnings.push(tag + ': ' + cls.reason + ' - block predates the anchor convention; freshness judged via the legacy run_id path (D-004.2 rule 3)');
-      if (anchorTreeSha !== head && !gitBool(['merge-base', '--is-ancestor', anchorTreeSha, 'HEAD']) && !gitBool(['cat-file', '-e', anchorTreeSha + '^{commit}'])) {
-        errors.push(tag + ': run_id tree_sha ' + String(anchorTreeSha).slice(0, 9) + ' is not HEAD, an ancestor, or a resolvable commit - a foreign-tree block cannot speak for this tree');
-        continue;
+      if (anchorTreeSha !== head && !gitBool(['merge-base', '--is-ancestor', anchorTreeSha, 'HEAD'])) {
+        if (!gitBool(['cat-file', '-e', anchorTreeSha + '^{commit}'])) {
+          // D-002.7 restack/clone seam: the anchor sha no longer resolves in
+          // this repo (a rewrite, or a clone without the local object). A
+          // missing object is an INSTRUMENT condition, not a lie by the block
+          // - yellow disclosure, and the surface degrades to UNVERIFIABLE
+          // (exit 2) rather than a fabricated red.
+          warnings.push(tag + ': run_id tree_sha ' + String(anchorTreeSha).slice(0, 9) + ' does not resolve in this repo (restack, or a clone without the local object) - yellow disclosure (D-002.7)');
+          unverifiable.push(surface + ' (anchor tree_sha ' + String(anchorTreeSha).slice(0, 9) + ' unresolvable in this repo)');
+          continue;
+        }
+        // A RESOLVABLE foreign tree is tolerated on the legacy path: the
+        // GitButler workspace HEAD is ephemeral and rewritten by every lane
+        // mutation, so strict ancestry would mint a false red (D-002.7). The
+        // legacy ::warning above already discloses that this block was judged
+        // by the pre-anchor rule.
       }
     } else {
       // ASSERTION ② (DATE domain, D-002.1/.5/.6/.7): the strict freshness
@@ -424,6 +546,12 @@ function main() {
       if (fresh.yellow) warnings.push(tag + ': ' + fresh.yellow + ' - ' + fresh.detail);
       if (fresh.degraded) warnings.push(tag + ': carrier undetermined; freshness interval upper bound degraded to HEAD@run (D-002.6)');
       if (fresh.red) freshnessErrors.push(tag + ': ' + fresh.reason + ' - ' + fresh.detail);
+      // RATCHET (D-001.7, P0-5): the INDEPENDENT, UNBOUNDED freshness assertion
+      // - the anchor tree's last claim-surface mutation must be <= emitted_at.
+      // Its own reason vocabulary entry and its own error line, separate from
+      // the bounded interval assertion above.
+      const ratchet = freshnessRatchet(anchorTreeSha, block.emitted_at, { git: git });
+      if (ratchet.red) ratchetErrors.push(tag + ': ' + ratchet.reason + ' - ' + ratchet.detail);
     }
 
     // ASSERTION ① (TRUTH domain): member reconcile against the artifact the
@@ -437,9 +565,8 @@ function main() {
     const truthRows = rowsForSurface(own.artifact.rows, surface);
     const diff = inv.diffMemberSets(claimRows, truthRows);
     if (!diff.equal) {
-      const fmt = function (r) { return r.join_key + ' [' + r.status + (r.reason_code ? '/' + r.reason_code : '') + ']'; };
       errors.push(tag + ': member-level drift on surface ' + surface +
-        ' - report-only: [' + diff.only_a.map(fmt).join('; ') + '] vs own-run-artifact-only: [' + diff.only_b.map(fmt).join('; ') + ']' +
+        ' - report-only: [' + diff.only_a.map(fmtRow).join('; ') + '] vs own-run-artifact-only: [' + diff.only_b.map(fmtRow).join('; ') + ']' +
         ' (regenerate the block from its own run: node scripts/build-status-sentinel.js)');
     }
 
@@ -447,24 +574,27 @@ function main() {
     // OTHER-run artifact that disagrees is a yellow disclosure, never a red.
     const drift = driftDisclosure(surface, anchorTreeSha, block.run_id, claimRows, { artifacts: artifactsFor(surface) });
     if (drift) {
-      const fmt = function (r) { return r.join_key + ' [' + r.status + (r.reason_code ? '/' + r.reason_code : '') + ']'; };
       warnings.push(tag + ': drift disclosure - same-tree other-run artifact ' + drift.artifact.run_id +
-        ' differs: [' + drift.diff.only_a.map(fmt).join('; ') + '] vs [' + drift.diff.only_b.map(fmt).join('; ') + '] (flaky/env, not a transcription error)');
+        ' differs: [' + drift.diff.only_a.map(fmtRow).join('; ') + '] vs [' + drift.diff.only_b.map(fmtRow).join('; ') + '] (flaky/env, not a transcription error)');
     }
   }
 
   for (const w of warnings) console.log('::warning title=' + SELF_LEG + '::' + w);
 
-  if (errors.length || freshnessErrors.length) {
+  if (errors.length || freshnessErrors.length || ratchetErrors.length) {
     for (const e of errors) console.error('FAIL: ' + e);
     for (const e of freshnessErrors) console.error('FAIL: ' + e);
+    for (const e of ratchetErrors) console.error('FAIL: ' + e);
     process.exit(1);
   }
   if (unverifiable.length) {
-    // Exit-2 honesty: the leg ran, one or more surfaces had no own-run
-    // re-derivation to judge against. Non-blocking, ::error-annotated.
-    console.log('[' + SELF_LEG + '] UNVERIFIABLE: judged ' + subject.rel + ' on derivable surfaces; underivable: ' + unverifiable.join(', '));
-    exitUnverifiable(SELF_LEG, 'repo-tree');
+    // Exit-2 honesty (P2-16): the cause is an underivable own-run artifact, NOT
+    // a missing capability - the leg's declared capability (repo-tree) IS
+    // present. Restore the honest ::error line while still routing exit 2
+    // through a shared helper (this gate carries zero raw exit-2 sites, the
+    // adr-0041 wiring pin).
+    exitUnverifiableReason(SELF_LEG, 'own-run-artifact-absent',
+      'judged ' + subject.rel + ' on derivable surfaces; underivable: ' + unverifiable.join(', '));
   }
   console.log('[' + SELF_LEG + '] OK: ' + subject.rel + ' status-inventory block(s) reconcile member-level against the artifact their own run_id addresses');
   process.exit(0);
@@ -479,6 +609,9 @@ module.exports = {
   classifyBlockAnchor,
   driftDisclosure,
   freshnessAssertion,
+  freshnessRatchet,
+  joinKeyVersionDisposition,
+  anchorEnumViolations,
   anchorConventionMs,
   rowsForSurface,
   isObserverRow,

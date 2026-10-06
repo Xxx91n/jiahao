@@ -335,7 +335,7 @@ the frozen v3 corpus via `node scripts/check-pairer-regression.js`.
 
 ```bash
 # test-manifest:develop:begin (derived - do not hand-edit; node scripts/build-test-manifest.js)
-npm test                              # 1766 tests across 101 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 1778 tests across 101 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
 # test-manifest:develop:end
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 54 adapter files (12 hosts)
@@ -356,7 +356,7 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 - `adapters/` — generated per-host adapters (12 host directories / 54 generated files; ADR-0028 D5)
 - `jiahao-mcp/` — MCP-only adapter (profile parameter)
 <!-- test-manifest:architecture:begin (derived - do not hand-edit; node scripts/build-test-manifest.js) -->
-- `test/` — 101 test suites, 1766 tests
+- `test/` — 101 test suites, 1778 tests
 <!-- test-manifest:architecture:end -->
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 - `private/bench-corpus/` — answer corpora (gitignored, ADR-0036 D2): resolved via JIAHAO_CORPUS_DIR -> install-planted dir -> this repo dir; missing fails closed (ADR-0038 D2). npm-distributed runtime paths never reference it (ADR-0038 D1).

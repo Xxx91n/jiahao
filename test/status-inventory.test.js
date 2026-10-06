@@ -16,6 +16,9 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { spawnSync } = require('child_process');
+
+jest.setTimeout(60000);
 
 const inv = require('../src/shared/status-inventory');
 const runid = require('../src/shared/run-id');
@@ -24,6 +27,7 @@ const gates = require('../scripts/run-gates');
 const er = require('../scripts/check-expected-red');
 const cr = require('../scripts/check-comment-refs');
 const csi = require('../scripts/check-status-inventory');
+const statusLeg = require('../scripts/shared/status-leg');
 const repoExports = require('../src/shared/repo-exports');
 
 function tmpdir() {
@@ -125,10 +129,11 @@ describe('sentinel block', () => {
     const block = parsed.blocks[0].block;
     expect(Object.keys(block)).toEqual(['run_id', 'anchor', 'emitted_at', 'normalized_join_key_version', 'rows', 'rows_digest']);
     expect(block.anchor).toEqual(anchor);
-    // legacy form (no anchor) is exactly the pre-anchor renderer's bytes
+    // legacy form (no anchor) is exactly the pre-anchor renderer's bytes - at
+    // the CURRENT join-key version (v1.1, rework P1-8)
     const legacy = inv.renderSentinel({ run_id: 'gates.aaa.ctx', emitted_at: 't', rows: rows });
     const expected = inv.SENTINEL + '\n```json\n' + JSON.stringify({
-      run_id: 'gates.aaa.ctx', emitted_at: 't', normalized_join_key_version: 'v1',
+      run_id: 'gates.aaa.ctx', emitted_at: 't', normalized_join_key_version: 'v1.1',
       rows: inv.normalizeRows(rows), rows_digest: inv.rowsDigest(rows),
     }, null, 2) + '\n```\n';
     expect(legacy).toBe(expected);
@@ -263,7 +268,7 @@ describe('run-gates emission', () => {
   // grill-t38 D-004.9 (T-3): the derivation mirrors the run_id tree segment and
   // lands in the closed enums (exercises the real git probe).
   test('deriveAnchor mirrors the run_id tree segment; mode/ref_context are closed-enum', () => {
-    const a = gates.deriveAnchor(process.cwd(), FAKE_RUN);
+    const a = statusLeg.deriveAnchor(process.cwd(), FAKE_RUN);
     expect(a.tree_sha).toBe(FAKE_RUN.tree_sha);
     expect(inv.REF_CONTEXT).toContain(a.ref_context);
     expect(inv.MODES).toContain(a.mode);
@@ -484,8 +489,6 @@ describe('assert-leg anchor semantics (T-4)', () => {
     const headArt = { file: 'head.json', artifact: { run_id: 'gates.head.local', tree_sha: TREE, complete: true, rows: [{ unit_kind: 'gate-leg', name: 'wrong', judged_surface: 'gates' }] } };
     const ownArt = { file: 'own.json', artifact: { run_id: 'gates.own.local', tree_sha: OTHER, complete: true, rows: [{ unit_kind: 'gate-leg', name: 'right', judged_surface: 'gates' }] } };
     expect(csi.pickByRunId('gates', 'gates.own.local', { artifacts: [headArt, ownArt] }).file).toBe('own.json');
-    // the legacy helper still prefers HEAD (retained for back-compat, off the assertion path)
-    expect(csi.pickDerivation('gates', OTHER, TREE, { artifacts: [headArt, ownArt] }).file).toBe('head.json');
     // a partial (complete:false) own-run artifact is never truth
     const partial = { file: 'p.json', artifact: { run_id: 'gates.own.local', tree_sha: OTHER, complete: false, rows: [] } };
     expect(csi.pickByRunId('gates', 'gates.own.local', { artifacts: [partial] })).toBeNull();
@@ -683,16 +686,14 @@ describe('dirty-tree re-derivation', () => {
     expect(clean.tree_sha).toBe(a.tree_sha); // same anchor across dirty boundary
   });
 
-  test('pickDerivation prefers the HEAD-tree derivation, falls back to the claimed ancestor', () => {
-    const headArt = { file: 'h.json', artifact: { tree_sha: HEX, complete: true, rows: [{ unit_kind: 'gate-leg', name: 'x', judged_surface: 'gates' }] } };
-    const ancArt = { file: 'a.json', artifact: { tree_sha: OLD, complete: true, rows: [] } };
-    const arts = [headArt, ancArt]; // newest-first list order
-    expect(csi.pickDerivation('gates', OLD, HEX, { artifacts: arts }).file).toBe('h.json');
-    // HEAD-tree derivation gone (rolled back / different branch): the claimed
-    // ancestor's own derivation is the fallback truth source
-    expect(csi.pickDerivation('gates', OLD, HEX, { artifacts: [ancArt] }).file).toBe('a.json');
-    // neither exists -> underivable, surfaces as UNVERIFIABLE never as PASS
-    expect(csi.pickDerivation('gates', OLD, HEX, { artifacts: [] })).toBe(null);
+  test('prefer-HEAD is RETIRED: the assertion selector is run_id-addressed, not HEAD-tree (D-002.5 / P1-11)', () => {
+    const headArt = { file: 'h.json', artifact: { run_id: 'gates.head.local', tree_sha: HEX, complete: true, rows: [{ unit_kind: 'gate-leg', name: 'head-row', judged_surface: 'gates' }] } };
+    const ownArt = { file: 'own.json', artifact: { run_id: 'gates.own.local', tree_sha: OLD, complete: true, rows: [] } };
+    // a HEAD-tree artifact is NOT preferred: the own-run artifact wins even
+    // though a HEAD-tree derivation exists and is newer in the list order
+    expect(csi.pickByRunId('gates', 'gates.own.local', { artifacts: [headArt, ownArt] }).file).toBe('own.json');
+    // no own-run artifact -> underivable, never a HEAD-tree substitute
+    expect(csi.pickByRunId('gates', 'gates.absent.local', { artifacts: [headArt] })).toBeNull();
   });
 
   test('member-level compare ignores run_id identity: same members reconcile across dirty boundary', () => {
@@ -767,15 +768,13 @@ describe('audit rework pins', () => {
   });
 
   // F-4: a mid-run artifact (complete:false) is a partial inventory, never a
-  // derivation truth - selection skips it; a tree whose only artifact is
-  // in-flight is underivable.
-  const HEXF = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-  const OLDF = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
-  test('F-4: pickDerivation never selects a complete:false mid-run artifact', () => {
-    const midRun = { file: 'mid.json', artifact: { tree_sha: HEXF, complete: false, rows: [{ unit_kind: 'gate-leg', name: 'partial', judged_surface: 'gates' }] } };
-    const done = { file: 'done.json', artifact: { tree_sha: OLDF, complete: true, rows: [] } };
-    expect(csi.pickDerivation('gates', OLDF, HEXF, { artifacts: [midRun, done] }).file).toBe('done.json');
-    expect(csi.pickDerivation('gates', OLDF, HEXF, { artifacts: [midRun] })).toBe(null);
+  // derivation truth - the assertion selector skips it; a run whose only
+  // artifact is in-flight is underivable.
+  test('F-4: the assertion selector never picks a complete:false mid-run artifact', () => {
+    const midRun = { file: 'mid.json', artifact: { run_id: 'gates.mid.local', complete: false, rows: [{ unit_kind: 'gate-leg', name: 'partial', judged_surface: 'gates' }] } };
+    const done = { file: 'done.json', artifact: { run_id: 'gates.mid.local', complete: true, rows: [] } };
+    expect(csi.pickByRunId('gates', 'gates.mid.local', { artifacts: [midRun, done] }).file).toBe('done.json');
+    expect(csi.pickByRunId('gates', 'gates.mid.local', { artifacts: [midRun] })).toBeNull();
   });
 
   // F-7: the marker binds an ADJACENT json fence only; a backticked or prose
@@ -793,5 +792,127 @@ describe('audit rework pins', () => {
     const parsed2 = inv.extractSentinels(onlyMention);
     expect(parsed2.blocks).toEqual([]);
     expect(parsed2.errors).toEqual([]);
+  });
+});
+
+// ---- grill-t38 rework: P0-5 / P0-6 / P1-8 / P1-9 / P1-11 -------------------
+describe('grill-t38 rework: join-key version bump (P1-8)', () => {
+  test('renderSentinel emits the current v1.1 grammar; v1 is a registered legacy grammar', () => {
+    const text = inv.renderSentinel({ run_id: 'gates.aaa.ctx', emitted_at: 't', rows: [] });
+    expect(inv.JOIN_KEY_VERSION).toBe('v1.1');
+    expect(text).toContain('"normalized_join_key_version": "v1.1"');
+    expect(inv.LEGACY_JOIN_KEY_VERSIONS).toContain('v1');
+  });
+  test('consumer disposition: v1.1 current; v1 legacy (verified + warning); others red', () => {
+    expect(csi.joinKeyVersionDisposition('v1.1')).toEqual({ ok: true, legacy: false });
+    expect(csi.joinKeyVersionDisposition('v1')).toEqual({ ok: true, legacy: true });
+    expect(csi.joinKeyVersionDisposition('v2')).toEqual({ ok: false, legacy: false });
+    expect(csi.joinKeyVersionDisposition(undefined)).toEqual({ ok: false, legacy: false });
+  });
+});
+
+describe('grill-t38 rework: anchor must not be back-filled (P0-6)', () => {
+  const TREE = 'a'.repeat(40);
+  const RUN = 'gates.' + TREE + '.local';
+  const anchor = { tree_sha: TREE, ref_context: 'lane-tip', mode: 'tree-internal read' };
+  test('an anchor on a PRE-registration carrier is a back-fill red', () => {
+    const cls = csi.classifyBlockAnchor({ run_id: RUN, anchor: anchor }, { anchorRegMs: 2000, blockMs: 1000 });
+    expect(cls.kind).toBe('backfilled');
+    expect(cls.reason).toBe('anchor_backfilled_pre_registration');
+    expect(cls.reason).toBe(csi.ANCHOR_REASONS.BACKFILLED);
+  });
+  test('an anchor on a post-registration carrier is legitimately anchored', () => {
+    const cls = csi.classifyBlockAnchor({ run_id: RUN, anchor: anchor }, { anchorRegMs: 1000, blockMs: 2000 });
+    expect(cls.kind).toBe('anchored');
+  });
+});
+
+describe('grill-t38 rework: freshness ratchet (P0-5 / D-001.7)', () => {
+  const TREE = 'a'.repeat(40);
+  const MUT = 'e'.repeat(40);
+  test('a claim mutation post-dating emitted_at is a ratchet red', () => {
+    const g = (args) => {
+      if (args[0] === 'log' && args.indexOf('--format=%H') !== -1) return MUT;
+      if (args[0] === 'show') return '.scratch/grill-t38/reports/x.md\n';
+      if (args[0] === 'log' && args.indexOf('--format=%ct') !== -1) return '2000000000'; // 2033
+      throw new Error('unexpected git ' + args.join(' '));
+    };
+    const r = csi.freshnessRatchet(TREE, '2026-10-05T00:00:00Z', { git: g });
+    expect(r.red).toBe(true);
+    expect(r.reason).toBe('anchor_claim_mutation_after_emitted_at');
+    expect(r.reason).toBe(csi.FRESHNESS_REASONS.CLAIM_MUTATION_AFTER_EMIT);
+  });
+  test('a claim mutation at or before emitted_at is green', () => {
+    const g = (args) => {
+      if (args[0] === 'log' && args.indexOf('--format=%H') !== -1) return MUT;
+      if (args[0] === 'show') return '.scratch/grill-t38/reports/x.md\n';
+      if (args[0] === 'log' && args.indexOf('--format=%ct') !== -1) return '1700000000'; // 2023 < emitted
+      throw new Error('unexpected git ' + args.join(' '));
+    };
+    const r = csi.freshnessRatchet(TREE, '2026-10-05T00:00:00Z', { git: g });
+    expect(r.red).toBe(false);
+    expect(r.reason).toBeNull();
+  });
+  test('no claim mutation in the anchor history is green', () => {
+    const g = (args) => {
+      if (args[0] === 'log' && args.indexOf('--format=%H') !== -1) return 'f'.repeat(40);
+      if (args[0] === 'show') return 'src/app.js\n'; // not a claim surface
+      throw new Error('unexpected git ' + args.join(' '));
+    };
+    expect(csi.freshnessRatchet(TREE, '2026-10-05T00:00:00Z', { git: g }).red).toBe(false);
+  });
+});
+
+describe('grill-t38 rework: consumer-side anchor enum validation (P1-9)', () => {
+  test('in-enum anchor passes; out-of-enum mode/ref_context is caught', () => {
+    expect(csi.anchorEnumViolations({ mode: 'tree-internal read', ref_context: 'lane-tip' })).toEqual([]);
+    const bad = csi.anchorEnumViolations({ mode: 'dirty:3', ref_context: 'made-up' });
+    expect(bad.length).toBe(2);
+    expect(bad.join('\n')).toContain('anchor.mode');
+    expect(bad.join('\n')).toContain('anchor.ref_context');
+    expect(csi.anchorEnumViolations(null)).toEqual([]);
+  });
+});
+
+describe('grill-t38 rework: freshness green paths + main() smoke (P1-11 / D-002.10)', () => {
+  const TREE = 'a'.repeat(40);
+  const PARENT = 'd'.repeat(40);
+  const HEAD = 'c'.repeat(40);
+  test('green: anchor equals carrier.parent (interval empty)', () => {
+    const g = (args) => {
+      if (args[0] === 'log' && args.indexOf('--') !== -1) return PARENT;      // carrier
+      if (args[0] === 'rev-parse' && args[1] === '--verify') return TREE;     // upper == anchor
+      if (args[0] === 'log' && args.indexOf('--format=%H') !== -1) return ''; // empty interval
+      throw new Error('unexpected git ' + args.join(' '));
+    };
+    const r = csi.freshnessAssertion(TREE, 'reports/x.md', { git: g, gitBool: () => true, head: HEAD });
+    expect(r.red).toBe(false);
+    expect(r.yellow).toBeNull();
+    expect(r.degraded).toBe(false);
+  });
+  test('green: anchor is an ancestor with a clean interval', () => {
+    const g = (args) => {
+      if (args[0] === 'log' && args.indexOf('--') !== -1) return PARENT;
+      if (args[0] === 'rev-parse' && args[1] === '--verify') return PARENT;    // upper != anchor
+      if (args[0] === 'log' && args.indexOf('--format=%H') !== -1) return ''; // clean interval
+      throw new Error('unexpected git ' + args.join(' '));
+    };
+    const gb = (args) => {
+      if (args[0] === 'cat-file') return true;    // anchor resolvable
+      if (args[0] === 'merge-base') return true;  // anchor is an ancestor
+      throw new Error('unexpected gitBool ' + args.join(' '));
+    };
+    const r = csi.freshnessAssertion(TREE, 'reports/x.md', { git: g, gitBool: gb, head: HEAD });
+    expect(r.red).toBe(false);
+  });
+  test('main() runs end-to-end without crashing (live-repo smoke)', () => {
+    const root = path.join(__dirname, '..');
+    const r = spawnSync(process.execPath, [path.join(root, 'scripts', 'check-status-inventory.js')], { cwd: root, encoding: 'utf8' });
+    // OK (exit 0) in this repo - the newest carrier is a legacy v1 block the
+    // legacy path still verifies - or UNVERIFIABLE (exit 2) on a clean clone with
+    // no per-run artifact. Never a crash (exit 1 / uncaught stack).
+    expect([0, 2]).toContain(r.status);
+    expect(r.stderr).not.toMatch(/\n\s+at /);
+    expect(r.stdout + r.stderr).toMatch(/\[status-inventory\]/);
   });
 });

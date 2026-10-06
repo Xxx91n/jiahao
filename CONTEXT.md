@@ -2779,4 +2779,55 @@ selfcheck leg asserts cursor-vs-ledger coverage (ADR-0088 clause 7).
 _Avoid_: cursorless aggregation, rewriting deviations[] outside append,
 deviation rows bypassing the ledger
 
+**Assertion Anchoring (断言锚定)** (grill-t38, ledger D-001):
+Every committed claim about a tree state must declare the anchor at which it was
+evaluated, and the verification mechanism judges by that declared anchor rather
+than by the present world. The defect is a claim whose declared anchor differs
+from its actual measurement anchor — a claim that names one tree and measures
+another (ADR-0096 §P-1/§P-2/§N-3).
+_Avoid_: present-world evaluation, unanchored claim, "regenerate to now"
+
+**Anchor Authority vs Addressing Authority (锚权威 vs 寻址权威)** (grill-t38, ledger D-004):
+The authority split inside a block carrying both `anchor.tree_sha` and `run_id`.
+`anchor.tree_sha` is the anchor authority — the leg reads only it to judge the
+anchor. `run_id` is the addressing authority — it uniquely names the artifact
+file. The consumer leg is forbidden to reverse-derive `tree_sha` from `run_id`
+for anchor judgment; deriving the anchor from the address is how the address
+silently becomes the authority (ADR-0096 §P-1).
+_Avoid_: reading `run_id`'s second segment as the anchor; treating the two as interchangeable
+
+**Drift Observation Surface (漂移观测面)** (grill-t38, ledger D-002):
+A non-blocking disclosure surface for member differences between two runs on one
+tree (a different run's artifact on the same `tree_sha`, or the retired
+`HEAD`-tree artifact). Such a difference is flaky/environmental, not a
+transcription error, so it is a yellow `::warning` diff disclosure and never red
+— calling it red would be a false conviction. Distinct from the assertion domain,
+which judges only the block's own `run_id` artifact (ADR-0096 §P-1).
+_Avoid_: judging drift as red; collapsing the observation surface into the assertion surface
+
+**Live-Set (活分支集合)** (grill-t38, ledger D-003):
+The evaluation-time set of resolvable `refs/heads/*` ∪ `refs/gitbutler/*` live
+branches. It is the test-side evaluation anchor (ADR-0096 §P-2): a pin is green
+iff it is an ancestor of ANY named branch in the set; the workspace merge commit
+is structurally excluded. An empty or entirely unresolvable set is `UNVERIFIABLE`
+(exit 2), never red. Also a `ref_context` enum value (the set the emitter saw).
+_Avoid_: `HEAD` as the evaluation anchor; a single transient ref; merge-base as a single anchor
+
+**Tip Anchor vs Snapshot Anchor (tip 锚 vs 快照锚)** (grill-t38, ledger D-001):
+The two coexisting anchor classes that must not be read as one. Tip anchors (map
+coverage, pairing scan) are evaluated against the tip — their authority semantics
+require it. Snapshot anchors (`status-inventory` blocks, run evidence) are
+historical-claim semantics, evaluated against the declared tree. The boundary
+sentence prevents the misreading "everything is anchored now, so nothing need
+chase the tip" (ADR-0096 §P-1).
+_Avoid_: reading anchoring as un-anchoring the tip class; one anchor class for both
+
+**Valid-Time vs Transaction-Time (valid-time 与 transaction-time)** (grill-t38, ledger D-001):
+The bitemporal split under assertion anchoring. The valid-time is the measured
+tree (the anchor); the transaction-time is the carrier commit (the commit that
+carries the claim). Under this split, moving a carrier's tree is not lying — a
+claim was true of the tree it measured at valid-time — so the repair is an anchor
+declaration, not a prohibition on tree movement (ADR-0096 Context).
+_Avoid_: treating tree movement as falsification; one time axis for a claim and its measurement
+
 *End of Glossary*

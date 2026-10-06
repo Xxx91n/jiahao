@@ -119,8 +119,8 @@
       "file": "trend-inventory.json",
       "origin": "(authored in place)",
       "adr": "ADR-0064",
-      "bytes": 80925,
-      "sha256": "09399a6d35d4057926489c03f888ef25ad4030eec3f81fbbb89f0c593ec17070"
+      "bytes": 84411,
+      "sha256": "b96c008737e4b9cd2f53bca21ede76d692cf7db1fc7ac1210429ed2c8152d8f0"
     },
     {
       "file": "sunset-counter.json",

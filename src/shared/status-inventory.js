@@ -44,7 +44,13 @@
 const crypto = require('crypto');
 
 const SENTINEL = '<!-- status-inventory v1 -->';
-const JOIN_KEY_VERSION = 'v1';
+// D-001.3 / P1-8: the join-key grammar version. The anchor field (grill-t38
+// D-004.1) is an ADDITIVE schema step, so the version bumps with it: v1.1 is
+// current. Blocks committed under the legacy v1 grammar (the t37 sentinel
+// carriers) are NOT retro-convicted - the consumer leg still VERIFIES them via
+// the legacy path + a ::warning (LEGACY_JOIN_KEY_VERSIONS is that allowance).
+const JOIN_KEY_VERSION = 'v1.1';
+const LEGACY_JOIN_KEY_VERSIONS = Object.freeze(['v1']);
 
 // grill-t38 D-004 (T-3): the emission-side anchor. The block appends
 // anchor={tree_sha, ref_context, mode} (additive v1.1, schema grows only by
@@ -59,6 +65,15 @@ const JOIN_KEY_VERSION = 'v1';
 const REF_CONTEXT = Object.freeze(['lane-tip', 'merge-base', 'origin/main', 'workspace-merge', 'live-set']);
 const MODES = Object.freeze(['tree-internal read', 'working-tree read']);
 const WORKSPACE_REF = 'refs/heads/gitbutler/workspace';
+
+// RESIDUAL (P1-9 / D-004.3, registered not silently dropped): the dirty DEGREE
+// is meant to ride in runner_ctx - and on the LOCAL path it does
+// (run-id.js emits 'HEAD.{dirty|clean}.{iso}'). The CI path's runner_ctx is
+// 'GITHUB_RUN_ID.GITHUB_RUN_ATTEMPT.GITHUB_JOB' and carries NO dirty bit, so on
+// CI the dirty degree is unrecorded while a 'working-tree read' anchor still
+// states its read discipline. run-id.js is outside this rework's edit scope;
+// this is the explicit residual (the CI-shape dirty bit is neither implemented
+// nor silently assumed present).
 
 const UNIT_KINDS = Object.freeze(['gate-leg', 'jest-suite', 'jest-test', 'instrument-failure']);
 const REASON_CODES = Object.freeze(['registered-absence', 'timeout', 'instrument-failure']);
@@ -269,6 +284,7 @@ function isExpectedRed(row, registry, nowISO) {
 module.exports = {
   SENTINEL,
   JOIN_KEY_VERSION,
+  LEGACY_JOIN_KEY_VERSIONS,
   UNIT_KINDS,
   REASON_CODES,
   DECLARED_REASON_RE,

@@ -1454,8 +1454,8 @@
       "registered_at": "2026-10-06",
       "status": "pending-evaluation",
       "last_check_in": {
-        "date": "2026-10-06",
-        "note": "registered in-round by grill-t38 T-9 (D-003.6); first measurement expected in the implementation round"
+        "date": "2026-10-07",
+        "note": "first measurement (rework wave, 2026-10-07): ran `node scripts/run-gates.js` twice on the same tree (HEAD d67d90dc + uncommitted rework) - both runs emitted an identical red set: 5 FAIL (g6-publish / pack-smoke / governance-anchors / audit-surface / post-land-sentinel), 4 UNVERIFIABLE, 44 PASS (run_ids status-inventory.gates.d67d90dc...HEAD.dirty.2026-10-06T16-52-36.001Z and ...T16-55-43.493Z). Observed residual reds (churn-during-apply transients): 0 - no residual red observed in the first sample; every red is deterministic with a named cause"
       }
     },
     {
@@ -1507,6 +1507,42 @@
       "last_check_in": {
         "date": "2026-10-06",
         "note": "registered in-round by grill-t38 T-9 (D-006.1); trigger shares the t37-D-003.7 first-case anchor"
+      }
+    },
+    {
+      "id": "defer-0092",
+      "subject": "audit-coverage / post-land-verify anchoring absorption (v1 coverage boundary; next-round enumeration surface)",
+      "source_adr": "docs/adr/0095-round-contract-carryover-triage-source-adr-dual-authority.md",
+      "rationale": "grill-t38 D-002.4 a3: this round's anchoring semantics cover status-inventory only; absorbing the audit-coverage / post-land-verify anchoring semantics is the next round's independent enumeration surface, registered here rather than built (one round does not build two enumeration surfaces, t37-D-001 M-D). The unified anchor field is already legislated, so spreading it later costs zero schema change.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the next round opens an independent enumeration surface for audit-coverage / post-land-verify anchoring absorption (the v1 coverage boundary); the unified anchor field is already legislated, so no schema change is needed"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-10-07",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-10-07",
+        "note": "registered in the rework wave (audit P0-7a) to close ADR-0096 section P-1's claim of a deferred row for the audit-coverage / post-land-verify absorption (D-002.4 a3); the ADR now names this id"
+      }
+    },
+    {
+      "id": "defer-0093",
+      "subject": "post-land-sentinel refresh-late = yellow not red (D-006.7 disposition; refresh time-point layer only)",
+      "source_adr": "docs/adr/0095-round-contract-carryover-triage-source-adr-dual-authority.md",
+      "rationale": "grill-t38 D-006.7: a late post-land-sentinel refresh is stale-but-correctly-anchored, i.e. a dated claim, not a lie - the honest disposition is a yellow disclosure, not red. The mechanical regeneration is already legislated by E-17/E-19 (zero new legislation); only the refresh time-point layer is registered here, and the agent may not pre-run the refresh before the wave settles (the wave-settled judgment is an owner act).",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the wave has settled (owner judgment) and the post-land-sentinel refresh has been re-run after the last claim-surface mutation; a late refresh is a yellow disclosure, not a red verdict"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-10-07",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-10-07",
+        "note": "registered in the rework wave (audit P0-7a) as the D-006.7 disposition the same hole had swallowed; the ADR-0096 section P-1 line now names this id"
       }
     }
   ]

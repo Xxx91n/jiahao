@@ -44,8 +44,17 @@ function capturedHeaderRe(fresh) {
 }
 const CAPTURE_RE = /\.(txt|md)$/;
 const FIXTURE_RE = /\.fixture\./;
-// Ephemeral GitButler workspace merge objects never reach a public clone —
-// the walk drops them: they neither anchor nor count as claims.
+// Ephemeral GitButler workspace merge objects never reach a public clone — the
+// walk drops them: they neither anchor nor count as claims. The exclusion is
+// STRUCTURAL (rework P1-10): a workspace merge commit is identified by REF
+// IDENTITY — it is the tip of the registered workspace ref — never by its commit
+// SUBJECT (a reworded subject would smuggle the ephemeral merge into the lineage
+// and the anchor set). ONE predicate (isWorkspaceMerge) serves BOTH the walk and
+// the live-anchor enumeration; the two used to fork on startsWith() vs
+// equality() of the subject.
+const WORKSPACE_REF_DEFAULT = 'refs/heads/gitbutler/workspace';
+// Retained for other consumers (scripts/check-map-freshness.js reads
+// fresh.WORKSPACE_SUBJECT); this module no longer keys its predicate on it.
 const WORKSPACE_SUBJECT = 'GitButler Workspace Commit';
 // Claim-like heuristic for the unregistered-claim warning (D-003 hedge 4):
 // verdict-shaped filenames under a round dir that escaped the closed enum.
@@ -59,6 +68,20 @@ function gitOk(root, args) {
 }
 
 const gitLines = (root, args) => git(root, args).split('\n').filter(Boolean);
+
+// The tip of the registered workspace ref (the ONE place the ephemeral workspace
+// merge is named). Returns null when the ref is absent (public clone / plain
+// checkout) - then nothing is a workspace merge.
+function workspaceMergeTip(root, cfg) {
+  const ref = (cfg && cfg.workspace_ref) || WORKSPACE_REF_DEFAULT;
+  try { return git(root, ['rev-parse', '--verify', '-q', ref]) || null; } catch (e) { return null; }
+}
+
+// ONE predicate (rework P1-10): a workspace merge commit is the tip of the
+// registered workspace ref. Structural by ref identity, never by subject text.
+function isWorkspaceMerge(sha, tip) {
+  return Boolean(sha) && Boolean(tip) && sha === tip;
+}
 
 function loadFreshness(root) {
   const tax = JSON.parse(fs.readFileSync(path.join(root, 'docs', 'governance', 'surface-taxonomy.json'), 'utf8'));
@@ -123,10 +146,12 @@ function commitInfo(root, sha, cx) {
   };
 }
 
-// rev-list <range>, newest first, ephemeral GitButler workspace commits dropped.
+// rev-list <range>, newest first, ephemeral GitButler workspace commits dropped
+// via the ONE structural predicate (P1-10).
 function walk(root, range) {
+  const tip = workspaceMergeTip(root);
   return gitLines(root, ['rev-list', range])
-    .filter((sha) => !git(root, ['log', '--format=%s', '-1', sha]).startsWith(WORKSPACE_SUBJECT));
+    .filter((sha) => !isWorkspaceMerge(sha, tip));
 }
 
 // Last commit in base..ref whose commitInfo satisfies pred — the shared walk
@@ -516,25 +541,26 @@ function lastSealRecord(root, ref, fresh) {
 // grill-t38 D-003.1 (T-6): the P-2 evaluation anchor is a SET, not a
 // transient ref. At evaluation time, enumerate the resolvable live branches
 // refs/heads/* ∪ refs/gitbutler/*. The GitButler workspace merge commit is
-// structurally excluded (its subject marks it ephemeral machinery, never a
-// named branch). Returns [] when nothing resolves - the caller then emits a
-// verdict-level UNVERIFIABLE result, never red and never green. The T-3 shard
-// reuses this to derive ref_context.
+// structurally excluded by REF IDENTITY (the ref whose tip is the registered
+// workspace ref, rework P1-10) - never by subject text. Returns [] when nothing
+// resolves - the caller then emits a verdict-level UNVERIFIABLE result, never
+// red and never green. The T-3 shard reuses this to derive ref_context.
 function liveAnchorRefs(root) {
   let lines;
   try {
-    // One plumbing call; %00 separates refname from subject.
-    lines = gitLines(root, ['for-each-ref', '--format=%(refname)%00%(subject)', 'refs/heads', 'refs/gitbutler']);
+    // One plumbing call; %00 separates refname from the tip objectname.
+    lines = gitLines(root, ['for-each-ref', '--format=%(refname)%00%(objectname)', 'refs/heads', 'refs/gitbutler']);
   } catch (e) {
     return [];
   }
+  const tip = workspaceMergeTip(root);
   const out = [];
   for (const line of lines) {
     const cut = line.indexOf('\0');
     const ref = cut === -1 ? line : line.slice(0, cut);
-    const subject = cut === -1 ? '' : line.slice(cut + 1);
-    if (!ref || !refExists(root, ref)) continue;      // none resolvable -> not an anchor
-    if (subject === WORKSPACE_SUBJECT) continue;      // workspace merge: structurally excluded
+    const sha = cut === -1 ? '' : line.slice(cut + 1);
+    if (!ref || !refExists(root, ref)) continue;    // none resolvable -> not an anchor
+    if (isWorkspaceMerge(sha, tip)) continue;       // workspace merge: structurally excluded
     out.push(ref);
   }
   return out;
@@ -586,7 +612,7 @@ function orphanAncestry(root, fresh, opts) {
   // public clones / plain CI checkouts => clause not evaluated (reported,
   // never silently skipped). The seal read is a TREE read (treeRef), not the
   // lineage anchor set.
-  const wsRef = cfg.workspace_ref || 'refs/heads/gitbutler/workspace';
+  const wsRef = cfg.workspace_ref || WORKSPACE_REF_DEFAULT;
   let trigger = { state: 'not-evaluated', ref: wsRef, reason: 'workspace ref absent on this surface (no GitButler lane; non-ff clause vacuous here)' };
   if (refExists(root, wsRef)) {
     const last = lastSealRecord(root, treeRef, fresh);
@@ -619,6 +645,9 @@ function orphanAncestry(root, fresh, opts) {
 module.exports = {
   capturedHeaderRe,
   WORKSPACE_SUBJECT,
+  WORKSPACE_REF_DEFAULT,
+  workspaceMergeTip,
+  isWorkspaceMerge,
   EXCEPTION_REQUIRED_FIELDS,
   EXCEPTION_STATUS_ENUM,
   exceptionActive,
