@@ -126,7 +126,7 @@ Revisions keep the original record (marked revised) and add a new D-xxx.
   - dirty 树重推导语义=实现期决定（clean-run 哨兵与 dirty 树重推导可比性未立法）。
   - 全红日快照体积未实测——「失败面小」论证以行级为限，实测千行级需重估内嵌。
   - GH run 元数据到期后 run_id 引用无处解析——回放链不依赖它（truth 在树），披露面注明。
-- **状态**: current
+- **状态**: revised —— 子条款 6 断言腿比较域由「最新报告哨兵块成员集==当次重推导失败清单成员集」修订为「==所声明锚树重推导成员集」（锚=块自述 anchor.tree_sha）；N-1 三连发作实证原语义对 committed report 结构性不可满足。修订承接=grill-t38 decision-ledger D-001（经 Declaration 通道显式，t33-D-002(vi) 先例）。其余子条款仍为 current（原文保留）
 - **调研凭据**: atomcode-q5 run 2026-10-05 session 54f913b2（单次完成，8 searches/7 full reads）；一手信源=slsa.dev、SARIF correlationGuid、docs.github.com（run_id/run_attempt 原文+artifacts 到期）、ctrf-io README（join 键）、reproducible-builds.org、JFrog buildinfo、CycloneDX、security.txt merlonix 深读；信息缺口=全红日体积未实测 / dirty 树重推导语义未定 / run 元数据到期后人审可达性衰减 / jest 跨版本名稳定性（join_key_version 预置钩）。
 
 ## D-006 — 载体与执行包（Q6′ 选项 a 采纳：ADR-0095+三 lane+T-0 三段序+九面登记）
