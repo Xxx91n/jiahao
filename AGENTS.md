@@ -75,6 +75,12 @@ docs/agents/domain.md.
   claim-surface commit while the map is stale. `but commit` bypasses the
   hook by construction — the leg is the authority; repair = regen +
   follow-up wave, never a bot auto-commit (ADR-0083 D-C).
+- Snapshot-anchor note (E-19, ADR-0096 §P-1/§P-2; grill-t38 D-001.6): the
+  settled-tree `--check` above is the tip-anchor surface and is unchanged;
+  the snapshot-anchor surface (`status-inventory` blocks, run evidence) is
+  judged by each block's declared anchor, so its wave-close obligation is
+  to confirm the latest report's anchor assertion holds — not to regenerate
+  the block to the present.
 - Post-restack ritual (grill-t28 D-005): after any `but move`,
   restack, or undo on a lane containing claim commits, re-run the full
   `evaluateRound` for the affected round(s) before new claims or
@@ -136,9 +142,14 @@ docs/agents/domain.md.
   a machine-readable `<!-- audit-coverage v1 -->` coverage block (ADR-0091);
   the `audit-surface` leg asserts the latest in-scope report's block covers
   the derived CI checklist; `node scripts/build-audit-checklist.js emit`
-  prints the current checklist for the auditor to attest. The interim manual
-  clause (grill-t33 D-004(i)) retired with the mechanism - no coexistence
-  window.
+  prints the full pasteable block (`<!-- audit-coverage v1 -->` marker + JSON
+  fence + bare `commands` array) for the auditor to attest; advisories are a
+  separate `--advisories` channel (ADR-0096 §N-3; grill-t38 D-005.5). The
+  interim manual clause (grill-t33 D-004(i)) retired with the mechanism - no
+  coexistence window.
+- Prose anchor clause (ADR-0096 §P-1; grill-t38 D-004.5): a prose sentence
+  that carries a mechanically-judgeable value MUST parenthesize a `run_id`
+  back-reference; narrative sentences are non-load-bearing and need not cite.
 - Class-vs-sample discipline (grill-t36 D-007): a claim about a class
   requires verifying the class - name the enumeration surface or register the
   residual; a passing sample is evidence about the sample, not the class
