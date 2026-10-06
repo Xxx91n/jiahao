@@ -1403,6 +1403,111 @@
         "date": "2026-10-02",
         "note": "registered in-round by grill-t36 T-4/T-5 (ADR-0093 D-2); the not-taken classes are named in D-2 and in the doc-hygiene scanner comment"
       }
+    },
+    {
+      "id": "defer-0086",
+      "subject": "N-4 landing-channel contract obligation (existence only, no ruling)",
+      "source_adr": "docs/adr/0095-round-contract-carryover-triage-source-adr-dual-authority.md",
+      "rationale": "grill-t38 D-001.11: the ADR legislates only that a landing-channel contract obligation EXISTS; the PR/CI-channel vs approved-direct-land SELECTION is an owner act (the landing rulings are owner adjudications), so this row registers the obligation and never pre-empts the selection. Carries a deadline plus a section-9 process-fact reference.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the landing-channel deadline is reached and the section-9 process-fact reference is recorded; the PR/CI-channel vs approved-direct-land selection remains an owner act, never auto-resolved by this row"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-10-06",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-10-06",
+        "note": "registered in-round by grill-t38 T-9 (D-001.11); existence-only obligation, the channel selection reserved to the owner"
+      }
+    },
+    {
+      "id": "defer-0087",
+      "subject": "HEAD-bound live-eval test full enumeration beyond the pin-ancestry family (historical-enumeration form)",
+      "source_adr": "docs/adr/0095-round-contract-carryover-triage-source-adr-dual-authority.md",
+      "rationale": "grill-t38 D-003.5: this round fixes only the pin-ancestry family (four call sites); the full enumeration of the remaining HEAD-bound live-eval tests is a separate surface and is registered here rather than built (one round does not build two enumeration surfaces). The boundary sentence - anchor-defect form vs historical-enumeration form - is already in ADR-0096 section P-2.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the historical-enumeration-form boundary sentence is in ADR-0096 section P-2 (already landed); the enumeration reopens as an independent next-round surface"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-10-06",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-10-06",
+        "note": "registered in-round by grill-t38 T-9 (D-003.5); boundary sentence carried in ADR-0096 section P-2"
+      }
+    },
+    {
+      "id": "defer-0088",
+      "subject": "residual window (churn-during-apply) measurement",
+      "source_adr": "docs/adr/0095-round-contract-carryover-triage-source-adr-dual-authority.md",
+      "rationale": "grill-t38 D-003.6: a residual red caused by churn during apply is an instrument transient (yellow disclosure), not a registered errata class and not a true signal. This row carries the pre-registered reopen condition so the observation time-point is judged, not the errata class.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the same tree_sha shows residual reds on N consecutive gate-check runs above the noise threshold -> the errata question reopens under the pre-registered condition (the t27-D-003 form)"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-10-06",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-10-06",
+        "note": "registered in-round by grill-t38 T-9 (D-003.6); first measurement expected in the implementation round"
+      }
+    },
+    {
+      "id": "defer-0089",
+      "subject": "prose run_id parenthesization existence mechanical backstop (M-D class-4 candidate)",
+      "source_adr": "docs/adr/0095-round-contract-carryover-triage-source-adr-dual-authority.md",
+      "rationale": "grill-t38 D-004.5: a value-bearing prose sentence MUST parenthesize a run_id back-reference; the mechanical existence check for that parenthetical is registered here and not enumerated this round (one round does not build two enumeration surfaces).",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "parenthesization degradation is evidenced (a value-bearing prose sentence lacking its run_id back-reference) -> the mechanical existence check is built"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-10-06",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-10-06",
+        "note": "registered in-round by grill-t38 T-9 (D-004.5); the back-reference obligation is in ADR-0096 section P-1"
+      }
+    },
+    {
+      "id": "defer-0090",
+      "subject": "F-5 run_id matrix dimension - implementation gap and over-declared comment only (matrix dimension already legislated in t37-D-005.2; do NOT re-legislate)",
+      "source_adr": "docs/adr/0095-round-contract-carryover-triage-source-adr-dual-authority.md",
+      "rationale": "grill-t38 D-006.1/.6: this row registers ONLY the implementation gap plus the comment over-declaration - the matrix dimension itself is already legislated in t37-D-005.2 and is not restated (no parallel ledger). Fact correction recorded here: run_id already carries GITHUB_JOB; the real defect is the GitHub matrix-leg same-name collision plus the over-declared comment; ci.yml measured zero matrix:.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "any workflow declares a matrix: (the GitHub matrix-leg same-name collision plus the over-declared comment)",
+        "verified_by": "scripts/check-ci-jobs.js"
+      },
+      "review_at": "2027-04-30",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-10-06",
+      "status": "deferred"
+    },
+    {
+      "id": "defer-0091",
+      "subject": "F-11 mismatch pre-computation (declared-vs-inferred)",
+      "source_adr": "docs/adr/0095-round-contract-carryover-triage-source-adr-dual-authority.md",
+      "rationale": "grill-t38 D-006.1: F-11's trigger shares one anchor with the t37-D-003.7 first-case hook - the first real declared-vs-inferred mismatch, or a gate-battery measured timeout - so the two never become double counters. Registered here as the deferred row; no pre-computation is built this round.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the first real declared-vs-inferred mismatch case appears OR a gate-battery measured timeout occurs (the same anchor as the t37-D-003.7 first-case hook; the two never become double counters)"
+      },
+      "review_at": "2027-04-30",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-10-06",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-10-06",
+        "note": "registered in-round by grill-t38 T-9 (D-006.1); trigger shares the t37-D-003.7 first-case anchor"
+      }
     }
   ]
 }
