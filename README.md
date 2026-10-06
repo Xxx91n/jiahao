@@ -335,7 +335,7 @@ the frozen v3 corpus via `node scripts/check-pairer-regression.js`.
 
 ```bash
 # test-manifest:develop:begin (derived - do not hand-edit; node scripts/build-test-manifest.js)
-npm test                              # 1741 tests across 100 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 1766 tests across 101 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
 # test-manifest:develop:end
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 54 adapter files (12 hosts)
@@ -356,7 +356,7 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 - `adapters/` — generated per-host adapters (12 host directories / 54 generated files; ADR-0028 D5)
 - `jiahao-mcp/` — MCP-only adapter (profile parameter)
 <!-- test-manifest:architecture:begin (derived - do not hand-edit; node scripts/build-test-manifest.js) -->
-- `test/` — 100 test suites, 1741 tests
+- `test/` — 101 test suites, 1766 tests
 <!-- test-manifest:architecture:end -->
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 - `private/bench-corpus/` — answer corpora (gitignored, ADR-0036 D2): resolved via JIAHAO_CORPUS_DIR -> install-planted dir -> this repo dir; missing fails closed (ADR-0038 D2). npm-distributed runtime paths never reference it (ADR-0038 D1).
@@ -366,7 +366,7 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 <summary>ADR index — derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`</summary>
 
 <!-- adr-index:start -->
-- 94 architecture decision records:
+- 96 architecture decision records:
 - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
 - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
 - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
@@ -461,6 +461,8 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 - [ADR-0092](docs/adr/0092-public-object-equivalence-and-post-land-verification-contract.md) — Public-Object Equivalence and the Post-Land Verification Contract (grill-t35)
 - [ADR-0093](docs/adr/0093-observer-equivalence-contract.md) — Observer Equivalence Contract — Byte Surface, Instrument Non-Intrusion, Claim-Surface Role Separation, and Generation Surface (grill-t36)
 - [ADR-0094](docs/adr/0094-tarball-cap-trend-anchor-amendment-grill-t36-observer-surface.md) — Tarball-Cap Trend-Anchor Amendment for the grill-t36 Observer Surface (draft for owner sign-off)
+- [ADR-0095](docs/adr/0095-round-contract-carryover-triage-source-adr-dual-authority.md) — Assertion-Anchoring Round Contract — Carryover Triage, the source_adr Dual-Authority Declaration, and the Same-Commit Universal Clause (grill-t38)
+- [ADR-0096](docs/adr/0096-assertion-anchoring-emit-anchor-test-anchor-emit-output-contract.md) — Assertion Anchoring — Emit-Side Anchor Contract, Test-Side Set Anchor, and the Emit Output Contract (grill-t38)
 <!-- adr-index:end -->
 
 </details>
