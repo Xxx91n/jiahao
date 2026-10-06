@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0091 (grill-t34 D-004): derived CI command-surface checklist - the audit re-run surface floor. Generated from ci.yml via the shared zero-dep parsers; hand-edit forbidden. node scripts/build-audit-checklist.js emit prints the commands array for the audit-coverage v1 block; the auditor attests what they ran - the generator never co-signs.",
+  "_doc": "ADR-0091 (grill-t34 D-004) / ADR-0096 N-3 (grill-t38 D-005): derived CI command-surface checklist - the audit re-run surface floor. Generated from ci.yml via the shared zero-dep parsers; hand-edit forbidden. node scripts/build-audit-checklist.js emit prints the FULL pasteable audit-coverage v1 block (sentinel line + json fence + bare commands array); that output form is the registered contract - form changes go through Declaration. Advisories are a separate channel (node scripts/build-audit-checklist.js --advisories); they never ride emit. The auditor attests what they ran - the generator never co-signs.",
   "generated_by": "scripts/build-audit-checklist.js",
-  "generated_at": "2026-10-02T03:35:23.903Z",
+  "generated_at": "2026-10-06T14:19:06.317Z",
   "source": ".github/workflows/ci.yml",
   "jobs": [
     {

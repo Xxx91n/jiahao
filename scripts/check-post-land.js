@@ -58,6 +58,10 @@ const { docHygiene } = require('./shared/doc-hygiene');
 const trackedText = require('./shared/tracked-text');
 const docBaseline = require('./build-doc-hygiene-baseline');
 const pairing = require('./shared/readme-pairing');
+// grill-t38 T-5 (D-002.3): the classifier is lifted to shared/ so the t38
+// assertion leg is a second CALLER, not a second implementation. Re-exported
+// below so existing consumers of this module do not break.
+const { lastClaimMutation } = require('./shared/last-claim-mutation');
 
 const ROOT = path.join(__dirname, '..');
 const SENTINEL = '<!-- post-land-verify v1 -->';
@@ -251,18 +255,9 @@ function runPreLand(opts) {
 // file on the registered claim surface (.scratch/grill-*/reports|handoffs/),
 // evaluated with the same classifier the map-freshness leg uses, so 'last claim
 // mutation' means one thing across the round.
-function lastClaimMutation(git, wave) {
-  let last = null;
-  let lastDate = -1;
-  for (const sha of wave) {
-    const files = git(['show', '--name-only', '--format=', sha]).split('\n').map((s) => s.trim()).filter(Boolean);
-    const isClaim = files.some((f) => /^\.scratch\/grill-[^/]+\/(reports|handoffs)\//.test(f));
-    if (!isClaim) continue;
-    const d = Number(git(['log', '-1', '--format=%ct', sha]));
-    if (d >= lastDate) { lastDate = d; last = sha; }
-  }
-  return last;
-}
+// grill-t38 T-5 (D-002.3): the body moved verbatim to
+// scripts/shared/last-claim-mutation.js and is required at the top; it is
+// re-exported below so this module's public surface is unchanged.
 
 const SUBSET_SCOPE = [
   'map-freshness tip coverage (authority, ADR-0092 D-M2)',

@@ -186,6 +186,37 @@ function emitLib() {
   return require('../src/shared/per-run-artifacts');
 }
 
+// grill-t38 D-004 (T-3): the emission-side anchor for a status-inventory
+// artifact. tree_sha MIRRORS the run_id's tree segment (run_id keeps its
+// addressing role; its syntax is not touched, D-004.1); mode is the read
+// discipline (a dirty worktree read is 'working-tree read', D-004.3); ref_context
+// is the observation-context record classified by the ONE shared classifier
+// (status-inventory.classifyRefContext). The live-branch enumeration is REUSED
+// from evidence-freshness (the T-6 shard's liveAnchorRefs) - never re-rolled.
+// Exported so run-test-gate.js shares this single implementation (D-M1).
+function deriveAnchor(root, runId) {
+  const inv = invLib();
+  const { worktreeDirty } = require('../src/shared/run-id');
+  const git = function (args) {
+    try { return execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim(); } catch (e) { return ''; }
+  };
+  let liveRefs = [];
+  try { liveRefs = require('./evidence-freshness').liveAnchorRefs(root); } catch (e) { liveRefs = []; }
+  const facts = {
+    head_sha: git(['rev-parse', 'HEAD']),
+    head_ref: git(['symbolic-ref', '-q', 'HEAD']),
+    origin_main_sha: git(['rev-parse', '--verify', '-q', 'origin/main']),
+    workspace_ref: inv.WORKSPACE_REF,
+    merge_base_sha: git(['merge-base', inv.WORKSPACE_REF, 'origin/main']),
+    live_refs: liveRefs,
+  };
+  return {
+    tree_sha: (runId && runId.tree_sha) || null,
+    ref_context: inv.classifyRefContext(facts),
+    mode: worktreeDirty(root) ? 'working-tree read' : 'tree-internal read',
+  };
+}
+
 // One inventory row per non-green result (D-002.2: greens aggregate in the
 // committed manifest, never here). The row carries the runner-adjudicated
 // reason_code (authoritative) and any leg-declared_reason (reference-only).
@@ -235,6 +266,8 @@ function emitInventory(state) {
     run_id: state.runId.run_id,
     judged_surface: state.runId.judged_surface,
     tree_sha: state.runId.tree_sha,
+    // grill-t38 D-004 (T-3): the emission-side anchor (additive v1.1).
+    anchor: state.anchor,
     runner_ctx: state.runId.runner_ctx,
     emitted_at: new Date().toISOString(),
     complete: state.complete === true,
@@ -303,6 +336,11 @@ function runGates(reg, opts) {
     results: results,
     emitErrors: [],
     complete: false,
+    // grill-t38 D-004 (T-3): the emission-side anchor, derived ONCE per run
+    // (the observation context is the run's, not the leg's). Injectable via
+    // o.anchor for tests; only derived when the run actually emits.
+    anchor: o.anchor !== undefined ? o.anchor
+      : (o.emit ? deriveAnchor(o.root || ROOT, o.runId) : null),
   };
   // ADR-0093 D-4: entry zero point over the whole tracked tree. This is
   // wrapper-level instrumentation, not a gates.json leg - a leg is
@@ -555,4 +593,4 @@ function main(argv) {
 
 if (require.main === module) main(process.argv);
 
-module.exports = { ConfigLoadError, loadRegistry, validateRegistry, checkAlignment, checkCoupling, runGates, tokenPrefix, META_ENTRIES, TIERS, REGISTRY_REL };
+module.exports = { ConfigLoadError, loadRegistry, validateRegistry, checkAlignment, checkCoupling, runGates, tokenPrefix, META_ENTRIES, TIERS, REGISTRY_REL, deriveAnchor };

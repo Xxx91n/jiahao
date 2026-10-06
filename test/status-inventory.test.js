@@ -113,6 +113,40 @@ describe('sentinel block', () => {
     block.rows.push({ join_key: 'forged::::row', unit_kind: 'gate-leg', status: 'fail' });
     expect(inv.sentinelSelfConsistent(block)).toBe(false);
   });
+
+  // grill-t38 D-004.1 (T-3): the anchor field is additive v1.1 - it rides
+  // RIGHT AFTER run_id, and its absence leaves the block byte-identical to the
+  // legacy (pre-anchor) form.
+  test('anchor rides right after run_id; absence is byte-identical to legacy', () => {
+    const anchor = { tree_sha: 'abc1234', ref_context: 'lane-tip', mode: 'tree-internal read' };
+    const text = inv.renderSentinel({ run_id: 'gates.aaa.ctx', emitted_at: 't', rows: rows, anchor: anchor });
+    const parsed = inv.extractSentinels(text);
+    expect(parsed.errors).toEqual([]);
+    const block = parsed.blocks[0].block;
+    expect(Object.keys(block)).toEqual(['run_id', 'anchor', 'emitted_at', 'normalized_join_key_version', 'rows', 'rows_digest']);
+    expect(block.anchor).toEqual(anchor);
+    // legacy form (no anchor) is exactly the pre-anchor renderer's bytes
+    const legacy = inv.renderSentinel({ run_id: 'gates.aaa.ctx', emitted_at: 't', rows: rows });
+    const expected = inv.SENTINEL + '\n```json\n' + JSON.stringify({
+      run_id: 'gates.aaa.ctx', emitted_at: 't', normalized_join_key_version: 'v1',
+      rows: inv.normalizeRows(rows), rows_digest: inv.rowsDigest(rows),
+    }, null, 2) + '\n```\n';
+    expect(legacy).toBe(expected);
+  });
+
+  // grill-t38 D-004.4 (T-3): ref_context is the observation-context record,
+  // classified into the closed enum. Most specific member wins.
+  test('classifyRefContext maps probed facts to the closed enum', () => {
+    const ws = inv.WORKSPACE_REF;
+    expect(inv.classifyRefContext({})).toBe('live-set'); // no HEAD -> honest fallback
+    expect(inv.classifyRefContext({ head_sha: 'a', origin_main_sha: 'a' })).toBe('origin/main');
+    expect(inv.classifyRefContext({ head_sha: 'a', head_ref: ws, workspace_ref: ws })).toBe('workspace-merge');
+    expect(inv.classifyRefContext({ head_sha: 'a', head_ref: 'refs/heads/lane', live_refs: ['refs/heads/lane'] })).toBe('lane-tip');
+    expect(inv.classifyRefContext({ head_sha: 'a', merge_base_sha: 'a' })).toBe('merge-base');
+    expect(inv.classifyRefContext({ head_sha: 'a' })).toBe('live-set');
+    // origin/main outranks workspace-merge (most specific first)
+    expect(inv.classifyRefContext({ head_sha: 'a', origin_main_sha: 'a', head_ref: ws, workspace_ref: ws })).toBe('origin/main');
+  });
 });
 
 // ---- expected-red predicate (D-001.2: registered /\ unexpired /\ in-set) ---
@@ -213,6 +247,26 @@ describe('run-gates emission', () => {
     expect(art.rows.find(function (r) { return r.name === 'c-unver'; }).reason_code).toBe('instrument-failure');
     expect(art.closeout.reason_code_breakdown).toEqual({ 'instrument-failure': 1 });
     expect(art.closeout.counts).toEqual({ fail: 1, unverifiable: 1 });
+  });
+  // grill-t38 D-004.9 (T-3): the anchor rides the emitted artifact payload.
+  test('anchor rides the emitted artifact payload', () => {
+    const dir = tmpdir();
+    const anchor = { tree_sha: 'abc1234', ref_context: 'lane-tip', mode: 'working-tree read' };
+    gates.runGates(reg, {
+      exec: function () { return { code: 0, output: '' }; },
+      probe: function () { return true; },
+      emit: { dir: dir }, runId: FAKE_RUN, trackedSurface: false, anchor: anchor,
+    });
+    const art = JSON.parse(fs.readFileSync(path.join(dir, 'status-inventory', 'status-inventory.' + FAKE_RUN.file_safe + '.json'), 'utf8'));
+    expect(art.anchor).toEqual(anchor);
+  });
+  // grill-t38 D-004.9 (T-3): the derivation mirrors the run_id tree segment and
+  // lands in the closed enums (exercises the real git probe).
+  test('deriveAnchor mirrors the run_id tree segment; mode/ref_context are closed-enum', () => {
+    const a = gates.deriveAnchor(process.cwd(), FAKE_RUN);
+    expect(a.tree_sha).toBe(FAKE_RUN.tree_sha);
+    expect(inv.REF_CONTEXT).toContain(a.ref_context);
+    expect(inv.MODES).toContain(a.mode);
   });
   test('timeout bucket: timedOut leg -> unverifiable row with reason_code timeout', () => {
     const dir = tmpdir();
@@ -399,6 +453,135 @@ describe('assert-leg seams', () => {
     ];
     expect(csi.rowsForSurface(rows, 'gates').length).toBe(1);
     expect(csi.rowsForSurface(rows, 'test').length).toBe(1);
+  });
+});
+
+// ---- grill-t38 T-4: assertion leg under anchor semantics --------------------
+// D-002.1 double-assertion separation, D-004.2 disambiguation three rules,
+// D-002.5 prefer-HEAD abolition + drift surface, D-002.6 carrier degradation,
+// D-002.7 restack, D-002.8 freshness red is verdict-level (not C-1).
+describe('assert-leg anchor semantics (T-4)', () => {
+  const TREE = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+  const OTHER = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+  const HEAD = 'cccccccccccccccccccccccccccccccccccccccc';
+  const PARENT = 'dddddddddddddddddddddddddddddddddddddddd';
+  const MUT = 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+  const RUN = 'gates.' + TREE.slice(0, 7) + '.local';
+
+  // (a) D-004.2 rule 2: anchor.tree_sha !== run_id tree segment -> independent red.
+  test('(a) anchor/run_id tree disagreement is an independent red', () => {
+    const cls = csi.classifyBlockAnchor(
+      { run_id: RUN, anchor: { tree_sha: OTHER, ref_context: 'lane-tip', mode: 'tree-internal read' } },
+      { anchorRegMs: 1000, blockMs: 2000 });
+    expect(cls.kind).toBe('mismatch');
+    expect(cls.reason).toBe('anchor_run_id_tree_mismatch');
+    expect(cls.reason).toBe(csi.ANCHOR_REASONS.MISMATCH);
+  });
+
+  // (b) D-002.5: the assertion domain selects by the block's OWN run_id; a
+  // HEAD-tree artifact with a DIFFERENT member set must not be picked.
+  test('(b) own-run artifact selected even when a HEAD-tree artifact differs', () => {
+    const headArt = { file: 'head.json', artifact: { run_id: 'gates.head.local', tree_sha: TREE, complete: true, rows: [{ unit_kind: 'gate-leg', name: 'wrong', judged_surface: 'gates' }] } };
+    const ownArt = { file: 'own.json', artifact: { run_id: 'gates.own.local', tree_sha: OTHER, complete: true, rows: [{ unit_kind: 'gate-leg', name: 'right', judged_surface: 'gates' }] } };
+    expect(csi.pickByRunId('gates', 'gates.own.local', { artifacts: [headArt, ownArt] }).file).toBe('own.json');
+    // the legacy helper still prefers HEAD (retained for back-compat, off the assertion path)
+    expect(csi.pickDerivation('gates', OTHER, TREE, { artifacts: [headArt, ownArt] }).file).toBe('head.json');
+    // a partial (complete:false) own-run artifact is never truth
+    const partial = { file: 'p.json', artifact: { run_id: 'gates.own.local', tree_sha: OTHER, complete: false, rows: [] } };
+    expect(csi.pickByRunId('gates', 'gates.own.local', { artifacts: [partial] })).toBeNull();
+  });
+
+  // (c) D-002.5: same-tree OTHER-run member difference is a yellow drift
+  // disclosure, never red.
+  test('(c) same-tree other-run drift is a yellow disclosure, not a red', () => {
+    const claimRows = [{ unit_kind: 'gate-leg', name: 'x', status: 'fail', judged_surface: 'gates' }];
+    const other = { file: 'o.json', artifact: { run_id: 'gates.other.local', tree_sha: TREE, complete: true, rows: [{ unit_kind: 'gate-leg', name: 'y', status: 'fail', judged_surface: 'gates' }] } };
+    const d = csi.driftDisclosure('gates', TREE, 'gates.own.local', claimRows, { artifacts: [other] });
+    expect(d).not.toBeNull();
+    expect(d.severity).toBe('warning');
+    expect(d.diff.equal).toBe(false);
+    // the block's OWN artifact is never drift against itself
+    const own = { file: 'own.json', artifact: { run_id: 'gates.own.local', tree_sha: TREE, complete: true, rows: [] } };
+    expect(csi.driftDisclosure('gates', TREE, 'gates.own.local', claimRows, { artifacts: [own] })).toBeNull();
+    // agreeing member sets are not drift
+    const agree = { file: 'a.json', artifact: { run_id: 'gates.other.local', tree_sha: TREE, complete: true, rows: claimRows } };
+    expect(csi.driftDisclosure('gates', TREE, 'gates.own.local', claimRows, { artifacts: [agree] })).toBeNull();
+  });
+
+  // (d) D-004.2 rule 3: post-registration block lacking anchor -> malformed red.
+  test('(d) post-registration block missing anchor is malformed', () => {
+    const cls = csi.classifyBlockAnchor({ run_id: RUN }, { anchorRegMs: 1000, blockMs: 2000 });
+    expect(cls.kind).toBe('malformed');
+    expect(cls.reason).toBe('anchor_missing_post_registration');
+  });
+
+  // (e) D-004.2 rule 3: pre-registration block (or bootstrap, no ADR-0096) ->
+  // legacy run_id path + warning.
+  test('(e) pre-registration / bootstrap block is legacy', () => {
+    const pre = csi.classifyBlockAnchor({ run_id: RUN }, { anchorRegMs: 1000, blockMs: 500 });
+    expect(pre.kind).toBe('legacy');
+    expect(pre.treeSha).toBe(TREE.slice(0, 7));
+    const bootstrap = csi.classifyBlockAnchor({ run_id: RUN }, { anchorRegMs: 0, blockMs: 99999 });
+    expect(bootstrap.kind).toBe('legacy');
+  });
+
+  // (f) D-002.1/.5: freshness red when a claim mutation sits inside
+  // (anchor, carrier.parent]. Injected git seam, no real repo.
+  test('(f) a claim mutation inside the interval is a freshness red', () => {
+    const g = (args) => {
+      if (args[0] === 'log' && args.indexOf('--') !== -1) return PARENT; // carrier lookup
+      if (args[0] === 'log' && args.indexOf('--format=%H') !== -1) return MUT; // interval enumeration
+      if (args[0] === 'log' && args.indexOf('--format=%ct') !== -1) return '1000'; // lastClaimMutation date
+      if (args[0] === 'rev-parse' && args[1] === '--verify') return PARENT;
+      if (args[0] === 'show') return '.scratch/grill-t38/reports/x.md\n';
+      throw new Error('unexpected git ' + args.join(' '));
+    };
+    const gb = (args) => {
+      if (args[0] === 'cat-file') return true; // anchor resolvable
+      if (args[0] === 'merge-base') return true; // anchor is an ancestor
+      throw new Error('unexpected gitBool ' + args.join(' '));
+    };
+    const r = csi.freshnessAssertion(TREE, 'reports/x.md', { git: g, gitBool: gb, head: HEAD });
+    expect(r.red).toBe(true);
+    expect(r.reason).toBe('claim_mutation_in_interval');
+    expect(r.reason).toBe(csi.FRESHNESS_REASONS.CLAIM_MUTATION);
+  });
+
+  test('freshness: unresolvable anchor is yellow; undetermined carrier degrades', () => {
+    const g = (args) => {
+      if (args[0] === 'log' && args.indexOf('--') !== -1) return ''; // carrier undetermined
+      if (args[0] === 'log' && args.indexOf('--format=%H') !== -1) return ''; // empty interval
+      throw new Error('unexpected git ' + args.join(' '));
+    };
+    const unresolvable = csi.freshnessAssertion(TREE, 'reports/x.md', { git: g, gitBool: () => false, head: HEAD });
+    expect(unresolvable.red).toBe(false);
+    expect(unresolvable.yellow).toBe('anchor_unresolvable');
+    const degraded = csi.freshnessAssertion(TREE, 'reports/x.md', { git: g, gitBool: () => true, head: HEAD });
+    expect(degraded.red).toBe(false);
+    expect(degraded.degraded).toBe(true);
+  });
+
+  test('freshness: a non-ancestral anchor is a red', () => {
+    const g = (args) => {
+      if (args[0] === 'log' && args.indexOf('--') !== -1) return PARENT;
+      if (args[0] === 'rev-parse' && args[1] === '--verify') return PARENT;
+      throw new Error('unexpected git ' + args.join(' '));
+    };
+    const gb = (args) => {
+      if (args[0] === 'cat-file') return true;
+      if (args[0] === 'merge-base') return false; // not an ancestor
+      throw new Error('unexpected gitBool ' + args.join(' '));
+    };
+    const r = csi.freshnessAssertion(TREE, 'reports/x.md', { git: g, gitBool: gb, head: HEAD });
+    expect(r.red).toBe(true);
+    expect(r.reason).toBe('anchor_not_ancestor_of_carrier');
+  });
+
+  // D-002.8: the freshness red is VERDICT-level, never a C-1 row-level code.
+  test('freshness reasons never enter the C-1 closed set', () => {
+    for (const code of Object.keys(csi.FRESHNESS_REASONS).map((k) => csi.FRESHNESS_REASONS[k])) {
+      expect(inv.REASON_CODES).not.toContain(code);
+    }
   });
 });
 

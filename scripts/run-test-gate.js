@@ -37,9 +37,13 @@ const MANIFEST = path.join(ROOT, 'docs', 'test-manifest.json');
 const invLib = require('../src/shared/status-inventory');
 const { emitArtifact } = require('../src/shared/per-run-artifacts');
 const { buildRunId } = require('../src/shared/run-id');
+// grill-t38 D-004 (T-3): the SAME anchor derivation run-gates.js uses - one
+// implementation, two call sites (D-M1: a second classifier would drift).
+const { deriveAnchor } = require('./run-gates');
 
 const TEST_CMD = 'node scripts/run-test-gate.js';
 const RUN_ID = buildRunId({ surface: 'test', root: ROOT });
+const ANCHOR = deriveAnchor(ROOT, RUN_ID);
 
 let _expectedRed;
 function expectedRedRegistry() {
@@ -64,6 +68,8 @@ function emitTestInventory(rows, note) {
     run_id: RUN_ID.run_id,
     judged_surface: 'test',
     tree_sha: RUN_ID.tree_sha,
+    // grill-t38 D-004 (T-3): the emission-side anchor (additive v1.1).
+    anchor: ANCHOR,
     runner_ctx: RUN_ID.runner_ctx,
     emitted_at: new Date().toISOString(),
     complete: true,

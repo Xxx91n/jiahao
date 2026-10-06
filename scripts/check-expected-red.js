@@ -162,7 +162,7 @@ function evaluateHooks(defReg, artifactDir) {
 }
 
 function main(argv) {
-  requireCapabilities(['repo-tree']);
+  requireCapabilities('expected-red');
   const now = (argv && argv[2]) || process.env.EXPECTED_RED_NOW || new Date().toISOString().slice(0, 10);
   let reg;
   try { reg = JSON.parse(fs.readFileSync(REGISTRY_ABS, 'utf8')); }

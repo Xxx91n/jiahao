@@ -5,10 +5,21 @@
 // parsers (check-ci-jobs parseJobs / check-ci-wiring runLines) to extract
 // every ci.yml job's ordered run lines into
 // docs/governance/audit-checklist.json. --check regenerates and diffs
-// (generated_at excluded, D-008 weak self-consistency). 'emit' prints the
-// checklist commands as a JSON array for the auditor to paste into the
-// report's <!-- audit-coverage v1 --> block and attest - the auditor
-// declares what they ran; the generator never co-signs result truth.
+// (generated_at excluded, D-008 weak self-consistency).
+//
+// ADR-0096 N-3 (grill-t38 D-005): 'emit' prints the FULL pasteable
+// audit-coverage block - the sentinel line, the ```json fence and the bare
+// commands array together - byte-identical to what the auditor pastes into a
+// report. That output form IS the registered contract: changing it goes
+// through Declaration (the consumer scripts/check-audit-surface.js parses the
+// fence content as a bare array and stays zero-change). The sentinel marker
+// and fence are the block-syntax carrier, not claim content - the auditor
+// attests what they ran; the generator never co-signs result truth.
+//
+// Advisories ride a SEPARATE channel: '--advisories' prints the human-readable
+// text list (authoritative source: the advisories field of
+// docs/governance/audit-checklist.json). One channel carries one payload, so
+// advisories never appear in emit and never go to stderr.
 //
 // Injectable seams for the battery: opts.ymlText, opts.now.
 
@@ -21,6 +32,12 @@ const { requireCapabilities } = require('../src/shared/capability');
 const ROOT = path.join(__dirname, '..');
 const CI_REL = path.join('.github', 'workflows', 'ci.yml');
 const OUT_REL = path.join('docs', 'governance', 'audit-checklist.json');
+
+// The audit-coverage block marker (ADR-0096 N-3). This literal is the emit
+// side of the contract; scripts/check-audit-surface.js owns the parse side.
+// The loop-back pinning test (test/audit-checklist.test.js) feeds emit stdout
+// through extractCoverage, so any drift between the two literals fails red.
+const SENTINEL = '<!-- audit-coverage v1 -->';
 
 // ADR-0092 D-M2 (grill-t35 D-005): the audit-time ADVISORY surface.
 //
@@ -58,7 +75,7 @@ function buildChecklist(opts) {
   for (const j of jobRows) for (const r of j.run_lines) commands.push(r);
   return {
     schema_version: 1,
-    _doc: 'ADR-0091 (grill-t34 D-004): derived CI command-surface checklist - the audit re-run surface floor. Generated from ci.yml via the shared zero-dep parsers; hand-edit forbidden. node scripts/build-audit-checklist.js emit prints the commands array for the audit-coverage v1 block; the auditor attests what they ran - the generator never co-signs.',
+    _doc: 'ADR-0091 (grill-t34 D-004) / ADR-0096 N-3 (grill-t38 D-005): derived CI command-surface checklist - the audit re-run surface floor. Generated from ci.yml via the shared zero-dep parsers; hand-edit forbidden. node scripts/build-audit-checklist.js emit prints the FULL pasteable audit-coverage v1 block (sentinel line + json fence + bare commands array); that output form is the registered contract - form changes go through Declaration. Advisories are a separate channel (node scripts/build-audit-checklist.js --advisories); they never ride emit. The auditor attests what they ran - the generator never co-signs.',
     generated_by: 'scripts/build-audit-checklist.js',
     generated_at: (opts.now || new Date()).toISOString(),
     source: '.github/workflows/ci.yml',
@@ -96,7 +113,20 @@ if (require.main === module) {
   const outAbs = path.join(ROOT, OUT_REL);
   if (argv[0] === 'emit') {
     const c = JSON.parse(fs.readFileSync(outAbs, 'utf8'));
-    console.log(JSON.stringify({ commands: c.commands, advisories: (c.advisories || []).map(function (a) { return a.command; }) }, null, 2));
+    process.stdout.write(SENTINEL + '\n```json\n' + JSON.stringify(c.commands, null, 2) + '\n```\n');
+    process.exit(0);
+  }
+  if (argv[0] === '--advisories') {
+    const c = JSON.parse(fs.readFileSync(outAbs, 'utf8'));
+    const list = c.advisories || [];
+    process.stdout.write('advisories (audit-time, non-blocking; source: ' + OUT_REL + ')\n\n');
+    for (const a of list) {
+      process.stdout.write('- ' + a.name + ' [' + a.status + ']\n');
+      process.stdout.write('  command: ' + a.command + '\n');
+      process.stdout.write('  why: ' + a.why + '\n');
+      if (a.source_adr) process.stdout.write('  source: ' + a.source_adr + '\n');
+      process.stdout.write('\n');
+    }
     process.exit(0);
   }
   const check = argv.indexOf('--check') !== -1;

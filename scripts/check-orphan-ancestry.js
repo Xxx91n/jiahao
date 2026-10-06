@@ -2,9 +2,11 @@
 'use strict';
 // scripts/check-orphan-ancestry.js - grill-t28 D-005/D-006 standing leg.
 // Asserts every strict pin (captured-at-head: / seal: line forms) inside
-// committed round artifacts resolves to an ancestor of HEAD, plus the
-// mechanized ritual trigger: gitbutler/workspace HEAD non-fast-forward vs
-// the last seal-anchor record goes red automatically. Red semantics: no
+// committed round artifacts resolves to an ancestor of ANY live anchor branch
+// (refs/heads/* ∪ refs/gitbutler/*, derived in-shared - grill-t38 D-003),
+// plus the mechanized ritual trigger: gitbutler/workspace HEAD
+// non-fast-forward vs the last seal-anchor record goes red automatically. An
+// underivable anchor set is UNVERIFIABLE (exit 2). Red semantics: no
 // new claims, no seal; exemptions only via the registered errata list in
 // surface-taxonomy.json freshness.orphan_ancestry.errata_exemptions.
 //
@@ -17,7 +19,7 @@
 // verifier delegates into a tip worktree and must name it.
 
 const path = require('path');
-const { requireCapabilities } = require('../src/shared/capability');
+const { requireCapabilities, exitUnverifiable } = require('../src/shared/capability');
 const fresh = require('./evidence-freshness');
 
 const ROOT = path.join(__dirname, '..');
@@ -49,11 +51,17 @@ function main(argv) {
   } else if (r.trigger.state === 'not-evaluated') {
     console.log('[' + GATE + '] trigger clause: ' + r.trigger.reason);
   }
+  // grill-t38 D-003.4: an empty/underivable live anchor set is an honest
+  // UNVERIFIABLE verdict (exit 2) - not red, not green.
+  if (r.unverifiable) {
+    console.error('[' + GATE + '] UNVERIFIABLE - ' + r.unverifiableReason + ' (' + r.pinCount + ' pin(s) enumerated at the tree read; no anchor to judge ancestry against)');
+    exitUnverifiable(GATE, 'repo-tree');
+  }
   if (r.red) {
     console.error('[' + GATE + '] FAIL - ' + (r.violations.length + (r.trigger.state === 'violation' ? 1 : 0)) + ' violation(s), ' + r.pinCount + ' pin(s) across ' + r.uniqueShas + ' sha(s) checked');
     process.exit(1);
   }
-  console.log('[' + GATE + '] OK - ' + r.pinCount + ' pin(s) / ' + r.uniqueShas + ' unique sha(s) ancestral of ' + r.ref + '; trigger: ' + r.trigger.state + (r.trigger.reason ? ' (' + r.trigger.reason + ')' : '') + (r.exempted.length ? '; ' + r.exempted.length + ' errata-exempt' : ''));
+  console.log('[' + GATE + '] OK - ' + r.pinCount + ' pin(s) / ' + r.uniqueShas + ' unique sha(s) ancestral of live anchor set [' + r.ref + ']; trigger: ' + r.trigger.state + (r.trigger.reason ? ' (' + r.trigger.reason + ')' : '') + (r.exempted.length ? '; ' + r.exempted.length + ' errata-exempt' : ''));
   process.exit(0);
 }
 

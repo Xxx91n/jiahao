@@ -2,10 +2,10 @@
   "schema_version": 1,
   "_doc": "ADR-0091 (grill-t34 D-002): committed derived count manifest - lockfile pattern, hand-edit forbidden, regenerate + diff. enumeration = jest --listTests (suites derive here, NEVER from JUnit - forbidden circular field); junit = blessed jest run via scripts/jest-junit-lite.js (tests counts pending, tier-invariant; skipped is tier-variant and display-only). Live assertions: run-test-gate post-jest collected == manifest; check-test-manifest leg = enumeration freshness + README sentinel regions. Regenerate: node scripts/build-test-manifest.js [--junit <artifact>]; verify: --check (generated_at excluded).",
   "generated_by": "scripts/build-test-manifest.js",
-  "generated_at": "2026-10-05T09:47:37.276Z",
+  "generated_at": "2026-10-06T15:00:02.011Z",
   "enumeration": {
     "channel": "jest --listTests",
-    "suites": 100,
+    "suites": 101,
     "suite_files": [
       "test/adapters.test.js",
       "test/adr-0022-hardening.test.js",
@@ -94,6 +94,7 @@
       "test/host-contracts.test.js",
       "test/install.test.js",
       "test/judge-seam.test.js",
+      "test/last-claim-mutation.test.js",
       "test/map-freshness.test.js",
       "test/mcp.test.js",
       "test/orphan-cites.test.js",
@@ -111,9 +112,9 @@
   },
   "junit": {
     "tier": "full",
-    "tests": 1741,
-    "skipped": 0,
+    "tests": 1766,
+    "skipped": 4,
     "artifact": "test-artifacts/junit.xml"
   },
-  "published_tip": "32af9b5fda96bf92d8ce0d0aeb0b285805552f1b"
+  "published_tip": "0b7bfb6866d40f556c2faee0d6de2d94d3778698"
 }

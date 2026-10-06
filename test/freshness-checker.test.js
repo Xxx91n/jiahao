@@ -357,6 +357,89 @@ describe('orphan-ancestry hardening (grill-t29 F-1..F-5)', () => {
   });
 });
 
+describe('live-set evaluation anchor (grill-t38 T-6 / D-003)', () => {
+  // The P-2 evaluation anchor is the derived SET of live branches
+  // (refs/heads/* ∪ refs/gitbutler/*); the workspace merge commit is
+  // structurally excluded. An explicit opts.ref stays the fixture escape hatch.
+  const buildRepo = (dir) => {
+    const gg = (args) => hg.git(dir, args);
+    hg.mkRepo(dir);
+    const put = (rel, body) => { const p = path.join(dir, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); hg.git(dir, ['add', rel]); };
+    const ci = (m) => { hg.git(dir, ['commit', '-q', '--allow-empty', '-m', m]); return gg(['rev-parse', 'HEAD']); };
+    return { gg, put, ci };
+  };
+  const run = (dir, opts) => fresh.orphanAncestry(dir, TAXONOMY, opts || {});
+
+  test('T-6a: default derives the set from refs/heads/*; an ancestral pin is green', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-set-pos-'));
+    const { gg, put, ci } = buildRepo(dir);
+    const a1 = ci('machinery');
+    put('.scratch/grill-t1/evidence/run.txt', 'captured-at-head: ' + a1 + '\nok\n');
+    ci('capture');
+    const r = run(dir);
+    const branches = gg(['for-each-ref', '--format=%(refname)', 'refs/heads']).split('\n').filter(Boolean);
+    expect(r.unverifiable).toBe(false);
+    expect(r.anchors).toEqual(branches); // the fixture's own branch(es), derived not passed
+    expect(r.violations).toEqual([]);
+    expect(r.red).toBe(false);
+  });
+
+  test('T-6b: a pin that is an ancestor of no named branch is red', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-set-neg-'));
+    const { gg, put, ci } = buildRepo(dir);
+    ci('machinery');
+    const tree = gg(['write-tree']);
+    const orphan = gg(['commit-tree', tree, '-m', 'orphaned commit']);
+    put('.scratch/grill-t1/evidence/orphan.txt', 'captured-at-head: ' + orphan + '\n');
+    ci('orphan wave committed');
+    const r = run(dir);
+    expect(r.anchors.length).toBeGreaterThan(0);
+    expect(r.violations.some((v) => v.sha === orphan)).toBe(true);
+    expect(r.red).toBe(true);
+  });
+
+  test('T-6c: an empty derived set yields UNVERIFIABLE - not red, not green', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-set-empty-'));
+    const { gg, put, ci } = buildRepo(dir);
+    const a1 = ci('machinery');
+    put('.scratch/grill-t1/evidence/run.txt', 'captured-at-head: ' + a1 + '\nok\n');
+    ci('capture');
+    // detach HEAD so the branch can be dropped without an unborn HEAD; with
+    // every branch gone the derived live set is empty
+    const branch = gg(['symbolic-ref', '--short', 'HEAD']);
+    gg(['checkout', '-q', '--detach']);
+    gg(['update-ref', '-d', 'refs/heads/' + branch]);
+    expect(fresh.liveAnchorRefs(dir)).toEqual([]);
+    const r = run(dir);
+    expect(r.unverifiable).toBe(true);
+    expect(r.red).toBe(false);
+    expect(r.violations).toEqual([]);
+    expect(r.anchors).toEqual([]);
+  });
+
+  test('T-6d: an explicit opts.ref bypasses the set (fixture escape hatch preserved)', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-set-explicit-'));
+    const { gg, put, ci } = buildRepo(dir);
+    ci('machinery');
+    const tree = gg(['write-tree']);
+    const orphan = gg(['commit-tree', tree, '-m', 'side commit']);
+    put('.scratch/grill-t1/evidence/orphan.txt', 'captured-at-head: ' + orphan + '\n');
+    ci('orphan wave committed');
+    // a named branch contains the orphan: the set anchor finds an ancestor -> green
+    gg(['branch', 'side', orphan]);
+    const setRun = run(dir);
+    expect(setRun.anchors).toContain('refs/heads/side');
+    expect(setRun.violations).toEqual([]);
+    // explicit ref pins the judgement to a single ref -> red (escape hatch honored)
+    const explicitRun = run(dir, { ref: 'HEAD' });
+    expect(explicitRun.ref).toBe('HEAD');
+    expect(explicitRun.anchors).toEqual(['HEAD']);
+    expect(explicitRun.unverifiable).toBe(false);
+    expect(explicitRun.violations.some((v) => v.sha === orphan)).toBe(true);
+    expect(explicitRun.red).toBe(true);
+  });
+});
+
 describe('exception channel semantics (ADR-0086)', () => {
   test('exceptionActive: pending-confirmation effective on registration until expiry; revoked/lapsed never', () => {
     const e = { status: 'pending-confirmation', expires_at: '2099-12-31' };

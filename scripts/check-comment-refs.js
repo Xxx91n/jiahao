@@ -197,7 +197,7 @@ function adrExists(num4) {
 }
 
 function main(argv) {
-  requireCapabilities(['repo-tree']);
+  requireCapabilities('comment-refs');
   const explain = (argv || []).indexOf('--explain') !== -1;
 
   // Frozen contract-vocab: re-derive and diff - a word joining the set must

@@ -39,10 +39,18 @@ function main(argv) {
   for (const s of surfaces) {
     const a = newestFor(s);
     if (!a || !a.run_id || !Array.isArray(a.rows)) { missing.push(s); continue; }
+    // grill-t38 D-004.9 (T-3): the artifact's anchor rides through to the
+    // rendered block. A pre-anchor artifact (legacy) renders WITHOUT an anchor
+    // and is disclosed at yellow level - never silently (D-004.2 rule 3).
+    if (!a.anchor) {
+      console.error('::warning title=build-status-sentinel::no anchor in artifact for surface ' + s
+        + ' (legacy/pre-registration artifact) - rendering an anchor-less block; re-emit with the matching runner to upgrade');
+    }
     blocks.push(inv.renderSentinel({
       run_id: a.run_id,
       emitted_at: a.emitted_at,
       rows: a.rows.filter(function (r) { return r && r.judged_surface === s; }),
+      anchor: a.anchor,
     }));
   }
   if (!blocks.length) {

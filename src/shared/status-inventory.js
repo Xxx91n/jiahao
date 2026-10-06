@@ -46,6 +46,20 @@ const crypto = require('crypto');
 const SENTINEL = '<!-- status-inventory v1 -->';
 const JOIN_KEY_VERSION = 'v1';
 
+// grill-t38 D-004 (T-3): the emission-side anchor. The block appends
+// anchor={tree_sha, ref_context, mode} (additive v1.1, schema grows only by
+// adding). run_id keeps its addressing role untouched - tree_sha merely
+// MIRRORS the run_id's tree segment, the syntax is not re-parsed (D-004.1/.2).
+//   ref_context - the OBSERVATION-CONTEXT record: the entity name HEAD
+//     resolved to at emit time (D-004.4). It is NEVER an evaluation input -
+//     the assert leg evaluates the D-003 live-branch SET, not this field.
+//   mode - the read discipline (D-004.3 / ADR-0093 D-6: which tree != which
+//     read). A dirty-worktree read is 'working-tree read'; dirty DEGREE lives
+//     in runner_ctx, never in this closed enum.
+const REF_CONTEXT = Object.freeze(['lane-tip', 'merge-base', 'origin/main', 'workspace-merge', 'live-set']);
+const MODES = Object.freeze(['tree-internal read', 'working-tree read']);
+const WORKSPACE_REF = 'refs/heads/gitbutler/workspace';
+
 const UNIT_KINDS = Object.freeze(['gate-leg', 'jest-suite', 'jest-test', 'instrument-failure']);
 const REASON_CODES = Object.freeze(['registered-absence', 'timeout', 'instrument-failure']);
 
@@ -139,16 +153,43 @@ function diffMemberSets(aRows, bRows) {
   return { equal: onlyA.length === 0 && onlyB.length === 0, only_a: onlyA, only_b: onlyB };
 }
 
+// classifyRefContext(facts) -> a REF_CONTEXT member. PURE: the runners own the
+// git seam and pass the probed facts; this is the ONE classification
+// implementation both runners share (D-M1: two call sites that each roll their
+// own classifier drift apart). Most specific member wins:
+//   HEAD sha == origin/main            -> 'origin/main'
+//   HEAD symbolic ref == workspace ref -> 'workspace-merge' (a GitButler
+//                                         workspace HEAD IS the workspace
+//                                         merge commit)
+//   HEAD symbolic ref is a live branch -> 'lane-tip' (refs/heads/* or
+//                                         refs/gitbutler/*, workspace excluded
+//                                         by the T-6 enumerator)
+//   HEAD sha == merge-base(ws, main)   -> 'merge-base' (detached on the shared
+//                                         base)
+//   detached / unknown / no HEAD       -> 'live-set' (the D-003 evaluation
+//                                         anchor is the branch SET, not a name)
+function classifyRefContext(facts) {
+  const f = facts || {};
+  if (!f.head_sha) return 'live-set';
+  if (f.origin_main_sha && f.head_sha === f.origin_main_sha) return 'origin/main';
+  if (f.head_ref && f.head_ref === (f.workspace_ref || WORKSPACE_REF)) return 'workspace-merge';
+  if (f.head_ref && Array.isArray(f.live_refs) && f.live_refs.indexOf(f.head_ref) !== -1) return 'lane-tip';
+  if (f.merge_base_sha && f.head_sha === f.merge_base_sha) return 'merge-base';
+  return 'live-set';
+}
+
 // ---- sentinel block ------------------------------------------------------
-// opts: { run_id, emitted_at, rows }  -> the literal block text.
+// opts: { run_id, emitted_at, rows, anchor? }  -> the literal block text.
+// anchor (grill-t38 D-004.1) rides RIGHT AFTER run_id. When absent the block is
+// byte-identical to the pre-anchor form, so old blocks keep parsing and the
+// pre-registration legacy path (D-004.2 rule 3) stays intact.
 function renderSentinel(opts) {
-  const block = {
-    run_id: opts.run_id,
-    emitted_at: opts.emitted_at,
-    normalized_join_key_version: JOIN_KEY_VERSION,
-    rows: normalizeRows(opts.rows),
-    rows_digest: rowsDigest(opts.rows),
-  };
+  const block = { run_id: opts.run_id };
+  if (opts.anchor && typeof opts.anchor === 'object') block.anchor = opts.anchor;
+  block.emitted_at = opts.emitted_at;
+  block.normalized_join_key_version = JOIN_KEY_VERSION;
+  block.rows = normalizeRows(opts.rows);
+  block.rows_digest = rowsDigest(opts.rows);
   return SENTINEL + '\n```json\n' + JSON.stringify(block, null, 2) + '\n```\n';
 }
 
@@ -232,12 +273,16 @@ module.exports = {
   REASON_CODES,
   DECLARED_REASON_RE,
   EXPECTED_RED_RELS,
+  REF_CONTEXT,
+  MODES,
+  WORKSPACE_REF,
   attributeReason,
   joinKey,
   normalizeRow,
   normalizeRows,
   rowsDigest,
   diffMemberSets,
+  classifyRefContext,
   renderSentinel,
   extractSentinels,
   sentinelSelfConsistent,
