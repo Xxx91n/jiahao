@@ -636,7 +636,7 @@
       "command": "node scripts/check-claim-registration.js",
       "tier": "confirmatory",
       "source_adr": "docs/adr/0099-disposition-evidence-closure-row-id-cash-out-optional-check-channel-and-the-prose-triple.md",
-      "order": 236,
+      "order": 217,
       "params": {},
       "requires": [
         "repo-tree"

@@ -77,7 +77,11 @@ describe('ADR-0035 D2 residency SLA', () => {
 
 describe('ADR-0035 D3 check-in discipline (warn-level)', () => {
   test('real registry has no discipline warnings today', () => {
-    expect(checkDeferred.validateDiscipline(registry, today)).toEqual([]);
+    // ADR-0099 section P-B (grill-t39): the check_channel absence is a legislated
+    // YELLOW disclosure with a counted population, so it is exempted here by name
+    // and asserted to be present; every other discipline warning stays a hard none.
+    expect(checkDeferred.validateDiscipline(registry, today).filter((w) => !/^check_channel: /.test(w))).toEqual([]);
+    expect(checkDeferred.validateDiscipline(registry, today).some((w) => /^check_channel: /.test(w))).toBe(true);
   });
 
   test('warn: stale last_check_in and missing last_check_in are warnings, not errors', () => {

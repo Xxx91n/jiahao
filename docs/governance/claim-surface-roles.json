@@ -1485,6 +1485,13 @@
       "status": "active"
     },
     {
+      "path": ".scratch/grill-t39/reports/2026-10-07-report.md",
+      "role": "implementer",
+      "declared_by": "grill-t39 T-13/T-15 (implementer agent; row lands in the same commit as the artifact per the fail-closed rule)",
+      "declared_at": "2026-10-07",
+      "status": "active"
+    },
+    {
       "path": ".scratch/grill-t6/handoffs/2026-09-14-t1-audit-pass.md",
       "role": "implementer",
       "declared_by": "grill-t36 T-7 (implementer agent)",

@@ -283,7 +283,7 @@ v2 裁决冻结于带注释标签 `adjudicated/devin-corpus-v2`（commit 8807a61
 
 ```bash
 # test-manifest:develop:begin (derived - do not hand-edit; node scripts/build-test-manifest.js)
-npm test                              # 1817 tests across 103 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
+npm test                              # 1832 tests across 104 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
 # test-manifest:develop:end
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 54 adapter files (12 hosts)
@@ -300,7 +300,7 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `adapters/` —— 生成的分宿主适配（12 个宿主目录 / 54 个生成文件；ADR-0028 D5）
 - `jiahao-mcp/` —— 仅 MCP 适配器（配置参数）
 <!-- test-manifest:architecture:begin (derived - do not hand-edit; node scripts/build-test-manifest.js) -->
-- `test/` —— 103 test suites, 1817 tests
+- `test/` —— 104 test suites, 1832 tests
 <!-- test-manifest:architecture:end -->
 - `bench/polygraph/` —— ADR-0015 基准适配器 + 冻结开发切分语料（ADR-0019 运行诚实 FAIL、ADR-0020 运行 PASS 优于 b2；见其 README）
 - `private/bench-corpus/` —— 答案语料（probes/judge-twins/twins + 指纹；gitignored，ADR-0036 D2）。门脚本经 JIAHAO_CORPUS_DIR 解析，其次安装植入目录（`jiahao init` 自包内植入），再次维护者树内本仓库私有目录；处处皆无则失败关闭（exit 1: config；能力探针先将缺失语料目录降级为 exit 2 UNVERIFIABLE，ADR-0041 D2）。npm 消费者与公开 git clone 完全不含语料 —— 语料门是维护者/CI 专属契约，设计上失败关闭（ADR-0038 D2）。
