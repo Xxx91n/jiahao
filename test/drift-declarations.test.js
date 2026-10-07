@@ -201,6 +201,30 @@ describe('drift-declaration registry: classifier input and the gate-close condit
     const errs = rm.verifyPublishedOnly(poisoned, 'origin/main', opts);
     expect(errs.join('\n')).toMatch(/neither in the tree nor a registered line-level drift declaration/);
   });
+
+  // DEFAULT-PATH regression pin (grill-t39 audit finding). The clause above was
+  // reachable only because the test handed in a raw tree scan: the production
+  // read passed the UNION of tree and declared rows, so every declared row looked
+  // like a tree row and the declared-row resolution loop never ran. These two
+  // assertions call the leg with NO opts.occurrences - the shape `--check`,
+  // `--published-only` and gate 224 actually use.
+  test('DEFAULT PATH: with no caller-supplied scan the declared rows still resolve', () => {
+    const map = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'rewrite-map.json'), 'utf8'));
+    const errs = rm.verifyPublishedOnly(map, 'origin/main').join('\n');
+    expect(errs).not.toMatch(/drift declaration/);
+    expect(errs).not.toMatch(/phantom row/);
+  });
+
+  test('DEFAULT PATH: an unregistered row is still fail-closed without a supplied scan', () => {
+    const map = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'rewrite-map.json'), 'utf8'));
+    const poisoned = JSON.parse(JSON.stringify(map));
+    poisoned.doc_refs.push({
+      file: FILE, line: 999, sha: '68c8ec2f', 'class': 'published-unchanged', resolved_to: null,
+      qualifiers: { exists_at: map.generated_at, object_mtime: null, object_type: 'commit', object_size: 470, reachable_via: [] },
+    });
+    const errs = rm.verifyPublishedOnly(poisoned, 'origin/main').join('\n');
+    expect(errs).toMatch(/neither in the tree nor a registered line-level drift declaration|no registered line-level drift declaration to resolve them/);
+  });
 });
 
 describe('ADR-0100 wiring: the append-only task book and the pointer degradation', () => {

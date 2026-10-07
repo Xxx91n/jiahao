@@ -36,64 +36,69 @@ const REGISTRY_REL = path.join('docs', 'deferred-registry.json');
 const REGISTRY_POSIX = 'docs/deferred-registry.json';
 const SELF_REL = 'scripts/check-claim-registration.js';
 
+// The closed pattern set, and it is deliberately narrow: each form asserts a
+// registration ACT. An id appearing as a bare reference - a table cell, a
+// "row id X is listed" mention, prose about the row rather than a claim that it
+// was registered - is NOT judged here (ADR-0099 section P-A). The past tense is
+// included because the statutory form is written as a completed act ("cashed out
+// defer-NNNN"); a tense gap here would be a silent review blind spot (audit
+// finding, grill-t39 rework).
 const CLAIM_PATTERNS = [
   /已登记[^\n]{0,12}?(defer-\d{4})/g,
   /登记为[^\n]{0,12}?(defer-\d{4})/g,
   /registered as `?(defer-\d{4})/gi,
   /registration(?: row)? (?:is |= )?`?(defer-\d{4})/gi,
-  /row id `?(defer-\d{4})/gi,
   /rides (?:the same anchor as |the existing )?`?(defer-\d{4})/gi,
-  /cash(?:es|es|ing)? out(?: deferred row)? `?(defer-\d{4})/gi,
-  /the deferred row `?(defer-\d{4})/gi,
+  /cash(?:es|ed|ing)? out(?: deferred row)? `?(defer-\d{4})/gi,
 ];
 
 function git(args, cwd) {
   return execFileSync('git', args, { cwd: cwd || ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).trim();
 }
 
-function commitTs(rev) {
-  try { return Date.parse(git(['log', '-1', '--format=%cI', rev])) / 1000; } catch (e) { return null; }
+function commitTs(rev, root) {
+  try { return Date.parse(git(['log', '-1', '--format=%cI', rev], root)) / 1000; } catch (e) { return null; }
 }
 
 // The commit that introduced this claim in this file (the earliest pickaxe hit).
 // Returns null when the artifact is not committed yet - then the worktree
 // registry is the honest read, and that fact is disclosed.
-function claimAnchor(rel, id) {
+function claimAnchor(rel, id, root) {
   try {
-    const out = git(['log', '--format=%H', '-S', id, '--', rel]);
+    const out = git(['log', '--format=%H', '-S', id, '--', rel], root);
     const list = out.split('\n').map((s) => s.trim()).filter(Boolean);
     return list.length ? list[list.length - 1] : null;
   } catch (e) { return null; }
 }
 
-function registrationCommit() {
+function registrationCommit(root) {
   try {
-    const out = git(['log', '--diff-filter=A', '--format=%H', '--', SELF_REL]);
+    const out = git(['log', '--diff-filter=A', '--format=%H', '--', SELF_REL], root);
     const adds = out.split('\n').map((s) => s.trim()).filter(Boolean);
     return adds.length ? adds[adds.length - 1] : null;
   } catch (e) { return null; }
 }
 
-function idsAtRev(rev) {
+function idsAtRev(rev, root) {
   let text;
-  try { text = git(['show', rev + ':' + REGISTRY_POSIX]); } catch (e) { return null; }
+  try { text = git(['show', rev + ':' + REGISTRY_POSIX], root); } catch (e) { return null; }
   try {
     const reg = JSON.parse(text);
     return new Set((reg.entries || []).map((e) => e && e.id).filter(Boolean));
   } catch (e) { return null; }
 }
 
-function idsInWorktree() {
+function idsInWorktree(root) {
   try {
-    const reg = JSON.parse(fs.readFileSync(path.join(ROOT, REGISTRY_REL), 'utf8'));
+    const reg = JSON.parse(fs.readFileSync(path.join(root || ROOT, REGISTRY_REL), 'utf8'));
     return new Set((reg.entries || []).map((e) => e && e.id).filter(Boolean));
   } catch (e) { return null; }
 }
 
 // Tracked claim artifacts only: the population comes from git, so a workspace
 // residue file cannot join the judged set (and cannot escape it by deletion).
-function claimSurfaces() {
-  const files = git(['ls-files']).split('\n').map((s) => s.trim()).filter(Boolean);
+function claimSurfaces(root) {
+  const files = git(['ls-files'], root || ROOT).split('\n').map((s) => s.trim()).filter(Boolean);
   return files.filter(function (f) {
     if (/^\.scratch\/grill-[^/]+\/(reports|handoffs)\/.*\.md$/.test(f)) return true;
     if (/^docs\/adr\/\d{4}-.+\.md$/.test(f)) return true;
@@ -114,15 +119,15 @@ function claimsIn(text) {
 function check(opts) {
   const o = opts || {};
   const root = o.root || ROOT;
-  const files = (o.files || claimSurfaces());
-  const legAnchor = o.legAnchor !== undefined ? o.legAnchor : registrationCommit();
-  const legTs = legAnchor ? commitTs(legAnchor) : null;
+  const files = (o.files || claimSurfaces(root));
+  const legAnchor = o.legAnchor !== undefined ? o.legAnchor : registrationCommit(root);
+  const legTs = legAnchor ? commitTs(legAnchor, root) : null;
   const errors = [];
   const warnings = [];
   let claims = 0;
   let judged = 0;
   let exempt = 0;
-  const worktreeIds = idsInWorktree();
+  const worktreeIds = idsInWorktree(root);
   if (worktreeIds === null) {
     return { errors: ['claim-registration: ' + REGISTRY_POSIX + ' unreadable in the worktree - fail closed'], warnings: [], claims: 0, judged: 0, exempt: 0, files: files.length };
   }
@@ -131,11 +136,11 @@ function check(opts) {
     try { text = fs.readFileSync(path.join(root, rel.split('/').join(path.sep)), 'utf8'); } catch (e) { continue; }
     for (const id of claimsIn(text)) {
       claims++;
-      const anchor = o.forceAnchor !== undefined ? o.forceAnchor : claimAnchor(rel, id);
-      const ts = anchor ? commitTs(anchor) : null;
+      const anchor = o.forceAnchor !== undefined ? o.forceAnchor : claimAnchor(rel, id, root);
+      const ts = anchor ? commitTs(anchor, root) : null;
       if (anchor && legTs !== null && ts !== null && ts < legTs) { exempt++; continue; }
       let ids = null;
-      if (anchor) ids = idsAtRev(anchor);
+      if (anchor) ids = idsAtRev(anchor, root);
       if (ids === null) {
         ids = worktreeIds;
         warnings.push('claim-registration: ' + rel + ' / ' + id + ' has no resolvable claim anchor; judged against the worktree registry (disclosed, not silent)');

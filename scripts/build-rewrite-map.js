@@ -355,7 +355,10 @@ function objectMtime(sha, type) {
 // the recorded set and the set coverage judges can never drift into two reads.
 function generationOccurrences(root, ref, opts) {
   const o = opts || {};
-  const scanned = scanDocTokensAt(root, ref);
+  // The caller may hand over the tree scan it already took (the verification
+  // path needs BOTH the raw tree set and the unioned set from ONE read - two
+  // reads is how a judged row and a tree row drift apart).
+  const scanned = o.scanned || scanDocTokensAt(root, ref);
   // ADR-0100 D-C (grill-t39 D-002): registered line-level drift declarations are
   // a declared fact consumed HERE, on the input side - never as an exemption
   // branch inside a judging leg. Unioning them at the single shared read keeps
@@ -737,7 +740,15 @@ function verifyPublishedOnly(map, newRef, opts) {
   // every declared row reads as a phantom).
   const driftRead = { commitBound: commitBound, registryFromWorktree: !!(opts && opts.registryFromWorktree) };
   const driftDeclared = dd.declaredOccurrences(dd.loadDeclared(Object.assign({ root: vRoot, ref: newRef }, driftRead)).registry);
-  const liveBase = (opts && opts.occurrences) || generationOccurrences(vRoot, newRef, driftRead);
+  // The raw tree scan, before any declared row joins it. The coverage set below
+  // is tree UNION declared; the ADR-0100 D-C consistency clause needs the tree
+  // alone, or every declared row looks like a tree row and the clause cannot
+  // fire on the default path (grill-t39 audit finding: judging against the
+  // unioned set made the drift check reachable only from tests that hand in a
+  // raw scan - a check that cannot bite is not a check).
+  const treeBase = (opts && opts.occurrences) || scanDocTokensAt(vRoot, newRef);
+  const liveBase = (opts && opts.occurrences) ? opts.occurrences
+    : generationOccurrences(vRoot, newRef, Object.assign({}, driftRead, { scanned: treeBase }));
   // Duplicate occurrences are preserved (a line citing the same object twice is
   // two rows in the recorded set), so the comparison stays byte-equal for trees
   // that have nothing to do with drift. Declared keys join only when the caller
@@ -778,7 +789,7 @@ function verifyPublishedOnly(map, newRef, opts) {
   // was built from. Declared rows with no registry behind them are fail-closed
   // red - the input side never becomes a place a phantom can park.
   const treeOnlyKeys = {};
-  for (const o of liveBase) treeOnlyKeys[o.file + ':' + o.line + ':' + o.sha] = 1;
+  for (const o of treeBase) treeOnlyKeys[o.file + ':' + o.line + ':' + o.sha] = 1;
   const driftRows = docRefs.filter(function (d) { return !treeOnlyKeys[d.file + ':' + d.line + ':' + d.sha]; });
   if (driftRows.length) {
     if (!driftDeclared.length) {
