@@ -1471,6 +1471,13 @@
       "status": "active"
     },
     {
+      "path": ".scratch/grill-t39/handoffs/next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t39 T-0 baseline recon (implementer agent; the row was owed by the docs commit that landed the artifact)",
+      "declared_at": "2026-10-07",
+      "status": "active"
+    },
+    {
       "path": ".scratch/grill-t6/handoffs/2026-09-14-t1-audit-pass.md",
       "role": "implementer",
       "declared_by": "grill-t36 T-7 (implementer agent)",
