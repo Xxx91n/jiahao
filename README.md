@@ -366,7 +366,7 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 <summary>ADR index — derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`</summary>
 
 <!-- adr-index:start -->
-- 96 architecture decision records:
+- 100 architecture decision records:
 - [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
 - [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
 - [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
@@ -463,6 +463,10 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 - [ADR-0094](docs/adr/0094-tarball-cap-trend-anchor-amendment-grill-t36-observer-surface.md) — Tarball-Cap Trend-Anchor Amendment for the grill-t36 Observer Surface (draft for owner sign-off)
 - [ADR-0095](docs/adr/0095-round-contract-carryover-triage-source-adr-dual-authority.md) — Assertion-Anchoring Round Contract — Carryover Triage, the source_adr Dual-Authority Declaration, and the Same-Commit Universal Clause (grill-t38)
 - [ADR-0096](docs/adr/0096-assertion-anchoring-emit-anchor-test-anchor-emit-output-contract.md) — Assertion Anchoring — Emit-Side Anchor Contract, Test-Side Set Anchor, and the Emit Output Contract (grill-t38)
+- [ADR-0097](docs/adr/0097-upstream-borrowing-incorporation-inline-cap-comment-harvester-channel-intensity-tier-and-numeric-citation-ban.md) — Upstream-Borrowing Incorporation — The Inline Cap-Comment Convention, the Harvester Landing-Channel Constraint, the Honest-Boundary Disclosure Discipline, the Methodology Quartet, Generator-Side Intensity, the Exclusion Domain, and the Numeric-Citation Ban (grill-t39)
+- [ADR-0098](docs/adr/0098-grandiosity-fifth-semantics-debt-form-definition-coinage-triage-channel-ratchet-and-prose-density-disclosure.md) — Grandiosity (虚饰输出) — The Fifth Semantics, the Debt-Form Definition, the Unregistered-Coinage Triage Channel, the Ratchet Form, the Sentence-Shape Probe Family, and the prose-Density Disclosure Footer (grill-t39)
+- [ADR-0099](docs/adr/0099-disposition-evidence-closure-row-id-cash-out-optional-check-channel-and-the-prose-triple.md) — Disposition–Evidence Closure — §P-A the defer-0089 Cash-Out (Claim Registrations Cite a Row Id), §P-B the Optional check_channel Field, §P-C the Prose Triple and the Gauge-Difference Disclosure (grill-t39)
+- [ADR-0100](docs/adr/0100-mutable-claim-surface-governance-append-only-taskbook-pointer-degradation-and-the-drift-declaration-registry.md) — Mutable Claim-Surface Governance — The Append-Only Round-Frozen Task Book, the Pointer Degradation, the Drift-Declaration Registry as a Classifier Input, and the Gate-Close Condition (grill-t39)
 <!-- adr-index:end -->
 
 </details>
