@@ -27,9 +27,12 @@ function hermeticEnv() {
 }
 
 // execFileSync wrapper: throws on non-zero, returns trimmed stdout.
-function git(dir, args) {
+// opts.env (grill-t32): extra vars merged over the hermetic base - the ladder
+// tests need GIT_COMMITTER_DATE/GIT_AUTHOR_DATE control inside fixtures.
+function git(dir, args, opts) {
+  const env = (opts && opts.env) ? Object.assign(hermeticEnv(), opts.env) : hermeticEnv();
   return execFileSync('git', IDENT.concat(args), {
-    cwd: dir, env: hermeticEnv(), encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
+    cwd: dir, env: env, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
   }).trim();
 }
 
@@ -38,10 +41,22 @@ function gitOk(dir, args) {
   return spawnSync('git', IDENT.concat(args), { cwd: dir, env: hermeticEnv() }).status === 0;
 }
 
+// spawnSync wrapper returning {status, stdout, stderr} (never throws) - the
+// delegate for fault-injection exec seams: tests wrap this and selectively
+// fail verbs while everything else still hits real hermetic git.
+// opts.env is merged over the hermetic base; opts.input feeds stdin.
+function gitRaw(dir, args, opts) {
+  const env = (opts && opts.env) ? Object.assign(hermeticEnv(), opts.env) : hermeticEnv();
+  const r = spawnSync('git', IDENT.concat(args), {
+    cwd: dir, env: env, input: opts && opts.input, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
+  });
+  return { status: r.status, stdout: r.stdout || '', stderr: r.stderr || '' };
+}
+
 // Fresh temp-repo init with fixture-safe defaults.
 function mkRepo(dir) {
   git(dir, ['init', '-q']);
   git(dir, ['config', 'commit.gpgsign', 'false']);
 }
 
-module.exports = { git, gitOk, mkRepo, IDENT, hermeticEnv };
+module.exports = { git, gitOk, gitRaw, mkRepo, IDENT, hermeticEnv };

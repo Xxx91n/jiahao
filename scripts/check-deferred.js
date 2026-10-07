@@ -31,6 +31,7 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 const { couplingViolation } = require('./check-bench-thresholds');
 const { requireCapabilities } = require('../src/shared/capability');
+const { REASON_CODES } = require('../src/shared/status-inventory');
 
 const ROOT = path.join(__dirname, '..');
 const CFG_REL = path.join('docs', 'deferred-registry.json');
@@ -56,7 +57,7 @@ function loadRegistry() {
   return JSON.parse(fs.readFileSync(path.join(ROOT, CFG_REL), 'utf8'));
 }
 
-function isRealDate(s) { const d = new Date(s + String.fromCharCode(84,48,48,58,48,48,58,48,48,90)); return !isNaN(d) && d.toISOString().slice(0,10) === s; }
+function isRealDate(s) { const d = new Date(s + String.fromCharCode(84, 48, 48, 58, 48, 48, 58, 48, 48, 90)); return !isNaN(d) && d.toISOString().slice(0, 10) === s; }
 
 function daysBetween(fromISO, toISO) {
   return Math.floor((new Date(toISO) - new Date(fromISO)) / DAY_MS);
@@ -77,6 +78,29 @@ function shapeExtras(e, tag, errors) {
     const v = e.unfreeze_if.verified_by;
     if (typeof v !== 'string' || !v) errors.push(tag + ': verified_by must be a non-empty path string (ADR-0035 D6)');
     else if (!fs.existsSync(path.join(ROOT, v.split('/').join(path.sep)))) errors.push(tag + ': verified_by script missing: ' + v + ' (ADR-0035 D6)');
+  }
+  // grill-t37 T-7 (D-003.5/.6): appended-field schema extension. Both fields
+  // are OPTIONAL on old rows (append-only growth); when present their shape
+  // is validated against the C-1 closed set.
+  if (e.escalation_hook !== undefined) {
+    const h = e.escalation_hook;
+    const t2 = tag + '.escalation_hook';
+    if (!h || typeof h !== 'object' || Array.isArray(h)) { errors.push(t2 + ': must be an object'); }
+    else {
+      if (typeof h.reason_code !== 'string' || REASON_CODES.indexOf(h.reason_code) === -1) {
+        errors.push(t2 + ': reason_code ' + JSON.stringify(h.reason_code) + ' outside the C-1 closed set [' + REASON_CODES.join(', ') + ']');
+      }
+      if (typeof h.key_prefix !== 'string' || !h.key_prefix) errors.push(t2 + ': key_prefix must be a non-empty join-key prefix');
+      if (!Number.isInteger(h.consecutive_runs) || h.consecutive_runs < 2) errors.push(t2 + ': consecutive_runs must be an integer >= 2 (per-row N - D-003.5, never a global constant)');
+    }
+  }
+  if (e.reason_code_breakdown !== undefined) {
+    const b = e.reason_code_breakdown;
+    if (!b || typeof b !== 'object' || Array.isArray(b)) { errors.push(tag + ': reason_code_breakdown must be {code: count}'); }
+    else for (const k of Object.keys(b)) {
+      if (REASON_CODES.indexOf(k) === -1) errors.push(tag + ': reason_code_breakdown key ' + JSON.stringify(k) + ' outside the C-1 closed set');
+      else if (!Number.isInteger(b[k]) || b[k] < 0) errors.push(tag + ': reason_code_breakdown.' + k + ' must be a non-negative integer');
+    }
   }
 }
 

@@ -1,0 +1,9 @@
+{
+  "name": "wa-workbench",
+  "private": true,
+  "version": "0.0.0",
+  "description": "SCED trial workbench wa (warehouse inventory domain)",
+  "scripts": {
+    "test": "node tests/run.js"
+  }
+}

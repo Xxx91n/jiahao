@@ -119,10 +119,10 @@
         {
           "path": "handoffs/next-round.md",
           "status": "pending-confirmation",
-          "requested_by": "ADR-0085 registration, grill-t26 (carrier ADR itself awaits the 2026-12-15 countersign tide)",
-          "reason": "the standing next-round taskbook lives under the claim surface handoffs/ but is round bookkeeping, not a verdict claim",
+          "requested_by": "ADR-0100 D-B scoped narrowing of the ADR-0085 registration, grill-t39 (the narrowing itself awaits the 2026-12-15 entity-level countersign tide)",
+          "reason": "post-ADR-0100 D-A the fixed-name file is a single-line POINTER to the round-frozen task book, so the exception covers the pointer line only; the round-frozen dated task-book files are claim surfaces and are deliberately not excepted",
           "expires_at": "2026-12-15",
-          "scope": "the literal path handoffs/next-round.md inside .scratch/grill-<id>/"
+          "scope": "the literal path handoffs/next-round.md inside .scratch/grill-<id>/, and only while that file remains the one-line pointer degraded from it"
         },
         {
           "path": "reports/audit-report.md",
@@ -202,6 +202,10 @@
       {
         "id": "grill-t30",
         "base": "8704ce24174841795e78a4ebbfa2517376c7ce2f"
+      },
+      {
+        "id": "grill-t31",
+        "base": "58d06e20a1385affb71c86c2c70dead2f001dde7"
       }
     ],
     "orphan_ancestry": {
@@ -222,6 +226,26 @@
           "file": ".scratch/grill-t29/reports/audit-report.md",
           "sha": "b61d7951",
           "errata": "E-17"
+        },
+        {
+          "status": "pending-confirmation",
+          "requested_by": "grill-t30 fix window (audit-repair restack)",
+          "reason": "audit report captured-at-head names 8942e2d8 - the impl-lane tip at audit entry; the fix-window uncommit+rebuild of the closeout tail orphaned it (E-18 class, disclosed in the audit report itself)",
+          "expires_at": "2026-12-15",
+          "scope": ".scratch/grill-t30/reports/2026-09-27-audit-report.md",
+          "file": ".scratch/grill-t30/reports/2026-09-27-audit-report.md",
+          "sha": "8942e2d8",
+          "errata": "E-18"
+        },
+        {
+          "status": "pending-confirmation",
+          "requested_by": "grill-t30 fix window (loop-2 re-audit restack)",
+          "reason": "re-audit report captured-at-head names c22c01ae - the audit-lane content tip at re-audit entry; the loop-2 repair restack of the audit lane orphans it (E-19 class)",
+          "expires_at": "2026-12-15",
+          "scope": ".scratch/grill-t30/reports/2026-09-27-reaudit-report.md",
+          "file": ".scratch/grill-t30/reports/2026-09-27-reaudit-report.md",
+          "sha": "c22c01ae",
+          "errata": "E-19"
         }
       ]
     }
@@ -269,6 +293,7 @@
         }
       },
       "field_governance": "fenced",
+      "docs/governance/orphan-cites.json": "fenced",
       "host_admission": {
         "_doc": "editorial",
         "source_adr": "editorial",
@@ -337,6 +362,20 @@
             "reason": "the .claude-plugin/ + CLAUDE_PLUGIN_ROOT bundle path is officially documented as recognized verbatim, but the live-verified CLI surface is .codebuddy/settings.json hooks; bundle-path firing on CLI is unprobed",
             "expires_at": "2026-12-15",
             "scope": "CodeBuddy Code CLI plugin-bundle hook path"
+          },
+          {
+            "status": "pending-confirmation",
+            "requested_by": "grill-t31 D-004/D-009 (ADR-0088)",
+            "reason": "whether the CodeBuddy session emits a stable session_id for the whole task lifecycle is declared but unprobed — adjudicated by the item-0 probe + RUNBOOK measurement on first trial run",
+            "expires_at": "2026-12-15",
+            "scope": "CodeBuddy trial session_id lifecycle (telemetry sink identity)"
+          },
+          {
+            "status": "pending-confirmation",
+            "requested_by": "grill-t31 D-004/D-009 (ADR-0088)",
+            "reason": "whether Claude-Code-compatible transcripts land reachable at a stable path the collector can read is declared but unprobed — adjudicated by the item-0 probe reachability check on first trial run",
+            "expires_at": "2026-12-15",
+            "scope": "CodeBuddy trial transcript reachability (collector input path)"
           }
         ]
       }

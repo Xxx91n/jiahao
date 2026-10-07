@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0091 (grill-t34 D-004) / ADR-0096 N-3 (grill-t38 D-005): derived CI command-surface checklist - the audit re-run surface floor. Generated from ci.yml via the shared zero-dep parsers; hand-edit forbidden. node scripts/build-audit-checklist.js emit prints the FULL pasteable audit-coverage v1 block (sentinel line + json fence + bare commands array); that output form is the registered contract - form changes go through Declaration. Advisories are a separate channel (node scripts/build-audit-checklist.js --advisories); they never ride emit. The auditor attests what they ran - the generator never co-signs.",
+  "generated_by": "scripts/build-audit-checklist.js",
+  "generated_at": "2026-10-06T14:19:06.317Z",
+  "source": ".github/workflows/ci.yml",
+  "jobs": [
+    {
+      "job": "gate-all",
+      "run_lines": [
+        "npm install --ignore-scripts",
+        "if [ -z \"$JIAHAO_BENCH_CORPUS_B64\" ]; then",
+        "echo \"::warning title=corpus-restore::JIAHAO_BENCH_CORPUS_B64 not set; corpus gates degrade to UNVERIFIABLE\"",
+        "else",
+        "echo \"$JIAHAO_BENCH_CORPUS_B64\" | base64 -d > \"$RUNNER_TEMP/bench-corpus.tgz\" || true",
+        "node scripts/restore-bench-corpus.js \"$RUNNER_TEMP/bench-corpus.tgz\" \"$RUNNER_TEMP\"",
+        "fi",
+        "npm run gate:all"
+      ]
+    },
+    {
+      "job": "test",
+      "run_lines": [
+        "npm install --ignore-scripts",
+        "node scripts/run-test-gate.js"
+      ]
+    },
+    {
+      "job": "summary",
+      "run_lines": [
+        "results=\"${{ needs.gate-all.result }} ${{ needs.test.result }}\"",
+        "expected=2   # == length of the needs list above",
+        "echo \"needed job results: [$results] (expected $expected)\"",
+        "seen=0",
+        "for r in $results; do",
+        "seen=$((seen + 1))",
+        "if [ \"$r\" != \"success\" ]; then",
+        "echo \"::error::aggregate red - needed job result $r is not success (ADR-0058 D-B)\"",
+        "exit 1",
+        "fi",
+        "done",
+        "if [ \"$seen\" -ne \"$expected\" ]; then",
+        "echo \"::error::aggregate red - saw $seen results, expected $expected (ADR-0058 D-B: unknown/empty reads red)\"",
+        "exit 1",
+        "fi",
+        "echo \"aggregate green - all $expected needed jobs report success\""
+      ]
+    }
+  ],
+  "commands": [
+    "npm install --ignore-scripts",
+    "if [ -z \"$JIAHAO_BENCH_CORPUS_B64\" ]; then",
+    "echo \"::warning title=corpus-restore::JIAHAO_BENCH_CORPUS_B64 not set; corpus gates degrade to UNVERIFIABLE\"",
+    "else",
+    "echo \"$JIAHAO_BENCH_CORPUS_B64\" | base64 -d > \"$RUNNER_TEMP/bench-corpus.tgz\" || true",
+    "node scripts/restore-bench-corpus.js \"$RUNNER_TEMP/bench-corpus.tgz\" \"$RUNNER_TEMP\"",
+    "fi",
+    "npm run gate:all",
+    "npm install --ignore-scripts",
+    "node scripts/run-test-gate.js",
+    "results=\"${{ needs.gate-all.result }} ${{ needs.test.result }}\"",
+    "expected=2   # == length of the needs list above",
+    "echo \"needed job results: [$results] (expected $expected)\"",
+    "seen=0",
+    "for r in $results; do",
+    "seen=$((seen + 1))",
+    "if [ \"$r\" != \"success\" ]; then",
+    "echo \"::error::aggregate red - needed job result $r is not success (ADR-0058 D-B)\"",
+    "exit 1",
+    "fi",
+    "done",
+    "if [ \"$seen\" -ne \"$expected\" ]; then",
+    "echo \"::error::aggregate red - saw $seen results, expected $expected (ADR-0058 D-B: unknown/empty reads red)\"",
+    "exit 1",
+    "fi",
+    "echo \"aggregate green - all $expected needed jobs report success\""
+  ],
+  "advisories": [
+    {
+      "name": "map-freshness-per-commit-advisory",
+      "command": "node scripts/check-map-freshness.js --advisory-only",
+      "status": "advisory (non-blocking)",
+      "source_adr": "docs/adr/0092-public-object-equivalence-and-post-land-verification-contract.md",
+      "why": "grill-t35 D-005 demoted the per-commit embedded-map check to audit-time: it is structurally unsatisfiable under the GitButler multi-lane landing model. The blocking authority is tip-map coverage; this surface keeps the unsatisfiable class visible so the auditor attests it rather than rediscovering it."
+    },
+    {
+      "name": "post-land-subset",
+      "command": "node scripts/check-post-land.js",
+      "status": "wave-time (not a CI leg)",
+      "source_adr": "docs/adr/0092-public-object-equivalence-and-post-land-verification-contract.md",
+      "why": "grill-t35 D-004: re-verifies the LANDED public tip in a throwaway worktree. Deliberately not a CI job - CI observes the tree only after it is public, so it is the wrong observation point for a pre-public check. The auditor may re-run it to confirm the landed state."
+    }
+  ]
+}

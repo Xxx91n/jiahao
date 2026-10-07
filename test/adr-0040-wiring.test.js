@@ -124,7 +124,9 @@ describe('ADR-0040 D5 run-gates precheck', () => {
   test('unverifiable never merges into fail and does not trip fail-fast', () => {
     const exec = () => ({ code: 1, output: 'boom' });
     const res = gates.runGates(reg, { exec, probe: () => false, failFast: true });
-    const st = res.results.map(r => r.status);
+    // ADR-0093 D-4: scope to leg rows; the synthetic `[- tracked-surface]` row
+    // rides along in the same table and is asserted separately below.
+    const st = res.results.filter(r => r.name !== '- tracked-surface').map(r => r.status);
     expect(st).toEqual(['unverifiable', 'unverifiable']);
     expect(res.exitCode).toBe(0); // no confirmatory 'fail' row exists
   });
@@ -133,7 +135,7 @@ describe('ADR-0040 D5 run-gates precheck', () => {
     const calls = [];
     const res = gates.runGates(reg, { exec: (c) => { calls.push(c); return { code: 0, output: '' }; }, probe: () => true });
     expect(calls).toEqual(['cA', 'cB']);
-    expect(res.results.every(r => r.status === 'pass')).toBe(true);
+    expect(res.results.filter(r => r.name !== '- tracked-surface').every(r => r.status === 'pass')).toBe(true);
   });
 });
 

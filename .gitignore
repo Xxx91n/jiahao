@@ -15,6 +15,14 @@ dist/
 .scratch/g6-publish/
 .scratch/.tmp-*
 
+# Examiner work product: never-commit nc-001 mechanized at the channel level
+# (grill-t36 D-008). Covers the audit-evidence / audit2-evidence /
+# audit3-evidence family plus the same-stage audit-backup residue. Already
+# tracked files are unaffected (an ignore rule is inert on a tracked path),
+# so the LEGACY instances in test/adr-0083-wiring.test.js stay readable.
+.scratch/*/audit*-evidence/
+.scratch/*/audit-backup/
+
 # Logs
 *.log
 

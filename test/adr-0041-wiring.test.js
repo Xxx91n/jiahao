@@ -124,8 +124,21 @@ describe('ADR-0041 D3 run-gates child-exit-2 aggregation', () => {
 
   test('all children exit 2 -> unverifiable-only run exits 0', () => {
     const res = gates.runGates(reg, { exec: () => ({ code: 2, output: '' }), probe: () => true });
-    expect(res.results.every(r => r.status === 'unverifiable')).toBe(true);
+    // ADR-0093 D-4: the results table now also carries the synthetic
+    // `[- tracked-surface]` row, so the leg-status assertion is scoped to the
+    // leg rows. The surface row is asserted on its own below; folding it into
+    // this assertion would let a passing surface row mask an unverifiable leg.
+    const legs = res.results.filter(r => r.name !== '- tracked-surface');
+    expect(legs.every(r => r.status === 'unverifiable')).toBe(true);
     expect(res.exitCode).toBe(0);
+  });
+
+  test('the tracked-surface row is present and blocking-tier (ADR-0093 D-4)', () => {
+    const res = gates.runGates(reg, { exec: () => ({ code: 0, output: '' }), probe: () => true });
+    const row = res.results.find(r => r.name === '- tracked-surface');
+    expect(row).toBeDefined();
+    expect(row.tier).toBe('confirmatory'); // does not drop to advisory
+    expect(row.status).toBe('pass'); // the stub exec mutates nothing
   });
 });
 

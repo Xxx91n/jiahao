@@ -1,0 +1,10 @@
+# grill-t30 terminal seal (re-issued 2026-09-27 - loop-2 audit fix window).
+# Declares the last substantive commit of the round; captures pin >= declared.
+# Seal lineage (all pre-push): a15e8c0f -> cf5e42c7 -> this wave. The loop-2
+# re-audit residual (E-19 orphan roster + closeout-order final leg in
+# AGENTS.md) added substantive work; this seal names the repair-tip anchor
+# per the t29 re-issue convention. The seal wave lands seal-class +
+# regen-class files only; claim artifacts follow pinning this wave's sha.
+
+seal: e9c807493a501179695676892cc4e0de6e3fd7b7
+recorded_at: 2026-09-27

@@ -21,10 +21,31 @@
 // extracted manifest MUST be rejected; if it is not, the gate is invalid and
 // fails closed.
 //
-// Usage: node scripts/check-g6-publish.js [--freeze]
+// Usage: node scripts/check-g6-publish.js [--freeze] [--write-log]
 //   --freeze  regenerate the fixture from gold20.jsonl (append-only content:
 //             regenerating over unchanged goldens yields identical bytes)
+//   --write-log  regenerate the committed replay log (the ONLY path that
+//             writes bench/research/out/g6-publish-replay.json)
 // Exit 0 pass / exit 1 fail-closed.
+//
+// ADR-0093 D-3 (grill-t36 D-006): this gate STOPPED overwriting its own
+// evidence. The default path computes and does not write; it diffs the fresh
+// replay against the committed log and exits 1 on a mismatch. Verification and
+// mutation are two commands, not one command with two outcomes - the
+// `prettier --check` / `--write` family, and the same two-mode shape the other
+// generator legs in this registry already use (build-rewrite-map.js --check,
+// build-audit-checklist.js --check, build-governance-anchors.js --check).
+//
+// Artifact semantics, adjudicated not assumed: g6-publish-replay.json is a
+// DERIVED EVIDENCE LOG, not a locked baseline. The locked baseline is
+// g6-publish-fixture.json (ADR-0050 append-only). A compare failure is
+// therefore an EVIDENCE-STALENESS alarm - the committed log no longer describes
+// the current replay, so it is explicitly regenerated and committed - and NOT
+// replay drift. Replay correctness is asserted at tiers a/c against the
+// fixture, which is the thing that must not move. scripts/build-round-facts.js
+// reads this file as a fact source; that is exactly why redirecting the write
+// to an ignored path was rejected - it would move the evidence out of the tree
+// under judgement.
 
 const fs = require('fs');
 const os = require('os');
@@ -163,6 +184,30 @@ function check(root) {
   };
 }
 
+// Build the replay-log artifact object (pure: no write). ADR-0093 D-3 keeps
+// construction and persistence separable so the default path can compare
+// without touching the tree.
+function buildReplayArtifact(out) {
+  return {
+    schema_version: 1,
+    _doc: 'ADR-0065 D-B.3 / D-005(b): persisted replay log of the G6 publish gate - extracted-surface digest, per-tier results, positive-control verdict. Deterministic content (no clock fields); a green re-run reproduces identical bytes. ADR-0093 D-3: DERIVED EVIDENCE LOG, not a locked baseline - the default gate path compares against this file and never rewrites it; regenerate with: node scripts/check-g6-publish.js --write-log. A compare failure is an evidence-staleness alarm, not replay drift (replay correctness is asserted at tiers a/c against the ADR-0050 append-only fixture).',
+    gate: 'g6-publish',
+    tarball: { file: out.packed ? path.basename(out.packed.file) : null, size: out.packed ? out.packed.size : null },
+    extracted_surface_sha256: out.replay.surface_sha256,
+    expectations: out.count,
+    tiers: {
+      a_token_digest_bit_equal: out.replay.detail.tier_a_equal + '/' + out.replay.detail.items,
+      b_rel_l2_max: out.replay.detail.rel_l2_max,
+      c_logit_diff_max: out.replay.detail.logit_diff_max,
+      c_tolerance: out.tolLogit,
+    },
+    positive_control: { corrupted_manifest_rejected: out.replay.control_rejected },
+    warnings: out.warnings,
+    errors: out.errors,
+    verdict: out.errors.length ? 'FAIL' : 'PASS',
+  };
+}
+
 function main() {
   requireCapabilities('g6-publish');
   const argv = process.argv.slice(2);
@@ -183,36 +228,48 @@ function main() {
   catch (e) { console.error('[g6-publish] fail-closed: ' + e.message); process.exit(1); }
   for (const w of out.warnings) console.warn('WARN(diagnostic): ' + w);
   for (const e of out.errors) console.error('FAIL: ' + e);
-  // Persist the replay log (D-005(b) closure artifact): deterministic content
-  // (no clock fields) so a green run reproduces identical bytes.
+  // ADR-0093 D-3: the replay log is a derived evidence log, and this gate no
+  // longer rewrites it as a side effect of observing it. Two commands, two
+  // outcomes - not one command with two.
   if (out.replay) {
-    const outDir = path.join(ROOT, 'bench', 'research', 'out');
-    fs.mkdirSync(outDir, { recursive: true });
-    const artifact = {
-      schema_version: 1,
-      _doc: 'ADR-0065 D-B.3 / D-005(b): persisted replay log of the G6 publish gate - extracted-surface digest, per-tier results, positive-control verdict. Deterministic content (no clock fields); a green re-run reproduces identical bytes.',
-      gate: 'g6-publish',
-      tarball: { file: out.packed ? path.basename(out.packed.file) : null, size: out.packed ? out.packed.size : null },
-      extracted_surface_sha256: out.replay.surface_sha256,
-      expectations: out.count,
-      tiers: {
-        a_token_digest_bit_equal: out.replay.detail.tier_a_equal + '/' + out.replay.detail.items,
-        b_rel_l2_max: out.replay.detail.rel_l2_max,
-        c_logit_diff_max: out.replay.detail.logit_diff_max,
-        c_tolerance: out.tolLogit,
-      },
-      positive_control: { corrupted_manifest_rejected: out.replay.control_rejected },
-      warnings: out.warnings,
-      errors: out.errors,
-      verdict: out.errors.length ? 'FAIL' : 'PASS',
-    };
-    fs.writeFileSync(path.join(outDir, 'g6-publish-replay.json'), JSON.stringify(artifact, null, 2) + '\n', { encoding: 'utf8' });
+    const logPath = path.join(ROOT, 'bench', 'research', 'out', 'g6-publish-replay.json');
+    const next = JSON.stringify(buildReplayArtifact(out), null, 2) + '\n';
+    if (argv.indexOf('--write-log') !== -1) {
+      fs.mkdirSync(path.dirname(logPath), { recursive: true });
+      const identical = fs.existsSync(logPath) && fs.readFileSync(logPath, 'utf8') === next;
+      fs.writeFileSync(logPath, next, { encoding: 'utf8' });
+      console.log('[g6-publish] replay log regenerated -> ' + path.relative(ROOT, logPath).split(path.sep).join('/') +
+        (identical ? ' (identical bytes)' : '') + ' - COMMIT it (ADR-0093 D-3: the log is the fact source build-round-facts.js reads)');
+    } else {
+      // compare form: read-only. A missing log is the same alarm as a stale
+      // one (the evidence does not describe this replay) and is reported as
+      // such rather than silently created.
+      const committed = fs.existsSync(logPath) ? fs.readFileSync(logPath, 'utf8') : null;
+      if (committed === null) {
+        console.error('EVIDENCE-STALE: ' + path.relative(ROOT, logPath).split(path.sep).join('/') +
+          ' is missing - the committed replay log does not describe this replay (ADR-0093 D-3). Run: node scripts/check-g6-publish.js --write-log');
+        process.exit(1);
+      }
+      if (committed !== next) {
+        // Name the drift at the granularity that helps: which top-level fields
+        // moved. The full diff is not expanded - the remedy is one command.
+        let fields = 'unreadable';
+        try {
+          const a = JSON.parse(committed); const b = JSON.parse(next);
+          fields = Object.keys(b).filter((k) => JSON.stringify(a[k]) !== JSON.stringify(b[k])).join(', ') || '(none - byte-level only)';
+        } catch (e) { /* fall through to the raw marker */ }
+        console.error('EVIDENCE-STALE: the committed replay log no longer describes this replay (ADR-0093 D-3) - differing fields: ' + fields +
+          '. This is a staleness alarm, not replay drift: replay correctness is asserted at tiers a/c above. Run: node scripts/check-g6-publish.js --write-log');
+        process.exit(1);
+      }
+    }
   }
   if (out.errors.length) process.exit(1);
-  console.log('[g6-publish] OK: ' + (out.packed ? out.packed.file : 'tarball') + ' replayed ' + out.count + ' gold items from the extracted tarball - token digests bit-equal (a), rel-L2 advisory (b), logits < ' + out.tolLogit + ' (c); corrupted-port positive control rejected; log bench/research/out/g6-publish-replay.json');
+  console.log('[g6-publish] OK: ' + (out.packed ? out.packed.file : 'tarball') + ' replayed ' + out.count + ' gold items from the extracted tarball - token digests bit-equal (a), rel-L2 advisory (b), logits < ' + out.tolLogit + ' (c); corrupted-port positive control rejected' +
+    (argv.indexOf('--write-log') !== -1 ? '; replay log written' : '; committed replay log matches this replay (compare form, no write)'));
   process.exit(0);
 }
 
 if (require.main === module) main();
 
-module.exports = { check, replay, buildFixture, extractTarball };
+module.exports = { check, replay, buildFixture, extractTarball, buildReplayArtifact };

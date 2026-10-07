@@ -54,7 +54,33 @@ docs/agents/domain.md.
   report may only claim committed-surface-reachable evidence; untracked
   captures are referenced by path/count pointers, never copied into the
   committed surface (grill-t28 D-003). Artifact residence is not
-  adjudication - verdict issuance stays owner-side.
+  adjudication - verdict issuance stays owner-side. The nc-001 convention
+  semantics is ignored-by-design: never committed, NOT required to be
+  visible in `git status` (grill-t36 D-008 - the `.gitignore` collection of
+  `.scratch/*/audit*-evidence/` and `.scratch/*/audit-backup/` mechanizes
+  the convention at the channel level, so absence from status is the
+  convention working, not a gap; the tracked LEGACY instances named in
+  `test/adr-0083-wiring.test.js` stay readable because an ignore rule is
+  constructively inert on a tracked path).
+- Wave-closeout order (E-17, grill-t30 D-004): re-capture evidence pins
+  -> regenerate derived artifacts (rewrite-map LAST) -> `node
+  scripts/build-rewrite-map.js --check` + `--published-only` clean ->
+  declare. Tide-eve disposition re-verification (grill-t34 D-003(vii), ADR-0090): before declaring, re-verify each queued member's registered disposition is current - a stale disposition is an errata, never silently executed; Final leg (E-19, grill-t30 loop-2 re-audit): after the LAST
+  `but` mutation (commit/uncommit/move/restack) settles and before
+  declaring, re-run `--check` against the settled tree — the interval
+  between a workspace rewrite and evaluation is the F-6 exposure
+  window; never declare inside it. The `map-freshness` gate leg (order
+  224) asserts it per claim-surface commit;
+  `.githooks/pre-commit-user` blocks a staged
+  claim-surface commit while the map is stale. `but commit` bypasses the
+  hook by construction — the leg is the authority; repair = regen +
+  follow-up wave, never a bot auto-commit (ADR-0083 D-C).
+- Snapshot-anchor note (E-19, ADR-0096 §P-1/§P-2; grill-t38 D-001.6): the
+  settled-tree `--check` above is the tip-anchor surface and is unchanged;
+  the snapshot-anchor surface (`status-inventory` blocks, run evidence) is
+  judged by each block's declared anchor, so its wave-close obligation is
+  to confirm the latest report's anchor assertion holds — not to regenerate
+  the block to the present.
 - Post-restack ritual (grill-t28 D-005): after any `but move`,
   restack, or undo on a lane containing claim commits, re-run the full
   `evaluateRound` for the affected round(s) before new claims or
@@ -91,3 +117,83 @@ docs/agents/domain.md.
   live verification is always `git show --name-only`, which the
   `anchoring-footer` leg rechecks. Forward-only scope: history is never
   rewritten; merge commits and workspace commits are exempt.
+- Bare-SHA citations in NEW committed prose should carry subject/date
+  context (editorial soft-constraint, grill-t32 D-001(c) / spec-t32 §7):
+  when new committed documentation cites a hex object, prefer a form that
+  names what the object is — `<sha-prefix> (<subject or date>)` — over a
+  bare SHA. Not mechanized, no gate; the classifier classifies the cite
+  identically either way, so this is a readability/debuggability clause —
+  it binds NEW prose only and never retro-edits historical claims.
+- Countersign-queue authority (grill-t33 D-002(vii)): queue membership is
+  authoritative on each ADR's own declaration surface — the three
+  registered awaiting forms (old-form `ID-level-only, awaiting
+  entity-level` labels, ERRATA E-13 pointer-annotation lines, new-form
+  `awaiting entity-level countersign` status) define the queue as a
+  derived set; `test/countersign-queue.test.js` reconciles membership
+  member-by-member. Count narratives ("N -> N+1" bump lines, "N entries"
+  enumerations) are display text: they stay byte-stable as history, and
+  NEW ADRs must not write count lines.
+- Baseline-CI clause (grill-t33 D-003(iv)): every round's T-0 baseline
+  recon MUST include a public-CI status check — the origin/main tip's
+  latest run conclusion and the failing step named. Two consecutive
+  rounds with the same undisclosed-red blind spot is a registered
+  finding class, not a coincidence.
+- Audit coverage contract (grill-t34 D-004): second-party audit reports carry
+  a machine-readable `<!-- audit-coverage v1 -->` coverage block (ADR-0091);
+  the `audit-surface` leg asserts the latest in-scope report's block covers
+  the derived CI checklist; `node scripts/build-audit-checklist.js emit`
+  prints the full pasteable block (`<!-- audit-coverage v1 -->` marker + JSON
+  fence + bare `commands` array) for the auditor to attest; advisories are a
+  separate `--advisories` channel (ADR-0096 §N-3; grill-t38 D-005.5). The
+  interim manual clause (grill-t33 D-004(i)) retired with the mechanism - no
+  coexistence window.
+- Prose anchor clause (ADR-0096 §P-1; grill-t38 D-004.5): a prose sentence
+  that carries a mechanically-judgeable value MUST parenthesize a `run_id`
+  back-reference; narrative sentences are non-load-bearing and need not cite.
+- Class-vs-sample discipline (grill-t36 D-007): a claim about a class
+  requires verifying the class - name the enumeration surface or register the
+  residual; a passing sample is evidence about the sample, not the class
+  (ISA 530 / PCAOB AS 2315 prototype: a conclusion extrapolates only to the
+  population it names). The two sentence-forms never merge: a finite
+  enumeration hole is closed by declaration, an open byte class is repaired,
+  never closed. Worked instance, bounded to what was actually measured: the
+  "What I got wrong three times, in the same shape" section of
+  `.scratch/grill-t35/reports/2026-10-01-report.md` - three instances of one
+  shape, NOT a claim that four rounds share the root. Not mechanized here:
+  any gate or leg enforcing this must arrive through the Δ2/Declaration
+  channel, never as a quiet tooling change. Cross-ref CONTEXT.md
+  `Evidence-Tiered Readiness`.
+- Claim-registration prose cites a row id (ADR-0099 §P-A, grill-t39 D-006.1 - the prose
+  half of the defer-0089 cash-out): a committed sentence claiming a registration ("已登记
+  defer-NNNN") MUST name the row id, and the id must resolve inside the claim anchor
+  commit's tree of `docs/deferred-registry.json`, not in the worktree. A claim of
+  registration without a resolvable id is not a registration. The mechanical existence
+  leg is the implementation half and lands with the same contract (ADR-0095 D-B).
+- Prose anchor triple (ADR-0099 §P-C refines ADR-0096 §P-1; grill-t39 D-006.4): a prose
+  sentence carrying a mechanically-judgeable value MUST parenthesize the value, its
+  `run_id` back-reference, and the **instrument gauge name** - which counter produced the
+  number. Narrative sentences stay non-load-bearing and need not cite. Where a
+  summary-header count and a leg-level count measure different gauges, the divergence
+  carries a **yellow disclosure obligation**, never a red verdict; both readings may be
+  true of different objects, and the defect is a silent difference, not the difference.
+- `prose-density` report footer (ADR-0098 D-F; grill-t39 D-005.3/.4): reports carry a
+  fixed `prose-density` tail line of deterministic counts - pure disclosure, **no target
+  value**, and **existing text is never rewritten for the sake of a count**. Numbers come
+  from the counter, never from a model; a load-bearing sentence declares its purpose
+  per sentence (no document-class exemption licence); counts must not enter generation
+  instructions.
+- Intensity tier is generator-side only (grill-t39 D-003.6): `role` is chosen at install
+  time and `intensity` persists at runtime - two orthogonal axes - and the **verifier
+  profile carries no runtime intensity tier**, because a blocking audit surface may not
+  be weakened by the party under audit. Runtime role detection stays forbidden. Upstream
+  incident shapes are this feature's acceptance criteria: state namespaced per project,
+  `off` genuinely silent at every injection point, an invalid parameter preserving the
+  current mode.
+- Explicit exclusion domain on both faces (grill-t39 D-003.7): the verifier configuration's
+  Boundaries section names what it is not for (not generating coaching content, not
+  resident injection on hosts without hook capability, not non-audit tasks), and skill
+  descriptions carry the negative domain in the `Do NOT use for ...` form - the guard
+  against the Generator-Verifier Gap being eroded by scope creep.
+- Audit findings number continuously (grill-t39 D-003.8): a new audit report numbers its
+  findings continuously across the whole report so a later round can cite a finding by
+  number. Editorial convention, not a gate.

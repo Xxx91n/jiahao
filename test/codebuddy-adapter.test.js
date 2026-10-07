@@ -32,6 +32,8 @@ function runBundleHook(script, opts) {
   delete env.PLUGIN_DATA;
   delete env.COPILOT_PLUGIN_DATA;
   delete env.QODER_SESSION_ID;
+  delete env.CLAUDE_PLUGIN_ROOT;
+  delete env.CODEBUDDY_PLUGIN_ROOT;
   env.CLAUDE_CONFIG_DIR = o.configDir;
   if (o.pluginRoot !== undefined) env.CLAUDE_PLUGIN_ROOT = o.pluginRoot;
   return spawnSync(process.execPath, [path.join(BUNDLE, 'hooks', script)], {
@@ -111,8 +113,8 @@ describe('bundle structure (spec 2.2: manifest-dir-only, components at root)', (
 
   test('.mcp.json references the vendored jiahao-mcp entry', () => {
     const mcp = JSON.parse(fs.readFileSync(path.join(BUNDLE, '.mcp.json'), 'utf8'));
-    expect(mcp.mcpServers.jiahao.command).toBe('node');
-    const rel = mcp.mcpServers.jiahao.args[0].replace('${CLAUDE_PLUGIN_ROOT}', BUNDLE);
+    expect(mcp.mcpServers['jiahao-mcp'].command).toBe('node');
+    const rel = mcp.mcpServers['jiahao-mcp'].args[0].replace('${CLAUDE_PLUGIN_ROOT}', BUNDLE);
     expect(fs.existsSync(rel)).toBe(true);
   });
 });
@@ -154,6 +156,34 @@ describe('hook behavior (bundle copies, live spawn)', () => {
     expect(out.hookSpecificOutput.hookEventName).toBe('PreToolUse');
     const rec = JSON.parse(fs.readFileSync(path.join(dir, '.jiahao-pretool.jsonl'), 'utf8').trim().split('\n').pop());
     expect(rec.decision).toBe('deny');
+  });
+
+  test('PreToolUse denies command-payload bypass shapes (audit B-4 regression)', () => {
+    const dir = mkConfigDir({ '.jiahao-profile': 'verifier' });
+    const shapes = [
+      'rm rules/jiahao-verifier.md',
+      'rm .mcp.json',
+      'del hooks\\hooks.json',
+      'rm C:/x/plugin/rules/jiahao-verifier.md extra',
+      'cat .jiahao-pretool.jsonl',
+      'rm -rf hooks/jiahao-pretool-guard.js',
+      'move .claude-plugin/plugin.json out.json',
+    ];
+    for (const command of shapes) {
+      const res = runBundleHook('jiahao-pretool-guard.js', {
+        configDir: dir, pluginRoot: BUNDLE,
+        stdin: JSON.stringify({ tool_name: 'Bash', tool_input: { command: command } }),
+      });
+      expect(res.status).toBe(0);
+      const out = JSON.parse(res.stdout.trim());
+      expect(out.hookSpecificOutput.permissionDecision).toBe('deny');
+    }
+    // non-protected payloads still pass silently
+    const benign = runBundleHook('jiahao-pretool-guard.js', {
+      configDir: dir, pluginRoot: BUNDLE,
+      stdin: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'rm rules/other.md && cat README.md' } }),
+    });
+    expect(benign.stdout.trim()).toBe('');
   });
 
   test('PreToolUse is silent on ordinary tool calls and under generator profile', () => {

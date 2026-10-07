@@ -44,8 +44,17 @@ function capturedHeaderRe(fresh) {
 }
 const CAPTURE_RE = /\.(txt|md)$/;
 const FIXTURE_RE = /\.fixture\./;
-// Ephemeral GitButler workspace merge objects never reach a public clone —
-// the walk drops them: they neither anchor nor count as claims.
+// Ephemeral GitButler workspace merge objects never reach a public clone — the
+// walk drops them: they neither anchor nor count as claims. The exclusion is
+// STRUCTURAL (rework P1-10): a workspace merge commit is identified by REF
+// IDENTITY — it is the tip of the registered workspace ref — never by its commit
+// SUBJECT (a reworded subject would smuggle the ephemeral merge into the lineage
+// and the anchor set). ONE predicate (isWorkspaceMerge) serves BOTH the walk and
+// the live-anchor enumeration; the two used to fork on startsWith() vs
+// equality() of the subject.
+const WORKSPACE_REF_DEFAULT = 'refs/heads/gitbutler/workspace';
+// Retained for other consumers (scripts/check-map-freshness.js reads
+// fresh.WORKSPACE_SUBJECT); this module no longer keys its predicate on it.
 const WORKSPACE_SUBJECT = 'GitButler Workspace Commit';
 // Claim-like heuristic for the unregistered-claim warning (D-003 hedge 4):
 // verdict-shaped filenames under a round dir that escaped the closed enum.
@@ -59,6 +68,20 @@ function gitOk(root, args) {
 }
 
 const gitLines = (root, args) => git(root, args).split('\n').filter(Boolean);
+
+// The tip of the registered workspace ref (the ONE place the ephemeral workspace
+// merge is named). Returns null when the ref is absent (public clone / plain
+// checkout) - then nothing is a workspace merge.
+function workspaceMergeTip(root, cfg) {
+  const ref = (cfg && cfg.workspace_ref) || WORKSPACE_REF_DEFAULT;
+  try { return git(root, ['rev-parse', '--verify', '-q', ref]) || null; } catch (e) { return null; }
+}
+
+// ONE predicate (rework P1-10): a workspace merge commit is the tip of the
+// registered workspace ref. Structural by ref identity, never by subject text.
+function isWorkspaceMerge(sha, tip) {
+  return Boolean(sha) && Boolean(tip) && sha === tip;
+}
 
 function loadFreshness(root) {
   const tax = JSON.parse(fs.readFileSync(path.join(root, 'docs', 'governance', 'surface-taxonomy.json'), 'utf8'));
@@ -85,6 +108,7 @@ function classifiers(fresh) {
     claim: new RegExp('^' + rr + '(?:' + fresh.claim_surfaces.closed_enum.map(escRe).join('|') + ')'),
     claimDirs: fresh.claim_surfaces.closed_enum,
     claimExceptions: fresh.claim_surfaces.exceptions || [],
+    scopeRe: new RegExp('^' + rr),
   };
 }
 
@@ -122,10 +146,12 @@ function commitInfo(root, sha, cx) {
   };
 }
 
-// rev-list <range>, newest first, ephemeral GitButler workspace commits dropped.
+// rev-list <range>, newest first, ephemeral GitButler workspace commits dropped
+// via the ONE structural predicate (P1-10).
 function walk(root, range) {
+  const tip = workspaceMergeTip(root);
   return gitLines(root, ['rev-list', range])
-    .filter((sha) => !git(root, ['log', '--format=%s', '-1', sha]).startsWith(WORKSPACE_SUBJECT));
+    .filter((sha) => !isWorkspaceMerge(sha, tip));
 }
 
 // Last commit in base..ref whose commitInfo satisfies pred — the shared walk
@@ -488,6 +514,11 @@ function sealRank(root, ref, f, sealFields) {
 // anchor record". The SEAL filename + scan root + field names are consumed
 // from the registered taxonomy (freshness.non_anchoring_classes.seal_file /
 // orphan_ancestry.artifact_scope / seal.fields), not private literals.
+//
+// TREE-READ surface (grill-t38 D-003.3 / ADR-0093 D-6, ADR-0096 F-delta):
+// this reads the tree at `ref` (HEAD / workspace_ref). It is NOT the lineage
+// anchor - the ancestry judgement in orphanAncestry uses the derived live-set
+// anchor, never this ref. Do not route tree reads through the set.
 function lastSealRecord(root, ref, fresh) {
   const name = ((fresh || {}).non_anchoring_classes || {}).seal_file || 'SEAL';
   const scope = orphanConfig(fresh).artifact_scope;
@@ -507,6 +538,34 @@ function lastSealRecord(root, ref, fresh) {
   return best;
 }
 
+// grill-t38 D-003.1 (T-6): the P-2 evaluation anchor is a SET, not a
+// transient ref. At evaluation time, enumerate the resolvable live branches
+// refs/heads/* ∪ refs/gitbutler/*. The GitButler workspace merge commit is
+// structurally excluded by REF IDENTITY (the ref whose tip is the registered
+// workspace ref, rework P1-10) - never by subject text. Returns [] when nothing
+// resolves - the caller then emits a verdict-level UNVERIFIABLE result, never
+// red and never green. The T-3 shard reuses this to derive ref_context.
+function liveAnchorRefs(root) {
+  let lines;
+  try {
+    // One plumbing call; %00 separates refname from the tip objectname.
+    lines = gitLines(root, ['for-each-ref', '--format=%(refname)%00%(objectname)', 'refs/heads', 'refs/gitbutler']);
+  } catch (e) {
+    return [];
+  }
+  const tip = workspaceMergeTip(root);
+  const out = [];
+  for (const line of lines) {
+    const cut = line.indexOf('\0');
+    const ref = cut === -1 ? line : line.slice(0, cut);
+    const sha = cut === -1 ? '' : line.slice(cut + 1);
+    if (!ref || !refExists(root, ref)) continue;    // none resolvable -> not an anchor
+    if (isWorkspaceMerge(sha, tip)) continue;       // workspace merge: structurally excluded
+    out.push(ref);
+  }
+  return out;
+}
+
 // cfg.errata_exemptions: exception-channel entries ({sha, file?, errata} +
 // the ADR-0086 channel fields). A failing pin is suppressed only by an
 // EFFECTIVE entry naming the sha - prefix-aware either direction, hex >= 7
@@ -516,29 +575,47 @@ function lastSealRecord(root, ref, fresh) {
 function orphanAncestry(root, fresh, opts) {
   const cfg = orphanConfig(fresh);
   const o = opts || {};
-  const ref = o.ref || 'HEAD';
   const today = o.now || new Date().toISOString().slice(0, 10);
+  // grill-t38 D-003.1/.2 (T-6): the P-2 evaluation anchor is the SET of live
+  // branches, derived HERE in the shared implementation - live callers pass {}
+  // and get the set (D-M1: the anchor never drifts per call site). An EXPLICIT
+  // opts.ref is honored verbatim: that is the fixture escape hatch (synthetic
+  // repos pin a single ref) and must be preserved.
+  const explicitRef = o.ref != null;
+  const anchors = explicitRef ? [o.ref] : liveAnchorRefs(root);
+  const unverifiable = !explicitRef && anchors.length === 0;
+  const anchorDesc = explicitRef ? o.ref : (anchors.join(', ') || '(none)');
+  // Tree-read vs lineage double-ref separation (D-003.3 / ADR-0093 D-6,
+  // ADR-0096 F-delta): enumerating the committed pins is a TREE read - it stays
+  // on HEAD (or the explicit ref). ONLY the ancestry judgement below uses the
+  // derived anchor set.
+  const treeRef = explicitRef ? o.ref : 'HEAD';
   const exemptions = (cfg.errata_exemptions || [])
     .filter((x) => x && typeof x === 'object' && exceptionActive(x, { when: today }));
-  const pins = o.pins || pinnedShas(root, cfg, ref);
+  const pins = o.pins || pinnedShas(root, cfg, treeRef);
   const violations = [];
   const exempted = [];
   for (const pin of pins) {
     const exempt = exemptions.find((x) => shaMatch(x.sha, pin.sha) && (!x.file || x.file === pin.file));
     if (!resolvesToCommit(root, pin.sha)) {
       (exempt ? exempted : violations).push({ file: pin.file, kind: pin.kind, sha: pin.sha, reason: 'pinned sha does not resolve to a commit', errata: exempt && exempt.errata });
-    } else if (!gitOk(root, ['merge-base', '--is-ancestor', pin.sha, ref])) {
-      (exempt ? exempted : violations).push({ file: pin.file, kind: pin.kind, sha: pin.sha, reason: 'pinned sha not ancestor of ' + ref, errata: exempt && exempt.errata });
+    } else if (!unverifiable && !anchors.some((a) => gitOk(root, ['merge-base', '--is-ancestor', pin.sha, a]))) {
+      // A pin is green iff it is an ancestor of ANY named branch in the set.
+      const reason = explicitRef
+        ? 'pinned sha not ancestor of ' + o.ref
+        : 'pinned sha not ancestor of any live anchor branch (' + anchorDesc + ')';
+      (exempt ? exempted : violations).push({ file: pin.file, kind: pin.kind, sha: pin.sha, reason, errata: exempt && exempt.errata });
     }
   }
   // Mechanized ritual trigger: gitbutler/workspace HEAD must be a
   // fast-forward descendant of the last seal-anchor record. Ref absent on
   // public clones / plain CI checkouts => clause not evaluated (reported,
-  // never silently skipped).
-  const wsRef = cfg.workspace_ref || 'refs/heads/gitbutler/workspace';
+  // never silently skipped). The seal read is a TREE read (treeRef), not the
+  // lineage anchor set.
+  const wsRef = cfg.workspace_ref || WORKSPACE_REF_DEFAULT;
   let trigger = { state: 'not-evaluated', ref: wsRef, reason: 'workspace ref absent on this surface (no GitButler lane; non-ff clause vacuous here)' };
   if (refExists(root, wsRef)) {
-    const last = lastSealRecord(root, ref, fresh);
+    const last = lastSealRecord(root, treeRef, fresh);
     if (!last) {
       trigger = { state: 'ok', ref: wsRef, seal: null, reason: 'no committed SEAL record - nothing to compare' };
     } else if (gitOk(root, ['merge-base', '--is-ancestor', last.seal, wsRef])) {
@@ -548,20 +625,29 @@ function orphanAncestry(root, fresh, opts) {
     }
   }
   return {
-    ref,
+    ref: anchorDesc,
+    anchors,
+    unverifiable,
+    unverifiableReason: unverifiable
+      ? 'no resolvable live anchor branch (refs/heads/* ∪ refs/gitbutler/* empty) - evaluation anchor underivable'
+      : null,
     pins,
     pinCount: pins.length,
     uniqueShas: [...new Set(pins.map((p) => p.sha))].length,
     violations,
     exempted,
     trigger,
-    red: violations.length > 0 || trigger.state === 'violation',
+    // UNVERIFIABLE is neither red nor green (honest channel, exit 2).
+    red: !unverifiable && (violations.length > 0 || trigger.state === 'violation'),
   };
 }
 
 module.exports = {
   capturedHeaderRe,
   WORKSPACE_SUBJECT,
+  WORKSPACE_REF_DEFAULT,
+  workspaceMergeTip,
+  isWorkspaceMerge,
   EXCEPTION_REQUIRED_FIELDS,
   EXCEPTION_STATUS_ENUM,
   exceptionActive,
@@ -584,5 +670,6 @@ module.exports = {
   shaMatch,
   pinnedShas,
   lastSealRecord,
+  liveAnchorRefs,
   orphanAncestry,
 };

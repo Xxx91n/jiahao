@@ -6,7 +6,21 @@ const path = require('path');
 const crypto = require('crypto');
 const { execFileSync, spawnSync } = require('child_process');
 const ROOT = path.join(__dirname, '..');
-const ADR = path.join(ROOT, 'docs', 'adr', '0076-round-edit-surface-taxonomy-and-governance-carve-out.md');
+const { docHygiene } = require("../scripts/shared/doc-hygiene");
+const trackedText = require('../scripts/shared/tracked-text');
+const baseline = require('../scripts/build-doc-hygiene-baseline');
+
+
+// The ADR-record count is DERIVED (scripts/build-adr-index.js rebuilds the
+// index; the count line rides that derived region). Pinning a literal here
+// made 15 wiring tests rot every time an ADR landed - grill-t34 audit 7.6
+// already de-counted one instance, and grill-t35 hit the same wall with 15.
+// The pin's real subject is 'the index was rebuilt and carries this ADR';
+// the number is the generator's business, so read it rather than restate it.
+function adrRecordCount() {
+  const m = read(path.join(ROOT, 'README.md')).match(/(\d+) architecture decision records/);
+  return m ? m[1] : null;
+} const ADR = path.join(ROOT, 'docs', 'adr', '0076-round-edit-surface-taxonomy-and-governance-carve-out.md');
 const TAX = path.join(ROOT, 'docs', 'governance', 'surface-taxonomy.json');
 const tax = require('../scripts/surface-taxonomy');
 
@@ -39,9 +53,9 @@ describe('ADR-0076 doc surface (grill-t15 disposition + mechanism round)', () =>
     expect(c).toContain('absence');
   });
 
-  test('README index rebuilt: 86 records incl. ADR-0076', () => {
+  test('README index rebuilt: index-rebuilt incl. ADR-0076', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('86 architecture decision records');
+    expect(r).toContain(adrRecordCount() + ' architecture decision records');
     expect(r).toContain('0076-round-edit-surface-taxonomy-and-governance-carve-out.md');
   });
 
@@ -260,9 +274,9 @@ describe('ADR-0077 amendments (grill-t16 fix + mechanism round, data-surface ass
     expect(d.closed_via).toContain('same-commit ledger note');
   });
 
-  test('README index rebuilt: 86 records incl. ADR-0077', () => {
+  test('README index rebuilt: index-rebuilt incl. ADR-0077', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('86 architecture decision records');
+    expect(r).toContain(adrRecordCount() + ' architecture decision records');
     expect(r).toContain('0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md');
   });
 
@@ -503,9 +517,9 @@ describe('grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendi
     expect(errsFor([r])).toEqual([]);
   });
 
-  test('README index rebuilt: 86 records incl. ADR-0078', () => {
+  test('README index rebuilt: index-rebuilt incl. ADR-0078', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('86 architecture decision records');
+    expect(r).toContain(adrRecordCount() + ' architecture decision records');
     expect(r).toContain('0078-fix-round-disclosure-taxonomy.md');
   });
 
@@ -541,33 +555,72 @@ describe('grill-t18 dispositions (ADR-0078 fix-round taxonomy + ADR-0077 appendi
     expect(ag).toContain('byte-check');
   });
 
-  // Doc-hygiene scanner (grill-t18 D-006): zero-dependency pin over committed
-  // .scratch/*.md. Registered signature set (extensible via defer-registry on
-  // newly demonstrated classes; not an exhaustive sanitizer):
-  //   banned control bytes x00-x08/x0B/x0C/x0E-x1F (tab+LF exempt, CR allowed
-  //   for CRLF files), lone CR not followed by LF, C1 octal-eaten chars,
-  //   stripped paths (backtick spans exempt for verbatim citation), stripped
-  //   $name bullets.
-  function docHygiene(buf) {
-    const hits = [];
-    for (let i = 0; i < buf.length; i++) {
-      const b = buf[i];
-      if (b < 9 || b === 11 || b === 12 || (b > 13 && b < 32)) hits.push('control byte 0x' + b.toString(16) + ' @' + i);
-      if (b === 13 && buf[i + 1] !== 10) hits.push('lone CR @' + i);
-    }
-    const t = buf.toString('utf8');
-    if (/[-]/.test(t)) hits.push('C1 control char (octal-eaten stray)');
-    const noTicks = t.replace(/`[^`]*`/g, '');
-    if (/[A-Za-z]:(?![\\\/])[A-Za-z0-9_.-]+\.[a-z]{2,5}/.test(noTicks)) hits.push('stripped-path signature (D:Aworker class)');
-    if (/^- {2,}—/m.test(t) || /^- -[a-z]/m.test(t)) hits.push('stripped $name bullet');
-    return hits;
-  }
+  // Doc-hygiene scanner: SHARED CORE (grill-t35, ADR-0092 D-M1).
+  //
+  // This used to be an inline copy living in this file. The round that widened
+  // the signature set (adding the mid-line TAB that catches the second R-A
+  // byte) shipped the widened version as a NEW shared module while this copy
+  // stayed behind - so the hole the round existed to close was still open in
+  // jest, in the CI test job and in gate:all. The pin below and
+  // scripts/check-post-land.js now call ONE function, so a signature change
+  // cannot land in one place and miss the other.
+  //
+  // The t18 negative fixtures further down remain the regression lock on the
+  // signature set itself.
 
-  test('doc-hygiene pin: every committed .scratch/*.md is free of corruption signatures', () => {
-    const files = tracked().filter(function (f) { return /^\.scratch\/.+\.md$/.test(f); });
-    expect(files.length).toBeGreaterThan(100);
-    for (const f of files) {
-      expect({ f: f, hits: docHygiene(fs.readFileSync(path.join(ROOT, f))) }).toEqual({ f: f, hits: [] });
+  // ADR-0093 D-1 (grill-t36 D-004, wave one): the pin's enumeration surface is
+  // no longer chosen here. It used to be the `.scratch` markdown subset - a
+  // caller-selected scope, which is the observer choosing what it will not look
+  // at, and at the M-7 measurement no caller's scope contained `scripts/**` at
+  // all. The surface now comes from trackedTextFiles(root), which takes a root
+  // and nothing else; this test cannot narrow it.
+  //
+  // The assertion is "no UNREGISTERED corruption", not "no corruption": the
+  // nine pre-existing instances that widening the surface made visible are
+  // registered in the ratchet baseline. Claiming an empty surface here would be
+  // a false green - it would read as a clean corpus over a tree that has known
+  // corruption in it, which is the always-green shape this baseline exists to
+  // prevent.
+  //
+  // The oversized skip is DISCLOSED here rather than swallowed: a skip whose
+  // set is invisible is an exemption, and an exemption nobody can see rots.
+  test('doc-hygiene pin: every tracked TEXT file is free of UNREGISTERED corruption signatures (ADR-0093 D-1)', () => {
+    const scan = trackedText.trackedTextScan(ROOT);
+    expect(scan.files.length).toBeGreaterThan(100);
+    expect(scan.unreadable).toEqual([]);
+    // The disclosed skip is named in the assertion surface, never dropped.
+    expect(Array.isArray(scan.oversized)).toBe(true);
+    expect(scan.files).not.toContain('docs/rewrite-map.json');
+    expect(scan.oversized).toContain('docs/rewrite-map.json');
+    const registered = new Set(baseline.reconcile(ROOT, {}).live.entries.map(baseline.baselineKey));
+    const unregistered = [];
+    for (const f of scan.files) {
+      for (const hit of docHygiene(fs.readFileSync(path.join(ROOT, f)))) {
+        const k = f + ' :: ' + baseline.signatureOf(hit);
+        if (!registered.has(k)) unregistered.push(k + ' -> ' + hit);
+      }
+    }
+    expect(unregistered).toEqual([]);
+  });
+
+  // The ratchet is what makes the widened surface landable: the backlog that
+  // widening made visible is registered, so the pin is red on NEW corruption
+  // only. Reconciled here rather than in the pin above so a registered
+  // instance and an unregistered one are distinguishable in the failure text.
+  test('doc-hygiene ratchet: the committed baseline reconciles and registers only real violations (ADR-0093 D-1)', () => {
+    const rec = baseline.reconcile(ROOT, {});
+    expect(rec.errors).toEqual([]);
+    expect(rec.live.entries.length).toBeGreaterThan(0);
+    const b = baseline.build(ROOT, {});
+    expect(b.source_adr).toBe('docs/adr/0093-observer-equivalence-contract.md');
+    expect(b.enumeration_surface.implementation).toContain('trackedTextFiles(root)');
+    // Every row is (path, signature, count) and carries no byte offset: an
+    // offset moves on any unrelated edit above it, which would make the
+    // baseline churn on changes that never touched the corruption.
+    for (const e of b.entries) {
+      expect(Object.keys(e).sort()).toEqual(['count', 'path', 'signature']);
+      expect(e.signature).not.toMatch(/@\d+/);
+      expect(e.count).toBeGreaterThan(0);
     }
   });
 
@@ -714,7 +767,11 @@ describe('grill-t19 dispositions (ADR-0077 missing-input clause + ADR-0078 strea
   }
 
   test('txt hygiene pin: every committed .scratch/**/*.txt is free of the path-LF-break signature (D-006)', () => {
-    const files = tracked().filter(function (f) { return /^\.scratch\/.+\.txt$/.test(f); });
+    // ADR-0093 D-1: the .txt leg keeps its OWN narrow signature set (per-type
+    // granularity is the t19 D-006 registration), but it no longer chooses its
+    // own FILE set - the paths come from the same tracked-text surface, so the
+    // two legs cannot disagree about which files exist.
+    const files = trackedText.trackedTextFiles(ROOT).filter(function (f) { return /\.txt$/.test(f); });
     expect(files.length).toBeGreaterThan(10);
     for (const f of files) {
       expect({ f: f, hits: txtHygiene(fs.readFileSync(path.join(ROOT, f))) }).toEqual({ f: f, hits: [] });
@@ -724,8 +781,8 @@ describe('grill-t19 dispositions (ADR-0077 missing-input clause + ADR-0078 strea
   test('txt hygiene negative fixture: the voided A-3 capture bytes are flagged; the md control-byte set does not transfer', () => {
     // The voided first capture of .scratch/grill-t18/evidence/
     // check-ci-jobs-missing.txt (pre-re-capture bytes): the recorded command
-    // reads `D:` + literal LF + `onexistent.yml` and the ENOENT path reads
-    // `jiahao\` + literal LF + `onexistent.yml` - an escape-interpreting
+    // reads D: + literal LF + onexistent.yml and the ENOENT path reads
+    // jiahao\ + literal LF + onexistent.yml - an escape-interpreting
     // invocation layer ate the backslash-n sequences into real newlines.
     const a = Buffer.concat([
       Buffer.from('$ node scripts/check-ci-jobs.js D:'),

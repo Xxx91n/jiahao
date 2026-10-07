@@ -1,0 +1,12 @@
+# grill-t31 terminal seal (audit-repair re-issue, 2026-09-28).
+# Supersedes the first seal (declared f4ea1a38 at commit bf900a3b) and the
+# repair seal mut/162da5d2 (declared b0504f28 before two residue commits
+# surfaced): the audit-FAIL repair window landed substantive fixes
+# (87192ded impl + b0504f28 docs + aab0a3b4 impl residue + b9396688 docs
+# residue - the evaluate.js wave-A hunk-id had bound stale bytes; defect
+# disclosed in the repair report). Superseded/orphaned objects are
+# registered in docs/governance/ERRATA.md E-20.
+# Declares the last substantive commit of the round; captures pin >= declared.
+
+seal: b9396688d9f06f8d3349202582bb141576a89d77
+recorded_at: 2026-09-28

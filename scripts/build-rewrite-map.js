@@ -31,21 +31,59 @@
 // are a maintainer-only asset; when none exist --check/--verify/default-write
 // exit 2 UNVERIFIABLE, never 1 - absence is a capability negative, not a red
 // map.
+//
+// ADR-0089 (grill-t32) supersedes the classification input surface: classes
+// derive from four declared facts - pair/removed tables, pinned published_tip
+// ancestry, cat-file object existence, orphan-cites registry membership.
+// Ref topology is demoted to the per-row `qualifiers.reachable_via` field
+// (written, displayed, never judged). --check compares classes/pairs/
+// resolved_to/counts only; qualifiers are exempt but weakly consistency-
+// checked. `unresolved` rows (absent AND unregistered) are hard red.
+// Injectable seams for the acceptance battery: opts.exec (low-level git call
+// failures only) + opts.now (clock) + opts.root (fixture repos).
 
 const fs = require('fs');
 const path = require('path');
-const { execFileSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
 const { requireCapabilities, exitUnverifiable } = require('../src/shared/capability');
+const { NO_REPLACE_ENV } = require('./git-facade');
+const oc = require('./orphan-cites');
 
 const ROOT = path.join(__dirname, '..');
 const OUT_REL = path.join('docs', 'rewrite-map.json');
 const SELF = 'docs/rewrite-map.json';
+// The orphan-cites registry is likewise exempt from the citation scan: its
+// hex literals are internal payload fields (cited_sha, snapshot.parents,
+// successor_sha), not claims needing adjudication - scanning them would
+// recurse the parent's unreachable ancestor chain into the registry.
+const REGISTRY_INPUT = 'docs/governance/orphan-cites.json';
+// ADR-0100 D-C (grill-t39 D-002): the drift-declaration registry is the FIFTH
+// declared fact on the classifier's INPUT side. Its hex literals (cited_sha,
+// cited_by, overwritten_by) are payload fields, not claims, so it is exempt from
+// the citation scan for the same reason the orphan registry is - scanning it
+// would chase every registered line fact's own citation into the map.
+const DRIFT_REGISTRY_INPUT = 'docs/governance/drift-declarations.json';
+const isScanExcluded = (f) => f === SELF || f === REGISTRY_INPUT || f === DRIFT_REGISTRY_INPUT;
+const dd = require('./shared/drift-declarations');
 const HEX_RE = /(^|[^0-9a-zA-Z_])([0-9a-f]{7,40})(?![0-9a-zA-Z_])/g;
-const DOC_PATH_RE = /^(docs\/|README\.md$|AGENTS\.md$|CONTEXT\.md$|\.scratch\/)/;
+// grill-t35 D-003 delta2 / audit M-5: the bilingual mirror is a CITED doc
+// surface. README-zh-CN.md carries translation-baseline shas - including the
+// lane-orphan 613a2471 that opened this round - and until this change the
+// enumeration skipped it entirely, so those citations were never registered.
+// README* is matched as a root prefix (ADR-0080 already classifies the mirror
+// as R3), so widening the surface does not need a second edit per filename.
+const DOC_PATH_RE = /^(docs\/|README[^/]*\.md$|AGENTS\.md$|CONTEXT\.md$|\.scratch\/)/;
 const DOC_EXT_RE = /\.(md|json|txt|patch|jsonl)$/;
 
+// ADR-0089 D-006 seam: every git call on this path goes through git()/gitOk()
+// which dispatch to the injected executor when tests set one, and always run
+// under GIT_NO_REPLACE_OBJECTS=1 (replace semantics never enter declared
+// facts - ADR-0089 D-D). _root moves git+fs reads together for fixture repos.
+let _execOverride = null; // fn(args, opts) -> stdout string; throw on non-zero
+let _root = ROOT;
 function git(args, opts) {
-  return execFileSync('git', args, Object.assign({ cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }, opts || {}));
+  if (_execOverride) return String(_execOverride(args, opts));
+  return execFileSync('git', args, Object.assign({ cwd: _root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, env: NO_REPLACE_ENV }, opts || {}));
 }
 function gitOk(args) {
   try { git(args); return true; } catch (e) { return false; }
@@ -89,18 +127,6 @@ function discoverOldRefs(newRef, publishedSide) {
   });
 }
 
-// prefix-match a token against a sorted sha array; returns the match or null,
-// or the string 'ambiguous' when more than one object shares the prefix.
-function prefixLookup(sorted, token) {
-  let lo = 0, hi = sorted.length;
-  while (lo < hi) { const mid = (lo + hi) >> 1; if (sorted[mid] < token) lo = mid + 1; else hi = mid; }
-  const hits = [];
-  for (let i = lo; i < sorted.length && sorted[i].indexOf(token) === 0 && hits.length < 2; i++) hits.push(sorted[i]);
-  if (hits.length === 0) return null;
-  if (hits.length > 1) return 'ambiguous';
-  return hits[0];
-}
-
 function isEmptyCommit(sha) {
   // diff-tree with no output = empty commit (first-parent diff).
   const out = git(['diff-tree', '--no-commit-id', '--name-only', '-r', sha]);
@@ -109,9 +135,11 @@ function isEmptyCommit(sha) {
 
 // grill-t30 D-004: root-parameterized variants so the per-commit freshness
 // leg can assert inside fixture repos / arbitrary checkouts, never silently
-// against the ambient worktree.
+// against the ambient worktree. Honors the same _execOverride seam as git()
+// so injected executors see every child-process call on this path.
 function gitAt(root, args) {
-  return execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).trim();
+  if (_execOverride) return String(_execOverride(args, { cwd: root }));
+  return execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, env: NO_REPLACE_ENV }).trim();
 }
 function gitOkAt(root, args) {
   try { gitAt(root, args); return true; } catch (e) { return false; }
@@ -133,10 +161,10 @@ function scanDocTokens() {
   const files = Array.from(new Set(
     git(['ls-files']).split('\n').concat(git(['ls-tree', '-r', 'HEAD', '--name-only']).split('\n'))
   )).map(function (x) { return x.trim(); }).filter(Boolean)
-    .filter(function (f) { return f !== SELF && DOC_PATH_RE.test(f) && DOC_EXT_RE.test(f); }).sort();
+    .filter(function (f) { return !isScanExcluded(f) && DOC_PATH_RE.test(f) && DOC_EXT_RE.test(f); }).sort();
   const out = [];
   for (const f of files) {
-    const abs = path.join(ROOT, f.split('/').join(path.sep));
+    const abs = path.join(_root, f.split('/').join(path.sep));
     let text;
     try { text = fs.readFileSync(abs, 'utf8'); } catch (e) { continue; }
     const lines = text.split('\n');
@@ -162,19 +190,20 @@ function scanDocTokens() {
 function scanDocTokensAt(root, ref) {
   let out;
   try {
-    out = execFileSync('git', ['grep', '-n', '-E', '-e', '[0-9a-f]{7,40}', ref, '--', 'docs', '.scratch', 'README.md', 'AGENTS.md', 'CONTEXT.md'],
-      { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+    out = gitAt(root, ['-c', 'core.quotepath=false', 'grep', '-a', '-n', '-E', '-e', '[0-9a-f]{7,40}', ref, '--', 'docs', '.scratch', 'README*.md', 'AGENTS.md', 'CONTEXT.md']);
   } catch (e) {
-    if (e.status === 1) return []; // no matches at this ref
+    if (e.status === 1 || e.code === 1) return []; // no matches at this ref
     throw e;
   }
+  const prefix = String(ref) + ':';
   const rows = [];
   for (const line of out.split('\n')) {
     if (!line) continue;
-    const m = /^(.*?):(\d+):(.*)$/.exec(line.slice(String(ref).length + 1));
+    if (!line.startsWith(prefix)) throw new Error('git grep row lacks the ref prefix at ' + ref + ': ' + line.slice(0, 80));
+    const m = /^(.*?):(\d+):([\s\S]*)$/.exec(line.slice(prefix.length));
     if (!m) throw new Error('unparseable git grep row at ' + ref + ': ' + line.slice(0, 80));
     const f = m[1], li = Number(m[2]), text = m[3];
-    if (f === SELF || !DOC_PATH_RE.test(f) || !DOC_EXT_RE.test(f)) continue;
+    if (isScanExcluded(f) || !DOC_PATH_RE.test(f) || !DOC_EXT_RE.test(f)) continue;
     HEX_RE.lastIndex = 0;
     let hm;
     while ((hm = HEX_RE.exec(text))) {
@@ -186,15 +215,192 @@ function scanDocTokensAt(root, ref) {
   return rows;
 }
 
-function build(oldRefs, newRef) {
+// grill-t35 D-005: the BATCHED form of scanDocTokensAt. One `git grep` per
+// CHURN is the difference between a leg that runs in CI and a leg that times
+// out - the t30 per-commit form spawned one full-tree grep per claim commit,
+// which is why the public run reported UNVERIFIABLE rather than pass or fail.
+// git grep accepts many tree-ish arguments and prefixes every hit with the rev
+// it came from, so N commits cost ONE process and one pass over the object
+// store.
+//
+// Returns Map<sha, Array<{file,line,sha}>>. Identical row semantics to
+// scanDocTokensAt - same HEX_RE, same [a-f] predicate, same SELF/REGISTRY_INPUT
+// and doc-path exclusions - so a batched row and a single-ref row are the same
+// object and interchangeable downstream.
+//
+// Trees are chunked: a single argv can get long on a big line, and one huge
+// grep would trade a timeout for an E2BIG. CHUNK commits per process.
+function scanDocTokensAtMany(root, refs) {
+  const CHUNK = 8;
+  const out = new Map();
+  const list = refs.filter(Boolean);
+  for (const r of list) if (!out.has(r)) out.set(r, []);
+  for (let i = 0; i < list.length; i += CHUNK) {
+    const chunk = list.slice(i, i + CHUNK);
+    // Buffer sizing is load-bearing, not decoration. Each chunk greps K full
+    // trees and every hex citation line in each is emitted, so the output is
+    // roughly K * (citations-per-tree). At K=24 over this repo that overflowed
+    // the buffer (ENOBUFS) and killed the leg. CHUNK is sized so the worst
+    // case stays well inside the budget, and the caller's ceiling is derived
+    // from the chunk size rather than fixed by hope.
+    const r = spawnSync('git',
+      ['-c', 'core.quotepath=false', 'grep', '-a', '-n', '-E', '-e', '[0-9a-f]{7,40}']
+        .concat(chunk, ['--', 'docs', '.scratch', 'README*.md', 'AGENTS.md', 'CONTEXT.md']),
+      { cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024 * 1024 });
+    if (r.error) throw r.error;
+    if (r.status !== 0 && r.status !== 1) {
+      throw new Error('git grep failed at chunk ' + i + ' (status ' + r.status + '): ' + String(r.stderr || '').slice(0, 200));
+    }
+    if (r.status === 1) continue; // no matches in this chunk
+    for (const line of String(r.stdout || '').split('\n')) {
+      if (!line) continue;
+      const colon = line.indexOf(':');
+      if (colon < 0) throw new Error('git grep row lacks a rev prefix: ' + line.slice(0, 80));
+      const rev = line.slice(0, colon);
+      if (!out.has(rev)) continue;
+      const rest = line.slice(colon + 1);
+      const m = /^(.*?):(\d+):([\s\S]*)$/.exec(rest);
+      if (!m) throw new Error('unparseable git grep row at ' + rev + ': ' + line.slice(0, 80));
+      const f = m[1], li = Number(m[2]), body = m[3];
+      if (isScanExcluded(f) || !DOC_PATH_RE.test(f) || !DOC_EXT_RE.test(f)) continue;
+      HEX_RE.lastIndex = 0;
+      let hm;
+      while ((hm = HEX_RE.exec(body))) {
+        const token = hm[2];
+        if (!/[a-f]/.test(token)) continue;
+        out.get(rev).push({ file: f, line: li, sha: token });
+      }
+    }
+  }
+  return out;
+}
+
+// ---- ADR-0089 D-006 injectable seams -------------------------------------
+// opts.exec(args, opts) -> stdout string, throws on non-zero: the ONLY mock
+// surface; tests delegate everything they do not fail to real git.
+// opts.now -> ISO timestamp string: ladder/exists_at clock injection.
+// opts.root: fixture-repo root (git cwd + doc-scan + registry load all move).
+function withSeams(opts, body) {
+  const o = opts || {};
+  const prevExec = _execOverride, prevRoot = _root;
+  if (o.exec) _execOverride = o.exec;
+  if (o.root) _root = o.root;
+  try { return body(); } finally { _execOverride = prevExec; _root = prevRoot; }
+}
+
+// Batch object facts for every unique cited token in one cat-file process
+// (declared fact 3: existence). Returns Map token -> {status:'ok',sha,type,
+// size} | {status:'absent'} | {status:'ambiguous'}. Ambiguous input lines are
+// re-resolved individually so 'ambiguous' is certain, never guessed.
+function batchObjectFacts(tokens) {
+  const facts = new Map();
+  let out;
+  try {
+    out = git(['cat-file', '--batch-check=%(objectname) %(objecttype) %(objectsize)'], { input: tokens.join('\n') + '\n' });
+  } catch (e) {
+    out = String(e.stdout || '');
+  }
+  const lines = String(out).split('\n');
+  const needsSolo = [];
+  for (let i = 0; i < tokens.length; i++) {
+    const line = (lines[i] || '').trim();
+    const m = /^([0-9a-f]{40}) (\S+) (\d+)$/.exec(line);
+    if (m) facts.set(tokens[i], { status: 'ok', sha: m[1], type: m[2], size: parseInt(m[3], 10) });
+    else if (/ missing$/.test(line)) facts.set(tokens[i], { status: 'absent' });
+    else needsSolo.push(tokens[i]);
+  }
+  for (const t of needsSolo) {
+    try {
+      const sha = git(['rev-parse', '--verify', '--quiet', t + '^{object}']).trim();
+      const ty = git(['cat-file', '-t', sha]).trim();
+      const sz = parseInt(git(['cat-file', '-s', sha]).trim(), 10);
+      facts.set(t, { status: 'ok', sha: sha, type: ty, size: sz });
+    } catch (e) {
+      if (/ambiguous/i.test(String(e.stderr || e.message))) facts.set(t, { status: 'ambiguous' });
+      else facts.set(t, { status: 'absent' });
+    }
+  }
+  return facts;
+}
+
+// committer/tagger timestamp for commit/tag objects (one spawn each - the
+// intrinsic mtime; blob/tree objects have none and get loose-file mtime or
+// null). Snapshot fields ride along for the registry-facing record.
+function commitMeta(sha) {
+  const text = git(['cat-file', 'commit', sha]);
+  const head = text.split('\n\n')[0].split('\n');
+  const f = function (k) { return head.filter(function (l) { return l.indexOf(k + ' ') === 0; }).map(function (l) { return l.slice(k.length + 1); }); };
+  const cts = />\s*(\d+)(\s|$)/.exec(f('committer')[0] || '');
+  return {
+    subject: text.split('\n\n').slice(1).join('\n\n').split('\n')[0] || null,
+    committer_ts: cts ? parseInt(cts[1], 10) : null,
+  };
+}
+function objectMtime(sha, type) {
+  if (type === 'commit') return commitMeta(sha).committer_ts;
+  if (type === 'tag') {
+    const text = git(['cat-file', 'tag', sha]);
+    const m = /tagger\s.*>\s+(\d+)/.exec(text);
+    return m ? parseInt(m[1], 10) : null;
+  }
+  const loose = path.join(_root, '.git', 'objects', sha.slice(0, 2), sha.slice(2));
+  try { return Math.floor(fs.statSync(loose).mtimeMs / 1000); } catch (e) { return null; }
+}
+
+// ADR-0093 D-6 (grill-t36 D-003): the ONE generation-side citation read.
+// Tree-internal at `ref` (the map's assertion object), re-sorted by (file, line)
+// so the emission order stays the sorted file order the worktree scan had;
+// within a line, in-text order is kept (the HEX_RE loop runs left to right).
+// buildInner and the coverage re-scan in verifyPublishedOnly both call THIS, so
+// the recorded set and the set coverage judges can never drift into two reads.
+function generationOccurrences(root, ref, opts) {
+  const o = opts || {};
+  const scanned = scanDocTokensAt(root, ref);
+  // ADR-0100 D-C (grill-t39 D-002): registered line-level drift declarations are
+  // a declared fact consumed HERE, on the input side - never as an exemption
+  // branch inside a judging leg. Unioning them at the single shared read keeps
+  // the row builder, the coverage judge and `--check` on one occurrence set;
+  // two reads is exactly how a recorded row and a judged row drift apart
+  // (the grill-t35 D-005 registry-source lesson, applied to the new surface).
+  const loaded = dd.loadDeclared({
+    root: root,
+    ref: ref,
+    commitBound: !!o.commitBound,
+    fromWorktree: !!o.registryFromWorktree,
+  });
+  const declared = dd.declaredOccurrences(loaded.registry);
+  // The scan rows are carried VERBATIM - a line citing the same object twice is
+  // two occurrences, and narrowing that here would silently rewrite the
+  // recorded occurrence semantics instead of extending the input set (measured
+  // at landing: deduping the scan dropped 177 rows, which is a semantic change
+  // this clause has no mandate to make). Only the declared side is deduplicated
+  // against what the tree already provides.
+  const scannedKeys = {};
+  for (const occ of scanned) scannedKeys[occ.file + ':' + occ.line + ':' + occ.sha] = 1;
+  const out = scanned.slice();
+  for (const occ of declared) {
+    const k = occ.file + ':' + occ.line + ':' + occ.sha;
+    if (scannedKeys[k]) continue;
+    scannedKeys[k] = 1;
+    out.push({ file: occ.file, line: occ.line, sha: occ.sha });
+  }
+  return out.sort(function (a, b) {
+    if (a.file !== b.file) return a.file < b.file ? -1 : 1;
+    return a.line - b.line;
+  });
+}
+
+function build(oldRefs, newRef, opts) {
+  return withSeams(opts, function () { return buildInner(oldRefs, newRef, opts || {}); });
+}
+function buildInner(oldRefs, newRef, o) {
+  const now = typeof o.now === 'function' ? o.now() : (o.now || new Date().toISOString());
   const oldLog = [];
   const seenOld = {};
   for (const r of oldRefs) {
     for (const m of logMeta(r)) { if (!seenOld[m.sha]) { seenOld[m.sha] = 1; oldLog.push(m); } }
   }
   const newLog = logMeta(newRef);
-  const newSet = {};
-  newLog.forEach(function (m) { newSet[m.sha] = 1; });
   const oldSet = {};
   oldLog.forEach(function (m) { oldSet[m.sha] = 1; });
 
@@ -238,59 +444,127 @@ function build(oldRefs, newRef) {
   oldOnly.forEach(function (m, i) { oldOrder[m.sha] = i; });
   commits.sort(function (a, b) { return oldOrder[a.old] - oldOrder[b.old]; });
 
-  // object sets for citation resolution
-  const pubObjects = new Set(revListObjects(newRef));
-  const oldObjects = new Set();
-  for (const r of oldRefs) for (const o of revListObjects(r)) oldObjects.add(o);
-  const allObjects = new Set(revListObjects('--all'));
-  const commitPool = Array.from(new Set(newLog.concat(oldLog).map(function (m) { return m.sha; }))).sort();
+  // ---- ADR-0089 declared-facts classification ----------------------------
+  // fact 1: the pair/removed tables (commits/removed, built above).
   const oldPairMap = {};
   commits.forEach(function (c) { oldPairMap[c.old] = c.new; });
   const removedSet = {};
   removed.forEach(function (m) { removedSet[m.sha] = 1; });
-  const objSorted = Array.from(new Set(Array.from(pubObjects).concat(Array.from(oldObjects), Array.from(allObjects)))).sort();
+  // fact 2: the pinned published_tip ancestry set.
+  const publishedObjects = new Set(revListObjects(newRef));
+  // fact 4: orphan-cites registry membership (load fails = fail-closed).
+  const registry = oc.loadRegistry(_root).reg;
+  const regErrors = oc.validateRegistry(registry);
+  if (regErrors.length) throw new Error('orphan-cites registry fails self-consistency:\n' + regErrors.join('\n'));
+  // fact 3: object existence, resolved in ONE batched cat-file process.
+  //
+  // ADR-0093 D-6 (grill-t36 D-003): the generation path is BOUND TO THE
+  // ASSERTION OBJECT. The citation set is read from the tree of `newRef` — the
+  // ref this map claims to describe — not from the workspace union
+  // (`ls-files` + worktree reads) the merging-tree `scanDocTokens()` used.
+  // That union is an observer choosing what it looks at: it enumerated files on
+  // unlanded lanes and baked their citations into a map that claimed to
+  // describe the public tip (the t35 landing's phantom rows, caught by leg 209).
+  // scanDocTokensAt() is the same token predicate (HEX_RE + the [a-f] test,
+  // SELF / REGISTRY_INPUT / doc-path / doc-ext filters identical) evaluated
+  // against a tree instead of the worktree — same rows, named source.
+  const occurrences = generationOccurrences(_root, newRef);
+  const uniqTokens = Array.from(new Set(occurrences.map(function (x) { return x.sha; })));
+  const facts = batchObjectFacts(uniqTokens);
 
-  // doc citation classification over the shared token scan (see
-  // scanDocTokens - the raw occurrence set is also the --published-only
-  // coverage oracle).
+  // qualifier input only: reachable_via over display refs (per-ref object
+  // sets cached on this run - written and displayed, never judged).
+  const displayRefs = git(['for-each-ref', '--format=%(refname)']).split('\n')
+    .map(function (s) { return s.trim(); }).filter(Boolean)
+    .filter(function (r) { return r.indexOf('gitbutler') === -1 && r.indexOf('refs/replace/') !== 0 });
+  const refObjCache = new Map();
+  const objectsOf = function (ref) {
+    if (!refObjCache.has(ref)) refObjCache.set(ref, new Set(revListObjects(ref)));
+    return refObjCache.get(ref);
+  };
+  const reachableVia = function (sha) {
+    const via = [];
+    for (const r of displayRefs) {
+      try { if (objectsOf(r).has(sha)) via.push(r); } catch (e) { /* a ref failing enumeration is not reachability */ }
+    }
+    return via;
+  };
+
+  const nowTs = Date.parse(now) / 1000;
+  const mtimeCache = new Map();
   const docRefs = [];
   const problems = [];
-  for (const occ of scanDocTokens()) {
+  const warnings = [];
+  for (const occ of occurrences) {
     const f = occ.file, li = occ.line, token = occ.sha;
-    const hit = prefixLookup(commitPool, token);
+    const fact = facts.get(token);
+    if (fact && fact.status === 'ambiguous') { problems.push(f + ':' + li + ' ambiguous sha ' + token + ' (fail-closed)'); continue; }
+    let ent = null;
+    try { ent = oc.entryForToken(registry, token); }
+    catch (e) { problems.push(f + ':' + li + ' ' + e.message); continue; }
+    const orphanedAdj = ent !== null && ent.disposition === 'orphaned';
+    const sha40 = fact && fact.status === 'ok' ? fact.sha : null;
     let cls, resolvedTo = null, label;
-    if (hit === 'ambiguous') { problems.push(f + ':' + li + ' ambiguous sha ' + token); continue; }
-    if (hit && newSet[hit]) { cls = 'published-unchanged'; }
-    else if (hit && oldPairMap[hit]) { cls = 'rewritten'; resolvedTo = oldPairMap[hit]; }
-    else if (hit && removedSet[hit]) { cls = 'local-only'; label = 'old-side commit (removed by purge)'; }
-    else if (hit) { cls = 'local-only'; label = 'local commit'; }
-    else {
-      const ohit = prefixLookup(objSorted, token);
-      if (ohit === 'ambiguous') { problems.push(f + ':' + li + ' ambiguous object ' + token); continue; }
-      if (ohit && pubObjects.has(ohit)) cls = 'published-unchanged';
-      else if (ohit && oldObjects.has(ohit)) { cls = 'local-only'; label = 'pre-purge object'; }
-      else if (ohit) { cls = 'local-only'; label = 'local object'; }
-      else { cls = 'local-only'; label = 'unresolved hex literal'; }
+    if (sha40 && oldPairMap[sha40]) { cls = 'rewritten'; resolvedTo = oldPairMap[sha40]; }
+    else if (sha40 && publishedObjects.has(sha40)) { cls = 'published-unchanged'; }
+    else if (sha40 && removedSet[sha40]) { cls = 'local-only'; label = 'old-side commit (removed by purge)'; }
+    else if (orphanedAdj) { cls = 'orphaned-cite'; }
+    else if (sha40) { cls = 'local-only'; label = fact.type === 'commit' ? 'local commit' : 'local object'; }
+    else { cls = 'unresolved'; }
+    const via = sha40 ? reachableVia(sha40) : [];
+    let mt = null;
+    if (sha40) { if (!mtimeCache.has(sha40)) mtimeCache.set(sha40, objectMtime(sha40, fact.type)); mt = mtimeCache.get(sha40); }
+    // stage-2 (ADR-0089 D-E + D-007): exists + unreachable + unregistered +
+    // over-age -> map warning channel ("register while alive"); the leg owns
+    // stage 3. An unageable object (no object mtime - packed blob/tree) is
+    // past stage 1 by construction: it warns at first observation, and the
+    // leg's stage-3 clock for it runs on qualifiers.exists_at.
+    if (sha40 && cls === 'local-only' && !ent && via.length === 0) {
+      const unageable = mt === null;
+      const ageDays = unageable ? null : (nowTs - mt) / 86400;
+      if (unageable || ageDays > oc.ORPHAN_AGE_DAYS) {
+        warnings.push({ sha: sha40, file: f, line: li, age_days: unageable ? null : Math.floor(ageDays), kind: 'orphan-window-open', unageable: unageable });
+      }
     }
-    docRefs.push({ file: f, line: li, sha: token, 'class': cls, resolved_to: resolvedTo, label: label });
+    docRefs.push({
+      file: f, line: li, sha: token, 'class': cls, resolved_to: resolvedTo,
+      label: label,
+      qualifiers: {
+        exists_at: now,
+        object_mtime: mt,
+        object_type: sha40 ? fact.type : null,
+        object_size: sha40 ? fact.size : null,
+        reachable_via: via,
+      },
+    });
   }
   if (problems.length) throw new Error('unresolvable citations:\n' + problems.join('\n'));
 
   const newest = commits.length ? commits[0] : null;
-  const oldTip = newest ? newest.old : git(['rev-parse', oldRefs[0]]).trim();
-  const base = git(['merge-base', oldTip, newRef]).trim();
+  // No old side at all (clone-side / fixtures): there is no fork point to
+  // pin - boundary fields stay null and `same` is empty by construction.
+  const oldTip = newest ? newest.old : (oldRefs.length ? git(['rev-parse', oldRefs[0]]).trim() : null);
+  const base = oldTip ? git(['merge-base', oldTip, newRef]).trim() : null;
 
   // Spec: commits present on both sides with the same SHA are emitted as
   // `same` rows (explicit is auditable; ~all commits at/below the shared
   // base). Removed pairs carry an explicit `new: null` rather than a
   // separate ad-hoc shape.
-  const sameRaw = git(['log', '--format=%H%x00%s', base]).trim();
+  const sameRaw = base ? git(['log', '--format=%H%x00%s', base]).trim() : '';
   const same = sameRaw ? sameRaw.split('\n').map(function (l) { const z = l.indexOf('\u0000'); return { sha: l.slice(0, z), subject: l.slice(z + 1) }; }) : [];
 
   return {
-    schema_version: 1,
-    _doc: 'ADR-0074 D-C: append-only, tool-generated single translation point. Regenerate: node scripts/build-rewrite-map.js; verify: --check.',
+    schema_version: 2,
+    _doc: 'ADR-0074 D-C + ADR-0089: append-only, tool-generated single translation point. Classes derive from declared facts (pair/removed tables, pinned published_tip ancestry, cat-file existence, orphan-cites registry); ref topology lives only in qualifiers.reachable_via. Regenerate: node scripts/build-rewrite-map.js; verify: --check.',
     generated_by: 'scripts/build-rewrite-map.js',
+    // ADR-0093 D-6 (grill-t36 D-003) generation provenance, buildinfo shape:
+    // WHICH tree this map was generated from and HOW. `tree-ish` is the ref
+    // named by sides.new_refs[0] (the assertion object); `mode` is
+    // 'tree-internal' because the citation set is read from that tree, never
+    // from the workspace union. Machine-asserted by --published-only (see
+    // verifyPublishedOnly): a map without this field is a map that will not
+    // say which tree it describes, which is the phantom-row precondition.
+    generated_from: { 'tree-ish': newRef, mode: 'tree-internal' },
     generated_at: new Date().toISOString(),
     published_tip: git(['rev-parse', newRef]).trim(),
     boundary: { shared_base: base, old_tip: oldTip, new_counterpart: newest ? newest.new : null },
@@ -304,18 +578,38 @@ function build(oldRefs, newRef) {
       doc_refs_by_class: {
         rewritten: docRefs.filter(function (d) { return d['class'] === 'rewritten'; }).length,
         'local-only': docRefs.filter(function (d) { return d['class'] === 'local-only'; }).length,
-        'published-unchanged': docRefs.filter(function (d) { return d['class'] === 'published-unchanged'; }).length
+        'published-unchanged': docRefs.filter(function (d) { return d['class'] === 'published-unchanged'; }).length,
+        'orphaned-cite': docRefs.filter(function (d) { return d['class'] === 'orphaned-cite'; }).length,
+        'unresolved': docRefs.filter(function (d) { return d['class'] === 'unresolved'; }).length
       }
     },
+    warnings: warnings,
     commits: commits,
     removed: removed.map(function (m) { return { old: m.sha, new: null, subject: m.subject }; }),
     published_only: publishedOnly,
     same: same,
-    doc_refs: docRefs.map(function (d) { const r = { file: d.file, line: d.line, sha: d.sha, 'class': d['class'], resolved_to: d.resolved_to }; if (d.label) r.label = d.label; return r; })
+    doc_refs: docRefs.map(function (d) {
+      const r = { file: d.file, line: d.line, sha: d.sha, 'class': d['class'], resolved_to: d.resolved_to };
+      if (d.label) r.label = d.label;
+      r.qualifiers = d.qualifiers;
+      return r;
+    })
   };
 }
 
-function verify(map) {
+// doc_refs equality domain (ADR-0089 D-F): qualifiers are exempt - strip them.
+function refFacts(rows) {
+  return (rows || []).map(function (d) {
+    const r = { file: d.file, line: d.line, sha: d.sha, 'class': d['class'], resolved_to: d.resolved_to };
+    if (d.label) r.label = d.label;
+    return r;
+  });
+}
+
+function verify(map, opts) {
+  return withSeams(opts, function () { return verifyInner(map, opts); });
+}
+function verifyInner(map, opts) {
   const errs = [];
   const newRef = map.sides.new_refs[0];
   for (const c of map.commits) {
@@ -336,8 +630,8 @@ function verify(map) {
     const d = git(['diff', '--name-only', map.boundary.old_tip, map.boundary.new_counterpart]);
     if (d.trim() !== '') errs.push('boundary trees differ: ' + d.trim().split('\n').join(', '));
   }
-  const re = build(map.sides.old_refs, newRef);
-  if (JSON.stringify(map.doc_refs) !== JSON.stringify(re.doc_refs)) errs.push('doc_refs re-derivation differs');
+  const re = build(map.sides.old_refs, newRef, opts);
+  if (JSON.stringify(refFacts(map.doc_refs)) !== JSON.stringify(refFacts(re.doc_refs))) errs.push('doc_refs re-derivation differs');
   if (JSON.stringify(map.commits) !== JSON.stringify(re.commits)) errs.push('commits re-derivation differs');
   return errs;
 }
@@ -354,12 +648,13 @@ function verify(map) {
 function verifyPublishedOnly(map, newRef, opts) {
   const errs = [];
   const HEX40 = /^[0-9a-f]{40}$/;
-  const CLASSES = ['rewritten', 'local-only', 'published-unchanged'];
+  // ADR-0089 D-B: five-value class enum (v2 maps); v1 maps carry the 3-subset.
+  const CLASSES = ['rewritten', 'local-only', 'published-unchanged', 'orphaned-cite', 'unresolved'];
   const vRoot = (opts && opts.root) || ROOT;
   const anc = function (sha, ref) { return gitOkAt(vRoot, ['merge-base', '--is-ancestor', sha, ref]); };
   const isEmpty = function (sha) { return isEmptyCommitAt(vRoot, sha); };
 
-  if (map.schema_version !== 1) errs.push('schema_version ' + map.schema_version + ' != 1');
+  if (map.schema_version !== 1 && map.schema_version !== 2) errs.push('schema_version ' + map.schema_version + ' outside {1,2}');
   if (map.generated_by !== 'scripts/build-rewrite-map.js') errs.push('generated_by drift: ' + map.generated_by);
   const b = map.boundary || {};
   for (const k of ['shared_base', 'old_tip', 'new_counterpart']) {
@@ -369,6 +664,29 @@ function verifyPublishedOnly(map, newRef, opts) {
   if (HEX40.test(b.new_counterpart || '') && !anc(b.new_counterpart, newRef)) errs.push('boundary.new_counterpart not on ' + newRef);
   if (!HEX40.test(map.published_tip || '')) errs.push('published_tip is not a full sha');
   else if (!anc(map.published_tip, newRef)) errs.push('published_tip not on ' + newRef);
+  // ADR-0093 D-6 (grill-t36 D-003): generation provenance, machine-asserted.
+  // A map that will not name the tree it was generated from is the phantom-row
+  // precondition, so presence + mode are required on the PRIMARY path (the leg
+  // this function serves), and `tree-ish` must name exactly the ref under test.
+  //
+  // Scope of the presence requirement, declared because it is not a weakening:
+  // under `commitBound` this function judges maps INSIDE historical commits —
+  // commits written before D-6 existed, which cannot be rewritten (forward-only).
+  // For those, the field is validated WHEN PRESENT (mode + tree-ish shape) and
+  // its absence is not an error; the registration-anchor exemption pattern this
+  // repo already uses for per-commit authorities. Blocking, non-commit-bound
+  // evaluation always requires it.
+  const gf = map.generated_from;
+  const commitBound = !!(opts && opts.commitBound);
+  if (!gf || typeof gf !== 'object') {
+    if (!commitBound) errs.push('generated_from missing - the map must name the tree it was generated from (ADR-0093 D-6)');
+  } else {
+    if (gf.mode !== 'tree-internal') errs.push('generated_from.mode = ' + JSON.stringify(gf.mode) + ' - expected tree-internal (ADR-0093 D-6)');
+    if (typeof gf['tree-ish'] !== 'string' || !gf['tree-ish']) errs.push('generated_from.tree-ish must name the generation tree');
+    else if (!commitBound && gf['tree-ish'] !== newRef) {
+      errs.push('generated_from.tree-ish = ' + gf['tree-ish'] + ' but this verification judges ' + newRef + ' (ADR-0093 D-6)');
+    }
+  }
   if (opts && opts.commitBound) {
     // Per-commit port (grill-t30 D-004): newRef is the commit under test, not
     // a live refname - a map committed inside a historical tree names a REF
@@ -407,12 +725,71 @@ function verifyPublishedOnly(map, newRef, opts) {
   // citation coverage: re-scan the tracked doc surface; the map must name
   // every hex citation. Classification is the old-side part and is
   // deliberately not re-derived here - coverage alone is clone-verifiable.
-  const live = ((opts && opts.occurrences) || scanDocTokens()).map(function (o) { return o.file + ':' + o.line + ':' + o.sha; }).sort();
+  //
+  // ADR-0093 D-6: when no caller supplies the citation set, the re-scan reads
+  // the TREE OF newRef - the same tree generation read - so "coverage" can no
+  // longer mean "coverage of whatever files happen to be checked out here"
+  // (the workspace-union read that let a map describe a tree it never read).
+  // ADR-0100 D-C (grill-t39): registered line-level drift declarations are
+  // declared occurrences, so they join the coverage set the map is judged
+  // against - read from the SAME revision as the map they adjudicate (the
+  // grill-t35 D-005 registry-source rule: map and registry from one tree, or
+  // every declared row reads as a phantom).
+  const driftRead = { commitBound: commitBound, registryFromWorktree: !!(opts && opts.registryFromWorktree) };
+  const driftDeclared = dd.declaredOccurrences(dd.loadDeclared(Object.assign({ root: vRoot, ref: newRef }, driftRead)).registry);
+  const liveBase = (opts && opts.occurrences) || generationOccurrences(vRoot, newRef, driftRead);
+  // Duplicate occurrences are preserved (a line citing the same object twice is
+  // two rows in the recorded set), so the comparison stays byte-equal for trees
+  // that have nothing to do with drift. Declared keys join only when the caller
+  // handed over a raw tree scan - the generation path already unioned them.
+  const liveArr = liveBase.map(function (o) { return o.file + ':' + o.line + ':' + o.sha; });
+  if (opts && opts.occurrences) {
+    const haveDeclared = {};
+    for (const k of liveArr) haveDeclared[k] = 1;
+    for (const o of driftDeclared) {
+      const k = o.file + ':' + o.line + ':' + o.sha;
+      if (haveDeclared[k]) continue;
+      haveDeclared[k] = 1;
+      liveArr.push(k);
+    }
+  }
+  const live = liveArr.sort();
   const recorded = docRefs.map(function (d) { return d.file + ':' + d.line + ':' + d.sha; }).sort();
   if (JSON.stringify(live) !== JSON.stringify(recorded)) {
     const have = {}; recorded.forEach(function (k) { have[k] = 1; });
     const missing = live.filter(function (k) { return !have[k]; });
-    errs.push('doc citation coverage differs (first missing: ' + missing.slice(0, 5).join(', ') + ')');
+    const liveSet = {}; live.forEach(function (k) { liveSet[k] = 1; });
+    // Commit-bound mode (grill-t30 D-004): the map is generated against the
+    // whole GitButler workspace union, so a lane commit's tree legitimately
+    // omits files whose cites are recorded in the same committed map
+    // (parallel-lane artifacts). Extras are violations only when the cited
+    // file IS present in the commit's tree - a phantom row on a live file is
+    // drift; a row for an absent file is non-applicable at this commit.
+    const treeFiles = (opts && opts.treeFiles) || null;
+    const phantom = treeFiles
+      ? docRefs.filter(function (d) { return !liveSet[d.file + ':' + d.line + ':' + d.sha] && treeFiles.has(d.file); }).map(function (d) { return d.file + ':' + d.line + ':' + d.sha; })
+      : recorded.filter(function (k) { return !liveSet[k]; });
+    if (missing.length) errs.push('doc citation coverage differs (first missing: ' + missing.slice(0, 5).join(', ') + ')');
+    if (phantom.length) errs.push('map records cites absent from the commit tree on live files (first: ' + phantom.slice(0, 5).join(', ') + ')');
+  }
+  // ADR-0100 D-C clone-face consistency, the ADR-0089 D-H pattern applied to the
+  // new declared fact: a row admitted only because a line-level drift
+  // declaration registers it MUST resolve to an entry in the registry the map
+  // was built from. Declared rows with no registry behind them are fail-closed
+  // red - the input side never becomes a place a phantom can park.
+  const treeOnlyKeys = {};
+  for (const o of liveBase) treeOnlyKeys[o.file + ':' + o.line + ':' + o.sha] = 1;
+  const driftRows = docRefs.filter(function (d) { return !treeOnlyKeys[d.file + ':' + d.line + ':' + d.sha]; });
+  if (driftRows.length) {
+    if (!driftDeclared.length) {
+      errs.push('doc_refs carry ' + driftRows.length + ' row(s) absent from the tree scan with no registered line-level drift declaration to resolve them (first: ' + driftRows.slice(0, 3).map(function (d) { return d.file + ':' + d.line + ':' + d.sha; }).join(', ') + ') - ' + dd.REGISTRY_REL + ' absent, unparseable, or read from a revision that does not carry the registration (ADR-0100 D-C, fail-closed)');
+    } else {
+      const declaredKeys = {};
+      for (const o of driftDeclared) declaredKeys[o.file + ':' + o.line + ':' + o.sha] = 1;
+      for (const d of driftRows) {
+        if (!declaredKeys[d.file + ':' + d.line + ':' + d.sha]) errs.push('doc_refs row ' + d.file + ':' + d.line + ':' + d.sha + ' is neither in the tree nor a registered line-level drift declaration (phantom row, ADR-0100 D-C)');
+      }
+    }
   }
   const counts = map.counts || {};
   const expect = {
@@ -426,11 +803,123 @@ function verifyPublishedOnly(map, newRef, opts) {
   const byClass = counts.doc_refs_by_class || {};
   for (const c of CLASSES) {
     const n = docRefs.filter(function (d) { return d['class'] === c; }).length;
-    if (byClass[c] !== n) errs.push('counts.doc_refs_by_class.' + c + ' = ' + byClass[c] + ', recomputes to ' + n);
+    if (n > 0 && byClass[c] !== n) errs.push('counts.doc_refs_by_class.' + c + ' = ' + byClass[c] + ', recomputes to ' + n);
+  }
+
+  // ---- ADR-0089 D-H: clone-computable registry consistency + fail-closed --
+  // unresolved rows are hard red (absent AND unregistered must be disclosed,
+  // never carried silently). orphaned-cite rows must resolve to a committed
+  // registry entry adjudicating 'orphaned'. Both derive from tracked files.
+  const unresolved = docRefs.filter(function (d) { return d['class'] === 'unresolved'; });
+  if (unresolved.length) {
+    errs.push(unresolved.length + ' unresolved doc citation(s) - absent from the object DB and unregistered; disclose via orphan-cites.js (first: ' + unresolved.slice(0, 3).map(function (d) { return d.file + ':' + d.line + ':' + d.sha; }).join(', ') + ')');
+  }
+  const orphanRows = docRefs.filter(function (d) { return d['class'] === 'orphaned-cite'; });
+  if (orphanRows.length) {
+    // Registry source is tree-internal when commit-bound (the leg evaluates
+    // historical commits), else the worktree file.
+    //
+    // opts.registryFromWorktree (grill-t35 D-005): a caller judging a
+    // WORKING-TREE map with commitBound ancestry must read the WORKING-TREE
+    // registry too. Without this seam the two halves disagree - the map
+    // carries orphaned-cite rows admitted by a backfill that is not committed
+    // yet, while the registry read goes to the older committed revision, and
+    // every one of those rows is reported as 'has no registry entry'. The
+    // registry must come from the SAME tree as the map it adjudicates.
+    let regText = null;
+    if (opts && opts.commitBound && !opts.registryFromWorktree) {
+      try { regText = gitAt(vRoot, ['show', newRef + ':docs/governance/orphan-cites.json']); } catch (e) { regText = null; }
+    } else {
+      const rp = path.join(vRoot, 'docs', 'governance', 'orphan-cites.json');
+      if (fs.existsSync(rp)) { try { regText = fs.readFileSync(rp, 'utf8'); } catch (e) { regText = null; } }
+    }
+    if (regText === null) {
+      errs.push('doc_refs carry orphaned-cite rows but docs/governance/orphan-cites.json is absent at this revision');
+    } else {
+      let reg = null;
+      try { reg = JSON.parse(regText); } catch (e) { errs.push('orphan-cites.json unparseable: ' + e.message); }
+      if (reg) {
+        for (const d of orphanRows) {
+          let ent = null;
+          try { ent = oc.entryForToken(reg, d.sha); } catch (e) { errs.push('orphaned-cite ' + d.sha + ' ambiguous in registry: ' + e.message); continue; }
+          if (!ent) errs.push('orphaned-cite ' + d.sha + ' has no registry entry');
+          else if (ent.disposition !== 'orphaned') errs.push('orphaned-cite ' + d.sha + ' resolved by a ' + ent.disposition + ' entry');
+        }
+      }
+    }
+  }
+  // qualifier weak-consistency: reachable_via non-empty contradicts a class
+  // asserting non-reachability (orphaned-cite/unresolved) - flag, never equal.
+  for (const d of docRefs) {
+    const q = d.qualifiers;
+    if (!q) continue;
+    if ((d['class'] === 'orphaned-cite' || d['class'] === 'unresolved') && Array.isArray(q.reachable_via) && q.reachable_via.length) {
+      errs.push('qualifier inconsistency: ' + d.sha + ' classified ' + d['class'] + ' but reachable_via = [' + q.reachable_via.join(', ') + '] (register a revived entry if resurrected)');
+    }
+    if (q.object_type !== null && q.object_type !== undefined && ['commit', 'tag', 'tree', 'blob'].indexOf(q.object_type) === -1) {
+      errs.push('qualifier inconsistency: ' + d.sha + ' object_type outside git enum: ' + q.object_type);
+    }
   }
   return errs;
 }
-function stableCopy(m) { const c = JSON.parse(JSON.stringify(m)); delete c.generated_at; return c; }
+// ADR-0089 D-F: --check equality domain = declared facts + counts + classes.
+// Exempt (still written, weak-consistency-checked): generated_at, warnings,
+// every row's qualifiers object.
+function stableCopy(m) {
+  const c = JSON.parse(JSON.stringify(m));
+  delete c.generated_at;
+  delete c.warnings;
+  for (const d of c.doc_refs || []) delete d.qualifiers;
+  return c;
+}
+
+// Weak-consistency check over a generated map's qualifiers (spec 6.1):
+// contradictions between class and reachable_via/type are errors, and any
+// 'unresolved' row is hard red (absent AND unregistered - ADR-0089 D-E stage 4).
+// D-008 (adjudicated): the check is bidirectional - --check runs it on the
+// COMMITTED map too. Exempt-from-equality is never exempt-from-consistency;
+// a committed qualifier contradiction is otherwise tamper-invisible.
+function consistencyErrors(map) {
+  const errs = [];
+  for (const d of map.doc_refs || []) {
+    const q = d.qualifiers;
+    if (!q) continue;
+    if ((d['class'] === 'orphaned-cite' || d['class'] === 'unresolved') && Array.isArray(q.reachable_via) && q.reachable_via.length) {
+      errs.push(d.file + ':' + d.line + ' ' + d.sha + ' classified ' + d['class'] + ' but reachable_via = [' + q.reachable_via.join(', ') + ']');
+    }
+    if (q.object_type !== null && q.object_type !== undefined && oc.OBJECT_TYPES.indexOf(q.object_type) === -1) {
+      errs.push(d.file + ':' + d.line + ' ' + d.sha + ' object_type outside git enum: ' + q.object_type);
+    }
+  }
+  const unresolved = (map.doc_refs || []).filter(function (d) { return d['class'] === 'unresolved'; });
+  if (unresolved.length) {
+    errs.push(unresolved.length + ' unresolved citation(s) (absent AND unregistered) - disclose via node scripts/orphan-cites.js backfill; first: ' + unresolved.slice(0, 5).map(function (d) { return d.file + ':' + d.line + ':' + d.sha; }).join(', '));
+  }
+  return errs;
+}
+
+// D-007: exists_at is a FIRST-OBSERVATION stamp (the leg's unageable clock
+// basis) - carry it forward across regens for rows that persist at the same
+// file:line:sha. It is a qualifier, so the carry-forward never affects
+// --check equality; it only stabilizes the committed artifact's clock.
+function stabilizeExistsAt(map, prior) {
+  const prev = new Map();
+  for (const d of (prior && prior.doc_refs) || []) {
+    prev.set(d.file + ':' + d.line + ':' + d.sha, d.qualifiers && d.qualifiers.exists_at);
+  }
+  for (const d of map.doc_refs || []) {
+    const old = prev.get(d.file + ':' + d.line + ':' + d.sha);
+    if (old && d.qualifiers) d.qualifiers.exists_at = old;
+  }
+}
+
+// D-008: the --check consistency pair - weak self-consistency on BOTH the
+// committed artifact and the regenerated one. Equality stays on stableCopy
+// (qualifiers exempt); consistency never is.
+function checkMapConsistency(committed, regenerated) {
+  return consistencyErrors(regenerated).concat(
+    consistencyErrors(committed).map(function (e) { return 'committed map: ' + e; }));
+}
 
 function main() {
   const args = process.argv.slice(2);
@@ -468,9 +957,10 @@ function main() {
   // discovery on the prior map's new-side identities when one is committed
   // (the first generation falls back to the tip-only test).
   let publishedSide = null;
+  let prior = null;
   const outAbs = path.join(ROOT, OUT_REL);
   try {
-    const prior = JSON.parse(fs.readFileSync(outAbs, 'utf8'));
+    prior = JSON.parse(fs.readFileSync(outAbs, 'utf8'));
     const rew = (prior.commits || []).map(function (c) { return c.new; }).filter(Boolean);
     if (prior.published_tip) rew.push(prior.published_tip);
     if (rew.length) publishedSide = rew;
@@ -491,6 +981,10 @@ function main() {
     exitUnverifiable('rewrite-map', 'old-side-refs');
   }
   const map = build(oldRefs, newRef);
+  // D-007: exists_at is the first-observation stamp the leg's unageable
+  // clock runs on - carry it forward for rows that persist (same
+  // file:line:sha), so regens do not restart the first-seen clock.
+  stabilizeExistsAt(map, prior);
   if (verifyMode) {
     const errs = verify(map);
     if (errs.length) { console.error('[rewrite-map] VERIFY FAIL:\n' + errs.join('\n')); process.exit(1); }
@@ -500,6 +994,11 @@ function main() {
   if (check) {
     if (!fs.existsSync(outAbs)) { console.error('[rewrite-map] FAIL: ' + OUT_REL + ' missing \u2014 run the generator'); process.exit(1); }
     const committed = JSON.parse(fs.readFileSync(outAbs, 'utf8'));
+    const consErrs = checkMapConsistency(committed, map);
+    if (consErrs.length) {
+      console.error('[rewrite-map] FAIL: consistency violations:\n' + consErrs.join('\n'));
+      process.exit(1);
+    }
     if (JSON.stringify(stableCopy(committed)) !== JSON.stringify(stableCopy(map))) {
       console.error('[rewrite-map] FAIL: ' + OUT_REL + ' is stale \u2014 regenerate with node scripts/build-rewrite-map.js');
       process.exit(1);
@@ -511,7 +1010,11 @@ function main() {
   console.log('[rewrite-map] wrote ' + OUT_REL + ': ' + map.counts.commits + ' rewritten, ' +
     map.counts.removed + ' removed, ' + map.counts.published_only + ' published-only, ' +
     map.counts.doc_refs + ' doc citations');
+  if (map.warnings && map.warnings.length) {
+    // ADR-0089 D-E stage 2: the orphan window is open - register while alive.
+    console.error('[rewrite-map] note: ' + map.warnings.length + ' unreachable unregistered cite(s) past the age threshold - register while alive: node scripts/orphan-cites.js register <sha> --reason <text> (or backfill)');
+  }
 }
 
 if (require.main === module) main();
-module.exports = { build, verify, verifyPublishedOnly, scanDocTokens, scanDocTokensAt, discoverOldRefs, prefixLookup, isEmptyCommit };
+module.exports = { build, verify, verifyPublishedOnly, scanDocTokens, scanDocTokensAt, scanDocTokensAtMany, generationOccurrences, discoverOldRefs, isEmptyCommit, stableCopy, consistencyErrors, checkMapConsistency, refFacts, stabilizeExistsAt };

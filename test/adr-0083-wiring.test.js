@@ -10,7 +10,18 @@ const path = require('path');
 const { spawnSync, execFileSync } = require('child_process');
 const fresh = require('../scripts/evidence-freshness');
 const ROOT = path.join(__dirname, '..');
-const read = (p) => fs.readFileSync(p, 'utf8');
+
+
+// The ADR-record count is DERIVED (scripts/build-adr-index.js rebuilds the
+// index; the count line rides that derived region). Pinning a literal here
+// made 15 wiring tests rot every time an ADR landed - grill-t34 audit 7.6
+// already de-counted one instance, and grill-t35 hit the same wall with 15.
+// The pin's real subject is 'the index was rebuilt and carries this ADR';
+// the number is the generator's business, so read it rather than restate it.
+function adrRecordCount() {
+  const m = read(path.join(ROOT, 'README.md')).match(/(\d+) architecture decision records/);
+  return m ? m[1] : null;
+}const read = (p) => fs.readFileSync(p, 'utf8');
 const readJson = (p) => JSON.parse(read(p));
 const ADR = path.join(ROOT, 'docs', 'adr', '0083-declared-vs-actual-drift-clauses.md');
 const NC = path.join(ROOT, 'docs', 'governance', 'never-commit.json');
@@ -20,7 +31,7 @@ const CTX = path.join(ROOT, 'CONTEXT.md');
 const AGENTS = path.join(ROOT, 'AGENTS.md');
 const EVD_REL = '.scratch/grill-t24/evidence';
 const BASE = 'c526de301c5d2d25e653bc910a80a9ae56dd252a'; // t24 round base (t23 merge)
-const COVERAGE_BASE = 'fc390d5e778db567d12b072f7a25cbf1e73b03f8'; // t25 re-anchor: the latest row is now grill-t25's, so the coverage diff window pairs with the t25 base (ADR-0081 D-A convention, re-anchored grill-t25)
+const COVERAGE_BASE = '78d8a14cbc90bbbe1f48a2931c69e41716738f6e'; // grill-t35 re-anchor: the latest row is now grill-t35's, so the coverage diff window pairs with the t35 round base 78d8a14c (ADR-0081 D-A convention, re-anchored grill-t35)
 // single source: the registered pin_patterns entry (kind 'captured-at-head')
 // via fresh.capturedHeaderRe(freshness) - resolved lazily at call time
 // (grill-t29 A-8: no private copy, no module-level literal).
@@ -191,12 +202,12 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
     // backfill (ADR-0050 forward sealing), never silent.
     expect(r.seal.tag.state).toBe('absent');
   });
-  test('ci.yml --expected-suites equals the live glob(test/*.test.js) count + lower bound + known-file hit', () => {
-    const ci = read(path.join(ROOT, '.github', 'workflows', 'ci.yml'));
-    const m = ci.match(/--expected-suites\s+(\d+)/);
-    expect(m).not.toBeNull();
+  test('manifest enumeration.suites equals the live glob(test/*.test.js) count + lower bound + known-file hit (ADR-0091 D-002(vi) re-anchor)', () => {
+    // The argv-independence guard was already file-enumeration reconciliation;
+    // the registered expectation moved from the ci.yml literal to the manifest.
+    const manifest = readJson(path.join(ROOT, 'docs', 'test-manifest.json'));
     const suites = fs.readdirSync(path.join(ROOT, 'test')).filter(function (f) { return /\.test\.js$/.test(f); });
-    expect(Number(m[1])).toBe(suites.length);
+    expect(manifest.enumeration.suites).toBe(suites.length);
     expect(suites.length).toBeGreaterThanOrEqual(79); // lower bound: a broken glob returning 0 cannot pass
     expect(suites).toContain('adr-0083-wiring.test.js'); // known-file hit: the glob saw this very suite
   });
@@ -242,9 +253,9 @@ describe('ADR-0083 doc surface (grill-t24 drift-clause round)', () => {
     expect(term).toContain('ADR-0083');
   });
 
-  test('README index rebuilt: 86 records incl. ADR-0083', () => {
+  test('README index rebuilt: index-rebuilt incl. ADR-0083', () => {
     const r = read(path.join(ROOT, 'README.md'));
-    expect(r).toContain('86 architecture decision records');
+    expect(r).toContain(adrRecordCount() + ' architecture decision records');
     expect(r).toContain('0083-declared-vs-actual-drift-clauses.md');
   });
 });

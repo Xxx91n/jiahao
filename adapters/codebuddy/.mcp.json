@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "jiahao": {
+    "jiahao-mcp": {
       "command": "node",
       "args": [
         "${CLAUDE_PLUGIN_ROOT}/jiahao-mcp/index.js"

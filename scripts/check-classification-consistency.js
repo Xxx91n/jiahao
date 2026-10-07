@@ -17,6 +17,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 const { requireCapabilities } = require('../src/shared/capability');
 const fresh = require('./evidence-freshness');
 const surfaceTaxonomy = require('./surface-taxonomy');
@@ -129,9 +130,24 @@ function checkConsistency(root) {
     if (cls === null) errors.push('unclassified taxonomy field: ' + p);
     else if (CLASS_ENUM.indexOf(cls) === -1) errors.push('taxonomy field ' + p + ' classed ' + JSON.stringify(cls) + ' - not in the closed enum');
   }
-  // (b) staleness: every classified leaf resolves to an existing path
+  // (b) staleness: every classified leaf resolves to an existing path.
+  // ADR-0089 D-I file-level form: a classification key that is a
+  // repo-relative path (contains '/', verbatim top-level key of the map)
+  // classes that FILE and resolves against the git-tracked file set instead
+  // of the taxonomy tree (a deleted/untracked file cannot keep a class).
+  const tracked = new Set(
+    execFileSync('git', ['ls-files'], { cwd: root, encoding: 'utf8' }).split('\n').map(function (s) { return s.trim(); }).filter(Boolean)
+  );
   for (const p of leafPaths(map, '', [])) {
-    if (CLASS_ENUM.indexOf(map && classOf(map, p)) !== -1 && !pathExists(tax, p)) {
+    const verbatim = Object.prototype.hasOwnProperty.call(map, p) && typeof map[p] === 'string';
+    if (p.indexOf('/') !== -1) {
+      if (!verbatim || CLASS_ENUM.indexOf(map[p]) === -1 || !tracked.has(p)) {
+        errors.push('classified file path absent from the tracked tree (stale registration): ' + p);
+      }
+      continue;
+    }
+    const cls = classOf(map, p);
+    if (CLASS_ENUM.indexOf(cls) !== -1 && !pathExists(tax, p)) {
       errors.push('classified path absent from the taxonomy (stale registration): ' + p);
     }
   }

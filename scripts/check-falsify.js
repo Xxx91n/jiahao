@@ -13,7 +13,7 @@ const { configDir } = require('../src/shared/paths');
 const { TWINS, makeRecord } = require('../src/shared/falsify');
 
 // Windows cold-start and CI contention can exceed the original 2s budget,
-// manufacturing `missing` evidence for a check that would otherwise be
+// manufacturing missing evidence for a check that would otherwise be
 // deterministic. Keep the timeout wide and let timeout mean missing, not
 // falsified (ADR-0044 D-G).
 const TWIN_TIMEOUT_MS = 10000;

@@ -56,8 +56,10 @@ _Avoid_: G-V gap (spell it out)
 **Jiahao-style Behavior (嘉豪式行为)**:
 The anti-pattern behaviors jiahao targets: presumptuous completion (自以为是完成),
 self-comforting success (自我安慰跑通), delusion of competence (颅内高潮),
-showing off without doing real work (显摆不干活).
-_Avoid_: bad behavior, lazy agent (use the canonical term)
+showing off without doing real work (显摆不干活), and grandiosity (虚饰输出) -
+decorative fiction bearing load, depth simulated through term density and obscure
+sentence shape (ADR-0098 D-A).
+_Avoid_: bad behavior, lazy agent (use the canonical term); jargon policing (the fifth item names a lifecycle defect, not a vocabulary preference)
 
 **SufficiencyGate (充足性门)**:
 In anysearch-cli: "搜够了没" (retrieval sufficiency). In jiahao: "任务真完成了吗"
@@ -652,8 +654,11 @@ local-object-store-only after purge; rewriting already-depended-on history
 **Rewrite Map (重写映射表)**
 The append-only old→new SHA resolution table (docs/rewrite-map.json) generated
 by aligning pre-purge refs (gb-local) with published history via commit
-messages, plus a three-class classification of every SHA cited in tracked
-docs: rewritten→new / local-only / published-unchanged. It is the single
+messages, plus a five-class classification of every SHA cited in tracked docs
+on four declared facts (ADR-0089): rewritten→new / published-unchanged /
+local-only / orphaned-cite (registered orphan) / unresolved (absent AND
+unregistered — hard red). Ref topology lives only in per-row qualifiers
+(reachable_via), never in the verdict. It is the single
 translation point — append-only record files are never edited to add pointers,
 and governance-surface files carry one pointer note each (ledger t13 D-003).
 _Avoid_: editing historical records in place; hand-built mappings; expanding
@@ -779,6 +784,169 @@ boundary (ledger t18 D-007).
 _Avoid_: hand-written figures in report prose; annotating a restatable
 number instead of restating it; faking a self-referential field instead
 of leaving it honestly null
+
+**Test Manifest**:
+The committed derived count fact source (`docs/test-manifest.json`, ADR-0091):
+enumeration from jest --listTests, junit counts from the generator's blessed
+run. Hand-edit forbidden; regenerate + diff. A JUnit-derived suites field is
+the forbidden circular shape.
+_Avoid_: test inventory, suite list (those predate the generator)
+
+**Audit Checklist**:
+The derived CI command-surface artifact (`docs/governance/audit-checklist.json`,
+ADR-0091): every ci.yml job's ordered run lines, regenerated and diff-checked.
+The audit re-run surface floor.
+_Avoid_: test list, CI inventory
+
+**Audit Coverage Block**:
+The machine-readable block (`<!-- audit-coverage v1 -->` + fenced JSON array,
+ADR-0091) in an audit report naming the commands the auditor actually re-ran.
+The auditor attests; the generator never co-signs result truth.
+_Avoid_: coverage claim in prose (prose is not the asserted object)
+
+**Countersign Overdue**:
+The three-stage ladder state of an unadjudicated queue member past its
+return-by (ADR-0090): in-term advisory, grace-window advisory (+30d, one
+post-tide owner working window), past-grace FAIL naming rebuild / re-seal /
+declared-drift exits. Asserts no member is silently permanent, never that the
+owner must have acted.
+_Avoid_: late countersign (the leg is not a deadline enforcement)
+
+**Rejection Disposition**:
+The pre-registered exit semantics executed when a queued ADR is rejected at
+its tide (ADR-0090): non-retroactivity, the disposition menu as default floor
+(owner override via errata deviation note), and the rejected status
+transition.
+_Avoid_: rollback plan (rejection adjudication stays owner-side)
+
+**Public-Object Equivalence (公开对象等价)** (grill-t35):
+The contract that the object a check verifies IS the object the public receives.
+Under a multi-lane workflow that rewrites history on landing, these are different
+trees: the lane tree at declare time versus the landed tip after the rewrite. grill-t34
+closed its audit green against the first while the public received the second, and
+four defects landed. The consequence is methodological, not motivational: a green
+result about the wrong object is not a weaker result, it is a result about
+something else. Every local check was correct and irrelevant.
+_Avoid_: shipped parity, publish readiness (both can be true while this fails -
+the t34 case was a clean audit and a red public branch simultaneously)
+
+**Post-Land Verification (落地后重验)** (grill-t35, ADR-0092 D-L1):
+Re-running a bounded subset of the battery against the LANDED public tip, in a
+throwaway worktree materialized from a fetch, after every land/push wave - not
+only the last one. The last wave is not a special case; it is where the t34
+escape-eaten byte landed. Blocking object is the local re-verification; public CI
+observation stays a trailing next-round entry, because CI sees a tree only after
+it is already public.
+_Avoid_: CI re-run, release verification (neither observes a pre-public tree)
+
+**Wave-Bounded Subset (波界有界子集)** (grill-t35):
+The discipline that a repeated verification is scoped to what changed since the
+last verified wave, rather than re-walking all history each time. Bounds the cost
+so verification can actually run every wave; full-history walks belong to the round
+boundary. The bound must be honest - a subset chosen so the real defect falls
+outside it is not a subset, it is a hiding place.
+_Avoid_: sampling, spot check (a sample is statistical; this is a stated range)
+
+**Pre-Land Battery (落地前电池)** (grill-t35, ADR-0092 D-PRE):
+The verification run against the WILL-LAND object - the workspace merge tree,
+which is merge-group semantics simulated locally - recorded before landing, with
+the wave's last claim-mutation sha and the run timestamp. Paired with
+post-land verification so the two objects are each verified rather than one
+standing in for both. The timestamp is forensic, not preventive: it catches
+forgetfulness and not forgery, because writer and committer share a trust domain.
+_Avoid_: pre-commit check (a battery is the whole subset, not a single hook; a
+hook is bypassable by `but commit` and raw git alike)
+
+**Tracked-Text Enumeration (受跟踪文本枚举面)** (grill-t36, ledger D-004):
+The input surface a hygiene scanner reads: every tracked file git's text
+attribute classifies as text, NUL sniffing as the fallback classifier, and
+oversized files skipped by disclosure rather than by exemption - a skip that
+names itself is a capability boundary, a silent allowlist is a roster nobody
+curates. The enumeration is one shared function of a root and callers pass the
+root, never a narrowed subset: a caller-chosen surface is the observer choosing
+not to look, which is the pathology rather than a configuration. Its base is
+`git ls-files` index union tree, because the index alone is not authoritative
+(ledger t30 F-1).
+_Avoid_: the Test Manifest's enumeration (that counts test suites for a derived
+count fact-source; this is a scanner's input surface); extension-set enumeration;
+pure-sniff enumeration; path carve-outs; a caller-supplied file list; undisclosed
+oversized skips
+
+**Instrument Non-Intrusion (仪器无侵入)** (grill-t36, ledger D-006):
+The contract that the measuring apparatus does not change the thing it
+measures. Verification and mutation are two commands, never one command with two
+outcomes: the default path computes a candidate and diffs it against the
+committed artifact, exiting non-zero on mismatch, and only an explicit
+write-mode regenerates (`prettier --check` / `--write` shape). The class
+assertion sits at the gate runner's wrapper level and takes a tracked-tree hash
+baseline at entry, so a pre-existing dirty tree is recorded as found rather than
+penalized - it asserts "this run mutated nothing tracked", not "the tree is
+clean". Untracked paths are excluded by the ignore mechanism's own division of
+labour, and there is no legitimate-tracked-write exemption channel: the
+legitimate exits are the compare form and ignored paths.
+_Avoid_: reading it as the narrower Verifier Write Surface (that confines a
+verifier to its own trail versus the object's anchor surface; this widens the
+object to the whole tracked tree for the duration of one gate run); Instrument
+Identity / Instrument Quarantine (those name which apparatus and whether it is
+authoritative, not whether it writes); "the tree must be clean" as the same
+assertion; window-bounded proof read as a closed class
+
+**Claim-Surface Role Registry (claim 面角色注册表)** (grill-t36, ledger D-005):
+The committed registry that assigns every claim-surface artifact a role -
+examiner, implementer, or mechanical - so the checkers read a declared fact
+instead of pattern-matching filenames (CODEOWNERS family). It is a declared-facts
+surface, never a derived one: role assignment is a discretionary judgment with no
+mechanical source, which is exactly why it must not carry `generated_from` - if
+the role were derivable, the registry would not be needed. Consumption is
+fail-closed in the direction that matters, because a file that calls itself an
+examiner's report is invisible to a checker that only reads the registry's
+examiner rows. The registry is itself an asserted object: every registered path
+exists in the tree, every claim-surface artifact has a row, and every role is
+inside the closed enumeration.
+_Avoid_: filename-token conventions (disproved in grill-t35); front-matter
+self-declaration (self-attested labels plus a widened enumeration surface);
+splitting the claim surface by directory (relocates the pathology and hard-codes
+the move); grandfather exemptions; an M1-shaped ratchet backfill (M3's defect is
+wrong selection, not noise); stamping `generated_from` on it; letting the agent
+that requests an examiner row also write it
+
+**Generation-Surface Equivalence (生成面等价)** (grill-t36, ledger D-003):
+The contract that a generator reads exactly the object it is about to assert
+about. A generator's read scope is part of its claim: enumerating citations on a
+merge workspace that still contains an unlanded lane bakes references to files the
+published tree never had, so the derived artifact describes a tree that does not
+exist. Two obligations carry it - tree-internal reads, and a `generated_from`
+provenance field naming the tree-ish and the mode, which turns "which tree is
+this about" into a machine-assertable fact rather than an assumption. A tree has
+no absolute legitimacy: legitimacy is a function of the assertion context, so
+reading a merge tree is correct for a pre-land check and wrong for map
+generation, and that is the same tree under two assertion domains. Unlike a
+byte-surface disclosure, this one really closes - the defect is an ordinary
+repairable generation bug, and its repair is required.
+_Avoid_: reading it as Public-Object Equivalence (that pairs a check's object
+with the public's object across a landing rewrite; this pairs a generator's read
+scope with its own assertion target); "generator" in its profile sense (Generator
+Profile, gsr rule header - those name the primary agent's behavior, not a build
+script's read scope); lane isolation as the fix (a discipline is bypassable, a
+contract is not); importing M1's ratchet baseline here (this is a
+false-positive red, not always-green noise); borrowing M1's "repaired, never
+closed" phrasing - the two closabilities differ in kind
+
+**generated_from (派生源字段)** (grill-t36, ledger D-003):
+The provenance field a derived artifact carries - `{tree-ish, mode}` - naming the
+tree it was generated from and the read discipline used, in the buildinfo shape.
+Its purpose is to convert "which tree does this describe" from an assumption into
+a machine-assertable fact, so a consumer can refuse an artifact that describes a
+tree it was not asked about. Presence is the signal of derivation: a registry of
+declared facts must not carry it, because a field saying "I was computed from X"
+is an admission that the content is computed - and if the content were computed,
+the declaration would not be a discretionary judgment.
+_Avoid_: stamping it on every governance JSON (the declared-facts registries -
+orphan-cites, thresholds, the role registry - hold judgments, not computations);
+using it in place of the read-scope fix (it describes the scope, it does not
+constrain it); a bare commit sha without the mode (which tree and which read
+discipline are two fields, not one); inferring the mode from the tree-ish
+
 
 ## Decision Log
 
@@ -1498,7 +1666,11 @@ gates can never be entries; enforcement is fail-closed via
 `scripts/check-deferred.js` with the ADR-0027 couplingViolation guard
 (registry diff requires a same-commit ADR change). Anchoring is
 existence-based (source_adr exists + entry id appears in ADR text or
-CONTEXT.md), never value-anchored. A merged row may register a class of
+CONTEXT.md), never value-anchored; the existence anchor is also what
+lets a registration carry no minted ADR — defer-0076 (declared-count
+generator bridge; ERRATA E-25) and defer-0077 (cap fifth-amendment
+distribution-form economics; ADR-0087) anchor at this paragraph
+(grill-t33). A merged row may register a class of
 same-type items with per-instance itemization (each instance
 individually closable), the four elements (owner, deadline, acceptance
 criterion, recurrence->split escalation trigger), and ratchet semantics
@@ -2359,7 +2531,8 @@ registration, not an ask)
 Regeneration artifacts (rewrite-map, anchors, round-facts) ride plain
 commits, never an amend - an amend rewrites the commit sha, stranding any
 sha-shaped reference (battery_as_of_commit) into an unreachable object
-whose citation label flips to unresolved-hex-literal. Sha references pin
+whose citation class flips to unresolved (absent AND unregistered -
+ADR-0089). Sha references pin
 immutable history. See also Facts Canon (ledger t18 D-007).
 _Avoid_: regenerating a map or anchors artifact inside an amend; pinning
 an as_of sha on rewritable history
@@ -2461,16 +2634,21 @@ missing tag as silent success or hard failure; retro-tagging history
 **Countersign Queue (会签队列)**:
 The second-line sign-off ledger for ADRs accepted under delegated signing
 authority: a `second_reviewer` countersign obligation is discharged
-on-commit or rides the deferred-registry tide. Two approval forms coexist
-on the committed surface - the explicit-slot form (the Status line carries
-`ID-level-only, awaiting entity-level` plus a return-by date) and the
-bare `- Status: Accepted` form (since t15) - the latter registered as
+on-commit or rides the deferred-registry tide. Three awaiting declaration
+forms coexist on the committed surface - the explicit-slot form (the
+Status line carries `ID-level-only, awaiting entity-level` plus a
+return-by date), the bare `- Status: Accepted` + ERRATA E-13
+pointer-annotation form (since t15), and the new-form `awaiting
+entity-level countersign` status (0086+) - the middle one registered as
 unregistered drift pending entity-level adjudication (ERRATA E-13;
-boundary row defer-0074; queue expanded 10 -> 19 for the 2026-12-15
-tide).
+boundary row defer-0074). Authority lives on each ADR's own declaration
+surface; the queue is the derived set reconciled member-by-member by
+`test/countersign-queue.test.js`, and hand-written count narratives are
+display text, never the channel (grill-t33 D-002).
 _Avoid_: audit-PASS as a countersign substitute (first-line self-check vs
 second-line sign-off, IIA three-lines); silent approval-form drift;
-prose queue lists without a registry row
+prose queue lists without a registry row; count-equality assertions
+(cancellation-blind)
 
 
 **Degraded-Green Closure (降级绿销账)**:
@@ -2564,4 +2742,139 @@ fire on the target host before any measurement is trusted. An unverified
 counter produces unverified readings - the apparatus proves itself first.
 _Avoid_: skipping the self-check to reach "real" data faster; treating
 silent counters as zero events
-*End of Glossary*
+**Three-Tier Residence (三层居所)**:
+Evidence residence split for the trial harness (ADR-0088 clause 4): Tier-1
+never-commit raw captures, Tier-2 committed auditable backbone (run
+manifests + deviations ledger), Tier-3 registration surface
+(judgment-lines.json deviations[] as the sole append slot).
+_Avoid_: raw captures on the commit surface; backbone entries that cannot be
+replayed from Tier-1
+
+**Indeterminate (不定态)**:
+A judgment-line verdict value distinct from hit and miss — "insufficient
+evidence", produced by named reason codes (floor traps, degenerate
+baselines, contaminated phases, missing domains). It is never reduced to
+miss and never to an owner-side effectiveness claim; reduction is an owner
+act the harness cannot perform (ADR-0088 clause 2).
+_Avoid_: treating indeterminate as failure, as zero, or as absence
+
+**Declared-Not-Proven Block (声明不证区)**:
+The registered zone inside each frozen volume manifest where equivalence
+that cannot be mechanically asserted (difficulty, inducement strength,
+category comparability, prompt semantics) is DECLARED rather than
+claimed — contributing no evidence, and bounding formal equivalence to
+structural-site level only (ADR-0088 clause 5).
+_Avoid_: asserting equivalence the machinery never measured; smuggling
+declared zones into evidence claims
+
+**Meta-Sentinel (元哨兵)**:
+An acceptance fixture whose purpose is to prove the harness detects its
+own fabrications — doctored claim bodies, injected unowned events. The
+sentinel tests the test apparatus, not the product (ADR-0088 clause 6).
+_Avoid_: acceptance batteries that can only ever report green
+
+**Deviation Cursor (偏差游标)**:
+The last_aggregated_seq pointer over runs/deviations.jsonl recording how
+far the ledger has been folded into judgment-lines.json deviations[] —
+making aggregation idempotent, replayable, and tamper-evident; the
+selfcheck leg asserts cursor-vs-ledger coverage (ADR-0088 clause 7).
+_Avoid_: cursorless aggregation, rewriting deviations[] outside append,
+deviation rows bypassing the ledger
+
+**Assertion Anchoring (断言锚定)** (grill-t38, ledger D-001):
+Every committed claim about a tree state must declare the anchor at which it was
+evaluated, and the verification mechanism judges by that declared anchor rather
+than by the present world. The defect is a claim whose declared anchor differs
+from its actual measurement anchor — a claim that names one tree and measures
+another (ADR-0096 §P-1/§P-2/§N-3).
+_Avoid_: present-world evaluation, unanchored claim, "regenerate to now"
+
+**Anchor Authority vs Addressing Authority (锚权威 vs 寻址权威)** (grill-t38, ledger D-004):
+The authority split inside a block carrying both `anchor.tree_sha` and `run_id`.
+`anchor.tree_sha` is the anchor authority — the leg reads only it to judge the
+anchor. `run_id` is the addressing authority — it uniquely names the artifact
+file. The consumer leg is forbidden to reverse-derive `tree_sha` from `run_id`
+for anchor judgment; deriving the anchor from the address is how the address
+silently becomes the authority (ADR-0096 §P-1).
+_Avoid_: reading `run_id`'s second segment as the anchor; treating the two as interchangeable
+
+**Drift Observation Surface (漂移观测面)** (grill-t38, ledger D-002):
+A non-blocking disclosure surface for member differences between two runs on one
+tree (a different run's artifact on the same `tree_sha`, or the retired
+`HEAD`-tree artifact). Such a difference is flaky/environmental, not a
+transcription error, so it is a yellow `::warning` diff disclosure and never red
+— calling it red would be a false conviction. Distinct from the assertion domain,
+which judges only the block's own `run_id` artifact (ADR-0096 §P-1).
+_Avoid_: judging drift as red; collapsing the observation surface into the assertion surface
+
+**Live-Set (活分支集合)** (grill-t38, ledger D-003):
+The evaluation-time set of resolvable `refs/heads/*` ∪ `refs/gitbutler/*` live
+branches. It is the test-side evaluation anchor (ADR-0096 §P-2): a pin is green
+iff it is an ancestor of ANY named branch in the set; the workspace merge commit
+is structurally excluded. An empty or entirely unresolvable set is `UNVERIFIABLE`
+(exit 2), never red. Also a `ref_context` enum value (the set the emitter saw).
+_Avoid_: `HEAD` as the evaluation anchor; a single transient ref; merge-base as a single anchor
+
+**Tip Anchor vs Snapshot Anchor (tip 锚 vs 快照锚)** (grill-t38, ledger D-001):
+The two coexisting anchor classes that must not be read as one. Tip anchors (map
+coverage, pairing scan) are evaluated against the tip — their authority semantics
+require it. Snapshot anchors (`status-inventory` blocks, run evidence) are
+historical-claim semantics, evaluated against the declared tree. The boundary
+sentence prevents the misreading "everything is anchored now, so nothing need
+chase the tip" (ADR-0096 §P-1).
+_Avoid_: reading anchoring as un-anchoring the tip class; one anchor class for both
+
+**Valid-Time vs Transaction-Time (valid-time 与 transaction-time)** (grill-t38, ledger D-001):
+The bitemporal split under assertion anchoring. The valid-time is the measured
+tree (the anchor); the transaction-time is the carrier commit (the commit that
+carries the claim). Under this split, moving a carrier's tree is not lying — a
+claim was true of the tree it measured at valid-time — so the repair is an anchor
+declaration, not a prohibition on tree movement (ADR-0096 Context).
+_Avoid_: treating tree movement as falsification; one time axis for a claim and its measurement
+
+**Grandiosity (虚饰输出)** (grill-t39, ledger D-004):
+The fifth Jiahao-style semantics: decorative fiction bearing load - depth simulated
+through term density and obscure sentence shape. Defined as a **debt form**, not a
+verdict form: coinage is legal, and a violation is the conjunction of unregistered +
+three axes (frequency, distribution breadth, load-bearing semantics) + an unclosed
+lifecycle. Unregistered is a **neutral state** (Vale's accept/reject two-column
+precedent), so the violation point is "a high-frequency load-bearing term that never
+enters adjudication", never "unregistered" itself. Pure decorative piling belongs to
+the disclosure surface, not the violation surface (ADR-0098 D-A/D-B).
+_Avoid_: treating coinage as the offence; naming the defect "unregistered" (that is one criterion, not the behavior); a whole-style verdict (vetoed - not mechanically judgeable)
+
+**Unregistered Coinage (收词分诊通道)** (grill-t39, ledger D-004):
+The triage channel that surfaces high-frequency unregistered load-bearing terms.
+**Advisory, never blocking** (inheriting the ADR-0014 D1 wordlist-triage status);
+generator-side tool surface only, never a verifier leg. Two probe families: the word
+face (bilingual scan over five surfaces - ledger, report, ADR, AGENTS.md, CONTEXT.md)
+and the sentence face (count-type signals only: sentence-length distribution,
+construction density, symbol-squeeze frequency, long-sentence ratio - **counting,
+never scoring**, because no trustworthy readability formula exists for Chinese).
+Output goes to the owner's binary choice: register in CONTEXT.md, replace with a plain
+expression, or register a deferred row (ADR-0098 D-C/D-E).
+_Avoid_: 豁免阀 / "exemption valve" (forbidden wording, ADR-0100 D-C's law generalized); a word-list blocking detector (vetoed); a mechanical readability score; an agent-side term verdict
+
+**prose-density (散文密度尾行)** (grill-t39, ledger D-005):
+The fixed report footer line disclosing the sentence-shape counts of the report itself.
+Pure disclosure, never blocking (the Lexi pull-request footer-table shape). Numbers must
+come from a **deterministic counter**; a model interprets them and never generates them.
+Three safeguards: the footer sets **no target value** and existing text is not rewritten
+for the sake of a count (Goodhart / uniformity-slop defense); a load-bearing sentence's
+exemption is declared **per sentence**, never per document class; counts must not enter
+generation instructions (an injected live metric induces gaming). Adjudication strength
+layers by surface - strong for reports/handoffs, weak for ADR/CONTEXT, reference for
+ledgers (ADR-0098 D-E/D-F).
+_Avoid_: a target value or quota; promoting the footer into a gate; generating the numbers with a model; a document-class-wide exemption licence
+
+**Drift-Declaration Registry (漂移声明注册表)** (grill-t39, ledger D-002):
+`docs/governance/drift-declarations.json` - an append-only registry of **registered
+line-level drift declarations** (登记的行级漂移声明), consumed by the rewrite-map
+classifier **as a declared fact on the input side**, never as an exemption branch on the
+leg's judging path. Each entry names the citing claim commit, the overwriting source
+commit, and the restored line text verbatim; `registered_at` replaces `expires_at` (no
+TTL - a registered historical fact does not expire). A gate-close condition makes any
+entry added **after** the landing commit a red-level signal, so the artifact cannot decay
+into a standing channel. What it adjudicates is the line-level fact at the observation
+time point; it does not issue a licence for a breach (ADR-0100 D-C/D-D/D-G).
+_Avoid_: 豁免 / waiver wording (forbidden, ADR-0093 D-4); `expires_at` or any auto-lapse; an exemption leg inside the checker; treating the registry as a derived artifact to be "regenerated"
