@@ -2,10 +2,10 @@
   "schema_version": 1,
   "_doc": "ADR-0091 (grill-t34 D-002): committed derived count manifest - lockfile pattern, hand-edit forbidden, regenerate + diff. enumeration = jest --listTests (suites derive here, NEVER from JUnit - forbidden circular field); junit = blessed jest run via scripts/jest-junit-lite.js (tests counts pending, tier-invariant; skipped is tier-variant and display-only). Live assertions: run-test-gate post-jest collected == manifest; check-test-manifest leg = enumeration freshness + README sentinel regions. Regenerate: node scripts/build-test-manifest.js [--junit <artifact>]; verify: --check (generated_at excluded).",
   "generated_by": "scripts/build-test-manifest.js",
-  "generated_at": "2026-10-06T17:23:20.510Z",
+  "generated_at": "2026-10-07T07:49:34.370Z",
   "enumeration": {
     "channel": "jest --listTests",
-    "suites": 101,
+    "suites": 103,
     "suite_files": [
       "test/adapters.test.js",
       "test/adr-0022-hardening.test.js",
@@ -80,10 +80,12 @@
       "test/calibration.test.js",
       "test/codebuddy-adapter.test.js",
       "test/codebuddy-trial.test.js",
+      "test/coinage-triage.test.js",
       "test/corpus-restore.test.js",
       "test/countersign-overdue.test.js",
       "test/countersign-queue.test.js",
       "test/detector.test.js",
+      "test/drift-declarations.test.js",
       "test/dual-profile.test.js",
       "test/eval.test.js",
       "test/evidence-log.test.js",
@@ -112,9 +114,9 @@
   },
   "junit": {
     "tier": "full",
-    "tests": 1778,
-    "skipped": 1,
+    "tests": 1817,
+    "skipped": 0,
     "artifact": "test-artifacts/junit.xml"
   },
-  "published_tip": "0b7bfb6866d40f556c2faee0d6de2d94d3778698"
+  "published_tip": "5d058cbd8addc240b98c73da4de0b43a3db62ffa"
 }
