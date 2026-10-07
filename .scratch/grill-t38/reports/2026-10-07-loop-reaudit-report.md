@@ -91,3 +91,37 @@ P1/P2 抽查（同样以测试面而非"代码存在"为判据）：join-key **v
 - **owner 先裁再动**：§4 四项（尤其 audit-surface 那条与 pack cap）。owner 若判 audit-surface 走"贴块"路线，那必须是我方在 CI 面跑齐后具名贴，不是返工窗口代贴。
 - **下一 grill 方向不变**：Q-t39「处置-证据闭合」——本轮又添三个可入案的活例：一审 ADR-0096:51 的虚报登记（已修，修形可作正面样本）、N4 的"未验类声明"（工具缺陷声称）、N1 的"仪器两口径"（同一事实两个数）。建议 (a) 登记声称↔registry 行反向核验、(b) 有界断言承接无界义务的形状识别、(c) lane 单飞契约可达性机械化。
 - 交接：`D:\Aworker\jiahao\.scratch\grill-t38\handoffs\2026-10-07-loop-handoff.md`。
+
+---
+
+## 8. 复核更正（owner 授权本窗口直接修小问题后回填；含我方两条误报的撤回）
+
+授权范围：小问题直接修 + LOOP 复核；修不了的交下轮 grill。逐条如下。
+
+### 8.1 N1 —— **我方表述有误，机制已查明并修口**
+
+`run-gates` 摘要行的 `res.results` 里含一行**合成守卫行**：`{ name: '- tracked-surface', order: 'D-4', tier: 'confirmatory' }`（`scripts/run-gates.js:472-477`，ADR-0093 D-4 的"整棵被跟踪树零突变"检查点）。所以 **54 = 53 条 registry 腿 + 1 条守卫行**，而 `docs/gates.json` 的 `entries` 只数 registry 腿 = 53。
+
+结论更正：**返工报告的 `47 PASS` 在它自己的口径下是对的**（47 = 54 − 4 − 3，含守卫行）；我报告里"PASS 偏 1 / 按腿级应为 46"这句把两种口径当成对错，属我方表述失准，此处撤回并更正为"**同一事实两个总体，仪器未标注**"。
+
+已落地的修法（不改任何判定，只改自述）：`scripts/run-gates.js` 摘要行改为打印显式拆分
+
+```
+gate:all exit 1 (53 legs + 1 guard(s) = 54 rows; 46 pass / 3 fail / 4 unverifiable, fail-fast off)
+```
+
+即 `legs`（`Number.isInteger(order)`）、`guard(s)`、`rows`、`pass/fail/unverifiable(/skipped)` 各自点名。全仓仅两处与该串相关：生产者 `run-gates.js:568`、消费者 `test/adr-0084-wiring.test.js:208`（断言的是治理面里捕获的 `gate:all exit 0` 子串，前缀未变，不受影响）。**未配新测试**：该串在 `main()` 内，既有 harness 只驱动 `runGates()`（`test/adr-0034-wiring.test.js:146+`），不经过打印面——为一行人读标签引入 main() 测试面不成比例，如实记此取舍。
+
+### 8.2 N2 —— **闭合为非缺陷（机制点名）**
+
+±1 的 skip 来自 corpus 分层执行路径：`const CORPUS_TIER = resolveCorpus().tier; const corpusT = CORPUS_TIER === 'none' ? (n,f) => skipTest('corpus tier none (ADR-0056 D-A)', n, f) : test;`（`test/adr-0030.test.js:14-15`、`test/adr-0031-wiring.test.js:14-16`）。bench-corpus 可用与否决定该用例登记为 skip 还是 run，因此 `1 skipped / 1776 passed` 与 `0 skipped / 1777 passed` 是同一套件在两种 corpus 层级下的合法普查差。skip 本身受治理（ADR-0057 D-A "skip 是带理由的判定"，`scripts/check-skip-reasons.js` 执法），不是我要求"点名而未点"的悬案。撤回原 finding 的"待收口"性质。
+
+### 8.3 N5 —— **两条全部撤回（我方误报）**
+
+- `pickDerivation` 不是残留死码：其自身注释与 ADR-0096 `:106` 的精化句把它定位为**工件缺失时的人工强验证探针**（"its prefer-HEAD semantics are deliberately NOT pinned by the test suite as expected behaviour (the retired contract must not read as current)"，`scripts/check-status-inventory.js:190-197`）。导出面即其用途。删除它会拆掉 D-002.9① 立法的那条逃生通道。
+- `evidence-freshness.js:58` 的 `WORKSPACE_SUBJECT` 有活消费方：`scripts/check-map-freshness.js:128` 经 `fresh.WORKSPACE_SUBJECT` 使用；该文件注释也已声明"本模块不再用它做谓词"。不是同构残留。
+
+### 8.4 本轮小结
+
+5 项 findings 经复核后：**1 项仪器自述已修（N1）**、**2 项为我方误报（N2/N5，撤回并留痕）**、**1 项工作区状态如实上报不动他人在制品（N3）**、**1 项 owner 裁（N4 update-index 逃生舱与工具类声明）**。审计侧自身因此前记一笔：一审 2 条 + 二审 2 条误报都出在"grep 命中即下判断"，凡涉"退役/残留"类结论必须先查消费面与注释所指的立法意图——这条属 Q-t39 (b) 的取证纪律面，已并入交接。
+

@@ -565,7 +565,19 @@ function main(argv) {
     // per-gate rows above carry the detail in plain log lines.
     console.log('::error title=UNVERIFIABLE::' + unverifiable.length + ' gate(s) unverifiable: ' + unverifiable.map(function (r) { return r.name + ' requires ' + (r.missing ? r.missing.join('+') : '(child exit 2)'); }).join(', '));
   }
-  console.log('gate:all exit ' + res.exitCode + ' (' + res.results.length + ' entries, ' + unverifiable.length + ' unverifiable, fail-fast ' + (failFast ? 'on' : 'off') + ')');
+  // Census label (grill-t38 LOOP audit N1): res.results is the registry legs PLUS
+  // the synthetic ADR-0093 D-4 tracked-surface guard, so a bare "N entries" named
+  // two different populations and every report citing it had to be reverse-
+  // engineered. Print the split so one number answers one question.
+  const legRows = res.results.filter(function (r) { return Number.isInteger(r.order); });
+  const passed = res.results.filter(function (r) { return r.status === 'pass'; }).length;
+  const failed = res.results.filter(function (r) { return r.status === 'fail'; }).length;
+  const skipped = res.results.filter(function (r) { return /^skipped-/.test(r.status); }).length;
+  console.log('gate:all exit ' + res.exitCode + ' (' + legRows.length + ' legs + ' +
+    (res.results.length - legRows.length) + ' guard(s) = ' + res.results.length + ' rows; ' +
+    passed + ' pass / ' + failed + ' fail / ' + unverifiable.length + ' unverifiable' +
+    (skipped ? ' / ' + skipped + ' skipped' : '') +
+    ', fail-fast ' + (failFast ? 'on' : 'off') + ')');
   process.exit(res.exitCode);
 }
 

@@ -23,12 +23,13 @@
 
 ## 3. 下一个窗口该做的（按序）
 
-1. **owner 裁四件事**（复审报告 §4）：pack cap 重推导（我独立实测 `size 546,465 / entryCount 185`，`ceil_to_10_000(×1.10)=610,000` 算术成立，须同 commit 改 ADR-0039 D3）；post-land 刷新时点；`audit-surface` 红的两条出路（我方 CI 面跑齐后具名贴 v1 块，或立法允许"部分覆盖声明"——**不得由返工窗口代贴审计窗口报告**）；F-5/F-11 `review_at` 偏离 + P1-9 CI `runner_ctx` dirty 位残量是否本轮实现。
-2. **seal 前收两项口径**（不动机制）：
-   - N1：`run-gates` 摘要头写 `54 entries`，`docs/gates.json` 实为 53 entries / 53 判定腿 → 返工报告 PASS 应按腿级计（46），仪器建议改 `53 legs + gate:all`。
-   - N2：`1 skipped / 1776 passed`（他们）vs `1777 passed / 0 skipped`（我）——点名该用例与其 skip 判据，别以"总数自洽"结案。
-3. **两项洁癖可并入下波**：`pickDerivation`（`scripts/check-status-inventory.js:197` 定义、`:607` 导出，零生产调用）与 `evidence-freshness.js:58` 疑似同构残留常量。
-4. **一项过程裁量**：返工用了 `git update-index --cacheinfo`（绕开 `but` 的索引写，复审报告 N4）。内容未损坏我已核验；是否追认为合法逃生舱、以及"GitButler 索引惰性写缺口"要不要立案，**都是 owner 裁**——我这边只到"三者一致"，未复现工具机制，故按未验类记。
+1. **owner 裁四件事**（复审报告 §4）：pack cap 重推导（我独立实测 `size 546,465 / entryCount 185`，`ceil_to_10_000(×1.10)=610,000` 算术成立；**注意本窗口修 run-gates 摘要行后包体再涨约 300 B，签署时以最终 settled 树实测为准**，须同 commit 改 ADR-0039 D3）；post-land 刷新时点；`audit-surface` 红的两条出路（我方 CI 面跑齐后具名贴 v1 块，或立法允许"部分覆盖声明"——**不得由返工窗口代贴审计窗口报告**）；F-5/F-11 `review_at` 偏离 + P1-9 CI `runner_ctx` dirty 位残量是否本轮实现。
+2. ~~seal 前收两项口径~~ **本窗口已处置**（详见复审报告 §8）：
+   - **N1 已修**：`scripts/run-gates.js` 摘要行改打 `53 legs + 1 guard(s) = 54 rows; N pass / N fail / N unverifiable`。54 的第二总体是 ADR-0093 D-4 的合成守卫行 `- tracked-surface`（`run-gates.js:472-477`）。**我方原判撤回**：返工报告的 `47 PASS` 在含守卫行口径下本就正确，"偏 1"是口径未标注而非错报。
+   - **N2 已闭合为非缺陷**：±1 skip 来自 corpus 分层（`resolveCorpus().tier === 'none'` → `skipTest('corpus tier none (ADR-0056 D-A)', …)`，见 `test/adr-0030.test.js:14-15`、`test/adr-0031-wiring.test.js:14-16`）；skip 是受治理的带理由判定（ADR-0057 D-A + `scripts/check-skip-reasons.js`），两种层级下的普查差合法。
+3. ~~两项洁癖~~ **撤回（我方误报）**：`pickDerivation` 是 ADR-0096 `:106` 精化句所立的**人工强验证探针**（注释明示其 prefer-HEAD 语义故意不被测试钉住，免退役契约读成现行）；`evidence-freshness.js:58` 的 `WORKSPACE_SUBJECT` 由 `scripts/check-map-freshness.js:128` 经 `fresh.WORKSPACE_SUBJECT` 消费。皆非残留。
+4. **一项过程裁量（仍开放，owner）**：返工用了 `git update-index --cacheinfo`（绕开 `but` 的索引写，复审报告 N4）。内容未损坏我已核验；是否追认为合法逃生舱、以及"GitButler 索引惰性写缺口"要不要立案，都是 owner 裁——我只到"三者一致"，未复现工具机制，按未验类记。另 N3（两项范围外文件处于 STAGED，他人在制品）本窗口未动。
+5. **本窗口新增的过程事实（下轮别再犯）**：门检运行期间编辑跟踪文件会被 ADR-0093 D-4 守卫如实判红（实测：`leg 208 rewrite-map mutated 1 tracked path(s): .scratch/grill-t38/reports/2026-10-07-loop-reaudit-report.md`）。**E-19 的"declare 前不得身处暴露窗"对审计窗口同样成立**——改完再跑，不要并行。
 
 ## 4. Suggested skills for the next session
 
