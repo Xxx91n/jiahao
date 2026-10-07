@@ -61,3 +61,23 @@
 ## 6. 本复审窗口的取证边界
 
 主树 settled 树 + 自建干净 clone（tip `5da26011`）两套自有证据；我的电池 run_id `gates.f8e08328457865f14a5fa3e0369bf2ab56c954ba.HEAD.dirty.2026-10-06T18-31-11.714Z`（rows 7 = 4 unverifiable + 3 fail）。未跑 CI 面命令，故本轮仍未出具 `audit-coverage v1` 块；未复现 GitButler 索引行为（只验一致性）；未核外部规范引用真值。
+
+## 7. 落地后新暴露的一处结构性缺陷（交 grill-t39；本窗口此后不再改动 main）
+
+落地全部完成后再跑终验，仍有两红属**新的结构问题**，不是本波实现缺陷：
+
+- 症状：`check-map-freshness`（腿 224）持续报 tip 地图缺 8 条"线上历史 claim 提交所做过"的引用行，点名 t37 resync 波对常驻任务书 `D:\Aworker\jiahao\.scratch\grill-t38\handoffs\next-round.md` 第 45 / 86 行上两个 token 的引用。
+- 实测根因：那两个 token **本身是可达 commit 对象**（`git cat-file -t` 皆为 commit），但常驻任务书在 t38 波被**就地覆写**，旧行连同其上的引用一并消失（在现文里出现次数 = 0）。地图由活体文档派生，因此永远产不出那 8 行；而腿恰恰要求覆盖历史 claim 提交的引用。
+- 已试的合法通道均不解除：`orphan-cites.js backfill`（追加 1 条）、`register`（要求对象可达——对象可达，但本例缺的不是可达性而是地图行）。`build-rewrite-map.js --check` 与 `--published-only` 重算后都 OK，只有 224 卡在这 8 行。
+- 定性：**可变 claim 面缺陷**。被历史 claim 引用的常驻任务书每轮改写，使"引用目标行"成为易碎面。两条出路（下轮烤透，属 Q-t39 的 (a) 支）：
+  1. 任务书改为**每轮新建、旧文冻结**（append-only 面），历史引用恒可原位解析；
+  2. 或给 224 加**已登记漂移**通道：引用目标行因声明过的面覆写而消失时以登记豁免，登记须写明覆写来源提交。
+- 连带效应（如实写明，非掩盖）：224 未解除前，任何"重算地图 → 落地"的循环都会在落地瞬间让 `rewrite-map`（208）重新判红，因为落地又推进一次 tip。所以本窗口把重算好的地图与登记面**留在一条待落 lane 上，不 land、不 push**，交给下轮连同 224 的修法一起收。
+
+## 8. 本窗口最终交付状态
+
+- `origin/main` 已含：落地波 R1-R6、一审 A1、返工 R1/R2、LOOP 复审与 closeout、以及两次 post-land resync。全为快进落地，**历史 sha 未被改写**，既有报告内引用继续有效。
+- grill-t38 的四条 lane 与两次 resync lane 均由 `but land` 自动清除；`but clean` 报无空分支。远端遗留的两条 t36 分支经核查**未并入 main**，本窗口未删（属他轮资产）。
+- 待落 lane（本窗口最后一次提交，刻意不 land）：重算的 `docs/rewrite-map.json`、`docs/governance/orphan-cites.json`、以及本节交接更新。
+- owner 未闭项仍为 §3 第 1/4 项所列；§4 四项治理裁量不变。
+
