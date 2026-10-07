@@ -163,3 +163,37 @@ docs/agents/domain.md.
   any gate or leg enforcing this must arrive through the Δ2/Declaration
   channel, never as a quiet tooling change. Cross-ref CONTEXT.md
   `Evidence-Tiered Readiness`.
+- Claim-registration prose cites a row id (ADR-0099 §P-A, grill-t39 D-006.1 - the prose
+  half of the defer-0089 cash-out): a committed sentence claiming a registration ("已登记
+  defer-NNNN") MUST name the row id, and the id must resolve inside the claim anchor
+  commit's tree of `docs/deferred-registry.json`, not in the worktree. A claim of
+  registration without a resolvable id is not a registration. The mechanical existence
+  leg is the implementation half and lands with the same contract (ADR-0095 D-B).
+- Prose anchor triple (ADR-0099 §P-C refines ADR-0096 §P-1; grill-t39 D-006.4): a prose
+  sentence carrying a mechanically-judgeable value MUST parenthesize the value, its
+  `run_id` back-reference, and the **instrument gauge name** - which counter produced the
+  number. Narrative sentences stay non-load-bearing and need not cite. Where a
+  summary-header count and a leg-level count measure different gauges, the divergence
+  carries a **yellow disclosure obligation**, never a red verdict; both readings may be
+  true of different objects, and the defect is a silent difference, not the difference.
+- `prose-density` report footer (ADR-0098 D-F; grill-t39 D-005.3/.4): reports carry a
+  fixed `prose-density` tail line of deterministic counts - pure disclosure, **no target
+  value**, and **existing text is never rewritten for the sake of a count**. Numbers come
+  from the counter, never from a model; a load-bearing sentence declares its purpose
+  per sentence (no document-class exemption licence); counts must not enter generation
+  instructions.
+- Intensity tier is generator-side only (grill-t39 D-003.6): `role` is chosen at install
+  time and `intensity` persists at runtime - two orthogonal axes - and the **verifier
+  profile carries no runtime intensity tier**, because a blocking audit surface may not
+  be weakened by the party under audit. Runtime role detection stays forbidden. Upstream
+  incident shapes are this feature's acceptance criteria: state namespaced per project,
+  `off` genuinely silent at every injection point, an invalid parameter preserving the
+  current mode.
+- Explicit exclusion domain on both faces (grill-t39 D-003.7): the verifier configuration's
+  Boundaries section names what it is not for (not generating coaching content, not
+  resident injection on hosts without hook capability, not non-audit tasks), and skill
+  descriptions carry the negative domain in the `Do NOT use for ...` form - the guard
+  against the Generator-Verifier Gap being eroded by scope creep.
+- Audit findings number continuously (grill-t39 D-003.8): a new audit report numbers its
+  findings continuously across the whole report so a later round can cite a finding by
+  number. Editorial convention, not a gate.

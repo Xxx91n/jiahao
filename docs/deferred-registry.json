@@ -1544,6 +1544,150 @@
         "date": "2026-10-07",
         "note": "registered in the rework wave (audit P0-7a) as the D-006.7 disposition the same hole had swallowed; the ADR-0096 section P-1 line now names this id"
       }
+    },
+    {
+      "id": "defer-0094",
+      "subject": "upstream yagni:/delete: label family - borrowable only behind a permanent scope fence",
+      "source_adr": "docs/adr/0097-upstream-borrowing-incorporation-inline-cap-comment-harvester-channel-intensity-tier-and-numeric-citation-ban.md",
+      "rationale": "grill-t39 D-003.3: the deferral reason is a disclosed conflict of interest, not a cost estimate - upstream's product position is 'delete the check' while this repository's product IS the check, so the six-token label vocabulary (delete/stdlib/native/reuse/yagni/shrink) points at governance weapons. Scope fence (permanent, not a deadline): governance ratchets, claim surfaces and fenced enumerations never enter a yagni:-style target set. The caller-check half of the same upstream item needs no borrowing because a mechanical equivalent already exists here (no second counter).",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a proposal arrives that widens the label machinery WITHOUT touching the scope fence - i.e. the vocabulary is adopted only for non-governance byte classes"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-10-07",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-10-07",
+        "note": "registered by grill-t39 ADR-0097 D-C in the documentation wave; the conflict of interest is stated in that ADR's Context rather than smoothed"
+      }
+    },
+    {
+      "id": "defer-0095",
+      "subject": "honest-boundary scoreboard body (control-arm experiment plus budget)",
+      "source_adr": "docs/adr/0097-upstream-borrowing-incorporation-inline-cap-comment-harvester-channel-intensity-tier-and-numeric-citation-ban.md",
+      "rationale": "grill-t39 D-003.4 splits the upstream scoreboard item: the honest-boundary half is adopted now as a prose-discipline rule (no invented per-repo benefit figure, no counterfactual claim, numbers attached only to a measurement surface; no gate consumes it), while the scoreboard body itself requires a control-arm experiment and a budget this round does not have. Registering the row keeps the obligation visible instead of dropping the second half with the first.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "a control-arm experiment (a plain-wording arm included) is funded and executed at the ADR-0029 D3 floor of n>=30; until then no per-repo benefit figure may be published and the scoreboard stays unmeasured"
+      },
+      "review_at": "2027-04-30",
+      "cadence_tier": "half-yearly",
+      "registered_at": "2026-10-07",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-10-07",
+        "note": "registered by grill-t39 ADR-0097 D-D; the n=4 upstream water line is explicitly not adopted (ADR-0097 D-E)"
+      }
+    },
+    {
+      "id": "defer-0096",
+      "subject": "host sunset / degrade channel - admission exists, removal does not",
+      "source_adr": "docs/adr/0097-upstream-borrowing-incorporation-inline-cap-comment-harvester-channel-intensity-tier-and-numeric-citation-ban.md",
+      "rationale": "grill-t39 D-003.9: two of the ten harvested deltas were rejected, and the genuine signal inside them is registered rather than lost. surface-taxonomy carries host_admission with no mechanical removal or degrade state, so an admitted host can never leave the matrix - a one-way door in a governance surface that otherwise requires a declared exit for everything.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "a host is declared unsupported, or the host_admission surface is asked to carry a sunset/degrade state rather than admission only"
+      },
+      "review_at": "2027-01-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-10-07",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-10-07",
+        "note": "registered by grill-t39 ADR-0097 D-I from rejected upstream item #9"
+      }
+    },
+    {
+      "id": "defer-0097",
+      "subject": "hook four-class incident self-check list for this repository's adapters",
+      "source_adr": "docs/adr/0097-upstream-borrowing-incorporation-inline-cap-comment-harvester-channel-intensity-tier-and-numeric-citation-ban.md",
+      "rationale": "grill-t39 D-003.9 second half: upstream's four hook incident classes convert into a local self-inspection checklist. The classes were induced from release notes because the upstream hooks/ sources were not read file-by-file (honest gap registered in ADR-0097 Boundaries), so the list must be re-derived against this repository's own adapter surface before it could gate anything; it is a review checklist, not a leg.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the four incident classes are enumerated against this repository's own hooks/adapters surface and the resulting checklist is adopted for review (no blocking leg is implied by this row)"
+      },
+      "review_at": "2027-01-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-10-07",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-10-07",
+        "note": "registered by grill-t39 ADR-0097 D-I from rejected upstream item #10; source-reading gap disclosed"
+      }
+    },
+    {
+      "id": "defer-0098",
+      "subject": "debt-marker harvester landing channel - registry rows vs derive-from-source (owner act)",
+      "source_adr": "docs/adr/0097-upstream-borrowing-incorporation-inline-cap-comment-harvester-channel-intensity-tier-and-numeric-citation-ban.md",
+      "rationale": "grill-t39 D-003.2: a parallel debt ledger is forbidden (the E-25 dual-channel disease), so the harvest lands either as deferred-registry rows or as an ADR-0091 derive-from-source artifact with its own freshness leg and --check regen-plus-diff. Both cases are prepared with costs named; the selection is an owner act and may not be bundled into the drafting wave. Independently legislated: the marker scan is a new enumeration surface carrying its own ADR carrier (t37-D-001 M-D), and the harvester must assert trigger completeness.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the owner selects a landing channel and records the selection; the enumeration surface then rides its own ADR carrier rather than this row"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-10-07",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-10-07",
+        "note": "registered by grill-t39 ADR-0097 D-B; also carried as item 5 of the owner handoff list"
+      }
+    },
+    {
+      "id": "defer-0099",
+      "subject": "existing unregistered load-bearing coinage population - batch descent with trigger and deadline",
+      "source_adr": "docs/adr/0098-grandiosity-fifth-semantics-debt-form-definition-coinage-triage-channel-ratchet-and-prose-density-disclosure.md",
+      "rationale": "grill-t39 D-004.4 ratchet form: NEW unregistered load-bearing terms are zero-tolerance, while the EXISTING population descends monotonically in batches consumed through deferred rows carrying trigger plus deadline (a warning without a deadline is suppressed debt). Census surface is finite and named: about 190 occurrences across more than fifteen rounds over 412 tracked files. On goal attainment the row is NOT deleted - the budget locks at zero, per the pre-registered betterer issue #1181 failure mode (goal met, baseline cleared, regression no longer reported).",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "a triager run over the five committed surfaces produces the batch list for a round; each batch closes with its own registered row, and neither the ratchet direction nor the budget-0 lock relaxes"
+      },
+      "review_at": "2027-01-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-10-07",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-10-07",
+        "note": "registered by grill-t39 ADR-0098 D-D; batch cost unmeasured, degrade condition pre-registered there"
+      }
+    },
+    {
+      "id": "defer-0100",
+      "subject": "check_channel existing-row backfill cost - pre-registered degrade condition",
+      "source_adr": "docs/adr/0099-disposition-evidence-closure-row-id-cash-out-optional-check-channel-and-the-prose-triple.md",
+      "rationale": "grill-t39 D-006.3: the migration is one-shot (backfill --dry-run, then the list, then owner confirmation, then a single commit) and both periodic agent-side backfill and partial backfill are forbidden - a schema-complete claim over partially migrated data is the self-referential defect itself. The cost across the roughly ninety existing rows is unmeasured at drafting time, so the degrade form is pre-registered: required on new rows, yellow disclosure on existing rows, and a trigger-side ratchet (a row missing the field gains no new trigger authority). The cost may be cut; the obligation may not.",
+      "unfreeze_if": {
+        "type": "presence-condition",
+        "check": "the backfill dry-run list is produced and its cost measured; exceeding the round budget activates the degrade form named in ADR-0099 section P-B instead of dropping the obligation"
+      },
+      "review_at": "2027-01-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-10-07",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-10-07",
+        "note": "registered by grill-t39 ADR-0099 section P-B; the field ships unclassified pending the owner's editorial-vs-fenced call"
+      }
+    },
+    {
+      "id": "defer-0101",
+      "subject": "audit-surface coverage red - two exits pending owner decision (mechanical paste vs partial-coverage declaration)",
+      "source_adr": "docs/adr/0099-disposition-evidence-closure-row-id-cash-out-optional-check-channel-and-the-prose-triple.md",
+      "rationale": "grill-t39 D-007.3(iii): the latest in-scope audit report's coverage block cannot cover the derived checklist, and the two exits differ in KIND. Re-running the CI face and pasting the full v1 block by name is a mechanical act; legislating a partial-coverage declaration is a legislative act. A list-only exit leaves an undated warning, which is ADR-0091 D-E stage-2 suppressed debt; a registry-only exit buries a blocking decision in a quarterly-polling queue. Hence the mixed form: the owner handoff list names both with costs, and this row carries the trigger.",
+      "unfreeze_if": {
+        "type": "external-event",
+        "check": "the owner chooses an exit; the legislative exit rides its own ADR plus countersign, and this row closes as actioned rather than being silently re-deferred"
+      },
+      "review_at": "2026-12-15",
+      "cadence_tier": "quarterly",
+      "registered_at": "2026-10-07",
+      "status": "pending-evaluation",
+      "last_check_in": {
+        "date": "2026-10-07",
+        "note": "registered by grill-t39 ADR-0099 section P-C transfers; leg 229 measured red at T-0 (run_id gates.f41af2f7bfdc61b74f4dcbebfaa841e79066533c.HEAD.dirty.2026-10-07T06-52-44.620Z)"
+      }
     }
   ]
 }

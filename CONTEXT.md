@@ -56,8 +56,10 @@ _Avoid_: G-V gap (spell it out)
 **Jiahao-style Behavior (嘉豪式行为)**:
 The anti-pattern behaviors jiahao targets: presumptuous completion (自以为是完成),
 self-comforting success (自我安慰跑通), delusion of competence (颅内高潮),
-showing off without doing real work (显摆不干活).
-_Avoid_: bad behavior, lazy agent (use the canonical term)
+showing off without doing real work (显摆不干活), and grandiosity (虚饰输出) -
+decorative fiction bearing load, depth simulated through term density and obscure
+sentence shape (ADR-0098 D-A).
+_Avoid_: bad behavior, lazy agent (use the canonical term); jargon policing (the fifth item names a lifecycle defect, not a vocabulary preference)
 
 **SufficiencyGate (充足性门)**:
 In anysearch-cli: "搜够了没" (retrieval sufficiency). In jiahao: "任务真完成了吗"
@@ -2830,4 +2832,49 @@ claim was true of the tree it measured at valid-time — so the repair is an anc
 declaration, not a prohibition on tree movement (ADR-0096 Context).
 _Avoid_: treating tree movement as falsification; one time axis for a claim and its measurement
 
-*End of Glossary*
+**Grandiosity (虚饰输出)** (grill-t39, ledger D-004):
+The fifth Jiahao-style semantics: decorative fiction bearing load - depth simulated
+through term density and obscure sentence shape. Defined as a **debt form**, not a
+verdict form: coinage is legal, and a violation is the conjunction of unregistered +
+three axes (frequency, distribution breadth, load-bearing semantics) + an unclosed
+lifecycle. Unregistered is a **neutral state** (Vale's accept/reject two-column
+precedent), so the violation point is "a high-frequency load-bearing term that never
+enters adjudication", never "unregistered" itself. Pure decorative piling belongs to
+the disclosure surface, not the violation surface (ADR-0098 D-A/D-B).
+_Avoid_: treating coinage as the offence; naming the defect "unregistered" (that is one criterion, not the behavior); a whole-style verdict (vetoed - not mechanically judgeable)
+
+**Unregistered Coinage (收词分诊通道)** (grill-t39, ledger D-004):
+The triage channel that surfaces high-frequency unregistered load-bearing terms.
+**Advisory, never blocking** (inheriting the ADR-0014 D1 wordlist-triage status);
+generator-side tool surface only, never a verifier leg. Two probe families: the word
+face (bilingual scan over five surfaces - ledger, report, ADR, AGENTS.md, CONTEXT.md)
+and the sentence face (count-type signals only: sentence-length distribution,
+construction density, symbol-squeeze frequency, long-sentence ratio - **counting,
+never scoring**, because no trustworthy readability formula exists for Chinese).
+Output goes to the owner's binary choice: register in CONTEXT.md, replace with a plain
+expression, or register a deferred row (ADR-0098 D-C/D-E).
+_Avoid_: 豁免阀 / "exemption valve" (forbidden wording, ADR-0100 D-C's law generalized); a word-list blocking detector (vetoed); a mechanical readability score; an agent-side term verdict
+
+**prose-density (散文密度尾行)** (grill-t39, ledger D-005):
+The fixed report footer line disclosing the sentence-shape counts of the report itself.
+Pure disclosure, never blocking (the Lexi pull-request footer-table shape). Numbers must
+come from a **deterministic counter**; a model interprets them and never generates them.
+Three safeguards: the footer sets **no target value** and existing text is not rewritten
+for the sake of a count (Goodhart / uniformity-slop defense); a load-bearing sentence's
+exemption is declared **per sentence**, never per document class; counts must not enter
+generation instructions (an injected live metric induces gaming). Adjudication strength
+layers by surface - strong for reports/handoffs, weak for ADR/CONTEXT, reference for
+ledgers (ADR-0098 D-E/D-F).
+_Avoid_: a target value or quota; promoting the footer into a gate; generating the numbers with a model; a document-class-wide exemption licence
+
+**Drift-Declaration Registry (漂移声明注册表)** (grill-t39, ledger D-002):
+`docs/governance/drift-declarations.json` - an append-only registry of **registered
+line-level drift declarations** (登记的行级漂移声明), consumed by the rewrite-map
+classifier **as a declared fact on the input side**, never as an exemption branch on the
+leg's judging path. Each entry names the citing claim commit, the overwriting source
+commit, and the restored line text verbatim; `registered_at` replaces `expires_at` (no
+TTL - a registered historical fact does not expire). A gate-close condition makes any
+entry added **after** the landing commit a red-level signal, so the artifact cannot decay
+into a standing channel. What it adjudicates is the line-level fact at the observation
+time point; it does not issue a licence for a breach (ADR-0100 D-C/D-D/D-G).
+_Avoid_: 豁免 / waiver wording (forbidden, ADR-0093 D-4); `expires_at` or any auto-lapse; an exemption leg inside the checker; treating the registry as a derived artifact to be "regenerated"
