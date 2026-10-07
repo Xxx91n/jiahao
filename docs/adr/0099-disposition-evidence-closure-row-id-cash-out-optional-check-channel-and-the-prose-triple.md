@@ -97,7 +97,9 @@ classification rather than with an unratified one.
   is registered rather than the exemption): if the measured cost exceeds the round's
   budget, the standing form becomes *"required on new rows + yellow disclosure on existing
   rows + a trigger-side ratchet (a row missing the field gains no new trigger authority)"*.
-  **The cost may be cut; the obligation may not.** Registered as `defer-0100`.
+  **The cost may be cut; the obligation may not.** The degrade form is carried by `defer-0100`
+  (a reference to the row this round's row family registers; §P-A is the sentence form that
+  asserts a registration act, and this one deliberately does not).
 
 ### §P-C — The prose triple and the gauge-difference disclosure
 

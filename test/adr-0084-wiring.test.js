@@ -121,6 +121,11 @@ describe('ADR-0084 public-clone verifiability contract (grill-t25 fix round)', (
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jh-0084-'));
     fs.mkdirSync(path.join(tmp, 'scripts'));
     fs.mkdirSync(path.join(tmp, 'src', 'shared'), { recursive: true });
+    // grill-t39 T-8: the generator now requires the drift-declaration core at
+    // module load, so the clone fixture must carry it or the probe reports a
+    // missing module instead of the old-side-refs UNVERIFIABLE it asserts.
+    fs.mkdirSync(path.join(tmp, 'scripts', 'shared'), { recursive: true });
+    fs.copyFileSync(path.join(ROOT, 'scripts', 'shared', 'drift-declarations.js'), path.join(tmp, 'scripts', 'shared', 'drift-declarations.js'));
     fs.mkdirSync(path.join(tmp, 'docs'), { recursive: true });
     fs.copyFileSync(path.join(ROOT, 'scripts', 'build-rewrite-map.js'), path.join(tmp, 'scripts', 'build-rewrite-map.js'));
     // ADR-0089 dependencies: the generator requires the shared git facade and

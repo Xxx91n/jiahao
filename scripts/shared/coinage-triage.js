@@ -113,7 +113,7 @@ const EN_STOPWORDS = Object.freeze(new Set([
 ]));
 
 function normalizeText(text) {
-  return String(text).replace(/^﻿/, '').replace(/\r\n?/g, '\n');
+  return String(text).replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
 }
 
 // Whole-line fenced code blocks removed (``` / ~~~ open, same fence char

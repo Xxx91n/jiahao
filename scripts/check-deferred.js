@@ -52,6 +52,13 @@ const TERMINAL = ['closed', 'actioned'];
 const TIERS = ['quarterly', 'half-yearly', 'yearly'];
 const TIER_DAYS = { quarterly: 92, 'half-yearly': 183, yearly: 365 };
 const DAY_MS = 86400000;
+// ADR-0099 section P-B (grill-t39 D-006.2): check_channel names WHERE a deferred
+// row's check actually runs. It is OPTIONAL on existing rows - a required field
+// would fire red across the whole existing population on day one, which is alarm
+// fatigue (ADR-0064), not an assertion. The enum is CLOSED and three-valued; a
+// fourth value is a fenced widening and rides ADR-0086 (an ADR plus a countersign),
+// pre-registered in section P-B so the first attempt meets a standing rule.
+const CHECK_CHANNELS = ['gate-leg', 'owner-only', 'mechanical-trigger'];
 
 function loadRegistry() {
   return JSON.parse(fs.readFileSync(path.join(ROOT, CFG_REL), 'utf8'));
@@ -92,6 +99,11 @@ function shapeExtras(e, tag, errors) {
       }
       if (typeof h.key_prefix !== 'string' || !h.key_prefix) errors.push(t2 + ': key_prefix must be a non-empty join-key prefix');
       if (!Number.isInteger(h.consecutive_runs) || h.consecutive_runs < 2) errors.push(t2 + ': consecutive_runs must be an integer >= 2 (per-row N - D-003.5, never a global constant)');
+    }
+  }
+  if (e.check_channel !== undefined) {
+    if (typeof e.check_channel !== 'string' || CHECK_CHANNELS.indexOf(e.check_channel) === -1) {
+      errors.push(tag + ': check_channel ' + JSON.stringify(e.check_channel) + ' outside the closed set [' + CHECK_CHANNELS.join(', ') + '] - a fourth channel value is a fenced widening and needs an ADR plus a countersign (ADR-0099 section P-B, ADR-0086 D-A)');
     }
   }
   if (e.reason_code_breakdown !== undefined) {
@@ -215,6 +227,12 @@ function validateDiscipline(cfg, now) {
       warnings.push(e.id + ': last_check_in ' + e.last_check_in.date + ' is older than one ' + e.cadence_tier + ' cycle (' + cyc + 'd) (ADR-0035 D3)');
     }
   }
+  // ADR-0099 section P-B (grill-t39 D-006.2): a missing check_channel is a YELLOW
+  // disclosure, never a red verdict. It is counted and named so the population
+  // still owing a channel stays visible while the one-shot migration waits on
+  // owner confirmation; the degrade form is pre-registered as defer-0100.
+  const unc = (cfg.entries || []).filter(function (e) { return e && typeof e.id === 'string' && TERMINAL.indexOf(e.status) === -1 && e.check_channel === undefined; });
+  if (unc.length) warnings.push('check_channel: ' + unc.length + ' live row(s) declare no check channel - yellow by design (ADR-0099 section P-B), the one-shot annotation migration is gated on owner confirmation, degrade form pre-registered as defer-0100');
   return warnings;
 }
 
@@ -302,4 +320,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { validateShape, validateEntries, validateDiscipline, evalSuggestions, checkCoupling, loadSources, TYPES, NON_EVALUABLE, EVALUABLE, STATUSES, TIERS, TIER_DAYS, daysBetween };
+module.exports = { validateShape, validateEntries, validateDiscipline, evalSuggestions, checkCoupling, loadSources, TYPES, NON_EVALUABLE, EVALUABLE, STATUSES, TIERS, TIER_DAYS, daysBetween, CHECK_CHANNELS };
