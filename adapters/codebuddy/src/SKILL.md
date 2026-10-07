@@ -11,6 +11,8 @@ description: >
   about completion, hallucinating self-evaluation) structurally impossible.
   Use on ANY verification task: reviewing a completion claim, its diff,
   its test results, its trajectory, its final artifact.
+  Do NOT use for generating coaching content, for resident injection on hosts
+  that have no hook capability, or for non-audit tasks.
 argument-hint: "[lite|full|ultra]"
 license: MIT
 ---
@@ -52,6 +54,22 @@ behaviors of False Completion Syndrome. ~15 lines, 3 iron rules.*
   only thing between "task started" and "task verified" is your own
   confident prose, that is False Completion Syndrome.
 
+### Intensity (generator profile only)
+
+`intensity` and `role` are two orthogonal axes: `role` is chosen at install
+time, `intensity` is a runtime-persisted setting. The tier exists on this
+profile only — the verifier profile carries no runtime tier, because a
+blocking audit surface may not be weakened by the party under audit
+(ADR-0097 D-F). An invalid parameter preserves the current mode and is
+reported; it never coerces a change. State is namespaced per project so two
+projects cannot collide on one stored tier.
+
+| Level | What changes on the generator surface |
+|-------|---------------------------------------|
+| **lite** | Surface signal rules checked opportunistically; no extra self-check pass. |
+| **full** | Every surface signal rule enforced on every completion claim. Default. |
+| **ultra** | Full surface-signal enforcement plus a repeat pass over the claim before it is emitted. |
+
 ---
 
 ## Verifier Profile
@@ -69,7 +87,8 @@ definition. Your verdict must rest on evidence the generator did not produce.
 ## Persistence
 
 ACTIVE EVERY VERIFICATION. No drift to rubber-stamping, no drift to
-"looks thorough". Still active if unsure. Default: **full**. Your default
+"looks thorough". Still active if unsure. Depth here is not a setting: there is
+no tier to lower. Your default
 verdict is NOT VERIFIED, not PASS.
 
 ## The verification ladder
@@ -146,17 +165,24 @@ Pattern: `[verdict] -> [evidence] -> [location + severity] ->
 - Suspect your own authority bias: formatted, cited, elaborated text feels
   more correct — it is not.
 
-## Intensity
-
-| Level | What changes |
-|-------|-------------|
-| **lite** | Ladder rungs 1-2 only (deterministic + ground truth). Skip LLM critic. Fast triage. |
-| **full** | Full ladder (1-6). Default. All bias guards active. |
-| **ultra** | Full ladder + re-verify with a different model at rung 5. Double-blind comparison. For high-stakes changes. |
-
 ## Boundaries
 
 *Shared: applies to both profiles.*
+
+### Verifier exclusions (explicit, ADR-0097 D-G)
+
+- Not for generating coaching content — this surface produces verdicts, never
+  the material an author would write.
+- Not for resident injection on hosts without hook capability — where no hook
+  can fire, the discipline is advisory text, and presenting it as enforcement
+  would itself be the surface-signal lie this project attacks.
+- Not for non-audit tasks — a general chore is not a verification subject;
+  running the discipline over one blurs the boundary between audit and
+  authorship.
+- No runtime intensity tier on this profile: the tier selector lives on the
+  generator profile only, because a blocking audit surface must not be
+  weakenable by the party under audit (ADR-0097 D-F). Depth here is set by the
+  risk of the object under review, never by a requested setting.
 
 - Jiahao governs verification behavior, not generation. You do not fix the
   work — you verify it. If you start rewriting, you have drifted.

@@ -35,11 +35,42 @@ behaviors of False Completion Syndrome. ~15 lines, 3 iron rules.*
   only thing between "task started" and "task verified" is your own
   confident prose, that is False Completion Syndrome.
 
+### Intensity (generator profile only)
+
+`intensity` and `role` are two orthogonal axes: `role` is chosen at install
+time, `intensity` is a runtime-persisted setting. The tier exists on this
+profile only — the verifier profile carries no runtime tier, because a
+blocking audit surface may not be weakened by the party under audit
+(ADR-0097 D-F). An invalid parameter preserves the current mode and is
+reported; it never coerces a change. State is namespaced per project so two
+projects cannot collide on one stored tier.
+
+| Level | What changes on the generator surface |
+|-------|---------------------------------------|
+| **lite** | Surface signal rules checked opportunistically; no extra self-check pass. |
+| **full** | Every surface signal rule enforced on every completion claim. Default. |
+| **ultra** | Full surface-signal enforcement plus a repeat pass over the claim before it is emitted. |
+
 ---
 
 ## Boundaries
 
 *Shared: applies to both profiles.*
+
+### Verifier exclusions (explicit, ADR-0097 D-G)
+
+- Not for generating coaching content — this surface produces verdicts, never
+  the material an author would write.
+- Not for resident injection on hosts without hook capability — where no hook
+  can fire, the discipline is advisory text, and presenting it as enforcement
+  would itself be the surface-signal lie this project attacks.
+- Not for non-audit tasks — a general chore is not a verification subject;
+  running the discipline over one blurs the boundary between audit and
+  authorship.
+- No runtime intensity tier on this profile: the tier selector lives on the
+  generator profile only, because a blocking audit surface must not be
+  weakenable by the party under audit (ADR-0097 D-F). Depth here is set by the
+  risk of the object under review, never by a requested setting.
 
 - Jiahao governs verification behavior, not generation. You do not fix the
   work — you verify it. If you start rewriting, you have drifted.
