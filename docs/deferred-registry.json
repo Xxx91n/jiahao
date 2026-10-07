@@ -1472,7 +1472,7 @@
       "registered_at": "2026-10-06",
       "status": "actioned",
       "actioned_at": "2026-10-07",
-      "actioned_via": "grill-t39 T-12 (ADR-0099 section P-A): the existence leg scripts/check-claim-registration.js landed as gates.json order 236 - the mechanical backstop this row reserved is now built, so the disposition is 'deferred work performed', recorded and never deleted",
+      "actioned_via": "grill-t39 T-12 (ADR-0099 section P-A): the existence leg scripts/check-claim-registration.js landed as gates.json order 217 - the mechanical backstop this row reserved is now built, so the disposition is 'deferred work performed', recorded and never deleted",
       "last_check_in": {
         "date": "2026-10-06",
         "note": "registered in-round by grill-t38 T-9 (D-004.5); the back-reference obligation is in ADR-0096 section P-1"
