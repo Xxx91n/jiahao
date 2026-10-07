@@ -81,3 +81,5 @@
 - 待落 lane（本窗口最后一次提交，刻意不 land）：重算的 `docs/rewrite-map.json`、`docs/governance/orphan-cites.json`、以及本节交接更新。
 - owner 未闭项仍为 §3 第 1/4 项所列；§4 四项治理裁量不变。
 
+> **resolved by grill-t39 D-002**（2026-10-07，追加行，非改写）：本节 §7 的结构性缺陷已按 (a)+(b′) 双半边裁处并落地——常驻任务书改为按轮冻结、固定名文件退化为一行指针（`docs/adr/0100-…` D-A），§7 点名的 8 行走「登记的行级漂移声明」通道进入**分类器输入侧**而非腿判定侧（同 ADR D-C/D-D/D-F，落地为 `docs/governance/drift-declarations.json`）。§7 原文出现的「登记豁免」措辞依 ADR-0100 D-C 的法定措辞作废（禁 豁免/waiver 措辞，ADR-0093 D-4），原文保留不改。§8 所述待落 lane 的处置＝grill-t39 T-9：本节 §7/§8 落地，`docs/rewrite-map.json` hunk 丢弃并在 T-8 原子落地收尾时最后重生成，`docs/governance/orphan-cites.json` hunk 丢弃后经 `orphan-cites.js register` 显式动词重登记 `fe190b65`（登记面不得当派生工件「重生成」，ADR-0089 D-D）。
+
