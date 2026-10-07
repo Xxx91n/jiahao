@@ -15390,6 +15390,360 @@
       "object_purged_at": "2026-10-05T09:34:17.834Z",
       "errata_ref": null,
       "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "5870d7f8dea2f0367573825552414a939d5bf5e7",
+      "object_type": "commit",
+      "size": 467,
+      "snapshot": {
+        "subject": "grill-t38 landing wave R3 (gates): register three legs - expected-red(233) / comment-refs(234) / status-inventory(235, assert leg last); source_adr single value = ADR-0095",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1791299666 +0800",
+        "committer_ts": 1791299666,
+        "parents": [
+          "4a1a06c1c54ea4cb7bc505008024dfcc634c9e39"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/handoffs/2026-10-07-audit-handoff.md",
+          "line": 24
+        },
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-audit-report.md",
+          "line": 64
+        },
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-audit-report.md",
+          "line": 65
+        },
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-audit-report.md",
+          "line": 92
+        },
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-audit-report.md",
+          "line": 120
+        },
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-audit-report.md",
+          "line": 126
+        }
+      ],
+      "registered_at": "2026-10-07T01:13:46.218Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "efa91eca49b4193052866671b72c5750747c8b03",
+      "object_type": "commit",
+      "size": 1052,
+      "snapshot": {
+        "subject": "GitButler Workspace Commit",
+        "author": "GitButler <gitbutler@gitbutler.com> 1791299666 +0800",
+        "committer_ts": 1791299668,
+        "parents": [
+          "5870d7f8dea2f0367573825552414a939d5bf5e7",
+          "dabf82c2e4f7350f357e276ca00cdedce93a7916"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/handoffs/2026-10-07-audit-handoff.md",
+          "line": 24
+        },
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-audit-report.md",
+          "line": 64
+        },
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-audit-report.md",
+          "line": 152
+        }
+      ],
+      "registered_at": "2026-10-07T01:13:46.218Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "f8e08328457865f14a5fa3e0369bf2ab56c954ba",
+      "object_type": "commit",
+      "size": 1080,
+      "snapshot": {
+        "subject": "GitButler Workspace Commit",
+        "author": "GitButler <gitbutler@gitbutler.com> 1791303123 +0800",
+        "committer_ts": 1791310569,
+        "parents": [
+          "5da260112f9bc68ab541b77828ca08f8b2ba0037"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/handoffs/2026-10-07-loop-handoff.md",
+          "line": 52
+        },
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-loop-reaudit-report.md",
+          "line": 16
+        }
+      ],
+      "registered_at": "2026-10-07T01:13:46.218Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "e25640fc3dfa3f3f06e6761e1deff5bbc3e95d8b",
+      "object_type": "commit",
+      "size": 869,
+      "snapshot": {
+        "subject": "GitButler Workspace Commit",
+        "author": "GitButler <gitbutler@gitbutler.com> 1791291864 +0800",
+        "committer_ts": 1791291864,
+        "parents": [
+          "fa654a0549685077028d6b9589b0f39300deb071"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-06-report.md",
+          "line": 31
+        }
+      ],
+      "registered_at": "2026-10-07T01:13:46.218Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "efa91eca49b4193052866671b72c5750747c8b03",
+      "object_type": "commit",
+      "size": 1052,
+      "snapshot": {
+        "subject": "GitButler Workspace Commit",
+        "author": "GitButler <gitbutler@gitbutler.com> 1791299666 +0800",
+        "committer_ts": 1791299668,
+        "parents": [
+          "5870d7f8dea2f0367573825552414a939d5bf5e7",
+          "dabf82c2e4f7350f357e276ca00cdedce93a7916"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-audit-report.md",
+          "line": 33
+        }
+      ],
+      "registered_at": "2026-10-07T01:13:46.218Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "efa91eca49b4193052866671b72c5750747c8b03",
+      "object_type": "commit",
+      "size": 1052,
+      "snapshot": {
+        "subject": "GitButler Workspace Commit",
+        "author": "GitButler <gitbutler@gitbutler.com> 1791299666 +0800",
+        "committer_ts": 1791299668,
+        "parents": [
+          "5870d7f8dea2f0367573825552414a939d5bf5e7",
+          "dabf82c2e4f7350f357e276ca00cdedce93a7916"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-audit-report.md",
+          "line": 33
+        }
+      ],
+      "registered_at": "2026-10-07T01:13:46.218Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "4a1a06c1c54ea4cb7bc505008024dfcc634c9e39",
+      "object_type": "commit",
+      "size": 1573,
+      "snapshot": {
+        "subject": "grill-t38 landing wave R2 (impl): T-3 emit-side anchor; T-4 assertion-leg double-assertion separation (own-run_id addressing, freshness via shared lastClaimMutation, disambiguation three rules, prefer-HEAD retired to drift surface); T-5 lastClaimMutation lifted to scripts/shared; T-6 P-2 set anchor (orphanAncestry default to live-branch set + liveAnchorRefs); T-7 N-3 emit full block + --advisories + loop-back pinning test; coupled re-pins: test-manifest 101 suites (via --junit), rewrite-map regen, g6 replay log, adr-0074 tip re-pin, adr-0033 seed list, contract-vocab regen (F-10)",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1791299664 +0800",
+        "committer_ts": 1791299664,
+        "parents": [
+          "0b7bfb6866d40f556c2faee0d6de2d94d3778698"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-audit-report.md",
+          "line": 64
+        },
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-audit-report.md",
+          "line": 65
+        },
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-audit-report.md",
+          "line": 66
+        },
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-audit-report.md",
+          "line": 73
+        }
+      ],
+      "registered_at": "2026-10-07T01:13:46.218Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "40b2e40f144369a7ff573a95888f7ad6e1eae103",
+      "object_type": "commit",
+      "size": 2037,
+      "snapshot": {
+        "subject": "grill-t38 audit wave A1 (report + handoff): second-party audit of the landing wave - VERDICT FAIL, rework ordered",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1791303122 +0800",
+        "committer_ts": 1791303336,
+        "parents": [
+          "0b7bfb6866d40f556c2faee0d6de2d94d3778698"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-loop-reaudit-report.md",
+          "line": 63
+        }
+      ],
+      "registered_at": "2026-10-07T01:13:46.218Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "98dd122d135c2436a4c11da261f00c1ab0d8e465",
+      "object_type": "commit",
+      "size": 1080,
+      "snapshot": {
+        "subject": "GitButler Workspace Commit",
+        "author": "GitButler <gitbutler@gitbutler.com> 1791303123 +0800",
+        "committer_ts": 1791309734,
+        "parents": [
+          "cf7c9be1e7ac05faac250ea3fae403bcf67c86fc"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-rework-report.md",
+          "line": 19
+        }
+      ],
+      "registered_at": "2026-10-07T01:13:46.218Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "f590b362b454d3283609a91668a3988ebcd55f10",
+      "object_type": "blob",
+      "size": 14677,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-rework-report.md",
+          "line": 76
+        }
+      ],
+      "registered_at": "2026-10-07T01:13:46.218Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "9e51a557062a2cb22396fb77332630c6b3f9f981",
+      "object_type": "blob",
+      "size": 12250,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/reports/2026-10-07-rework-report.md",
+          "line": 76
+        }
+      ],
+      "registered_at": "2026-10-07T01:13:46.218Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "d67d90dc2e0462b551478c932b29b6e11787e778",
+      "object_type": "commit",
+      "size": 1128,
+      "snapshot": {
+        "subject": "GitButler Workspace Commit",
+        "author": "GitButler <gitbutler@gitbutler.com> 1791303123 +0800",
+        "committer_ts": 1791305490,
+        "parents": [
+          "40b2e40f144369a7ff573a95888f7ad6e1eae103",
+          "fe190b6548272b5943c46822b4e93016c2eb60a9"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": "docs/deferred-registry.json",
+          "line": 1458
+        }
+      ],
+      "registered_at": "2026-10-07T01:13:46.218Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "fd33b25c",
+      "object_type": null,
+      "size": null,
+      "snapshot": null,
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/decision-ledger.md",
+          "line": 30
+        }
+      ],
+      "registered_at": "2026-10-07T01:13:46.218Z",
+      "reason": "grill-t32 cutover backfill (ADR-0089 D-G)",
+      "carried_log": [],
+      "object_purged_at": "2026-10-07T01:13:46.218Z",
+      "errata_ref": null,
+      "disposition": "orphaned"
     }
   ]
 }

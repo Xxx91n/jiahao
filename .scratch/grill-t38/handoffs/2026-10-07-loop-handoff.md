@@ -8,18 +8,29 @@
 
 `D:\Aworker\jiahao` 上 grill-t38 波已成形为线性三 lane 且硬验收可复现；卡在 owner 的四项裁量与两项报告口径修正上，未 push、未 seal。
 
+> **2026-10-07 终态更新（本窗口执行，owner 授权）**：小问题已修（§3 第 2 项），lane 口径已统一，**四条 lane 已整体落地并推送到 `origin/main`**，本地/工作区分支已由 `but land` 自动清除。下一轮 grill 从 §3/§5 起步。
+>
+> - 落地链：`origin/main = main = 6b621fd4`（`grill-t38 LOOP closeout`），其下 `100de46c`（LOOP 复审）、`5da26011`/`cf7c9be1`（返工 R2/R1）、`cd757b96`（一审 A1）、`dabf82c2…`（落地波 R1-R6）、`fa654a05`（定稿归档），共 12 个 grill-t38 提交。
+> - **快进落地，sha 未被改写**：返工报告引用的 `cf7c9be1 / 5da26011` 与一审的 `dabf82c2 / cd757b96` 逐一核过仍在 `origin/main` 历史上，无 orphan pin。
+> - 分支删除：`grill-t38-docs / -audit / -impl / -loop` 已不在工作区（`but clean` → No empty branches found）。**远端遗留的 `origin/grill-t36-fixes`、`origin/grill-t36-impl` 经核查未并入 main，属他轮资产，本窗口不删。**
+> - **未 seal**：`.scratch/grill-t38/SEAL` 仍不存在；seal 授权属 owner，且受 §3 第 1 项四项裁量制约。
+> - 落地后 settled 树验收（本窗口重跑，见 §6）：`gate:all exit 1 (53 legs + 1 guard(s) = 54 rows; 47 pass / 3 fail / 4 unverifiable)`，三红全为 owner-scope；`npx jest --ci` → 1 failed / 100 passed / 101 suites，1 failed / 1777 passed / 1778 tests，唯一红为 pack cap。
+
 ## 2. 版本状态（别在这里改别人的 lane）
 
-```
-0b7bfb68 (origin/main)
-  └─ grill-t38-docs   lop → lmo → tvm → lkr → zlq (tip dabf82c2)
-      └─ grill-t38-audit  cd757b96 (A1，一审报告+handoff+registry 行)
-          └─ grill-t38-impl  lsl → szp → cf7c9be1 (返工 R1, 19f) → 5da26011 (返工 R2, 2f)
-              └─ grill-t38-loop  本轮复审报告 + handoff + registry 行（栈顶，新建）
-```
-`but commit` 到 mid-stack 会重排其上各 lane 的 sha —— 要在链上追加时**永远叠在栈顶**，或先确认无人引用旧 sha。
+**落地后现状（2026-10-07）**：四条 grill-t38 lane 已整体 `but land` 进 `origin/main`（`6b621fd4`）并被自动清除，工作区无 grill-t38 分支。下一轮请**新建自己的 lane**（`but commit -b grill-t39-…`），别再找这四条。
 
-工作树里属于他人的在制品（勿提交、勿丢弃）：`docs/adr/0094-*.md`、`test/post-land-sentinel.test.js`（现在两者是 **STAGED** `M `，见复审报告 N3）、`.scratch/grill-t23|t27|t28|t36` 残留（`??`）。
+落地前的栈形（供追溯，快进未改 sha）：
+
+```
+0b7bfb68 (落地前的 origin/main)
+  └─ grill-t38-docs   lop → lmo → tvm → lkr → zlq (dabf82c2)
+      └─ grill-t38-audit  cd757b96 (一审 A1)
+          └─ grill-t38-impl  lsl → szp → cf7c9be1 (返工 R1) → 5da26011 (返工 R2)
+              └─ grill-t38-loop  100de46c (复审) → 6b621fd4 (closeout，现 main)
+```
+
+工作树里属于他人的在制品（勿提交、勿丢弃）：`docs/adr/0094-*.md`、`test/post-land-sentinel.test.js`（两者当前处于 **STAGED** `M `，见复审报告 N3/交接 §3.4）、`.scratch/grill-t23|t27|t28|t36` 残留（`??`）。
 
 ## 3. 下一个窗口该做的（按序）
 
