@@ -15744,6 +15744,26 @@
       "object_purged_at": "2026-10-07T01:13:46.218Z",
       "errata_ref": null,
       "disposition": "orphaned"
+    },
+    {
+      "cited_sha": "fe190b6548272b5943c46822b4e93016c2eb60a9",
+      "object_type": "commit",
+      "size": 467,
+      "snapshot": {
+        "subject": "grill-t38 landing wave R3 (gates): register three legs - expected-red(233) / comment-refs(234) / status-inventory(235, assert leg last); source_adr single value = ADR-0095",
+        "author": "Euiop1 <iz0ms@Euiop1.oi> 1791299666 +0800",
+        "committer_ts": 1791305490,
+        "parents": [
+          "39cb9fa26b97df20176a7b1bad1ac5a68b650437"
+        ]
+      },
+      "last_reachable_via": [],
+      "successor_sha": null,
+      "cite_locations": [],
+      "registered_at": "2026-10-07T07:29:29.584Z",
+      "reason": "grill-t39 T-8 re-registration (ADR-0100 D-F): the prep lane carried this entry as a backfill side-effect and its hunk is deliberately discarded per D-007.1; registration is a deliberate act through the explicit verb, never a derived-artifact regeneration. The cited commit is a lane-era gates commit whose refs no longer reach it; the three contract-vocab.json citations stay, now adjudicated by this entry.",
+      "carried_log": [],
+      "disposition": "orphaned"
     }
   ]
 }

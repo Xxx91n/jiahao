@@ -274,6 +274,28 @@
       ]
     },
     {
+      "id": "json:drift-declarations",
+      "source": "docs/governance/drift-declarations.json",
+      "members": [
+        "a007aacb9e887cd02c907617a45ad95135b0958b",
+        "cite_locations",
+        "cited_by",
+        "cited_sha",
+        "declared_by",
+        "entries",
+        "fa654a0549685077028d6b9589b0f39300deb071",
+        "file",
+        "id",
+        "line",
+        "overwritten_by",
+        "reason",
+        "registered_at",
+        "schema_version",
+        "source_adr",
+        "text"
+      ]
+    },
+    {
       "id": "json:expected-red",
       "source": "docs/governance/expected-red.json",
       "members": [
@@ -485,6 +507,7 @@
         "anchor",
         "anchor_subject",
         "c828b67c28a9c5284e54c1886fc6cf3a9dcb68d2",
+        "dcf290009ba78aa2a872376321bba74a8db13792",
         "entries",
         "generated_at",
         "generated_by",
@@ -2146,6 +2169,7 @@
     "ci",
     "ci-mode",
     "cite_locations",
+    "cited_by",
     "cited_sha",
     "claim_surfaces",
     "class",
@@ -2267,6 +2291,7 @@
     "dc9d4e3",
     "dc9d4e348e62688c5138f47225e6f7686a7ee9f4",
     "dcac5d356e884b52674d484c56b0eaa370a1f0fa",
+    "dcf290009ba78aa2a872376321bba74a8db13792",
     "dd187f671a948c01dbb3c4a74aeb950268eb0351",
     "dd31085",
     "dd3a9bb",
@@ -2679,6 +2704,7 @@
     "orphaned",
     "orphaned-cite",
     "oversized_disclosed",
+    "overwritten_by",
     "pack",
     "pack:smoke",
     "params",

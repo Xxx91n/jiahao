@@ -46,6 +46,7 @@ const path = require('path');
 const { requireCapabilities } = require('../src/shared/capability');
 const fresh = require('./evidence-freshness');
 const rm = require('./build-rewrite-map');
+const dd = require('./shared/drift-declarations');
 
 const ROOT = path.join(__dirname, '..');
 const SELF_REL = 'scripts/check-map-freshness.js';
@@ -459,7 +460,28 @@ function main(argv) {
     for (const e of cov.errors) console.error('FAIL: ' + e);
     const cons = checkTipConsistency(ROOT_OVERRIDE, { tip: tip });
     for (const e of cons) console.error('FAIL: ' + e);
-    if (cov.errors.length || cons.length) process.exit(1);
+    // ADR-0100 D-C/D-D (grill-t39 D-002): the drift-declaration registry is the
+    // classifier's fifth declared fact, and this leg is the consumer that both
+    // discloses it and enforces its gate-close condition. Disclosed on the
+    // blocking path (not only on failure) because a silently-consumed input is
+    // indistinguishable from an absent one - the same visibility obligation that
+    // keeps the advisory channel from rotting (ADR-0091 D-004).
+    const driftLoaded = dd.loadDeclared({
+      root: ROOT_OVERRIDE,
+      ref: judged === null ? undefined : String(judged),
+      commitBound: true,
+      fromWorktree: tip === null,
+    });
+    const driftErrs = driftLoaded.parseError
+      ? ['map-freshness: ' + dd.REGISTRY_REL + ' unparseable: ' + driftLoaded.parseError]
+      : dd.gateCloseErrors(ROOT_OVERRIDE, driftLoaded.registry);
+    for (const e of driftErrs) console.error('FAIL: ' + e);
+    if (driftLoaded.registry) {
+      console.log('[map-freshness] drift declarations: ' + dd.declaredOccurrences(driftLoaded.registry).length +
+        ' registered line-level drift declaration key(s) consumed from ' + driftLoaded.source +
+        (driftLoaded.note ? '; forward-only read note: ' + driftLoaded.note : ''));
+    }
+    if (cov.errors.length || cons.length || driftErrs.length) process.exit(1);
     console.log('[map-freshness] OK: tip map (' + label + ') covers ' + cov.checked + ' claim commit(s) (' + cov.missing.length +
       ' uncovered citation(s), ' + cov.rows + ' map row(s)) - authority per grill-t35 D-005');
   }

@@ -57,6 +57,14 @@ const SELF = 'docs/rewrite-map.json';
 // successor_sha), not claims needing adjudication - scanning them would
 // recurse the parent's unreachable ancestor chain into the registry.
 const REGISTRY_INPUT = 'docs/governance/orphan-cites.json';
+// ADR-0100 D-C (grill-t39 D-002): the drift-declaration registry is the FIFTH
+// declared fact on the classifier's INPUT side. Its hex literals (cited_sha,
+// cited_by, overwritten_by) are payload fields, not claims, so it is exempt from
+// the citation scan for the same reason the orphan registry is - scanning it
+// would chase every registered line fact's own citation into the map.
+const DRIFT_REGISTRY_INPUT = 'docs/governance/drift-declarations.json';
+const isScanExcluded = (f) => f === SELF || f === REGISTRY_INPUT || f === DRIFT_REGISTRY_INPUT;
+const dd = require('./shared/drift-declarations');
 const HEX_RE = /(^|[^0-9a-zA-Z_])([0-9a-f]{7,40})(?![0-9a-zA-Z_])/g;
 // grill-t35 D-003 delta2 / audit M-5: the bilingual mirror is a CITED doc
 // surface. README-zh-CN.md carries translation-baseline shas - including the
@@ -153,7 +161,7 @@ function scanDocTokens() {
   const files = Array.from(new Set(
     git(['ls-files']).split('\n').concat(git(['ls-tree', '-r', 'HEAD', '--name-only']).split('\n'))
   )).map(function (x) { return x.trim(); }).filter(Boolean)
-    .filter(function (f) { return f !== SELF && f !== REGISTRY_INPUT && DOC_PATH_RE.test(f) && DOC_EXT_RE.test(f); }).sort();
+    .filter(function (f) { return !isScanExcluded(f) && DOC_PATH_RE.test(f) && DOC_EXT_RE.test(f); }).sort();
   const out = [];
   for (const f of files) {
     const abs = path.join(_root, f.split('/').join(path.sep));
@@ -195,7 +203,7 @@ function scanDocTokensAt(root, ref) {
     const m = /^(.*?):(\d+):([\s\S]*)$/.exec(line.slice(prefix.length));
     if (!m) throw new Error('unparseable git grep row at ' + ref + ': ' + line.slice(0, 80));
     const f = m[1], li = Number(m[2]), text = m[3];
-    if (f === SELF || f === REGISTRY_INPUT || !DOC_PATH_RE.test(f) || !DOC_EXT_RE.test(f)) continue;
+    if (isScanExcluded(f) || !DOC_PATH_RE.test(f) || !DOC_EXT_RE.test(f)) continue;
     HEX_RE.lastIndex = 0;
     let hm;
     while ((hm = HEX_RE.exec(text))) {
@@ -254,7 +262,7 @@ function scanDocTokensAtMany(root, refs) {
       const m = /^(.*?):(\d+):([\s\S]*)$/.exec(rest);
       if (!m) throw new Error('unparseable git grep row at ' + rev + ': ' + line.slice(0, 80));
       const f = m[1], li = Number(m[2]), body = m[3];
-      if (f === SELF || f === REGISTRY_INPUT || !DOC_PATH_RE.test(f) || !DOC_EXT_RE.test(f)) continue;
+      if (isScanExcluded(f) || !DOC_PATH_RE.test(f) || !DOC_EXT_RE.test(f)) continue;
       HEX_RE.lastIndex = 0;
       let hm;
       while ((hm = HEX_RE.exec(body))) {
@@ -345,8 +353,38 @@ function objectMtime(sha, type) {
 // within a line, in-text order is kept (the HEX_RE loop runs left to right).
 // buildInner and the coverage re-scan in verifyPublishedOnly both call THIS, so
 // the recorded set and the set coverage judges can never drift into two reads.
-function generationOccurrences(root, ref) {
-  return scanDocTokensAt(root, ref).sort(function (a, b) {
+function generationOccurrences(root, ref, opts) {
+  const o = opts || {};
+  const scanned = scanDocTokensAt(root, ref);
+  // ADR-0100 D-C (grill-t39 D-002): registered line-level drift declarations are
+  // a declared fact consumed HERE, on the input side - never as an exemption
+  // branch inside a judging leg. Unioning them at the single shared read keeps
+  // the row builder, the coverage judge and `--check` on one occurrence set;
+  // two reads is exactly how a recorded row and a judged row drift apart
+  // (the grill-t35 D-005 registry-source lesson, applied to the new surface).
+  const loaded = dd.loadDeclared({
+    root: root,
+    ref: ref,
+    commitBound: !!o.commitBound,
+    fromWorktree: !!o.registryFromWorktree,
+  });
+  const declared = dd.declaredOccurrences(loaded.registry);
+  // The scan rows are carried VERBATIM - a line citing the same object twice is
+  // two occurrences, and narrowing that here would silently rewrite the
+  // recorded occurrence semantics instead of extending the input set (measured
+  // at landing: deduping the scan dropped 177 rows, which is a semantic change
+  // this clause has no mandate to make). Only the declared side is deduplicated
+  // against what the tree already provides.
+  const scannedKeys = {};
+  for (const occ of scanned) scannedKeys[occ.file + ':' + occ.line + ':' + occ.sha] = 1;
+  const out = scanned.slice();
+  for (const occ of declared) {
+    const k = occ.file + ':' + occ.line + ':' + occ.sha;
+    if (scannedKeys[k]) continue;
+    scannedKeys[k] = 1;
+    out.push({ file: occ.file, line: occ.line, sha: occ.sha });
+  }
+  return out.sort(function (a, b) {
     if (a.file !== b.file) return a.file < b.file ? -1 : 1;
     return a.line - b.line;
   });
@@ -692,7 +730,30 @@ function verifyPublishedOnly(map, newRef, opts) {
   // the TREE OF newRef - the same tree generation read - so "coverage" can no
   // longer mean "coverage of whatever files happen to be checked out here"
   // (the workspace-union read that let a map describe a tree it never read).
-  const live = ((opts && opts.occurrences) || generationOccurrences(vRoot, newRef)).map(function (o) { return o.file + ':' + o.line + ':' + o.sha; }).sort();
+  // ADR-0100 D-C (grill-t39): registered line-level drift declarations are
+  // declared occurrences, so they join the coverage set the map is judged
+  // against - read from the SAME revision as the map they adjudicate (the
+  // grill-t35 D-005 registry-source rule: map and registry from one tree, or
+  // every declared row reads as a phantom).
+  const driftRead = { commitBound: commitBound, registryFromWorktree: !!(opts && opts.registryFromWorktree) };
+  const driftDeclared = dd.declaredOccurrences(dd.loadDeclared(Object.assign({ root: vRoot, ref: newRef }, driftRead)).registry);
+  const liveBase = (opts && opts.occurrences) || generationOccurrences(vRoot, newRef, driftRead);
+  // Duplicate occurrences are preserved (a line citing the same object twice is
+  // two rows in the recorded set), so the comparison stays byte-equal for trees
+  // that have nothing to do with drift. Declared keys join only when the caller
+  // handed over a raw tree scan - the generation path already unioned them.
+  const liveArr = liveBase.map(function (o) { return o.file + ':' + o.line + ':' + o.sha; });
+  if (opts && opts.occurrences) {
+    const haveDeclared = {};
+    for (const k of liveArr) haveDeclared[k] = 1;
+    for (const o of driftDeclared) {
+      const k = o.file + ':' + o.line + ':' + o.sha;
+      if (haveDeclared[k]) continue;
+      haveDeclared[k] = 1;
+      liveArr.push(k);
+    }
+  }
+  const live = liveArr.sort();
   const recorded = docRefs.map(function (d) { return d.file + ':' + d.line + ':' + d.sha; }).sort();
   if (JSON.stringify(live) !== JSON.stringify(recorded)) {
     const have = {}; recorded.forEach(function (k) { have[k] = 1; });
@@ -710,6 +771,25 @@ function verifyPublishedOnly(map, newRef, opts) {
       : recorded.filter(function (k) { return !liveSet[k]; });
     if (missing.length) errs.push('doc citation coverage differs (first missing: ' + missing.slice(0, 5).join(', ') + ')');
     if (phantom.length) errs.push('map records cites absent from the commit tree on live files (first: ' + phantom.slice(0, 5).join(', ') + ')');
+  }
+  // ADR-0100 D-C clone-face consistency, the ADR-0089 D-H pattern applied to the
+  // new declared fact: a row admitted only because a line-level drift
+  // declaration registers it MUST resolve to an entry in the registry the map
+  // was built from. Declared rows with no registry behind them are fail-closed
+  // red - the input side never becomes a place a phantom can park.
+  const treeOnlyKeys = {};
+  for (const o of liveBase) treeOnlyKeys[o.file + ':' + o.line + ':' + o.sha] = 1;
+  const driftRows = docRefs.filter(function (d) { return !treeOnlyKeys[d.file + ':' + d.line + ':' + d.sha]; });
+  if (driftRows.length) {
+    if (!driftDeclared.length) {
+      errs.push('doc_refs carry ' + driftRows.length + ' row(s) absent from the tree scan with no registered line-level drift declaration to resolve them (first: ' + driftRows.slice(0, 3).map(function (d) { return d.file + ':' + d.line + ':' + d.sha; }).join(', ') + ') - ' + dd.REGISTRY_REL + ' absent, unparseable, or read from a revision that does not carry the registration (ADR-0100 D-C, fail-closed)');
+    } else {
+      const declaredKeys = {};
+      for (const o of driftDeclared) declaredKeys[o.file + ':' + o.line + ':' + o.sha] = 1;
+      for (const d of driftRows) {
+        if (!declaredKeys[d.file + ':' + d.line + ':' + d.sha]) errs.push('doc_refs row ' + d.file + ':' + d.line + ':' + d.sha + ' is neither in the tree nor a registered line-level drift declaration (phantom row, ADR-0100 D-C)');
+      }
+    }
   }
   const counts = map.counts || {};
   const expect = {
@@ -937,4 +1017,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { build, verify, verifyPublishedOnly, scanDocTokens, scanDocTokensAt, scanDocTokensAtMany, discoverOldRefs, isEmptyCommit, stableCopy, consistencyErrors, checkMapConsistency, refFacts, stabilizeExistsAt };
+module.exports = { build, verify, verifyPublishedOnly, scanDocTokens, scanDocTokensAt, scanDocTokensAtMany, generationOccurrences, discoverOldRefs, isEmptyCommit, stableCopy, consistencyErrors, checkMapConsistency, refFacts, stabilizeExistsAt };

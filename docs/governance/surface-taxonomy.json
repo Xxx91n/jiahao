@@ -119,10 +119,10 @@
         {
           "path": "handoffs/next-round.md",
           "status": "pending-confirmation",
-          "requested_by": "ADR-0085 registration, grill-t26 (carrier ADR itself awaits the 2026-12-15 countersign tide)",
-          "reason": "the standing next-round taskbook lives under the claim surface handoffs/ but is round bookkeeping, not a verdict claim",
+          "requested_by": "ADR-0100 D-B scoped narrowing of the ADR-0085 registration, grill-t39 (the narrowing itself awaits the 2026-12-15 entity-level countersign tide)",
+          "reason": "post-ADR-0100 D-A the fixed-name file is a single-line POINTER to the round-frozen task book, so the exception covers the pointer line only; the round-frozen dated task-book files are claim surfaces and are deliberately not excepted",
           "expires_at": "2026-12-15",
-          "scope": "the literal path handoffs/next-round.md inside .scratch/grill-<id>/"
+          "scope": "the literal path handoffs/next-round.md inside .scratch/grill-<id>/, and only while that file remains the one-line pointer degraded from it"
         },
         {
           "path": "reports/audit-report.md",

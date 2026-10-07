@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0100 D-C (grill-t39 D-002): the Drift-Declaration Registry (漂移声明注册表) - a registered line-level drift declaration (登记的行级漂移声明) consumed by the rewrite-map classifier as a declared fact on the INPUT side, never as an exemption branch inside a judging leg. Append-only: entries are never edited or deleted, supersession is a newer registered_at entry. registered_at replaces expires_at (no TTL, no auto-lapse - a registered historical fact does not lapse). Each entry names the overwriting source commit and carries the restored line verbatim, because an entry that names only a gap is a claim while an entry carrying the lost bytes is evidence. Gate-close (ADR-0100 D-D): any entry added after this file's own add-commit is a red-level signal - the anchor is derived from history, never stored here. Wording law (ADR-0093 D-4): 豁免/waiver vocabulary is forbidden and machine-checked. Self-citation exempt from the doc-citation scan alongside docs/rewrite-map.json and docs/governance/orphan-cites.json: the hex literals below are payload fields, not claims.",
+  "source_adr": "docs/adr/0100-mutable-claim-surface-governance-append-only-taskbook-pointer-degradation-and-the-drift-declaration-registry.md",
+  "entries": [
+    {
+      "id": "drift-0001",
+      "file": ".scratch/grill-t38/handoffs/next-round.md",
+      "line": 45,
+      "cited_sha": "68c8ec2f",
+      "cited_by": "4759d243786753060e98ac47ca12c4c341c0d15b",
+      "overwritten_by": "fa654a0549685077028d6b9589b0f39300deb071",
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/handoffs/next-round.md",
+          "line": 45,
+          "text": "(`68c8ec2f`, grill-t29 evidence) transiently falls out of ancestry during"
+        }
+      ],
+      "registered_at": "2026-10-07",
+      "declared_by": "grill-t39 T-8 (implementer agent, ADR-0100 D-F existing-population landing)",
+      "reason": "the claiming commit cited line 45 of the standing task book; the grill-t38 finalization commit overwrote that line and the file's hex citation count fell to zero, so the tip-generated map could no longer carry a row the tree no longer contains. Registered as the line-level fact at the observation time point (ADR-0100 D-G): the line disappeared because of a declared overwrite; this is not a licence for a breach. Restored text read from 32af9b5f."
+    },
+    {
+      "id": "drift-0002",
+      "file": ".scratch/grill-t38/handoffs/next-round.md",
+      "line": 86,
+      "cited_sha": "0f58ba60",
+      "cited_by": "4759d243786753060e98ac47ca12c4c341c0d15b",
+      "overwritten_by": "fa654a0549685077028d6b9589b0f39300deb071",
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/handoffs/next-round.md",
+          "line": 86,
+          "text": "- `main` after landing: t35 closeout base `0f58ba60` + all t36/t37 lane"
+        }
+      ],
+      "registered_at": "2026-10-07",
+      "declared_by": "grill-t39 T-8 (implementer agent, ADR-0100 D-F existing-population landing)",
+      "reason": "same overwrite event as drift-0001, second line fact: the citation existed at line 86 of the pre-overwrite task book and the overwrite removed it, so coverage of the claim commit's citation set became unsatisfiable from the tip tree alone. Restored text read from 32af9b5f."
+    },
+    {
+      "id": "drift-0003",
+      "file": ".scratch/grill-t38/handoffs/next-round.md",
+      "line": 45,
+      "cited_sha": "68c8ec2f",
+      "cited_by": "65b69ca7c2df36a404935c69e2e9dba4989bf044",
+      "overwritten_by": "fa654a0549685077028d6b9589b0f39300deb071",
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/handoffs/next-round.md",
+          "line": 45,
+          "text": "(`68c8ec2f`, grill-t29 evidence) transiently falls out of ancestry during"
+        }
+      ],
+      "registered_at": "2026-10-07",
+      "declared_by": "grill-t39 T-8 (implementer agent, ADR-0100 D-F existing-population landing)",
+      "reason": "second claim commit on the same line fact. Eight declarations materialize two occurrence keys (ADR-0100 D-C deduplication rule): one fact asserted by four commits is one fact with four claims, not four facts, and each claim commit is registered so the population stays individually auditable."
+    },
+    {
+      "id": "drift-0004",
+      "file": ".scratch/grill-t38/handoffs/next-round.md",
+      "line": 86,
+      "cited_sha": "0f58ba60",
+      "cited_by": "65b69ca7c2df36a404935c69e2e9dba4989bf044",
+      "overwritten_by": "fa654a0549685077028d6b9589b0f39300deb071",
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/handoffs/next-round.md",
+          "line": 86,
+          "text": "- `main` after landing: t35 closeout base `0f58ba60` + all t36/t37 lane"
+        }
+      ],
+      "registered_at": "2026-10-07",
+      "declared_by": "grill-t39 T-8 (implementer agent, ADR-0100 D-F existing-population landing)",
+      "reason": "second claim commit on the line 86 fact; same overwrite event, same restored bytes, registered individually per claiming commit for auditability."
+    },
+    {
+      "id": "drift-0005",
+      "file": ".scratch/grill-t38/handoffs/next-round.md",
+      "line": 45,
+      "cited_sha": "68c8ec2f",
+      "cited_by": "a007aacb9e887cd02c907617a45ad95135b0958b",
+      "overwritten_by": "fa654a0549685077028d6b9589b0f39300deb071",
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/handoffs/next-round.md",
+          "line": 45,
+          "text": "(`68c8ec2f`, grill-t29 evidence) transiently falls out of ancestry during"
+        }
+      ],
+      "registered_at": "2026-10-07",
+      "declared_by": "grill-t39 T-8 (implementer agent, ADR-0100 D-F existing-population landing)",
+      "reason": "third claim commit on the line 45 fact; same overwrite event. Measured at landing (ADR-0100 D-F): the ledger's residual '2 of 8 restored, 6 to verify' closes here, because the remaining six are these same two line facts re-claimed by the other commits, and all eight entries resolve against 32af9b5f."
+    },
+    {
+      "id": "drift-0006",
+      "file": ".scratch/grill-t38/handoffs/next-round.md",
+      "line": 86,
+      "cited_sha": "0f58ba60",
+      "cited_by": "a007aacb9e887cd02c907617a45ad95135b0958b",
+      "overwritten_by": "fa654a0549685077028d6b9589b0f39300deb071",
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/handoffs/next-round.md",
+          "line": 86,
+          "text": "- `main` after landing: t35 closeout base `0f58ba60` + all t36/t37 lane"
+        }
+      ],
+      "registered_at": "2026-10-07",
+      "declared_by": "grill-t39 T-8 (implementer agent, ADR-0100 D-F existing-population landing)",
+      "reason": "third claim commit on the line 86 fact; same overwrite event, same restored bytes."
+    },
+    {
+      "id": "drift-0007",
+      "file": ".scratch/grill-t38/handoffs/next-round.md",
+      "line": 45,
+      "cited_sha": "68c8ec2f",
+      "cited_by": "32af9b5fda96bf92d8ce0d0aeb0b285805552f1b",
+      "overwritten_by": "fa654a0549685077028d6b9589b0f39300deb071",
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/handoffs/next-round.md",
+          "line": 45,
+          "text": "(`68c8ec2f`, grill-t29 evidence) transiently falls out of ancestry during"
+        }
+      ],
+      "registered_at": "2026-10-07",
+      "declared_by": "grill-t39 T-8 (implementer agent, ADR-0100 D-F existing-population landing)",
+      "reason": "fourth claim commit on the line 45 fact. This claiming commit is also the source the restored bytes were read from, which is why the text field is not a transcription: it is that tree's line 45, re-verified against the object store at registration time."
+    },
+    {
+      "id": "drift-0008",
+      "file": ".scratch/grill-t38/handoffs/next-round.md",
+      "line": 86,
+      "cited_sha": "0f58ba60",
+      "cited_by": "32af9b5fda96bf92d8ce0d0aeb0b285805552f1b",
+      "overwritten_by": "fa654a0549685077028d6b9589b0f39300deb071",
+      "cite_locations": [
+        {
+          "file": ".scratch/grill-t38/handoffs/next-round.md",
+          "line": 86,
+          "text": "- `main` after landing: t35 closeout base `0f58ba60` + all t36/t37 lane"
+        }
+      ],
+      "registered_at": "2026-10-07",
+      "declared_by": "grill-t39 T-8 (implementer agent, ADR-0100 D-F existing-population landing)",
+      "reason": "fourth claim commit on the line 86 fact; completes the eight-entry population measured by check-map-freshness checkTipCoverage().missing at grill-t39 T-0."
+    }
+  ]
+}

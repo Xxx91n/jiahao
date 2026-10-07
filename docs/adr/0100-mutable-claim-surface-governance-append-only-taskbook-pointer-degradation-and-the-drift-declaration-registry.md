@@ -114,6 +114,13 @@ its own commit, and no self-referential field is invented.
 
 ### D-E — Atomic landing (one commit)
 
+**The authority pair (declared, ADR-0095 D-A form).** Leg 224's authority source becomes
+**ADR-0092 D-M2 + this ADR (D-C/D-D)**: the tip-coverage *semantics* stay ADR-0092's, while
+the input set it judges and the closing condition on that input are legislated here. The
+declaration is additive and `docs/gates.json` keeps the single `source_adr` value it already
+carries, because `source_adr` is a fenced governance field whose array form needs an ADR plus
+a countersign (ADR-0095 D-A) - which this round does not have and does not pretend to have.
+
 The (a) half (append-only reform) and the (b′) half (registry + classifier input) land in
 **one commit**, per ADR-0089 D-G's backfill → classifier → regen family and ADR-0095 D-B's
 same-commit clause. Splitting them re-creates at landing instant the leg-208/224 red-green

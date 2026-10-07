@@ -1471,6 +1471,13 @@
       "status": "active"
     },
     {
+      "path": ".scratch/grill-t39/handoffs/2026-10-07-next-round.md",
+      "role": "implementer",
+      "declared_by": "grill-t39 T-8 (implementer agent; round-frozen task book per ADR-0100 D-A enters the claim surface by design)",
+      "declared_at": "2026-10-07",
+      "status": "active"
+    },
+    {
       "path": ".scratch/grill-t39/handoffs/next-round.md",
       "role": "implementer",
       "declared_by": "grill-t39 T-0 baseline recon (implementer agent; the row was owed by the docs commit that landed the artifact)",
