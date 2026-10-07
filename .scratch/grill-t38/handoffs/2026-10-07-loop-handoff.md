@@ -10,7 +10,7 @@
 
 > **2026-10-07 终态更新（本窗口执行，owner 授权）**：小问题已修（§3 第 2 项），lane 口径已统一，**四条 lane 已整体落地并推送到 `origin/main`**，本地/工作区分支已由 `but land` 自动清除。下一轮 grill 从 §3/§5 起步。
 >
-> - 落地链：`origin/main = main = 6b621fd4`（`grill-t38 LOOP closeout`），其下 `100de46c`（LOOP 复审）、`5da26011`/`cf7c9be1`（返工 R2/R1）、`cd757b96`（一审 A1）、`dabf82c2…`（落地波 R1-R6）、`fa654a05`（定稿归档），共 12 个 grill-t38 提交。
+> - 落地链：`origin/main = main = 6b621fd4`（`grill-t38 LOOP closeout`），其下 `100de46c`（LOOP 复审）、`5da26011`/`cf7c9be1`（返工 R2/R1）、`cd757b96`（一审 A1）、`dabf82c2…`（落地波 R1-R6）、`fa654a05`（定稿归档），共 12 个 grill-t38 提交。**其后本窗口又落了一次 post-land resync（map 重算 + 测试尖钉重钉），tip 再进一位；权威 tip 以 `test/adr-0074-wiring.test.js` 的 published_tip 钉链为准，勿在此文里追记 sha（每次追记都会新增一条 doc cite，把 resync 循环再启动一遍——这正是 t37 resync B/C/D 的既有教训）。**
 > - **快进落地，sha 未被改写**：返工报告引用的 `cf7c9be1 / 5da26011` 与一审的 `dabf82c2 / cd757b96` 逐一核过仍在 `origin/main` 历史上，无 orphan pin。
 > - 分支删除：`grill-t38-docs / -audit / -impl / -loop` 已不在工作区（`but clean` → No empty branches found）。**远端遗留的 `origin/grill-t36-fixes`、`origin/grill-t36-impl` 经核查未并入 main，属他轮资产，本窗口不删。**
 > - **未 seal**：`.scratch/grill-t38/SEAL` 仍不存在；seal 授权属 owner，且受 §3 第 1 项四项裁量制约。
