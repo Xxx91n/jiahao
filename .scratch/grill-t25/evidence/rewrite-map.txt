@@ -1,6 +1,0 @@
-captured-at-head: 4c07ab9ba0f67472773a99fe6b3e5b5dfbe6dc2c
-$ node scripts/build-rewrite-map.js --check
-
-EXIT 0
-
-[rewrite-map] OK: map in sync (2757 doc citations classified)

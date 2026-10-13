@@ -1,6 +1,0 @@
-captured-at-head: 3e417f31f8af266e156c3608e90f351319f07896
-$ node scripts/build-round-facts.js --round grill-t25 --check --report .scratch/grill-t25/reports/2026-09-24-report.md
-
-EXIT 1
-
-FAIL: .scratch/grill-t25/round-facts.json is stale - regenerate with node scripts/build-round-facts.js --round grill-t25
