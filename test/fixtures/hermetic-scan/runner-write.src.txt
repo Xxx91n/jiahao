@@ -1,3 +1,0 @@
-const cp = require('child_process');
-function g(a) { cp.execFileSync('git', a); }
-g(['commit', '-m', 'x']);
