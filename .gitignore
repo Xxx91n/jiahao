@@ -1,3 +1,6 @@
+# Round work area: local-only, never tracked (gov-audit 2026-10-13)
+.scratch/
+
 # Dependencies
 node_modules/
 
@@ -8,20 +11,6 @@ dist/
 .omx/
 .codex-tmp/
 .codegraph/
-
-# .scratch/ is git-tracked since 2026-09-15 (issue tracker + round records);
-# only volatile tool workdirs stay ignored:
-.scratch/pack-smoke/
-.scratch/g6-publish/
-.scratch/.tmp-*
-
-# Examiner work product: never-commit nc-001 mechanized at the channel level
-# (grill-t36 D-008). Covers the audit-evidence / audit2-evidence /
-# audit3-evidence family plus the same-stage audit-backup residue. Already
-# tracked files are unaffected (an ignore rule is inert on a tracked path),
-# so the LEGACY instances in test/adr-0083-wiring.test.js stay readable.
-.scratch/*/audit*-evidence/
-.scratch/*/audit-backup/
 
 # Logs
 *.log
@@ -37,18 +26,18 @@ Thumbs.db
 *.swp
 *.swo
 
-# Secrets (ADR-0014 convention)
+# Secrets
 private/
 
-# Project-local gate artifacts (ADR-0027 D4 isomorphic evidence)
+# Local gate artifacts
 bench-artifacts/
 probe-artifacts/
 test-artifacts/
 mr-artifacts/
 __pycache__/
 
-# Derived pack artifacts are never committed (grill-t11 audit F-A1, ADR-0073 D-C)
+# Derived pack artifacts
 /*.tgz
 
-# Host configuration backups never enter git-tracked dirs (ADR-0073 D-C O-2 forward rule)
+# Host configuration backups
 host-config-backup/

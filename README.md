@@ -205,9 +205,9 @@ live on the git tree, not the tarball (ADR-0039).
 > history underwent an owner-ordered sanitized-history rewrite: sensitive paths
 > were removed so no published tree ever carried them, and tip-region commit
 > SHAs changed (bounded scope; earlier history untouched). Pre-rewrite SHA
-> citations in docs resolve through `docs/rewrite-map.json` — the single
-> translation point (generated in the R2 action round); the event record is
-> ADR-0074 and the sanitization runbook.
+> citations in docs were translated via `docs/rewrite-map.json` and recorded
+> in ADR-0074 — both retired in the 2026-10 consolidation and readable in git
+> history.
 
 The MCP adapter (`jiahao-mcp/`) is a **source-only** git-tree component: it is
 not part of the tarball and is never distributed via npm. Run it from a clone
@@ -320,8 +320,7 @@ artifacts `src/port/score.js` and `src/port/g6-manifest.json` are
 sha256-pinned at that commit. To re-derive every published number from the
 recorded artifact — the corpus itself is never re-opened:
 `node bench/research/devin-oot.js --snapshot-dir devin-corpus-v2 --replay`.
-To verify the governance anchors:
-`node scripts/build-governance-anchors.js --check`. Discrepancies feed the
+Discrepancies feed the
 CAPA record categorically — open a GitHub issue naming the mismatching
 field; reproductions never enter any verdict chain.
 
@@ -334,9 +333,7 @@ the frozen v3 corpus via `node scripts/check-pairer-regression.js`.
 ## Develop
 
 ```bash
-# test-manifest:develop:begin (derived - do not hand-edit; node scripts/build-test-manifest.js)
-npm test                              # 1846 tests across 105 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
-# test-manifest:develop:end
+npm test
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 54 adapter files (12 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
@@ -355,121 +352,12 @@ The dual-profile flow: advisory generator -> claim -> independent verifier -> si
 - `hooks/` — 7 hook scripts + hooks.json + runtime.js
 - `adapters/` — generated per-host adapters (12 host directories / 54 generated files; ADR-0028 D5)
 - `jiahao-mcp/` — MCP-only adapter (profile parameter)
-<!-- test-manifest:architecture:begin (derived - do not hand-edit; node scripts/build-test-manifest.js) -->
-- `test/` — 105 test suites, 1846 tests
-<!-- test-manifest:architecture:end -->
+- `test/` — jest test suites
 - `bench/polygraph/` — ADR-0015 benchmark adapter + frozen dev-split corpus (ADR-0019 run FAILed honestly, ADR-0020 run PASSED beat-b2; see its README)
 - `private/bench-corpus/` — answer corpora (gitignored, ADR-0036 D2): resolved via JIAHAO_CORPUS_DIR -> install-planted dir -> this repo dir; missing fails closed (ADR-0038 D2). npm-distributed runtime paths never reference it (ADR-0038 D1).
-- `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). The index below is a derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`.
+- `docs/adr/` — architecture decision records (the git-tree development surface; ADR-0039). 
 
-<details>
-<summary>ADR index — derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`</summary>
 
-<!-- adr-index:start -->
-- 100 architecture decision records:
-- [ADR-0001](docs/adr/0001-prompt-as-mental-model-for-second-party-agents.md) — Prompt-as-Mental-Model for Second-Party Agents
-- [ADR-0002](docs/adr/0002-jiahao-iron-laws-design.md) — Jiahao Iron Laws Design
-- [ADR-0003](docs/adr/0003-hook-architecture-design.md) — Hook Architecture Design
-- [ADR-0004](docs/adr/0004-verification-gate-ladder.md) — Verification Gate Ladder Design
-- [ADR-0005](docs/adr/0005-skill-distribution-adapter-pattern.md) — Skill Distribution Adapter Pattern
-- [ADR-0006](docs/adr/0006-architecture-deepening.md) — Architecture Deepening
-- [ADR-0007](docs/adr/0007-hash-chain-tamper-evidence.md) — Hash Chain Tamper-Evidence
-- [ADR-0008](docs/adr/0008-confidence-calibration.md) — Confidence Calibration
-- [ADR-0009](docs/adr/0009-mcp-adapter.md) — MCP Adapter
-- [ADR-0010](docs/adr/0010-dual-profile-role-tagged-distribution.md) — Dual-Profile Role-Tagged Distribution
-- [ADR-0011](docs/adr/0011-deployment-discipline-install-ux-drift-automation.md) — Verifier Deployment Discipline, Two-Tier Install UX, and Layered Drift Automation
-- [ADR-0012](docs/adr/0012-detector-verdict-persistence-hook-idempotency.md) — Detector Verdict Persistence + Hook Idempotency
-- [ADR-0013](docs/adr/0013-cross-turn-hash-chain.md) — Cross-Turn Hash Chain with Composite Idempotency Key
-- [ADR-0014](docs/adr/0014-wordlist-migration-structural-signals.md) — Wordlist Migration Out of cwd + Structural-Signal Primary Detection
-- [ADR-0015](docs/adr/0015-benchmark-adoption-citation-calibration.md) — Detector Benchmark Adoption + Citation Calibration
-- [ADR-0016](docs/adr/0016-evidencelog-gateladder-split-shared-core.md) — EvidenceLog/GateLadder Split and Shared Core Relocation
-- [ADR-0017](docs/adr/0017-escalate-verdict-human-adjudication.md) — ESCALATE Verdict and Human Adjudication Write-back
-- [ADR-0018](docs/adr/0018-calibration-flywheel-kappa.md) — Calibration Flywheel — Threshold Band + Few-shot Injection + Kappa Governance
-- [ADR-0019](docs/adr/0019-detector-v2-suppression-judge-seam.md) — Detector v2 — Suppression Rules + Judge Seam (+ADR-0015 D2 Core-Floor Correction)
-- [ADR-0020](docs/adr/0020-multi-page-enumeration-exhaustion-pairing.md) — Multi-Page Enumeration with Pagination-Exhaustion Pairing
-- [ADR-0021](docs/adr/0021-request-side-anchor-signals.md) — Request-Side Anchor Signals (D6 Extraction, Rescue-Dominant Trust Direction)
-- [ADR-0022](docs/adr/0022-detector-hardening-censoring-degradation.md) — Detector Hardening (Length Caps, Censoring Semantics, Degradation Contract)
-- [ADR-0023](docs/adr/0023-timeout-sentinel-reconciliation-degradation-evolution.md) — Timeout Degradation via Sentinel Reconciliation and Degradation Schema Evolution Discipline
-- [ADR-0024](docs/adr/0024-sentinel-ownership-lock-reconcile-hardening-session-sweep.md) — Sentinel Ownership via File-Lock Arbitration, Reconcile Hardening, and End-of-Session Sweep
-- [ADR-0025](docs/adr/0025-judge-form-convergence-corpus-telemetry.md) — Judge Form Convergence — Scoring-Mode Verifier Contract + Honest-Twin Corpus + Telemetry Contract
-- [ADR-0026](docs/adr/0026-segmented-evidence-log-rotation.md) — Segmented Evidence Log — Rotation + Cross-Segment Anchoring + Base-Seq Naming
-- [ADR-0027](docs/adr/0027-bench-gate-pre-registered-threshold-enforcement.md) — Bench Gate — Executable Pre-Registered Threshold Enforcement in CI
-- [ADR-0028](docs/adr/0028-multi-host-l0-golden-conformance-host-contracts.md) — Multi-Host L0 Test Closure — Regen-Diff Golden, Host Behavior Contracts, Adapter Lifecycle
-- [ADR-0029](docs/adr/0029-verifier-effectiveness-behavioral-probe-gate.md) — Verifier Effectiveness via Paired Behavioral Probes — Zero-Miss Smoke Gate + Pre-Registered Upgrade Channels
-- [ADR-0030](docs/adr/0030-corpus-growth-interval-gate-reverification-runbook.md) — Probe Corpus Growth Constraint — Interval Coverage Gate + Judge Reverification Runbook + Dead-Man Degradation
-- [ADR-0031](docs/adr/0031-wiring-assertions-judge-bias-gate-tiers-isolation-provenance-debt-pack.md) — Wiring Assertions + Judge Bias Calibration + Gate Tier Taxonomy + Judge Isolation + Evidence Provenance + Debt Pack
-- [ADR-0032](docs/adr/0032-generator-surface-rules-deepening-gsr-coverage-lifecycle.md) — Generator Surface Rules Deepening — gsr Header + Coverage Map Registry + Pre-Registered Equivalence + Rule Lifecycle
-- [ADR-0033](docs/adr/0033-deferred-unfreeze-registry-pending-evaluation-expiry-forces-action.md) — Deferred/Unfreeze Registry — Machine Fact-Source for Pending-Activation Deferrals
-- [ADR-0034](docs/adr/0034-gate-registry-single-entrypoint-orchestration.md) — Gate Registry & Single Entrypoint — gates.json, gate:all Aggregation Semantics, Three-Face Alignment
-- [ADR-0035](docs/adr/0035-deferred-registry-cadence-checkin-verifiedby-honesty-corrections.md) — Deferred Registry Cadence Ladder, Check-In Discipline, Verified-By Enforcement & Honesty Corrections
-- [ADR-0036](docs/adr/0036-anti-gaming-audit-corpus-migration-freshness-gate-defaults.md) — Anti-Gaming Audit Boundary, Answer-Corpus Migration, Corpus Freshness Tiering & Gate-Defaults Consistency
-- [ADR-0037](docs/adr/0037-metamorphic-relations-third-corpus-family-staged-hybrid.md) — Metamorphic Relations as Third Corpus Family (Staged Hybrid)
-- [ADR-0038](docs/adr/0038-npm-runtime-artifact-surface-corpus-distribution-boundary.md) — npm Runtime-Artifact Surface & Corpus Distribution Boundary
-- [ADR-0039](docs/adr/0039-tarball-runtime-surface-narrowing-docs-adr-archive-channel.md) — Tarball Runtime Surface Narrowing — docs/adr Archive Channel & Measured Size Budget
-- [ADR-0040](docs/adr/0040-gate-runtime-capability-declaration-three-state-exit-honest-unverifiable.md) — Gate Runtime Capability Declaration — requires Closed Enum, Three-State Exit, Honest UNVERIFIABLE Degradation
-- [ADR-0041](docs/adr/0041-exit-semantics-unification-structured-stderr-prefixes-lane-integration.md) — Exit-Semantics Unification — Narrowed Exit-2, Three-Code Space with Structured stderr Prefixes, Consumer-Side Registry Wiring, Order-Preserving Lane Integration
-- [ADR-0042](docs/adr/0042-config-load-warning-rule-code-contract-locking.md) — Checked Config-Load Failures, Warning Rule Codes, and Contract Locking
-- [ADR-0043](docs/adr/0043-fact-source-derived-artifact-discipline-prefix-vocabulary.md) — Fact-Source Spine Deepening — Derived-Artifact Discipline and Prefix Vocabulary Single Source
-- [ADR-0044](docs/adr/0044-claim-directed-falsification-mechanical-falsifiability-core-rule.md) — Claim-Directed Falsification — Mechanical Falsifiability Core Rule and Falsification Record
-- [ADR-0045](docs/adr/0045-stochastic-deterministic-boundary-evidence-path-verification.md) — Stochastic-Deterministic Boundary and Evidence-Path Verification
-- [ADR-0046](docs/adr/0046-instrument-drift-recalibration.md) — Instrument-Drift Recalibration — Dual-Axis Judge Identity, Resolve-then-Pin, and Quarantine State Machine
-- [ADR-0047](docs/adr/0047-impact-tiered-instrument-change-control.md) — Impact-Tiered Instrument Change Control — Identity Refinement, Tiered Revalidation, and Calibration-Interval Governance
-- [ADR-0048](docs/adr/0048-metrological-ledger-record-tier-content-anchor-commit-discipline.md) — Metrological Ledger, Record Tier, Content Anchor, and Commit Discipline
-- [ADR-0049](docs/adr/0049-decision-rule-anchor-and-metrological-ledger-completion.md) — Decision-Rule Anchor and Metrological Ledger Completion
-- [ADR-0050](docs/adr/0050-append-only-hardening-external-head-anchor-and-genesis-anchoring.md) — Append-Only Hardening, External Head Anchor, and Genesis Anchoring
-- [ADR-0051](docs/adr/0051-closed-persistence-capability-class.md) — Closed Persistence Capability Class
-- [ADR-0052](docs/adr/0052-witness-unavailable-failure-state.md) — Witness-Unavailable Failure State
-- [ADR-0053](docs/adr/0053-periodic-re-anchoring-and-anchor-freshness.md) — Periodic Re-Anchoring and Anchor Freshness
-- [ADR-0054](docs/adr/0054-anchor-freshness-verification-and-re-anchoring-activation.md) — Anchor Freshness Verification and Re-Anchoring Activation
-- [ADR-0055](docs/adr/0055-work-baseline-anchoring-and-seal-verification-performance.md) — Work-Baseline Anchoring and Seal Verification Performance
-- [ADR-0056](docs/adr/0056-test-corpus-tiering-and-clean-clone-integrity.md) — Test Corpus Tiering and Clean-Clone Integrity
-- [ADR-0057](docs/adr/0057-test-skip-honesty-and-suite-count-assertion.md) — Test-Layer Skip Honesty and Suite-Count Assertion
-- [ADR-0058](docs/adr/0058-ci-test-job-independence-and-gate-layer-entrypoint-narrowing.md) — CI Test-Job Independence, Always() Success-Only Aggregation, and Gate-Layer Entrypoint Narrowing
-- [ADR-0059](docs/adr/0059-external-critique-dialectic-closure-distribution-honesty-and-governance-posture.md) — External Critique Closure — Name-Independent Distribution, Source-Only MCP, Triage-Layer Detector Semantics, Coherence-Tier Assurance, and Signal-Driven Polish
-- [ADR-0060](docs/adr/0060-judge-conformity-sampling-power-indeterminate-state-and-conditional-certification.md) — Judge Conformity Sampling Power, Indeterminate Conformity State, and Conditional Instrument Certification
-- [ADR-0061](docs/adr/0061-pre-registered-gate-amendment-closure-surface-narrowed-judge-identity-and-output-tethered-convergence.md) — Pre-Registered Gate Amendment Closure, Surface-Narrowed Judge Identity, Declaration-Scoped Instrument Tagging, Output-Tethered Convergence, and Governance-Artifact Anchoring
-- [ADR-0062](docs/adr/0062-pre-registered-tarball-cap-amendment-policy-before-value-trend-anchor.md) — Pre-Registered Tarball-Cap Amendment - Policy Before Value, Periodic Trend Anchor
-- [ADR-0063](docs/adr/0063-surface-narrowed-judge-identity-anchor-semantic-digest-rejected.md) — Surface-Narrowed Judge Identity Anchor - Semantic Digest Rejected
-- [ADR-0064](docs/adr/0064-t6-product-round-pre-registration-mde-gates-and-governance-trend-anchor.md) — T-6 Product Round Pre-Registration - MDE Stage-Gates, Golden-Sample Equivalence, Governance Trend Anchor
-- [ADR-0065](docs/adr/0065-t6-confirmatory-round-adjudication-port-surface-devin-corpus-and-claim-honesty.md) — T-6 Confirmatory Round - Adjudication Rule, Port Surface, Devin Corpus Protocol, Claim Honesty
-- [ADR-0066](docs/adr/0066-tarball-cap-trend-anchor-amendment-t6-product-port-surface.md) — Tarball-Cap Trend-Anchor Amendment for the T-6 Product Port Surface
-- [ADR-0067](docs/adr/0067-devin-corpus-v1-oot-falsification-adjudication.md) — devin-corpus@v1 OOT Falsification Adjudication - Eval-Plan Registration, Claim Surface, Branch Policy
-- [ADR-0068](docs/adr/0068-devin-corpus-v2-dual-axis-adjudication-collection-protocol-claim-slot-v3-binding.md) — devin-corpus@v2 Plan - Dual-Axis IUT Adjudication Rule, Collection Protocol, Claim Slot, v3 Binding and Probe Terms
-- [ADR-0069](docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md) — CAPA Claim-Evidence Pairer Semantics, Artifact-Scoped Freeze + Adjudication Anchor, Readiness Positioning, and v3 Plan Obligations
-- [ADR-0070](docs/adr/0070-hook-side-conviction-lane-pairer-shadow-wiring-promotion-gate.md) — Hook-Side Conviction Lane — CAPA Pairer Shadow Wiring, Frozen Shadow→Enforce Promotion Gate, Product Shape, Claim Form, and F-A Carry-Over Dispositions
-- [ADR-0071](docs/adr/0071-tarball-cap-trend-anchor-amendment-t10-conviction-lane-surface.md) — Tarball-Cap Trend-Anchor Amendment for the T-10 Conviction-Lane Surface
-- [ADR-0072](docs/adr/0072-readiness-verdict-remeasurement-preregistration-bake-protocol-critique-dispositions.md) — Readiness Verdict (Usable + Testable), Pre-Registered Re-Measurement (b2 Method + Lane Exercise), Owner-Dogfood Bake Protocol, ADR-0070 Tier-2 Amendment, and Critique Dispositions P-1/P-2/P-4/P-5
-- [ADR-0073](docs/adr/0073-provenance-tiered-corpus-g1-organic-amendment-audit-carryover-bake-stewardship.md) — Provenance-Tiered Corpus Registration, ADR-0070 G1 Tightening-Only Amendment (organic leg), grill-t11 Audit Carry-Over Dispositions (F-A1/O-1/W-1/O-2; W-2 closed-by-design), and Bake Stewardship Protocol
-- [ADR-0074](docs/adr/0074-sanitized-history-publish-rewrite-map-reverification-preregistration-independence-grade.md) — Sanitized-History Publish Record, Rewrite-Map Single Translation Point, Tip-Pinned Install Claim Invalidation, Published-Tip Re-Verification Preregistration, and Independence-Grade Audit Convention
-- [ADR-0075](docs/adr/0075-promotion-review-preregistration-nm-sufficiency-intent-taxonomy-sunset-trigger.md) — Promotion-Review Preregistration Pack — N/M Sufficiency Qualifier on the G1 Organic Corpus, Pre-Registered <=8-Class Intent Taxonomy, Sunset Trigger Clause, and Blocking Meta-Requirement
-- [ADR-0076](docs/adr/0076-round-edit-surface-taxonomy-and-governance-carve-out.md) — Round Edit-Surface Taxonomy, the Governance Carve-Out, the Sunset-Counter Durable Home, and Spec-Code Bidirectional Pinning (grill-t15 disposition + mechanism round)
-- [ADR-0077](docs/adr/0077-verifier-exit-convention-mechanism-outputs-and-facts-canon.md) — The Consuming-Row Exit Convention, the Mechanism-Output Artifact Enumeration, and the Round-Report Facts Canon (grill-t16 fix + mechanism round)
-- [ADR-0078](docs/adr/0078-fix-round-disclosure-taxonomy.md) — The Fix-Round Disclosure Taxonomy - kind:fix and the Reused governance_tooling_diff Channel (grill-t18 disposition round)
-- [ADR-0079](docs/adr/0079-bilingual-readme-mirror-convention.md) — The Bilingual README Mirror Convention - EN-Primary Dual Files, Autonym Switch Line, Translation Baseline, English-Original Arbitration, Tarball Exemption, and Same-Commit Sync Discipline (grill-t20 documentation round)
-- [ADR-0080](docs/adr/0080-readme-star-r3-predicate-and-taxonomy-reclassification-channel.md) — The README-* R3 Predicate, the Taxonomy Reclassification Channel, and the grill-t20 C-1 Record Repair (grill-t21 documentation round)
-- [ADR-0081](docs/adr/0081-repair-window-amend-in-place-coverage-pairing-headroom-watch.md) — The Repair-Window Amend-in-Place Convention, the Coverage-Base Pairing, and the Pack-Cap Headroom Watch (grill-t22 documentation round)
-- [ADR-0082](docs/adr/0082-tarball-cap-trend-anchor-amendment-defer-0067-armed-band.md) — Tarball-Cap Trend-Anchor Amendment Under the defer-0067 Armed Band
-- [ADR-0083](docs/adr/0083-declared-vs-actual-drift-clauses.md) — The Declared-vs-Actual Drift Clauses — Frozen-Tree Evidence Re-Capture, Never-Commit Single-Sourcing, Commit Allowlist Discipline, and the Suite-Count Sync Obligation (grill-t24 documentation round)
-- [ADR-0084](docs/adr/0084-public-clone-verifiability-clone-degradability-landing-tail-exception-tag-timing-first-disclosure.md) — The Public-Clone Verifiability Contract - Clone-Degradable Old-Side Verification, the Fourth Mandatory Audit Line, the Landing-Tail Wave Convention, Stop-Bleed Exception Narrowness, Tag Timing, and the First-Disclosure-Channel Rule (grill-t25 fix round)
-- [ADR-0085](docs/adr/0085-anchor-semantics-claim-point-seal-boundary.md) — Anchor Semantics — Claim-Point Pinning, the Terminal Seal Boundary, the Declaration/Tag Co-Naming Contract, the Explicit Drift Code, and the Retirement of the Live-HEAD-Walk Invariant (grill-t26 anchor-semantics round)
-- [ADR-0086](docs/adr/0086-registry-field-governance-fenced-editorial-exception-channel-pending-confirmation-lifecycle.md) — Registry Field Governance — Fenced / Editorial / Exception-Channel Classes and the Pending-Confirmation Lifecycle (grill-t29 audit-disposition round)
-- [ADR-0087](docs/adr/0087-codebuddy-host-adapter-first-external-effectiveness-trial.md) — CodeBuddy Host Adapter — First Claude-Code-Compatible Path, Pending-Confirmation Tiering, and the First External-Effectiveness Trial Protocol (grill-t30)
-- [ADR-0088](docs/adr/0088-codebuddy-trial-harness-seven-clause-apparatus-trust-contract.md) — CodeBuddy Trial Harness — Seven-Clause Apparatus-Trust Contract (grill-t31)
-- [ADR-0089](docs/adr/0089-rewrite-map-classifier-declared-facts-contract.md) — Rewrite-Map Classifier Declared-Facts Contract — Orphan-Cite Registry, Lifecycle Ladder, and the Atomic Cutover (grill-t32)
-- [ADR-0090](docs/adr/0090-countersign-rejection-disposition-contract.md) — Countersign Rejection Disposition Contract — Pre-Registered Exit Semantics, the Ratchet Tooth, and the Self-Row (grill-t34)
-- [ADR-0091](docs/adr/0091-derive-from-source-mechanism-contract.md) — Derive-from-Source Mechanism Contract — Test Manifest, Sentinel Declaration Regions, Audit Checklist, Coverage Block, and Argv Retirement (grill-t34)
-- [ADR-0092](docs/adr/0092-public-object-equivalence-and-post-land-verification-contract.md) — Public-Object Equivalence and the Post-Land Verification Contract (grill-t35)
-- [ADR-0093](docs/adr/0093-observer-equivalence-contract.md) — Observer Equivalence Contract — Byte Surface, Instrument Non-Intrusion, Claim-Surface Role Separation, and Generation Surface (grill-t36)
-- [ADR-0094](docs/adr/0094-tarball-cap-trend-anchor-amendment-grill-t36-observer-surface.md) — Tarball-Cap Trend-Anchor Amendment for the grill-t36 Observer Surface (draft for owner sign-off)
-- [ADR-0095](docs/adr/0095-round-contract-carryover-triage-source-adr-dual-authority.md) — Assertion-Anchoring Round Contract — Carryover Triage, the source_adr Dual-Authority Declaration, and the Same-Commit Universal Clause (grill-t38)
-- [ADR-0096](docs/adr/0096-assertion-anchoring-emit-anchor-test-anchor-emit-output-contract.md) — Assertion Anchoring — Emit-Side Anchor Contract, Test-Side Set Anchor, and the Emit Output Contract (grill-t38)
-- [ADR-0097](docs/adr/0097-upstream-borrowing-incorporation-inline-cap-comment-harvester-channel-intensity-tier-and-numeric-citation-ban.md) — Upstream-Borrowing Incorporation — The Inline Cap-Comment Convention, the Harvester Landing-Channel Constraint, the Honest-Boundary Disclosure Discipline, the Methodology Quartet, Generator-Side Intensity, the Exclusion Domain, and the Numeric-Citation Ban (grill-t39)
-- [ADR-0098](docs/adr/0098-grandiosity-fifth-semantics-debt-form-definition-coinage-triage-channel-ratchet-and-prose-density-disclosure.md) — Grandiosity (虚饰输出) — The Fifth Semantics, the Debt-Form Definition, the Unregistered-Coinage Triage Channel, the Ratchet Form, the Sentence-Shape Probe Family, and the prose-Density Disclosure Footer (grill-t39)
-- [ADR-0099](docs/adr/0099-disposition-evidence-closure-row-id-cash-out-optional-check-channel-and-the-prose-triple.md) — Disposition–Evidence Closure — §P-A the defer-0089 Cash-Out (Claim Registrations Cite a Row Id), §P-B the Optional check_channel Field, §P-C the Prose Triple and the Gauge-Difference Disclosure (grill-t39)
-- [ADR-0100](docs/adr/0100-mutable-claim-surface-governance-append-only-taskbook-pointer-degradation-and-the-drift-declaration-registry.md) — Mutable Claim-Surface Governance — The Append-Only Round-Frozen Task Book, the Pointer Degradation, the Drift-Declaration Registry as a Classifier Input, and the Gate-Close Condition (grill-t39)
-<!-- adr-index:end -->
-
-</details>
 
 ## License
 
