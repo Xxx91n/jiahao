@@ -55,6 +55,7 @@ function main() {
   let minCount = ct.DEFAULT_MIN_COUNT;
   let json = false;
   let footer = null;
+  let spec = null;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--help') { console.log(USAGE); return; }
@@ -65,7 +66,8 @@ function main() {
       if (!Number.isInteger(n) || n < 1) fail('--min-count needs an integer >= 1');
       minCount = n;
       i++;
-    } else if (a === '--footer') { footer = path.resolve(flagValue(argv, i, '--footer')); i++; }
+    } else if (a === '--spec') { spec = path.resolve(flagValue(argv, i, '--spec')); i++; }
+    else if (a === '--footer') { footer = path.resolve(flagValue(argv, i, '--footer')); i++; }
     else fail('unknown flag: ' + a);
   }
 
@@ -78,7 +80,7 @@ function main() {
   }
 
   let report;
-  try { report = ct.scanTree(root, { minCount: minCount }); }
+  try { report = ct.scanTree(root, { minCount: minCount, disciplineSpec: spec }); }
   catch (e) { fail('scan failed (IO): ' + e.message); }
   console.log(json ? JSON.stringify(report, null, 2) : ct.renderAdvisory(report));
 }

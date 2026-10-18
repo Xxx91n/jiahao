@@ -5,7 +5,8 @@
 - Ledger: `.scratch/grill-t39/decision-ledger.md` — D-004 and D-005 (both current); round scope D-001.1 (the P-B line)
 - Spec: `.scratch/grill-t39/spec-t39.md` — §S-4 (the sole drafting specification; not an authority source)
 - Census: `.scratch/grill-t39/research/p-b-census-brief.md` — 412-file full scan, atomcode run 2026-10-07 (finite enumeration surface)
-- Relates: ADR-0014 D1 (the vocabulary triage status this channel inherits — this ADR does **not** amend it), ADR-0097 D-F (the generator-side-only rule this ADR's tool-surface clause follows), ADR-0100 (sibling carrier, different force-field; see D-G)
+- Relates: ADR-0014 D1 (the vocabulary triage status this channel inherits — this ADR does **not** amend it), ADR-0101 D-A / ADR-0002 (the generator-side prevention barrier and unweakenable audit surface; formerly ADR-0097 D-F, retired in 62a71522), ADR-0102 D-A/D-C (plain-language discipline and shared spec; formerly ADR-0100, retired in 62a71522)
+- Retirement note: ADR-0097, ADR-0099, ADR-0100, and docs/deferred-registry.json were retired as obsolete governance machinery by commit 62a71522. The historical batch-consumption ratchet mechanism was settled with that removal; new text output follows the forward language discipline of ADR-0102.
 
 ## Context
 

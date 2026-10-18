@@ -262,3 +262,94 @@ describe('coinage-triage: advisory, never blocking', () => {
     expect(text).not.toMatch(/verdict[^\n]*:\s*(pass|fail|red)/i);
   });
 });
+
+describe('coinage-triage: plain-substitution table and three-face reach (ADR-0102 D-B/D-C/D-D)', () => {
+  test('scans substitution table findings with avoid and avoid-unless tiers', () => {
+    const fixtureWithSpec = Object.assign({}, FIXTURE, {
+      'docs/language-discipline.json': JSON.stringify({
+        schema_version: 1,
+        source_adr: 'docs/adr/0102.md',
+        generator_principles: [
+          { id: 'one-word-one-meaning', title: 'One word, one meaning' }
+        ],
+        substitution_table: [
+          {
+            token: '承重墙',
+            tier: 'avoid',
+            substitute: '结构基准',
+            reason: 'metaphorical jargon',
+            status: 'active'
+          },
+          {
+            token: '幽灵词',
+            tier: 'avoid-unless',
+            condition: 'defined in glossary',
+            substitute: '未登记词',
+            reason: 'colloquial expression',
+            status: 'active'
+          },
+          {
+            token: '已关闭词',
+            tier: 'avoid',
+            substitute: '其他',
+            reason: 'retired entry',
+            status: 'closed',
+            closed_date: '2026-10-18',
+            closed_reason: 'no longer applicable'
+          }
+        ],
+        three_face_reach: {
+          default_face: 'mandatory',
+          mandatory_face: { surfaces: ['ledger', 'report', 'adr', 'agents', 'context'] }
+        }
+      }),
+      'AGENTS.md': '承重墙 承重墙 幽灵词 已关闭词'
+    });
+
+    const tree = makeTree(fixtureWithSpec);
+    const report = ct.scanTree(tree);
+    expect(report.substitutionFace.specPresent).toBe(true);
+    expect(report.substitutionFace.principles.length).toBe(1);
+    expect(report.substitutionFace.reach.default_face).toBe('mandatory');
+
+    const findings = report.substitutionFace.findings;
+    const avoid = findings.filter((f) => f.token === '承重墙');
+    expect(avoid.length).toBeGreaterThan(0);
+    expect(avoid[0].tier).toBe('avoid');
+    expect(avoid[0].substitute).toBe('结构基准');
+
+    const avoidUnless = findings.filter((f) => f.token === '幽灵词');
+    expect(avoidUnless.length).toBeGreaterThan(0);
+    expect(avoidUnless[0].tier).toBe('avoid-unless');
+    expect(avoidUnless[0].condition).toBe('defined in glossary');
+
+    // Closed rows are not emitted as findings
+    const closed = findings.filter((f) => f.token === '已关闭词');
+    expect(closed.length).toBe(0);
+
+    // Advisory rendering includes findings
+    const adv = ct.renderAdvisory(report);
+    expect(adv).toContain('substitution face');
+    expect(adv).toContain('[avoid]');
+    expect(adv).toContain('[avoid-unless]');
+  });
+
+  test('CLI --spec flag accepts custom specification path and exits 0', () => {
+    const customSpec = {
+      schema_version: 1,
+      source_adr: 'docs/adr/0102.md',
+      generator_principles: [],
+      substitution_table: [
+        { token: 'treadmillghost', tier: 'avoid', substitute: 'unregistered term', reason: 'avoid jargon', status: 'active' }
+      ]
+    };
+    const tree = makeTree(FIXTURE);
+    const specFile = path.join(tree, 'custom-spec.json');
+    fs.writeFileSync(specFile, JSON.stringify(customSpec));
+
+    const r = runCLI([CLI, '--root', tree, '--spec', specFile]);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain('substitution face');
+    expect(r.stdout).toContain('treadmillghost');
+  });
+});

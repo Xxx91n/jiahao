@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0102 D-A/D-B/D-C/D-D: Shared specification file for plain-language generator principles and detector substitution table (grill-mental-model, ledger D-006, D-007). Governed under one change ticket via the ADR mechanism.",
+  "source_adr": "docs/adr/0102-language-discipline-principles-substitution-table-and-three-face-reach.md",
+  "generator_principles": [
+    {
+      "id": "one-word-one-meaning",
+      "title": "One word, one meaning",
+      "statute": "A concept carries exactly one name. Reject compound welding of new jargon for existing concepts.",
+      "origin": "Sweden plain-language statutory form / ASD-STE100"
+    },
+    {
+      "id": "complete-short-sentences",
+      "title": "Complete short sentences",
+      "statute": "Write complete short sentences without long welded noun chains.",
+      "origin": "Sweden plain-language statutory form / US Plain Writing Act"
+    },
+    {
+      "id": "register-before-use",
+      "title": "Register before use",
+      "statute": "A new term must have a CONTEXT.md entry before it may appear in mandatory faces.",
+      "origin": "ADR-0102 D-A / CONTEXT.md enrollment"
+    }
+  ],
+  "substitution_table": [
+    {
+      "token": "豁免阀",
+      "tier": "avoid",
+      "substitute": "收词分诊通道 / 延后处理项",
+      "reason": "The term 豁免阀 (exemption valve) is forbidden by the ADR-0098/ADR-0100 wording law; triage discloses and defers, but never exempts.",
+      "condition": null,
+      "status": "active",
+      "closed_date": null,
+      "closed_reason": null
+    },
+    {
+      "token": "双重屏障",
+      "tier": "avoid-unless",
+      "substitute": "辅助控制 (support controls)",
+      "reason": "Counting unqualified rules as barriers manufactures a false sense of multiple protection (ADR-0101 D-C / Primatech warning).",
+      "condition": "Rules must pass the IPL triple test (effective, independent, auditable) before counting as barriers.",
+      "status": "active",
+      "closed_date": null,
+      "closed_reason": null
+    },
+    {
+      "token": "defense-in-depth",
+      "tier": "avoid-unless",
+      "substitute": "Bow-tie 骨架 (独立预防屏障 + 减缓屏障)",
+      "reason": "Defense-in-depth is an engineering property, not the bow-tie architectural mapping; prevention and mitigation layers remain strictly independent (ADR-0101 D-A).",
+      "condition": "Used strictly in the context of generic software defense in depth rather than the two-profile architecture mapping.",
+      "status": "active",
+      "closed_date": null,
+      "closed_reason": null
+    }
+  ],
+  "three_face_reach": {
+    "mandatory_face": {
+      "reach": "Table plus principles enforced. Encompasses git commit messages, ADR bodies, and CONTEXT.md entries.",
+      "surfaces": [
+        "ledger",
+        "report",
+        "adr",
+        "agents",
+        "context",
+        "commit"
+      ]
+    },
+    "principle_face": {
+      "reach": "Principles only, no lint (src/SKILL.md). The product face remains plain without lint interruptions.",
+      "surfaces": [
+        "src/SKILL.md"
+      ]
+    },
+    "light_disclosure_face": {
+      "reach": "Principles plus optional future light-disclosure footer for final replies to humans.",
+      "surfaces": [
+        "human_replies"
+      ]
+    },
+    "default_face": "mandatory",
+    "policy": "New document types default into the mandatory face; an exception requires an ADR change ticket (ADR-0102 D-D)."
+  }
+}

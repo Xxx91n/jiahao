@@ -50,7 +50,7 @@
 //      links, the comma class; only the full-width ； is a boundary);
 //   4. empty segments are dropped; sentence length = Unicode code points of
 //      the trimmed segment; a sentence is "long" at > LONG_LEN code points -
-//      a DISCLOSED GAUGE EDGE (the instrument-name clause of ADR-0099 P-C),
+//      a DISCLOSED GAUGE EDGE (the instrument-name clause; ADR-0099 retired in 62a71522, reaffirmed in ADR-0102 D-B),
 //      never a target value.
 // The same bytes always produce the same counts: pure regex + splitting, no
 // model, no randomness, no wall-clock in the output, and every list is sorted
@@ -75,6 +75,7 @@ const fs = require('fs');
 const path = require('path');
 
 const DEFAULT_MIN_COUNT = 3;
+const DEFAULT_SPEC_REL = path.join('docs', 'language-discipline.json');
 const ZH_WINDOW_MIN = 2;
 const ZH_WINDOW_MAX = 4;
 const EN_MIN_LEN = 4;
@@ -361,6 +362,45 @@ function collectRows(map, lang, isRegistered, minCount) {
   return rows;
 }
 
+
+function loadLanguageDiscipline(root, customPath) {
+  const p = customPath ? path.resolve(customPath) : path.join(root, DEFAULT_SPEC_REL);
+  if (!fs.existsSync(p)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch (e) {
+    return null;
+  }
+}
+
+function scanSubstitutions(text, spec, fileRel) {
+  if (!spec || !Array.isArray(spec.substitution_table)) return [];
+  const findings = [];
+  for (const row of spec.substitution_table) {
+    if (row.status !== 'active') continue;
+    const token = row.token;
+    if (!token) continue;
+    let count = 0;
+    let idx = 0;
+    while ((idx = text.indexOf(token, idx)) !== -1) {
+      count++;
+      idx += token.length;
+    }
+    if (count > 0) {
+      findings.push({
+        token: token,
+        tier: row.tier || 'avoid',
+        substitute: row.substitute || '',
+        reason: row.reason || '',
+        condition: row.condition || null,
+        count: count,
+        file: fileRel || null,
+      });
+    }
+  }
+  return findings;
+}
+
 function surfaceRow(id, files, counts) {
   const row = { id: id, files: files };
   Object.assign(row, counts);
@@ -397,6 +437,20 @@ function scanTree(root, opts) {
     });
   }
 
+  const disciplineSpec = loadLanguageDiscipline(root, o.disciplineSpec);
+  const substitutionFindings = [];
+  if (disciplineSpec) {
+    for (const f of files) {
+      const raw = readAt(root, f.rel);
+      if (raw === null) continue;
+      const stripped = stripCodeFences(raw);
+      const fileFindings = scanSubstitutions(stripped, disciplineSpec, f.rel);
+      for (const item of fileFindings) substitutionFindings.push(item);
+    }
+  } else {
+    notes.push('docs/language-discipline.json absent - substitution table inert');
+  }
+
   const zhRows = collectRows(zh, 'zh', function (t) { return isZhRegistered(t, registration); }, minCount);
   const enRows = collectRows(en, 'en', function (t) { return registration.enWords.has(t); }, minCount);
 
@@ -415,6 +469,12 @@ function scanTree(root, opts) {
     }),
     wordFace: { zh: zhRows, en: enRows },
     sentenceFace: { overall: overall, perSurface: perSurface },
+    substitutionFace: {
+      findings: substitutionFindings,
+      specPresent: disciplineSpec !== null,
+      principles: disciplineSpec ? disciplineSpec.generator_principles : [],
+      reach: disciplineSpec ? disciplineSpec.three_face_reach : null,
+    },
   };
 }
 
@@ -445,6 +505,18 @@ function renderAdvisory(report) {
     lines.push('  ' + renderFooterLine(row) + '  files=' + row.files + '  [' + row.id + ']');
   }
   lines.push('');
+  if (report.substitutionFace && report.substitutionFace.specPresent) {
+    lines.push('substitution face - plain substitute suggestions (ADR-0102 D-B, disclosure only, never a score):');
+    if (report.substitutionFace.findings.length === 0) {
+      lines.push('  all scanned surfaces clean: 0 substitution findings');
+    } else {
+      for (const f of report.substitutionFace.findings) {
+        const cond = f.condition ? ' [condition: ' + f.condition + ']' : '';
+        lines.push('  [' + f.tier + '] ' + JSON.stringify(f.token) + ' (count=' + f.count + ', file=' + f.file + ') -> use ' + JSON.stringify(f.substitute) + cond + ' (' + f.reason + ')');
+      }
+    }
+    lines.push('');
+  }
   lines.push('Owner acts on this list: register the term in CONTEXT.md, plain-ify it, or defer-registry a row (ADR-0098 D-C).');
   lines.push('The footer sets no target value and existing text is never rewritten for the sake of a count (ADR-0098 D-F).');
   return lines.join('\n');
@@ -452,8 +524,11 @@ function renderAdvisory(report) {
 
 module.exports = {
   DEFAULT_MIN_COUNT,
+  DEFAULT_SPEC_REL,
   LONG_LEN,
   SURFACES,
+  loadLanguageDiscipline,
+  scanSubstitutions,
   normalizeText,
   stripCodeFences,
   headwordRegistration,
