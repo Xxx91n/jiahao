@@ -82,8 +82,9 @@ avoid-unless to advisory/blocking mapping is this repository's own call.
 
 ## Consequences
 
-- Landing (coinage-triage extension, the shared spec file, SKILL.md principle
-  wiring) is a later round — handoff T5. This ADR legislates; it does not edit
+- Landing is a later round: handoff T5 covers the coinage-triage extension and
+  the shared spec file; handoff T4 covers the src/SKILL.md principle wiring,
+  deferred until P2 per the task book. This ADR legislates; it does not edit
   the scripts.
 - The recurring-review-comment signal is the face-migration test: the same
   comment appearing across many PRs means the rule moves between the detector

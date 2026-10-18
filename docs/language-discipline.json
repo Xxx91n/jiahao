@@ -27,7 +27,7 @@
       "token": "豁免阀",
       "tier": "avoid",
       "substitute": "收词分诊通道 / 延后处理项",
-      "reason": "The term 豁免阀 (exemption valve) is forbidden by the ADR-0098/ADR-0100 wording law; triage discloses and defers, but never exempts.",
+      "reason": "The term 豁免阀 (exemption valve) is forbidden by the ADR-0102 D-B wording law (inherited from ADR-0098 D-C; ADR-0100 retired in 62a71522); triage discloses and defers, but never exempts.",
       "condition": null,
       "status": "active",
       "closed_date": null,
