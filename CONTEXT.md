@@ -971,6 +971,62 @@ _Avoid_: uniform protection claims across hosts, hiding advisory-only hosts
 behind hook-tier marketing
 
 
+**Bow-tie Skeleton (领结骨架)**:
+The architecture mapping borrowed from process safety: the generator profile is
+the prevention barrier (it stands between the motive to fake completion and the
+fake completion itself), the verifier profile is the mitigation barrier (it
+stands between a fake completion and its delivery consequences). The layers stay
+independent and never lend rules to each other; the mitigation layer is always
+designed on the assumption that the prevention layer leaks (ADR-0101 D-A).
+_Avoid_: defense-in-depth (a property, not this mapping), resource-shifting between layers (prevention evidence never dismantles detection)
+
+**Negative-Disclosure Line (负向披露行)**:
+The 1-2 lines a generator completion claim carries beside its positive list:
+what was skipped, what was left unchecked, what risk remains. Adopted from
+ponytail v5; extends gsr:2, whose original form listed verified state changes
+only. The line itself stays under prose-density supervision (ADR-0101 D-E).
+_Avoid_: risk-disclaimer boilerplate (the line names this task's specifics), turning the line into a new score surface
+
+**Change-Reach List (波及清单)**:
+The list of affected surfaces (callers, tests, configs, docs) written before a
+code change and reconciled item by item at verdict. The procedural form of
+"verify side effects, not just the happy path" (ADR-0101 D-E).
+_Avoid_: impact-analysis documents (this is a two-step procedure inside one verification round, not a deliverable)
+
+**Inoculation Rule (接种式规则)**:
+A generator-face rule that names failure modes before a task starts. Legal only
+when its content rides failure modes the MAST mapping (P1) has verified — the
+inoculation premise (failure modes known in advance) must hold before any
+inoculation text lands (ADR-0101 D-B).
+_Avoid_: generic warning labels (an inoculation rule is task-front, evidence-backed, specific), priming in general
+
+**Barrier Qualification (屏障资格)**:
+The IPL triple test — effective, independent, auditable — that a generator-face
+rule must pass before it counts as a prevention barrier. Rules that fail are
+support controls; claiming a double barrier from unqualified rules manufactures a
+false sense of protection, which is itself first-semantics behavior (ADR-0101 D-C).
+_Avoid_: counting the current gsr rules as barriers (they are support controls until upgraded)
+
+**Plain-Substitution Table (平实替代表)**:
+The detector-face form: banned word, then plain substitute plus reason, in two
+tiers — avoid (error) and avoid-unless (warning). Disclosure only, never a score;
+no aggregate score means nothing to game (ADR-0102 D-B).
+_Avoid_: readability formulas (rejected by ISO 24495-1's panel; gameable), banned-word lists without substitutes
+
+**Register-Before-Use (先入册后使用)**:
+A new term must have a CONTEXT.md entry before it may appear in the mandatory
+faces (commit messages, ADR bodies, CONTEXT.md itself). The glossary is the
+register; the ADR change ticket is the enrollment path (ADR-0102 D-A).
+_Avoid_: vocabulary policing (registration is an enrollment path, not an offence — see ADR-0098 D-B)
+
+**Three-Face Reach (三面射程)**:
+The reach of language discipline: the mandatory face (commit messages, ADR
+bodies, CONTEXT.md — table plus principles), the principle face (src/SKILL.md —
+principles only, no lint), and the principle plus light-disclosure face (final
+replies to humans). New document types default into the mandatory face; an
+exception needs a change ticket. No retroactive rewrite (ADR-0102 D-D).
+_Avoid_: global lint (the product face must not carry the table), history cleanup (append-only discipline forbids rewrites)
+
 ## Decision Log
 
 Removed by the 2026-10-13 governance consolidation. The authoritative records for product decisions are the ADRs in `docs/adr/`.
