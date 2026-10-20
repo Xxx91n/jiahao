@@ -1,6 +1,0 @@
-captured-at-head: f6f15eaa6581eecf8568866a6b0c78d70a721c60
-$ node scripts/check-deferred.js
-
-EXIT 0
-
-[deferred] OK - 65 entries (53 live, 12 closed/actioned) (no base ref: coupling skipped)

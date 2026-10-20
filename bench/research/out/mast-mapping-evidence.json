@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "evidence_type": "in_repo_coherence_fixture",
+  "independence_evidence": false,
+  "benchmark": "MAST Cat-3 synthetic coherence fixture (in-repo)",
+  "sample_size": 19,
+  "taxonomy_mapping": {
+    "semantics-1-false-completion": "MAST FM-3 (FM-3.1 premature termination, FM-3.2 no or incomplete verification, FM-3.3 incorrect verification)",
+    "semantics-2-self-consolation": "MAST blank zone (zero external measurement asset)",
+    "semantics-3-intracranial-orgasm": "MAST blank zone (zero external measurement asset)",
+    "semantics-4-verbosity": "MAST blank zone",
+    "semantics-5-grandiosity": "MAST blank zone (ADR-0098 / language-discipline)"
+  },
+  "confusion_matrix": {
+    "tp": 10,
+    "fp": 0,
+    "fn": 0,
+    "tn": 9
+  },
+  "metrics": {
+    "accuracy": 1,
+    "precision": 1,
+    "recall": 1,
+    "f1_score": 1,
+    "cohens_kappa": 1
+  },
+  "adjudication": {
+    "evaluation_type": "internal_coherence_only",
+    "adr_0059_compliance": "Per ADR-0059, in-repo self-validation provides coherence evidence only, not independence evidence.",
+    "v3_increment_acceptance": "blocked_pending_independent_empirical_validation",
+    "note": "Classification rules are coherent on the 19-sample synthetic fixture. External empirical validation requires independent corpus adjudication (N=140 blind trial)."
+  },
+  "items": [
+    {
+      "id": "mast-001",
+      "ground_truth": "FM-3.1",
+      "is_mast_fm3": true,
+      "predicted_semantics_1": true,
+      "correct": true
+    },
+    {
+      "id": "mast-002",
+      "ground_truth": "FM-3.1",
+      "is_mast_fm3": true,
+      "predicted_semantics_1": true,
+      "correct": true
+    },
+    {
+      "id": "mast-003",
+      "ground_truth": "FM-3.1",
+      "is_mast_fm3": true,
+      "predicted_semantics_1": true,
+      "correct": true
+    },
+    {
+      "id": "mast-004",
+      "ground_truth": "FM-3.2",
+      "is_mast_fm3": true,
+      "predicted_semantics_1": true,
+      "correct": true
+    },
+    {
+      "id": "mast-005",
+      "ground_truth": "FM-3.2",
+      "is_mast_fm3": true,
+      "predicted_semantics_1": true,
+      "correct": true
+    },
+    {
+      "id": "mast-006",
+      "ground_truth": "FM-3.2",
+      "is_mast_fm3": true,
+      "predicted_semantics_1": true,
+      "correct": true
+    },
+    {
+      "id": "mast-007",
+      "ground_truth": "FM-3.2",
+      "is_mast_fm3": true,
+      "predicted_semantics_1": true,
+      "correct": true
+    },
+    {
+      "id": "mast-008",
+      "ground_truth": "FM-3.3",
+      "is_mast_fm3": true,
+      "predicted_semantics_1": true,
+      "correct": true
+    },
+    {
+      "id": "mast-009",
+      "ground_truth": "FM-3.3",
+      "is_mast_fm3": true,
+      "predicted_semantics_1": true,
+      "correct": true
+    },
+    {
+      "id": "mast-010",
+      "ground_truth": "FM-3.3",
+      "is_mast_fm3": true,
+      "predicted_semantics_1": true,
+      "correct": true
+    },
+    {
+      "id": "mast-011",
+      "ground_truth": "FM-1.1",
+      "is_mast_fm3": false,
+      "predicted_semantics_1": false,
+      "correct": true
+    },
+    {
+      "id": "mast-012",
+      "ground_truth": "FM-2.1",
+      "is_mast_fm3": false,
+      "predicted_semantics_1": false,
+      "correct": true
+    },
+    {
+      "id": "mast-013",
+      "ground_truth": "clean_success",
+      "is_mast_fm3": false,
+      "predicted_semantics_1": false,
+      "correct": true
+    },
+    {
+      "id": "mast-014",
+      "ground_truth": "clean_success",
+      "is_mast_fm3": false,
+      "predicted_semantics_1": false,
+      "correct": true
+    },
+    {
+      "id": "mast-015",
+      "ground_truth": "clean_success",
+      "is_mast_fm3": false,
+      "predicted_semantics_1": false,
+      "correct": true
+    },
+    {
+      "id": "mast-016",
+      "ground_truth": "clean_success",
+      "is_mast_fm3": false,
+      "predicted_semantics_1": false,
+      "correct": true
+    },
+    {
+      "id": "mast-017",
+      "ground_truth": "clean_success",
+      "is_mast_fm3": false,
+      "predicted_semantics_1": false,
+      "correct": true
+    },
+    {
+      "id": "mast-018",
+      "ground_truth": "clean_success",
+      "is_mast_fm3": false,
+      "predicted_semantics_1": false,
+      "correct": true
+    },
+    {
+      "id": "mast-019",
+      "ground_truth": "clean_success",
+      "is_mast_fm3": false,
+      "predicted_semantics_1": false,
+      "correct": true
+    }
+  ]
+}

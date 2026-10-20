@@ -1,7 +1,0 @@
-$ node scripts/check-governance-inventory.js
-
-EXIT 0
-
-[governance-inventory] OK: 35 entries, live source_adr, unique commands, closed references
-::warning title=Governance carve-out burn-rate::3 consecutive documentation rounds used the governance carve-out - advisory only, never blocks (ADR-0076 D-B)
-::warning title=Governance trend anchor::two consecutive documentation rounds added ADRs (streak 13 >= K=2) - advisory only, never blocks (ADR-0064 D-F)

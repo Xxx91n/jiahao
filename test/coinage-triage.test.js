@@ -222,8 +222,8 @@ describe('coinage-triage: no score, no target, no threshold anywhere in the outp
   });
 });
 
-describe('coinage-triage: advisory, never blocking', () => {
-  test('findings never move the exit code: full scan and json modes exit 0', () => {
+describe('coinage-triage: exit-code protocol (advisory tiers, help, usage/IO)', () => {
+  test('advisory-only findings never move the exit code: full scan and json modes exit 0', () => {
     const tree = makeTree(FIXTURE);
     const a = runCLI([CLI, '--root', tree]);
     const b = runCLI([CLI, '--root', tree, '--json', '--min-count', '1']);
@@ -247,18 +247,202 @@ describe('coinage-triage: advisory, never blocking', () => {
     expect(runCLI([CLI, '--nope']).status).toBe(2);
   });
 
-  test('the advisory status is legislative: the channel is absent from the gates registry', () => {
-    const gates = fs.readFileSync(path.join(ROOT, 'docs', 'gates.json'), 'utf8');
-    expect(gates).not.toContain('coinage');
-  });
+
 
   test('the rendered advisory list states frequency/breadth/lifecycle and no verdict', () => {
     const tree = makeTree(FIXTURE);
     const text = ct.renderAdvisory(ct.scanTree(tree));
     expect(text).toContain('收词分诊通道');
     expect(text).toContain('[en] treadmillghost');
-    expect(text).toContain('never a gate leg');
+    expect(text).toContain('avoid tier blocks (exit 1), avoid-unless is advisory');
     expect(text).toContain('prose-density: sentences=');
     expect(text).not.toMatch(/verdict[^\n]*:\s*(pass|fail|red)/i);
+  });
+});
+
+describe('coinage-triage: plain-substitution table and three-face reach (ADR-0102 D-B/D-C/D-D)', () => {
+  test('scans substitution table findings with avoid and avoid-unless tiers', () => {
+    const fixtureWithSpec = Object.assign({}, FIXTURE, {
+      'docs/language-discipline.json': JSON.stringify({
+        schema_version: 1,
+        source_adr: 'docs/adr/0102.md',
+        generator_principles: [
+          { id: 'one-word-one-meaning', title: 'One word, one meaning' }
+        ],
+        substitution_table: [
+          {
+            token: '承重墙',
+            tier: 'avoid',
+            substitute: '结构基准',
+            reason: 'metaphorical jargon',
+            status: 'active'
+          },
+          {
+            token: '幽灵词',
+            tier: 'avoid-unless',
+            condition: 'defined in glossary',
+            substitute: '未登记词',
+            reason: 'colloquial expression',
+            status: 'active'
+          },
+          {
+            token: '已关闭词',
+            tier: 'avoid',
+            substitute: '其他',
+            reason: 'retired entry',
+            status: 'closed',
+            closed_date: '2026-10-18',
+            closed_reason: 'no longer applicable'
+          }
+        ],
+        three_face_reach: {
+          default_face: 'mandatory',
+          mandatory_face: { surfaces: ['ledger', 'report', 'adr', 'agents', 'context'] }
+        }
+      }),
+      'AGENTS.md': '承重墙 承重墙 幽灵词 已关闭词'
+    });
+
+    const tree = makeTree(fixtureWithSpec);
+    const report = ct.scanTree(tree);
+    expect(report.substitutionFace.specPresent).toBe(true);
+    expect(report.substitutionFace.principles.length).toBe(1);
+    expect(report.substitutionFace.reach.default_face).toBe('mandatory');
+
+    const findings = report.substitutionFace.findings;
+    const avoid = findings.filter((f) => f.token === '承重墙');
+    expect(avoid.length).toBeGreaterThan(0);
+    expect(avoid[0].tier).toBe('avoid');
+    expect(avoid[0].substitute).toBe('结构基准');
+
+    const avoidUnless = findings.filter((f) => f.token === '幽灵词');
+    expect(avoidUnless.length).toBeGreaterThan(0);
+    expect(avoidUnless[0].tier).toBe('avoid-unless');
+    expect(avoidUnless[0].condition).toBe('defined in glossary');
+
+    // Closed rows are not emitted as findings
+    const closed = findings.filter((f) => f.token === '已关闭词');
+    expect(closed.length).toBe(0);
+
+    // Advisory rendering includes findings
+    const adv = ct.renderAdvisory(report);
+    expect(adv).toContain('substitution face');
+    expect(adv).toContain('[avoid]');
+    expect(adv).toContain('[avoid-unless]');
+  });
+
+  test('CLI --spec flag: avoid tier exits 1 (enforced CI gate, ADR-0103 D-C)', () => {
+    const customSpec = {
+      schema_version: 1,
+      source_adr: 'docs/adr/0103.md',
+      generator_principles: [
+        { id: 'one-word-one-meaning', title: 'One word, one meaning', statute: '...', origin: '...' }
+      ],
+      substitution_table: [
+        { token: 'treadmillghost', tier: 'avoid', substitute: 'unregistered term', reason: 'avoid jargon', status: 'Approved' }
+      ]
+    };
+    const tree = makeTree(FIXTURE);
+    const specFile = path.join(tree, 'custom-spec.json');
+    fs.writeFileSync(specFile, JSON.stringify(customSpec));
+
+    const r = runCLI([CLI, '--root', tree, '--spec', specFile]);
+    expect(r.status).toBe(1);
+    expect(r.stdout).toContain('substitution face');
+    expect(r.stdout).toContain('treadmillghost');
+    expect(r.stdout).toContain('generator principles');
+  });
+
+  test('CLI --spec flag: avoid-unless tier exits 0 (advisory always, ADR-0103 D-C)', () => {
+    const customSpec = {
+      schema_version: 1,
+      source_adr: 'docs/adr/0103.md',
+      generator_principles: [],
+      substitution_table: [
+        { token: 'treadmillghost', tier: 'avoid-unless', condition: 'in tests', substitute: 'term', reason: 'advisory', status: 'Approved' }
+      ]
+    };
+    const tree = makeTree(FIXTURE);
+    const specFile = path.join(tree, 'custom-spec.json');
+    fs.writeFileSync(specFile, JSON.stringify(customSpec));
+
+    const r = runCLI([CLI, '--root', tree, '--spec', specFile]);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain('[avoid-unless]');
+    expect(r.stdout).toContain('treadmillghost');
+  });
+
+  test('CLI --spec flag: suppressions allow avoid tier to exit 0', () => {
+    const customSpec = {
+      schema_version: 1,
+      source_adr: 'docs/adr/0103.md',
+      generator_principles: [],
+      substitution_table: [
+        { token: 'treadmillghost', tier: 'avoid', substitute: 'term', reason: 'avoid', status: 'Approved' }
+      ],
+      suppressions: [
+        { token: 'treadmillghost', file: '.scratch/grill-t1/decision-ledger.md', line: 4, reason: 'test suppression' }
+      ]
+    };
+    const tree = makeTree(FIXTURE);
+    const specFile = path.join(tree, 'custom-spec.json');
+    fs.writeFileSync(specFile, JSON.stringify(customSpec));
+
+    const r = runCLI([CLI, '--root', tree, '--spec', specFile]);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain('[SUPPRESSED: test suppression]');
+  });
+});
+
+describe('duplicateTokenDefinitions (Blocker B-1, T-0)', () => {
+  test('detects duplicate token definitions across distinct rows with the same token', () => {
+    const spec = {
+      substitution_table: [
+        { token: 'foo', status: 'Approved' },
+        { token: 'foo', status: 'Approved' }
+      ]
+    };
+    const dups = ct.duplicateTokenDefinitions(spec);
+    expect(dups).toHaveLength(1);
+    expect(dups[0]).toEqual({ token: 'foo', firstRow: 'foo', secondRow: 'foo', firstIndex: 0, secondIndex: 1 });
+  });
+
+  test('detects collision between token and forbidden_synonyms in distinct rows', () => {
+    const spec = {
+      substitution_table: [
+        { token: 'foo', forbidden_synonyms: ['bar'], status: 'Approved' },
+        { token: 'bar', status: 'Approved' }
+      ]
+    };
+    const dups = ct.duplicateTokenDefinitions(spec);
+    expect(dups).toHaveLength(1);
+    expect(dups[0]).toEqual({ token: 'bar', firstRow: 'foo', secondRow: 'bar', firstIndex: 0, secondIndex: 1 });
+  });
+
+  test('ignores intra-row identical tokens and closed/Draft rows', () => {
+    const spec = {
+      substitution_table: [
+        { token: 'foo', forbidden_synonyms: ['foo', ''], status: 'Approved' },
+        { token: 'foo', status: 'closed' },
+        { token: 'foo', status: 'Draft' },
+        { token: 'baz', status: 'Approved' }
+      ]
+    };
+    const dups = ct.duplicateTokenDefinitions(spec);
+    expect(dups).toHaveLength(0);
+  });
+
+  test('reports row positions as written in the table, not as renumbered live rows', () => {
+    const spec = {
+      substitution_table: [
+        { token: 'foo', status: 'Approved' },
+        { token: 'qux', status: 'closed' },
+        { token: 'foo', status: 'Approved' }
+      ]
+    };
+    const dups = ct.duplicateTokenDefinitions(spec);
+    expect(dups).toHaveLength(1);
+    expect(dups[0].firstIndex).toBe(0);
+    expect(dups[0].secondIndex).toBe(2);
   });
 });

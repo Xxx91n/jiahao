@@ -1,0 +1,279 @@
+{
+  "schema_version": 1,
+  "_doc": "ADR-0102 D-A/D-B/D-C/D-D & ADR-0103 D-A/D-B/D-C: Shared specification file for plain-language generator principles, controlled vocabulary substitution table, and three-face reach (grill-mental-model, ledger D-006, D-007, D-010, D-013). Governed under change tickets via the ADR mechanism.",
+  "source_adr": "docs/adr/0103-controlled-vocabulary-coinage-retirement-and-blocking-avoid-tier.md",
+  "generator_principles": [
+    {
+      "id": "one-word-one-meaning",
+      "title": "One word, one meaning",
+      "statute": "A concept carries exactly one name. Reject compound welding of new jargon for existing concepts.",
+      "origin": "Sweden plain-language statutory form / ASD-STE100"
+    },
+    {
+      "id": "complete-short-sentences",
+      "title": "Complete short sentences",
+      "statute": "Write complete short sentences without long welded noun chains.",
+      "guidance": "Two explanation-layer notes (r3 D-003①, registered 2026-10-19, ADR-0102 D-A guidance layer — the statutory cap of three principles is untouched): a metaphor is either defined in CONTEXT.md or dropped; an abbreviation is expanded at first use.",
+      "origin": "Sweden plain-language statutory form / US Plain Writing Act"
+    },
+    {
+      "id": "register-before-use",
+      "title": "Register before use",
+      "statute": "A new term must have a CONTEXT.md entry before it may appear in mandatory faces.",
+      "origin": "ADR-0102 D-A / CONTEXT.md enrollment"
+    }
+  ],
+  "substitution_table": [
+    {
+      "token": "豁免阀",
+      "tier": "avoid",
+      "status": "Deprecated",
+      "definition": "未登记词或概念的豁免出口。不是一种特权放行机制，而是通过收词分诊通道登记并延后处理。",
+      "context": "严禁用'豁免阀'跳过规范，未登记词须入分诊通道。",
+      "forbidden_synonyms": [
+        "豁免阀",
+        "特权放行",
+        "绕过阀"
+      ],
+      "substitute": "收词分诊通道 / 延后处理项",
+      "reason": "The term 豁免阀 (exemption valve) is forbidden by the ADR-0102 D-B wording law (inherited from ADR-0098 D-C; ADR-0100 retired in 62a71522); triage discloses and defers, but never exempts.",
+      "condition": null
+    },
+    {
+      "token": "双重屏障",
+      "tier": "avoid-unless",
+      "status": "Approved",
+      "definition": "两个独立、有效且可审计的防护屏障组合。不是把未经资格认定的普通规则简单计数叠加以制造虚假安全感。",
+      "context": "两道独立防护经 IPL 验证合格后方可计为双重屏障。",
+      "forbidden_synonyms": [
+        "多重防线",
+        "虚假双屏障"
+      ],
+      "substitute": "辅助控制 (support controls)",
+      "reason": "Counting unqualified rules as barriers manufactures a false sense of multiple protection (ADR-0101 D-C / Primatech warning).",
+      "condition": "Rules must pass the IPL triple test (effective, independent, auditable) before counting as barriers."
+    },
+    {
+      "token": "defense-in-depth",
+      "tier": "avoid-unless",
+      "status": "Approved",
+      "definition": "多层纵深防御工程架构。在本项目架构映射中不是指预防屏障与减缓屏障的模糊混合，而是指两层各自独立的工程属性。",
+      "context": "系统在通用软件架构层采用 defense-in-depth，在双 profile 映射上遵循 Bow-tie 预防与减缓分离。",
+      "forbidden_synonyms": [
+        "纵深混杂",
+        "混合屏障"
+      ],
+      "substitute": "Bow-tie 骨架 (独立预防屏障 + 减缓屏障)",
+      "reason": "Defense-in-depth is an engineering property, not the bow-tie architectural mapping; prevention and mitigation layers remain strictly independent (ADR-0101 D-A).",
+      "condition": "Used strictly in the context of generic software defense in depth rather than the two-profile architecture mapping."
+    },
+    {
+      "token": "pairer",
+      "tier": "avoid-unless",
+      "status": "Deprecated",
+      "definition": "第二方独立验证审计代理。不是共同作者或协作编写者，而是持阻断权力的独立审查者。",
+      "context": "验证 profile 由独立审计 agent 运行，禁止与主 agent 混淆职责。",
+      "forbidden_synonyms": [
+        "pairer",
+        "结对者",
+        "配对助手"
+      ],
+      "substitute": "auditor / reviewer / second agent (独立审计 agent / 审查者)",
+      "reason": "Jargon coinage. A concept carries plain established names; Digital.gov plain writing standards reject giving familiar concepts manufactured names (D-010, ADR-0103 D-B).",
+      "condition": "Deprecated retired coinage (r2 BK-08 downgrade, registered 2026-10-19): historical text (accepted ADRs, prior ledgers, commit messages) stays as written under the append-only discipline; new output names the role plainly (auditor / reviewer / second agent). Re-promotion into the avoid tier requires the four-criteria review at P1 (after the MAST separability gate passes), never before."
+    },
+    {
+      "token": "coinage",
+      "tier": "avoid-unless",
+      "status": "Deprecated",
+      "definition": "未经平实语言审查和登记而随意发明的生造晦涩词汇。不是已被领域公认的标准术语。",
+      "context": "技术写作中应选用通用熟词，避免发明自造生词。",
+      "forbidden_synonyms": [
+        "coinage",
+        "造词",
+        "生造词"
+      ],
+      "substitute": "neologism / jargon / 自造词",
+      "reason": "Reflexive plain-language discipline. Plain words carry the meaning directly without imposing manufactured vocabulary (D-010, ADR-0103 D-B).",
+      "condition": "Deprecated retired coinage (r2 BK-08 downgrade, registered 2026-10-19): historical text (accepted ADRs, prior ledgers, commit messages) stays as written under the append-only discipline; new output says neologism or jargon. Re-promotion into the avoid tier requires the four-criteria review at P1 (after the MAST separability gate passes), never before."
+    },
+    {
+      "token": "judge-twins",
+      "tier": "avoid-unless",
+      "status": "Deprecated",
+      "definition": "两个独立的判定实例或双模型交叉评估机制。不是具有拟人或神秘绑定的'孪生体'。",
+      "context": "通过双模型独立裁决与交叉对比保证判决客观性。",
+      "forbidden_synonyms": [
+        "judge-twins",
+        "孪生裁判",
+        "孪生判定器"
+      ],
+      "substitute": "dual judges / 双重判定 / 双评估者",
+      "reason": "Hyphen compound jargon. Plain technical terms exist for independent dual evaluation (D-010, ADR-0103 D-B).",
+      "condition": "Deprecated retired coinage (r2 BK-08 downgrade, registered 2026-10-19): historical text (accepted ADRs, prior ledgers, commit messages) stays as written under the append-only discipline; new output says independent dual evaluation. Re-promotion into the avoid tier requires the four-criteria review at P1 (after the MAST separability gate passes), never before."
+    },
+    {
+      "token": "inoculation",
+      "tier": "avoid-unless",
+      "status": "Deprecated",
+      "definition": "在提示词前置中加入对抗性防范指令以抵御模型退化。不是生物医学上的物理疫苗接种。",
+      "context": "在系统提示中注入防范提示以规范输出风格。",
+      "forbidden_synonyms": [
+        "inoculation",
+        "疫苗接种",
+        "提示接种"
+      ],
+      "substitute": "pre-briefing / prompt defense / 防范提示 / 免疫提示",
+      "reason": "Metaphorical jargon violating Digital.gov rules against assigning non-standard meanings to common words (D-010, ADR-0103 D-B).",
+      "condition": "Deprecated retired coinage (r2 BK-08 downgrade, registered 2026-10-19): historical text (accepted ADRs, prior ledgers, commit messages) stays as written under the append-only discipline; new output names the concept in plain established words rather than reusing a medical metaphor. Re-promotion into the avoid tier requires the four-criteria review at P1 (after the MAST separability gate passes), never before."
+    },
+    {
+      "token": "entity-level",
+      "tier": "avoid-unless",
+      "status": "Approved",
+      "definition": "指涉对象具备持久物理实体身份（有固定生命周期和实体标识），区别于纯瞬时字符串 ID 或瞬态标记。",
+      "context": "权限校验必须在 entity-level 确认物理资源所有权，不可仅凭请求中的字符串 ID。",
+      "forbidden_synonyms": [
+        "实体级虚饰"
+      ],
+      "substitute": "entity-level (保留，区分物理实体与瞬态标识符)",
+      "reason": "Marks a real domain distinction between ephemeral identifiers and persistent entity identity (D-010, ADR-0103 D-B).",
+      "condition": "Used to distinguish persistent entity identity from transient string identifiers."
+    },
+    {
+      "token": "tightening-only",
+      "tier": "avoid-unless",
+      "status": "Deprecated",
+      "definition": "规则或门禁演进中只允许单调变严格、不允许放宽松。不是不可解释的专有修饰词。",
+      "context": "门禁阈值调整遵循单调收紧纪律，禁止放宽既有检查。",
+      "forbidden_synonyms": [
+        "tightening-only",
+        "仅收紧模式"
+      ],
+      "substitute": "monotonic restriction / 单调收紧 / 仅收紧",
+      "reason": "Hyphen compound jargon. Standard mathematical/engineering language ('monotonic') carries the meaning precisely (D-010, ADR-0103 D-B).",
+      "condition": "Deprecated retired coinage (r2 BK-08 downgrade, registered 2026-10-19): historical text (accepted ADRs, prior ledgers, commit messages) stays as written under the append-only discipline; new output says monotonic (no-relaxation). Re-promotion into the avoid tier requires the four-criteria review at P1 (after the MAST separability gate passes), never before."
+    },
+    {
+      "token": "designed-after",
+      "tier": "avoid-unless",
+      "status": "Deprecated",
+      "definition": "参考现有标准或成熟架构进行的衍生设计。不是一种独特的专有关系。",
+      "context": "该模块参考 ESLint 门禁分级设计，继承其成熟语义。",
+      "forbidden_synonyms": [
+        "designed-after",
+        "摹拟设计"
+      ],
+      "substitute": "derived from / modeled on / 参考设计",
+      "reason": "Hyphen compound jargon where standard English verbs ('derived from', 'modeled on') are clearer (D-010, ADR-0103 D-B).",
+      "condition": "Deprecated retired coinage (r2 BK-08 downgrade, registered 2026-10-19): historical text (accepted ADRs, prior ledgers, commit messages) stays as written under the append-only discipline; new output says derived from / modeled on. Re-promotion into the avoid tier requires the four-criteria review at P1 (after the MAST separability gate passes), never before."
+    },
+    {
+      "token": "measured-present",
+      "tier": "avoid-unless",
+      "status": "Deprecated",
+      "definition": "经由实际扫描在当前代码树中真实观察到的词汇或状态。不是假设或推测的存在。",
+      "context": "该自造词经代码树实测统计，共发现 18 次出现。",
+      "forbidden_synonyms": [
+        "measured-present",
+        "实测现存"
+      ],
+      "substitute": "observed in tree / 当前实测 / 实测存在",
+      "reason": "Hyphen compound jargon. Plain terms ('observed', 'measured') convey empirical verification directly (D-010, ADR-0103 D-B).",
+      "condition": "Deprecated retired coinage (r2 BK-08 downgrade, registered 2026-10-19): historical text (accepted ADRs, prior ledgers, commit messages) stays as written under the append-only discipline; new output says observed / measured. Re-promotion into the avoid tier requires the four-criteria review at P1 (after the MAST separability gate passes), never before."
+    },
+    {
+      "token": "check-drift",
+      "tier": "avoid-unless",
+      "status": "Deprecated",
+      "definition": "检查系统产物与源码规范之间是否发生非预期的偏移或偏离。不是神秘专有机制。",
+      "context": "在构建步骤中执行一致性检查，防范适配器代码发生漂移。",
+      "forbidden_synonyms": [
+        "check-drift",
+        "漂移检验"
+      ],
+      "substitute": "regression check / consistency check / 漂移检查 / 一致性检查",
+      "reason": "Hyphen compound jargon. Standard engineering terms ('drift check', 'consistency check') are plain and familiar (D-010, ADR-0103 D-B).",
+      "condition": "Deprecated retired coinage (r2 BK-08 downgrade, registered 2026-10-19): historical text (accepted ADRs, prior ledgers, commit messages) stays as written under the append-only discipline; new output says drift check / consistency check. Re-promotion into the avoid tier requires the four-criteria review at P1 (after the MAST separability gate passes), never before."
+    },
+    {
+      "token": "deferred-registry",
+      "tier": "avoid-unless",
+      "status": "Deprecated",
+      "definition": "在当前审查轮次中因条件未成熟而挂起、留待未来特定触发点再审议的事项。不是永久特权豁免。",
+      "context": "该特性因依赖后续实证数据，登记为延后审议项。",
+      "forbidden_synonyms": [
+        "deferred-registry",
+        "延后注册器"
+      ],
+      "substitute": "postponed item / deferred item / 延后登记项 / 待决条目",
+      "reason": "Hyphen compound jargon. Standard project management terms ('postponed', 'deferred item') are completely clear (D-010, ADR-0103 D-B).",
+      "condition": "Deprecated retired coinage (r2 BK-08 downgrade, registered 2026-10-19): historical text (accepted ADRs, prior ledgers, commit messages) stays as written under the append-only discipline; new output says postponed / deferred item. Re-promotion into the avoid tier requires the four-criteria review at P1 (after the MAST separability gate passes), never before."
+    }
+  ],
+  "suppressions": [
+    {
+      "token": "豁免阀",
+      "file": ".scratch/grill-mental-model/reports/2026-10-18-audit-report.md",
+      "line": 26,
+      "reason": "Historical test output quotation in prior audit report"
+    },
+    {
+      "token": "豁免阀",
+      "file": ".scratch/grill-mental-model/reports/2026-10-18-report.md",
+      "line": 51,
+      "reason": "Historical test output quotation in prior round report"
+    },
+    {
+      "token": "豁免阀",
+      "file": ".scratch/grill-t39/decision-ledger.md",
+      "line": 74,
+      "reason": "Historical problem statement recorded prior to wording law"
+    },
+    {
+      "token": "豁免阀",
+      "file": ".scratch/grill-t39/decision-ledger.md",
+      "line": 83,
+      "reason": "Statutory negation explicitly prohibiting the term: '措辞禁「豁免阀」'"
+    },
+    {
+      "token": "豁免阀",
+      "file": "docs/adr/0098-grandiosity-fifth-semantics-debt-form-definition-coinage-triage-channel-ratchet-and-prose-density-disclosure.md",
+      "line": 88,
+      "reason": "Statutory negation explicitly prohibiting the term: 'The term 豁免阀 (exemption valve) is forbidden'"
+    },
+    {
+      "token": "豁免阀",
+      "file": "docs/adr/0098-grandiosity-fifth-semantics-debt-form-definition-coinage-triage-channel-ratchet-and-prose-density-disclosure.md",
+      "line": 180,
+      "reason": "Statutory negation enumerating prohibited items: 'the 豁免阀 wording;'"
+    }
+  ],
+  "three_face_reach": {
+    "mandatory_face": {
+      "reach": "Table plus principles legislated, gate landed (r3 D-003④ wording change, 2026-10-19; the CI gate landed the same round — exit non-zero on unsuppressed avoid-tier hits, ADR-0103 D-E.1). Encompasses git commit messages, ADR bodies, and CONTEXT.md entries.",
+      "surfaces": [
+        "ledger",
+        "report",
+        "adr",
+        "agents",
+        "context",
+        "commit"
+      ]
+    },
+    "principle_face": {
+      "reach": "Principles only, no lint (src/SKILL.md). The product face remains plain without lint interruptions.",
+      "surfaces": [
+        "src/SKILL.md"
+      ]
+    },
+    "light_disclosure_face": {
+      "reach": "Principles plus optional future light-disclosure footer for final replies to humans.",
+      "surfaces": [
+        "human_replies"
+      ]
+    },
+    "default_face": "mandatory",
+    "policy": "New document types default into the mandatory face; an exception requires an ADR change ticket (ADR-0102 D-D)."
+  }
+}

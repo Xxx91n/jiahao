@@ -5,13 +5,12 @@
 
 const fs = require('fs');
 const path = require('path');
-const { requireCapabilities } = require('../src/shared/capability');
 
 // ADR-0041 impl (audit L1): no top-level side effects - the body runs inside
 // main() so requiring this module never probes or exits.
 
 function main() {
-  requireCapabilities('drift'); // ADR-0040 D2: needs a git worktree
+   // ADR-0040 D2: needs a git worktree
 
   const root = path.join(__dirname, '..');
   const skillPath = path.join(root, 'src', 'SKILL.md');

@@ -245,7 +245,7 @@ Batches (main set):
 
 ## Settlement
 
-- eval-plan: bench/research/devin-corpus-v3/eval-plan.json (sha256 81e5d46870e2a7d3)
+- eval-plan: bench/research/devin-corpus-v3/eval-plan.json (sha256 6bf1ee865c1ac07d; superseded: fe4887131be716f5 / r2 BK-09 gate_prerequisite wording alignment, and 81e5d46870e2a7d3 / D-011 canonical serialization)
 - pairer artifact: bench/research/capa-pairer.js (sha256 9ff2d0ada931628b, 10697 B pinned)
 - items.jsonl sha256: e5aed3c269a565ed
 - undersized bands: none

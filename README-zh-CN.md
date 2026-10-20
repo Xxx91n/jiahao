@@ -170,9 +170,9 @@ npm tarball 是运行时工件：只安装提示配置与门脚本，仅此而�
 > history underwent an owner-ordered sanitized-history rewrite: sensitive paths
 > were removed so no published tree ever carried them, and tip-region commit
 > SHAs changed (bounded scope; earlier history untouched). Pre-rewrite SHA
-> citations in docs resolve through `docs/rewrite-map.json` — the single
-> translation point (generated in the R2 action round); the event record is
-> ADR-0074 and the sanitization runbook.
+> citations in docs were translated via `docs/rewrite-map.json` and recorded
+> in ADR-0074 — both retired in the 2026-10 consolidation and readable in git
+> history.
 
 MCP 适配器（`jiahao-mcp/`）是 **source-only** git 树组件：不在 tarball 内，也从不经 npm 分发。请从 clone 运行 —— `git clone <repo> && cd jiahao-mcp && npm install`（状态：experimental / source-only；ADR-0059 D-B）。MCP 发布渠道已挂起（defer-0029）。
 
@@ -272,8 +272,7 @@ This is a decision-table outcome from a seeded-emergence bench corpus, not a pre
 
 v2 裁决冻结于带注释标签 `adjudicated/devin-corpus-v2`（commit 8807a61；失败类别：构念错位）。被裁决工件 `src/port/score.js` 与 `src/port/g6-manifest.json` 在该提交处 sha256 钉定。从已记录工件重导出全部已发布数字 —— 语料本身永不重开：
 `node bench/research/devin-oot.js --snapshot-dir devin-corpus-v2 --replay`。
-校验治理锚点：
-`node scripts/build-governance-anchors.js --check`。不一致请按类别进入 CAPA 记录 —— 开一个指明不匹配字段的 GitHub issue；复现永不进入任何裁决链。
+不一致请按类别进入 CAPA 记录 —— 开一个指明不匹配字段的 GitHub issue；复现永不进入任何裁决链。
 
 邀请同样延伸至 conviction-lane 渠道（ADR-0070）：车道的 shadow 记录在本地证据链上只追加，四个冻结的晋级输入可经
 `node scripts/pairer-lane-telemetry.js` 重导出；随包配对器自身可经
@@ -282,9 +281,7 @@ v2 裁决冻结于带注释标签 `adjudicated/devin-corpus-v2`（commit 8807a61
 ## Develop
 
 ```bash
-# test-manifest:develop:begin (derived - do not hand-edit; node scripts/build-test-manifest.js)
-npm test                              # 1817 tests across 103 suites (full corpus tier; the public tier skips 7 corpus-bound tests with reasons, ADR-0056)
-# test-manifest:develop:end
+npm test
 node scripts/kappa.js                 # ADR-0018 κ governance report (--save-baseline to pin)
 node scripts/build-adapters.js        # regenerate 54 adapter files (12 hosts)
 node scripts/check-drift.js           # CI drift check + profile purity
@@ -299,23 +296,16 @@ node scripts/check-drift.js           # CI drift check + profile purity
 - `hooks/` —— 7 个 hook 脚本 + hooks.json + runtime.js
 - `adapters/` —— 生成的分宿主适配（12 个宿主目录 / 54 个生成文件；ADR-0028 D5）
 - `jiahao-mcp/` —— 仅 MCP 适配器（配置参数）
-<!-- test-manifest:architecture:begin (derived - do not hand-edit; node scripts/build-test-manifest.js) -->
-- `test/` —— 103 test suites, 1817 tests
-<!-- test-manifest:architecture:end -->
+- `test/` —— jest 测试套件
 - `bench/polygraph/` —— ADR-0015 基准适配器 + 冻结开发切分语料（ADR-0019 运行诚实 FAIL、ADR-0020 运行 PASS 优于 b2；见其 README）
 - `private/bench-corpus/` —— 答案语料（probes/judge-twins/twins + 指纹；gitignored，ADR-0036 D2）。门脚本经 JIAHAO_CORPUS_DIR 解析，其次安装植入目录（`jiahao init` 自包内植入），再次维护者树内本仓库私有目录；处处皆无则失败关闭（exit 1: config；能力探针先将缺失语料目录降级为 exit 2 UNVERIFIABLE，ADR-0041 D2）。npm 消费者与公开 git clone 完全不含语料 —— 语料门是维护者/CI 专属契约，设计上失败关闭（ADR-0038 D2）。
-- `docs/adr/` —— 架构决策记录（git 树开发面；ADR-0039）。当前共 **100 条**；下方索引为派生工件（ADR-0043），由 `node scripts/build-adr-index.js` 重建 —— 勿手改：
+- `docs/adr/` —— 架构决策记录（git 树开发面；ADR-0039）。当前共 48 条产品决策记录。
 
 双配置流程：建议性 generator 产出声明；独立 verifier 走六级阶梯并落四种裁决之一。
 
 <p align="center"><img src="docs/assets/diagrams/dual-profile.svg" alt="双配置安装流程图" width="880"></p>
 
-<details>
-<summary>ADR index — derived artifact (ADR-0043), rebuilt by `node scripts/build-adr-index.js`</summary>
 
-索引与英文 README 同由 `node scripts/build-adr-index.js` 生成；逐字清单以英文原文为准（English original prevails），见 `README.md` 的 `<details>` 折叠区。
-
-</details>
 
 ## License
 

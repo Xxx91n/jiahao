@@ -1,12 +1,10 @@
 'use strict';
-// scripts/shared/coinage-triage.js - ADR-0098 D-C/D-E (grill-t39 D-004.3/.5,
-// D-005.1): the deterministic core of the Unregistered-Coinage Triage Channel
-// (收词分诊通道) - a GENERATOR-SIDE ADVISORY probe. It counts; it never
-// judges. WHY IT NEVER BLOCKS: the ADR mints no leg (D-C "advisory, not
-// blocking"; D-G "does a blocking leg exist at all: explicitly no"), so this
-// module exposes no pass/fail anywhere and the CLI exits non-zero only for its
-// own usage/IO errors - never for style findings. It is deliberately absent
-// from docs/gates.json and from every verifier battery.
+// scripts/shared/coinage-triage.js - ADR-0098 D-C/D-E / ADR-0103 D-C:
+// the deterministic core of the Unregistered-Coinage Triage Channel
+// (收词分诊通道). Dual-tier enforcement contract (ADR-0103 D-C):
+// - avoid tier: blocking CI gate (exit 1 on unsuppressed findings on mandatory face)
+// - avoid-unless tier: advisory census (exit 0)
+// Registered as confirmatory gate in docs/gates.json.
 //
 // THE FIVE SURFACES (D-C, exact): ledgers (.scratch/grill-*/decision-ledger.md),
 // reports (.scratch/grill-*/reports/*.md), ADRs (docs/adr/*.md), AGENTS.md,
@@ -50,7 +48,7 @@
 //      links, the comma class; only the full-width ； is a boundary);
 //   4. empty segments are dropped; sentence length = Unicode code points of
 //      the trimmed segment; a sentence is "long" at > LONG_LEN code points -
-//      a DISCLOSED GAUGE EDGE (the instrument-name clause of ADR-0099 P-C),
+//      a DISCLOSED GAUGE EDGE (the instrument-name clause; ADR-0099 retired in 62a71522, reaffirmed in ADR-0102 D-B),
 //      never a target value.
 // The same bytes always produce the same counts: pure regex + splitting, no
 // model, no randomness, no wall-clock in the output, and every list is sorted
@@ -75,6 +73,7 @@ const fs = require('fs');
 const path = require('path');
 
 const DEFAULT_MIN_COUNT = 3;
+const DEFAULT_SPEC_REL = path.join('docs', 'language-discipline.json');
 const ZH_WINDOW_MIN = 2;
 const ZH_WINDOW_MAX = 4;
 const EN_MIN_LEN = 4;
@@ -113,7 +112,7 @@ const EN_STOPWORDS = Object.freeze(new Set([
 ]));
 
 function normalizeText(text) {
-  return String(text).replace(/^﻿/, '').replace(/\r\n?/g, '\n');
+  return String(text).replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
 }
 
 // Whole-line fenced code blocks removed (``` / ~~~ open, same fence char
@@ -126,9 +125,14 @@ function stripCodeFences(text) {
     if (m) {
       if (fence === null) fence = m[1].charAt(0);
       else if (fence === m[1].charAt(0)) fence = null;
+      out.push('');
       continue;
     }
-    if (fence === null) out.push(line);
+    if (fence === null) {
+      out.push(line);
+    } else {
+      out.push('');
+    }
   }
   return out.join('\n');
 }
@@ -361,6 +365,119 @@ function collectRows(map, lang, isRegistered, minCount) {
   return rows;
 }
 
+
+function loadLanguageDiscipline(root, customPath) {
+  const p = customPath ? path.resolve(customPath) : path.join(root, DEFAULT_SPEC_REL);
+  if (!fs.existsSync(p)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch (e) {
+    return null;
+  }
+}
+
+// A live table row is one the triage channel still enforces on. Shared by
+// scanSubstitutions and the duplicate check so the two cannot drift apart.
+function isLiveRow(row) {
+  return !!row && row.status !== 'closed' && row.status !== 'Draft';
+}
+
+// Same-token double-definition check (r3 D-003②, 2026-10-19): a token may
+// appear in at most one live table row. Two rows sharing a token (or one
+// token listed in another row's forbidden_synonyms) split the definition
+// space, so the triage output cannot state a single substitute. Detection
+// check only — not a new principle (ADR-0102 D-A cap of three stands).
+// Row positions are indices into substitution_table as written, so a closed or
+// Draft row between two live rows still shifts the reported position.
+function duplicateTokenDefinitions(spec) {
+  if (!spec || !Array.isArray(spec.substitution_table)) return [];
+  const table = spec.substitution_table;
+  const owner = new Map();
+  const duplicates = [];
+  for (let i = 0; i < table.length; i++) {
+    const row = table[i];
+    if (!isLiveRow(row)) continue;
+    const tokens = [row.token].concat(Array.isArray(row.forbidden_synonyms) ? row.forbidden_synonyms : []);
+    for (const t of Array.from(new Set(tokens.filter(Boolean)))) {
+      if (owner.has(t)) {
+        const prev = owner.get(t);
+        if (prev.index !== i) {
+          duplicates.push({
+            token: t,
+            firstRow: prev.token,
+            secondRow: row.token,
+            firstIndex: prev.index,
+            secondIndex: i,
+          });
+        }
+      } else {
+        owner.set(t, { index: i, token: row.token });
+      }
+    }
+  }
+  return duplicates;
+}
+
+function scanSubstitutions(text, spec, fileRel) {
+  if (!spec || !Array.isArray(spec.substitution_table)) return [];
+  const findings = [];
+  const normalizedRel = fileRel ? path.normalize(fileRel).replace(/\\/g, '/') : null;
+  const suppressions = Array.isArray(spec.suppressions) ? spec.suppressions : [];
+
+  for (const row of spec.substitution_table) {
+    if (!isLiveRow(row)) continue;
+    const tokensToScan = [row.token].concat(Array.isArray(row.forbidden_synonyms) ? row.forbidden_synonyms : []);
+    const uniqueTokens = Array.from(new Set(tokensToScan.filter(Boolean)));
+    if (uniqueTokens.length === 0) continue;
+
+    const lines = text.split('\n');
+    let hitCount = 0;
+    let unsuppressedCount = 0;
+    const hitSuppressions = [];
+
+    uniqueTokens.forEach(function (token) {
+      lines.forEach(function (lineText, lineIdx) {
+        let linePos = 0;
+        while ((linePos = lineText.indexOf(token, linePos)) !== -1) {
+          hitCount++;
+          const lineNum = lineIdx + 1;
+          const matchingSupp = suppressions.find(function (s) {
+            const sFile = s.file ? path.normalize(s.file).replace(/\\/g, '/') : '';
+            return (s.token === token || s.token === row.token) && sFile === normalizedRel && s.line === lineNum;
+          });
+          if (matchingSupp) {
+            hitSuppressions.push(matchingSupp.reason);
+          } else {
+            unsuppressedCount++;
+          }
+          linePos += token.length;
+        }
+      });
+    });
+
+    if (hitCount > 0) {
+      findings.push({
+        token: row.token,
+        tier: row.tier || 'avoid',
+        status: row.status || 'Approved',
+        enforced: row.enforced !== false,
+        substitute: row.substitute || '',
+        definition: row.definition || null,
+        context: row.context || null,
+        forbidden_synonyms: row.forbidden_synonyms || [],
+        reason: row.reason || '',
+        condition: row.condition || null,
+        count: hitCount,
+        unsuppressedCount: unsuppressedCount,
+        suppressed: unsuppressedCount === 0 && hitSuppressions.length > 0,
+        suppression_reasons: hitSuppressions,
+        file: fileRel || null,
+      });
+    }
+  }
+  return findings;
+}
+
 function surfaceRow(id, files, counts) {
   const row = { id: id, files: files };
   Object.assign(row, counts);
@@ -397,6 +514,20 @@ function scanTree(root, opts) {
     });
   }
 
+  const disciplineSpec = loadLanguageDiscipline(root, o.disciplineSpec);
+  const substitutionFindings = [];
+  if (disciplineSpec) {
+    for (const f of files) {
+      const raw = readAt(root, f.rel);
+      if (raw === null) continue;
+      const stripped = stripCodeFences(raw);
+      const fileFindings = scanSubstitutions(stripped, disciplineSpec, f.rel);
+      for (const item of fileFindings) substitutionFindings.push(item);
+    }
+  } else {
+    notes.push('docs/language-discipline.json absent - substitution table inert');
+  }
+
   const zhRows = collectRows(zh, 'zh', function (t) { return isZhRegistered(t, registration); }, minCount);
   const enRows = collectRows(en, 'en', function (t) { return registration.enWords.has(t); }, minCount);
 
@@ -407,7 +538,7 @@ function scanTree(root, opts) {
   const overall = proseCountsOfText(SURFACES.map(function (s) { return textsBySurface[s.id].join('\n'); }).join('\n'));
 
   return {
-    advisory: true,
+    enforcement: 'ADR-0103 D-C dual-tier: avoid blocks with exit 1, avoid-unless stays advisory',
     minCount: minCount,
     notes: notes,
     surfaces: SURFACES.map(function (s) {
@@ -415,6 +546,12 @@ function scanTree(root, opts) {
     }),
     wordFace: { zh: zhRows, en: enRows },
     sentenceFace: { overall: overall, perSurface: perSurface },
+    substitutionFace: {
+      findings: substitutionFindings,
+      specPresent: disciplineSpec !== null,
+      principles: disciplineSpec ? disciplineSpec.generator_principles : [],
+      reach: disciplineSpec ? disciplineSpec.three_face_reach : null,
+    },
   };
 }
 
@@ -423,7 +560,7 @@ function scanTree(root, opts) {
 // decides).
 function renderAdvisory(report) {
   const lines = [];
-  lines.push('coinage-triage (收词分诊通道, ADR-0098) - ADVISORY LIST, never a gate leg, never a verdict.');
+  lines.push('coinage-triage (收词分诊通道, ADR-0098 / ADR-0103) - avoid tier blocks (exit 1), avoid-unless is advisory.');
   lines.push('Measured axes: frequency, file breadth, surface breadth, lifecycle state (registered / unregistered).');
   lines.push('NOT measured by design: the load-bearing-semantics axis stays with the owner (ADR-0098 D-B).');
   for (const n of report.notes) lines.push('note: ' + n);
@@ -445,6 +582,28 @@ function renderAdvisory(report) {
     lines.push('  ' + renderFooterLine(row) + '  files=' + row.files + '  [' + row.id + ']');
   }
   lines.push('');
+  if (report.substitutionFace && report.substitutionFace.specPresent) {
+    if (Array.isArray(report.substitutionFace.principles) && report.substitutionFace.principles.length > 0) {
+      lines.push('generator principles (ADR-0102 D-A, three statutory principles):');
+      for (const p of report.substitutionFace.principles) {
+        const statutePart = p.statute ? ' — ' + p.statute : '';
+        const originPart = p.origin ? ' (origin: ' + p.origin + ')' : '';
+        lines.push('  [' + p.id + '] ' + p.title + statutePart + originPart);
+      }
+      lines.push('');
+    }
+    lines.push('substitution face - plain substitute suggestions (ADR-0102 D-B, disclosure only, never a score):');
+    if (report.substitutionFace.findings.length === 0) {
+      lines.push('  all scanned surfaces clean: 0 substitution findings');
+    } else {
+      for (const f of report.substitutionFace.findings) {
+        const cond = f.condition ? ' [condition: ' + f.condition + ']' : '';
+        const supp = f.suppressed ? ' [SUPPRESSED: ' + Array.from(new Set(f.suppression_reasons || [])).join('; ') + ']' : '';
+        lines.push('  [' + f.tier + '] ' + JSON.stringify(f.token) + ' (count=' + f.count + ', file=' + f.file + ')' + supp + ' -> use ' + JSON.stringify(f.substitute) + cond + ' (' + f.reason + ')');
+      }
+    }
+    lines.push('');
+  }
   lines.push('Owner acts on this list: register the term in CONTEXT.md, plain-ify it, or defer-registry a row (ADR-0098 D-C).');
   lines.push('The footer sets no target value and existing text is never rewritten for the sake of a count (ADR-0098 D-F).');
   return lines.join('\n');
@@ -452,8 +611,12 @@ function renderAdvisory(report) {
 
 module.exports = {
   DEFAULT_MIN_COUNT,
+  DEFAULT_SPEC_REL,
   LONG_LEN,
   SURFACES,
+  loadLanguageDiscipline,
+  duplicateTokenDefinitions,
+  scanSubstitutions,
   normalizeText,
   stripCodeFences,
   headwordRegistration,

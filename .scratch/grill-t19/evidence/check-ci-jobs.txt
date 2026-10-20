@@ -1,5 +1,0 @@
-$ node scripts/check-ci-jobs.js
-
-EXIT 1
-
-ci jobs: defer0004=unmet(-multi_workflow,-any_matrix,-over_three_jobs) defer0026=SATISFIED(+test_job,+summary_job,+summary_always) detail={"jobCount":3,"workflowFiles":1,"anyMatrix":false} - not met (defer0004); the deferral remains valid

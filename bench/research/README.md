@@ -55,6 +55,12 @@ byte-frozen for this round by baseline-t1.json.
 
 ## Design notes
 
+- Canonical serialization (D-011): Frozen research corpus JSON artifacts
+  (`plan.json`, `eval-plan.json`, `contamination-framework.json`) must be
+  serialized deterministically using `JSON.stringify(JSON.parse(f), null, 1) + '\n'`
+  with LF line endings (`*.json text eol=lf`). Any migration must re-pin hashes
+  with superseded records in the same commit window.
+
 - Task-disjoint splitting: the public corpus carries no task_id; the item.task
   text is the task-disjoint group key (sha256 recorded per trial row).
 - recall@FP=0 is the headline metric (D-A); the FP guardrail uses the default

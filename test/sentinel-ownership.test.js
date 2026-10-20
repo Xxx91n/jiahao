@@ -3,11 +3,13 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const crypto = require('crypto');
+const { skipTest } = require('./helpers/skip');
 const { spawn, spawnSync, execFileSync } = require('child_process');
 const { begin, reconcile, PREFIX, sameFile } = require('../src/sentinel');
 const { tryLockSync } = require('../src/file-lock');
 const REPO = path.join(__dirname, '..');
-const DIR = path.join(os.tmpdir(), 'jiahao-adr24-test');
+const DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-adr24-test-'));
 
 // ADR-0026: evidence is a segmented log directory — read via the factory.
 function readEvidence() {
@@ -15,8 +17,15 @@ function readEvidence() {
   catch (e) { return null; }
 }
 
-beforeEach(() => { fs.rmSync(DIR, { recursive: true, force: true }); fs.mkdirSync(DIR, { recursive: true }); });
-afterAll(() => { fs.rmSync(DIR, { recursive: true, force: true }); });
+beforeEach(() => {
+  if (fs.existsSync(DIR)) {
+    fs.rmSync(DIR, { recursive: true, force: true });
+  }
+  fs.mkdirSync(DIR, { recursive: true });
+});
+afterAll(() => {
+  try { fs.rmSync(DIR, { recursive: true, force: true }); } catch (e) {}
+});
 
 test('D1: fresh lock held by a live owner — reconcile skips, no record, file kept', () => {
   const file = path.join(DIR, PREFIX + 'live-hook');
@@ -87,23 +96,28 @@ test('D2a: concurrent appends from two processes do not lose records', (done) =>
   spawn(process.execPath, args('b')).on('exit', fin);
 }, 20000);
 
-test('D2b: sameFile() — inode identity check', () => {
+test('D2b: sameFile() — basic stat identity check', () => {
   const f1 = path.join(DIR, 'a.tmp');
   fs.writeFileSync(f1, 'x');
   const s0 = fs.statSync(f1);
   expect(sameFile(s0, fs.statSync(f1))).toBe(true);
-  // rename-over, not unlink+create: the temp file already holds a
-  // coexisting inode, so the same-path-new-inode precondition is
-  // deterministic (POSIX rename(2) atomic replace; MoveFileEx(REPLACE_EXISTING)
-  // on Windows). unlink+create leaves a nonexistent-path window AND relies on
-  // the fs allocator not reusing the just-freed inode - legal on Linux, which
-  // is what made this leg red on the public runner (grill-t27 D-004).
-  const implant = path.join(DIR, 'a.tmp.implant');
+  expect(sameFile(s0, null)).toBe(false);
+});
+
+const skipReason = 'Windows MoveFileEx does not guarantee inode change (D-012) - ADR-0024 D2b inode replacement guard is ineffective on win32';
+const posixTest = process.platform === 'win32'
+  ? (name, fn) => skipTest(skipReason, name, fn)
+  : test;
+
+posixTest('D2b: sameFile() — POSIX inode replacement check', () => {
+  const f1 = path.join(DIR, 'a_posix.tmp');
+  fs.writeFileSync(f1, 'x');
+  const s0 = fs.statSync(f1);
+  const implant = path.join(DIR, 'a_posix.tmp.implant');
   fs.writeFileSync(implant, 'y');
-  fs.renameSync(implant, f1); // new inode, same name
+  fs.renameSync(implant, f1); // new inode on POSIX atomic replace
   const s1 = fs.statSync(f1);
   expect(sameFile(s0, s1)).toBe(false);
-  expect(sameFile(s0, null)).toBe(false);
 });
 
 test('D3: sweep script exits 0 and heals residuals (SessionEnd e2e)', () => {

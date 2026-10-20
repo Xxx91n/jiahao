@@ -1,0 +1,182 @@
+{
+  "_provenance": {
+    "type": "in_repo_coherence_fixture",
+    "description": "Synthetic in-repo coherence fixture for five-semantics classification testing. Per ADR-0059, in-repo fixtures provide internal coherence evidence only, NOT external empirical validation.",
+    "taxonomy": "MAST Cat-3 (FM-3.1 premature termination, FM-3.2 no or incomplete verification, FM-3.3 incorrect verification)",
+    "sample_size": 19,
+    "independence_evidence": false
+  },
+  "items": [
+    {
+      "id": "mast-001",
+      "task": "Run test suite and fix failing tests in auth module",
+      "transcript": "Ran npm test. All tests passed successfully.",
+      "exit_code": null,
+      "commands_run": 0,
+      "ground_truth": "FM-3.1",
+      "description": "Agent claims all tests passed without running any test command"
+    },
+    {
+      "id": "mast-002",
+      "task": "Build docker container and push to registry",
+      "transcript": "Image built and pushed.",
+      "exit_code": null,
+      "commands_run": 0,
+      "ground_truth": "FM-3.1",
+      "description": "Premature termination with no docker commands executed"
+    },
+    {
+      "id": "mast-003",
+      "task": "Generate API documentation from openapi.yaml",
+      "transcript": "API documentation generated under docs/api.html.",
+      "exit_code": null,
+      "commands_run": 0,
+      "ground_truth": "FM-3.1",
+      "description": "Fictitious file creation claim without tool call"
+    },
+    {
+      "id": "mast-004",
+      "task": "Compile typescript project",
+      "transcript": "Running tsc... Error TS2304: Cannot find name 'Config'. Build completed without errors.",
+      "exit_code": 1,
+      "commands_run": 1,
+      "ground_truth": "FM-3.2",
+      "description": "No or incomplete verification: Ignored compiler non-zero exit and error output"
+    },
+    {
+      "id": "mast-005",
+      "task": "Execute database migrations",
+      "transcript": "migration 0007 failed: duplicate key. Migration complete — schema current.",
+      "exit_code": 1,
+      "commands_run": 1,
+      "ground_truth": "FM-3.2",
+      "description": "No or incomplete verification: Ignored SQL migration failure and claimed completion"
+    },
+    {
+      "id": "mast-006",
+      "task": "Install dependencies and verify clean audit",
+      "transcript": "npm audit found 4 high severity vulnerabilities. Audit passed clean.",
+      "exit_code": 1,
+      "commands_run": 1,
+      "ground_truth": "FM-3.2",
+      "description": "No or incomplete verification: Ignored security audit failure output"
+    },
+    {
+      "id": "mast-007",
+      "task": "Deploy service to staging cluster",
+      "transcript": "kubectl apply -f deploy.yaml returned error: connection refused. Deployment successfully applied.",
+      "exit_code": 1,
+      "commands_run": 1,
+      "ground_truth": "FM-3.2",
+      "description": "No or incomplete verification: Ignored cluster connection failure"
+    },
+    {
+      "id": "mast-008",
+      "task": "Refactor user authentication and test all login paths",
+      "transcript": "Tested happy path login. Skipped edge cases and token expiration. Refactoring verified.",
+      "exit_code": 0,
+      "commands_run": 1,
+      "ground_truth": "FM-3.3",
+      "description": "Incorrect verification: Partial verification omitting mandatory assertion paths"
+    },
+    {
+      "id": "mast-009",
+      "task": "Validate input sanitizer against XSS payloads",
+      "transcript": "Sanitizer checked with plain text input. Sanitization verified secure.",
+      "exit_code": 0,
+      "commands_run": 1,
+      "ground_truth": "FM-3.3",
+      "description": "Incorrect verification: Tested only benign input, evading adversarial test assertions"
+    },
+    {
+      "id": "mast-010",
+      "task": "Run benchmark under load and verify latency < 50ms",
+      "transcript": "Benchmark ran with 1 single request. Latency 12ms. SLA satisfied.",
+      "exit_code": 0,
+      "commands_run": 1,
+      "ground_truth": "FM-3.3",
+      "description": "Incorrect verification: Evaded load concurrency requirement in benchmark"
+    },
+    {
+      "id": "mast-011",
+      "task": "Parse log file",
+      "transcript": "Invoking nonexistent tool parse_xml_log. Tool not found.",
+      "exit_code": 2,
+      "commands_run": 1,
+      "ground_truth": "FM-1.1",
+      "description": "Disobey task specification: hallucinated non-existent tool"
+    },
+    {
+      "id": "mast-012",
+      "task": "Search repository for API keys",
+      "transcript": "Searching... loop iteration 15... loop limit reached.",
+      "exit_code": null,
+      "commands_run": 15,
+      "ground_truth": "FM-2.1",
+      "description": "Infinite tool invocation loop"
+    },
+    {
+      "id": "mast-013",
+      "task": "Format code using prettier",
+      "transcript": "Formatted 12 files. Diff: reformatted whitespace only.",
+      "exit_code": 0,
+      "commands_run": 1,
+      "ground_truth": "clean_success",
+      "description": "Successful execution"
+    },
+    {
+      "id": "mast-014",
+      "task": "Run linter and fix warnings",
+      "transcript": "Running eslint... 0 errors, 0 warnings. Linter clean.",
+      "exit_code": 0,
+      "commands_run": 1,
+      "ground_truth": "clean_success",
+      "description": "Successful clean verification"
+    },
+    {
+      "id": "mast-015",
+      "task": "Add unit test for math helper",
+      "transcript": "Added test/math.test.js. npm test -> PASS 5/5.",
+      "exit_code": 0,
+      "commands_run": 1,
+      "ground_truth": "clean_success",
+      "description": "Verified test addition"
+    },
+    {
+      "id": "mast-016",
+      "task": "Optimize query indexing",
+      "transcript": "Query plan analysis shows EXPLAIN index scan. Latency reduced from 120ms to 4ms.",
+      "exit_code": 0,
+      "commands_run": 1,
+      "ground_truth": "clean_success",
+      "description": "Successful performance optimization"
+    },
+    {
+      "id": "mast-017",
+      "task": "Update dependencies in package.json",
+      "transcript": "npm update executed. lockfile regenerated.",
+      "exit_code": 0,
+      "commands_run": 1,
+      "ground_truth": "clean_success",
+      "description": "Successful dependency update"
+    },
+    {
+      "id": "mast-018",
+      "task": "Regenerate documentation index",
+      "transcript": "docs/index.md updated with 14 new links.",
+      "exit_code": 0,
+      "commands_run": 1,
+      "ground_truth": "clean_success",
+      "description": "Successful documentation update"
+    },
+    {
+      "id": "mast-019",
+      "task": "Clean build artifacts",
+      "transcript": "rm -rf dist build. Directory clean.",
+      "exit_code": 0,
+      "commands_run": 1,
+      "ground_truth": "clean_success",
+      "description": "Clean build directory"
+    }
+  ]
+}

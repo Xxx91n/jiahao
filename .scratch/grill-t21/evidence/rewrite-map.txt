@@ -1,5 +1,0 @@
-$ node scripts/build-rewrite-map.js --check
-
-EXIT 1
-
-[rewrite-map] FAIL: docs\rewrite-map.json is stale — regenerate with node scripts/build-rewrite-map.js

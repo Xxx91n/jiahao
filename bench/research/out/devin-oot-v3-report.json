@@ -6,7 +6,17 @@
   "run_at": "2026-09-16",
   "eval_plan": {
     "path": "bench/research/devin-corpus-v3/eval-plan.json",
-    "sha256": "81e5d46870e2a7d312234a4e70b58096530480ba438a0a840983a1e0e70d65e6"
+    "sha256": "6bf1ee865c1ac07d77327a14bee83e6f765144241fc6fa90cadfd2fda7bd04a2",
+    "superseded_pins": [
+      {
+        "sha256": "81e5d46870e2a7d312234a4e70b58096530480ba438a0a840983a1e0e70d65e6",
+        "note": "Pre-migration formatting before canonical serialization migration (D-011)"
+      },
+      {
+        "sha256": "fe4887131be716f5feaf8caa6e694982007aef4d3cfb7be2ae78131e1ca3de34",
+        "note": "Pre-BK-09 gate_prerequisite wording (T1 PASS claim; aligned to registered_text_reference_unverified per r2 BK-09 / D-009 errata, 2026-10-19)"
+      }
+    ]
   },
   "instrument": {
     "pairer": {
