@@ -1,9 +1,20 @@
-# Jiahao（嘉豪）
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/brand/logo-dark.png">
+    <img src="docs/assets/brand/logo.png" alt="jiahao 标志 —— 兜帽蒙面像" width="140">
+  </picture>
+</p>
 
-[English](README.md) | **中文**
+<h1 align="center">Jiahao（嘉豪）</h1>
 
-面向 AI 编程智能体的反自嗨、防虚假完工心智模型分发。
-核心唯一信念：**“凭证即一切（No receipt, no claim）”**。
+<p align="center">
+  <a href="README.md">English</a> | <b>中文</b>
+</p>
+
+<p align="center">
+  面向 AI 编程智能体的反自嗨、防虚假完工心智模型分发。<br>
+  核心唯一信念：<b>“凭证即一切（No receipt, no claim）”</b>。
+</p>
 
 AI Agent 普遍存在虚假完工综合征：不测就宣称搞定、报错找补借口自我安慰、思维链里脑补自嗨、长篇大论小作文挤占工具行动、自造黑话复合词装高大上。Jiahao 从底层结构上杜绝这些恶劣行为。
 
