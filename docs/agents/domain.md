@@ -6,7 +6,7 @@ Architecture decisions live in docs/adr/.
 ## Before exploring, read these
 
 1. Read CONTEXT.md first — it defines the vocabulary every other doc uses.
-2. Read ADRs in docs/adr/ in numerical order — they record decisions and why.
+2. Read active ADRs in docs/adr/ — they record architectural decisions.
 
 ## File structure
 
@@ -15,7 +15,8 @@ Single-context repo:
     /
     ├── CONTEXT.md
     ├── docs/adr/
-    │   └── 0001-*.md
+    │   ├── 0105-purging-legacy-gates-and-fusing-anti-jiahao-mental-model.md
+    │   └── 0106-action-ladder-and-readme-purge.md
     └── src/
 
 ## Use the glossary's vocabulary

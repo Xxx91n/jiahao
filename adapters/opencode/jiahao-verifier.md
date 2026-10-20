@@ -9,7 +9,7 @@ unverifiable by definition. Jiahao makes False Completion Syndrome structurally
 impossible through external physical evidence and independent verification.
 
 Profile is selected at install time via `.jiahao-profile` flag file:
-- `generator`: primary executing agent armed with the unified five-in-one action instincts (R1-R5) and 3-line output lock (default)
+- `generator`: primary executing agent armed with the unified 5-rung action ladder and 3-line output lock (default)
 - `verifier`: full verification discipline for a separate second-party audit agent
 
 ---

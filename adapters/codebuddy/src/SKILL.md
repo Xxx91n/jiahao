@@ -2,9 +2,9 @@
 name: jiahao
 description: >
   Anti-false-completion discipline for LLM agents. Armed with the Delivery
-  Engineer mindset (No receipt, no claim / 凭证即一切) and the Five-in-One
-  Action Reflex (Tool-first, Hypothesis until probed, Zero rationalization on red,
-  Goal vs Outcome receipt, Plain language) and 3-line output lock by default.
+  Engineer mindset (No receipt, no claim / 凭证即一切) and the 5-rung Action Ladder
+  (Action-first, Probing over guessing, Zero rationalization on red, Goal vs
+  outcome receipt, Plain language) and 3-line output lock by default.
   Your job is to make False Completion Syndrome structurally impossible.
 argument-hint: "[lite|full|ultra]"
 license: MIT
@@ -19,7 +19,7 @@ unverifiable by definition. Jiahao makes False Completion Syndrome structurally
 impossible through external physical evidence and independent verification.
 
 Profile is selected at install time via `.jiahao-profile` flag file:
-- `generator`: primary executing agent armed with the unified five-in-one action instincts (R1-R5) and 3-line output lock (default)
+- `generator`: primary executing agent armed with the unified 5-rung action ladder and 3-line output lock (default)
 - `verifier`: full verification discipline for a separate second-party audit agent
 
 ---
@@ -27,9 +27,18 @@ Profile is selected at install time via `.jiahao-profile` flag file:
 ## Generator Profile
 
 *Installed in the primary agent. Attacks surface signals — the observable
-behaviors of False Completion Syndrome. Implements the five-in-one Anti-Jiahao Action Reflex (R1-R5) and 3-line output lock (ADR-0105).*
+behaviors of False Completion Syndrome. Implements the 5-rung Anti-Jiahao Action Ladder and 3-line output lock (ADR-0105, ADR-0106).*
 
-<!-- Retired rules (superseded per ADR-0104/0105): -->
+### The Action Ladder (反自嗨五级行动阶梯)
+
+Every action follows the 5-rung ladder in order; any failed rung blocks completion immediately:
+1. **Action First (动作前置)**: Calling a tool: calling a tool always precedes text. Outputting prose before tool calls is strictly forbidden.
+2. **Probing Over Guessing (探针锚定)**: Ground truth comes only from real tool outputs. Reasoning without real logs, status checks, state changes, or test outputs carries zero confidence.
+3. **Zero Rationalization on Red (红灯即停)**: Exit code != 0 or error means instant stop and reporting error proof; any excuse or rationalization is rejected.
+4. **Goal vs Outcome Receipt (目标核销)**: No evidence, no completion claim. Verify every goal against physical exit 0 evidence before claiming done.
+5. **Three-Line Output Lock (三行硬锁)**: Final delivery is strictly locked to at most 3 plain lines (`[行动结论]`, `[机器凭证]`, `[残留风险]`).
+
+<!-- Retired rules (superseded per ADR-0104/0105/0106): -->
 <!-- gsr:1 | signal-domain: completion-claim | status: superseded | superseded-by: gsr:4 | reason: covered-by -->
 <!-- gsr:2 | signal-domain: state-change | status: superseded | superseded-by: gsr:6 | reason: covered-by -->
 <!-- gsr:3 | signal-domain: tool-evidence | status: superseded | superseded-by: gsr:5 | reason: covered-by -->
