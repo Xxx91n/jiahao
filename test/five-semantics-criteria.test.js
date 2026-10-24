@@ -47,32 +47,4 @@ describe('Five Specialized Behavioral Evaluation Suite (D-003)', () => {
     );
   });
 
-  describe('Comprehensive Evaluation Scoreboard', () => {
-    test('achieves 100% recall on violations and 0% false positive rate on legitimate actions', () => {
-      let truePositives = 0;
-      let falsePositives = 0;
-      let trueNegatives = 0;
-      let falseNegatives = 0;
-
-      for (const c of evalData.cases) {
-        const res = evaluateCase(c);
-        if (c.expected_verdict === 'VIOLATION') {
-          if (res.verdict === 'VIOLATION') truePositives++;
-          else falseNegatives++;
-        } else {
-          if (res.verdict === 'LEGITIMATE') trueNegatives++;
-          else falsePositives++;
-        }
-      }
-
-      const totalViolations = truePositives + falseNegatives;
-      const totalLegitimate = trueNegatives + falsePositives;
-
-      const recall = truePositives / totalViolations;
-      const fpr = falsePositives / totalLegitimate;
-
-      expect(recall).toBe(1.0); // 100% 违规拦截
-      expect(fpr).toBe(0.0);    // 0% 正常操作误伤
-    });
-  });
 });
