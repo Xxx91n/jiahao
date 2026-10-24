@@ -1,20 +1,20 @@
-// src/evidence-log.js — EvidenceLog (ADR-0016 D1)
+// src/evidence-log.js — EvidenceLog
 // Deep module hiding canonical JSON, hashing, idempotency sidecar, and chain
 // verification behind a factory closure: createEvidenceLog(dir?, opts?) ->
 // { append, commit, readAll, verify, verifyTail, verifyFull, clear, createRecord }
 //
-// Ponytail (ADR-0007): hash chain is tamper-evidence, not cryptographic
+// Ponytail: hash chain is tamper-evidence, not cryptographic
 // anchoring. Upgrade path to Ed25519 + Rekor lives behind cross-host audit
-// (ADR-0013), not here.
+// not here.
 //
-// ADR-0026 (segmented evidence log):
+// (segmented evidence log):
 //   D1 `.jiahao-evidence` is a DIRECTORY of JSONL segments. Sealed segments
 //      are never rewritten; only the active segment accepts O(1) appends.
 //      Non-genesis segments begin with a `segment_anchor` record carrying
 //      prev_segment_hash / prev_segment_bytes / prev_segment_count /
 //      seq_start (CloudTrail digest-chain precedent).
 //   D2 rotation at a 256 KiB byte threshold, checked via statSync inside the
-//      ADR-0024 narrow lock; no time trigger, no retention policy.
+// narrow lock; no time trigger, no retention policy.
 //   D3 base-seq names `%020d.jsonl` — filename = global record count at
 //      segment start (anchors count as records). Sequence is allocated by
 //      in-lock directory rescan; scan errors are fail-loud (except ENOENT
@@ -31,22 +31,22 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { evidencePath, evidenceKeysPath, profilePath } = require('./shared/paths');
-const { withLockSync } = require('./file-lock'); // ADR-0024 D2a
+const { withLockSync } = require('./file-lock');
 
-// ADR-0023 D5 registry: degradation kinds this contract understands.
+// registry: degradation kinds this contract understands.
 // Evolution rules: only add kinds; detail fields within a kind are
 // additive-optional only; never delete or rename. Machine-checked by
 // schemas/degradation.schema.json in tests.
 const KNOWN_DEGRADATION_KINDS = ['truncation', 'scan-skip', 'timeout'];
-// ADR-0049 D-E: affected sign-off look-back evidence kinds. These enter the
+// affected sign-off look-back evidence kinds. These enter the
 // hash chain as record fields and route through ESCALATE (see createRecord).
 const KNOWN_EVIDENCE_KINDS = ['reverse_traceability', 'oot_impact_assessment'];
 
-// Escalation band stamped onto every record (FutureAGI 0.4-0.7, ADR-0007 research).
+// Escalation band stamped onto every record (FutureAGI 0.4-0.7, research).
 // Also used by the ladder in gate.js for the escalation decision.
 const ESCALATION_BAND = { low: 0.4, high: 0.7 };
 
-// ADR-0026 D2/D3 constants.
+// constants.
 const SEGMENT_BYTES = 256 * 1024;
 const SEGMENT_VERSION = 1;
 const SEGMENT_RE = /^(\d{20})\.jsonl$/;
@@ -58,14 +58,14 @@ function canonicalJSON(obj) {
   return '{' + keys.map(k => JSON.stringify(k) + ':' + canonicalJSON(obj[k])).join(',') + '}';
 }
 
-// ADR-0013 D1: hash input includes prev_hash (delete-middle-relink fix).
+// hash input includes prev_hash (delete-middle-relink fix).
 // event_hash is excluded to avoid the circular dependency.
 function recordHash(record) {
   const { event_hash, ...rest } = record;
   return crypto.createHash('sha256').update(canonicalJSON(rest)).digest('hex');
 }
 
-// ADR-0051 D-A: closed persistence capability class. The anchor write path
+// closed persistence capability class. The anchor write path
 // dispatches on this class, never on a platform string; adding a class is a
 // deliberate ADR-level event.
 const PERSISTENCE_CAPABILITY = Object.freeze({
@@ -77,7 +77,7 @@ function _isPersistenceCapability(value) {
     value === PERSISTENCE_CAPABILITY.dir_sync_unsupported;
 }
 // Operator declaration / probe record lives next to the profile flag in the
-// config dir (ADR-0051 D-B).
+// config dir.
 const PERSISTENCE_DECLARATION_FILENAME = '.jiahao-persistence.json';
 function _declaredPersistenceCapability(configDirPath) {
   try {
@@ -181,14 +181,14 @@ const KNOWN_ANCHOR_STATUS = Object.freeze({
   count_mismatch: 'count_mismatch',
   anchor_behind: 'anchor_behind',
   anchor_ahead: 'anchor_ahead',
-  // ADR-0052 D-A: self-consistent chain, local witness missing/unreadable/torn.
+  // self-consistent chain, local witness missing/unreadable/torn.
   // Additive only — never rename or delete registry values.
   witness_unavailable: 'witness_unavailable',
 });
 
-// ADR-0052 D-D: content-anchored witness-recovery constants — an independent
-// 'witness-recovery' domain, separate from the ADR-0030 judge 6/9-month
-// domain. Value changes require an ADR-0052 revision. Detection-latency
+// content-anchored witness-recovery constants — an independent
+// 'witness-recovery' domain, separate from the judge 6/9-month
+// domain. Value changes require an revision. Detection-latency
 // upper bound: max(access interval, patrol interval).
 const WITNESS_RECOVERY = Object.freeze({
   soft_ms: 72 * 3600 * 1000,
@@ -216,7 +216,7 @@ function _fsyncFile(file) {
   const fd = fs.openSync(file, 'a');
   try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
 }
-// ADR-0051 D-A: dispatch on the closed capability class. The current Windows
+// dispatch on the closed capability class. The current Windows
 // no-op remains a no-op under 'dir-sync-unsupported'; POSIX hosts declare
 // 'dir-sync-durable' and make the rename durable. An unknown class throws
 // instead of silently guessing a recipe.
@@ -234,7 +234,7 @@ function _defaultPersistenceCapability() {
     ? PERSISTENCE_CAPABILITY.dir_sync_unsupported
     : PERSISTENCE_CAPABILITY.dir_sync_durable;
 }
-// ADR-0051 D-B: installation/upgrade probe. Records the OBSERVED class only;
+// installation/upgrade probe. Records the OBSERVED class only;
 // a passing fsync is not proof the platform made the directory entry durable,
 // so an operator declaration stays authoritative when the probe is
 // inconclusive.
@@ -258,7 +258,7 @@ function readTailAnchor(file) {
   try { raw = fs.readFileSync(file, 'utf8'); }
   catch (e) {
     if (e && e.code === 'ENOENT') return { status: KNOWN_ANCHOR_STATUS.never_anchored, anchor: null };
-    // ADR-0052 D-A: missing/unreadable witness is not corruption.
+    // missing/unreadable witness is not corruption.
     return { status: KNOWN_ANCHOR_STATUS.witness_unavailable, anchor: null };
   }
   try {
@@ -270,7 +270,7 @@ function readTailAnchor(file) {
       return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null };
     }
     return { status: KNOWN_ANCHOR_STATUS.anchored, anchor: anchor };
-    // ADR-0052 D-A: a torn (unparseable) witness file is witness_unavailable;
+    // a torn (unparseable) witness file is witness_unavailable;
     // a present-but-wrong checksum/version stays in the corruption family above.
   } catch (e) { return { status: KNOWN_ANCHOR_STATUS.witness_unavailable, anchor: null }; }
 }
@@ -283,7 +283,7 @@ function writeTailAnchor(file, latestSeq, totalCount, headHash, capability, upda
     total_count: totalCount,
     head_hash: headHash,
     checksum: checksum,
-    // ADR-0051 D-C: audit annotation — the class explains crash semantics of
+    // audit annotation — the class explains crash semantics of
     // this anchor write (e.g. why anchor_behind is expected on this host).
     persistence: capability,
     updated_at: updatedAt || new Date().toISOString(),
@@ -306,7 +306,7 @@ function readGenesisAnchor(file) {
   try { raw = fs.readFileSync(file, 'utf8'); }
   catch (e) {
     if (e && e.code === 'ENOENT') return { status: KNOWN_ANCHOR_STATUS.never_anchored, anchor: null };
-    // ADR-0052 D-A: missing/unreadable witness is not corruption.
+    // missing/unreadable witness is not corruption.
     return { status: KNOWN_ANCHOR_STATUS.witness_unavailable, anchor: null };
   }
   try {
@@ -317,14 +317,14 @@ function readGenesisAnchor(file) {
       return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null };
     }
     return { status: KNOWN_ANCHOR_STATUS.anchored, anchor: anchor };
-    // ADR-0052 D-A: a torn (unparseable) witness file is witness_unavailable;
+    // a torn (unparseable) witness file is witness_unavailable;
     // a present-but-wrong checksum/version stays in the corruption family above.
   } catch (e) { return { status: KNOWN_ANCHOR_STATUS.witness_unavailable, anchor: null }; }
 }
 function writeGenesisAnchor(file, firstHash, capability, generation) {
   capability = capability === undefined ? _defaultPersistenceCapability() : capability;
   const checksum = _hashGenesis(firstHash);
-  // ADR-0052 D-E: generation increments on every controlled rebuild.
+  // generation increments on every controlled rebuild.
   const anchor = {
     version: GENESIS_ANCHOR_VERSION,
     first_hash: firstHash,
@@ -339,7 +339,7 @@ function _hasForwardSeal(records) {
   return Array.isArray(records) && records.some(function (r) { return r && r.kind === FORWARD_SEAL_KIND; });
 }
 
-// ADR-0053 D-A: with periodic re-anchoring there can be many seals; the last
+// with periodic re-anchoring there can be many seals; the last
 // one is the re-anchor reference point.
 function _lastForwardSealIndex(records) {
   let idx = -1;
@@ -348,9 +348,9 @@ function _lastForwardSealIndex(records) {
   }
   return idx;
 }
-// ADR-0053 D-B: a seal is an acceptable fallback witness only when its
+// a seal is an acceptable fallback witness only when its
 // in-chain coordinates match the record it pins. Otherwise there is no
-// "last good seal" and the ADR-0052 witness-unavailable path stays fail-closed.
+// "last good seal" and the witness-unavailable path stays fail-closed.
 function _acceptableSeal(records) {
   if (!Array.isArray(records)) return null;
   const idx = _lastForwardSealIndex(records);
@@ -376,7 +376,7 @@ function _makeForwardSealRecord(sealed) {
   return rec;
 }
 
-// ADR-0013 D3: composite idempotency key SHA256(session|turn|tool_seq).
+// composite idempotency key SHA256(session|turn|tool_seq).
 function idempotencyKey(sessionId, turnId, toolSeq) {
   const raw = String(sessionId || '') + '|' + String(turnId || '') + '|' + String(toolSeq || '');
   return crypto.createHash('sha256').update(raw).digest('hex');
@@ -397,7 +397,7 @@ function verifyChain(chain) {
     if (record.event_hash !== recordHash(record)) {
       return { valid: false, broken_at: i, reason: 'event_hash mismatch at index ' + i };
     }
-    // ADR-0031 D5: present-but-invalid provenance fails the record.
+    // present-but-invalid provenance fails the record.
     const pp = provenanceProblems(record);
     if (pp.length) {
       return { valid: false, broken_at: i, reason: 'provenance invalid at index ' + i + ' (' + pp.join(',') + ')' };
@@ -409,7 +409,7 @@ function verifyChain(chain) {
 
 // Like verifyChain but the FIRST record's prev_hash is unconstrained — used
 // for per-segment link checks where a non-genesis segment starts at the
-// previous segment's tail hash (ADR-0026 D1/D4).
+// previous segment's tail hash.
 function verifyLinks(records, offset) {
   const base = offset || 0;
   for (let i = 0; i < records.length; i++) {
@@ -428,7 +428,7 @@ function verifyLinks(records, offset) {
   return { valid: true };
 }
 
-// ADR-0031 D5 evidence provenance (optional additive, SLSA extension-field
+// evidence provenance (optional additive, SLSA extension-field
 // semantics): absent on old records and semantically identical to an
 // unrecognized field. Verification adds a PRESENT-BUT-INVALID check only —
 // absent is never an error. Shape:
@@ -472,7 +472,7 @@ function provenanceProblems(record) {
   return problems;
 }
 
-// ADR-0013 D2: turn_init boundary record (moved from gate.js, ADR-0016 D1).
+// turn_init boundary record (moved from gate.js).
 function createTurnInit(sessionId, turnId, prevHash) {
   return {
     kind: 'turn_init',
@@ -493,7 +493,7 @@ function segmentName(seq) { return String(seq).padStart(20, '0') + '.jsonl'; }
 
 function sha256File(p) { return crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex'); }
 
-// Torn-tail recovery (ADR-0026 Consequences, Kafka CRC precedent): only the
+// Torn-tail recovery ( Consequences, Kafka CRC precedent): only the
 // FINAL line of the ACTIVE segment may be a torn write; any other
 // unparseable line is corruption and throws.
 function readSegment(segPath, tolerateTornTail) {
@@ -511,7 +511,7 @@ function readSegment(segPath, tolerateTornTail) {
   return records;
 }
 
-// ADR-0026 D3: the segment directory is the only source of truth (no
+// the segment directory is the only source of truth (no
 // CURRENT/pointer file). Fail-loud: only ENOENT (fresh install) yields an
 // empty list; any other scan error aborts the caller (AletheiaDB precedent).
 function listSegments(dir) {
@@ -534,7 +534,7 @@ function listSegments(dir) {
 function createEvidenceLog(overrideConfigDir, opts) {
   const o = opts || {};
   const rotateBytes = typeof o.rotateBytes === 'number' ? o.rotateBytes : SEGMENT_BYTES;
-  const now = typeof o.now === 'function' ? o.now : Date.now; // ADR-0052 D-D: injectable recovery clock
+  const now = typeof o.now === 'function' ? o.now : Date.now; // injectable recovery clock
   let witnessGateBusy = false; // breakpoint-record recursion guard
   const ep = overrideConfigDir
     ? path.join(overrideConfigDir, '.jiahao-evidence')
@@ -543,12 +543,12 @@ function createEvidenceLog(overrideConfigDir, opts) {
     ? path.join(overrideConfigDir, '.jiahao-evidence.keys')
     : evidenceKeysPath();
   const stagingDir = ep + '.migrating';
-  // ADR-0051: explicit configuration (test seam / operator declaration) is
+  // explicit configuration (test seam / operator declaration) is
   // resolved once; otherwise the effective class is decided per anchor write
-  // so a platform change mid-process keeps ADR-0050 semantics.
+  // so a platform change mid-process keeps semantics.
   // Resolution of an explicit or declared class is captured once; when
   // neither exists the platform default stays dynamic per anchor write so a
-  // mid-process platform override keeps ADR-0050 semantics.
+  // mid-process platform override keeps semantics.
   const configuredCapability = _isPersistenceCapability(o.capability)
     ? o.capability
     : _declaredPersistenceCapability(path.dirname(ep));
@@ -559,7 +559,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
   function anchorConfig() {
     return Object.assign({}, configuredAnchor);
   }
-  let legacyReadOnly = false; // ADR-0026 D5 refusal state (per instance)
+  let legacyReadOnly = false; // refusal state (per instance)
 
   function note(msg) {
     try { process.stderr.write('jiahao evidence-log: ' + msg + '\n'); } catch (e) { /* sink */ }
@@ -574,7 +574,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
 
   // Default profile is the blocking VERIFIER — an absent profile file means
   // verifier (hooks/jiahao-profile.js default), so broken-at-genesis legacy
-  // chains refuse migration by default (ADR-0026 D5).
+  // chains refuse migration by default.
   function isVerifierProfile() {
     const pp = overrideConfigDir ? path.join(overrideConfigDir, '.jiahao-profile') : profilePath();
     try { return fs.readFileSync(pp, 'utf8').trim() !== 'generator'; }
@@ -600,7 +600,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     return out;
   }
 
-  // Legacy plain-JSON-array read path (ADR-0026 D5 read-only legacy mode).
+  // Legacy plain-JSON-array read path ( read-only legacy mode).
   function readLegacy() {
     try {
       const raw = fs.readFileSync(ep, 'utf8').trim();
@@ -621,7 +621,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     } catch (e) { return null; }
   }
 
-  // ADR-0026 D5: three-hardening transparent migration.
+  // three-hardening transparent migration.
   //   1. All staging/renames happen inside the narrow commit lock.
   //   2. Schneier-Kelsey breakpoint semantics: chain is verified BEFORE
   //      migrating; broken chains keep every record and receive a
@@ -679,7 +679,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
   }
 
   // Returns true once the segmented layout is usable. Also completes a
-  // migration that crashed between the two renames (ADR-0026 D5 recovery).
+  // migration that crashed between the two renames ( recovery).
   function ensureSegmented() {
     const kind = statKind();
     if (kind === 'dir') {
@@ -812,12 +812,12 @@ function createEvidenceLog(overrideConfigDir, opts) {
     return { code: code, field: field, expected: expected, actual: actual };
   }
 
-  // ADR-0052 D-B: every machine-readable witness problem names its consumer
+  // every machine-readable witness problem names its consumer
   // (the human auditor in the current single-host deployment).
   function _witnessProblem(field, actual, seal) {
     const p = _anchorProblem(KNOWN_ANCHOR_STATUS.witness_unavailable, field, null, actual);
     p.consumer = WITNESS_RECOVERY.consumer;
-    // ADR-0053 D-B: with a seal present, verification falls back to the last
+    // with a seal present, verification falls back to the last
     // good seal; the recovery window is the post-seal tail, bounded by the
     // re-anchor interval — not the whole chain. No new status (D-C).
     if (seal) {
@@ -845,7 +845,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     } else if (tailRead.status === KNOWN_ANCHOR_STATUS.unreadable) {
       out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.unreadable, 'tail_anchor', null, tailRead.status));
     } else if (tailRead.status === KNOWN_ANCHOR_STATUS.never_anchored) {
-      // ADR-0052: a missing tail witness on a sealed chain is witness loss
+      // a missing tail witness on a sealed chain is witness loss
       // (migrated from expected_missing; the value stays in the registry).
       if (genAnchored || seal) out.push(_witnessProblem('tail_anchor', 'missing', seal));
       else out.push(_anchorProblem(KNOWN_ANCHOR_STATUS.never_anchored, 'tail_anchor', null, null));
@@ -891,7 +891,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
 
   function _fatalAnchorProblems(problems) {
     return problems.filter(function (p) {
-      // ADR-0053 D-B: a witness problem with an acceptable last-good seal
+      // a witness problem with an acceptable last-good seal
       // degrades verification to the seal rather than failing it outright.
       if (p.fallback === 'last_good_seal') return false;
       return p.code !== KNOWN_ANCHOR_STATUS.never_anchored && p.code !== KNOWN_ANCHOR_STATUS.anchor_behind;
@@ -972,7 +972,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     writeSealSidecar(_acceptableSeal(records));
   }
 
-  // ADR-0053 D-A: opts.reanchorCommits — re-anchor after this many post-seal
+  // opts.reanchorCommits — re-anchor after this many post-seal
   // records; opts.reanchorMs — seal TTL, re-anchor once the last seal is
   // older than this many ms (both optional, either may trigger). With a TTL
   // trigger and no new data, the tail-anchor freshness timestamp renews
@@ -992,18 +992,18 @@ function createEvidenceLog(overrideConfigDir, opts) {
     if (genRead.status === KNOWN_ANCHOR_STATUS.unreadable) {
       return { status: 'corrupt', reason: 'genesis anchor is unreadable' };
     }
-    // ADR-0052 D-A: a torn witness is never rewritten silently.
+    // a torn witness is never rewritten silently.
     if (genRead.status === KNOWN_ANCHOR_STATUS.witness_unavailable) {
-      return { status: 'witness_unavailable', reason: 'genesis anchor torn — recover via the ADR-0052 rebuild command' };
+      return { status: 'witness_unavailable', reason: 'genesis anchor torn — recover via the rebuild command' };
     }
     if (genRead.status === KNOWN_ANCHOR_STATUS.anchored && genRead.anchor.first_hash !== firstHash) {
       return { status: 'corrupt', reason: 'genesis anchor does not match chain first record' };
     }
     if (genRead.status === KNOWN_ANCHOR_STATUS.never_anchored) {
-      // ADR-0052 D-C: on a sealed chain a missing genesis anchor is witness
+      // on a sealed chain a missing genesis anchor is witness
       // loss, never an occasion for a silent rewrite (the pre-0052 hole).
       if (_hasForwardSeal(existing)) {
-        return { status: 'witness_unavailable', reason: 'genesis anchor missing on a sealed chain — recover via the ADR-0052 rebuild command' };
+        return { status: 'witness_unavailable', reason: 'genesis anchor missing on a sealed chain — recover via the rebuild command' };
       }
       writeGenesisAnchor(genesisAnchorPath(), firstHash, persistenceCapability());
     }
@@ -1162,14 +1162,14 @@ function createEvidenceLog(overrideConfigDir, opts) {
     const age = nowMs - detectedMs;
     if (age > WITNESS_RECOVERY.hard_ms && postDetectionAppends >= 1) {
       const err = new Error('witness unavailable past the hard deadline (' + WITNESS_RECOVERY.hard_ms + 'ms) with ' +
-        postDetectionAppends + ' unverified post-detection append(s) — stop and recover via the ADR-0052 rebuild command');
+        postDetectionAppends + ' unverified post-detection append(s) — stop and recover via the rebuild command');
       err.code = WITNESS_HARD_STOP_CODE;
       throw err;
     }
     if (age > WITNESS_RECOVERY.soft_ms) {
       note('WITNESS UNAVAILABLE for ' + Math.floor(age / 3600000) + 'h (soft deadline ' +
         (WITNESS_RECOVERY.soft_ms / 3600000) + 'h) — explicit degraded write continues; consumer: ' +
-        WITNESS_RECOVERY.consumer + ' (ADR-0052)');
+        WITNESS_RECOVERY.consumer + '');
     }
   }
 
@@ -1211,7 +1211,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
 
   function append(newRecords) { appendBounded(newRecords); }
 
-  // --- ADR-0052 D-B..D-D: witness-unavailable degraded-append policy --------
+  // --- ..D-D: witness-unavailable degraded-append policy --------
   function _makeWitnessDegradedRecord(prevHash, witnesses, nowMs) {
     const rec = {
       kind: WITNESS_DEGRADED_KIND,
@@ -1262,7 +1262,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     try {
       scan = _witnessScan(readConcat());
     } catch (e) {
-      // ADR-0052 D-C: a witness scan that cannot prove the witness is
+      // a witness scan that cannot prove the witness is
       // healthy is still witness-down; never let the degraded policy
       // disappear on a read error.
       note('witness scan failed: ' + e.message + '; appends are refused until the store is readable');
@@ -1275,14 +1275,14 @@ function createEvidenceLog(overrideConfigDir, opts) {
     const age = nowMs - detectedMs;
     if (age > WITNESS_RECOVERY.hard_ms && postDetectionAppends >= 1) {
       const err = new Error('witness unavailable past the hard deadline (' + WITNESS_RECOVERY.hard_ms + 'ms) with ' +
-        postDetectionAppends + ' unverified post-detection append(s) — stop and recover via the ADR-0052 rebuild command');
+        postDetectionAppends + ' unverified post-detection append(s) — stop and recover via the rebuild command');
       err.code = WITNESS_HARD_STOP_CODE;
       throw err;
     }
     if (age > WITNESS_RECOVERY.soft_ms) {
       note('WITNESS UNAVAILABLE for ' + Math.floor(age / 3600000) + 'h (soft deadline ' +
         (WITNESS_RECOVERY.soft_ms / 3600000) + 'h) — explicit degraded write continues; consumer: ' +
-        WITNESS_RECOVERY.consumer + ' (ADR-0052)');
+        WITNESS_RECOVERY.consumer + '');
     }
   }
 
@@ -1301,7 +1301,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     return count;
   }
 
-  // ADR-0052 D-E: controlled genesis-anchor rotation behind the ADR-0017
+  // controlled genesis-anchor rotation behind the
   // human review gate. Records the disposition in append-only evidence,
   // increments the anchor generation, and forces full verification including
   // the formerly degraded tail. Acknowledgment alone clears nothing.
@@ -1310,7 +1310,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     if (typeof rb.reviewer !== 'string' || rb.reviewer.length === 0 ||
       typeof rb.reason !== 'string' || rb.reason.length === 0 ||
       rb.approval !== true) {
-      const err = new Error('rebuild requires the human review gate: reviewer, reason, and explicit approval (ADR-0017 / ADR-0052)');
+      const err = new Error('rebuild requires the human review gate: reviewer, reason, and explicit approval');
       err.code = 'WITNESS_REBUILD_UNAUTHORIZED';
       throw err;
     }
@@ -1377,7 +1377,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     };
   }
 
-  // ADR-0024 D2a: everything below runs inside ONE narrow lock (ep + '.lock').
+  // everything below runs inside ONE narrow lock (ep + '.lock').
   // make(chain, prevHash) receives the materialized concatenated records
   // (anchors included) plus the chain tail hash; it returns records to
   // append ([] = no-op). Lock failure degrades to an unlocked write
@@ -1424,7 +1424,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
       let made = make(existing, tail) || [];
       let bp = null;
       let postDetectionAppends = 0;
-      // ADR-0052 D-C: first append after witness loss prepends the degraded
+      // first append after witness loss prepends the degraded
       // breakpoint record inside the SAME locked write.
       if (!witnessGateBusy && !legacyReadOnly) {
         const scan = boundedAppend
@@ -1469,7 +1469,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
           continue;
         }
 
-        // ADR-0026 D2: byte-threshold rotation, evaluated before each write.
+        // byte-threshold rotation, evaluated before each write.
         if (activePath && fs.existsSync(activePath)) {
           let size = 0;
           try { size = fs.statSync(activePath).size; } catch (e) { }
@@ -1596,7 +1596,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     if (Array.isArray(externalChecks)) problems.push.apply(problems, externalChecks);
     return problems;
   }
-  // ADR-0026 D4 hot path: active segment + previous-segment anchor
+  // hot path: active segment + previous-segment anchor
   // prechecks (O(active segment) once the previous segment is hashed).
   function verifyTail() {
     const kind = statKind();
@@ -1635,7 +1635,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     const fb = _fallbackMeta(others);
     return Object.assign({}, link, fb || {}, _freshnessMeta(recs, seal));
   }
-  // ADR-0026 D4 cold path: every segment, every cross-link, filename/seq
+  // cold path: every segment, every cross-link, filename/seq
   // cross-check. Exposed via scripts/verify-evidence.js --full.
   function verifyFull() {
     const kind = statKind();
@@ -1692,7 +1692,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
   return { append, commit, readAll, verify, verifyTail, verifyFull, clear, createRecord, sealForwardIfNeeded, headAnchorPath, genesisAnchorPath, anchorConfig: anchorConfig, lastGoodSeal: lastGoodSeal, ConfigLoadError: ConfigLoadError, ANCHOR_CONFIG_FILENAME: ANCHOR_CONFIG_FILENAME, ANCHOR_DEFAULT_REANCHOR_MS: ANCHOR_DEFAULT_REANCHOR_MS, ANCHOR_HARD_FACTOR: ANCHOR_HARD_FACTOR, ANCHOR_FRESHNESS: ANCHOR_FRESHNESS, KNOWN_ANCHOR_STATUS: KNOWN_ANCHOR_STATUS, readTailAnchor: readTailAnchor, writeTailAnchor: writeTailAnchor, readGenesisAnchor: readGenesisAnchor, writeGenesisAnchor: writeGenesisAnchor, persistenceCapability: persistenceCapability, rebuildGenesisAnchor: rebuildGenesisAnchor, WITNESS_RECOVERY: WITNESS_RECOVERY };
 }
 
-// createRecord is pure (no fs, no closure state) — module-level per ADR-0016 double-track.
+// createRecord is pure (no fs, no closure state) — module-level.
 function createRecord(gateId, gateType, status, detail, confidence, prevHash, extras) {
   const record = {
     gate_id: gateId,
@@ -1709,7 +1709,7 @@ function createRecord(gateId, gateType, status, detail, confidence, prevHash, ex
     if (extras.detector && typeof extras.detector === 'object') {
       // Keep a stable on-chain tuple { suspicious, matched_phrases, severity,
       // coverage, degradation }; drop family_hits so the shape stays stable
-      // across detector upgrades. coverage/degradation per ADR-0022 D4/D5 —
+      // across detector upgrades. coverage/degradation —
       // the gate needs them for fail-closed coverage routing.
       const d = extras.detector;
       record.detector = {
@@ -1725,7 +1725,7 @@ function createRecord(gateId, gateType, status, detail, confidence, prevHash, ex
           kind: known,
           detail: g.detail && typeof g.detail === 'object' ? JSON.parse(JSON.stringify(g.detail)) : null,
         };
-        // ADR-0023 D4: fail-closed fallback — unknown kind is never silently
+        // fail-closed fallback — unknown kind is never silently
         // dropped; the original value is preserved for attribution while
         // coverage = partial (set by producers) still routes the verifier to
         // ESCALATE.
@@ -1734,7 +1734,7 @@ function createRecord(gateId, gateType, status, detail, confidence, prevHash, ex
           record.detector.degradation.detail.unrecognized_kind = g.kind;
         }
       }
-      // ADR-0070 D-D: additive-optional conviction-lane fields. `source` is the
+      // additive-optional conviction-lane fields. `source` is the
       // append-only namespace marker ('pairer-instrument'); `shadow` excludes
       // the record from the severity matrix; `pairer` carries the pairer
       // output verbatim plus lane timing.
@@ -1758,7 +1758,7 @@ function createRecord(gateId, gateType, status, detail, confidence, prevHash, ex
     if (typeof extras.turn_id === 'string' && extras.turn_id.length > 0) {
       record.turn_id = extras.turn_id;
     }
-    // ADR-0049 D-E: look-back evidence kinds route through ESCALATE (an
+    // look-back evidence kinds route through ESCALATE (an
     // affected-sign-off review is never quietly logged). Unknown kinds fail
     // closed: the value is preserved for attribution and escalation is still
     // forced; a known prefix is never silently accepted.
@@ -1770,7 +1770,7 @@ function createRecord(gateId, gateType, status, detail, confidence, prevHash, ex
       }
       record.requires_escalation = true;
     }
-    // ADR-0031 D5: provenance is passed through verbatim (never normalized) so
+    // provenance is passed through verbatim (never normalized) so
     // that a malformed underspecified block still fails verifyChain; the writer
     // does not get to launder its own shape errors.
     if (extras.provenance !== undefined) {

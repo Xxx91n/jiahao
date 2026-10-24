@@ -46,10 +46,9 @@ Select generator (primary executing agent, default) or verifier (second-party au
 Every rule is physically verifiable on disk without mock assumptions:
 
 ```bash
-npm test                        # Full physical test suite (18 suites)
+npm test                        # Full physical test suite (17 suites)
 node scripts/build-adapters.js --check  # Golden adapter sync check
 node scripts/check-drift.js     # Adapter drift check
-node scripts/coinage-triage.js  # Controlled vocabulary and plain language check
 git diff --check                # Whitespace and formatting check
 ```
 

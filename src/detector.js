@@ -1,11 +1,11 @@
-// jiahao detector.js -- ADR-0014 rewrite.
-// ADR-0012 D3 was wordlist-in-file. ADR-0014 D2 moves the list into
+// jiahao detector.js -- rewrite.
+// was wordlist-in-file. moves the list into
 // private/phrases.json and keeps a loader + sha256 fingerprint here.
-// ADR-0014 D1 moves detection authority from wordlist to L1-L3 structural
+// moves detection authority from wordlist to L1-L3 structural
 // signals (agent-polygraph shape). Wordlist stays as low-confidence triage.
-// ADR-0019: detector v2 adds suppression rules (downgrade fired hits to
+// detector v2 adds suppression rules (downgrade fired hits to
 // "low", never null) plus a reserved judge seam (interface only, no runtime).
-// ADR-0020: claimed-total enumeration support may span paginated tool
+// claimed-total enumeration support may span paginated tool
 // results (multi-page list accumulation, distinct id-lines union == claim,
 // plus pagination-exhaustion pairing: final page must come back short).
 
@@ -15,7 +15,7 @@ const crypto = require('crypto');
 
 const requestAnchors = require('./request-anchors');
 
-// ---- ADR-0021: request-side anchor verdict (rescue-dominant, D3) ----
+// ---- : request-side anchor verdict (rescue-dominant, D3) ----
 // Adapters attach per-result request/link data (translated, never rewritten):
 //   toolResults[i].request = extractQuad(arguments)  { per_page, page, cursor, url }
 //   toolResults[i].link    = recorded Link response header string (if any)
@@ -61,7 +61,7 @@ function anchorConviction(results, closingText) {
 }
 
 // D4: extracted quads as structured pass-through (zero behavioural change),
-// data accumulation for the ADR-0019 judge seam / ADR-0022 holdout gate.
+// data accumulation for the judge seam / holdout gate.
 function anchorPassThrough(results) {
   return results.map(r => ({
     quad: r && r.request ? r.request : null,
@@ -76,7 +76,7 @@ function resolvePhrasesPath() {
   if (process.env.JIAHAO_WORDLIST) {
     return { path: process.env.JIAHAO_WORDLIST, source: "env" };
   }
-  // ADR-0014 D2: prefer the private dir outside the shared cwd.
+  // prefer the private dir outside the shared cwd.
   // install.js plants phrases.json at <CLAUDE_CONFIG_DIR>/private/phrases.json.
   const configDir = process.env.CLAUDE_CONFIG_DIR || process.env.HOME || null;
   if (configDir) {
@@ -112,7 +112,7 @@ const _phrasesState = loadPhrases();
 
 function normalize(text) {
   return String(text || "")
-    // ADR-0014 audit fix (industry standard per UTS#18/UAX#15):
+    // audit fix (industry standard per UTS#18/UAX#15):
     // NFKC folds fullwidth compat chars (："！"？) to ASCII; \p{P} / \p{Pd}
     // covers the remaining general + dash punctuation; explicit tail
     // enumeration only for CJK-specific marks not covered above.
@@ -141,10 +141,10 @@ function wordlistMatch(text) {
   return { matched: matchedHigh.concat(matchedLow), matchedHigh, matchedLow, degraded: false };
 }
 
-// ---- ADR-0019 D2/D3: suppression rules (current-turn scope) ----
+// ---- : suppression rules (current-turn scope) ----
 // Suppression downgrades a fired structural hit to severity "low", never
 // null: the hit still enters the hash chain as audit metadata, and profile
-// policy (generator advisory / verifier blocking, ADR-0010/0012/0017) is
+// policy (generator advisory / verifier blocking, /0012/0017) is
 // untouched.
 
 function outText(r) { return String((r && (r.output || r.content)) || ""); }
@@ -168,9 +168,9 @@ function isErrorResult(r) {
   const out = outText(r);
   // A clean pass summary ("58/12 passed ..., 0 failed") is evidence, not an error —
   // sniffing "failed" out of "0 failed" is the v1 artifact that hides the
-  // strongest passing-state signal from suppression (ADR-0019 D2).
+  // strongest passing-state signal from suppression.
   // Symmetric zero-count exemptions: a pass summary carrying "0 errors" /"0 warnings"
-  // is evidence, not an error (same v1-artifact class as "0 failed", ADR-0019 D2).
+  // is evidence, not an error (same v1-artifact class as "0 failed").
   if ((/\bpassed\b/i.test(out) || /^\s*ok\b/i.test(out)) && /\b0\s+(?:fail(?:ed|ures?|s)?|errors?|warnings?)\b/i.test(out)) return false;
   if (r.is_error === true) return true;
   return /error|exception|fail(ed|ure)?|exit\s*code\s*[1-9]\d*/i.test(out);
@@ -179,7 +179,7 @@ function isErrorResult(r) {
 const PASS_STATE_RE = /\b\d[\d,]*\s+(?:[\w-]+\s+){0,2}passed(?:\s*,?\s*\d+\s+failed)?\b|\b0\s+errors?\b|\bexit\s*(?:code\s*)?[:=]?\s*0\b|\bexit\s+0\b|\b200\s+OK\b|\bhealthy\b|\bSUCCESS(?:FUL)?\b|\bBUILD\s+SUCCEEDED\b|\ball\s+\d+\s+(?:tests?|checks?)\s+pass|\bapplied\s+cleanly\b|\b(?:now\s+)?in\s+sync\b|\bup\s+to\s+date\b/i;
 const OK_GO_LINE_RE = /^ok\s+\S[\w./-]*\s+\d+(?:\.\d+)?s\s*$/im;
 
-// ADR-0019: only true pass states (N passed / exit 0 / 200 OK / healthy /
+// only true pass states (N passed / exit 0 / 200 OK / healthy /
 // ok-line) count as counterevidence. Bare counts (wc -l, "12 files") are H6
 // bait — allowed only as claimed-total enumeration support, never as a
 // free-standing pass state.
@@ -188,7 +188,7 @@ function isPassish(r) {
   return PASS_STATE_RE.test(out) || OK_GO_LINE_RE.test(out);
 }
 
-// H9 (ADR-0019 D2.2): a pass/count line inside a truncated result counts as
+// H9: a pass/count line inside a truncated result counts as
 // evidence only when a non-truncated confirming read follows the seam.
 function evidenceIndex(toolResults, fromIdx) {
   for (let i = fromIdx + 1; i < toolResults.length; i++) {
@@ -203,7 +203,7 @@ function evidenceIndex(toolResults, fromIdx) {
   return -1;
 }
 
-// H6 (ADR-0019 D2.2): a coincidental digit in an unrelated call's output is
+// H6: a coincidental digit in an unrelated call's output is
 // NOT support — the claimed total must be backed by a full enumeration.
 const CLAIM_TOTAL_RE = /\bcomplete\s+set\s+is\s+(\d[\d,]*)\s+[\w-]+|\ball\s+(\d[\d,]*)\b|\b(\d[\d,]*)\s+(?:[\w-]+\s+){0,1}(?:in total\b|total\b|tests?\b|files?\b|items?\b|endpoints?\b|pages?\b|routes?\b|checks?\b|configs?\b|members?\b|users?\b|records?\b|services?\b|repos?(?:itories)?\b|webhooks?\b)/gi;
 // Status-pair enumeration: "checked 8 routes: route-1:200, ..., route-8:200"
@@ -230,7 +230,7 @@ function enumerationSupports(n, toolResults) {
   return paginatedEnumerationSupports(n, toolResults);
 }
 
-// ADR-0020 D1: a claimed total may enumerate across paginated responses.
+// a claimed total may enumerate across paginated responses.
 // Consecutive non-error, non-truncated list-shaped pages form a run; the run
 // supports the claim iff its distinct id-lines count == n. A truncated page,
 // an error, or any non-list result ends the run (conservative: H9 seam rule
@@ -239,7 +239,7 @@ function enumerationSupports(n, toolResults) {
 const PAG_BRACKET_ONLY_RE = /^[\[\]{},\s]*$/;
 const PAG_ID_LINE_RE = /^["']?([\w.$/@-]+)["']?,?$/;
 // Module-scoped abandonment signal (detector is single-threaded, sync).
-// ADR-0022 audit-fix: abandoning exhaustion pairing past the 4096-page cap
+// audit-fix: abandoning exhaustion pairing past the 4096-page cap
 // must surface as scan-skip degradation, not silent full coverage.
 let _pairingAbandonedPages = 0;
 function paginatedEnumerationSupports(n, toolResults) {
@@ -249,7 +249,7 @@ function paginatedEnumerationSupports(n, toolResults) {
   // "complete list" claim on a full page stays armed (polygraph L2a twin).
   let pages = [];
   const flush = () => {
-    // ADR-0022 D2: reduce instead of Math.max(...spread) — the spread form
+    // reduce instead of Math.max(...spread) — the spread form
     // throws RangeError on long runs; run length is capped at 4096 below.
     const maxPrior = pages.reduce((m, pg, i) => (i === pages.length - 1 ? m : Math.max(m, pg.length)), 0);
     const ok = pages.length >= 2
@@ -271,13 +271,13 @@ function paginatedEnumerationSupports(n, toolResults) {
     }
     if (!listish || ids.length === 0) { if (flush()) return true; continue; }
     pages.push(ids);
-    // ADR-0022 D2 vs unjudgeable runs: abandon exhaustion pairing.
+    // vs unjudgeable runs: abandon exhaustion pairing.
     if (pages.length > 4096) { _pairingAbandonedPages = pages.length; pages = []; }
   }
   return flush();
 }
 
-// ADR-0019 D3: the retriability of the error string is itself evidence
+// the retriability of the error string is itself evidence
 // semantics. Transient errors clear on a bare retry and permit recov
 // suppression; hard failures do not, so L1 stays armed even after a retry.
 const TRANSIENT_ERROR_RE = /connection reset|conflict with recovery|connection refused|could not connect|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|ENOTFOUND|socket hang up|TLS\b|SSL\b|timed?\s*out|timeout|lock timeout|lost connection|ImagePullBackOff|\b429\b|too many requests|\b50[234]\b|service unavailable|worker(?:\s+process)?\s+(?:crashed|died)|temporar(?:y|ily)\b|transient/i;
@@ -314,7 +314,7 @@ function l1Suppression(toolResults, closingText) {
 // carry no turn metadata, so the same vocabulary twin surfaces through L2.
 function l2Suppression(toolResults, closingText) {
   const anchorR = anchorRescue(Array.isArray(toolResults) ? toolResults : []);
-  if (anchorR) return { reason: anchorR }; // ADR-0021 D3.2 rescue-dominant
+  if (anchorR) return { reason: anchorR }; // rescue-dominant
   if (evidenceIndex(toolResults, -1) >= 0) return { reason: "counterevidence-pass" };
   const text = String(closingText || "");
   CLAIM_TOTAL_RE.lastIndex = 0;
@@ -356,7 +356,7 @@ function l2_completionVsEvidence(evidenceRecords, closingText, toolResults) {
   const records = evidenceRecords || [];
   const hasVerificationRecord = records.some(r => r && (r.kind === "verification" || r.gate_type === "deterministic" || r.gate_type === "checklist"));
   if (hasVerificationRecord) return false;
-  // ADR-0014 tweak: only fire if the turn actually PRODUCED tool activity.
+  // tweak: only fire if the turn actually PRODUCED tool activity.
   // "claim completion + no tool activity + no evidence" is wordlist-triage,
   // not L2 structural evidence (avoids pure-wordlist collision).
   const hadToolActivity = Array.isArray(toolResults) && toolResults.length > 0;
@@ -378,7 +378,7 @@ function structuralDetect(signalInput) {
     L3_narrative_vs_assertion: l3_narrativeVsAssertion(turn, closingText),
     A1_server_authority_pending: anchorConviction(results, closingText),
   };
-  // ADR-0019 D2: suppression runs per fired hit (downgrade to low, never null).
+  // suppression runs per fired hit (downgrade to low, never null).
   // D2.4 never-trigger floor: empty closing / no claim word reaches no hit at
   // all, so suppressed structural output can never invent an advisory record.
   const suppressed = {
@@ -392,11 +392,11 @@ function structuralDetect(signalInput) {
   return { hits, armed, suppressed, fired: Object.values(hits).some(Boolean), any: Object.values(armed).some(Boolean) };
 }
 
-// ADR-0022 D1/D3/D5 — single-layer 64KB input gate at the detector entry,
+// single-layer 64KB input gate at the detector entry,
 // censoring metadata (not a bare bool), unified degradation contract.
 const INPUT_CAP_BYTES = 64 * 1024;
 const TRUNC_MARKER = "\n[jiahao:truncation face]";
-// Truncate BEFORE normalize (ADR-0014): NFKC must never see a face-split input.
+// Truncate BEFORE normalize: NFKC must never see a face-split input.
 function capField(s) {
   const total = Buffer.byteLength(s, "utf8");
   if (total <= INPUT_CAP_BYTES) return { text: s, seen: total, total, capped: false };
@@ -424,7 +424,7 @@ function detect(text) {
 
 function detectFull(signalInput) {
   const raw = signalInput || {};
-  // ADR-0022 D1/D3: cap closingText and each tool result payload; aggregate
+  // cap closingText and each tool result payload; aggregate
   // censoring metadata so calibration can bucket right-censored samples.
   let bytesSeen = 0, bytesTotal = 0, capped = false;
   const closing = capField(String(raw.closingText || ""));
@@ -444,7 +444,7 @@ function detectFull(signalInput) {
   const lCount = Object.values(s.hits).filter(Boolean).length;
   let severity;
   if (s.any) severity = "high";                        // armed structural hit
-  else if (s.fired) severity = "low";                 // ADR-0019 D2.5: suppressed -> low, never null
+  else if (s.fired) severity = "low"; // suppressed -> low, never null
   else if (w.matchedHigh.length > 0) severity = "low";
   else if (w.matchedLow.length > 0) severity = "low";
   else severity = null;
@@ -468,13 +468,13 @@ function detectFull(signalInput) {
   const coverage = degradation.kind !== null ? "partial" : "full";
   const anchors = anchorPassThrough(toolResults);
   const verdict = { suspicious: s.fired || w.matched.length > 0, coverage, degradation, structural_hits: s.hits, request_anchors: anchors, structural_any: s.any, structural_count: lCount, suppressed: s.suppressed, matched_phrases: w.matched, severity, family_hits: { high: w.matchedHigh.length, low: w.matchedLow.length }, wordlist_degraded: w.degraded };
-  // ADR-0025 D2/D3: seam routing -- the seam is exercised only on
+  // seam routing -- the seam is exercised only on
   // suspicious turns (k8s matchConditions shape: judge never sees clean
   // traffic, so the p95 of honest turns is untouched). judge_override is
   // null until a scoring-mode verifier lands; the telemetry snapshot
   // rides into the evidence chain with this verdict record.
   if (verdict.suspicious) {
-    // ADR-0031 D4: judge input is built through the whitelist builder;
+    // judge input is built through the whitelist builder;
     // heuristic internals stay out of hands with no reasoning chain.
     const jin = buildJudgeInput(closing.text, toolResults, verdict);
     verdict.judge_override = judgeSeam(jin.claim, jin.toolResults, jin.heuristicVerdict);
@@ -487,23 +487,23 @@ if (!_phrasesState.ok) {
   try { process.stderr.write("jiahao detector: wordlist degraded (" + _phrasesState.error + "); L1-L3 structural detection remains active.\n"); } catch (e) {}
 }
 
-// ADR-0019 D4 + ADR-0025 -- Judge seam (signature locked; runtime forbidden).
-// Locked signature (ADR-0025 D2):
+// + -- Judge seam (signature locked; runtime forbidden).
+// Locked signature:
 //   judgeSeam(claim, toolResults, heuristicVerdict) ->
 //     { verdict: "override" | "uphold", confidence: <number 0..1>,
 //       evidence: <string[]> } | null
-// Semantics unchanged from ADR-0019 D4: escalate = "honest_only" (may only
+// Semantics unchanged: escalate = "honest_only" (may only
 // rescue heuristic misses, never produce a new FP), fail-soft (judge
 // unavailable/timeout/malformed -> the heuristic verdict stands, counted
-// honest). Form convergence (ADR-0025 D1): the only acceptable future
+// honest). Form convergence: the only acceptable future
 // runtime is a scoring-mode small verifier (probability output + calibrated
 // threshold band, sized for the <5s hook budget); a prompt-style generic LLM
 // judge is rejected (b3: FP 5.5% > 4.5% budget, 4.6s latency, temp-0 bit
 // instability -- FAGEN concurs: judges AUROC <= 0.65 on false success).
-// The ADR-0015 D3 internal-holdout FP gap <= 3pp gate must pass before any
+// The internal-holdout FP gap <= 3pp gate must pass before any
 // runtime lands.
 //
-// Telemetry contract (ADR-0025 D3): four metrics live on this seam path --
+// Telemetry contract: four metrics live on this seam path --
 // invocations (suspicious-route rate numerator), latency total (ms),
 // fail_soft count, overrides_accepted -- exposed via judgeTelemetry() and
 // snapshotted into every suspicious detectFull record so observations ride
@@ -512,7 +512,7 @@ if (!_phrasesState.ok) {
 /**
  * @typedef {{ verdict: "override" | "uphold", confidence: number, evidence: string[] }} JudgeOverride
  */
-// ADR-0031 D4 judge certificate isolation: the judge input is EXACTLY the
+// judge certificate isolation: the judge input is EXACTLY the
 // whitelist triple { claim, toolResults, heuristicVerdict }. Forbidden in the
 // triple: auditor intermediate verdicts, probe/pressure history, prior judge
 // outputs (judge_override / judge_telemetry), heuristic reasoning chains
@@ -533,7 +533,7 @@ function buildJudgeInput(claim, toolResults, heuristicVerdict) {
 }
 // validateJudgeInput(obj) -> problems[]; [] = schema-clean whitelist triple.
 // Fail-closed on wrong types and on any injected extra key, including the
-// ADR-0031 D4 forbidden-lexicon ("auditor*" keys are rejected outright).
+// forbidden-lexicon ("auditor*" keys are rejected outright).
 function validateJudgeInput(obj) {
   const problems = [];
   if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return ['root:not-object'];
@@ -562,7 +562,7 @@ function judgeSeam(claim, toolResults, heuristicVerdict) {
   const t0 = Date.now();
   _judgeTelemetry.invocations++;
   try {
-    // No runtime judge this round; ADR-0019 D4 stands.
+    // No runtime judge this round; stands.
     return null;
   } finally {
     _judgeTelemetry.latencyMsTotal += Date.now() - t0;

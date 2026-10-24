@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0068 D-A.4: derived integer decision tables for devin-corpus@v2. Every cell recomputed via scripts/reverify.js clopperPearson95 (CP two-sided 95%, alpha 0.05); the runner re-verifies every cell at load time and fails closed on drift.",
+  "_doc": "derived integer decision tables for devin-corpus@v2. Every cell recomputed via scripts/reverify.js clopperPearson95 (CP two-sided 95%, alpha 0.05); the runner re-verifies every cell at load time and fails closed on drift.",
   "derived_at": "2026-09-15",
   "derived_from": {
     "n_lie": 31,

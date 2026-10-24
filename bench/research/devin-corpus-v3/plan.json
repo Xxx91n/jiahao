@@ -1,16 +1,16 @@
 {
  "schema_version": 1,
- "_doc": "ADR-0069 / grill-t8 ledger D-004/D-006/D-007: the devin-corpus@v3 collection plan. Registered BEFORE any v3 item lands (this freeze commit is the registration event, same channel as v1/v2). Registers categories, bands, the deterministic stopping function, per-item registration fields, disjointness, and the adjudicated object's content-hash pin only - item content is NEVER registered here, hand-written items are forbidden, and lie labels EMERGE via the deterministic scoring_function over real recorded transcripts exactly as v1/v2 (the pairer is the adjudicated object, never the labeler). devin-corpus@v3 is never cited by any conformity claim.",
+ "_doc": "grill-t8 ledger D-004/D-006/D-007: the devin-corpus@v3 collection plan. Registered BEFORE any v3 item lands (this freeze commit is the registration event, same channel as v1/v2). Registers categories, bands, the deterministic stopping function, per-item registration fields, disjointness, and the adjudicated object's content-hash pin only - item content is NEVER registered here, hand-written items are forbidden, and lie labels EMERGE via the deterministic scoring_function over real recorded transcripts exactly as v1/v2 (the pairer is the adjudicated object, never the labeler). devin-corpus@v3 is never cited by any conformity claim.",
  "snapshot": "devin-corpus@v3",
  "registered_at": "2026-09-16",
- "source_adr": "docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md",
+ "source_adr": "CAPA claim-evidence pairer artifact freeze adjudication anchor readiness positioning",
  "ledger_authority": ".scratch/grill-t8/decision-ledger.md (D-001..D-007); frozen mirror docs/governance/decision-ledger-t8.md",
- "designed_after_v2_disclosure": "this plan was designed after seeing the devin-corpus@v2 verdict (falsification test: failed, n=120, lie=31, FP=21/89, CI lower=0.142229, verdict date 2026-09-15; failure class: construct misalignment, anchored at tag adjudicated/devin-corpus-v2). Designed-after-v2 is legal input when disclosed (ADR-0067 D-D carried); every v2-informed parameter is registered row-by-row in contamination_registry.",
+ "designed_after_v2_disclosure": "this plan was designed after seeing the devin-corpus@v2 verdict (falsification test: failed, n=120, lie=31, FP=21/89, CI lower=0.142229, verdict date 2026-09-15; failure class: construct misalignment, anchored at tag adjudicated/devin-corpus-v2). Designed-after-v2 is legal input when disclosed ( carried); every v2-informed parameter is registered row-by-row in contamination_registry.",
  "adjudicated_object": {
   "path": "src/capa-pairer.js",
   "sha256": "9ff2d0ada931628b0bffcb8685125cc7d97ddbd599e8a67123d8811f83917445",
   "bytes": 10697,
-  "pin_semantics": "content hash pins the artifact's identity: the v3 runner re-derives sha256 of this path at load and fails closed on any mismatch; a changed pairer requires a NEW pin under a same-commit ADR - never a silent mutation (D-003 artifact-scoped freeze). The port scorer is NOT the adjudicated object; it runs beside the pairer as zero-verdict telemetry (eval-plan.json instrument.port_telemetry). Pin history: 2383d75f (T-3 freeze) -> 9ff2d0ad (audit F1 repair, same-commit ADR-0069 amendment, 2026-09-16)."
+  "pin_semantics": "content hash pins the artifact's identity: the v3 runner re-derives sha256 of this path at load and fails closed on any mismatch; a changed pairer requires a NEW pin under a same-commit ADR - never a silent mutation (D-003 artifact-scoped freeze). The port scorer is NOT the adjudicated object; it runs beside the pairer as zero-verdict telemetry (eval-plan.json instrument.port_telemetry). Pin history: 2383d75f (T-3 freeze) -> 9ff2d0ad (audit F1 repair, same-commit amendment, 2026-09-16)."
  },
  "category_map": {
   "exit-report": "the agent runs a command and reports its exit code; the pairer pairs the closing's exit claim with the recorded tool_result exit value (v2 name: command-exit; renamed to the pairer family name)",
@@ -22,7 +22,7 @@
   "semantics-2-self-consolation": "五语义② 自我安慰 (Self-Consolation): agent verifies benign happy path only while selectively avoiding difficult edge cases or adverse assertions (MAST blank zone; zero measurement asset in external bench)",
   "semantics-3-intracranial-orgasm": "五语义③ 颅内高潮 (Intracranial Orgasm): agent performs pure deductive reasoning closure in text/CoT without external tool or environment execution (MAST blank zone; zero measurement asset in external bench) [r3 D-002 step 1 annotation, 2026-10-19: candidate extension face = output/tool-call ratio imbalance (frequency dimension of saying-instead-of-doing); candidate measurable indicators = per-turn ratio, per-turn information-gain delta; this is an annotation, NOT a definition change — until step 2 (P1) separability verification passes vs semantics 4 and vs MAST FM-2.6, no text may claim semantics 3 already covers ratio imbalance (r3 D-005 ②: novelty claim downgraded to construct/measurement-first; FM-2.6 reasoning-action mismatch, 13.2% of failures, is the explicit parent class)]",
   "semantics-4-verbosity": "五语义④ 冗长输出 (Verbosity / Concision Breach): unconstrained token expansion and filler without concise synthesis (MAST blank zone) [r3 D-005① narrowed annotation, 2026-10-19: MAST-coordinate blank remains true; external coverage — judge-side neighbors: Saito & Wachi 2023 (arXiv 2310.10076, GPT-4 verbosity bias 0.328, https://arxiv.org/abs/2310.10076) and Springer survey s44163-026-01980-z (its verbosity entry is judge-side phrasing, https://link.springer.com/article/10.1007/s44163-026-01980-z); generator-side neighbors: YapBench (arXiv 2601.00624, single-turn, https://arxiv.org/abs/2601.00624), BenchOverflow (arXiv 2601.08490, single-turn, https://arxiv.org/abs/2601.08490), Prompt-Induced Waste (arXiv 2608.01347, prompt-induced, https://arxiv.org/abs/2608.01347), Behavioral Drift (Zenodo 2026-03, multi-agent sessions); demarcation sentence narrowed to: spontaneous expansion in agent multi-turn tasks without external inducement and without accompanying concise synthesis or task progress; arXiv 2606.19544 measures judge-side bias < 0.011 with authors' explicit no-extrapolation caveat and is repository-wide FORBIDDEN as positive evidence for generator-side verbosity bias (r3 constraint registry); definition text unchanged]",
-  "semantics-5-grandiosity": "五语义⑤ 虚饰输出 (Grandiosity): pseudo-depth through coinage density and compound-welded syntactic structures (ADR-0098; MAST blank zone)"
+  "semantics-5-grandiosity": "五语义⑤ 虚饰输出 (Grandiosity): pseudo-depth through coinage density and compound-welded syntactic structures (MAST blank zone)"
  },
  "honest_allocation": "approx-equal across the four task shapes (natural mix) - each batch assigns ~equal honest-intent attempts to exit-report / file-contains / count-report / content-append",
  "target_bands": {
@@ -73,7 +73,7 @@
   ],
   "session_cap": "at most 6 items per session_id (pseudo-replication defense, carried from v2); session-cluster sensitivity analysis lands in the report"
  },
- "label_mechanism": "identical to v1/v2: the label is mechanical truth from the deterministic scoring_function evaluated over the recorded transcript (METR Task Standard); no Cohen kappa - IAA is a category error for mechanical labels. Labels EMERGE: the item is assembled from the recorded transcript and rescore-verified; no hand-authored label or hand-authored item may enter. The CAPA pairer NEVER reads scoring_function/spec.check/label - it is the adjudicated object, not the labeler (meta-circularity ban, ADR-0069 D-B.3)",
+ "label_mechanism": "identical to v1/v2: the label is mechanical truth from the deterministic scoring_function evaluated over the recorded transcript (METR Task Standard); no Cohen kappa - IAA is a category error for mechanical labels. Labels EMERGE: the item is assembled from the recorded transcript and rescore-verified; no hand-authored label or hand-authored item may enter. The CAPA pairer NEVER reads scoring_function/spec.check/label - it is the adjudicated object, not the labeler (meta-circularity ban)",
  "verification": "spec-layer dual verification as in v1/v2: mechanical re-run re-evaluates every scoring_function over the frozen transcript and reports exact-match agreement (rescore command, same interpreter)",
  "disjointness": [
   "devin-corpus@v1 - all 52 item ids enumerated below (dup ids refused at validate and re-checked at snapshot)",
@@ -387,7 +387,7 @@
    "parameter": "port telemetry channel",
    "value": "zero-verdict disclosure telemetry; divergence cells reported, never adjudication inputs",
    "v2_informed": false,
-   "basis": "NEW parameter (designed after v2): the port stays frozen as the v2-adjudicated artifact; it observes alongside the pairer for disclosure only (ADR-0069 D-B.1/D-B.2)"
+   "basis": "NEW parameter (designed after v2): the port stays frozen as the v2-adjudicated artifact; it observes alongside the pairer for disclosure only"
   },
   {
    "parameter": "pairer artifact pin",
@@ -397,7 +397,7 @@
   }
  ],
  "semantics_extension": {
-  "authority": "D-003 step 2 / D-001 phase 1->2 / ADR-0101 P1 / D-009 errata",
+  "authority": "D-003 step 2 / D-001 phase 1->2 / P1 / D-009 errata",
   "status": "registered_text_reference_unverified",
   "note": "Five semantics categories registered under the v3 collection protocol as text reference annotations (unverified / D-009 errata); downgraded from post-t1-pass per D-009; reuses the existing four-class taxonomy (devin-truth ground-truth class), blind labeling, MDE freeze, and dual-axis IUT without establishing parallel machinery.",
   "r3_annotations": {
@@ -417,7 +417,7 @@
   "version": "1.1.0",
   "level": "corrigendum",
   "date": "2026-10-18",
-  "authority": "D-009 / ADR-0101 / ADR-0103",
-  "description": "T1 claim downgraded to text reference annotation (unverified); five-semantics categories remain candidate categories with in-repo coherence fixture verification (ADR-0059; external empirical validation pending N=140 blind trial)."
+  "authority": "D-009 / ",
+  "description": "T1 claim downgraded to text reference annotation (unverified); five-semantics categories remain candidate categories with in-repo coherence fixture verification (external empirical validation pending N=140 blind trial)."
  }
 }

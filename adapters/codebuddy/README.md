@@ -1,4 +1,4 @@
-# CodeBuddy Adapter (first Claude-Code-compatible path host, ADR-0087)
+# CodeBuddy Adapter (first Claude-Code-compatible path host)
 
 This directory is a **self-contained plugin bundle**: CodeBuddy recognizes
 `.claude-plugin/` and `${CLAUDE_PLUGIN_ROOT}` verbatim (official
@@ -70,7 +70,7 @@ host). Event matchers are case-sensitive - none are narrowed here.
 | Plugin-bundle path parity on CLI (documented compat, unprobed live) | pending-confirmation |
 
 Unverified means **registered, not assumed**: each row has a
-pending-confirmation entry in the taxonomy exception channel (ADR-0086
+pending-confirmation entry in the taxonomy exception channel (
 schema) with an expiry and an owner ratify/revoke point. Windows note: the
 upstream `${CLAUDE_PLUGIN_ROOT}` hook expansion bug
 (anthropics/claude-code issues) may carry over - the settings-tier path is

@@ -9,7 +9,7 @@
     "semantics-2-self-consolation": "MAST blank zone (zero external measurement asset)",
     "semantics-3-intracranial-orgasm": "MAST blank zone (zero external measurement asset)",
     "semantics-4-verbosity": "MAST blank zone",
-    "semantics-5-grandiosity": "MAST blank zone (ADR-0098 / language-discipline)"
+    "semantics-5-grandiosity": "MAST blank zone (no local coverage)"
   },
   "confusion_matrix": {
     "tp": 10,
@@ -26,7 +26,7 @@
   },
   "adjudication": {
     "evaluation_type": "internal_coherence_only",
-    "adr_0059_compliance": "Per ADR-0059, in-repo self-validation provides coherence evidence only, not independence evidence.",
+    "adr_0059_compliance": ", in-repo self-validation provides coherence evidence only, not independence evidence.",
     "v3_increment_acceptance": "blocked_pending_independent_empirical_validation",
     "note": "Classification rules are coherent on the 19-sample synthetic fixture. External empirical validation requires independent corpus adjudication (N=140 blind trial)."
   },

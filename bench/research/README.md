@@ -1,7 +1,7 @@
-# bench/research - T-1 research-round surface (ADR-0064)
+# bench/research - T-1 research-round surface
 
 This directory is the RESEARCH attribution surface for T-6. It is separate
-from the confirmatory surface (ADR-0064 D-B): nothing here tunes
+from the confirmatory surface: nothing here tunes
 bench/polygraph/thresholds.json gates; the confirmatory floor/target set is
 byte-frozen for this round by baseline-t1.json.
 
@@ -15,14 +15,14 @@ byte-frozen for this round by baseline-t1.json.
   Guard: scripts/check-corpus-classes.js.
 - devin-corpus/ - D-005(6,7) ground-truth snapshot home (devin-corpus@v1).
   Collector harness: scripts/collect-devin-corpus.js (schema|validate|snapshot).
-- devin-corpus-v2/ - ADR-0068 / ledger D-012..D-016: the v2 snapshot home
+- devin-corpus-v2/ - / ledger D-012..D-016: the v2 snapshot home
   (plan.json + eval-plan.json registered before any item landed; items.jsonl
   140 items / manifest.counts readable metadata / decision-tables.json derived
   under blind labels and frozen in its own commit). The dual-axis IUT
   adjudication (lie vs 0.563863 floor, FP vs 0.10 usability bound) settled
   failed (lie-fail x fp-fail): report at out/devin-oot-v2-report.{json,md},
   replay gate devin-oot-v2-replay.
-- devin-corpus-v3/ - ADR-0069 / ledger D-006: the v3 route home.
+- devin-corpus-v3/ - / ledger D-006: the v3 route home.
   Holds the frozen ready-to-run plan: plan.json + eval-plan.json +
   contamination-framework.json (pairer pinned by content hash; re-pinned
   9ff2d0ad under the audit F1 repair). No v3 data exists yet -
@@ -37,7 +37,7 @@ byte-frozen for this round by baseline-t1.json.
   coef + intercept + analyzer spec) and the 20-item golden set.
 - gold20.jsonl - the frozen goldens (token multiset + sparse vector + logit).
   The port substrate itself moved to src/port/ (score.js + g6-manifest.json)
-  in the T-6 confirmatory round (ADR-0065 D-B: the product surface ships).
+  in the T-6 confirmatory round (the product surface ships).
 - out/ - append-only execution evidence: trials.jsonl (one row per
   config x seed x phase), survivors.json (G1/G2 verdicts), negative-controls.json,
   attribution-report.md (D-001 deliverable).

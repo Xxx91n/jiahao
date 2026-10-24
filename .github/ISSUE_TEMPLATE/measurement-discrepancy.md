@@ -5,7 +5,7 @@ title: "[measurement] "
 labels: measurement
 ---
 
-<!-- Added under the grill-t23 governance carve-out (ADR-0076); disclosed in the round ledger. -->
+<!-- Added under the grill-t23 governance carve-out; disclosed in the round ledger. -->
 
 This is the channel the README invites: discrepancies feed the CAPA record
 categorically — name the mismatching field, do not open a discussion about

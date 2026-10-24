@@ -1,6 +1,6 @@
-// src/gate.js — GateLadder (ADR-0016 D1): pure, fs-free verification ladder.
+// src/gate.js — GateLadder: pure, fs-free verification ladder.
 // Short-circuit + escalate pattern: deterministic layer blocks/passes first,
-// only underdetermined cases escalate to LLM critic (band 0.4-0.7, ADR-0007).
+// only underdetermined cases escalate to LLM critic (band 0.4-0.7).
 // Evidence persistence lives in src/evidence-log.js; paths in src/shared/paths.js.
 
 const { ESCALATION_BAND, createRecord } = require('./evidence-log');
@@ -39,9 +39,9 @@ function runGate(check, gateType, context) {
 // The combination ladder: short-circuit + escalate
 function verify(claims, gates, opts) {
   // gates = { deterministic: [fn, ...], checklist: [fn, ...], llm_critic: fn }
-  // opts.band (ADR-0018 D2): { floor, target } — calibrated escalation band
+  // opts.band: { floor, target } — calibrated escalation band
   //   overrides ESCALATION_BAND when present (floor->low, target->high).
-  // opts.fewShotSection (ADR-0018 D3): pre-formatted calibration-example
+  // opts.fewShotSection: pre-formatted calibration-example
   //   section injected into the llm_critic call context (construction-point
   //   injection; gate.js stays fs-free — selection/format is calibration.js).
   const band = (opts && opts.band)
@@ -128,7 +128,7 @@ function verify(claims, gates, opts) {
       few_shot_section: (opts && opts.fewShotSection) || '',
     };
     const result = runGate(gates.llm_critic, LEVELS.LLM_CRITIC, criticContext);
-    // ADR-0017 D1: an exercised-but-indecisive critic (returns
+    // an exercised-but-indecisive critic (returns
     // decisive:false, or threw) emits ESCALATE, never NOT VERIFIED.
     const indecisive = result.decisive === false;
     const evidence = createRecord(

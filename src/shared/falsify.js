@@ -1,6 +1,6 @@
 'use strict';
 
-// src/shared/falsify.js -- ADR-0044 D-F/D-G/D-J: pure falsification core.
+// src/shared/falsify.js -- : pure falsification core.
 // This module owns the five-tuple record and the first 12 claim-directed
 // twin pairs. No I/O here; scripts/check-falsify.js is the thin seam.
 

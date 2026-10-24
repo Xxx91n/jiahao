@@ -2,7 +2,7 @@
 // src/shared/per-run-artifacts.js - grill-t37 D-005.1: the ONE write point
 // discipline for per-run emitted artifacts. Normalized JSON lands in an
 // EXISTING per-run artifact directory (the junit.xml family, gitignored,
-// ADR-0027 D4) with the run_id in the filename. This module owns the
+// ) with the run_id in the filename. This module owns the
 // mkdir+write so run-gates.js and run-test-gate.js cannot grow two writers.
 //
 // Honesty contract: emission failure is LOUD (throws to the caller, which
@@ -13,7 +13,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..', '..');
-// The existing per-run family (gitignored, ADR-0027 D4). junit.xml's home.
+// The existing per-run family (gitignored). junit.xml's home.
 const DEFAULT_DIR = path.join(ROOT, 'test-artifacts');
 
 // emitArtifact({dir?, subdir, prefix, run_id_obj, payload}) -> absolute path.

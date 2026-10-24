@@ -1,11 +1,11 @@
 'use strict';
-// src/pairer-lane.js — ADR-0070 D-A: the hook-side conviction lane.
+// src/pairer-lane.js — : the hook-side conviction lane.
 //
 // run(payload, deps) rides the Stop/SubagentStop hook: transcript_path ->
 // transcript adapter -> src/capa-pairer.js pairItem -> append-only record in
 // the evidence chain under source 'pairer-instrument'.
 //
-// Registered semantics (ADR-0070):
+// Registered semantics:
 //   - flagged   -> suspicious:true + severity:'high' + the shadow bit
 //   - shadow records never enter the severity matrix (the gate skips them)
 //   - consistent/undetermined land as non-suspicious observed records

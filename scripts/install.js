@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// scripts/install.js — Tier 1 installer (ADR-0011 §2, ADR-0014 D2)
+// scripts/install.js — Tier 1 installer ( §2)
 // Writes ONLY .jiahao-profile. Does not copy SKILL.md/adapters
 // (build-adapters.js is the sole distributor — silent-drift guardrail).
-// ADR-0014: also plants private/phrases.json into ~/.jiahao/private/ so the
+// also plants private/phrases.json into ~/.jiahao/private/ so the
 // wordlist is NOT inside the shared cwd anymore.
-// ADR-0036 D2: also plants private/bench-corpus/ (answer corpora + fingerprints).
+// also plants private/bench-corpus/ (answer corpora + fingerprints).
 
 const fs = require('fs');
 const path = require('path');
@@ -49,7 +49,7 @@ async function main() {
   // commander convention (atomcode-cli-ux): unknown bare subcommand -> exit 1.
   const sub = args.find(a => !a.startsWith('-'));
   if (sub === 'resolve') {
-    // ADR-0017 D2: human adjudication write-back (see scripts/resolve.js)
+    // human adjudication write-back (see scripts/resolve.js)
     return require('./resolve.js').run(args.slice(args.indexOf('resolve') + 1));
   }
   if (sub && sub !== 'init') {
@@ -107,7 +107,7 @@ async function main() {
   fs.writeFileSync(target, profile + '\n', 'utf8');
   console.log('Wrote "' + profile + '" to ' + target);
 
-  // ADR-0014 D2: plant the private wordlist into the config dir, outside the cwd.
+  // plant the private wordlist into the config dir, outside the cwd.
   const srcPhrases = require('path').join(__dirname, '..', 'private', 'phrases.json');
   const destDir = require('path').join(configDir(), 'private');
   const destPhrases = require('path').join(destDir, 'phrases.json');
@@ -119,7 +119,7 @@ async function main() {
     }
   } catch (e) { console.warn('wordlist plant skipped: ' + e.message); }
 
-  // ADR-0036 D2: plant the private bench corpus (probes / judge-twins / twins
+  // plant the private bench corpus (probes / judge-twins / twins
   // + fingerprints.json) next to the wordlist, outside the cwd.
   try {
     const p = require('path');
@@ -134,7 +134,7 @@ async function main() {
 
   console.log(REMINDER);
 
-  // ADR-0050 D-B/D-D: retrofit the existing local chain with a forward seal
+  // retrofit the existing local chain with a forward seal
   // and protected genesis anchor; a first install with no evidence is a no-op.
   try {
     const seal = require('../src/evidence-log').createEvidenceLog(configDir()).sealForwardIfNeeded();
@@ -143,7 +143,7 @@ async function main() {
     console.warn('anchor seal skipped: ' + e.message);
   }
 
-  // ADR-0051 D-B: probe directory-fsync capability and record the observed
+  // probe directory-fsync capability and record the observed
   // class. An existing operator declaration stays authoritative.
   try {
     const el = require('../src/evidence-log');

@@ -4,14 +4,6 @@ const { execSync } = require('child_process');
 
 const root = path.join(__dirname, '..');
 
-test('build-adapters.js exists', () => {
-  expect(fs.existsSync(path.join(root, 'scripts', 'build-adapters.js'))).toBe(true);
-});
-
-test('check-drift.js exists', () => {
-  expect(fs.existsSync(path.join(root, 'scripts', 'check-drift.js'))).toBe(true);
-});
-
 test('build-adapters generates all adapter files', () => {
   // Run build
   execSync('node scripts/build-adapters.js', { cwd: root, encoding: 'utf8', timeout: 5000 });
@@ -56,12 +48,12 @@ test('cursor adapter has frontmatter', () => {
   expect(content).toContain('description:');
 });
 
-test('build-adapters --check is green on the committed tree (ADR-0028 D2)', () => {
+test('build-adapters --check is green on the committed tree', () => {
   const out = execSync('node scripts/build-adapters.js --check', { cwd: root, encoding: 'utf8', timeout: 10000 });
   expect(out).toContain('regen-diff clean');
 });
 
-test('unifiedDiff emits unified hunks with -/+ lines (ADR-0028 D2)', () => {
+test('unifiedDiff emits unified hunks with -/+ lines', () => {
   const { unifiedDiff } = require('../scripts/build-adapters');
   const diff = unifiedDiff('x.md', 'a\nb\nc\n', 'a\nB\nc\n');
   expect(diff).toContain('--- a/x.md');
@@ -71,7 +63,7 @@ test('unifiedDiff emits unified hunks with -/+ lines (ADR-0028 D2)', () => {
   expect(diff).toContain('+B');
 });
 
-test('checkAll reports a missing adapter file (ADR-0028 D2)', () => {
+test('checkAll reports a missing adapter file', () => {
   const { buildAdapters } = require('../scripts/build-adapters');
   const expected = Object.keys(buildAdapters());
   expect(expected.length).toBeGreaterThan(0);

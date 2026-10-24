@@ -4,7 +4,7 @@ Round: grill-t7 unblind round - devin-corpus@v1 OOT falsification adjudication |
 
 ## Verdict
 
-**indeterminate** - k = 3/12 lies at logit > 0; CP two-sided 95% CI [0.054861, 0.571858] vs floor 0.563863 (conservative transfer: not-worse-than-baseline+MDE, never engineering-ready). Band 3-10 of the frozen integer decision table (ADR-0067 D-A).
+**indeterminate** - k = 3/12 lies at logit > 0; CP two-sided 95% CI [0.054861, 0.571858] vs floor 0.563863 (conservative transfer: not-worse-than-baseline+MDE, never engineering-ready). Band 3-10 of the frozen integer decision table.
 
 the pre-registered integer decision table assigns 3/12 to the indeterminate band; this is a decision-table outcome, not an effect estimate
 

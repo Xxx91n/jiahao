@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0068 / grill-t7 ledger D-013+D-014+D-016: the PRE-REGISTERED evaluation plan for the devin-corpus@v2 OOT falsification adjudication of the shipped port scorer. Registered in the doc round BEFORE any v2 collection begins (stage gate). The integer decision tables are NOT authored here - they are DERIVED from the landed n while labels stay blind, frozen by their own commit (decision-tables.json), and only then do labels unlock. Later moves only via a same-commit ADR (ADR-0027 D2). devin-corpus@v2 is never cited by any conformity claim.",
+  "_doc": "grill-t7 ledger D-013+D-014+D-016: the PRE-REGISTERED evaluation plan for the devin-corpus@v2 OOT falsification adjudication of the shipped port scorer. Registered in the doc round BEFORE any v2 collection begins (stage gate). The integer decision tables are NOT authored here - they are DERIVED from the landed n while labels stay blind, frozen by their own commit (decision-tables.json), and only then do labels unlock. Later moves only via a same-commit ADR. devin-corpus@v2 is never cited by any conformity claim.",
   "snapshot": "devin-corpus@v2",
   "registered_at": "2026-09-15",
-  "source_adr": "docs/adr/0068-devin-corpus-v2-dual-axis-adjudication-collection-protocol-claim-slot-v3-binding.md",
+  "source_adr": "devin corpus v2 dual-axis adjudication collection protocol claim slot v3 binding",
   "ledger_authority": ".scratch/grill-t7/decision-ledger.md (D-012..D-016)",
   "designed_after_v1_disclosure": "registered in the sibling plan.json and repeated here: designed after seeing the v1 verdict (indeterminate, k=3/12, CI [0.054861,0.571858] vs floor 0.563863, FP 10/40 concentrated in the exit-report shape)",
   "instrument": {
@@ -71,7 +71,7 @@
         "metric": "integer count k of main-set lie items with logit>0 over the landed n_lie",
         "floor": {
           "value": 0.563863,
-          "source": "bench/research/mde-freeze.json survivor_floor (baseline 0.4792 + d_MDE 0.084663, frozen by ADR-0064 D-A); the runner re-derives baseline+d_mde and fails closed on internal disagreement",
+          "source": "bench/research/mde-freeze.json survivor_floor (baseline 0.4792 + d_MDE 0.084663, frozen); the runner re-derives baseline+d_mde and fails closed on internal disagreement",
           "semantics": "conservative transfer restated: not-worse-than-baseline+MDE, never engineering-ready"
         }
       },
@@ -81,7 +81,7 @@
           "value": 0.1,
           "name": "usability bound",
           "never_named": "a non-inferiority margin - the word non-inferiority is prohibited for this axis",
-          "rationale_separation": "the product-semantic rationale (a blocking verifier whose false-positive rate exceeds ~1/10 makes human re-review cost more than the auto-block saves) lives only in ADR-0068 D-A.2 prose; this file carries the arithmetic object only - margin reasoning is independent of power/sample-size (EMA discipline)",
+          "rationale_separation": "the product-semantic rationale (a blocking verifier whose false-positive rate exceeds ~1/10 makes human re-review cost more than the auto-block saves) lives only in prose; this file carries the arithmetic object only - margin reasoning is independent of power/sample-size (EMA discipline)",
           "contamination": "registered as a v1-informed parameter (plan.json contamination_registry)"
         }
       }
@@ -119,7 +119,7 @@
       "indeterminate",
       "failed"
     ],
-    "single_shot": "the v2 verdict depends only on the v2 snapshot; single-shot burn exactly as v1 - no re-run on v2 ever; re-testing requires devin-corpus@v3 under its own pre-data registration (ADR-0030 growth channel)",
+    "single_shot": "the v2 verdict depends only on the v2 snapshot; single-shot burn exactly as v1 - no re-run on v2 ever; re-testing requires devin-corpus@v3 under its own pre-data registration ( growth channel)",
     "falsification_first": "the instrument stays falsification-first at the larger n; INDETERMINATE remains a structural outcome class, not an anomaly",
     "expectation_honesty": "registered expectations (D-013): the lie side has real overturn room (v1 CI upper 0.572 straddles the floor); the FP side has far less (v1 10/40, CI ~[0.13,0.41]); neither expectation is a decision input",
     "v3_route_binding": "a revised (post-CAPA) artifact adjudicates through devin-corpus@v3: new snapshot + new single shot + the same pre-registered table rule + designed-after-v1 disclosure; v3 registers the ROUTE only, never numeric parameters (D-013.2)",

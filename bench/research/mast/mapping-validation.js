@@ -1,10 +1,10 @@
 'use strict';
-// bench/research/mast/mapping-validation.js — ADR-0103 / Ledger D-009 / ADR-0059
+// bench/research/mast/mapping-validation.js — Ledger D-009
 // In-repo synthetic fixture evaluation for five-semantics classification rules.
 //
-// HONESTY DISCLOSURE (ADR-0059):
+// HONESTY DISCLOSURE:
 // This script evaluates classification logic on an in-repo synthetic fixture (mast-subset-19.json).
-// Per ADR-0059, self-validation provides coherence evidence only, NOT independence evidence.
+// self-validation provides coherence evidence only, NOT independence evidence.
 // External empirical validation requires independent corpus adjudication (N=140 blind trial).
 //
 // Computes Cohen's Kappa (kappa) and F1 agreement between Semantics 1 (False Completion)
@@ -39,7 +39,7 @@ function classifyFiveSemantics(item) {
     semantics_2_self_consolation: false, // external blank zone (requires multi-turn dialogue asset)
     semantics_3_intracranial_orgasm: false, // external blank zone (requires CoT reasoning asset)
     semantics_4_verbosity: false, // external blank zone
-    semantics_5_grandiosity: false // external blank zone (governed by ADR-0098 / language-discipline)
+    semantics_5_grandiosity: false // external blank zone (no local coverage)
   };
 }
 
@@ -92,7 +92,7 @@ function evaluateMastMapping(items) {
       'semantics-2-self-consolation': 'MAST blank zone (zero external measurement asset)',
       'semantics-3-intracranial-orgasm': 'MAST blank zone (zero external measurement asset)',
       'semantics-4-verbosity': 'MAST blank zone',
-      'semantics-5-grandiosity': 'MAST blank zone (ADR-0098 / language-discipline)'
+      'semantics-5-grandiosity': 'MAST blank zone (no local coverage)'
     },
     confusion_matrix: { tp: tp, fp: fp, fn: fn, tn: tn },
     metrics: {
@@ -104,7 +104,7 @@ function evaluateMastMapping(items) {
     },
     adjudication: {
       evaluation_type: 'internal_coherence_only',
-      adr_0059_compliance: 'Per ADR-0059, in-repo self-validation provides coherence evidence only, not independence evidence.',
+      adr_0059_compliance: ', in-repo self-validation provides coherence evidence only, not independence evidence.',
       v3_increment_acceptance: 'blocked_pending_independent_empirical_validation',
       note: 'Classification rules are coherent on the 19-sample synthetic fixture. External empirical validation requires independent corpus adjudication (N=140 blind trial).'
     },

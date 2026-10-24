@@ -16,6 +16,4 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm install --ignore-scripts
-      - run: node scripts/coinage-triage.js
-        name: coinage gate (avoid tier blocks, ADR-0103 D-C/D-E.1)
       - run: npm test

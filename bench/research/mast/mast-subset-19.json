@@ -1,7 +1,7 @@
 {
   "_provenance": {
     "type": "in_repo_coherence_fixture",
-    "description": "Synthetic in-repo coherence fixture for five-semantics classification testing. Per ADR-0059, in-repo fixtures provide internal coherence evidence only, NOT external empirical validation.",
+    "description": "Synthetic in-repo coherence fixture for five-semantics classification testing., in-repo fixtures provide internal coherence evidence only, NOT external empirical validation.",
     "taxonomy": "MAST Cat-3 (FM-3.1 premature termination, FM-3.2 no or incomplete verification, FM-3.3 incorrect verification)",
     "sample_size": 19,
     "independence_evidence": false

@@ -1,44 +1,33 @@
 # Jiahao (嘉豪) — Agent Working Guide
 
-> **第一铁律（置顶）**：进场 Agent 身份唯一锁定为**严谨求证的交付工程师（凭证即一切 / No receipt, no claim）**。
-> 严禁自以为是、借口自洽、脑补自嗨、显摆不做事与自造黑话。
+面向 AI Agent 的反自嗨心智模型；行为准则在 `src/SKILL.md`，术语在 `GLOSSARY.md`。
 
-## 反自嗨五级物理行动阶梯（ADR-0106 / D-003）
+## 安装、运行、测试
 
-在进行任何交互、执行操作或宣称完成前，必须顺次攀爬五级物理行动阶梯：
+- `npm install` 后跑 `node scripts/install.js`；`--profile generator` 切换生成档。
+- 测试：`npm test`。改 `src/SKILL.md` 或 `src/`、`hooks/` 后，必须跑 `node scripts/build-adapters.js`（漂移检查：`node scripts/check-drift.js`）。
 
-1. **第 1 阶（动作前置）**：有操作空间必须先调物理工具，无调用前输出文字严禁超过 2 行，绝对禁止长篇小作文挤占工具行动。
-2. **第 2 阶（探针锚定）**：思维链推导置信度恒为零。结论必须逐字引用真实工具探针物理回传（日志/断点/状态），无外部回传严禁自信断言。
-3. **第 3 阶（红灯即停）**：任何命令 exit≠0 或测试挂死，唯一合规动作是承认失败出示报错，严禁找补狡辩“不影响主流程”。
-4. **第 4 阶（目标核销）**：对照原始目标逐项物理对账，每项必须有当轮新跑的 exit 0 物理证据，缺一不可宣称完成。
-5. **第 5 阶（三行硬锁）**：最终交付回复硬锁至多 3 行结构化事实，全文本使用初中生通晓的大白话，自造黑话直接判违规。
+## 不要改的目录
 
-**输出硬锁格式**（最多 3 行）：
-- `[行动结论]`：一句话陈述具体完成的操作。
-- `[机器凭证]`：物理执行的命令与 exit 0 关键输出。
-- `[残留风险]`：尚未经机器物理验证的边界或显式风险（无则写无）。
+- `adapters/`：由 `src/` 生成，改源后重跑生成器。
+- `private/`：私有词表，不要展开到输出或日志。
+- `bench/research/out/`、`bench/polygraph/results/`：冻结的评测记录。
 
----
+## 代码里看不出来的坑
 
-## 绝对红线
+- 证据链落在 `.jiahao-evidence/`，改路径要同步 `src/shared/paths.js` 和 hook 侧。
+- Windows 上 inode 替换检测无效，`test/sentinel-ownership.test.js` 有一条跳过。
 
-- **红线 1**：严禁使用任何生造黑话与长链复合抽象名词。
-- **红线 2**：禁止长篇脑补推导，不得在无工具执行下下结论。
-- **红线 3**：未见机器物理 exit 0 与客观事实，严禁宣称完成。
+## Agent skills
 
----
+### Issue tracker
 
-## 开发与验证指令
+Issues live as GitHub issues in `Xxx91n/jiahao`, managed with the `gh` CLI. See `docs/agents/issue-tracker.md`.
 
-```bash
-npm test                        # 全量 Jest 物理测试验证
-node scripts/build-adapters.js --check  # 宿主适配器同步检查
-node scripts/check-drift.js     # 适配器漂移检查
-node scripts/coinage-triage.js  # 词表与平实语言检查
-git diff --check                # 格式与空白行尾检查
-```
+### Triage labels
 
-## 版本控制与交接
+Five canonical triage roles map one-to-one to label strings, defined in the tracker doc. See `docs/agents/issue-tracker.md` (Triage labels).
 
-- 版本控制统一使用 GitButler (`but`)，并行分支隔离，严禁污染其他分支。
-- 严禁未经用户明确指示直接 push 或提 PR。
+### Domain docs
+
+Single-context layout: vocabulary at the repo root, behavior contract in `src/SKILL.md`. See `docs/agents/domain.md`.

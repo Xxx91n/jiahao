@@ -1,6 +1,6 @@
 'use strict';
 
-// src/instrument-identity.js -- ADR-0046 P0
+// src/instrument-identity.js -- P0
 //
 // Instrument identity is the immutable triple:
 //   { rulesVersion + promptHash, model checkpoint digest, inferenceConfigHash }
@@ -58,7 +58,7 @@ function loadState(root, opts) {
   return readJsonFile(path.join(root, STATE_REL), 'instrument state', o.readFile);
 }
 
-// ADR-0061 D-B / ADR-0063: the judge identity axis hashes the JUDGE-BEHAVIORAL
+// / : the judge identity axis hashes the JUDGE-BEHAVIORAL
 // text surface of the rules file (the verifier-rules region), not the whole
 // file. Generator/product wording sits above the boundary, so product edits no
 // longer cascade into an identity re-pin, while any judge-rule edit still does.
@@ -83,7 +83,7 @@ function resolveInstrumentIdentity(root, opts) {
   const pin = loadPin(root, o);
   const rulesPath = path.join(root, pin.rules_alias);
   const rulesText = read(rulesPath, 'utf8');
-  // ADR-0061 D-B: hash only the judge-behavioral surface (verifier rules).
+  // hash only the judge-behavioral surface (verifier rules).
   const promptHash = sha256Text(judgeSurfaceText(rulesText));
   const resolved = {
     rules_version: pin.rules_version,
@@ -170,7 +170,7 @@ function stateEvent(seq, kind, identityDigest, prevHash, extra) {
   if (extra && extra.principal_id !== undefined) ev.principal_id = extra.principal_id;
   if (extra && extra.instrument_id !== undefined) ev.instrument_id = extra.instrument_id;
   if (extra && extra.authorization !== undefined) ev.authorization = extra.authorization;
-  // ADR-0060 D-C/D-D: the conditional axis must be self-evidencing on the chain
+  // the conditional axis must be self-evidencing on the chain
   // event itself - an expiry and CAPA that live only in the top-level state are
   // not tamper-anchored. The conditional_signoff call site already supplies
   // both; this allowlist is the only thing that made them droppable (STD-1).
@@ -236,7 +236,7 @@ function projectRecordStatus(history) {
   return records;
 }
 
-// ADR-0060 D-C: a full certification clears the conditional second axis.
+// a full certification clears the conditional second axis.
 function clearConditionalAxis(next) {
   next.certification_mode = 'full';
   next.conditional_expires_at = null;
@@ -275,7 +275,7 @@ function transition(state, event, opts) {
     next.authoritative_identity_digest = event.identity_digest;
     next.quarantined_identity_digest = null;
     next.history.push(stateEvent(tail.seq + 1, 'signoff', event.identity_digest, tail.event_hash, {
-      // ADR-0060 D-E / P-A1: the record separates the PRINCIPAL (who
+      // / P-A1: the record separates the PRINCIPAL (who
       // authorised) from the INSTRUMENT (what executed the signature) and
       // anchors the verbatim authorisation text.
       principal_id: event.reviewer_id,
@@ -306,7 +306,7 @@ function transition(state, event, opts) {
       throw new Error('conditional_signoff requires expires_at (YYYY-MM-DD)');
     }
     if (!event.capa_ref) throw new Error('conditional_signoff requires capa_ref');
-    // ADR-0060 D-C (two-axis): the release-gate axis keeps ADR-0046's
+    // (two-axis): the release-gate axis keeps the
     // authoritative/quarantined contract; the assurance level rides a separate
     // `certification_mode` axis with a mandatory expiry.
     next.state = 'authoritative';
@@ -316,7 +316,7 @@ function transition(state, event, opts) {
     next.conditional_expires_at = event.expires_at;
     next.conditional_capa_ref = event.capa_ref;
     next.history.push(stateEvent(tail.seq + 1, 'conditional_signoff', event.identity_digest, tail.event_hash, {
-      // ADR-0060 D-E / P-A1: principal vs instrument + verbatim authorisation.
+      // / P-A1: principal vs instrument + verbatim authorisation.
       principal_id: event.reviewer_id,
       instrument_id: event.instrument_id || null,
       authorization: event.authorization || null,
@@ -384,13 +384,13 @@ function transition(state, event, opts) {
     if (!event.criteria_version || !event.previous_criteria_version) {
       throw new Error('criteria_change requires criteria_version and previous_criteria_version');
     }
-    // ADR-0049 D-D: no genuine pointwise replay exists yet (defer-0023). A
+    // no genuine pointwise replay exists yet (defer-0023). A
     // criteria change is a restatement mapping, never an as-left re-projection.
     if (event.pointwise_replay) {
-      throw new Error('pointwise replay is deferred (defer-0023): criteria change must use restatement mapping (ADR-0049 D-D)');
+      throw new Error('pointwise replay is deferred (defer-0023): criteria change must use restatement mapping');
     }
     if (!event.restatement_of) {
-      throw new Error('criteria_change requires restatement_of while pointwise replay is deferred (ADR-0049 D-D, defer-0023)');
+      throw new Error('criteria_change requires restatement_of while pointwise replay is deferred (defer-0023)');
     }
     next.history.push(stateEvent(tail.seq + 1, 'criteria_change', event.identity_digest, tail.event_hash, {
       criteria_version: event.criteria_version,
@@ -399,7 +399,7 @@ function transition(state, event, opts) {
       reviewer_id: event.reviewer_id,
       second_reviewer: event.second_reviewer || null,
       attestation_type: event.attestation_type,
-      // P-A1 (ADR-0060 D-E): a criteria change is a signoff-class event (its
+      // P-A1: a criteria change is a signoff-class event (its
       // attestation moves the threshold surface), so the verbatim authorisation
       // it exercises must be persisted on the event, not merely validated.
       authorization: event.authorization || null,
@@ -426,7 +426,7 @@ function transition(state, event, opts) {
       identity_triple: event.identity_triple || null,
       maker_id: event.maker_id,
       escalation: event.escalation || 'none',
-      // P-A1 (ADR-0060 D-E): the maker's authorisation rides the record so the
+      // P-A1: the maker's authorisation rides the record so the
       // later record_signoff can be tied to the instrument that made it.
       authorization: event.authorization || null,
       timestamp: now,
@@ -456,7 +456,7 @@ function transition(state, event, opts) {
       second_reviewer: event.second_reviewer || null,
       attestation_type: event.attestation_type,
       reason: event.reason,
-      // P-A1 (ADR-0060 D-E): same obligation as criteria_change - a signoff
+      // P-A1: same obligation as criteria_change - a signoff
       // class event persists the verbatim authorisation it exercises.
       authorization: event.authorization || null,
       principal_id: event.reviewer_id,
@@ -467,7 +467,7 @@ function transition(state, event, opts) {
     return next;
   }
 
-  // ADR-0049 D-E: drift exposure from the reverify decision rule. Requires
+  // drift exposure from the reverify decision rule. Requires
   // the authoritative identity; carries the offending ledger seq so reviewers
   // can trace the evidence. Marks prior-interval sign-offs via the projection.
   if (event.type === 'drift_exposure') {
@@ -483,9 +483,9 @@ function transition(state, event, opts) {
     return next;
   }
 
-  // ADR-0049 D-E: disposition of an open drift exposure. Routes through
+  // disposition of an open drift exposure. Routes through
   // ESCALATE-shaped evidence kinds; 're-verify' dispositions reference the
-  // ADR-0045 deterministic channel. Fails closed without an open exposure.
+  // deterministic channel. Fails closed without an open exposure.
   if (event.type === 'lookback_disposition') {
     if (next.state !== 'authoritative') throw new Error('lookback_disposition requires authoritative state');
     if (next.authoritative_identity_digest !== event.identity_digest) {
@@ -519,7 +519,7 @@ function transition(state, event, opts) {
   throw new Error('unknown instrument state event: ' + event.type);
 }
 
-// ---- ADR-0049 D-E: drift exposure look-back (projection, fail-closed) ----
+// ---- : drift exposure look-back (projection, fail-closed) ----
 
 // Open exposures: drift_exposure events not yet closed by a disposition.
 function openExposures(history) {
@@ -557,7 +557,7 @@ function affectedSignoffs(history) {
 
 function effectiveState(state, reverifyState, nowMs) {
   if (reverifyState && reverifyState.state === 'degraded') return 'advisory-only';
-  // ADR-0060 D-C: an expired conditional certification is not a certification.
+  // an expired conditional certification is not a certification.
   if (state && state.certification_mode === 'conditional') {
     const exp = Date.parse(String(state.conditional_expires_at || '') + 'T23:59:59.999Z');
     const now = typeof nowMs === 'number' ? nowMs : Date.now();

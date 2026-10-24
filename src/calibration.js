@@ -14,7 +14,7 @@ const path = require('path');
 const { configDir } = require('./shared/paths');
 const { loadPin } = require('./instrument-identity');
 
-// Default static band (ADR-0004, from FutureAGI research)
+// Default static band (from FutureAGI research)
 const STATIC_BAND = { low: 0.4, high: 0.7 };
 
 // Get calibration log path
@@ -98,7 +98,7 @@ function deriveThresholds(model, targetPrecision, floorPrecision) {
   const logitLow = Math.log(1 / (1 - tp) - 1);
   const low = (logitLow - model.b) / model.a;
 
-  // ADR-0018 D2: floor/target dual boundary (maf-evals pattern).
+  // floor/target dual boundary (maf-evals pattern).
   // floor = blocking boundary (calibrated P(pass) < floorPrec -> block),
   // target = warning boundary; scores inside the band are warnings.
   const fp_ = floorPrecision || 0.5;
@@ -107,13 +107,13 @@ function deriveThresholds(model, targetPrecision, floorPrecision) {
 
   // Degenerate fit (constant-score points -> a === 0): no calibrated signal;
   // fall back to the static band instead of emitting non-finite thresholds
-  // (input health-check posture, ADR-0018 D2).
+  // (input health-check posture).
   if (!Number.isFinite(model.a) || model.a === 0) {
     return { ...STATIC_BAND, floor: STATIC_BAND.low, target: STATIC_BAND.high };
   }
 
-  // Clamp to [0, 1]. low/high keep ADR-0008 semantics for back-compat;
-  // floor/target are the ADR-0018 D2 band (floor clamped to <= target).
+  // Clamp to [0, 1]. low/high keep semantics for back-compat;
+  // floor/target are the band (floor clamped to <= target).
   const lo = Math.max(0, Math.min(1, Math.min(low, high)));
   const hi = Math.max(0, Math.min(1, Math.max(low, high)));
   const fl = Math.max(0, Math.min(1, Math.min(floor, hi)));
@@ -150,13 +150,13 @@ function computeECE(points, model, nBins) {
 }
 
 
-// ---- ADR-0018: calibration flywheel (read path) ----
+// ---- : calibration flywheel (read path) ----
 
 const crypto = require('crypto');
 
 // Judge version: bump when the critic prompt changes; kappa reports are
 // versioned per judge prompt hash (maf-evals: recalibrate after judge change).
-// ADR-0046 moves the source of truth for the full identity into
+// moves the source of truth for the full identity into
 // src/instrument-identity.json while preserving this field for older callers.
 const JUDGE_VERSION = loadPin(path.join(__dirname, '..')).rules_version;
 
@@ -250,7 +250,7 @@ function computeKappa(pairs) {
   };
 }
 
-// ADR-0018 D4: RE-ALIGN triggers (advisory only, never blocking):
+// RE-ALIGN triggers (advisory only, never blocking):
 //   kappa < 0.40                     (below governance floor)
 //   baseline.kappa - current >= 0.05 (drift vs last recorded baseline)
 function kappaAlert(report, baseline) {
@@ -270,7 +270,7 @@ function kappaAlert(report, baseline) {
 }
 
 // Load the manually-saved κ baseline (see scripts/kappa.js). Never written
-// from hooks — baseline updates are explicit, per ADR-0018 D2 governance.
+// from hooks — baseline updates are explicit, governance.
 function loadKappaBaseline() {
   try {
     return JSON.parse(fs.readFileSync(

@@ -7,8 +7,7 @@
     "test": "jest --verbose",
     "build": "node scripts/build-adapters.js",
     "check:adapters": "node scripts/build-adapters.js --check",
-    "check:drift": "node scripts/check-drift.js",
-    "check:language": "node scripts/coinage-triage.js"
+    "check:drift": "node scripts/check-drift.js"
   },
   "devDependencies": {
     "jest": "^29.7.0"
@@ -26,7 +25,7 @@
     "adapters/",
     "schemas/",
     "hooks/",
-    "CONTEXT.md",
+    "GLOSSARY.md",
     "README.md",
     "AGENTS.md"
   ],

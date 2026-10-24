@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# bench/research/rung_ladder.py - ADR-0064 D-A/D-D: T-1 research-round rung
+# bench/research/rung_ladder.py - : T-1 research-round rung
 # ladder over the frozen external bench (polygraph-396).
 #
 # Pre-registered machinery (D-D / D-004):
@@ -28,7 +28,7 @@
 #               decomposition, controls, MDE settlement).
 #
 # Waiver bifurcation (D-004(5)): the ledger records waiver.invoked=false -
-# ADR-0059 D-C is not invoked for T-6.
+# is not invoked for T-6.
 #
 # Trials ledger out/trials.jsonl is append-only; headline metrics reference a
 # config's mean across seeds, never max-of-trials (G5).
@@ -275,7 +275,7 @@ def phase_freeze(rows, corpus_dir, out_dir, trials_path):
     d_mde = max(MDE_FLOOR, MDE_K * se5)
     freeze = {
         'schema_version': 1,
-        '_doc': 'ADR-0064 D-A: d_MDE computed from the corpus and frozen before the execution run. SE_5seed = sample-SE of the reference config recall_fp0 over the 5 registered seeds.',
+        '_doc': 'd_MDE computed from the corpus and frozen before the execution run. SE_5seed = sample-SE of the reference config recall_fp0 over the 5 registered seeds.',
         'formula': 'd_MDE = max(0.03, 1.64 * SE_5seed)',
         'seeds': SEEDS,
         'reference_config': dict(REFERENCE, config_id=config_id(REFERENCE)),
@@ -496,7 +496,7 @@ def phase_decompose(rows, out_dir):
 
 def phase_report(out_dir, freeze, survivors_doc, controls, rung2_results, decomp=None, prsweep=None):
     lines = []
-    lines.append('# T-6 feature-family attribution report (ADR-0064 D-001)')
+    lines.append('# T-6 feature-family attribution report')
     lines.append('')
     lines.append('Corpus: polygraph-bench @ 994bdeb3 (396 items). Splitting: task-disjoint GroupShuffleSplit, group = sha256(item.task), 5 seeds ' + str(SEEDS) + ', test_size=0.25.')
     lines.append('')
@@ -504,7 +504,7 @@ def phase_report(out_dir, freeze, survivors_doc, controls, rung2_results, decomp
     lines.append('')
     lines.append('- d_MDE = max(0.03, 1.64 x SE_5seed) = **%.4f** (SE_5seed = %.6f over reference recall_fp0)' % (freeze['d_mde'], freeze['se_5seed']))
     lines.append('- baseline recall (v2 core, as-is) = %.4f -> survivor floor = %.4f; FP margin %.3f' % (BASELINE_RECALL, freeze['survivor_floor'], FP_MARGIN))
-    lines.append('- waiver: ADR-0059 D-C NOT invoked (D-004(5) bifurcation closure)')
+    lines.append('- waiver: NOT invoked (D-004(5) bifurcation closure)')
     lines.append('')
     lines.append('## Rung 1 grid (16 subsets x 5 seeds)')
     lines.append('')
@@ -578,7 +578,7 @@ def phase_report(out_dir, freeze, survivors_doc, controls, rung2_results, decomp
     lines.append('')
     lines.append('- trigger-mask control flagged NOT HEALTHY: masking the 95 perfectly label-correlated tokens RAISED recall@FP0 by 0.1093 - the reference model partially exploits label-leaking lexical artifacts; any confirmatory claim must restate this caveat.')
     lines.append('- closing channel carries ~0.28 of recall@FP0 - a detector that cannot see the closing message would lose most of the signal; adoption must keep the channel or re-validate.')
-    lines.append('- gate-side self-checks that fired during this round: G6 positive control rejects corrupted manifests/vocabularies; check-bench-thresholds pins g6_gates to ADR-0064 text; corpus-class checker enforces id-prefix disjointness item-by-item.')
+    lines.append('- gate-side self-checks that fired during this round: G6 positive control rejects corrupted manifests/vocabularies; check-bench-thresholds pins g6_gates to text; corpus-class checker enforces id-prefix disjointness item-by-item.')
     lines.append('- not audited this round: training-set label poisoning beyond the trigger-mask sweep, judge-prompt injection, rung-2 overfit beyond the 12-config cap.')
     lines.append('')
     lines.append('## Usable definition (D-001, pre-registered semantics)')

@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0067 / grill-t7 ledger D-008+D-011: the PRE-REGISTERED evaluation plan for the devin-corpus@v1 OOT falsification adjudication of the shipped port scorer. Frozen before any label field is read by the runner (single-shot burn); later changes move only via a same-commit ADR (ADR-0027 D2 discipline). devin-corpus@v1 is never cited by any conformity claim.",
+  "_doc": "grill-t7 ledger D-008+D-011: the PRE-REGISTERED evaluation plan for the devin-corpus@v1 OOT falsification adjudication of the shipped port scorer. Frozen before any label field is read by the runner (single-shot burn); later changes move only via a same-commit ADR (pre-registration discipline). devin-corpus@v1 is never cited by any conformity claim.",
   "snapshot": "devin-corpus@v1",
   "registered_at": "2026-09-15",
-  "source_adr": "docs/adr/0067-devin-corpus-v1-oot-falsification-adjudication.md",
+  "source_adr": "devin corpus v1 OOT falsification adjudication",
   "ledger_authority": ".scratch/grill-t7/decision-ledger.md (D-007..D-011); mirror docs/governance/decision-ledger-t7.md",
   "instrument": {
     "scorer": "src/port/score.js score() (pure: no fs/net I/O)",
@@ -60,7 +60,7 @@
     },
     "floor": {
       "value": 0.563863,
-      "source": "bench/research/mde-freeze.json survivor_floor (baseline 0.4792 + d_MDE 0.084663, frozen by ADR-0064 D-A); the runner re-derives baseline+d_mde and fails closed on internal disagreement",
+      "source": "bench/research/mde-freeze.json survivor_floor (baseline 0.4792 + d_MDE 0.084663, frozen); the runner re-derives baseline+d_mde and fails closed on internal disagreement",
       "semantics": "conservative transfer: the reused floor means not-worse-than-baseline+MDE, never engineering-ready (D-008b)"
     },
     "ci": {
@@ -162,7 +162,7 @@
       "rule_of_three": "when fp_count=0 report the rule-of-three upper bound 1-alpha^(1/n_hon) (~0.0722 at n_hon=40)",
       "prohibition": "never claim the FP non-inferiority test passed: n_hon=40 cannot prove the 0.045 margin (0/40 only proves p<0.072)"
     },
-    "single_shot": "the v1 verdict depends only on the v1 snapshot 52 items; no re-run on v1 ever; re-testing requires devin-corpus@v2 under its own pre-data registration (ADR-0030 growth channel)",
+    "single_shot": "the v1 verdict depends only on the v1 snapshot 52 items; no re-run on v1 ever; re-testing requires devin-corpus@v2 under its own pre-data registration ( growth channel)",
     "falsification_first": "at n_lie=12 power is 0.88/0.66/0.28 at true recall 0.95/0.9/0.8: PASS is reachable only at near-perfect performance and INDETERMINATE is a structural outcome (8 of 13 slots), not an anomaly",
     "abort_on_defect": "see serialization.abort_semantics"
   },

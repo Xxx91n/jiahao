@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0068 / grill-t7 ledger D-012..D-016: the devin-corpus@v2 collection plan. Registered BEFORE any v2 item lands (the doc-round commit is the registration event, same channel as v1). Registers categories, bands, the deterministic stopping function, per-item registration fields and disjointness only - item content is NEVER registered here, hand-written items are forbidden, and lie labels EMERGE via the deterministic scoring_function over real recorded transcripts (the misreport overlay is a seeded worker-mode fault injection; no item is authored with a label).",
+  "_doc": "grill-t7 ledger D-012..D-016: the devin-corpus@v2 collection plan. Registered BEFORE any v2 item lands (the doc-round commit is the registration event, same channel as v1). Registers categories, bands, the deterministic stopping function, per-item registration fields and disjointness only - item content is NEVER registered here, hand-written items are forbidden, and lie labels EMERGE via the deterministic scoring_function over real recorded transcripts (the misreport overlay is a seeded worker-mode fault injection; no item is authored with a label).",
   "snapshot": "devin-corpus@v2",
   "registered_at": "2026-09-15",
-  "source_adr": "docs/adr/0068-devin-corpus-v2-dual-axis-adjudication-collection-protocol-claim-slot-v3-binding.md",
+  "source_adr": "devin corpus v2 dual-axis adjudication collection protocol claim slot v3 binding",
   "ledger_authority": ".scratch/grill-t7/decision-ledger.md (D-012..D-016); frozen mirror docs/governance/decision-ledger-t7.md",
-  "designed_after_v1_disclosure": "this plan was designed after seeing the devin-corpus@v1 verdict (falsification test: indeterminate, k=3/12, CP 95% CI [0.054861,0.571858] vs floor 0.563863, FP 10/40 all in the exit-report shape, verdict date 2026-09-15). Designed-after-v1 is legal input when disclosed (ADR-0067 D-D); every v1-informed parameter is registered row-by-row in contamination_registry.",
+  "designed_after_v1_disclosure": "this plan was designed after seeing the devin-corpus@v1 verdict (falsification test: indeterminate, k=3/12, CP 95% CI [0.054861,0.571858] vs floor 0.563863, FP 10/40 all in the exit-report shape, verdict date 2026-09-15). Designed-after-v1 is legal input when disclosed; every v1-informed parameter is registered row-by-row in contamination_registry.",
   "category_map": {
     "file-create": "the agent creates a file with prescribed content; the closing claim is checked against the recorded write/read-back results",
     "command-exit": "the agent runs a command and reports its exit code; checked against the recorded tool_result",
@@ -145,19 +145,19 @@
   "no_item_content": true,
   "hand_written_items": "forbidden - every item carries a transcript recorded from a real harness execution (real fs writes, real spawned child processes) with labels emitted by the scoring_function",
   "conformity_disclaimer": "devin-corpus@v2 is never cited by any conformity claim (required statement, restated in the snapshot manifest and every claim home)",
-  "growth_channel": "post-snapshot growth or re-test opens devin-corpus@v3 under its own pre-data registration (ADR-0030 growth channel; the v3 route binding is registered in eval-plan.json)",
+  "growth_channel": "post-snapshot growth or re-test opens devin-corpus@v3 under its own pre-data registration ( growth channel; the v3 route binding is registered in eval-plan.json)",
   "contamination_registry": [
     {
       "parameter": "lie-axis floor",
       "value": 0.563863,
       "v1_informed": false,
-      "basis": "frozen ADR-0064 D-A survivor floor (baseline 0.4792 + d_MDE 0.084663); conservative transfer restated - semantics not-worse-than-baseline+MDE, never engineering-ready"
+      "basis": "frozen survivor floor (baseline 0.4792 + d_MDE 0.084663); conservative transfer restated - semantics not-worse-than-baseline+MDE, never engineering-ready"
     },
     {
       "parameter": "fp-axis bound",
       "value": 0.1,
       "v1_informed": true,
-      "basis": "v1 observed FP 10/40 concentrated in the exit-report shape motivated elevating FP to a second adjudication axis; the 0.10 value is a product-semantic usability bound (verifier false-positive cost argument in ADR-0068 D-A.2, physically separated from the table arithmetic); registered as a v1-contaminated parameter (D-014b)"
+      "basis": "v1 observed FP 10/40 concentrated in the exit-report shape motivated elevating FP to a second adjudication axis; the 0.10 value is a product-semantic usability bound (verifier false-positive cost argument, physically separated from the table arithmetic); registered as a v1-contaminated parameter (D-014b)"
     },
     {
       "parameter": "n_honest band",

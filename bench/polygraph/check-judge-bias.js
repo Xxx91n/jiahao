@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// bench/polygraph/check-judge-bias.js -- ADR-0031 D2/D3: judge bias
+// bench/polygraph/check-judge-bias.js -- : judge bias
 // calibration gate (three metrics over judge-twins.jsonl v1.1 pairs).
 //
 //   style_flip_rate          fraction of style-control pairs whose two
@@ -15,15 +15,15 @@
 //                            judge bridge is stateless per item, so this is
 //                            instrument-only: measured over evaluating each
 //                            pair in both member orders. Observational-only
-//                            forever (ADR-0031 R3).
+// forever.
 //
 // Bridge: default judgeFn is the same judgeItem the bench gate and the
 // reverify runbook use (single caller pattern; the semantics corpus feeds a
 // future scoring-mode judge — nothing in this script presumes the runtime).
 //
-// Gate tiers come from thresholds.json judge_bias_gates (ADR-0031 D3);
+// Gate tiers come from thresholds.json judge_bias_gates;
 // confirmatory gates exit 1 on violation, observational gates report.
-// The script is a thin CLI: pure core exported for jest (ADR-0029 D4 shape).
+// The script is a thin CLI: pure core exported for jest ( shape).
 // Usage: node bench/polygraph/check-judge-bias.js
 
 'use strict';
@@ -85,7 +85,7 @@ function computeBias(entries, judgeFn) {
     for (const p of lenPairs) {
       const vs = p.members.map(m => m.observed_verdict);
       const flipped = new Set(vs).size > 1;
-      // pre-registered assertion (ADR-0031 D2): NO length pair may flip.
+      // pre-registered assertion: NO length pair may flip.
       // expansion flip without truncation flip => verbosity bias;
       // truncation flip => lost quality discrimination. Either is a failure.
       const good = !flipped;
@@ -111,7 +111,7 @@ function computeBias(entries, judgeFn) {
   }
 
   // bias-probe: report expected-verdict hit rate per pair (no tier-gate
-  // metric in ADR-0031 D2; gold comparisons surface in the report).
+  // metric; gold comparisons surface in the report).
   const probePairs = [...pairs.values()].filter(p => p.kind === 'bias-probe');
   const probeHits = [];
   for (const p of probePairs) {
@@ -123,19 +123,19 @@ function computeBias(entries, judgeFn) {
   return { metrics, detail, probe_hits: probeHits };
 }
 
-// Gate evaluation under ADR-0031 D3 tiers. Returns { fail, lines }.
+// Gate evaluation tiers. Returns { fail, lines }.
 function applyGates(metrics, cfg) {
   const gates = (cfg && Array.isArray(cfg.judge_bias_gates)) ? cfg.judge_bias_gates : [];
-  if (!gates.length) return { fail: true, lines: ['judge_bias_gates missing in thresholds.json (ADR-0031 D3) — refusing fail-open'] };
+  if (!gates.length) return { fail: true, lines: ['judge_bias_gates missing in thresholds.json — refusing fail-open'] };
   const lines = [];
   let fail = false;
   for (const g of gates) {
     const v = metrics[g.metric];
     if (v == null) {
-      // ADR-0031 D3: a confirmatory gate whose metric is not computable must
+      // a confirmatory gate whose metric is not computable must
       // fail closed (an emptied corpus must never silently pass the gate).
       if (g.tier === 'confirmatory') {
-        lines.push('FAIL ' + g.id + ': metric ' + g.metric + ' not computable on this corpus (fail-closed, ADR-0031 D3)');
+        lines.push('FAIL ' + g.id + ': metric ' + g.metric + ' not computable on this corpus (fail-closed)');
         fail = true;
       } else {
         lines.push('SKIP ' + g.id + ': metric ' + g.metric + ' not computable on this corpus');

@@ -1,6 +1,6 @@
 'use strict';
 
-// src/change-surface.js -- ADR-0047 D-A machine fact-source reader.
+// src/change-surface.js -- machine fact-source reader.
 //
 // docs/change-surface.json maps each validated change surface to the tiered
 // response and human attestation vocabulary. This module owns shape checks so

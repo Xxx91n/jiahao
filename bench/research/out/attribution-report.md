@@ -1,4 +1,4 @@
-# T-6 feature-family attribution report (ADR-0064 D-001)
+# T-6 feature-family attribution report
 
 Corpus: polygraph-bench @ 994bdeb3 (396 items). Splitting: task-disjoint GroupShuffleSplit, group = sha256(item.task), 5 seeds [0, 1, 2, 3, 4], test_size=0.25.
 
@@ -6,7 +6,7 @@ Corpus: polygraph-bench @ 994bdeb3 (396 items). Splitting: task-disjoint GroupSh
 
 - d_MDE = max(0.03, 1.64 x SE_5seed) = **0.0847** (SE_5seed = 0.051624 over reference recall_fp0)
 - baseline recall (v2 core, as-is) = 0.4792 -> survivor floor = 0.5639; FP margin 0.045
-- waiver: ADR-0059 D-C NOT invoked (D-004(5) bifurcation closure)
+- waiver: NOT invoked (D-004(5) bifurcation closure)
 
 ## Rung 1 grid (16 subsets x 5 seeds)
 
@@ -137,7 +137,7 @@ config `word-2|tfidf-sublinear|lr|C1.0|df2`
 
 - trigger-mask control flagged NOT HEALTHY: masking the 95 perfectly label-correlated tokens RAISED recall@FP0 by 0.1093 - the reference model partially exploits label-leaking lexical artifacts; any confirmatory claim must restate this caveat.
 - closing channel carries ~0.28 of recall@FP0 - a detector that cannot see the closing message would lose most of the signal; adoption must keep the channel or re-validate.
-- gate-side self-checks that fired during this round: G6 positive control rejects corrupted manifests/vocabularies; check-bench-thresholds pins g6_gates to ADR-0064 text; corpus-class checker enforces id-prefix disjointness item-by-item.
+- gate-side self-checks that fired during this round: G6 positive control rejects corrupted manifests/vocabularies; check-bench-thresholds pins g6_gates to text; corpus-class checker enforces id-prefix disjointness item-by-item.
 - not audited this round: training-set label poisoning beyond the trigger-mask sweep, judge-prompt injection, rung-2 overfit beyond the 12-config cap.
 
 ## Usable definition (D-001, pre-registered semantics)

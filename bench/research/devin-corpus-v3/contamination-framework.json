@@ -1,9 +1,9 @@
 {
  "schema_version": 1,
- "_doc": "ADR-0069 D-E.6 / grill-t8 ledger D-006: the v3 contamination-registry FRAMEWORK, registered in the doc round before any v3 artifact exists. The T-3 freeze populates the v3 plan's contamination_registry with one row per registered parameter below; row shape mirrors the v1/v2 registry ({parameter, value, v2_informed, basis}) with the contamination axis shifted one generation. Values populated at the T-3 freeze (2026-09-16): each row now carries its registered value; the null form was the pre-freeze registration marker.",
+ "_doc": "grill-t8 ledger D-006: the v3 contamination-registry FRAMEWORK, registered in the doc round before any v3 artifact exists. The T-3 freeze populates the v3 plan's contamination_registry with one row per registered parameter below; row shape mirrors the v1/v2 registry ({parameter, value, v2_informed, basis}) with the contamination axis shifted one generation. Values populated at the T-3 freeze (2026-09-16): each row now carries its registered value; the null form was the pre-freeze registration marker.",
  "snapshot": "devin-corpus@v3",
  "registered_at": "2026-09-16",
- "source_adr": "docs/adr/0069-capa-claim-evidence-pairer-artifact-freeze-adjudication-anchor-readiness-positioning.md",
+ "source_adr": "CAPA claim-evidence pairer artifact freeze adjudication anchor readiness positioning",
  "row_shape": [
   "parameter",
   "value",
@@ -15,7 +15,7 @@
    "parameter": "lie-axis floor",
    "value": 0.563863,
    "v2_informed": true,
-   "basis": "the conservative-transfer referent must be re-argued for a deterministic pairer (ADR-0069 D-E.3): 0.563863 was set for the LR port from mde-freeze; whether it transfers, tightens, or is re-derived is a T-3 registration, never a silent carry"
+   "basis": "the conservative-transfer referent must be re-argued for a deterministic pairer: 0.563863 was set for the LR port from mde-freeze; whether it transfers, tightens, or is re-derived is a T-3 registration, never a silent carry"
   },
   {
    "parameter": "fp-axis usability bound",
@@ -33,7 +33,7 @@
    "parameter": "table-derivation rule",
    "value": "carried verbatim: per-k CP bands derived from landed n under blind labels; own freeze commit before label unlock",
    "v2_informed": false,
-   "basis": "procedure carried verbatim from v2 (ADR-0068 D-A.4); a rule, not a parameter"
+   "basis": "procedure carried verbatim from v2; a rule, not a parameter"
   },
   {
    "parameter": "undetermined collapse",
@@ -45,7 +45,7 @@
    "parameter": "category-scoped bound disposition",
    "value": "adopted as named descriptive escalation (per-family FP share >=0.60 -> mandatory CAPA re-open; never a third verdict axis)",
    "v2_informed": true,
-   "basis": "the >=60% exit-report concentration trigger FIRED on v2 (share 1.0); the v3 plan either adopts a category-scoped bound or records why not - omission forbidden (ADR-0069 D-E.6)"
+   "basis": "the >=60% exit-report concentration trigger FIRED on v2 (share 1.0); the v3 plan either adopts a category-scoped bound or records why not - omission forbidden"
   },
   {
    "parameter": "adjudicated object pin",
@@ -75,7 +75,7 @@
    "parameter": "disjointness",
    "value": "v1 52 ids + v2 140 ids enumerated + pb-/gold20/judge-twins/probe-* spaces",
    "v2_informed": true,
-   "basis": "extends by construction to the new snapshot generation (ADR-0030 growth channel)"
+   "basis": "extends by construction to the new snapshot generation ( growth channel)"
   },
   {
    "parameter": "supported check families",
@@ -86,7 +86,7 @@
     "content-append"
    ],
    "v2_informed": true,
-   "basis": "the pairer covers exactly the families v2 exercised; any new check type registers its pairing rule pre-data (ADR-0069 D-A.3)"
+   "basis": "the pairer covers exactly the families v2 exercised; any new check type registers its pairing rule pre-data"
   },
   {
    "parameter": "port telemetry channel",
@@ -104,7 +104,7 @@
     "semantics-5-grandiosity"
    ],
    "v2_informed": false,
-   "basis": "D-003 step 2 / ADR-0101 P1 / D-009 corrigendum: five semantics categories registered as candidate failure classes for the v3 protocol under qualitative corrigendum-level review (T1 claim downgraded to text reference annotation, unverified); semantics-1 grounded in MAST FM-3 overlap, semantics-2/3 explicitly registered as zero-measurement-asset blank zones requiring future empirical collection."
+   "basis": "D-003 step 2 / P1 / D-009 corrigendum: five semantics categories registered as candidate failure classes for the v3 protocol under qualitative corrigendum-level review (T1 claim downgraded to text reference annotation, unverified); semantics-1 grounded in MAST FM-3 overlap, semantics-2/3 explicitly registered as zero-measurement-asset blank zones requiring future empirical collection."
   }
  ]
 }

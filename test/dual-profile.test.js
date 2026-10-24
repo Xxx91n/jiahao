@@ -1,4 +1,4 @@
-// test/dual-profile.test.js — ADR-0010 dual-profile tests
+// test/dual-profile.test.js — dual-profile tests
 
 const fs = require('fs');
 const path = require('path');

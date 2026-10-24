@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0064 D-A: d_MDE computed from the corpus and frozen before the execution run. SE_5seed = sample-SE of the reference config recall_fp0 over the 5 registered seeds.",
+  "_doc": "d_MDE computed from the corpus and frozen before the execution run. SE_5seed = sample-SE of the reference config recall_fp0 over the 5 registered seeds.",
   "formula": "d_MDE = max(0.03, 1.64 * SE_5seed)",
   "seeds": [
     0,

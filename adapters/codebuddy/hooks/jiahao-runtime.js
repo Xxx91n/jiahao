@@ -7,7 +7,7 @@ function detectHost() {
   if (process.env.QODER_SESSION_ID) return 'qoder';
   // CodeBuddy sets CODEBUDDY_PLUGIN_ROOT (preferred) and recognizes
   // CLAUDE_PLUGIN_ROOT verbatim; a Claude Code session never sets the
-  // codebuddy var, so precedence is safe (grill-t30, ADR-0087).
+  // codebuddy var, so precedence is safe (grill-t30).
   if (process.env.CODEBUDDY_PLUGIN_ROOT) return 'codebuddy';
   return 'claude'; // native Claude Code (default)
 }
@@ -31,7 +31,7 @@ function writeHookOutput(text, event) {
   } else if (host === 'qoder') {
     // Qoder HAS SessionStart (matcher startup/resume/clear, non-blocking);
     // hookSpecificOutput.hookEventName contract is homologous to Claude Code
-    // (docs.qoder.com/cli/hooks-reference, verified 2026-08; ADR-0028 D5)
+    // (docs.qoder.com/cli/hooks-reference, verified 2026-08)
     console.log(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: event,

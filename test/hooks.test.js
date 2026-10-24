@@ -226,7 +226,7 @@ test('D4: verdict-gate with evidence is idempotent (file NOT consumed, second fi
     execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
       encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 5000, shell: 'bash',
     });
-    // ADR-0012 D4: file must still exist after the hook accepted the stop.
+    // file must still exist after the hook accepted the stop.
     expect(fs.existsSync(TMP + '/.jiahao-evidence')).toBe(true);
     execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
       encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 5000, shell: 'bash',
@@ -334,10 +334,10 @@ test('D2: verifier profile with clean evidence (no detector field) passes silent
   }
 });
 
-// ADR-0013 D1: recordHash covers prev_hash — the tail-truncate-relink hole
+// recordHash covers prev_hash — the tail-truncate-relink hole
 // (delete middle record, repoint next.prev_hash, event_hash still verifies
 // under the old formula) is closed when the hash body includes prev_hash.
-test('ADR-0013 D1: recordHash hashes the prev_hash field', () => {
+test('recordHash hashes the prev_hash field', () => {
   const { recordHash } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
   const a = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null);
   const b1 = createEvidence('det-1', 'deterministic', 'passed', 'ok', 0.9, a.event_hash);
@@ -348,8 +348,8 @@ test('ADR-0013 D1: recordHash hashes the prev_hash field', () => {
   expect(b1.event_hash).not.toBe(b2.event_hash); // prev_hash changes the hash
 });
 
-// ADR-0013 D3: composite idempotency key = SHA256(session|turn|tool_seq).
-test('ADR-0013 D3: idempotency key is deterministic composite', () => {
+// composite idempotency key = SHA256(session|turn|tool_seq).
+test('idempotency key is deterministic composite', () => {
   const { idempotencyKey } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
   const k1 = idempotencyKey('s1', 't1', 'det-0');
   const k2 = idempotencyKey('s1', 't1', 'det-0');
@@ -359,8 +359,8 @@ test('ADR-0013 D3: idempotency key is deterministic composite', () => {
   expect(k1).toMatch(/^[0-9a-f]{64}$/);
 });
 
-// ADR-0013 D4: verdict-gate BLOCKS when the on-disk chain is tampered.
-test('ADR-0013 D4: verdict-gate blocks on broken chain (verifier)', () => {
+// verdict-gate BLOCKS when the on-disk chain is tampered.
+test('verdict-gate blocks on broken chain (verifier)', () => {
   const origDir = process.cwd();
   process.chdir(path.join(__dirname, '..'));
   fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
@@ -387,7 +387,7 @@ test('ADR-0013 D4: verdict-gate blocks on broken chain (verifier)', () => {
 });
 
 
-test('ADR-0017: verifier gate surfaces pending escalation count (advisory, exit 0)', () => {
+test('verifier gate surfaces pending escalation count (advisory, exit 0)', () => {
   fs.writeFileSync(TMP + '/.jiahao-profile', 'verifier\n', 'utf8');
   fs.writeFileSync(TMP + '/.jiahao-active', 'on\n', 'utf8');
   const det = createEvidence('det-0', 'deterministic', 'passed', 'tests ok', 0.5, null);

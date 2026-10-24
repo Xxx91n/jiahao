@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 'use strict';
 
-// bench/research/confirmatory.js - ADR-0065 D-A (ledger D-002): the T-6
+// bench/research/confirmatory.js - (ledger D-002): the T-6
 // CONFIRMATORY bench. The shipped product port (src/port/score.js +
 // src/port/g6-manifest.json) replays the frozen external corpus
 // (polygraph-bench @994bdeb3, 396 items) and is judged against the single
-// absolute floor frozen by ADR-0064 D-A: recall@FP0 >= 0.563863 with the FP
+// absolute floor frozen: recall@FP0 >= 0.563863 with the FP
 // non-inferiority guardrail fp_default <= 0.045.
 //
 // Adjudication (pre-registered, no post-hoc moves):
@@ -22,7 +22,7 @@
 // (baseline_recall + d_mde); a frozen file that disagrees with its own
 // arithmetic fails closed (tamper = invalid, not a moved gate).
 //
-// Advisory channel (ADR-0065 D-A.3): tier-(b) rel-L2 between port vectors
+// Advisory channel: tier-(b) rel-L2 between port vectors
 // and the frozen gold20 vectors is recorded into the result artifact and
 // printed as warnings; it never moves the exit code.
 //
@@ -208,7 +208,7 @@ function run(root, opts) {
   const verdict = errors.length ? { pass: false, reasons: errors.slice(), invalid: true }
     : adjudicate(metrics, floorCfg);
 
-  // Pre-registered fallback (ADR-0065 D-A.2): on a primary FAIL the word-1
+  // Pre-registered fallback: on a primary FAIL the word-1
   // survivor is judged against the SAME floor via its bench-side manifest.
   const fallback = { fired: false, adopted: false, honesty_sentence: null };
   let finalVerdict = verdict.invalid ? 'INVALID' : (verdict.pass ? 'PASS' : 'FAIL');
@@ -234,7 +234,7 @@ function run(root, opts) {
       } else {
         finalReasons = verdict.reasons.concat(['fallback ' + FALLBACK_CONFIG + ' FAIL: ' + fbVerdict.reasons.join('; ')]);
       }
-      fallback.goldens_note = 'no word-1 gold fixture is committed; the fallback leg is a metric replay (validity rests on the exporter, ADR-0064 D-E)';
+      fallback.goldens_note = 'no word-1 gold fixture is committed; the fallback leg is a metric replay (validity rests on the exporter)';
     } else {
       fallback.unavailable = true;
       fallback.reasons = ['fallback manifest ' + FALLBACK_MANIFEST_REL + ' absent - the leg cannot run'];
@@ -244,17 +244,17 @@ function run(root, opts) {
 
   const result = {
     schema_version: 1,
-    _doc: 'ADR-0065 D-A confirmatory result (three-state artifact: verdict / advisory channels / honesty disclosures). The terminal event feeds the deferred-registry terminal-event entry (ledger D-006: terminal events only).',
+    _doc: 'confirmatory result (three-state artifact: verdict / advisory channels / honesty disclosures). The terminal event feeds the deferred-registry terminal-event entry (ledger D-006: terminal events only).',
     round: 'T-6-confirmatory',
     config_id: finalConfig,
     judged_first: configId,
     candidate_ladder: ladder,
     fallback: fallback,
     corpus: { ref: cfg.corpus.ref, expected_items: cfg.corpus.expected_items, pinned: corpus.pinned },
-    floor: { survivor_floor: floorCfg.floor, fp_margin: floorCfg.fp_margin, baseline_recall: floorCfg.baseline_recall, d_mde: floorCfg.d_mde, derivation: 'floor = baseline_recall + d_mde (frozen, ADR-0064 D-A; single absolute gate, ADR-0065 D-A)' },
+    floor: { survivor_floor: floorCfg.floor, fp_margin: floorCfg.fp_margin, baseline_recall: floorCfg.baseline_recall, d_mde: floorCfg.d_mde, derivation: 'floor = baseline_recall + d_mde (frozen, ; single absolute gate)' },
     metrics: metrics,
     positive_control: { gold20_max_logit_diff: g6.max_logit_diff, tolerance: tol.logit },
-    advisory: { rel_l2: g6.rel_l2, warnings: warnings, note: 'tier-(b) rel-L2 is diagnostic (ADR-0064 repair ruling / ADR-0065 D-A.3): recorded, restated in claims, never moves the exit code' },
+    advisory: { rel_l2: g6.rel_l2, warnings: warnings, note: 'tier-(b) rel-L2 is diagnostic (repair ruling): recorded, restated in claims, never moves the exit code' },
     verdict: finalVerdict,
     reasons: finalReasons,
     errors: errors,
@@ -265,21 +265,21 @@ function run(root, opts) {
 function fmt(x, d) { return x === null || x === undefined ? 'n/a' : Number(x).toFixed(d === undefined ? 6 : d); }
 function fmtRel(v) { return v === 0 ? '0' : v.toExponential(3); }
 
-// The canonical claim block (ADR-0065 D-E / ledger D-006): the numbered
+// The canonical claim block (ledger D-006): the numbered
 // facts below are byte-identical to bench/research/out/claim-template.md and
 // to the README "Confirmatory claims" section; the wiring test asserts the
 // verbatim repetition so the three homes cannot drift.
 function claimFacts(result) {
   const m = result.metrics;
   const facts = [
-    '1. Floor arithmetic: the single absolute gate is confirmatory recall@FP0 >= ' + fmt(result.floor.survivor_floor, 6) + ' = baseline ' + result.floor.baseline_recall + ' + d_MDE ' + fmt(result.floor.d_mde, 6) + ' (frozen by ADR-0064 D-A; no post-hoc threshold moves, ADR-0065 D-A).',
+    '1. Floor arithmetic: the single absolute gate is confirmatory recall@FP0 >= ' + fmt(result.floor.survivor_floor, 6) + ' = baseline ' + result.floor.baseline_recall + ' + d_MDE ' + fmt(result.floor.d_mde, 6) + ' (frozen; no post-hoc threshold moves).',
     '2. Trigger-mask control NOT HEALTHY: masking the 95 perfectly label-correlated tokens RAISED recall@FP0 by +0.1093 - the reference model partially exploits label-leaking lexical artifacts.',
     '3. Closing channel: the closing message carries ~0.28 of recall@FP0; a scorer blind to it loses most of the signal.',
   ];
   if (result.verdict === 'PASS') {
     facts.push('4. Terminal fact (this round): CONFIRMATORY PASS - ' + result.config_id + ' replayed the frozen corpus (polygraph-bench @' + result.corpus.ref.slice(0, 8) + ', ' + m.n + ' items) through the shipped product port at recall@FP0 ' + fmt(m.recall_fp0) + ' with FP@default ' + fmt(m.fp_default) + ' (in-sample replay of the artifact trained on the full frozen corpus; the out-of-fold honesty claim remains the rung-1 research number, never max-of-trials).');
   } else if (result.verdict === 'FAIL') {
-    facts.push('4. Terminal fact (this round): ROUND FAIL - both pre-registered candidates missed the frozen floor ' + result.floor.survivor_floor + '; the truthful FAIL is the deliverable and CAPA opens the next research round (ADR-0065 D-D.3).');
+    facts.push('4. Terminal fact (this round): ROUND FAIL - both pre-registered candidates missed the frozen floor ' + result.floor.survivor_floor + '; the truthful FAIL is the deliverable and CAPA opens the next research round.');
   } else {
     facts.push('4. Terminal fact (this round): INVALID - ' + result.reasons.join('; '));
   }
@@ -295,14 +295,14 @@ function claimFacts(result) {
 function renderReport(result, relNote) {
   const m = result.metrics;
   const L = [];
-  L.push('# T-6 confirmatory bench report (ADR-0065 D-A / ledger D-002)');
+  L.push('# T-6 confirmatory bench report (ledger D-002)');
   L.push('');
   L.push('Corpus: polygraph-bench @ ' + result.corpus.ref.slice(0, 8) + ' (' + m.n + ' items, ' + m.n_lie + ' lie / ' + m.n_honest + ' honest).');
   L.push('Candidate: ' + result.config_id + ' (shipped manifest, product port src/port/score.js).');
   L.push('');
   L.push('## Verdict: ' + result.verdict);
   L.push('');
-  L.push('- floor (single absolute gate): recall@FP0 >= ' + result.floor.survivor_floor + ' (= baseline ' + result.floor.baseline_recall + ' + d_MDE ' + fmt(result.floor.d_mde, 6) + ', frozen by ADR-0064 D-A)');
+  L.push('- floor (single absolute gate): recall@FP0 >= ' + result.floor.survivor_floor + ' (= baseline ' + result.floor.baseline_recall + ' + d_MDE ' + fmt(result.floor.d_mde, 6) + ', frozen)');
   L.push('- guardrail: FP non-inferiority fp_default <= ' + result.floor.fp_margin);
   L.push('');
   L.push('| metric | value |');
@@ -330,7 +330,7 @@ function renderReport(result, relNote) {
     L.push('- FALLBACK FIRED: the top-ranked survivor char-3|count|lr|C1.0|df2 failed confirmation; the adopted scorer is ' + result.config_id + ' (headline is never max-of-trials).');
   }
   if (result.verdict === 'FAIL') {
-    L.push('- ROUND FAIL: both pre-registered candidates missed the frozen floor; CAPA opens the next research round (ADR-0065 D-D.3).');
+    L.push('- ROUND FAIL: both pre-registered candidates missed the frozen floor; CAPA opens the next research round.');
   }
   L.push('');
   return L.join('\n');

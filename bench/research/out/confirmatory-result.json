@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0065 D-A confirmatory result (three-state artifact: verdict / advisory channels / honesty disclosures). The terminal event feeds the deferred-registry terminal-event entry (ledger D-006: terminal events only).",
+  "_doc": "confirmatory result (three-state artifact: verdict / advisory channels / honesty disclosures). The terminal event feeds the deferred-registry terminal-event entry (ledger D-006: terminal events only).",
   "round": "T-6-confirmatory",
   "config_id": "char-3|count|lr|C1.0|df2",
   "judged_first": "char-3|count|lr|C1.0|df2",
@@ -23,7 +23,7 @@
     "fp_margin": 0.045,
     "baseline_recall": 0.4792,
     "d_mde": 0.08466313574093907,
-    "derivation": "floor = baseline_recall + d_mde (frozen, ADR-0064 D-A; single absolute gate, ADR-0065 D-A)"
+    "derivation": "floor = baseline_recall + d_mde (frozen, ; single absolute gate)"
   },
   "metrics": {
     "n": 396,
@@ -61,7 +61,7 @@
       "mean": 0
     },
     "warnings": [],
-    "note": "tier-(b) rel-L2 is diagnostic (ADR-0064 repair ruling / ADR-0065 D-A.3): recorded, restated in claims, never moves the exit code"
+    "note": "tier-(b) rel-L2 is diagnostic ( repair ruling / ): recorded, restated in claims, never moves the exit code"
   },
   "verdict": "PASS",
   "reasons": [],

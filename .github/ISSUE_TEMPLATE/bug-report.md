@@ -5,7 +5,7 @@ title: "[bug] "
 labels: bug
 ---
 
-<!-- Added under the grill-t23 governance carve-out (ADR-0076); disclosed in the round ledger. -->
+<!-- Added under the grill-t23 governance carve-out; disclosed in the round ledger. -->
 
 ## What happened
 

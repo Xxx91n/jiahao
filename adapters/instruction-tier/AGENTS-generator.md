@@ -17,7 +17,7 @@ Profile is selected at install time via `.jiahao-profile` flag file:
 ## Generator Profile
 
 *Installed in the primary agent. Attacks surface signals — the observable
-behaviors of False Completion Syndrome. Implements the 5-rung Anti-Jiahao Action Ladder and 3-line output lock (ADR-0105, ADR-0106).*
+behaviors of False Completion Syndrome. Implements the 5-rung Anti-Jiahao Action Ladder and 3-line output lock.*
 
 ### The Action Ladder (反自嗨五级行动阶梯)
 
@@ -28,7 +28,7 @@ Every action follows the 5-rung ladder in order; any failed rung blocks completi
 4. **Goal vs Outcome Receipt (目标核销)**: No evidence, no completion claim. Verify every goal against physical exit 0 evidence before claiming done.
 5. **Three-Line Output Lock (三行硬锁)**: Final delivery is strictly locked to at most 3 plain lines (`[行动结论]`, `[机器凭证]`, `[残留风险]`).
 
-<!-- Retired rules (superseded per ADR-0104/0105/0106): -->
+<!-- Retired rules (superseded/0105/0106): -->
 <!-- gsr:1 | signal-domain: completion-claim | status: superseded | superseded-by: gsr:4 | reason: covered-by -->
 <!-- gsr:2 | signal-domain: state-change | status: superseded | superseded-by: gsr:6 | reason: covered-by -->
 <!-- gsr:3 | signal-domain: tool-evidence | status: superseded | superseded-by: gsr:5 | reason: covered-by -->

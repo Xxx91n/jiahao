@@ -1,12 +1,12 @@
 'use strict';
-// test/mast-mapping.test.js — ADR-0103 / Ledger D-009 / ADR-0059
+// test/mast-mapping.test.js — Ledger D-009
 // Tests for in-repo synthetic fixture coherence and honest status reporting.
 
 const fs = require('fs');
 const path = require('path');
 const { loadSubset, evaluateMastMapping, SUBSET_PATH, OUT_PATH } = require('../bench/research/mast/mapping-validation');
 
-describe('MAST in-repo fixture coherence validation (ADR-0059 / D-009)', () => {
+describe('MAST in-repo fixture coherence validation (D-009)', () => {
   test('subset fixture exists with _provenance and 19 items', () => {
     expect(fs.existsSync(SUBSET_PATH)).toBe(true);
     const data = JSON.parse(fs.readFileSync(SUBSET_PATH, 'utf8'));

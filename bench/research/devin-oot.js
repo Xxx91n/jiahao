@@ -1,7 +1,7 @@
 'use strict';
-// bench/research/devin-oot.js - ADR-0067 / grill-t7 ledger D-008..D-011:
+// bench/research/devin-oot.js - / grill-t7 ledger D-008..D-011:
 // the devin-corpus@v1 OOT falsification adjudication runner. Bench-side
-// only (never the npm surface, ADR-0038 D2). Zero-dependency, thin CLI +
+// only (never the npm surface). Zero-dependency, thin CLI +
 // pure core, same shape as confirmatory.js / check-g6-publish.js.
 //
 // Modes:
@@ -30,9 +30,9 @@ const { PREFIXES } = require('../../src/shared/prefix-vocab');
 const ROOT = path.join(__dirname, '..', '..');
 const OUT_DIR = path.join(ROOT, 'bench', 'research', 'out');
 
-// ---- snapshot registry (ADR-0068 D-D.2): closed enum ----------------------
+// ---- snapshot registry: closed enum ----------------------
 // --snapshot-dir selects the corpus home + report names. v1 is the frozen
-// default; an unknown value is a [usage] refusal (closed enum, ADR-0041).
+// default; an unknown value is a [usage] refusal (closed enum).
 const SNAPSHOTS = {
   'devin-corpus': {
     dir: 'bench/research/devin-corpus',
@@ -181,7 +181,7 @@ function loadPlan(root, snap) {
   return plan;
 }
 
-// ---- v2 plan loading (ADR-0068 D-A): the derived integer tables ----------
+// ---- v2 plan loading: the derived integer tables ----------
 // The v2 eval-plan registers the DERIVATION rule only; the tables themselves
 // land in decision-tables.json, derived from landed counts under blind labels
 // and frozen by their own commit BEFORE any label read. Loading the v2 plan
@@ -214,7 +214,7 @@ function loadPlanV2(root) {
   }
   const tablesPath = path.join(dir, 'decision-tables.json');
   if (!fs.existsSync(tablesPath)) {
-    errors.push('decision-tables.json missing - the derived integer tables must freeze in their own commit BEFORE any label read (ADR-0068 D-A.4)');
+    errors.push('decision-tables.json missing - the derived integer tables must freeze in their own commit BEFORE any label read');
   }
   let tables = null;
   if (!errors.length) {
@@ -418,7 +418,7 @@ function adjudicate(rows, items, plan) {
   };
 }
 
-// ---- v2 adjudication (ADR-0068 D-A): labels + report-layer metadata join
+// ---- v2 adjudication: labels + report-layer metadata join
 // ONLY here, after serialization. The main set adjudicates both axes; the
 // stress side-set is a named diagnostic that NEVER enters either table. -----
 function adjudicateV2(rows, items, plan) {
@@ -623,7 +623,7 @@ function renderMd(rep) {
   L.push('**' + d.verdict + '** - k = ' + m.k + '/' + rep.corpus.n_lie + ' lies at logit > 0; CP two-sided 95% CI ['
     + d.ci95.lower.toFixed(6) + ', ' + d.ci95.upper.toFixed(6) + '] vs floor ' + d.floor
     + ' (conservative transfer: not-worse-than-baseline+MDE, never engineering-ready).'
-    + ' Band ' + d.band + ' of the frozen integer decision table (ADR-0067 D-A).');
+    + ' Band ' + d.band + ' of the frozen integer decision table.');
   L.push('');
   if (rep.claim.wording) { L.push(rep.claim.wording); L.push(''); }
   L.push('## Claim block (verbatim, bound)');
@@ -679,7 +679,7 @@ function renderMd(rep) {
   return L.join('\n');
 }
 
-// ---- v2 claim + report (ADR-0068 D-C): the v2 fact line carries the FP arm -
+// ---- v2 claim + report: the v2 fact line carries the FP arm -
 function claimBlockV2(plan, adj, date) {
   const c = plan.claim;
   const d = adj.decision;
@@ -977,7 +977,7 @@ function replayCheckV2(root) {
   return { errors: errors, rep: rep };
 }
 
-// ---- aborted-run record (ADR-0067 D-B): an aborted run records
+// ---- aborted-run record: an aborted run records
 // run_status=aborted and never a verdict. --------------------------------------
 function writeAbortedArtifact(defects, corpus, date, root, snap) {
   const sn = snap || 'devin-corpus';
@@ -1013,7 +1013,7 @@ function parseCli(argv) {
   return { snapVal: snapVal, cmd: a[0] };
 }
 
-// ================= devin-corpus@v3: CAPA pairer path (ADR-0069) ==============
+// ================= devin-corpus@v3: CAPA pairer path ==============
 // The adjudicated object is the CAPA claim-evidence pairer, pinned by content
 // hash. The frozen port runs beside it as zero-verdict telemetry only -
 // disclosure cells, never an adjudication input.
@@ -1111,7 +1111,7 @@ function loadPlanV3(root) {
 // Serialization-only pass for the pairer: defect scan, then pairItem over the
 // whitelisted {task, transcript.events, transcript.closing}. label and
 // scoring_function are never touched on this path; the port rides each row as
-// zero-verdict telemetry (ADR-0069 D-B.1).
+// zero-verdict telemetry.
 function serializeAndPair(items, opts) {
   const o = opts || {};
   const defects = [];
@@ -1504,11 +1504,11 @@ function main() {
   }
   if (cmd !== '--validate' && cmd !== 'run') { console.error(PREFIXES.usage + ' ' + usage()); process.exit(1); }
   // Single-shot burn check BEFORE any corpus read: the refusal is a
-  // data-state refusal -> exit 1 + [config]: (ADR-0041 D3 closed contract;
+  // data-state refusal -> exit 1 + [config]: ( closed contract;
   // exit 2 is UNVERIFIABLE-only and the sysexits band is rejected by R1).
   const repJson = reportJsonPath(ROOT, snap);
   if (cmd === 'run' && fs.existsSync(repJson) && readJson(repJson).run_status === 'completed') {
-    console.error(PREFIXES.config + ' REFUSED: a completed ' + spec.reportJson + ' already exists - single-shot burn is mechanical (ADR-0067 D-A.5 / ADR-0068). Use --replay.');
+    console.error(PREFIXES.config + ' REFUSED: a completed ' + spec.reportJson + ' already exists - single-shot burn is mechanical. Use --replay.');
     process.exit(1);
   }
   const plan = loadPlan(ROOT, snap);
@@ -1520,7 +1520,7 @@ function main() {
   const ser = snap === 'devin-corpus-v3' ? serializeAndPair(corpus.items, { snap: snap }) : serializeAndScore(corpus.items, { snap: snap });
   if (ser.defects.length) {
     for (const d of ser.defects) console.error(PREFIXES.config + ' DEFECT: ' + d);
-    console.error(PREFIXES.config + ' FAIL-CLOSED: ABORTED - ' + ser.defects.length + ' serialization defect(s) - no partial adjudication (ADR-0067 D-B / ADR-0068)');
+    console.error(PREFIXES.config + ' FAIL-CLOSED: ABORTED - ' + ser.defects.length + ' serialization defect(s) - no partial adjudication');
     if (cmd === 'run') writeAbortedArtifact(ser.defects, corpus, new Date().toISOString().slice(0, 10), ROOT, snap);
     process.exit(1);
   }

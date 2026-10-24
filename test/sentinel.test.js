@@ -1,4 +1,4 @@
-// test/sentinel.test.js — ADR-0023 D1-D6
+// test/sentinel.test.js
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -13,7 +13,7 @@ beforeEach(() => {
 });
 afterAll(() => { fs.rmSync(DIR, { recursive: true, force: true }); });
 
-// ADR-0026: evidence is a segmented log directory — read via the factory.
+// evidence is a segmented log directory — read via the factory.
 function readEvidence() {
   try { return require('../src/evidence-log').createEvidenceLog(DIR).readAll(); }
   catch (e) { return null; }
@@ -82,7 +82,7 @@ test('D4: unknown degradation kind is preserved in detail.unrecognized_kind', ()
   expect(rec.detector.degradation.detail.unrecognized_kind).toBe('power-loss');
   expect(rec.detector.coverage).toBe('partial');
   // Schema must accept the D4 fallback shape (audit fix: D4 vs D5 contradiction,
-  // surfaced by the ADR-0023 audit's atomcode industry review).
+  // surfaced by the audit's atomcode industry review).
   const schema = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'schemas', 'degradation.schema.json'), 'utf8'));
   const unknown = schema.oneOf.find(v => v.properties.kind.const === null);
   expect(unknown).toBeDefined();

@@ -1,17 +1,17 @@
 'use strict';
 
-// test/helpers/corpus-gate.js -- ADR-0056 D-A test-capability probe.
+// test/helpers/corpus-gate.js -- test-capability probe.
 // resolveCorpus() answers which corpus tier this test process runs against:
-//   full   - private bench corpus present (ADR-0038 D2 maintainer/CI asset)
+// full - private bench corpus present ( maintainer/CI asset)
 //   public - committed fixture corpus present (test/fixtures/corpus)
-//   none   - neither; suites degrade through the ADR-0057 reason-carrying skip
+// none - neither; suites degrade through the reason-carrying skip
 //
 // Tier resolution reuses the bench-corpus probe semantics of
 // src/shared/capability.js and extends them with public-fixture presence.
 // A resolution is computed once per suite (cached), before any corpus read.
 //
 // JIAHAO_TEST_TIER (full|public|none) is the test-only override used by the
-// recurrence script (ADR-0056 D-D) and the tier-none wiring lock (ADR-0057
+// recurrence script and the tier-none wiring lock (
 // D-B). It never widens a tier: forcing 'full' without the corpus still
 // resolves to the real answer.
 
@@ -52,7 +52,7 @@ function corpusFile(name) {
   const r = resolveCorpus();
   if (r.tier === 'public') return path.join(FIXTURE_DIR, name);
   if (r.tier === 'full') return require('../../src/shared/paths').requireCorpus(name);
-  throw new Error('corpus tier none: no corpus file available (ADR-0056 D-A)');
+  throw new Error('corpus tier none: no corpus file available');
 }
 
 module.exports = { resolveCorpus, corpusFile, FIXTURE_DIR, TIERS };
