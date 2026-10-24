@@ -26,7 +26,7 @@ Issues live as GitHub issues in `Xxx91n/jiahao`, managed with the `gh` CLI. See 
 
 ### Triage labels
 
-Five canonical triage roles map one-to-one to label strings, defined in the tracker doc. See `docs/agents/issue-tracker.md` (Triage labels).
+Five canonical triage roles map one-to-one to label strings. See `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
