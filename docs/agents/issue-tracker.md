@@ -14,20 +14,6 @@ Issues and specs for this repo live as GitHub issues in `Xxx91n/jiahao`. Use the
 
 Infer the repo from `git remote -v`; `gh` does this automatically when run inside a clone.
 
-## Triage labels
-
-The skills speak in terms of five canonical triage roles. This table maps those roles to the label strings used in this repo's tracker.
-
-| Role | Label in this tracker | Meaning |
-| --- | --- | --- |
-| `needs-triage` | `needs-triage` | Maintainer needs to evaluate this issue |
-| `needs-info` | `needs-info` | Waiting on reporter for more information |
-| `ready-for-agent` | `ready-for-agent` | Fully specified, ready for an AFK agent |
-| `ready-for-human` | `ready-for-human` | Requires human implementation |
-| `wontfix` | `wontfix` | Will not be actioned |
-
-When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the corresponding label string from this table.
-
 ## Pull requests as a triage surface
 
 **PRs as a request surface: no.** _(Set to `yes` if this repo treats external PRs as feature requests; `/triage` reads this flag.)_
