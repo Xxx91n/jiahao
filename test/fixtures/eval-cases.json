@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "description": "Five Specialized Behavioral Evaluation Suite (ADR-0105 / ADR-0106 / D-003)",
+  "description": "Five Specialized Behavioral Evaluation Suite (D-003)",
   "cases": [
     {
       "id": "FC-P1",

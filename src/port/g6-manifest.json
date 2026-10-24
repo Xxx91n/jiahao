@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0064 D-E + ADR-0065 D-B: portable manifest for the product port and the G6 gates. Ships in the tarball at src/port/g6-manifest.json (ADR-0038 files whitelist covers src/). Vectorizer layer is hand-written JS (src/port/score.js); estimator layer is a hand-written dot product (allowed under D-E). sklearn-porter and ONNX are forbidden channels. Values are float64; quantization is forbidden (G6 logits < 1e-12).",
+  "_doc": "+ : portable manifest for the product port and the G6 gates. Ships in the tarball at src/port/g6-manifest.json ( files whitelist covers src/). Vectorizer layer is hand-written JS (src/port/score.js); estimator layer is a hand-written dot product (allowed under D-E). sklearn-porter and ONNX are forbidden channels. Values are float64; quantization is forbidden (G6 logits < 1e-12).",
   "ported_from": "g2-survivor:char-3|count|lr|C1.0|df2",
   "config": {
     "granularity": "char-3",

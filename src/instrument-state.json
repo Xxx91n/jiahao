@@ -65,10 +65,10 @@
           "overrides_accepted": 0,
           "fail_soft": 0
         },
-        "note": "drift exposure raised when the ADR-0049 guarded-acceptance rule was first applied to pre-existing data"
+        "note": "drift exposure raised when the guarded-acceptance rule was first applied to pre-existing data"
       },
       "after": {
-        "disposition": "criteria repair via ADR-0060 (min_n + indeterminate) + judge-quality CAPA (defer-0033)",
+        "disposition": "criteria repair via (min_n + indeterminate) + judge-quality CAPA (defer-0033)",
         "evidence_kinds": [
           "reverse_traceability",
           "oot_impact_assessment"
@@ -99,7 +99,7 @@
       "attestation_type": "approve",
       "timestamp": "2026-09-12T13:02:14.161Z",
       "prev_hash": "cd386d61fea16d7b1f517dcc3d81f2bf3a49bec8712981a50d25277563d2c181",
-      "reason": "ADR-0049 D-E look-back discharged: rule-application exposure, no behavioural regression; CAPA defer-0033 tracked to 2026-12-11",
+      "reason": "look-back discharged: rule-application exposure, no behavioural regression; CAPA defer-0033 tracked to 2026-12-11",
       "record_seq": 4,
       "event_timestamp": "2026-09-12T13:02:14.161Z",
       "logging_timestamp": "2026-09-12T13:02:14.161Z",
@@ -116,8 +116,8 @@
       "attestation_type": "approve",
       "timestamp": "2026-09-13T08:48:53.462Z",
       "prev_hash": "d3bc927753db31c33d7f34f6188107d8798c42f1fd065b6c6f5158ca6c0728ed",
-      "criteria_version": "ADR-0062-230000",
-      "previous_criteria_version": "ADR-0039-D3-200000",
+      "criteria_version": "230000",
+      "previous_criteria_version": "D3-200000",
       "restatement_of": "5567bd8",
       "event_hash": "17de5b7c8b765216c40f35b429e368f181073ba8ae212f760640a51847060355"
     },
@@ -147,7 +147,7 @@
         "re_verification_path": "P-A1 re-pin: reverify ledger hash + bias probe hash, then a human signoff",
         "deadline": "2026-12-11",
         "defer": "defer-0035",
-        "seq3_disposition": "the 2026-09-12 conditional_signoff interval stands (ADR-0060 D-B indeterminate conformity; no new state)",
+        "seq3_disposition": "the 2026-09-12 conditional_signoff interval stands ( indeterminate conformity; no new state)",
         "look_back": "conditional window 2026-09-12..2026-09-13 reviewed; impact = none"
       },
       "identity_triple": {
@@ -172,7 +172,7 @@
       "attestation_type": "approve",
       "timestamp": "2026-09-13T08:58:18.518Z",
       "prev_hash": "935f767c1d023685dff9be37a12b991b6078cf6d21793299a0cab8f23048fdbe",
-      "reason": "ADR-0061 D-C seq-3 disposition: the 2026-09-12 conditional_signoff interval stands (ADR-0060 D-B indeterminate conformity; no new state machine state); model_checkpoint/model_identity sub-declarations tagged out-of-service with re-verification path P-A1 and deadline 2026-12-11 (defer-0035); look-back over the conditional window 2026-09-12..2026-09-13 finds no impact.",
+      "reason": "seq-3 disposition: the 2026-09-12 conditional_signoff interval stands ( indeterminate conformity; no new state machine state); model_checkpoint/model_identity sub-declarations tagged out-of-service with re-verification path P-A1 and deadline 2026-12-11 (defer-0035); look-back over the conditional window 2026-09-12..2026-09-13 finds no impact.",
       "record_seq": 7,
       "event_timestamp": "2026-09-13T08:58:18.518Z",
       "logging_timestamp": "2026-09-13T08:58:18.518Z",
@@ -249,8 +249,8 @@
       "attestation_type": "approve",
       "timestamp": "2026-09-15T05:45:15.437Z",
       "prev_hash": "fc6adead6605291ab5df21627fbbfd7168a3acc2866cef19dcec050918583861",
-      "criteria_version": "ADR-0066-300000",
-      "previous_criteria_version": "ADR-0062-230000",
+      "criteria_version": "300000",
+      "previous_criteria_version": "230000",
       "restatement_of": "4c106b6",
       "principal_id": "Euiop1",
       "authorization": "以后所有全部人工同意，你作为主Agent代替人类签名Xxx91n | 本会话指示: 签署 (F-2/defer-0042)",
@@ -273,11 +273,11 @@
       "before": {
         "v2_adjudication_anchor": "absent - no adjudicated/<snapshot> tag existed",
         "capa_artifact": "none - v2 FAILED verdict stood unrepaired",
-        "readme_positioning": "pre-ADR-0069 (no first-screen failed fact line)"
+        "readme_positioning": "pre- (no first-screen failed fact line)"
       },
       "after": {
         "adjudication_anchor": "adjudicated/devin-corpus-v2 -> 8807a61122a8991bbe5f99ecc412d8989496f786 (annotated, names failure class construct misalignment)",
-        "adr": "ADR-0069 accepted (grill-t8 D-001..D-007): pairer semantics package + artifact-scoped freeze sha256-pinned + b-line readiness contract + v3 registration obligations",
+        "adr": "accepted (grill-t8 D-001..D-007): pairer semantics package + artifact-scoped freeze sha256-pinned + b-line readiness contract + v3 registration obligations",
         "capa_route": "devin-corpus@v3 route registered; pairer lands on the CAPA branch; no v3 collection this round",
         "readme_positioning": "installable discipline scaffold with publicly failed measurement; v2 fact line verbatim on first screen"
       },
@@ -384,7 +384,7 @@
       },
       "after": {
         "pairer_location": "src/capa-pairer.js (T-2 same-commit move, content hash pinned unchanged)",
-        "conviction lane": "shadow wiring on Stop/SubagentStop per ADR-0070 D-A - transcript_path -> adapter -> pairItem -> source:pairer-instrument shadow record",
+        "conviction lane": "shadow wiring on Stop/SubagentStop - transcript_path -> adapter -> pairItem -> source:pairer-instrument shadow record",
         "promotion_gate": "4 frozen criteria registered (>=200 events/1 cycle, owner FP=0, undetermined<=90%, p99<=1s); flip deferred post-bake (D-007)"
       },
       "identity_triple": {
@@ -418,7 +418,7 @@
         "lane_claim": "present label read as live-measured risk"
       },
       "after": {
-        "adr": "ADR-0072 accepted (grill-t11 D-001..D-005): usable+testable verdict under measure-then-declare; b2 re-measurement + downgrade trigger pre-registered; bake protocol owner-dogfood + tier-2 second-line G2 amendment; critique dispositions P-1/P-2/P-4/P-5",
+        "adr": "accepted (grill-t11 D-001..D-005): usable+testable verdict under measure-then-declare; b2 re-measurement + downgrade trigger pre-registered; bake protocol owner-dogfood + tier-2 second-line G2 amendment; critique dispositions P-1/P-2/P-4/P-5",
         "capability_labels": "measured-present word slot added, reserved until first real lane event; present disclosed as documented-to-deliver",
         "delegation": "forward rule + bounded-renewal template pre-staged; next authorization-bearing event forces renew-or-expire"
       },
@@ -453,7 +453,7 @@
       },
       "after": {
         "remeasurement": "PASS - clean-env npx github: install + gate chain + lane chain all green on the installed artifact (record: .scratch/grill-t11/readiness/b2-remeasurement-2026-09-16.md)",
-        "declaration": "ADR-0072 D-G block landed in README (layered, evidence-source-tagged)",
+        "declaration": "block landed in README (layered, evidence-source-tagged)",
         "bake": "next action is owner-confirmed claude-code hook registration - host-config change gate"
       },
       "identity_triple": {
@@ -482,7 +482,7 @@
       "maker_id": "Euiop1",
       "authorization": "授权给你权限，把所有内容都必须做完 | scope: grill-t11 completion incl owner-host claude-code hook registration | expiry: this session end | renewal: none requested",
       "before": {
-        "hook_registration": "pending owner confirmation - declared stop point in ADR-0072 D-C",
+        "hook_registration": "pending owner confirmation - declared stop point",
         "host_state": "~/.jiahao-active exists (2026-08-22); no .jiahao-profile (defaulted verifier); no jiahao entries in ~/.claude/settings.json; no stable package location"
       },
       "after": {
@@ -522,7 +522,7 @@
         "carried_items": "F-A1 tgz tracked; O-2 host backup tracked; O-1 measured-present flip pending trigger-met; W-1 substrate divergence undocumented; W-2 naming-convention exclusion only"
       },
       "after": {
-        "adr": "ADR-0073 accepted (grill-t12 D-001..D-004): provenance-tiered corpus (4 classes, mechanical session-to-project-dir rule, conservative unclassified fallback, no deletion); G1 amended to organic-only counting - tightening-only, forward-effective, measured count resets 31->0",
+        "adr": "accepted (grill-t12 D-001..D-004): provenance-tiered corpus (4 classes, mechanical session-to-project-dir rule, conservative unclassified fallback, no deletion); G1 amended to organic-only counting - tightening-only, forward-effective, measured count resets 31->0",
         "registrations": "defer-0053 collection-side provenance field (instrument agenda); defer-0054 pre-commit scanner gitleaks-class (O-2 recurrence prevention); defer-0055 organic routing-rate watch; defer-0056 net-addition tally",
         "dispositions": "F-A1/O-2 untrack ordered with .gitignore-first; O-1 flip + W-1 substrate note + claim-home parenthetical queued for R2 same commit; dry-run shape + checkpoint cadence + diversity framework registered",
         "boundary": "R1 doc commit is the stage gate - no untrack/flip/relabel precedes it"
@@ -558,9 +558,9 @@
         "publish_event": "landed at origin/main 051744a; unrecorded in ADR/runbook; undisclosed"
       },
       "after": {
-        "adr": "ADR-0074 accepted (grill-t13 D-001..D-005): publish event record with bounded-break disclosure, rewrite-map single translation point (three classes, completeness invariant), tip-pinned claim invalidation + verified-at note form, re-verification plan pre-registered, independence-grade audit convention",
+        "adr": "accepted (grill-t13 D-001..D-005): publish event record with bounded-break disclosure, rewrite-map single translation point (three classes, completeness invariant), tip-pinned claim invalidation + verified-at note form, re-verification plan pre-registered, independence-grade audit convention",
         "registrations": "defer-0057 net-addition tally; t13 ledger anchored (governance copy + anchors.json); trend row; wiring seeds adr-0074",
-        "disclosure": "README boundary line + verified-at pending slot; pointer notes on ADR-0073 + t12 governance copy; .scratch untouched",
+        "disclosure": "README boundary line + verified-at pending slot; pointer notes on + t12 governance copy; .scratch untouched",
         "boundary": "R1 doc commit is the stage gate - no map generation/re-verification/registry disposition precedes it; no push"
       },
       "identity_triple": {

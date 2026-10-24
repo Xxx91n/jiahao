@@ -20,5 +20,5 @@ Known degradations (verified against copilot-cli issues, 2026-08):
 - #2142: sessionStart additionalContext was dropped until CLI 1.0.11.
 - Copilot exit codes default to warn/fail-open outside
   preToolUse/permissionRequest; the agentStop block follows the CLI's own
-  continuation semantics, not Claude's exit-2 stderr convention (ADR-0028
+  continuation semantics, not Claude's exit-2 stderr convention (
   R6: differences are recorded, not shimmed).

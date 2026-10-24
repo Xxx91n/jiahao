@@ -28,7 +28,7 @@
     },
     "port_telemetry": {
       "module": "src/port/score.js scoreItem() (frozen, sha256 ffc61319ffc02d4dbaba0516d2f2c53860c0c5bdc93e6de71060c6bccdeb8977 at the adjudication anchor)",
-      "role": "zero-verdict telemetry (ADR-0069 D-B.1): the port's {logits, verdict} ride each item row and the divergence cells ride the report's disclosure section; NEVER an adjudication input - no weighting, no veto, no trigger"
+      "role": "zero-verdict telemetry: the port's {logits, verdict} ride each item row and the divergence cells ride the report's disclosure section; NEVER an adjudication input - no weighting, no veto, no trigger"
     }
   },
   "corpus": {

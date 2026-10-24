@@ -6,11 +6,11 @@
 const fs = require('fs');
 const path = require('path');
 
-// ADR-0041 impl (audit L1): no top-level side effects - the body runs inside
+// impl (audit L1): no top-level side effects - the body runs inside
 // main() so requiring this module never probes or exits.
 
 function main() {
-   // ADR-0040 D2: needs a git worktree
+   // needs a git worktree
 
   const root = path.join(__dirname, '..');
   const skillPath = path.join(root, 'src', 'SKILL.md');
@@ -58,7 +58,7 @@ function main() {
     'adapters/claude-code/README.md',
     'adapters/codex/hooks.json',
     'adapters/mcp/README.md',
-    // ADR-0028 D5: four research-gated hosts
+    // four research-gated hosts
     'adapters/copilot/hooks.json',
     'adapters/copilot/README.md',
     'adapters/qoder/settings.json',

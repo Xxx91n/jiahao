@@ -23,7 +23,7 @@ devin-corpus@v3 falsification test: passed (n=120, lie=36, FP=0/84, CI lower=0.9
 
 This is a decision-table outcome from a seeded-emergence bench corpus, not a precise performance estimate; devin-corpus@v3 is never cited by any conformity claim.
 
-Conviction lane claim (ADR-0070 D-E, descriptive existence - the three registered sentences; the lane's state value is shadow):
+Conviction lane claim (descriptive existence - the three registered sentences; the lane's state value is shadow):
 
 The CAPA claim-evidence pairer runs in **shadow mode** on the Stop/SubagentStop conviction lane for hosts that deliver a transcript file (per-host reachability is registered in the host-contract registry; currently `measured-present` (live-observed: independent-audit reproduction + automated-harness events; organic pending) only for claude-code): flagged contradictions are appended to the evidence chain as `source: pairer-instrument` shadow records and never enter the severity matrix.
 
@@ -31,7 +31,7 @@ The lane flags only a mechanically proven contradiction - a claimed value parsed
 
 The devin-corpus@v3 adjudication describes that corpus's behavior; it is not a real-traffic recall claim, and the shadow->enforce promotion gate verifies flagged-item FP, undetermined coverage, and lane latency - it does not certify recall.
 
-<!-- corrigendum: ADR-0070 F-A1 - rendered from authoritative report.json; verdicts and frozen artifacts untouched -->
+<!-- corrigendum: F-A1 - rendered from authoritative report.json; verdicts and frozen artifacts untouched -->
 ## Confusion matrix (main set, n=120)
 
 | tp | fn | fp | tn |

@@ -1,4 +1,4 @@
-// test/evidence-log.test.js — EvidenceLog cases (ADR-0016 D3, moved from gate.test.js).
+// test/evidence-log.test.js — EvidenceLog cases (moved from gate.test.js).
 // Chain integrity, hashing, canonical JSON, persistence, idempotency sidecar.
 
 const fs = require('fs');
@@ -15,7 +15,7 @@ const {
 // createRecord is pure (no fs); a default-path factory instance builds records.
 const createEvidence = createEvidenceLog().createRecord;
 
-// Legacy replace-mode helpers (ADR-0012 D4) expressed via the factory:
+// Legacy replace-mode helpers expressed via the factory:
 // writeEvidence = clear + append; clearEvidence = clear.
 function writeEvidence(chain, dir) { const log = createEvidenceLog(dir); log.clear(); log.append(chain); }
 function clearEvidence(dir) { createEvidenceLog(dir).clear(); }
@@ -39,7 +39,7 @@ test('writeEvidence writes to the genesis segment', () => {
   const TMP = require('os').tmpdir().replace(/\\/g, '/');
   const chain = [createEvidence('t', 'deterministic', 'passed', 'ok', 0.9)];
   writeEvidence(chain, TMP);
-  // ADR-0026 D1/D3: .jiahao-evidence is a directory of JSONL segments;
+  // .jiahao-evidence is a directory of JSONL segments;
   // reads go through the factory, not the raw path.
   expect(fs.existsSync(TMP + '/.jiahao-evidence/00000000000000000000.jsonl')).toBe(true);
   const log = createEvidenceLog(TMP);
@@ -136,10 +136,10 @@ test('canonicalJSON sorts keys deterministically', () => {
 
 
 
-// ADR-0013 D3: appendEvidence dedups on _idem (same Stop re-fire → no-op).
-test('ADR-0013 D3: appendEvidence idempotent skip on duplicate _idem', () => {
+// appendEvidence dedups on _idem (same Stop re-fire → no-op).
+test('appendEvidence idempotent skip on duplicate _idem', () => {
   const { createEvidenceLog: mkLog } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
-  mkLog(TMP).clear(); // ADR-0026: evidence path may be a segment directory
+  mkLog(TMP).clear(); // evidence path may be a segment directory
   const rec = (i) => ({ gate_id: 'det-' + i, status: 'passed', prev_hash: null, _idem: 'k' + i });
   mkLog(TMP).append([rec(0)]);
   mkLog(TMP).append([rec(0), rec(1)]); // k0 replayed, k1 new
@@ -148,9 +148,9 @@ test('ADR-0013 D3: appendEvidence idempotent skip on duplicate _idem', () => {
   expect(chain.map(r => r.gate_id)).toEqual(['det-0', 'det-1']);
 });
 
-test('ADR-0013 D3: appendEvidence rejects records whose prev_hash does not match the chain tail', () => {
+test('appendEvidence rejects records whose prev_hash does not match the chain tail', () => {
   const { createEvidenceLog: mkLog } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
-  mkLog(TMP).clear(); // ADR-0026: evidence path may be a segment directory
+  mkLog(TMP).clear(); // evidence path may be a segment directory
   const tail = { gate_id: 'det-0', status: 'passed', prev_hash: null, event_hash: 'a'.repeat(64), _idem: 'k0' };
   mkLog(TMP).append([tail]);
   // Record claims a different prev_hash than the current tail — must be skipped.
@@ -163,7 +163,7 @@ test('ADR-0013 D3: appendEvidence rejects records whose prev_hash does not match
 
 
 
-test('ADR-0017: human_verdict record appends and chain stays valid', () => {
+test('human_verdict record appends and chain stays valid', () => {
   const dir = TMP + '/hv-' + Date.now();
   fs.mkdirSync(dir, { recursive: true });
   const log = createEvidenceLog(dir);

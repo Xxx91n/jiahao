@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0065 D-B.3: sha256-anchored expectations for the G6 publish gate. Carries no item text (corpus doors stay out of the npm surface); the replay text comes from gold20.jsonl whose whole-file digest is anchored here. Regenerate: node scripts/check-g6-publish.js --freeze.",
+  "_doc": "sha256-anchored expectations for the G6 publish gate. Carries no item text (corpus doors stay out of the npm surface); the replay text comes from gold20.jsonl whose whole-file digest is anchored here. Regenerate: node scripts/check-g6-publish.js --freeze.",
   "source_adr": "0064/0065",
   "gold20_file": "bench/research/gold20.jsonl",
   "gold20_sha256": "3a727fd38060956c72744ce2f3ef31e6d1814195d339e11873816cc6be0c271b",

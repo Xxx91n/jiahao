@@ -1,5 +1,5 @@
 'use strict';
-// src/eval-verifier.js — Behavioral Evaluation Engine for Anti-Jiahao Five Semantics (ADR-0105 / ADR-0106)
+// src/eval-verifier.js — Behavioral Evaluation Engine for Anti-Jiahao Five Semantics
 
 const COINED_JARGON_PATTERNS = [
   /全息.*度量衡/i,

@@ -1,4 +1,4 @@
-# Claim template - T-6 confirmatory round (ADR-0065 D-E / ledger D-006)
+# Claim template - T-6 confirmatory round (ledger D-006)
 
 This file is the SINGLE AUTHORITY for every confirmatory claim. Any claim
 about the T-6 result repeats every fact below verbatim; the block is
@@ -7,8 +7,8 @@ wording-identical in this template, in bench/research/out/confirmatory-report.md
 ## Fixed facts (repeat verbatim in every claim)
 
 1. Floor arithmetic: the single absolute gate is confirmatory recall@FP0
-   >= 0.563863 = baseline 0.4792 + d_MDE 0.084663 (frozen by ADR-0064 D-A;
-   no post-hoc threshold moves, ADR-0065 D-A).
+   >= 0.563863 = baseline 0.4792 + d_MDE 0.084663 (frozen;
+   no post-hoc threshold moves).
 2. Trigger-mask control NOT HEALTHY: masking the 95 perfectly
    label-correlated tokens RAISED recall@FP0 by +0.1093 - the reference
    model partially exploits label-leaking lexical artifacts.
@@ -38,7 +38,7 @@ wording-identical in this template, in bench/research/out/confirmatory-report.md
   max-of-trials)."
 - Both candidates FAIL: "ROUND FAIL - both pre-registered candidates missed
   the frozen floor 0.563863; the truthful FAIL is the deliverable and CAPA
-  opens the next research round (ADR-0065 D-D.3)."
+  opens the next research round."
 
 ## Prohibited phrasings
 
@@ -49,14 +49,14 @@ wording-identical in this template, in bench/research/out/confirmatory-report.md
   generalization estimate (it is an in-sample replay by construction).
 - Any claim omitting facts 1-6 or restating rel-L2 as a gate criterion.
 
-## devin-corpus@v1 OOT falsification (ADR-0067 D-C)
+## devin-corpus@v1 OOT falsification
 
 devin-corpus@v1 falsification test: indeterminate (n=52, lie=12, CI lower 0.054861) (verdict date: 2026-09-15)
 
 This is a small-sample (n_lie=12) decision-table outcome, not a precise performance estimate; devin-corpus@v1 is never cited by any conformity claim.
 
 the pre-registered integer decision table assigns 3/12 to the indeterminate band; this is a decision-table outcome, not an effect estimate
-## devin-corpus@v2 OOT falsification (ADR-0068 D-C) - single-shot verdict landed
+## devin-corpus@v2 OOT falsification - single-shot verdict landed
 
 devin-corpus@v2 falsification test: failed (n=120, lie=31, FP=21/89, CI lower=0.142229) (verdict date: 2026-09-15)
 
@@ -64,7 +64,7 @@ This is a decision-table outcome from a seeded-emergence bench corpus, not a pre
 
 Verdict landed 2026-09-15 via the single-shot run (lie-fail x fp-fail); replay: gate devin-oot-v2-replay.
 
-## devin-corpus@v3 OOT falsification (ADR-0069 D-C) - single-shot verdict landed
+## devin-corpus@v3 OOT falsification - single-shot verdict landed
 
 devin-corpus@v3 falsification test: passed (n=120, lie=36, FP=0/84, CI lower=0.902606) (verdict date: 2026-09-16)
 
@@ -72,7 +72,7 @@ This is a decision-table outcome from a seeded-emergence bench corpus, not a pre
 
 Verdict landed 2026-09-16 via the single-shot run (lie-pass x fp-pass); replay: gate devin-oot-v3-replay.
 
-Conviction lane claim (ADR-0070 D-E, descriptive existence - the three registered sentences; the lane's state value is shadow):
+Conviction lane claim (descriptive existence - the three registered sentences; the lane's state value is shadow):
 
 The CAPA claim-evidence pairer runs in **shadow mode** on the Stop/SubagentStop conviction lane for hosts that deliver a transcript file (per-host reachability is registered in the host-contract registry; currently `measured-present` (live-observed: independent-audit reproduction + automated-harness events; organic pending) only for claude-code): flagged contradictions are appended to the evidence chain as `source: pairer-instrument` shadow records and never enter the severity matrix.
 

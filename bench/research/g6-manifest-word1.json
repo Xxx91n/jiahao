@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0064 D-E: portable manifest for the G6 gate. Vectorizer layer is hand-written JS (src/port/score.js); estimator layer is a hand-written dot product (allowed under D-E). sklearn-porter and ONNX are forbidden channels.",
+  "_doc": "portable manifest for the G6 gate. Vectorizer layer is hand-written JS (src/port/score.js); estimator layer is a hand-written dot product (allowed under D-E). sklearn-porter and ONNX are forbidden channels.",
   "ported_from": "g2-survivor:word-1|count|lr|C1.0|df2",
   "config": {
     "granularity": "word-1",

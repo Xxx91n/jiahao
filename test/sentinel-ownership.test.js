@@ -1,4 +1,4 @@
-// test/sentinel-ownership.test.js — ADR-0024 D5 acceptance
+// test/sentinel-ownership.test.js — acceptance
 // D1 ownership arbitration, D2 append narrow-lock + inode check, D3 sweep.
 const fs = require('fs');
 const path = require('path');
@@ -11,7 +11,7 @@ const { tryLockSync } = require('../src/file-lock');
 const REPO = path.join(__dirname, '..');
 const DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-adr24-test-'));
 
-// ADR-0026: evidence is a segmented log directory — read via the factory.
+// evidence is a segmented log directory — read via the factory.
 function readEvidence() {
   try { return require('../src/evidence-log').createEvidenceLog(DIR).readAll(); }
   catch (e) { return null; }
@@ -104,7 +104,7 @@ test('D2b: sameFile() — basic stat identity check', () => {
   expect(sameFile(s0, null)).toBe(false);
 });
 
-const skipReason = 'Windows MoveFileEx does not guarantee inode change (D-012) - ADR-0024 D2b inode replacement guard is ineffective on win32';
+const skipReason = 'Windows MoveFileEx does not guarantee inode change (D-012) - inode replacement guard is ineffective on win32';
 const posixTest = process.platform === 'win32'
   ? (name, fn) => skipTest(skipReason, name, fn)
   : test;

@@ -1,4 +1,4 @@
-// fixture: append N distinctive records via commit() (ADR-0024 D2a concurrency test)
+// fixture: append N distinctive records via commit() ( concurrency test)
 const log = require(process.argv[2]).createEvidenceLog(process.argv[3]);
 const EL = require(process.argv[2]);
 const id = process.argv[4], n = parseInt(process.argv[5], 10);

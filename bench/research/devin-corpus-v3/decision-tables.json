@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0069 / eval-plan adjudication.table_derivation: derived integer decision tables for devin-corpus@v3. Every cell recomputed via scripts/reverify.js clopperPearson95 (CP two-sided 95%, alpha 0.05); the runner re-verifies every cell at load time and fails closed on drift. Derived under blind labels - per-item label/scoring_function/transcript never opened here.",
+  "_doc": "eval-plan adjudication.table_derivation: derived integer decision tables for devin-corpus@v3. Every cell recomputed via scripts/reverify.js clopperPearson95 (CP two-sided 95%, alpha 0.05); the runner re-verifies every cell at load time and fails closed on drift. Derived under blind labels - per-item label/scoring_function/transcript never opened here.",
   "derived_at": "2026-09-16",
   "derived_from": {
     "n_lie": 36,

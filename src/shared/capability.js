@@ -1,4 +1,4 @@
-// src/shared/capability.js — ADR-0040 D2: gate runtime capability probing
+// src/shared/capability.js — : gate runtime capability probing
 // (zero-dependency; src/shared is inside the tarball whitelist).
 //
 // Discipline:
@@ -12,10 +12,10 @@
 //       returned a deterministic negative. Probe exceptions, IO errors and
 //       helper bugs are NOT translated — Node crashes as exit 1 and exposes
 //       the bug honestly (no catch around probe bodies; no transient bucket).
-//   D4  two-line degradation message (amended by ADR-0041 D5): line 1 is the
+// D4 two-line degradation message (amended): line 1 is the
 //       machine ::error annotation on STDOUT (GitHub workflow-command
 //       format: comma-separated properties, %/%0D/%0A escaped); line 2 is
-//       the human remediation hint on stderr. ADR-0040 D4's stderr+space
+// the human remediation hint on stderr. stderr+space
 //       form was a spec-level protocol defect (annotation never renders).
 
 'use strict';
@@ -31,11 +31,11 @@ const CAPABILITIES = ['repo-tree', 'bench-corpus', 'docs-adr', 'ci-mode', 'trans
 
 const HINTS = {
   'repo-tree': 'a git worktree is expected (.git missing at the tree root); gates run from the repo or a full checkout, not from the npm tarball',
-  'bench-corpus': 'the bench corpus is a maintainer/CI asset and is not distributed in the npm package or a public git clone (ADR-0038 D2); set JIAHAO_CORPUS_DIR if you legitimately hold it (ADR-0038 D3)',
-  'docs-adr': 'docs/adr/ lives in the git tree and is deliberately absent from the npm tarball (ADR-0039); run from a git checkout',
+  'bench-corpus': 'the bench corpus is a maintainer/CI asset and is not distributed in the npm package or a public git clone; set JIAHAO_CORPUS_DIR if you legitimately hold it',
+  'docs-adr': 'docs/adr/ lives in the git tree and is deliberately absent from the npm tarball; run from a git checkout',
   'ci-mode': 'a CI environment is expected (GITHUB_ACTIONS or CI env var non-empty)',
   'old-side-refs': 'the gb-local/* pre-rewrite refs exist only on the maintainer object store and never publish; on a public clone the clone-verifiable subset is node scripts/build-rewrite-map.js --published-only',
-  'transcript-file': 'the host delivers a transcript file (ADR-0070 D-C(c)); for script-level consumers declare it explicitly via JIAHAO_TRANSCRIPT_FILE=<path-to-existing-file> — per-event hook delivery (transcript_path on the stop-family stdin) and per-host reachability are recorded in the host-contract registry',
+  'transcript-file': 'the host delivers a transcript file; for script-level consumers declare it explicitly via JIAHAO_TRANSCRIPT_FILE=<path-to-existing-file> — per-event hook delivery (transcript_path on the stop-family stdin) and per-host reachability are recorded in the host-contract registry',
 };
 
 function configDir(env) {
@@ -44,14 +44,14 @@ function configDir(env) {
 
 function checkEnum(name) {
   if (CAPABILITIES.indexOf(name) === -1) {
-    throw new Error('unregistered capability ' + JSON.stringify(name) + ' — registry violation, add it via an ADR that names it verbatim (ADR-0040 D1); closed enum: ' + CAPABILITIES.join(', '));
+    throw new Error('unregistered capability ' + JSON.stringify(name) + ' — registry violation, add it via an ADR that names it verbatim; closed enum: ' + CAPABILITIES.join(', '));
   }
 }
 
-// ADR-0061 D-F (amends ADR-0040 D1's 'directory exists' predicate): a corpus
+// (amends 'directory exists' predicate): a corpus
 // tier counts as present only when the directory exists AND holds at least one
 // entry - an empty directory is not a corpus. This is still an EXISTENCE
-// verdict: no file name, fingerprint or count is inspected (ADR-0040 D2).
+// verdict: no file name, fingerprint or count is inspected.
 function corpusTierPresent(dir) {
   if (!dir || !fs.existsSync(dir)) return false;
   if (!fs.statSync(dir).isDirectory()) return false;
@@ -68,9 +68,9 @@ function probe(name, opts) {
     case 'repo-tree':
       return fs.existsSync(path.join(root, '.git'));
     case 'bench-corpus':
-      // Same resolution chain as src/shared/paths.js (ADR-0036 D2):
+      // Same resolution chain as src/shared/paths.js:
       // JIAHAO_CORPUS_DIR -> install-planted dir -> repo-private dir.
-      // ADR-0061 D-F amends ADR-0040 D1: the capability is a corpus DIRECTORY
+      // amends : the capability is a corpus DIRECTORY
       // WITH CONTENT, not a bare directory. An existing-but-empty dir (a
       // stale/partial CI restore) is a deterministic negative, so dependent
       // gates degrade to exit 2 UNVERIFIABLE instead of running and failing
@@ -84,14 +84,14 @@ function probe(name, opts) {
     case 'ci-mode':
       return Boolean(env.GITHUB_ACTIONS || env.CI);
     case 'old-side-refs':
-      // ADR-0084 D-A: the gb-local/* pre-rewrite refs exist only on the
+      // the gb-local/* pre-rewrite refs exist only on the
       // maintainer object store and never publish. Existence only - which
       // commits they carry stays with the gate. No catch on purpose (D3):
       // a git-less environment is a repo-tree negative, already probed.
       return execFileSync('git', ['for-each-ref', '--format=%(refname)', 'refs/remotes/gb-local/'], { cwd: root, encoding: 'utf8' })
         .split('\n').some(function (r) { return r.trim() && r.indexOf('gitbutler') === -1; });
     case 'transcript-file':
-      // ADR-0070 D-C(c): existence-only — an operator-declared transcript
+      // existence-only — an operator-declared transcript
       // file path. The hook lane's per-event delivery (transcript_path on the
       // stop-family stdin) is the runtime form; this env predicate is the
       // script-level form so a gate may declare the capability honestly.
@@ -104,11 +104,11 @@ function probe(name, opts) {
 function loadEntry(gateName, root) {
   const reg = JSON.parse(fs.readFileSync(path.join(root || ROOT, REGISTRY_REL), 'utf8'));
   const entry = (reg.entries || []).find(function (e) { return e.name === gateName; });
-  if (!entry) throw new Error('gate ' + JSON.stringify(gateName) + ' missing from docs/gates.json (ADR-0034 D1)');
+  if (!entry) throw new Error('gate ' + JSON.stringify(gateName) + ' missing from docs/gates.json');
   return entry;
 }
 
-// ADR-0041 D5: workflow-command escaping (order matters: % first).
+// workflow-command escaping (order matters: % first).
 // Complete by construction, not by input charset: every property separator
 // (',' -> %2C, ':' -> %3A) is escaped alongside %/CR/LF, so no caller-supplied
 // value can break out of its property. The message body after '::' is literal.
@@ -128,7 +128,7 @@ function unverifiableLines(gate, cap) {
 // declared capability is absent (the existence question it was probing is
 // deterministic, e.g. zero qualifying refs). The exit-2 channel is still the
 // registered two-line form - kept here so gate scripts carry zero
-// process.exit(2) sites of their own (ADR-0041 wiring pin).
+// process.exit(2) sites of their own ( wiring pin).
 function exitUnverifiable(gate, cap) {
   const lines = unverifiableLines(gate, cap);
   process.stdout.write(lines[0] + '\n');
@@ -137,7 +137,7 @@ function exitUnverifiable(gate, cap) {
 }
 
 // Probe declared requires: a gate NAME resolves through the registry (single
-// source of truth), an ARRAY declares inline (non-registry consumer, ADR-0058
+// source of truth), an ARRAY declares inline (non-registry consumer,
 // R8); each deterministic miss degrades honestly, then exit 2. Inline arrays
 // are labelled 'a+b' (comma-free) - a raw ',' would be a property separator.
 function requireCapabilities(gateName, opts) {
@@ -159,12 +159,12 @@ function validateRequires(entries) {
   const errors = [];
   for (const e of entries) {
     if (!Array.isArray(e.requires)) {
-      errors.push(e.name + ': requires must be an array, empty allowed (ADR-0040 D1)');
+      errors.push(e.name + ': requires must be an array, empty allowed');
       continue;
     }
     for (const c of e.requires) {
       if (typeof c !== 'string' || CAPABILITIES.indexOf(c) === -1) {
-        errors.push(e.name + ': unknown capability ' + JSON.stringify(c) + ' — registry violation, closed enum is ' + CAPABILITIES.join(', ') + ' (ADR-0040 D1)');
+        errors.push(e.name + ': unknown capability ' + JSON.stringify(c) + ' — registry violation, closed enum is ' + CAPABILITIES.join(', '));
       }
     }
   }

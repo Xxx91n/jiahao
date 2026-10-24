@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // jiahao-verdict-gate.js — Stop / SubagentStop hook
 //
-// ADR-0012 rewrite:
+// rewrite:
 //   D2  profile × severity decision branch (generator always advisory;
 //       verifier blocks only on no-evidence or high-severity suspicion).
 //   D4  idempotent rounds: NEVER unlinkSync the evidence file. The chain is
@@ -28,7 +28,7 @@ if (!fs.existsSync(flagPath())) {
 const profile = readProfile();
 const isGenerator = profile === 'generator';
 
-// ADR-0030 D4 dead-man switch (hook-tier hosts): the judge seam re-verification
+// dead-man switch (hook-tier hosts): the judge seam re-verification
 // deadline is machine-readable. The state is DERIVED from the content-anchored
 // deadline constants + the append-only reverify ledger tail, never stored --
 // deleting a state file cannot silence it (missing ledger = degraded). When the
@@ -47,7 +47,7 @@ process.stdin.on('end', () => {
     process.exit(0);
   }
 
-  // ADR-0070 D-A: the conviction lane rides this invocation — transcript_path
+  // the conviction lane rides this invocation — transcript_path
   // -> transcript adapter -> pairItem -> source:pairer-instrument shadow
   // record. Shadow records are telemetry: they never enter the severity
   // matrix below and never satisfy the no-evidence check. The lane is
@@ -62,13 +62,13 @@ process.stdin.on('end', () => {
       ' (telemetry; resolve via jiahao resolve if wrong).';
   }
 
-  // Read the evidence chain through the EvidenceLog factory (ADR-0026 D1/D5):
+  // Read the evidence chain through the EvidenceLog factory:
   // storage is a segmented log directory; legacy single-file arrays remain
   // readable in read-only legacy mode until the first write migrates them.
   // We never delete the log (D4); the chain has to survive SubagentStop
   // and any repeat fire of Stop.
   const rawChain = evidenceLog.readAll();
-  // ADR-0070: shadow pairer-lane records are instrument telemetry, not agent
+  // shadow pairer-lane records are instrument telemetry, not agent
   // verification evidence — a chain holding only shadow records still means
   // "no evidence" for the Case A check below. Enforce-mode records
   // (shadow:false) DO enter the matrix and stay visible here.
@@ -77,11 +77,11 @@ process.stdin.on('end', () => {
   }) : rawChain;
   const evidenceChain = (effective && effective.length === 0) ? null : effective;
 
-  // ADR-0013 D4: chain-corruption detection runs BEFORE any severity case.
+  // chain-corruption detection runs BEFORE any severity case.
   // A broken chain is treated as missing evidence in verifier profile
   // (block, exit 2); advisory-only in generator profile.
   if (evidenceChain) {
-    // ADR-0013 D4 + ADR-0026 D4: verifyTail hot path — active segment plus
+    // + : verifyTail hot path — active segment plus
     // previous-segment anchor prechecks. Legacy files are whole-chain
     // verified inside verifyTail. Cold full verification lives in
     // scripts/verify-evidence.js and is deliberately NOT in the per-turn path.
@@ -100,7 +100,7 @@ process.stdin.on('end', () => {
   }
 
 
-  // ADR-0017 D4: count inconclusive llm_critic records not yet covered
+  // count inconclusive llm_critic records not yet covered
   // by a later human_verdict record. Advisory only — never changes exit codes.
   let pendingText = '';
   if (evidenceChain) {
@@ -116,18 +116,18 @@ process.stdin.on('end', () => {
   }
   pendingText += laneText;
 
-  // ADR-0018 D4: κ governance RE-ALIGN advisory (never changes exit codes).
+  // κ governance RE-ALIGN advisory (never changes exit codes).
   if (evidenceChain) {
     try {
       pendingText += kappaAdvisory(evidenceChain, loadKappaBaseline());
     } catch (e) { /* advisory must never break the gate */ }
   }
 
-  // ADR-0030 D4: soft-deadline banner rides pendingText (advisory only,
+  // soft-deadline banner rides pendingText (advisory only,
   // never changes exit codes -- same discipline as the kappa advisory).
 
   // ---- Case A: no evidence at all --------------------------------------
-  // Behaviour unchanged from ADR-0010: block verifier, advisory generator.
+  // Behaviour unchanged: block verifier, advisory generator.
   if (!evidenceChain) {
     if (isGenerator) {
       console.log(JSON.stringify({
@@ -149,11 +149,11 @@ process.stdin.on('end', () => {
   // a detector field (or with severity === null) are not suspicious.
   let highestSeverity = null;
   let matchedPhrases = [];
-  // ADR-0022 D4: coverage is orthogonal to severity — scan it even on
+  // coverage is orthogonal to severity — scan it even on
   // non-suspicious records (a benign claim on a truncated view still gates).
   let coveragePartial = null;
   for (const rec of evidenceChain) {
-    // ADR-0070 D-B: shadow records never enter the severity matrix.
+    // shadow records never enter the severity matrix.
     if (rec && rec.detector && rec.detector.shadow === true) continue;
     if (rec && rec.detector) {
       if (rec.detector.coverage === 'partial' && !coveragePartial) coveragePartial = rec.detector;
@@ -174,7 +174,7 @@ process.stdin.on('end', () => {
   // Generator profile: never blocks (D2). Advisory message carries the
   // suspicion but no decision.
   if (isGenerator) {
-    // ADR-0022 D4: generator profile only annotates partial coverage;
+    // generator profile only annotates partial coverage;
     // severity is judged on the visible part, never inflated or deflated.
     if (coveragePartial && !highestSeverity) {
       console.log(JSON.stringify({
@@ -214,7 +214,7 @@ process.stdin.on('end', () => {
       process.exit(2);
     }
 
-  // ADR-0022 D4: fail-closed on coverage. A verdict on partial evidence is
+  // fail-closed on coverage. A verdict on partial evidence is
   // indeterminate (XACML semantics) — route to human adjudication, exit 2.
   if (coveragePartial) {
     const deg = coveragePartial.degradation || {};
@@ -243,7 +243,7 @@ process.stdin.on('end', () => {
   // No suspicion on any record
   // D4: do NOT consume the evidence file. Idempotent under repeat Stop /
   // SubagentStop fire.
-  // ADR-0017 D4: pending escalations surface even on the quiet path.
+  // pending escalations surface even on the quiet path.
   if (pendingText) {
     console.log(JSON.stringify({ decision: 'allow', systemMessage: 'JIAHAO:' + pendingText }));
   }

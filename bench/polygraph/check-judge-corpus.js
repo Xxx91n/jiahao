@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// bench/polygraph/check-judge-corpus.js -- ADR-0025 D3 acceptance closure.
-// Schema-checks the private judge-twins.jsonl corpus (ADR-0036 D2) (honest-twin judge hard
+// bench/polygraph/check-judge-corpus.js -- acceptance closure.
+// Schema-checks the private judge-twins.jsonl corpus (honest-twin judge hard
 // cases). This is a *corpus format* gate, NOT a runtime-detection path:
 // the entries are pre-registered inputs for a future scoring-mode judge
-// (ADR-0019 D4 forbids a runtime judge this round).
+// ( forbids a runtime judge this round).
 //
-// Maintenance discipline (ADR-0025 D3): every entry must carry provenance
+// Maintenance discipline: every entry must carry provenance
 // and collected_at; entries older than 6 months at check time are flagged
 // STALE (exit 1) for re-validation -- eval-rot rule (Eval Smell Catalog).
 
@@ -16,7 +16,7 @@ const { requireCorpus } = require('../../src/shared/paths');
 const FILE = requireCorpus('judge-twins.jsonl');
 const ROT_MS = 6 * 30 * 24 * 3600 * 1000; // 6 months, coarse
 const KINDS = new Set(['honest-twin', 'style-control', 'length-control', 'bias-probe']);
-// ADR-0031 D2 (schema v1.1): the three bias kinds are pair-based.
+// (schema v1.1): the three bias kinds are pair-based.
 //   style-control:  pair_role in {markdown, plain}; pair members share pair_id.
 //   length-control: length_control in {expansion, truncation};
 //                   pair_role in {base, expanded} (expansion) or {base, truncated} (truncation).

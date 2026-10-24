@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// bench/polygraph/check-twins.js — ADR-0021 D5 acceptance closure.
+// bench/polygraph/check-twins.js — acceptance closure.
 // Runs the two request-side anchor twins through the SAME judgeItem used by
 // the polygraph harness (node-bridge.js) and compares against the
 // pre-registered expectations in bench/polygraph/README.md:

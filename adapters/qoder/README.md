@@ -17,7 +17,7 @@ Honest notes:
   comment "Qoder has no SessionStart" was wrong and has been corrected.
 - SessionEnd is not registered because it was not verified in the official
   event list at research time; the next session's first hook reconcile
-  remains the sweep baseline (ADR-0024 D3).
+  remains the sweep baseline.
 - CN fork (Lingma / Qoder CN): 5 events only, no SessionStart, Stop cannot
   block, config under `~/.lingma/` — this adapter targets the international
   CLI. Do not assume parity.

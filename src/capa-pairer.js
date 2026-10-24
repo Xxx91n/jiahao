@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-// bench/research/capa-pairer.js -- ADR-0069 D-A/D-B: the CAPA claim-evidence
+// bench/research/capa-pairer.js -- : the CAPA claim-evidence
 // pairer, the devin-corpus@v3 adjudication object. Pure, zero-dependency,
 // deterministic. Contract:
 //   pairItem(item, opts) -> {family, state, claim, evidence, reason, port?}

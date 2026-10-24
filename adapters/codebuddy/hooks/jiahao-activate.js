@@ -3,7 +3,7 @@
 // 1. Write flag file for state persistence
 // 2. Read SKILL.md (profile-split) and output as injection context
 // 3. Append statusline hint
-// ADR-0010: reads .jiahao-profile to select generator/verifier ruleset
+// reads .jiahao-profile to select generator/verifier ruleset
 
 const fs = require('fs');
 const path = require('path');

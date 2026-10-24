@@ -1,6 +1,6 @@
 'use strict';
 
-// src/plan-contract.js -- ADR-0055 D-A/D-B/D-C planning surface.
+// src/plan-contract.js -- planning surface.
 //
 // This is deliberately a small pure validator. Git-side merge evidence lives
 // in scripts/check-plan-baseline.js because that is where process execution

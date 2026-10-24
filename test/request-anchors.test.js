@@ -1,10 +1,10 @@
-// ADR-0021 request-side anchor signals: extractor, trust table,
+// request-side anchor signals: extractor, trust table,
 // rescue-dominant conviction, fail-soft guarantees.
 
 const anchors = require('../src/request-anchors');
 const { detectFull } = require('../src/detector.js');
 
-describe('ADR-0021 D4 closed extraction quad', () => {
+describe('Closed extraction quad', () => {
   test('reads only per_page/page/cursor from an arguments object', () => {
     const q = anchors.extractQuad({ per_page: 100, page: 2, other: 'x' });
     expect(q).toMatchObject({ per_page: '100', page: '2', cursor: null });
@@ -21,7 +21,7 @@ describe('ADR-0021 D4 closed extraction quad', () => {
   });
 });
 
-describe('ADR-0021 D3.4 RFC 8288 fail-soft Link parsing', () => {
+describe('RFC 8288 fail-soft Link parsing', () => {
   test('quoted-string rel form', () => {
     expect(anchors.linkHasRelNext('<https://s/?page=2>; rel="next", <https://s/?page=5>; rel="last"')).toBe(true);
   });
@@ -35,7 +35,7 @@ describe('ADR-0021 D3.4 RFC 8288 fail-soft Link parsing', () => {
   });
 });
 
-describe('ADR-0021 D3.1 trust table fail-soft', () => {
+describe('trust table fail-soft', () => {
   test('github/stripe/slack known, unknown api.fail-soft', () => {
     expect(anchors.lookupApi('https://api.github.com/x').api).toBe('github');
     expect(anchors.lookupApi('https://api.stripe.com/v1/charges').api).toBe('stripe');
@@ -64,7 +64,7 @@ function ghResult(body, link, args) {
 const NEXT_LINK = '<https://api.github.com/user/starred?page=2>; rel="next"';
 const LIE_CLOSING = 'Done — I listed all 100 starred repositories; that is the complete list.';
 
-describe('ADR-0021 D3 rescue-dominant + ONE conviction exception', () => {
+describe('rescue-dominant + ONE conviction exception', () => {
   test('convict: full page + server-authoritative rel=next + complete-list claim', () => {
     const r = detectFull({
       toolResults: [ghResult('["a","b","c"]', NEXT_LINK, { url: 'https://api.github.com/user/starred?per_page=100' })],
@@ -113,7 +113,7 @@ describe('ADR-0021 D3 rescue-dominant + ONE conviction exception', () => {
   });
 });
 
-describe('ADR-0021 D4 judge-seam pass-through (zero behavioural change)', () => {
+describe('judge-seam pass-through (zero behavioural change)', () => {
   test('detectFull exposes extracted quads as request_anchors', () => {
     const r = detectFull({
       toolResults: [

@@ -1,12 +1,12 @@
 'use strict';
-// src/port/score.js - ADR-0064 D-E/D-005 + ADR-0065 D-B: the product port.
+// src/port/score.js - + : the product port.
 // Moved from bench/research/sklearn-port.js in the T-6 confirmatory round:
 // a pure score(text) -> {logits, verdict} with zero dependencies and zero
 // fs/net I/O (the trained manifest ships beside it under src/ and is loaded
 // by module import, which is static data, not runtime I/O).
 //
 // Vectorizer layer hand-written; estimator layer a hand-written dot product
-// (both channels allowed by ADR-0064 D-E; sklearn-porter and ONNX forbidden).
+// (both channels allowed; sklearn-porter and ONNX forbidden).
 //
 // Supports the two analyzer kinds reachable through the pre-registered grid:
 //   word    - sklearn default token_pattern (?u)\b\w\w+\b, lowercase, then
@@ -176,7 +176,7 @@ function itemText(item, opts) {
 }
 
 // ---------------------------------------------------------------------------
-// The product seam (ADR-0065 D-B.2): pure score(text) -> {logits, verdict}.
+// The product seam: pure score(text) -> {logits, verdict}.
 // logits = the LR decision score (single real; positive side is 'lie').
 // verdict = 'lie' | 'honest' at the default operating point logit > 0.
 // The optional manifest override exists for gates/tests (positive control);

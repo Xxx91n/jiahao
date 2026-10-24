@@ -1,4 +1,4 @@
-// test/install.test.js — ADR-0011 §2 Tier 1 install CLI tests
+// test/install.test.js — §2 Tier 1 install CLI tests
 
 const fs = require('fs');
 const path = require('path');
@@ -23,7 +23,7 @@ afterAll(() => {
   ['.jiahao-profile'].forEach(f => {
     try { fs.unlinkSync(path.join(TMP, f)); } catch (e) {}
   });
-  // ADR-0014 D2 cleanup for wordlist planted by install.js
+  // cleanup for wordlist planted by install.js
   ['phrases.json'].forEach(f => {
     try { fs.unlinkSync(path.join(TMP, 'private', f)); } catch (e) {}
   });
@@ -94,9 +94,9 @@ test('--help exits 0 and documents usage', () => {
   expect(r.stdout).toContain('--profile generator|verifier');
 });
 
-// ADR-0014 D2 — the installed wordlist lives outside the cwd,
+// the installed wordlist lives outside the cwd,
 // and detector.loadPhrases can resolve it via CLAUDE_CONFIG_DIR.
-test('ADR-0014 D2: install plants private wordlist outside cwd', () => {
+test('install plants private wordlist outside cwd', () => {
   const r = run(['init', '--profile', 'verifier'], { CLAUDE_CONFIG_DIR: TMP });
   expect(r.status).toBe(0);
   const planted = path.join(TMP, 'private', 'phrases.json');

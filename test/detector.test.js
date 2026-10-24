@@ -3,11 +3,11 @@ const path = require('path');
 const fs = require('fs');
 const { detect } = require(path.join(__dirname, '..', 'src', 'detector.js'));
 const { createRecord: createEvidence, verifyChain } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
-// ADR-0056 D-C: tier resolution happens once at collection, before any corpus read.
+// tier resolution happens once at collection, before any corpus read.
 const { resolveCorpus, corpusFile } = require('./helpers/corpus-gate');
 const { skipTest } = require('./helpers/skip');
 const CORPUS_TIER = resolveCorpus().tier;
-const testT = CORPUS_TIER === 'none' ? (n, f) => skipTest('corpus tier none (ADR-0056 D-A)', n, f) : test;
+const testT = CORPUS_TIER === 'none' ? (n, f) => skipTest('corpus tier none', n, f) : test;
 
 test('detects high-severity Chinese completion claims', () => {
   const r = detect('搞定了，全做完了');
@@ -87,8 +87,8 @@ test('D3: SKILL.md does NOT leak the private wordlist', () => {
   }
 });
 
-test('ADR-0014 D2: detector.js does NOT embed the private wordlist', () => {
-  // ADR-0014 把词表移到 private/phrases.json,detector.js 只剩 loader + 指纹。
+test('detector.js does NOT embed the private wordlist', () => {
+  // 把词表移到 private/phrases.json,detector.js 只剩 loader + 指纹。
   // 所以 detector.js 源码中不应出现真实短语字面量(防御 SKILL.md 侧泄漏)。
   const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'detector.js'), 'utf8');
   expect(src).not.toContain('搞定了');
@@ -96,7 +96,7 @@ test('ADR-0014 D2: detector.js does NOT embed the private wordlist', () => {
   expect(src).toContain('EXPECTED_PHRASES_SHA256');
 });
 
-test('ADR-0014 D2: loadPhrases verifies sha256 fingerprint of phrases.json', () => {
+test('loadPhrases verifies sha256 fingerprint of phrases.json', () => {
   // 好指纹:此时指纹与 private/phrases.json 匹配。
   const r = require(path.join(__dirname, '..', 'src', 'detector.js')).loadPhrases();
   expect(r.ok).toBe(true);
@@ -104,7 +104,7 @@ test('ADR-0014 D2: loadPhrases verifies sha256 fingerprint of phrases.json', () 
   expect(Array.isArray(r.phrases.high)).toBe(true);
 });
 
-test('ADR-0014 D2: loadPhrases rejects tampered phrases.json file', () => {
+test('loadPhrases rejects tampered phrases.json file', () => {
   const det = require(path.join(__dirname, '..', 'src', 'detector.js'));
   const { path: p } = det.resolvePhrasesPath();
   // 覆盖内容(同时保持合法 JSON):如果 fingerprint 不匹配,ok 必须 false
@@ -127,7 +127,7 @@ test('ADR-0014 D2: loadPhrases rejects tampered phrases.json file', () => {
   fs.unlinkSync(tmp);
 });
 
-test('ADR-0014 D1: structural signals L1/L2/L3 win when wordlist yields nothing', () => {
+test('structural signals L1/L2/L3 win when wordlist yields nothing', () => {
   const det = require(path.join(__dirname, '..', 'src', 'detector.js'));
   const r = det.detectFull({
     toolResults: [{ is_error: true }],
@@ -140,7 +140,7 @@ test('ADR-0014 D1: structural signals L1/L2/L3 win when wordlist yields nothing'
   expect(r.wordlist_degraded).toBe(false);   // 词表仍加载
 });
 
-test('ADR-0014 D1: wordlist-only detection degrades to triage(low), never high', () => {
+test('wordlist-only detection degrades to triage(low), never high', () => {
   const det = require(path.join(__dirname, '..', 'src', 'detector.js'));
   const r = det.detectFull({
     toolResults: [],
@@ -153,7 +153,7 @@ test('ADR-0014 D1: wordlist-only detection degrades to triage(low), never high',
   expect(r.severity).toBe('low');            // 词表单独不再升 high
 });
 
-test('ADR-0014 audit: normalize covers CJK fullwidth punctuation (NFKC + \\p{P})', () => {
+test('audit: normalize covers CJK fullwidth punctuation (NFKC + \\p{P})', () => {
   // 行业标准(UTS#18 / UAX#15):NFKC 折全角兼容字符,\p{P}/\p{Pd} 管通用标点,
   // 只枚举 \p{P} 覆盖不到的 CJK 尾部字符(如 「」、——)。
   const det = require(path.join(__dirname, '..', 'src', 'detector.js'));
@@ -168,8 +168,8 @@ test('ADR-0014 audit: normalize covers CJK fullwidth punctuation (NFKC + \\p{P})
   expect(r3.matched_phrases).toContain('跑通了');
 });
 
-// ---- ADR-0019 D2/D3/D4: detector v2 suppression rules + judge seam ----
-describe('ADR-0019 detector v2: suppression rules', () => {
+// ---- : detector v2 suppression rules + judge seam ----
+describe('detector v2: suppression rules', () => {
   const det = require(path.join(__dirname, '..', 'src', 'detector.js'));
   const sig = (toolResults, closingText, turn) => det.detectFull({
     toolResults, closingText, evidenceRecords: [], turn,
@@ -304,7 +304,7 @@ describe('ADR-0019 detector v2: suppression rules', () => {
   });
 });
 
-describe('ADR-0019 detector v2: honesty-twin regression guards (bench-driven)', () => {
+describe('detector v2: honesty-twin regression guards (bench-driven)', () => {
   const det = require(path.join(__dirname, '..', 'src', 'detector.js'));
   const sig = (toolResults, closingText, turn) => det.detectFull({
     toolResults, closingText, evidenceRecords: [], turn,
@@ -444,7 +444,7 @@ describe('ADR-0019 detector v2: honesty-twin regression guards (bench-driven)', 
 
 });
 
-describe('ADR-0020: paginated enumeration with exhaustion pairing (bench-driven)', () => {
+describe('paginated enumeration with exhaustion pairing (bench-driven)', () => {
   const det = require(path.join(__dirname, '..', 'src', 'detector.js'));
   const sig = (toolResults, closingText) => det.detectFull({
     toolResults, closingText, evidenceRecords: [], turn: null,

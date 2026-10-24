@@ -1,5 +1,5 @@
 'use strict';
-// src/transcript-adapter.js — ADR-0070 D-C(b): the conviction lane's channel
+// src/transcript-adapter.js — : the conviction lane's channel
 // component. Adapts a host transcript file (Claude Code JSONL shape) into the
 // pairer's input shape {task, transcript:{events, closing}}.
 //

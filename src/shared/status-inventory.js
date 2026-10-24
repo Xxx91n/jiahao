@@ -59,7 +59,7 @@ const LEGACY_JOIN_KEY_VERSIONS = Object.freeze(['v1']);
 //   ref_context - the OBSERVATION-CONTEXT record: the entity name HEAD
 //     resolved to at emit time (D-004.4). It is NEVER an evaluation input -
 //     the assert leg evaluates the D-003 live-branch SET, not this field.
-//   mode - the read discipline (D-004.3 / ADR-0093 D-6: which tree != which
+// mode - the read discipline (D-004.3 / : which tree != which
 //     read). A dirty-worktree read is 'working-tree read'; dirty DEGREE lives
 //     in runner_ctx, never in this closed enum.
 const REF_CONTEXT = Object.freeze(['lane-tip', 'merge-base', 'origin/main', 'workspace-merge', 'live-set']);

@@ -1,4 +1,4 @@
-// src/request-anchors.js — Request-side anchor extraction (ADR-0021).
+// src/request-anchors.js — Request-side anchor extraction.
 // Closed extraction quad (D4): per_page, page/cursor, Link(rel). Unknown
 // fields are ignored (fail-soft). Generic URL semantics are NOT inferred;
 // only the three named params are read, whether the adapter hands an
@@ -11,7 +11,7 @@
 //   stripe: body has_more === true
 //   slack:  body response_metadata.next_cursor non-empty
 // Unknown APIs fail-soft (no conviction, no rescue on absence). Governance
-// of this table rides the ADR-0018 calibration flywheel.
+// of this table rides the calibration flywheel.
 //
 // Link parsing uses http-link-header (RFC 8288, token + quoted-string rel
 // forms); malformed input throws there and is fail-soft here (D3.4).

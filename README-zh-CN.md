@@ -46,10 +46,9 @@ Jiahao 从 `src/SKILL.md` 单一源头自动构建并保持全系宿主适配器
 所有规矩均可通过机器命令直接物理求证，不依赖任何虚构指标：
 
 ```bash
-npm test                        # 全量 Jest 物理测试（18 套件）
+npm test                        # 全量 Jest 物理测试（17 套件）
 node scripts/build-adapters.js --check  # 宿主适配器黄金镜像一致性检查
 node scripts/check-drift.js     # 适配器漂移检查
-node scripts/coinage-triage.js  # 规范词表与平实人话检查
 git diff --check                # 格式与行尾空格检查
 ```
 

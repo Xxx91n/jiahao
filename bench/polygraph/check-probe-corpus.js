@@ -1,20 +1,20 @@
 #!/usr/bin/env node
-// bench/polygraph/check-probe-corpus.js -- ADR-0029 D2 / ADR-0030 D1 acceptance closure.
-// Schema-checks the private answer corpus probes.jsonl (ADR-0036 D2) (paired per-iron-law behavioral
+// bench/polygraph/check-probe-corpus.js -- acceptance closure.
+// Schema-checks the private answer corpus probes.jsonl (paired per-iron-law behavioral
 // probes). This is a *corpus format* gate, NOT the behavioral gate itself
-// (scripts/check-probes.js). Thin CLI + pure core (ADR-0029 D4 shape: jest
+// (scripts/check-probes.js). Thin CLI + pure core ( shape: jest
 // tests the core, never spawns this process).
 //
-// Discipline (ADR-0029 D2/D3, relaxed by ADR-0030 D1):
+// Discipline (relaxed):
 //   - every entry carries provenance + collected_at; entries older than
 //     6 months at check time are flagged STALE (exit 1) for re-validation
-//     (ADR-0025 convention, Eval Smell Catalog).
-//   - coverage, not exactly-once (ADR-0030 D1): each iron law (IL1..IL7) must
+// ( convention, Eval Smell Catalog).
+// - coverage, not exactly-once: each iron law (IL1..IL7) must
 //     appear AT LEAST once per side (violation-probe / benign-near-miss).
 //     Growth keeps ids globally unique; new probes for a covered law carry a
 //     variant suffix (e.g. IL3-v2-...) per MISRA amendment numbering - a
 //     reclaimed slot is never reused.
-//   - structural floor (ADR-0030 D1, R5): the corpus total must stay at or
+// - structural floor (R5): the corpus total must stay at or
 //     above the probe-coverage gate value in thresholds.json (probe_gates
 //     family, source_adr 0030). Shrinking below the floor fails; a missing
 //     floor entry is fail-closed.
@@ -38,7 +38,7 @@ const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
 // ---- pure core (jest testable, no fs / no process.exit) ----
 
-// ADR-0030 D1+R5: the structural floor lives in thresholds.json probe_gates
+// the structural floor lives in thresholds.json probe_gates
 // (source_adr "0030"), never in prose. Fail-closed when absent.
 function coverageFloor(cfg) {
   if (!cfg || !Array.isArray(cfg.probe_gates)) return null;
@@ -63,7 +63,7 @@ function checkCorpus(lines, floor, now) {
     else seen.add(e.id);
     if (!KINDS.has(e.kind)) ep.push('kind');
     if (typeof e.law !== 'string' || !LAW_RE.test(e.law)) ep.push('law');
-    // ADR-0030 D1: interval coverage replaces exactly-once. Duplicates are
+    // interval coverage replaces exactly-once. Duplicates are
     // allowed; the pairing loop below still enforces >=1 per law per side.
     else if (perSide[e.kind]) perSide[e.kind].add(e.law.match(LAW_RE)[1]);
     if (e.kind === 'violation-probe' && e.expected_verdict !== 'lie') ep.push('violation-must-expect-lie');
@@ -83,9 +83,9 @@ function checkCorpus(lines, floor, now) {
     if (missing.length) problems.push('pairing: ' + kind + ' side misses laws: ' + missing.join(', '));
   }
   if (floor === null) {
-    problems.push('coverage floor gate missing from thresholds.json probe_gates (ADR-0030 D1) - fail-closed');
+    problems.push('coverage floor gate missing from thresholds.json probe_gates - fail-closed');
   } else if (lines.length < floor) {
-    problems.push('coverage floor: corpus has ' + lines.length + ' entries, below floor ' + floor + ' (ADR-0030 D1)');
+    problems.push('coverage floor: corpus has ' + lines.length + ' entries, below floor ' + floor + '');
   }
   return problems;
 }
@@ -105,6 +105,6 @@ if (require.main === module) {
     if (e && e.id && !failing.has(e.id)) console.log('PASS ' + e.id + ' (' + e.law + ', expect ' + e.expected_verdict + ')');
   }
   for (const p of problems) console.error('FAIL ' + p);
-  if (floor !== null) console.log('[probe-corpus] coverage floor: ' + lines.length + ' >= ' + floor + ' (ADR-0030 D1)');
+  if (floor !== null) console.log('[probe-corpus] coverage floor: ' + lines.length + ' >= ' + floor + '');
   process.exit(problems.length ? 1 : 0);
 }

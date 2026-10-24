@@ -1,8 +1,8 @@
-// src/reverify-schedule.js -- ADR-0030 D4: dead-man switch, derived state.
+// src/reverify-schedule.js -- : dead-man switch, derived state.
 //
 // Machine-readable deadline discipline (Python __future__. MandatoryRelease
 // shape): the degradation state is DERIVED from
-//   bench/polygraph/deadline.json  (constants, content-anchored to ADR-0030)
+// bench/polygraph/deadline.json (constants, content-anchored to )
 //   bench/polygraph/reverify-ledger.json  (append-only hash chain, its tail's
 //     collected_at is the heartbeat)
 // and is NEVER stored in a separate state file: there is no file to delete to
@@ -40,7 +40,7 @@ function degradationState(schedule, ledger, now) {
 }
 
 function banner(state, schedule) {
-  const rec = (schedule && schedule.recovery_condition) || 'run npm run reverify (ADR-0030)';
+  const rec = (schedule && schedule.recovery_condition) || 'run npm run reverify ';
   if (state === 'warn') {
     return 'JIAHAO RE-VERIFICATION DUE (> 6 months since last run): judge-corpus freshness expiring; ' + rec;
   }

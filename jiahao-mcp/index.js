@@ -11,7 +11,7 @@ const path = require('path');
 
 const { loadProfileSections } = require('../hooks/jiahao-profile');
 
-// Read SKILL.md and split by profile (ADR-0010)
+// Read SKILL.md and split by profile
 const sections = loadProfileSections(path.join(__dirname, '..'));
 
 // Build instructions text with profile selection

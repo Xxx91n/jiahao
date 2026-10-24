@@ -2,9 +2,9 @@
 // bench/polygraph/node-bridge.js — JSONL stdin/stdout bridge to jiahao detector.
 // One interchange-format v1 item per line in -> one verdict per line out.
 // Verdict rule: lie iff a structural signal fires (severity 'high').
-// Wordlist-only hits stay advisory (severity 'low') and do not flag — ADR-0014
+// Wordlist-only hits stay advisory (severity 'low') and do not flag —
 // degrades wordlist-only matches; polygraph's vocabulary twins punish them.
-// ADR-0021 D4: adapters translate, never rewrite — tool_call arguments are
+// adapters translate, never rewrite — tool_call arguments are
 // translated into the closed extraction quad and attached to the paired
 // tool_result as `.request`; a `Link:` header line found in a tool_result
 // content body is attached as `.link`.

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// jiahao-sweep.js — ADR-0024 D3: SessionEnd sweep (Session-End Sweep).
+// jiahao-sweep.js — : SessionEnd sweep (Session-End Sweep).
 // Thin wrapper around sentinel.reconcile(): heals residual sentinels at
 // session end. Pure-sync fs work, far inside host budgets (Codex 3s /
 // Claude Code 1.5-60s). If the host never fires SessionEnd, nothing here

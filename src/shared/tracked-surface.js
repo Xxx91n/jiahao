@@ -1,5 +1,5 @@
 'use strict';
-// src/shared/tracked-surface.js - ADR-0093 D-4 (grill-t36 D-006): the
+// src/shared/tracked-surface.js - (grill-t36 D-006): the
 // tracked-surface snapshot, shared by the run-gates wrapper (D-4) and, per
 // D-1, the `git ls-files` (index) enumeration base. The M1 static scan
 // (trackedTextFiles in scripts/shared/tracked-text.js) uses index UNION tree;
@@ -16,7 +16,7 @@
 // inside a gate execution where the working tree IS the index being mutated,
 // so the index is the correct base here. The M1 static scan
 // (trackedTextFiles in scripts/shared/tracked-text.js) uses index UNION tree
-// because it runs outside gate execution where the tree is stable. ADR-0093
+// because it runs outside gate execution where the tree is stable.
 // D-1 names both bases so neither side can silently narrow it; this file's
 // comment must not conflate the two.
 //
@@ -34,7 +34,7 @@ const crypto = require('crypto');
 const { execFileSync } = require('child_process');
 
 function listTrackedPaths(root) {
-  // index only - see header for the M1/M2 base distinction (ADR-0093 D-1).
+  // index only - see header for the M1/M2 base distinction.
   const out = execFileSync('git', ['ls-files'], { cwd: root, encoding: 'utf8' });
   return out.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
 }

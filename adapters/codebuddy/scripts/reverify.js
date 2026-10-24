@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// scripts/reverify.js -- ADR-0030 D3: judge re-verification runbook
+// scripts/reverify.js -- : judge re-verification runbook
 // (LLVM "How To Validate a New Release" shape: rerun the frozen corpus,
 // compare against the baseline ledger, human reads and commits the artifact).
 //
-//   - Runs the frozen private judge-twins.jsonl corpus (ADR-0036 D2) through the
-//     SAME judgeItem bridge the bench gates use, recomputes the ADR-0025 D3
+// - Runs the frozen private judge-twins.jsonl corpus through the
+// SAME judgeItem bridge the bench gates use, recomputes the
 //     four-metric telemetry contract (invocations, latency_ms_avg, fail_soft,
 //     overrides_accepted) plus Wilson 95% bounds and the STALE count.
 //   - Emits bench/polygraph/results/reverify-YYYYMMDD.json; first run freezes
@@ -13,9 +13,9 @@
 //     hash chain {seq, collected_at, metrics, conclusion, adr_ref, prev_hash,
 //     event_hash} where event_hash = sha256(canonical(entry-sans-hash) +
 //     '|' + prev_hash) and prev_hash is part of the hashed input
-//     (ADR-0013's own incident: excluding it lets a truncated chain re-link).
+// ( own incident: excluding it lets a truncated chain re-link).
 //   - --stale-hook: warning-only staleness notice for .githooks/pre-commit
-//     (ADR-0027 alarm-fatigue discipline: aggregate, single line, exit 0).
+// ( alarm-fatigue discipline: aggregate, single line, exit 0).
 //
 // Usage: node scripts/reverify.js [--stale-hook]
 
@@ -35,14 +35,14 @@ const GENESIS = 'GENESIS'; // fixed, documented, verified on append (hash-chain 
 const ADR_REF = '0030';
 const { resolveInstrumentIdentity } = require('../src/instrument-identity');
 
-// ---- ADR-0049: decision-rule anchor + metrological ledger completion ----
+// ---- : decision-rule anchor + metrological ledger completion ----
 const DECISION_RULE_ID = 'ilac-g8-guarded-acceptance'; // ILAC-G8:09/2019 + JCGM 106:2012
-const DECISION_RULE_VERSION = '0060.1'; // ADR-0060 D-A: min_n joins the rule identity (row-carried; ADR-0035 external-event cadence)
-const DECISION_RULE_MIN_N = 100; // ADR-0060 D-A: pre-registered minimum flip-eligible sample (power table in the ADR)
+const DECISION_RULE_VERSION = '0060.1'; // min_n joins the rule identity (row-carried; external-event cadence)
+const DECISION_RULE_MIN_N = 100; // pre-registered minimum flip-eligible sample (power table in the ADR)
 const DECISION_RULE_SPEC_REF = 'bench/polygraph/thresholds.json#judge_bias_gates/judge-style-flip';
-const JUDGE_TWINS_CORPUS_ID = 'judge-twins.jsonl'; // ADR-0036 D2 frozen private corpus
+const JUDGE_TWINS_CORPUS_ID = 'judge-twins.jsonl'; // frozen private corpus
 const JUDGE_TWINS_CORPUS_VERSION = '1.1';
-// ADR-0049 D-E: single source of truth lives in src/evidence-log.js.
+// single source of truth lives in src/evidence-log.js.
 const { KNOWN_EVIDENCE_KINDS: LOOKBACK_EVIDENCE_KINDS } = require('../src/evidence-log');
 
 // Default: guarded acceptance w=1, k=2 (PFA ~2.5%). Simple acceptance (w=0)
@@ -56,7 +56,7 @@ function defaultDecisionRule(specLimit) {
     min_n: DECISION_RULE_MIN_N,
     spec_limit: typeof specLimit === 'number' ? specLimit : null,
     spec_ref: DECISION_RULE_SPEC_REF,
-    // ADR-0049 D-B: annotate the uncertainty input basis (not MPE-only).
+    // annotate the uncertainty input basis (not MPE-only).
     // The interval is Wilson 95% by default, exact Clopper-Pearson only for
     // small/extreme samples (proportionCI95); the half-width approximates
     // U95 = k*u with k ~= 1.96, recorded as the nominal k=2 anchor.
@@ -64,7 +64,7 @@ function defaultDecisionRule(specLimit) {
   };
 }
 
-// ADR-0049 D-E: the drift-exposure look-back signal is the interval over limit
+// the drift-exposure look-back signal is the interval over limit
 // (CI upper bound) OR the point estimate over limit (ISO 17025 6.4.10). It is a
 // look-back obligation, kept separate from the pass/conditional/fail statement.
 function lookbackOverLimit(flipCI, flipRate, specLimit) {
@@ -73,29 +73,29 @@ function lookbackOverLimit(flipCI, flipRate, specLimit) {
 
 // Guarded acceptance: pass iff flip_rate <= spec_limit - w*u (u = CI half-width).
 // The guard-band conditional zone (acceptance_limit < x <= spec_limit) yields
-// NO pass statement (ADR-0049 D-B).
+// NO pass statement .
 function evaluateConformity(flipRate, flipCI, rule, n) {
   if (!rule || typeof rule.spec_limit !== 'number' || typeof flipRate !== 'number' || !flipCI) {
     return { result: 'conditional', acceptance_limit: null, lookback: false }; // no numeric rule: no pass statement
   }
-  // ADR-0060 D-A/D-B: the sampling plan is part of the rule identity. Below
+  // the sampling plan is part of the rule identity. Below
   // min_n the guard band consumes the spec limit and the rule cannot return
   // `pass` for any observation, so the honest statement is "evidence
   // insufficient" (indeterminate), never a confirmed non-conformity.
-  const u = Math.max(0, (flipCI[1] - flipCI[0]) / 2); // CI half-width (ADR-0049 D-B)
+  const u = Math.max(0, (flipCI[1] - flipCI[0]) / 2); // CI half-width
   const minN = typeof rule.min_n === 'number' ? rule.min_n : null;
   const nEligible = typeof n === 'number' ? n : null;
-  // ADR-0060 D-A: fail closed when the sample size is unknown — a caller that
+  // fail closed when the sample size is unknown — a caller that
   // omits `n` cannot silently bypass the sampling-plan requirement.
   if (minN !== null && (nEligible === null || nEligible < minN)) {
     return { result: 'indeterminate', acceptance_limit: rule.spec_limit - rule.w * u, lookback: lookbackOverLimit(flipCI, flipRate, rule.spec_limit), min_n: minN, n: nEligible };
   }
   if (rule.w === 0) {
-    if (!(rule.tur >= 4)) throw new Error('simple acceptance requires negotiated TUR >= 4:1 (ADR-0049 D-B)');
+    if (!(rule.tur >= 4)) throw new Error('simple acceptance requires negotiated TUR >= 4:1 ');
     return { result: flipRate <= rule.spec_limit ? 'pass' : 'fail', acceptance_limit: rule.spec_limit, lookback: lookbackOverLimit(flipCI, flipRate, rule.spec_limit) };
   }
   const acceptanceLimit = rule.spec_limit - rule.w * u;
-  // ADR-0049 D-E: the drift-exposure look-back signal is the Wilson interval
+  // the drift-exposure look-back signal is the Wilson interval
   // over limit (CI upper bound) OR the point estimate over limit (17025
   // 6.4.10: shown outside specified requirements); it is a look-back
   // obligation, not a conclusion change.
@@ -105,7 +105,7 @@ function evaluateConformity(flipRate, flipCI, rule, n) {
   return { result: 'fail', acceptance_limit: acceptanceLimit, lookback: lookback };
 }
 
-// ADR-0049 D-C corpus content digest — same SHA-256 over stringified lines
+// corpus content digest — same SHA-256 over stringified lines
 // as thresholds.json _fingerprint_def (EOL-independent).
 function corpusDigest(entries) {
   return crypto.createHash('sha256').update(entries.map(e => JSON.stringify(e)).join('\n'), 'utf8').digest('hex');
@@ -211,7 +211,7 @@ function clopperPearson95(k, n) {
   return [betaQuantile(0.025, x, n - x + 1), betaQuantile(0.975, x + 1, n - x)];
 }
 
-// ADR-0048 D-A: Wilson by default, exact Clopper-Pearson in small/extreme samples.
+// Wilson by default, exact Clopper-Pearson in small/extreme samples.
 function proportionCI95(k, n) {
   if (!n) return null;
   if (n < 30 || k <= 0 || k >= n) return clopperPearson95(k, n);
@@ -290,21 +290,21 @@ function computeMetrology(metrics, identity, opts) {
     kappa_bootstrap_lower_95: kappa ? kappa.lower_95 : null,
     score_distribution: scoreDistribution,
   };
-  // ADR-0049 D-C: corpus_ref anchors the row identity (content digest + version).
+  // corpus_ref anchors the row identity (content digest + version).
   const corpusRef = o.corpusRef || null;
   const prevRow = o.previous || null;
   const prevBaseline = prevRow ? (prevRow.as_left || prevRow.as_found) : null;
   const sameCorpus = !!(corpusRef && prevRow && prevRow.corpus_ref && prevRow.corpus_ref.digest === corpusRef.digest);
-  // ADR-0049 D-C: cross-cycle drift is comparable only within the same
-  // corpus_ref; cross-baseline delta requires the ADR-0047 D-B overlap splice.
+  // cross-cycle drift is comparable only within the same
+  // corpus_ref; cross-baseline delta requires the overlap splice.
   // Silent subtraction across corpus_ref is forbidden.
   const drift = prevBaseline && sameCorpus ? {
     overrides_accepted: overrides - (prevBaseline.overrides_accepted || 0),
     override_rate: flipRate !== null && prevBaseline.override_rate != null ? flipRate - prevBaseline.override_rate : null,
     fail_soft: (metrics.fail_soft || 0) - (prevBaseline.fail_soft || 0),
   } : null;
-  const crossBaseline = prevRow && !sameCorpus ? 'non-comparable (ADR-0049 D-C)' : null;
-  // ADR-0049 D-B: pass / no_adjustment are conformity declarations under the
+  const crossBaseline = prevRow && !sameCorpus ? 'non-comparable ' : null;
+  // pass / no_adjustment are conformity declarations under the
   // pre-registered decision-rule anchor.
   const rule = o.decisionRule || defaultDecisionRule(o.specLimit);
   const conformity = evaluateConformity(flipRate, flipCI, rule, flipEligible);
@@ -327,21 +327,21 @@ function computeMetrology(metrics, identity, opts) {
   out.corpus_ref = corpusRef;
   out.decision_rule = Object.assign({}, rule, { acceptance_limit: conformity.acceptance_limit });
   out.conformity = conformity.result;
-  // ADR-0049 D-E: CI-upper-over-limit is a look-back obligation, separate
+  // CI-upper-over-limit is a look-back obligation, separate
   // from the pass/conditional/fail conformity statement.
   out.lookback_required = conformity.lookback === true;
   if (o.adjustment) {
-    // ADR-0049 D-A: as-left appears only on an adjustment event (rebaseline or
+    // as-left appears only on an adjustment event (rebaseline or
     // criteria change), paired with its date.
     out.as_left = o.adjustment.as_left;
     out.as_left_date = o.adjustment.date;
     out.adjustment = { type: o.adjustment.type, date: o.adjustment.date };
     if (o.adjustment.type === 'rebaseline') {
-      // ADR-0049 D-C: a rebaseline moves as-left onto a new corpus_ref; the
+      // a rebaseline moves as-left onto a new corpus_ref; the
       // as-left vs as-found subtraction is then cross-baseline and forbidden.
-      // Comparability flows through the ADR-0047 D-B old-new overlap instead.
+      // Comparability flows through the old-new overlap instead.
       out.observed_delta = null;
-      if (!out.cross_baseline) out.cross_baseline = 'non-comparable (ADR-0049 D-C)';
+      if (!out.cross_baseline) out.cross_baseline = 'non-comparable ';
     } else {
       out.observed_delta = {
         overrides_accepted: (o.adjustment.as_left.overrides_accepted || 0) - asFound.overrides_accepted,
@@ -350,15 +350,15 @@ function computeMetrology(metrics, identity, opts) {
       };
     }
   } else {
-    // ADR-0049 D-A: no adjustment is a declared single result; the declaration
-    // exists only when conformity passes (ADR-0049 D-B).
+    // no adjustment is a declared single result; the declaration
+    // exists only when conformity passes .
     out.no_adjustment = conformity.result === 'pass';
     out.observed_delta = { overrides_accepted: 0, override_rate: 0, fail_soft: 0 };
   }
   return out;
 }
 
-// Runs the corpus through judgeFn and returns the ADR-0025 D3 metric set.
+// Runs the corpus through judgeFn and returns the metric set.
 // judgeFn(entry) -> { verdict: 'lie' | 'honest' }; a throw counts as fail_soft
 // (the seam's fail-soft path counts the entry honest by contract).
 function computeMetrics(entries, judgeFn, now) {
@@ -367,7 +367,7 @@ function computeMetrics(entries, judgeFn, now) {
   const per = [];
   for (const e of entries) {
     const t = Date.now();
-    let verdict = 'honest'; // fail-soft default (ADR-0025 D2)
+    let verdict = 'honest'; // fail-soft default
     let failed = false;
     try { verdict = judgeFn(e).verdict; } catch (err) { failSoft++; failed = true; }
     latencyTotal += Date.now() - t;
@@ -424,12 +424,12 @@ function appendEntry(ledger, entry) {
     conclusion: entry.conclusion,
     adr_ref: ADR_REF,
   };
-  // ADR-0031 D6/F5: idempotent re-run key — same (corpus, metric outcome,
+  // idempotent re-run key — same (corpus, metric outcome,
   // day) is appended once; the key rides the hash chain itself.
   if (entry.run_key) sans.run_key = entry.run_key;
   if (entry.metrology) {
     const m = entry.metrology;
-    // ADR-0049: the row keeps the declared no-adjustment / decision-rule /
+    // the row keeps the declared no-adjustment / decision-rule /
     // corpus_ref identity. as_left is present only on an adjustment event.
     sans.identity_triple = m.identity_triple;
     sans.sample_size = m.sample_size;
@@ -458,14 +458,14 @@ function staleWarning(ledger, now) {
   if (!ledger.length) return 'no re-verification ledger entries yet; run: npm run reverify';
   const last = Date.parse(ledger[ledger.length - 1].collected_at);
   if (now - last > ROT_MS) {
-    return 'latest judge re-verification is older than 6 months; run: npm run reverify (ADR-0030 D3)';
+    return 'latest judge re-verification is older than 6 months; run: npm run reverify ';
   }
   return null;
 }
 
 module.exports = { computeMetrics, wilson95, proportionCI95, clopperPearson95, cohenKappaPairs, bootstrapKappaLower, computeMetrology, canonical, eventHash, verifyLedger, appendEntry, staleWarning, GENESIS, ADR_REF, ROT_MS, conclude, runKey, defaultDecisionRule, evaluateConformity, corpusDigest, readFlipSpecLimit, DECISION_RULE_ID, DECISION_RULE_VERSION, DECISION_RULE_SPEC_REF, JUDGE_TWINS_CORPUS_ID, JUDGE_TWINS_CORPUS_VERSION, LOOKBACK_EVIDENCE_KINDS };
 
-// ADR-0031 D6/F4 (fix): the re-verification conclusion reads more than
+// (fix): the re-verification conclusion reads more than
 // fail_soft. A wiped-out judge that crashes zero times but never rescues a
 // single override-eligible twin, or returns fewer invocations than the corpus,
 // must conclude "fail" — fail_soft-only reporting false-reports healthy.
@@ -475,7 +475,7 @@ module.exports = { computeMetrics, wilson95, proportionCI95, clopperPearson95, c
 function conclude(metrics, corpusSize, previousEntry, conformity) {
   // Hard findings are structural failures of the run itself (fail-soft, count
   // mismatch, dead judge, regression). The decision-rule statement is a
-  // separate, typed group — no string-prefix classification (ADR-0060 D-B).
+  // separate, typed group — no string-prefix classification .
   const hardReasons = [];
   if (metrics.fail_soft > 0) hardReasons.push('fail_soft=' + metrics.fail_soft);
   if (metrics.invocations !== corpusSize) hardReasons.push('invocations ' + metrics.invocations + ' != corpus ' + corpusSize);
@@ -485,22 +485,22 @@ function conclude(metrics, corpusSize, previousEntry, conformity) {
     hardReasons.push('overrides_accepted regressed ' + previousEntry.metrics.overrides_accepted + ' -> ' + metrics.overrides_accepted);
   }
 
-  // ADR-0049 D-B/D-E + ADR-0060 D-B: the decision-rule statement, typed.
+  // + : the decision-rule statement, typed.
   const ruleReasons = [];
-  if (conformity === 'conditional') ruleReasons.push('decision-rule guard-band conditional zone: no pass statement (ADR-0049 D-B)');
-  if (conformity === 'fail') ruleReasons.push('decision-rule conformity fail: drift exposure, affected sign-off look-back required (ADR-0049 D-E)');
-  if (conformity === 'indeterminate') ruleReasons.push('decision-rule indeterminate: sampling plan not met (n < min_n); evidence insufficient, no conformity statement (ADR-0060 D-B)');
+  if (conformity === 'conditional') ruleReasons.push('decision-rule guard-band conditional zone: no pass statement ');
+  if (conformity === 'fail') ruleReasons.push('decision-rule conformity fail: drift exposure, affected sign-off look-back required ');
+  if (conformity === 'indeterminate') ruleReasons.push('decision-rule indeterminate: sampling plan not met (n < min_n); evidence insufficient, no conformity statement ');
   const reasons = hardReasons.concat(ruleReasons);
   if (hardReasons.length === 0 && conformity === 'indeterminate') return { conclusion: 'indeterminate', reasons };
   return { conclusion: reasons.length === 0 ? 'pass' : 'fail', reasons };
 }
 
-// ADR-0031 D6/F5 (fix): same-day re-run idempotency. Keyed on the
+// (fix): same-day re-run idempotency. Keyed on the
 // (schema_pinned) metric outcome + collector day, not on wall-clock: an
 // identical re-run inside a day yields the same key and appends nothing.
 function runKey(metrics, collectedAtISO, rule) {
   const day = String(collectedAtISO).slice(0, 10);
-  // ADR-0060 D-A: the rule identity (version) is part of the run key, so a rule
+  // the rule identity (version) is part of the run key, so a rule
   // change appends a new ledger row instead of being swallowed by the
   // same-day idempotency check.
   const canon = canonical({ day, invocations: metrics.invocations, fail_soft: metrics.fail_soft, overrides_accepted: metrics.overrides_accepted, stale: metrics.stale, override_rate: metrics.override_rate, rule_version: (rule && rule.version) || null });
@@ -515,7 +515,7 @@ function main() {
     try { ledger = JSON.parse(fs.readFileSync(LEDGER, 'utf8')); } catch (e) { ledger = []; }
     const w = staleWarning(ledger, Date.now());
     if (w) console.log('::warning title=judge-stale::' + w);
-    process.exit(0); // warning-only (ADR-0027 D3 alarm-fatigue discipline)
+    process.exit(0); // warning-only ( alarm-fatigue discipline)
   }
 
   const entries = readJsonl(requireCorpus('judge-twins.jsonl'));
@@ -532,7 +532,7 @@ function main() {
 
   const baseline = ledger.length === 0;
   const resolvedIdentity = resolveInstrumentIdentity(ROOT);
-  // ADR-0049 D-C: anchor the row identity to the corpus content digest; D-B:
+  // anchor the row identity to the corpus content digest; D-B:
   // evaluate conformity under the pre-registered decision rule.
   const corpusRef = { id: JUDGE_TWINS_CORPUS_ID, version: JUDGE_TWINS_CORPUS_VERSION, digest: corpusDigest(entries) };
   const specLimit = readFlipSpecLimit();
@@ -611,20 +611,20 @@ function main() {
     ' stale=' + metrics.stale +
     ' conclusion=' + conclusion + (baseline ? ' (baseline frozen)' : '') +
     ' conformity=' + metrology.conformity);
-  // ADR-0049 D-E: drift exposure routes through ESCALATE; prior-interval
+  // drift exposure routes through ESCALATE; prior-interval
   // sign-offs become affected/under-review until dispositioned.
   if (metrology.conformity === 'fail') {
     console.log('[reverify] ESCALATE: drift exposure over decision-rule acceptance limit;' +
-      ' affected sign-off look-back required (' + LOOKBACK_EVIDENCE_KINDS.join('/') + ') per ADR-0049 D-E');
+      ' affected sign-off look-back required (' + LOOKBACK_EVIDENCE_KINDS.join('/') + ')');
   } else if (metrology.conformity === 'indeterminate') {
     console.log('[reverify] INDETERMINATE: sampling plan not met (n < min_n=' + (metrology.decision_rule && metrology.decision_rule.min_n) + ');' +
-      ' no conformity statement; conditional certification + look-back path applies (ADR-0060 D-B/D-C)');
+      ' no conformity statement; conditional certification + look-back path applies ');
   } else if (metrology.lookback_required) {
-    // ADR-0049 D-E: Wilson CI upper bound over the limit forces the look-back
+    // Wilson CI upper bound over the limit forces the look-back
     // even when the point estimate sits under it (documented negative finding
     // may apply inside the guard band).
     console.log('[reverify] ESCALATE: flip-rate CI95 upper bound over spec limit;' +
-      ' Wilson-interval-over-limit look-back required (' + LOOKBACK_EVIDENCE_KINDS.join('/') + ') per ADR-0049 D-E');
+      ' Wilson-interval-over-limit look-back required (' + LOOKBACK_EVIDENCE_KINDS.join('/') + ')');
   }
   console.log('[reverify] artifact: ' + path.relative(ROOT, outPath));
   console.log('[reverify] ledger seq=' + next[next.length - 1].seq + ' hash=' + next[next.length - 1].event_hash.slice(0, 12));

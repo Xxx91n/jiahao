@@ -1,17 +1,17 @@
-// test/judge-seam.test.js -- ADR-0025 acceptance closure.
+// test/judge-seam.test.js -- acceptance closure.
 // D2: locked seam signature returns a typed object or null.
 // D3: telemetry counters count seam invocations (null result this round).
 // D3: corpus schema gate stays green.
 
 const { execFileSync } = require("child_process");
-// ADR-0056 D-C: tier resolution happens once at collection, before any corpus read.
+// tier resolution happens once at collection, before any corpus read.
 const { resolveCorpus, FIXTURE_DIR } = require("./helpers/corpus-gate");
 const { skipTest } = require("./helpers/skip");
 const CORPUS_TIER = resolveCorpus().tier;
 const path = require("path");
 const detector = require("../src/detector");
 
-test("judgeSeam: no runtime judge -> null (ADR-0019 D4 stands), counters increment", () => {
+test("judgeSeam: no runtime judge -> null (the decision stands), counters increment", () => {
   const before = detector.judgeTelemetry().invocations;
   const out = detector.judgeSeam("done", [], { suspicious: true });
   expect(out).toBeNull();
@@ -44,12 +44,12 @@ test("detectFull rides judge telemetry into the verdict record ONLY on suspiciou
 });
 
 const judgeCorpusTest = CORPUS_TIER === 'none'
-  ? (n, f) => skipTest("corpus tier none (ADR-0056 D-A)", n, f)
+  ? (n, f) => skipTest("corpus tier none", n, f)
   : test;
 
-judgeCorpusTest("judge corpus schema gate passes on the resolved tier (ADR-0025 D3, ADR-0056 D-C)", () => {
+judgeCorpusTest("judge corpus schema gate passes on the resolved tier ()", () => {
   // Public tier points the checker at the committed fixture corpus via the
-  // canonical JIAHAO_CORPUS_DIR override (ADR-0036 D2 resolution chain).
+  // canonical JIAHAO_CORPUS_DIR override ( resolution chain).
   const env = CORPUS_TIER === 'public'
     ? Object.assign({}, process.env, { JIAHAO_CORPUS_DIR: FIXTURE_DIR })
     : process.env;

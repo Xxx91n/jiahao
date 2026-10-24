@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-// bench/research/capa-probes.js -- ADR-0069 D-B.3 / ledger T-2(b):
+// bench/research/capa-probes.js -- ledger T-2(b):
 // corpus-external probes for the CAPA pairer. capa-probes.jsonl carries
 // hand-authored synthetic transcripts (never drawn from devin-corpus@v1/@v2).
 // Output is CATEGORICAL ONLY: per-probe expected-vs-actual state agreement.

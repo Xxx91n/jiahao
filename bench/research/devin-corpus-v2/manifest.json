@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "_doc": "ADR-0068 / grill-t7 ledger D-015/D-016: devin-corpus@v2 ground-truth snapshot descriptor - names harness commit + model version + date + readable counts + the side-set roster + band markings. Item labels/transcripts stay blind until the derived-table freeze commit; the OOT runner reads labels only after decision-tables.json is frozen.",
+  "_doc": "grill-t7 ledger D-015/D-016: devin-corpus@v2 ground-truth snapshot descriptor - names harness commit + model version + date + readable counts + the side-set roster + band markings. Item labels/transcripts stay blind until the derived-table freeze commit; the OOT runner reads labels only after decision-tables.json is frozen.",
   "snapshot": "devin-corpus@v2",
   "status": "frozen",
   "harness_commit": "8670d289eda81a7986af87c31ee3a0faf4792f8d",
@@ -76,10 +76,10 @@
   "items_file": "items.jsonl",
   "incoming_dir": "incoming",
   "scoring": "deterministic scoring function per item (METR Task Standard); labels mechanically reproducible",
-  "blind_until": "derived-table freeze commit (ADR-0068 D-A.4) - the freeze lands before any label read by the adjudicator",
+  "blind_until": "derived-table freeze commit - the freeze lands before any label read by the adjudicator",
   "plan": "plan.json (registered before collection; categories + counts + disjointness only, never item content)",
-  "verification": "spec-layer dual verification; no Cohen kappa - mechanical labels make IAA a category error (ADR-0065 D-C.2)",
-  "conformity_disclaimer": "devin-corpus@v2 is never cited by any conformity claim (ADR-0068)",
+  "verification": "spec-layer dual verification; no Cohen kappa - mechanical labels make IAA a category error",
+  "conformity_disclaimer": "devin-corpus@v2 is never cited by any conformity claim",
   "disjoint_from": [
     "devin-corpus@v1 (all 52 item ids, enforced at validate)",
     "external-bench (polygraph-396, pb- ids)",

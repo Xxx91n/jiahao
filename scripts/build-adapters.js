@@ -2,7 +2,7 @@
 // build-adapters.js — generate per-host adapter files from src/SKILL.md
 // Mirrors ponytail's single-source + per-host adapter pattern.
 // Run: node scripts/build-adapters.js
-// Supports dual-profile (ADR-0010 Option C): SKILL.md has tagged sections
+// Supports dual-profile ( Option C): SKILL.md has tagged sections
 // ## Generator Profile / ## Verifier Profile / ## Boundaries (shared).
 
 const fs = require('fs');
@@ -11,7 +11,7 @@ const { splitByProfile, validateGsrHeaders } = require('../hooks/jiahao-profile'
 
 const root = path.join(__dirname, '..');
 
-// ADR-0028 D2: the adapter map is a pure function of src/SKILL.md so the
+// the adapter map is a pure function of src/SKILL.md so the
 // --check golden layer regenerates it in memory and byte-compares against
 // the committed files (regen-and-diff; no lock file, no snapshots).
 function buildAdapters() {
@@ -20,7 +20,7 @@ function buildAdapters() {
 
   const profiles = splitByProfile(skill);
 
-  // ADR-0032 D2: gsr rule headers are the structural latch for the generator
+  // gsr rule headers are the structural latch for the generator
   // profile; fail the build (and the --check golden layer) on malformed rules.
   const gsrErrors = validateGsrHeaders(profiles.generator);
   if (gsrErrors.length > 0) {
@@ -40,7 +40,7 @@ function buildAdapters() {
         SubagentStart: [{ hooks: [{ type: 'command', command: 'node .codex/hooks/jiahao-subagent.js', timeout: 5 }] }],
         UserPromptSubmit: [{ hooks: [{ type: 'command', command: 'node .codex/hooks/jiahao-mode-tracker.js', timeout: 5 }] }],
         Stop: [{ hooks: [{ type: 'command', command: 'node .codex/hooks/jiahao-verdict-gate.js', timeout: 10 }] }],
-        SessionEnd: [{ hooks: [{ type: 'command', command: 'node .codex/hooks/jiahao-sweep.js', timeout: 3 }] }], // ADR-0024 D3
+        SessionEnd: [{ hooks: [{ type: 'command', command: 'node .codex/hooks/jiahao-sweep.js', timeout: 3 }] }],
       },
     }, null, 2),
 
@@ -78,7 +78,7 @@ function buildAdapters() {
       },
     }, null, 2) + '\n',
 
-    'adapters/copilot/README.md': '# GitHub Copilot CLI Adapter\n\nRepo-level hook config for GitHub Copilot CLI: copy hooks.json to\n`.github/hooks/jiahao.json` and the hook scripts (hooks/*.js from this\npackage) to `.github/jiahao/hooks/`. Flat schema `{version: 1, hooks:\n{event: [entry]}}` per the official hooks reference.\n\nEvent mapping:\n- sessionStart -> jiahao-activate.js (additionalContext injection)\n- userPromptSubmitted -> jiahao-mode-tracker.js (mode commands + reminder;\n  attested injection path)\n- subagentStart -> jiahao-subagent.js\n- agentStop -> jiahao-verdict-gate.js (block forces continuation; the CLI\n  force-ends after 8 consecutive blocks)\n- sessionEnd -> jiahao-sweep.js (sentinel sweep)\n\nKnown degradations (verified against copilot-cli issues, 2026-08):\n- #1730 (open): repo-level `.github/hooks/` sessionStart may not fire;\n  userPromptSubmitted is the attested injection path.\n- #2142: sessionStart additionalContext was dropped until CLI 1.0.11.\n- Copilot exit codes default to warn/fail-open outside\n  preToolUse/permissionRequest; the agentStop block follows the CLI\'s own\n  continuation semantics, not Claude\'s exit-2 stderr convention (ADR-0028\n  R6: differences are recorded, not shimmed).\n',
+    'adapters/copilot/README.md': '# GitHub Copilot CLI Adapter\n\nRepo-level hook config for GitHub Copilot CLI: copy hooks.json to\n`.github/hooks/jiahao.json` and the hook scripts (hooks/*.js from this\npackage) to `.github/jiahao/hooks/`. Flat schema `{version: 1, hooks:\n{event: [entry]}}` per the official hooks reference.\n\nEvent mapping:\n- sessionStart -> jiahao-activate.js (additionalContext injection)\n- userPromptSubmitted -> jiahao-mode-tracker.js (mode commands + reminder;\n  attested injection path)\n- subagentStart -> jiahao-subagent.js\n- agentStop -> jiahao-verdict-gate.js (block forces continuation; the CLI\n  force-ends after 8 consecutive blocks)\n- sessionEnd -> jiahao-sweep.js (sentinel sweep)\n\nKnown degradations (verified against copilot-cli issues, 2026-08):\n- #1730 (open): repo-level `.github/hooks/` sessionStart may not fire;\n  userPromptSubmitted is the attested injection path.\n- #2142: sessionStart additionalContext was dropped until CLI 1.0.11.\n- Copilot exit codes default to warn/fail-open outside\n  preToolUse/permissionRequest; the agentStop block follows the CLI\'s own\n  continuation semantics, not Claude\'s exit-2 stderr convention (\n  R6: differences are recorded, not shimmed).\n',
 
     // Qoder (international CLI): project-level .qoder/settings.json fragment.
     // Contract homologous to Claude Code: hookSpecificOutput.hookEventName,
@@ -96,7 +96,7 @@ function buildAdapters() {
       },
     }, null, 2) + '\n',
 
-    'adapters/qoder/README.md': '# Qoder Adapter (international CLI)\n\nMerge settings.json into your project `.qoder/settings.json` (or install\nuser-level at `~/.qoder/settings.json`) and copy the hook scripts\n(hooks/*.js of this package) to `.qoder/hooks/`. The contract is homologous\nto Claude Code: `hookSpecificOutput.hookEventName` + `additionalContext`,\nexit 2 blocks on Stop/UserPromptSubmit (docs.qoder.com/cli/hooks and\ncli/hooks-reference, verified 2026-08).\n\nEvent mapping: SessionStart (matcher startup|resume|clear; non-blocking) ->\njiahao-activate.js; SubagentStart -> jiahao-subagent.js; UserPromptSubmit ->\njiahao-mode-tracker.js; Stop/SubagentStop -> jiahao-verdict-gate.js\n(exit-2 blocking verifier gate).\n\nHonest notes:\n- SessionStart IS supported (matcher startup/resume/clear); the old runtime\n  comment "Qoder has no SessionStart" was wrong and has been corrected.\n- SessionEnd is not registered because it was not verified in the official\n  event list at research time; the next session\'s first hook reconcile\n  remains the sweep baseline (ADR-0024 D3).\n- CN fork (Lingma / Qoder CN): 5 events only, no SessionStart, Stop cannot\n  block, config under `~/.lingma/` — this adapter targets the international\n  CLI. Do not assume parity.\n',
+    'adapters/qoder/README.md': '# Qoder Adapter (international CLI)\n\nMerge settings.json into your project `.qoder/settings.json` (or install\nuser-level at `~/.qoder/settings.json`) and copy the hook scripts\n(hooks/*.js of this package) to `.qoder/hooks/`. The contract is homologous\nto Claude Code: `hookSpecificOutput.hookEventName` + `additionalContext`,\nexit 2 blocks on Stop/UserPromptSubmit (docs.qoder.com/cli/hooks and\ncli/hooks-reference, verified 2026-08).\n\nEvent mapping: SessionStart (matcher startup|resume|clear; non-blocking) ->\njiahao-activate.js; SubagentStart -> jiahao-subagent.js; UserPromptSubmit ->\njiahao-mode-tracker.js; Stop/SubagentStop -> jiahao-verdict-gate.js\n(exit-2 blocking verifier gate).\n\nHonest notes:\n- SessionStart IS supported (matcher startup/resume/clear); the old runtime\n  comment "Qoder has no SessionStart" was wrong and has been corrected.\n- SessionEnd is not registered because it was not verified in the official\n  event list at research time; the next session\'s first hook reconcile\n  remains the sweep baseline.\n- CN fork (Lingma / Qoder CN): 5 events only, no SessionStart, Stop cannot\n  block, config under `~/.lingma/` — this adapter targets the international\n  CLI. Do not assume parity.\n',
 
     // opencode: instruction tier, advisory-only. No lifecycle hooks and no
     // exit-2 contract exist (opencode#12472 open; #14551 closed not-planned).
@@ -123,7 +123,7 @@ function buildAdapters() {
     'adapters/mcp/README.md': '# MCP Adapter\n\njiahao-mcp/ is a stdio MCP server exposing jiahao verifier discipline\nvia registerPrompt + registerTool for MCP-only agent hosts.\n\nSee jiahao-mcp/index.js for the server implementation.\nDependencies: @modelcontextprotocol/sdk, zod.\n',
   };
 
-  // ---- CodeBuddy (ADR-0087): first Claude-Code-compatible path host ----
+  // ---- CodeBuddy: first Claude-Code-compatible path host ----
   // The bundle is SELF-CONTAINED: CodeBuddy recognizes .claude-plugin/ +
   // `${CLAUDE_PLUGIN_ROOT}` verbatim (official compat chapter; the name is
   // kept unchanged to maximize single-source distribution). Hook scripts +
@@ -228,12 +228,12 @@ function buildAdapters() {
   return adapters;
 }
 
-// CodeBuddy install manual + injection-surface ruling (ADR-0087 D-C, spec
+// CodeBuddy install manual + injection-surface ruling (spec
 // section 5): the Verified / Declared-unverified tiering tables live here
-// (disclosure surface - ADR-0074 D-F push discipline applies). Regenerated
+// (disclosure surface - push discipline applies). Regenerated
 // from this single source; edit the string, never the emitted file.
 function codebuddyReadme() {
-  return `# CodeBuddy Adapter (first Claude-Code-compatible path host, ADR-0087)
+  return `# CodeBuddy Adapter (first Claude-Code-compatible path host)
 
 This directory is a **self-contained plugin bundle**: CodeBuddy recognizes
 \`.claude-plugin/\` and \`\${CLAUDE_PLUGIN_ROOT}\` verbatim (official
@@ -305,7 +305,7 @@ host). Event matchers are case-sensitive - none are narrowed here.
 | Plugin-bundle path parity on CLI (documented compat, unprobed live) | pending-confirmation |
 
 Unverified means **registered, not assumed**: each row has a
-pending-confirmation entry in the taxonomy exception channel (ADR-0086
+pending-confirmation entry in the taxonomy exception channel (
 schema) with an expiry and an owner ratify/revoke point. Windows note: the
 upstream \`\${CLAUDE_PLUGIN_ROOT}\` hook expansion bug
 (anthropics/claude-code issues) may carry over - the settings-tier path is

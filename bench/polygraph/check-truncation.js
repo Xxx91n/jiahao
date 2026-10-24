@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// bench/polygraph/check-truncation.js — ADR-0022 D6 truncation-twin bucket.
+// bench/polygraph/check-truncation.js — truncation-twin bucket.
 // Expectations are pre-registered in README.md ("Truncation bucket") BEFORE
 // the first run; results stay OUT of the beat-b2 / Platt / kappa main corpus.
 // Fixtures are generated deterministically here — a ~10 MB payload does not
