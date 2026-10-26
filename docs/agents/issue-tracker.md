@@ -21,7 +21,7 @@ Infer the repo from `git remote -v`; `gh` does this automatically when run insid
 
 ## Merge
 
-Merge with rebase (`gh pr merge <n> --rebase`); `main` carries no merge commits. Temporary evidence commits — e.g. a whitespace probe added for a red run and then removed — reach `main` verbatim, so decide that trade-off before writing one.
+Merge with rebase (`gh pr merge <n> --rebase`); `main` carries no merge commits. Rebase replays commits with new IDs, so temporary evidence commits — e.g. a whitespace probe added for a red run and then removed — stay in the resulting history unless rewritten or dropped before landing. Decide that trade-off before writing one.
 
 ## Pull request review loop
 
@@ -81,7 +81,7 @@ Three things bite in that block. `gh` does **not** expand `{owner}`/`{repo}` ins
 
 Two rules that recur on range-based CI checks:
 
-- Ask whether the base is necessarily an ancestor of `HEAD` (after a force push it is not, and a three-dot range silently widens), and whether a sentinel — empty string, all-zero SHA — passes as a usable base.
+- Ask whether the base is still an ancestor of `HEAD` (a force push may remove it from the ancestor chain, causing a three-dot range to use the merge base and widen), and whether a sentinel — empty string, all-zero SHA — passes as a usable base.
 - Take a cheap fail-closed finding even when today's triggers cannot reach it; trigger surfaces widen.
 
 ## Pull requests as a triage surface
