@@ -19,6 +19,10 @@ Round branches (`grill-mental-model-rN`) carry a round's work; a ticket branch o
 
 Infer the repo from `git remote -v`; `gh` does this automatically when run inside a clone.
 
+## Merge
+
+Merge with rebase (`gh pr merge <n> --rebase`); `main` carries no merge commits. Temporary evidence commits — e.g. a whitespace probe added for a red run and then removed — reach `main` verbatim, so decide that trade-off before writing one.
+
 ## Pull request review loop
 
 Check what a PR has accumulated **before** landing it: coverage is not guaranteed, and on this repo's round-branch base the reviewer sometimes does not run at all (#31 landed with 0 reviews and 0 inline comments; #32 and #33 got reviewed).
@@ -72,6 +76,13 @@ gh api graphql -f query='query($owner: String!, $name: String!, $n: Int!, $c: St
 Three things bite in that block. `gh` does **not** expand `{owner}`/`{repo}` inside GraphQL query text or field values — measured, it sends the literal and GitHub answers `Could not resolve to a Repository with the name '{owner}/{repo}'`, which is why the owner and name come from `gh repo view`. `-f` sends a string, so the `Int!` variable needs `-F n=<n>`; `-f n=33` fails coercion. And an unbalanced brace in a query this long comes back as gh's own opaque parse error (`Expected NAME, actual: (none)`), not a useful message — check the braces first when it happens.
 
 `--paginate` is REST-only; for GraphQL, re-issue with `-f c='<endCursor>'` while `pageInfo.hasNextPage` is true. Measured on #33: `first: 2` reported `hasNextPage: true` and the follow-up call with that cursor returned the rest, while `first: 50` returned all of them in one page.
+
+### Dispositions
+
+Two rules that recur on range-based CI checks:
+
+- Ask whether the base is necessarily an ancestor of `HEAD` (after a force push it is not, and a three-dot range silently widens), and whether a sentinel — empty string, all-zero SHA — passes as a usable base.
+- Take a cheap fail-closed finding even when today's triggers cannot reach it; trigger surfaces widen.
 
 ## Pull requests as a triage surface
 
