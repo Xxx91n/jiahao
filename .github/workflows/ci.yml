@@ -18,12 +18,18 @@ jobs:
           PR_BASE: ${{ github.event.pull_request.base.sha }}
           PUSH_BEFORE: ${{ github.event.before }}
         run: |
+          ZERO="0000000000000000000000000000000000000000"
           BASE="${PR_BASE:-$PUSH_BEFORE}"
-          if [ -z "$BASE" ]; then
+          if [ -z "$BASE" ] || [ "$BASE" = "$ZERO" ]; then
             echo "::error::event payload carries no base revision"
             exit 1
           fi
-          git diff --check "$BASE...HEAD"
+          # PR: merge-base range; push: exact endpoints, since a force push can leave before off the ancestry
+          if [ -n "$PR_BASE" ]; then
+            git diff --check "$BASE...HEAD"
+          else
+            git diff --check "$BASE" HEAD
+          fi
       - uses: actions/setup-node@v4
         with:
           node-version: 20
