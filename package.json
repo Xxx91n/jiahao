@@ -27,7 +27,8 @@
     "hooks/",
     "GLOSSARY.md",
     "README.md",
-    "AGENTS.md"
+    "AGENTS.md",
+    "docs/agents/"
   ],
   "jest": {
     "testPathIgnorePatterns": [
