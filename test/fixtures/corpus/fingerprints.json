@@ -1,9 +1,9 @@
 {
   "note": "public fixture corpus fingerprints; re-baseline on any fixture change; collected_at dates rot after 6 months -> re-collect via maintainer recurrence",
   "files": {
-    "probes.jsonl": "9a8b3a6150d1eae840afe2d5618c73e2e56380d50b114d442365e365b4e9940b",
-    "judge-twins.jsonl": "377918b323a98fe82896f29122df55669bea5929f19d3154da7301e3799ef37c",
-    "mr-probes.jsonl": "0bcf75cab88057039539dcf76cdb9c1e90947b1fea01fe2f37ac9fcf2a3a12ae",
-    "twins.jsonl": "407b1097419c79035c1e7fa910d7237fa7422edd1a3255caa5c45e84a748bc67"
+    "probes.jsonl": "c79c250e0f849071d49f2c8a8581c3388138998e476676b6b7f425c4be864725",
+    "judge-twins.jsonl": "ba50efdcdd8345c9593d08c57ed5f1548cc4fbd29426d4f3ffc3e03b0e9d9bc8",
+    "mr-probes.jsonl": "8d4a69f5c2d3f4f49486c6b2697640e97dda5cf132d09914c0819c31584b376a",
+    "twins.jsonl": "614f198be2343237a8bd9e9a73dc39333f1afc9e7fc33ce3d11e71098fc6f998"
   }
 }
