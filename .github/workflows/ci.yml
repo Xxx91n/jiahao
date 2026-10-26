@@ -11,6 +11,13 @@ jobs:
       JIAHAO_TEST_TIER: public
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check whitespace on changed lines
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: git diff --check "${PR_BASE:-$PUSH_BEFORE}...HEAD"
       - uses: actions/setup-node@v4
         with:
           node-version: 20
