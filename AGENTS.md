@@ -7,6 +7,11 @@
 - `npm install` 后跑 `node scripts/install.js`；`--profile generator` 切换生成档。
 - 测试：`npm test`。改 `src/SKILL.md` 或 `src/`、`hooks/` 后，必须跑 `node scripts/build-adapters.js`（漂移检查：`node scripts/check-drift.js`）。
 
+## 版本控制
+
+- 普通 git：轮次分支 `grill-mental-model-rN` 承载一轮工作，票面分支的 PR base 取该轮次分支 tip。
+- GitButler 在本仓库未初始化（`but status` 报 Setup required），`but setup` 会把 HEAD 切到 `gitbutler/workspace`——893 个提交不在 `main` 上的孤儿线。全局那条 GitButler 规矩在这里让位给普通 git。
+
 ## 不要改的目录
 
 - `adapters/`：由 `src/` 生成，改源后重跑生成器。

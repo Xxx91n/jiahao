@@ -11,6 +11,11 @@ Issues and specs for this repo live as GitHub issues in `Xxx91n/jiahao`. Use the
 - **Comment on an issue**: `gh issue comment <number> --body "..."`
 - **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
 - **Close**: `gh issue close <number> --comment "..."`
+- **Closing keyword**: `Closes #<n>` on its own line, ASCII punctuation only. `Closes #29（…）` with a full-width parenthesis glued to the reference never registers — `closingIssuesReferences` stays `[]` and the issue survives the merge.
+
+## Branches and PR base
+
+Round branches (`grill-mental-model-rN`) carry a round's work; a ticket branch opens its PR against the current round branch, not `main`. `main` trails the round branch, so any "byte-identical relative to base" check diffs against the round-branch tip.
 
 Infer the repo from `git remote -v`; `gh` does this automatically when run inside a clone.
 
