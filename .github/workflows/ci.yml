@@ -17,7 +17,13 @@ jobs:
         env:
           PR_BASE: ${{ github.event.pull_request.base.sha }}
           PUSH_BEFORE: ${{ github.event.before }}
-        run: git diff --check "${PR_BASE:-$PUSH_BEFORE}...HEAD"
+        run: |
+          BASE="${PR_BASE:-$PUSH_BEFORE}"
+          if [ -z "$BASE" ]; then
+            echo "::error::event payload carries no base revision"
+            exit 1
+          fi
+          git diff --check "$BASE...HEAD"
       - uses: actions/setup-node@v4
         with:
           node-version: 20
