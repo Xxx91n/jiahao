@@ -8,7 +8,7 @@
   "baseline": false,
   "conclusion": "indeterminate",
   "conclusion_reasons": [
-    "decision-rule indeterminate: sampling plan not met (n < min_n); evidence insufficient, no conformity statement"
+    "decision-rule indeterminate: sampling plan not met (n < min_n); evidence insufficient, no conformity statement (ADR-0060 D-B)"
   ],
   "run_key": "ca0f86e50a6fb2fd85c4b1a2685b38fd70cec748a476985b2d92116f62ac6343",
   "metrics": {

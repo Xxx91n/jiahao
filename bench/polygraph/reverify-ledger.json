@@ -99,7 +99,7 @@
     },
     "conformity": "fail",
     "lookback_required": true,
-    "cross_baseline": "non-comparable",
+    "cross_baseline": "non-comparable (ADR-0049 D-C)",
     "drift_vs_previous_as_left": null,
     "event_hash": "ef9926697fa8002eab04421a84c9c102f8b9041cd371d1dbbb79e2e32180fa6e"
   },
