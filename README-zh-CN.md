@@ -16,7 +16,7 @@
   核心唯一信念：<b>“凭证即一切”</b>。
 </p>
 
-AI Agent 普遍存在虚假完工综合征：不测就宣称搞定、报错找补借口自我安慰、思维链里脑补自嗨、长篇大论小作文挤占工具行动、自造黑话复合词装高大上。Jiahao 从底层结构上杜绝这些恶劣行为。
+AI Agent 普遍存在虚假完工综合征：不测就宣称搞定、报错找补借口自我安慰、思维链里脑补自嗨、长篇大论小作文挤占工具行动、自造黑话复合词装高大上。
 
 ## 反自嗨五级行动阶梯
 
@@ -26,11 +26,11 @@ AI Agent 普遍存在虚假完工综合征：不测就宣称搞定、报错找�
 
 Cursor · Windsurf · Cline · Claude Code · Codex · 通用 / Agent 级。完整适配器集合见 [`adapters/`](adapters/)。
 
-两个角色由 `.jiahao-profile` 标记文件选择：`generator` 是默认的主执行角色，`verifier` 是二方独立审计角色。细节见 [`src/SKILL.md`](src/SKILL.md)。
+两个角色由 `.jiahao-profile` 标记文件选择：`generator` 是主执行 agent 的角色，`verifier` 是二方独立审计角色。没有该文件时，`verifier` 生效。细节见 [`src/SKILL.md`](src/SKILL.md)。
 
 ## 本地物理检验
 
-所有规矩均可通过机器命令直接物理求证，不依赖任何虚构指标：
+以下命令在磁盘上检查代码、适配器集合与仓库状态：
 
 ```bash
 npm test                        # 全量 Jest 物理测试（17 套件）
