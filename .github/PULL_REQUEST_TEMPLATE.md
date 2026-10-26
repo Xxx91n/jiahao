@@ -17,9 +17,6 @@
 
 - [ ] Claims in this PR cite evidence (a command output, a file:line, or an
       adjudicated record) — not "should work".
-- [ ] If this touches `README.md`, `README-zh-CN.md` was updated
-      and its `translation-baseline` will be re-pinned in the follow-up commit.
-- [ ] No new npm package content beyond what tarball budget
-      allows (`node scripts/check-pack-smoke.js` passes).
+- [ ] If this touches `README.md`, `README-zh-CN.md` was updated in the same commit.
 - [ ] Verdict wording uses the closed enum where applicable
       (PASS / FAIL / ESCALATE / NOT VERIFIED).
