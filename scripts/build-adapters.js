@@ -404,7 +404,8 @@ function listTrackedAdapterFiles() {
 
 // Both directions of the invariant: every tracked adapter is generated or
 // allowlisted, and every generated adapter is tracked. Either half alone can
-// print an "accounted for" line that does not add up.
+// print an "accounted for" line that does not add up; an allowlisted path the
+// generator also produces would double-count in that line.
 function auditTrackedSet(generated, tracked, allowlist) {
   const generatedSet = new Set(Object.keys(generated));
   const allowSet = new Set(Object.keys(allowlist));
@@ -418,6 +419,7 @@ function auditTrackedSet(generated, tracked, allowlist) {
   }
   for (const rel of allowSet) {
     if (!trackedSet.has(rel)) problems.push({ kind: 'staleAllowlist', rel: rel });
+    else if (generatedSet.has(rel)) problems.push({ kind: 'redundantAllowlist', rel: rel });
     else if (!String(allowlist[rel]).trim()) problems.push({ kind: 'allowlistReason', rel: rel });
   }
   return problems;
@@ -427,28 +429,28 @@ function auditTrackedSet(generated, tracked, allowlist) {
 // then assert the tracked set is fully accounted for. kind: error = git
 // enumeration failed - fail closed rather than skip the check.
 function checkAll() {
-  const expected = buildAdapters();
+  const generated = buildAdapters();
   const failures = [];
-  for (const rel of Object.keys(expected)) {
+  for (const rel of Object.keys(generated)) {
     const full = path.join(root, rel);
     if (!fs.existsSync(full)) { failures.push({ kind: 'missing', rel: rel }); continue; }
     const actual = fs.readFileSync(full, 'utf8');
-    if (actual !== expected[rel]) {
-      failures.push({ kind: 'diff', rel: rel, detail: unifiedDiff(rel, actual, expected[rel]) });
+    if (actual !== generated[rel]) {
+      failures.push({ kind: 'diff', rel: rel, detail: unifiedDiff(rel, actual, generated[rel]) });
     }
   }
 
   let tracked = [];
   try {
     tracked = listTrackedAdapterFiles();
-    failures.push(...auditTrackedSet(expected, tracked, ORPHAN_ALLOWLIST));
+    failures.push(...auditTrackedSet(generated, tracked, ORPHAN_ALLOWLIST));
   } catch (e) {
     failures.push({ kind: 'error', rel: 'adapters/', detail: e.message });
   }
 
   return {
     failures: failures,
-    generated: Object.keys(expected).length,
+    generated: Object.keys(generated).length,
     tracked: tracked.length,
     allowlisted: Object.keys(ORPHAN_ALLOWLIST).length,
   };
@@ -466,21 +468,18 @@ function writeAll() {
   return count;
 }
 
-const FAILURE_LABELS = {
-  error: 'ERROR',
-  missing: 'MISSING',
-  diff: 'DRIFT',
-  orphan: 'ORPHAN',
-  untracked: 'UNTRACKED',
-  staleAllowlist: 'STALE ALLOWLIST',
-  allowlistReason: 'ALLOWLIST REASON',
-};
-
-const FAILURE_HINTS = {
-  orphan: 'tracked under adapters/ but not produced by the generator; delete it or declare it in ORPHAN_ALLOWLIST (scripts/build-adapters.js) with a reason',
-  untracked: 'produced by the generator but not tracked; git add it',
-  staleAllowlist: 'listed in ORPHAN_ALLOWLIST but not tracked under adapters/',
-  allowlistReason: 'listed in ORPHAN_ALLOWLIST without a reason',
+const FAILURE_REPORT = {
+  error: { label: 'ERROR' },
+  missing: { label: 'MISSING' },
+  diff: { label: 'DRIFT' },
+  orphan: {
+    label: 'ORPHAN',
+    hint: 'tracked under adapters/ but not produced by the generator; delete it or declare it in ORPHAN_ALLOWLIST (scripts/build-adapters.js) with a reason',
+  },
+  untracked: { label: 'UNTRACKED', hint: 'produced by the generator but not tracked; git add it' },
+  staleAllowlist: { label: 'STALE ALLOWLIST', hint: 'listed in ORPHAN_ALLOWLIST but not tracked under adapters/' },
+  redundantAllowlist: { label: 'REDUNDANT ALLOWLIST', hint: 'listed in ORPHAN_ALLOWLIST but the generator produces it; drop the entry' },
+  allowlistReason: { label: 'ALLOWLIST REASON', hint: 'listed in ORPHAN_ALLOWLIST without a reason' },
 };
 
 function main() {
@@ -488,11 +487,12 @@ function main() {
     const result = checkAll();
     if (result.failures.length > 0) {
       for (const f of result.failures) {
-        console.error(FAILURE_LABELS[f.kind] + ': ' + f.rel +
-          (FAILURE_HINTS[f.kind] ? ' (' + FAILURE_HINTS[f.kind] + ')' : ''));
+        const report = FAILURE_REPORT[f.kind];
+        console.error(report.label + ': ' + f.rel + (report.hint ? ' (' + report.hint + ')' : ''));
         if (f.detail) console.error(f.detail);
       }
-      if (result.failures.some(f => f.kind === 'missing' || f.kind === 'diff')) {
+      const regenDrift = result.failures.some(f => f.kind === 'missing' || f.kind === 'diff');
+      if (regenDrift) {
         console.error('\nRun: node scripts/build-adapters.js to regenerate drifted files.');
       }
       process.exit(1);
