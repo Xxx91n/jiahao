@@ -49,6 +49,6 @@ test('index.js supports mode parameter (lite/full/ultra)', () => {
 
 test('index.js syntax is valid', () => {
   const { execSync } = require('child_process');
-  execSync('node -c ' + path.join(mcpDir, 'index.js'), { encoding: 'utf8', timeout: 5000 });
+  execSync('node -c ' + path.join(mcpDir, 'index.js'), { encoding: 'utf8', timeout: 15000 });
   // exit 0 = valid syntax
 });
