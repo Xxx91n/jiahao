@@ -78,12 +78,13 @@ test('auditTrackedSet reports generated files missing from the tracked set', () 
     .toEqual([{ kind: 'untracked', rel: 'adapters/a.md' }]);
 });
 
-test('auditTrackedSet reports stale and unjustified allowlist entries', () => {
+test('auditTrackedSet reports stale, redundant, and unjustified allowlist entries', () => {
   const { auditTrackedSet } = require('../scripts/build-adapters');
-  const allowlist = { 'adapters/gone.js': 'why', 'adapters/blank.js': '   ' };
-  expect(auditTrackedSet({}, ['adapters/blank.js'], allowlist)).toEqual([
+  const allowlist = { 'adapters/gone.js': 'why', 'adapters/blank.js': '   ', 'adapters/a.md': 'why' };
+  expect(auditTrackedSet({ 'adapters/a.md': 'x' }, ['adapters/a.md', 'adapters/blank.js'], allowlist)).toEqual([
     { kind: 'staleAllowlist', rel: 'adapters/gone.js' },
     { kind: 'allowlistReason', rel: 'adapters/blank.js' },
+    { kind: 'redundantAllowlist', rel: 'adapters/a.md' },
   ]);
 });
 
@@ -124,6 +125,17 @@ test('--check goes red naming both sides of a tracked-set gap', () => {
     });
   } finally {
     fs.unlinkSync(orphanAbs);
+  }
+});
+
+test('--check fails closed when git is unavailable', () => {
+  const emptyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-path-'));
+  try {
+    const res = runCheck(Object.assign({}, process.env, { PATH: emptyDir }));
+    expect(res.status).toBe(1);
+    expect(res.stderr).toContain('cannot list tracked files');
+  } finally {
+    fs.rmSync(emptyDir, { recursive: true, force: true });
   }
 });
 
