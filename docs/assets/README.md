@@ -22,12 +22,13 @@ grill-t23 D-005). The repo only ever runs deterministic processing.
 ## Packaging: these assets are not shipped to npm
 
 `docs/assets/` is deliberately absent from `package.json.files`; adding it
-would put ~1.4 MB of rasters in every tarball and still not fix the npmjs page.
+would put ~1.3 MB of rasters in every tarball and still not fix the npmjs page.
 
-npmjs renders the README from the GitHub repository, not from the tarball: it
-rewrites relative references against `repository.url`. So the two READMEs pin
-the brand logos to absolute `raw.githubusercontent.com/.../main/...` URLs, and
-`test/packaging.test.js` keeps it that way. Two things to know before editing:
+npmjs rewrites the relative URLs in the published README against
+`repository.url`: images then load from GitHub raw, and links to other repo
+files from GitHub blob. So the two READMEs pin the brand logos to absolute
+`raw.githubusercontent.com/.../main/...` URLs, and `test/packaging.test.js`
+keeps them that way. Two things to know before editing:
 
 - `<img src>` is rewritten by npmjs, but `<source srcset>` is not. A relative
   dark-mode logo therefore renders locally and breaks on npmjs.
