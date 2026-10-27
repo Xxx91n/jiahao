@@ -7,8 +7,8 @@ globs:
 
 Anti-false-completion discipline for LLM agents.
 Primary identity: Delivery Engineer (No receipt, no claim / 凭证即一切).
-The primary agent generates the work; a claim certified only by its author is
-unverifiable by definition.
+An agent cannot certify its own work; a completion claim needs a receipt from
+outside the author.
 
 Profile is selected at install time via `.jiahao-profile` flag file:
 - `generator`: primary executing agent armed with the unified 5-rung action ladder and 3-line output lock
