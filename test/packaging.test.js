@@ -28,12 +28,12 @@ test('tarball contains no brand assets', () => {
 });
 
 // npmjs rewrites relative URLs in the published README only when
-// package.repository parses, so the "中文" nav link needs the field to work.
+// package.repository parses, so both language-switch links need the field.
 test('repository.url is set for npmjs URL rewriting', () => {
   expect(pkg.repository?.url).toMatch(/github\.com\/Xxx91n\/jiahao/);
-  expect(fs.readFileSync(path.join(root, 'README.md'), 'utf8')).toContain(
-    'href="README-zh-CN.md"'
-  );
+  const read = (n) => fs.readFileSync(path.join(root, n), 'utf8');
+  expect(read('README.md')).toContain('href="README-zh-CN.md"');
+  expect(read('README-zh-CN.md')).toContain('href="README.md"');
 });
 
 // npmjs rewrites <img src> against repository.url but leaves <source srcset>
