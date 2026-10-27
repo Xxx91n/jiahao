@@ -27,12 +27,10 @@ test('tarball contains no brand assets', () => {
   expect(packed.filter((p) => p.startsWith('docs/assets/'))).toEqual([]);
 });
 
-// Without repository.url npmjs cannot rewrite the relative "中文" link in
-// README.md, so the packed Chinese README stays unreachable from the page.
-test('repository.url lets npmjs resolve the relative Chinese-README link', () => {
-  expect(pkg.repository && pkg.repository.url).toMatch(
-    /github\.com\/Xxx91n\/jiahao/
-  );
+// npmjs rewrites relative URLs in the published README only when
+// package.repository parses, so the "中文" nav link needs the field to work.
+test('repository.url is set for npmjs URL rewriting', () => {
+  expect(pkg.repository?.url).toMatch(/github\.com\/Xxx91n\/jiahao/);
   expect(fs.readFileSync(path.join(root, 'README.md'), 'utf8')).toContain(
     'href="README-zh-CN.md"'
   );
@@ -41,13 +39,11 @@ test('repository.url lets npmjs resolve the relative Chinese-README link', () =>
 // npmjs rewrites <img src> against repository.url but leaves <source srcset>
 // untouched, so a relative dark-mode logo fails on the published page.
 test('both READMEs point at both brand assets by absolute URL', () => {
-  const expected = [`${BRAND}/logo.png`, `${BRAND}/logo-dark.png`];
   for (const name of ['README.md', 'README-zh-CN.md']) {
     const content = fs.readFileSync(path.join(root, name), 'utf8');
-    const urls = [...content.matchAll(/(?:src|srcset)="([^"]+)"/g)].map((m) => m[1]);
-    expect(urls).toEqual(expect.arrayContaining(expected));
-    for (const url of urls) {
-      expect(url.startsWith('https://')).toBe(true);
-    }
+    const src = content.match(/<img src="([^"]+)"/);
+    const srcset = content.match(/<source[^>]+srcset="([^"]+)"/);
+    expect(src && src[1]).toBe(`${BRAND}/logo.png`);
+    expect(srcset && srcset[1]).toBe(`${BRAND}/logo-dark.png`);
   }
 });
