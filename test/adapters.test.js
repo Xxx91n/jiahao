@@ -102,6 +102,16 @@ function withTempIndex(fn) {
   }
 }
 
+// Track a path in the throwaway index without putting a file in the working
+// tree: the audit reads the index, and a probe on disk would race tests that
+// package or read adapters/.
+function stageOrphan(env, rel) {
+  const blob = execFileSync('git', ['rev-parse', 'HEAD:src/SKILL.md'], { cwd: root, encoding: 'utf8' }).trim();
+  execFileSync('git', ['update-index', '--add', '--cacheinfo', '100644,' + blob + ',' + rel], {
+    cwd: root, env, encoding: 'utf8', timeout: 15000,
+  });
+}
+
 function runCheck(env) {
   return spawnSync(process.execPath, ['scripts/build-adapters.js', '--check'], {
     cwd: root, env, encoding: 'utf8', timeout: 15000,
@@ -109,41 +119,28 @@ function runCheck(env) {
 }
 
 test('--check goes red naming both sides of a tracked-set gap', () => {
-  const orphanRel = 'adapters/zz-orphan-probe.txt';
-  const orphanAbs = path.join(root, orphanRel);
-  fs.writeFileSync(orphanAbs, 'probe\n');
-  try {
-    withTempIndex((env) => {
-      execFileSync('git', ['add', '--', orphanRel], { cwd: root, env, encoding: 'utf8', timeout: 15000 });
-      execFileSync('git', ['rm', '--cached', '--quiet', '--', 'adapters/claude-code/README.md'], {
-        cwd: root, env, encoding: 'utf8', timeout: 15000,
-      });
-      const res = runCheck(env);
-      expect(res.status).toBe(1);
-      expect(res.stderr).toContain('ORPHAN: ' + orphanRel);
-      expect(res.stderr).toContain('UNTRACKED: adapters/claude-code/README.md');
+  withTempIndex((env) => {
+    stageOrphan(env, 'adapters/zz-orphan-probe.txt');
+    execFileSync('git', ['rm', '--cached', '--quiet', '--', 'adapters/claude-code/README.md'], {
+      cwd: root, env, encoding: 'utf8', timeout: 15000,
     });
-  } finally {
-    fs.unlinkSync(orphanAbs);
-  }
+    const res = runCheck(env);
+    expect(res.status).toBe(1);
+    expect(res.stderr).toContain('ORPHAN: adapters/zz-orphan-probe.txt');
+    expect(res.stderr).toContain('UNTRACKED: adapters/claude-code/README.md');
+  });
 });
 
 test('--check names a non-ASCII orphan instead of dropping it from the audit', () => {
   // Default core.quotePath would emit this path octal-escaped, hiding it
   // behind the `adapters/` prefix filter.
   const orphanRel = 'adapters/孤儿-探针.txt';
-  const orphanAbs = path.join(root, orphanRel);
-  fs.writeFileSync(orphanAbs, 'probe\n');
-  try {
-    withTempIndex((env) => {
-      execFileSync('git', ['add', '--', orphanRel], { cwd: root, env, encoding: 'utf8', timeout: 15000 });
-      const res = runCheck(env);
-      expect(res.status).toBe(1);
-      expect(res.stderr).toContain('ORPHAN: ' + orphanRel);
-    });
-  } finally {
-    fs.unlinkSync(orphanAbs);
-  }
+  withTempIndex((env) => {
+    stageOrphan(env, orphanRel);
+    const res = runCheck(env);
+    expect(res.status).toBe(1);
+    expect(res.stderr).toContain('ORPHAN: ' + orphanRel);
+  });
 });
 
 test('--check fails closed when git is unavailable', () => {
