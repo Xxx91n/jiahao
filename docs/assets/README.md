@@ -35,6 +35,13 @@ keeps them that way. Two things to know before editing:
 - The URLs are pinned to `main`, so renaming that branch or moving these files
   breaks the logo on every already-published version.
 
+Evidence for the two rewrite rules (measured, not assumed): on npmjs the
+published `sweetalert2` page loads `raw.githubusercontent.com/.../HEAD/assets/swal2-logo.png`
+although its tarball carries no `assets/`; on `lit` the `<img src>` resolves to
+raw while its `<source srcset>` stays `./logo-dark.svg` and 404s. Not verified:
+the rendering of *this* package's published page — it has not been published
+under this name.
+
 ## Pure-SVG assets (`assets/`)
 
 | File | Content |
