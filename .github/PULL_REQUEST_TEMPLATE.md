@@ -10,7 +10,6 @@
      paraphrase. A claim without a rerun is not yet a result. -->
 
 ```sh
-# e.g. npm test / node scripts/check-drift.js / node scripts/run-test-gate.js
 ```
 
 ## Checklist
