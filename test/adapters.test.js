@@ -1,7 +1,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { execSync, spawnSync } = require('child_process');
+const { execSync, execFileSync, spawnSync } = require('child_process');
 
 const root = path.join(__dirname, '..');
 
@@ -114,14 +114,32 @@ test('--check goes red naming both sides of a tracked-set gap', () => {
   fs.writeFileSync(orphanAbs, 'probe\n');
   try {
     withTempIndex((env) => {
-      execSync('git add -- ' + orphanRel, { cwd: root, env, encoding: 'utf8', timeout: 15000 });
-      execSync('git rm --cached --quiet -- adapters/claude-code/README.md', {
+      execFileSync('git', ['add', '--', orphanRel], { cwd: root, env, encoding: 'utf8', timeout: 15000 });
+      execFileSync('git', ['rm', '--cached', '--quiet', '--', 'adapters/claude-code/README.md'], {
         cwd: root, env, encoding: 'utf8', timeout: 15000,
       });
       const res = runCheck(env);
       expect(res.status).toBe(1);
       expect(res.stderr).toContain('ORPHAN: ' + orphanRel);
       expect(res.stderr).toContain('UNTRACKED: adapters/claude-code/README.md');
+    });
+  } finally {
+    fs.unlinkSync(orphanAbs);
+  }
+});
+
+test('--check names a non-ASCII orphan instead of dropping it from the audit', () => {
+  // Default core.quotePath would emit this path octal-escaped, hiding it
+  // behind the `adapters/` prefix filter.
+  const orphanRel = 'adapters/孤儿-探针.txt';
+  const orphanAbs = path.join(root, orphanRel);
+  fs.writeFileSync(orphanAbs, 'probe\n');
+  try {
+    withTempIndex((env) => {
+      execFileSync('git', ['add', '--', orphanRel], { cwd: root, env, encoding: 'utf8', timeout: 15000 });
+      const res = runCheck(env);
+      expect(res.status).toBe(1);
+      expect(res.stderr).toContain('ORPHAN: ' + orphanRel);
     });
   } finally {
     fs.unlinkSync(orphanAbs);

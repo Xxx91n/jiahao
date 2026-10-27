@@ -35,8 +35,11 @@ const { execFileSync } = require('child_process');
 
 function listTrackedPaths(root) {
   // index only - see header for the M1/M2 base distinction.
-  const out = execFileSync('git', ['ls-files'], { cwd: root, encoding: 'utf8' });
-  return out.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+  // -z keeps paths verbatim and newline-safe: the default core.quotePath
+  // escapes non-ASCII bytes as octal, and a quoted path is unusable to any
+  // caller that filters or opens it.
+  const out = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' });
+  return out.split('\0').filter(Boolean);
 }
 
 // Content-hash every tracked path present in the working tree. A tracked path
