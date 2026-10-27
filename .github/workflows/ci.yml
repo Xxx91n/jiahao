@@ -28,7 +28,7 @@ jobs:
           if [ -n "$PR_BASE" ]; then
             git diff --check "$BASE...HEAD"
           else
-            # best-effort: fetch-depth 0 brings branches and tags, not a force-pushed commit; ask the server for that SHA
+            # fetch-depth 0 covers branches and tags, not a commit a force push left behind, so ask the server for that SHA
             if ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
               if ! git fetch --no-tags origin "$BASE"; then
                 echo "::error::cannot fetch base revision $BASE (force-pushed commit may be garbage-collected)"
