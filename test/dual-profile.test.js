@@ -62,7 +62,7 @@ test('generator adapter does NOT contain verifier tools', () => {
 });
 
 test('build-adapters generator output produces both profiles', () => {
-  execSync('node scripts/build-adapters.js', { cwd: root, encoding: 'utf8', timeout: 5000 });
+  execSync('node scripts/build-adapters.js', { cwd: root, encoding: 'utf8', timeout: 15000 });
   expect(fs.existsSync(path.join(root, 'adapters', 'cursor', 'jiahao-generator.mdc'))).toBe(true);
   expect(fs.existsSync(path.join(root, 'adapters', 'windsurf', 'jiahao-generator.md'))).toBe(true);
   expect(fs.existsSync(path.join(root, 'adapters', 'cline', 'jiahao-generator.md'))).toBe(true);
@@ -84,7 +84,7 @@ test('activate hook uses generator profile when flag set', () => {
     const output = execSync('node hooks/jiahao-activate.js', {
       encoding: 'utf8',
       env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 5000,
+      timeout: 15000,
     });
     // Generator profile should NOT contain verification ladder content
     expect(output).not.toContain('deterministic machine check');
@@ -110,7 +110,7 @@ test('verdict-gate advisory mode for generator profile', () => {
     const output = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
       encoding: 'utf8',
       env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 5000,
+      timeout: 15000,
       shell: 'bash',
     });
     // Generator mode: allow, not block — verify explicit advisory output

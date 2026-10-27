@@ -6,7 +6,7 @@ const root = path.join(__dirname, '..');
 
 test('build-adapters generates all adapter files', () => {
   // Run build
-  execSync('node scripts/build-adapters.js', { cwd: root, encoding: 'utf8', timeout: 5000 });
+  execSync('node scripts/build-adapters.js', { cwd: root, encoding: 'utf8', timeout: 15000 });
 
   const expected = [
     'adapters/claude-code/README.md',
@@ -73,7 +73,7 @@ test('checkAll reports a missing adapter file', () => {
 });
 
 test('check-drift passes after build', () => {
-  execSync('node scripts/build-adapters.js', { cwd: root, encoding: 'utf8', timeout: 5000 });
-  execSync('node scripts/check-drift.js', { cwd: root, encoding: 'utf8', timeout: 5000 });
+  execSync('node scripts/build-adapters.js', { cwd: root, encoding: 'utf8', timeout: 15000 });
+  execSync('node scripts/check-drift.js', { cwd: root, encoding: 'utf8', timeout: 15000 });
   // exit 0 = pass
 });

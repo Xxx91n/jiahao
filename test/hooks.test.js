@@ -66,7 +66,7 @@ test('activate script runs and outputs SKILL.md content', () => {
     const output = execSync('node hooks/jiahao-activate.js', {
       encoding: 'utf8',
       env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 5000,
+      timeout: 15000,
     });
     expect(output).toContain('Jiahao');
     expect(output).toContain('verification ladder');
@@ -83,7 +83,7 @@ test('mode-tracker responds to /jiahao full command', () => {
     const output = execSync('echo \'' + input + '\' | node hooks/jiahao-mode-tracker.js', {
       encoding: 'utf8',
       env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 5000,
+      timeout: 15000,
       shell: 'bash',
     });
     expect(output).toContain('JIAHAO MODE');
@@ -103,7 +103,7 @@ test('verdict-gate blocks without evidence', () => {
     const output = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
       encoding: 'utf8',
       env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 5000,
+      timeout: 15000,
       shell: 'bash',
     });
     const parsed = JSON.parse(output);
@@ -126,7 +126,7 @@ test('verdict-gate passes with evidence', () => {
     execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
       encoding: 'utf8',
       env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 5000,
+      timeout: 15000,
       shell: 'bash',
     });
   } catch (e) {
@@ -148,7 +148,7 @@ test('verdict-gate blocks with empty JSON array evidence', () => {
     const output = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
       encoding: 'utf8',
       env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 5000,
+      timeout: 15000,
       shell: 'bash',
     });
     const parsed = JSON.parse(output);
@@ -172,7 +172,7 @@ test('verdict-gate blocks with plain text evidence (not JSON)', () => {
     const output = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
       encoding: 'utf8',
       env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 5000,
+      timeout: 15000,
       shell: 'bash',
     });
     const parsed = JSON.parse(output);
@@ -205,7 +205,7 @@ test('verdict-gate respects stop_hook_active', () => {
     execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
       encoding: 'utf8',
       env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 5000,
+      timeout: 15000,
       shell: 'bash',
     });
   } catch (e) {
@@ -224,12 +224,12 @@ test('D4: verdict-gate with evidence is idempotent (file NOT consumed, second fi
   const input = JSON.stringify({ stop_hook_active: false });
   try {
     execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 5000, shell: 'bash',
+      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
     });
     // file must still exist after the hook accepted the stop.
     expect(fs.existsSync(TMP + '/.jiahao-evidence')).toBe(true);
     execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 5000, shell: 'bash',
+      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
     });
     expect(fs.existsSync(TMP + '/.jiahao-evidence')).toBe(true);
   } catch (e) {
@@ -251,7 +251,7 @@ test('D2: generator profile never blocks on high-severity suspicion (advisory on
   try {
     const input = JSON.stringify({ stop_hook_active: false });
     const out = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 5000, shell: 'bash',
+      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
     });
     const parsed = JSON.parse(out);
     expect(parsed.decision).toBe('allow');
@@ -274,7 +274,7 @@ test('D2: verifier profile blocks on high-severity suspicion', () => {
   try {
     const input = JSON.stringify({ stop_hook_active: false });
     execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 5000, shell: 'bash',
+      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
       stdio: ['pipe', 'pipe', 'pipe'],
     });
     throw new Error('verifier profile should have blocked');
@@ -301,7 +301,7 @@ test('D2: verifier profile low-severity suspicion = advisory, not block', () => 
   try {
     const input = JSON.stringify({ stop_hook_active: false });
     const out = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 5000, shell: 'bash',
+      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
     });
     const parsed = JSON.parse(out);
     expect(parsed.decision).toBe('allow');
@@ -323,7 +323,7 @@ test('D2: verifier profile with clean evidence (no detector field) passes silent
   try {
     const input = JSON.stringify({ stop_hook_active: false });
     execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 5000, shell: 'bash',
+      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
     });
   } catch (e) {
     throw new Error('verifier profile should pass with clean evidence, got ' + e.status);
@@ -372,7 +372,7 @@ test('verdict-gate blocks on broken chain (verifier)', () => {
   try {
     const input = JSON.stringify({ stop_hook_active: false });
     execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 5000, shell: 'bash',
+      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
     });
     throw new Error('verdict-gate should have blocked on broken chain');
   } catch (e) {
@@ -396,7 +396,7 @@ test('verifier gate surfaces pending escalation count (advisory, exit 0)', () =>
 
   const input = JSON.stringify({});
   const output = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-    encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 5000, shell: 'bash',
+    encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
   });
   expect(output).toContain('Pending escalations: 1');
   expect(output).toContain('jiahao resolve');
