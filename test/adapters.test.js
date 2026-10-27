@@ -49,54 +49,81 @@ test('cursor adapter has frontmatter', () => {
   expect(content).toContain('description:');
 });
 
-test('build-adapters --check is green on the committed tree', () => {
-  const out = execSync('node scripts/build-adapters.js --check', { cwd: root, encoding: 'utf8', timeout: 10000 });
+test('build-adapters --check is green and accounts for every tracked adapter', () => {
+  const out = execSync('node scripts/build-adapters.js --check', { cwd: root, encoding: 'utf8', timeout: 15000 });
   expect(out).toContain('regen-diff clean');
-});
-
-test('--check success output equals the tracked count: generated + allowlisted', () => {
-  const out = execSync('node scripts/build-adapters.js --check', { cwd: root, encoding: 'utf8', timeout: 10000 });
-  const tracked = execSync('git ls-files -- adapters', { cwd: root, encoding: 'utf8', timeout: 10000 })
-    .trim().split('\n').filter(Boolean).length;
+  const tracked = execSync('git ls-files -z -- adapters', { cwd: root, encoding: 'utf8', timeout: 15000 })
+    .split('\0').filter(Boolean).length;
   const m = out.match(/All (\d+) tracked adapter files accounted for: (\d+) generated \+ (\d+) allowlisted/);
   expect(m).not.toBeNull();
   expect(Number(m[2]) + Number(m[3])).toBe(Number(m[1]));
   expect(Number(m[1])).toBe(tracked);
 });
 
-test('findOrphans names tracked files the generator does not produce', () => {
-  const { findOrphans } = require('../scripts/build-adapters');
-  const expected = { 'adapters/a.md': 'x' };
-  const orphans = findOrphans(expected, ['adapters/a.md', 'adapters/stray.js'], {});
-  expect(orphans).toEqual(['adapters/stray.js']);
+test('auditTrackedSet names tracked files the generator does not produce', () => {
+  const { auditTrackedSet } = require('../scripts/build-adapters');
+  const problems = auditTrackedSet({ 'adapters/a.md': 'x' }, ['adapters/a.md', 'adapters/stray.js'], {});
+  expect(problems).toEqual([{ kind: 'orphan', rel: 'adapters/stray.js' }]);
 });
 
-test('findOrphans honours the declared exception list', () => {
-  const { findOrphans } = require('../scripts/build-adapters');
+test('auditTrackedSet honours the declared exception list', () => {
+  const { auditTrackedSet } = require('../scripts/build-adapters');
   const allowlist = { 'adapters/declared.js': 'kept on purpose' };
-  expect(findOrphans({}, ['adapters/declared.js'], allowlist)).toEqual([]);
+  expect(auditTrackedSet({}, ['adapters/declared.js'], allowlist)).toEqual([]);
 });
 
-test('--check goes red and names a tracked file the generator does not produce', () => {
-  // Stage the probe in a throwaway index so the real one is never touched.
+test('auditTrackedSet reports generated files missing from the tracked set', () => {
+  const { auditTrackedSet } = require('../scripts/build-adapters');
+  expect(auditTrackedSet({ 'adapters/a.md': 'x' }, [], {}))
+    .toEqual([{ kind: 'untracked', rel: 'adapters/a.md' }]);
+});
+
+test('auditTrackedSet reports stale and unjustified allowlist entries', () => {
+  const { auditTrackedSet } = require('../scripts/build-adapters');
+  const allowlist = { 'adapters/gone.js': 'why', 'adapters/blank.js': '   ' };
+  expect(auditTrackedSet({}, ['adapters/blank.js'], allowlist)).toEqual([
+    { kind: 'staleAllowlist', rel: 'adapters/gone.js' },
+    { kind: 'allowlistReason', rel: 'adapters/blank.js' },
+  ]);
+});
+
+// A throwaway copy of the index so probes never touch the real one.
+function withTempIndex(fn) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-index-'));
   const indexFile = path.join(tmp, 'index');
   const realIndex = path.resolve(root, execSync('git rev-parse --git-path index', { cwd: root, encoding: 'utf8' }).trim());
   fs.copyFileSync(realIndex, indexFile);
+  const env = Object.assign({}, process.env, { GIT_INDEX_FILE: indexFile });
+  try {
+    return fn(env);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+}
+
+function runCheck(env) {
+  return spawnSync(process.execPath, ['scripts/build-adapters.js', '--check'], {
+    cwd: root, env, encoding: 'utf8', timeout: 15000,
+  });
+}
+
+test('--check goes red naming both sides of a tracked-set gap', () => {
   const orphanRel = 'adapters/zz-orphan-probe.txt';
   const orphanAbs = path.join(root, orphanRel);
-  const env = Object.assign({}, process.env, { GIT_INDEX_FILE: indexFile });
   fs.writeFileSync(orphanAbs, 'probe\n');
   try {
-    execSync('git add -- ' + orphanRel, { cwd: root, env, encoding: 'utf8', timeout: 15000 });
-    const res = spawnSync(process.execPath, ['scripts/build-adapters.js', '--check'], {
-      cwd: root, env, encoding: 'utf8', timeout: 15000,
+    withTempIndex((env) => {
+      execSync('git add -- ' + orphanRel, { cwd: root, env, encoding: 'utf8', timeout: 15000 });
+      execSync('git rm --cached --quiet -- adapters/claude-code/README.md', {
+        cwd: root, env, encoding: 'utf8', timeout: 15000,
+      });
+      const res = runCheck(env);
+      expect(res.status).toBe(1);
+      expect(res.stderr).toContain('ORPHAN: ' + orphanRel);
+      expect(res.stderr).toContain('UNTRACKED: adapters/claude-code/README.md');
     });
-    expect(res.status).toBe(1);
-    expect(res.stderr).toContain('ORPHAN: ' + orphanRel);
   } finally {
     fs.unlinkSync(orphanAbs);
-    fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
 
