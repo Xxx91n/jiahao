@@ -7,15 +7,17 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 
 const BRAND = 'https://raw.githubusercontent.com/Xxx91n/jiahao/main/docs/assets/brand';
 
-const pack = JSON.parse(
-  execSync('npm pack --dry-run --json', {
+let packed;
+
+beforeAll(() => {
+  const out = execSync('npm pack --dry-run --json', {
     cwd: root,
     encoding: 'utf8',
     timeout: 120000,
-    stdio: ['ignore', 'pipe', 'ignore'],
-  })
-)[0];
-const packed = pack.files.map((f) => f.path);
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  packed = JSON.parse(out)[0].files.map((f) => f.path);
+});
 
 test('tarball contains the Chinese README', () => {
   expect(packed).toContain('README-zh-CN.md');
@@ -25,15 +27,20 @@ test('tarball contains no brand assets', () => {
   expect(packed.filter((p) => p.startsWith('docs/assets/'))).toEqual([]);
 });
 
-test('repository.url lets npmjs resolve relative README references', () => {
+// Without repository.url npmjs cannot rewrite the relative "中文" link in
+// README.md, so the packed Chinese README stays unreachable from the page.
+test('repository.url lets npmjs resolve the relative Chinese-README link', () => {
   expect(pkg.repository && pkg.repository.url).toMatch(
     /github\.com\/Xxx91n\/jiahao/
+  );
+  expect(fs.readFileSync(path.join(root, 'README.md'), 'utf8')).toContain(
+    'href="README-zh-CN.md"'
   );
 });
 
 // npmjs rewrites <img src> against repository.url but leaves <source srcset>
-// untouched, so a relative logo fails on the published page.
-test('packed READMEs point at both brand assets by absolute URL', () => {
+// untouched, so a relative dark-mode logo fails on the published page.
+test('both READMEs point at both brand assets by absolute URL', () => {
   const expected = [`${BRAND}/logo.png`, `${BRAND}/logo-dark.png`];
   for (const name of ['README.md', 'README-zh-CN.md']) {
     const content = fs.readFileSync(path.join(root, name), 'utf8');

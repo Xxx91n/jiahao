@@ -19,6 +19,21 @@ pipeline script, never hand-edited.
 Source draft: user-side GPT Image generation (external channel, per
 grill-t23 D-005). The repo only ever runs deterministic processing.
 
+## Packaging: these assets are not shipped to npm
+
+`docs/assets/` is deliberately absent from `package.json.files`; adding it
+would put ~1.4 MB of rasters in every tarball and still not fix the npmjs page.
+
+npmjs renders the README from the GitHub repository, not from the tarball: it
+rewrites relative references against `repository.url`. So the two READMEs pin
+the brand logos to absolute `raw.githubusercontent.com/.../main/...` URLs, and
+`test/packaging.test.js` keeps it that way. Two things to know before editing:
+
+- `<img src>` is rewritten by npmjs, but `<source srcset>` is not. A relative
+  dark-mode logo therefore renders locally and breaks on npmjs.
+- The URLs are pinned to `main`, so renaming that branch or moving these files
+  breaks the logo on every already-published version.
+
 ## Pure-SVG assets (`assets/`)
 
 | File | Content |
