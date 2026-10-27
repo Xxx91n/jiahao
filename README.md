@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/brand/logo-dark.png">
-    <img src="docs/assets/brand/logo.png" alt="jiahao mark — the hooded anti-mascot" width="140">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Xxx91n/jiahao/main/docs/assets/brand/logo-dark.png">
+    <img src="https://raw.githubusercontent.com/Xxx91n/jiahao/main/docs/assets/brand/logo.png" alt="jiahao mark — the hooded anti-mascot" width="140">
   </picture>
 </p>
 
@@ -33,7 +33,7 @@ Two profiles, selected with a `.jiahao-profile` flag file: `generator` for a pri
 These commands check the code, the adapter set, and repository state on disk:
 
 ```bash
-npm test                        # Full physical test suite (17 suites)
+npm test                        # Full physical test suite (18 suites)
 node scripts/build-adapters.js --check  # Golden adapter sync check
 node scripts/check-drift.js     # Adapter drift check
 git diff --check                # Whitespace and formatting check
