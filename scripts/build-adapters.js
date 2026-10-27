@@ -7,6 +7,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 const { splitByProfile, validateGsrHeaders } = require('../hooks/jiahao-profile');
 
 const root = path.join(__dirname, '..');
@@ -377,8 +378,42 @@ function unifiedDiff(rel, oldText, newText) {
   return out.join('\n');
 }
 
-// Regen-and-diff: regenerate in memory, byte-compare with committed files.
-// Returns [{rel, missing}|{rel, diff}]; empty array = golden layer clean.
+// Tracked files under adapters/ that the generator does not produce on
+// purpose. Every entry needs a reason; a tracked file missing from this map
+// fails --check, and an entry that stops being tracked fails too, so the
+// list cannot rot into a hiding place.
+const ORPHAN_ALLOWLIST = {
+  // 'adapters/example/legacy.js': 'why this file has no generator source',
+};
+
+// The generator knows only what it produces; the tracked set is the other
+// half of the comparison. Walking the working tree instead would count
+// untracked install artifacts (node_modules inside the codebuddy bundle),
+// so ask git.
+function listTrackedAdapterFiles() {
+  let out;
+  try {
+    out = execSync('git ls-files -z -- adapters', {
+      cwd: root,
+      encoding: 'utf8',
+      maxBuffer: 16 * 1024 * 1024,
+    });
+  } catch (e) {
+    const detail = e.stderr ? String(e.stderr).trim() : e.message;
+    throw new Error('cannot list tracked files under adapters/ (git ls-files failed: ' + detail + ')');
+  }
+  return out.split('\0').filter(Boolean).sort();
+}
+
+function findOrphans(expected, tracked, allowlist) {
+  const has = (map, key) => Object.prototype.hasOwnProperty.call(map, key);
+  return tracked.filter(rel => !has(expected, rel) && !has(allowlist, rel));
+}
+
+// Regen-and-diff: regenerate in memory, byte-compare with committed files,
+// then assert the tracked set is fully accounted for. Failures carry a flag:
+// missing / diff (regen drift), orphan / staleAllowlist (tracked-set gap),
+// error (git enumeration failed - fail closed rather than skip the check).
 function checkAll() {
   const expected = buildAdapters();
   const failures = [];
@@ -388,7 +423,27 @@ function checkAll() {
     const actual = fs.readFileSync(full, 'utf8');
     if (actual !== expected[rel]) failures.push({ rel: rel, diff: unifiedDiff(rel, actual, expected[rel]) });
   }
-  return failures;
+
+  let tracked = [];
+  try {
+    tracked = listTrackedAdapterFiles();
+    for (const rel of findOrphans(expected, tracked, ORPHAN_ALLOWLIST)) {
+      failures.push({ rel: rel, orphan: true });
+    }
+    const trackedSet = new Set(tracked);
+    for (const rel of Object.keys(ORPHAN_ALLOWLIST)) {
+      if (!trackedSet.has(rel)) failures.push({ rel: rel, staleAllowlist: true });
+    }
+  } catch (e) {
+    failures.push({ rel: 'adapters/', error: e.message });
+  }
+
+  return {
+    failures: failures,
+    produced: Object.keys(expected).length,
+    tracked: tracked.length,
+    allowlisted: Object.keys(ORPHAN_ALLOWLIST).length,
+  };
 }
 
 function writeAll() {
@@ -405,16 +460,22 @@ function writeAll() {
 
 function main() {
   if (process.argv.includes('--check')) {
-    const failures = checkAll();
-    if (failures.length > 0) {
-      for (const f of failures) {
-        if (f.missing) console.error('MISSING: ' + f.rel);
-        else console.error('DRIFT: ' + f.rel + '\n' + f.diff);
+    const result = checkAll();
+    if (result.failures.length > 0) {
+      for (const f of result.failures) {
+        if (f.error) console.error('ERROR: ' + f.error);
+        else if (f.missing) console.error('MISSING: ' + f.rel);
+        else if (f.diff) console.error('DRIFT: ' + f.rel + '\n' + f.diff);
+        else if (f.orphan) console.error('ORPHAN: ' + f.rel + ' (tracked under adapters/ but not produced by the generator; delete it or declare it in ORPHAN_ALLOWLIST in scripts/build-adapters.js with a reason)');
+        else if (f.staleAllowlist) console.error('STALE ALLOWLIST: ' + f.rel + ' (listed in ORPHAN_ALLOWLIST but not tracked under adapters/)');
       }
-      console.error('\nAdapter drift detected. Run: node scripts/build-adapters.js');
+      if (result.failures.some(f => f.missing || f.diff)) {
+        console.error('\nRun: node scripts/build-adapters.js to regenerate drifted files.');
+      }
       process.exit(1);
     }
-    console.log('All ' + Object.keys(buildAdapters()).length + ' adapter files match src/SKILL.md (regen-diff clean)');
+    console.log('All ' + result.tracked + ' tracked adapter files accounted for: ' +
+      result.produced + ' generated + ' + result.allowlisted + ' allowlisted (regen-diff clean)');
     process.exit(0);
   }
   const count = writeAll();
@@ -423,4 +484,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { buildAdapters, unifiedDiff, checkAll, writeAll };
+module.exports = { buildAdapters, unifiedDiff, checkAll, writeAll, findOrphans };
