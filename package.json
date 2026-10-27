@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "description": "Prompt-as-mental-model skill distribution for second-party agents",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Xxx91n/jiahao.git"
+  },
   "scripts": {
     "test": "jest --verbose",
     "build": "node scripts/build-adapters.js",
@@ -27,6 +31,7 @@
     "hooks/",
     "GLOSSARY.md",
     "README.md",
+    "README-zh-CN.md",
     "AGENTS.md",
     "docs/agents/"
   ],

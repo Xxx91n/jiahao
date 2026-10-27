@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/brand/logo-dark.png">
-    <img src="docs/assets/brand/logo.png" alt="jiahao 标志 —— 兜帽蒙面像" width="140">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Xxx91n/jiahao/main/docs/assets/brand/logo-dark.png">
+    <img src="https://raw.githubusercontent.com/Xxx91n/jiahao/main/docs/assets/brand/logo.png" alt="jiahao 标志 —— 兜帽蒙面像" width="140">
   </picture>
 </p>
 
@@ -33,7 +33,7 @@ Cursor · Windsurf · Cline · Claude Code · Codex · 通用 / Agent 级。完�
 以下命令在磁盘上检查代码、适配器集合与仓库状态：
 
 ```bash
-npm test                        # 全量 Jest 物理测试（17 套件）
+npm test                        # 全量 Jest 物理测试（18 套件）
 node scripts/build-adapters.js --check  # 宿主适配器黄金镜像一致性检查
 node scripts/check-drift.js     # 适配器漂移检查
 git diff --check                # 格式与行尾空格检查
