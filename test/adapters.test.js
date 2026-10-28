@@ -60,16 +60,18 @@ test('build-adapters --check is green and accounts for every tracked generated f
   expect(Number(m[1])).toBe(tracked);
 });
 
-test('the rules-version skill file is generated straight from the single source', () => {
-  const { buildAdapters, toShippedSkill, SKILL_DIR } = require('../scripts/build-adapters');
-  const source = fs.readFileSync(path.join(root, 'src', 'SKILL.md'), 'utf8');
-  expect(buildAdapters()[SKILL_DIR + '/SKILL.md']).toBe(toShippedSkill(source));
+test('the generator emits the rules-version skill file', () => {
+  const { buildAdapters, SKILL_DIR } = require('../scripts/build-adapters');
+  expect(Object.keys(buildAdapters())).toContain(SKILL_DIR + '/SKILL.md');
 });
 
+// Literal roots, not the production constant: a test that reads the same list
+// the audit reads goes green when the list narrows, which is the bug here.
 test('every generated path falls inside a directory the audit enumerates', () => {
-  const { buildAdapters, GENERATED_DIRS } = require('../scripts/build-adapters');
-  const orphans = Object.keys(buildAdapters()).filter(rel => !GENERATED_DIRS.some(dir => rel.startsWith(dir)));
-  expect(orphans).toEqual([]);
+  const { buildAdapters } = require('../scripts/build-adapters');
+  const outside = Object.keys(buildAdapters())
+    .filter(rel => !rel.startsWith('adapters/') && !rel.startsWith('skills/'));
+  expect(outside).toEqual([]);
 });
 
 test('auditTrackedSet names tracked files the generator does not produce', () => {

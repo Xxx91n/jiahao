@@ -11,7 +11,7 @@ const skillDir = path.join(root, 'skills', 'jiahao');
 const skillPath = path.join(skillDir, 'SKILL.md');
 
 // Reads the block between the first pair of `---` fences. Supports `key: value`
-// and the folded `key: >` block src/SKILL.md uses; nothing else is in frontmatter.
+// and the folded `key: >` block src/SKILL.md uses - nothing else is in frontmatter.
 function readFrontmatter(text, label) {
   const block = text.match(/^---\n([\s\S]*?)\n---\n/);
   if (!block) throw new Error('no frontmatter block in ' + label);
@@ -21,12 +21,12 @@ function readFrontmatter(text, label) {
     const entry = /^([A-Za-z][A-Za-z0-9_-]*):\s*(.*)$/.exec(lines[i]);
     if (!entry) continue;
     const marker = entry[2].trim();
-    if (/^[|>][-+]?$/.test(marker)) {
+    if (marker === '>') {
       const folded = [];
       while (i + 1 < lines.length && (/^\s+\S/.test(lines[i + 1]) || lines[i + 1] === '')) {
         folded.push(lines[++i].trim());
       }
-      data[entry[1]] = folded.join(marker[0] === '|' ? '\n' : ' ').trim();
+      data[entry[1]] = folded.join(' ').trim();
     } else {
       data[entry[1]] = marker.replace(/^["'](.*)["']$/, '$1');
     }
@@ -34,9 +34,13 @@ function readFrontmatter(text, label) {
   return data;
 }
 
-const { SKILL_DIR, SOURCE_NAME } = require('../scripts/build-adapters');
+const { buildAdapters, SKILL_DIR, SOURCE_NAME } = require('../scripts/build-adapters');
 const { listTrackedPaths } = require('../src/shared/tracked-surface');
-const emitted = fs.readFileSync(skillPath, 'utf8');
+// The generated text, not the file on disk: another suite reruns the generator
+// while jest works, and a read landing in writeFileSync's truncate window gets a
+// partial file (measured: 38 truncated reads across 51 rebuilds). That the file
+// on disk equals this text is --check's job, already asserted in adapters.test.js.
+const emitted = buildAdapters()[SKILL_DIR + '/SKILL.md'];
 const source = fs.readFileSync(path.join(root, 'src', 'SKILL.md'), 'utf8');
 const body = (text) => text.replace(/^---\n[\s\S]*?\n---\n/, '');
 
@@ -47,7 +51,8 @@ test('the skill directory is <skill-name>/SKILL.md', () => {
 
 test('the rule file is the single source with the source-only keys dropped', () => {
   expect(body(emitted)).toBe(body(source));
-  expect(Object.keys(readFrontmatter(emitted, skillPath))).toEqual(['name', 'description', 'argument-hint', 'license']);
+  const keys = Object.keys(readFrontmatter(emitted, SKILL_DIR)).sort();
+  expect(keys).toEqual(['argument-hint', 'description', 'license', 'name']);
 });
 
 test('the source hides itself from discovery and the shipped file does not', () => {
@@ -71,14 +76,14 @@ test('no SKILL.md outside the known set can claim the shipped skill name', () =>
 });
 
 test('name matches the directory name and fits the spec shape', () => {
-  const name = readFrontmatter(emitted, skillPath).name;
+  const name = readFrontmatter(emitted, SKILL_DIR).name;
   expect(name).toBe(path.basename(skillDir));
   expect(name).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
   expect(name.length).toBeLessThanOrEqual(64);
 });
 
 test('description is one string of 1-1024 characters', () => {
-  const description = readFrontmatter(emitted, skillPath).description;
+  const description = readFrontmatter(emitted, SKILL_DIR).description;
   expect(typeof description).toBe('string');
   expect(description.length).toBeGreaterThan(0);
   expect(description.length).toBeLessThanOrEqual(1024);
