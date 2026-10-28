@@ -22,21 +22,56 @@ LLM agents suffer from False Completion Syndrome: claiming success without testi
 
 Action First · Probing Over Guessing · Zero Rationalization on Red · Goal vs Outcome Receipt · Three-Line Output Lock. The full behavior contract lives in [`src/SKILL.md`](src/SKILL.md).
 
-## Major Hosts
+## Install
 
-Cursor · Windsurf · Cline · Claude Code · Codex · Generic / Agent-level. The complete adapter set lives in [`adapters/`](adapters/).
+Two exits share one content source. **The rules version is instructions only; only the plugin version adds hooks and enforcement.**
 
-Two profiles, selected with a `.jiahao-profile` flag file: `generator` for a primary executing agent, `verifier` for a second-party audit agent. When the file is absent, `verifier` is active. Details in [`src/SKILL.md`](src/SKILL.md).
+### Rules version — standard CLI, instructions only
+
+```bash
+npx skills add Xxx91n/jiahao
+```
+
+Installs `skills/jiahao/SKILL.md` into a host that reads the standard Agent Skills directory. The file carries both profiles as text; the host takes what it needs. No hook runs, so nothing is blocked. The six instruction-only adapter directories (aider, cline, cursor, instruction-tier, opencode, windsurf) are retired; a host without a standard skill directory (for example aider) has no packaged adapter in this release, though the generated `skills/jiahao/SKILL.md` can be copied as plain text.
+
+### Plugin version — host-native command, with hooks
+
+CodeBuddy is the self-contained plugin exit in this tree:
+
+```bash
+codebuddy plugin install <path-to>/adapters/codebuddy
+```
+
+The plugin ships disabled (`defaultEnabled: false`); enable it after install. Then write the profile with the installer (`node scripts/install.js init -y`), which prints the value it wrote (see Profile). Once enabled, `hooks/hooks.json` wires the verifier enforcement. The bundle ships both profile rule files with `alwaysApply: true`; rule-level profile selection is declared-unverified, and the hook is the enforcement layer. The CLI plugin-install path is documented but declared-unverified; the live-verified fallback is the `.codebuddy/settings.json` merge. Install steps, the hook map, and the full verified / declared-unverified boundary are in [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md). Claude Code is the second plugin exit; its self-contained bundle is not in this tree yet, so no install command is published here.
+
+The codex, copilot, qoder, and mcp directories are no longer install exits; the MCP server itself remains at [`jiahao-mcp/`](jiahao-mcp/).
+
+### Profile
+
+The plugin version defaults to `verifier` when `.jiahao-profile` is absent. The flag lives under `CLAUDE_CONFIG_DIR`, else `$HOME`; the code falls back to `/tmp` when neither is set. Run the installer from the clone; `-y` accepts the default and prints the value it wrote:
+
+```bash
+node scripts/install.js init -y
+# Wrote "verifier" to <config-dir>/.jiahao-profile
+```
+
+Start a new session after changing the profile. The flag is shared by all agents using the same config directory; use separate `CLAUDE_CONFIG_DIR` values for concurrent profiles.
+
+The rules version has no runtime profile switch.
+
+### Private corpus
+
+The private benchmark corpus (`private/bench-corpus/`) is a maintainer/CI asset: it is not in the npm package and not tracked in this repository. The frozen evaluation records under `bench/` are tracked; they are not the private corpus. When a gate needs the private corpus, point `JIAHAO_CORPUS_DIR` at a local copy. Runtime hooks do not depend on it.
 
 ## Verification
 
-These commands check the code, the adapter set, and repository state on disk:
+These commands check the code, the generated outputs, and repository state on disk:
 
 ```bash
-npm test                        # Full physical test suite (18 suites)
-node scripts/build-adapters.js --check  # Golden adapter sync check
-node scripts/check-drift.js     # Adapter drift check
-git diff --check                # Whitespace and formatting check
+npm test                                # Full physical test suite (19 suites)
+node scripts/build-adapters.js --check  # Generated output sync check
+node scripts/check-drift.js             # Profile and retired adapter drift check
+git diff --check                        # Whitespace and formatting check
 ```
 
 ## License

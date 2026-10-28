@@ -43,33 +43,36 @@ test('verifier profile contains all required terms', () => {
   expect(verSection).toContain('anti-false-completion');
 });
 
-test('generator adapter has surface signal rules', () => {
-  const genAdapter = fs.readFileSync(
-    path.join(root, 'adapters', 'instruction-tier', 'AGENTS-generator.md'), 'utf8');
-  expect(genAdapter).toContain('No evidence, no completion claim');
-  expect(genAdapter).toContain('state changes');
-  expect(genAdapter).toContain('calling a tool');
-  expect(genAdapter).toContain('## Boundaries');
+test('the codebuddy generator rule has surface signal rules', () => {
+  const genRule = fs.readFileSync(
+    path.join(root, 'adapters', 'codebuddy', 'rules', 'jiahao-generator.md'), 'utf8');
+  expect(genRule).toContain('No evidence, no completion claim');
+  expect(genRule).toContain('state changes');
+  expect(genRule).toContain('calling a tool');
+  expect(genRule).toContain('## Boundaries');
 });
 
-test('generator adapter does NOT contain verifier tools', () => {
-  const genAdapter = fs.readFileSync(
-    path.join(root, 'adapters', 'instruction-tier', 'AGENTS-generator.md'), 'utf8');
+test('the codebuddy generator rule does NOT contain verifier tools', () => {
+  const genRule = fs.readFileSync(
+    path.join(root, 'adapters', 'codebuddy', 'rules', 'jiahao-generator.md'), 'utf8');
   const verdictWords = ['verification ladder', 'second-party verifier',
     'The judge cannot be the author', 'hash chain', 'confidence calibration',
     'independent LLM critic'];
-  verdictWords.forEach(w => expect(genAdapter).not.toContain(w));
+  verdictWords.forEach(w => expect(genRule).not.toContain(w));
 });
 
-test('build-adapters generator output produces both profiles', () => {
+test('build-adapters emits both codebuddy rules and the rules-version skill', () => {
   execSync('node scripts/build-adapters.js', { cwd: root, encoding: 'utf8', timeout: 15000 });
-  expect(fs.existsSync(path.join(root, 'adapters', 'cursor', 'jiahao-generator.mdc'))).toBe(true);
-  expect(fs.existsSync(path.join(root, 'adapters', 'windsurf', 'jiahao-generator.md'))).toBe(true);
-  expect(fs.existsSync(path.join(root, 'adapters', 'cline', 'jiahao-generator.md'))).toBe(true);
-  expect(fs.existsSync(path.join(root, 'adapters', 'instruction-tier', 'AGENTS-generator.md'))).toBe(true);
-  // Verifier adapters remain unchanged
-  expect(fs.existsSync(path.join(root, 'adapters', 'cursor', 'jiahao.mdc'))).toBe(true);
-  expect(fs.existsSync(path.join(root, 'adapters', 'instruction-tier', 'AGENTS.md'))).toBe(true);
+  for (const rel of [
+    'adapters/codebuddy/rules/jiahao-generator.md',
+    'adapters/codebuddy/rules/jiahao-verifier.md',
+    'skills/jiahao/SKILL.md',
+  ]) {
+    expect(fs.existsSync(path.join(root, rel))).toBe(true);
+  }
+  for (const retired of ['cursor', 'windsurf', 'cline', 'instruction-tier']) {
+    expect(fs.existsSync(path.join(root, 'adapters', retired))).toBe(false);
+  }
 });
 
 test('activate hook uses generator profile when flag set', () => {

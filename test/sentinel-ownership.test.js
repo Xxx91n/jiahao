@@ -132,7 +132,7 @@ test('D3: sweep script exits 0 and heals residuals (SessionEnd e2e)', () => {
 
 test('D3: SessionEnd registered in both hook manifests', () => {
   const claude = JSON.parse(fs.readFileSync(path.join(REPO, 'hooks', 'jiahao-hooks.json'), 'utf8'));
-  const codex = JSON.parse(fs.readFileSync(path.join(REPO, 'adapters', 'codex', 'hooks.json'), 'utf8'));
+  const plugin = JSON.parse(fs.readFileSync(path.join(REPO, 'adapters', 'codebuddy', 'hooks', 'hooks.json'), 'utf8'));
   expect(claude.hooks.SessionEnd[0].hooks[0].command).toContain('jiahao-sweep.js');
-  expect(codex.hooks.SessionEnd[0].hooks[0].command).toContain('jiahao-sweep.js');
+  expect(plugin.hooks.SessionEnd[0].hooks[0].command).toContain('jiahao-sweep.js');
 });

@@ -5,18 +5,17 @@ const { execSync, execFileSync, spawnSync } = require('child_process');
 
 const root = path.join(__dirname, '..');
 
-test('build-adapters generates all adapter files', () => {
+test('build-adapters generates the retained exits', () => {
   // Run build
   execSync('node scripts/build-adapters.js', { cwd: root, encoding: 'utf8', timeout: 15000 });
 
   const expected = [
     'adapters/claude-code/README.md',
-    'adapters/codex/hooks.json',
-    'adapters/cursor/jiahao.mdc',
-    'adapters/windsurf/jiahao.md',
-    'adapters/cline/jiahao.md',
-    'adapters/instruction-tier/AGENTS.md',
-    'adapters/mcp/README.md',
+    'adapters/codebuddy/.claude-plugin/plugin.json',
+    'adapters/codebuddy/hooks/hooks.json',
+    'adapters/codebuddy/rules/jiahao-verifier.md',
+    'adapters/codebuddy/rules/jiahao-generator.md',
+    'skills/jiahao/SKILL.md',
   ];
 
   expected.forEach(rel => {
@@ -24,29 +23,22 @@ test('build-adapters generates all adapter files', () => {
   });
 });
 
-test('instruction-tier adapters contain SKILL.md body', () => {
-  const skillBody = fs.readFileSync(path.join(root, 'src', 'SKILL.md'), 'utf8')
-    .replace(/^---[\s\S]*?---\n/, '');
-
-  ['adapters/windsurf/jiahao.md', 'adapters/cline/jiahao.md'].forEach(rel => {
-    const content = fs.readFileSync(path.join(root, rel), 'utf8');
-    expect(content).toContain('verification ladder');
-    expect(content).toContain('Jiahao');
-  });
+test('the rules-version skill carries both profiles', () => {
+  const content = fs.readFileSync(path.join(root, 'skills', 'jiahao', 'SKILL.md'), 'utf8');
+  expect(content).toContain('## Generator Profile');
+  expect(content).toContain('## Verifier Profile');
+  expect(content).toContain('## Boundaries');
 });
 
-test('codex hooks.json is valid JSON with 4 events', () => {
-  const config = JSON.parse(fs.readFileSync(path.join(root, 'adapters', 'codex', 'hooks.json'), 'utf8'));
-  expect(config.hooks.SessionStart).toBeDefined();
-  expect(config.hooks.UserPromptSubmit).toBeDefined();
-  expect(config.hooks.Stop).toBeDefined();
-  expect(config.hooks.SubagentStart).toBeDefined();
-});
-
-test('cursor adapter has frontmatter', () => {
-  const content = fs.readFileSync(path.join(root, 'adapters', 'cursor', 'jiahao.mdc'), 'utf8');
-  expect(content).toMatch(/^---/);
-  expect(content).toContain('description:');
+test('retired adapters are neither emitted nor present', () => {
+  const { buildAdapters } = require('../scripts/build-adapters');
+  const emitted = Object.keys(buildAdapters());
+  const retired = ['aider', 'cline', 'codex', 'copilot', 'cursor',
+    'instruction-tier', 'mcp', 'opencode', 'qoder', 'windsurf'];
+  for (const name of retired) {
+    expect(emitted.some(rel => rel.startsWith('adapters/' + name + '/'))).toBe(false);
+    expect(fs.existsSync(path.join(root, 'adapters', name))).toBe(false);
+  }
 });
 
 test('build-adapters --check is green and accounts for every tracked generated file', () => {
