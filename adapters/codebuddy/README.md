@@ -15,12 +15,14 @@ server are vendored inside, so nothing resolves outside the bundle.
 2. Enable the plugin explicitly - `defaultEnabled: false` is deliberate:
    plugin hooks bypass the `allowUntrustedFrontmatterHooks` gate and
    execute the moment the plugin is enabled.
-3. Activate the jiahao profile flag, same as every host:
-   `echo full > "$CLAUDE_CONFIG_DIR/.jiahao-active"` (or
-   `$HOME/.jiahao-active` when the env var is unset) and
-   `echo verifier > "$CLAUDE_CONFIG_DIR/.jiahao-profile"` for the blocking
-   profile (`generator` for advisory-only). Both files live in the config
-   dir, never in the project directory.
+3. Activate the jiahao profile flag, same as every host. Resolve the config
+   directory once (`CLAUDE_CONFIG_DIR`, else `$HOME`, else `/tmp`):
+   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-/tmp}}"`, then
+   `echo full > "$CONFIG/.jiahao-active"` and
+   `echo verifier > "$CONFIG/.jiahao-profile"` for the blocking profile
+   (`generator` for advisory-only). Start a new session after changing
+   `.jiahao-profile`. The file is shared by all agents using the same config
+   directory; use separate config directories for concurrent profiles.
 4. MCP server: run `npm install --omit=dev` inside the bundle's
    `jiahao-mcp/` once (the server source is vendored; dependencies are
    not). The bundle's `.mcp.json` registers it via
@@ -51,6 +53,12 @@ design. Enabling this bundle installs seven hook points:
 Timeouts stay within the 60s host budget (5/5/5/10/3/5/5s). Commands are
 Git-Bash-compatible `node` invocations (cmd/PowerShell unsupported by the
 host). Event matchers are case-sensitive - none are narrowed here.
+
+**Rule-loading caveat.** The bundle ships both `rules/jiahao-verifier.md`
+and `rules/jiahao-generator.md` with `alwaysApply: true`. The hook injects
+the profile selected by `.jiahao-profile`, but if the host applies both
+always-apply rule files, the two instruction sets coexist. Rule-level profile
+selection is declared-unverified; the hook is the enforcement layer.
 
 ## Injection-surface ruling - Verified vs Declared-unverified
 

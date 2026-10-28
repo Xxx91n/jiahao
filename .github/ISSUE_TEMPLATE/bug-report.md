@@ -22,13 +22,12 @@ labels: bug
 
 ## Environment
 
-- Host (claude-code / codex / copilot / qoder / cursor / windsurf / cline /
-  opencode / aider / instruction-tier):
-- Profile (generator / verifier) and install channel (`npx github:` / Tier 0 / source clone):
+- Host (rules version / codebuddy / claude-code / other):
+- Profile (generator / verifier) and install channel (`npx skills add` / host plugin command / source clone):
 - Node.js version:
 
-## Known-degradation check
+## Known-limitation check
 
-- [ ] I read the host-tier table in the README — this is not one of the
-      documented degradations (copilot `sessionStart`, opencode hooks, aider
-      opt-in `read:`).
+- [ ] I read the install section in the README — this is not a documented
+      limitation (rules version has no hooks; the Claude Code plugin bundle is
+      not in this tree yet).
