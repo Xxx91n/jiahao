@@ -42,6 +42,11 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm install --ignore-scripts
-      - run: npm test
+      # The generator gates run before the suite: test/adapters.test.js and two
+      # other suites execute scripts/build-adapters.js, which rewrites every
+      # generated file in the working tree. Run after them, check:adapters would
+      # compare freshly generated output against itself and report clean even if
+      # a committed generated file had been hand-edited.
       - run: npm run check:adapters
       - run: npm run check:drift
+      - run: npm test
