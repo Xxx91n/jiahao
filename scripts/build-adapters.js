@@ -420,7 +420,9 @@ function auditTrackedSet(generated, tracked, allowlist) {
   for (const rel of allowSet) {
     if (!trackedSet.has(rel)) problems.push({ kind: 'staleAllowlist', rel: rel });
     else if (generatedSet.has(rel)) problems.push({ kind: 'redundantAllowlist', rel: rel });
-    else if (!String(allowlist[rel]).trim()) problems.push({ kind: 'allowlistReason', rel: rel });
+    else if (typeof allowlist[rel] !== 'string' || !allowlist[rel].trim()) {
+      problems.push({ kind: 'allowlistReason', rel: rel });
+    }
   }
   return problems;
 }
