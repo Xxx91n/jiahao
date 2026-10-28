@@ -32,7 +32,7 @@ AI Agent 普遍存在虚假完工综合征：不测就宣称搞定、报错找�
 npx skills add Xxx91n/jiahao
 ```
 
-把 `skills/jiahao/SKILL.md` 装进读取标准 Agent Skills 目录的宿主。文件里两份纪律都在，宿主自行取用。没有钩子运行，因此不会拦截任何动作。原先使用纯指令适配器（aider、cline、cursor、instruction-tier、opencode、windsurf）的宿主改走这条路径。
+把 `skills/jiahao/SKILL.md` 装进读取标准 Agent Skills 目录的宿主。文件里两份纪律都在，宿主自行取用。没有钩子运行，因此不会拦截任何动作。6 个纯指令适配器目录（aider、cline、cursor、instruction-tier、opencode、windsurf）已退役；没有标准技能目录的宿主（例如 aider）在这个版本里没有打包适配器，但可以把生成的 `skills/jiahao/SKILL.md` 当普通文本复制过去。
 
 ### 插件版 —— 宿主原生命令，带钩子
 
@@ -42,7 +42,7 @@ npx skills add Xxx91n/jiahao
 codebuddy plugin install <path-to>/adapters/codebuddy
 ```
 
-插件注册 `hooks/hooks.json`，接上 verifier 纪律的强制拦截。CLI 插件安装路径已记录但属于待确认；现场验证过的回退路径是合并 `.codebuddy/settings.json`。完整安装步骤、钩子表，以及已验证 / 待确认边界见 [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)。Claude Code 是第二个插件出口；它的自包含插件目录还没进这棵树，因此这里不发布安装命令。
+插件默认关闭（`defaultEnabled: false`），安装后需要显式启用。启用后 `hooks/hooks.json` 接上 verifier 纪律的强制拦截。CLI 插件安装路径已记录但属于待确认；现场验证过的回退路径是合并 `.codebuddy/settings.json`。完整安装步骤、钩子表，以及已验证 / 待确认边界见 [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)。Claude Code 是第二个插件出口；它的自包含插件目录还没进这棵树，因此这里不发布安装命令。
 
 codex、copilot、qoder、mcp 目录不再作为安装出口；MCP 服务端本身保留在 [`jiahao-mcp/`](jiahao-mcp/)。
 
