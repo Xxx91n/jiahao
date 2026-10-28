@@ -55,6 +55,8 @@ node scripts/install.js init -y
 # Wrote "verifier" to <config-dir>/.jiahao-profile
 ```
 
+Start a new session after changing the profile. The flag is shared by all agents using the same config directory; use separate `CLAUDE_CONFIG_DIR` values for concurrent profiles.
+
 The rules version has no runtime profile switch.
 
 ### Private corpus

@@ -55,6 +55,8 @@ node scripts/install.js init -y
 # Wrote "verifier" to <config-dir>/.jiahao-profile
 ```
 
+改完 profile 后要重开会话。标记文件由同一个配置目录下的所有 agent 共用；并发使用不同 profile 时，给每个 agent 单独的 `CLAUDE_CONFIG_DIR`。
+
 规则版没有运行时 profile 切换。
 
 ### 私有语料
