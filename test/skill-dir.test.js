@@ -12,9 +12,9 @@ const skillPath = path.join(skillDir, 'SKILL.md');
 
 // Reads the block between the first pair of `---` fences. Supports `key: value`
 // and the folded `key: >` block src/SKILL.md uses; nothing else is in frontmatter.
-function readFrontmatter(text) {
+function readFrontmatter(text, label) {
   const block = text.match(/^---\n([\s\S]*?)\n---\n/);
-  if (!block) throw new Error('no frontmatter block in ' + skillPath);
+  if (!block) throw new Error('no frontmatter block in ' + label);
   const lines = block[1].split('\n');
   const data = {};
   for (let i = 0; i < lines.length; i++) {
@@ -34,7 +34,8 @@ function readFrontmatter(text) {
   return data;
 }
 
-const SOURCE_NAME = 'jiahao-source';
+const { SKILL_DIR, SOURCE_NAME } = require('../scripts/build-adapters');
+const { listTrackedPaths } = require('../src/shared/tracked-surface');
 const emitted = fs.readFileSync(skillPath, 'utf8');
 const source = fs.readFileSync(path.join(root, 'src', 'SKILL.md'), 'utf8');
 const body = (text) => text.replace(/^---\n[\s\S]*?\n---\n/, '');
@@ -44,36 +45,40 @@ test('the skill directory is <skill-name>/SKILL.md', () => {
   expect(fs.statSync(skillDir).isDirectory()).toBe(true);
 });
 
-test('the rule file is the single source, source-only frontmatter aside', () => {
+test('the rule file is the single source with the source-only keys dropped', () => {
   expect(body(emitted)).toBe(body(source));
-  expect(emitted).toBe(source
-    .replace('name: ' + SOURCE_NAME + '\n', 'name: ' + path.basename(skillDir) + '\n')
-    .replace('metadata:\n  internal: true\n', ''));
+  expect(Object.keys(readFrontmatter(emitted, skillPath))).toEqual(['name', 'description', 'argument-hint', 'license']);
 });
 
 test('the source hides itself from discovery and the shipped file does not', () => {
-  // `--skill <name>` makes the CLI include internal skills, so the source also
-  // has to carry a name that is not the shipped skill's - otherwise that lookup
-  // lands on src/ and ships its runtime files into the installing project.
-  expect(source).toContain('metadata:\n  internal: true\n');
   expect(source).toContain('name: ' + SOURCE_NAME + '\n');
+  expect(source).toContain('metadata:\n  internal: true\n');
   expect(emitted).not.toContain('internal: true');
-  expect(readFrontmatter(emitted).name).not.toBe(SOURCE_NAME);
 });
 
-test('frontmatter parses into named fields', () => {
-  expect(Object.keys(readFrontmatter(emitted)).length).toBeGreaterThan(1);
+// Asking for a skill by name makes the CLI include internal skills, so a second
+// file named `jiahao` would win the lookup and install the directory it sits in -
+// `src/`, runtime JS and all. Measured on skills 1.7.4 before the source got its
+// own name. This lists tracked paths rather than reading their contents: another
+// suite regenerates those files while jest runs, and a mid-write read is a flake,
+// not a finding.
+test('no SKILL.md outside the known set can claim the shipped skill name', () => {
+  const claimants = listTrackedPaths(root)
+    .filter((rel) => rel.endsWith('/SKILL.md'))
+    .filter((rel) => rel !== SKILL_DIR + '/SKILL.md')
+    .sort();
+  expect(claimants).toEqual(['adapters/codebuddy/src/SKILL.md', 'src/SKILL.md']);
 });
 
 test('name matches the directory name and fits the spec shape', () => {
-  const name = readFrontmatter(emitted).name;
+  const name = readFrontmatter(emitted, skillPath).name;
   expect(name).toBe(path.basename(skillDir));
   expect(name).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
   expect(name.length).toBeLessThanOrEqual(64);
 });
 
 test('description is one string of 1-1024 characters', () => {
-  const description = readFrontmatter(emitted).description;
+  const description = readFrontmatter(emitted, skillPath).description;
   expect(typeof description).toBe('string');
   expect(description.length).toBeGreaterThan(0);
   expect(description.length).toBeLessThanOrEqual(1024);
