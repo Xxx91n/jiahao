@@ -4,7 +4,7 @@
 // keeps the profile-level assertions that byte equality cannot state, and
 // guards the retired adapter exits from coming back.
 // Run: node scripts/check-drift.js
-// Exit 0 = in sync, exit 1 = drift detected (run build-adapters.js)
+// Exit 0 = in sync; exit 1 = profile drift or a retired adapter directory present
 
 const fs = require('fs');
 const path = require('path');
@@ -62,12 +62,13 @@ const RETIRED_DIRS = [
 
 function main() {
   const root = path.join(__dirname, '..');
-  let drift = false;
+  let profileDrift = false;
+  let retiredPresent = false;
 
   for (const dir of RETIRED_DIRS) {
     if (fs.existsSync(path.join(root, dir))) {
       console.error('RETIRED ADAPTER PRESENT: ' + dir);
-      drift = true;
+      retiredPresent = true;
     }
   }
 
@@ -75,7 +76,7 @@ function main() {
     const full = path.join(root, rel);
     if (!fs.existsSync(full)) {
       console.error('MISSING: ' + rel);
-      drift = true;
+      profileDrift = true;
       continue;
     }
     const content = fs.readFileSync(full, 'utf8');
@@ -83,34 +84,39 @@ function main() {
       for (const marker of ['## Generator Profile', '## Verifier Profile', '## Boundaries']) {
         if (!content.includes(marker)) {
           console.error('DRIFT: ' + rel + ' missing section: ' + marker);
-          drift = true;
+          profileDrift = true;
         }
       }
     } else if (kind === 'verifier') {
       for (const frag of VERIFIER_FRAGMENTS) {
         if (!content.includes(frag)) {
           console.error('DRIFT: ' + rel + ' (verifier) missing fragment: ' + frag);
-          drift = true;
+          profileDrift = true;
         }
       }
     } else if (kind === 'generator') {
       for (const term of GENERATOR_FORBIDDEN) {
         if (content.includes(term)) {
           console.error('PROFILE DRIFT: ' + rel + ' (generator) must NOT contain: ' + term);
-          drift = true;
+          profileDrift = true;
         }
       }
       for (const term of GENERATOR_REQUIRED) {
         if (!content.includes(term)) {
           console.error('PROFILE DRIFT: ' + rel + ' (generator) must contain: ' + term);
-          drift = true;
+          profileDrift = true;
         }
       }
     }
   }
 
-  if (drift) {
-    console.error('\nDrift detected. Run: node scripts/build-adapters.js');
+  if (profileDrift || retiredPresent) {
+    if (profileDrift) {
+      console.error('\nProfile drift detected. Run: node scripts/build-adapters.js');
+    }
+    if (retiredPresent) {
+      console.error('\nRetired adapter directory present; delete it. The generator does not recreate retired exits.');
+    }
     process.exit(1);
   } else {
     console.log('Retained adapters in sync with src/SKILL.md');
