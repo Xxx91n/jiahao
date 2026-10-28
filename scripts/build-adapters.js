@@ -247,18 +247,23 @@ function buildAdapters() {
   return adapters;
 }
 
-// src/SKILL.md is a SKILL.md sitting in a directory the skills CLI scans, so the
-// CLI takes the source for a shippable skill and installs the runtime files lying
-// next to it. Two source-only frontmatter fields stop that: `metadata.internal`
-// hides it from discovery, and its `name` is not the shipped skill's name,
-// because asking for a skill BY NAME makes the CLI include internal skills anyway
-// (measured on skills 1.7.4: `npx skills add <repo> --skill jiahao` bound src/
-// while a plain `add <repo>` bound the generated directory). Both come back out
-// here, along with `argument-hint`: the Agent Skills reference validator accepts
-// only name / description / license / allowed-tools / metadata / compatibility and
-// fails the file on anything else - run against the shipped file it reported
-// "Unexpected fields in frontmatter: argument-hint" while the skills CLI, which is
-// looser, still installed it. Spec shape wins over CLI leniency.
+// Two reasons, three source-only frontmatter pieces (the source keeps all three;
+// AGENTS.md points here rather than repeating them).
+//
+// Discovery: src/SKILL.md is a SKILL.md in a directory the skills CLI scans, so
+// the CLI can take the source for a shippable skill and install the runtime files
+// lying next to it. `metadata.internal` hides it from discovery, and the source's
+// `name` must not equal the shipped skill's, because asking for a skill BY NAME
+// makes the CLI include internal skills anyway - measured on skills 1.7.4, where
+// `add <repo> --skill jiahao` bound src/ while a plain `add <repo>` bound this
+// generated twin. Neither trick survives shipping: a marker on the shipped file
+// would hide the very file we mean to install.
+//
+// Spec shape: `argument-hint` is not a field the Agent Skills spec defines. The
+// reference validator (agentskills/agentskills, skills-ref) allows only name /
+// description / license / allowed-tools / metadata / compatibility and reported
+// "Unexpected fields in frontmatter: argument-hint" against the shipped file; the
+// looser skills CLI installed it regardless, so CLI leniency is not conformance.
 function toShippedSkill(source) {
   return source
     .replace('name: ' + SOURCE_NAME + '\n', 'name: ' + SKILL_NAME + '\n')
