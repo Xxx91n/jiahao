@@ -80,10 +80,19 @@ test('auditTrackedSet reports generated files missing from the tracked set', () 
 
 test('auditTrackedSet reports stale, redundant, and unjustified allowlist entries', () => {
   const { auditTrackedSet } = require('../scripts/build-adapters');
-  const allowlist = { 'adapters/gone.js': 'why', 'adapters/blank.js': '   ', 'adapters/a.md': 'why' };
-  expect(auditTrackedSet({ 'adapters/a.md': 'x' }, ['adapters/a.md', 'adapters/blank.js'], allowlist)).toEqual([
+  const allowlist = {
+    'adapters/gone.js': 'why',
+    'adapters/blank.js': '   ',
+    'adapters/nully.js': null,
+    'adapters/undef.js': undefined,
+    'adapters/a.md': 'why',
+  };
+  const tracked = ['adapters/a.md', 'adapters/blank.js', 'adapters/nully.js', 'adapters/undef.js'];
+  expect(auditTrackedSet({ 'adapters/a.md': 'x' }, tracked, allowlist)).toEqual([
     { kind: 'staleAllowlist', rel: 'adapters/gone.js' },
     { kind: 'allowlistReason', rel: 'adapters/blank.js' },
+    { kind: 'allowlistReason', rel: 'adapters/nully.js' },
+    { kind: 'allowlistReason', rel: 'adapters/undef.js' },
     { kind: 'redundantAllowlist', rel: 'adapters/a.md' },
   ]);
 });
