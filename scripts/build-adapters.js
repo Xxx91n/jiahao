@@ -536,12 +536,12 @@ function main() {
     process.exit(0);
   }
   const count = writeAll();
-  console.log('Generated ' + count + ' adapter files from src/SKILL.md');
+  console.log('Generated ' + count + ' files from src/SKILL.md');
 }
 
 if (require.main === module) main();
 
 module.exports = {
   buildAdapters, unifiedDiff, checkAll, writeAll, auditTrackedSet, toShippedSkill,
-  GENERATED_DIRS, SKILL_DIR,
+  GENERATED_DIRS, SKILL_NAME, SKILL_DIR, SOURCE_NAME,
 };

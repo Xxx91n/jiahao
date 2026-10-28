@@ -22,6 +22,7 @@
 
 - 证据链落在 `.jiahao-evidence/`，改路径要同步 `src/shared/paths.js` 和 hook 侧。
 - Windows 上 inode 替换检测无效，`test/sentinel-ownership.test.js` 有一条跳过。
+- `src/SKILL.md` 的 `name: jiahao-source` 和 `metadata.internal` 不是装饰：技能 CLI 会扫仓库根的子目录，同名 SKILL.md 会让 `npx skills add <repo> --skill jiahao` 绑到 `src/`，把运行时 JS 一起装进用户项目（skills 1.7.4 实测）。生成器负责把这两处改回 `jiahao`。
 
 ## Agent skills
 
