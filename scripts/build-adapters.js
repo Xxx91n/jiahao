@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // build-adapters.js — generate per-host adapter files from src/SKILL.md
 // Mirrors ponytail's single-source + per-host adapter pattern.
+// Also emits the rules-version skill directory (skills/jiahao/SKILL.md).
 // Run: node scripts/build-adapters.js
 // Supports dual-profile ( Option C): SKILL.md has tagged sections
 // ## Generator Profile / ## Verifier Profile / ## Boundaries (shared).
@@ -11,6 +12,17 @@ const { splitByProfile, validateGsrHeaders } = require('../hooks/jiahao-profile'
 const { listTrackedPaths } = require('../src/shared/tracked-surface');
 
 const root = path.join(__dirname, '..');
+
+// The standard skill directory the rules version ships as, and the source's own
+// skill name - see toShippedSkill for why the two differ.
+const SKILL_NAME = 'jiahao';
+const SKILL_DIR = 'skills/' + SKILL_NAME;
+const SOURCE_NAME = 'jiahao-source';
+
+// The directories the generator owns. A file tracked under them that this
+// script does not emit is an orphan; a file this script emits that is not
+// tracked never ships. Both halves are compared in --check.
+const GENERATED_DIRS = ['adapters/', 'skills/'];
 
 // the adapter map is a pure function of src/SKILL.md so the
 // --check golden layer regenerates it in memory and byte-compares against
@@ -226,7 +238,27 @@ function buildAdapters() {
 
   adapters[CB + 'README.md'] = codebuddyReadme();
 
+  // ---- rules version: the standard Agent Skills directory ----
+  // The one output with no host-specific shape: `npx skills add <this repo>`
+  // finds skills/<name>/SKILL.md on its own. A hand edit shows up as DRIFT in
+  // --check.
+  adapters[SKILL_DIR + '/SKILL.md'] = toShippedSkill(skill);
+
   return adapters;
+}
+
+// src/SKILL.md is a SKILL.md sitting in a directory the skills CLI scans, so the
+// CLI takes the source for a shippable skill and installs the runtime files lying
+// next to it. Two source-only frontmatter fields stop that: `metadata.internal`
+// hides it from discovery, and its `name` is not the shipped skill's name,
+// because asking for a skill BY NAME makes the CLI include internal skills anyway
+// (measured on skills 1.7.4: `npx skills add <repo> --skill jiahao` bound src/
+// while a plain `add <repo>` bound the generated directory). Both come back out
+// here - the shipped file carries the skill's own name and nothing that hides it.
+function toShippedSkill(source) {
+  return source
+    .replace('name: ' + SOURCE_NAME + '\n', 'name: ' + SKILL_NAME + '\n')
+    .replace('metadata:\n  internal: true\n', '');
 }
 
 // CodeBuddy install manual + injection-surface ruling (spec
@@ -378,8 +410,8 @@ function unifiedDiff(rel, oldText, newText) {
   return out.join('\n');
 }
 
-// Tracked files under adapters/ that the generator does not produce on
-// purpose. The value is the reason; an entry without one fails --check, and
+// Tracked files in a generated directory that the generator does not produce
+// on purpose. The value is the reason; an entry without one fails --check, and
 // so does an entry that stops being tracked, so the list cannot rot into a
 // hiding place.
 const ORPHAN_ALLOWLIST = {
@@ -390,8 +422,8 @@ const ORPHAN_ALLOWLIST = {
 // half of the comparison. Reuse the repo's index-only enumeration base
 // (src/shared/tracked-surface.js) so this check and the gates cannot drift
 // apart on what "tracked" means - and so untracked install artifacts inside
-// the codebuddy bundle are never counted as adapters.
-function listTrackedAdapterFiles() {
+// the codebuddy bundle are never counted as generated files.
+function listTrackedGeneratedFiles() {
   let all;
   try {
     all = listTrackedPaths(root);
@@ -399,11 +431,11 @@ function listTrackedAdapterFiles() {
     const detail = e.stderr ? String(e.stderr).trim() : e.message;
     throw new Error('cannot list tracked files (git ls-files failed: ' + detail + ')');
   }
-  return all.filter(rel => rel.indexOf('adapters/') === 0).sort();
+  return all.filter(rel => GENERATED_DIRS.some(dir => rel.startsWith(dir))).sort();
 }
 
-// Both directions of the invariant: every tracked adapter is generated or
-// allowlisted, and every generated adapter is tracked. Either half alone can
+// Both directions of the invariant: every tracked file is generated or
+// allowlisted, and every generated file is tracked. Either half alone can
 // print an "accounted for" line that does not add up; an allowlisted path the
 // generator also produces would double-count in that line.
 function auditTrackedSet(generated, tracked, allowlist) {
@@ -444,10 +476,10 @@ function checkAll() {
 
   let tracked = [];
   try {
-    tracked = listTrackedAdapterFiles();
+    tracked = listTrackedGeneratedFiles();
     failures.push(...auditTrackedSet(generated, tracked, ORPHAN_ALLOWLIST));
   } catch (e) {
-    failures.push({ kind: 'error', rel: 'adapters/', detail: e.message });
+    failures.push({ kind: 'error', rel: GENERATED_DIRS.join(' + '), detail: e.message });
   }
 
   return {
@@ -476,10 +508,10 @@ const FAILURE_REPORT = {
   diff: { label: 'DRIFT' },
   orphan: {
     label: 'ORPHAN',
-    hint: 'tracked under adapters/ but not produced by the generator; delete it or declare it in ORPHAN_ALLOWLIST (scripts/build-adapters.js) with a reason',
+    hint: 'tracked in a generated directory (' + GENERATED_DIRS.join(' / ') + ') but not produced by the generator; delete it or declare it in ORPHAN_ALLOWLIST (scripts/build-adapters.js) with a reason',
   },
   untracked: { label: 'UNTRACKED', hint: 'produced by the generator but not tracked; git add it' },
-  staleAllowlist: { label: 'STALE ALLOWLIST', hint: 'listed in ORPHAN_ALLOWLIST but not tracked under adapters/' },
+  staleAllowlist: { label: 'STALE ALLOWLIST', hint: 'listed in ORPHAN_ALLOWLIST but not tracked in a generated directory' },
   redundantAllowlist: { label: 'REDUNDANT ALLOWLIST', hint: 'listed in ORPHAN_ALLOWLIST but the generator produces it; drop the entry' },
   allowlistReason: { label: 'ALLOWLIST REASON', hint: 'listed in ORPHAN_ALLOWLIST without a reason' },
 };
@@ -499,7 +531,7 @@ function main() {
       }
       process.exit(1);
     }
-    console.log('All ' + result.tracked + ' tracked adapter files accounted for: ' +
+    console.log('All ' + result.tracked + ' tracked generated files accounted for: ' +
       result.generated + ' generated + ' + result.allowlisted + ' allowlisted (regen-diff clean)');
     process.exit(0);
   }
@@ -509,4 +541,7 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { buildAdapters, unifiedDiff, checkAll, writeAll, auditTrackedSet };
+module.exports = {
+  buildAdapters, unifiedDiff, checkAll, writeAll, auditTrackedSet, toShippedSkill,
+  GENERATED_DIRS, SKILL_DIR,
+};

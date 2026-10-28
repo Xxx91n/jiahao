@@ -49,15 +49,27 @@ test('cursor adapter has frontmatter', () => {
   expect(content).toContain('description:');
 });
 
-test('build-adapters --check is green and accounts for every tracked adapter', () => {
+test('build-adapters --check is green and accounts for every tracked generated file', () => {
   const out = execSync('node scripts/build-adapters.js --check', { cwd: root, encoding: 'utf8', timeout: 15000 });
   expect(out).toContain('regen-diff clean');
-  const tracked = execSync('git ls-files -z -- adapters', { cwd: root, encoding: 'utf8', timeout: 15000 })
+  const tracked = execSync('git ls-files -z -- adapters skills', { cwd: root, encoding: 'utf8', timeout: 15000 })
     .split('\0').filter(Boolean).length;
-  const m = out.match(/All (\d+) tracked adapter files accounted for: (\d+) generated \+ (\d+) allowlisted/);
+  const m = out.match(/All (\d+) tracked generated files accounted for: (\d+) generated \+ (\d+) allowlisted/);
   expect(m).not.toBeNull();
   expect(Number(m[2]) + Number(m[3])).toBe(Number(m[1]));
   expect(Number(m[1])).toBe(tracked);
+});
+
+test('the rules-version skill file is generated straight from the single source', () => {
+  const { buildAdapters, toShippedSkill, SKILL_DIR } = require('../scripts/build-adapters');
+  const source = fs.readFileSync(path.join(root, 'src', 'SKILL.md'), 'utf8');
+  expect(buildAdapters()[SKILL_DIR + '/SKILL.md']).toBe(toShippedSkill(source));
+});
+
+test('every generated path falls inside a directory the audit enumerates', () => {
+  const { buildAdapters, GENERATED_DIRS } = require('../scripts/build-adapters');
+  const orphans = Object.keys(buildAdapters()).filter(rel => !GENERATED_DIRS.some(dir => rel.startsWith(dir)));
+  expect(orphans).toEqual([]);
 });
 
 test('auditTrackedSet names tracked files the generator does not produce', () => {
@@ -137,6 +149,19 @@ test('--check goes red naming both sides of a tracked-set gap', () => {
     expect(res.status).toBe(1);
     expect(res.stderr).toContain('ORPHAN: adapters/zz-orphan-probe.txt');
     expect(res.stderr).toContain('UNTRACKED: adapters/claude-code/README.md');
+  });
+});
+
+test('--check audits the skill directory in both directions', () => {
+  withTempIndex((env) => {
+    stageOrphan(env, 'skills/zz-orphan-probe/SKILL.md');
+    execFileSync('git', ['rm', '--cached', '--quiet', '--', 'skills/jiahao/SKILL.md'], {
+      cwd: root, env, encoding: 'utf8', timeout: 15000,
+    });
+    const res = runCheck(env);
+    expect(res.status).toBe(1);
+    expect(res.stderr).toContain('ORPHAN: skills/zz-orphan-probe/SKILL.md');
+    expect(res.stderr).toContain('UNTRACKED: skills/jiahao/SKILL.md');
   });
 });
 
