@@ -1,0 +1,14 @@
+{
+  "name": "jiahao",
+  "description": "Prompt-as-mental-model verification discipline (rules version + plugin version)",
+  "owner": {
+    "name": "Xxx91n"
+  },
+  "plugins": [
+    {
+      "name": "jiahao",
+      "source": "./adapters/claude-code",
+      "description": "Anti-false-completion verification discipline: verifier gate on Stop, profile injection on SessionStart."
+    }
+  ]
+}

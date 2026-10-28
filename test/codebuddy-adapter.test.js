@@ -144,6 +144,20 @@ describe('hook behavior (bundle copies, live spawn)', () => {
     expect(rec.results.every((r) => r.present === false)).toBe(true);
   });
 
+  // The bundle is what the host runs, so the Stop gate is spawned from it.
+  // Regression: calibration.js loads the instrument-identity pin at require()
+  // time; a bundle missing that file crashed (exit 1) instead of gating.
+  test('bundled Stop gate blocks an empty evidence chain (exit 2)', () => {
+    const dir = mkConfigDir({ '.jiahao-profile': 'verifier' });
+    const res = runBundleHook('jiahao-verdict-gate.js', {
+      configDir: dir, pluginRoot: BUNDLE,
+      stdin: JSON.stringify({ stop_hook_active: false, session_id: 'probe' }),
+    });
+    expect(res.status).toBe(2);
+    const out = JSON.parse(res.stdout.trim());
+    expect(out.decision).toBe('block');
+  });
+
   test('PreToolUse denies an enforcement-surface edit under verifier profile (envelope, exit 0)', () => {
     const dir = mkConfigDir({ '.jiahao-profile': 'verifier' });
     const res = runBundleHook('jiahao-pretool-guard.js', {
