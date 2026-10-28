@@ -14,6 +14,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const { builtinModules } = require('module');
 
 const { buildAdapters } = require('../scripts/build-adapters');
 
@@ -107,9 +108,10 @@ describe('bundle structure', () => {
     expect(Object.keys(generated).filter(rel => rel.startsWith(BUNDLE + 'jiahao-mcp/'))).toEqual([]);
   });
 
-  test('no relative require() resolves outside the bundle', () => {
+  test('no relative require() resolves outside the bundle, and nothing third-party is required', () => {
     const REQ = /require\(\s*['"]([^'"]+)['"]\s*\)/g;
     const escapes = [];
+    const external = [];
     const edges = new Map();
     let scanned = 0;
     for (const rel of Object.keys(generated).filter(r => r.startsWith(BUNDLE) && r.endsWith('.js'))) {
@@ -118,7 +120,13 @@ describe('bundle structure', () => {
       let m;
       while ((m = REQ.exec(text))) {
         const spec = m[1];
-        if (!spec.startsWith('.')) continue; // node builtin or external dep (MCP SDK)
+        if (!spec.startsWith('.')) {
+          // Node builtins are fine; anything else would break the README's
+          // "no third-party runtime dependency" claim.
+          const bare = spec.replace(/^node:/, '').split('/')[0];
+          if (!builtinModules.includes(bare)) external.push(rel + ' -> ' + spec);
+          continue;
+        }
         const resolved = resolveInBundle(rel, spec);
         edges.set(rel + ' -> ' + spec, resolved);
         if (!resolved || !resolved.startsWith(BUNDLE)) escapes.push(rel + ' -> ' + spec);
@@ -126,8 +134,10 @@ describe('bundle structure', () => {
       REQ.lastIndex = 0;
     }
     expect(escapes).toEqual([]);
+    expect(external).toEqual([]);
     // Fixpoint: an empty `escapes` also passes when the scan walked nothing.
-    // Today: 19 .js files, 37 relative edges - the bounds are floors, not pins.
+    // The floors sit well under the current closure, so they catch an empty
+    // walk without pinning today's file count.
     expect(scanned).toBeGreaterThanOrEqual(15);
     expect(edges.size).toBeGreaterThanOrEqual(25);
     expect(edges.get(BUNDLE + 'src/evidence-log.js -> ./shared/paths'))
@@ -193,7 +203,6 @@ describe('hook map', () => {
       }
     }
   });
-
 });
 
 // The bundled copies are what the host actually runs, so the gate's Stop

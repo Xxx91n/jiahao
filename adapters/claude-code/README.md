@@ -18,11 +18,13 @@ whose single entry `source` points at `./adapters/claude-code`).
 
 1. `claude plugin marketplace add Xxx91n/jiahao`
 2. `claude plugin install jiahao@jiahao`
-3. Enable the plugin. `defaultEnabled: false` keeps installation from
-   enabling it; enabling is the opt-in. Once enabled, the SessionStart hook
-   writes `.jiahao-active` and the default profile is `verifier` - the Stop
-   gate blocks unverified completion from the first turn. `/jiahao off`
-   disables the discipline for the session.
+3. Enable the plugin. `defaultEnabled: false` asks the host not to enable on
+   install; a host that does not read the field enables it anyway. Enabling
+   is the opt-in. Once enabled, the bundled SessionStart hook writes
+   `.jiahao-active` and the default profile is `verifier`, so the Stop gate
+   arms from the first turn (hook code, not a live probe). `/jiahao off`
+   removes the flag, which disarms the Stop gate and the reminder; the
+   SubagentStart injection is not flag-gated.
 4. Switch profile if needed: `echo generator > "$CLAUDE_CONFIG_DIR/.jiahao-profile"`
    (or `$HOME/.jiahao-profile` when the env var is unset) for advisory-only.
    Deleting the file returns to the default `verifier`. Both flag files live
@@ -41,7 +43,7 @@ hooks execute as soon as the plugin is enabled:
 | SessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext |
 | SubagentStart | hooks/jiahao-subagent.js | same injection on subagent spawn |
 | UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
-| Stop | hooks/jiahao-verdict-gate.js | verifier blocking: exit 2 + {decision:"block"} |
+| Stop | hooks/jiahao-verdict-gate.js | verifier blocking: exit 2 is the host's block signal; the reason JSON goes to stdout |
 | SubagentStop | hooks/jiahao-verdict-gate.js | same gate on subagent finish (D5 parity) |
 | SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
 | PreToolUse | hooks/jiahao-pretool-guard.js | denies (verifier profile) tool calls that target the hook map, the plugin manifest, `jiahao-*` hook files, any `.mcp.json`, or the jiahao state/evidence files; each hit is a bypass-attempt record |
@@ -59,8 +61,9 @@ directory for the host to load.
 - Hooks write only under the Claude config dir (`$CLAUDE_CONFIG_DIR`, else
   `$HOME`): `.jiahao-active`, `.jiahao-evidence/` (plus the
   `.jiahao-evidence.keys` sidecar and `pairer-instrument` shadow records the
-  Stop lane may append), `.jiahao-pretool.jsonl`, and `.jiahao-sentinel-*`.
-  Nothing inside the repo or this plugin directory is written by a hook.
+  Stop lane may append), `.jiahao-pretool.jsonl`, and the sentinel state and
+  lock files `.jiahao-sentinel.<hook>(.lock)`. Nothing inside the repo or this
+  plugin directory is written by a hook.
 - No network calls: no hook fetches anything, and the bundle has no
   third-party runtime dependency to install.
 

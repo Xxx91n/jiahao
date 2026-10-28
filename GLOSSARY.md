@@ -39,3 +39,7 @@
 **规则版（Rules Version）**：
 由唯一源 `src/SKILL.md` 生成的标准技能目录 `skills/jiahao/SKILL.md`，只注入指令、不带钩子，用标准 CLI 从仓库装入。
 *避免*：手工编辑生成出来的目录、把「规则已加载」说成「拦截已生效」。
+
+**插件版（Plugin Version）**：
+自包含的宿主插件目录（`adapters/claude-code/`、`adapters/codebuddy/`）：清单、宿主自动加载的钩子配置、钩子及其 require 闭包、`src/` 副本与 SKILL 正文都在目录内，用宿主原生命令从仓库根的 marketplace 清单安装；只有它带强制。
+*避免*：手工编辑生成出来的目录、把插件目录当成规则版、把「装上」说成「真机已验证」。
