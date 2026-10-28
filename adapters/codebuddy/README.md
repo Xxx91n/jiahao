@@ -17,8 +17,10 @@ server are vendored inside, so nothing resolves outside the bundle.
    execute the moment the plugin is enabled.
 3. Activate the jiahao profile flag, same as every host:
    `echo full > "$CLAUDE_CONFIG_DIR/.jiahao-active"` (or `$HOME/` when the
-   env var is unset) and `echo verifier > .jiahao-profile` for the
-   blocking profile (`generator` for advisory-only).
+   env var is unset). Write the profile to the path the hooks read:
+   `echo verifier > "$CLAUDE_CONFIG_DIR/.jiahao-profile"` (or
+   `"$HOME/.jiahao-profile"` when unset) for the blocking profile
+   (`generator` for advisory-only).
 4. MCP server: run `npm install --omit=dev` inside the bundle's
    `jiahao-mcp/` once (the server source is vendored; dependencies are
    not). The bundle's `.mcp.json` registers it via

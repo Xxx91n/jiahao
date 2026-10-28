@@ -48,7 +48,7 @@ The codex, copilot, qoder, and mcp directories are no longer install exits; the 
 
 ### Profile
 
-The plugin version defaults to `verifier` when `.jiahao-profile` is absent. Run the installer from the clone; `-y` accepts the default and prints the value it wrote:
+The plugin version defaults to `verifier` when `.jiahao-profile` is absent. The flag lives under `CLAUDE_CONFIG_DIR` (or `$HOME` when unset). Run the installer from the clone; `-y` accepts the default and prints the value it wrote:
 
 ```bash
 node scripts/install.js init -y

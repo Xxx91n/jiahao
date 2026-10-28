@@ -48,7 +48,7 @@ codex、copilot、qoder、mcp 目录不再作为安装出口；MCP 服务端本�
 
 ### Profile
 
-插件版在没有 `.jiahao-profile` 时缺省为 `verifier`。在克隆里运行安装器；`-y` 接受缺省值并打印实际写入的值：
+插件版在没有 `.jiahao-profile` 时缺省为 `verifier`。标记文件位于 `CLAUDE_CONFIG_DIR`（未设置时 `$HOME`）。在克隆里运行安装器；`-y` 接受缺省值并打印实际写入的值：
 
 ```bash
 node scripts/install.js init -y
