@@ -216,11 +216,11 @@ server are vendored inside, so nothing resolves outside the bundle.
 2. Enable the plugin explicitly - \`defaultEnabled: false\` is deliberate:
    plugin hooks bypass the \`allowUntrustedFrontmatterHooks\` gate and
    execute the moment the plugin is enabled.
-3. Activate the jiahao profile flag, same as every host:
-   \`echo full > "$CLAUDE_CONFIG_DIR/.jiahao-active"\` (or \`$HOME/\` when the
-   env var is unset). Write the profile to the path the hooks read:
-   \`echo verifier > "$CLAUDE_CONFIG_DIR/.jiahao-profile"\` (or
-   \`"$HOME/.jiahao-profile"\` when unset) for the blocking profile
+3. Activate the jiahao profile flag, same as every host. Resolve the config
+   directory once (\`CLAUDE_CONFIG_DIR\`, else \`$HOME\`, else \`/tmp\`):
+   \`CONFIG="\${CLAUDE_CONFIG_DIR:-\${HOME:-/tmp}}"\`, then
+   \`echo full > "$CONFIG/.jiahao-active"\` and
+   \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
    (\`generator\` for advisory-only).
 4. MCP server: run \`npm install --omit=dev\` inside the bundle's
    \`jiahao-mcp/\` once (the server source is vendored; dependencies are
@@ -252,6 +252,12 @@ design. Enabling this bundle installs seven hook points:
 Timeouts stay within the 60s host budget (5/5/5/10/3/5/5s). Commands are
 Git-Bash-compatible \`node\` invocations (cmd/PowerShell unsupported by the
 host). Event matchers are case-sensitive - none are narrowed here.
+
+**Rule-loading caveat.** The bundle ships both \`rules/jiahao-verifier.md\`
+and \`rules/jiahao-generator.md\` with \`alwaysApply: true\`. The hook injects
+the profile selected by \`.jiahao-profile\`, but if the host applies both
+always-apply rule files, the two instruction sets coexist. Rule-level profile
+selection is declared-unverified; the hook is the enforcement layer.
 
 ## Injection-surface ruling - Verified vs Declared-unverified
 
