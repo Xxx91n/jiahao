@@ -117,7 +117,7 @@ function buildAdapters() {
     mcpServers: '.mcp.json',
     defaultEnabled: false, // conservative: opt-in enable; hooks execute on enable and bypass the untrusted-frontmatter gate
     license: 'MIT',
-    repository: 'https://github.com/CognitionAI/jiahao',
+    repository: 'https://github.com/Xxx91n/jiahao',
   }, null, 2) + '\n';
 
   // Full event map: the migrated five-event set plus the InstructionsLoaded
