@@ -61,13 +61,12 @@ test('the source hides itself from discovery and the shipped file does not', () 
   expect(emitted).not.toContain('internal: true');
 });
 
-// Asking for a skill by name makes the CLI include internal skills, so a second
-// file named `jiahao` would win the lookup and install the directory it sits in -
-// `src/`, runtime JS and all. Measured on skills 1.7.4 before the source got its
-// own name. This lists tracked paths rather than reading their contents: another
-// suite regenerates those files while jest runs, and a mid-write read is a flake,
-// not a finding.
-test('no SKILL.md outside the known set can claim the shipped skill name', () => {
+// Enumerates tracked paths and does not read their contents: another suite
+// regenerates these files while jest runs, and a mid-write read is a flake, not
+// a finding. Any new SKILL.md in the repo stops here - the skills CLI scans the
+// root's child directories, so a second file claiming this name costs real
+// runtime files in the installing project (see toShippedSkill).
+test('the tracked SKILL.md set stays exactly the known three', () => {
   const claimants = listTrackedPaths(root)
     .filter((rel) => rel.endsWith('/SKILL.md'))
     .filter((rel) => rel !== SKILL_DIR + '/SKILL.md')
