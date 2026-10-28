@@ -542,6 +542,5 @@ function main() {
 if (require.main === module) main();
 
 module.exports = {
-  buildAdapters, unifiedDiff, checkAll, writeAll, auditTrackedSet, toShippedSkill,
-  GENERATED_DIRS, SKILL_NAME, SKILL_DIR, SOURCE_NAME,
+  buildAdapters, unifiedDiff, checkAll, writeAll, auditTrackedSet, SKILL_DIR, SOURCE_NAME,
 };

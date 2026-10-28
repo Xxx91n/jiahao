@@ -61,8 +61,8 @@ test('build-adapters --check is green and accounts for every tracked generated f
 });
 
 test('the generator emits the rules-version skill file', () => {
-  const { buildAdapters, SKILL_DIR } = require('../scripts/build-adapters');
-  expect(Object.keys(buildAdapters())).toContain(SKILL_DIR + '/SKILL.md');
+  const { buildAdapters } = require('../scripts/build-adapters');
+  expect(Object.keys(buildAdapters())).toContain('skills/jiahao/SKILL.md');
 });
 
 // Literal roots, not the production constant: a test that reads the same list
