@@ -13,12 +13,14 @@ whose single entry `source` points at `./adapters/claude-code`).
 
 1. `claude plugin marketplace add Xxx91n/jiahao`
 2. `claude plugin install jiahao@jiahao`
-3. Enable the plugin. `defaultEnabled: false` is deliberate: plugin hooks
-   execute as soon as the plugin is enabled, without a trust prompt.
+3. Enable the plugin. `defaultEnabled: false` is deliberate: installing does
+   not turn the Stop gate on by itself.
 4. Activate the profile, same as every host:
-   `echo full > "$CLAUDE_CONFIG_DIR/.jiahao-active"` (or `$HOME/` when the
-   env var is unset), and `echo verifier > .jiahao-profile` for the blocking
-   profile (`generator` for advisory-only).
+   `echo full > "$CLAUDE_CONFIG_DIR/.jiahao-active"` (or
+   `$HOME/.jiahao-active` when the env var is unset), and
+   `echo verifier > "$CLAUDE_CONFIG_DIR/.jiahao-profile"` for the blocking
+   profile (`generator` for advisory-only). Both files live in the config
+   dir, never in the project directory.
 5. Optional MCP server: `npm install --omit=dev` inside this bundle's
    `jiahao-mcp/` once. `.mcp.json` registers it via
    `${CLAUDE_PLUGIN_ROOT}/jiahao-mcp/index.js`.
@@ -63,8 +65,9 @@ directory for the host to load.
 ## Verification status (honest tiering)
 
 Pinned offline by `test/claude-code-plugin.test.js`: both manifests parse,
-the plugin version equals `package.json`, the marketplace `source` resolves
-to this directory, every referenced file exists, every hook command stays
+the plugin version and license come from `package.json`, the marketplace
+`source` resolves to this directory, every referenced file is emitted by the
+generator (`--check` pins the emitted set to disk), every hook command stays
 inside `${CLAUDE_PLUGIN_ROOT}`, and no vendored relative `require()` escapes
 the bundle. The bundled Stop gate is spawned by that suite and blocks
 (exit 2) when the evidence chain is empty.

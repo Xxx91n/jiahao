@@ -6,7 +6,9 @@
 // same rule skill-dir.test.js follows: another suite reruns the generator
 // while jest works, so a read of a generated file on disk can land in a
 // truncate window. Only non-generated inputs (package.json, src/SKILL.md,
-// hooks/*.js) and the spawned behavior tests read disk.
+// hooks/*.js) are read from disk. The behavior tests materialize that same
+// in-memory output into a temp dir and spawn from there, so they exercise the
+// shipped bytes without racing the generator.
 
 const fs = require('fs');
 const os = require('os');
@@ -19,6 +21,7 @@ const ROOT = path.join(__dirname, '..');
 const BUNDLE = 'adapters/claude-code/';
 const generated = buildAdapters();
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+const pkgRepository = pkg.repository.url.replace(/^git\+/, '').replace(/\.git$/, '');
 
 const HOOK_EVENTS = ['SessionStart', 'SubagentStart', 'UserPromptSubmit', 'Stop', 'SubagentStop', 'SessionEnd', 'PreToolUse'];
 const VENDORED_HOOKS = [
@@ -31,6 +34,20 @@ const readGenerated = (rel) => {
   if (text === undefined) throw new Error('generator did not emit ' + rel);
   return text;
 };
+
+// Write the bundle exactly as the generator emits it into a throwaway dir, so
+// the spawned hooks run the shipped bytes while no other suite can rewrite
+// them mid-test.
+function materializeBundle() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-cc-bundle-'));
+  for (const [rel, text] of Object.entries(generated)) {
+    if (!rel.startsWith(BUNDLE)) continue;
+    const abs = path.join(dir, rel.slice(BUNDLE.length).split('/').join(path.sep));
+    fs.mkdirSync(path.dirname(abs), { recursive: true });
+    fs.writeFileSync(abs, text, 'utf8');
+  }
+  return dir;
+}
 
 // Resolve a relative require() the way node does, against the in-memory map.
 function resolveInBundle(fromRel, spec) {
@@ -58,11 +75,12 @@ describe('bundle structure', () => {
     expect(generated[BUNDLE + 'plugin.json']).toBeUndefined();
   });
 
-  test('manifest parses and its version is the package version, not a copy', () => {
+  test('manifest parses; version, license, and repository come from the package', () => {
     const m = JSON.parse(readGenerated(BUNDLE + '.claude-plugin/plugin.json'));
     expect(m.name).toBe('jiahao');
     expect(m.version).toBe(pkg.version);
-    expect(m.license).toBe('MIT');
+    expect(m.license).toBe(pkg.license);
+    expect(m.repository).toBe(pkgRepository);
     expect(m.defaultEnabled).toBe(false);
   });
 
@@ -89,18 +107,30 @@ describe('bundle structure', () => {
   test('no relative require() resolves outside the bundle', () => {
     const REQ = /require\(\s*['"]([^'"]+)['"]\s*\)/g;
     const escapes = [];
+    const edges = new Map();
+    let scanned = 0;
     for (const rel of Object.keys(generated).filter(r => r.startsWith(BUNDLE) && r.endsWith('.js'))) {
+      scanned++;
       const text = generated[rel];
       let m;
       while ((m = REQ.exec(text))) {
         const spec = m[1];
         if (!spec.startsWith('.')) continue; // node builtin or external dep (MCP SDK)
         const resolved = resolveInBundle(rel, spec);
+        edges.set(rel + ' -> ' + spec, resolved);
         if (!resolved || !resolved.startsWith(BUNDLE)) escapes.push(rel + ' -> ' + spec);
       }
       REQ.lastIndex = 0;
     }
     expect(escapes).toEqual([]);
+    // Fixpoint: an empty `escapes` also passes when the scan walked nothing.
+    // Today: 20 .js files, 38 relative edges - the bounds are floors, not pins.
+    expect(scanned).toBeGreaterThanOrEqual(15);
+    expect(edges.size).toBeGreaterThanOrEqual(25);
+    expect(edges.get(BUNDLE + 'src/evidence-log.js -> ./shared/paths'))
+      .toBe(BUNDLE + 'src/shared/paths.js');
+    expect(edges.get(BUNDLE + 'jiahao-mcp/index.js -> ../hooks/jiahao-profile'))
+      .toBe(BUNDLE + 'hooks/jiahao-profile.js');
   });
 });
 
@@ -173,12 +203,17 @@ describe('hook map', () => {
 // The bundled copies are what the host actually runs, so the gate's Stop
 // semantics are checked on the copy, not only on hooks/ at the repo root.
 describe('bundled Stop gate (live spawn, temp config dir)', () => {
+  let bundleDir;
+  beforeAll(() => {
+    bundleDir = materializeBundle();
+  });
+
   function runBundled(script, opts) {
     const env = Object.assign({}, process.env);
     for (const k of ['PLUGIN_DATA', 'COPILOT_PLUGIN_DATA', 'QODER_SESSION_ID', 'CODEBUDDY_PLUGIN_ROOT']) delete env[k];
     env.CLAUDE_CONFIG_DIR = opts.configDir;
-    env.CLAUDE_PLUGIN_ROOT = path.join(ROOT, BUNDLE);
-    return spawnSync(process.execPath, [path.join(ROOT, BUNDLE, 'hooks', script)], {
+    env.CLAUDE_PLUGIN_ROOT = bundleDir;
+    return spawnSync(process.execPath, [path.join(bundleDir, 'hooks', script)], {
       input: opts.stdin === undefined ? '{}' : opts.stdin,
       env: env, encoding: 'utf8', timeout: 15000,
     });

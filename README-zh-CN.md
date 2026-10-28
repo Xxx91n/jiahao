@@ -33,7 +33,7 @@ Cursor · Windsurf · Cline · Claude Code · Codex · 通用 / Agent 级。完�
 以下命令在磁盘上检查代码、适配器集合与仓库状态：
 
 ```bash
-npm test                        # 全量 Jest 物理测试（18 套件）
+npm test                        # 全量 Jest 物理测试（20 套件）
 node scripts/build-adapters.js --check  # 宿主适配器黄金镜像一致性检查
 node scripts/check-drift.js     # 适配器漂移检查
 git diff --check                # 格式与行尾空格检查

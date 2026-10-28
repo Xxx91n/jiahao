@@ -22,6 +22,9 @@ const SOURCE_NAME = 'jiahao-source';
 // Plugin manifests carry the package version, not a copy of it: a second
 // hardcoded number is a version assertion that can rot (spec: one version).
 const PKG = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+// Both plugin manifests read the repo identity from the package, so the two
+// bundles cannot disagree about which repository they came from.
+const PKG_REPOSITORY = PKG.repository.url.replace(/^git\+/, '').replace(/\.git$/, '');
 
 // The directories the generator owns. A file tracked under them that this
 // script does not emit is an orphan; a file this script emits that is not
@@ -207,11 +210,15 @@ function buildAdapters() {
     name: 'jiahao',
     version: PKG.version,
     description: 'Dual-profile verification discipline (generator advisory + verifier iron laws) - Claude-Code-compatible plugin surface for CodeBuddy.',
+    // CodeBuddy's documented compat path reads these two keys from the
+    // manifest, so they stay here. Claude Code auto-discovers the same files
+    // and would load a repeated manifest entry in addition, which is why the
+    // Claude bundle below leaves them out.
     hooks: 'hooks/hooks.json',
     mcpServers: '.mcp.json',
     defaultEnabled: false, // conservative: opt-in enable; hooks execute on enable and bypass the untrusted-frontmatter gate
-    license: 'MIT',
-    repository: 'https://github.com/CognitionAI/jiahao',
+    license: PKG.license,
+    repository: PKG_REPOSITORY,
   }, null, 2) + '\n';
 
   // Full event map: the migrated five-event set plus the InstructionsLoaded
@@ -285,9 +292,9 @@ function buildAdapters() {
     version: PKG.version,
     description: 'Dual-profile verification discipline: verifier gate on Stop, profile injection on SessionStart. Self-contained Claude Code plugin.',
     author: { name: 'Xxx91n' },
-    license: 'MIT',
-    repository: 'https://github.com/Xxx91n/jiahao',
-    defaultEnabled: false, // opt-in: plugin hooks execute on enable, without a trust prompt
+    license: PKG.license,
+    repository: PKG_REPOSITORY,
+    defaultEnabled: false, // opt-in: installing does not enable the gate by itself
   }, null, 2) + '\n';
 
   // Host event names and Stop semantics are the Claude Code contract
@@ -398,9 +405,11 @@ server are vendored inside, so nothing resolves outside the bundle.
    plugin hooks bypass the \`allowUntrustedFrontmatterHooks\` gate and
    execute the moment the plugin is enabled.
 3. Activate the jiahao profile flag, same as every host:
-   \`echo full > "$CLAUDE_CONFIG_DIR/.jiahao-active"\` (or \`$HOME/\` when the
-   env var is unset) and \`echo verifier > .jiahao-profile\` for the
-   blocking profile (\`generator\` for advisory-only).
+   \`echo full > "$CLAUDE_CONFIG_DIR/.jiahao-active"\` (or
+   \`$HOME/.jiahao-active\` when the env var is unset) and
+   \`echo verifier > "$CLAUDE_CONFIG_DIR/.jiahao-profile"\` for the blocking
+   profile (\`generator\` for advisory-only). Both files live in the config
+   dir, never in the project directory.
 4. MCP server: run \`npm install --omit=dev\` inside the bundle's
    \`jiahao-mcp/\` once (the server source is vendored; dependencies are
    not). The bundle's \`.mcp.json\` registers it via
@@ -487,12 +496,14 @@ whose single entry \`source\` points at \`./adapters/claude-code\`).
 
 1. \`claude plugin marketplace add Xxx91n/jiahao\`
 2. \`claude plugin install jiahao@jiahao\`
-3. Enable the plugin. \`defaultEnabled: false\` is deliberate: plugin hooks
-   execute as soon as the plugin is enabled, without a trust prompt.
+3. Enable the plugin. \`defaultEnabled: false\` is deliberate: installing does
+   not turn the Stop gate on by itself.
 4. Activate the profile, same as every host:
-   \`echo full > "$CLAUDE_CONFIG_DIR/.jiahao-active"\` (or \`$HOME/\` when the
-   env var is unset), and \`echo verifier > .jiahao-profile\` for the blocking
-   profile (\`generator\` for advisory-only).
+   \`echo full > "$CLAUDE_CONFIG_DIR/.jiahao-active"\` (or
+   \`$HOME/.jiahao-active\` when the env var is unset), and
+   \`echo verifier > "$CLAUDE_CONFIG_DIR/.jiahao-profile"\` for the blocking
+   profile (\`generator\` for advisory-only). Both files live in the config
+   dir, never in the project directory.
 5. Optional MCP server: \`npm install --omit=dev\` inside this bundle's
    \`jiahao-mcp/\` once. \`.mcp.json\` registers it via
    \`\${CLAUDE_PLUGIN_ROOT}/jiahao-mcp/index.js\`.
@@ -537,8 +548,9 @@ directory for the host to load.
 ## Verification status (honest tiering)
 
 Pinned offline by \`test/claude-code-plugin.test.js\`: both manifests parse,
-the plugin version equals \`package.json\`, the marketplace \`source\` resolves
-to this directory, every referenced file exists, every hook command stays
+the plugin version and license come from \`package.json\`, the marketplace
+\`source\` resolves to this directory, every referenced file is emitted by the
+generator (\`--check\` pins the emitted set to disk), every hook command stays
 inside \`\${CLAUDE_PLUGIN_ROOT}\`, and no vendored relative \`require()\` escapes
 the bundle. The bundled Stop gate is spawned by that suite and blocks
 (exit 2) when the evidence chain is empty.

@@ -33,7 +33,7 @@ Two profiles, selected with a `.jiahao-profile` flag file: `generator` for a pri
 These commands check the code, the adapter set, and repository state on disk:
 
 ```bash
-npm test                        # Full physical test suite (18 suites)
+npm test                        # Full physical test suite (20 suites)
 node scripts/build-adapters.js --check  # Golden adapter sync check
 node scripts/check-drift.js     # Adapter drift check
 git diff --check                # Whitespace and formatting check
