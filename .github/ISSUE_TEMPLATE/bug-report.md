@@ -29,6 +29,5 @@ labels: bug
 ## Known-limitation check
 
 - [ ] I read the install section in the README — this is not a documented
-      limitation (rules version has no hooks; the plugin exits are CodeBuddy
-      and Claude Code, and the Claude Code install path is not live-verified
-      yet).
+      limitation (rules version has no hooks; the plugin bundles are CodeBuddy
+      and Claude Code, and neither install path is live-verified here).
