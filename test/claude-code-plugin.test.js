@@ -14,7 +14,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const { builtinModules } = require('module');
+const { isBuiltin } = require('module');
 
 const { buildAdapters } = require('../scripts/build-adapters');
 
@@ -121,10 +121,9 @@ describe('bundle structure', () => {
       while ((m = REQ.exec(text))) {
         const spec = m[1];
         if (!spec.startsWith('.')) {
-          // Node builtins are fine; anything else would break the README's
-          // "no third-party runtime dependency" claim.
-          const bare = spec.replace(/^node:/, '').split('/')[0];
-          if (!builtinModules.includes(bare)) external.push(rel + ' -> ' + spec);
+          // Node builtins (both `fs` and `node:fs`) are fine; anything else
+          // would break the README's "no third-party runtime dependency" claim.
+          if (!isBuiltin(spec)) external.push(rel + ' -> ' + spec);
           continue;
         }
         const resolved = resolveInBundle(rel, spec);

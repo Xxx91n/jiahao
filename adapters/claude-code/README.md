@@ -23,8 +23,8 @@ whose single entry `source` points at `./adapters/claude-code`).
    is the opt-in. Once enabled, the bundled SessionStart hook writes
    `.jiahao-active` and the default profile is `verifier`, so the Stop gate
    arms from the first turn (hook code, not a live probe). `/jiahao off`
-   removes the flag, which disarms the Stop gate and the reminder; the
-   SubagentStart injection is not flag-gated.
+   removes the flag, which disarms the Stop gate, the reminder, and the
+   PreToolUse guard; the SubagentStart injection is not flag-gated.
 4. Switch profile if needed: `echo generator > "$CLAUDE_CONFIG_DIR/.jiahao-profile"`
    (or `$HOME/.jiahao-profile` when the env var is unset) for advisory-only.
    Deleting the file returns to the default `verifier`. Both flag files live
