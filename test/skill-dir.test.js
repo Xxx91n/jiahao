@@ -61,11 +61,9 @@ test('the source hides itself from discovery and the shipped file does not', () 
   expect(emitted).not.toContain('internal: true');
 });
 
-// Enumerates tracked paths and does not read their contents: another suite
-// regenerates these files while jest runs, and a mid-write read is a flake, not
-// a finding. Any new SKILL.md in the repo stops here - the skills CLI scans the
-// root's child directories, so a second file claiming this name costs real
-// runtime files in the installing project (see toShippedSkill).
+// Paths, not contents, for the reason given at the read above. A new SKILL.md
+// anywhere in the repo has to be acknowledged here: the skills CLI scans the
+// root's child directories, and toShippedSkill says what a second claimant costs.
 test('the tracked SKILL.md set stays exactly the known three', () => {
   const claimants = listTrackedPaths(root)
     .filter((rel) => rel.endsWith('/SKILL.md'))

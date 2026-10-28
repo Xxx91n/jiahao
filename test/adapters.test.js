@@ -65,8 +65,9 @@ test('the generator emits the rules-version skill file', () => {
   expect(Object.keys(buildAdapters())).toContain('skills/jiahao/SKILL.md');
 });
 
-// Literal roots, not the production constant: a test that reads the same list
-// the audit reads goes green when the list narrows, which is the bug here.
+// Literal roots, not the production constant: an emitted path outside every
+// audited directory would be invisible to the tracked-set audit, and a test that
+// reads the audit's own list cannot see that happen.
 test('every generated path falls inside a directory the audit enumerates', () => {
   const { buildAdapters } = require('../scripts/build-adapters');
   const outside = Object.keys(buildAdapters())
