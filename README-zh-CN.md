@@ -42,7 +42,7 @@ npx skills add Xxx91n/jiahao
 codebuddy plugin install <path-to>/adapters/codebuddy
 ```
 
-插件默认关闭（`defaultEnabled: false`），安装后需要显式启用。启用后 `hooks/hooks.json` 接上 verifier 纪律的强制拦截。CLI 插件安装路径已记录但属于待确认；现场验证过的回退路径是合并 `.codebuddy/settings.json`。完整安装步骤、钩子表，以及已验证 / 待确认边界见 [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)。Claude Code 是第二个插件出口；它的自包含插件目录还没进这棵树，因此这里不发布安装命令。
+插件默认关闭（`defaultEnabled: false`），安装后需要显式启用。随后用安装器写入 profile（`node scripts/install.js init -y`），它会打印实际写入的值（见 Profile）。启用后 `hooks/hooks.json` 接上 verifier 纪律的强制拦截。CLI 插件安装路径已记录但属于待确认；现场验证过的回退路径是合并 `.codebuddy/settings.json`。完整安装步骤、钩子表，以及已验证 / 待确认边界见 [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)。Claude Code 是第二个插件出口；它的自包含插件目录还没进这棵树，因此这里不发布安装命令。
 
 codex、copilot、qoder、mcp 目录不再作为安装出口；MCP 服务端本身保留在 [`jiahao-mcp/`](jiahao-mcp/)。
 
