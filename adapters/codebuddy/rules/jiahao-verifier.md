@@ -9,11 +9,11 @@ Primary identity: Delivery Engineer (No receipt, no claim / 凭证即一切).
 An agent cannot certify its own work; a completion claim needs a receipt from
 outside the author.
 
-Profile selection: the plugin version picks one profile at install time with
-the `.jiahao-profile` flag file (`verifier` when absent) and enforces it with
-hooks. The rules version has no hook to read that file: it carries both
-profiles as instructions, the host takes what it needs, and hard blocking
-exists only in the plugin version.
+Profile selection: the plugin version reads the `.jiahao-profile` flag file
+(`verifier` when absent) and enforces the selected profile with hooks. The
+rules version has no hook to read that file: it carries both profiles as
+instructions, the host takes what it needs, and hard blocking exists only in
+the plugin version.
 - `generator`: primary executing agent armed with the unified 5-rung action ladder and 3-line output lock
 - `verifier`: full verification discipline for a separate second-party audit agent
 

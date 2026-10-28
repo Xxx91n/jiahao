@@ -37,13 +37,12 @@ const GENERATOR_REQUIRED = [
 ];
 
 // kind: both = carries the full dual-profile source body;
-// verifier / generator = carries that profile alone; exists = path only.
+// verifier / generator = carries that profile alone.
 const CHECKS = [
   { rel: 'skills/jiahao/SKILL.md', kind: 'both' },
   { rel: 'adapters/codebuddy/src/SKILL.md', kind: 'both' },
   { rel: 'adapters/codebuddy/rules/jiahao-verifier.md', kind: 'verifier' },
   { rel: 'adapters/codebuddy/rules/jiahao-generator.md', kind: 'generator' },
-  { rel: 'adapters/claude-code/README.md', kind: 'exists' },
 ];
 
 // Tracked-set accounting in build-adapters.js catches these once they are
@@ -79,7 +78,6 @@ function main() {
       drift = true;
       continue;
     }
-    if (kind === 'exists') continue;
     const content = fs.readFileSync(full, 'utf8');
     if (kind === 'both') {
       for (const marker of ['## Generator Profile', '## Verifier Profile', '## Boundaries']) {

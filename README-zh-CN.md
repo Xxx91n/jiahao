@@ -42,16 +42,16 @@ npx skills add Xxx91n/jiahao
 codebuddy plugin install <path-to>/adapters/codebuddy
 ```
 
-插件注册 `hooks/hooks.json`，verifier 纪律由钩子强制执行。完整安装步骤、钩子表，以及已验证 / 待确认边界见 [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)。Claude Code 是第二个插件出口；它的自包含插件目录还没进这棵树，因此这里不发布安装命令。
+插件注册 `hooks/hooks.json`，接上 verifier 纪律的强制拦截。CLI 插件安装路径已记录但属于待确认；现场验证过的回退路径是合并 `.codebuddy/settings.json`。完整安装步骤、钩子表，以及已验证 / 待确认边界见 [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)。Claude Code 是第二个插件出口；它的自包含插件目录还没进这棵树，因此这里不发布安装命令。
 
 codex、copilot、qoder、mcp 目录不再作为安装出口；MCP 服务端本身保留在 [`jiahao-mcp/`](jiahao-mcp/)。
 
 ### Profile
 
-插件版在没有 `.jiahao-profile` 时缺省为 `verifier`。在克隆里运行安装器，它会打印实际写入的值：
+插件版在没有 `.jiahao-profile` 时缺省为 `verifier`。在克隆里运行安装器；`-y` 接受缺省值并打印实际写入的值：
 
 ```bash
-node scripts/install.js init --profile verifier
+node scripts/install.js init -y
 # Wrote "verifier" to <config-dir>/.jiahao-profile
 ```
 
@@ -59,7 +59,7 @@ node scripts/install.js init --profile verifier
 
 ### 私有语料
 
-评测语料是维护者/CI 资产：不在 npm 包里，也不在本仓库的跟踪文件里。门禁需要时，用 `JIAHAO_CORPUS_DIR` 指向本地副本。运行时钩子不依赖它。
+私有评测语料 `private/bench-corpus/` 是维护者/CI 资产：不在 npm 包里，也不在本仓库的跟踪文件里。`bench/` 下的冻结评测记录是跟踪的，不属于这份私有语料。门禁需要时，用 `JIAHAO_CORPUS_DIR` 指向本地副本。运行时钩子不依赖它。
 
 ## 本地物理检验
 

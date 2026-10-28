@@ -42,16 +42,16 @@ CodeBuddy is the self-contained plugin exit in this tree:
 codebuddy plugin install <path-to>/adapters/codebuddy
 ```
 
-The bundle registers `hooks/hooks.json` and enforces the verifier discipline. Install steps, the hook map, and the verified / declared-unverified boundary are in [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md). Claude Code is the second plugin exit; its self-contained bundle is not in this tree yet, so no install command is published here.
+The bundle registers `hooks/hooks.json` and wires the verifier enforcement. The CLI plugin-install path is documented but declared-unverified; the live-verified fallback is the `.codebuddy/settings.json` merge. Install steps, the hook map, and the full verified / declared-unverified boundary are in [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md). Claude Code is the second plugin exit; its self-contained bundle is not in this tree yet, so no install command is published here.
 
 The codex, copilot, qoder, and mcp directories are no longer install exits; the MCP server itself remains at [`jiahao-mcp/`](jiahao-mcp/).
 
 ### Profile
 
-The plugin version defaults to `verifier` when `.jiahao-profile` is absent. Run the installer from the clone; it prints the value it wrote:
+The plugin version defaults to `verifier` when `.jiahao-profile` is absent. Run the installer from the clone; `-y` accepts the default and prints the value it wrote:
 
 ```bash
-node scripts/install.js init --profile verifier
+node scripts/install.js init -y
 # Wrote "verifier" to <config-dir>/.jiahao-profile
 ```
 
@@ -59,7 +59,7 @@ The rules version has no runtime profile switch.
 
 ### Private corpus
 
-The benchmark corpus is a maintainer/CI asset: it is not in the npm package and not tracked in this repository. When a gate needs it, point `JIAHAO_CORPUS_DIR` at a local copy. Runtime hooks do not depend on it.
+The private benchmark corpus (`private/bench-corpus/`) is a maintainer/CI asset: it is not in the npm package and not tracked in this repository. The frozen evaluation records under `bench/` are tracked; they are not the private corpus. When a gate needs the private corpus, point `JIAHAO_CORPUS_DIR` at a local copy. Runtime hooks do not depend on it.
 
 ## Verification
 
