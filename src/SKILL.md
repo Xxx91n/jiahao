@@ -1,5 +1,5 @@
 ---
-name: jiahao
+name: jiahao-source
 description: >
   Anti-false-completion discipline for LLM agents. Armed with the Delivery
   Engineer mindset (No receipt, no claim / 凭证即一切) and the 5-rung Action Ladder
@@ -8,6 +8,8 @@ description: >
   Your job is to hold completion claims to physical evidence.
 argument-hint: "[lite|full|ultra]"
 license: MIT
+metadata:
+  internal: true
 ---
 
 # Jiahao (嘉豪)

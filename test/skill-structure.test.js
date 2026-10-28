@@ -9,7 +9,7 @@ test('SKILL.md exists and is non-empty', () => {
 });
 
 test('has YAML frontmatter with name and description', () => {
-  expect(content).toMatch(/^---\nname: jiahao/);
+  expect(content).toMatch(/^---\nname: jiahao-source/);
   expect(content).toMatch(/description:/);
 });
 
