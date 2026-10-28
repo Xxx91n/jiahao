@@ -49,16 +49,13 @@ test('the skill directory is <skill-name>/SKILL.md', () => {
   expect(fs.statSync(skillDir).isDirectory()).toBe(true);
 });
 
-// The six keys the Agent Skills spec allows, copied from the reference
-// validator's ALLOWED_FIELDS (agentskills/agentskills, skills-ref). The validator
-// rejects anything else; the `skills` CLI does not, so the pin lives here.
-const SPEC_FIELDS = ['name', 'description', 'license', 'allowed-tools', 'metadata', 'compatibility'];
-
+// Only the keys the Agent Skills spec defines ship: the reference validator
+// (agentskills/agentskills, skills-ref) rejects a file carrying anything else,
+// and the looser `skills` CLI does not, so this pin is what keeps AC2 honest.
 test('the rule file is the single source with the source-only keys dropped', () => {
   expect(body(emitted)).toBe(body(source));
   const keys = Object.keys(readFrontmatter(emitted, SKILL_DIR)).sort();
   expect(keys).toEqual(['description', 'license', 'name']);
-  expect(keys.every((key) => SPEC_FIELDS.includes(key))).toBe(true);
 });
 
 test('the source keeps the keys that only it can carry', () => {
@@ -87,11 +84,12 @@ test('name matches the directory name and fits the spec shape', () => {
   expect(name.length).toBeLessThanOrEqual(64);
 });
 
-test('description is one folded string of 1-1024 characters', () => {
-  // The helper above reads any single line as a string, so `description: [a, b]`
-  // would pass the length checks while the CLI parses it as an array and skips
-  // the skill. Pin the folded form instead of trusting the helper's typing.
-  expect(emitted).toMatch(/^description: >$/m);
+test('description reaches the CLI as one string of 1-1024 characters', () => {
+  // The helper reads any single line as a string, so a flow list would satisfy the
+  // length checks below while the CLI parses it as an array and skips the whole
+  // skill. Reject that shape from the raw line, and leave legal scalar forms alone.
+  const raw = /^description:[ \t]*(.*)$/m.exec(emitted)[1].trim();
+  expect(/^[{[]/.test(raw)).toBe(false);
   const description = readFrontmatter(emitted, SKILL_DIR).description;
   expect(typeof description).toBe('string');
   expect(description.length).toBeGreaterThan(0);
