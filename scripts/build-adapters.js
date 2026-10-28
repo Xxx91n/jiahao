@@ -38,6 +38,18 @@ function readRepoFile(rel) {
   return fs.readFileSync(path.join(root, rel.split('/').join(path.sep)), 'utf8');
 }
 
+// The non-JS tail every self-contained bundle carries: the require() closure,
+// the SKILL body, and the identity pin calibration.js loads at require() time.
+// One helper, so a file added here cannot reach one bundle and miss the other
+// (both were missing the pin before this ticket). `extraFiles` are the
+// host-specific runtime data files a bundle also ships.
+function emitBundle(adapters, prefix, seeds, skill, extraFiles) {
+  for (const [rel, text] of vendorClosure(seeds)) adapters[prefix + rel] = text;
+  adapters[prefix + 'src/SKILL.md'] = skill;
+  adapters[prefix + 'src/instrument-identity.json'] = readRepoFile('src/instrument-identity.json');
+  for (const rel of extraFiles || []) adapters[prefix + rel] = readRepoFile(rel);
+}
+
 // Vendored runtime closure for the self-contained plugin bundles: the seed
 // files plus every relative require() they reach, byte-verbatim, keyed by
 // repo-relative path. Both bundles share it so a new hook dependency cannot
@@ -198,13 +210,7 @@ function buildAdapters() {
     'hooks/jiahao-profile.js', 'hooks/jiahao-instructions-assert.js',
     'hooks/jiahao-pretool-guard.js', 'jiahao-mcp/index.js',
   ];
-  for (const [rel, text] of vendorClosure(CB_SEEDS)) adapters[CB + rel] = text;
-  // Runtime data files outside the require() graph. instrument-identity.json
-  // is not optional: calibration.js loads the pin at require() time, so a
-  // bundle without it dies on the first Stop gate instead of gating.
-  adapters[CB + 'src/SKILL.md'] = skill;
-  adapters[CB + 'src/instrument-identity.json'] = readRepoFile('src/instrument-identity.json');
-  adapters[CB + 'jiahao-mcp/package.json'] = readRepoFile('jiahao-mcp/package.json');
+  emitBundle(adapters, CB, CB_SEEDS, skill, ['jiahao-mcp/package.json']);
 
   adapters[CB + '.claude-plugin/plugin.json'] = JSON.stringify({
     name: 'jiahao',
@@ -263,30 +269,31 @@ function buildAdapters() {
   adapters[CB + 'README.md'] = codebuddyReadme();
 
   // ---- Claude Code: self-contained plugin bundle ----
-  // Same vendoring closure as CodeBuddy, minus the InstructionsLoaded
-  // assertion: that hook hashes rules/jiahao-*.md, and a Claude Code plugin
-  // has no plugin-level rules/ directory (its rules live in CLAUDE.md /
-  // .claude/rules, not in the bundle), so wiring it would report absent files
-  // the host never loaded. Everything the host loads sits under hooks/,
-  // src/, and jiahao-mcp/ - all inside this directory.
-  const CC = 'adapters/claude-code/';
+  // The closure is exactly the parent spec's: hooks, their require()
+  // dependencies, the src/ copy, and the SKILL body. Two CodeBuddy components
+  // are deliberately absent:
+  // - InstructionsLoaded: it hashes rules/jiahao-*.md, and a Claude Code
+  //   plugin has no plugin-level rules/ directory for the host to load.
+  // - jiahao-mcp + .mcp.json: #59 keeps the MCP server in the repo but not as
+  //   an install-and-work exit; auto-discovered .mcp.json would register a
+  //   server whose SDK deps are not vendored, breaking the self-contained
+  //   claim on enable.
+  // With those two gone the bundle has no third-party runtime dependency.
+  const CC_DIR = 'adapters/claude-code';
+  const CC = CC_DIR + '/';
   const CC_SEEDS = [
     'hooks/jiahao-activate.js', 'hooks/jiahao-mode-tracker.js',
     'hooks/jiahao-subagent.js', 'hooks/jiahao-sweep.js',
     'hooks/jiahao-verdict-gate.js', 'hooks/jiahao-runtime.js',
     'hooks/jiahao-profile.js', 'hooks/jiahao-pretool-guard.js',
-    'jiahao-mcp/index.js',
   ];
-  for (const [rel, text] of vendorClosure(CC_SEEDS)) adapters[CC + rel] = text;
-  adapters[CC + 'src/SKILL.md'] = skill;
-  // Require-time fact for calibration.js (see the CodeBuddy bundle above).
-  adapters[CC + 'src/instrument-identity.json'] = readRepoFile('src/instrument-identity.json');
-  adapters[CC + 'jiahao-mcp/package.json'] = readRepoFile('jiahao-mcp/package.json');
+  emitBundle(adapters, CC, CC_SEEDS, skill);
 
-  // Only `name` is required by the host (manifest-reference). The manifest
-  // does not repeat `hooks`/`mcpServers`: hooks/hooks.json and .mcp.json are
-  // auto-discovered at the plugin root, and the manifest fields load *in
-  // addition* to those files. `version` is the package version (see PKG).
+  // Only `name` is required by the host (code.claude.com/docs/en/plugins/
+  // manifest-reference). The manifest does not repeat `hooks`: hooks/hooks.json
+  // is auto-discovered at the plugin root, and the manifest field loads *in
+  // addition* to that file. `version` is the package version (see PKG);
+  // `defaultEnabled` is a documented manifest field, not a CodeBuddy extra.
   adapters[CC + '.claude-plugin/plugin.json'] = JSON.stringify({
     name: 'jiahao',
     version: PKG.version,
@@ -316,19 +323,6 @@ function buildAdapters() {
     },
   }, null, 2) + '\n';
 
-  // Auto-discovered at the plugin root; the stdio server is vendored under
-  // jiahao-mcp/ and its dependencies are installed per README. No `cwd`: the
-  // server resolves its files from __dirname, and only the documented stdio
-  // fields are used here.
-  adapters[CC + '.mcp.json'] = JSON.stringify({
-    mcpServers: {
-      'jiahao-mcp': {
-        command: 'node',
-        args: ['${CLAUDE_PLUGIN_ROOT}/jiahao-mcp/index.js'],
-      },
-    },
-  }, null, 2) + '\n';
-
   adapters[CC + 'README.md'] = claudeCodeReadme();
 
   // ---- marketplace manifest: the repo root is the marketplace ----
@@ -343,7 +337,7 @@ function buildAdapters() {
     plugins: [
       {
         name: 'jiahao',
-        source: './' + CC.replace(/\/$/, ''),
+        source: './' + CC_DIR,
         description: 'Anti-false-completion verification discipline: verifier gate on Stop, profile injection on SessionStart.',
       },
     ],
@@ -485,9 +479,14 @@ function claudeCodeReadme() {
 
 This directory is a **self-contained Claude Code plugin**: the manifest
 (\`.claude-plugin/plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook
-scripts and their \`require()\` closure, \`src/SKILL.md\`, and the \`jiahao-mcp\`
-server are vendored inside. Every hook command resolves through
-\`\${CLAUDE_PLUGIN_ROOT}\`, so nothing reads from the repository root.
+scripts and their \`require()\` closure, \`src/SKILL.md\`, and the identity pin
+the gate loads are vendored inside; there is no third-party runtime
+dependency. Every hook command resolves through \`\${CLAUDE_PLUGIN_ROOT}\`, so
+nothing reads from the repository root.
+
+The MCP server (\`jiahao-mcp/\` at the repo root) is deliberately not part of
+this bundle: #59 keeps it in the repository but not as an install-and-work
+adapter exit.
 
 ## Install
 
@@ -496,17 +495,15 @@ whose single entry \`source\` points at \`./adapters/claude-code\`).
 
 1. \`claude plugin marketplace add Xxx91n/jiahao\`
 2. \`claude plugin install jiahao@jiahao\`
-3. Enable the plugin. \`defaultEnabled: false\` is deliberate: installing does
-   not turn the Stop gate on by itself.
-4. Activate the profile, same as every host:
-   \`echo full > "$CLAUDE_CONFIG_DIR/.jiahao-active"\` (or
-   \`$HOME/.jiahao-active\` when the env var is unset), and
-   \`echo verifier > "$CLAUDE_CONFIG_DIR/.jiahao-profile"\` for the blocking
-   profile (\`generator\` for advisory-only). Both files live in the config
-   dir, never in the project directory.
-5. Optional MCP server: \`npm install --omit=dev\` inside this bundle's
-   \`jiahao-mcp/\` once. \`.mcp.json\` registers it via
-   \`\${CLAUDE_PLUGIN_ROOT}/jiahao-mcp/index.js\`.
+3. Enable the plugin. \`defaultEnabled: false\` keeps installation from
+   enabling it; enabling is the opt-in. Once enabled, the SessionStart hook
+   writes \`.jiahao-active\` and the default profile is \`verifier\` - the Stop
+   gate blocks unverified completion from the first turn. \`/jiahao off\`
+   disables the discipline for the session.
+4. Switch profile if needed: \`echo generator > "$CLAUDE_CONFIG_DIR/.jiahao-profile"\`
+   (or \`$HOME/.jiahao-profile\` when the env var is unset) for advisory-only.
+   Deleting the file returns to the default \`verifier\`. Both flag files live
+   in the config dir, never in the project directory.
 
 Install, upgrade, and uninstall are the host's own plugin commands; the repo
 root is never a plugin entry.
@@ -524,7 +521,7 @@ hooks execute as soon as the plugin is enabled:
 | Stop | hooks/jiahao-verdict-gate.js | verifier blocking: exit 2 + {decision:"block"} |
 | SubagentStop | hooks/jiahao-verdict-gate.js | same gate on subagent finish (D5 parity) |
 | SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
-| PreToolUse | hooks/jiahao-pretool-guard.js | denies (verifier profile) tool calls that target the hook map / manifest / evidence chain; each hit is a bypass-attempt record |
+| PreToolUse | hooks/jiahao-pretool-guard.js | denies (verifier profile) tool calls that target the hook map, the plugin manifest, \`jiahao-*\` hook files, any \`.mcp.json\`, or the jiahao state/evidence files; each hit is a bypass-attempt record |
 
 Timeouts stay within the host's 60s per-hook budget (5/5/5/10/10/5/5s).
 Commands are \`node\` invocations in shell form, the form the other hosts'
@@ -541,9 +538,8 @@ directory for the host to load.
   \`.jiahao-evidence.keys\` sidecar and \`pairer-instrument\` shadow records the
   Stop lane may append), \`.jiahao-pretool.jsonl\`, and \`.jiahao-sentinel-*\`.
   Nothing inside the repo or this plugin directory is written by a hook.
-- No network calls: no hook fetches anything; install is the two host
-  commands above plus, optionally, \`npm install\` for the MCP server's
-  dependencies.
+- No network calls: no hook fetches anything, and the bundle has no
+  third-party runtime dependency to install.
 
 ## Verification status (honest tiering)
 

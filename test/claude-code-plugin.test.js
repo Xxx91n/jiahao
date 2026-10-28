@@ -63,10 +63,8 @@ describe('bundle structure', () => {
     for (const rel of [
       BUNDLE + '.claude-plugin/plugin.json',
       BUNDLE + 'hooks/hooks.json',
-      BUNDLE + '.mcp.json',
       BUNDLE + 'src/SKILL.md',
       BUNDLE + 'src/instrument-identity.json', // require-time pin for calibration.js
-      BUNDLE + 'jiahao-mcp/index.js',
       BUNDLE + 'README.md',
     ]) {
       expect(typeof generated[rel]).toBe('string');
@@ -100,8 +98,13 @@ describe('bundle structure', () => {
     }
     expect(readGenerated(BUNDLE + 'src/SKILL.md'))
       .toBe(fs.readFileSync(path.join(ROOT, 'src', 'SKILL.md'), 'utf8'));
-    expect(readGenerated(BUNDLE + 'jiahao-mcp/index.js'))
-      .toBe(fs.readFileSync(path.join(ROOT, 'jiahao-mcp', 'index.js'), 'utf8'));
+  });
+
+  // #59 keeps jiahao-mcp in the repo but not as a plugin component; an
+  // auto-discovered .mcp.json would register a server without its deps.
+  test('the MCP server is not part of this bundle', () => {
+    expect(generated[BUNDLE + '.mcp.json']).toBeUndefined();
+    expect(Object.keys(generated).filter(rel => rel.startsWith(BUNDLE + 'jiahao-mcp/'))).toEqual([]);
   });
 
   test('no relative require() resolves outside the bundle', () => {
@@ -124,13 +127,13 @@ describe('bundle structure', () => {
     }
     expect(escapes).toEqual([]);
     // Fixpoint: an empty `escapes` also passes when the scan walked nothing.
-    // Today: 20 .js files, 38 relative edges - the bounds are floors, not pins.
+    // Today: 19 .js files, 37 relative edges - the bounds are floors, not pins.
     expect(scanned).toBeGreaterThanOrEqual(15);
     expect(edges.size).toBeGreaterThanOrEqual(25);
     expect(edges.get(BUNDLE + 'src/evidence-log.js -> ./shared/paths'))
       .toBe(BUNDLE + 'src/shared/paths.js');
-    expect(edges.get(BUNDLE + 'jiahao-mcp/index.js -> ../hooks/jiahao-profile'))
-      .toBe(BUNDLE + 'hooks/jiahao-profile.js');
+    expect(edges.get(BUNDLE + 'src/instrument-identity.js -> ./evidence-log'))
+      .toBe(BUNDLE + 'src/evidence-log.js');
   });
 });
 
@@ -191,13 +194,6 @@ describe('hook map', () => {
     }
   });
 
-  test('.mcp.json starts the vendored server through the plugin root', () => {
-    const mcp = JSON.parse(readGenerated(BUNDLE + '.mcp.json'));
-    const server = mcp.mcpServers['jiahao-mcp'];
-    expect(server.command).toBe('node');
-    expect(server.args[0]).toBe('${CLAUDE_PLUGIN_ROOT}/jiahao-mcp/index.js');
-    expect(typeof generated[BUNDLE + 'jiahao-mcp/index.js']).toBe('string');
-  });
 });
 
 // The bundled copies are what the host actually runs, so the gate's Stop

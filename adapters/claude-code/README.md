@@ -2,9 +2,14 @@
 
 This directory is a **self-contained Claude Code plugin**: the manifest
 (`.claude-plugin/plugin.json`), the hook map (`hooks/hooks.json`), the hook
-scripts and their `require()` closure, `src/SKILL.md`, and the `jiahao-mcp`
-server are vendored inside. Every hook command resolves through
-`${CLAUDE_PLUGIN_ROOT}`, so nothing reads from the repository root.
+scripts and their `require()` closure, `src/SKILL.md`, and the identity pin
+the gate loads are vendored inside; there is no third-party runtime
+dependency. Every hook command resolves through `${CLAUDE_PLUGIN_ROOT}`, so
+nothing reads from the repository root.
+
+The MCP server (`jiahao-mcp/` at the repo root) is deliberately not part of
+this bundle: #59 keeps it in the repository but not as an install-and-work
+adapter exit.
 
 ## Install
 
@@ -13,17 +18,15 @@ whose single entry `source` points at `./adapters/claude-code`).
 
 1. `claude plugin marketplace add Xxx91n/jiahao`
 2. `claude plugin install jiahao@jiahao`
-3. Enable the plugin. `defaultEnabled: false` is deliberate: installing does
-   not turn the Stop gate on by itself.
-4. Activate the profile, same as every host:
-   `echo full > "$CLAUDE_CONFIG_DIR/.jiahao-active"` (or
-   `$HOME/.jiahao-active` when the env var is unset), and
-   `echo verifier > "$CLAUDE_CONFIG_DIR/.jiahao-profile"` for the blocking
-   profile (`generator` for advisory-only). Both files live in the config
-   dir, never in the project directory.
-5. Optional MCP server: `npm install --omit=dev` inside this bundle's
-   `jiahao-mcp/` once. `.mcp.json` registers it via
-   `${CLAUDE_PLUGIN_ROOT}/jiahao-mcp/index.js`.
+3. Enable the plugin. `defaultEnabled: false` keeps installation from
+   enabling it; enabling is the opt-in. Once enabled, the SessionStart hook
+   writes `.jiahao-active` and the default profile is `verifier` - the Stop
+   gate blocks unverified completion from the first turn. `/jiahao off`
+   disables the discipline for the session.
+4. Switch profile if needed: `echo generator > "$CLAUDE_CONFIG_DIR/.jiahao-profile"`
+   (or `$HOME/.jiahao-profile` when the env var is unset) for advisory-only.
+   Deleting the file returns to the default `verifier`. Both flag files live
+   in the config dir, never in the project directory.
 
 Install, upgrade, and uninstall are the host's own plugin commands; the repo
 root is never a plugin entry.
@@ -41,7 +44,7 @@ hooks execute as soon as the plugin is enabled:
 | Stop | hooks/jiahao-verdict-gate.js | verifier blocking: exit 2 + {decision:"block"} |
 | SubagentStop | hooks/jiahao-verdict-gate.js | same gate on subagent finish (D5 parity) |
 | SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
-| PreToolUse | hooks/jiahao-pretool-guard.js | denies (verifier profile) tool calls that target the hook map / manifest / evidence chain; each hit is a bypass-attempt record |
+| PreToolUse | hooks/jiahao-pretool-guard.js | denies (verifier profile) tool calls that target the hook map, the plugin manifest, `jiahao-*` hook files, any `.mcp.json`, or the jiahao state/evidence files; each hit is a bypass-attempt record |
 
 Timeouts stay within the host's 60s per-hook budget (5/5/5/10/10/5/5s).
 Commands are `node` invocations in shell form, the form the other hosts'
@@ -58,9 +61,8 @@ directory for the host to load.
   `.jiahao-evidence.keys` sidecar and `pairer-instrument` shadow records the
   Stop lane may append), `.jiahao-pretool.jsonl`, and `.jiahao-sentinel-*`.
   Nothing inside the repo or this plugin directory is written by a hook.
-- No network calls: no hook fetches anything; install is the two host
-  commands above plus, optionally, `npm install` for the MCP server's
-  dependencies.
+- No network calls: no hook fetches anything, and the bundle has no
+  third-party runtime dependency to install.
 
 ## Verification status (honest tiering)
 
