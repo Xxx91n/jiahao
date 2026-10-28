@@ -36,7 +36,7 @@ Installs `skills/jiahao/SKILL.md` into a host that reads the standard Agent Skil
 
 ### Plugin version — host-native command, with hooks
 
-CodeBuddy is the self-contained plugin exit in this tree:
+CodeBuddy is one of the two plugin exits (the other is Claude Code, described below):
 
 ```bash
 codebuddy plugin install <path-to>/adapters/codebuddy

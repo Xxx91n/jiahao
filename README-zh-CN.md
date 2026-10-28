@@ -36,7 +36,7 @@ npx skills add Xxx91n/jiahao
 
 ### 插件版 —— 宿主原生命令，带钩子
 
-本仓库里自包含的插件出口是 CodeBuddy：
+CodeBuddy 是两个插件出口之一（另一个是 Claude Code，见本节末）：
 
 ```bash
 codebuddy plugin install <path-to>/adapters/codebuddy
