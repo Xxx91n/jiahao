@@ -6,7 +6,6 @@ description: >
   (Action-first, Probing over guessing, Zero rationalization on red, Goal vs
   outcome receipt, Plain language) and 3-line output lock by default.
   Your job is to hold completion claims to physical evidence.
-argument-hint: "[lite|full|ultra]"
 license: MIT
 ---
 

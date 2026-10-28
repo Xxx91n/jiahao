@@ -49,16 +49,24 @@ test('the skill directory is <skill-name>/SKILL.md', () => {
   expect(fs.statSync(skillDir).isDirectory()).toBe(true);
 });
 
+// The six keys the Agent Skills spec allows, copied from the reference
+// validator's ALLOWED_FIELDS (agentskills/agentskills, skills-ref). The validator
+// rejects anything else; the `skills` CLI does not, so the pin lives here.
+const SPEC_FIELDS = ['name', 'description', 'license', 'allowed-tools', 'metadata', 'compatibility'];
+
 test('the rule file is the single source with the source-only keys dropped', () => {
   expect(body(emitted)).toBe(body(source));
   const keys = Object.keys(readFrontmatter(emitted, SKILL_DIR)).sort();
-  expect(keys).toEqual(['argument-hint', 'description', 'license', 'name']);
+  expect(keys).toEqual(['description', 'license', 'name']);
+  expect(keys.every((key) => SPEC_FIELDS.includes(key))).toBe(true);
 });
 
-test('the source hides itself from discovery and the shipped file does not', () => {
+test('the source keeps the keys that only it can carry', () => {
   expect(source).toContain('name: ' + SOURCE_NAME + '\n');
   expect(source).toContain('metadata:\n  internal: true\n');
+  expect(source).toContain('argument-hint: ');
   expect(emitted).not.toContain('internal: true');
+  expect(emitted).not.toContain('argument-hint');
 });
 
 // Paths, not contents, for the reason given at the read above. A new SKILL.md
@@ -79,7 +87,11 @@ test('name matches the directory name and fits the spec shape', () => {
   expect(name.length).toBeLessThanOrEqual(64);
 });
 
-test('description is one string of 1-1024 characters', () => {
+test('description is one folded string of 1-1024 characters', () => {
+  // The helper above reads any single line as a string, so `description: [a, b]`
+  // would pass the length checks while the CLI parses it as an array and skips
+  // the skill. Pin the folded form instead of trusting the helper's typing.
+  expect(emitted).toMatch(/^description: >$/m);
   const description = readFrontmatter(emitted, SKILL_DIR).description;
   expect(typeof description).toBe('string');
   expect(description.length).toBeGreaterThan(0);

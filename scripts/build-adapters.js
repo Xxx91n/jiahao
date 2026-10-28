@@ -254,11 +254,16 @@ function buildAdapters() {
 // because asking for a skill BY NAME makes the CLI include internal skills anyway
 // (measured on skills 1.7.4: `npx skills add <repo> --skill jiahao` bound src/
 // while a plain `add <repo>` bound the generated directory). Both come back out
-// here - the shipped file carries the skill's own name and nothing that hides it.
+// here, along with `argument-hint`: the Agent Skills reference validator accepts
+// only name / description / license / allowed-tools / metadata / compatibility and
+// fails the file on anything else - run against the shipped file it reported
+// "Unexpected fields in frontmatter: argument-hint" while the skills CLI, which is
+// looser, still installed it. Spec shape wins over CLI leniency.
 function toShippedSkill(source) {
   return source
     .replace('name: ' + SOURCE_NAME + '\n', 'name: ' + SKILL_NAME + '\n')
-    .replace('metadata:\n  internal: true\n', '');
+    .replace('metadata:\n  internal: true\n', '')
+    .replace('argument-hint: "[lite|full|ultra]"\n', '');
 }
 
 // CodeBuddy install manual + injection-surface ruling (spec
