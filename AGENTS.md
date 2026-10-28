@@ -14,7 +14,7 @@
 
 ## 不要改的目录
 
-- `adapters/`：由 `src/` 生成，改源后重跑生成器。
+- `adapters/` 与 `skills/`：由 `src/` 生成，改源后重跑生成器。
 - `private/`：私有词表，不要展开到输出或日志。
 - `bench/research/out/`、`bench/polygraph/results/`：冻结的评测记录。
 
