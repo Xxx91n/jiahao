@@ -32,14 +32,14 @@ const LOG_NAME = '.jiahao-pretool.jsonl';
 // ($), so trailing args / flags cannot defeat it (grill-t30 audit B-4).
 // ^ alternation covers bare relative paths ("rm rules/jiahao-verifier.md").
 const PROTECTED_FRAGMENTS = [
-  /(^|[\\/=])hooks[\\/]hooks\.json$/,
   /(^|[\\/=])hooks[\\/]jiahao-[a-z0-9-]+\.js$/,
   /(^|[\\/=])rules[\\/]jiahao-(verifier|generator)\.md$/,
-  /(^|[\\/=])\.claude-plugin[\\/]plugin\.json$/,
-  /(^|[\\/=])\.mcp\.json$/,
   /(^|[\\/=])\.jiahao-(active|profile|evidence|evidence\.keys|instructions\.jsonl|pretool\.jsonl)([\\/]|$)/,
 ];
 // Apparatus dirs under the resolved plugin root (absolute containment).
+// The hook map, the MCP registration and the plugin manifest share their
+// filenames with ordinary user-project files, so they are protected by sitting
+// under the plugin root - never as bare name fragments (#75).
 const PROTECTED_DIRS = ['hooks', 'rules', '.claude-plugin'];
 
 if (!fs.existsSync(flagPath())) process.exit(0);

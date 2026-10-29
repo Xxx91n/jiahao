@@ -109,12 +109,9 @@ describe('hook behavior (bundle copies, live spawn)', () => {
     const dir = mkConfigDir({ '.jiahao-profile': 'verifier' });
     const shapes = [
       'rm rules/jiahao-verifier.md',
-      'rm .mcp.json',
-      'del hooks\\hooks.json',
       'rm C:/x/plugin/rules/jiahao-verifier.md extra',
       'cat .jiahao-pretool.jsonl',
       'rm -rf hooks/jiahao-pretool-guard.js',
-      'move .claude-plugin/plugin.json out.json',
     ];
     for (const command of shapes) {
       const res = runBundleHook('jiahao-pretool-guard.js', {
@@ -131,6 +128,42 @@ describe('hook behavior (bundle copies, live spawn)', () => {
       stdin: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'rm rules/other.md && cat README.md' } }),
     });
     expect(benign.stdout.trim()).toBe('');
+  });
+
+  // #75: `.mcp.json`, `hooks/hooks.json` and `.claude-plugin/plugin.json` are
+  // ordinary filenames in any user project. They belong to the enforcement
+  // surface only INSIDE the plugin root, so a bare or elsewhere-anchored
+  // occurrence must pass silently and must not be counted as a bypass attempt.
+  test('PreToolUse leaves a user project\'s own same-named files alone (#75)', () => {
+    const dir = mkConfigDir({ '.jiahao-profile': 'verifier' });
+    const ownFiles = [
+      path.join(ROOT, '.mcp.json'),
+      path.join(ROOT, 'hooks', 'hooks.json'),
+      path.join(ROOT, '.claude-plugin', 'plugin.json'),
+    ];
+    const commands = [
+      'rm .mcp.json',
+      'del hooks\\hooks.json',
+      'move .claude-plugin/plugin.json out.json',
+    ].concat(ownFiles.map((p) => 'rm ' + p));
+    for (const command of commands) {
+      const res = runBundleHook('jiahao-pretool-guard.js', {
+        configDir: dir, pluginRoot: BUNDLE,
+        stdin: JSON.stringify({ tool_name: 'Bash', tool_input: { command: command } }),
+      });
+      expect(res.status).toBe(0);
+      expect(res.stdout.trim()).toBe('');
+    }
+    for (const file_path of ownFiles) {
+      const res = runBundleHook('jiahao-pretool-guard.js', {
+        configDir: dir, pluginRoot: BUNDLE,
+        stdin: JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: file_path } }),
+      });
+      expect(res.status).toBe(0);
+      expect(res.stdout.trim()).toBe('');
+    }
+    // nothing was recorded either: a non-attempt is not telemetry
+    expect(fs.existsSync(path.join(dir, '.jiahao-pretool.jsonl'))).toBe(false);
   });
 
   test('PreToolUse is silent on ordinary tool calls and under generator profile', () => {
