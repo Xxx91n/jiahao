@@ -410,29 +410,34 @@ test('verifier gate surfaces pending escalation count (advisory, exit 0)', () =>
 
 const { recordHash } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
 
-function runVerdictGate(payload) {
-  const origDir = process.cwd();
-  process.chdir(path.join(__dirname, '..'));
-  try {
-    const stdout = execSync('echo \'' + JSON.stringify(payload) + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
-    return { status: 0, stdout };
-  } catch (e) {
-    return { status: e.status, stdout: (e.stdout || '').toString() };
-  } finally {
-    process.chdir(origDir);
-  }
-}
-
-function verifierOn() {
-  fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
-  fs.writeFileSync(TMP + '/.jiahao-profile', 'verifier', 'utf8');
-}
-
-function writeChain(records) {
-  fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify(records), 'utf8');
+// Each case runs against its own config dir. The shared TMP above is what the
+// other tests in this file use, and two overlapping runs - a second agent in
+// another worktree, or a sharded job - clobber the chain mid-assertion, which
+// turns a block into a pass.
+function gateFixture() {
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'jiahao-gate-75-'));
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'verifier', 'utf8');
+  return {
+    chain: function (records) {
+      fs.writeFileSync(path.join(dir, '.jiahao-evidence'), JSON.stringify(records), 'utf8');
+    },
+    stop: function (payload) {
+      const origDir = process.cwd();
+      process.chdir(path.join(__dirname, '..'));
+      try {
+        const stdout = execSync('echo \'' + JSON.stringify(payload) + '\' | node hooks/jiahao-verdict-gate.js', {
+          encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: dir }, timeout: 15000, shell: 'bash',
+          stdio: ['pipe', 'pipe', 'pipe'],
+        });
+        return { status: 0, stdout };
+      } catch (e) {
+        return { status: e.status, stdout: (e.stdout || '').toString() };
+      } finally {
+        process.chdir(origDir);
+      }
+    },
+  };
 }
 
 function highSeverityRecord(prevHash, sessionId) {
@@ -469,55 +474,54 @@ function humanVerdict(prevHash, verdict) {
 }
 
 test('#75: a high-severity record from another session does not gate this Stop', () => {
-  verifierOn();
-  writeChain([highSeverityRecord(null, 'session-old')]);
-  expect(runVerdictGate({ stop_hook_active: false, session_id: 'session-new' }).status).toBe(0);
+  const gate = gateFixture();
+  gate.chain([highSeverityRecord(null, 'session-old')]);
+  expect(gate.stop({ stop_hook_active: false, session_id: 'session-new' }).status).toBe(0);
 });
 
 test('#75: a partial-coverage record from another session does not gate this Stop', () => {
-  verifierOn();
-  writeChain([partialCoverageRecord(null, 'session-old')]);
-  expect(runVerdictGate({ stop_hook_active: false, session_id: 'session-new' }).status).toBe(0);
+  const gate = gateFixture();
+  gate.chain([partialCoverageRecord(null, 'session-old')]);
+  expect(gate.stop({ stop_hook_active: false, session_id: 'session-new' }).status).toBe(0);
 });
 
 test('#75: the same records still gate inside their own session', () => {
-  verifierOn();
-  writeChain([highSeverityRecord(null, 'session-a')]);
-  const high = runVerdictGate({ stop_hook_active: false, session_id: 'session-a' });
+  const gate = gateFixture();
+  gate.chain([highSeverityRecord(null, 'session-a')]);
+  const high = gate.stop({ stop_hook_active: false, session_id: 'session-a' });
   expect(high.status).toBe(2);
   expect(JSON.parse(high.stdout).reason).toMatch(/high severity/);
 
-  writeChain([partialCoverageRecord(null, 'session-b')]);
-  const partial = runVerdictGate({ stop_hook_active: false, session_id: 'session-b' });
+  gate.chain([partialCoverageRecord(null, 'session-b')]);
+  const partial = gate.stop({ stop_hook_active: false, session_id: 'session-b' });
   expect(partial.status).toBe(2);
   expect(JSON.parse(partial.stdout).reason).toMatch(/partial coverage/);
 });
 
 test('#75: a passed human verdict releases a stale coverage record', () => {
-  verifierOn();
+  const gate = gateFixture();
   const stale = partialCoverageRecord(null);
-  writeChain([stale]);
+  gate.chain([stale]);
   // unattributed records stay in scope - a host that sends no session_id gets
   // no free pass, and adjudication is their only release.
-  expect(runVerdictGate({ stop_hook_active: false }).status).toBe(2);
+  expect(gate.stop({ stop_hook_active: false }).status).toBe(2);
 
   const pass = humanVerdict(stale.event_hash, 'pass');
-  writeChain([stale, pass]);
-  expect(runVerdictGate({ stop_hook_active: false }).status).toBe(0);
+  gate.chain([stale, pass]);
+  expect(gate.stop({ stop_hook_active: false }).status).toBe(0);
   // released for good: the adjudication lives on the append-only chain, so the
   // next Stop sees the same answer.
-  expect(runVerdictGate({ stop_hook_active: false }).status).toBe(0);
+  expect(gate.stop({ stop_hook_active: false }).status).toBe(0);
 });
 
 test('#75: a passed human verdict releases a stale severity record, a failed one does not', () => {
-  verifierOn();
+  const gate = gateFixture();
   const stale = highSeverityRecord(null);
   const fail = humanVerdict(stale.event_hash, 'fail');
-  writeChain([stale, fail]);
-  expect(runVerdictGate({ stop_hook_active: false }).status).toBe(2);
+  gate.chain([stale, fail]);
+  expect(gate.stop({ stop_hook_active: false }).status).toBe(2);
 
   const pass = humanVerdict(fail.event_hash, 'pass');
-  writeChain([stale, fail, pass]);
-  expect(runVerdictGate({ stop_hook_active: false }).status).toBe(0);
+  gate.chain([stale, fail, pass]);
+  expect(gate.stop({ stop_hook_active: false }).status).toBe(0);
 });
-

@@ -41,7 +41,6 @@ const isGenerator = profile === 'generator';
 // Case A (is there any evidence at all) and the chain-tamper check keep reading
 // the whole chain - narrowing those would under-block.
 function gatingRecords(chain, sessionId) {
-  if (!chain) return null;
   let releasedAt = -1;
   for (let i = 0; i < chain.length; i++) {
     const rec = chain[i];

@@ -144,11 +144,16 @@ describe('hook behavior (bundle copies, live spawn)', () => {
   // occurrence must pass silently and must not be counted as a bypass attempt.
   test('PreToolUse leaves a user project\'s own same-named files alone (#75)', () => {
     const dir = mkConfigDir({ '.jiahao-profile': 'verifier' });
-    const ownFiles = [
-      path.join(ROOT, '.mcp.json'),
-      path.join(ROOT, 'hooks', 'hooks.json'),
-      path.join(ROOT, '.claude-plugin', 'plugin.json'),
-    ];
+    // A scratch user project, not this repo: the repo root is itself a plugin
+    // source, so its own .claude-plugin/ is apparatus by another route and the
+    // assertion would not be about a stranger's project.
+    const project = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-user-project-'));
+    const ownFiles = ['.mcp.json', path.join('hooks', 'hooks.json'), path.join('.claude-plugin', 'plugin.json')]
+      .map((rel) => path.join(project, rel));
+    for (const abs of ownFiles) {
+      fs.mkdirSync(path.dirname(abs), { recursive: true });
+      fs.writeFileSync(abs, '{}', 'utf8');
+    }
     const commands = [
       'rm .mcp.json',
       'del hooks\\hooks.json',

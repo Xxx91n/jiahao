@@ -99,6 +99,59 @@ for (const plat of PLATFORMS) {
   });
 }
 
+describe('protected path (shell spellings)', () => {
+  // A Bash payload reaches the guard as text: `~`, `$HOME` and the host's own
+  // plugin-root variable are what the command really contains, and the shell
+  // expands them before anything touches a file. Narrowing `.mcp.json` /
+  // `hooks.json` / the manifest to containment (#75) must not hand those
+  // spellings back as a way around it.
+  const root = '/home/u/.codebuddy/plugins/jiahao';
+  const env = { HOME: '/home/u' };
+  const check = (text) => isProtected(text, root, { pathImpl: path.posix, cwd: '/home/u/proj', env: env });
+
+  test('tilde and $HOME spellings of the plugin root are the plugin root', () => {
+    const shapes = [
+      'rm ~/.codebuddy/plugins/jiahao/.mcp.json',
+      'rm $HOME/.codebuddy/plugins/jiahao/hooks/hooks.json',
+      'rm ${HOME}/.codebuddy/plugins/jiahao/src/SKILL.md',
+      'cat ~/.codebuddy/plugins/jiahao/.claude-plugin/plugin.json > /dev/null',
+    ];
+    for (const text of shapes) expect(check(text)).toBe(true);
+  });
+
+  test('the host plugin-root variable reaches every apparatus dir', () => {
+    const shapes = [
+      'rm ${CLAUDE_PLUGIN_ROOT}/hooks/hooks.json',
+      'rm $CODEBUDDY_PLUGIN_ROOT/.mcp.json',
+      'chmod 600 $CLAUDE_PLUGIN_ROOT/src/evidence-log.js',
+      'rm ${CODEBUDDY_PLUGIN_ROOT}/rules/jiahao-verifier.md',
+    ];
+    for (const text of shapes) expect(check(text)).toBe(true);
+  });
+
+  test('a variable spelling of somewhere else is still none of its business', () => {
+    const shapes = [
+      'rm $HOME/proj/.mcp.json',
+      'rm ~/.codebuddy/plugins/other/.claude-plugin/plugin.json',
+      'cat $HOME/hooks/hooks.json',
+      'rm ~/other-project/src/SKILL.md',
+    ];
+    for (const text of shapes) expect(check(text)).toBe(false);
+  });
+
+  test('a Windows host reads the same variable spellings', () => {
+    const winRoot = 'C:\\Users\\u\\.codebuddy\\plugins\\jiahao';
+    const winEnv = { USERPROFILE: 'C:\\Users\\u', HOME: 'C:\\Users\\u' };
+    const winCheck = (text) => isProtected(text, winRoot, {
+      pathImpl: path.win32, cwd: 'C:\\Users\\u\\proj', env: winEnv,
+    });
+    expect(winCheck('rm %USERPROFILE%\\.codebuddy\\plugins\\jiahao\\.mcp.json')).toBe(true);
+    expect(winCheck('rm $env:USERPROFILE\\.codebuddy\\plugins\\jiahao\\src\\SKILL.md')).toBe(true);
+    expect(winCheck('rm ${CLAUDE_PLUGIN_ROOT}/hooks/hooks.json')).toBe(true);
+    expect(winCheck('rm %USERPROFILE%\\proj\\.mcp.json')).toBe(false);
+  });
+});
+
 describe('protected path (separator spellings)', () => {
   const posix = PLATFORMS[0];
   const win32 = PLATFORMS[1];

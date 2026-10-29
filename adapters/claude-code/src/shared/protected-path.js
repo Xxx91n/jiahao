@@ -50,27 +50,70 @@ function tokens(text) {
   return String(text || '').split(/[\s;&|<>()"']+/).filter(Boolean);
 }
 
-// A token can be spelled with the other platform's separator - a path copied
-// from a Windows shell reaches a POSIX host, and a JSON tool_input on Windows
-// carries forward slashes. The host-native reading is the one that actually
-// mutates a file; the other reading only closes the gap where a foreign
-// spelling names a file inside the plugin root, so it cannot widen the deny
-// surface anywhere else.
-function readings(P, cwd, tok) {
+// A token can be spelled the way the shell wrote it rather than the way the
+// filesystem sees it. Three spellings reach the guard as text and still name a
+// file inside the plugin root:
+//   - the other platform's separator (a path copied from a Windows shell
+//     reaches a POSIX host, and a JSON tool_input on Windows carries forward
+//     slashes);
+//   - `~` and an environment variable (`$HOME`, `${HOME}`, `%USERPROFILE%`,
+//     `$env:HOME`), which the shell expands before anything touches a file;
+//   - the host's own plugin-root variable, which is literally how the hook map
+//     spells the bundle path.
+// The host-native reading is the one that actually mutates the file; every
+// other reading only closes a gap, because the substituted result still has to
+// resolve below the root to count. So a spelling that merely *looks* like the
+// apparatus (an unexpanded `$HOMEDIR`, a user project under the same home) is
+// still allowed.
+const HOME_VARS = ['HOME', 'USERPROFILE'];
+const ROOT_VARS = ['CLAUDE_PLUGIN_ROOT', 'CODEBUDDY_PLUGIN_ROOT'];
+
+function substituteName(tok, name, value) {
+  if (!value) return tok;
+  // $NAME needs a boundary so $HOMEDIR is not read as $HOME + "DIR"; the other
+  // three syntaxes are delimited by their own punctuation.
+  return tok
+    .split('${' + name + '}').join(value)
+    .split('%' + name + '%').join(value)
+    .split('$env:' + name).join(value)
+    .replace(new RegExp('\\$' + name + '(?![A-Za-z0-9_])', 'g'), value);
+}
+
+function substituted(tok, env, pluginRoot) {
+  let out = tok;
+  const home = env.HOME || env.USERPROFILE || null;
+  for (const name of HOME_VARS) out = substituteName(out, name, home);
+  for (const name of ROOT_VARS) out = substituteName(out, name, pluginRoot);
+  if (home && (out === '~' || out.startsWith('~/') || out.startsWith('~\\'))) out = home + out.slice(1);
+  return out;
+}
+
+function foreignSpelling(P, tok) {
+  return P.sep === '/' ? tok.split('\\').join('/') : tok.split('/').join('\\');
+}
+
+function readings(P, cwd, tok, env, pluginRoot) {
   const resolve = (p) => (cwd ? P.resolve(cwd, p) : P.resolve(p));
-  const native = resolve(tok);
-  const foreignTok = P.sep === '/' ? tok.split('\\').join('/') : tok.split('/').join('\\');
-  if (foreignTok === tok) return [native];
-  const foreign = resolve(foreignTok);
-  return foreign === native ? [native] : [native, foreign];
+  const spellings = [tok];
+  const substitutedTok = substituted(tok, env, pluginRoot);
+  if (substitutedTok !== tok) spellings.push(substitutedTok);
+  const out = [];
+  for (const spelling of spellings) {
+    out.push(resolve(spelling));
+    const foreign = foreignSpelling(P, spelling);
+    if (foreign !== spelling) out.push(resolve(foreign));
+  }
+  return out.filter(function (abs, i) { return out.indexOf(abs) === i; });
 }
 
 // Path segments of `abs` below the plugin root, or null when it is not below
 // it. `..` first, a different drive, and the root itself all read as outside.
+// Split on the implementation's own separator only: a backslash is a legal
+// POSIX filename character, and folding it in here would rename a file.
 function belowRoot(P, rootAbs, abs) {
   const rel = P.relative(rootAbs, abs);
   if (!rel || P.isAbsolute(rel)) return null;
-  const segments = rel.split(/[\\/]/);
+  const segments = rel.split(P.sep);
   return segments[0] === '..' ? null : segments;
 }
 
@@ -83,6 +126,7 @@ function apparatusName(P, name) {
 function isProtected(text, pluginRoot, opts) {
   const o = opts || {};
   const P = o.pathImpl || path;
+  const env = o.env || process.env;
   if (!text) return false;
   const rootAbs = pluginRoot
     ? (o.cwd ? P.resolve(o.cwd, pluginRoot) : P.resolve(pluginRoot))
@@ -90,7 +134,7 @@ function isProtected(text, pluginRoot, opts) {
   for (const tok of tokens(text)) {
     for (const re of PROTECTED_FRAGMENTS) if (re.test(tok)) return true;
     if (!rootAbs) continue;
-    for (const abs of readings(P, o.cwd, tok)) {
+    for (const abs of readings(P, o.cwd, tok, env, rootAbs)) {
       const segments = belowRoot(P, rootAbs, abs);
       if (!segments) continue;
       const top = apparatusName(P, segments[0]);
