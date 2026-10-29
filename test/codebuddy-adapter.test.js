@@ -112,6 +112,14 @@ describe('hook behavior (bundle copies, live spawn)', () => {
       'rm C:/x/plugin/rules/jiahao-verifier.md extra',
       'cat .jiahao-pretool.jsonl',
       'rm -rf hooks/jiahao-pretool-guard.js',
+      // #75: none of these are name fragments any more - containment under the
+      // bundle root is what protects them, so they are pinned by the host's own
+      // absolute spelling (the reading a real tool_input carries).
+      'rm ' + path.join(BUNDLE, 'hooks', 'hooks.json'),
+      'rm ' + path.join(BUNDLE, '.mcp.json'),
+      'move ' + path.join(BUNDLE, '.claude-plugin', 'plugin.json') + ' out.json',
+      'rm ' + path.join(BUNDLE, 'src', 'SKILL.md'),
+      'rm ' + path.join(BUNDLE, 'src', 'shared', 'paths.js'),
     ];
     for (const command of shapes) {
       const res = runBundleHook('jiahao-pretool-guard.js', {

@@ -21,60 +21,19 @@
 const fs = require('fs');
 const path = require('path');
 const { flagPath, configDir } = require('../src/shared/paths');
+const { isProtected } = require('../src/shared/protected-path');
 const { readProfile } = require('./jiahao-profile');
 const { detectHost } = require('./jiahao-runtime');
 
 const LOG_NAME = '.jiahao-pretool.jsonl';
 
-// Distinctive fragments - fragments only cover paths whose names are
-// jiahao-owned, so a same-named user file elsewhere does not trip the deny.
-// Token-anchored: each fragment is evaluated against a shell token's END
-// ($), so trailing args / flags cannot defeat it (grill-t30 audit B-4).
-// ^ alternation covers bare relative paths ("rm rules/jiahao-verifier.md").
-const PROTECTED_FRAGMENTS = [
-  /(^|[\\/=])hooks[\\/]jiahao-[a-z0-9-]+\.js$/,
-  /(^|[\\/=])rules[\\/]jiahao-(verifier|generator)\.md$/,
-  /(^|[\\/=])\.jiahao-(active|profile|evidence|evidence\.keys|instructions\.jsonl|pretool\.jsonl)([\\/]|$)/,
-];
-// Apparatus dirs under the resolved plugin root (absolute containment).
-// The hook map, the MCP registration and the plugin manifest share their
-// filenames with ordinary user-project files, so they are protected by sitting
-// under the plugin root - never as bare name fragments (#75).
-const PROTECTED_DIRS = ['hooks', 'rules', '.claude-plugin'];
-
 if (!fs.existsSync(flagPath())) process.exit(0);
-
-function norm(p) { return String(p || '').split('/').join('\\'); }
 
 function candidateText(parsed) {
   const ti = parsed && parsed.tool_input;
   if (!ti || typeof ti !== 'object') return '';
   return [ti.file_path, ti.command, ti.path, ti.notebook_path]
     .filter(Boolean).map(String).join('\n');
-}
-
-// Command payloads are split into shell tokens so a protected name is
-// matched at token end regardless of position in the argv (grill-t30 B-4:
-// `rm rules/jiahao-verifier.md` and `rm <abs> extra` both resolve).
-function tokens(text) {
-  return norm(text).split(/[\s;&|<>()"']+/).filter(Boolean);
-}
-
-function isProtected(text, pluginRoot) {
-  if (!text) return false;
-  const absRoot = pluginRoot ? norm(path.resolve(pluginRoot)) : null;
-  for (const tok of tokens(text)) {
-    for (const re of PROTECTED_FRAGMENTS) if (re.test(tok)) return true;
-    if (absRoot) {
-      const absTok = norm(path.resolve(tok));
-      if (absTok.indexOf(absRoot + '\\') === 0) {
-        const rel = absTok.slice(absRoot.length + 1);
-        const top = rel.split('\\')[0];
-        if (PROTECTED_DIRS.indexOf(top) !== -1 || rel === '.mcp.json') return true;
-      }
-    }
-  }
-  return false;
 }
 
 let input = '';
