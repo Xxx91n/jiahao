@@ -460,6 +460,17 @@ function writeScopeRows(text) {
   return section.split('\n').map(l => l.trim()).filter(l => l.startsWith('|'));
 }
 
+// A row declares a path only when the hit is not the head of a longer path.
+// `.jiahao-evidence` is a prefix of `.jiahao-evidence.keys` (and of `.lock`,
+// `.legacy.bak`), so a plain substring test would let a table that dropped the
+// evidence-directory row pass on a keys row - the opposite of what this check
+// exists for. A following path character (word, dot, dash) means "some other
+// path", so the match does not count.
+function declaresPath(row, declared) {
+  const escaped = declared.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(escaped + '(?![\\w.-])').test(row);
+}
+
 step('declarations', 'write scope and no-egress statements are present', () => {
   const docRel = 'docs/release.md';
   const full = path.join(root, docRel.split('/').join(path.sep));
@@ -470,7 +481,7 @@ step('declarations', 'write scope and no-egress statements are present', () => {
 
   const rows = writeScopeRows(text);
   if (rows.length < 3) throw new Error(docRel + ' has no write-scope table rows under ## 写入范围');
-  const undeclared = DECLARED_WRITE_PATHS.filter(p => !rows.some(row => row.includes(p)));
+  const undeclared = DECLARED_WRITE_PATHS.filter(p => !rows.some(row => declaresPath(row, p)));
   if (undeclared.length) {
     throw new Error(docRel + ' write-scope table omits paths the shipped code writes: ' + undeclared.join(', '));
   }
@@ -606,6 +617,7 @@ if (require.main === module) {
 module.exports = {
   parseTag,
   writeScopeRows,
+  declaresPath,
   auditPackFiles,
   treeHash,
   treeHashAt,
