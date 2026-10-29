@@ -150,6 +150,17 @@ describe('protected path (shell spellings)', () => {
     expect(winCheck('rm ${CLAUDE_PLUGIN_ROOT}/hooks/hooks.json')).toBe(true);
     expect(winCheck('rm %USERPROFILE%\\proj\\.mcp.json')).toBe(false);
   });
+
+  // A host does not always export HOME to a hook process, and `~` is still what
+  // the user typed - the fallback asks the OS, not the environment.
+  test('a tilde still expands when the environment carries no home', () => {
+    const bare = (text) => isProtected(text, root, {
+      pathImpl: path.posix, cwd: '/home/u/proj', env: {}, homedir: () => '/home/u',
+    });
+    expect(bare('rm ~/.codebuddy/plugins/jiahao/.mcp.json')).toBe(true);
+    expect(bare('rm ~/.codebuddy/plugins/jiahao/hooks/hooks.json')).toBe(true);
+    expect(bare('rm ~/.other-project/.mcp.json')).toBe(false);
+  });
 });
 
 describe('protected path (separator spellings)', () => {

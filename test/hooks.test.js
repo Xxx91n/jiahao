@@ -460,7 +460,7 @@ function partialCoverageRecord(prevHash, sessionId) {
     'hook killed before sentinel.end: jiahao-verdict-gate at phase stdin', null, prevHash, extras);
 }
 
-function humanVerdict(prevHash, verdict) {
+function humanVerdict(prevHash, verdict, sessionId) {
   const rec = {
     kind: 'human_verdict', reviewer_id: 'alice', verdict,
     reason: verdict === 'pass'
@@ -469,9 +469,21 @@ function humanVerdict(prevHash, verdict) {
     corrected_output: null, second_reviewer: null, overturn: false,
     timestamp: new Date().toISOString(), prev_hash: prevHash,
   };
+  if (sessionId) rec.session_id = sessionId;
   rec.event_hash = recordHash(rec);
   return rec;
 }
+
+test('#75: an adjudication recorded under another session still releases what it cleared', () => {
+  const gate = gateFixture();
+  const stale = partialCoverageRecord(null);
+  // a reviewer working in their own conversation clears the escalation the
+  // agent hit in a different one - the release must be readable from anywhere,
+  // or scoping the scan has only produced a new permanent block.
+  const pass = humanVerdict(stale.event_hash, 'pass', 'session-reviewer');
+  gate.chain([stale, pass]);
+  expect(gate.stop({ stop_hook_active: false, session_id: 'session-current' }).status).toBe(0);
+});
 
 test('#75: another session records do not vouch for this session', () => {
   const gate = gateFixture();

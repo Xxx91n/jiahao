@@ -7,8 +7,9 @@
 // platform-specific half of the bug needed path.posix / path.win32 injected.
 //
 // The guard protects jiahao's own apparatus. Two channels decide it:
-//   - PROTECTED_FRAGMENTS: names jiahao owns outright (jiahao-*, .jiahao-*),
-//     matched at a shell token's end regardless of position in the argv
+//   - PROTECTED_FRAGMENTS: the names jiahao owns outright - its hook scripts,
+//     its rule files, and the .jiahao-* state files enumerated below - matched
+//     at a shell token's end regardless of position in the argv
 //     (grill-t30 audit B-4);
 //   - absolute containment under the plugin root: everything the bundle keeps
 //     in an apparatus directory, including names that are ordinary elsewhere
@@ -18,6 +19,7 @@
 // Fail-soft by contract: the caller decides what a hit means (deny or observe);
 // this module only answers "is this path on the enforcement surface".
 
+const os = require('os');
 const path = require('path');
 
 // Distinctive fragments - fragments only cover paths whose names are
@@ -67,6 +69,8 @@ function tokens(text) {
 // still allowed.
 const HOME_VARS = ['HOME', 'USERPROFILE'];
 const ROOT_VARS = ['CLAUDE_PLUGIN_ROOT', 'CODEBUDDY_PLUGIN_ROOT'];
+// The two lists above are this module's own constants - never caller or host
+// input - which is what makes building a RegExp out of them safe.
 
 function substituteName(tok, name, value) {
   if (!value) return tok;
@@ -79,12 +83,11 @@ function substituteName(tok, name, value) {
     .replace(new RegExp('\\$' + name + '(?![A-Za-z0-9_])', 'g'), value);
 }
 
-function substituted(tok, env, pluginRoot) {
+function substituted(tok, ctx) {
   let out = tok;
-  const home = env.HOME || env.USERPROFILE || null;
-  for (const name of HOME_VARS) out = substituteName(out, name, home);
-  for (const name of ROOT_VARS) out = substituteName(out, name, pluginRoot);
-  if (home && (out === '~' || out.startsWith('~/') || out.startsWith('~\\'))) out = home + out.slice(1);
+  for (const name of HOME_VARS) out = substituteName(out, name, ctx.home);
+  for (const name of ROOT_VARS) out = substituteName(out, name, ctx.rootAbs);
+  if (ctx.home && (out === '~' || out.startsWith('~/') || out.startsWith('~\\'))) out = ctx.home + out.slice(1);
   return out;
 }
 
@@ -92,15 +95,15 @@ function foreignSpelling(P, tok) {
   return P.sep === '/' ? tok.split('\\').join('/') : tok.split('/').join('\\');
 }
 
-function readings(P, cwd, tok, env, pluginRoot) {
-  const resolve = (p) => (cwd ? P.resolve(cwd, p) : P.resolve(p));
+function readings(ctx, tok) {
+  const resolve = (p) => (ctx.cwd ? ctx.P.resolve(ctx.cwd, p) : ctx.P.resolve(p));
   const spellings = [tok];
-  const substitutedTok = substituted(tok, env, pluginRoot);
+  const substitutedTok = substituted(tok, ctx);
   if (substitutedTok !== tok) spellings.push(substitutedTok);
   const out = [];
   for (const spelling of spellings) {
     out.push(resolve(spelling));
-    const foreign = foreignSpelling(P, spelling);
+    const foreign = foreignSpelling(ctx.P, spelling);
     if (foreign !== spelling) out.push(resolve(foreign));
   }
   return out.filter(function (abs, i) { return out.indexOf(abs) === i; });
@@ -110,17 +113,17 @@ function readings(P, cwd, tok, env, pluginRoot) {
 // it. `..` first, a different drive, and the root itself all read as outside.
 // Split on the implementation's own separator only: a backslash is a legal
 // POSIX filename character, and folding it in here would rename a file.
-function belowRoot(P, rootAbs, abs) {
-  const rel = P.relative(rootAbs, abs);
-  if (!rel || P.isAbsolute(rel)) return null;
-  const segments = rel.split(P.sep);
+function belowRoot(ctx, abs) {
+  const rel = ctx.P.relative(ctx.rootAbs, abs);
+  if (!rel || ctx.P.isAbsolute(rel)) return null;
+  const segments = rel.split(ctx.P.sep);
   return segments[0] === '..' ? null : segments;
 }
 
 // Windows compares paths case-insensitively, so `SRC` is `src`; on a POSIX host
 // they are different directories and the name is taken as written.
-function apparatusName(P, name) {
-  return P.sep === '\\' ? name.toLowerCase() : name;
+function apparatusName(ctx, name) {
+  return ctx.P.sep === '\\' ? name.toLowerCase() : name;
 }
 
 function isProtected(text, pluginRoot, opts) {
@@ -131,13 +134,19 @@ function isProtected(text, pluginRoot, opts) {
   const rootAbs = pluginRoot
     ? (o.cwd ? P.resolve(o.cwd, pluginRoot) : P.resolve(pluginRoot))
     : null;
+  // A hook process does not always inherit HOME, and `~` is still what the user
+  // typed. os.homedir() asks the kernel instead of the environment.
+  let home = env.HOME || env.USERPROFILE || null;
+  if (!home) { try { home = (o.homedir || os.homedir)() || null; } catch (e) { home = null; } }
+  const ctx = { P: P, cwd: o.cwd || null, rootAbs: rootAbs, home: home };
+
   for (const tok of tokens(text)) {
     for (const re of PROTECTED_FRAGMENTS) if (re.test(tok)) return true;
     if (!rootAbs) continue;
-    for (const abs of readings(P, o.cwd, tok, env, rootAbs)) {
-      const segments = belowRoot(P, rootAbs, abs);
+    for (const abs of readings(ctx, tok)) {
+      const segments = belowRoot(ctx, abs);
       if (!segments) continue;
-      const top = apparatusName(P, segments[0]);
+      const top = apparatusName(ctx, segments[0]);
       if (PROTECTED_DIRS.indexOf(top) !== -1) return true;
       if (segments.length === 1 && PROTECTED_ROOT_FILES.indexOf(top) !== -1) return true;
     }
