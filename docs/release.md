@@ -74,7 +74,7 @@ trees     skills/jiahao, adapters/codebuddy, adapters/claude-code
 
 ## 无网络外呼
 
-「外呼」就是往外发网络请求。这一节声明：**装到用户机器上会跑起来的那部分 jiahao 代码不联网**——装完之后的钩子、运行时、安装器、MCP 服务端，都不发起任何网络请求。安装也不下载、不执行远程脚本：`node scripts/install.js` 是仓库里的本地文件，两个插件目录是本地目录，复制即可。
+「外呼」就是往外发网络请求。这一节声明：**装到用户机器上会跑起来的那部分 jiahao 代码不联网**——装完之后的钩子、运行时、安装器，以及 MCP 服务端的入口 `jiahao-mcp/index.js`，都不发起任何网络请求。安装也不下载、不执行远程脚本：`node scripts/install.js` 是仓库里的本地文件，两个插件目录是本地目录，复制即可。
 
 这条声明由门禁的 `egress` 步骤每次重跑，不是一次性的口头保证：
 
@@ -83,7 +83,7 @@ trees     skills/jiahao, adapters/codebuddy, adapters/claude-code
 - 扫描如果连 `scripts/install.js`、`hooks/jiahao-verdict-gate.js`、`src/evidence-log.js`、`jiahao-mcp/index.js` 都没扫到，直接红——扫不到东西的检查不算检查。
 - `package.json` 出现 `preinstall`/`install`/`postinstall`/`prepare`/`prepack` 即红；插件钩子命令只要不是包内 `hooks/*.js` 即红。
 
-维护者工具（门禁脚本、生成器、漂移检查）不在扫描范围内：它们不是安装路径，也不会在用户机器上运行。已知边界：静态正则抓不到动态 `require()` 拼出来的模块名。
+维护者工具（门禁脚本、生成器、漂移检查）不在扫描范围内：它们不是安装路径，也不会在用户机器上运行。已知边界两条：静态正则抓不到动态 `require()` 拼出来的模块名；MCP 服务端依赖的 SDK 依赖树没有随包 vendoring，不在扫描范围，装它那一步本身就是下面第 2 条例外。
 
 两条已披露的例外，都不在 jiahao 的代码里：
 

@@ -11,15 +11,16 @@
 //   5 artifact      npm pack -> include/exclude audit, sha256, per-directory
 //                   tree hashes
 //   6 install       install.js init --dry-run exits 0 and writes nothing
-//   7 egress        shipped code makes no network call; no install lifecycle
-//                   scripts; plugin hook commands stay inside the bundle
+//   7 egress        code that runs after install makes no network call; no
+//                   install lifecycle scripts; hook commands stay in the bundle
 //   8 declarations  docs/release.md carries the write-scope and no-egress
 //                   statements this gate relies on
 //
 // Step order is not cosmetic: the generator gates run BEFORE npm test because
-// three suites rerun the generator and rewrite adapters/ + skills/ in the
-// working tree (#66), so a --check afterwards would compare generated output
-// with itself and report clean. Same reason the CI job lists them first.
+// test/adapters.test.js and test/dual-profile.test.js rerun the generator and
+// rewrite adapters/ + skills/ in the working tree (#66), so a --check
+// afterwards would compare generated output with itself and report clean. Same
+// reason the CI job lists them first.
 //
 // Usage:
 //   node scripts/release-gate.js --tag v0.2.0 [--only <step[,step]>] [--evidence <file>]
@@ -363,7 +364,7 @@ step('install', 'installer dry-run writes nothing', () => {
   }
 });
 
-step('egress', 'shipped code makes no network call', () => {
+step('egress', 'code that runs after install makes no network call', () => {
   const targets = [];
   for (const rel of EGRESS_SCAN) {
     const full = path.join(root, rel.split('/').join(path.sep));
@@ -503,6 +504,10 @@ function main() {
   }
   if (opts.only) {
     const known = new Set(steps.map(s => s.name));
+    if (opts.only.length === 0) {
+      console.error('error: --only needs at least one step name (known: ' + steps.map(s => s.name).join(', ') + ')');
+      process.exit(2);
+    }
     const unknown = opts.only.filter(n => !known.has(n));
     if (unknown.length) {
       console.error('error: unknown step(s) in --only: ' + unknown.join(', ') + ' (known: ' + steps.map(s => s.name).join(', ') + ')');
@@ -518,7 +523,7 @@ function main() {
     artifactDir: opts.artifactDir ? path.resolve(process.cwd(), opts.artifactDir) : null,
   };
   const selected = steps.filter(s => !opts.only || opts.only.includes(s.name));
-  const evidence = { tag: tag, version: parseTag(tag), commit: null, partial: opts.only || null, steps: [], artifact: null, trees: null, declarations: null };
+  const evidence = { tag: tag, version: parseTag(tag), status: null, ok: false, commit: null, partial: opts.only || null, steps: [], artifact: null, trees: null, declarations: null };
   let failed = null;
 
   for (const s of selected) {
@@ -540,9 +545,14 @@ function main() {
   }
 
   const notRun = selected.filter(s => !evidence.steps.some(e => e.name === s.name)).map(s => s.name + ' [' + s.title + ']');
+  // Three outcomes, one field: readers of the JSON (the CI summary, a Release
+  // note) must not have to re-derive "was this a release verdict" from a
+  // boolean plus a partial list.
+  const status = (failed || notRun.length) ? 'red' : (opts.only ? 'partial' : 'green');
+  evidence.status = status;
   // `ok` is true only for a complete run: a subset run is an iteration aid, and
   // evidence a Release might quote must never say "green" about it.
-  evidence.ok = !failed && notRun.length === 0 && !opts.only;
+  evidence.ok = status === 'green';
   evidence.commit = ctx.commit;
   evidence.artifact = ctx.artifact;
   evidence.trees = ctx.trees;
@@ -595,6 +605,7 @@ if (require.main === module) {
 
 module.exports = {
   parseTag,
+  writeScopeRows,
   auditPackFiles,
   treeHash,
   treeHashAt,
