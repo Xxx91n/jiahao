@@ -398,7 +398,7 @@ step('egress', 'code that runs after install makes no network call', () => {
     });
   }
   if (hits.length) {
-    throw new Error('shipped code reaches the network, contradicting the no-egress statement:\n' + hits.map(h => '  ' + h).join('\n'));
+    throw new Error('code that runs after install reaches the network, contradicting the no-egress statement:\n' + hits.map(h => '  ' + h).join('\n'));
   }
 
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
