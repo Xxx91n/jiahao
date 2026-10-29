@@ -473,15 +473,27 @@ function humanVerdict(prevHash, verdict) {
   return rec;
 }
 
+test('#75: another session records do not vouch for this session', () => {
+  const gate = gateFixture();
+  // The machine has been used: a clean, fully verified turn from an earlier
+  // conversation sits on the chain. That is not this turn's evidence.
+  gate.chain([createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null, { session_id: 'session-old' })]);
+  const res = gate.stop({ stop_hook_active: false, session_id: 'session-new' });
+  expect(res.status).toBe(2);
+  expect(JSON.parse(res.stdout).reason).toMatch(/no evidence/);
+});
+
 test('#75: a high-severity record from another session does not gate this Stop', () => {
   const gate = gateFixture();
-  gate.chain([highSeverityRecord(null, 'session-old')]);
+  const own = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null, { session_id: 'session-new' });
+  gate.chain([own, highSeverityRecord(own.event_hash, 'session-old')]);
   expect(gate.stop({ stop_hook_active: false, session_id: 'session-new' }).status).toBe(0);
 });
 
 test('#75: a partial-coverage record from another session does not gate this Stop', () => {
   const gate = gateFixture();
-  gate.chain([partialCoverageRecord(null, 'session-old')]);
+  const own = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null, { session_id: 'session-new' });
+  gate.chain([own, partialCoverageRecord(own.event_hash, 'session-old')]);
   expect(gate.stop({ stop_hook_active: false, session_id: 'session-new' }).status).toBe(0);
 });
 
