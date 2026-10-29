@@ -1,0 +1,8 @@
+$ npx skills update jiahao -g -y
+[38;5;145mUpdating jiahao…[0m
+
+[38;5;102mChecking skills from source: Xxx91n/jiahao[0m[K
+[K[38;5;145m✓ All global skills are up to date[0m
+
+
+exit=0

@@ -61,7 +61,7 @@ node scripts/install.js init -y
 
 ### 升级
 
-版本号只在 `package.json` 里，两个出口原地升级，`1.0.0` 不换命令。规则版：再跑一次 `npx skills add Xxx91n/jiahao`，或 `npx skills update jiahao`。插件版：`claude plugin marketplace update jiahao`，再 `claude plugin update jiahao@jiahao`，然后重开会话。升级不改配置目录里的 `.jiahao-profile` 与 `.jiahao-active`。
+版本号只在 `package.json` 里，两个出口原地升级，`1.0.0` 打出来后不换命令。规则版：再跑一次 `npx skills add Xxx91n/jiahao`，或 `npx skills update jiahao -g -y`。插件版：`claude plugin marketplace update jiahao`，再 `claude plugin update jiahao@jiahao`，然后重开会话。升级不改配置目录里的 `.jiahao-profile` 与 `.jiahao-active`。
 
 ### 私有语料
 

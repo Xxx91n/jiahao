@@ -61,7 +61,7 @@ The rules version has no runtime profile switch.
 
 ### Upgrade
 
-The version comes from `package.json`; both exits upgrade in place, so `1.0.0` uses the same commands. Rules version: re-run `npx skills add Xxx91n/jiahao`, or `npx skills update jiahao`. Plugin version: `claude plugin marketplace update jiahao`, then `claude plugin update jiahao@jiahao`, then restart the session. Upgrade does not touch `.jiahao-profile` or `.jiahao-active` in the config dir.
+The version comes from `package.json`; both exits upgrade in place, so when `1.0.0` ships it will use the same commands. Rules version: re-run `npx skills add Xxx91n/jiahao`, or `npx skills update jiahao -g -y`. Plugin version: `claude plugin marketplace update jiahao`, then `claude plugin update jiahao@jiahao`, then restart the session. Upgrade does not touch `.jiahao-profile` or `.jiahao-active` in the config dir.
 
 ### Private corpus
 

@@ -1,0 +1,4 @@
+  ❯ jiahao@jiahao
+    Version: 0.2.0
+    Scope: user
+    Status: ✔ enabled
