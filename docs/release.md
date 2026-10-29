@@ -27,7 +27,7 @@ tag 推送时 CI 跑同一条命令（`.github/workflows/ci.yml` 的 `release-ga
 | `egress` | 扫描会随安装跑起来的代码：没有 `http/http2/https/net/dns/tls/dgram` 的 require、没有 `fetch(` / `https.request`；`package.json` 没有安装生命周期脚本；两个插件的每条钩子命令都指向 `${CLAUDE_PLUGIN_ROOT}/hooks/*.js` | 无网络外呼 |
 | `declarations` | 本文件带着「写入范围」「无网络外呼」两节；写入范围表的行里逐个出现代码会写的路径；README 链到这里 | 写入范围声明 |
 
-顺序是刻意的：生成检查排在 `npm test` 前面。`test/adapters.test.js` 与 `test/dual-profile.test.js` 会在跑测试时重跑生成器、把 `adapters/` 与 `skills/` 重写一遍（#66 在收），跑完再查生成物就等于拿生成结果比自己。`artifact` 因此在打包前再看一次 `git status`：如果测试真的改动了已跟踪文件，这棵树已经不是 tag 那棵树，不能拿来算哈希。
+顺序是刻意的：生成检查排在 `npm test` 前面，过期或手改的产物在测试之前就被抓住。测试套件本身不再重写工作区（#76 收了 #66：生成类用例只写临时目录，产物内容从内存里的生成结果读），所以这个顺序是保险，而不是唯一的保障。`artifact` 仍在打包前再看一次 `git status`：万一有测试写脏了已跟踪文件，这棵树已经不是 tag 那棵树，不能拿来算哈希。
 
 tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD`：分支 job 因为跳过 tag 而不跑白空格检查，这条补上。（用 `HEAD^1` 而不是 `git show --check`：合并提交上 `git show` 是组合 diff，什么都不报。）
 
