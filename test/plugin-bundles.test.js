@@ -239,10 +239,16 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
       expect(escapes).toEqual([]);
       expect(external).toEqual([]);
       // A fixpoint: empty `escapes` also passes when the scan walked nothing.
-      expect(scanned).toBeGreaterThanOrEqual(15);
-      expect(edges.size).toBeGreaterThanOrEqual(25);
-      expect(edges.get(P + 'src/evidence-log.js -> ./shared/paths')).toBe(P + 'src/shared/paths.js');
-      expect(edges.get(P + 'src/instrument-identity.js -> ./evidence-log')).toBe(P + 'src/evidence-log.js');
+      // Floors are the row's own wiring count, so a host with one event does not
+      // have to reach today's closure size to pass.
+      expect(scanned).toBeGreaterThanOrEqual(bundleSeeds(host).length);
+      expect(edges.size).toBeGreaterThanOrEqual(Object.keys(host.hooks || {}).length);
+      if (generated[P + 'src/evidence-log.js'] !== undefined) {
+        expect(edges.get(P + 'src/evidence-log.js -> ./shared/paths')).toBe(P + 'src/shared/paths.js');
+      }
+      if (generated[P + 'src/instrument-identity.js'] !== undefined) {
+        expect(edges.get(P + 'src/instrument-identity.js -> ./evidence-log')).toBe(P + 'src/evidence-log.js');
+      }
     });
   });
 

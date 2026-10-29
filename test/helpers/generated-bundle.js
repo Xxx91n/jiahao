@@ -13,11 +13,16 @@ const path = require('path');
 
 function materializeBundle(generated, dirPrefix) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-bundle-'));
-  for (const [rel, text] of Object.entries(generated)) {
-    if (!rel.startsWith(dirPrefix)) continue;
-    const abs = path.join(dir, rel.slice(dirPrefix.length).split('/').join(path.sep));
-    fs.mkdirSync(path.dirname(abs), { recursive: true });
-    fs.writeFileSync(abs, text, 'utf8');
+  try {
+    for (const [rel, text] of Object.entries(generated)) {
+      if (!rel.startsWith(dirPrefix)) continue;
+      const abs = path.join(dir, rel.slice(dirPrefix.length).split('/').join(path.sep));
+      fs.mkdirSync(path.dirname(abs), { recursive: true });
+      fs.writeFileSync(abs, text, 'utf8');
+    }
+  } catch (e) {
+    fs.rmSync(dir, { recursive: true, force: true });
+    throw e;
   }
   return dir;
 }

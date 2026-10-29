@@ -25,7 +25,7 @@ describe('bundled Claude Code hooks (live spawn, temp config dir)', () => {
     bundleDir = materializeBundle(generated, BUNDLE);
   });
   afterAll(() => {
-    fs.rmSync(bundleDir, { recursive: true, force: true });
+    if (bundleDir) fs.rmSync(bundleDir, { recursive: true, force: true });
   });
 
   function runBundled(script, opts) {

@@ -24,7 +24,7 @@ beforeAll(() => {
 });
 
 afterAll(() => {
-  fs.rmSync(bundleDir, { recursive: true, force: true });
+  if (bundleDir) fs.rmSync(bundleDir, { recursive: true, force: true });
 });
 
 function mkConfigDir(files) {

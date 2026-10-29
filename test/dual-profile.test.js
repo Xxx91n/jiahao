@@ -73,7 +73,7 @@ test('build-adapters emits both codebuddy rules and the rules-version skill', ()
     expect(typeof generated[rel]).toBe('string');
     expect(fs.existsSync(path.join(root, rel))).toBe(true);
   }
-  for (const retired of ['cursor', 'windsurf', 'cline', 'instruction-tier']) {
+  for (const retired of require('../scripts/build-adapters').RETIRED_HOSTS) {
     expect(fs.existsSync(path.join(root, 'adapters', retired))).toBe(false);
   }
 });

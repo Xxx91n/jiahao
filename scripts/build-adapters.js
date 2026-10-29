@@ -159,7 +159,7 @@ function readRepoFile(rel) {
 // test cannot disagree with the generator about what "wired" means.
 function bundleSeeds(host) {
   return Array.from(new Set(
-    Object.values(host.hooks).map(hook => 'hooks/' + hook.script + '.js')
+    Object.values(host.hooks || {}).map(hook => 'hooks/' + hook.script + '.js')
       .concat(host.mcp ? [host.mcp.entry] : [])
   ));
 }
@@ -231,6 +231,9 @@ function hostShapeProblems(hosts) {
     if (!host.provenance || !String(host.provenance).trim()) problems.push(label + ': the tier needs provenance (host build + what was observed)');
 
     const events = Object.keys(host.hooks || {});
+    if (!host.hooks || typeof host.hooks !== 'object') {
+      problems.push(label + ': hooks must be an object (empty for a rules-only host)');
+    }
     if (host.tier === 'A') {
       if (!host.turnEnd) problems.push(label + ': an A-tier host must name its turn-end event (turnEnd)');
       else if (!events.includes(host.turnEnd)) problems.push(label + ': turnEnd ' + host.turnEnd + ' is not a registered event');
@@ -583,13 +586,15 @@ directory for the host to load.
 
 ## Verification status (honest tiering)
 
-Pinned offline by \`test/claude-code-plugin.test.js\`: both manifests parse,
-the plugin version and license come from \`package.json\`, the marketplace
-\`source\` resolves to this directory, every referenced file is emitted by the
-generator (\`--check\` pins the emitted set to disk), every hook command stays
-inside \`\${CLAUDE_PLUGIN_ROOT}\`, and no vendored relative \`require()\` escapes
-the bundle. The bundled Stop gate is spawned by that suite and blocks
-(exit 2) when the evidence chain is empty.
+Pinned offline by \`test/plugin-bundles.test.js\` (structure, run once per host
+row) and \`test/claude-code-plugin.test.js\` (the bundled Stop gate and the
+SessionStart injection): both manifests parse, the plugin version and license
+come from \`package.json\`, the marketplace \`source\` resolves to this directory,
+every referenced file is emitted by the generator (\`--check\` pins the emitted
+set to disk), every hook command stays inside \`\${CLAUDE_PLUGIN_ROOT}\`, and no
+vendored relative \`require()\` escapes the bundle. The bundled Stop gate is
+spawned from a temp materialization of the generator output and blocks (exit 2)
+when the evidence chain is empty.
 
 **Not yet live-probed**: install through \`claude plugin\`, SessionStart
 injection, and a real blocked false-completion are owner actions in #64. This

@@ -49,7 +49,7 @@ const REQUIRED_PACK_FILES = [
   'package.json',
   'skills/jiahao/SKILL.md',
   ...HOSTS.map(host => host.dir + '/.claude-plugin/plugin.json'),
-  ...HOSTS.filter(host => Object.keys(host.hooks).length > 0).map(host => host.dir + '/hooks/hooks.json'),
+  ...HOSTS.filter(host => Object.keys(host.hooks || {}).length > 0).map(host => host.dir + '/hooks/hooks.json'),
   ...HOSTS.flatMap(host => host.rules.map(rule => host.dir + '/rules/' + rule.file)),
   '.claude-plugin/marketplace.json',
   'docs/release.md',
@@ -406,7 +406,7 @@ step('egress', 'code that runs after install makes no network call', () => {
     // A host with no hook map is not a plugin; skipping a C-tier (rules-only)
     // row is deliberate, skipping one that declares events would let
     // `--only egress` report green over a bundle that has no commands.
-    if (Object.keys(host.hooks).length === 0) continue;
+    if (Object.keys(host.hooks || {}).length === 0) continue;
     const rel = host.dir + '/.claude-plugin/plugin.json';
     const hookMapPath = path.join(root, host.dir.split('/').join(path.sep), 'hooks', 'hooks.json');
     if (!fs.existsSync(hookMapPath)) throw new Error(rel + ' has no hooks/hooks.json beside it');
