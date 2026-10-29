@@ -9,12 +9,16 @@
 // The guard protects jiahao's own apparatus. Two channels decide it:
 //   - PROTECTED_FRAGMENTS: the names jiahao owns outright - its hook scripts,
 //     its rule files, and the .jiahao-* state files enumerated below - matched
-//     at a shell token's end regardless of position in the argv
+//     at a candidate's end regardless of position in the argv
 //     (grill-t30 audit B-4);
 //   - absolute containment under the plugin root: everything the bundle keeps
 //     in an apparatus directory, including names that are ordinary elsewhere
 //     (.mcp.json, hooks/hooks.json, .claude-plugin/plugin.json) and therefore
 //     must not be name fragments (#75).
+//
+// The second channel is the one that has to be strict: it replaces the fragments
+// it removed, so every way the shell spells "that file" has to reach it - see
+// tokens() and expandedSpelling().
 //
 // Fail-soft by contract: the caller decides what a hit means (deny or observe);
 // this module only answers "is this path on the enforcement surface".
@@ -24,11 +28,11 @@ const path = require('path');
 
 // Distinctive fragments - fragments only cover paths whose names are
 // jiahao-owned, so a same-named user file elsewhere does not trip the deny.
-// Token-anchored: each fragment is evaluated against a shell token's END
-// ($), so trailing args / flags cannot defeat it (grill-t30 audit B-4).
-// ^ alternation covers bare relative paths ("rm rules/jiahao-verifier.md").
-// Both separator spellings are accepted inside a fragment: a tool_input may
-// carry either, and a fragment names a file, not a path.
+// Anchored at a candidate's END ($), so trailing args / flags cannot defeat it
+// (grill-t30 audit B-4). ^ alternation covers bare relative paths
+// ("rm rules/jiahao-verifier.md"). Both separator spellings are accepted inside
+// a fragment: a tool_input may carry either, and a fragment names a file, not a
+// path.
 const PROTECTED_FRAGMENTS = [
   /(^|[\\/=])hooks[\\/]jiahao-[a-z0-9-]+\.js$/,
   /(^|[\\/=])rules[\\/]jiahao-(verifier|generator)\.md$/,
@@ -42,38 +46,48 @@ const PROTECTED_DIRS = ['hooks', 'rules', 'src', '.claude-plugin'];
 // Bundle-root files that are apparatus by position, not by name.
 const PROTECTED_ROOT_FILES = ['.mcp.json'];
 
-// Command payloads are split into shell tokens so a protected name is
-// matched at token end regardless of position in the argv (grill-t30 B-4:
-// `rm rules/jiahao-verifier.md` and `rm <abs> extra` both resolve).
-// Separators are left exactly as they arrived: rewriting them before resolve()
-// turned an absolute POSIX path into a relative one and switched the whole
-// containment check off on that platform (#75).
-//
-// Whitespace is a word boundary, not a path boundary - but it is also not the
-// only way a shell spells one argument. `candidateText()` hands the tool_input
-// fields over one per line and an Edit/Write `file_path` IS the whole line (a
-// directory name may contain spaces); `"/root"/hooks/hooks.json` is one word
-// once the quoting is undone; `John\ Doe` is one word on POSIX. Splitting on
+// ---------------------------------------------------------------- candidates --
+
+// Whitespace is a word boundary, not a path boundary - and it is not the only way
+// a shell spells one argument. `candidateText()` hands the tool_input fields over
+// one per line and an Edit/Write `file_path` IS the whole line (a directory name
+// may contain spaces); `"/root"/hooks/hooks.json` is one argument once the
+// quoting is undone; on POSIX `John\ Doe` is one argument too. Splitting on
 // whitespace alone made every one of those invisible to containment, which the
 // removed name fragments used to catch by accident (CodeRabbit Major on PR #83).
-// So: each line is a candidate on its own, words are reassembled from adjacent
-// quoted/bare chunks, and a quoted payload that contains whitespace is read
-// again as its own command line (`bash -c "echo x > rules/jiahao-verifier.md"`).
-// An inner path that is neither quoted nor escaped is left split - one level
-// down the shell sees two arguments and never opens that file.
-
+//
+// So candidates are: the whole line, every reassembled word, the de-escaped
+// spelling of a word that used backslashes, and the words inside a quoted payload
+// (`bash -c "echo x > rules/jiahao-verifier.md"` runs that text as its own command
+// line, so it is read again, nested up to MAX_QUOTE_DEPTH). A path that is neither
+// quoted nor escaped stays split - one level down the shell sees two arguments and
+// never opens that file, and this is the same class of shape #75 removed from the
+// fragment list on purpose.
 const WORD_SEPARATORS = ' \t\n\r\f\v;&|<>()';
+const MAX_QUOTE_DEPTH = 3;
 
-// Reassembles one shell word. Adjacent quoted and bare chunks concatenate and the
-// quote characters disappear, so `"/root"/hooks/hooks.json` is the one argument
-// the shell will open. On POSIX a backslash escapes the next character - an
-// escaped space does NOT end the word - and both spellings are kept: the raw one
-// still carries a Windows-style path for the foreign-separator reading, the
-// unescaped one is what the filesystem sees. An unterminated quote takes the rest
-// of the line, which is what the old flat split did with it.
+// One shell word: adjacent quoted and bare chunks concatenate, the quote
+// characters disappear. An unterminated quote takes the rest of the line, which is
+// what the old flat split did with it. Parts are collected as slices and joined
+// once - this runs over payloads measured in megabytes inside a host timeout.
+const DQ_ESCAPABLE = '$`"\\';
+
+// Inside double quotes a backslash escapes only these four, and everywhere else
+// it is literal; inside single quotes nothing is escaped.
+function findQuoteEnd(line, quote, from, escapes) {
+  if (quote !== '"' || !escapes) return line.indexOf(quote, from);
+  let k = from;
+  while (k < line.length) {
+    if (line[k] === '\\' && k + 1 < line.length && DQ_ESCAPABLE.indexOf(line[k + 1]) !== -1) { k += 2; continue; }
+    if (line[k] === quote) return k;
+    k += 1;
+  }
+  return -1;
+}
+
 function readWord(line, from, escapes) {
-  let word = '';
-  let plain = '';
+  const raw = [];
+  const plain = [];
   let quoted = false;
   let escaped = false;
   let i = from;
@@ -81,26 +95,45 @@ function readWord(line, from, escapes) {
     const ch = line[i];
     if (ch === '"' || ch === "'") {
       quoted = true;
-      const close = line.indexOf(ch, i + 1);
-      if (close === -1) { word += line.slice(i + 1); plain += line.slice(i + 1); return { word: word, plain: plain, quoted: quoted, escaped: escaped, next: i }; }
-      word += line.slice(i + 1, close);
-      plain += line.slice(i + 1, close);
+      const close = findQuoteEnd(line, ch, i + 1, escapes);
+      if (close === -1) {
+        raw.push(line.slice(i + 1)); plain.push(line.slice(i + 1));
+        i = line.length;
+        break;
+      }
+      const inner = line.slice(i + 1, close);
+      raw.push(inner);
+      if (ch === '"' && escapes && inner.indexOf('\\') !== -1) {
+        escaped = true;
+        plain.push(inner.replace(/\\([$`"\\])/g, '$1'));
+      } else {
+        plain.push(inner);
+      }
       i = close + 1;
       continue;
     }
     if (escapes && ch === '\\' && i + 1 < line.length) {
       escaped = true;
-      word += ch + line[i + 1];
-      plain += line[i + 1];
+      raw.push(ch + line[i + 1]); plain.push(line[i + 1]);
       i += 2;
       continue;
     }
+    // the word ends here: a separator at this position is not part of it
     if (WORD_SEPARATORS.indexOf(ch) !== -1) break;
-    word += ch;
-    plain += ch;
-    i += 1;
+    let j = i;
+    while (j < line.length) {
+      const c = line[j];
+      if (c === '"' || c === "'") break;
+      if (escapes && c === '\\' && j + 1 < line.length) break;
+      if (WORD_SEPARATORS.indexOf(c) !== -1) break;
+      j += 1;
+    }
+    if (j === i) { j = i + 1; } // a character nothing else claimed (trailing `\`)
+    const run = line.slice(i, j);
+    raw.push(run); plain.push(run);
+    i = j;
   }
-  return { word: word, plain: plain, quoted: quoted, escaped: escaped, next: i };
+  return { word: raw.join(''), plain: plain.join(''), quoted: quoted, escaped: escaped, next: i };
 }
 
 function lexWords(line, escapes) {
@@ -123,74 +156,73 @@ function tokens(text, escapes) {
   const out = [];
   const seen = new Set();
   const push = (value) => { if (value && !seen.has(value)) { seen.add(value); out.push(value); } };
-  for (const line of String(text || '').split('\n')) {
+  const readLine = (line, depth) => {
     push(line.trim());
     for (const entry of lexWords(line, escapes)) {
       push(entry.word);
       if (entry.escaped) push(entry.plain);
-      // a quoted payload is its own command line one level down: read the paths
-      // inside it (`bash -c "echo x > rules/jiahao-verifier.md"`)
-      if (entry.quoted && /[ \t]/.test(entry.word)) {
-        for (const inner of lexWords(entry.word, escapes)) push(inner.word);
+      if (entry.quoted && depth < MAX_QUOTE_DEPTH && /[ \t]/.test(entry.word)) {
+        readLine(entry.word, depth + 1);
+        if (entry.escaped) readLine(entry.plain, depth + 1);
       }
     }
-  }
+  };
+  for (const line of String(text || '').split('\n')) readLine(line, 0);
   return out;
 }
 
-// A token can be spelled the way the shell wrote it rather than the way the
-// filesystem sees it. Three spellings reach the guard as text and still name a
-// file inside the plugin root:
-//   - the other platform's separator (a path copied from a Windows shell
-//     reaches a POSIX host, and a JSON tool_input on Windows carries forward
-//     slashes);
-//   - `~` and an environment variable (`$HOME`, `${HOME}`, `%USERPROFILE%`,
-//     `$env:HOME`), which the shell expands before anything touches a file;
-//   - the host's own plugin-root variable, which is literally how the hook map
-//     spells the bundle path.
-// The host-native reading is the one that actually mutates the file; every
-// other reading only closes a gap, because the expanded result still has to
-// resolve below the root to count. So a spelling that merely *looks* like the
-// apparatus (an unexpanded `$HOMEDIR`, a user project under the same home) is
-// still allowed.
-const HOME_VARS = ['HOME', 'USERPROFILE'];
-const ROOT_VARS = ['CLAUDE_PLUGIN_ROOT', 'CODEBUDDY_PLUGIN_ROOT'];
-// The two lists above are this module's own constants - never caller or host
-// input - which is what makes building a RegExp out of them safe. Precompiled
-// and gated by a cheap indexOf: this runs over every token of a payload that can
-// be megabytes large, inside a host timeout that kills the hook instead of
-// waiting for it.
-const BARE_NAME_RE = {
-  HOME: /\$HOME(?![A-Za-z0-9_])/g,
-  USERPROFILE: /\$USERPROFILE(?![A-Za-z0-9_])/g,
-  CLAUDE_PLUGIN_ROOT: /\$CLAUDE_PLUGIN_ROOT(?![A-Za-z0-9_])/g,
-  CODEBUDDY_PLUGIN_ROOT: /\$CODEBUDDY_PLUGIN_ROOT(?![A-Za-z0-9_])/g,
-};
+// A candidate can also be spelled the way the shell wrote it rather than the way
+// the filesystem sees it:
+//   - the other platform's separator (a path copied from a Windows shell reaches a
+//     POSIX host; a JSON tool_input on Windows carries forward slashes);
+//   - a variable reference (`$HOME`, `${HOME}`, `%USERPROFILE%`, `$env:HOME`, and
+//     any other name the host does have in its environment), which the shell
+//     substitutes before anything touches a file;
+//   - `~`, which the shell substitutes from the account, not from the environment.
+// The host-native reading is the one that actually mutates the file; every other
+// reading only closes a gap, because the substituted result still has to resolve
+// below the root to count. So a spelling that merely *looks* like the apparatus -
+// an unknown `$SOMEVAR`, a user project under the same home - is still allowed.
+// Not modelled, and deliberately not pretended to be: command substitution
+// (`$(...)`, backticks), because their values are not knowable here, and glob
+// expansion, because the files may not exist yet.
+const REF_BRACED = /\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
+const REF_POWERSHELL = /\$env:([A-Za-z_][A-Za-z0-9_]*)/g;
+const REF_BARE = /\$([A-Za-z_][A-Za-z0-9_]*)/g;
+const REF_PERCENT = /%([A-Za-z_][A-Za-z0-9_]*)%/g;
 
-function substituteName(tok, name, value) {
-  if (!value || tok.indexOf(name) === -1) return tok;
-  // $NAME needs a boundary so $HOMEDIR is not read as $HOME + "DIR"; the other
-  // three syntaxes are delimited by their own punctuation. The function
-  // replacement keeps a `$` inside the substituted value literal.
-  return tok
-    .split('${' + name + '}').join(value)
-    .split('%' + name + '%').join(value)
-    .split('$env:' + name).join(value)
-    .replace(BARE_NAME_RE[name], function () { return value; });
+function refValue(name, ctx) {
+  // The plugin-root variables are how the hook map spells the bundle, so they are
+  // answered even when the host did not export them into this process.
+  if (name === 'CLAUDE_PLUGIN_ROOT' || name === 'CODEBUDDY_PLUGIN_ROOT') return ctx.rootAbs || null;
+  const value = ctx.env[name];
+  if (typeof value === 'string' && value.length > 0) return value;
+  if (name === 'HOME' || name === 'USERPROFILE') return ctx.home || null;
+  return null;
+}
+
+function expandRef(match, name, ctx) {
+  const value = refValue(name, ctx);
+  return value === null ? match : value;
 }
 
 function expandedSpelling(tok, ctx) {
-  // almost every token is a plain path: with no marker anywhere in it, there is
-  // nothing to expand
+  // almost every candidate is a plain path: with no marker anywhere in it there is
+  // nothing to expand, and the passes below are full string scans
   if (tok.indexOf('$') === -1 && tok.indexOf('%') === -1 && tok.charAt(0) !== '~') return tok;
-  let out = tok;
-  for (const name of HOME_VARS) out = substituteName(out, name, ctx.home);
-  for (const name of ROOT_VARS) out = substituteName(out, name, ctx.rootAbs);
+  const sub = (match, name) => expandRef(match, name, ctx);
+  let out = tok
+    .replace(REF_BRACED, sub)
+    .replace(REF_POWERSHELL, sub)
+    .replace(REF_BARE, sub)
+    .replace(REF_PERCENT, sub);
   if (ctx.home && (out === '~' || out.startsWith('~/') || out.startsWith('~\\'))) out = ctx.home + out.slice(1);
   return out;
 }
 
 function foreignSpelling(P, tok) {
+  const other = P.sep === '/' ? '\\' : '/';
+  if (tok.indexOf(other) === -1) return tok;
   return P.sep === '/' ? tok.split('\\').join('/') : tok.split('/').join('\\');
 }
 
@@ -237,7 +269,7 @@ function isProtected(text, pluginRoot, opts) {
   // typed. os.homedir() asks the kernel instead of the environment.
   let home = env.HOME || env.USERPROFILE || null;
   if (!home) { try { home = (o.homedir || os.homedir)() || null; } catch (e) { home = null; } }
-  const ctx = { P: P, cwd: o.cwd || null, rootAbs: rootAbs, home: home };
+  const ctx = { P: P, cwd: o.cwd || null, rootAbs: rootAbs, home: home, env: env };
 
   for (const tok of tokens(text, P.sep === '/')) {
     for (const re of PROTECTED_FRAGMENTS) if (re.test(tok)) return true;

@@ -236,7 +236,7 @@ describe('protected path (shell word reconstruction)', () => {
     expect(check('sh -c "rm -f ' + root + '/hooks/hooks.json"')).toBe(false);
   });
 
-  test('Windows paths are not de-escaped, because a backslash is the separator', () => {
+  test('a Windows host is not de-escaped, because a backslash is the separator', () => {
     const winRoot = 'C:\\Users\\John Doe\\proj\\.codebuddy\\plugins\\jiahao';
     const winCheck = (text) => isProtected(text, winRoot, {
       pathImpl: path.win32, cwd: 'C:\\Users\\John Doe\\proj',
@@ -244,6 +244,51 @@ describe('protected path (shell word reconstruction)', () => {
     expect(winCheck('rm "' + winRoot + '\\hooks\\hooks.json"')).toBe(true);
     expect(winCheck('rm "C:\\Users\\John Doe\\proj\\.codebuddy\\plugins\\jiahao"/src/SKILL.md')).toBe(true);
     expect(winCheck('rm C:\\Users\\John\\ Doe\\proj\\.mcp.json')).toBe(false);
+  });
+
+  // Inside double quotes a backslash escapes the quote itself, so the span does
+  // not end there - otherwise the common `bash -c "sed -i \"...\" \"<path>\""`
+  // shape hides the path again.
+  test('an escaped quote does not end the quoted span', () => {
+    const text = 'bash -c "sed -i \\"s|a|b|\\" \\"' + root + '/hooks/hooks.json\\""';
+    expect(check(text)).toBe(true);
+    expect(check('bash -c "sed -i \\"s|a|b|\\" \\"/home/u/John Doe/proj/.mcp.json\\""')).toBe(false);
+  });
+
+  test('quoting nests as far as the shell does, and escapes survive a level down', () => {
+    // the payload of the outer command is itself a command line
+    expect(check('bash -c "rm -f /home/u/John\\ Doe/.codebuddy/plugins/jiahao/hooks/hooks.json"')).toBe(true);
+    const inner = "sh -c 'rm -f \\\"" + root + "/hooks/hooks.json\\\"'";
+    expect(check('bash -c "' + inner + '"')).toBe(true);
+  });
+});
+
+describe('protected path (variable references)', () => {
+  // #75 took away the name fragments, so every spelling that the shell would
+  // substitute into a path inside the plugin root has to reach containment - not
+  // just the four names a hand-written table happened to list.
+  const root = '/srv/plugins/jiahao';
+  const env = { PLUGINS: '/srv/plugins', HOME: '/home/u', JIAHAO_OLD: '/opt/other' };
+  const check = (text) => isProtected(text, root, { pathImpl: path.posix, cwd: '/home/u/proj', env: env });
+
+  test('a reference to a variable the host really has is expanded', () => {
+    const shapes = [
+      'rm $PLUGINS/jiahao/hooks/hooks.json',
+      'rm ${PLUGINS}/jiahao/.mcp.json',
+      'chmod 600 %PLUGINS%/jiahao/src/SKILL.md',
+      'sh -c "rm $PLUGINS/jiahao/.claude-plugin/plugin.json"',
+    ];
+    for (const text of shapes) expect(check(text)).toBe(true);
+  });
+
+  test('an unknown reference is left alone and cannot reach the root', () => {
+    const shapes = [
+      'rm $NOPE/jiahao/hooks/hooks.json',
+      'rm ${JIAHAO_OLD}/hooks/hooks.json',
+      'rm $PLUGINS/jiahao/../other/.mcp.json',
+      'rm $PLUGINS/other-project/.mcp.json',
+    ];
+    for (const text of shapes) expect(check(text)).toBe(false);
   });
 });
 

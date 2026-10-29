@@ -73,7 +73,11 @@ process.stdin.on('end', () => {
       },
     }));
   }
-  process.exit(0);
+  // No process.exit() here: the deny envelope is an async write to a pipe on
+  // POSIX, and exiting before it flushes loses the output - which this hook's
+  // contract turns into a silent allow (status 0, empty stdout). Letting the loop
+  // drain flushes it, and the stdin guard timer below is unref'd so it never
+  // holds the process open. The early exits that print nothing keep exit(0).
 });
 
 // Windows stdin hang guard (same convention as the other hooks)

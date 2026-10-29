@@ -126,9 +126,15 @@ describe('hook behavior (bundle copies, live spawn)', () => {
         configDir: dir, pluginRoot: bundleDir,
         stdin: JSON.stringify({ tool_name: 'Bash', tool_input: { command: command } }),
       });
-      expect(res.status).toBe(0);
-      const out = JSON.parse(res.stdout.trim());
-      expect(out.hookSpecificOutput.permissionDecision).toBe('deny');
+      // Name the shape when the guard stays silent. An empty stdout here means a
+      // tool call that should have been denied went through, and JSON.parse's
+      // "Unexpected end of JSON input" says nothing about which payload did it.
+      if (res.status !== 0 || !String(res.stdout).trim()) {
+        throw new Error('shape not denied: ' + JSON.stringify({
+          command: command, status: res.status, stdout: res.stdout, stderr: res.stderr,
+        }));
+      }
+      expect(JSON.parse(res.stdout).hookSpecificOutput.permissionDecision).toBe('deny');
     }
     // non-protected payloads still pass silently
     const benign = runBundleHook('jiahao-pretool-guard.js', {
