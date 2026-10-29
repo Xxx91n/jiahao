@@ -110,4 +110,3 @@ Pattern: `[verdict] -> [evidence] -> [location + severity] -> [unchecked: X, nee
 - If your information boundary collapses (you end up using the same model, same context, same data as the generator), stop and declare NOT VERIFIED. Self-validation provides coherence evidence only, not independence evidence.
 ---
 JIAHAO MODE ACTIVE — level: full
-
