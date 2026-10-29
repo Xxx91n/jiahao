@@ -33,20 +33,21 @@ const isGenerator = profile === 'generator';
 // record - a killed hook's sentinel-reconcile coverage:partial, or an enforce
 // pairer-lane high severity - gate every later turn forever, and human
 // adjudication could not release it.
-//   scopedToSession: a record produced by another conversation cannot block this
-//     Stop. Records with no session marker stay in scope for every session, which
-//     is deliberate - gate.js and the sentinel write that shape, and a host that
-//     sends no session_id must not get a free pass.
+//   scopedToSession: a record MARKED as another conversation's can neither block
+//     this Stop nor vouch for it (Case A reads the same set). Records with no
+//     session marker stay in scope for every session - gate.js and the sentinel
+//     write that shape, and excluding them would hand a host that sends no
+//     session_id a free pass. The cost is stated rather than hidden: one unmarked
+//     record keeps satisfying "there is evidence" for every later session on that
+//     machine until the writers stamp a session/turn.
 //   gatingRecords: additionally drops everything up to the last passed human
-//     adjudication. The adjudication is read wherever it sits, including under a
-//     different session_id: a reviewer clearing a stale escalation from another
-//     conversation still has to be able to release it, or #75 has only traded one
-//     permanent block for another. A `fail` verdict does not release - the human
+//     adjudication, read wherever it sits - including under a different
+//     session_id, or a reviewer who cleared a stale escalation from their own
+//     conversation could never release it, and #75 would have traded one
+//     permanent block for another. A `fail` verdict does not release: the human
 //     agreed the claim was unsupported, so the turn still has to be re-verified.
-// Case A reads scopedToSession, so an earlier conversation's records neither
-// block this turn nor vouch for it. The chain-integrity check and the κ /
-// pending-escalation advisories keep reading the whole chain: corruption has no
-// session, and both are advisory only.
+// The chain-integrity check and the κ / pending-escalation advisories keep
+// reading the whole chain: corruption has no session, and both are advisory only.
 function scopedToSession(chain, sessionId) {
   if (!chain) return [];
   if (!sessionId) return chain;
@@ -61,13 +62,7 @@ function gatingRecords(chain, sessionId) {
     const rec = chain[i];
     if (rec && rec.kind === 'human_verdict' && rec.verdict === 'pass') releasedAt = i;
   }
-  const gating = [];
-  for (let i = releasedAt + 1; i < chain.length; i++) {
-    const rec = chain[i];
-    if (sessionId && rec && rec.session_id && rec.session_id !== sessionId) continue;
-    gating.push(rec);
-  }
-  return gating;
+  return scopedToSession(chain.slice(releasedAt + 1), sessionId);
 }
 
 // dead-man switch (hook-tier hosts): the judge seam re-verification

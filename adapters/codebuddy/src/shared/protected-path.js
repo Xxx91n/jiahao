@@ -83,7 +83,7 @@ function substituteName(tok, name, value) {
     .replace(new RegExp('\\$' + name + '(?![A-Za-z0-9_])', 'g'), value);
 }
 
-function substituted(tok, ctx) {
+function expandedSpelling(tok, ctx) {
   let out = tok;
   for (const name of HOME_VARS) out = substituteName(out, name, ctx.home);
   for (const name of ROOT_VARS) out = substituteName(out, name, ctx.rootAbs);
@@ -98,8 +98,8 @@ function foreignSpelling(P, tok) {
 function readings(ctx, tok) {
   const resolve = (p) => (ctx.cwd ? ctx.P.resolve(ctx.cwd, p) : ctx.P.resolve(p));
   const spellings = [tok];
-  const substitutedTok = substituted(tok, ctx);
-  if (substitutedTok !== tok) spellings.push(substitutedTok);
+  const expanded = expandedSpelling(tok, ctx);
+  if (expanded !== tok) spellings.push(expanded);
   const out = [];
   for (const spelling of spellings) {
     out.push(resolve(spelling));
