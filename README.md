@@ -59,6 +59,10 @@ Start a new session after changing the profile. The flag is shared by all agents
 
 The rules version has no runtime profile switch.
 
+### Upgrade
+
+The version comes from `package.json`. Rules version: re-run the same `npx skills add` command with the scope flags you installed with — project scope without `-g`, global scope with `-g -a <host> -y --copy`. `npx skills update jiahao -g -y` updates a global install; in skills 1.7.4 on one Windows machine with a local-path source, the project-scoped `update` reported no match and exited 127; re-running `add` is the project upgrade path in that setup. Plugin version (Claude Code): `claude plugin marketplace update jiahao`, then `claude plugin update jiahao@jiahao`. CodeBuddy uses its own plugin update/install path (the CLI install path is declared-unverified; see [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)) or re-applies the verified settings merge with the new bundle. Restart the session after upgrading. Upgrade does not touch `.jiahao-profile` or `.jiahao-active` in the config dir.
+
 ### Private corpus
 
 The private benchmark corpus (`private/bench-corpus/`) is a maintainer/CI asset: it is not in the npm package and not tracked in this repository. The frozen evaluation records under `bench/` are tracked; they are not the private corpus. When a gate needs the private corpus, point `JIAHAO_CORPUS_DIR` at a local copy. Runtime hooks do not depend on it.

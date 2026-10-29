@@ -1,0 +1,21 @@
+# shell: Git Bash
+export CLAUDE_CONFIG_DIR=C:/Users/Administrator/AppData/Local/Temp/jiahao-uninstall2
+$ claude plugin marketplace add D:/Aworker/jiahao-wt-64
+Adding marketplace…✔ Successfully added marketplace: jiahao (declared in user settings)
+exit=0
+
+$ claude plugin install jiahao@jiahao
+Installing plugin "jiahao@jiahao"...✔ Successfully installed plugin: jiahao@jiahao (scope: user). This plugin is disabled by default — enable it with: claude plugin enable jiahao@jiahao
+exit=0
+
+$ claude plugin enable jiahao@jiahao
+✔ Successfully enabled plugin: jiahao (scope: user)
+exit=0
+
+$ claude plugin uninstall jiahao@jiahao
+✔ Successfully uninstalled plugin: jiahao (scope: user)
+exit=0
+
+$ claude plugin marketplace remove jiahao
+✔ Successfully removed marketplace: jiahao
+exit=0

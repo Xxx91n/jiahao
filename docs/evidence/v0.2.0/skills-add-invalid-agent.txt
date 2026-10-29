@@ -1,0 +1,27 @@
+$ npx skills add D:/Aworker/jiahao-wt-64 -g -a claude -y --copy
+
+[38;5;250m███████╗██╗  ██╗██╗██╗     ██╗     ███████╗[0m
+[38;5;248m██╔════╝██║ ██╔╝██║██║     ██║     ██╔════╝[0m
+[38;5;245m███████╗█████╔╝ ██║██║     ██║     ███████╗[0m
+[38;5;243m╚════██║██╔═██╗ ██║██║     ██║     ╚════██║[0m
+[38;5;240m███████║██║  ██╗██║███████╗███████╗███████║[0m
+[38;5;238m╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚══════╝[0m
+
+┌  [46m[30m skills [39m[49m
+│
+│  [2mTip: use the --yes (-y) and --global (-g) flags to install without prompts.[22m
+[?25l│
+◇  Source: D:\Aworker\jiahao-wt-64
+[?25h[?25l│
+◇  Local path validated
+[?25h[?25l│
+◇  Found [32m1[39m skill
+[?25h│
+●  Skill: [36mjiahao[39m
+│
+│  [2mAnti-false-completion discipline for LLM agents. Armed with the Delivery Engineer mindset (No receipt, no claim / 凭证即一切) and the 5-rung Action Ladder (Action-first, Probing over guessing, Zero rationalization on red, Goal vs outcome receipt, Plain language) and 3-line output lock by default. Your job is to hold completion claims to physical evidence.[22m
+│
+■  Invalid agents: claude
+│
+●  Valid agents: aider-desk, amp, antigravity, antigravity-cli, astrbot, autohand-code, augment, bob, claude-code, openclaw, cline, codearts-agent, codebuddy, codemaker, codestudio, codex, command-code, continue, cortex, crush, cursor, deepagents, devin, dexto, droid, eve, firebender, forgecode, fx, gemini-cli, github-copilot, goose, grok, hermes-agent, inference-sh, jazz, junie, iflow-cli, kilo, kimchi, kimi-code-cli, kiro-cli, kode, lingma, loaf, mcpjam, minimax-code, mistral-vibe, moxby, mux, opencode, openhands, ona, pi, posit-assistant, qoder, qoder-cn, qwen-code, replit, reasonix, rovodev, roo, sarvam-code, tabnine-cli, terramind, tinycloud, trae, trae-cn, warp, windsurf, zed, zcode, zencoder, zenflow, neovate, pochi, promptscript, adal, universal
+exit=1

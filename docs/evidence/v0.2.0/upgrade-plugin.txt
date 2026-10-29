@@ -1,0 +1,9 @@
+$ claude plugin marketplace update jiahao
+Updating marketplace: jiahao...Validating local marketplace
+✔ Successfully updated marketplace: jiahao
+exit=0
+
+$ claude plugin update jiahao@jiahao
+Checking for updates for plugin "jiahao@jiahao" at user scope…
+✔ jiahao is already at the latest version (0.2.0).
+exit=0

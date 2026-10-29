@@ -1,0 +1,12 @@
+Wrote "verifier" to C:\Users\Administrator\AppData\Local\Temp\jiahao-accept\.jiahao-profile
+Planted private wordlist at C:\Users\Administrator\AppData\Local\Temp\jiahao-accept\private\phrases.json
+
+Verifier Deployment Discipline:
+  - Run the verifier in a SEPARATE context/CWD from the generator.
+  - Prefer a DIFFERENT model family for verifier independence.
+  - See README section "Verifier deployment discipline".
+Sealed existing evidence chain at 1
+Persistence capability: probed=dir-sync-unsupported
+readProfile=verifier
+profilePath=C:\Users\Administrator\AppData\Local\Temp\jiahao-accept\.jiahao-profile
+file=verifier

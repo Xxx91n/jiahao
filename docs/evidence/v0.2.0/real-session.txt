@@ -1,0 +1,6 @@
+# shell: Git Bash
+# command: rm -f ~/.jiahao-active; timeout 30 claude -p "hi"
+before_session=absent
+claude_exit=124
+after_session=present
+content=full

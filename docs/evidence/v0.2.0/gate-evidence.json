@@ -1,0 +1,84 @@
+{
+  "tag": "v0.2.0",
+  "version": "0.2.0",
+  "status": "green",
+  "ok": true,
+  "commit": "6cdeb39fa4c30fe0854e40c7d0a9498f3976f8ea",
+  "partial": null,
+  "steps": [
+    {
+      "name": "metadata",
+      "title": "tag / version / checkout identity",
+      "ok": true,
+      "ms": 157,
+      "detail": "tag v0.2.0 -> version 0.2.0, commit 6cdeb39fa4c3, tree clean"
+    },
+    {
+      "name": "generated",
+      "title": "committed generated output == generator",
+      "ok": true,
+      "ms": 349,
+      "detail": "All 56 tracked generated files accounted for: 56 generated + 0 allowlisted (regen-diff clean)"
+    },
+    {
+      "name": "drift",
+      "title": "profile fragments and retired adapter exits",
+      "ok": true,
+      "ms": 226,
+      "detail": "Retained adapters in sync with src/SKILL.md"
+    },
+    {
+      "name": "tests",
+      "title": "full test suite (npm test)",
+      "ok": true,
+      "ms": 15991,
+      "detail": "Tests:       1 skipped, 276 passed, 277 total"
+    },
+    {
+      "name": "artifact",
+      "title": "pack contents, sha256, per-tree hashes",
+      "ok": true,
+      "ms": 6416,
+      "detail": "jiahao-0.2.0.tgz (233970 B, 108 files)\n  sha256  12acab660326d20672befff7642fac0c11f3b486cc63c034a3e1e64c2511d8ab (identical on a second pack)\n  trees   skills/jiahao, adapters/codebuddy, adapters/claude-code\n  kept    D:\\Aworker\\jiahao-wt-64\\release-artifacts\\jiahao-0.2.0.tgz + .sha256"
+    },
+    {
+      "name": "install",
+      "title": "installer dry-run writes nothing",
+      "ok": true,
+      "ms": 129,
+      "detail": "[dry-run] would write \"verifier\" to C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\jiahao-gate-config-qoojMv\\.jiahao-profile"
+    },
+    {
+      "name": "egress",
+      "title": "code that runs after install makes no network call",
+      "ok": true,
+      "ms": 15,
+      "detail": "35 install-path files scanned: no http/http2/https/net/dns/tls/dgram require, no fetch or https.request, no install lifecycle script, every hook command resolves inside its bundle"
+    },
+    {
+      "name": "declarations",
+      "title": "write scope and no-egress statements are present",
+      "ok": true,
+      "ms": 3,
+      "detail": "docs/release.md table declares 15 write paths in 17 rows + 无网络外呼; README.md links it"
+    }
+  ],
+  "artifact": {
+    "file": "jiahao-0.2.0.tgz",
+    "bytes": 233970,
+    "sha256": "12acab660326d20672befff7642fac0c11f3b486cc63c034a3e1e64c2511d8ab",
+    "files": 108,
+    "reproducible": true,
+    "path": "D:\\Aworker\\jiahao-wt-64\\release-artifacts\\jiahao-0.2.0.tgz",
+    "sha256File": "D:\\Aworker\\jiahao-wt-64\\release-artifacts\\jiahao-0.2.0.tgz.sha256"
+  },
+  "trees": {
+    "skills/jiahao": "a8c365957cc22b0ca12a3b8196186b0f9c3c3a851ddd459dbe4cc7fea41debe2",
+    "adapters/codebuddy": "ea2087549486f3e1b1043341e6fea6d67a0ff40f7a42bdaf8ab9ee688c6f0487",
+    "adapters/claude-code": "c6900fc915854b289b729dbb83380e2bc60e6fcccbb6bba6cfbf80a262a12d57"
+  },
+  "declarations": {
+    "writeScope": "docs/release.md#写入范围",
+    "noEgress": "docs/release.md#无网络外呼"
+  }
+}

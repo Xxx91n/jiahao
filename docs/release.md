@@ -38,13 +38,17 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD`：分�
 - 带 `--artifact-dir` 时 tarball 被留下，并在旁边写 `jiahao-<version>.tgz.sha256`（`sha256sum -c` 直接可验）。带 `--evidence` 时同一批数字落进 JSON，CI 把两者都作为构建产物上传。
 - 包里为什么还有 `.claude-plugin/marketplace.json`：它是插件版的 marketplace 清单，`source` 指向 `./adapters/claude-code`。少了它，tarball 只能是"两个插件目录的副本"，不能当 marketplace 根用。所以它进了 `files`，也进了必须包含清单。
 
-发布打 `v0.2.0` 时该记下的值（由 `#64` 填，本文件在 tag 之前留空）：
+`v0.2.0` 的产物数字不写进本文件。这份文件在 tarball 里，写自己的 `sha256` 会让记录指向另一棵树。tag 上跑出的 `artifact`、`sha256`、三个 tree 哈希，连真机验收记录一起记在 [`docs/release-notes-v0.2.0.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/release-notes-v0.2.0.md)；那份说明不在包里，也不在三个 tree 哈希的范围内，所以不会改变被记录的那棵树。这里用 GitHub 绝对链接，因为 npm 包里没有那份说明。
 
-```text
-artifact  jiahao-0.2.0.tgz
-sha256    <tag 上跑门禁得到>
-trees     skills/jiahao, adapters/codebuddy, adapters/claude-code
-```
+## 升级路径
+
+版本号只有 `package.json` 一处，两个插件清单由生成器从它抄写，所以升级不需要换命令：
+
+- 规则版：重跑安装时那条 `npx skills add`，范围参数保持一致——项目级不带 `-g`，全局级带 `-g -a <host> -y --copy`。`npx skills update jiahao -g -y` 只适合全局安装；skills 1.7.4 在本机（Windows、本地路径源）的项目级 `update` 报无匹配并 exit 127；该环境下项目级用重跑 `add`。装到的就是仓库当前版本；`1.0.0` 打出来后同一路径升到 `1.0.0`。
+- 插件版：Claude Code 用 `claude plugin marketplace update jiahao`，再 `claude plugin update jiahao@jiahao`；CodeBuddy 用宿主自己的插件更新/安装路径（CLI 安装路径 declared-unverified，见 `adapters/codebuddy/README.md`），或用新 bundle 重做已验证的 settings 合并。按宿主提示重开会话；`1.0.0` 不换路径。
+- 升级只替换宿主目录里的插件/技能文件，不碰 `<config>` 下的 `.jiahao-profile` 和 `.jiahao-active`；profile 由人改，不由升级改。
+
+升级命令在 `0.2.0` 上实测过：全局 `npx skills update jiahao -g -y` 报 up to date（exit 0）；项目级 `update -p` 在 skills 1.7.4 上报无匹配并 exit 127，项目级重跑 `add` 成功覆盖（exit 0）；`claude plugin update` 报 already at the latest version（exit 0）。这些只证明命令可用，不证明换版本。`1.0.0` 尚未发布，这条路径只承诺命令不变。
 
 ## 写入范围
 

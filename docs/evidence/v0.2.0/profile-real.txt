@@ -1,0 +1,3 @@
+readProfile=verifier
+profilePath=C:\Users\Administrator\.jiahao-profile
+exists=false

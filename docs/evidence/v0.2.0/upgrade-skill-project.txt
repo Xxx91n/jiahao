@@ -1,0 +1,33 @@
+# shell: Git Bash
+# skills CLI version
+$ npx skills --version
+1.7.4
+
+# project-scoped install (no -g)
+$ npx skills add D:/Aworker/jiahao-wt-64 -a claude-code -y --copy
+◇  Installed 1 skill
+│  ✓ jiahao (copied)
+│    → ~\AppData\Local\Temp\jiahao-project-update\.claude\skills\jiahao
+exit=0
+
+# project-scoped update: broken in 1.7.4 on this machine
+$ npx skills update jiahao -p -y
+Updating jiahao…
+No installed skills found matching: jiahao
+Assertion failed: !(handle->flags & UV_HANDLE_CLOSING), file src\win\async.c, line 76
+exit=127
+
+$ npx skills update -p -y
+Checking for skill updates…
+No project skills to update.
+Install project skills with npx skills add <package>
+Assertion failed: !(handle->flags & UV_HANDLE_CLOSING), file src\win\async.c, line 76
+exit=127
+
+# verified fallback: re-run add with the same scope flags
+$ npx skills add D:/Aworker/jiahao-wt-64 -a claude-code -y --copy
+◇  Installed 1 skill
+│  ✓ jiahao (copied)
+│    → ~\AppData\Local\Temp\jiahao-project-update\.claude\skills\jiahao
+exit=0
+sha256 1ff7e45df7a0b5ec38e617b5f6be46627401a157213e48b7d5100c9a0ce61fc9
