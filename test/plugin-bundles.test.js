@@ -361,6 +361,13 @@ describe('tier contract', () => {
     expect(hostShapeProblems([duplicated]).join('\n')).toMatch(/repeats auto-discovered/);
   });
 
+  test('a row without a hooks object is rejected', () => {
+    const missing = Object.assign({}, good, { hooks: undefined });
+    expect(hostShapeProblems([missing]).join('\n')).toMatch(/hooks must be an object/);
+    const array = Object.assign({}, good, { hooks: [] });
+    expect(hostShapeProblems([array]).join('\n')).toMatch(/hooks must be an object/);
+  });
+
   test('a host that registers SubagentStop runs the same gate as its turn-end event', () => {
     for (const host of HOSTS) {
       if (!host.hooks.SubagentStop) continue;

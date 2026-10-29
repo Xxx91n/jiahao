@@ -20,6 +20,11 @@ function materializeToTemp() {
   }
 }
 
+function countFiles(dir) {
+  return fs.readdirSync(dir, { withFileTypes: true }).reduce((n, entry) =>
+    n + (entry.isDirectory() ? countFiles(path.join(dir, entry.name)) : 1), 0);
+}
+
 test('build-adapters generates the retained exits', () => {
   const { dir, count } = materializeToTemp();
   try {
@@ -34,7 +39,9 @@ test('build-adapters generates the retained exits', () => {
     expected.forEach(rel => {
       expect(fs.existsSync(path.join(dir, rel))).toBe(true);
     });
-    // writeAll reports how many files it wrote; the exits above are a subset.
+    // The reported count is what actually landed on disk, not a second read of
+    // the in-memory map; the exits above are a subset of it.
+    expect(count).toBe(countFiles(dir));
     expect(count).toBeGreaterThanOrEqual(expected.length);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });

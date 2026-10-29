@@ -231,7 +231,7 @@ function hostShapeProblems(hosts) {
     if (!host.provenance || !String(host.provenance).trim()) problems.push(label + ': the tier needs provenance (host build + what was observed)');
 
     const events = Object.keys(host.hooks || {});
-    if (!host.hooks || typeof host.hooks !== 'object') {
+    if (!host.hooks || typeof host.hooks !== 'object' || Array.isArray(host.hooks)) {
       problems.push(label + ': hooks must be an object (empty for a rules-only host)');
     }
     if (host.tier === 'A') {
