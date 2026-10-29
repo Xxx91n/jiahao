@@ -110,4 +110,4 @@ npm run release:gate -- --tag v0.2.0
 - 门禁不调用官方 Agent Skills 规范校验器，也不跑标准 CLI 的真实安装；那两条在 #67。
 - 跨机器可复现没有自动断言：门禁只能证「同一棵树两次打包字节相同」，两次不同检出之间的比对落在 `#64` 记录的对账值上。
 - 「必须排除」这一半今天不会触发：`files` 是白名单，`private/`、`bench/`、`docs/research/` 本来就不在里面。它守的是以后有人把白名单放宽（比如加 `bench/`、把 `docs/agents/` 换成 `docs/`）的那一天。
-- 写入范围表列的是代码事实，但门禁只检查表里有没有这些字符串，判断不了「某个新钩子开始写新文件」——那种改动要人改表，`release-gate.js` 的 `DECLARED_WRITE_PATHS` 与表一起改。
+- 写入范围表列的是代码事实，但门禁只核对表里有没有这些路径（按整段匹配：`.jiahao-evidence.keys` 这一行不算声明了 `.jiahao-evidence`），判断不了「某个新钩子开始写新文件」——那种改动要人改表，`release-gate.js` 的 `DECLARED_WRITE_PATHS` 与表一起改。
