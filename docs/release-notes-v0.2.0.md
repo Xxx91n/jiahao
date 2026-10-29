@@ -92,7 +92,7 @@ stdout，另见 [stop-hook-stdout.json](evidence/v0.2.0/stop-hook-stdout.json)�
 ### 这次验收的边界
 
 - 完整模型循环没能跑完：宿主配置的模型端点返回 `401 User account is not active`，`claude -p` 重试到被 180s 超时终止（exit 124），见 [endpoint-401.txt](evidence/v0.2.0/endpoint-401.txt)。拦截结果来自宿主会加载的 Stop 钩子本身，不是来自一个完整模型回合。
-- 「宿主加载了钩子」有两次观察：隔离配置目录的第一次会话、真实配置目录的 `claude -p "hi"`，都在 SessionStart 写下了 `.jiahao-active`（后者见 [real-session.txt](evidence/v0.2.0/real-session.txt)）。
+- 「宿主加载了钩子」有两次观察：隔离配置目录的第一次会话、真实配置目录的 `claude -p "hi"`；后者先 `rm -f ~/.jiahao-active`，记录 `before_session=absent`，会话后 `after_session=present`、内容 `full`，见 [real-session.txt](evidence/v0.2.0/real-session.txt)。
 - 假完工验收用独立 `CLAUDE_CONFIG_DIR`，因为 `$HOME` 下已有一条 10 月的旧证据链；不清空它，判定会走「证据已存在」分支，测不到「无证据拦截」。真实安装仍在 `~/.claude`。
 - 因此本版只能说「插件已装、宿主已加载钩子、已安装副本对无证据假完工 exit 2」；**不能说**「在真实模型会话里完整跑通一次拦截」。模型端点恢复后应补一次完整会话。
 
@@ -101,18 +101,19 @@ stdout，另见 [stop-hook-stdout.json](evidence/v0.2.0/stop-hook-stdout.json)�
 版本号只在 `package.json`，两个插件清单由生成器抄写；`1.0.0` 尚未发布，这条路径只承诺命令不变：
 
 ```bash
-# 规则版：再跑一次安装时用的那条命令（本机实测带全局参数）
-npx skills add Xxx91n/jiahao -g -a claude-code -y --copy
-# 或
-npx skills update jiahao -g -y
+# 规则版：重跑安装时那条 add，范围参数保持一致
+npx skills add Xxx91n/jiahao                              # 项目级
+npx skills add Xxx91n/jiahao -g -a claude-code -y --copy  # 全局级
+npx skills update jiahao -g -y                            # 只更新全局安装
 
-# 插件版
+# 插件版（Claude Code）
 claude plugin marketplace update jiahao
 claude plugin update jiahao@jiahao
+# CodeBuddy：用宿主自己的插件更新/安装路径，或用新 bundle 重做 settings 合并
 # 然后按宿主提示重开会话
 ```
 
-两条升级命令在 `0.2.0` 上实测过：`npx skills update` 报 `All global skills are up to date`（exit 0，源是 GitHub 安装写入的 `Xxx91n/jiahao`，见 [upgrade-skill.txt](evidence/v0.2.0/upgrade-skill.txt)）；`claude plugin update` 报 `already at the latest version (0.2.0)`（exit 0，见 [upgrade-plugin.txt](evidence/v0.2.0/upgrade-plugin.txt)）。这只能证明命令存在且成功退出，**不能**证明换版本；换版本要等 `1.0.0` 真的发布。升级只替换宿主目录里的技能/插件文件，不碰 `.jiahao-profile` 与 `.jiahao-active`。
+升级命令在 `0.2.0` 上实测过：全局 `npx skills update jiahao -g -y` 报 `All global skills are up to date`（exit 0，源是 GitHub 安装写入的 `Xxx91n/jiahao`，见 [upgrade-skill.txt](evidence/v0.2.0/upgrade-skill.txt)）；项目级 `update -p` 在 skills 1.7.4 上报 `No installed skills found matching: jiahao` 并 exit 127，随后重跑项目级 `add` 成功覆盖（exit 0），见 [upgrade-skill-project.txt](evidence/v0.2.0/upgrade-skill-project.txt)；`claude plugin update` 报 `already at the latest version (0.2.0)`（exit 0，见 [upgrade-plugin.txt](evidence/v0.2.0/upgrade-plugin.txt)）。这些只证明命令可用，**不能**证明换版本；换版本要等 `1.0.0` 真的发布。升级只替换宿主目录里的技能/插件文件，不碰 `.jiahao-profile` 与 `.jiahao-active`。
 
 ## 回滚
 

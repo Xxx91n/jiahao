@@ -1,4 +1,5 @@
-CLAUDE_CONFIG_DIR=C:/Users/Administrator/AppData/Local/Temp/jiahao-uninstall
+# shell: Git Bash
+export CLAUDE_CONFIG_DIR=C:/Users/Administrator/AppData/Local/Temp/jiahao-uninstall2
 $ claude plugin marketplace add D:/Aworker/jiahao-wt-64
 Adding marketplace…✔ Successfully added marketplace: jiahao (declared in user settings)
 exit=0

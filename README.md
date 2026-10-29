@@ -61,7 +61,7 @@ The rules version has no runtime profile switch.
 
 ### Upgrade
 
-The version comes from `package.json`; both exits upgrade in place, so when `1.0.0` ships it will use the same commands. Rules version: re-run the `npx skills add` command you installed with (for a global copy install: `npx skills add Xxx91n/jiahao -g -a <host> -y --copy`), or `npx skills update jiahao -g -y`. Plugin version: `claude plugin marketplace update jiahao`, then `claude plugin update jiahao@jiahao`, then restart the session. Upgrade does not touch `.jiahao-profile` or `.jiahao-active` in the config dir.
+The version comes from `package.json`. Rules version: re-run the same `npx skills add` command with the scope flags you installed with — project scope without `-g`, global scope with `-g -a <host> -y --copy`. `npx skills update jiahao -g -y` updates a global install; in skills 1.7.4 the project-scoped `update` reports no match and exits 127 on Windows, so project installs upgrade by re-running `add`. Plugin version (Claude Code): `claude plugin marketplace update jiahao`, then `claude plugin update jiahao@jiahao`. CodeBuddy uses its own plugin update/install path (the CLI install path is declared-unverified; see [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)) or re-applies the verified settings merge with the new bundle. Restart the session after upgrading. Upgrade does not touch `.jiahao-profile` or `.jiahao-active` in the config dir.
 
 ### Private corpus
 

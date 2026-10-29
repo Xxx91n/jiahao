@@ -1,5 +1,6 @@
-command: timeout 30 claude -p "hi"   # CLAUDE_CONFIG_DIR unset, real ~/.claude
-claude_exit=124   # killed by timeout; the 180s run in the isolated config showed the endpoint returning 401
-.jiahao-active after session:
--rw-r--r-- 1 I 197121 4 Oct 29 13:24 /c/Users/Administrator/.jiahao-active
+# shell: Git Bash
+# command: rm -f ~/.jiahao-active; timeout 30 claude -p "hi"
+before_session=absent
+claude_exit=124
+after_session=present
 content=full
