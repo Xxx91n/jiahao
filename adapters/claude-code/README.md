@@ -69,13 +69,15 @@ directory for the host to load.
 
 ## Verification status (honest tiering)
 
-Pinned offline by `test/claude-code-plugin.test.js`: both manifests parse,
-the plugin version and license come from `package.json`, the marketplace
-`source` resolves to this directory, every referenced file is emitted by the
-generator (`--check` pins the emitted set to disk), every hook command stays
-inside `${CLAUDE_PLUGIN_ROOT}`, and no vendored relative `require()` escapes
-the bundle. The bundled Stop gate is spawned by that suite and blocks
-(exit 2) when the evidence chain is empty.
+Pinned offline by `test/plugin-bundles.test.js` (structure, run once per host
+row) and `test/claude-code-plugin.test.js` (the bundled Stop gate and the
+SessionStart injection): both manifests parse, the plugin version and license
+come from `package.json`, the marketplace `source` resolves to this directory,
+every referenced file is emitted by the generator (`--check` pins the emitted
+set to disk), every hook command stays inside `${CLAUDE_PLUGIN_ROOT}`, and no
+vendored relative `require()` escapes the bundle. The bundled Stop gate is
+spawned from a temp materialization of the generator output and blocks (exit 2)
+when the evidence chain is empty.
 
 **Not yet live-probed**: install through `claude plugin`, SessionStart
 injection, and a real blocked false-completion are owner actions in #64. This

@@ -16,11 +16,11 @@
 //   8 declarations  docs/release.md carries the write-scope and no-egress
 //                   statements this gate relies on
 //
-// Step order is not cosmetic: the generator gates run BEFORE npm test because
-// test/adapters.test.js and test/dual-profile.test.js rerun the generator and
-// rewrite adapters/ + skills/ in the working tree (#66), so a --check
-// afterwards would compare generated output with itself and report clean. Same
-// reason the CI job lists them first.
+// Step order is not cosmetic: the generator gates run BEFORE npm test so a
+// stale or hand-edited artifact is caught before the suite starts. The suite
+// no longer rewrites the workspace (#76 closed #66), so the order is now a
+// belt rather than the only thing keeping the comparison honest; the CI job
+// lists them first for the same reason.
 //
 // Usage:
 //   node scripts/release-gate.js --tag v0.2.0 [--only <step[,step]>] [--evidence <file>]
@@ -36,38 +36,38 @@ const path = require('path');
 const crypto = require('crypto');
 const { spawnSync } = require('child_process');
 
+const { HOSTS } = require('./build-adapters');
+
 const root = path.join(__dirname, '..');
 
 // What the packed artifact must carry and must never carry. Shared with
 // test/packaging.test.js so the jest assertion and the tag command cannot
-// drift apart: one list, two readers.
+// drift apart: one list, two readers. The per-host entries come from the
+// generator's host table, so a new bundle is required in the tarball without
+// touching this list.
 const REQUIRED_PACK_FILES = [
   'package.json',
   'skills/jiahao/SKILL.md',
-  'adapters/codebuddy/.claude-plugin/plugin.json',
-  'adapters/codebuddy/hooks/hooks.json',
-  'adapters/claude-code/.claude-plugin/plugin.json',
-  'adapters/claude-code/hooks/hooks.json',
+  ...HOSTS.map(host => host.dir + '/.claude-plugin/plugin.json'),
+  ...HOSTS.filter(host => Object.keys(host.hooks || {}).length > 0).map(host => host.dir + '/hooks/hooks.json'),
+  ...HOSTS.flatMap(host => host.rules.map(rule => host.dir + '/rules/' + rule.file)),
   '.claude-plugin/marketplace.json',
   'docs/release.md',
 ];
 // Private corpus and the research / frozen-evaluation records never ship.
 const FORBIDDEN_PACK_PREFIXES = ['private/', 'bench/', 'docs/research/'];
 
-// The two plugin bundles and the rules directory get a deterministic content
-// hash of their own: the tarball hash covers everything at once, and a broken
-// single bundle is easier to name than a tarball diff.
-const HASHED_TREES = ['skills/jiahao', 'adapters/codebuddy', 'adapters/claude-code'];
+// Every plugin bundle and the rules directory get a deterministic content hash
+// of their own: the tarball hash covers everything at once, and a broken single
+// bundle is easier to name than a tarball diff.
+const HASHED_TREES = ['skills/jiahao', ...HOSTS.map(host => host.dir)];
 
-const PLUGIN_MANIFESTS = [
-  'adapters/codebuddy/.claude-plugin/plugin.json',
-  'adapters/claude-code/.claude-plugin/plugin.json',
-];
+const PLUGIN_MANIFESTS = HOSTS.map(host => host.dir + '/.claude-plugin/plugin.json');
 const MARKETPLACE_MANIFEST = '.claude-plugin/marketplace.json';
 
 // Files that run on a user's machine once jiahao is installed: the installer,
 // the runtime under src/, every hook the plugin bundles vendor (byte copies of
-// hooks/, asserted by test/claude-code-plugin.test.js), and the MCP server the
+// hooks/, asserted by test/plugin-bundles.test.js), and the MCP server the
 // user starts. Maintainer tools (this gate, the generator, the drift check)
 // are not install paths and are deliberately outside the scan.
 const EGRESS_SCAN = ['scripts/install.js', 'hooks', 'src', 'jiahao-mcp/index.js'];
@@ -185,12 +185,6 @@ function auditPackFiles(files) {
   return problems;
 }
 
-// A plugin manifest sits at <bundle>/.claude-plugin/plugin.json; the bundle root
-// is two levels up, which callers should not have to spell out.
-function pluginRootOf(manifestRel) {
-  return path.dirname(path.dirname(path.join(root, manifestRel.split('/').join(path.sep))));
-}
-
 function collectFiles(abs, out) {
   for (const entry of fs.readdirSync(abs, { withFileTypes: true })) {
     const child = path.join(abs, entry.name);
@@ -271,9 +265,9 @@ step('tests', 'full test suite (npm test)', () => {
 });
 
 step('artifact', 'pack contents, sha256, per-tree hashes', (ctx) => {
-  // The suite reruns the generator and rewrites adapters/ + skills/ (#66). If
-  // that rewrite changed any tracked byte, the tree is no longer the tagged
-  // tree and the hash below would describe something nobody tagged.
+  // A test that writes the workspace would leave the tree different from the
+  // tagged one; the suite is supposed to write temp dirs only (#76), so this
+  // re-check is the backstop that keeps that true.
   const status = runCommand('git', ['status', '--porcelain']);
   if (status.status !== 0) throw new Error('git status failed: ' + status.stderr.trim());
   if (status.stdout.trim()) {
@@ -408,10 +402,13 @@ step('egress', 'code that runs after install makes no network call', () => {
     throw new Error('package.json declares install lifecycle scripts (' + lifecycle.join(', ') + '); installing must not run code beyond what the tarball ships');
   }
 
-  for (const rel of PLUGIN_MANIFESTS) {
-    const hookMapPath = path.join(pluginRootOf(rel), 'hooks', 'hooks.json');
-    // A bundle without its hook map is not a plugin; skipping the check would
-    // let `--only egress` report green over a bundle that has no commands.
+  for (const host of HOSTS) {
+    // A host with no hook map is not a plugin; skipping a C-tier (rules-only)
+    // row is deliberate, skipping one that declares events would let
+    // `--only egress` report green over a bundle that has no commands.
+    if (Object.keys(host.hooks || {}).length === 0) continue;
+    const rel = host.dir + '/.claude-plugin/plugin.json';
+    const hookMapPath = path.join(root, host.dir.split('/').join(path.sep), 'hooks', 'hooks.json');
     if (!fs.existsSync(hookMapPath)) throw new Error(rel + ' has no hooks/hooks.json beside it');
     const map = JSON.parse(fs.readFileSync(hookMapPath, 'utf8'));
     for (const [event, groups] of Object.entries(map.hooks || {})) {

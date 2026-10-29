@@ -5,37 +5,69 @@ const { execSync, execFileSync, spawnSync } = require('child_process');
 
 const root = path.join(__dirname, '..');
 
+// #66: the generation path the suite uses writes a temp directory. The
+// committed artifacts are compared by --check below; nothing here rewrites
+// adapters/ or skills/.
+function materializeToTemp() {
+  const { writeAll } = require('../scripts/build-adapters');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-gen-'));
+  try {
+    const count = writeAll(dir);
+    return { dir: dir, count: count };
+  } catch (e) {
+    fs.rmSync(dir, { recursive: true, force: true });
+    throw e;
+  }
+}
+
+function countFiles(dir) {
+  return fs.readdirSync(dir, { withFileTypes: true }).reduce((n, entry) =>
+    n + (entry.isDirectory() ? countFiles(path.join(dir, entry.name)) : 1), 0);
+}
+
 test('build-adapters generates the retained exits', () => {
-  // Run build
-  execSync('node scripts/build-adapters.js', { cwd: root, encoding: 'utf8', timeout: 15000 });
-
-  const expected = [
-    'adapters/claude-code/README.md',
-    'adapters/codebuddy/.claude-plugin/plugin.json',
-    'adapters/codebuddy/hooks/hooks.json',
-    'adapters/codebuddy/rules/jiahao-verifier.md',
-    'adapters/codebuddy/rules/jiahao-generator.md',
-    'skills/jiahao/SKILL.md',
-  ];
-
-  expected.forEach(rel => {
-    expect(fs.existsSync(path.join(root, rel))).toBe(true);
-  });
+  const { buildAdapters } = require('../scripts/build-adapters');
+  const emitted = Object.keys(buildAdapters());
+  const { dir, count } = materializeToTemp();
+  try {
+    const expected = [
+      'adapters/claude-code/README.md',
+      'adapters/codebuddy/.claude-plugin/plugin.json',
+      'adapters/codebuddy/hooks/hooks.json',
+      'adapters/codebuddy/rules/jiahao-verifier.md',
+      'adapters/codebuddy/rules/jiahao-generator.md',
+      'skills/jiahao/SKILL.md',
+    ];
+    expected.forEach(rel => {
+      expect(fs.existsSync(path.join(dir, rel))).toBe(true);
+    });
+    // Everything the generator produced reached the target - not just the six
+    // exits above - so a writeAll that skips a file is red here.
+    emitted.forEach(rel => {
+      expect(fs.existsSync(path.join(dir, rel))).toBe(true);
+    });
+    expect(count).toBe(emitted.length);
+    expect(countFiles(dir)).toBe(count);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test('the rules-version skill carries both profiles', () => {
-  const content = fs.readFileSync(path.join(root, 'skills', 'jiahao', 'SKILL.md'), 'utf8');
+  const { SKILL_DIR, buildAdapters } = require('../scripts/build-adapters');
+  const content = buildAdapters()[SKILL_DIR + '/SKILL.md'];
   expect(content).toContain('## Generator Profile');
   expect(content).toContain('## Verifier Profile');
   expect(content).toContain('## Boundaries');
 });
 
 test('retired adapters are neither emitted nor present', () => {
-  const { buildAdapters } = require('../scripts/build-adapters');
+  const { buildAdapters, RETIRED_HOSTS } = require('../scripts/build-adapters');
   const emitted = Object.keys(buildAdapters());
-  const retired = ['aider', 'cline', 'codex', 'copilot', 'cursor',
-    'instruction-tier', 'mcp', 'opencode', 'qoder', 'windsurf'];
-  for (const name of retired) {
+  // One list, in the generator (check-drift reads the same one). The floor is
+  // what stops the list from being silently emptied instead of honoured.
+  expect(RETIRED_HOSTS.length).toBeGreaterThanOrEqual(10);
+  for (const name of RETIRED_HOSTS) {
     expect(emitted.some(rel => rel.startsWith('adapters/' + name + '/'))).toBe(false);
     expect(fs.existsSync(path.join(root, 'adapters', name))).toBe(false);
   }
@@ -218,8 +250,78 @@ test('checkAll reports a missing adapter file', () => {
   });
 });
 
-test('check-drift passes after build', () => {
-  execSync('node scripts/build-adapters.js', { cwd: root, encoding: 'utf8', timeout: 15000 });
+test('check-drift passes on the committed tree', () => {
+  // No build first: the gate reads the workspace as committed, which is what
+  // the release gate depends on (its `drift` step runs before npm test).
   execSync('node scripts/check-drift.js', { cwd: root, encoding: 'utf8', timeout: 15000 });
   // exit 0 = pass
+});
+
+// #66: the suites that used to rerun the generator now write temp directories
+// only. Proof: plant a hand edit in a workspace artifact, run those suites in a
+// child jest process, and the edit is still there afterwards.
+//
+// The child runs only the two former offenders next to this file: nesting the
+// whole suite put two copies of hooks.test.js's evidence chain in flight and
+// flaked (measured once in five full runs), and adapters.test.js cannot spawn
+// itself without recursing. The write-mode scan below covers every suite,
+// including this one.
+//
+// The marker sits on the Claude Code README because no other suite reads that
+// file's bytes: packaging packs the tree but asserts paths, and the --check
+// tests that do read workspace bytes are above, in this file.
+test('a hand edit in a workspace artifact survives the generation suites', () => {
+  const rel = 'adapters/claude-code/README.md';
+  const abs = path.join(root, rel);
+  const original = fs.readFileSync(abs, 'utf8');
+  const marker = String.fromCharCode(10) + '<!-- hand edit sentinel: npm test must not rewrite this file -->' + String.fromCharCode(10);
+  // The child re-runs suites whose temp roots are fixed names under os.tmpdir()
+  // (dual-profile, and every suite that reuses them); sharing the outer root
+  // would let two copies fight over one config dir. Point it elsewhere.
+  const childTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-child-'));
+  fs.writeFileSync(abs, original + marker, 'utf8');
+  try {
+    const env = Object.assign({}, process.env, { TMPDIR: childTmp, TMP: childTmp, TEMP: childTmp });
+    delete env.JEST_WORKER_ID;
+    const res = spawnSync(process.execPath, [
+      require.resolve('jest/bin/jest'), '--silent', '--runTestsByPath',
+      'test/dual-profile.test.js', 'test/codebuddy-adapter.test.js',
+    ], { cwd: root, env: env, encoding: 'utf8', timeout: 120000 });
+    if (res.status !== 0) {
+      throw new Error('child jest failed (status ' + res.status + (res.error ? ', ' + res.error.message : '') + '):' +
+        String.fromCharCode(10) + String((res.stderr || '') + (res.stdout || '')).slice(-4000));
+    }
+    expect(fs.readFileSync(abs, 'utf8')).toBe(original + marker);
+  } finally {
+    fs.writeFileSync(abs, original, 'utf8');
+    fs.rmSync(childTmp, { recursive: true, force: true });
+  }
+}, 120000);
+
+// The sentinel proves those suites stay scoped; this says it for every suite in
+// the directory, including this one. Write mode is the generator file without
+// --check, or writeAll with no target. Requiring the module is fine.
+const WRITE_MODE = /\bbuild-adapters\.js\b/;
+const WRITE_ALL_NO_TARGET = /\bwriteAll\(\s*\)/;
+
+function testSources(dir) {
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+    const abs = path.join(dir, entry.name);
+    if (entry.isDirectory()) return testSources(abs);
+    return entry.isFile() && /\.js$/.test(entry.name) ? [abs] : [];
+  });
+}
+
+test('no test runs the generator in write mode', () => {
+  const files = testSources(path.join(root, 'test'));
+  // A scan that walked nothing would report no offenders and prove nothing.
+  expect(files.length).toBeGreaterThanOrEqual(15);
+  const offenders = [];
+  for (const file of files) {
+    fs.readFileSync(file, 'utf8').split(String.fromCharCode(10)).forEach((line, i) => {
+      const writes = (WRITE_MODE.test(line) && !/--check/.test(line)) || WRITE_ALL_NO_TARGET.test(line);
+      if (writes) offenders.push(path.relative(root, file) + ':' + (i + 1) + ' ' + line.trim());
+    });
+  }
+  expect(offenders).toEqual([]);
 });

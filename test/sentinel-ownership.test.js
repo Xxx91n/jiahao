@@ -130,9 +130,22 @@ test('D3: sweep script exits 0 and heals residuals (SessionEnd e2e)', () => {
   expect(readEvidence()).toHaveLength(1);
 });
 
-test('D3: SessionEnd registered in both hook manifests', () => {
+test('D3: SessionEnd is registered wherever a hook map exists', () => {
+  // The repo-level map is hand-kept; a bundle's map is generated output, so it
+  // comes from the in-memory generator (a disk read would be the truncation
+  // hazard #66 measured).
+  const { buildAdapters, HOSTS } = require('../scripts/build-adapters');
+  const generated = buildAdapters();
   const claude = JSON.parse(fs.readFileSync(path.join(REPO, 'hooks', 'jiahao-hooks.json'), 'utf8'));
-  const plugin = JSON.parse(fs.readFileSync(path.join(REPO, 'adapters', 'codebuddy', 'hooks', 'hooks.json'), 'utf8'));
   expect(claude.hooks.SessionEnd[0].hooks[0].command).toContain('jiahao-sweep.js');
-  expect(plugin.hooks.SessionEnd[0].hooks[0].command).toContain('jiahao-sweep.js');
+  let wired = 0;
+  for (const host of HOSTS) {
+    if (!Object.prototype.hasOwnProperty.call(host.hooks || {}, 'SessionEnd')) continue;
+    wired++;
+    const map = JSON.parse(generated[host.dir + '/hooks/hooks.json']);
+    expect(map.hooks.SessionEnd[0].hooks[0].command).toContain('jiahao-sweep.js');
+  }
+  // Every hook-bearing host sweeps: the count is the invariant, so dropping
+  // SessionEnd from one row does not hide behind the other row's wiring.
+  expect(wired).toBe(HOSTS.filter(host => Object.keys(host.hooks || {}).length > 0).length);
 });

@@ -9,6 +9,8 @@
 const fs = require('fs');
 const path = require('path');
 
+const { HOSTS, RETIRED_HOSTS, SKILL_DIR } = require('./build-adapters');
+
 // impl (audit L1): no top-level side effects - the body runs inside
 // main() so requiring this module never probes or exits.
 
@@ -38,27 +40,17 @@ const GENERATOR_REQUIRED = [
 
 // kind: both = carries the full dual-profile source body;
 // verifier / generator = carries that profile alone.
+// The per-host entries come from the generator's host table, so a new host adds
+// no line here and a removed one cannot leave a stale path behind.
 const CHECKS = [
-  { rel: 'skills/jiahao/SKILL.md', kind: 'both' },
-  { rel: 'adapters/codebuddy/src/SKILL.md', kind: 'both' },
-  { rel: 'adapters/codebuddy/rules/jiahao-verifier.md', kind: 'verifier' },
-  { rel: 'adapters/codebuddy/rules/jiahao-generator.md', kind: 'generator' },
+  { rel: SKILL_DIR + '/SKILL.md', kind: 'both' },
+  ...HOSTS.map(host => ({ rel: host.dir + '/src/SKILL.md', kind: 'both' })),
+  ...HOSTS.flatMap(host => host.rules.map(rule => ({ rel: host.dir + '/rules/' + rule.file, kind: rule.profile }))),
 ];
 
 // Tracked-set accounting in build-adapters.js catches these once they are
 // committed; this catches a local directory left behind by a partial revert.
-const RETIRED_DIRS = [
-  'adapters/aider',
-  'adapters/cline',
-  'adapters/codex',
-  'adapters/copilot',
-  'adapters/cursor',
-  'adapters/instruction-tier',
-  'adapters/mcp',
-  'adapters/opencode',
-  'adapters/qoder',
-  'adapters/windsurf',
-];
+const RETIRED_DIRS = RETIRED_HOSTS.map(name => 'adapters/' + name);
 
 function main() {
   const root = path.join(__dirname, '..');

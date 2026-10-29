@@ -47,11 +47,10 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm install --ignore-scripts
-      # The generator gates run before the suite: test/adapters.test.js and
-      # test/dual-profile.test.js execute scripts/build-adapters.js, which
-      # rewrites every generated file in the working tree. Run after them,
-      # check:adapters would compare freshly generated output against itself and
-      # report clean even if a committed generated file had been hand-edited.
+      # The generator gates run before the suite: a stale or hand-edited
+      # artifact must be caught before anything else. The suite no longer
+      # regenerates the working tree (#76 closed #66), so this order is a belt,
+      # not the only thing keeping the comparison honest.
       - run: npm run check:adapters
       - run: npm run check:drift
       - run: npm test
