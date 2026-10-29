@@ -72,6 +72,10 @@ npx skills add Xxx91n/jiahao -g -a claude-code -y --copy
 - 命令、退出码与安装路径：[stop-hook-command.txt](evidence/v0.2.0/stop-hook-command.txt)；SessionStart 注入的正文：[stop-hook-activate.out](evidence/v0.2.0/stop-hook-activate.out)。
 
 ```bash
+# payload 的 transcript_path 指向这个副本；示例用 Windows 临时目录，按平台调整
+mkdir -p "C:/Users/Administrator/AppData/Local/Temp/jiahao-block"
+cp docs/evidence/v0.2.0/stop-hook-transcript.handcrafted.jsonl "C:/Users/Administrator/AppData/Local/Temp/jiahao-block/transcript.jsonl"
+
 CLAUDE_CONFIG_DIR=<临时配置目录> node ~/.claude/plugins/cache/jiahao/jiahao/0.2.0/hooks/jiahao-activate.js < docs/evidence/v0.2.0/stop-hook-sessionstart-input.json
 # exit 0，写下 .jiahao-active=full
 CLAUDE_CONFIG_DIR=<临时配置目录> node ~/.claude/plugins/cache/jiahao/jiahao/0.2.0/hooks/jiahao-verdict-gate.js < docs/evidence/v0.2.0/stop-hook-input.json

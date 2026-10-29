@@ -1,3 +1,4 @@
+# inputs copied from docs/evidence/v0.2.0/ to <temp>/jiahao-block/ before the run
 installed plugin: C:/Users/Administrator/.claude/plugins/cache/jiahao/jiahao/0.2.0
 $ CLAUDE_CONFIG_DIR=<temp>/jiahao-block node <installed>/hooks/jiahao-activate.js < docs/evidence/v0.2.0/stop-hook-sessionstart-input.json
 exit=0   # wrote .jiahao-active=full
