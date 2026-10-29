@@ -2,29 +2,29 @@
 > jiahao@0.2.0 release:gate
 > node scripts/release-gate.js --tag v0.2.0 --artifact-dir release-artifacts --evidence release-artifacts/release-evidence.json
 
-PASS metadata     tag / version / checkout identity (107 ms)
-     tag v0.2.0 -> version 0.2.0, commit 228255992b0d, tree clean
-PASS generated    committed generated output == generator (184 ms)
+PASS metadata     tag / version / checkout identity (83 ms)
+     tag v0.2.0 -> version 0.2.0, commit aeff4a89051b, tree clean
+PASS generated    committed generated output == generator (144 ms)
      All 56 tracked generated files accounted for: 56 generated + 0 allowlisted (regen-diff clean)
-PASS drift        profile fragments and retired adapter exits (86 ms)
+PASS drift        profile fragments and retired adapter exits (76 ms)
      Retained adapters in sync with src/SKILL.md
-PASS tests        full test suite (npm test) (8924 ms)
+PASS tests        full test suite (npm test) (7347 ms)
      Tests:       1 skipped, 276 passed, 277 total
-PASS artifact     pack contents, sha256, per-tree hashes (2879 ms)
-     jiahao-0.2.0.tgz (233548 B, 108 files)
-       sha256  b990f207d73004366e03dfbed830e283f12420ccf63704479c88ae16761fa4e6 (identical on a second pack)
+PASS artifact     pack contents, sha256, per-tree hashes (2158 ms)
+     jiahao-0.2.0.tgz (233599 B, 108 files)
+       sha256  3efa3ddae5b2aa48e5167620ad888a172343d163d898230ecea61e1817d84d3d (identical on a second pack)
        trees   skills/jiahao, adapters/codebuddy, adapters/claude-code
        kept    D:\Aworker\jiahao-wt-64\release-artifacts\jiahao-0.2.0.tgz + .sha256
-PASS install      installer dry-run writes nothing (77 ms)
-     [dry-run] would write "verifier" to C:\Users\ADMINI~1\AppData\Local\Temp\jiahao-gate-config-ffQUzI\.jiahao-profile
-PASS egress       code that runs after install makes no network call (9 ms)
+PASS install      installer dry-run writes nothing (70 ms)
+     [dry-run] would write "verifier" to C:\Users\ADMINI~1\AppData\Local\Temp\jiahao-gate-config-nPNn2j\.jiahao-profile
+PASS egress       code that runs after install makes no network call (8 ms)
      35 install-path files scanned: no http/http2/https/net/dns/tls/dgram require, no fetch or https.request, no install lifecycle script, every hook command resolves inside its bundle
-PASS declarations write scope and no-egress statements are present (2 ms)
+PASS declarations write scope and no-egress statements are present (1 ms)
      docs/release.md table declares 15 write paths in 17 rows + 无网络外呼; README.md links it
 
-RELEASE GATE GREEN — v0.2.0 (228255992b0d)
-artifact  jiahao-0.2.0.tgz  233548 B
-sha256    b990f207d73004366e03dfbed830e283f12420ccf63704479c88ae16761fa4e6
+RELEASE GATE GREEN — v0.2.0 (aeff4a89051b)
+artifact  jiahao-0.2.0.tgz  233599 B
+sha256    3efa3ddae5b2aa48e5167620ad888a172343d163d898230ecea61e1817d84d3d
 tree      skills/jiahao  a8c365957cc22b0ca12a3b8196186b0f9c3c3a851ddd459dbe4cc7fea41debe2
 tree      adapters/codebuddy  ea2087549486f3e1b1043341e6fea6d67a0ff40f7a42bdaf8ab9ee688c6f0487
 tree      adapters/claude-code  c6900fc915854b289b729dbb83380e2bc60e6fcccbb6bba6cfbf80a262a12d57

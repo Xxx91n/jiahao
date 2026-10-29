@@ -3,70 +3,70 @@
   "version": "0.2.0",
   "status": "green",
   "ok": true,
-  "commit": "228255992b0d5fb0403dcf319e2c53fa2e71db6e",
+  "commit": "aeff4a89051b7c0f7d549deefa9648647583d641",
   "partial": null,
   "steps": [
     {
       "name": "metadata",
       "title": "tag / version / checkout identity",
       "ok": true,
-      "ms": 107,
-      "detail": "tag v0.2.0 -> version 0.2.0, commit 228255992b0d, tree clean"
+      "ms": 83,
+      "detail": "tag v0.2.0 -> version 0.2.0, commit aeff4a89051b, tree clean"
     },
     {
       "name": "generated",
       "title": "committed generated output == generator",
       "ok": true,
-      "ms": 184,
+      "ms": 144,
       "detail": "All 56 tracked generated files accounted for: 56 generated + 0 allowlisted (regen-diff clean)"
     },
     {
       "name": "drift",
       "title": "profile fragments and retired adapter exits",
       "ok": true,
-      "ms": 86,
+      "ms": 76,
       "detail": "Retained adapters in sync with src/SKILL.md"
     },
     {
       "name": "tests",
       "title": "full test suite (npm test)",
       "ok": true,
-      "ms": 8924,
+      "ms": 7347,
       "detail": "Tests:       1 skipped, 276 passed, 277 total"
     },
     {
       "name": "artifact",
       "title": "pack contents, sha256, per-tree hashes",
       "ok": true,
-      "ms": 2879,
-      "detail": "jiahao-0.2.0.tgz (233548 B, 108 files)\n  sha256  b990f207d73004366e03dfbed830e283f12420ccf63704479c88ae16761fa4e6 (identical on a second pack)\n  trees   skills/jiahao, adapters/codebuddy, adapters/claude-code\n  kept    D:\\Aworker\\jiahao-wt-64\\release-artifacts\\jiahao-0.2.0.tgz + .sha256"
+      "ms": 2158,
+      "detail": "jiahao-0.2.0.tgz (233599 B, 108 files)\n  sha256  3efa3ddae5b2aa48e5167620ad888a172343d163d898230ecea61e1817d84d3d (identical on a second pack)\n  trees   skills/jiahao, adapters/codebuddy, adapters/claude-code\n  kept    D:\\Aworker\\jiahao-wt-64\\release-artifacts\\jiahao-0.2.0.tgz + .sha256"
     },
     {
       "name": "install",
       "title": "installer dry-run writes nothing",
       "ok": true,
-      "ms": 77,
-      "detail": "[dry-run] would write \"verifier\" to C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\jiahao-gate-config-ffQUzI\\.jiahao-profile"
+      "ms": 70,
+      "detail": "[dry-run] would write \"verifier\" to C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\jiahao-gate-config-nPNn2j\\.jiahao-profile"
     },
     {
       "name": "egress",
       "title": "code that runs after install makes no network call",
       "ok": true,
-      "ms": 9,
+      "ms": 8,
       "detail": "35 install-path files scanned: no http/http2/https/net/dns/tls/dgram require, no fetch or https.request, no install lifecycle script, every hook command resolves inside its bundle"
     },
     {
       "name": "declarations",
       "title": "write scope and no-egress statements are present",
       "ok": true,
-      "ms": 2,
+      "ms": 1,
       "detail": "docs/release.md table declares 15 write paths in 17 rows + 无网络外呼; README.md links it"
     }
   ],
   "artifact": {
     "file": "jiahao-0.2.0.tgz",
-    "bytes": 233548,
-    "sha256": "b990f207d73004366e03dfbed830e283f12420ccf63704479c88ae16761fa4e6",
+    "bytes": 233599,
+    "sha256": "3efa3ddae5b2aa48e5167620ad888a172343d163d898230ecea61e1817d84d3d",
     "files": 108,
     "reproducible": true,
     "path": "D:\\Aworker\\jiahao-wt-64\\release-artifacts\\jiahao-0.2.0.tgz",

@@ -2,7 +2,7 @@
 
 内部首发版本，也是第一个可回滚锚点。两个出口共用版本号 `0.2.0`。
 
-- tag：`v0.2.0`，本地已打，指向 `22825599`，**尚未推送**。本文与证据提交在这个 tag 之后一个提交：把证据提交进去会移动 HEAD，门禁要求 HEAD 就是 tag，所以证据不能同时钉在 tag 上。合并后用同一棵树重建 tag，数字不变。
+- tag：`v0.2.0`，本地已打，指向 `aeff4a89`，**尚未推送**。本文与证据提交在这个 tag 之后一个提交：把证据提交进去会移动 HEAD，门禁要求 HEAD 就是 tag，所以证据不能同时钉在 tag 上。合并后用同一棵树重建 tag，数字不变。
 - Release：**尚未创建**——推送 tag 与发布 GitHub Release 需要维护者单独授权。
 - CI：tag 上的 `release-gate` job 尚未运行；授权推送后必须在该 tag 上全绿才算发布完成。
 - 本文与 `docs/evidence/v0.2.0/` 都不在 npm 包内，也不在三个 tree 哈希的范围内，记录它们不会改变被记录的产物。
@@ -17,8 +17,8 @@ npm run release:gate -- --tag v0.2.0 --artifact-dir release-artifacts --evidence
 tag 上跑出的数字：
 
 ```text
-artifact  jiahao-0.2.0.tgz  233548 B
-sha256    b990f207d73004366e03dfbed830e283f12420ccf63704479c88ae16761fa4e6
+artifact  jiahao-0.2.0.tgz  233599 B
+sha256    3efa3ddae5b2aa48e5167620ad888a172343d163d898230ecea61e1817d84d3d
 tree      skills/jiahao        a8c365957cc22b0ca12a3b8196186b0f9c3c3a851ddd459dbe4cc7fea41debe2
 tree      adapters/codebuddy   ea2087549486f3e1b1043341e6fea6d67a0ff40f7a42bdaf8ab9ee688c6f0487
 tree      adapters/claude-code c6900fc915854b289b729dbb83380e2bc60e6fcccbb6bba6cfbf80a262a12d57
@@ -26,7 +26,7 @@ tree      adapters/claude-code c6900fc915854b289b729dbb83380e2bc60e6fcccbb6bba6c
 
 门禁各步都是 PASS：`metadata`、`generated`、`drift`、`tests`、`artifact`、`install`、`egress`、`declarations`。测试总数 277，276 passed / 1 skipped（Windows 上 inode 替换检测那条跳过）。同一棵树打了两次包，`sha256` 相同。
 
-机器证据：[gate.txt](evidence/v0.2.0/gate.txt)、[gate-evidence.json](evidence/v0.2.0/gate-evidence.json)。这两份是 tag 提交 `22825599` 上那一次运行的原始输出；之后提交本文与证据只改 `docs/evidence/` 和本文，都不入包，所以 tag 的产物数字不变。
+机器证据：[gate.txt](evidence/v0.2.0/gate.txt)、[gate-evidence.json](evidence/v0.2.0/gate-evidence.json)。这两份是 tag 提交 `aeff4a89` 上那一次运行的原始输出；之后提交本文与证据只改 `docs/evidence/` 和本文，都不入包，所以 tag 的产物数字不变。
 
 在干净检出上复跑：等 tag 推送后按 [`docs/release.md`](release.md#在干净检出上复跑) 执行。本机只验证了同树两次打包的 `sha256` 相同，没有在干净克隆上跑过；那一步由 tag 的 CI job 和发布后的复跑补上。
 
