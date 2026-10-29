@@ -17,8 +17,8 @@ npm run release:gate -- --tag v0.2.0 --artifact-dir release-artifacts --evidence
 tag 上跑出的数字：
 
 ```text
-artifact  jiahao-0.2.0.tgz  233451 B
-sha256    c247b9963fba5bbe038eff3f171b7a44e1129107a715d5276a1f972350ea5bb8
+artifact  jiahao-0.2.0.tgz  233548 B
+sha256    b990f207d73004366e03dfbed830e283f12420ccf63704479c88ae16761fa4e6
 tree      skills/jiahao        a8c365957cc22b0ca12a3b8196186b0f9c3c3a851ddd459dbe4cc7fea41debe2
 tree      adapters/codebuddy   ea2087549486f3e1b1043341e6fea6d67a0ff40f7a42bdaf8ab9ee688c6f0487
 tree      adapters/claude-code c6900fc915854b289b729dbb83380e2bc60e6fcccbb6bba6cfbf80a262a12d57
