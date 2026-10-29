@@ -179,6 +179,29 @@ describe('hook behavior (bundle copies, live spawn)', () => {
     expect(fs.existsSync(path.join(dir, '.jiahao-pretool.jsonl'))).toBe(false);
   });
 
+  // The host sends an absolute file_path; a directory name with a space inside it
+  // must not switch containment off (CodeRabbit Major on PR #83).
+  test('PreToolUse denies a spaced absolute path inside the plugin root', () => {
+    const dir = mkConfigDir({ '.jiahao-profile': 'verifier' });
+    const spaced = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao spaced-'));
+    const hookMap = path.join(spaced, 'hooks', 'hooks.json');
+    fs.mkdirSync(path.dirname(hookMap), { recursive: true });
+    fs.writeFileSync(hookMap, '{}', 'utf8');
+    const res = runBundleHook('jiahao-pretool-guard.js', {
+      configDir: dir, pluginRoot: spaced,
+      stdin: JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: hookMap } }),
+    });
+    expect(res.status).toBe(0);
+    expect(JSON.parse(res.stdout.trim()).hookSpecificOutput.permissionDecision).toBe('deny');
+
+    const outside = path.join(spaced, '..', 'John Doe project', '.mcp.json');
+    const benign = runBundleHook('jiahao-pretool-guard.js', {
+      configDir: dir, pluginRoot: spaced,
+      stdin: JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: outside } }),
+    });
+    expect(benign.stdout.trim()).toBe('');
+  });
+
   test('PreToolUse is silent on ordinary tool calls and under generator profile', () => {
     const dir = mkConfigDir({ '.jiahao-profile': 'verifier' });
     const benign = runBundleHook('jiahao-pretool-guard.js', {

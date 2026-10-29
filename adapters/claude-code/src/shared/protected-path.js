@@ -48,8 +48,28 @@ const PROTECTED_ROOT_FILES = ['.mcp.json'];
 // Separators are left exactly as they arrived: rewriting them before resolve()
 // turned an absolute POSIX path into a relative one and switched the whole
 // containment check off on that platform (#75).
+//
+// Whitespace is a word boundary, not a path boundary. candidateText() hands the
+// tool_input fields over one per line, and an Edit/Write `file_path` IS the whole
+// line - spaces inside a directory name included. So each line is a candidate on
+// its own and a quoted span is kept whole; without that, every apparatus path
+// under a directory whose name carries a space is invisible to the containment
+// check, which the removed name fragments used to catch by accident. An
+// unquoted spaced path in the middle of a command stays split: the shell would
+// not open that file either.
 function tokens(text) {
-  return String(text || '').split(/[\s;&|<>()"']+/).filter(Boolean);
+  const out = [];
+  for (const line of String(text || '').split('\n')) {
+    const field = line.trim();
+    if (field) out.push(field);
+    const re = /"([^"]*)"|'([^']*)'|[^\s;&|<>()"']+/g;
+    let m;
+    while ((m = re.exec(line))) {
+      const tok = m[1] !== undefined ? m[1] : m[2] !== undefined ? m[2] : m[0];
+      if (tok) out.push(tok);
+    }
+  }
+  return out;
 }
 
 // A token can be spelled the way the shell wrote it rather than the way the

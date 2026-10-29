@@ -163,6 +163,46 @@ describe('protected path (shell spellings)', () => {
   });
 });
 
+describe('protected path (spaces in a path)', () => {
+  // Whitespace separates shell words, but a path is one field: `candidateText`
+  // hands over the tool_input fields line by line, and an Edit/Write file_path is
+  // the whole line. Splitting on whitespace first made containment blind to every
+  // apparatus path under a directory whose name carries a space - and once #75
+  // removed the three name fragments, nothing else caught it.
+  const root = '/home/u/John Doe/.codebuddy/plugins/jiahao';
+  const check = (text) => isProtected(text, root, { pathImpl: path.posix, cwd: '/home/u/proj' });
+
+  test('a spaced path given as the whole field is one candidate', () => {
+    const shapes = [
+      root + '/hooks/hooks.json',
+      root + '/.mcp.json',
+      root + '/src/SKILL.md',
+      root + '/.claude-plugin/plugin.json',
+    ];
+    for (const text of shapes) expect(check(text)).toBe(true);
+    expect(check('/home/u/John Doe/proj/.mcp.json')).toBe(false);
+    expect(check('/home/u/John Doe/proj/hooks/hooks.json')).toBe(false);
+  });
+
+  test('a quoted spaced path in a command stays one candidate', () => {
+    expect(check('rm "' + root + '/hooks/hooks.json"')).toBe(true);
+    expect(check("cat '" + root + "/src/evidence-log.js'")).toBe(true);
+    expect(check('chmod 600 "' + root + '/.mcp.json"')).toBe(true);
+    expect(check('rm "/home/u/John Doe/proj/.mcp.json"')).toBe(false);
+  });
+
+  test('a Windows user dir with a space inside the plugin root', () => {
+    const winRoot = 'C:\\Users\\John Doe\\proj\\.codebuddy\\plugins\\jiahao';
+    const winCheck = (text) => isProtected(text, winRoot, {
+      pathImpl: path.win32, cwd: 'C:\\Users\\John Doe\\proj',
+    });
+    expect(winCheck(winRoot + '\\hooks\\hooks.json')).toBe(true);
+    expect(winCheck(winRoot + '\\src\\SKILL.md')).toBe(true);
+    expect(winCheck('"C:\\Users\\John Doe\\proj\\.codebuddy\\plugins\\jiahao\\.mcp.json"')).toBe(true);
+    expect(winCheck('C:\\Users\\John Doe\\other-project\\.mcp.json')).toBe(false);
+  });
+});
+
 describe('protected path (separator spellings)', () => {
   const posix = PLATFORMS[0];
   const win32 = PLATFORMS[1];
