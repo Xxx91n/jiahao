@@ -1,6 +1,6 @@
 {
   "name": "jiahao",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "Prompt-as-mental-model skill distribution for second-party agents",
   "license": "MIT",
   "repository": {
@@ -11,7 +11,8 @@
     "test": "jest --verbose",
     "build": "node scripts/build-adapters.js",
     "check:adapters": "node scripts/build-adapters.js --check",
-    "check:drift": "node scripts/check-drift.js"
+    "check:drift": "node scripts/check-drift.js",
+    "release:gate": "node scripts/release-gate.js"
   },
   "devDependencies": {
     "jest": "^29.7.0"
@@ -27,13 +28,16 @@
     "src/",
     "scripts/",
     "adapters/",
+    "skills/",
+    ".claude-plugin/",
     "schemas/",
     "hooks/",
     "GLOSSARY.md",
     "README.md",
     "README-zh-CN.md",
     "AGENTS.md",
-    "docs/agents/"
+    "docs/agents/",
+    "docs/release.md"
   ],
   "jest": {
     "testPathIgnorePatterns": [

@@ -1,6 +1,6 @@
 {
   "name": "jiahao",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "Dual-profile verification discipline (generator advisory + verifier iron laws) - Claude-Code-compatible plugin surface for CodeBuddy.",
   "hooks": "hooks/hooks.json",
   "mcpServers": ".mcp.json",

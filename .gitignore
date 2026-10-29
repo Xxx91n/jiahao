@@ -35,6 +35,7 @@ bench-artifacts/
 probe-artifacts/
 test-artifacts/
 mr-artifacts/
+release-artifacts/
 __pycache__/
 
 # Derived pack artifacts

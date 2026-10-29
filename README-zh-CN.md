@@ -68,11 +68,13 @@ node scripts/install.js init -y
 以下命令在磁盘上检查代码、生成产物与仓库状态：
 
 ```bash
-npm test                                # 全量 Jest 物理测试（20 套件）
+npm test                                # 全量 Jest 物理测试（21 套件）
 node scripts/build-adapters.js --check  # 生成产物一致性检查
 node scripts/check-drift.js             # Profile 与退役出口漂移检查
 git diff --check                        # 格式与行尾空格检查
 ```
+
+发布 tag 上还会多跑一条 `npm run release:gate -- --tag vX.Y.Z`：把上面的检查与 tag/版本一致、包内容断言、产物 SHA256、安装 dry-run、无网络外呼合并成一道门。门禁证明什么、包里有什么、安装会写哪里、怎么在干净检出上复跑，见 [`docs/release.md`](docs/release.md)。
 
 ## 开源协议
 

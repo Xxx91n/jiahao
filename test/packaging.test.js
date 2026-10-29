@@ -1,6 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+// The pack contract lives beside the release gate so the tag command and this
+// assertion read one list instead of two copies that can disagree.
+const { REQUIRED_PACK_FILES, FORBIDDEN_PACK_PREFIXES, auditPackFiles } = require('../scripts/release-gate');
 
 const root = path.join(__dirname, '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
@@ -8,6 +11,7 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 const BRAND = 'https://raw.githubusercontent.com/Xxx91n/jiahao/main/docs/assets/brand';
 
 let packed;
+let packMeta;
 
 beforeAll(() => {
   const out = execSync('npm pack --dry-run --json', {
@@ -16,7 +20,8 @@ beforeAll(() => {
     timeout: 120000,
     stdio: ['ignore', 'pipe', 'pipe'],
   });
-  packed = JSON.parse(out)[0].files.map((f) => f.path);
+  packMeta = JSON.parse(out)[0];
+  packed = packMeta.files.map((f) => f.path);
 });
 
 test('tarball contains the Chinese README', () => {
@@ -25,6 +30,34 @@ test('tarball contains the Chinese README', () => {
 
 test('tarball contains no brand assets', () => {
   expect(packed.filter((p) => p.startsWith('docs/assets/'))).toEqual([]);
+});
+
+// #63: the packed artifact is the release artifact, so it has to carry both
+// exits. The rules directory is generated, so it is also the one output a
+// hand edit or a stale build could leave out without anyone noticing.
+test('tarball carries the rules directory and both plugin bundles, and no private or research files', () => {
+  expect(auditPackFiles(packed)).toEqual([]);
+});
+
+// Pin the contract itself: if REQUIRED_PACK_FILES lost an exit, the assertion
+// above would still pass, because both sides would be equally wrong.
+test('the pack contract names the rules file, both plugin hook maps, and the marketplace', () => {
+  for (const rel of [
+    'skills/jiahao/SKILL.md',
+    'adapters/codebuddy/.claude-plugin/plugin.json',
+    'adapters/codebuddy/hooks/hooks.json',
+    'adapters/claude-code/.claude-plugin/plugin.json',
+    'adapters/claude-code/hooks/hooks.json',
+    '.claude-plugin/marketplace.json',
+  ]) {
+    expect(REQUIRED_PACK_FILES).toContain(rel);
+  }
+  expect(FORBIDDEN_PACK_PREFIXES).toEqual(expect.arrayContaining(['private/', 'bench/', 'docs/research/']));
+});
+
+test('the packed version is the package version the tag will be checked against', () => {
+  expect(packMeta.name).toBe(pkg.name);
+  expect(packMeta.version).toBe(pkg.version);
 });
 
 // npmjs rewrites relative URLs in the published README only when
