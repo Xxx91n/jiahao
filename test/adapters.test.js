@@ -26,6 +26,8 @@ function countFiles(dir) {
 }
 
 test('build-adapters generates the retained exits', () => {
+  const { buildAdapters } = require('../scripts/build-adapters');
+  const emitted = Object.keys(buildAdapters());
   const { dir, count } = materializeToTemp();
   try {
     const expected = [
@@ -39,10 +41,13 @@ test('build-adapters generates the retained exits', () => {
     expected.forEach(rel => {
       expect(fs.existsSync(path.join(dir, rel))).toBe(true);
     });
-    // The reported count is what actually landed on disk, not a second read of
-    // the in-memory map; the exits above are a subset of it.
-    expect(count).toBe(countFiles(dir));
-    expect(count).toBeGreaterThanOrEqual(expected.length);
+    // Everything the generator produced reached the target - not just the six
+    // exits above - so a writeAll that skips a file is red here.
+    emitted.forEach(rel => {
+      expect(fs.existsSync(path.join(dir, rel))).toBe(true);
+    });
+    expect(count).toBe(emitted.length);
+    expect(countFiles(dir)).toBe(count);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
