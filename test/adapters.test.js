@@ -44,7 +44,7 @@ test('retired adapters are neither emitted nor present', () => {
 test('build-adapters --check is green and accounts for every tracked generated file', () => {
   const out = execSync('node scripts/build-adapters.js --check', { cwd: root, encoding: 'utf8', timeout: 15000 });
   expect(out).toContain('regen-diff clean');
-  const tracked = execSync('git ls-files -z -- adapters skills', { cwd: root, encoding: 'utf8', timeout: 15000 })
+  const tracked = execSync('git ls-files -z -- adapters skills .claude-plugin', { cwd: root, encoding: 'utf8', timeout: 15000 })
     .split('\0').filter(Boolean).length;
   const m = out.match(/All (\d+) tracked generated files accounted for: (\d+) generated \+ (\d+) allowlisted/);
   expect(m).not.toBeNull();
@@ -63,7 +63,7 @@ test('the generator emits the rules-version skill file', () => {
 test('every generated path falls inside a directory the audit enumerates', () => {
   const { buildAdapters } = require('../scripts/build-adapters');
   const outside = Object.keys(buildAdapters())
-    .filter(rel => !rel.startsWith('adapters/') && !rel.startsWith('skills/'));
+    .filter(rel => !rel.startsWith('adapters/') && !rel.startsWith('skills/') && !rel.startsWith('.claude-plugin/'));
   expect(outside).toEqual([]);
 });
 
@@ -157,6 +157,22 @@ test('--check audits the skill directory in both directions', () => {
     expect(res.status).toBe(1);
     expect(res.stderr).toContain('ORPHAN: skills/zz-orphan-probe/SKILL.md');
     expect(res.stderr).toContain('UNTRACKED: skills/jiahao/SKILL.md');
+  });
+});
+
+// The marketplace manifest is as generated as the plugin dirs it points at.
+// Without its directory in the audit root, deleting it from the index would
+// leave --check green with the marketplace file gone from the tracked set.
+test('--check audits the root marketplace manifest in both directions', () => {
+  withTempIndex((env) => {
+    stageOrphan(env, '.claude-plugin/zz-orphan-probe.json');
+    execFileSync('git', ['rm', '--cached', '--quiet', '--', '.claude-plugin/marketplace.json'], {
+      cwd: root, env, encoding: 'utf8', timeout: 15000,
+    });
+    const res = runCheck(env);
+    expect(res.status).toBe(1);
+    expect(res.stderr).toContain('ORPHAN: .claude-plugin/zz-orphan-probe.json');
+    expect(res.stderr).toContain('UNTRACKED: .claude-plugin/marketplace.json');
   });
 });
 

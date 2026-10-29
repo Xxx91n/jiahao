@@ -1,0 +1,11 @@
+{
+  "name": "jiahao",
+  "version": "0.0.1",
+  "description": "Dual-profile verification discipline: verifier gate on Stop, profile injection on SessionStart. Self-contained Claude Code plugin.",
+  "author": {
+    "name": "Xxx91n"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/Xxx91n/jiahao",
+  "defaultEnabled": false
+}

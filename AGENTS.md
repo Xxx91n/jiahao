@@ -5,7 +5,7 @@
 ## 安装、运行、测试
 
 - `npm install` 后跑 `node scripts/install.js`；`--profile generator` 切换生成档。
-- 测试：`npm test`。改 `src/SKILL.md` 或 `src/`、`hooks/` 后，必须跑 `node scripts/build-adapters.js`（漂移检查：`node scripts/check-drift.js`）。
+- 测试：`npm test`。改 `src/SKILL.md` 或 `src/`、`hooks/`、`jiahao-mcp/`，或改 `package.json` 的版本与仓库元数据后，必须跑 `node scripts/build-adapters.js`（漂移检查：`node scripts/check-drift.js`）。
 
 ## 版本控制
 
@@ -14,7 +14,7 @@
 
 ## 不要改的目录
 
-- `adapters/` 与 `skills/`：由 `src/` 生成，改源后重跑生成器。
+- `adapters/`、`skills/`、`.claude-plugin/`：由 `src/`、`hooks/`、`jiahao-mcp/` 与 `package.json` 的版本/元数据生成，改任一处后重跑生成器。
 - `private/`：私有词表，不要展开到输出或日志。
 - `bench/research/out/`、`bench/polygraph/results/`：冻结的评测记录。
 

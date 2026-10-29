@@ -29,5 +29,5 @@ labels: bug
 ## Known-limitation check
 
 - [ ] I read the install section in the README — this is not a documented
-      limitation (rules version has no hooks; the Claude Code plugin bundle is
-      not in this tree yet).
+      limitation (rules version has no hooks; the plugin bundles are CodeBuddy
+      and Claude Code, and neither install path is live-verified here).

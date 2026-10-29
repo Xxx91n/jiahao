@@ -69,12 +69,19 @@ test('the source keeps the keys that only it can carry', () => {
 // Paths, not contents, for the reason given at the read above. A new SKILL.md
 // anywhere in the repo has to be acknowledged here: the skills CLI scans the
 // root's child directories, and toShippedSkill says what a second claimant costs.
-test('the tracked SKILL.md set stays exactly the known three', () => {
+// The two bundle copies are the runtime body each plugin's SessionStart hook
+// injects; they carry the source name, so discovery cannot mistake them for the
+// shipped skill.
+test('the tracked SKILL.md set stays exactly the known four', () => {
   const claimants = listTrackedPaths(root)
     .filter((rel) => rel.endsWith('/SKILL.md'))
     .filter((rel) => rel !== SKILL_DIR + '/SKILL.md')
     .sort();
-  expect(claimants).toEqual(['adapters/codebuddy/src/SKILL.md', 'src/SKILL.md']);
+  expect(claimants).toEqual([
+    'adapters/claude-code/src/SKILL.md',
+    'adapters/codebuddy/src/SKILL.md',
+    'src/SKILL.md',
+  ]);
 });
 
 test('name matches the directory name and fits the spec shape', () => {

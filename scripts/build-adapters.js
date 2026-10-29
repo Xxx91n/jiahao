@@ -19,10 +19,72 @@ const SKILL_NAME = 'jiahao';
 const SKILL_DIR = 'skills/' + SKILL_NAME;
 const SOURCE_NAME = 'jiahao-source';
 
+// Plugin manifests carry the package version, not a copy of it: a second
+// hardcoded number is a version assertion that can rot (spec: one version).
+const PKG = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+// Both plugin manifests read the repo identity from the package, so the two
+// bundles cannot disagree about which repository they came from.
+const PKG_REPOSITORY = PKG.repository.url.replace(/^git\+/, '').replace(/\.git$/, '');
+
 // The directories the generator owns. A file tracked under them that this
 // script does not emit is an orphan; a file this script emits that is not
 // tracked never ships. Both halves are compared in --check.
-const GENERATED_DIRS = ['adapters/', 'skills/'];
+// `.claude-plugin/` at the repo root is the marketplace manifest: the repo is
+// the marketplace, so it ships with the same generated-and-audited guarantee
+// as the plugin dirs it points at.
+const GENERATED_DIRS = ['adapters/', 'skills/', '.claude-plugin/'];
+
+function readRepoFile(rel) {
+  return fs.readFileSync(path.join(root, rel.split('/').join(path.sep)), 'utf8');
+}
+
+// The non-JS tail every self-contained bundle carries: the require() closure,
+// the SKILL body, and the identity pin calibration.js loads at require() time.
+// One helper, so a file added here cannot reach one bundle and miss the other
+// (both were missing the pin before this ticket). `extraFiles` are the
+// host-specific runtime data files a bundle also ships.
+function emitBundle(adapters, prefix, seeds, skill, extraFiles) {
+  for (const [rel, text] of vendorClosure(seeds)) adapters[prefix + rel] = text;
+  adapters[prefix + 'src/SKILL.md'] = skill;
+  adapters[prefix + 'src/instrument-identity.json'] = readRepoFile('src/instrument-identity.json');
+  for (const rel of extraFiles || []) adapters[prefix + rel] = readRepoFile(rel);
+}
+
+// Vendored runtime closure for the self-contained plugin bundles: the seed
+// files plus every relative require() they reach, byte-verbatim, keyed by
+// repo-relative path. Both bundles share it so a new hook dependency cannot
+// land in one and silently go missing from the other.
+function vendorClosure(seeds) {
+  const files = new Map();
+  const seen = new Set();
+  const queue = seeds.slice();
+  const REQ = /require\(\s*['"]([^'"]+)['"]\s*\)/g;
+  const resolveReq = (spec, fromRel) => {
+    if (!spec.startsWith('.')) return null;
+    const base = path.join(root, path.dirname(fromRel), spec);
+    for (const c of [base, base + '.js', base + '.json', path.join(base, 'index.js')]) {
+      if (fs.existsSync(c) && fs.statSync(c).isFile()) {
+        return path.relative(root, c).split(path.sep).join('/');
+      }
+    }
+    return null;
+  };
+  while (queue.length) {
+    const rel = queue.shift();
+    if (seen.has(rel)) continue;
+    seen.add(rel);
+    const text = readRepoFile(rel);
+    files.set(rel, text);
+    if (!/\.js$/.test(rel)) continue;
+    REQ.lastIndex = 0;
+    let m;
+    while ((m = REQ.exec(text))) {
+      const r = resolveReq(m[1], rel);
+      if (r && !seen.has(r)) queue.push(r);
+    }
+  }
+  return files;
+}
 
 // the adapter map is a pure function of src/SKILL.md so the
 // --check golden layer regenerates it in memory and byte-compares against
@@ -51,12 +113,9 @@ function buildAdapters() {
   //
   // Retained plugin exits: claude-code (bundle tracked separately) and
   // codebuddy (bundled below).
+  // The Claude Code bundle is assembled below; it emits this directory's
+  // README itself, so the map starts empty.
   const adapters = {
-    // Claude Code is the second plugin exit. Its self-contained bundle -
-    // manifest, auto-loaded hooks/hooks.json, hook scripts, and a runtime
-    // source copy - is not in this tree yet, so this directory is not an
-    // install path today.
-    'adapters/claude-code/README.md': '# Claude Code Adapter\n\nClaude Code is one of the two plugin exits (the other is CodeBuddy).\nIts self-contained bundle - manifest, auto-loaded hooks/hooks.json, hook\nscripts, and a runtime source copy - is not in this tree yet, so this\ndirectory is not an install path today.\n\nUse the rules version for instruction-only use:\n`npx skills add Xxx91n/jiahao`.\n',
   };
 
   // ---- CodeBuddy: first Claude-Code-compatible path host ----
@@ -74,50 +133,21 @@ function buildAdapters() {
     'hooks/jiahao-profile.js', 'hooks/jiahao-instructions-assert.js',
     'hooks/jiahao-pretool-guard.js', 'jiahao-mcp/index.js',
   ];
-  {
-    const seen = new Set();
-    const queue = CB_SEEDS.slice();
-    const REQ = /require\(\s*['"]([^'"]+)['"]\s*\)/g;
-    const resolveReq = (spec, fromRel) => {
-      if (!spec.startsWith('.')) return null;
-      const base = path.join(root, path.dirname(fromRel), spec);
-      for (const c of [base, base + '.js', base + '.json', path.join(base, 'index.js')]) {
-        if (fs.existsSync(c) && fs.statSync(c).isFile()) {
-          return path.relative(root, c).split(path.sep).join('/');
-        }
-      }
-      return null;
-    };
-    while (queue.length) {
-      const rel = queue.shift();
-      if (seen.has(rel)) continue;
-      seen.add(rel);
-      const abs = path.join(root, rel.split('/').join(path.sep));
-      const text = fs.readFileSync(abs, 'utf8');
-      adapters[CB + rel] = text;
-      if (!/\.js$/.test(rel)) continue;
-      REQ.lastIndex = 0;
-      let m;
-      while ((m = REQ.exec(text))) {
-        const r = resolveReq(m[1], rel);
-        if (r && !seen.has(r)) queue.push(r);
-      }
-    }
-    // Runtime data files outside the require() graph.
-    adapters[CB + 'src/SKILL.md'] = skill;
-    adapters[CB + 'jiahao-mcp/package.json'] =
-      fs.readFileSync(path.join(root, 'jiahao-mcp', 'package.json'), 'utf8');
-  }
+  emitBundle(adapters, CB, CB_SEEDS, skill, ['jiahao-mcp/package.json']);
 
   adapters[CB + '.claude-plugin/plugin.json'] = JSON.stringify({
     name: 'jiahao',
-    version: '0.0.1',
+    version: PKG.version,
     description: 'Dual-profile verification discipline (generator advisory + verifier iron laws) - Claude-Code-compatible plugin surface for CodeBuddy.',
+    // CodeBuddy's documented compat path reads these two keys from the
+    // manifest, so they stay here. Claude Code auto-discovers the same files
+    // and would load a repeated manifest entry in addition, which is why the
+    // Claude bundle below leaves them out.
     hooks: 'hooks/hooks.json',
     mcpServers: '.mcp.json',
     defaultEnabled: false, // conservative: opt-in enable; hooks execute on enable and bypass the untrusted-frontmatter gate
-    license: 'MIT',
-    repository: 'https://github.com/Xxx91n/jiahao',
+    license: PKG.license,
+    repository: PKG_REPOSITORY,
   }, null, 2) + '\n';
 
   // Full event map: the migrated five-event set plus the InstructionsLoaded
@@ -160,6 +190,81 @@ function buildAdapters() {
   adapters[CB + 'rules/jiahao-generator.md'] = ruleFm('Jiahao generator discipline (surface signals)') + profiles.generator;
 
   adapters[CB + 'README.md'] = codebuddyReadme();
+
+  // ---- Claude Code: self-contained plugin bundle ----
+  // The closure is exactly the parent spec's: hooks, their require()
+  // dependencies, the src/ copy, and the SKILL body. Two CodeBuddy components
+  // are deliberately absent:
+  // - InstructionsLoaded: it hashes rules/jiahao-*.md, and a Claude Code
+  //   plugin has no plugin-level rules/ directory for the host to load.
+  // - jiahao-mcp + .mcp.json: #59 keeps the MCP server in the repo but not as
+  //   an install-and-work exit; auto-discovered .mcp.json would register a
+  //   server whose SDK deps are not vendored, breaking the self-contained
+  //   claim on enable.
+  // With those two gone the bundle has no third-party runtime dependency.
+  const CC_DIR = 'adapters/claude-code';
+  const CC = CC_DIR + '/';
+  const CC_SEEDS = [
+    'hooks/jiahao-activate.js', 'hooks/jiahao-mode-tracker.js',
+    'hooks/jiahao-subagent.js', 'hooks/jiahao-sweep.js',
+    'hooks/jiahao-verdict-gate.js', 'hooks/jiahao-runtime.js',
+    'hooks/jiahao-profile.js', 'hooks/jiahao-pretool-guard.js',
+  ];
+  emitBundle(adapters, CC, CC_SEEDS, skill);
+
+  // Only `name` is required by the host (code.claude.com/docs/en/plugins/
+  // manifest-reference). The manifest does not repeat `hooks`: hooks/hooks.json
+  // is auto-discovered at the plugin root, and the manifest field loads *in
+  // addition* to that file. `version` is the package version (see PKG);
+  // `defaultEnabled` is a documented manifest field, not a CodeBuddy extra.
+  adapters[CC + '.claude-plugin/plugin.json'] = JSON.stringify({
+    name: 'jiahao',
+    version: PKG.version,
+    description: 'Dual-profile verification discipline: verifier gate on Stop, profile injection on SessionStart. Self-contained Claude Code plugin.',
+    author: { name: 'Xxx91n' },
+    license: PKG.license,
+    repository: PKG_REPOSITORY,
+    defaultEnabled: false, // opt-in: installing does not enable the gate by itself
+  }, null, 2) + '\n';
+
+  // Host event names and Stop semantics are the Claude Code contract
+  // (code.claude.com/docs/en/hooks): Stop/SubagentStop exit 2 or
+  // {decision:"block"} sends Claude back to work, SessionStart/SubagentStart
+  // take additionalContext, SessionEnd is side-effect only. PreToolUse guards
+  // the enforcement surface. Every command resolves through
+  // ${CLAUDE_PLUGIN_ROOT} so nothing points at the repo root.
+  adapters[CC + 'hooks/hooks.json'] = JSON.stringify({
+    description: 'jiahao verifier discipline - Claude Code plugin hook map',
+    hooks: {
+      SessionStart: [{ hooks: [{ type: 'command', command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/jiahao-activate.js"', timeout: 5 }] }],
+      SubagentStart: [{ hooks: [{ type: 'command', command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/jiahao-subagent.js"', timeout: 5 }] }],
+      UserPromptSubmit: [{ hooks: [{ type: 'command', command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/jiahao-mode-tracker.js"', timeout: 5 }] }],
+      Stop: [{ hooks: [{ type: 'command', command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/jiahao-verdict-gate.js"', timeout: 10 }] }],
+      SubagentStop: [{ hooks: [{ type: 'command', command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/jiahao-verdict-gate.js"', timeout: 10 }] }],
+      SessionEnd: [{ hooks: [{ type: 'command', command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/jiahao-sweep.js"', timeout: 5 }] }],
+      PreToolUse: [{ hooks: [{ type: 'command', command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/jiahao-pretool-guard.js"', timeout: 5 }] }],
+    },
+  }, null, 2) + '\n';
+
+  adapters[CC + 'README.md'] = claudeCodeReadme();
+
+  // ---- marketplace manifest: the repo root is the marketplace ----
+  // source is a path from the marketplace root, so it points at the plugin
+  // directory ("./adapters/claude-code"), never at the repo root. The entry
+  // carries no version: plugin.json is the authority and the host's validator
+  // warns when both set it, so the one version lives in plugin.json (= PKG).
+  adapters['.claude-plugin/marketplace.json'] = JSON.stringify({
+    name: 'jiahao',
+    description: 'Prompt-as-mental-model verification discipline (rules version + plugin version)',
+    owner: { name: 'Xxx91n' },
+    plugins: [
+      {
+        name: 'jiahao',
+        source: './' + CC_DIR,
+        description: 'Anti-false-completion verification discipline: verifier gate on Stop, profile injection on SessionStart.',
+      },
+    ],
+  }, null, 2) + '\n';
 
   // ---- rules version: the standard Agent Skills directory ----
   // The one output with no host-specific shape: `npx skills add <this repo>`
@@ -297,6 +402,95 @@ deviations ride errata records).
 `;
 }
 
+
+// Claude Code install manual + hook disclosure. Regenerated from this single
+// source; edit the string, never the emitted file.
+function claudeCodeReadme() {
+  return `# Claude Code Adapter (self-contained plugin)
+
+This directory is a **self-contained Claude Code plugin**: the manifest
+(\`.claude-plugin/plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook
+scripts and their \`require()\` closure, \`src/SKILL.md\`, and the identity pin
+the gate loads are vendored inside; there is no third-party runtime
+dependency. Every hook command resolves through \`\${CLAUDE_PLUGIN_ROOT}\`, so
+nothing reads from the repository root.
+
+The MCP server (\`jiahao-mcp/\` at the repo root) is deliberately not part of
+this bundle: #59 keeps it in the repository but not as an install-and-work
+adapter exit.
+
+## Install
+
+The repository root is the marketplace (\`.claude-plugin/marketplace.json\`,
+whose single entry \`source\` points at \`./adapters/claude-code\`).
+
+1. \`claude plugin marketplace add Xxx91n/jiahao\`
+2. \`claude plugin install jiahao@jiahao\`
+3. Enable the plugin. \`defaultEnabled: false\` asks the host not to enable on
+   install; a host that does not read the field enables it anyway. Enabling
+   is the opt-in. Once enabled, the bundled SessionStart hook writes
+   \`.jiahao-active\` and the default profile is \`verifier\`, so the Stop gate
+   arms from the first turn (hook code, not a live probe). \`/jiahao off\`
+   removes the flag, which disarms the Stop gate, the reminder, and the
+   PreToolUse guard; the SubagentStart injection is not flag-gated.
+4. Switch profile if needed: \`echo generator > "$CLAUDE_CONFIG_DIR/.jiahao-profile"\`
+   (or \`$HOME/.jiahao-profile\` when the env var is unset) for advisory-only.
+   Deleting the file returns to the default \`verifier\`. Both flag files live
+   in the config dir, never in the project directory.
+
+Install, upgrade, and uninstall are the host's own plugin commands; the repo
+root is never a plugin entry.
+
+## Hook behavior disclosure (read before enabling)
+
+Plugin \`hooks/hooks.json\` is auto-discovered at the plugin root, so these
+hooks execute as soon as the plugin is enabled:
+
+| Event | Script | Behavior |
+| --- | --- | --- |
+| SessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext |
+| SubagentStart | hooks/jiahao-subagent.js | same injection on subagent spawn |
+| UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
+| Stop | hooks/jiahao-verdict-gate.js | verifier blocking: exit 2 is the host's block signal; the reason JSON goes to stdout |
+| SubagentStop | hooks/jiahao-verdict-gate.js | same gate on subagent finish (D5 parity) |
+| SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
+| PreToolUse | hooks/jiahao-pretool-guard.js | denies (verifier profile) tool calls that target the hook map, the plugin manifest, \`jiahao-*\` hook files, any \`.mcp.json\`, or the jiahao state/evidence files; each hit is a bypass-attempt record |
+
+Timeouts stay within the host's 60s per-hook budget (5/5/5/10/10/5/5s).
+Commands are \`node\` invocations in shell form, the form the other hosts'
+adapters already use.
+
+There is no \`InstructionsLoaded\` hook here: that assertion hashes
+\`rules/jiahao-*.md\`, and a Claude Code plugin has no plugin-level \`rules/\`
+directory for the host to load.
+
+## Write scope and network
+
+- Hooks write only under the Claude config dir (\`$CLAUDE_CONFIG_DIR\`, else
+  \`$HOME\`): \`.jiahao-active\`, \`.jiahao-evidence/\` (plus the
+  \`.jiahao-evidence.keys\` sidecar and \`pairer-instrument\` shadow records the
+  Stop lane may append), \`.jiahao-pretool.jsonl\`, and the sentinel state and
+  lock files \`.jiahao-sentinel.<hook>(.lock)\`. Nothing inside the repo or this
+  plugin directory is written by a hook.
+- No network calls: no hook fetches anything, and the bundle has no
+  third-party runtime dependency to install.
+
+## Verification status (honest tiering)
+
+Pinned offline by \`test/claude-code-plugin.test.js\`: both manifests parse,
+the plugin version and license come from \`package.json\`, the marketplace
+\`source\` resolves to this directory, every referenced file is emitted by the
+generator (\`--check\` pins the emitted set to disk), every hook command stays
+inside \`\${CLAUDE_PLUGIN_ROOT}\`, and no vendored relative \`require()\` escapes
+the bundle. The bundled Stop gate is spawned by that suite and blocks
+(exit 2) when the evidence chain is empty.
+
+**Not yet live-probed**: install through \`claude plugin\`, SessionStart
+injection, and a real blocked false-completion are owner actions in #64. This
+adapter is admitted on the documented host contract; it does not claim a live
+run.
+`;
+}
 
 // Minimal zero-dependency unified diff (LCS over lines, 3 lines of context).
 function unifiedDiff(rel, oldText, newText) {
