@@ -53,7 +53,7 @@ const FORBIDDEN_PACK_PREFIXES = ['private/', 'bench/', 'docs/research/'];
 
 // The two plugin bundles and the rules directory get a deterministic content
 // hash of their own: the tarball hash covers everything at once, and a broken
-// single exit is easier to name than a tarball diff.
+// single bundle is easier to name than a tarball diff.
 const HASHED_TREES = ['skills/jiahao', 'adapters/codebuddy', 'adapters/claude-code'];
 
 const PLUGIN_MANIFESTS = [
@@ -68,7 +68,7 @@ const MARKETPLACE_MANIFEST = '.claude-plugin/marketplace.json';
 // user starts. Maintainer tools (this gate, the generator, the drift check)
 // are not install paths and are deliberately outside the scan.
 const EGRESS_SCAN = ['scripts/install.js', 'hooks', 'src', 'jiahao-mcp/index.js'];
-const NETWORK_MODULE = /\brequire\(\s*['"](?:node:)?(?:https?|net|dns|tls|dgram)['"]\s*\)/;
+const NETWORK_MODULE = /\brequire\(\s*['"](?:node:)?(?:https?|http2|net|dns|tls|dgram)(?:\/[a-z]+)?['"]\s*\)/;
 const NETWORK_CALL = /(?:\bfetch\s*\(|XMLHttpRequest|https?\.(?:request|get)\s*\()/;
 // Lifecycle scripts would turn `npm install` into "download and execute".
 const FORBIDDEN_LIFECYCLE = ['preinstall', 'install', 'postinstall', 'prepare', 'prepack', 'postpack'];
@@ -102,7 +102,7 @@ function tagFromEnv(env) {
   return env.GITHUB_REF_NAME;
 }
 
-function run(cmd, args, opts) {
+function runCommand(cmd, args, opts) {
   const options = Object.assign({
     cwd: root,
     encoding: 'utf8',
@@ -133,10 +133,10 @@ function npm(args, opts) {
   const npmCmd = resolveNpm();
   const spawnOpts = Object.assign({}, opts || {});
   if (npmCmd.shell) spawnOpts.shell = true;
-  return run(npmCmd.cmd, npmCmd.args.concat(args), spawnOpts);
+  return runCommand(npmCmd.cmd, npmCmd.args.concat(args), spawnOpts);
 }
 
-function tape(text, prefix) {
+function tailLines(text, prefix) {
   const lines = String(text).trim().split('\n');
   return lines.slice(-25).map(l => prefix + l).join('\n');
 }
@@ -148,8 +148,7 @@ function sha256(buffer) {
 // Sorted-path tree hash: for every file, "rel\0<sha256 of bytes>", then the
 // hash of those lines. Deterministic across machines, unlike a tarball of the
 // same files with different timestamps.
-function treeHash(dir) {
-  const base = path.join(root, dir.split('/').join(path.sep));
+function treeHashAt(absDir) {
   const files = [];
   const walk = (abs, rel) => {
     for (const entry of fs.readdirSync(abs, { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : 1))) {
@@ -159,8 +158,12 @@ function treeHash(dir) {
       else files.push(childRel + '\u0000' + sha256(fs.readFileSync(childAbs)));
     }
   };
-  walk(base, '');
+  walk(absDir, '');
   return sha256(files.join('\n'));
+}
+
+function treeHash(relDir) {
+  return treeHashAt(path.join(root, relDir.split('/').join(path.sep)));
 }
 
 // Both halves of the packaging contract, as data a caller can report on.
@@ -171,10 +174,16 @@ function auditPackFiles(files) {
   }
   for (const rel of files) {
     for (const prefix of FORBIDDEN_PACK_PREFIXES) {
-      if (rel === prefix || rel.startsWith(prefix)) problems.push({ kind: 'forbidden', rel: rel, prefix: prefix });
+      if (rel.startsWith(prefix)) problems.push({ kind: 'forbidden', rel: rel, prefix: prefix });
     }
   }
   return problems;
+}
+
+// A plugin manifest sits at <bundle>/.claude-plugin/plugin.json; the bundle root
+// is two levels up, which callers should not have to spell out.
+function pluginRootOf(manifestRel) {
+  return path.dirname(path.dirname(path.join(root, manifestRel.split('/').join(path.sep))));
 }
 
 function collectFiles(abs, out) {
@@ -190,8 +199,8 @@ function collectFiles(abs, out) {
 
 const steps = [];
 
-function step(name, title, run) {
-  steps.push({ name, title, run });
+function step(name, title, check) {
+  steps.push({ name, title, check });
 }
 
 step('metadata', 'tag / version / checkout identity', (ctx) => {
@@ -217,15 +226,15 @@ step('metadata', 'tag / version / checkout identity', (ctx) => {
     }
   }
 
-  const status = run('git', ['status', '--porcelain']);
+  const status = runCommand('git', ['status', '--porcelain']);
   if (status.status !== 0) throw new Error('git status failed: ' + status.stderr.trim());
   if (status.stdout.trim()) {
     throw new Error('working tree is not clean; a release must be built from exactly the tagged tree:\n' + status.stdout.trim());
   }
 
-  const head = run('git', ['rev-parse', 'HEAD']);
+  const head = runCommand('git', ['rev-parse', 'HEAD']);
   if (head.status !== 0) throw new Error('git rev-parse HEAD failed: ' + head.stderr.trim());
-  const tagCommit = run('git', ['rev-list', '-n', '1', tag]);
+  const tagCommit = runCommand('git', ['rev-list', '-n', '1', tag]);
   if (tagCommit.status !== 0) {
     throw new Error('tag ' + tag + ' not found in this checkout (git fetch --tags)');
   }
@@ -238,79 +247,115 @@ step('metadata', 'tag / version / checkout identity', (ctx) => {
 });
 
 step('generated', 'committed generated output == generator', () => {
-  const res = run(process.execPath, [path.join('scripts', 'build-adapters.js'), '--check']);
-  if (res.status !== 0) throw new Error('generated output drifted from src/SKILL.md:\n' + tape(res.stderr || res.stdout, '  '));
+  const res = runCommand(process.execPath, [path.join('scripts', 'build-adapters.js'), '--check']);
+  if (res.status !== 0) throw new Error('generated output drifted from src/SKILL.md:\n' + tailLines(res.stderr || res.stdout, '  '));
   return res.stdout.trim();
 });
 
 step('drift', 'profile fragments and retired adapter exits', () => {
-  const res = run(process.execPath, [path.join('scripts', 'check-drift.js')]);
-  if (res.status !== 0) throw new Error('drift check failed:\n' + tape(res.stderr || res.stdout, '  '));
+  const res = runCommand(process.execPath, [path.join('scripts', 'check-drift.js')]);
+  if (res.status !== 0) throw new Error('drift check failed:\n' + tailLines(res.stderr || res.stdout, '  '));
   return res.stdout.trim();
 });
 
 step('tests', 'full test suite (npm test)', () => {
   const res = npm(['test'], { timeout: 1800000 });
-  if (res.status !== 0) throw new Error('npm test failed (exit ' + res.status + '):\n' + tape(res.stderr || res.stdout, '  '));
+  if (res.status !== 0) throw new Error('npm test failed (exit ' + res.status + '):\n' + tailLines(res.stderr || res.stdout, '  '));
   const summary = (res.stderr || res.stdout).match(/Tests:.*$/m);
   return summary ? summary[0].trim() : 'npm test exited 0';
 });
 
 step('artifact', 'pack contents, sha256, per-tree hashes', (ctx) => {
-  const dest = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-pack-'));
-  try {
-    const res = npm(['pack', '--json', '--pack-destination', dest], { timeout: 600000 });
-    if (res.status !== 0) throw new Error('npm pack failed (exit ' + res.status + '):\n' + tape(res.stderr || res.stdout, '  '));
-    let packed;
-    try {
-      packed = JSON.parse(res.stdout)[0];
-    } catch (e) {
-      throw new Error('npm pack --json output did not parse: ' + e.message + '\n' + tape(res.stdout, '  '));
-    }
-    const files = (packed.files || []).map(f => f.path);
-    const problems = auditPackFiles(files);
-    if (problems.length) {
-      throw new Error('packed artifact violates the content contract:\n' +
-        problems.map(p => p.kind === 'missing'
-          ? '  MISSING: ' + p.rel
-          : '  FORBIDDEN: ' + p.rel + ' (' + p.prefix + ' must not ship)').join('\n'));
-    }
-    const tarball = path.join(dest, packed.filename);
-    const bytes = fs.readFileSync(tarball);
-    ctx.artifact = { file: packed.filename, bytes: bytes.length, sha256: sha256(bytes), files: files.length };
-    // Kept only when asked: the release needs the bytes to attach, a local run
-    // usually does not, and the gate should not leave files behind by default.
-    if (ctx.artifactDir) {
-      fs.mkdirSync(ctx.artifactDir, { recursive: true });
-      const kept = path.join(ctx.artifactDir, packed.filename);
-      fs.copyFileSync(tarball, kept);
-      ctx.artifact.path = kept;
-    }
-    ctx.trees = {};
-    for (const dir of HASHED_TREES) ctx.trees[dir] = treeHash(dir);
-    return packed.filename + ' (' + bytes.length + ' B, ' + files.length + ' files)\n' +
-      '  sha256  ' + ctx.artifact.sha256 +
-      (ctx.artifact.path ? '\n  kept    ' + ctx.artifact.path : '');
-  } finally {
-    fs.rmSync(dest, { recursive: true, force: true });
+  // The suite reruns the generator and rewrites adapters/ + skills/ (#66). If
+  // that rewrite changed any tracked byte, the tree is no longer the tagged
+  // tree and the hash below would describe something nobody tagged.
+  const status = runCommand('git', ['status', '--porcelain']);
+  if (status.status !== 0) throw new Error('git status failed: ' + status.stderr.trim());
+  if (status.stdout.trim()) {
+    throw new Error('working tree is dirty, so the artifact would not be the tagged tree:\n' + status.stdout.trim());
   }
+
+  const packOnce = () => {
+    const dest = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-pack-'));
+    try {
+      const res = npm(['pack', '--json', '--pack-destination', dest], { timeout: 600000 });
+      if (res.status !== 0) throw new Error('npm pack failed (exit ' + res.status + '):\n' + tailLines(res.stderr || res.stdout, '  '));
+      let packed;
+      try {
+        packed = JSON.parse(res.stdout)[0];
+      } catch (e) {
+        throw new Error('npm pack --json output did not parse: ' + e.message + '\n' + tailLines(res.stdout, '  '));
+      }
+      const tarball = path.join(dest, packed.filename);
+      return { packed: packed, bytes: fs.readFileSync(tarball) };
+    } finally {
+      // The bytes are in memory by now; the temp directory has no other user.
+      fs.rmSync(dest, { recursive: true, force: true });
+    }
+  };
+
+  const first = packOnce();
+  const files = (first.packed.files || []).map(f => f.path);
+  const problems = auditPackFiles(files);
+  if (problems.length) {
+    throw new Error('packed artifact violates the content contract:\n' +
+      problems.map(p => p.kind === 'missing'
+        ? '  MISSING: ' + p.rel
+        : '  FORBIDDEN: ' + p.rel + ' (' + p.prefix + ' must not ship)').join('\n'));
+  }
+
+  // Same tree, second pack: identical bytes is what makes the SHA256 worth
+  // quoting and what "reproducible" means for the artifact itself.
+  const second = packOnce();
+  const firstHash = sha256(first.bytes);
+  const secondHash = sha256(second.bytes);
+  if (firstHash !== secondHash) {
+    throw new Error('two packs of the same tree differ (' + firstHash + ' vs ' + secondHash + '); the artifact is not reproducible');
+  }
+
+  ctx.artifact = { file: first.packed.filename, bytes: first.bytes.length, sha256: firstHash, files: files.length, reproducible: true };
+  // Kept only when asked: the release needs the bytes to attach, a local run
+  // usually does not, and the gate should not leave files behind by default.
+  if (ctx.artifactDir) {
+    fs.mkdirSync(ctx.artifactDir, { recursive: true });
+    const kept = path.join(ctx.artifactDir, first.packed.filename);
+    fs.writeFileSync(kept, first.bytes);
+    // <hash>  <file> is what `sha256sum -c` reads, so the Release asset and
+    // the checksum travel together instead of the hash living only in a log.
+    fs.writeFileSync(kept + '.sha256', firstHash + '  ' + first.packed.filename + '\n', 'utf8');
+    ctx.artifact.path = kept;
+    ctx.artifact.sha256File = kept + '.sha256';
+  }
+  ctx.trees = {};
+  for (const dir of HASHED_TREES) ctx.trees[dir] = treeHash(dir);
+  return first.packed.filename + ' (' + first.bytes.length + ' B, ' + files.length + ' files)\n' +
+    '  sha256  ' + firstHash + ' (identical on a second pack)\n' +
+    '  trees   ' + HASHED_TREES.join(', ') +
+    (ctx.artifact.path ? '\n  kept    ' + ctx.artifact.path + ' + .sha256' : '');
 });
 
 step('install', 'installer dry-run writes nothing', () => {
   const configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-gate-config-'));
+  // Run from an empty directory too: the declaration says no file lands in the
+  // working directory, and a config-dir-only check would not notice if it did.
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-gate-cwd-'));
   try {
-    const res = run(process.execPath, [path.join('scripts', 'install.js'), 'init', '--profile', 'verifier', '--dry-run'], {
+    const res = runCommand(process.execPath, [path.join(root, 'scripts', 'install.js'), 'init', '--profile', 'verifier', '--dry-run'], {
+      cwd: cwd,
       env: Object.assign({}, process.env, { CLAUDE_CONFIG_DIR: configDir }),
     });
-    if (res.status !== 0) throw new Error('install dry-run exited ' + res.status + ':\n' + tape(res.stderr || res.stdout, '  '));
-    const left = collectFiles(configDir, []);
-    if (left.length) throw new Error('install dry-run wrote files: ' + left.map(p => path.relative(configDir, p)).join(', '));
+    if (res.status !== 0) throw new Error('install dry-run exited ' + res.status + ':\n' + tailLines(res.stderr || res.stdout, '  '));
+    const leftInConfig = collectFiles(configDir, []);
+    if (leftInConfig.length) throw new Error('install dry-run wrote config files: ' + leftInConfig.map(p => path.relative(configDir, p)).join(', '));
+    const leftInCwd = collectFiles(cwd, []);
+    if (leftInCwd.length) throw new Error('install dry-run wrote files into the working directory: ' + leftInCwd.map(p => path.relative(cwd, p)).join(', '));
     if (!res.stdout.includes(configDir)) {
-      throw new Error('install dry-run did not name the target it would write (' + configDir + '):\n' + tape(res.stdout, '  '));
+      throw new Error('install dry-run did not name the target it would write (' + configDir + '):\n' + tailLines(res.stdout, '  '));
     }
     return res.stdout.trim();
   } finally {
     fs.rmSync(configDir, { recursive: true, force: true });
+    fs.rmSync(cwd, { recursive: true, force: true });
   }
 });
 
@@ -324,6 +369,19 @@ step('egress', 'shipped code makes no network call', () => {
     } else {
       targets.push(full);
     }
+  }
+  // A scan that found nothing to scan proves nothing. Pin the load-bearing
+  // files: the installer, the Stop gate, the evidence log, and the sources the
+  // plugin bundles vendor byte-for-byte (the `generated` step asserts the copies).
+  const scanned = new Set(targets.map(f => path.relative(root, f).split(path.sep).join('/')));
+  const unseen = [
+    'scripts/install.js',
+    'hooks/jiahao-verdict-gate.js',
+    'src/evidence-log.js',
+    'jiahao-mcp/index.js',
+  ].filter(rel => !scanned.has(rel));
+  if (unseen.length) {
+    throw new Error('egress scan did not reach load-bearing files: ' + unseen.join(', ') + ' (a scan that finds nothing asserts nothing)');
   }
 
   const hits = [];
@@ -342,12 +400,11 @@ step('egress', 'shipped code makes no network call', () => {
   const scripts = pkg.scripts || {};
   const lifecycle = FORBIDDEN_LIFECYCLE.filter(k => scripts[k]);
   if (lifecycle.length) {
-    throw new Error('package.json declares install lifecycle scripts (' + lifecycle.join(', ') + '); an install must not run code the tarball did not ship as its exit');
+    throw new Error('package.json declares install lifecycle scripts (' + lifecycle.join(', ') + '); installing must not run code beyond what the tarball ships');
   }
 
   for (const rel of PLUGIN_MANIFESTS) {
-    const dir = path.dirname(path.dirname(path.join(root, rel.split('/').join(path.sep))));
-    const hookMapPath = path.join(dir, 'hooks', 'hooks.json');
+    const hookMapPath = path.join(pluginRootOf(rel), 'hooks', 'hooks.json');
     if (!fs.existsSync(hookMapPath)) continue;
     const map = JSON.parse(fs.readFileSync(hookMapPath, 'utf8'));
     for (const [event, groups] of Object.entries(map.hooks || {})) {
@@ -362,9 +419,25 @@ step('egress', 'shipped code makes no network call', () => {
     }
   }
 
-  return targets.length + ' shipped files scanned: no http/https/net/dns/tls/dgram require, no fetch/https.request, ' +
+  return targets.length + ' shipped files scanned: no http/http2/https/net/dns/tls/dgram require, no fetch or https.request, ' +
     'no install lifecycle script, every hook command resolves inside its bundle';
 });
+
+// Every path the shipped code can write, named in the document's table. A doc
+// that renames a heading but drops a row would still look fine to a reader, so
+// the gate checks the rows the code can produce.
+const DECLARED_WRITE_PATHS = [
+  '.jiahao-profile',
+  '.jiahao-active',
+  '.jiahao-evidence',
+  '.jiahao-persistence.json',
+  '.jiahao-anchor.json',
+  '.jiahao-pretool.jsonl',
+  '.jiahao-instructions.jsonl',
+  'private/phrases.json',
+  'private/bench-corpus',
+  'skills/jiahao/SKILL.md',
+];
 
 step('declarations', 'write scope and no-egress statements are present', () => {
   const docRel = 'docs/release.md';
@@ -373,9 +446,13 @@ step('declarations', 'write scope and no-egress statements are present', () => {
   const text = fs.readFileSync(full, 'utf8');
   const missing = ['## 写入范围', '## 无网络外呼'].filter(h => !text.includes(h));
   if (missing.length) throw new Error(docRel + ' is missing required sections: ' + missing.join(', '));
+  const undeclared = DECLARED_WRITE_PATHS.filter(p => !text.includes(p));
+  if (undeclared.length) {
+    throw new Error(docRel + ' write-scope table omits paths the shipped code writes: ' + undeclared.join(', '));
+  }
   const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
   if (!readme.includes(docRel)) throw new Error('README.md does not link ' + docRel + '; the declaration must be reachable from the install instructions');
-  return docRel + ' carries 写入范围 + 无网络外呼; README.md links it';
+  return docRel + ' declares ' + DECLARED_WRITE_PATHS.length + ' write paths + 无网络外呼; README.md links it';
 });
 
 // ---- driver --------------------------------------------------------------
@@ -424,7 +501,7 @@ function main() {
   for (const s of selected) {
     const started = Date.now();
     try {
-      const detail = s.run(ctx);
+      const detail = s.check(ctx);
       const ms = Date.now() - started;
       evidence.steps.push({ name: s.name, title: s.title, ok: true, ms: ms, detail: detail });
       console.log('PASS ' + (s.name + ' ').padEnd(13) + s.title + ' (' + ms + ' ms)');
@@ -486,8 +563,10 @@ module.exports = {
   parseTag,
   auditPackFiles,
   treeHash,
+  treeHashAt,
   sha256,
   REQUIRED_PACK_FILES,
   FORBIDDEN_PACK_PREFIXES,
+  DECLARED_WRITE_PATHS,
   steps,
 };
