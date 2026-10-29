@@ -145,5 +145,7 @@ test('D3: SessionEnd is registered wherever a hook map exists', () => {
     const map = JSON.parse(generated[host.dir + '/hooks/hooks.json']);
     expect(map.hooks.SessionEnd[0].hooks[0].command).toContain('jiahao-sweep.js');
   }
-  expect(wired).toBeGreaterThan(0);
+  // Every hook-bearing host sweeps: the count is the invariant, so dropping
+  // SessionEnd from one row does not hide behind the other row's wiring.
+  expect(wired).toBe(HOSTS.filter(host => Object.keys(host.hooks || {}).length > 0).length);
 });

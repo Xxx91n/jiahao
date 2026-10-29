@@ -112,8 +112,9 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
     });
 
     test('every vendored file is a byte copy of its repository source', () => {
+      // No non-empty floor: a rules-only bundle legitimately ships no .js, and
+      // the closure test above already pins the exact vendored set.
       const vendoredJs = Object.keys(generated).filter((rel) => rel.startsWith(P) && rel.endsWith('.js'));
-      expect(vendoredJs.length).toBeGreaterThan(0);
       for (const rel of vendoredJs) {
         expect(generated[rel]).toBe(readRepo(rel.slice(P.length)));
       }
@@ -366,6 +367,22 @@ describe('tier contract', () => {
     expect(hostShapeProblems([missing]).join('\n')).toMatch(/hooks must be an object/);
     const array = Object.assign({}, good, { hooks: [] });
     expect(hostShapeProblems([array]).join('\n')).toMatch(/hooks must be an object/);
+  });
+
+  test('a row that rewrites a manifest key the emitter pins is rejected', () => {
+    const row = Object.assign({}, good, { manifest: { description: 'probe', version: '9.9.9' } });
+    expect(hostShapeProblems([row]).join('\n')).toMatch(/must not set version/);
+  });
+
+  test('a rules-only C row is a valid row and ships no hooks', () => {
+    const rulesOnly = {
+      name: 'probe-rules', label: 'Probe', dir: 'adapters/probe-rules', tier: 'C',
+      turnEnd: null, provenance: 'probe', hooks: {},
+      manifest: { description: 'probe' }, autoDiscovered: [], mcp: null, rules: [],
+      readme: () => '',
+    };
+    expect(hostShapeProblems([rulesOnly])).toEqual([]);
+    expect(bundleSeeds(rulesOnly)).toEqual([]);
   });
 
   test('a host that registers SubagentStop runs the same gate as its turn-end event', () => {

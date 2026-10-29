@@ -217,6 +217,10 @@ function vendorClosure(seeds) {
 // prove each rule red without a real host shipping the mistake.
 const VERDICT_GATE = 'jiahao-verdict-gate';
 
+// Keys the emitter pins from package.json / the contract. A row that sets one
+// would be silently overridden, so it is a table error instead.
+const RESERVED_MANIFEST_KEYS = ['name', 'version', 'license', 'repository', 'defaultEnabled'];
+
 function hostShapeProblems(hosts) {
   const problems = [];
   const names = new Set();
@@ -247,17 +251,26 @@ function hostShapeProblems(hosts) {
       if (!/^[a-z0-9-]+$/.test(hook.script || '')) problems.push(label + ': ' + event + ' names no script');
       if (!(hook.timeout > 0 && hook.timeout <= 60)) problems.push(label + ': ' + event + ' timeout must be 1-60s');
     }
-    for (const rel of host.autoDiscovered || []) {
+    const autoDiscovered = Array.isArray(host.autoDiscovered) ? host.autoDiscovered : [];
+    if (!Array.isArray(host.autoDiscovered)) problems.push(label + ': autoDiscovered must be an array');
+    for (const rel of autoDiscovered) {
       if (Object.values(host.manifest || {}).includes(rel)) problems.push(label + ': the manifest repeats auto-discovered ' + rel);
     }
-    for (const rule of host.rules || []) {
+    const rules = Array.isArray(host.rules) ? host.rules : [];
+    if (!Array.isArray(host.rules)) problems.push(label + ': rules must be an array (empty when the bundle ships none)');
+    for (const rule of rules) {
       if (!['generator', 'verifier'].includes(rule.profile)) problems.push(label + ': rule ' + rule.file + ' has unknown profile ' + rule.profile);
+    }
+    for (const key of RESERVED_MANIFEST_KEYS) {
+      if (Object.prototype.hasOwnProperty.call(host.manifest || {}, key)) {
+        problems.push(label + ': the manifest must not set ' + key + ' (the emitter pins it)');
+      }
     }
     if (host.mcp) {
       if (!host.mcp.entry) problems.push(label + ': the MCP server needs an entry file');
       if (!Array.isArray(host.mcp.files)) problems.push(label + ': the MCP server needs a files array (what else ships beside it)');
     }
-    if (!Array.isArray(host.rules) || typeof host.readme !== 'function') problems.push(label + ': rules must be an array and readme a function');
+    if (typeof host.readme !== 'function') problems.push(label + ': readme must be a function that returns the bundle README');
   }
   return problems;
 }
@@ -360,8 +373,7 @@ function buildAdapters() {
   // directory ("./adapters/claude-code"), never at the repo root. The entry
   // carries no version: plugin.json is the authority and the host's validator
   // warns when both set it, so the one version lives in plugin.json (= PKG).
-  const marketplaceHost = MARKETPLACE_HOST;
-  if (!marketplaceHost) throw new Error('the marketplace host is not a row in HOSTS');
+  if (!MARKETPLACE_HOST) throw new Error('the marketplace host is not a row in HOSTS');
   adapters['.claude-plugin/marketplace.json'] = JSON.stringify({
     name: 'jiahao',
     description: 'Prompt-as-mental-model verification discipline (rules version + plugin version)',
@@ -369,7 +381,7 @@ function buildAdapters() {
     plugins: [
       {
         name: 'jiahao',
-        source: './' + marketplaceHost.dir,
+        source: './' + MARKETPLACE_HOST.dir,
         description: 'Anti-false-completion verification discipline: verifier gate on Stop, profile injection on SessionStart.',
       },
     ],

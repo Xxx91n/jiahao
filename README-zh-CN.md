@@ -72,7 +72,7 @@ node scripts/install.js init -y
 以下命令在磁盘上检查代码、生成产物与仓库状态：
 
 ```bash
-npm test                                # 全量 Jest 物理测试（21 套件）
+npm test                                # 全量 Jest 物理测试（22 套件）
 node scripts/build-adapters.js --check  # 生成产物一致性检查
 node scripts/check-drift.js             # Profile 与退役出口漂移检查
 git diff --check                        # 格式与行尾空格检查

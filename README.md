@@ -72,7 +72,7 @@ The private benchmark corpus (`private/bench-corpus/`) is a maintainer/CI asset:
 These commands check the code, the generated outputs, and repository state on disk:
 
 ```bash
-npm test                                # Full physical test suite (21 suites)
+npm test                                # Full physical test suite (22 suites)
 node scripts/build-adapters.js --check  # Generated output sync check
 node scripts/check-drift.js             # Profile and retired adapter drift check
 git diff --check                        # Whitespace and formatting check
