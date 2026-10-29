@@ -2,10 +2,15 @@ name: ci
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
 
 jobs:
   test:
+    # Tag refs are release attempts and go through the release-gate job below;
+    # running this one there too would double the suite and the whitespace
+    # step has no base commit to diff against on a new tag.
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
     runs-on: ubuntu-latest
     env:
       JIAHAO_TEST_TIER: public
@@ -50,3 +55,46 @@ jobs:
       - run: npm run check:adapters
       - run: npm run check:drift
       - run: npm test
+
+  # #63: a tag is a release attempt. One command decides whether it may be
+  # called released - tests, generation, drift, pack contents + sha256, install
+  # dry-run, no-egress, declarations - and any red step fails the release.
+  release-gate:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    env:
+      JIAHAO_TEST_TIER: public
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the gate compares HEAD with the commit the tag points at
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Release gate
+        run: npm run release:gate -- --evidence release-artifacts/release-evidence.json --artifact-dir release-artifacts
+      - name: Step summary
+        if: always()
+        run: |
+          EVIDENCE=release-artifacts/release-evidence.json
+          if [ ! -f "$EVIDENCE" ]; then
+            echo '## Release gate: no evidence file (the gate did not reach the end)' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          node -e '
+            const fs = require("fs");
+            const e = JSON.parse(fs.readFileSync("'"$EVIDENCE"'", "utf8"));
+            const lines = ["## Release gate " + (e.ok ? "GREEN" : "RED"), "", "| step | result | ms |", "| --- | --- | --- |"];
+            for (const s of e.steps) lines.push("| " + s.name + " | " + (s.ok ? "pass" : "FAIL") + " | " + s.ms + " |");
+            if (e.artifact) lines.push("", e.artifact.file + " - sha256 `" + e.artifact.sha256 + "`", "");
+            if (e.trees) for (const [dir, hash] of Object.entries(e.trees)) lines.push("- tree `" + dir + "` " + hash);
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
+          '
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-${{ github.ref_name }}
+          path: release-artifacts/
+          if-no-files-found: warn
