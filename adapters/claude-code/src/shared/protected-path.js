@@ -63,7 +63,7 @@ function tokens(text) {
 //   - the host's own plugin-root variable, which is literally how the hook map
 //     spells the bundle path.
 // The host-native reading is the one that actually mutates the file; every
-// other reading only closes a gap, because the substituted result still has to
+// other reading only closes a gap, because the expanded result still has to
 // resolve below the root to count. So a spelling that merely *looks* like the
 // apparatus (an unexpanded `$HOMEDIR`, a user project under the same home) is
 // still allowed.

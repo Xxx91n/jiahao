@@ -33,13 +33,17 @@ const isGenerator = profile === 'generator';
 // record - a killed hook's sentinel-reconcile coverage:partial, or an enforce
 // pairer-lane high severity - gate every later turn forever, and human
 // adjudication could not release it.
-//   scopedToSession: a record MARKED as another conversation's can neither block
-//     this Stop nor vouch for it (Case A reads the same set). Records with no
-//     session marker stay in scope for every session - gate.js and the sentinel
-//     write that shape, and excluding them would hand a host that sends no
-//     session_id a free pass. The cost is stated rather than hidden: one unmarked
-//     record keeps satisfying "there is evidence" for every later session on that
-//     machine until the writers stamp a session/turn.
+//   scopedToSession: with a session_id on the payload, a record MARKED as another
+//     conversation's can neither block this Stop nor vouch for it. Case A applies
+//     this rule to the whole chain and gatingRecords applies it after the release
+//     point, so the two sets diverge once anything has been adjudicated.
+//     Unmarked records stay in scope for every session - gate.js and the sentinel
+//     write that shape, and dropping them would hand a host that sends no
+//     session_id a free pass. The costs are stated rather than hidden: a payload
+//     without a session_id filters nothing at all, and because the chain is
+//     append-only, an unmarked record already on it vouches for every later
+//     session for good - Case A has no release point to advance past, and
+//     stamping future writers would not retire what is already written.
 //   gatingRecords: additionally drops everything up to the last passed human
 //     adjudication, read wherever it sits - including under a different
 //     session_id, or a reviewer who cleared a stale escalation from their own
@@ -113,11 +117,13 @@ process.stdin.on('end', () => {
     return !(r && r.detector && r.detector.source === 'pairer-instrument' && r.detector.shadow === true);
   }) : rawChain;
   const evidenceChain = (effective && effective.length === 0) ? null : effective;
-  // #75: evidence speaks for the session that wrote it. Case A is judged on this
-  // session's records plus everything unattributed, so an earlier conversation's
-  // marked records can neither block this turn nor vouch for it. The integrity
-  // check below and the advisories stay on the whole chain: corruption has no
-  // session, and both are advisory.
+  // #75: evidence speaks for the session that wrote it - as long as the payload
+  // says which session that was. Case A is judged on this session's records plus
+  // everything unattributed, so an earlier conversation's marked records can
+  // neither block this turn nor vouch for it; with no session_id on the payload
+  // nothing is filtered and the whole chain counts. The integrity check below and
+  // the advisories stay on the whole chain: corruption has no session, and both
+  // are advisory.
   const sessionEvidence = scopedToSession(evidenceChain, parsed.session_id || null);
 
   // chain-corruption detection runs BEFORE any severity case.
