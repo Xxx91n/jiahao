@@ -59,6 +59,10 @@ node scripts/install.js init -y
 
 规则版没有运行时 profile 切换。
 
+### 升级
+
+版本号只在 `package.json` 里，两个出口原地升级，`1.0.0` 不换命令。规则版：再跑一次 `npx skills add Xxx91n/jiahao`，或 `npx skills update jiahao`。插件版：`claude plugin marketplace update jiahao`，再 `claude plugin update jiahao@jiahao`，然后重开会话。升级不改配置目录里的 `.jiahao-profile` 与 `.jiahao-active`。
+
 ### 私有语料
 
 私有评测语料 `private/bench-corpus/` 是维护者/CI 资产：不在 npm 包里，也不在本仓库的跟踪文件里。`bench/` 下的冻结评测记录是跟踪的，不属于这份私有语料。门禁需要时，用 `JIAHAO_CORPUS_DIR` 指向本地副本。运行时钩子不依赖它。

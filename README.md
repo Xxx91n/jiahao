@@ -59,6 +59,10 @@ Start a new session after changing the profile. The flag is shared by all agents
 
 The rules version has no runtime profile switch.
 
+### Upgrade
+
+The version comes from `package.json`; both exits upgrade in place, so `1.0.0` uses the same commands. Rules version: re-run `npx skills add Xxx91n/jiahao`, or `npx skills update jiahao`. Plugin version: `claude plugin marketplace update jiahao`, then `claude plugin update jiahao@jiahao`, then restart the session. Upgrade does not touch `.jiahao-profile` or `.jiahao-active` in the config dir.
+
 ### Private corpus
 
 The private benchmark corpus (`private/bench-corpus/`) is a maintainer/CI asset: it is not in the npm package and not tracked in this repository. The frozen evaluation records under `bench/` are tracked; they are not the private corpus. When a gate needs the private corpus, point `JIAHAO_CORPUS_DIR` at a local copy. Runtime hooks do not depend on it.
