@@ -6,6 +6,7 @@
 - Release：**尚未创建**——推送 tag 与发布 GitHub Release 需要维护者单独授权。
 - CI：tag 上的 `release-gate` job 尚未运行；授权推送后必须在该 tag 上全绿才算发布完成。
 - 本文与 `docs/evidence/v0.2.0/` 都不在 npm 包内，也不在三个 tree 哈希的范围内，记录它们不会改变被记录的产物。
+- tag 树里的这份文件是定稿前的上一版：tag 不可能包含自己产物的哈希。合并后以 `main` 上的本文件与 GitHub Release 说明为准。
 
 ## 发布门禁
 
