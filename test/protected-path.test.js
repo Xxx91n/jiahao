@@ -203,6 +203,50 @@ describe('protected path (spaces in a path)', () => {
   });
 });
 
+describe('protected path (shell word reconstruction)', () => {
+  // Quoting and backslashes are how a shell writes ONE argument, so they have to
+  // be undone before containment - a spaced path split across `"..."` and the
+  // bare tail, or escaped with `\ `, is still one file. CodeRabbit's Major on
+  // PR #83 found the whitespace split hiding apparatus paths; these are the
+  // sibling shapes.
+  const root = '/home/u/John Doe/.codebuddy/plugins/jiahao';
+  const check = (text) => isProtected(text, root, { pathImpl: path.posix, cwd: '/home/u/proj' });
+
+  test('adjacent quoted and bare chunks are one word', () => {
+    expect(check('echo x "' + root + '"/hooks/hooks.json')).toBe(true);
+    expect(check("rm '/home/u/John Doe'/.codebuddy/plugins/jiahao/.mcp.json")).toBe(true);
+    expect(check('cp "' + root + '/src/SKILL.md" /tmp/backup')).toBe(true);
+  });
+
+  test('a backslash-escaped space is one word', () => {
+    expect(check('sed -i 1s/a/b/ /home/u/John\\ Doe/.codebuddy/plugins/jiahao/hooks/hooks.json')).toBe(true);
+    expect(check('rm /home/u/John\\ Doe/.codebuddy/plugins/jiahao/src/shared/paths.js')).toBe(true);
+    // the same escaping in a user project stays allowed - reconstruction is not a name fragment
+    expect(check('rm /home/u/John\\ Doe/proj/.mcp.json')).toBe(false);
+  });
+
+  test('a quoted payload is read again for the paths inside it', () => {
+    // bash -c "..." runs the inner text as its own command line
+    expect(check('bash -c "echo x > rules/jiahao-verifier.md"')).toBe(true);
+    expect(check('sh -c \'rm -f "' + root + '/hooks/hooks.json"\'')).toBe(true);
+    expect(check('bash -c "cat /home/u/John Doe/proj/.mcp.json"')).toBe(false);
+    // An inner UNQUOTED spaced path is two arguments one level down as well, so
+    // the file is never opened. The old name fragments denied this by accident;
+    // the same shape under a user-project path is the ticket's intended allow.
+    expect(check('sh -c "rm -f ' + root + '/hooks/hooks.json"')).toBe(false);
+  });
+
+  test('Windows paths are not de-escaped, because a backslash is the separator', () => {
+    const winRoot = 'C:\\Users\\John Doe\\proj\\.codebuddy\\plugins\\jiahao';
+    const winCheck = (text) => isProtected(text, winRoot, {
+      pathImpl: path.win32, cwd: 'C:\\Users\\John Doe\\proj',
+    });
+    expect(winCheck('rm "' + winRoot + '\\hooks\\hooks.json"')).toBe(true);
+    expect(winCheck('rm "C:\\Users\\John Doe\\proj\\.codebuddy\\plugins\\jiahao"/src/SKILL.md')).toBe(true);
+    expect(winCheck('rm C:\\Users\\John\\ Doe\\proj\\.mcp.json')).toBe(false);
+  });
+});
+
 describe('protected path (separator spellings)', () => {
   const posix = PLATFORMS[0];
   const win32 = PLATFORMS[1];

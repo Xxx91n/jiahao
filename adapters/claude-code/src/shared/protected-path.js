@@ -49,24 +49,90 @@ const PROTECTED_ROOT_FILES = ['.mcp.json'];
 // turned an absolute POSIX path into a relative one and switched the whole
 // containment check off on that platform (#75).
 //
-// Whitespace is a word boundary, not a path boundary. candidateText() hands the
-// tool_input fields over one per line, and an Edit/Write `file_path` IS the whole
-// line - spaces inside a directory name included. So each line is a candidate on
-// its own and a quoted span is kept whole; without that, every apparatus path
-// under a directory whose name carries a space is invisible to the containment
-// check, which the removed name fragments used to catch by accident. An
-// unquoted spaced path in the middle of a command stays split: the shell would
-// not open that file either.
-function tokens(text) {
+// Whitespace is a word boundary, not a path boundary - but it is also not the
+// only way a shell spells one argument. `candidateText()` hands the tool_input
+// fields over one per line and an Edit/Write `file_path` IS the whole line (a
+// directory name may contain spaces); `"/root"/hooks/hooks.json` is one word
+// once the quoting is undone; `John\ Doe` is one word on POSIX. Splitting on
+// whitespace alone made every one of those invisible to containment, which the
+// removed name fragments used to catch by accident (CodeRabbit Major on PR #83).
+// So: each line is a candidate on its own, words are reassembled from adjacent
+// quoted/bare chunks, and a quoted payload that contains whitespace is read
+// again as its own command line (`bash -c "echo x > rules/jiahao-verifier.md"`).
+// An inner path that is neither quoted nor escaped is left split - one level
+// down the shell sees two arguments and never opens that file.
+
+const WORD_SEPARATORS = ' \t\n\r\f\v;&|<>()';
+
+// Reassembles one shell word. Adjacent quoted and bare chunks concatenate and the
+// quote characters disappear, so `"/root"/hooks/hooks.json` is the one argument
+// the shell will open. On POSIX a backslash escapes the next character - an
+// escaped space does NOT end the word - and both spellings are kept: the raw one
+// still carries a Windows-style path for the foreign-separator reading, the
+// unescaped one is what the filesystem sees. An unterminated quote takes the rest
+// of the line, which is what the old flat split did with it.
+function readWord(line, from, escapes) {
+  let word = '';
+  let plain = '';
+  let quoted = false;
+  let escaped = false;
+  let i = from;
+  while (i < line.length) {
+    const ch = line[i];
+    if (ch === '"' || ch === "'") {
+      quoted = true;
+      const close = line.indexOf(ch, i + 1);
+      if (close === -1) { word += line.slice(i + 1); plain += line.slice(i + 1); return { word: word, plain: plain, quoted: quoted, escaped: escaped, next: i }; }
+      word += line.slice(i + 1, close);
+      plain += line.slice(i + 1, close);
+      i = close + 1;
+      continue;
+    }
+    if (escapes && ch === '\\' && i + 1 < line.length) {
+      escaped = true;
+      word += ch + line[i + 1];
+      plain += line[i + 1];
+      i += 2;
+      continue;
+    }
+    if (WORD_SEPARATORS.indexOf(ch) !== -1) break;
+    word += ch;
+    plain += ch;
+    i += 1;
+  }
+  return { word: word, plain: plain, quoted: quoted, escaped: escaped, next: i };
+}
+
+function lexWords(line, escapes) {
+  const words = [];
+  let i = 0;
+  while (i < line.length) {
+    const ch = line[i];
+    if (ch === '"' || ch === "'" || WORD_SEPARATORS.indexOf(ch) === -1) {
+      const read = readWord(line, i, escapes);
+      if (read.word) words.push(read);
+      i = read.next > i ? read.next : i + 1;
+      continue;
+    }
+    i += 1;
+  }
+  return words;
+}
+
+function tokens(text, escapes) {
   const out = [];
+  const seen = new Set();
+  const push = (value) => { if (value && !seen.has(value)) { seen.add(value); out.push(value); } };
   for (const line of String(text || '').split('\n')) {
-    const field = line.trim();
-    if (field) out.push(field);
-    const re = /"([^"]*)"|'([^']*)'|[^\s;&|<>()"']+/g;
-    let m;
-    while ((m = re.exec(line))) {
-      const tok = m[1] !== undefined ? m[1] : m[2] !== undefined ? m[2] : m[0];
-      if (tok) out.push(tok);
+    push(line.trim());
+    for (const entry of lexWords(line, escapes)) {
+      push(entry.word);
+      if (entry.escaped) push(entry.plain);
+      // a quoted payload is its own command line one level down: read the paths
+      // inside it (`bash -c "echo x > rules/jiahao-verifier.md"`)
+      if (entry.quoted && /[ \t]/.test(entry.word)) {
+        for (const inner of lexWords(entry.word, escapes)) push(inner.word);
+      }
     }
   }
   return out;
@@ -90,20 +156,33 @@ function tokens(text) {
 const HOME_VARS = ['HOME', 'USERPROFILE'];
 const ROOT_VARS = ['CLAUDE_PLUGIN_ROOT', 'CODEBUDDY_PLUGIN_ROOT'];
 // The two lists above are this module's own constants - never caller or host
-// input - which is what makes building a RegExp out of them safe.
+// input - which is what makes building a RegExp out of them safe. Precompiled
+// and gated by a cheap indexOf: this runs over every token of a payload that can
+// be megabytes large, inside a host timeout that kills the hook instead of
+// waiting for it.
+const BARE_NAME_RE = {
+  HOME: /\$HOME(?![A-Za-z0-9_])/g,
+  USERPROFILE: /\$USERPROFILE(?![A-Za-z0-9_])/g,
+  CLAUDE_PLUGIN_ROOT: /\$CLAUDE_PLUGIN_ROOT(?![A-Za-z0-9_])/g,
+  CODEBUDDY_PLUGIN_ROOT: /\$CODEBUDDY_PLUGIN_ROOT(?![A-Za-z0-9_])/g,
+};
 
 function substituteName(tok, name, value) {
-  if (!value) return tok;
+  if (!value || tok.indexOf(name) === -1) return tok;
   // $NAME needs a boundary so $HOMEDIR is not read as $HOME + "DIR"; the other
-  // three syntaxes are delimited by their own punctuation.
+  // three syntaxes are delimited by their own punctuation. The function
+  // replacement keeps a `$` inside the substituted value literal.
   return tok
     .split('${' + name + '}').join(value)
     .split('%' + name + '%').join(value)
     .split('$env:' + name).join(value)
-    .replace(new RegExp('\\$' + name + '(?![A-Za-z0-9_])', 'g'), value);
+    .replace(BARE_NAME_RE[name], function () { return value; });
 }
 
 function expandedSpelling(tok, ctx) {
+  // almost every token is a plain path: with no marker anywhere in it, there is
+  // nothing to expand
+  if (tok.indexOf('$') === -1 && tok.indexOf('%') === -1 && tok.charAt(0) !== '~') return tok;
   let out = tok;
   for (const name of HOME_VARS) out = substituteName(out, name, ctx.home);
   for (const name of ROOT_VARS) out = substituteName(out, name, ctx.rootAbs);
@@ -160,7 +239,7 @@ function isProtected(text, pluginRoot, opts) {
   if (!home) { try { home = (o.homedir || os.homedir)() || null; } catch (e) { home = null; } }
   const ctx = { P: P, cwd: o.cwd || null, rootAbs: rootAbs, home: home };
 
-  for (const tok of tokens(text)) {
+  for (const tok of tokens(text, P.sep === '/')) {
     for (const re of PROTECTED_FRAGMENTS) if (re.test(tok)) return true;
     if (!rootAbs) continue;
     for (const abs of readings(ctx, tok)) {
