@@ -1,0 +1,8 @@
+installed plugin: C:/Users/Administrator/.claude/plugins/cache/jiahao/jiahao/0.2.0
+$ CLAUDE_CONFIG_DIR=<temp>/jiahao-block node <installed>/hooks/jiahao-activate.js < sessionstart-input.json
+exit=0   # wrote .jiahao-active=full
+$ CLAUDE_CONFIG_DIR=<temp>/jiahao-block node <installed>/hooks/jiahao-verdict-gate.js < hook-input.json
+exit=2
+{"decision":"block","reason":"Verification has no evidence: no test run, no state diff, no re-execution quoted. NOT VERIFIED — run rung 1-3 of the verification ladder first. Evidence file empty or unparseable."}
+
+evidence dir: <temp>/jiahao-block/.jiahao-evidence/00000000000000000000.jsonl

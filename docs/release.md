@@ -44,11 +44,11 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD`：分�
 
 版本号只有 `package.json` 一处，两个插件清单由生成器从它抄写，所以升级不需要换命令：
 
-- 规则版：再跑一次 `npx skills add Xxx91n/jiahao`，或 `npx skills update jiahao -g -y`。装到的就是仓库当前版本；`1.0.0` 打出来后同一条命令升到 `1.0.0`。
+- 规则版：再跑一次安装时用的那条 `npx skills add`（全局复制安装为 `npx skills add Xxx91n/jiahao -g -a <host> -y --copy`），或 `npx skills update jiahao -g -y`。装到的就是仓库当前版本；`1.0.0` 打出来后同一条命令升到 `1.0.0`。
 - 插件版：`claude plugin marketplace update jiahao`，再 `claude plugin update jiahao@jiahao`，按宿主提示重开会话。CodeBuddy 用宿主自己的插件更新命令；`1.0.0` 不换路径。
 - 升级只替换宿主目录里的插件/技能文件，不碰 `<config>` 下的 `.jiahao-profile` 和 `.jiahao-active`；profile 由人改，不由升级改。
 
-升级命令在 `0.2.0` 上实测过（`claude plugin update` 报 already at the latest version，`npx skills update` 报 up to date，两条都 exit 0）；`1.0.0` 尚未发布，这条路径只承诺命令不变。
+升级命令在 `0.2.0` 上实测过（`claude plugin update` 报 already at the latest version，`npx skills update` 报 up to date，两条都 exit 0）；这只证明命令存在且成功退出，不证明换版本。`1.0.0` 尚未发布，这条路径只承诺命令不变。
 
 ## 写入范围
 
