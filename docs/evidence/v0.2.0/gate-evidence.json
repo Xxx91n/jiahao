@@ -3,56 +3,56 @@
   "version": "0.2.0",
   "status": "green",
   "ok": true,
-  "commit": "6f2710a008a47452ac0d3fc6ceaf925b9be97d05",
+  "commit": "228255992b0d5fb0403dcf319e2c53fa2e71db6e",
   "partial": null,
   "steps": [
     {
       "name": "metadata",
       "title": "tag / version / checkout identity",
       "ok": true,
-      "ms": 123,
-      "detail": "tag v0.2.0 -> version 0.2.0, commit 6f2710a008a4, tree clean"
+      "ms": 107,
+      "detail": "tag v0.2.0 -> version 0.2.0, commit 228255992b0d, tree clean"
     },
     {
       "name": "generated",
       "title": "committed generated output == generator",
       "ok": true,
-      "ms": 180,
+      "ms": 184,
       "detail": "All 56 tracked generated files accounted for: 56 generated + 0 allowlisted (regen-diff clean)"
     },
     {
       "name": "drift",
       "title": "profile fragments and retired adapter exits",
       "ok": true,
-      "ms": 82,
+      "ms": 86,
       "detail": "Retained adapters in sync with src/SKILL.md"
     },
     {
       "name": "tests",
       "title": "full test suite (npm test)",
       "ok": true,
-      "ms": 7821,
+      "ms": 8924,
       "detail": "Tests:       1 skipped, 276 passed, 277 total"
     },
     {
       "name": "artifact",
       "title": "pack contents, sha256, per-tree hashes",
       "ok": true,
-      "ms": 2396,
+      "ms": 2879,
       "detail": "jiahao-0.2.0.tgz (233548 B, 108 files)\n  sha256  b990f207d73004366e03dfbed830e283f12420ccf63704479c88ae16761fa4e6 (identical on a second pack)\n  trees   skills/jiahao, adapters/codebuddy, adapters/claude-code\n  kept    D:\\Aworker\\jiahao-wt-64\\release-artifacts\\jiahao-0.2.0.tgz + .sha256"
     },
     {
       "name": "install",
       "title": "installer dry-run writes nothing",
       "ok": true,
-      "ms": 68,
-      "detail": "[dry-run] would write \"verifier\" to C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\jiahao-gate-config-HKOu9j\\.jiahao-profile"
+      "ms": 77,
+      "detail": "[dry-run] would write \"verifier\" to C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\jiahao-gate-config-ffQUzI\\.jiahao-profile"
     },
     {
       "name": "egress",
       "title": "code that runs after install makes no network call",
       "ok": true,
-      "ms": 8,
+      "ms": 9,
       "detail": "35 install-path files scanned: no http/http2/https/net/dns/tls/dgram require, no fetch or https.request, no install lifecycle script, every hook command resolves inside its bundle"
     },
     {

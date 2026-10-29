@@ -2,7 +2,7 @@
 
 内部首发版本，也是第一个可回滚锚点。两个出口共用版本号 `0.2.0`。
 
-- tag：`v0.2.0`，本地已打，**尚未推送**。本文不记 tag 的提交 SHA：写进来就会因为提交本文而变。门禁的数字只绑定树；合并后 tag 在合并提交上重建，树不变则数字不变。
+- tag：`v0.2.0`，本地已打，指向 `22825599`，**尚未推送**。本文与证据提交在这个 tag 之后一个提交：把证据提交进去会移动 HEAD，门禁要求 HEAD 就是 tag，所以证据不能同时钉在 tag 上。合并后用同一棵树重建 tag，数字不变。
 - Release：**尚未创建**——推送 tag 与发布 GitHub Release 需要维护者单独授权。
 - CI：tag 上的 `release-gate` job 尚未运行；授权推送后必须在该 tag 上全绿才算发布完成。
 - 本文与 `docs/evidence/v0.2.0/` 都不在 npm 包内，也不在三个 tree 哈希的范围内，记录它们不会改变被记录的产物。
@@ -26,7 +26,7 @@ tree      adapters/claude-code c6900fc915854b289b729dbb83380e2bc60e6fcccbb6bba6c
 
 门禁各步都是 PASS：`metadata`、`generated`、`drift`、`tests`、`artifact`、`install`、`egress`、`declarations`。测试总数 277，276 passed / 1 skipped（Windows 上 inode 替换检测那条跳过）。同一棵树打了两次包，`sha256` 相同。
 
-机器证据：[gate.txt](evidence/v0.2.0/gate.txt)、[gate-evidence.json](evidence/v0.2.0/gate-evidence.json)。这两份是 tag 定稿前一次**同树运行**的原始输出；之后移动 tag 的提交只改本目录和本文，都不入包，所以 tag 上的最终重跑仍是这组数字，最终那次的输出留在 `release-artifacts/`（被 `.gitignore` 忽略，没有入库）。
+机器证据：[gate.txt](evidence/v0.2.0/gate.txt)、[gate-evidence.json](evidence/v0.2.0/gate-evidence.json)。这两份是 tag 提交 `22825599` 上那一次运行的原始输出；之后提交本文与证据只改 `docs/evidence/` 和本文，都不入包，所以 tag 的产物数字不变。
 
 在干净检出上复跑：等 tag 推送后按 [`docs/release.md`](release.md#在干净检出上复跑) 执行。本机只验证了同树两次打包的 `sha256` 相同，没有在干净克隆上跑过；那一步由 tag 的 CI job 和发布后的复跑补上。
 
@@ -39,6 +39,7 @@ npx skills add Xxx91n/jiahao -g -a claude-code -y --copy
 
 - 安装位置：`~/.claude/skills/jiahao/SKILL.md`，10915 B，可读。
 - 与仓库产物逐字节相同：两边的 `sha256` 都是 `1ff7e45df7a0b5ec38e617b5f6be46627401a157213e48b7d5100c9a0ce61fc9`，见 [skill-sha256.txt](evidence/v0.2.0/skill-sha256.txt)。
+- 这条 GitHub 命令的完整输出见 [skills-add-github.txt](evidence/v0.2.0/skills-add-github.txt)：`Source: https://github.com/Xxx91n/jiahao.git`，exit 0。
 - 宿主标识是 `claude-code`，不是 `claude`：先试 `-a claude` 得到 `Invalid agents: claude`，exit 1，未安装任何文件，见 [skills-add-invalid-agent.txt](evidence/v0.2.0/skills-add-invalid-agent.txt)。
 - 命令写 `Xxx91n/jiahao`，装到的是仓库默认分支，不是 tag；`skills` CLI 没有 tag 参数。这是规则版的已知限制。
 - 规则版只有指令：装完后没有钩子在跑，没有拦截，也没有运行时 profile。
@@ -67,7 +68,7 @@ npx skills add Xxx91n/jiahao -g -a claude-code -y --copy
 
 - 输入：[stop-hook-input.json](evidence/v0.2.0/stop-hook-input.json)
 - transcript（手工构造）：[stop-hook-transcript.handcrafted.jsonl](evidence/v0.2.0/stop-hook-transcript.handcrafted.jsonl)
-- 命令、退出码与安装路径：[stop-hook-command.txt](evidence/v0.2.0/stop-hook-command.txt)
+- 命令、退出码与安装路径：[stop-hook-command.txt](evidence/v0.2.0/stop-hook-command.txt)；SessionStart 注入的正文：[stop-hook-activate.out](evidence/v0.2.0/stop-hook-activate.out)。
 
 ```bash
 CLAUDE_CONFIG_DIR=<temp>/jiahao-block node <installed>/hooks/jiahao-activate.js < sessionstart-input.json
@@ -85,7 +86,7 @@ stdout，另见 [stop-hook-stdout.json](evidence/v0.2.0/stop-hook-stdout.json)�
 - 证据文件路径：`C:\Users\Administrator\AppData\Local\Temp\jiahao-block\.jiahao-evidence\00000000000000000000.jsonl`，完整副本见 [stop-hook-evidence.jsonl](evidence/v0.2.0/stop-hook-evidence.jsonl)。
 - 该文件里只有一条 `pairer-lane[shadow]` 遥测记录（`state: undetermined`，`shadow: true`），没有验证证据；所以判定是「无证据 → 拦截」。
 - 记录事件哈希：`0430012dbbe8383e1562f420a2e6f1477f2c48430635077046101dc092f8b624`。
-- transcript 里的时间戳是构造输入时随手写的，不代表钩子时钟；钩子记录的 `timestamp` 是 `05:15:05Z`。
+- transcript 里的时间戳是构造输入时随手写的，不代表钩子时钟；钩子记录的 `timestamp` 是 `2026-10-29T05:32:24.484Z`，见证据文件第一行。
 
 ### 这次验收的边界
 
@@ -110,7 +111,7 @@ claude plugin update jiahao@jiahao
 # 然后按宿主提示重开会话
 ```
 
-两条升级命令在 `0.2.0` 上实测过：`npx skills update` 报 `All global skills are up to date`（exit 0，见 [upgrade-skill.txt](evidence/v0.2.0/upgrade-skill.txt)）；`claude plugin update` 报 `already at the latest version (0.2.0)`（exit 0，见 [upgrade-plugin.txt](evidence/v0.2.0/upgrade-plugin.txt)）。这只能证明命令存在且成功退出，**不能**证明换版本；换版本要等 `1.0.0` 真的发布。升级只替换宿主目录里的技能/插件文件，不碰 `.jiahao-profile` 与 `.jiahao-active`。
+两条升级命令在 `0.2.0` 上实测过：`npx skills update` 报 `All global skills are up to date`（exit 0，源是 GitHub 安装写入的 `Xxx91n/jiahao`，见 [upgrade-skill.txt](evidence/v0.2.0/upgrade-skill.txt)）；`claude plugin update` 报 `already at the latest version (0.2.0)`（exit 0，见 [upgrade-plugin.txt](evidence/v0.2.0/upgrade-plugin.txt)）。这只能证明命令存在且成功退出，**不能**证明换版本；换版本要等 `1.0.0` 真的发布。升级只替换宿主目录里的技能/插件文件，不碰 `.jiahao-profile` 与 `.jiahao-active`。
 
 ## 回滚
 
