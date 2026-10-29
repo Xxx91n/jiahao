@@ -85,7 +85,7 @@ stdout，另见 [stop-hook-stdout.json](evidence/v0.2.0/stop-hook-stdout.json)�
 
 ### 这次验收的边界
 
-- 完整模型循环没能跑完：宿主配置的模型端点返回 `401 User account is not active`，`claude -p` 重试到被 180s 超时终止（exit 124）。拦截结果来自宿主会加载的 Stop 钩子本身，不是来自一个完整模型回合。
+- 完整模型循环没能跑完：宿主配置的模型端点返回 `401 User account is not active`，`claude -p` 重试到被 180s 超时终止（exit 124），见 [endpoint-401.txt](evidence/v0.2.0/endpoint-401.txt)。拦截结果来自宿主会加载的 Stop 钩子本身，不是来自一个完整模型回合。
 - 「宿主加载了钩子」有两次观察：隔离配置目录的第一次会话、真实配置目录的 `claude -p "hi"`，都在 SessionStart 写下了 `.jiahao-active`（后者见 [real-session.txt](evidence/v0.2.0/real-session.txt)）。
 - 假完工验收用独立 `CLAUDE_CONFIG_DIR`，因为 `$HOME` 下已有一条 10 月的旧证据链；不清空它，判定会走「证据已存在」分支，测不到「无证据拦截」。真实安装仍在 `~/.claude`。
 - 因此本版只能说「插件已装、宿主已加载钩子、无证据假完工在钩子边界被 exit 2 拦下」；**不能说**「在真实模型会话里完整跑通一次拦截」。模型端点恢复后应补一次完整会话。
