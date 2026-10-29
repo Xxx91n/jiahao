@@ -120,12 +120,17 @@ claude plugin update jiahao@jiahao
 `v0.2.0` 是第一个 tag，没有更早的发布可以退回；回滚就是卸载：
 
 ```bash
-npx skills remove jiahao -g -y          # 全局安装；文件被删掉，CLI 随后崩一次（exit 127）
-npx skills remove jiahao -y             # 项目级安装（在项目根目录执行）；同样删除后 exit 127
-claude plugin uninstall jiahao@jiahao   # exit 0
-claude plugin marketplace remove jiahao # exit 0
+# 全局规则版：文件已删就继续，CLI 的 exit 127 不阻断后续步骤
+npx skills remove jiahao -g -y || { test ! -e "$HOME/.claude/skills/jiahao/SKILL.md" || exit 1; }
+
+# 项目级规则版（在项目根目录执行）
+npx skills remove jiahao -y || { test ! -e ".claude/skills/jiahao/SKILL.md" || exit 1; }
+
+# 插件版
+claude plugin uninstall jiahao@jiahao
+claude plugin marketplace remove jiahao
 ```
 
-`skills remove` 的崩溃发生在删除完成之后，与 jiahao 无关，但退出码不是 0，脚本里不能把它当成功信号。四条命令的完整输出与退出码：[skills-remove-reinstall.txt](evidence/v0.2.0/skills-remove-reinstall.txt)、[skills-remove-project.txt](evidence/v0.2.0/skills-remove-project.txt)、[uninstall-plugin.txt](evidence/v0.2.0/uninstall-plugin.txt)；规则版全局移除后已用安装命令重装，`sha256` 仍是 `1ff7e45d…`。
+`skills remove` 在删除完成后以 exit 127 结束；上面的包装命令只有在目标文件确实消失时才把这次删除当成功，否则 `exit 1`，所以 fail-fast 脚本不会在技能删除后停住。路径按宿主的技能目录调整；本机 Claude Code 的路径已实测。项目级包装实测 `wrapper_exit=0`，见 [skills-remove-project.txt](evidence/v0.2.0/skills-remove-project.txt)；全局删除与插件卸载回执见 [skills-remove-reinstall.txt](evidence/v0.2.0/skills-remove-reinstall.txt)、[uninstall-plugin.txt](evidence/v0.2.0/uninstall-plugin.txt)。规则版全局移除后已用安装命令重装，`sha256` 仍是 `1ff7e45d…`。
 
 用户配置目录里的 `.jiahao-active`、`.jiahao-evidence/` 等运行时状态不在安装目录里，卸载不会删；需要清掉时由人自己删。
