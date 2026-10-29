@@ -72,11 +72,13 @@ npx skills add Xxx91n/jiahao -g -a claude-code -y --copy
 - 命令、退出码与安装路径：[stop-hook-command.txt](evidence/v0.2.0/stop-hook-command.txt)；SessionStart 注入的正文：[stop-hook-activate.out](evidence/v0.2.0/stop-hook-activate.out)。
 
 ```bash
-CLAUDE_CONFIG_DIR=<temp>/jiahao-block node <installed>/hooks/jiahao-activate.js < sessionstart-input.json
+CLAUDE_CONFIG_DIR=<临时配置目录> node ~/.claude/plugins/cache/jiahao/jiahao/0.2.0/hooks/jiahao-activate.js < docs/evidence/v0.2.0/stop-hook-sessionstart-input.json
 # exit 0，写下 .jiahao-active=full
-CLAUDE_CONFIG_DIR=<temp>/jiahao-block node <installed>/hooks/jiahao-verdict-gate.js < hook-input.json
+CLAUDE_CONFIG_DIR=<临时配置目录> node ~/.claude/plugins/cache/jiahao/jiahao/0.2.0/hooks/jiahao-verdict-gate.js < docs/evidence/v0.2.0/stop-hook-input.json
 # exit 2
 ```
+
+`<临时配置目录>` 换成自己的空目录；两个输入文件都在仓库里。
 
 stdout，另见 [stop-hook-stdout.json](evidence/v0.2.0/stop-hook-stdout.json)：
 
@@ -91,10 +93,10 @@ stdout，另见 [stop-hook-stdout.json](evidence/v0.2.0/stop-hook-stdout.json)�
 
 ### 这次验收的边界
 
-- 完整模型循环没能跑完：宿主配置的模型端点返回 `401 User account is not active`，`claude -p` 重试到被 180s 超时终止（exit 124），见 [endpoint-401.txt](evidence/v0.2.0/endpoint-401.txt)。拦截结果来自宿主会加载的 Stop 钩子本身，不是来自一个完整模型回合。
-- 「宿主加载了钩子」有两次观察：隔离配置目录的第一次会话、真实配置目录的 `claude -p "hi"`；后者先 `rm -f ~/.jiahao-active`，记录 `before_session=absent`，会话后 `after_session=present`、内容 `full`，见 [real-session.txt](evidence/v0.2.0/real-session.txt)。
+- 完整模型循环没能跑完：宿主配置的模型端点返回 `401 User account is not active`，`claude -p` 重试到被 180s 超时终止（exit 124），见 [endpoint-401.txt](evidence/v0.2.0/endpoint-401.txt)。无证据拦截结果来自**直接调用已安装副本**的 `jiahao-verdict-gate.js`，不是宿主实际触发的 Stop 事件，也不是完整模型回合。
+- 真实会话记录只显示 `.jiahao-active` 在 `claude -p "hi"` 超时后出现；它证明 SessionStart 钩子在宿主里跑过，不能证明 Stop hook 被宿主触发，见 [real-session.txt](evidence/v0.2.0/real-session.txt)。
 - 假完工验收用独立 `CLAUDE_CONFIG_DIR`，因为 `$HOME` 下已有一条 10 月的旧证据链；不清空它，判定会走「证据已存在」分支，测不到「无证据拦截」。真实安装仍在 `~/.claude`。
-- 因此本版只能说「插件已装、宿主已加载钩子、已安装副本对无证据假完工 exit 2」；**不能说**「在真实模型会话里完整跑通一次拦截」。模型端点恢复后应补一次完整会话。
+- 因此本版只能说「插件已装、SessionStart 钩子在宿主里跑过、脚本级 Stop-hook 测试对无证据假完工 exit 2」；**不能说**「宿主在真实模型会话里触发了 Stop 拦截」或「在真实模型会话里完整跑通一次拦截」。模型端点恢复后应补一次完整会话。
 
 ## 升级到 1.0.0
 
