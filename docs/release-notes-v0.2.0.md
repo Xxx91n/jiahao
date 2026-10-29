@@ -2,7 +2,7 @@
 
 内部首发版本，也是第一个可回滚锚点。两个出口共用版本号 `0.2.0`。
 
-- tag：`v0.2.0`，本地已打，当前指向 `5d9460e7`；**尚未推送**。合并后 tag 会在合并提交上重建，提交 SHA 会变，只要树不变，本文记的产物数字不变。
+- tag：`v0.2.0`，本地已打，**尚未推送**。本文不记 tag 的提交 SHA：写进来就会因为提交本文而变。门禁的数字只绑定树；合并后 tag 在合并提交上重建，树不变则数字不变。
 - Release：**尚未创建**——推送 tag 与发布 GitHub Release 需要维护者单独授权。
 - CI：tag 上的 `release-gate` job 尚未运行；授权推送后必须在该 tag 上全绿才算发布完成。
 - 本文和 `docs/evidence/v0.2.0/` 都不在 npm 包内，也不在门禁的三个 tree 哈希范围内，所以记录它们不会改变被记录的产物。
@@ -14,11 +14,11 @@ npm run release:gate -- --tag v0.2.0 --artifact-dir release-artifacts --evidence
 # exit 0
 ```
 
-本地 tag 上跑出的数字（首次在 `d25f01c0` 测得，最终 tag `5d9460e7` 复跑一致；CI 的 tag job 尚未运行）：
+本地 tag 上跑出的数字（在 tag 提交上测得；本文更新后在同一个可打包树上复跑，值不变；CI 的 tag job 尚未运行）：
 
 ```text
-artifact  jiahao-0.2.0.tgz  233450 B
-sha256    003831a2705389a96d5f55dd9888ea520e93c41844ac624053d9d98ad1454580
+artifact  jiahao-0.2.0.tgz  233451 B
+sha256    c247b9963fba5bbe038eff3f171b7a44e1129107a715d5276a1f972350ea5bb8
 tree      skills/jiahao        a8c365957cc22b0ca12a3b8196186b0f9c3c3a851ddd459dbe4cc7fea41debe2
 tree      adapters/codebuddy   ea2087549486f3e1b1043341e6fea6d67a0ff40f7a42bdaf8ab9ee688c6f0487
 tree      adapters/claude-code c6900fc915854b289b729dbb83380e2bc60e6fcccbb6bba6cfbf80a262a12d57
@@ -26,7 +26,7 @@ tree      adapters/claude-code c6900fc915854b289b729dbb83380e2bc60e6fcccbb6bba6c
 
 门禁各步都是 PASS：`metadata`、`generated`、`drift`、`tests`、`artifact`、`install`、`egress`、`declarations`。测试总数 277，276 passed / 1 skipped（Windows 上 inode 替换检测那条跳过）。同一棵树打了两次包，`sha256` 相同。
 
-机器证据：[gate.log](evidence/v0.2.0/gate.log)、[gate-evidence.json](evidence/v0.2.0/gate-evidence.json)。
+机器证据：[gate.txt](evidence/v0.2.0/gate.txt)、[gate-evidence.json](evidence/v0.2.0/gate-evidence.json)。
 
 复跑对账：在干净检出上按 [`docs/release.md`](release.md#在干净检出上复跑) 跑同一条命令，在本机 Windows + npm 11 上这三个值逐字相同。CI 的 ubuntu 环境是另一条证据，由 tag job 自己产生。
 
