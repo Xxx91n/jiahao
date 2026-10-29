@@ -102,7 +102,7 @@ stdout，另见 [stop-hook-stdout.json](evidence/v0.2.0/stop-hook-stdout.json)�
 
 ```bash
 # 规则版：重跑安装时那条 add，范围参数保持一致
-npx skills add Xxx91n/jiahao                              # 项目级
+npx skills add Xxx91n/jiahao -a claude-code -y --copy    # 项目级
 npx skills add Xxx91n/jiahao -g -a claude-code -y --copy  # 全局级
 npx skills update jiahao -g -y                            # 只更新全局安装
 
@@ -113,7 +113,7 @@ claude plugin update jiahao@jiahao
 # 然后按宿主提示重开会话
 ```
 
-升级命令在 `0.2.0` 上实测过：全局 `npx skills update jiahao -g -y` 报 `All global skills are up to date`（exit 0，源是 GitHub 安装写入的 `Xxx91n/jiahao`，见 [upgrade-skill.txt](evidence/v0.2.0/upgrade-skill.txt)）；项目级 `update -p` 在 skills 1.7.4 上报 `No installed skills found matching: jiahao` 并 exit 127，随后重跑项目级 `add` 成功覆盖（exit 0），见 [upgrade-skill-project.txt](evidence/v0.2.0/upgrade-skill-project.txt)；`claude plugin update` 报 `already at the latest version (0.2.0)`（exit 0，见 [upgrade-plugin.txt](evidence/v0.2.0/upgrade-plugin.txt)）。这些只证明命令可用，**不能**证明换版本；换版本要等 `1.0.0` 真的发布。升级只替换宿主目录里的技能/插件文件，不碰 `.jiahao-profile` 与 `.jiahao-active`。
+升级命令在 `0.2.0` 上实测过：全局 `npx skills update jiahao -g -y` 报 `All global skills are up to date`（exit 0，源是 GitHub 安装写入的 `Xxx91n/jiahao`，见 [upgrade-skill.txt](evidence/v0.2.0/upgrade-skill.txt)）；项目级 `update -p` 在本机的 skills 1.7.4（Windows、本地路径源）上报 `No installed skills found matching: jiahao` 并 exit 127，随后重跑项目级 `add` 成功覆盖（exit 0），见 [upgrade-skill-project.txt](evidence/v0.2.0/upgrade-skill-project.txt)；`claude plugin update` 报 `already at the latest version (0.2.0)`（exit 0，见 [upgrade-plugin.txt](evidence/v0.2.0/upgrade-plugin.txt)）。这些只证明命令可用，**不能**证明换版本；换版本要等 `1.0.0` 真的发布。升级只替换宿主目录里的技能/插件文件，不碰 `.jiahao-profile` 与 `.jiahao-active`。
 
 ## 回滚
 

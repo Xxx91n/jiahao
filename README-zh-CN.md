@@ -61,7 +61,7 @@ node scripts/install.js init -y
 
 ### 升级
 
-版本号只在 `package.json` 里。规则版：重跑安装时那条 `npx skills add`，范围参数保持一致——项目级不带 `-g`，全局级带 `-g -a <host> -y --copy`。`npx skills update jiahao -g -y` 只更新全局安装；skills 1.7.4 的项目级 `update` 在本机报无匹配并 exit 127，所以项目级用重跑 `add` 升级。插件版（Claude Code）：`claude plugin marketplace update jiahao`，再 `claude plugin update jiahao@jiahao`。CodeBuddy 用宿主自己的插件更新/安装路径（CLI 安装路径 declared-unverified，见 [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)），或用新的 bundle 重做已验证的 settings 合并。升级后重开会话。升级不改配置目录里的 `.jiahao-profile` 与 `.jiahao-active`。
+版本号只在 `package.json` 里。规则版：重跑安装时那条 `npx skills add`，范围参数保持一致——项目级不带 `-g`，全局级带 `-g -a <host> -y --copy`。`npx skills update jiahao -g -y` 只更新全局安装；skills 1.7.4 在本机（Windows、本地路径源）的项目级 `update` 报无匹配并 exit 127；在该环境下项目级用重跑 `add` 升级。插件版（Claude Code）：`claude plugin marketplace update jiahao`，再 `claude plugin update jiahao@jiahao`。CodeBuddy 用宿主自己的插件更新/安装路径（CLI 安装路径 declared-unverified，见 [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)），或用新的 bundle 重做已验证的 settings 合并。升级后重开会话。升级不改配置目录里的 `.jiahao-profile` 与 `.jiahao-active`。
 
 ### 私有语料
 
