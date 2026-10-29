@@ -135,8 +135,9 @@ const HOSTS = [
 ];
 
 // The marketplace is the repository root, and its single entry is the plugin a
-// `claude plugin install jiahao@jiahao` lands on.
-const MARKETPLACE_HOST = 'claude-code';
+// `claude plugin install jiahao@jiahao` lands on. Kept as the row itself so the
+// generator and the test read its dir instead of repeating a name lookup.
+const MARKETPLACE_HOST = HOSTS.find(host => host.name === 'claude-code');
 
 // Retired, and not to be re-added without a self-contained directory and tests:
 // aider, cline, cursor, instruction-tier, opencode, and windsurf were
@@ -153,9 +154,19 @@ function readRepoFile(rel) {
   return fs.readFileSync(path.join(root, rel.split('/').join(path.sep)), 'utf8');
 }
 
+// The files a bundle must ship: every wired script plus the MCP entry. The
+// require() closure those reach is added by vendorClosure; one definition, so a
+// test cannot disagree with the generator about what "wired" means.
+function bundleSeeds(host) {
+  return Array.from(new Set(
+    Object.values(host.hooks).map(hook => 'hooks/' + hook.script + '.js')
+      .concat(host.mcp ? [host.mcp.entry] : [])
+  ));
+}
+
 // The non-JS tail every self-contained bundle carries: the require() closure,
 // the SKILL body, and the identity pin calibration.js loads at require() time.
-// One helper, so a file added here cannot reach one bundle and miss the other
+// One helper, so a file added here cannot reach one bundle and miss another
 // (both were missing the pin before this ticket). `extraFiles` are the
 // host-specific runtime data files a bundle also ships.
 function emitBundle(adapters, prefix, seeds, skill, extraFiles) {
@@ -332,11 +343,7 @@ function buildAdapters() {
   // so a file cannot be wired without being shipped.
   for (const host of HOSTS) {
     const prefix = host.dir + '/';
-    const seeds = Array.from(new Set(
-      Object.values(host.hooks).map(hook => 'hooks/' + hook.script + '.js')
-        .concat(host.mcp ? [host.mcp.entry] : [])
-    ));
-    emitBundle(adapters, prefix, seeds, skill, host.mcp ? host.mcp.files : []);
+    emitBundle(adapters, prefix, bundleSeeds(host), skill, host.mcp ? host.mcp.files : []);
 
     adapters[prefix + '.claude-plugin/plugin.json'] = emitPluginManifest(host);
     if (Object.keys(host.hooks).length) adapters[prefix + 'hooks/hooks.json'] = emitHookMap(host);
@@ -350,8 +357,8 @@ function buildAdapters() {
   // directory ("./adapters/claude-code"), never at the repo root. The entry
   // carries no version: plugin.json is the authority and the host's validator
   // warns when both set it, so the one version lives in plugin.json (= PKG).
-  const marketplaceHost = HOSTS.find(host => host.name === MARKETPLACE_HOST);
-  if (!marketplaceHost) throw new Error('marketplace host is not a row in HOSTS: ' + MARKETPLACE_HOST);
+  const marketplaceHost = MARKETPLACE_HOST;
+  if (!marketplaceHost) throw new Error('the marketplace host is not a row in HOSTS');
   adapters['.claude-plugin/marketplace.json'] = JSON.stringify({
     name: 'jiahao',
     description: 'Prompt-as-mental-model verification discipline (rules version + plugin version)',
@@ -783,5 +790,5 @@ if (require.main === module) main();
 
 module.exports = {
   buildAdapters, unifiedDiff, checkAll, writeAll, auditTrackedSet, SKILL_DIR, SOURCE_NAME,
-  HOSTS, RETIRED_HOSTS, MARKETPLACE_HOST, hostShapeProblems,
+  HOSTS, RETIRED_HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
 };

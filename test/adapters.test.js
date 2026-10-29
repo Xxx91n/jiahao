@@ -243,34 +243,38 @@ test('check-drift passes on the committed tree', () => {
   // exit 0 = pass
 });
 
-// #66: the suite's generation path writes a temp directory. Proof: a hand edit
-// planted in a workspace artifact is still there after the path runs. The gate
-// tests above read workspace bytes, so this test lives in the same file - jest
-// runs a file's tests in order, so no parallel worker can observe the marker.
-test('a hand edit in a workspace artifact survives the test generation path', () => {
+// #66: the suites that used to rerun the generator now write temp directories
+// only. Proof: plant a hand edit in a workspace artifact, run those suites in a
+// child jest process, and the edit is still there afterwards. adapters.test.js
+// is the third former offender and cannot spawn itself without recursing; the
+// write-mode scan below covers it. The marker sits on the Claude Code README
+// because no other suite reads that file's bytes (the --check tests are above,
+// in this file, and jest runs a file's tests in order).
+test('a hand edit in a workspace artifact survives the generation suites', () => {
   const rel = 'adapters/claude-code/README.md';
   const abs = path.join(root, rel);
   const original = fs.readFileSync(abs, 'utf8');
   const marker = String.fromCharCode(10) + '<!-- hand edit sentinel: npm test must not rewrite this file -->' + String.fromCharCode(10);
   fs.writeFileSync(abs, original + marker, 'utf8');
   try {
-    const { dir } = materializeToTemp();
-    fs.rmSync(dir, { recursive: true, force: true });
+    const env = Object.assign({}, process.env);
+    delete env.JEST_WORKER_ID;
+    const res = spawnSync(process.execPath, [
+      require.resolve('jest/bin/jest'), '--silent', '--runTestsByPath',
+      'test/dual-profile.test.js', 'test/codebuddy-adapter.test.js',
+    ], { cwd: root, env: env, encoding: 'utf8', timeout: 120000 });
+    expect(res.status).toBe(0);
     expect(fs.readFileSync(abs, 'utf8')).toBe(original + marker);
   } finally {
     fs.writeFileSync(abs, original, 'utf8');
   }
 });
 
-// The sentinel above proves the shared path is scoped. This proves no suite
-// bypasses it: write mode is the bare generator call, and only the CLI and the
-// release gate may run that. Requiring the module is fine; running it without
-// --check, or calling writeAll with no target, is not.
-const WRITE_MODE = [
-  /exec(?:Sync|FileSync)\(\s*['"`][^'"`]*build-adapters\.js['"`]/,
-  /\[\s*['"`][^'"`]*build-adapters\.js['"`]\s*,\s*['"`](?!--check)/,
-  /\bwriteAll\(\s*\)/,
-];
+// The sentinel proves the sample suites stay scoped. This proves no suite names
+// the write path at all: write mode is the generator file without --check, or
+// writeAll with no target. Requiring the module is fine.
+const WRITE_MODE = /\bbuild-adapters\.js\b/;
+const WRITE_ALL_NO_TARGET = /\bwriteAll\(\s*\)/;
 
 function testSources(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
@@ -281,12 +285,14 @@ function testSources(dir) {
 }
 
 test('no test runs the generator in write mode', () => {
+  const files = testSources(path.join(root, 'test'));
+  // A scan that walked nothing would report no offenders and prove nothing.
+  expect(files.length).toBeGreaterThanOrEqual(15);
   const offenders = [];
-  for (const file of testSources(path.join(root, 'test'))) {
+  for (const file of files) {
     fs.readFileSync(file, 'utf8').split(String.fromCharCode(10)).forEach((line, i) => {
-      if (WRITE_MODE.some(pattern => pattern.test(line))) {
-        offenders.push(path.relative(root, file) + ':' + (i + 1) + ' ' + line.trim());
-      }
+      const writes = (WRITE_MODE.test(line) && !/--check/.test(line)) || WRITE_ALL_NO_TARGET.test(line);
+      if (writes) offenders.push(path.relative(root, file) + ':' + (i + 1) + ' ' + line.trim());
     });
   }
   expect(offenders).toEqual([]);

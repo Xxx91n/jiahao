@@ -2,7 +2,7 @@
 // test/plugin-bundles.test.js - #76: the structural contract of every plugin
 // bundle, asserted once per row of the generator's host table.
 //
-// Adding a host is a row in scripts/build-adapters.js; this file names no host.
+// Adding a host is a row in the generator's HOSTS table; this file names no host.
 // Everything is read from the IN-MEMORY generator output: the committed bytes
 // are `--check`'s job, and the suites that spawn hooks materialize the same
 // output into a temp dir (test/helpers/generated-bundle.js).
@@ -16,7 +16,7 @@ const path = require('path');
 const { isBuiltin } = require('module');
 
 const {
-  buildAdapters, HOSTS, MARKETPLACE_HOST, hostShapeProblems,
+  buildAdapters, HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
 } = require('../scripts/build-adapters');
 
 const ROOT = path.join(__dirname, '..');
@@ -101,12 +101,8 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
     });
 
     test('the bundle ships exactly the wired closure, nothing orphaned', () => {
-      const seeds = Array.from(new Set(
-        Object.values(host.hooks).map((hook) => 'hooks/' + hook.script + '.js')
-          .concat(host.mcp ? [host.mcp.entry] : [])
-      ));
       const expected = new Set(['src/SKILL.md', 'src/instrument-identity.json']);
-      for (const rel of repoClosure(seeds)) expected.add(rel);
+      for (const rel of repoClosure(bundleSeeds(host))) expected.add(rel);
       for (const rel of (host.mcp ? host.mcp.files : [])) expected.add(rel);
       const vendored = Object.keys(generated)
         .filter((rel) => rel.startsWith(P))
@@ -136,11 +132,16 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
     });
 
     test('every component path it names is emitted, and auto-discovered files are not repeated', () => {
-      // These two keys name the generator's own files, not host data: a manifest
-      // that points somewhere else is pointing at something that is not a hook
-      // map or an MCP registration.
-      if (manifest.hooks !== undefined) expect(manifest.hooks).toBe('hooks/hooks.json');
-      if (manifest.mcpServers !== undefined) expect(manifest.mcpServers).toBe('.mcp.json');
+      // These two keys name the generator's own files, not host data.
+      // A host that does not auto-discover a component has to be told about it
+      // in the manifest, or the file never loads - so the key is required, not
+      // merely checked when present.
+      if (events.length && !host.autoDiscovered.includes('hooks/hooks.json')) {
+        expect(manifest.hooks).toBe('hooks/hooks.json');
+      }
+      if (host.mcp && !host.autoDiscovered.includes('.mcp.json')) {
+        expect(manifest.mcpServers).toBe('.mcp.json');
+      }
       for (const key of ['hooks', 'mcpServers']) {
         if (manifest[key] === undefined) continue;
         expect(typeof generated[P + manifest[key]]).toBe('string');
@@ -182,6 +183,16 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
             expect(h.command).not.toContain('..');
           }
         }
+      }
+    });
+
+    test('the turn-end event carries the verdict gate, and every script is a repo hook', () => {
+      for (const ev of events) {
+        expect(fs.existsSync(path.join(ROOT, 'hooks', host.hooks[ev].script + '.js'))).toBe(true);
+      }
+      if (host.turnEnd) {
+        const command = cfg.hooks[host.turnEnd][0].hooks[0].command;
+        expect(command).toContain('jiahao-verdict-gate.js');
       }
     });
 
@@ -238,6 +249,7 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
         for (const rule of host.rules) {
           text[rule.profile] = readGenerated(P + 'rules/' + rule.file);
           expect(text[rule.profile]).toMatch(/alwaysApply:\s*true/);
+          expect(text[rule.profile]).toMatch(/jiahao/i);
           expect(text[rule.profile]).toContain(rule.profile === 'generator' ? 'Generator Profile' : 'Verifier Profile');
         }
         if (text.verifier && text.generator) expect(text.verifier).not.toBe(text.generator);
@@ -267,7 +279,7 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
 
 describe('marketplace manifest', () => {
   const marketplace = JSON.parse(readGenerated('.claude-plugin/marketplace.json'));
-  const sourceHost = HOSTS.find((host) => host.name === MARKETPLACE_HOST);
+  const sourceHost = MARKETPLACE_HOST;
 
   test('has the three required top-level fields and one entry', () => {
     expect(marketplace.name).toMatch(/^[A-Za-z0-9][A-Za-z0-9._-]*$/);
