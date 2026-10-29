@@ -49,11 +49,12 @@ test('the rules-version skill carries both profiles', () => {
 });
 
 test('retired adapters are neither emitted nor present', () => {
-  const { buildAdapters } = require('../scripts/build-adapters');
+  const { buildAdapters, RETIRED_HOSTS } = require('../scripts/build-adapters');
   const emitted = Object.keys(buildAdapters());
-  const retired = ['aider', 'cline', 'codex', 'copilot', 'cursor',
-    'instruction-tier', 'mcp', 'opencode', 'qoder', 'windsurf'];
-  for (const name of retired) {
+  // One list, in the generator (check-drift reads the same one). The floor is
+  // what stops the list from being silently emptied instead of honoured.
+  expect(RETIRED_HOSTS.length).toBeGreaterThanOrEqual(10);
+  for (const name of RETIRED_HOSTS) {
     expect(emitted.some(rel => rel.startsWith('adapters/' + name + '/'))).toBe(false);
     expect(fs.existsSync(path.join(root, 'adapters', name))).toBe(false);
   }
@@ -243,14 +244,13 @@ test('check-drift passes on the committed tree', () => {
   // exit 0 = pass
 });
 
-// #66: the suites that used to rerun the generator now write temp directories
-// only. Proof: plant a hand edit in a workspace artifact, run those suites in a
-// child jest process, and the edit is still there afterwards. adapters.test.js
-// is the third former offender and cannot spawn itself without recursing; the
-// write-mode scan below covers it. The marker sits on the Claude Code README
-// because no other suite reads that file's bytes (the --check tests are above,
-// in this file, and jest runs a file's tests in order).
-test('a hand edit in a workspace artifact survives the generation suites', () => {
+// #66: the whole suite used to rerun the generator; now only temp directories
+// are written. Proof: plant a hand edit in a workspace artifact, run every suite
+// except this file in a child jest process, and the edit is still there. This
+// file hosts the sentinel and the --check tests that read workspace bytes, so it
+// runs in this process instead of the child (a child would recurse). The marker
+// sits on the Claude Code README because no other suite reads that file's bytes.
+test('a hand edit in a workspace artifact survives the suite', () => {
   const rel = 'adapters/claude-code/README.md';
   const abs = path.join(root, rel);
   const original = fs.readFileSync(abs, 'utf8');
@@ -260,17 +260,21 @@ test('a hand edit in a workspace artifact survives the generation suites', () =>
     const env = Object.assign({}, process.env);
     delete env.JEST_WORKER_ID;
     const res = spawnSync(process.execPath, [
-      require.resolve('jest/bin/jest'), '--silent', '--runTestsByPath',
-      'test/dual-profile.test.js', 'test/codebuddy-adapter.test.js',
-    ], { cwd: root, env: env, encoding: 'utf8', timeout: 120000 });
-    expect(res.status).toBe(0);
+      require.resolve('jest/bin/jest'), '--silent',
+      // replaces the config value, so the built-in ignores are repeated here
+      '--testPathIgnorePatterns', 'node_modules|\\.scratch|adapters\\.test\\.js',
+    ], { cwd: root, env: env, encoding: 'utf8', timeout: 300000 });
+    if (res.status !== 0) {
+      throw new Error('child jest failed (status ' + res.status + (res.error ? ', ' + res.error.message : '') + '):' +
+        String.fromCharCode(10) + String((res.stderr || res.stdout) || '').slice(-4000));
+    }
     expect(fs.readFileSync(abs, 'utf8')).toBe(original + marker);
   } finally {
     fs.writeFileSync(abs, original, 'utf8');
   }
-});
+}, 300000);
 
-// The sentinel proves the sample suites stay scoped. This proves no suite names
+// The sentinel proves the whole suite stays scoped. This proves no suite names
 // the write path at all: write mode is the generator file without --check, or
 // writeAll with no target. Requiring the module is fine.
 const WRITE_MODE = /\bbuild-adapters\.js\b/;

@@ -81,7 +81,7 @@ function repoClosure(seeds) {
 
 describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
   const P = host.dir + '/';
-  const events = Object.keys(host.hooks);
+  const events = Object.keys(host.hooks || {});
   const manifestRel = P + '.claude-plugin/plugin.json';
   const manifest = JSON.parse(readGenerated(manifestRel));
 
@@ -196,9 +196,15 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
       }
     });
 
-    test('the README discloses every registered event', () => {
+    test('the README discloses every registered event, script, and timeout', () => {
       const readme = readGenerated(P + 'README.md');
-      for (const ev of events) expect(readme).toContain(ev);
+      for (const ev of events) {
+        expect(readme).toContain(ev);
+        expect(readme).toContain(host.hooks[ev].script + '.js');
+      }
+      // The disclosure sentence lists the per-event timeouts in wiring order;
+      // a table edit that does not follow through to the README goes red here.
+      expect(readme).toContain(events.map(ev => host.hooks[ev].timeout).join('/') + 's');
     });
   });
 
