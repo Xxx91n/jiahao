@@ -12,7 +12,7 @@ const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-const { parseTag, auditPackFiles, treeHashAt, writeScopeRows, REQUIRED_PACK_FILES } = require('../scripts/release-gate');
+const { parseTag, auditPackFiles, treeHashAt, writeScopeRows, declaresPath, REQUIRED_PACK_FILES } = require('../scripts/release-gate');
 
 const ROOT = path.join(__dirname, '..');
 const GATE = path.join(ROOT, 'scripts', 'release-gate.js');
@@ -134,6 +134,24 @@ describe('write-scope table reading', () => {
 
   test('a document without the section has no rows', () => {
     expect(writeScopeRows('# 别的文档\n\n| a | b |\n')).toEqual([]);
+  });
+});
+
+describe('write-scope path matching', () => {
+  // `.jiahao-evidence` is a prefix of `.jiahao-evidence.keys` / `.lock` /
+  // `.legacy.bak`. A plain substring test would let a table that dropped the
+  // evidence-directory row pass on a keys row, which is the one thing this
+  // check exists to catch.
+  test('a longer path that starts with the declared one does not declare it', () => {
+    expect(declaresPath('| x | `<config>/.jiahao-evidence.keys` |', '.jiahao-evidence')).toBe(false);
+    expect(declaresPath('| x | `<config>/.jiahao-evidence.lock/` |', '.jiahao-evidence')).toBe(false);
+    expect(declaresPath('| x | `<config>/.jiahao-evidence/` |', '.jiahao-evidence')).toBe(true);
+  });
+
+  test('a declared path still matches when the next character is punctuation', () => {
+    expect(declaresPath('| x | `<config>/.jiahao-sentinel.<hook>` |', '.jiahao-sentinel.')).toBe(true);
+    expect(declaresPath('| x | `<config>/private/bench-corpus/*` |', 'private/bench-corpus')).toBe(true);
+    expect(declaresPath('| x | `<host>/skills/jiahao/SKILL.md` |', 'skills/jiahao/SKILL.md')).toBe(true);
   });
 });
 
