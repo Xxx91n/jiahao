@@ -1,0 +1,18 @@
+# shell: Git Bash
+# project-scoped install exists from upgrade-skill-project.txt
+$ npx skills remove jiahao -y
+[?25l│
+◇  Found 1 unique installed skill(s)
+[?25h[?25l│
+◇  Removal process complete
+[?25h│
+◆  [32mSuccessfully removed 1 skill(s)[39m
+
+│
+└  [32mDone![39m
+
+Assertion failed: !(handle->flags & UV_HANDLE_CLOSING), file src\win\async.c, line 76
+exit=127
+
+remaining file:
+ls: cannot access '.claude/skills/jiahao/SKILL.md': No such file or directory

@@ -120,11 +120,12 @@ claude plugin update jiahao@jiahao
 `v0.2.0` 是第一个 tag，没有更早的发布可以退回；回滚就是卸载：
 
 ```bash
-npx skills remove jiahao -g -y          # 文件被删掉；CLI 随后在本机 Windows 上崩了一次（libuv assertion，exit 127）
+npx skills remove jiahao -g -y          # 全局安装；文件被删掉，CLI 随后崩一次（exit 127）
+npx skills remove jiahao -y             # 项目级安装（在项目根目录执行）；同样删除后 exit 127
 claude plugin uninstall jiahao@jiahao   # exit 0
 claude plugin marketplace remove jiahao # exit 0
 ```
 
-`skills remove` 的崩溃发生在删除完成之后，与 jiahao 无关，但退出码不是 0，脚本里不能把它当成功信号。三条命令的完整输出与退出码：[skills-remove-reinstall.txt](evidence/v0.2.0/skills-remove-reinstall.txt)、[uninstall-plugin.txt](evidence/v0.2.0/uninstall-plugin.txt)；规则版移除后已用安装命令重装，`sha256` 仍是 `1ff7e45d…`。
+`skills remove` 的崩溃发生在删除完成之后，与 jiahao 无关，但退出码不是 0，脚本里不能把它当成功信号。四条命令的完整输出与退出码：[skills-remove-reinstall.txt](evidence/v0.2.0/skills-remove-reinstall.txt)、[skills-remove-project.txt](evidence/v0.2.0/skills-remove-project.txt)、[uninstall-plugin.txt](evidence/v0.2.0/uninstall-plugin.txt)；规则版全局移除后已用安装命令重装，`sha256` 仍是 `1ff7e45d…`。
 
 用户配置目录里的 `.jiahao-active`、`.jiahao-evidence/` 等运行时状态不在安装目录里，卸载不会删；需要清掉时由人自己删。
