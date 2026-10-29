@@ -244,26 +244,36 @@ test('check-drift passes on the committed tree', () => {
   // exit 0 = pass
 });
 
-// #66: the whole suite used to rerun the generator; now only temp directories
-// are written. Proof: plant a hand edit in a workspace artifact, run every suite
-// except this file in a child jest process, and the edit is still there. This
-// file hosts the sentinel and the --check tests that read workspace bytes, so it
-// runs in this process instead of the child (a child would recurse). The marker
-// sits on the Claude Code README because no other suite reads that file's bytes.
-test('a hand edit in a workspace artifact survives the suite', () => {
+// #66: the suites that used to rerun the generator now write temp directories
+// only. Proof: plant a hand edit in a workspace artifact, run those suites in a
+// child jest process, and the edit is still there afterwards.
+//
+// The child runs only the two former offenders next to this file: nesting the
+// whole suite put two copies of hooks.test.js's evidence chain in flight and
+// flaked (measured once in five full runs), and adapters.test.js cannot spawn
+// itself without recursing. The write-mode scan below covers every suite,
+// including this one.
+//
+// The marker sits on the Claude Code README because no other suite reads that
+// file's bytes: packaging packs the tree but asserts paths, and the --check
+// tests that do read workspace bytes are above, in this file.
+test('a hand edit in a workspace artifact survives the generation suites', () => {
   const rel = 'adapters/claude-code/README.md';
   const abs = path.join(root, rel);
   const original = fs.readFileSync(abs, 'utf8');
   const marker = String.fromCharCode(10) + '<!-- hand edit sentinel: npm test must not rewrite this file -->' + String.fromCharCode(10);
+  // The child re-runs suites whose temp roots are fixed names under os.tmpdir()
+  // (dual-profile, and every suite that reuses them); sharing the outer root
+  // would let two copies fight over one config dir. Point it elsewhere.
+  const childTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-child-'));
   fs.writeFileSync(abs, original + marker, 'utf8');
   try {
-    const env = Object.assign({}, process.env);
+    const env = Object.assign({}, process.env, { TMPDIR: childTmp, TMP: childTmp, TEMP: childTmp });
     delete env.JEST_WORKER_ID;
     const res = spawnSync(process.execPath, [
-      require.resolve('jest/bin/jest'), '--silent',
-      // replaces the config value, so the built-in ignores are repeated here
-      '--testPathIgnorePatterns', 'node_modules|\\.scratch|adapters\\.test\\.js',
-    ], { cwd: root, env: env, encoding: 'utf8', timeout: 300000 });
+      require.resolve('jest/bin/jest'), '--silent', '--runTestsByPath',
+      'test/dual-profile.test.js', 'test/codebuddy-adapter.test.js',
+    ], { cwd: root, env: env, encoding: 'utf8', timeout: 120000 });
     if (res.status !== 0) {
       throw new Error('child jest failed (status ' + res.status + (res.error ? ', ' + res.error.message : '') + '):' +
         String.fromCharCode(10) + String((res.stderr || res.stdout) || '').slice(-4000));
@@ -271,8 +281,9 @@ test('a hand edit in a workspace artifact survives the suite', () => {
     expect(fs.readFileSync(abs, 'utf8')).toBe(original + marker);
   } finally {
     fs.writeFileSync(abs, original, 'utf8');
+    fs.rmSync(childTmp, { recursive: true, force: true });
   }
-}, 300000);
+}, 120000);
 
 // The sentinel proves the whole suite stays scoped. This proves no suite names
 // the write path at all: write mode is the generator file without --check, or
