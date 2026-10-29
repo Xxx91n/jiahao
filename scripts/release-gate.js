@@ -446,7 +446,11 @@ function main() {
   evidence.trees = ctx.trees;
 
   if (opts.evidence) {
-    fs.writeFileSync(path.resolve(process.cwd(), opts.evidence), JSON.stringify(evidence, null, 2) + '\n', 'utf8');
+    // The artifact step creates the directory when it gets that far; an earlier
+    // failure must still leave a record, not a stack trace.
+    const evidencePath = path.resolve(process.cwd(), opts.evidence);
+    fs.mkdirSync(path.dirname(evidencePath), { recursive: true });
+    fs.writeFileSync(evidencePath, JSON.stringify(evidence, null, 2) + '\n', 'utf8');
   }
 
   if (!evidence.ok) {
