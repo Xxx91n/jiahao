@@ -23,6 +23,10 @@ beforeAll(() => {
   bundleDir = materializeBundle(generated, BUNDLE);
 });
 
+afterAll(() => {
+  fs.rmSync(bundleDir, { recursive: true, force: true });
+});
+
 function mkConfigDir(files) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-cb-'));
   fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full');
