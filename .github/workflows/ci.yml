@@ -98,7 +98,7 @@ jobs:
           node -e '
             const fs = require("fs");
             const e = JSON.parse(fs.readFileSync("'"$EVIDENCE"'", "utf8"));
-            const lines = ["## Release gate " + (e.ok ? "GREEN" : (e.partial ? "PARTIAL (not a release verdict)" : "RED")), "", "| step | result | ms |", "| --- | --- | --- |"];
+            const lines = ["## Release gate " + (e.status === "green" ? "GREEN" : (e.status === "partial" ? "PARTIAL (not a release verdict)" : "RED")), "", "| step | result | ms |", "| --- | --- | --- |"];
             for (const s of e.steps) lines.push("| " + s.name + " | " + (s.ok ? "pass" : "FAIL") + " | " + s.ms + " |");
             if (e.artifact) lines.push("", e.artifact.file + " - sha256 `" + e.artifact.sha256 + "`", "");
             if (e.trees) for (const [dir, hash] of Object.entries(e.trees)) lines.push("- tree `" + dir + "` " + hash);

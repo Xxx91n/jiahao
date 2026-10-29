@@ -12,7 +12,7 @@ const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-const { parseTag, auditPackFiles, treeHashAt, REQUIRED_PACK_FILES } = require('../scripts/release-gate');
+const { parseTag, auditPackFiles, treeHashAt, writeScopeRows, REQUIRED_PACK_FILES } = require('../scripts/release-gate');
 
 const ROOT = path.join(__dirname, '..');
 const GATE = path.join(ROOT, 'scripts', 'release-gate.js');
@@ -108,6 +108,35 @@ describe('tree hash', () => {
   });
 });
 
+describe('write-scope table reading', () => {
+  // The declaration is the table, not the prose: a path named in a sentence
+  // elsewhere in the document says nothing about where it gets written.
+  test('only rows under ## 写入范围 count', () => {
+    const doc = [
+      '## 写入范围',
+      '',
+      '这一节前面的说明提到 .jiahao-profile，但那不是声明。',
+      '',
+      '| 谁写 | 写什么 |',
+      '| --- | --- |',
+      '| install | `<config>/.jiahao-profile` |',
+      '',
+      '## 无网络外呼',
+      '',
+      '正文也可以提到 .jiahao-sentinel.，同样不算。',
+      '',
+    ].join('\n');
+    const rows = writeScopeRows(doc);
+    expect(rows.length).toBe(3); // header + separator + one data row
+    expect(rows.some((r) => r.includes('.jiahao-profile'))).toBe(true);
+    expect(rows.some((r) => r.includes('.jiahao-sentinel.'))).toBe(false);
+  });
+
+  test('a document without the section has no rows', () => {
+    expect(writeScopeRows('# 别的文档\n\n| a | b |\n')).toEqual([]);
+  });
+});
+
 describe('CLI', () => {
   test('no tag is a usage error, not a silent skip', () => {
     const r = gate(['--only', 'metadata']);
@@ -151,6 +180,7 @@ describe('CLI', () => {
       expect(r.stdout).toContain('PARTIAL GREEN');
       expect(r.stdout).toContain('not a release verdict');
       const ev = JSON.parse(fs.readFileSync(evidenceFile, 'utf8'));
+      expect(ev.status).toBe('partial');
       expect(ev.ok).toBe(false);
       expect(ev.partial).toEqual(['declarations']);
       expect(ev.declarations.writeScope).toBe('docs/release.md#写入范围');
