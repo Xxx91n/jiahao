@@ -25,7 +25,9 @@
 //   node scripts/release-gate.js --tag v0.2.0 [--only <step[,step]>] [--evidence <file>]
 // In CI the tag is read from GITHUB_REF_NAME when it names a tag ref.
 //
-// Exit codes: 0 all steps passed, 1 a step failed, 2 usage error.
+// Exit codes: 0 all steps passed (a release verdict); 1 a step failed; 2 usage
+// error; 3 the selected subset passed - an iteration aid, never a release
+// verdict, and the evidence JSON records it as not ok.
 
 const fs = require('fs');
 const os = require('os');
@@ -84,13 +86,15 @@ function parseTag(tag) {
 
 function parseArgs(argv) {
   const out = { tag: null, only: null, evidence: null, artifactDir: null };
+  const VALUE_FLAGS = { '--tag': 'tag', '--only': 'only', '--evidence': 'evidence', '--artifact-dir': 'artifactDir' };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
-    if (a === '--tag') out.tag = argv[++i];
-    else if (a === '--only') out.only = argv[++i].split(',').map(s => s.trim()).filter(Boolean);
-    else if (a === '--evidence') out.evidence = argv[++i];
-    else if (a === '--artifact-dir') out.artifactDir = argv[++i];
-    else throw new Error('unknown argument: ' + a);
+    const key = VALUE_FLAGS[a];
+    if (!key) throw new Error('unknown argument: ' + a);
+    const value = argv[i + 1];
+    if (value === undefined || value.startsWith('--')) throw new Error('option ' + a + ' needs a value');
+    i++;
+    out[key] = a === '--only' ? value.split(',').map(s => s.trim()).filter(Boolean) : value;
   }
   return out;
 }
@@ -111,7 +115,7 @@ function runCommand(cmd, args, opts) {
     env: process.env,
   }, opts || {});
   const res = spawnSync(cmd, args, options);
-  if (res.error) throw new Error(cmd + ' could not start: ' + res.error.message);
+  if (res.error) throw new Error(cmd + ' did not complete: ' + res.error.message);
   return { status: res.status, stdout: res.stdout || '', stderr: res.stderr || '' };
 }
 
@@ -405,7 +409,9 @@ step('egress', 'shipped code makes no network call', () => {
 
   for (const rel of PLUGIN_MANIFESTS) {
     const hookMapPath = path.join(pluginRootOf(rel), 'hooks', 'hooks.json');
-    if (!fs.existsSync(hookMapPath)) continue;
+    // A bundle without its hook map is not a plugin; skipping the check would
+    // let `--only egress` report green over a bundle that has no commands.
+    if (!fs.existsSync(hookMapPath)) throw new Error(rel + ' has no hooks/hooks.json beside it');
     const map = JSON.parse(fs.readFileSync(hookMapPath, 'utf8'));
     for (const [event, groups] of Object.entries(map.hooks || {})) {
       for (const group of groups) {
@@ -419,7 +425,7 @@ step('egress', 'shipped code makes no network call', () => {
     }
   }
 
-  return targets.length + ' shipped files scanned: no http/http2/https/net/dns/tls/dgram require, no fetch or https.request, ' +
+  return targets.length + ' install-path files scanned: no http/http2/https/net/dns/tls/dgram require, no fetch or https.request, ' +
     'no install lifecycle script, every hook command resolves inside its bundle';
 });
 
@@ -430,14 +436,28 @@ const DECLARED_WRITE_PATHS = [
   '.jiahao-profile',
   '.jiahao-active',
   '.jiahao-evidence',
+  '.jiahao-evidence.keys',
+  '.jiahao-evidence.lock',
+  '.jiahao-evidence.legacy.bak',
   '.jiahao-persistence.json',
   '.jiahao-anchor.json',
   '.jiahao-pretool.jsonl',
   '.jiahao-instructions.jsonl',
+  '.jiahao-calibration.jsonl',
+  '.jiahao-sentinel.',
   'private/phrases.json',
   'private/bench-corpus',
   'skills/jiahao/SKILL.md',
 ];
+
+// The write-scope table itself, row by row: a path mentioned in prose elsewhere
+// in the document is not a declaration of where that path gets written.
+function writeScopeRows(text) {
+  const afterHeading = text.split('## 写入范围')[1];
+  if (afterHeading === undefined) return [];
+  const section = afterHeading.split('\n## ')[0];
+  return section.split('\n').map(l => l.trim()).filter(l => l.startsWith('|'));
+}
 
 step('declarations', 'write scope and no-egress statements are present', () => {
   const docRel = 'docs/release.md';
@@ -446,13 +466,16 @@ step('declarations', 'write scope and no-egress statements are present', () => {
   const text = fs.readFileSync(full, 'utf8');
   const missing = ['## 写入范围', '## 无网络外呼'].filter(h => !text.includes(h));
   if (missing.length) throw new Error(docRel + ' is missing required sections: ' + missing.join(', '));
-  const undeclared = DECLARED_WRITE_PATHS.filter(p => !text.includes(p));
+
+  const rows = writeScopeRows(text);
+  if (rows.length < 3) throw new Error(docRel + ' has no write-scope table rows under ## 写入范围');
+  const undeclared = DECLARED_WRITE_PATHS.filter(p => !rows.some(row => row.includes(p)));
   if (undeclared.length) {
     throw new Error(docRel + ' write-scope table omits paths the shipped code writes: ' + undeclared.join(', '));
   }
   const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
   if (!readme.includes(docRel)) throw new Error('README.md does not link ' + docRel + '; the declaration must be reachable from the install instructions');
-  return docRel + ' declares ' + DECLARED_WRITE_PATHS.length + ' write paths + 无网络外呼; README.md links it';
+  return docRel + ' table declares ' + DECLARED_WRITE_PATHS.length + ' write paths in ' + rows.length + ' rows + 无网络外呼; README.md links it';
 });
 
 // ---- driver --------------------------------------------------------------
@@ -495,7 +518,7 @@ function main() {
     artifactDir: opts.artifactDir ? path.resolve(process.cwd(), opts.artifactDir) : null,
   };
   const selected = steps.filter(s => !opts.only || opts.only.includes(s.name));
-  const evidence = { tag: tag, version: parseTag(tag), commit: null, steps: [], artifact: null, trees: null, declarations: { writeScope: 'docs/release.md#写入范围', noEgress: 'docs/release.md#无网络外呼' } };
+  const evidence = { tag: tag, version: parseTag(tag), commit: null, partial: opts.only || null, steps: [], artifact: null, trees: null, declarations: null };
   let failed = null;
 
   for (const s of selected) {
@@ -517,10 +540,16 @@ function main() {
   }
 
   const notRun = selected.filter(s => !evidence.steps.some(e => e.name === s.name)).map(s => s.name + ' [' + s.title + ']');
-  evidence.ok = !failed && notRun.length === 0;
+  // `ok` is true only for a complete run: a subset run is an iteration aid, and
+  // evidence a Release might quote must never say "green" about it.
+  evidence.ok = !failed && notRun.length === 0 && !opts.only;
   evidence.commit = ctx.commit;
   evidence.artifact = ctx.artifact;
   evidence.trees = ctx.trees;
+  // Only a step that ran can declare anything.
+  if (evidence.steps.some(s => s.name === 'declarations' && s.ok)) {
+    evidence.declarations = { writeScope: 'docs/release.md#写入范围', noEgress: 'docs/release.md#无网络外呼' };
+  }
 
   if (opts.evidence) {
     // The artifact step creates the directory when it gets that far; an earlier
@@ -530,17 +559,22 @@ function main() {
     fs.writeFileSync(evidencePath, JSON.stringify(evidence, null, 2) + '\n', 'utf8');
   }
 
-  if (!evidence.ok) {
+  if (failed || notRun.length) {
     if (notRun.length) console.error('\nNOT RUN after ' + failed + ': ' + notRun.join(', '));
     console.error('\nRELEASE GATE RED' + (opts.only ? ' (partial run: --only ' + opts.only.join(',') + ')' : ''));
     process.exit(1);
   }
 
-  // A subset run is an iteration aid, never a release verdict: it says so on
-  // the line itself, because "GREEN" is the word a release gets judged by.
-  const partial = opts.only ? ' (partial run: --only ' + opts.only.join(',') + ')' : '';
-  console.log('\nRELEASE GATE ' + (opts.only ? 'PARTIAL GREEN — not a release verdict' : 'GREEN') +
-    ' — ' + tag + ' (' + (ctx.commit ? ctx.commit.slice(0, 12) : 'commit not read') + ')' + partial);
+  const summary = ' — ' + tag + ' (' + (ctx.commit ? ctx.commit.slice(0, 12) : 'commit not read') + ')';
+  if (opts.only) {
+    // Exit 3, not 0: a wrapper that only reads the exit status must not mistake
+    // a subset run for a release verdict.
+    console.log('\nRELEASE GATE PARTIAL GREEN — not a release verdict (--only ' + opts.only.join(',') + ')' + summary);
+    console.log('the release verdict needs all ' + steps.length + ' steps: node scripts/release-gate.js --tag ' + tag);
+    process.exit(3);
+  }
+
+  console.log('\nRELEASE GATE GREEN' + summary);
   if (ctx.artifact) {
     console.log('artifact  ' + ctx.artifact.file + '  ' + ctx.artifact.bytes + ' B');
     console.log('sha256    ' + ctx.artifact.sha256);
