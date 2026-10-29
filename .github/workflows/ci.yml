@@ -47,11 +47,11 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm install --ignore-scripts
-      # The generator gates run before the suite: test/adapters.test.js and two
-      # other suites execute scripts/build-adapters.js, which rewrites every
-      # generated file in the working tree. Run after them, check:adapters would
-      # compare freshly generated output against itself and report clean even if
-      # a committed generated file had been hand-edited.
+      # The generator gates run before the suite: test/adapters.test.js and
+      # test/dual-profile.test.js execute scripts/build-adapters.js, which
+      # rewrites every generated file in the working tree. Run after them,
+      # check:adapters would compare freshly generated output against itself and
+      # report clean even if a committed generated file had been hand-edited.
       - run: npm run check:adapters
       - run: npm run check:drift
       - run: npm test
@@ -73,10 +73,17 @@ jobs:
           node-version: 20
           cache: npm
       # The branch job skips tag refs, so the whitespace check it carries has to
-      # exist here too - scoped to the tagged commit, which is the only range a
-      # tag build has. git show --check exits non-zero on a whitespace error.
+      # exist here too. HEAD^1 rather than `git show --check`: on a merge commit
+      # `git show` runs a combined diff and reports nothing, so a whitespace
+      # error merged in would pass. A tag on a parentless commit has no range to
+      # check - fail with that reason instead of diffing all of history.
       - name: Check whitespace on the tagged commit
-        run: git show --check --format= --no-color HEAD
+        run: |
+          if ! git rev-parse -q --verify 'HEAD^1^{commit}' >/dev/null; then
+            echo "::error::tagged commit $GITHUB_SHA has no parent; there is no changed-line range to check"
+            exit 1
+          fi
+          git diff --check HEAD^1 HEAD
       - run: npm ci --ignore-scripts
       - name: Release gate
         run: npm run release:gate -- --evidence release-artifacts/release-evidence.json --artifact-dir release-artifacts
@@ -91,7 +98,7 @@ jobs:
           node -e '
             const fs = require("fs");
             const e = JSON.parse(fs.readFileSync("'"$EVIDENCE"'", "utf8"));
-            const lines = ["## Release gate " + (e.ok ? "GREEN" : "RED"), "", "| step | result | ms |", "| --- | --- | --- |"];
+            const lines = ["## Release gate " + (e.ok ? "GREEN" : (e.partial ? "PARTIAL (not a release verdict)" : "RED")), "", "| step | result | ms |", "| --- | --- | --- |"];
             for (const s of e.steps) lines.push("| " + s.name + " | " + (s.ok ? "pass" : "FAIL") + " | " + s.ms + " |");
             if (e.artifact) lines.push("", e.artifact.file + " - sha256 `" + e.artifact.sha256 + "`", "");
             if (e.trees) for (const [dir, hash] of Object.entries(e.trees)) lines.push("- tree `" + dir + "` " + hash);

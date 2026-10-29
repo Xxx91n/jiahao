@@ -12,7 +12,7 @@ npm run release:gate -- --tag v0.2.0
 
 tag 推送时 CI 跑同一条命令（`.github/workflows/ci.yml` 的 `release-gate` job），tag 从 `GITHUB_REF_NAME` 读，产物和证据落在 `release-artifacts/` 并作为构建产物上传。
 
-本地想只跑某几步用 `--only metadata,generated`；想把证据落盘用 `--evidence release-evidence.json`；想把 tarball 留下载给发布用 `--artifact-dir release-artifacts`。
+本地想只跑某几步用 `--only metadata,generated`（这种部分运行退出码是 3，不是 0：只跑了几步不算发布结论）；想把证据落盘用 `--evidence release-artifacts/release-evidence.json`（别写到仓库根：那是未忽略的未跟踪文件，下一次运行的「工作区干净」检查会红）；想把 tarball 留下载给发布用 `--artifact-dir release-artifacts`。
 
 ## 门禁清单
 
@@ -25,11 +25,11 @@ tag 推送时 CI 跑同一条命令（`.github/workflows/ci.yml` 的 `release-ga
 | `artifact` | 跑测试后先确认工作区仍然干净；再打两次 `npm pack`：必须包含 / 必须排除逐条核过，两次字节相同才算可复现，算 `sha256`，算三个目录的树哈希 | 包内容正确、产物附 SHA256、可复现 |
 | `install` | `install.js init --dry-run` 退出 0、打印目标路径；临时配置目录和临时工作目录里都没有落文件 | 安装 dry-run |
 | `egress` | 扫描会随安装跑起来的代码：没有 `http/http2/https/net/dns/tls/dgram` 的 require、没有 `fetch(` / `https.request`；`package.json` 没有安装生命周期脚本；两个插件的每条钩子命令都指向 `${CLAUDE_PLUGIN_ROOT}/hooks/*.js` | 无网络外呼 |
-| `declarations` | 本文件带着「写入范围」「无网络外呼」两节；写入范围表逐个列出代码会写的路径；README 链到这里 | 写入范围声明 |
+| `declarations` | 本文件带着「写入范围」「无网络外呼」两节；写入范围表的行里逐个出现代码会写的路径；README 链到这里 | 写入范围声明 |
 
-顺序是刻意的：生成检查排在 `npm test` 前面。三个用例会在跑测试时重跑生成器、把 `adapters/` 与 `skills/` 重写一遍（#66 在收），跑完再查生成物就等于拿生成结果比自己。`artifact` 因此在打包前再看一次 `git status`：如果测试真的改动了已跟踪文件，这棵树已经不是 tag 那棵树，不能拿来算哈希。
+顺序是刻意的：生成检查排在 `npm test` 前面。`test/adapters.test.js` 与 `test/dual-profile.test.js` 会在跑测试时重跑生成器、把 `adapters/` 与 `skills/` 重写一遍（#66 在收），跑完再查生成物就等于拿生成结果比自己。`artifact` 因此在打包前再看一次 `git status`：如果测试真的改动了已跟踪文件，这棵树已经不是 tag 那棵树，不能拿来算哈希。
 
-tag 的 CI job 在门禁之前还跑一条 `git show --check HEAD`：分支 job 因为跳过 tag 而不跑那条白空格检查，这条补上。
+tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD`：分支 job 因为跳过 tag 而不跑白空格检查，这条补上。（用 `HEAD^1` 而不是 `git show --check`：合并提交上 `git show` 是组合 diff，什么都不报。）
 
 ## 产物与 SHA256
 
@@ -62,7 +62,11 @@ trees     skills/jiahao, adapters/codebuddy, adapters/claude-code
 | 钩子 SessionStart | `<config>/.jiahao-active`（不存在时写 `full`） | 每个会话开始 |
 | 钩子 UserPromptSubmit | `<config>/.jiahao-active` | 模式命令（`lite\|full\|ultra`） |
 | 钩子 Stop / SubagentStop | `<config>/.jiahao-evidence/*.jsonl`、`.jiahao-evidence.keys`、`.jiahao-anchor.json` | 每次判定 |
+| 同上 | `<config>/.jiahao-evidence.lock/` | 每次写证据期间的短锁，写完即删 |
+| 同上 | `<config>/.jiahao-evidence.legacy.bak*` | 只在本地存在旧的单文件证据链、需要迁移时写 |
+| 钩子运行期 | `<config>/.jiahao-sentinel.<hook>`、`<config>/.jiahao-sentinel.<hook>.lock/` | 钩子开始到结束之间存在；正常结束删掉，被宿主杀掉则由下一次 SessionEnd 清扫回收 |
 | 钩子 PreToolUse / InstructionsLoaded | `<config>/.jiahao-pretool.jsonl`、`<config>/.jiahao-instructions.jsonl` | 每次命中 |
+| 校准记录 | `<config>/.jiahao-calibration.jsonl` | 校准点被记录时（当前运行时没有调用点，写入方是 `src/calibration.js` 的导出函数） |
 | 宿主（插件版） | 宿主自己的插件目录 | `claude plugin install` / `codebuddy plugin install` |
 | 宿主（规则版） | 宿主自己的技能目录，落地 `<host>/skills/jiahao/SKILL.md` | `npx skills add` |
 
@@ -70,7 +74,7 @@ trees     skills/jiahao, adapters/codebuddy, adapters/claude-code
 
 ## 无网络外呼
 
-「外呼」就是往外发网络请求。这一节声明：**jiahao 自己的代码不联网。** 安装不下载、不执行任何远程脚本：`node scripts/install.js` 是仓库里的本地文件，两个插件目录是本地目录，复制即可。
+「外呼」就是往外发网络请求。这一节声明：**装到用户机器上会跑起来的那部分 jiahao 代码不联网**——装完之后的钩子、运行时、安装器、MCP 服务端，都不发起任何网络请求。安装也不下载、不执行远程脚本：`node scripts/install.js` 是仓库里的本地文件，两个插件目录是本地目录，复制即可。
 
 这条声明由门禁的 `egress` 步骤每次重跑，不是一次性的口头保证：
 
@@ -79,11 +83,11 @@ trees     skills/jiahao, adapters/codebuddy, adapters/claude-code
 - 扫描如果连 `scripts/install.js`、`hooks/jiahao-verdict-gate.js`、`src/evidence-log.js`、`jiahao-mcp/index.js` 都没扫到，直接红——扫不到东西的检查不算检查。
 - `package.json` 出现 `preinstall`/`install`/`postinstall`/`prepare`/`prepack` 即红；插件钩子命令只要不是包内 `hooks/*.js` 即红。
 
-维护者工具（门禁脚本、生成器、漂移检查）不在扫描范围内：它们不是安装路径。已知边界：静态正则抓不到动态 `require()` 拼出来的模块名。
+维护者工具（门禁脚本、生成器、漂移检查）不在扫描范围内：它们不是安装路径，也不会在用户机器上运行。已知边界：静态正则抓不到动态 `require()` 拼出来的模块名。
 
 两条已披露的例外，都不在 jiahao 的代码里：
 
-1. 规则版的安装命令 `npx skills add` 会由 npx 到 npm 源取第三方 CLI（`skills`），再由它拉本仓库。这是宿主的安装工具，不是我们随包带的脚本。
+1. 规则版的安装命令 `npx skills add` 会由 npx 到 npm 源取第三方 CLI（`skills`），再由它拉本仓库。这是宿主的安装工具，不是我们随包带的脚本。想完全不走网络，可以直接把 `skills/jiahao/SKILL.md` 复制到宿主的技能目录——规则版就是一个纯文本文件。
 2. CodeBuddy 插件的 MCP 服务端（`jiahao-mcp/`）依赖要自己 `npm install --omit=dev`。Claude Code 插件不带 MCP 服务端，没有这一步。
 
 ## 在干净检出上复跑
@@ -96,7 +100,7 @@ npm run release:gate -- --tag v0.2.0
 
 对账点：`RELEASE GATE GREEN` 那行、`sha256`、三个 tree 哈希，应与发布时记录的值逐字相同。
 
-复跑这件事的机器证据有三层：tag 的 CI job 本身就是一次全新检出；门禁对同一棵树连打两次包并比对 `sha256`；本命令让任何人在自己机器上再走一遍，比对上一步打印的数字。
+复跑这件事的机器证据有三层：tag 的 CI job 本身就是一次全新检出；门禁对同一棵树连打两次包并比对 `sha256`；本命令让任何人在自己机器上再走一遍，比对上一步打印的数字。跨检出的比对只能靠人：`#64` 必须把 tag 上那次的 `sha256` 与三个 tree 哈希写进 Release 说明，别人才有东西可比。
 
 ## 已知限制
 
@@ -104,4 +108,6 @@ npm run release:gate -- --tag v0.2.0
 - `npm test` 会在工作区重写生成物（#66）。门禁把生成检查放在测试前，打包前再查一次工作区是否仍干净；本地跑完 `git status` 可能不干净，提交前要看清改了什么。
 - 不发布到 npm：tarball 是发布产物和复跑证据，不是分发渠道。规则版走 git tag，插件版走宿主原生命令。
 - 门禁不调用官方 Agent Skills 规范校验器，也不跑标准 CLI 的真实安装；那两条在 #67。
+- 跨机器可复现没有自动断言：门禁只能证「同一棵树两次打包字节相同」，两次不同检出之间的比对落在 `#64` 记录的对账值上。
 - 「必须排除」这一半今天不会触发：`files` 是白名单，`private/`、`bench/`、`docs/research/` 本来就不在里面。它守的是以后有人把白名单放宽（比如加 `bench/`、把 `docs/agents/` 换成 `docs/`）的那一天。
+- 写入范围表列的是代码事实，但门禁只检查表里有没有这些字符串，判断不了「某个新钩子开始写新文件」——那种改动要人改表，`release-gate.js` 的 `DECLARED_WRITE_PATHS` 与表一起改。

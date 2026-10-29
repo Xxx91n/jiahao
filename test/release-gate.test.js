@@ -133,4 +133,29 @@ describe('CLI', () => {
     expect(r.status).toBe(2);
     expect(r.stderr).toContain('unknown step(s)');
   });
+
+  test('a value flag without a value is a usage error, not a crash', () => {
+    const r = gate(['--only']);
+    expect(r.status).toBe(2);
+    expect(r.stderr).toContain('needs a value');
+  });
+
+  // A subset run is an iteration aid. Both the exit status and the evidence
+  // file have to say that, because a Release quote reads the file, not the log.
+  test('a passing subset exits 3 and records itself as not ok', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-partial-'));
+    try {
+      const evidenceFile = path.join(dir, 'evidence.json');
+      const r = gate(['--tag', 'v0.0.0', '--only', 'declarations', '--evidence', evidenceFile]);
+      expect(r.status).toBe(3);
+      expect(r.stdout).toContain('PARTIAL GREEN');
+      expect(r.stdout).toContain('not a release verdict');
+      const ev = JSON.parse(fs.readFileSync(evidenceFile, 'utf8'));
+      expect(ev.ok).toBe(false);
+      expect(ev.partial).toEqual(['declarations']);
+      expect(ev.declarations.writeScope).toBe('docs/release.md#写入范围');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });
