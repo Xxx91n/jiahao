@@ -28,6 +28,32 @@ if (!fs.existsSync(flagPath())) {
 const profile = readProfile();
 const isGenerator = profile === 'generator';
 
+// #75: which records the Stop decision is allowed to be made about.
+// The chain is append-only and shared by every session, so scanning all of it
+// let one stale record - a killed hook's sentinel-reconcile coverage:partial,
+// or an enforce-mode high severity - block every later turn forever. Two
+// narrowings, both needed:
+//   - a record attributed to a different session says nothing about this turn;
+//   - a passed human adjudication releases everything before it, which is the
+//     only release for records that carry no session marker.
+// A `fail` verdict deliberately does NOT release: the human agreed the claim
+// was unsupported, so the turn still has to be re-verified.
+// Case A (is there any evidence at all) and the chain-tamper check keep reading
+// the whole chain - narrowing those would under-block.
+function gatingRecords(chain, sessionId) {
+  if (!chain) return null;
+  let releasedAt = -1;
+  for (let i = 0; i < chain.length; i++) {
+    const rec = chain[i];
+    if (rec && rec.kind === 'human_verdict' && rec.verdict === 'pass') releasedAt = i;
+  }
+  return chain.filter(function (rec, i) {
+    if (i <= releasedAt) return false;
+    if (sessionId && rec && rec.session_id && rec.session_id !== sessionId) return false;
+    return true;
+  });
+}
+
 // dead-man switch (hook-tier hosts): the judge seam re-verification
 // deadline is machine-readable. The state is DERIVED from the content-anchored
 // deadline constants + the append-only reverify ledger tail, never stored --
@@ -145,14 +171,15 @@ process.stdin.on('end', () => {
   }
 
   // ---- Case B: evidence exists — apply profile × severity matrix (D2) --
-  // Find the highest severity on any record in the chain. Records without
-  // a detector field (or with severity === null) are not suspicious.
+  // Find the highest severity among the records this Stop is about. Records
+  // without a detector field (or with severity === null) are not suspicious.
+  const gating = gatingRecords(evidenceChain, parsed.session_id || null);
   let highestSeverity = null;
   let matchedPhrases = [];
   // coverage is orthogonal to severity — scan it even on
   // non-suspicious records (a benign claim on a truncated view still gates).
   let coveragePartial = null;
-  for (const rec of evidenceChain) {
+  for (const rec of gating) {
     // shadow records never enter the severity matrix.
     if (rec && rec.detector && rec.detector.shadow === true) continue;
     if (rec && rec.detector) {

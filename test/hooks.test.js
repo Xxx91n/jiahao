@@ -401,3 +401,123 @@ test('verifier gate surfaces pending escalation count (advisory, exit 0)', () =>
   expect(output).toContain('Pending escalations: 1');
   expect(output).toContain('jiahao resolve');
 });
+
+// ---- #75: the severity/coverage scan is a decision about THIS turn ----
+// Before this, the scan covered the whole append-only chain, so one stale
+// record - a killed hook's sentinel-reconcile coverage:partial, or an enforce
+// pairer-lane high severity - gated every later Stop, and human adjudication
+// could not release it.
+
+const { recordHash } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
+
+function runVerdictGate(payload) {
+  const origDir = process.cwd();
+  process.chdir(path.join(__dirname, '..'));
+  try {
+    const stdout = execSync('echo \'' + JSON.stringify(payload) + '\' | node hooks/jiahao-verdict-gate.js', {
+      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    return { status: 0, stdout };
+  } catch (e) {
+    return { status: e.status, stdout: (e.stdout || '').toString() };
+  } finally {
+    process.chdir(origDir);
+  }
+}
+
+function verifierOn() {
+  fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
+  fs.writeFileSync(TMP + '/.jiahao-profile', 'verifier', 'utf8');
+}
+
+function writeChain(records) {
+  fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify(records), 'utf8');
+}
+
+function highSeverityRecord(prevHash, sessionId) {
+  const extras = { detector: detect('搞定了') };
+  if (sessionId) extras.session_id = sessionId;
+  return createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, prevHash, extras);
+}
+
+// What a killed hook actually leaves behind: nothing suspicious in the claim
+// text, only a degraded view of it.
+function partialCoverageRecord(prevHash, sessionId) {
+  const extras = {
+    detector: {
+      suspicious: false, matched_phrases: [], severity: null, coverage: 'partial',
+      degradation: { kind: 'timeout', detail: { hook: 'jiahao-verdict-gate', phase: 'stdin' } },
+    },
+  };
+  if (sessionId) extras.session_id = sessionId;
+  return createEvidence('sentinel-reconcile', 'sentinel', 'suspect',
+    'hook killed before sentinel.end: jiahao-verdict-gate at phase stdin', null, prevHash, extras);
+}
+
+function humanVerdict(prevHash, verdict) {
+  const rec = {
+    kind: 'human_verdict', reviewer_id: 'alice', verdict,
+    reason: verdict === 'pass'
+      ? 're-ran rung 1 against the migration; the claim holds'
+      : 'diff shows the migration is still missing',
+    corrected_output: null, second_reviewer: null, overturn: false,
+    timestamp: new Date().toISOString(), prev_hash: prevHash,
+  };
+  rec.event_hash = recordHash(rec);
+  return rec;
+}
+
+test('#75: a high-severity record from another session does not gate this Stop', () => {
+  verifierOn();
+  writeChain([highSeverityRecord(null, 'session-old')]);
+  expect(runVerdictGate({ stop_hook_active: false, session_id: 'session-new' }).status).toBe(0);
+});
+
+test('#75: a partial-coverage record from another session does not gate this Stop', () => {
+  verifierOn();
+  writeChain([partialCoverageRecord(null, 'session-old')]);
+  expect(runVerdictGate({ stop_hook_active: false, session_id: 'session-new' }).status).toBe(0);
+});
+
+test('#75: the same records still gate inside their own session', () => {
+  verifierOn();
+  writeChain([highSeverityRecord(null, 'session-a')]);
+  const high = runVerdictGate({ stop_hook_active: false, session_id: 'session-a' });
+  expect(high.status).toBe(2);
+  expect(JSON.parse(high.stdout).reason).toMatch(/high severity/);
+
+  writeChain([partialCoverageRecord(null, 'session-b')]);
+  const partial = runVerdictGate({ stop_hook_active: false, session_id: 'session-b' });
+  expect(partial.status).toBe(2);
+  expect(JSON.parse(partial.stdout).reason).toMatch(/partial coverage/);
+});
+
+test('#75: a passed human verdict releases a stale coverage record', () => {
+  verifierOn();
+  const stale = partialCoverageRecord(null);
+  writeChain([stale]);
+  // unattributed records stay in scope - a host that sends no session_id gets
+  // no free pass, and adjudication is their only release.
+  expect(runVerdictGate({ stop_hook_active: false }).status).toBe(2);
+
+  const pass = humanVerdict(stale.event_hash, 'pass');
+  writeChain([stale, pass]);
+  expect(runVerdictGate({ stop_hook_active: false }).status).toBe(0);
+  // released for good: the adjudication lives on the append-only chain, so the
+  // next Stop sees the same answer.
+  expect(runVerdictGate({ stop_hook_active: false }).status).toBe(0);
+});
+
+test('#75: a passed human verdict releases a stale severity record, a failed one does not', () => {
+  verifierOn();
+  const stale = highSeverityRecord(null);
+  const fail = humanVerdict(stale.event_hash, 'fail');
+  writeChain([stale, fail]);
+  expect(runVerdictGate({ stop_hook_active: false }).status).toBe(2);
+
+  const pass = humanVerdict(fail.event_hash, 'pass');
+  writeChain([stale, fail, pass]);
+  expect(runVerdictGate({ stop_hook_active: false }).status).toBe(0);
+});
+
