@@ -7,21 +7,31 @@
 // step". The full green path needs a real tag and a clean tree, so it runs on
 // the tag build itself (.github/workflows/ci.yml), not in this suite.
 
+const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-const { parseTag, auditPackFiles, treeHash, REQUIRED_PACK_FILES } = require('../scripts/release-gate');
+const { parseTag, auditPackFiles, treeHashAt, REQUIRED_PACK_FILES } = require('../scripts/release-gate');
 
 const ROOT = path.join(__dirname, '..');
 const GATE = path.join(ROOT, 'scripts', 'release-gate.js');
 const pkg = require('../package.json');
 
-function gate(args) {
+function gate(args, extraEnv) {
+  // The gate reads GITHUB_REF_NAME outside of --tag, and this suite runs inside
+  // the tag build (npm test is the gate's own `tests` step). Inherit the rest of
+  // the environment, but never the tag: otherwise "no tag" would silently become
+  // "this tag" and the assertion below would test the opposite of its name.
+  const env = Object.assign({}, process.env, extraEnv || {});
+  delete env.GITHUB_REF_NAME;
+  delete env.GITHUB_REF;
   return spawnSync(process.execPath, [GATE].concat(args), {
     cwd: ROOT,
     encoding: 'utf8',
     timeout: 60000,
     stdio: ['ignore', 'pipe', 'pipe'],
+    env: env,
   });
 }
 
@@ -64,11 +74,37 @@ describe('pack contract', () => {
 });
 
 describe('tree hash', () => {
-  // Sorted path + content hash: the same tree must hash the same twice, and
-  // two different exits must not collide into "unchanged".
-  test('is stable across calls and separates the two bundles', () => {
-    expect(treeHash('skills/jiahao')).toBe(treeHash('skills/jiahao'));
-    expect(treeHash('adapters/codebuddy')).not.toBe(treeHash('adapters/claude-code'));
+  // Sorted path + content hash, exercised on temp directories: reading a repo
+  // tree from disk while another jest suite reruns the generator is the
+  // truncated-read hazard test/skill-dir.test.js documents (38 partial reads in
+  // 51 rebuilds), and the hash itself does not care which directory it reads.
+  const roots = [];
+  const makeTree = (files) => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-tree-'));
+    roots.push(dir);
+    for (const [rel, text] of Object.entries(files)) {
+      const abs = path.join(dir, rel.split('/').join(path.sep));
+      fs.mkdirSync(path.dirname(abs), { recursive: true });
+      fs.writeFileSync(abs, text, 'utf8');
+    }
+    return dir;
+  };
+
+  afterAll(() => {
+    for (const dir of roots) fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  test('is stable across calls and separates different contents', () => {
+    const a = makeTree({ 'SKILL.md': 'body', 'nested/part.json': '{"a":1}' });
+    const b = makeTree({ 'SKILL.md': 'body', 'nested/part.json': '{"a":2}' });
+    expect(treeHashAt(a)).toBe(treeHashAt(a));
+    expect(treeHashAt(a)).not.toBe(treeHashAt(b));
+  });
+
+  test('a renamed path is a different tree, even with identical bytes', () => {
+    const one = makeTree({ 'x/one.txt': 'same' });
+    const two = makeTree({ 'y/one.txt': 'same' });
+    expect(treeHashAt(one)).not.toBe(treeHashAt(two));
   });
 });
 
