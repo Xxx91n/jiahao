@@ -18,7 +18,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { writeHookOutput, detectHost } = require('./jiahao-runtime');
+const { writeHookOutput, detectHost, normalizePayload } = require('./jiahao-runtime');
 const { flagPath, configDir } = require('../src/shared/paths');
 
 const LOG_NAME = '.jiahao-instructions.jsonl';
@@ -38,6 +38,7 @@ process.stdin.on('end', () => {
   clearTimeout(stdinGuard); // stdin arrived; the hang guard has done its job
   let parsed = {};
   try { parsed = JSON.parse(input); } catch (e) { /* fail-open */ }
+  parsed = normalizePayload(parsed);
 
   const pluginRoot = process.env.CODEBUDDY_PLUGIN_ROOT
     || process.env.CLAUDE_PLUGIN_ROOT

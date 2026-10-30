@@ -37,6 +37,8 @@ test('build-adapters generates the retained exits', () => {
       'adapters/codebuddy/hooks/hooks.json',
       'adapters/codebuddy/rules/jiahao-verifier.md',
       'adapters/codebuddy/rules/jiahao-generator.md',
+      'adapters/copilot/plugin.json',
+      'adapters/copilot/hooks/hooks.json',
       'adapters/qoder/README.md',
       'adapters/qoder/rules/jiahao.md',
       'skills/jiahao/SKILL.md',
@@ -44,8 +46,8 @@ test('build-adapters generates the retained exits', () => {
     expected.forEach(rel => {
       expect(fs.existsSync(path.join(dir, rel))).toBe(true);
     });
-    // Everything the generator produced reached the target - not just the eight
-    // exits above - so a writeAll that skips a file is red here.
+    // Everything the generator produced reached the target - not just the
+    // exits listed above - so a writeAll that skips a file is red here.
     emitted.forEach(rel => {
       expect(fs.existsSync(path.join(dir, rel))).toBe(true);
     });
@@ -68,10 +70,12 @@ test('retired adapters are neither emitted nor present', () => {
   const { buildAdapters, RETIRED_HOSTS } = require('../scripts/build-adapters');
   const emitted = Object.keys(buildAdapters());
   // One list, in the generator (check-drift reads the same one). The floor is
-  // what stops the list from being silently emptied instead of honoured. #79
-  // re-admits qoder as a rules-only exit, so the floor drops by one; the
-  // remaining nine still have to be honoured.
-  expect(RETIRED_HOSTS.length).toBeGreaterThanOrEqual(9);
+  // what stops the list from being silently emptied instead of honoured.
+  // copilot left in #78 and qoder in #79 (codex leaves in #77), so eight names
+  // remain. The loop proves none of them is emitted or present; check-drift
+  // refuses a directory for any listed name, and "check-drift passes on the
+  // committed tree" below runs it.
+  expect(RETIRED_HOSTS.length).toBeGreaterThanOrEqual(8);
   for (const name of RETIRED_HOSTS) {
     expect(emitted.some(rel => rel.startsWith('adapters/' + name + '/'))).toBe(false);
     expect(fs.existsSync(path.join(root, 'adapters', name))).toBe(false);

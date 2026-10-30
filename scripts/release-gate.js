@@ -36,7 +36,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { spawnSync } = require('child_process');
 
-const { HOSTS, isRulesOnlyDirectory } = require('./build-adapters');
+const { HOSTS, dialectOf, hookEntryCommands, isRulesOnlyDirectory } = require('./build-adapters');
 
 const root = path.join(__dirname, '..');
 
@@ -56,9 +56,9 @@ const REQUIRED_PACK_FILES = [
   // machine.
   'scripts/resolve.js',
   'skills/jiahao/SKILL.md',
-  ...PLUGIN_HOSTS.map(host => host.dir + '/.claude-plugin/plugin.json'),
+  ...PLUGIN_HOSTS.map(host => host.dir + '/' + dialectOf(host).manifestPath),
   ...RULES_ONLY_HOSTS.map(host => host.dir + '/README.md'),
-  ...HOSTS.filter(host => Object.keys(host.hooks || {}).length > 0).map(host => host.dir + '/hooks/hooks.json'),
+  ...HOSTS.filter(host => Object.keys(host.hooks || {}).length > 0).map(host => host.dir + '/' + dialectOf(host).hookMapPath),
   ...HOSTS.flatMap(host => host.rules.map(rule => host.dir + '/rules/' + rule.file)),
   '.claude-plugin/marketplace.json',
   'docs/release.md',
@@ -71,7 +71,7 @@ const FORBIDDEN_PACK_PREFIXES = ['private/', 'bench/', 'docs/research/'];
 // bundle is easier to name than a tarball diff.
 const HASHED_TREES = ['skills/jiahao', ...HOSTS.map(host => host.dir)];
 
-const PLUGIN_MANIFESTS = PLUGIN_HOSTS.map(host => host.dir + '/.claude-plugin/plugin.json');
+const PLUGIN_MANIFESTS = PLUGIN_HOSTS.map(host => host.dir + '/' + dialectOf(host).manifestPath);
 const MARKETPLACE_MANIFEST = '.claude-plugin/marketplace.json';
 
 // Files that run on a user's machine once jiahao is installed: the installer
@@ -85,9 +85,10 @@ const NETWORK_MODULE = /\brequire\(\s*['"](?:node:)?(?:https?|http2|net|dns|tls|
 const NETWORK_CALL = /(?:\bfetch\s*\(|XMLHttpRequest|https?\.(?:request|get)\s*\()/;
 // Lifecycle scripts would turn `npm install` into "download and execute".
 const FORBIDDEN_LIFECYCLE = ['preinstall', 'install', 'postinstall', 'prepare', 'prepack', 'postpack'];
-// Plugin hook commands must resolve inside the bundle. CodeBuddy additionally
-// expands ${CODEBUDDY_PLUGIN_ROOT}, so both names are accepted.
-const BUNDLED_COMMAND = /^node "?\$\{(?:CLAUDE|CODEBUDDY)_PLUGIN_ROOT\}\/hooks\/[A-Za-z0-9._-]+\.js"?$/;
+// Plugin hook commands must resolve inside the bundle. The spelling of each
+// command field is the host row's dialect (scripts/hosts/*.js), not a second
+// copy here: one pattern per field, and the capture names the path inside the
+// bundle so "the script it runs" can be checked to exist as well.
 
 function parseTag(tag) {
   const m = /^v(\d+\.\d+\.\d+)$/.exec(String(tag || ''));
@@ -419,20 +420,44 @@ step('egress', 'code that runs after install makes no network call', () => {
     // row is deliberate, skipping one that declares events would let
     // `--only egress` report green over a bundle that has no commands.
     if (Object.keys(host.hooks || {}).length === 0) continue;
-    const rel = host.dir + '/.claude-plugin/plugin.json';
-    const hookMapPath = path.join(root, host.dir.split('/').join(path.sep), 'hooks', 'hooks.json');
-    if (!fs.existsSync(hookMapPath)) throw new Error(rel + ' has no hooks/hooks.json beside it');
+    const dialect = dialectOf(host);
+    const rel = host.dir + '/' + dialect.manifestPath;
+    const hookMapPath = path.join(root,
+      host.dir.split('/').join(path.sep), dialect.hookMapPath.split('/').join(path.sep));
+    if (!fs.existsSync(hookMapPath)) throw new Error(rel + ' has no ' + dialect.hookMapPath + ' beside it');
     const map = JSON.parse(fs.readFileSync(hookMapPath, 'utf8'));
-    for (const [event, groups] of Object.entries(map.hooks || {})) {
-      for (const group of groups) {
-        for (const hook of group.hooks || []) {
+    let checked = 0;
+    for (const [event, entries] of Object.entries(map.hooks || {})) {
+      for (const entry of entries) {
+        const commands = hookEntryCommands(entry);
+        if (commands.length === 0) {
+          throw new Error(rel + ' hook ' + event + ' registers no command');
+        }
+        for (const hook of commands) {
           if (hook.type !== 'command') continue;
-          if (!BUNDLED_COMMAND.test(String(hook.command || '').trim())) {
-            throw new Error(rel + ' hook ' + event + ' runs a command outside the bundle: ' + hook.command);
+          // Each field is checked against its own pattern: a bash entry spelled
+          // with the PowerShell variable is a command the host would run in the
+          // wrong shell, not an acceptable variant.
+          for (const field of dialect.commandFields) {
+            const cmd = String(hook[field] || '').trim();
+            const m = dialect.commandPatterns[field].exec(cmd);
+            if (!m) {
+              throw new Error(rel + ' hook ' + event + ' runs a ' + field + ' command outside the bundle: ' + cmd);
+            }
+            if (!fs.existsSync(path.join(root, host.dir.split('/').join(path.sep), m[1].split('/').join(path.sep)))) {
+              throw new Error(rel + ' hook ' + event + ' runs a ' + field + ' command naming a file that is not in the bundle: ' + m[1]);
+            }
           }
+          // Counted only after every field passed, so a row with no command
+          // fields cannot report a checked command without a validated pattern.
+          checked++;
         }
       }
     }
+    // An empty event array, an entry with no commands, or a map of non-command
+    // entries all reach here with nothing checked; the count is of commands that
+    // were actually validated, so every one of those shapes fails closed.
+    if (checked === 0) throw new Error(rel + ' has a hook map with no command entries to check');
   }
 
   return targets.length + ' install-path files scanned: no http/http2/https/net/dns/tls/dgram require, no fetch or https.request, ' +

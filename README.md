@@ -40,7 +40,7 @@ Qoder is a C-tier rules-only exit at [`adapters/qoder/`](adapters/qoder/): one r
 
 ### Plugin version — host-native command, with hooks
 
-CodeBuddy is one of the two plugin bundles (the other is Claude Code, described below):
+CodeBuddy is one of the plugin bundles (the others are Claude Code, described below, and GitHub Copilot CLI):
 
 ```bash
 codebuddy plugin install <path-to>/adapters/codebuddy
@@ -48,7 +48,7 @@ codebuddy plugin install <path-to>/adapters/codebuddy
 
 The plugin ships disabled (`defaultEnabled: false`); enable it after install. Then write the profile with the installer (`node scripts/install.js init -y`), which prints the value it wrote (see Profile). Once enabled, `hooks/hooks.json` wires the verifier enforcement. The bundle ships both profile rule files with `alwaysApply: true`; rule-level profile selection is declared-unverified, and the hook is the enforcement layer. The CLI plugin-install path is documented but declared-unverified; the live-verified fallback is the `.codebuddy/settings.json` merge. Install steps, the hook map, and the full verified / declared-unverified boundary are in [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md). Claude Code is the second plugin bundle: its self-contained bundle lives in [`adapters/claude-code/`](adapters/claude-code/), installed from the repository marketplace with `claude plugin marketplace add Xxx91n/jiahao` and `claude plugin install jiahao@jiahao`. The bundle's README shows the hook map and states what is not yet live-verified.
 
-The codex, copilot, and mcp directories are no longer install exits; the MCP server itself remains at [`jiahao-mcp/`](jiahao-mcp/).
+The codex and mcp directories are no longer install exits; the MCP server itself remains at [`jiahao-mcp/`](jiahao-mcp/). GitHub Copilot CLI is a third self-contained bundle (`copilot plugin install <path-to>/adapters/copilot`) and an **A-tier candidate**: the host documents an `agentStop` block, nobody has watched a real turn get blocked yet, and its README states that boundary along with the camelCase / bash+powershell dialect.
 
 ### Profile
 

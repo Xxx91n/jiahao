@@ -18,7 +18,8 @@ const path = require('path');
 const { isBuiltin } = require('module');
 
 const {
-  buildAdapters, HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds, isRulesOnlyDirectory,
+  buildAdapters, HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds, dialectOf,
+  hookEntryCommands, isRulesOnlyDirectory,
 } = require('../scripts/build-adapters');
 const { hookRegistrationPaths } = require('./helpers/generated-bundle');
 
@@ -29,7 +30,13 @@ const pkgRepository = pkg.repository.url.replace(/^git\+/, '').replace(/\.git$/,
 
 // Bundle-local wiring the generator writes itself; everything else under a
 // bundle directory is vendored from the repository and must be byte-identical.
-const BUNDLE_WIRING = /^(\.claude-plugin\/|rules\/|hooks\/hooks\.json$|\.mcp\.json$|README\.md$)/;
+// The manifest and hook-map paths come from the row's dialect, so a host with a
+// different config schema does not have to pass a Claude-shaped path test.
+function isWiring(dialect, rel) {
+  if (rel === dialect.manifestPath) return true;
+  if (rel === dialect.hookMapPath) return true;
+  return /^(rules\/|\.mcp\.json$|README\.md$)/.test(rel);
+}
 
 function readGenerated(rel) {
   const text = generated[rel];
@@ -84,8 +91,9 @@ function repoClosure(seeds) {
 
 describe.each(HOSTS)('$label exit ($dir)', (host) => {
   const P = host.dir + '/';
+  const dialect = dialectOf(host);
   const events = Object.keys(host.hooks || {});
-  const manifestRel = P + '.claude-plugin/plugin.json';
+  const manifestRel = P + dialect.manifestPath;
   // A rules-only row has no plugin manifest to parse; the shape tests below
   // assert that absence instead.
   const manifest = isRulesOnlyDirectory(host) ? null : JSON.parse(readGenerated(manifestRel));
@@ -99,7 +107,9 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
         return;
       }
       expect(typeof generated[manifestRel]).toBe('string');
-      expect(generated[P + 'plugin.json']).toBeUndefined();
+      const manifests = Object.keys(generated)
+        .filter((rel) => rel.startsWith(P) && /(^|\/)plugin\.json$/.test(rel));
+      expect(manifests).toEqual([manifestRel]);
       for (const rel of [P + 'src/SKILL.md', P + 'src/instrument-identity.json', P + 'README.md']) {
         expect(typeof generated[rel]).toBe('string');
       }
@@ -122,7 +132,7 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
       const vendored = Object.keys(generated)
         .filter((rel) => rel.startsWith(P))
         .map((rel) => rel.slice(P.length))
-        .filter((rel) => !BUNDLE_WIRING.test(rel));
+        .filter((rel) => !isWiring(dialect, rel));
       expect(vendored.sort()).toEqual(Array.from(expected).sort());
     });
 
@@ -154,7 +164,13 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
       expect(manifest.version).toBe(pkg.version);
       expect(manifest.license).toBe(pkg.license);
       expect(manifest.repository).toBe(pkgRepository);
-      expect(manifest.defaultEnabled).toBe(false);
+      // The conservative opt-in flag is declared per dialect: a host that does
+      // not document the field must not be given a key it never reads.
+      if (dialect.defaultEnabledFlag) {
+        expect(manifest.defaultEnabled).toBe(false);
+      } else {
+        expect(manifest.defaultEnabled).toBeUndefined();
+      }
     });
 
     test('every component path it names is emitted, and auto-discovered files are not repeated', () => {
@@ -162,8 +178,8 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
       // A host that does not auto-discover a component has to be told about it
       // in the manifest, or the file never loads - so the key is required, not
       // merely checked when present.
-      if (events.length && !host.autoDiscovered.includes('hooks/hooks.json')) {
-        expect(manifest.hooks).toBe('hooks/hooks.json');
+      if (events.length && !host.autoDiscovered.includes(dialect.hookMapPath)) {
+        expect(manifest.hooks).toBe(dialect.hookMapPath);
       }
       if (host.mcp && !host.autoDiscovered.includes('.mcp.json')) {
         expect(manifest.mcpServers).toBe('.mcp.json');
@@ -183,7 +199,7 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
   describe('hook map', () => {
     if (events.length === 0) {
       test('a rules-only bundle registers no hooks at all', () => {
-        expect(generated[P + 'hooks/hooks.json']).toBeUndefined();
+        expect(generated[P + dialect.hookMapPath]).toBeUndefined();
         expect(Object.keys(generated).filter((rel) => rel.startsWith(P + 'hooks/'))).toEqual([]);
       });
 
@@ -193,7 +209,7 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
       return;
     }
 
-    const cfg = JSON.parse(readGenerated(P + 'hooks/hooks.json'));
+    const cfg = JSON.parse(readGenerated(P + dialect.hookMapPath));
 
     test('registers exactly the host table event set', () => {
       expect(Object.keys(cfg.hooks)).toEqual(events);
@@ -202,26 +218,52 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
     test('every command runs a vendored script through the plugin root, within the timeout budget', () => {
       for (const ev of events) {
         for (const entry of cfg.hooks[ev]) {
-          for (const h of entry.hooks) {
+          const commands = hookEntryCommands(entry);
+          for (const h of commands) {
             expect(h.type).toBe('command');
-            expect(h.timeout).toBe(host.hooks[ev].timeout);
-            expect(h.timeout).toBeLessThanOrEqual(60);
-            const m = /^node "\$\{CLAUDE_PLUGIN_ROOT\}\/(hooks\/[a-z0-9-]+\.js)"$/.exec(h.command);
-            expect(m).not.toBeNull();
-            expect(typeof generated[P + m[1]]).toBe('string');
-            expect(h.command).not.toContain('adapters/');
-            expect(h.command).not.toContain('..');
+            expect(h[dialect.timeoutField]).toBe(host.hooks[ev].timeout);
+            expect(h[dialect.timeoutField]).toBeLessThanOrEqual(60);
+            for (const field of dialect.commandFields) {
+              // The row's own pattern for this field: a host spells a command
+              // its own way, and one pattern per field keeps a wrong-shell
+              // command from passing as a legal variant.
+              const cmd = String(h[field]);
+              const pattern = dialect.commandPatterns[field];
+              expect(pattern instanceof RegExp).toBe(true);
+              const m = pattern.exec(cmd);
+              expect(m).not.toBeNull();
+              expect(typeof generated[P + m[1]]).toBe('string');
+              expect(cmd).not.toContain('adapters/');
+              expect(cmd).not.toContain('..');
+            }
           }
         }
       }
     });
+
+    const allEntries = events.flatMap((ev) => cfg.hooks[ev]);
+    const flatEntries = allEntries.filter((entry) => !Array.isArray(entry.hooks));
+    if (flatEntries.length) {
+      // A flat dialect's entry must carry exactly its command fields plus the
+      // timeout key - a leftover `command` or `timeout` key is the other host's
+      // dialect and would be ignored here. A map mixing both shapes is a defect
+      // of its own, so assert every entry is flat, not just the first event's.
+      test('every flat entry carries exactly the dialect command fields and timeout key', () => {
+        expect(flatEntries.length).toBe(allEntries.length);
+        const allowed = ['type', dialect.timeoutField].concat(dialect.commandFields).sort();
+        for (const entry of flatEntries) {
+          expect(Object.keys(entry).sort()).toEqual(allowed);
+        }
+      });
+    }
 
     test('the turn-end event carries the verdict gate, and every script is a repo hook', () => {
       for (const ev of events) {
         expect(fs.existsSync(path.join(ROOT, 'hooks', host.hooks[ev].script + '.js'))).toBe(true);
       }
       if (host.turnEnd) {
-        const command = cfg.hooks[host.turnEnd][0].hooks[0].command;
+        const h = hookEntryCommands(cfg.hooks[host.turnEnd][0])[0];
+        const command = dialect.commandFields.map((field) => h[field]).join(' ');
         expect(command).toContain('jiahao-verdict-gate.js');
       }
     });
@@ -407,6 +449,40 @@ describe('tier contract', () => {
   test('a row that rewrites a manifest key the emitter pins is rejected', () => {
     const row = Object.assign({}, good, { manifest: { description: 'probe', version: '9.9.9' } });
     expect(hostShapeProblems([row]).join('\n')).toMatch(/must not set version/);
+  });
+
+  test('a dialect that points its manifest or hook map outside the bundle is rejected', () => {
+    const escaping = Object.assign({}, good, {
+      dialect: {
+        manifestPath: '../plugin.json', hookMapPath: 'hooks/hooks.json',
+        timeoutField: 'timeout', commandFields: ['command'],
+        commandPatterns: { command: /^x$/ },
+        emitManifest: () => '', emitHookMap: () => '',
+      },
+    });
+    expect(hostShapeProblems([escaping]).join('\n')).toMatch(/relative \.json path inside the bundle/);
+    const silent = Object.assign({}, good, { dialect: { commandFields: [] } });
+    expect(hostShapeProblems([silent]).join('\n')).toMatch(/relative \.json path|must name its command fields/);
+    // A dialect may only rename paths: the emitters are optional, so a row is
+    // not forced to reimplement a manifest it does not change.
+    const renameOnly = Object.assign({}, good, {
+      dialect: {
+        manifestPath: 'plugin.json', hookMapPath: 'hooks/copilot-hooks.json',
+        timeoutField: 'timeout', commandFields: ['command'],
+        commandPatterns: { command: /^x$/ },
+      },
+    });
+    expect(hostShapeProblems([renameOnly])).toEqual([]);
+    // A renamed command shape without its own emitter would ship the shared
+    // emitter's `command`/`timeout` map, which this host silently skips.
+    const hollow = Object.assign({}, good, {
+      dialect: {
+        manifestPath: '.claude-plugin/plugin.json', hookMapPath: 'hooks/hooks.json',
+        timeoutField: 'timeoutSec', commandFields: ['bash', 'powershell'],
+        commandPatterns: { bash: /^x$/, powershell: /^y$/ },
+      },
+    });
+    expect(hostShapeProblems([hollow]).join('\n')).toMatch(/needs its own emitHookMap/);
   });
 
   test('a rules-only C row is a valid row and ships no hooks', () => {
