@@ -426,9 +426,8 @@ step('egress', 'code that runs after install makes no network call', () => {
       host.dir.split('/').join(path.sep), dialect.hookMapPath.split('/').join(path.sep));
     if (!fs.existsSync(hookMapPath)) throw new Error(rel + ' has no ' + dialect.hookMapPath + ' beside it');
     const map = JSON.parse(fs.readFileSync(hookMapPath, 'utf8'));
-    let entryCount = 0;
+    let checked = 0;
     for (const [event, entries] of Object.entries(map.hooks || {})) {
-      entryCount += entries.length;
       for (const entry of entries) {
         const commands = hookEntryCommands(entry);
         if (commands.length === 0) {
@@ -436,6 +435,7 @@ step('egress', 'code that runs after install makes no network call', () => {
         }
         for (const hook of commands) {
           if (hook.type !== 'command') continue;
+          checked++;
           // Each field is checked against its own pattern: a bash entry spelled
           // with the PowerShell variable is a command the host would run in the
           // wrong shell, not an acceptable variant.
@@ -452,9 +452,10 @@ step('egress', 'code that runs after install makes no network call', () => {
         }
       }
     }
-    // An event registered with an empty array also reaches here with nothing
-    // checked, so the count is taken from the flattened entries, not the keys.
-    if (entryCount === 0) throw new Error(rel + ' has a hook map with no hook entries');
+    // An empty event array, an entry with no commands, or a map of non-command
+    // entries all reach here with nothing checked; the count is of commands that
+    // were actually validated, so every one of those shapes fails closed.
+    if (checked === 0) throw new Error(rel + ' has a hook map with no command entries to check');
   }
 
   return targets.length + ' install-path files scanned: no http/http2/https/net/dns/tls/dgram require, no fetch or https.request, ' +

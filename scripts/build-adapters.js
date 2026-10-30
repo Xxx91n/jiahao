@@ -147,14 +147,14 @@ const HOSTS = [
     provenance: 'GitHub Copilot CLI 1.0.105 (docs.github.com hooks reference + copilot-cli changelog, read 2026-10-30): agentStop {decision:"block"} documented, capped at 8 consecutive blocks; plugin hooks receive PLUGIN_ROOT; no live turn-end block observed',
     // camelCase event names and the bash/powershell pair are this host's
     // dialect; they live in scripts/hosts/copilot.js alone, never in the hook
-    // scripts. subagentStop runs the same gate as agentStop (D5 parity).
+    // scripts. subagentStop is deliberately not wired: the ticket asks for the
+    // turn-end event, and a blocked subagent finish is an unprobed surface (#80).
     dialect: copilotDialect,
     hooks: {
       sessionStart: { script: 'jiahao-activate', timeout: 10 },
       subagentStart: { script: 'jiahao-subagent', timeout: 10 },
       userPromptSubmitted: { script: 'jiahao-mode-tracker', timeout: 10 },
       agentStop: { script: 'jiahao-verdict-gate', timeout: 30 },
-      subagentStop: { script: 'jiahao-verdict-gate', timeout: 30 },
       sessionEnd: { script: 'jiahao-sweep', timeout: 10 },
     },
     manifest: {
@@ -864,7 +864,8 @@ does not claim "it blocks".
    the documented path, not yet probed - see the table below.
 2. Enable the plugin for the repository (\`enabledPlugins\` in
    \`.github/copilot/settings.json\`) or for yourself
-   (\`~/.copilot/settings.json\`).
+   (\`~/.copilot/settings.json\`). The field name and path are documented,
+   not probed - see the table below.
 3. Activate the jiahao profile flag, same as every host. Resolve the config
    directory once (\`CLAUDE_CONFIG_DIR\`, else \`$HOME\`, else \`/tmp\`):
    \`CONFIG="\${CLAUDE_CONFIG_DIR:-\${HOME:-/tmp}}"\`, then
@@ -883,11 +884,10 @@ never a plugin entry. The install path is documented, not live-probed.
 | sessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext |
 | subagentStart | hooks/jiahao-subagent.js | same injection on subagent spawn |
 | userPromptSubmitted | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
-| agentStop | hooks/jiahao-verdict-gate.js | verifier gate: prints \`{decision:"block", reason}\`; the host reads that decision field |
-| subagentStop | hooks/jiahao-verdict-gate.js | same gate on subagent finish (D5 parity) |
+| agentStop | hooks/jiahao-verdict-gate.js | verifier gate: prints \`{decision:"block", reason}\`; the docs name that decision field as the block channel |
 | sessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
 
-Timeouts stay within the host's default 30s budget (10/10/10/30/30/10s).
+Timeouts stay within the host's default 30s budget (10/10/10/30/10s).
 
 ## Dialect: what differs from the Claude-shaped hosts
 
@@ -906,16 +906,16 @@ judgment logic is the same \`hooks/jiahao-verdict-gate.js\` every host runs.
   installed plugin directory. There is no \`command\` key here.
 - **The block channel is the decision field, not the exit code** (as the host
   documents it): \`agentStop\` and \`subagentStop\` honor
-  \`{decision:"block", reason}\` on stdout; exit 2 is only a warning outside
-  \`preToolUse\` / \`permissionRequest\`, and any other non-zero code is
-  fail-open. The gate prints that decision field.
+  \`{decision:"block", reason}\` on stdout; this bundle wires \`agentStop\` only.
+  Exit 2 is only a warning outside \`preToolUse\` / \`permissionRequest\`, and any
+  other non-zero code is fail-open. The gate prints that decision field.
 - **The docs state a cap of 8 consecutive block continuations**, after which the
   CLI ends the turn anyway. \`agentStop\` receives \`stop_hook_active\`, and the
   gate already lets that pass.
 
 ## Injection surface - Verified vs Declared-unverified
 
-### Verified contract (documented, read 2026-10-30 - not live-probed)
+### Documented contract (read 2026-10-30; not live-probed)
 
 | Point | Evidence |
 | --- | --- |
@@ -933,6 +933,8 @@ judgment logic is the same \`hooks/jiahao-verdict-gate.js\` every host runs.
 | Whether \`userPromptSubmitted\` output reaches the model (docs list no injection field for it) | pending-confirmation |
 | \`COPILOT_PLUGIN_DATA\` marks a session as Copilot for the shared envelope branch (\`hooks/jiahao-runtime.js\`) | pending-confirmation |
 | camelCase payload fields (\`sessionId\`, \`agentName\`) are what the shared hooks normalize | pending-confirmation |
+| \`enabledPlugins\` in \`.github/copilot/settings.json\` / \`~/.copilot/settings.json\` enables the plugin | pending-confirmation |
+| \`sessionEnd\` fires for plugin hooks | pending-confirmation |
 
 ## Write scope and network
 

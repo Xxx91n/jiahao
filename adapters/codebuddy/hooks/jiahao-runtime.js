@@ -22,7 +22,7 @@ function detectHost() {
 function normalizePayload(parsed) {
   const p = (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
   const sessionId = p.session_id || p.sessionId || null;
-  const agentType = p.agent_type || p.agentType || p.agent_name || p.agentName || '';
+  const agentType = p.agent_type || p.agentType || p.agentName || '';
   return Object.assign({}, p, { session_id: sessionId, agent_type: agentType });
 }
 

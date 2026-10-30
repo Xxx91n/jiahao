@@ -33,14 +33,6 @@
         "timeoutSec": 30
       }
     ],
-    "subagentStop": [
-      {
-        "type": "command",
-        "bash": "node \"$PLUGIN_ROOT/hooks/jiahao-verdict-gate.js\"",
-        "powershell": "node \"$env:PLUGIN_ROOT/hooks/jiahao-verdict-gate.js\"",
-        "timeoutSec": 30
-      }
-    ],
     "sessionEnd": [
       {
         "type": "command",
