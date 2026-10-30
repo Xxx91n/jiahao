@@ -45,7 +45,13 @@ the claim; the files are the support.
 7. **Probe scripts are named and described, and they are marked as evidence.**
    Each script says what hook config it needs and what it should observe, and
    the directory says it is not part of any distributed bundle. This is why
-   `docs/evidence/v0.3.0/probes/` exists instead of scripts scattered in `tmp/`.
+   the probes live in
+   [`docs/evidence/v0.3.0/probes/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/)
+   instead of scripts scattered in `tmp/`. Reuse
+   [`codex-hook-wrapper.js`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/codex-hook-wrapper.js)
+   for a new hook probe: it runs the real hook, logs the hook's own
+   stdin/stdout/stderr/exit as one JSON line, then replays the output and exits
+   with the same code.
 
 8. **Every path the prose cites resolves for the reader who gets the tarball.**
    A relative link that only works in the repository is a dead link on npmjs.
