@@ -32,7 +32,7 @@ v0.3.0 content.
   output (`codex-hook-exit.txt`, `codex-blocked.txt`). Exit 2 + stderr ended
   the turn without a continuation in this build (`codex-exit2.txt`,
   `codex-probe-notes.md`).
-- Loop guard: an unconditional exit-0 block continued 785 runs (788 assistant
+- Loop guard: an unconditional exit-0 block continued 785 runs (786 assistant
   messages, 33M input tokens) before the host completed the turn; no small cap
   like Copilot's 8 appeared. The gate's `stop_hook_active` pass is required
   (`codex-loop-guard.txt`).
@@ -46,8 +46,11 @@ v0.3.0 content.
   `任务完成，已验证。`; `agentStop` returned `{decision:"block"}` on exit 0;
   the reason was injected as the next user message; the next agent message was
   `NOT VERIFIED ...`; the second `agentStop` (`stop_hook_active`) passed
-  (`copilot-blocked.txt`, `copilot-events.jsonl`,
-  `copilot-evidence-chain.jsonl`).
+  (`copilot-blocked.txt`, `copilot-hook-exit.txt`,
+  `copilot-events.jsonl`, `copilot-evidence-chain.jsonl`).
+- Exit 2: a project `agentStop` hook that printed the decision field and exited
+  2 was logged as a failed hook and the turn ended without a continuation
+  (`copilot-exit2.txt`).
 - `.claude/settings.json`: read. The session events show the SessionStart hook
   and the Stop hook (mapped to `agentStop`); a hand-written Claude-schema Stop
   block (exit 0) was logged as `agentStop decision=block` and the turn

@@ -60,7 +60,7 @@ not re-implement host detection.
 | SubagentStart | hooks/jiahao-subagent.js | same injection on subagent spawn |
 | UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
 | Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: exit 0 + {decision:"block"} on stdout, with the same reason on stderr for host logs; blocks an empty evidence chain (verifier profile). Exit 2 did not block in the 0.163.0 live probe |
-| SubagentStop | hooks/jiahao-verdict-gate.js | same gate on subagent finish (parity) |
+| SubagentStop | hooks/jiahao-verdict-gate.js | same gate on subagent finish (parity; Stop was live-probed, SubagentStop was not separately probed) |
 | SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
 
 Timeouts stay inside the host budget (5/5/5/10/10/3s; Codex caps
@@ -98,7 +98,7 @@ probed. Commands and captured output live in
 [`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 Loop guard: an unconditional exit-0 JSON block in a throwaway user Stop hook
-continued for 785 runs (788 assistant messages, 33M input tokens) before the
+continued for 785 runs (786 assistant messages, 33M input tokens) before the
 host completed the turn; no small host cap like Copilot's 8 appeared. The
 bundled gate is not unconditional - it passes when the host sends
 `stop_hook_active` on the continuation - so the block happens once per turn.

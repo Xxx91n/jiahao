@@ -9,7 +9,7 @@ these files; paths inside the scripts are relative to this directory.
 - `codex-exit2.js`: user-level Stop hook, exit 2 + stderr. Observed: one turn,
   no continuation.
 - `codex-always-block.js`: user-level Stop hook, exit 0 + decision block every
-  time. Observed: 785 continuations (788 assistant messages, 33M input
+  time. Observed: 785 continuations (786 assistant messages, 33M input
   tokens), then the host completed the turn; no small cap like Copilot's 8.
 - `codex-hook-wrapper.js`: wraps the installed gate, logs the hook's own
   stdin/stdout/stderr/exit, then replays them. Used only for
@@ -23,3 +23,7 @@ these files; paths inside the scripts are relative to this directory.
   `.claude/settings.json`. Copilot maps it to `agentStop` and continues.
 - `copilot-marker.js`: logs selected environment variables and an input prefix;
   used for the plugin-env probe and as a non-blocking project-hook marker.
+- `copilot-hook-wrapper.js`: wraps the plugin's agentStop entry, logs the hook's
+  own exit/stdout/stderr, then replays them.
+- `copilot-exit2.js`: emits the decision field but exits 2. Observed: exit 2 is
+  a warning; the turn ended without a continuation.
