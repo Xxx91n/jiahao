@@ -14,4 +14,3 @@ $ codex plugin add jiahao --marketplace jiahao
   "installedPath": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\jiahao-80\\codex-evidence-home\\plugins\\cache\\jiahao\\jiahao\\0.2.0",
   "authPolicy": "ON_INSTALL"
 }
-

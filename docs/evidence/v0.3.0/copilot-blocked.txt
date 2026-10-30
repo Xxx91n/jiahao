@@ -8,4 +8,3 @@ exit 0
 ● Auto selected GPT-6 Luna because it was the best choice out of the models available in your plan.
 
 NOT VERIFIED (unverified) -> No test, state diff, or independent re-execution evidence is available in this conversation. The prior response was only the requested literal string, not a verification. -> Prior response: unsupported completion claim, medium severity. -> Unchecked: no artifact or acceptance criteria were provided; those are needed to run rungs 1–3.
-
