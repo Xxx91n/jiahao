@@ -219,6 +219,27 @@ test('#85: an unreadable config fails with a prefix, not a bare message', () => 
   expect(r.stderr).toContain(PREFIXES.config);
   expect(r.stderr).toContain('no human_verdict was confirmed');
   expect(fs.readFileSync(segment, 'utf8')).toBe(before);
+
+  // validation is pure and runs first: a typo stays a usage error even when the
+  // store cannot be opened, so a config fault never masks an operator mistake.
+  const typo = resolve(dir, ['--verdict', 'maybe', '--reason', 'x', '--reviewer', 'alice']);
+  expect(typo.status).not.toBe(0);
+  expect(typo.stderr).toContain(PREFIXES.usage);
+});
+
+test('#85: the failure prefix separates operable states from internal bugs', () => {
+  const { failurePrefix } = require(path.join(root, 'scripts', 'resolve'));
+  const { WITNESS_HARD_STOP_CODE } = require(path.join(root, 'src', 'evidence-log'));
+
+  const config = new Error('cannot parse anchor config');
+  config.name = 'ConfigLoadError';
+  expect(failurePrefix(config)).toBe(PREFIXES.config);
+  // the witness hard stop tells the operator to run the rebuild command: that is
+  // an operable state, not an internal bug.
+  const witness = new Error('witness unavailable past the hard deadline');
+  witness.code = WITNESS_HARD_STOP_CODE;
+  expect(failurePrefix(witness)).toBe(PREFIXES.config);
+  expect(failurePrefix(new Error('boom'))).toBe(PREFIXES.internal);
 });
 
 test('#85: a store that refuses the write is reported, not assumed written', () => {
@@ -236,7 +257,7 @@ test('#85: a store that refuses the write is reported, not assumed written', () 
   expect(r.stderr).toContain('no human_verdict on the chain I can read');
   // the failure receipt names what the store holds, so "did anything land?" is
   // answerable without trusting the exit code
-  expect(r.stderr).toContain('chain tail: seq 0 (chain length 1) event_hash ' + '0'.repeat(16));
+  expect(r.stderr).toContain('chain tail: seq 0 (chain length 1) event_hash ' + '0'.repeat(64));
   expect(r.stdout).not.toContain('event_hash');
   expect(JSON.parse(fs.readFileSync(storePath, 'utf8'))).toEqual(broken);
 });

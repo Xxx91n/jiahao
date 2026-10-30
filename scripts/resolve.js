@@ -79,25 +79,16 @@ function parseFlags(argv) {
 
 // Receipt for the failure path: what the store holds right now, so the operator
 // can check "did anything land?" against it instead of trusting the exit code.
+// The whole tail hash is printed, not a prefix: a receipt you cannot compare
+// against the store is decoration.
 function tailReceipt(chain) {
   if (!chain || chain.length === 0) return 'chain tail: no readable records';
   const tail = chain[chain.length - 1];
-  const hash = tail && typeof tail.event_hash === 'string' ? tail.event_hash.slice(0, 16) + '…' : 'no event_hash';
+  const hash = tail && typeof tail.event_hash === 'string' ? tail.event_hash : 'no event_hash';
   return 'chain tail: seq ' + (chain.length - 1) + ' (chain length ' + chain.length + ') event_hash ' + hash;
 }
 
-function writeVerdict(log, argv) {
-  let flags;
-  try {
-    flags = parseFlags(argv || []);
-  } catch (e) {
-    if (!e.usage) throw e;
-    console.error(PREFIXES.usage + ' ' + e.message);
-    console.error(USAGE);
-    process.exitCode = 1;
-    return;
-  }
-
+function writeVerdict(log, flags) {
   // commit() runs the builder under the narrow append lock and hands it the
   // real chain tail, so prev_hash cannot go stale between build and write.
   // This CLI has no input for corrected_output / second_reviewer / overturn;
@@ -155,36 +146,62 @@ function writeVerdict(log, argv) {
   console.log('event_hash ' + written.rec.event_hash);
 }
 
-// Anything that escapes writeVerdict still has to tell the operator which class
-// of failure it was, because scripts/install.js prints a bare message for
-// whatever is thrown out of run(). Two classes are operable states rather than
-// bugs: an unreadable config (ConfigLoadError) and the witness hard stop, whose
-// own message says to run the rebuild command.
-function failurePrefix(log, e) {
-  // ConfigLoadError is only reachable through a log instance, and the factory
-  // itself throws it — before a log exists the name is the only handle left.
-  const isConfig = log ? e instanceof log.ConfigLoadError : (e && e.name === 'ConfigLoadError');
-  if (isConfig) return PREFIXES.config;
+// Anything that escapes the write still has to tell the operator which class of
+// failure it was, because scripts/install.js prints a bare message for whatever
+// is thrown out of run(). Two classes are operable states rather than bugs: an
+// unreadable config (ConfigLoadError) and the witness hard stop, whose own
+// message says to run the rebuild command.
+// ConfigLoadError comes out of the log factory itself, before an instance
+// exists, so there is no class to compare against — the name is the only handle,
+// and the class sets it explicitly.
+function failurePrefix(e) {
+  if (e && e.name === 'ConfigLoadError') return PREFIXES.config;
   if (e && e.code === WITNESS_HARD_STOP_CODE) return PREFIXES.config;
   return PREFIXES.internal;
+}
+
+// A failed write is still answerable: say what the store holds now, when it can
+// be read at all.
+function readableTail(log) {
+  if (!log) return null;
+  try { return tailReceipt(log.readAll()); } catch (e) { return null; }
 }
 
 // Every failure carries a prefix, including the ones that escape through
 // scripts/install.js: a bare message is the fail-path this repo replaced with a
 // closed enum.
 function run(argv) {
+  // Validation is pure and runs before any store I/O: a typo is a usage error
+  // even when the store is unreadable, and it creates nothing.
+  let flags;
+  try {
+    flags = parseFlags(argv || []);
+  } catch (e) {
+    if (!e || !e.usage) return fail(e, null);
+    console.error(PREFIXES.usage + ' ' + e.message);
+    console.error(USAGE);
+    process.exitCode = 1;
+    return;
+  }
+
   let log = null;
   try {
     log = createEvidenceLog();
-    writeVerdict(log, argv);
+    writeVerdict(log, flags);
   } catch (e) {
-    console.error(failurePrefix(log, e) + ' no human_verdict was confirmed: ' +
-      (e && e.message ? e.message : String(e)));
-    process.exitCode = 1;
+    fail(e, log);
   }
 }
 
-module.exports = { run };
+function fail(e, log) {
+  console.error(failurePrefix(e) + ' no human_verdict was confirmed: ' +
+    (e && e.message ? e.message : String(e)));
+  const receipt = readableTail(log);
+  if (receipt) console.error(receipt);
+  process.exitCode = 1;
+}
+
+module.exports = { run, failurePrefix };
 
 if (require.main === module) {
   run(process.argv.slice(2));
