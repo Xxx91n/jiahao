@@ -20,6 +20,14 @@ const { kappaAdvisory, loadKappaBaseline } = require('../src/calibration');
 const evidenceLog = createEvidenceLog();
 const sentinel = require('../src/sentinel').begin('jiahao-verdict-gate');
 
+// Output discipline (#84): every decision below is written with console.log and
+// then RETURNS. On POSIX stdout to a pipe is an asynchronous write, so
+// console.log(...) followed by process.exit() can truncate the envelope - the
+// host then reads a silent hook, which for the Stop gate means a lost block.
+// Letting the event loop drain flushes it; the stdin guard is unref'd and
+// cleared once stdin ends, so nothing but stdout holds the process. Exits that
+// print nothing stay exits.
+
 // If jiahao is off, pass through
 if (!fs.existsSync(flagPath())) {
   process.exit(0);
@@ -75,10 +83,16 @@ function gatingRecords(chain, sessionId) {
 // deleting a state file cannot silence it (missing ledger = degraded). When the
 // bench assets are absent entirely, load() returns null and behavior is unchanged.
 
+// Windows stdin hang guard: fires only while stdin is still silent. Cleared the
+// moment stdin ends - after that the only pending work is the stdout write, and
+// a forced exit would truncate it (#84).
+const stdinGuard = setTimeout(() => process.exit(typeof process.exitCode === 'number' ? process.exitCode : 0), 1000);
+stdinGuard.unref();
 let input = '';
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', chunk => input += chunk);
 process.stdin.on('end', () => {
+  clearTimeout(stdinGuard); // stdin arrived; the hang guard has done its job
   let parsed = {};
   try { parsed = JSON.parse(input); } catch (e) { /* fail-open */ }
   sentinel.set('verify', parsed.session_id || null);
@@ -141,10 +155,11 @@ process.stdin.on('end', () => {
         'Possible tamper or truncation — do not trust this chain.';
       if (isGenerator) {
         console.log(JSON.stringify({ decision: 'allow', systemMessage: msg }));
-        process.exit(0);
+        return;
       }
       console.log(JSON.stringify({ decision: 'block', reason: msg }));
-      process.exit(2);
+      process.exitCode = 2;
+      return;
     }
   }
 
@@ -186,13 +201,14 @@ process.stdin.on('end', () => {
         systemMessage: 'JIAHAO ADVISORY: Verification has no evidence — ' +
           'run deterministic checks before claiming done.' + pendingText,
       }));
-      process.exit(0);
+      return;
     }
     console.log(JSON.stringify({
       decision: 'block',
       reason: 'Verification has no evidence: no test run, no state diff, no re-execution quoted. NOT VERIFIED — run rung 1-3 of the verification ladder first. Evidence chain empty, unparseable, or attributable only to other sessions.',
     }));
-    process.exit(2);
+    process.exitCode = 2;
+    return;
   }
 
   // ---- Case B: evidence exists — apply profile × severity matrix (D2) --
@@ -233,7 +249,7 @@ process.stdin.on('end', () => {
         decision: 'allow',
         systemMessage: 'JIAHAO ADVISORY (partial coverage): detector saw only a part of this turn (' + coverageKind + '); triage is based on the visible portion.' + pendingText,
       }));
-      process.exit(0);
+      return;
     }
     if (highestSeverity) {
       console.log(JSON.stringify({
@@ -245,7 +261,7 @@ process.stdin.on('end', () => {
           'changes were actually observed.' + pendingText,
       }));
     }
-    process.exit(0);
+    return;
   }
 
   // Verifier profile: high-severity + suspicious and no independently-checked
@@ -263,7 +279,8 @@ process.stdin.on('end', () => {
           'evidence chain. Re-verify the underlying state changes with rung ' +
           '1-3 of the ladder before allowing this stop.' + pendingText,
       }));
-      process.exit(2);
+      process.exitCode = 2;
+      return;
     }
 
   // fail-closed on coverage. A verdict on partial evidence is
@@ -279,7 +296,8 @@ process.stdin.on('end', () => {
           : ' (kind: ' + (deg.kind || 'unknown') + ')') +
         '. Severity was judged on the visible part only; the unfinished cross-section requires human adjudication: jiahao resolve --verdict pass|fail --reason <text> --reviewer <id>.' + pendingText,
     }));
-    process.exit(2);
+    process.exitCode = 2;
+    return;
   }
 
   if (highestSeverity === 'low') {
@@ -289,7 +307,7 @@ process.stdin.on('end', () => {
         'JIAHAO ADVISORY (low): soft completion language matched [' +
         matchedPhrases.slice(0, 5).join(', ') + '].' + pendingText,
     }));
-    process.exit(0);
+    return;
   }
 
   // No suspicion on any record
@@ -299,8 +317,5 @@ process.stdin.on('end', () => {
   if (pendingText) {
     console.log(JSON.stringify({ decision: 'allow', systemMessage: 'JIAHAO:' + pendingText }));
   }
-  process.exit(0);
+  // fall through: the loop drains when stdin has ended, flushing stdout
 });
-
-// Windows stdin hang guard
-setTimeout(() => process.exit(0), 1000).unref();

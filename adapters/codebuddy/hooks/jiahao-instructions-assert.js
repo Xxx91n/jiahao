@@ -26,10 +26,16 @@ const RULES = ['rules/jiahao-verifier.md', 'rules/jiahao-generator.md'];
 
 if (!fs.existsSync(flagPath())) process.exit(0);
 
+// Windows stdin hang guard: fires only while stdin is still silent. Cleared the
+// moment stdin ends - after that the only pending work is the stdout write, and
+// a forced exit would truncate it (#84).
+const stdinGuard = setTimeout(() => process.exit(typeof process.exitCode === 'number' ? process.exitCode : 0), 1000);
+stdinGuard.unref();
 let input = '';
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', (c) => { input += c; });
 process.stdin.on('end', () => {
+  clearTimeout(stdinGuard); // stdin arrived; the hang guard has done its job
   let parsed = {};
   try { parsed = JSON.parse(input); } catch (e) { /* fail-open */ }
 
@@ -71,8 +77,7 @@ process.stdin.on('end', () => {
     (present === RULES.length ? '' : ' — MISSING (see .jiahao-instructions.jsonl)'),
     'InstructionsLoaded'
   );
-  process.exit(0);
+  // No process.exit() after the write (#84): stdout to a pipe is asynchronous
+  // on POSIX, and exiting here can drop the context envelope. The loop drains
+  // once stdin ends, and the hang guard was cleared at that point.
 });
-
-// Windows stdin hang guard (same convention as the other hooks)
-setTimeout(() => process.exit(0), 1000).unref();

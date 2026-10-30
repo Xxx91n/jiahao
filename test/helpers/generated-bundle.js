@@ -11,12 +11,26 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-function materializeBundle(generated, dirPrefix) {
+// A plugin root handed to a spawned hook is a materialized ABSOLUTE directory.
+// The generator's map is keyed by prefixes like 'adapters/codebuddy/', and
+// path.join() onto such a key yields something that looks like a path but
+// resolves against whatever cwd the test process happens to have. That is how
+// #76 silently changed what an assertion measured without any merge conflict;
+// the check lives here so each host wrapper (#77/#78 included) applies the same
+// rule to the root its caller passes in.
+function assertAbsolutePluginRoot(pluginRoot) {
+  if (pluginRoot !== undefined && !path.isAbsolute(pluginRoot)) {
+    throw new Error('pluginRoot must be an absolute directory (a materialized bundle), got ' +
+      JSON.stringify(pluginRoot));
+  }
+}
+
+function materializeBundle(generated, generatedPrefix) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-bundle-'));
   try {
     for (const [rel, text] of Object.entries(generated)) {
-      if (!rel.startsWith(dirPrefix)) continue;
-      const abs = path.join(dir, rel.slice(dirPrefix.length).split('/').join(path.sep));
+      if (!rel.startsWith(generatedPrefix)) continue;
+      const abs = path.join(dir, rel.slice(generatedPrefix.length).split('/').join(path.sep));
       fs.mkdirSync(path.dirname(abs), { recursive: true });
       fs.writeFileSync(abs, text, 'utf8');
     }
@@ -27,4 +41,4 @@ function materializeBundle(generated, dirPrefix) {
   return dir;
 }
 
-module.exports = { materializeBundle };
+module.exports = { materializeBundle, assertAbsolutePluginRoot };

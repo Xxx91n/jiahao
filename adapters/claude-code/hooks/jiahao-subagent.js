@@ -9,10 +9,16 @@ const { writeHookOutput } = require('./jiahao-runtime');
 const sentinel = require('../src/sentinel').begin('jiahao-subagent');
 
 // Read stdin (hook input JSON)
+// Windows stdin hang guard: fires only while stdin is still silent. Cleared the
+// moment stdin ends - after that the only pending work is the stdout write, and
+// a forced exit would truncate it (#84).
+const stdinGuard = setTimeout(() => process.exit(typeof process.exitCode === 'number' ? process.exitCode : 0), 1000);
+stdinGuard.unref();
 let input = '';
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', chunk => input += chunk);
 process.stdin.on('end', () => {
+  clearTimeout(stdinGuard); // stdin arrived; the hang guard has done its job
   let parsed = {};
   try { parsed = JSON.parse(input); } catch (e) { /* fail-open */ }
   sentinel.set('scan', parsed.session_id || null);
@@ -44,6 +50,3 @@ process.stdin.on('end', () => {
   writeHookOutput(injection, 'SubagentStart');
   sentinel.end();
 });
-
-// Windows stdin hang guard (ponytail #443 lesson)
-setTimeout(() => process.exit(0), 1000).unref();

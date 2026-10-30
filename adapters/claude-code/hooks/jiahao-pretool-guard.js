@@ -36,10 +36,16 @@ function candidateText(parsed) {
     .filter(Boolean).map(String).join('\n');
 }
 
+// Windows stdin hang guard: fires only while stdin is still silent. Cleared the
+// moment stdin ends - after that the only pending work is the stdout write, and
+// a forced exit would truncate it (#84).
+const stdinGuard = setTimeout(() => process.exit(typeof process.exitCode === 'number' ? process.exitCode : 0), 1000);
+stdinGuard.unref();
 let input = '';
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', (c) => { input += c; });
 process.stdin.on('end', () => {
+  clearTimeout(stdinGuard); // stdin arrived; the hang guard has done its job
   let parsed = {};
   try { parsed = JSON.parse(input); } catch (e) { /* fail-open */ }
   const tool = (parsed && parsed.tool_name) || 'unknown';
@@ -76,9 +82,6 @@ process.stdin.on('end', () => {
   // No process.exit() here: the deny envelope is an async write to a pipe on
   // POSIX, and exiting before it flushes loses the output - which this hook's
   // contract turns into a silent allow (status 0, empty stdout). Letting the loop
-  // drain flushes it, and the stdin guard timer below is unref'd so it never
-  // holds the process open. The early exits that print nothing keep exit(0).
+  // drain flushes it; the hang guard is unref'd and cleared when stdin ends. The
+  // early exits that print nothing keep exit(0).
 });
-
-// Windows stdin hang guard (same convention as the other hooks)
-setTimeout(() => process.exit(0), 1000).unref();

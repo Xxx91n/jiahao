@@ -5,7 +5,8 @@ const path = require('path');
 const os = require('os');
 const crypto = require('crypto');
 const { skipTest } = require('./helpers/skip');
-const { spawn, spawnSync, execFileSync } = require('child_process');
+const { spawnHook, expectExit, hostEnv } = require('./helpers/spawned-hook');
+const { spawn, execFileSync } = require('child_process');
 const { begin, reconcile, PREFIX, sameFile } = require('../src/sentinel');
 const { tryLockSync } = require('../src/file-lock');
 const REPO = path.join(__dirname, '..');
@@ -123,9 +124,8 @@ posixTest('D2b: sameFile() — POSIX inode replacement check', () => {
 test('D3: sweep script exits 0 and heals residuals (SessionEnd e2e)', () => {
   const file = path.join(DIR, PREFIX + 'sweep-hook');
   fs.writeFileSync(file, JSON.stringify({ hook: 'sweep-hook', phase: 'write', started_at: 'z' }), 'utf8');
-  const env = Object.assign({}, process.env, { CLAUDE_CONFIG_DIR: DIR });
-  const r = spawnSync(process.execPath, [path.join(REPO, 'hooks', 'jiahao-sweep.js')], { env, encoding: 'utf8' });
-  expect(r.status).toBe(0);
+  const r = spawnHook(path.join(REPO, 'hooks', 'jiahao-sweep.js'), { env: hostEnv(DIR), cwd: REPO });
+  expectExit(r, 0);
   expect(fs.existsSync(file)).toBe(false);
   expect(readEvidence()).toHaveLength(1);
 });

@@ -11,31 +11,27 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { spawnSync } = require('child_process');
-
 const { buildAdapters } = require('../scripts/build-adapters');
 const { materializeBundle } = require('./helpers/generated-bundle');
+const { spawnHook, expectExit, parseJson, hostEnv } = require('./helpers/spawned-hook');
 
 const generated = buildAdapters();
-const BUNDLE = 'adapters/claude-code/';
+// The generator map's key, not a directory - same #84 rename as the codebuddy
+// suite, so no reference can silently join a path onto it again.
+const GENERATED_PREFIX = 'adapters/claude-code/';
 
 describe('bundled Claude Code hooks (live spawn, temp config dir)', () => {
   let bundleDir;
   beforeAll(() => {
-    bundleDir = materializeBundle(generated, BUNDLE);
+    bundleDir = materializeBundle(generated, GENERATED_PREFIX);
   });
   afterAll(() => {
     if (bundleDir) fs.rmSync(bundleDir, { recursive: true, force: true });
   });
 
   function runBundled(script, opts) {
-    const env = Object.assign({}, process.env);
-    for (const k of ['PLUGIN_DATA', 'COPILOT_PLUGIN_DATA', 'QODER_SESSION_ID', 'CODEBUDDY_PLUGIN_ROOT']) delete env[k];
-    env.CLAUDE_CONFIG_DIR = opts.configDir;
-    env.CLAUDE_PLUGIN_ROOT = bundleDir;
-    return spawnSync(process.execPath, [path.join(bundleDir, 'hooks', script)], {
-      input: opts.stdin === undefined ? '{}' : opts.stdin,
-      env: env, encoding: 'utf8', timeout: 15000,
+    return spawnHook(path.join(bundleDir, 'hooks', script), {
+      stdin: opts.stdin, env: hostEnv(opts.configDir, bundleDir),
     });
   }
 
@@ -51,8 +47,8 @@ describe('bundled Claude Code hooks (live spawn, temp config dir)', () => {
     const res = runBundled('jiahao-verdict-gate.js', {
       configDir: dir, stdin: JSON.stringify({ stop_hook_active: false, session_id: 'probe' }),
     });
-    expect(res.status).toBe(2);
-    const out = JSON.parse(res.stdout.trim());
+    expectExit(res, 2);
+    const out = parseJson(res);
     expect(out.decision).toBe('block');
     expect(out.reason).toContain('no evidence');
   });
@@ -60,7 +56,7 @@ describe('bundled Claude Code hooks (live spawn, temp config dir)', () => {
   test('SessionStart injects the verifier profile from the bundled SKILL.md', () => {
     const dir = configDir('verifier');
     const res = runBundled('jiahao-activate.js', { configDir: dir, stdin: '{}' });
-    expect(res.status).toBe(0);
+    expectExit(res, 0);
     expect(res.stdout).toContain('Jiahao');
     expect(res.stdout).toContain('verification ladder');
   });
