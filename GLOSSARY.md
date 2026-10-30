@@ -63,3 +63,11 @@
 **人工裁定（Human Verdict）**：
 人工对某次完工主张的终审，唯一入口是 `jiahao resolve --verdict pass|fail|inconclusive --reason <text> --reviewer <id>`。它往证据链**追加**一条 `kind:'human_verdict'` 记录，回执给出这条记录的 event_hash 与它在链上的 seq。`pass` 放行它之前写入的记录（Stop 只看最后一条 pass 之后的记录）；`fail` 与 `inconclusive` 只留痕、不放行。没有理由的裁定不算裁定。
 *避免*：手改 JSONL 解链、把裁定当成改写历史、把「命令退出 0」当成「已经落链」（回执里的 event_hash 与 seq 才是凭证）、把 inconclusive 当成中立样本（校准统计只把 pass 记作人机一致）、照着钩子提示以为只有 pass|fail 两种（钩子文案还没跟上，属后续改动）。
+
+**进包 / 未进包（Packed / Not Packed）**：
+`package.json` 的 `files` 白名单决定 tarball 里有什么，`npm pack` 打出来的清单就是「进包」的判据。仓库里存在不等于进包：`private/`、`bench/`、`docs/evidence/` 都不进包。所以仓库内的相对链接在包内可能死，指到未进包内容要用 GitHub 绝对地址。`npm run check:links` 只按包内清单判定，不读工作区。
+*避免*：用「本地能打开」证明「npm 读者能打开」、把进包路径和仓库路径混为一谈。
+
+**证据评审（Evidence Review）**：
+对带真机验收证据的 PR 逐项核对：每个数字能在被引用的工件里找到、命令与钩子退出码与会话 id 来自同一次运行、没测过的部分明说成未探测。清单在 `docs/agents/evidence-review.md`。其中「可能循环的宿主 CLI 要用 `timeout` / Job Object 收住」是全局 AGENTS.md 的 owner action，不是本仓 CI 的检查项。
+*避免*：拿汇总文字代替工件、把不同 run 的日志拼成一次观测、把「宿主文档这么写」说成「实测如此」。

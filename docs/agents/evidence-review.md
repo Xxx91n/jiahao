@@ -31,11 +31,13 @@ the claim; the files are the support.
    #80 artifacts report `0.2.0` while documenting v0.3.0 content; the file that
    says this also names who owns the bump. A reader must not have to infer it.
 
-5. **Anything that can loop was run under a kill switch, and the process tree is
-   shown to have exited.** An always-block hook continued 785 times on Codex.
-   Evidence for a host CLI needs the invocation wrapped in `timeout` (or a Job
-   Object on Windows), and the log has to show the wrapper stopping it — not the
-   CLI deciding to stop.
+5. **Anything that can loop was reported with the kill switch it ran under, and
+   the process tree is shown to have exited.** An always-block hook continued 785
+   times on Codex. Evidence for a host CLI must say which wrapper bounded it
+   (`timeout`, or a Job Object on Windows) and the log has to show the wrapper
+   stopping it — not the CLI deciding to stop. Wrapping the CLI is the owner's
+   global `AGENTS.md` rule, not a check in this repository; the reviewer's job is
+   to confirm the evidence states how it was bounded.
 
 6. **Isolated state is stated, not implied.** Probes run against an isolated
    `CODEX_HOME` / `COPILOT_HOME` / `CLAUDE_CONFIG_DIR`; the reference says which
