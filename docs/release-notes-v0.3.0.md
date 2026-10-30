@@ -13,8 +13,8 @@
 
 | 出口 | 档位 | 依据 |
 | --- | --- | --- |
-| Claude Code | A 档候选（脚本级已验证，宿主级未验） | 钩子脚本在 `exit 2` 时阻断，有脚本级用例与 v0.2.0 安装记录；受模型端点 401 影响，**没有一次完整的宿主会话把假完工拦下** |
-| CodeBuddy | A 档候选（脚本级已验证，宿主级未验） | 同上；CLI 安装路径仍是 declared-unverified，回退 settings 合并 |
+| Claude Code | A 档候选（脚本级已验证，宿主级未验） | 宿主版本 Claude Code 2.1.251，2026-10-29 装过插件并跑过 SessionStart 与脚本级 Stop；**没有带日期的宿主级拦截结果**，原因是模型端点 401，见 [`docs/release-notes-v0.2.0.md`](release-notes-v0.2.0.md) |
+| CodeBuddy | A 档候选（脚本级已验证，宿主级未验） | 宿主版本 CodeBuddy Code CLI 2.151.0（`settings.json` 路径实测于 v0.2.0），**没有带日期的宿主级 Stop 拦截结果**；CLI 安装路径仍是 declared-unverified |
 | Codex CLI | A | 2026-10-30 实测，codex-cli 0.163.0 |
 | GitHub Copilot CLI | A | 2026-10-30 实测，Copilot CLI 1.0.105 |
 | Qoder | C | 只有规则，没有钩子；加载行为 declared-unverified |
@@ -73,30 +73,55 @@ Claude Code 与 CodeBuddy 在 v0.2.0 就带着钩子发布，本版本没有改�
 
 完整写入范围与门禁清单见 [`release.md`](release.md)。
 
-## 回滚到 v0.2.0
+## 降级与卸载
 
-下面四条在本机实测过（2026-10-30，版本号会随目标 tag 变）。
+**先看一个事实**：v0.2.0 的 `adapters/` 里只有 `claude-code` 和 `codebuddy`。Codex、Copilot、Qoder 三个出口是本版本新增的，v0.2.0 里没有对应目录——对它们来说没有「降级」，只有「卸载」。
+
+下面每条都标了实测状态；命令在本机隔离的 `CODEX_HOME` / `COPILOT_HOME` / `CLAUDE_CONFIG_DIR` 下跑过，不碰你日常的插件状态。
+
+**Claude Code — 实测可双向切换，这一家是真降级**
 
 ```bash
-# Codex：先取掉插件，再取掉 marketplace（顺序反了 marketplace 会拒绝移除）
-$ CODEX_HOME=<isolated> codex plugin remove jiahao@jiahao
-Removed plugin `jiahao` from marketplace `jiahao`.            # exit 0
-$ CODEX_HOME=<isolated> codex plugin marketplace remove jiahao
-Removed marketplace `jiahao`.                                  # exit 0
+# 卸掉 0.3.0
+$ CLAUDE_CONFIG_DIR=<isolated> claude plugin uninstall jiahao@jiahao
+✔ Successfully uninstalled plugin: jiahao (scope: user)        # exit 0
 
-# Copilot
-$ COPILOT_HOME=<isolated> copilot plugin install D:/Aworker/jiahao/adapters/copilot
-Plugin "jiahao" installed successfully.                        # exit 0（v0.3.0 目录）
-$ COPILOT_HOME=<isolated> copilot plugin uninstall jiahao
-Plugin "jiahao" uninstalled successfully.                      # exit 0
+# 指向 v0.2.0 那棵树再装，装出来是 0.2.0
+$ CLAUDE_CONFIG_DIR=<isolated> claude plugin marketplace add <v0.2.0 checkout>
+Adding marketplace…✔ Successfully added marketplace: jiahao     # exit 0
+$ CLAUDE_CONFIG_DIR=<isolated> claude plugin install jiahao@jiahao
+✔ Successfully installed plugin: jiahao@jiahao (scope: user)    # exit 0
+$ claude plugin list        # Version: 0.2.0
+$ claude plugin enable jiahao@jiahao                            # 装上默认是 disabled
 ```
 
-- **Claude Code**：`claude plugin update jiahao@jiahao@<older>` 或先 `claude plugin uninstall jiahao@jiahao` 再装回 v0.2.0 的 marketplace 版本；本机当前装的是 0.2.0，未做降级实测。
-- **CodeBuddy**：CLI 安装路径本身 declared-unverified；回滚用宿主自己的插件卸载，或恢复安装前的 `.codebuddy/settings.json` 备份。
-- **Qoder（C 档）**：删掉 `.qoder/rules/jiahao.md`（或用户级同名文件）即可，没有别的状态。
-- 回滚只替换宿主目录里的插件文件，不碰 `<config>` 下的 `.jiahao-profile` 与 `.jiahao-active`；证据链也只追加，不因降级被改写。
+装回 0.3.0 就是同样的两条命令，把 marketplace 指回 `main` 那棵树，列表显示 `Version: 0.3.0`。
 
-`codex plugin remove jiahao`（不带 `@marketplace`）会以 exit 1 报错要求限定 marketplace——这是实测的坑，命令要写成 `jiahao@jiahao`。
+**Codex — 只有卸载（实测）**
+
+```bash
+$ CODEX_HOME=<isolated> codex plugin remove jiahao@jiahao
+Removed plugin `jiahao` from marketplace `jiahao`.               # exit 0
+$ CODEX_HOME=<isolated> codex plugin marketplace remove jiahao
+Removed marketplace `jiahao`.                                    # exit 0
+```
+
+先移插件再移 marketplace。`codex plugin remove jiahao`（不带 `@marketplace`）会 exit 1 要求限定来源，必须写成 `jiahao@jiahao`。
+
+**Copilot — 只有卸载（实测）**
+
+```bash
+$ COPILOT_HOME=<isolated> copilot plugin uninstall jiahao
+Plugin "jiahao" uninstalled successfully.                        # exit 0
+```
+
+注意 `copilot plugin install <任意目录>` 也返回 0，退出码不能用来判断装对了没有；要核对 `copilot plugin list`。
+
+**CodeBuddy**：CLI 安装路径本身 declared-unverified。卸载走宿主自己的插件命令，或恢复安装前的 `.codebuddy/settings.json` 备份；这一步本机没实测。
+
+**Qoder（C 档）**：删掉 `.qoder/rules/jiahao.md`（或用户级同名文件）即可，没有别的状态。
+
+**这些命令不会撤销的东西**：降级/卸载只动宿主目录里的插件文件，不碰 `<config>` 下的 `.jiahao-profile`、`.jiahao-active`，也不改证据链（只追加）。也就是说降级会改变「还会不会被拦」，不会改变「以前记下了什么」。
 
 ## 发布门禁
 
