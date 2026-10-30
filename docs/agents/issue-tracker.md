@@ -11,7 +11,7 @@ Issues and specs for this repo live as GitHub issues in `Xxx91n/jiahao`. Use the
 - **Comment on an issue**: `gh issue comment <number> --body "..."`
 - **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
 - **Close**: `gh issue close <number> --comment "..."`
-- **Closing keyword**: GitHub reads `Closes #<n>` (and the `close` / `fix` / `resolve` variants) **only when the PR targets the repo's default branch** (`main`). A PR targeting any other branch ignores the keyword: no link is created (`closingIssuesReferences` stays `[]`) and merging it has no effect on the issue. So a round-branch PR closes its ticket by hand — `gh issue close <n> --comment "..."` — or links it from the issue sidebar. Reference: <https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue>
+- **Closing keyword**: GitHub reads `Closes #<n>` (and the `close` / `fix` / `resolve` variants) **only when the PR targets the repo's default branch** (`main`). A PR targeting any other branch ignores the keyword: no link is created (`closingIssuesReferences` stays `[]`) and merging it has no effect on the issue. Ticket PRs here target `main`, so the keyword fires; verify on the merged PR with `gh issue view <n> --json state` rather than assuming. Reference: <https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue>
 
 ## Branches and PR base
 
@@ -25,7 +25,7 @@ Merge with squash (`gh pr merge <n> --squash`); `main` carries one commit per PR
 
 ## Pull request review loop
 
-Check what a PR has accumulated **before** landing it: coverage is not guaranteed, and on this repo's round-branch base the reviewer sometimes does not run at all (#31 landed with 0 reviews and 0 inline comments; #32 and #33 got reviewed).
+Check what a PR has accumulated **before** landing it: coverage is not guaranteed, and on the former round-branch base the reviewer sometimes did not run at all (#31 landed with 0 reviews and 0 inline comments; #32 and #33 got reviewed).
 
 Count **threads** — the anchors a reviewer left — not raw comment rows. On #33 the raw listing returns 13 rows while the anchor filter returns 5: the difference is the answers, and it grows every time you reply. Both reads share one URL, and `--paginate` is mandatory because `gh api` stops after one page (default 30) — measured with `?per_page=1`, the plain read reports `1` and the paginated read reports every row.
 
