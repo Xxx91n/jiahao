@@ -9,7 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const { HOSTS, RETIRED_HOSTS, SKILL_DIR } = require('./build-adapters');
+const { HOSTS, RETIRED_HOSTS, SKILL_DIR, isRulesOnlyDirectory } = require('./build-adapters');
 
 // impl (audit L1): no top-level side effects - the body runs inside
 // main() so requiring this module never probes or exits.
@@ -41,10 +41,12 @@ const GENERATOR_REQUIRED = [
 // kind: both = carries the full dual-profile source body;
 // verifier / generator = carries that profile alone.
 // The per-host entries come from the generator's host table, so a new host adds
-// no line here and a removed one cannot leave a stale path behind.
+// no line here and a removed one cannot leave a stale path behind. A rules-only
+// row ships no src/SKILL.md; its rule file is checked for the three section
+// markers, and byte equality is --check's job.
 const CHECKS = [
   { rel: SKILL_DIR + '/SKILL.md', kind: 'both' },
-  ...HOSTS.map(host => ({ rel: host.dir + '/src/SKILL.md', kind: 'both' })),
+  ...HOSTS.filter(host => !isRulesOnlyDirectory(host)).map(host => ({ rel: host.dir + '/src/SKILL.md', kind: 'both' })),
   ...HOSTS.flatMap(host => host.rules.map(rule => ({ rel: host.dir + '/rules/' + rule.file, kind: rule.profile }))),
 ];
 
