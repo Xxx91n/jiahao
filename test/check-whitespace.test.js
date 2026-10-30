@@ -10,8 +10,11 @@ const path = require('path');
 
 const { scanText, auditFiles } = require('../scripts/check-whitespace');
 
+const TEMP_DIRS = [];
+
 function fixture(files) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-ws-'));
+  TEMP_DIRS.push(dir);
   for (const [rel, text] of Object.entries(files)) {
     const full = path.join(dir, ...rel.split('/'));
     fs.mkdirSync(path.dirname(full), { recursive: true });
@@ -19,6 +22,10 @@ function fixture(files) {
   }
   return dir;
 }
+
+afterAll(() => {
+  for (const dir of TEMP_DIRS) fs.rmSync(dir, { recursive: true, force: true });
+});
 
 describe('scanText', () => {
   test('clean text has no problems', () => {
@@ -100,5 +107,21 @@ describe('auditFiles', () => {
       const result = auditFiles(['frozen.md'], { root: dir, allowlist: { 'frozen.md': reason } });
       expect(result.allowlistProblems).toEqual([{ file: 'frozen.md', kind: 'allowlist-reason' }]);
     }
+  });
+
+  // A path git listed that cannot be read is a hole in the scan. Skipping it
+  // silently would let the run print "no violations" over a file it never saw.
+  test('a listed-but-unreadable file is a problem, not a silent skip', () => {
+    const result = auditFiles(['gone.md'], { root: path.join(os.tmpdir(), 'jiahao-ws-does-not-exist'), allowlist: {} });
+    expect(result.problems).toEqual([{ file: 'gone.md', line: 0, kind: 'unreadable' }]);
+    expect(result.textFiles).toBe(0);
+  });
+
+  // The caller (main) turns textFiles === 0 into a red run; the audit reports
+  // the number rather than swallowing the empty scan.
+  test('an empty file list reports zero text files read', () => {
+    expect(auditFiles([], { root: os.tmpdir(), allowlist: {} })).toEqual({
+      problems: [], allowlistProblems: [], textFiles: 0, binaryFiles: 0, allowlisted: [],
+    });
   });
 });

@@ -9,8 +9,11 @@ const path = require('path');
 
 const { auditDocLinks, linksIn, maskCode, resolveTarget } = require('../scripts/check-doc-links');
 
+const TEMP_DIRS = [];
+
 function fixture(files) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-links-'));
+  TEMP_DIRS.push(dir);
   for (const [rel, text] of Object.entries(files)) {
     const full = path.join(dir, ...rel.split('/'));
     fs.mkdirSync(path.dirname(full), { recursive: true });
@@ -18,6 +21,10 @@ function fixture(files) {
   }
   return dir;
 }
+
+afterAll(() => {
+  for (const dir of TEMP_DIRS) fs.rmSync(dir, { recursive: true, force: true });
+});
 
 function audit(dir, packFiles) {
   return auditDocLinks(packFiles, { root: dir });
@@ -47,6 +54,20 @@ describe('link extraction', () => {
       '[live](packed.md)',
     ].join('\n');
     expect(linksIn(text)).toEqual([{ target: 'packed.md', line: 5 }]);
+  });
+
+  // Both READMEs switch languages with raw HTML, which is the first relative
+  // link a reader hits on npmjs; missing it would leave that one unchecked.
+  test('raw HTML href and src are read as links', () => {
+    const found = linksIn('<a href="README-zh-CN.md">中文</a>\n<img src="docs/x.png">\n');
+    expect(found).toEqual([
+      { target: 'README-zh-CN.md', line: 1 },
+      { target: 'docs/x.png', line: 2 },
+    ]);
+  });
+
+  test('an HTML link inside a code fence is not collected', () => {
+    expect(linksIn('```html\n<a href="gone.md">x</a>\n```\n')).toEqual([]);
   });
 
   test('masking preserves length so offsets still map to the same line', () => {
@@ -86,6 +107,13 @@ describe('audit', () => {
     ]);
   });
 
+  test('a dead HTML href lands in the same report as a dead inline link', () => {
+    const dir = fixture({ 'README.md': '<a href="gone.md">中文</a>\n[ok](a.md)\n', 'a.md': '# a\n' });
+    expect(audit(dir, ['README.md', 'a.md'])).toEqual([
+      { file: 'README.md', line: 1, target: 'gone.md', reason: 'not in the package' },
+    ]);
+  });
+
   test('external URLs, anchors, and mailto are out of scope', () => {
     const dir = fixture({
       'README.md': [
@@ -93,9 +121,11 @@ describe('audit', () => {
         '[b](#section)',
         '[c](mailto:x@example.com)',
         '[d](https://example.com/x.md#frag)',
+        '[packed](a.md)',
       ].join('\n'),
+      'a.md': '# a\n',
     });
-    expect(audit(dir, ['README.md'])).toEqual([]);
+    expect(audit(dir, ['README.md', 'a.md'])).toEqual([]);
   });
 
   test('a fragment or query is stripped before the target is looked up', () => {
@@ -125,6 +155,15 @@ describe('audit', () => {
     const dir = fixture({ 'package.json': '{}' });
     expect(audit(dir, ['package.json'])).toEqual([
       { file: 'package.json', line: 0, target: '', reason: 'the pack carries no Markdown, so this scan proves nothing' },
+    ]);
+  });
+
+  // The subtler empty case: Markdown exists but carries no relative link, so
+  // every link checked was absolute and the loop asserted nothing.
+  test('Markdown with no relative link at all is red, not a vacuous pass', () => {
+    const dir = fixture({ 'README.md': '[a](https://example.com/x.md)\n# heading\n' });
+    expect(audit(dir, ['README.md'])).toEqual([
+      { file: 'package.json', line: 0, target: '', reason: 'no relative link found in any packed Markdown, so this scan proves nothing' },
     ]);
   });
 });

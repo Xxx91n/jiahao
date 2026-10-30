@@ -665,6 +665,7 @@ module.exports = {
   treeHash,
   treeHashAt,
   sha256,
+  resolveNpm,
   REQUIRED_PACK_FILES,
   FORBIDDEN_PACK_PREFIXES,
   DECLARED_WRITE_PATHS,

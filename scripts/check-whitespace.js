@@ -16,6 +16,10 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
+// One enumeration base for the working-tree surface, shared with the generator
+// gate so "which files exist" cannot drift between them (#102).
+const { listWorkingTreePaths } = require('../src/shared/tracked-surface');
+
 // Frozen evaluation records keep the bytes they were captured with. Every entry
 // needs a reason, and an entry that stops matching a real violation is reported
 // as stale so this list cannot quietly become permission for new files.
@@ -74,6 +78,10 @@ function auditFiles(files, opts) {
     try {
       buffer = options.readFile(path.join(options.root, ...rel.split('/')));
     } catch (e) {
+      // A path git listed but we cannot read is a gap in the scan, not a clean
+      // file: reporting green over it would be the "counted without reading"
+      // shape this check exists to prevent.
+      problems.push({ file: rel, line: 0, kind: 'unreadable' });
       continue;
     }
     if (isBinary(buffer)) { binaryFiles++; continue; }
@@ -100,18 +108,13 @@ function auditFiles(files, opts) {
 }
 
 function listWorkingTree(root) {
-  const out = execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], {
-    cwd: root,
-    encoding: 'utf8',
-    maxBuffer: 64 * 1024 * 1024,
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-  return out.split('\0').filter(Boolean);
+  return listWorkingTreePaths(root);
 }
 
 const KIND_LABEL = {
   'trailing-whitespace': 'trailing whitespace',
   'blank-line-at-eof': 'blank line at EOF',
+  unreadable: 'listed by git but could not be read',
 };
 
 const ALLOWLIST_LABEL = {
@@ -143,7 +146,7 @@ function main() {
   const result = auditFiles(files, { root: root });
 
   for (const p of result.problems) {
-    console.error(p.file + ':' + p.line + ': ' + KIND_LABEL[p.kind]);
+    console.error(p.file + (p.line ? ':' + p.line : '') + ': ' + KIND_LABEL[p.kind]);
   }
   for (const p of result.allowlistProblems) {
     console.error(p.file + ': ' + ALLOWLIST_LABEL[p.kind]);
@@ -153,6 +156,13 @@ function main() {
     console.error('\n' + result.problems.length + ' violation(s) in tracked + untracked text files.');
     if (result.problems.length) console.error('Fix them, or add a path to ALLOWLIST in scripts/check-whitespace.js with a reason.');
     process.exit(1);
+  }
+
+  // Zero files read means the enumeration or the read path is broken, not that
+  // the tree is clean; the same rule the egress step applies to its own scan.
+  if (result.textFiles === 0) {
+    console.error('error: scanned 0 text files (' + files.length + ' paths enumerated); a scan that reads nothing asserts nothing');
+    process.exit(2);
   }
 
   console.log(result.textFiles + ' text files scanned (tracked + untracked, ' +

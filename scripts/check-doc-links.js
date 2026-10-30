@@ -17,6 +17,10 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
+// One reader for "how do we invoke npm", shared with the release gate: both
+// scripts shell out to the same CLI and a second spelling would drift.
+const { resolveNpm } = require('./release-gate');
+
 const root = path.join(__dirname, '..');
 
 // Blank out fenced code blocks and inline code spans, keeping every newline so
@@ -43,16 +47,29 @@ function maskCode(text) {
 // (`[id]: target`) are not matched; none of the packed files use them, and a
 // checker that silently accepts either spelling for one shape only would be
 // worse than one that documents its shape.
+//
+// Raw HTML in Markdown is a link too: both READMEs switch languages with
+// <a href="README-zh-CN.md">, which is the one relative link a reader hits
+// first. href/src are read wherever they appear outside code.
 function linksIn(text) {
   const masked = maskCode(text);
-  const re = /\[[^\]]*\]\(\s*([^)]*?)\s*\)/g;
   const out = [];
+  const lineAt = (index) => 1 + masked.slice(0, index).split('\n').length - 1;
+
+  const mdRe = /\[[^\]]*\]\(\s*([^)]*?)\s*\)/g;
   let m;
-  while ((m = re.exec(masked))) {
-    const inner = /^(\S+)(?:\s+["'][^"']*["'])?$/.exec(m[1]);
+  while ((m = mdRe.exec(masked))) {
+    const inner = /^([^\s]+)(?:\s+["'][^"']*["'])?$/.exec(m[1]);
     if (!inner) continue;
-    out.push({ target: inner[1], line: 1 + masked.slice(0, m.index).split('\n').length - 1 });
+    out.push({ target: inner[1], line: lineAt(m.index) });
   }
+
+  const htmlRe = /<[a-z][^>]*?\s(?:href|src)\s*=\s*"([^"]*)"[^>]*>/gi;
+  while ((m = htmlRe.exec(masked))) {
+    if (!m[1]) continue;
+    out.push({ target: m[1], line: lineAt(m.index) });
+  }
+  out.sort((a, b) => a.line - b.line);
   return out;
 }
 
@@ -92,6 +109,7 @@ function auditDocLinks(files, opts) {
     return problems;
   }
 
+  let checked = 0;
   for (const rel of markdown) {
     const text = fs.readFileSync(path.join(options.root, ...rel.split('/')), 'utf8');
     for (const link of linksIn(text)) {
@@ -99,6 +117,7 @@ function auditDocLinks(files, opts) {
       if (raw.startsWith('#') || EXTERNAL.test(raw)) continue;
       const clean = raw.split('#')[0].split('?')[0];
       if (!clean) continue;
+      checked++;
       const resolved = resolveTarget(rel, clean.startsWith('/') ? clean.slice(1) : clean);
       const reason = resolved === null
         ? 'escapes the package root'
@@ -106,25 +125,17 @@ function auditDocLinks(files, opts) {
       if (reason) problems.push({ file: rel, line: link.line, target: raw, reason });
     }
   }
+  // Markdown that carries no relative link at all would report green having
+  // checked nothing; the language switchers and the adapter READMEs are the
+  // reason this check exists, so zero is a defect in the scan, not a pass.
+  if (checked === 0) {
+    problems.push({ file: 'package.json', line: 0, target: '', reason: 'no relative link found in any packed Markdown, so this scan proves nothing' });
+  }
   return problems;
 }
 
-// `npm` is a shell script on POSIX and a .cmd shim on Windows; node can run
-// npm's own CLI file directly, which keeps paths with spaces out of a shell.
-function npmCommand() {
-  const candidates = [];
-  if (process.env.npm_execpath) candidates.push(process.env.npm_execpath);
-  if (process.platform === 'win32') {
-    candidates.push(path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js'));
-  }
-  for (const c of candidates) {
-    if (c && fs.existsSync(c)) return { cmd: process.execPath, args: [c] };
-  }
-  return { cmd: process.platform === 'win32' ? 'npm.cmd' : 'npm', args: [], shell: process.platform === 'win32' };
-}
-
 function packedFiles(cwd) {
-  const npm = npmCommand();
+  const npm = resolveNpm();
   const res = spawnSync(npm.cmd, npm.args.concat(['pack', '--dry-run', '--json']), {
     cwd: cwd || root,
     encoding: 'utf8',
