@@ -450,7 +450,7 @@ step('egress', 'code that runs after install makes no network call', () => {
     }
     // An event registered with an empty array also reaches here with nothing
     // checked, so the count is taken from the flattened entries, not the keys.
-    if (entryCount === 0) throw new Error(rel + ' has a hook map with no command entries');
+    if (entryCount === 0) throw new Error(rel + ' has a hook map with no hook entries');
   }
 
   return targets.length + ' install-path files scanned: no http/http2/https/net/dns/tls/dgram require, no fetch or https.request, ' +
