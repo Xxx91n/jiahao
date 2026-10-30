@@ -292,17 +292,50 @@ describe('protected path (variable references)', () => {
   });
 });
 
+describe('protected path (argument values)', () => {
+  // Two more shapes the removed fragments used to catch by name, from the review
+  // threads on PR #83: `--opt=<path>` is one argv word whose VALUE is the path, and
+  // a quoted variable concatenated with a bare tail is one argument too.
+  const root = '/home/u/.codebuddy/plugins/jiahao';
+  const env = { CLAUDE_PLUGIN_ROOT: root };
+  const check = (text) => isProtected(text, root, { pathImpl: path.posix, cwd: '/home/u/proj', env: env });
+
+  test('the value after = is read as the path', () => {
+    const shapes = [
+      'dd if=/dev/null of=' + root + '/.mcp.json',
+      'sed --file=' + root + '/rules/jiahao-verifier.md',
+      'cp --target-directory=' + root + '/src file',
+      'tar --exclude=hooks -cf ' + root + '/hooks/hooks.json notes',
+    ];
+    for (const text of shapes) expect(check(text)).toBe(true);
+    // the split on = must not turn an ordinary option into a hit
+    expect(check('dd if=/dev/null of=/home/u/proj/.mcp.json')).toBe(false);
+    expect(check('tar --exclude=src -cf /home/u/proj/out.tar')).toBe(false);
+  });
+
+  test('a quoted variable concatenated with a bare tail is one path', () => {
+    const shapes = [
+      'rm "$CLAUDE_PLUGIN_ROOT"/.mcp.json',
+      'rm "${CLAUDE_PLUGIN_ROOT}"/hooks/hooks.json',
+      'cp notes.txt "$CLAUDE_PLUGIN_ROOT/src/SKILL.md"',
+    ];
+    for (const text of shapes) expect(check(text)).toBe(true);
+    // a longer name is not the variable: $CLAUDE_PLUGIN_ROOTX has no value here
+    expect(check('rm "$CLAUDE_PLUGIN_ROOTX"/.mcp.json')).toBe(false);
+  });
+});
+
 describe('protected path (separator spellings)', () => {
   const posix = PLATFORMS[0];
   const win32 = PLATFORMS[1];
 
-  // A tool_input written on Windows can reach a POSIX host with backslashes
-  // and vice versa; the host-native reading is what actually mutates a file,
-  // so a foreign spelling of a path inside the plugin root must not slip past.
-  test('a POSIX host still reads a backslash-spelled path inside the root', () => {
-    expect(check(posix, 'rm ' + posix.root + '\\hooks\\hooks.json')).toBe(true);
-    expect(check(posix, 'rm ' + posix.root + '\\src\\SKILL.md')).toBe(true);
-    expect(check(posix, 'rm ' + posix.elsewhere + '\\hooks\\hooks.json')).toBe(false);
+  // A backslash is not a separator on POSIX, so a name containing one is a single
+  // ordinary file and must not be read as the hook map. Rewriting separators
+  // before resolving is the bug #75 removed; folding them the other way (Windows
+  // accepts forward slashes natively) is handled by path.win32 itself.
+  test('a POSIX host reads a backslash as part of the file name, not a separator', () => {    expect(check(posix, 'rm ' + posix.root + '\\hooks\\hooks.json')).toBe(false);
+    expect(check(posix, 'rm ' + posix.root + '\\src\\SKILL.md')).toBe(false);
+    expect(check(posix, 'rm ' + posix.root + '/hooks\\hooks.json')).toBe(false);
   });
 
   test('a Windows host still reads a forward-spelled path inside the root', () => {

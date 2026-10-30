@@ -156,11 +156,21 @@ function tokens(text, escapes) {
   const out = [];
   const seen = new Set();
   const push = (value) => { if (value && !seen.has(value)) { seen.add(value); out.push(value); } };
+  const pushWord = (value) => {
+    push(value);
+    // `--config=<path>`, `of=<path>`: the argument's value begins after the first
+    // `=`, and that value is the path the tool opens. The fragments this ticket
+    // removed used to catch the spelling by name; containment has to catch it now
+    // (#75 review). The `=` inside PROTECTED_FRAGMENTS' boundary class is the same
+    // intent, one level earlier.
+    const eq = value.indexOf('=');
+    if (eq !== -1) push(value.slice(eq + 1));
+  };
   const readLine = (line, depth) => {
     push(line.trim());
     for (const entry of lexWords(line, escapes)) {
-      push(entry.word);
-      if (entry.escaped) push(entry.plain);
+      pushWord(entry.word);
+      if (entry.escaped) pushWord(entry.plain);
       if (entry.quoted && depth < MAX_QUOTE_DEPTH && /[ \t]/.test(entry.word)) {
         readLine(entry.word, depth + 1);
         if (entry.escaped) readLine(entry.plain, depth + 1);
@@ -173,8 +183,6 @@ function tokens(text, escapes) {
 
 // A candidate can also be spelled the way the shell wrote it rather than the way
 // the filesystem sees it:
-//   - the other platform's separator (a path copied from a Windows shell reaches a
-//     POSIX host; a JSON tool_input on Windows carries forward slashes);
 //   - a variable reference (`$HOME`, `${HOME}`, `%USERPROFILE%`, `$env:HOME`, and
 //     any other name the host does have in its environment), which the shell
 //     substitutes before anything touches a file;
@@ -220,23 +228,17 @@ function expandedSpelling(tok, ctx) {
   return out;
 }
 
-function foreignSpelling(P, tok) {
-  const other = P.sep === '/' ? '\\' : '/';
-  if (tok.indexOf(other) === -1) return tok;
-  return P.sep === '/' ? tok.split('\\').join('/') : tok.split('/').join('\\');
-}
-
+// No separator folding: `path.win32` already accepts forward slashes, while on
+// POSIX a backslash is an ordinary character in a filename - folding it there
+// would read a file literally named `hooks\hooks.json` as if it were the hook
+// map. Rewriting separators before resolving is the bug #75 was filed about.
 function readings(ctx, tok) {
   const resolve = (p) => (ctx.cwd ? ctx.P.resolve(ctx.cwd, p) : ctx.P.resolve(p));
   const spellings = [tok];
   const expanded = expandedSpelling(tok, ctx);
   if (expanded !== tok) spellings.push(expanded);
   const out = [];
-  for (const spelling of spellings) {
-    out.push(resolve(spelling));
-    const foreign = foreignSpelling(ctx.P, spelling);
-    if (foreign !== spelling) out.push(resolve(foreign));
-  }
+  for (const spelling of spellings) out.push(resolve(spelling));
   return out.filter(function (abs, i) { return out.indexOf(abs) === i; });
 }
 

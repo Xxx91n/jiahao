@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execSync, spawnSync } = require('child_process');
 
 const TMP = require('os').tmpdir().replace(/\\/g, '/') + '/jiahao-hooks-test';
 
@@ -423,19 +423,15 @@ function gateFixture() {
       fs.writeFileSync(path.join(dir, '.jiahao-evidence'), JSON.stringify(records), 'utf8');
     },
     stop: function (payload) {
-      const origDir = process.cwd();
-      process.chdir(path.join(__dirname, '..'));
-      try {
-        const stdout = execSync('echo \'' + JSON.stringify(payload) + '\' | node hooks/jiahao-verdict-gate.js', {
-          encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: dir }, timeout: 15000, shell: 'bash',
-          stdio: ['pipe', 'pipe', 'pipe'],
+      // spawnSync with an argv array and the payload on stdin: no shell string to
+      // interpolate, and a block (exit 2) is a normal result rather than a throw.
+      const res = spawnSync(process.execPath,
+        [path.join(__dirname, '..', 'hooks', 'jiahao-verdict-gate.js')], {
+          input: JSON.stringify(payload),
+          env: { ...process.env, CLAUDE_CONFIG_DIR: dir },
+          encoding: 'utf8', timeout: 15000,
         });
-        return { status: 0, stdout };
-      } catch (e) {
-        return { status: e.status, stdout: (e.stdout || '').toString() };
-      } finally {
-        process.chdir(origDir);
-      }
+      return { status: res.status, stdout: String(res.stdout || '') };
     },
   };
 }
