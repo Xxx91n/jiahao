@@ -1,7 +1,7 @@
 {
   "name": "jiahao",
   "version": "0.2.0",
-  "description": "Verification discipline for Codex CLI: profile injection at session start, verdict gate at turn end (A 档候选, live probe pending). Self-contained plugin.",
+  "description": "Verification discipline for Codex CLI: profile injection at session start, verdict gate at turn end (A tier, live block verified 2026-10-30). Self-contained plugin.",
   "author": {
     "name": "Xxx91n"
   },

@@ -31,15 +31,25 @@ const sentinel = require('../src/sentinel').begin('jiahao-verdict-gate');
 // cleared once stdin ends, so nothing but stdout holds the process. Exits that
 // print nothing stay exits.
 
-// Block envelope, in the two shapes the hosts actually read. Every host except
-// Codex reads the stdout JSON; Codex's Stop/SubagentStop path with exit 2 reads
-// the continuation reason from stderr and ignores stdout on that path
-// (openai/codex hooks/events/stop.rs, read 2026-10-30). The platform name the
-// Codex config template passes selects the shape; the decision stays one
-// function, not two.
+// Block envelope, in the two shapes the hosts actually read. The stdout JSON
+// decision is the channel every host honors. Codex 0.163.0 and Copilot CLI
+// 1.0.105 (win32, probed 2026-10-30, #80) both ended the turn without a
+// continuation when this hook exited 2: Codex ignored the decision on that
+// path, Copilot treats exit 2 as a warning. Both honor the decision field on
+// exit 0, so those branches exit 0; the Codex stderr copy stays for host logs.
+// Claude-shaped hosts keep exit 2 as their block signal.
 function emitBlock(reason) {
   console.log(JSON.stringify({ decision: 'block', reason: reason }));
-  if (detectHost() === 'codex') console.error(reason);
+  const host = detectHost();
+  if (host === 'codex') {
+    console.error(reason);
+    process.exitCode = 0;
+    return;
+  }
+  if (host === 'copilot') {
+    process.exitCode = 0;
+    return;
+  }
   process.exitCode = 2;
 }
 

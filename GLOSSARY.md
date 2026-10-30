@@ -41,7 +41,7 @@
 *避免*：手工编辑生成出来的目录、承诺规则版会按 `.jiahao-profile` 选 profile、把「规则已加载」说成「拦截已生效」。
 
 **插件版（Plugin Version）**：
-自包含的插件目录（`adapters/claude-code/`、`adapters/codebuddy/`、`adapters/copilot/`、`adapters/codex/`）：清单、插件启用后宿主自动加载的钩子配置、钩子脚本及其 require 闭包、`src/` 副本与 SKILL 正文都在目录内；按宿主文档用原生命令安装（Claude Code 与 Codex 各经仓库根的 marketplace 清单，CodeBuddy 与 Copilot CLI 直接装目录）；只有插件版带强制拦截，且拦截按宿主档位说话（Copilot CLI 与 Codex 在真机探针前都是 A 档候选）。安装路径的真机验证状态见各适配器说明。
+自包含的插件目录（`adapters/claude-code/`、`adapters/codebuddy/`、`adapters/copilot/`、`adapters/codex/`）：清单、插件启用后宿主自动加载的钩子配置、钩子脚本及其 require 闭包、`src/` 副本与 SKILL 正文都在目录内；按宿主文档用原生命令安装（Claude Code 与 Codex 各经仓库根的 marketplace 清单，CodeBuddy 与 Copilot CLI 直接装目录）；只有插件版带强制拦截，且拦截按宿主档位说话（Copilot CLI 1.0.105 与 Codex CLI 0.163.0 已于 2026-10-30 真机看到收尾阻断，均记为 A 档）。安装路径的真机验证状态见各适配器说明。
 *避免*：只登记钩子却不带脚本、把插件目录说成「装上规则就生效」、把「装上」说成「真机已验证」。
 
 **出口（Exit）**：
@@ -57,7 +57,7 @@
 *避免*：把宿主差异写进判定脚本、在测试或门禁里再抄一份命令写法。
 
 **能力档位（Capability Tier）**：
-按宿主能在哪一步拦住分三级：A 档能在回合结束前阻断，B 档只能在工具调用前阻断，C 档只有规则注入、没有钩子。档位是发布期结论，不是宿主的永久属性；出处写在宿主表那一行里（宿主版本 + 实测看到什么）。没观测到真实回合被拦下的，对外只说「A 档候选」，不说「会拦」。
+按宿主能在哪一步拦住分三级：A 档能在回合结束前阻断，B 档只能在工具调用前阻断，C 档只有规则注入、没有钩子。档位是发布期结论，不是宿主的永久属性；出处写在宿主表那一行里（宿主版本 + 实测看到什么）。没观测到真实回合被拦下的，对外只说「A 档候选」，不说「会拦」；Codex 与 Copilot 的 A 档各有 2026-10-30 的真机阻断记录（版本与证据见宿主表与 `docs/evidence/v0.3.0/`）。
 *避免*：把 B 档或 C 档说成「会拦」、凭宿主文档推断档位、把档位当成宿主的永久标签。
 
 **人工裁定（Human Verdict）**：

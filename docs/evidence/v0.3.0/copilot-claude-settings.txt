@@ -1,0 +1,27 @@
+Project file: .claude/settings.json with a SessionStart marker and a Stop
+hook that printed {"decision":"block","reason":"CLAUDE SETTINGS BLOCK: verify first"}
+and exited 0 once.
+
+$ copilot -p 'Reply exactly: pong' --trust-folder --disable-client-telemetry
+exit 0
+
+● Auto selected GPT-6 Luna because it was the best choice out of the models available in your plan.
+
+pong
+
+● Auto selected GPT-6 Luna because it was the best choice out of the models available in your plan.
+
+/ Search (grep)
+  │ "CLAUDE SETTINGS BLOCK|Claude settings|claude"
+  └ 1 file found
+
+● Read settings.json
+  │ .claude\settings.json
+  └ 10 lines read
+
+Verified `.claude/settings.json`: it configures `SessionStart` and `Stop` hooks that run Node scripts outside the repository. I did not execute them.
+
+
+Stop hook invocations:
+2026-10-30T10:06:45.739Z ran
+2026-10-30T10:07:00.608Z ran

@@ -4,10 +4,11 @@
 // Codex reads a plugin manifest at `.codex-plugin/plugin.json`, expands
 // `${PLUGIN_ROOT}` in hook commands, and requires manifest component paths to
 // be './'-prefixed (openai/plugins, read 2026-10-30). Its Stop/SubagentStop hook
-// accepts a block as stdout JSON at exit 0 or a continuation prompt on stderr
-// at exit 2 (openai/codex hooks/src/events/stop.rs), which is why the shared
-// gate writes both and this template only says where the files go and how a
-// command is spelled.
+// source parses both a stdout JSON decision at exit 0 and a stderr continuation
+// prompt at exit 2, but the 0.163.0 live probe (#80) only continued the turn on
+// the exit-0 decision. The shared gate therefore exits 0 for Codex and keeps
+// the stderr copy for logs; this template only says where the files go and how
+// a command is spelled.
 //
 // The platform name rides the command: the template is host-owned data, so it
 // says which host it is and hooks/jiahao-runtime.js reads that instead of

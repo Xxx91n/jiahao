@@ -7,10 +7,11 @@
 //   2. a command entry carries two shell branches, `bash` and `powershell`,
 //      because the host picks one by operating system.
 // The third difference - an agentStop block is the `decision: "block"` field on
-// stdout, not an exit code - is the host's own contract, not a translation:
-// the shared hooks/jiahao-verdict-gate.js already prints that field, and its
-// exit 2 is only a warning on this host (docs.github.com/en/copilot/reference/
-// hooks-reference, read 2026-10-30). Payload field names are the fourth: the
+// stdout - is the host's own contract, not a translation: the shared
+// hooks/jiahao-verdict-gate.js prints that field and exits 0 for this host.
+// The 1.0.105 live probe (#80) showed exit 2 is a warning that ends the turn
+// without a continuation, even with the decision field on stdout. Payload field
+// names are the fourth: the
 // camelCase events send `sessionId` / `agentName`, and folding those into the
 // shared names is the job of hooks/jiahao-runtime.js, the hook-side adapter
 // file that already owns detectHost() and the per-host envelopes (spec #74 D3).

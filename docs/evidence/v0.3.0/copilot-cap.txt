@@ -1,0 +1,43 @@
+$ copilot -p 'Reply exactly: pong' --trust-folder --disable-client-telemetry
+exit 0
+
+always-block agentStop invocations: 9
+2026-10-30T10:05:32.232Z powershell
+2026-10-30T10:05:39.604Z powershell
+2026-10-30T10:05:42.973Z powershell
+2026-10-30T10:05:46.840Z powershell
+2026-10-30T10:05:52.490Z powershell
+2026-10-30T10:05:55.752Z powershell
+2026-10-30T10:05:59.528Z powershell
+2026-10-30T10:06:03.350Z powershell
+2026-10-30T10:06:07.029Z powershell
+
+session events: 9 agentStop block decisions, 9 assistant messages
+(initial + 8 continuations); the ninth block was not continued.
+
+tail of the CLI output:
+● Auto selected GPT-6 Luna because it was the best choice out of the models available in your plan.
+
+pong
+
+● Auto selected GPT-6 Luna because it was the best choice out of the models available in your plan.
+
+Blocked.
+
+Blocked.
+
+Blocked.
+
+● Auto selected GPT-6 Luna because it was the best choice out of the models available in your plan.
+
+Blocked.
+
+Blocked.
+
+Blocked.
+
+Blocked.
+
+Blocked.
+
+
