@@ -7,6 +7,11 @@ const { writeHookOutput } = require('./jiahao-runtime');
 const { flagPath } = require('../src/shared/paths');
 const sentinel = require('../src/sentinel').begin('jiahao-mode-tracker');
 
+// Windows stdin hang guard: fires only while stdin is still silent. Cleared the
+// moment stdin ends - after that the only pending work is the stdout write, and
+// a forced exit would truncate it (#84).
+const stdinGuard = setTimeout(() => process.exit(typeof process.exitCode === 'number' ? process.exitCode : 0), 1000);
+stdinGuard.unref();
 let input = '';
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', chunk => input += chunk);
@@ -42,10 +47,3 @@ process.stdin.on('end', () => {
     writeHookOutput(reminder, 'UserPromptSubmit');
   }
 });
-
-// Windows stdin hang guard (same convention as the other hooks). Cleared once
-// stdin ends: after that the only thing that can still be pending is the stdout
-// write, and a forced exit into it would truncate the envelope - the loss the
-// no-exit-after-log rule above exists to prevent (#84).
-const stdinGuard = setTimeout(() => process.exit(0), 1000);
-stdinGuard.unref();

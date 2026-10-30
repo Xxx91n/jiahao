@@ -96,8 +96,24 @@ test('mode-tracker responds to /jiahao full command', () => {
   expect(res.stdout).toContain('JIAHAO MODE');
 });
 
-test('verdict-gate blocks without evidence', () => {
+// CodeRabbit on PR #93: `.unref()` does not cancel the guard timer, so a process
+// kept alive by a pending stdout write could still be force-exited at 1s with the
+// envelope queued. The preload holds the loop past the guard and prints only if
+// it survived - clearing the guard when stdin ends is what lets that line appear.
+test('the stdin hang guard is cleared once stdin ends', () => {
   const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  const env = hostEnv(dir);
+  env.NODE_OPTIONS = '--require=' + path.join(__dirname, 'helpers', 'slow-stdin.js').split(path.sep).join('/');
+  const res = spawnHook(path.join(hooksDir, 'jiahao-instructions-assert.js'), {
+    stdin: '{}', env: env, cwd: repoRoot,
+  });
+  expectExit(res, 0);
+  expect(res.stdout).toContain('JIAHAO rules integrity');
+  expect(res.stdout).toContain('PRELOAD-ALIVE');
+});
+
+test('verdict-gate blocks without evidence', () => {  const dir = freshDir('jiahao-hooks-test-');
   fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
   const res = runHook('jiahao-verdict-gate.js', {
     dir: dir, stdin: JSON.stringify({ stop_hook_active: false }),

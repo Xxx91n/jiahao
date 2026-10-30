@@ -24,8 +24,9 @@ const sentinel = require('../src/sentinel').begin('jiahao-verdict-gate');
 // then RETURNS. On POSIX stdout to a pipe is an asynchronous write, so
 // console.log(...) followed by process.exit() can truncate the envelope - the
 // host then reads a silent hook, which for the Stop gate means a lost block.
-// Letting the event loop drain flushes it; the stdin guard timer is unref'd, so
-// nothing but stdout holds the process. Exits that print nothing stay exits.
+// Letting the event loop drain flushes it; the stdin guard is unref'd and
+// cleared once stdin ends, so nothing but stdout holds the process. Exits that
+// print nothing stay exits.
 
 // If jiahao is off, pass through
 if (!fs.existsSync(flagPath())) {
@@ -82,6 +83,11 @@ function gatingRecords(chain, sessionId) {
 // deleting a state file cannot silence it (missing ledger = degraded). When the
 // bench assets are absent entirely, load() returns null and behavior is unchanged.
 
+// Windows stdin hang guard: fires only while stdin is still silent. Cleared the
+// moment stdin ends - after that the only pending work is the stdout write, and
+// a forced exit would truncate it (#84).
+const stdinGuard = setTimeout(() => process.exit(typeof process.exitCode === 'number' ? process.exitCode : 0), 1000);
+stdinGuard.unref();
 let input = '';
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', chunk => input += chunk);
@@ -313,11 +319,3 @@ process.stdin.on('end', () => {
   }
   // fall through: the loop drains when stdin has ended, flushing stdout
 });
-
-// Windows stdin hang guard. Exit with the decision code when one was set: a
-// forced exit(0) here would turn a block (exit 2) into an allow if anything
-// kept the loop alive past the guard. Cleared once stdin ends: from then on the
-// only thing that can still be pending is the stdout write, and exiting into
-// it would truncate the decision (#84).
-const stdinGuard = setTimeout(() => process.exit(typeof process.exitCode === 'number' ? process.exitCode : 0), 1000);
-stdinGuard.unref();
