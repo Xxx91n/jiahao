@@ -9,8 +9,9 @@
 // The third difference - an agentStop block is the `decision: "block"` field on
 // stdout - is the host's own contract, not a translation: the shared
 // hooks/jiahao-verdict-gate.js prints that field and exits 0 for this host.
-// The 1.0.105 live probe (#80) showed exit 2 is a warning that ends the turn
-// without a continuation, even with the decision field on stdout. Payload field
+// The 1.0.105 live probe (#80) showed exit 2 is non-blocking: the host logged
+// the hook as failed and ended the turn without a continuation, even with the
+// decision field on stdout. Payload field
 // names are the fourth: the
 // camelCase events send `sessionId` / `agentName`, and folding those into the
 // shared names is the job of hooks/jiahao-runtime.js, the hook-side adapter

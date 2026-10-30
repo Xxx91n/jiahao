@@ -9,8 +9,8 @@
 //
 // Copilot's dialect: `additionalContext` on stdout for sessionStart, and
 // `{decision:"block", reason}` for agentStop - the decision field blocks, but
-// only on a zero exit: the live probe (#80) showed exit 2 is treated as a
-// warning and the turn ends anyway.
+// only on a zero exit: the live probe (#80) showed exit 2 is logged as a failed
+// hook and the turn ends anyway.
 
 const fs = require('fs');
 const os = require('os');
@@ -60,8 +60,8 @@ describe('bundled Copilot CLI hooks (live spawn, temp config dir)', () => {
       configDir: dir,
       stdin: JSON.stringify({ stop_hook_active: false, session_id: 'probe', stopReason: 'complete' }),
     });
-    // Exit 0 carries the decision; exit 2 would be a warning and the turn
-    // would end, which is what the live probe (#80) caught.
+    // Exit 0 carries the decision; exit 2 would be logged as a failed hook and
+    // the turn would end, which is what the live probe (#80) caught.
     expectExit(res, 0);
     const out = parseJson(res);
     expect(out.decision).toBe('block');

@@ -25,5 +25,5 @@ these files; paths inside the scripts are relative to this directory.
   used for the plugin-env probe and as a non-blocking project-hook marker.
 - `copilot-hook-wrapper.js`: wraps the plugin's agentStop entry, logs the hook's
   own exit/stdout/stderr, then replays them.
-- `copilot-exit2.js`: emits the decision field but exits 2. Observed: exit 2 is
-  a warning; the turn ended without a continuation.
+- `copilot-exit2.js`: emits the decision field but exits 2. Observed: hook exit
+  2; the host logged it as failed and the turn ended without a continuation.

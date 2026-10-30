@@ -10,8 +10,8 @@ plugin - so nothing reads from the repository root.
 
 Tier: **A (verified 2026-10-30, Copilot CLI 1.0.105)**. A live turn was
 blocked by `agentStop`: the false completion claim continued only after the
-gate printed `{decision:"block"}` on exit 0. Exit 2, the documented warning
-path, did not block. Evidence:
+gate printed `{decision:"block"}` on exit 0. Exit 2 was logged as a failed
+hook and did not block. Evidence:
 [`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 ## Install
@@ -44,7 +44,7 @@ directory on 1.0.105.
 | sessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext |
 | subagentStart | hooks/jiahao-subagent.js | same injection on subagent spawn |
 | userPromptSubmitted | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
-| agentStop | hooks/jiahao-verdict-gate.js | verifier gate: prints `{decision:"block", reason}` and exits 0; the zero exit is required for the decision to be honored (exit 2 is only a warning) |
+| agentStop | hooks/jiahao-verdict-gate.js | verifier gate: prints `{decision:"block", reason}` and exits 0; the zero exit is required for the decision to be honored (exit 2 is non-blocking; the host logs it as failed) |
 | sessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
 
 Timeouts stay within the host's default 30s budget (10/10/10/30/10s).
@@ -67,9 +67,10 @@ judgment logic is the same `hooks/jiahao-verdict-gate.js` every host runs.
   installed plugin directory. There is no `command` key here.
 - **The block channel is the decision field on a zero exit.** `agentStop` and
   `subagentStop` honor `{decision:"block", reason}` on stdout; this bundle
-  wires `agentStop` only. The live probe showed exit 2 ends the turn without a
-  continuation even when the decision field is on stdout, so the gate exits 0
-  for this host. Any other non-zero code is fail-open.
+  wires `agentStop` only. The live probe showed exit 2 is logged as a failed
+  hook and ends the turn without a continuation even when the decision field is
+  on stdout, so the gate exits 0 for this host. Any other non-zero code is
+  fail-open.
 - **The cap is 8 consecutive block continuations** (live-probed: 9
   `agentStop` invocations and 9 assistant messages; the ninth block was not
   continued and the CLI ended). `agentStop` receives `stop_hook_active`; the

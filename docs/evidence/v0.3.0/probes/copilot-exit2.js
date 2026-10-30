@@ -1,6 +1,6 @@
 // Throwaway Copilot agentStop hook: prints the decision field but exits 2.
-// Observed on 1.0.105: exit 2 is a warning; the turn ended without a
-// continuation, even though the decision field was present.
+// Observed on 1.0.105: hook exit 2; the host logged it as failed and the turn
+// ended without a continuation, even though the decision field was present.
 let input = '';
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', (c) => { input += c; });

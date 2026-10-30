@@ -1,13 +1,21 @@
 # Project .github/copilot/settings.json agentStop -> probes/copilot-exit2.js
 # The script prints {"decision":"block","reason":"COPILOT EXIT2 PROBE"} and exits 2.
+# A wrapper (probes/copilot-hook-wrapper.js) recorded the hook process exit.
 $ copilot -p 'Reply exactly: pong' --trust-folder --disable-client-telemetry
 exit 0
-# assistant messages: 1 (no continuation); the host logged the hook as failed.
+# hook process exit: 2
+# assistant messages: 1 (no continuation)
+# host event: {"hookInvocationId": "4bd7d689-2ba1-4093-b15b-42d4c859dcf3", "hookType": "agentStop", "success": false, "error": {"message": "Error: Hook command failed with code 1", "source": "repo settings"}}
 
 ● Auto selected GPT-6 Luna because it was the best choice out of the models available in your plan.
 
 pong
 
-# session events (31142434-f480-4914-ad09-914e0aa921eb):
-{"type": "assistant.message", "content": "pong"}
-{"hookInvocationId": "46e28740-38dc-48a8-b8f6-f291fb615542", "hookType": "agentStop", "success": false, "error": {"message": "Error: Hook command failed with code 1", "source": "repo settings"}}
+# wrapper record:
+{
+  "ts": "2026-10-30T12:02:22.895Z",
+  "script": "D:/Aworker/jiahao-80/docs/evidence/v0.3.0/probes/copilot-exit2.js",
+  "code": 2,
+  "stdout": "{\"decision\":\"block\",\"reason\":\"COPILOT EXIT2 PROBE\"}\n",
+  "stderr": ""
+}
