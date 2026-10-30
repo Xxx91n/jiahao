@@ -124,7 +124,10 @@ test('the stdin hang guard is cleared once stdin ends', () => {
     const dir = freshDir('jiahao-hooks-test-');
     fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
     const env = hostEnv(dir, c.pluginRoot);
-    env.NODE_OPTIONS = [process.env.NODE_OPTIONS, '--require=' + preload].filter(Boolean).join(' ');
+    // JSON.stringify quotes the path: NODE_OPTIONS is parsed as a shell-like
+    // string, so an unquoted checkout path with a space would split (#93).
+    env.NODE_OPTIONS = [process.env.NODE_OPTIONS, '--require=' + JSON.stringify(preload)]
+      .filter(Boolean).join(' ');
     const res = spawnHook(path.join(hooksDir, c.script), {
       stdin: c.stdin, env: env, cwd: repoRoot,
     });
