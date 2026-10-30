@@ -4,6 +4,9 @@
 $ copilot -p 'Reply exactly: pong' --trust-folder --disable-client-telemetry
 exit 0
 # hook process exit: 2
+# Note: the host event text reports the generic "failed with code 1" for this
+# non-zero hook; the wrapper recorded the actual process exit above. Either
+# way the host treats it as failed/non-blocking, not as a decision channel.
 # assistant messages: 1 (no continuation)
 # host event: {"hookInvocationId": "4bd7d689-2ba1-4093-b15b-42d4c859dcf3", "hookType": "agentStop", "success": false, "error": {"message": "Error: Hook command failed with code 1", "source": "repo settings"}}
 
