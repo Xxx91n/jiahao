@@ -44,8 +44,8 @@ test('build-adapters generates the retained exits', () => {
     expected.forEach(rel => {
       expect(fs.existsSync(path.join(dir, rel))).toBe(true);
     });
-    // Everything the generator produced reached the target - not just the six
-    // exits above - so a writeAll that skips a file is red here.
+    // Everything the generator produced reached the target - not just the
+    // exits listed above - so a writeAll that skips a file is red here.
     emitted.forEach(rel => {
       expect(fs.existsSync(path.join(dir, rel))).toBe(true);
     });
@@ -70,8 +70,9 @@ test('retired adapters are neither emitted nor present', () => {
   // One list, in the generator (check-drift reads the same one). The floor is
   // what stops the list from being silently emptied instead of honoured.
   // copilot returned as a real bundle in #78, so nine names remain (codex
-  // returns in #77 and drops this floor to eight); the loop below still proves
-  // every listed name is refused by check-drift.
+  // returns in #77 and drops this floor to eight). The loop proves none of them
+  // is emitted or present; check-drift refuses a directory for any listed name,
+  // and "check-drift passes on the committed tree" below runs it.
   expect(RETIRED_HOSTS.length).toBeGreaterThanOrEqual(9);
   for (const name of RETIRED_HOSTS) {
     expect(emitted.some(rel => rel.startsWith('adapters/' + name + '/'))).toBe(false);

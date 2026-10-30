@@ -24,7 +24,8 @@ process.stdin.on('end', () => {
   parsed = normalizePayload(parsed);
   sentinel.set('scan', parsed.session_id || null);
 
-  const agentType = parsed.agent_type || parsed.agentType || '';
+  // normalizePayload already folded the host's spelling into agent_type.
+  const agentType = parsed.agent_type || '';
   const matcher = process.env.JIAHAO_SUBAGENT_MATCHER || 'verify|review|critic|check';
 
   // Fail-open: if we cannot determine agent type, inject anyway

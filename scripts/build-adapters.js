@@ -189,7 +189,6 @@ const RETIRED_HOSTS = ['aider', 'cline', 'codex', 'cursor',
 // extra generated files; vendoring, tier checks, and regen-diff stay shared, so
 // a second copy of the judgment logic cannot grow per host.
 const CLAUDE_DIALECT = {
-  kind: 'claude',
   manifestPath: '.claude-plugin/plugin.json',
   hookMapPath: 'hooks/hooks.json',
   sessionEndEvent: 'SessionEnd',
@@ -206,6 +205,13 @@ const CLAUDE_DIALECT = {
 
 function dialectOf(host) {
   return Object.assign({}, CLAUDE_DIALECT, host.dialect || {});
+}
+
+// Claude-shaped maps nest their commands under `hooks`; a flat dialect's entry
+// IS the command. One reader, so the gate and the suites cannot disagree about
+// the shape, and a new flat host does not copy the branch into three files.
+function hookEntryCommands(entry) {
+  return Array.isArray(entry && entry.hooks) ? entry.hooks : [entry];
 }
 
 function readRepoFile(rel) {
@@ -336,8 +342,10 @@ function hostShapeProblems(hosts) {
           problems.push(label + ': dialect ' + key + ' must be a relative .json path inside the bundle');
         }
       }
-      if (typeof host.dialect.emitManifest !== 'function' || typeof host.dialect.emitHookMap !== 'function') {
-        problems.push(label + ': dialect must emit its manifest and hook map');
+      for (const fn of ['emitManifest', 'emitHookMap']) {
+        if (host.dialect[fn] !== undefined && typeof host.dialect[fn] !== 'function') {
+          problems.push(label + ': dialect ' + fn + ' must be a function when present');
+        }
       }
       if (!Array.isArray(host.dialect.commandFields) || host.dialect.commandFields.length === 0) {
         problems.push(label + ': dialect must name its command fields');
@@ -750,7 +758,7 @@ never a plugin entry. The install path is documented, not live-probed.
 | sessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext |
 | subagentStart | hooks/jiahao-subagent.js | same injection on subagent spawn |
 | userPromptSubmitted | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
-| agentStop | hooks/jiahao-verdict-gate.js | verifier block: stdout \`{decision:"block", reason}\` |
+| agentStop | hooks/jiahao-verdict-gate.js | verifier gate: prints \`{decision:"block", reason}\`; the host reads that decision field |
 | subagentStop | hooks/jiahao-verdict-gate.js | same gate on subagent finish (D5 parity) |
 | sessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
 
@@ -1004,4 +1012,5 @@ if (require.main === module) main();
 module.exports = {
   buildAdapters, unifiedDiff, checkAll, writeAll, auditTrackedSet, SKILL_DIR, SOURCE_NAME,
   HOSTS, RETIRED_HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds, dialectOf,
+  hookEntryCommands,
 };

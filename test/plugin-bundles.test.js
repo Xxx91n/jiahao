@@ -17,6 +17,7 @@ const { isBuiltin } = require('module');
 
 const {
   buildAdapters, HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds, dialectOf,
+  hookEntryCommands, SKILL_DIR,
 } = require('../scripts/build-adapters');
 
 const ROOT = path.join(__dirname, '..');
@@ -31,7 +32,7 @@ const pkgRepository = pkg.repository.url.replace(/^git\+/, '').replace(/\.git$/,
 function isWiring(dialect, rel) {
   if (rel === dialect.manifestPath) return true;
   if (rel === dialect.hookMapPath) return true;
-  if (dialect.shipShippedSkill && rel.startsWith('skills/')) return true;
+  if (dialect.shipShippedSkill && rel === SKILL_DIR + '/SKILL.md') return true;
   return /^(rules\/|\.mcp\.json$|README\.md$)/.test(rel);
 }
 
@@ -195,8 +196,7 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
     test('every command runs a vendored script through the plugin root, within the timeout budget', () => {
       for (const ev of events) {
         for (const entry of cfg.hooks[ev]) {
-          // Claude-shaped maps nest `hooks`; Copilot's flat entry is the command.
-          const commands = Array.isArray(entry.hooks) ? entry.hooks : [entry];
+          const commands = hookEntryCommands(entry);
           for (const h of commands) {
             expect(h.type).toBe('command');
             expect(h[dialect.timeoutField]).toBe(host.hooks[ev].timeout);
@@ -219,16 +219,18 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
       }
     });
 
-    if (!Array.isArray(cfg.hooks[events[0]][0].hooks)) {
-      // A flat entry (no nested `hooks`) must carry exactly the dialect's
-      // command fields plus the timeout key - a leftover `command` or `timeout`
-      // key is the other host's dialect and would be ignored here.
+    const allEntries = events.flatMap((ev) => cfg.hooks[ev]);
+    const flatEntries = allEntries.filter((entry) => !Array.isArray(entry.hooks));
+    if (flatEntries.length) {
+      // A flat dialect's entry must carry exactly its command fields plus the
+      // timeout key - a leftover `command` or `timeout` key is the other host's
+      // dialect and would be ignored here. A map mixing both shapes is a defect
+      // of its own, so assert every entry is flat, not just the first event's.
       test('every flat entry carries exactly the dialect command fields and timeout key', () => {
+        expect(flatEntries.length).toBe(allEntries.length);
         const allowed = ['type', dialect.timeoutField].concat(dialect.commandFields).sort();
-        for (const ev of events) {
-          for (const entry of cfg.hooks[ev]) {
-            expect(Object.keys(entry).sort()).toEqual(allowed);
-          }
+        for (const entry of flatEntries) {
+          expect(Object.keys(entry).sort()).toEqual(allowed);
         }
       });
     }
@@ -238,8 +240,7 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
         expect(fs.existsSync(path.join(ROOT, 'hooks', host.hooks[ev].script + '.js'))).toBe(true);
       }
       if (host.turnEnd) {
-        const entry = cfg.hooks[host.turnEnd][0];
-        const h = Array.isArray(entry.hooks) ? entry.hooks[0] : entry;
+        const h = hookEntryCommands(cfg.hooks[host.turnEnd][0])[0];
         const command = dialect.commandFields.map((field) => h[field]).join(' ');
         expect(command).toContain('jiahao-verdict-gate.js');
       }
@@ -425,14 +426,25 @@ describe('tier contract', () => {
   test('a dialect that points its manifest or hook map outside the bundle is rejected', () => {
     const escaping = Object.assign({}, good, {
       dialect: {
-        kind: 'probe', manifestPath: '../plugin.json', hookMapPath: 'hooks/hooks.json',
+        manifestPath: '../plugin.json', hookMapPath: 'hooks/hooks.json',
         timeoutField: 'timeout', commandFields: ['command'],
+        commandPatterns: { command: /^x$/ },
         emitManifest: () => '', emitHookMap: () => '',
       },
     });
     expect(hostShapeProblems([escaping]).join('\n')).toMatch(/relative \.json path inside the bundle/);
     const silent = Object.assign({}, good, { dialect: { commandFields: [] } });
-    expect(hostShapeProblems([silent]).join('\n')).toMatch(/dialect must emit|dialect must name/);
+    expect(hostShapeProblems([silent]).join('\n')).toMatch(/relative \.json path|must name its command fields/);
+    // A dialect may only rename paths: the emitters are optional, so a row is
+    // not forced to reimplement a manifest it does not change.
+    const renameOnly = Object.assign({}, good, {
+      dialect: {
+        manifestPath: 'plugin.json', hookMapPath: 'hooks/copilot-hooks.json',
+        timeoutField: 'timeout', commandFields: ['command'],
+        commandPatterns: { command: /^x$/ },
+      },
+    });
+    expect(hostShapeProblems([renameOnly])).toEqual([]);
   });
 
   test('a rules-only C row is a valid row and ships no hooks', () => {

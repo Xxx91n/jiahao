@@ -35,13 +35,13 @@ test('tarball contains no brand assets', () => {
 // #63: the packed artifact is the release artifact, so it has to carry both
 // exits. The rules directory is generated, so it is also the one output a
 // hand edit or a stale build could leave out without anyone noticing.
-test('tarball carries the rules directory and both plugin bundles, and no private or research files', () => {
+test('tarball carries the rules directory and every plugin bundle, and no private or research files', () => {
   expect(auditPackFiles(packed)).toEqual([]);
 });
 
 // Pin the contract itself: if REQUIRED_PACK_FILES lost an exit, the assertion
 // above would still pass, because both sides would be equally wrong.
-test('the pack contract names the rules file, both plugin hook maps, and the marketplace', () => {
+test('the pack contract names the rules file, every plugin manifest and hook map, and the marketplace', () => {
   for (const rel of [
     'skills/jiahao/SKILL.md',
     'adapters/codebuddy/.claude-plugin/plugin.json',

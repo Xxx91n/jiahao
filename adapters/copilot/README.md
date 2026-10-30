@@ -38,7 +38,7 @@ never a plugin entry. The install path is documented, not live-probed.
 | sessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext |
 | subagentStart | hooks/jiahao-subagent.js | same injection on subagent spawn |
 | userPromptSubmitted | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
-| agentStop | hooks/jiahao-verdict-gate.js | verifier block: stdout `{decision:"block", reason}` |
+| agentStop | hooks/jiahao-verdict-gate.js | verifier gate: prints `{decision:"block", reason}`; the host reads that decision field |
 | subagentStop | hooks/jiahao-verdict-gate.js | same gate on subagent finish (D5 parity) |
 | sessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
 

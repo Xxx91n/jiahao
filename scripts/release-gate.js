@@ -36,7 +36,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { spawnSync } = require('child_process');
 
-const { HOSTS, dialectOf } = require('./build-adapters');
+const { HOSTS, dialectOf, hookEntryCommands } = require('./build-adapters');
 
 const root = path.join(__dirname, '..');
 
@@ -424,9 +424,7 @@ step('egress', 'code that runs after install makes no network call', () => {
     const map = JSON.parse(fs.readFileSync(hookMapPath, 'utf8'));
     for (const [event, entries] of Object.entries(map.hooks || {})) {
       for (const entry of entries) {
-        // Claude-shaped maps nest the commands under `hooks`; Copilot's flat
-        // entries ARE the command (one bash/powershell pair each).
-        const commands = Array.isArray(entry.hooks) ? entry.hooks : [entry];
+        const commands = hookEntryCommands(entry);
         for (const hook of commands) {
           if (hook.type !== 'command') continue;
           // Each field is checked against its own pattern: a bash entry spelled

@@ -31,8 +31,9 @@ describe('bundled Copilot CLI hooks (live spawn, temp config dir)', () => {
     if (bundleDir) fs.rmSync(bundleDir, { recursive: true, force: true });
   });
 
-  // detectHost() reads COPILOT_PLUGIN_DATA; the host sets it for plugin hooks
-  // (alongside PLUGIN_ROOT), so the spawn sees the same marker a real session does.
+  // detectHost() keys the Copilot branch on COPILOT_PLUGIN_DATA. Whether the
+  // host really sets it is declared-unverified (#80); this spawn proves the
+  // branch the host is documented to reach, not the marker itself.
   function copilotEnv(configDir) {
     const env = hostEnv(configDir, bundleDir);
     env.COPILOT_PLUGIN_DATA = bundleDir;

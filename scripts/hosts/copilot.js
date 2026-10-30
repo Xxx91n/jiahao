@@ -79,7 +79,6 @@ function emitManifest(ctx) {
 }
 
 module.exports = {
-  kind: 'copilot',
   manifestPath: 'plugin.json',
   hookMapPath: HOOK_MAP_PATH,
   sessionEndEvent: 'sessionEnd',

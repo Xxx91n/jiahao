@@ -134,7 +134,7 @@ test('D3: SessionEnd is registered wherever a hook map exists', () => {
   // The repo-level map is hand-kept; a bundle's map is generated output, so it
   // comes from the in-memory generator (a disk read would be the truncation
   // hazard #66 measured).
-  const { buildAdapters, HOSTS, dialectOf } = require('../scripts/build-adapters');
+  const { buildAdapters, HOSTS, dialectOf, hookEntryCommands } = require('../scripts/build-adapters');
   const generated = buildAdapters();
   const claude = JSON.parse(fs.readFileSync(path.join(REPO, 'hooks', 'jiahao-hooks.json'), 'utf8'));
   expect(claude.hooks.SessionEnd[0].hooks[0].command).toContain('jiahao-sweep.js');
@@ -152,8 +152,7 @@ test('D3: SessionEnd is registered wherever a hook map exists', () => {
     expect(host.hooks[sweepEvent].script).toBe('jiahao-sweep');
     wired++;
     const map = JSON.parse(generated[host.dir + '/' + dialect.hookMapPath]);
-    const entry = map.hooks[sweepEvent][0];
-    const hook = Array.isArray(entry.hooks) ? entry.hooks[0] : entry;
+    const hook = hookEntryCommands(map.hooks[sweepEvent][0])[0];
     const command = dialect.commandFields.map((field) => hook[field]).join(' ');
     expect(command).toContain('jiahao-sweep.js');
   }
