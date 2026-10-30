@@ -10,17 +10,21 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { spawnSync } = require('child_process');
 
 const { buildAdapters } = require('../scripts/build-adapters');
-const { materializeBundle } = require('./helpers/generated-bundle');
+const { materializeBundle, assertAbsolutePluginRoot } = require('./helpers/generated-bundle');
+const { spawnHook, expectExit, parseJson, describe } = require('./helpers/spawned-hook');
 
-const BUNDLE = 'adapters/codebuddy/';
+// A key into the generator's map, NOT a directory (#84). The old name read like
+// a path, so path.join() onto it silently produced a relative path that
+// resolved against the test process's cwd - a merge with #75 had zero textual
+// conflicts and turned this suite red for three CI runs.
+const GENERATED_PREFIX = 'adapters/codebuddy/';
 const generated = buildAdapters();
 let bundleDir;
 
 beforeAll(() => {
-  bundleDir = materializeBundle(generated, BUNDLE);
+  bundleDir = materializeBundle(generated, GENERATED_PREFIX);
 });
 
 afterAll(() => {
@@ -38,6 +42,10 @@ function mkConfigDir(files) {
 
 function runBundleHook(script, opts) {
   const o = opts || {};
+  // Structure, not convention: a relative root makes every containment
+  // assertion measure the wrong thing while still passing. Default is the
+  // materialized directory the hook is actually spawned from.
+  assertAbsolutePluginRoot(o.pluginRoot);
   const env = Object.assign({}, process.env);
   delete env.PLUGIN_DATA;
   delete env.COPILOT_PLUGIN_DATA;
@@ -45,18 +53,15 @@ function runBundleHook(script, opts) {
   delete env.CLAUDE_PLUGIN_ROOT;
   delete env.CODEBUDDY_PLUGIN_ROOT;
   env.CLAUDE_CONFIG_DIR = o.configDir;
-  if (o.pluginRoot !== undefined) env.CLAUDE_PLUGIN_ROOT = o.pluginRoot;
-  return spawnSync(process.execPath, [path.join(bundleDir, 'hooks', script)], {
-    input: o.stdin === undefined ? '{}' : o.stdin,
-    env: env, encoding: 'utf8', timeout: 15000,
-  });
+  env.CLAUDE_PLUGIN_ROOT = o.pluginRoot === undefined ? bundleDir : o.pluginRoot;
+  return spawnHook(path.join(bundleDir, 'hooks', script), { stdin: o.stdin, env: env });
 }
 
 describe('hook behavior (bundle copies, live spawn)', () => {
   test('InstructionsLoaded asserts rules presence + sha256 into the telemetry log', () => {
     const dir = mkConfigDir({ '.jiahao-profile': 'verifier' });
     const res = runBundleHook('jiahao-instructions-assert.js', { configDir: dir, pluginRoot: bundleDir });
-    expect(res.status).toBe(0);
+    expectExit(res, 0);
     const log = fs.readFileSync(path.join(dir, '.jiahao-instructions.jsonl'), 'utf8');
     const rec = JSON.parse(log.trim().split('\n').pop());
     expect(rec.event).toBe('InstructionsLoaded');
@@ -72,7 +77,7 @@ describe('hook behavior (bundle copies, live spawn)', () => {
     const dir = mkConfigDir({ '.jiahao-profile': 'verifier' });
     const emptyRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-cb-root-'));
     const res = runBundleHook('jiahao-instructions-assert.js', { configDir: dir, pluginRoot: emptyRoot });
-    expect(res.status).toBe(0);
+    expectExit(res, 0);
     const rec = JSON.parse(fs.readFileSync(path.join(dir, '.jiahao-instructions.jsonl'), 'utf8').trim().split('\n').pop());
     expect(rec.results.every((r) => r.present === false)).toBe(true);
   });
@@ -86,8 +91,8 @@ describe('hook behavior (bundle copies, live spawn)', () => {
       configDir: dir, pluginRoot: bundleDir,
       stdin: JSON.stringify({ stop_hook_active: false, session_id: 'probe' }),
     });
-    expect(res.status).toBe(2);
-    const out = JSON.parse(res.stdout.trim());
+    expectExit(res, 2);
+    const out = parseJson(res);
     expect(out.decision).toBe('block');
   });
 
@@ -97,8 +102,8 @@ describe('hook behavior (bundle copies, live spawn)', () => {
       configDir: dir, pluginRoot: bundleDir,
       stdin: JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: 'adapters/codebuddy/rules/jiahao-verifier.md' } }),
     });
-    expect(res.status).toBe(0);
-    const out = JSON.parse(res.stdout.trim());
+    expectExit(res, 0);
+    const out = parseJson(res);
     expect(out.hookSpecificOutput.permissionDecision).toBe('deny');
     expect(out.hookSpecificOutput.hookEventName).toBe('PreToolUse');
     const rec = JSON.parse(fs.readFileSync(path.join(dir, '.jiahao-pretool.jsonl'), 'utf8').trim().split('\n').pop());
@@ -115,7 +120,7 @@ describe('hook behavior (bundle copies, live spawn)', () => {
       // #75: none of these are name fragments any more - containment under the
       // bundle root is what protects them, so they are pinned by the host's own
       // absolute spelling (the reading a real tool_input carries). bundleDir, not
-      // BUNDLE: BUNDLE is a key into the generator's map ('adapters/codebuddy/'),
+      // GENERATED_PREFIX: a key into the generator's map ('adapters/codebuddy/'),
       // and joining onto it silently produces a relative path that resolves
       // wherever the test process happens to sit - which is how this assertion
       // went red in a merge with no textual conflict.
@@ -134,11 +139,9 @@ describe('hook behavior (bundle copies, live spawn)', () => {
       // tool call that should have been denied went through, and JSON.parse's
       // "Unexpected end of JSON input" says nothing about which payload did it.
       if (res.status !== 0 || !String(res.stdout).trim()) {
-        throw new Error('shape not denied: ' + JSON.stringify({
-          command: command, status: res.status, stdout: res.stdout, stderr: res.stderr,
-        }));
+        throw new Error('shape not denied: ' + describe(res));
       }
-      expect(JSON.parse(res.stdout).hookSpecificOutput.permissionDecision).toBe('deny');
+      expect(parseJson(res).hookSpecificOutput.permissionDecision).toBe('deny');
     }
     // non-protected payloads still pass silently
     const benign = runBundleHook('jiahao-pretool-guard.js', {
@@ -174,7 +177,7 @@ describe('hook behavior (bundle copies, live spawn)', () => {
         configDir: dir, pluginRoot: bundleDir,
         stdin: JSON.stringify({ tool_name: 'Bash', tool_input: { command: command } }),
       });
-      expect(res.status).toBe(0);
+      expectExit(res, 0);
       expect(res.stdout.trim()).toBe('');
     }
     for (const file_path of ownFiles) {
@@ -182,7 +185,7 @@ describe('hook behavior (bundle copies, live spawn)', () => {
         configDir: dir, pluginRoot: bundleDir,
         stdin: JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: file_path } }),
       });
-      expect(res.status).toBe(0);
+      expectExit(res, 0);
       expect(res.stdout.trim()).toBe('');
     }
     // nothing was recorded either: a non-attempt is not telemetry
@@ -201,8 +204,8 @@ describe('hook behavior (bundle copies, live spawn)', () => {
       configDir: dir, pluginRoot: spaced,
       stdin: JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: hookMap } }),
     });
-    expect(res.status).toBe(0);
-    expect(JSON.parse(res.stdout.trim()).hookSpecificOutput.permissionDecision).toBe('deny');
+    expectExit(res, 0);
+    expect(parseJson(res).hookSpecificOutput.permissionDecision).toBe('deny');
 
     const outside = path.join(spaced, '..', 'John Doe project', '.mcp.json');
     const benign = runBundleHook('jiahao-pretool-guard.js', {
@@ -218,7 +221,7 @@ describe('hook behavior (bundle copies, live spawn)', () => {
       configDir: dir, pluginRoot: bundleDir,
       stdin: JSON.stringify({ tool_name: 'Write', tool_input: { file_path: 'src/foo.js' } }),
     });
-    expect(benign.status).toBe(0);
+    expectExit(benign, 0);
     expect(benign.stdout.trim()).toBe('');
 
     const dirG = mkConfigDir({ '.jiahao-profile': 'generator' });
@@ -226,7 +229,7 @@ describe('hook behavior (bundle copies, live spawn)', () => {
       configDir: dirG, pluginRoot: bundleDir,
       stdin: JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: '.codebuddy/rules/jiahao-verifier.md' } }),
     });
-    expect(gen.status).toBe(0);
+    expectExit(gen, 0);
     expect(gen.stdout.trim()).toBe(''); // observe-recorded, never denied
     const rec = JSON.parse(fs.readFileSync(path.join(dirG, '.jiahao-pretool.jsonl'), 'utf8').trim().split('\n').pop());
     expect(rec.decision).toBe('observe');
@@ -236,8 +239,18 @@ describe('hook behavior (bundle copies, live spawn)', () => {
     for (const s of ['jiahao-instructions-assert.js', 'jiahao-pretool-guard.js']) {
       const a = runBundleHook(s, { configDir: mkConfigDir(), stdin: '' });
       const b = runBundleHook(s, { configDir: mkConfigDir(), stdin: 'not json{{{' });
-      expect(a.status).toBe(0);
-      expect(b.status).toBe(0);
+      expectExit(a, 0);
+      expectExit(b, 0);
     }
+  });
+
+  // #84: the structure assertion that makes the rename enforceable. A relative
+  // root used to be accepted and silently joined, so the containment assertions
+  // measured a path relative to whichever cwd the suite ran in. This one has to
+  // fail if the check is removed: runBundleHook must refuse the key, not spawn.
+  test('runBundleHook refuses a relative pluginRoot (the map key is not a path)', () => {
+    expect(() => runBundleHook('jiahao-pretool-guard.js', {
+      configDir: mkConfigDir(), pluginRoot: GENERATED_PREFIX,
+    })).toThrow(/absolute/);
   });
 });

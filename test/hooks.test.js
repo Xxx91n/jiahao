@@ -1,20 +1,51 @@
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
-const { execSync, spawnSync } = require('child_process');
 
-const TMP = require('os').tmpdir().replace(/\\/g, '/') + '/jiahao-hooks-test';
+const repoRoot = path.join(__dirname, '..');
+const hooksDir = path.join(repoRoot, 'hooks');
+const { spawnHook, expectExit, parseJson } = require('./helpers/spawned-hook');
+const { createRecord: createEvidence } = require(path.join(repoRoot, 'src', 'evidence-log.js'));
+const { detect } = require(path.join(repoRoot, 'src', 'detector.js'));
 
-const hooksDir = path.join(__dirname, '..', 'hooks');
-const { createRecord: createEvidence } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
-const { detect } = require(path.join(__dirname, '..', 'src', 'detector.js'));
-
-// Clean slate before each hooks test to prevent profile/flag leakage
+// One fresh directory per test (#84 / #86 A). This file used to share a single
+// fixed TMP: two overlapping runs - another worktree's agent, a sharded job -
+// read and rewrote each other's evidence chain mid-assertion, flipping a block
+// into a pass. Every case now gets its own mkdtemp dir, so no path here is
+// reachable by a concurrent run.
+let tempDirs;
 beforeEach(() => {
-  fs.mkdirSync(TMP, { recursive: true });
-  ['.jiahao-profile', '.jiahao-active', '.jiahao-evidence'].forEach(f => {
-    try { fs.unlinkSync(TMP + '/' + f); } catch (e) {}
-  });
+  tempDirs = [];
 });
+afterEach(() => {
+  for (const dir of tempDirs) {
+    try { fs.rmSync(dir, { recursive: true, force: true }); } catch (e) { /* best effort */ }
+  }
+});
+
+function freshDir(prefix) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  tempDirs.push(dir);
+  return dir;
+}
+
+function hookEnv(dir) {
+  const env = Object.assign({}, process.env);
+  for (const k of ['PLUGIN_DATA', 'COPILOT_PLUGIN_DATA', 'QODER_SESSION_ID',
+    'CLAUDE_PLUGIN_ROOT', 'CODEBUDDY_PLUGIN_ROOT']) delete env[k];
+  env.CLAUDE_CONFIG_DIR = dir;
+  return env;
+}
+
+function runHook(script, opts) {
+  const o = opts || {};
+  const dir = o.dir || freshDir('jiahao-hooks-test-');
+  return spawnHook(path.join(hooksDir, script), {
+    stdin: o.stdin,
+    env: hookEnv(dir),
+    cwd: repoRoot,
+  });
+}
 
 test('all 5 hook files exist', () => {
   ['jiahao-runtime.js', 'jiahao-activate.js', 'jiahao-subagent.js',
@@ -60,129 +91,60 @@ test('runtime writeHookOutput respects 10k cap', () => {
 });
 
 test('activate script runs and outputs SKILL.md content', () => {
-  const origDir = process.cwd();
-  process.chdir(path.join(__dirname, '..'));
-  try {
-    const output = execSync('node hooks/jiahao-activate.js', {
-      encoding: 'utf8',
-      env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 15000,
-    });
-    expect(output).toContain('Jiahao');
-    expect(output).toContain('verification ladder');
-  } finally {
-    process.chdir(origDir);
-  }
+  const res = runHook('jiahao-activate.js');
+  expectExit(res, 0);
+  expect(res.stdout).toContain('Jiahao');
+  expect(res.stdout).toContain('verification ladder');
 });
 
 test('mode-tracker responds to /jiahao full command', () => {
-  const origDir = process.cwd();
-  process.chdir(path.join(__dirname, '..'));
-  try {
-    const input = JSON.stringify({ prompt: '/jiahao full' });
-    const output = execSync('echo \'' + input + '\' | node hooks/jiahao-mode-tracker.js', {
-      encoding: 'utf8',
-      env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 15000,
-      shell: 'bash',
-    });
-    expect(output).toContain('JIAHAO MODE');
-  } finally {
-    process.chdir(origDir);
-  }
+  const input = JSON.stringify({ prompt: '/jiahao full' });
+  const res = runHook('jiahao-mode-tracker.js', { stdin: input });
+  expectExit(res, 0);
+  expect(res.stdout).toContain('JIAHAO MODE');
 });
 
 test('verdict-gate blocks without evidence', () => {
-  const origDir = process.cwd();
-  process.chdir(path.join(__dirname, '..'));
-  fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
-  try { fs.unlinkSync(TMP + '/.jiahao-evidence'); } catch (e) {}
-  try { fs.unlinkSync(TMP + '/.jiahao-profile'); } catch (e) {}
-  try {
-    const input = JSON.stringify({ stop_hook_active: false });
-    const output = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8',
-      env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 15000,
-      shell: 'bash',
-    });
-    const parsed = JSON.parse(output);
-    expect(parsed.decision).toBe('block');
-  } catch (e) {
-    expect(e.status).toBe(2);
-  } finally {
-    process.chdir(origDir);
-  }
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  const res = runHook('jiahao-verdict-gate.js', {
+    dir: dir, stdin: JSON.stringify({ stop_hook_active: false }),
+  });
+  expectExit(res, 2);
+  expect(parseJson(res).decision).toBe('block');
 });
 
 test('verdict-gate passes with evidence', () => {
-  const origDir = process.cwd();
-  process.chdir(path.join(__dirname, '..'));
-  fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
   const rec = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null);
-  fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify([rec]), 'utf8');
-  try {
-    const input = JSON.stringify({ stop_hook_active: false });
-    execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8',
-      env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 15000,
-      shell: 'bash',
-    });
-  } catch (e) {
-    throw new Error('verdict-gate should pass with evidence, got exit ' + e.status);
-  } finally {
-    try { fs.unlinkSync(TMP + '/.jiahao-evidence'); } catch (e) {}
-    process.chdir(origDir);
-  }
+  fs.writeFileSync(path.join(dir, '.jiahao-evidence'), JSON.stringify([rec]), 'utf8');
+  const res = runHook('jiahao-verdict-gate.js', {
+    dir: dir, stdin: JSON.stringify({ stop_hook_active: false }),
+  });
+  expectExit(res, 0);
 });
 
 test('verdict-gate blocks with empty JSON array evidence', () => {
-  const origDir = process.cwd();
-  process.chdir(path.join(__dirname, '..'));
-  fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
-  fs.writeFileSync(TMP + '/.jiahao-evidence', '[]', 'utf8');
-  try { fs.unlinkSync(TMP + '/.jiahao-profile'); } catch (e) {}
-  try {
-    const input = JSON.stringify({ stop_hook_active: false });
-    const output = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8',
-      env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 15000,
-      shell: 'bash',
-    });
-    const parsed = JSON.parse(output);
-    expect(parsed.decision).toBe('block');
-  } catch (e) {
-    expect(e.status).toBe(2);
-  } finally {
-    try { fs.unlinkSync(TMP + '/.jiahao-evidence'); } catch (e) {}
-    process.chdir(origDir);
-  }
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-evidence'), '[]', 'utf8');
+  const res = runHook('jiahao-verdict-gate.js', {
+    dir: dir, stdin: JSON.stringify({ stop_hook_active: false }),
+  });
+  expectExit(res, 2);
+  expect(parseJson(res).decision).toBe('block');
 });
 
 test('verdict-gate blocks with plain text evidence (not JSON)', () => {
-  const origDir = process.cwd();
-  process.chdir(path.join(__dirname, '..'));
-  fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
-  fs.writeFileSync(TMP + '/.jiahao-evidence', 'test passed', 'utf8');
-  try { fs.unlinkSync(TMP + '/.jiahao-profile'); } catch (e) {}
-  try {
-    const input = JSON.stringify({ stop_hook_active: false });
-    const output = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8',
-      env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 15000,
-      shell: 'bash',
-    });
-    const parsed = JSON.parse(output);
-    expect(parsed.decision).toBe('block');
-  } catch (e) {
-    expect(e.status).toBe(2);
-  } finally {
-    try { fs.unlinkSync(TMP + '/.jiahao-evidence'); } catch (e) {}
-    process.chdir(origDir);
-  }
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-evidence'), 'test passed', 'utf8');
+  const res = runHook('jiahao-verdict-gate.js', {
+    dir: dir, stdin: JSON.stringify({ stop_hook_active: false }),
+  });
+  expectExit(res, 2);
+  expect(parseJson(res).decision).toBe('block');
 });
 
 test('shared paths module exports flagPath and evidencePath', () => {
@@ -196,142 +158,85 @@ test('shared paths module exports flagPath and evidencePath', () => {
 });
 
 test('verdict-gate respects stop_hook_active', () => {
-  const origDir = process.cwd();
-  process.chdir(path.join(__dirname, '..'));
-  fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
-  try { fs.unlinkSync(TMP + '/.jiahao-evidence'); } catch (e) {}
-  try {
-    const input = JSON.stringify({ stop_hook_active: true });
-    execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8',
-      env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 15000,
-      shell: 'bash',
-    });
-  } catch (e) {
-    throw new Error('verdict-gate should pass with stop_hook_active=true, got exit ' + e.status);
-  } finally {
-    process.chdir(origDir);
-  }
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  const res = runHook('jiahao-verdict-gate.js', {
+    dir: dir, stdin: JSON.stringify({ stop_hook_active: true }),
+  });
+  expectExit(res, 0);
 });
 
 test('D4: verdict-gate with evidence is idempotent (file NOT consumed, second fire also passes)', () => {
-  const origDir = process.cwd();
-  process.chdir(path.join(__dirname, '..'));
-  fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
   const recD4 = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null);
-  fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify([recD4]), 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-evidence'), JSON.stringify([recD4]), 'utf8');
   const input = JSON.stringify({ stop_hook_active: false });
-  try {
-    execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
-    });
-    // file must still exist after the hook accepted the stop.
-    expect(fs.existsSync(TMP + '/.jiahao-evidence')).toBe(true);
-    execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
-    });
-    expect(fs.existsSync(TMP + '/.jiahao-evidence')).toBe(true);
-  } catch (e) {
-    throw new Error('D4 idempotency broken: ' + (e.message || e.status));
-  } finally {
-    try { fs.unlinkSync(TMP + '/.jiahao-evidence'); } catch (e_) {}
-    process.chdir(origDir);
-  }
+  expectExit(runHook('jiahao-verdict-gate.js', { dir: dir, stdin: input }), 0);
+  // file must still exist after the hook accepted the stop.
+  expect(fs.existsSync(path.join(dir, '.jiahao-evidence'))).toBe(true);
+  expectExit(runHook('jiahao-verdict-gate.js', { dir: dir, stdin: input }), 0);
+  expect(fs.existsSync(path.join(dir, '.jiahao-evidence'))).toBe(true);
 });
 
 test('D2: generator profile never blocks on high-severity suspicion (advisory only)', () => {
-  const origDir = process.cwd();
-  process.chdir(path.join(__dirname, '..'));
-  fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
-  fs.writeFileSync(TMP + '/.jiahao-profile', 'generator', 'utf8');
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'generator', 'utf8');
   const det = detect('搞定了');
   const rec = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null, { detector: det });
-  fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify([rec]), 'utf8');
-  try {
-    const input = JSON.stringify({ stop_hook_active: false });
-    const out = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
-    });
-    const parsed = JSON.parse(out);
-    expect(parsed.decision).toBe('allow');
-    expect(parsed.systemMessage).toMatch(/JIAHAO ADVISORY \(high\)/);
-  } finally {
-    try { fs.unlinkSync(TMP + '/.jiahao-profile'); } catch (e_) {}
-    try { fs.unlinkSync(TMP + '/.jiahao-evidence'); } catch (e_) {}
-    process.chdir(origDir);
-  }
+  fs.writeFileSync(path.join(dir, '.jiahao-evidence'), JSON.stringify([rec]), 'utf8');
+  const res = runHook('jiahao-verdict-gate.js', {
+    dir: dir, stdin: JSON.stringify({ stop_hook_active: false }),
+  });
+  expectExit(res, 0);
+  const parsed = parseJson(res);
+  expect(parsed.decision).toBe('allow');
+  expect(parsed.systemMessage).toMatch(/JIAHAO ADVISORY \(high\)/);
 });
 
 test('D2: verifier profile blocks on high-severity suspicion', () => {
-  const origDir = process.cwd();
-  process.chdir(path.join(__dirname, '..'));
-  fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
-  fs.writeFileSync(TMP + '/.jiahao-profile', 'verifier', 'utf8');
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'verifier', 'utf8');
   const det = detect('搞定了');
   const rec = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null, { detector: det });
-  fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify([rec]), 'utf8');
-  try {
-    const input = JSON.stringify({ stop_hook_active: false });
-    execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
-    throw new Error('verifier profile should have blocked');
-  } catch (e) {
-    expect(e.status).toBe(2);
-    const parsed = JSON.parse((e.stdout || '').toString());
-    expect(parsed.decision).toBe('block');
-    expect(parsed.reason).toMatch(/high severity/);
-  } finally {
-    try { fs.unlinkSync(TMP + '/.jiahao-profile'); } catch (e_) {}
-    try { fs.unlinkSync(TMP + '/.jiahao-evidence'); } catch (e_) {}
-    process.chdir(origDir);
-  }
+  fs.writeFileSync(path.join(dir, '.jiahao-evidence'), JSON.stringify([rec]), 'utf8');
+  const res = runHook('jiahao-verdict-gate.js', {
+    dir: dir, stdin: JSON.stringify({ stop_hook_active: false }),
+  });
+  expectExit(res, 2);
+  const parsed = parseJson(res);
+  expect(parsed.decision).toBe('block');
+  expect(parsed.reason).toMatch(/high severity/);
 });
 
 test('D2: verifier profile low-severity suspicion = advisory, not block', () => {
-  const origDir = process.cwd();
-  process.chdir(path.join(__dirname, '..'));
-  fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
-  fs.writeFileSync(TMP + '/.jiahao-profile', 'verifier', 'utf8');
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'verifier', 'utf8');
   const det = detect('应该没问题');
   const rec = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null, { detector: det });
-  fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify([rec]), 'utf8');
-  try {
-    const input = JSON.stringify({ stop_hook_active: false });
-    const out = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
-    });
-    const parsed = JSON.parse(out);
-    expect(parsed.decision).toBe('allow');
-    expect(parsed.systemMessage).toMatch(/JIAHAO ADVISORY \(low\)/);
-  } finally {
-    try { fs.unlinkSync(TMP + '/.jiahao-profile'); } catch (e_) {}
-    try { fs.unlinkSync(TMP + '/.jiahao-evidence'); } catch (e_) {}
-    process.chdir(origDir);
-  }
+  fs.writeFileSync(path.join(dir, '.jiahao-evidence'), JSON.stringify([rec]), 'utf8');
+  const res = runHook('jiahao-verdict-gate.js', {
+    dir: dir, stdin: JSON.stringify({ stop_hook_active: false }),
+  });
+  expectExit(res, 0);
+  const parsed = parseJson(res);
+  expect(parsed.decision).toBe('allow');
+  expect(parsed.systemMessage).toMatch(/JIAHAO ADVISORY \(low\)/);
 });
 
 test('D2: verifier profile with clean evidence (no detector field) passes silently', () => {
-  const origDir = process.cwd();
-  process.chdir(path.join(__dirname, '..'));
-  fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
-  fs.writeFileSync(TMP + '/.jiahao-profile', 'verifier', 'utf8');
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'verifier', 'utf8');
   const rec = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null);
-  fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify([rec]), 'utf8');
-  try {
-    const input = JSON.stringify({ stop_hook_active: false });
-    execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
-    });
-  } catch (e) {
-    throw new Error('verifier profile should pass with clean evidence, got ' + e.status);
-  } finally {
-    try { fs.unlinkSync(TMP + '/.jiahao-profile'); } catch (e_) {}
-    try { fs.unlinkSync(TMP + '/.jiahao-evidence'); } catch (e_) {}
-    process.chdir(origDir);
-  }
+  fs.writeFileSync(path.join(dir, '.jiahao-evidence'), JSON.stringify([rec]), 'utf8');
+  const res = runHook('jiahao-verdict-gate.js', {
+    dir: dir, stdin: JSON.stringify({ stop_hook_active: false }),
+  });
+  expectExit(res, 0);
 });
 
 // recordHash covers prev_hash — the tail-truncate-relink hole
@@ -361,45 +266,30 @@ test('idempotency key is deterministic composite', () => {
 
 // verdict-gate BLOCKS when the on-disk chain is tampered.
 test('verdict-gate blocks on broken chain (verifier)', () => {
-  const origDir = process.cwd();
-  process.chdir(path.join(__dirname, '..'));
-  fs.writeFileSync(TMP + '/.jiahao-active', 'full', 'utf8');
-  fs.writeFileSync(TMP + '/.jiahao-profile', 'verifier', 'utf8');
-  const { createRecord: createEvidence } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'verifier', 'utf8');
   const rec = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null);
   rec.prev_hash = 'f'.repeat(64); // tamper: repoint genesis prev_hash
-  fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify([rec]), 'utf8');
-  try {
-    const input = JSON.stringify({ stop_hook_active: false });
-    execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
-    });
-    throw new Error('verdict-gate should have blocked on broken chain');
-  } catch (e) {
-    expect(e.status).toBe(2);
-    const parsed = JSON.parse((e.stdout || '').toString());
-    expect(parsed.reason).toMatch(/CHAIN CORRUPTION/);
-  } finally {
-    try { fs.unlinkSync(TMP + '/.jiahao-profile'); } catch (e_) {}
-    try { fs.unlinkSync(TMP + '/.jiahao-evidence'); } catch (e_) {}
-    process.chdir(origDir);
-  }
+  fs.writeFileSync(path.join(dir, '.jiahao-evidence'), JSON.stringify([rec]), 'utf8');
+  const res = runHook('jiahao-verdict-gate.js', {
+    dir: dir, stdin: JSON.stringify({ stop_hook_active: false }),
+  });
+  expectExit(res, 2);
+  expect(parseJson(res).reason).toMatch(/CHAIN CORRUPTION/);
 });
 
-
 test('verifier gate surfaces pending escalation count (advisory, exit 0)', () => {
-  fs.writeFileSync(TMP + '/.jiahao-profile', 'verifier\n', 'utf8');
-  fs.writeFileSync(TMP + '/.jiahao-active', 'on\n', 'utf8');
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'verifier\n', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'on\n', 'utf8');
   const det = createEvidence('det-0', 'deterministic', 'passed', 'tests ok', 0.5, null);
   const llm = createEvidence('llm-0', 'llm-critic', 'inconclusive', 'critic timed out', null, det.event_hash);
-  fs.writeFileSync(TMP + '/.jiahao-evidence', JSON.stringify([det, llm]), 'utf8');
-
-  const input = JSON.stringify({});
-  const output = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-    encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: TMP }, timeout: 15000, shell: 'bash',
-  });
-  expect(output).toContain('Pending escalations: 1');
-  expect(output).toContain('jiahao resolve');
+  fs.writeFileSync(path.join(dir, '.jiahao-evidence'), JSON.stringify([det, llm]), 'utf8');
+  const res = runHook('jiahao-verdict-gate.js', { dir: dir, stdin: JSON.stringify({}) });
+  expectExit(res, 0);
+  expect(res.stdout).toContain('Pending escalations: 1');
+  expect(res.stdout).toContain('jiahao resolve');
 });
 
 // ---- #75: the severity/coverage scan is a decision about THIS turn ----
@@ -410,12 +300,11 @@ test('verifier gate surfaces pending escalation count (advisory, exit 0)', () =>
 
 const { recordHash } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
 
-// Each case runs against its own config dir. The shared TMP above is what the
-// other tests in this file use, and two overlapping runs - a second agent in
-// another worktree, or a sharded job - clobber the chain mid-assertion, which
+// Each case runs against its own config dir. The shared TMP this file used to
+// have is what let two overlapping runs clobber the chain mid-assertion, which
 // turns a block into a pass.
 function gateFixture() {
-  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'jiahao-gate-75-'));
+  const dir = freshDir('jiahao-gate-75-');
   fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
   fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'verifier', 'utf8');
   return {
@@ -423,15 +312,13 @@ function gateFixture() {
       fs.writeFileSync(path.join(dir, '.jiahao-evidence'), JSON.stringify(records), 'utf8');
     },
     stop: function (payload) {
-      // spawnSync with an argv array and the payload on stdin: no shell string to
-      // interpolate, and a block (exit 2) is a normal result rather than a throw.
-      const res = spawnSync(process.execPath,
-        [path.join(__dirname, '..', 'hooks', 'jiahao-verdict-gate.js')], {
-          input: JSON.stringify(payload),
-          env: { ...process.env, CLAUDE_CONFIG_DIR: dir },
-          encoding: 'utf8', timeout: 15000,
-        });
-      return { status: res.status, stdout: String(res.stdout || '') };
+      // argv array and the payload on stdin: no shell string to interpolate,
+      // and a block (exit 2) is a normal result rather than a throw.
+      return spawnHook(path.join(hooksDir, 'jiahao-verdict-gate.js'), {
+        stdin: JSON.stringify(payload),
+        env: hookEnv(dir),
+        cwd: repoRoot,
+      });
     },
   };
 }
@@ -478,7 +365,7 @@ test('#75: an adjudication recorded under another session still releases what it
   // or scoping the scan has only produced a new permanent block.
   const pass = humanVerdict(stale.event_hash, 'pass', 'session-reviewer');
   gate.chain([stale, pass]);
-  expect(gate.stop({ stop_hook_active: false, session_id: 'session-current' }).status).toBe(0);
+  expectExit(gate.stop({ stop_hook_active: false, session_id: 'session-current' }), 0);
 });
 
 test('#75: another session records do not vouch for this session', () => {
@@ -487,35 +374,35 @@ test('#75: another session records do not vouch for this session', () => {
   // conversation sits on the chain. That is not this turn's evidence.
   gate.chain([createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null, { session_id: 'session-old' })]);
   const res = gate.stop({ stop_hook_active: false, session_id: 'session-new' });
-  expect(res.status).toBe(2);
-  expect(JSON.parse(res.stdout).reason).toMatch(/no evidence/);
+  expectExit(res, 2);
+  expect(parseJson(res).reason).toMatch(/no evidence/);
 });
 
 test('#75: a high-severity record from another session does not gate this Stop', () => {
   const gate = gateFixture();
   const own = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null, { session_id: 'session-new' });
   gate.chain([own, highSeverityRecord(own.event_hash, 'session-old')]);
-  expect(gate.stop({ stop_hook_active: false, session_id: 'session-new' }).status).toBe(0);
+  expectExit(gate.stop({ stop_hook_active: false, session_id: 'session-new' }), 0);
 });
 
 test('#75: a partial-coverage record from another session does not gate this Stop', () => {
   const gate = gateFixture();
   const own = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null, { session_id: 'session-new' });
   gate.chain([own, partialCoverageRecord(own.event_hash, 'session-old')]);
-  expect(gate.stop({ stop_hook_active: false, session_id: 'session-new' }).status).toBe(0);
+  expectExit(gate.stop({ stop_hook_active: false, session_id: 'session-new' }), 0);
 });
 
 test('#75: the same records still gate inside their own session', () => {
   const gate = gateFixture();
   gate.chain([highSeverityRecord(null, 'session-a')]);
   const high = gate.stop({ stop_hook_active: false, session_id: 'session-a' });
-  expect(high.status).toBe(2);
-  expect(JSON.parse(high.stdout).reason).toMatch(/high severity/);
+  expectExit(high, 2);
+  expect(parseJson(high).reason).toMatch(/high severity/);
 
   gate.chain([partialCoverageRecord(null, 'session-b')]);
   const partial = gate.stop({ stop_hook_active: false, session_id: 'session-b' });
-  expect(partial.status).toBe(2);
-  expect(JSON.parse(partial.stdout).reason).toMatch(/partial coverage/);
+  expectExit(partial, 2);
+  expect(parseJson(partial).reason).toMatch(/partial coverage/);
 });
 
 test('#75: a passed human verdict releases a stale coverage record', () => {
@@ -524,14 +411,14 @@ test('#75: a passed human verdict releases a stale coverage record', () => {
   gate.chain([stale]);
   // unattributed records stay in scope - a host that sends no session_id gets
   // no free pass, and adjudication is their only release.
-  expect(gate.stop({ stop_hook_active: false }).status).toBe(2);
+  expectExit(gate.stop({ stop_hook_active: false }), 2);
 
   const pass = humanVerdict(stale.event_hash, 'pass');
   gate.chain([stale, pass]);
-  expect(gate.stop({ stop_hook_active: false }).status).toBe(0);
+  expectExit(gate.stop({ stop_hook_active: false }), 0);
   // released for good: the adjudication lives on the append-only chain, so the
   // next Stop sees the same answer.
-  expect(gate.stop({ stop_hook_active: false }).status).toBe(0);
+  expectExit(gate.stop({ stop_hook_active: false }), 0);
 });
 
 test('#75: a passed human verdict releases a stale severity record, a failed one does not', () => {
@@ -539,9 +426,9 @@ test('#75: a passed human verdict releases a stale severity record, a failed one
   const stale = highSeverityRecord(null);
   const fail = humanVerdict(stale.event_hash, 'fail');
   gate.chain([stale, fail]);
-  expect(gate.stop({ stop_hook_active: false }).status).toBe(2);
+  expectExit(gate.stop({ stop_hook_active: false }), 2);
 
   const pass = humanVerdict(fail.event_hash, 'pass');
   gate.chain([stale, fail, pass]);
-  expect(gate.stop({ stop_hook_active: false }).status).toBe(0);
+  expectExit(gate.stop({ stop_hook_active: false }), 0);
 });
