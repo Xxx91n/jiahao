@@ -9,7 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 const { profilePath, configDir } = require('../src/shared/paths');
-const { VERDICTS } = require('./resolve'); // one list of verdicts, two usages
+const { VERDICTS } = require('../src/shared/verdict-vocab'); // one list of verdicts, two usages
 const pkg = require('../package.json');
 
 const REMINDER = [

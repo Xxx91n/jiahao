@@ -55,3 +55,7 @@
 **能力档位（Capability Tier）**：
 按宿主能在哪一步拦住分三级：A 档能在回合结束前阻断，B 档只能在工具调用前阻断，C 档只有规则注入、没有钩子。档位是发布期结论，不是宿主的永久属性；出处写在宿主表那一行里（宿主版本 + 实测看到什么）。没观测到真实回合被拦下的，对外只说「A 档候选」，不说「会拦」。
 *避免*：把 B 档或 C 档说成「会拦」、凭宿主文档推断档位、把档位当成宿主的永久标签。
+
+**人工裁定（Human Verdict）**：
+人工对某次完工主张的终审，唯一写法是 `jiahao resolve --verdict pass|fail|inconclusive --reason <text> --reviewer <id>`。它往证据链**追加**一条 `kind:'human_verdict'` 记录，回执给出这条记录的 event_hash 与它在链上的 seq。`pass` 放行它之前写入的记录（Stop 只看最后一条 pass 之后的记录）；`fail` 与 `inconclusive` 只留痕、不放行。没有理由的裁定不算裁定。
+*避免*：手改 JSONL 解链、把裁定当成改写历史、把「命令退出 0」当成「已经落链」（回执里的 event_hash 与 seq 才是凭证）、把 inconclusive 当成中立样本（κ 只把 pass 记作人机一致）。

@@ -15,6 +15,9 @@ const INSTALL = path.join(root, 'scripts', 'install.js');
 const GATE = path.join(root, 'hooks', 'jiahao-verdict-gate.js');
 
 const { createEvidenceLog, createRecord } = require(path.join(root, 'src', 'evidence-log'));
+// the fail-path prefix enum has one fact source; the assertions read it rather
+// than restating the literals.
+const { PREFIXES } = require(path.join(root, 'src', 'shared', 'prefix-vocab'));
 
 const PASS_ARGS = ['--verdict', 'pass', '--reason', 're-ran rung 1: no hook was killed, the run finished', '--reviewer', 'alice'];
 
@@ -134,7 +137,7 @@ test('#85: an empty reason is a usage error and writes no record', () => {
   ]) {
     const r = resolve(dir, args);
     expect(r.status).not.toBe(0);
-    expect(r.stderr).toContain('[usage]:');
+    expect(r.stderr).toContain(PREFIXES.usage);
     expect(r.stderr).toContain('--reason');
   }
   expect(chainOf(dir)).toEqual(before);
@@ -152,23 +155,25 @@ test('#85: a verdict with no reviewer or an unknown value is a usage error', () 
   ]) {
     const r = resolve(dir, args);
     expect(r.status).not.toBe(0);
-    expect(r.stderr).toContain('[usage]:');
+    expect(r.stderr).toContain(PREFIXES.usage);
   }
   expect(chainOf(dir)).toEqual(before);
 });
 
-test('#85: a fail verdict is recorded but releases nothing', () => {
-  const dir = configDir();
-  seedStaleRecord(dir);
+test('#85: fail and inconclusive are recorded but release nothing', () => {
+  for (const verdict of ['fail', 'inconclusive']) {
+    const dir = configDir();
+    seedStaleRecord(dir);
 
-  const r = resolve(dir, ['--verdict', 'fail', '--reason', 'the hook never finished; the claim is unsupported', '--reviewer', 'alice']);
-  expect(r.status).toBe(0);
-  expect(chainOf(dir)).toHaveLength(2);
-  expect(chainOf(dir)[1].verdict).toBe('fail');
+    const r = resolve(dir, ['--verdict', verdict, '--reason', 'the hook never finished; the claim is unsupported', '--reviewer', 'alice']);
+    expect(r.status).toBe(0);
+    expect(chainOf(dir)).toHaveLength(2);
+    expect(chainOf(dir)[1].verdict).toBe(verdict);
 
-  // the human agreed the claim was unsupported: the turn still has to be
-  // re-verified, so the stale record keeps gating.
-  expect(stop(dir, { stop_hook_active: false }).status).toBe(2);
+    // neither verdict agrees the claim holds: the turn still has to be
+    // re-verified, so the stale record keeps gating.
+    expect(stop(dir, { stop_hook_active: false }).status).toBe(2);
+  }
 });
 
 test('#85: --flag=value is accepted and a repeated flag is refused', () => {
@@ -183,7 +188,7 @@ test('#85: --flag=value is accepted and a repeated flag is refused', () => {
   // than pick one.
   const dup = resolve(dir, ['--verdict', 'pass', '--verdict', 'fail', '--reason', 'x', '--reviewer', 'alice']);
   expect(dup.status).not.toBe(0);
-  expect(dup.stderr).toContain('[usage]:');
+  expect(dup.stderr).toContain(PREFIXES.usage);
 });
 
 test('#85: a store that refuses the write is reported, not assumed written', () => {
@@ -197,8 +202,11 @@ test('#85: a store that refuses the write is reported, not assumed written', () 
 
   const r = resolve(dir, PASS_ARGS);
   expect(r.status).not.toBe(0);
-  expect(r.stderr).toContain('NOT appended');
-  expect(r.stderr).toContain('[config]:');
+  expect(r.stderr).toContain(PREFIXES.config);
+  expect(r.stderr).toContain('no human_verdict on the chain I can read');
+  // the failure receipt names what the store holds, so "did anything land?" is
+  // answerable without trusting the exit code
+  expect(r.stderr).toContain('chain tail: seq 0 (chain length 1) event_hash ' + '0'.repeat(16));
   expect(r.stdout).not.toContain('event_hash');
   expect(JSON.parse(fs.readFileSync(storePath, 'utf8'))).toEqual(broken);
 });

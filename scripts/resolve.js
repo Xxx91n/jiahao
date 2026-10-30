@@ -16,14 +16,14 @@
 
 const { createEvidenceLog, recordHash } = require('../src/evidence-log');
 const { PREFIXES } = require('../src/shared/prefix-vocab');
+const { VERDICTS } = require('../src/shared/verdict-vocab');
 
-// `pass` releases the records written before it. `fail` and `inconclusive` are
-// recorded but release nothing, and the cost of `inconclusive` is stated rather
-// than hidden: src/calibration.js pairs a verdict with the latest machine record
-// and counts only 'pass' as human agreement, so an inconclusive verdict enters
-// the κ numerator/denominator as a disagreement.
-const VERDICTS = ['pass', 'fail', 'inconclusive'];
-
+// `pass` releases the records written before it; `fail` and `inconclusive` are
+// recorded but release nothing. The cost of `inconclusive` is stated rather than
+// hidden: src/calibration.js pairs each verdict with the latest machine record
+// and counts only 'pass' as human agreement, so an inconclusive verdict lands in
+// the "not pass" bucket — it agrees with a failed machine record, disagrees with
+// a passed one, and is never a neutral sample.
 const USAGE = [
   'Usage: jiahao resolve --verdict ' + VERDICTS.join('|') + ' --reason <text> --reviewer <id>',
   '',
@@ -77,7 +77,16 @@ function parseFlags(argv) {
   return out;
 }
 
-function run(argv) {
+// Receipt for the failure path: what the store holds right now, so the operator
+// can check "did anything land?" against it instead of trusting the exit code.
+function tailReceipt(chain) {
+  if (!chain || chain.length === 0) return 'chain tail: no readable records';
+  const tail = chain[chain.length - 1];
+  const hash = tail && typeof tail.event_hash === 'string' ? tail.event_hash.slice(0, 16) + '…' : 'no event_hash';
+  return 'chain tail: seq ' + (chain.length - 1) + ' (chain length ' + chain.length + ') event_hash ' + hash;
+}
+
+function writeVerdict(argv) {
   let flags;
   try {
     flags = parseFlags(argv || []);
@@ -123,8 +132,10 @@ function run(argv) {
     if (chain[i] && chain[i].event_hash === written.rec.event_hash) { seq = i; break; }
   }
   if (seq < 0) {
-    console.error(PREFIXES.config + ' human_verdict was NOT appended — the evidence store refused the write, or ' +
-      'could not be read back (the evidence-log note above says which). This run changed no existing record.');
+    console.error(PREFIXES.config + ' no human_verdict on the chain I can read — the store refused the write, ' +
+      'or it could not be read back (the evidence-log note above says which). Nothing was overwritten: this ' +
+      'command only appends.');
+    console.error(tailReceipt(chain));
     process.exitCode = 1;
     return;
   }
@@ -145,13 +156,22 @@ function run(argv) {
   console.log('event_hash ' + written.rec.event_hash);
 }
 
-module.exports = { run, parseFlags, USAGE, VERDICTS };
-
-if (require.main === module) {
+// Every failure carries a prefix, including the ones that escape through
+// scripts/install.js: that dispatcher prints a bare e.message for anything
+// thrown out of run(), and a bare message is the fail-path this repo replaced
+// with a closed enum.
+function run(argv) {
   try {
-    run(process.argv.slice(2));
+    writeVerdict(argv);
   } catch (e) {
-    console.error(PREFIXES.internal + ' ' + e.message);
+    const prefix = e && e.name === 'ConfigLoadError' ? PREFIXES.config : PREFIXES.internal;
+    console.error(prefix + ' no human_verdict was confirmed: ' + (e && e.message ? e.message : String(e)));
     process.exitCode = 1;
   }
+}
+
+module.exports = { run };
+
+if (require.main === module) {
+  run(process.argv.slice(2));
 }
