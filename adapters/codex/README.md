@@ -23,8 +23,9 @@ The repository root is also a Codex marketplace
 2. `codex plugin add jiahao --marketplace jiahao`
 3. Review and trust the plugin's hook commands once — Codex skips an untrusted
    hook silently (`/hooks`). Live probe: an untrusted plugin's hooks did not
-   run in `codex exec`; unattended automation either persists that trust or
-   passes `--dangerously-bypass-hook-trust` after vetting the source.
+   run in `codex exec`. Unattended automation either persists that trust (the
+   `/hooks` flow; source-verified, not step-by-step probed) or passes
+   `--dangerously-bypass-hook-trust` after vetting the source.
 4. Activate the jiahao profile flag, same as every host. Resolve the config
    directory once (`CLAUDE_CONFIG_DIR`, else `$HOME`, else `/tmp`):
    `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-/tmp}}"`, then
@@ -90,8 +91,9 @@ marketplace add <local path>` and `codex plugin add jiahao --marketplace
 jiahao` installed the bundle. Without persisted trust the hooks were skipped
 in `codex exec` and the false claim passed; with
 `--dangerously-bypass-hook-trust` the Stop gate answered
-`{decision:"block"}` and the next model turn quoted the reason. Commands and
-captured output live in `docs/evidence/v0.3.0/`.
+`{decision:"block"}` and the next model turn quoted the reason. The
+interactive `/hooks` trust-and-restart flow itself was not step-by-step
+probed. Commands and captured output live in `docs/evidence/v0.3.0/`.
 
 Loop guard: an unconditional exit-0 JSON block in a throwaway user Stop hook
 continued for 80+ turns before the probe was stopped, and no host cap appeared.

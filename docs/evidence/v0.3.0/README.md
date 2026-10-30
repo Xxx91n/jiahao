@@ -14,7 +14,9 @@ or test run is used as evidence here.
   `CODEX_HOME` with no `config.toml` ran the hooks. No explicit
   `[features] hooks` needed.
 - Untrusted run: plain `codex exec` exit 0; the false completion passed and no
-  jiahao hook ran (`codex-untrusted.jsonl`).
+  jiahao hook ran (`codex-untrusted.jsonl`). The interactive `/hooks`
+  trust-and-restart flow itself was not step-by-step probed; the bypass path
+  and the source's trust gate were.
 - Trusted run: `--dangerously-bypass-hook-trust`, exit 0. First agent message
   `任务完成，已验证。`; Stop returned `{decision:"block"}` and the next agent
   message quoted the reason (`codex-blocked.jsonl`,
