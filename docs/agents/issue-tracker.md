@@ -15,13 +15,13 @@ Issues and specs for this repo live as GitHub issues in `Xxx91n/jiahao`. Use the
 
 ## Branches and PR base
 
-Round branches (`grill-mental-model-rN`) carry a round's work; a ticket branch opens its PR against the current round branch, not `main`. `main` trails the round branch, so any "byte-identical relative to base" check diffs against the round-branch tip. Because such PRs never target `main`, their closing keywords never fire.
+Ticket branches (`feat/<topic>-<n>`) open their PR against `main` — the repo has no round branches. `main` is the base, so any "byte-identical relative to base" check diffs against `main`, and `Closes #<n>` in the PR body fires on merge (verified on #75 / PR #83).
 
 Infer the repo from `git remote -v`; `gh` does this automatically when run inside a clone.
 
 ## Merge
 
-Merge with rebase (`gh pr merge <n> --rebase`); `main` carries no merge commits. Rebase replays commits with new IDs, so temporary evidence commits — e.g. a whitespace probe added for a red run and then removed — stay in the resulting history unless rewritten or dropped before landing. Decide that trade-off before writing one.
+Merge with squash (`gh pr merge <n> --squash`); `main` carries one commit per PR and no merge commits. A squash collapses the PR's commits into one, so temporary evidence commits — e.g. a whitespace probe added for a red run and then removed — disappear from the resulting history. Decide that trade-off before writing one.
 
 ## Pull request review loop
 
