@@ -69,7 +69,8 @@ function dialectOf(host) {
 // ships, and which host events it wires. The generator emits from this table,
 // both gates read it, and the structure tests iterate it - adding a host is one
 // row, not a copy of claude-code's assertions plus edits to check-drift and
-// release-gate.
+// release-gate. A C-tier row sets `manifest: null`: that is the rules-only
+// shape (rule text + README, no plugin manifest, no src/ copy, no hooks).
 //
 // tier is spec #74 D2's vocabulary: A can block before the turn ends, B can
 // only block a tool call, C is rules-only and registers no hooks at all.
@@ -205,6 +206,28 @@ const HOSTS = [
     rules: [],
     readme: codexReadme,
   },
+  {
+    name: 'qoder',
+    label: 'Qoder',
+    dir: 'adapters/qoder',
+    tier: 'C',
+    turnEnd: null,
+    // Spec #74's probe list still owns Qoder's turn-end question. Until a probe
+    // answers it, the table records what was observed: nothing (no host build
+    // was recorded for this row). The exit is rules only, so there is no hook
+    // that could be mistaken for enforcement.
+    provenance: 'Qoder (host build not recorded; spec #74 probe list, 2026-10-30): turn-end behavior unprobed, no live run observed; C tier (rules only) is the spec-assigned ceiling',
+    // A manifest-less row IS the rules-only exit: no plugin manifest, no
+    // vendored scripts, no src/ copy. The one rule file carries the same body
+    // as the rules version; see qoderReadme for the install surface.
+    hooks: {},
+    manifest: null,
+    autoDiscovered: [],
+    mcp: null,
+    rules: [
+      { file: 'jiahao.md', profile: 'both', description: 'Jiahao anti-false-completion discipline (rules only)' },
+    ],
+    readme: qoderReadme,  },
 ];
 
 // The marketplace is the repository root, and its single entry is the plugin a
@@ -222,14 +245,17 @@ const CODEX_MARKETPLACE_HOST = CODEX_DIALECT_HOSTS.length === 1 ? CODEX_DIALECT_
 // Retired, and not to be re-added without a self-contained directory and tests:
 // aider, cline, cursor, instruction-tier, opencode, and windsurf were
 // instruction-only copies, replaced by the standard rules directory
-// (skills/jiahao/); copilot, qoder, and mcp registered hooks or notes
-// without shipping the scripts next to them, so a copied directory could not
-// run. codex left this list in #77: it is a self-contained plugin bundle again,
-// generated from the host table and covered by the structure tests.
-// The MCP server itself stays at jiahao-mcp/. check-drift refuses a directory
-// for any of these names, so #62's convergence cannot quietly come back.
+// (skills/jiahao/); copilot and mcp registered hooks or notes without shipping
+// the scripts next to them, so a copied directory could not run. The MCP server
+// itself stays at jiahao-mcp/. check-drift refuses a directory for any of these
+// names, so #62's convergence cannot quietly come back.
+//
+// codex left this list in #77: it is a self-contained plugin bundle again,
+// generated from the host table and covered by the structure tests. qoder left
+// it in #79: it ships a generated rules-only directory (manifest null, no
+// hooks) with the no-registration assertion in the tests.
 const RETIRED_HOSTS = ['aider', 'cline', 'copilot', 'cursor',
-  'instruction-tier', 'mcp', 'opencode', 'qoder', 'windsurf'];
+  'instruction-tier', 'mcp', 'opencode', 'windsurf'];
 
 function readRepoFile(rel) {
   return fs.readFileSync(path.join(root, rel.split('/').join(path.sep)), 'utf8');
@@ -302,6 +328,13 @@ const VERDICT_GATE = 'jiahao-verdict-gate';
 // would be silently overridden, so it is a table error instead.
 const RESERVED_MANIFEST_KEYS = ['name', 'version', 'license', 'repository', 'defaultEnabled'];
 
+// A rules-only directory is the manifest-less shape: rule text + README, no
+// plugin scaffold. One predicate, so the generator, both gates, and the tests
+// cannot disagree about which rows have a plugin scaffold.
+function isRulesOnlyDirectory(host) {
+  return host.manifest === null;
+}
+
 function hostShapeProblems(hosts) {
   const problems = [];
   const names = new Set();
@@ -371,7 +404,21 @@ function hostShapeProblems(hosts) {
     const rules = Array.isArray(host.rules) ? host.rules : [];
     if (!Array.isArray(host.rules)) problems.push(label + ': rules must be an array (empty when the bundle ships none)');
     for (const rule of rules) {
-      if (!['generator', 'verifier'].includes(rule.profile)) problems.push(label + ': rule ' + rule.file + ' has unknown profile ' + rule.profile);
+      if (!['generator', 'verifier', 'both'].includes(rule.profile)) problems.push(label + ': rule ' + rule.file + ' has unknown profile ' + rule.profile);
+    }
+    // A C-tier host exists to carry rules; an empty one is not an exit.
+    if (host.tier === 'C' && rules.length === 0) problems.push(label + ': a C-tier host is rules-only and must ship at least one rule');
+    // manifest: null is the rules-only shape: no plugin manifest, no src/ copy,
+    // no hooks. It must be C tier and register nothing the host could load as a
+    // component.
+    const rulesOnly = isRulesOnlyDirectory(host);
+    if (host.manifest === undefined || (!rulesOnly && (typeof host.manifest !== 'object' || Array.isArray(host.manifest)))) {
+      problems.push(label + ': manifest must be an object, or null for a rules-only exit');
+    }
+    if (rulesOnly) {
+      if (host.tier !== 'C') problems.push(label + ': a manifest-less exit is rules-only (tier C)');
+      if (autoDiscovered.length) problems.push(label + ': a rules-only exit auto-discovers nothing');
+      if (host.mcp) problems.push(label + ': a rules-only exit has no MCP registration');
     }
     for (const key of RESERVED_MANIFEST_KEYS) {
       if (Object.prototype.hasOwnProperty.call(host.manifest || {}, key)) {
@@ -466,7 +513,11 @@ function buildAdapters() {
   const skillPath = path.join(root, 'src', 'SKILL.md');
   const skill = fs.readFileSync(skillPath, 'utf8');
 
-  const profiles = splitByProfile(skill);
+  const profiles = Object.assign(splitByProfile(skill), {
+    // The `both` profile is the full body the rules version ships: a rules-only
+    // host takes the same text in one file, with `alwaysApply: true` in front.
+    both: skill.replace(/^---[\s\S]*?---\n/, ''),
+  });
 
   // gsr rule headers are the structural latch for the generator
   // profile; fail the build (and the --check golden layer) on malformed rules.
@@ -482,19 +533,23 @@ function buildAdapters() {
 
   const adapters = {};
 
-  // One pass per row. The bundle is SELF-CONTAINED: the event scripts, their
+  // One pass per row. A plugin row is SELF-CONTAINED: the event scripts, their
   // static require() closure, src/SKILL.md, and the identity pin are vendored
   // byte-verbatim, so the plugin dir loads standalone and regen-diff keeps the
   // vendored copies honest. Seeds are the wired scripts (plus the MCP entry),
-  // so a file cannot be wired without being shipped.
+  // so a file cannot be wired without being shipped. A rules-only row
+  // (manifest: null) emits the rule text and README only - no manifest, no
+  // src/ copy, and by the shape check above, no hook map.
   for (const host of HOSTS) {
     const prefix = host.dir + '/';
     const dialect = dialectOf(host);
-    emitBundle(adapters, prefix, bundleSeeds(host), skill, host.mcp ? host.mcp.files : []);
+    if (!isRulesOnlyDirectory(host)) {
+      emitBundle(adapters, prefix, bundleSeeds(host), skill, host.mcp ? host.mcp.files : []);
 
-    adapters[prefix + dialect.manifestDir + '/plugin.json'] = emitPluginManifest(host);
-    if (Object.keys(host.hooks).length) adapters[prefix + 'hooks/hooks.json'] = emitHookMap(host);
-    if (host.mcp) adapters[prefix + '.mcp.json'] = emitMcpJson(host.mcp);
+      adapters[prefix + dialect.manifestDir + '/plugin.json'] = emitPluginManifest(host);
+      if (Object.keys(host.hooks).length) adapters[prefix + 'hooks/hooks.json'] = emitHookMap(host);
+      if (host.mcp) adapters[prefix + '.mcp.json'] = emitMcpJson(host.mcp);
+    }
     for (const rule of host.rules) adapters[prefix + 'rules/' + rule.file] = emitRule(rule, profiles);
     adapters[prefix + 'README.md'] = host.readme();
   }
@@ -676,6 +731,63 @@ deviations ride errata records).
 `;
 }
 
+
+// Qoder install manual. C tier means rules only: the file is context, not a
+// gate. The wording stays inside what was observed (nothing), and the test
+// suite pins both the absence of hook registration and the absence of a
+// blocking claim.
+function qoderReadme() {
+  return `# Qoder Adapter (C tier: rules only)
+
+This directory is the **rules-only exit** for Qoder. It carries one rule file
+generated from \`src/SKILL.md\`, the same source as the rules version
+(\`skills/jiahao/SKILL.md\`). It registers **no hooks**: there is no
+\`hooks/hooks.json\`, no hook script, and no plugin manifest.
+
+## Capability tier
+
+C tier: rules only. Qoder's turn-end hook behavior is still on the probe list
+(spec #74). No Qoder session was run for this exit; C tier is the spec-assigned
+ceiling, not an observed result. A probe that answers the turn-end question is
+a separate ticket.
+
+## Install
+
+1. Copy \`rules/jiahao.md\` into \`.qoder/rules/\` in the project, or into
+   \`~/.qoder/rules/\` for every project.
+2. Keep \`alwaysApply: true\` in the frontmatter. Qoder's rules documentation
+   says rules without a \`paths\` or \`trigger\` selector load eagerly, and
+   \`alwaysApply: true\` is one of the always-on forms (declared-unverified
+   here; reference: https://docs.qoder.com/cli/memory).
+3. Start a new Qoder session. The file is plain Markdown; no script runs and
+   nothing needs installing.
+
+The rule body carries both profiles (generator and verifier), exactly like the
+rules version. The host takes what it needs; there is no \`.jiahao-profile\`
+switch here because no hook reads that file.
+
+## Verification status
+
+- Structural facts are pinned by tests: this directory contains only the rule
+  file and this README, and no hook registration.
+- Not live-probed: no Qoder session was run for this exit. The loading behavior
+  in step 2 is quoted from Qoder's documentation, not observed here.
+- C tier is the probe list's open question, not a claim about what Qoder can do.
+
+## What this exit does not do
+
+- No hook registration, no subprocess, and no evidence file.
+- No enforcement: the file is instructions only. This exit registers nothing
+  that acts on a turn or a tool call.
+- No installer: copy the file into Qoder's own rules directory.
+
+## Update
+
+Re-copy \`rules/jiahao.md\` after a release. The body is generated from
+\`src/SKILL.md\`; \`node scripts/build-adapters.js --check\` keeps the committed
+copy identical to the generator output.
+`;
+}
 
 // Claude Code install manual + hook disclosure. Regenerated from this single
 // source; edit the string, never the emitted file.
@@ -1056,5 +1168,5 @@ if (require.main === module) main();
 module.exports = {
   buildAdapters, unifiedDiff, checkAll, writeAll, auditTrackedSet, SKILL_DIR, SOURCE_NAME,
   HOSTS, RETIRED_HOSTS, MARKETPLACE_HOST, CODEX_MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
-  dialectOf,
+  dialectOf, isRulesOnlyDirectory,
 };

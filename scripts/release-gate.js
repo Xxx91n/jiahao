@@ -36,7 +36,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { spawnSync } = require('child_process');
 
-const { HOSTS, CODEX_MARKETPLACE_HOST, dialectOf } = require('./build-adapters');
+const { HOSTS, CODEX_MARKETPLACE_HOST, dialectOf, isRulesOnlyDirectory } = require('./build-adapters');
 const { PLATFORMS } = require('../hooks/jiahao-runtime');
 
 const root = path.join(__dirname, '..');
@@ -51,8 +51,11 @@ function manifestRel(host) {
 // What the packed artifact must carry and must never carry. Shared with
 // test/packaging.test.js so the jest assertion and the tag command cannot
 // drift apart: one list, two readers. The per-host entries come from the
-// generator's host table, so a new bundle is required in the tarball without
-// touching this list.
+// generator's host table, so a new exit is required in the tarball without
+// touching this list. A rules-only row contributes its README and rule files
+// but no plugin manifest and no hook map.
+const PLUGIN_HOSTS = HOSTS.filter(host => !isRulesOnlyDirectory(host));
+const RULES_ONLY_HOSTS = HOSTS.filter(host => isRulesOnlyDirectory(host));
 const REQUIRED_PACK_FILES = [
   'package.json',
   // `jiahao resolve` is dispatched from the installer and its module went
@@ -61,7 +64,8 @@ const REQUIRED_PACK_FILES = [
   // machine.
   'scripts/resolve.js',
   'skills/jiahao/SKILL.md',
-  ...HOSTS.map(manifestRel),
+  ...PLUGIN_HOSTS.map(manifestRel),
+  ...RULES_ONLY_HOSTS.map(host => host.dir + '/README.md'),
   ...HOSTS.filter(host => Object.keys(host.hooks || {}).length > 0).map(host => host.dir + '/hooks/hooks.json'),
   ...HOSTS.flatMap(host => host.rules.map(rule => host.dir + '/rules/' + rule.file)),
   '.claude-plugin/marketplace.json',
@@ -76,7 +80,7 @@ const FORBIDDEN_PACK_PREFIXES = ['private/', 'bench/', 'docs/research/'];
 // bundle is easier to name than a tarball diff.
 const HASHED_TREES = ['skills/jiahao', ...HOSTS.map(host => host.dir)];
 
-const PLUGIN_MANIFESTS = HOSTS.map(manifestRel);
+const PLUGIN_MANIFESTS = PLUGIN_HOSTS.map(manifestRel);
 const MARKETPLACE_MANIFEST = '.claude-plugin/marketplace.json';
 
 // Files that run on a user's machine once jiahao is installed: the installer

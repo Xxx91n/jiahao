@@ -41,7 +41,7 @@ test('tarball carries the rules directory and every plugin bundle, and no privat
 
 // Pin the contract itself: if REQUIRED_PACK_FILES lost an exit, the assertion
 // above would still pass, because both sides would be equally wrong.
-test('the pack contract names the rules file, every plugin hook map, and both marketplaces', () => {
+test('the pack contract names the rules file, every plugin hook map, the Qoder rules exit, and both marketplaces', () => {
   for (const rel of [
     'skills/jiahao/SKILL.md',
     'adapters/codebuddy/.claude-plugin/plugin.json',
@@ -52,6 +52,10 @@ test('the pack contract names the rules file, every plugin hook map, and both ma
     'adapters/codex/.codex-plugin/plugin.json',
     'adapters/codex/hooks/hooks.json',
     '.agents/plugins/marketplace.json',
+    // #79: Qoder is a rules-only exit. Its rule file and install manual are
+    // required in the tarball; a hook map would be a defect, not a requirement.
+    'adapters/qoder/rules/jiahao.md',
+    'adapters/qoder/README.md',
     '.claude-plugin/marketplace.json',
     // #85: the write side of adjudication went missing from the repo once, and
     // a tarball without it fails only on a user's machine.
@@ -59,6 +63,8 @@ test('the pack contract names the rules file, every plugin hook map, and both ma
   ]) {
     expect(REQUIRED_PACK_FILES).toContain(rel);
   }
+  expect(REQUIRED_PACK_FILES).not.toContain('adapters/qoder/hooks/hooks.json');
+  expect(REQUIRED_PACK_FILES).not.toContain('adapters/qoder/.claude-plugin/plugin.json');
   expect(FORBIDDEN_PACK_PREFIXES).toEqual(expect.arrayContaining(['private/', 'bench/', 'docs/research/']));
 });
 
@@ -70,6 +76,15 @@ test('every generated marketplace manifest is a required pack file', () => {
   const marketplaces = Object.keys(buildAdapters()).filter((rel) => rel.endsWith('/marketplace.json'));
   expect(marketplaces.length).toBeGreaterThanOrEqual(2);
   for (const rel of marketplaces) expect(REQUIRED_PACK_FILES).toContain(rel);
+});
+
+test('the Qoder rules-only exit is packed as exactly its rule and README', () => {
+  // Exact set, not just "contains": adapters/ is whitelisted wholesale, so an
+  // untracked adapters/qoder/hooks/hooks.json would ship without this check.
+  expect(packed.filter((p) => p.startsWith('adapters/qoder/')).sort()).toEqual([
+    'adapters/qoder/README.md',
+    'adapters/qoder/rules/jiahao.md',
+  ]);
 });
 
 test('the packed version is the package version the tag will be checked against', () => {
