@@ -1,3 +1,6 @@
+# Project .github/copilot/settings.json agentStop hook (always blocks):
+#   node copilot-always-block.js -> prints {"decision":"block","reason":"ALWAYS BLOCK: counter probe"} and exits 0
+
 $ copilot -p 'Reply exactly: pong' --trust-folder --disable-client-telemetry
 exit 0
 

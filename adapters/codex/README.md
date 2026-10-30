@@ -11,7 +11,8 @@ reads from the repository root.
 prompt-mode session continued a false completion claim only after `Stop`
 answered `{decision:"block"}` on exit 0. The exit-2 + stderr path documented
 by the host source ended the turn without a continuation in this build.
-Evidence: `docs/evidence/v0.3.0/codex-*`.
+Evidence:
+[`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 ## Install (host-native commands)
 
@@ -93,7 +94,8 @@ in `codex exec` and the false claim passed; with
 `--dangerously-bypass-hook-trust` the Stop gate answered
 `{decision:"block"}` and the next model turn quoted the reason. The
 interactive `/hooks` trust-and-restart flow itself was not step-by-step
-probed. Commands and captured output live in `docs/evidence/v0.3.0/`.
+probed. Commands and captured output live in
+[`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 Loop guard: an unconditional exit-0 JSON block in a throwaway user Stop hook
 continued for 80+ turns before the probe was stopped, and no host cap appeared.

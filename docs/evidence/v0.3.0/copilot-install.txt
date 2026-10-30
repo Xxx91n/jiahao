@@ -1,6 +1,7 @@
 $ copilot plugin install <repo-root>/adapters/copilot
 Plugin "jiahao" installed successfully.
 Warning: Direct plugin installs (repos, URLs, local paths) are deprecated. Only plugin@marketplace installs will be supported in a future release.
+# exit 0
 
 $ copilot plugin list --json
 [

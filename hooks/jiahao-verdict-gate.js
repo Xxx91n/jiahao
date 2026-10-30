@@ -16,10 +16,9 @@ const path = require('path');
 const { flagPath } = require('../src/shared/paths');
 const { readProfile } = require('./jiahao-profile');
 // One shape from every host: sessionId/agentName spellings are normalized here.
-const { normalizePayload } = require('./jiahao-runtime');
+const { normalizePayload, writeBlockOutput } = require('./jiahao-runtime');
 const { createEvidenceLog } = require('../src/evidence-log');
 const { kappaAdvisory, loadKappaBaseline } = require('../src/calibration');
-const { detectHost } = require('./jiahao-runtime');
 const evidenceLog = createEvidenceLog();
 const sentinel = require('../src/sentinel').begin('jiahao-verdict-gate');
 
@@ -31,26 +30,11 @@ const sentinel = require('../src/sentinel').begin('jiahao-verdict-gate');
 // cleared once stdin ends, so nothing but stdout holds the process. Exits that
 // print nothing stay exits.
 
-// Block envelope, in the two shapes the hosts actually read. The stdout JSON
-// decision is the channel every host honors. Codex 0.163.0 and Copilot CLI
-// 1.0.105 (win32, probed 2026-10-30, #80) both ended the turn without a
-// continuation when this hook exited 2: Codex ignored the decision on that
-// path, Copilot treats exit 2 as a warning. Both honor the decision field on
-// exit 0, so those branches exit 0; the Codex stderr copy stays for host logs.
-// Claude-shaped hosts keep exit 2 as their block signal.
+// The stdout JSON decision is shared; the exit code and the Codex stderr copy
+// are host dialect. Both live in hooks/jiahao-runtime.js (writeBlockOutput),
+// next to the per-host output shapes, so this judgment script stays host-neutral.
 function emitBlock(reason) {
-  console.log(JSON.stringify({ decision: 'block', reason: reason }));
-  const host = detectHost();
-  if (host === 'codex') {
-    console.error(reason);
-    process.exitCode = 0;
-    return;
-  }
-  if (host === 'copilot') {
-    process.exitCode = 0;
-    return;
-  }
-  process.exitCode = 2;
+  writeBlockOutput(reason);
 }
 
 // If jiahao is off, pass through

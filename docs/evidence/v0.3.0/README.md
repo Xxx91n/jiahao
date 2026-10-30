@@ -1,8 +1,13 @@
 # v0.3.0 real-machine acceptance (#80)
 
-Date: 2026-10-30. Host: Windows 10.0.26100 (win32 x64). Checks
-(`npm test`, `check:adapters`, `check:drift`) are owned by CI; no local build
-or test run is used as evidence here.
+Date: 2026-10-30. Host: Windows 10.0.26100 (win32 x64). `node
+scripts/build-adapters.js` was run locally to produce the committed bundles;
+verification of `npm test`, `check:adapters`, and `check:drift` is owned by CI
+and no local test run is used as evidence here.
+
+Artifact version: the installed bundles and manifests still report `0.2.0`;
+#81 owns the `v0.3.0` bump. This directory records the acceptance for the
+v0.3.0 content.
 
 ## Codex CLI
 
@@ -14,12 +19,12 @@ or test run is used as evidence here.
   `CODEX_HOME` with no `config.toml` ran the hooks. No explicit
   `[features] hooks` needed.
 - Untrusted run: plain `codex exec` exit 0; the false completion passed and no
-  jiahao hook ran (`codex-untrusted.jsonl`). The interactive `/hooks`
+  jiahao hook ran (`codex-untrusted.txt`). The interactive `/hooks`
   trust-and-restart flow itself was not step-by-step probed; the bypass path
   and the source's trust gate were.
 - Trusted run: `--dangerously-bypass-hook-trust`, exit 0. First agent message
   `任务完成，已验证。`; Stop returned `{decision:"block"}` and the next agent
-  message quoted the reason (`codex-blocked.jsonl`,
+  message quoted the reason (`codex-blocked.txt`,
   `codex-evidence-chain.jsonl`).
 - Stop semantics: block via exit 0 + stdout decision. Exit 2 + stderr ended the
   turn without a continuation in this build (`codex-probe-notes.md`).
@@ -38,15 +43,17 @@ or test run is used as evidence here.
   (`copilot-blocked.txt`, `copilot-events.jsonl`,
   `copilot-evidence-chain.jsonl`).
 - `.claude/settings.json`: read. SessionStart and Stop entries ran; a
-  Claude-schema Stop block also continued the turn
-  (`copilot-claude-settings.txt`).
+  Claude-schema Stop block was logged as `agentStop decision=block` and the
+  turn continued (`copilot-claude-settings.txt`,
+  `copilot-claude-settings-events.jsonl`).
 - Cap: 8 consecutive block continuations, then the CLI ended. Observed 9
   `agentStop` invocations and 9 assistant messages (initial + 8
   continuations); the ninth block was not continued (`copilot-cap.txt`).
 - Plugin env: `PLUGIN_ROOT`, `COPILOT_PLUGIN_ROOT`, `CLAUDE_PLUGIN_ROOT`, and
   `COPILOT_PLUGIN_DATA` set; `detectHost()` selects `copilot`
   (`copilot-plugin-env.txt`).
-- `sessionEnd` fired for plugin hooks in the final session.
+- `sessionStart` and `sessionEnd` fired for plugin hooks in the final session
+  (`copilot-lifecycle-hooks.txt`).
 
 ## Tier conclusion
 

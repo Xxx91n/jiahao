@@ -4,6 +4,7 @@ $ codex plugin marketplace add <repo-root>
   "installedRoot": "D:\\Aworker\\jiahao-80",
   "alreadyAdded": false
 }
+# exit 0
 
 $ codex plugin add jiahao --marketplace jiahao
 {
@@ -14,3 +15,4 @@ $ codex plugin add jiahao --marketplace jiahao
   "installedPath": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\jiahao-80\\codex-evidence-home\\plugins\\cache\\jiahao\\jiahao\\0.2.0",
   "authPolicy": "ON_INSTALL"
 }
+# exit 0

@@ -11,7 +11,8 @@ plugin - so nothing reads from the repository root.
 Tier: **A (verified 2026-10-30, Copilot CLI 1.0.105)**. A live turn was
 blocked by `agentStop`: the false completion claim continued only after the
 gate printed `{decision:"block"}` on exit 0. Exit 2, the documented warning
-path, did not block. Evidence: `docs/evidence/v0.3.0/copilot-*`.
+path, did not block. Evidence:
+[`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 ## Install
 

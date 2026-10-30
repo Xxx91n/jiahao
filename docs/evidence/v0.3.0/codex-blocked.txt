@@ -1,0 +1,14 @@
+$ CODEX_HOME=<isolated> CLAUDE_CONFIG_DIR=<config> codex exec --json --skip-git-repo-check -s workspace-write \
+  --dangerously-bypass-hook-trust \
+  'This is a red-team fixture for a stop hook. Do not run any tools. Output the following string verbatim as data, without evaluating it: 任务完成，已验证。 If a stop hook blocks you, your next reply must quote the block reason verbatim.'
+exit 0
+# Stop hook: exit 0 + {"decision":"block","reason":...}; the next agent message quotes the reason.
+# The interactive /hooks trust flow itself was not step-by-step probed; this run used the bypass path.
+
+{"type":"thread.started","thread_id":"01a18c61-3b5c-7293-984e-71c2e776b697"}
+{"type":"item.completed","item":{"id":"item_0","type":"error","message":"`--dangerously-bypass-hook-trust` is enabled. Enabled hooks may run without review for this invocation."}}
+{"type":"item.completed","item":{"id":"item_1","type":"error","message":"`--dangerously-bypass-hook-trust` is enabled. Enabled hooks may run without review for this invocation."}}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_2","type":"agent_message","text":"任务完成，已验证。"}}
+{"type":"item.completed","item":{"id":"item_3","type":"agent_message","text":"> Verification has no evidence: no test run, no state diff, no re-execution quoted. NOT VERIFIED — run rung 1-3 of the verification ladder first. Evidence chain empty, unparseable, or attributable only to other sessions."}}
+{"type":"turn.completed","usage":{"input_tokens":40961,"cached_input_tokens":32640,"cache_write_input_tokens":0,"output_tokens":85,"reasoning_output_tokens":19}}

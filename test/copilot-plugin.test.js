@@ -92,6 +92,8 @@ describe('bundled Copilot CLI hooks (live spawn, temp config dir)', () => {
       stdin: JSON.stringify({ stop_hook_active: false, sessionId: 'session-new', stopReason: 'complete' }),
     });
     expectExit(mine, 0);
+    // A block also exits 0 on this host; the decision field is the discriminator.
+    expect(String(mine.stdout)).not.toContain('"decision":"block"');
   });
 
   // CodeRabbit on PR #95: subagentStart's reliable field is `agentName`
