@@ -47,6 +47,10 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm install --ignore-scripts
+      # The diff step above only sees changed lines; a file that was never
+      # `git add`ed is invisible to it. This one reads every text file in the
+      # tree, untracked included (#102).
+      - run: npm run check:whitespace
       # The generator gates run before the suite: a stale or hand-edited
       # artifact must be caught before anything else. The suite no longer
       # regenerates the working tree (#76 closed #66), so this order is a belt,

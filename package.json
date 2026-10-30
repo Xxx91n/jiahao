@@ -13,6 +13,7 @@
     "check:adapters": "node scripts/build-adapters.js --check",
     "check:drift": "node scripts/check-drift.js",
     "check:links": "node scripts/check-doc-links.js",
+    "check:whitespace": "node scripts/check-whitespace.js",
     "release:gate": "node scripts/release-gate.js"
   },
   "devDependencies": {
