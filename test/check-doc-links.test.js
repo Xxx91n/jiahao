@@ -92,6 +92,18 @@ describe('link extraction', () => {
     expect(linksIn('<a href=bare.md>x</a>')).toEqual([{ target: 'bare.md', line: 1 }]);
   });
 
+  // A commented-out link is not rendered, so it is not a link. Masking has to
+  // keep newlines so the surviving line numbers still point at the right line.
+  test('links inside HTML comments are ignored, line numbers preserved', () => {
+    expect(linksIn('<!-- [old](gone.md) -->\n[a](b.md)\n')).toEqual([{ target: 'b.md', line: 2 }]);
+    expect(linksIn('<!--\n<a href="gone.md">x</a>\n-->\n[a](b.md)\n')).toEqual([{ target: 'b.md', line: 4 }]);
+  });
+
+  test('masking an HTML comment preserves length', () => {
+    const text = '<!-- a\nb -->\nc\n';
+    expect(maskCode(text).length).toBe(text.length);
+  });
+
   test('masking preserves length so offsets still map to the same line', () => {
     const text = '```\nabc\n```\nreal\n';
     expect(maskCode(text).length).toBe(text.length);

@@ -23,9 +23,10 @@ const { resolveNpm } = require('./release-gate');
 
 const root = path.join(__dirname, '..');
 
-// Blank out fenced code blocks and inline code spans, keeping every newline so
-// a match offset still maps to the line a reader would see. Example Markdown
-// inside a fence is documentation of a link, not a link.
+// Blank out fenced code blocks, inline code spans, and HTML comments, keeping
+// every newline so a match offset still maps to the line a reader would see.
+// Example Markdown inside a fence is documentation of a link, not a link; a
+// commented-out link is not rendered either.
 function maskCode(text) {
   let fence = null;
   return text.split('\n').map((line) => {
@@ -40,7 +41,7 @@ function maskCode(text) {
       return ' '.repeat(line.length);
     }
     return line.replace(/(`+)[^`]*?\1/g, (m) => ' '.repeat(m.length));
-  }).join('\n');
+  }).join('\n').replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n]/g, ' '));
 }
 
 // Inline links and images: [text](target "title"). Reference-style definitions
