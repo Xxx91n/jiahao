@@ -38,7 +38,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD`：分�
 - 带 `--artifact-dir` 时 tarball 被留下，并在旁边写 `jiahao-<version>.tgz.sha256`（`sha256sum -c` 直接可验）。带 `--evidence` 时同一批数字落进 JSON，CI 把两者都作为构建产物上传。
 - 包里为什么还有 `.claude-plugin/marketplace.json`：它是插件版的 marketplace 清单，`source` 指向 `./adapters/claude-code`。少了它，tarball 只能是"两个插件目录的副本"，不能当 marketplace 根用。所以它进了 `files`，也进了必须包含清单。
 
-`v0.2.0` 的产物数字不写进本文件。这份文件在 tarball 里，写自己的 `sha256` 会让记录指向另一棵树。tag 上跑出的 `artifact`、`sha256`、三个 tree 哈希，连真机验收记录一起记在 [`docs/release-notes-v0.2.0.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/release-notes-v0.2.0.md)；那份说明不在包里，也不在三个 tree 哈希的范围内，所以不会改变被记录的那棵树。这里用 GitHub 绝对链接，因为 npm 包里没有那份说明。
+`v0.2.0` 的产物数字不写进本文件。这份文件在 tarball 里，写自己的 `sha256` 会让记录指向另一棵树。tag 上跑出的 `artifact`、`sha256`、当时的三个 tree 哈希，连真机验收记录一起记在 [`docs/release-notes-v0.2.0.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/release-notes-v0.2.0.md)；那份说明不在包里，也不在当时的三个 tree 哈希的范围内，所以不会改变被记录的那棵树。这里用 GitHub 绝对链接，因为 npm 包里没有那份说明。
 
 ## 升级路径
 
@@ -104,9 +104,9 @@ cd /tmp/jiahao-clean && npm ci
 npm run release:gate -- --tag v0.2.0
 ```
 
-对账点：`RELEASE GATE GREEN` 那行、`sha256`、三个 tree 哈希，应与发布时记录的值逐字相同。
+对账点：`RELEASE GATE GREEN` 那行、`sha256`、各出口目录的 tree 哈希，应与发布时记录的值逐字相同。
 
-复跑这件事的机器证据有三层：tag 的 CI job 本身就是一次全新检出；门禁对同一棵树连打两次包并比对 `sha256`；本命令让任何人在自己机器上再走一遍，比对上一步打印的数字。跨检出的比对只能靠人：`#64` 必须把 tag 上那次的 `sha256` 与三个 tree 哈希写进 Release 说明，别人才有东西可比。
+复跑这件事的机器证据有三层：tag 的 CI job 本身就是一次全新检出；门禁对同一棵树连打两次包并比对 `sha256`；本命令让任何人在自己机器上再走一遍，比对上一步打印的数字。跨检出的比对只能靠人：`#64` 必须把 tag 上那次的 `sha256` 与 tree 哈希写进 Release 说明，别人才有东西可比。
 
 ## 已知限制
 
