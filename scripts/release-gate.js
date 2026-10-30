@@ -47,6 +47,11 @@ const root = path.join(__dirname, '..');
 // touching this list.
 const REQUIRED_PACK_FILES = [
   'package.json',
+  // `jiahao resolve` is dispatched from the installer and its module went
+  // missing once (#85); a tarball that drops it breaks the only release path
+  // for an unmarked stale record, and the failure only shows up on a user's
+  // machine.
+  'scripts/resolve.js',
   'skills/jiahao/SKILL.md',
   ...HOSTS.map(host => host.dir + '/.claude-plugin/plugin.json'),
   ...HOSTS.filter(host => Object.keys(host.hooks || {}).length > 0).map(host => host.dir + '/hooks/hooks.json'),
@@ -65,12 +70,13 @@ const HASHED_TREES = ['skills/jiahao', ...HOSTS.map(host => host.dir)];
 const PLUGIN_MANIFESTS = HOSTS.map(host => host.dir + '/.claude-plugin/plugin.json');
 const MARKETPLACE_MANIFEST = '.claude-plugin/marketplace.json';
 
-// Files that run on a user's machine once jiahao is installed: the installer,
-// the runtime under src/, every hook the plugin bundles vendor (byte copies of
-// hooks/, asserted by test/plugin-bundles.test.js), and the MCP server the
-// user starts. Maintainer tools (this gate, the generator, the drift check)
-// are not install paths and are deliberately outside the scan.
-const EGRESS_SCAN = ['scripts/install.js', 'hooks', 'src', 'jiahao-mcp/index.js'];
+// Files that run on a user's machine once jiahao is installed: the installer
+// and the resolve entry it dispatches, the runtime under src/, every hook the
+// plugin bundles vendor (byte copies of hooks/, asserted by
+// test/plugin-bundles.test.js), and the MCP server the user starts. Maintainer
+// tools (this gate, the generator, the drift check) are not install paths and
+// are deliberately outside the scan.
+const EGRESS_SCAN = ['scripts/install.js', 'scripts/resolve.js', 'hooks', 'src', 'jiahao-mcp/index.js'];
 const NETWORK_MODULE = /\brequire\(\s*['"](?:node:)?(?:https?|http2|net|dns|tls|dgram)(?:\/[a-z]+)?['"]\s*\)/;
 const NETWORK_CALL = /(?:\bfetch\s*\(|XMLHttpRequest|https?\.(?:request|get)\s*\()/;
 // Lifecycle scripts would turn `npm install` into "download and execute".

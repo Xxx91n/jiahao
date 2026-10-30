@@ -32,7 +32,7 @@ function usage() {
     pkg.name + ' v' + pkg.version + ' — install .jiahao-profile flag',
     '',
     'Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]',
-    '       jiahao resolve [--verdict pass|fail --reason <text> --reviewer <id>]',
+    '       jiahao resolve --verdict pass|fail|inconclusive --reason <text> --reviewer <id>',
     '',
     'Writes ONLY ' + profilePath(),
     'Tier 0 manual: echo "verifier" > ' + profilePath(),
