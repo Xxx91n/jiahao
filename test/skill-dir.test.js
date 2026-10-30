@@ -69,16 +69,17 @@ test('the source keeps the keys that only it can carry', () => {
 // Paths, not contents, for the reason given at the read above. A new SKILL.md
 // anywhere in the repo has to be acknowledged here: the skills CLI scans the
 // root's child directories, and toShippedSkill says what a second claimant costs.
-// The bundle copies (one per host-table row) are the runtime body each plugin's
-// SessionStart hook injects; they carry the source name, so discovery cannot
-// mistake them for the shipped skill.
+// The bundle copies (one per manifest-bearing host-table row) are the runtime
+// body each plugin's SessionStart hook injects; they carry the source name, so
+// discovery cannot mistake them for the shipped skill. A rules-only row
+// (manifest: null) ships no src/SKILL.md and is not a claimant.
 test('the tracked SKILL.md set stays exactly the known set', () => {
   const claimants = listTrackedPaths(root)
     .filter((rel) => rel.endsWith('/SKILL.md'))
     .filter((rel) => rel !== SKILL_DIR + '/SKILL.md')
     .sort();
   const expected = ['src/SKILL.md']
-    .concat(HOSTS.map((host) => host.dir + '/src/SKILL.md'))
+    .concat(HOSTS.filter((host) => host.manifest).map((host) => host.dir + '/src/SKILL.md'))
     .sort();
   expect(claimants).toEqual(expected);
 });

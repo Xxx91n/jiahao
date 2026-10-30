@@ -41,10 +41,12 @@ const GENERATOR_REQUIRED = [
 // kind: both = carries the full dual-profile source body;
 // verifier / generator = carries that profile alone.
 // The per-host entries come from the generator's host table, so a new host adds
-// no line here and a removed one cannot leave a stale path behind.
+// no line here and a removed one cannot leave a stale path behind. A rules-only
+// row (manifest: null) ships no src/SKILL.md; its rule file's 'both' check is
+// what pins the content.
 const CHECKS = [
   { rel: SKILL_DIR + '/SKILL.md', kind: 'both' },
-  ...HOSTS.map(host => ({ rel: host.dir + '/src/SKILL.md', kind: 'both' })),
+  ...HOSTS.filter(host => host.manifest).map(host => ({ rel: host.dir + '/src/SKILL.md', kind: 'both' })),
   ...HOSTS.flatMap(host => host.rules.map(rule => ({ rel: host.dir + '/rules/' + rule.file, kind: rule.profile }))),
 ];
 
