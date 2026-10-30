@@ -9,6 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 const { profilePath, configDir } = require('../src/shared/paths');
+const { VERDICTS } = require('./resolve'); // one list of verdicts, two usages
 const pkg = require('../package.json');
 
 const REMINDER = [
@@ -32,7 +33,7 @@ function usage() {
     pkg.name + ' v' + pkg.version + ' — install .jiahao-profile flag',
     '',
     'Usage: jiahao init [--profile generator|verifier] [-y] [--dry-run]',
-    '       jiahao resolve --verdict pass|fail|inconclusive --reason <text> --reviewer <id>',
+    '       jiahao resolve --verdict ' + VERDICTS.join('|') + ' --reason <text> --reviewer <id>',
     '',
     'Writes ONLY ' + profilePath(),
     'Tier 0 manual: echo "verifier" > ' + profilePath(),

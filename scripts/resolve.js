@@ -10,18 +10,22 @@
 // it, but the module was gone: the only way out of a stale block was hand-
 // editing the JSONL, which the chain checks reject.
 //
-// This file only APPENDS (D4: the chain is append-only). It never rewrites an
-// existing record, and it never touches a chain it cannot read.
+// This file only APPENDS: the chain is append-only (src/evidence-log.js), so a
+// verdict is never a rewrite of an existing record, and a chain it cannot read
+// is left untouched.
 
 const { createEvidenceLog, recordHash } = require('../src/evidence-log');
 const { PREFIXES } = require('../src/shared/prefix-vocab');
 
-// `pass` releases the records written before it; `fail` and `inconclusive` are
-// recorded but release nothing (the turn still has to be re-verified).
+// `pass` releases the records written before it. `fail` and `inconclusive` are
+// recorded but release nothing, and the cost of `inconclusive` is stated rather
+// than hidden: src/calibration.js pairs a verdict with the latest machine record
+// and counts only 'pass' as human agreement, so an inconclusive verdict enters
+// the κ numerator/denominator as a disagreement.
 const VERDICTS = ['pass', 'fail', 'inconclusive'];
 
 const USAGE = [
-  'Usage: jiahao resolve --verdict pass|fail|inconclusive --reason <text> --reviewer <id>',
+  'Usage: jiahao resolve --verdict ' + VERDICTS.join('|') + ' --reason <text> --reviewer <id>',
   '',
   'Appends ONE human_verdict record to the evidence chain (.jiahao-evidence).',
   'Records are never rewritten: a re-run adds a second verdict.',
@@ -110,14 +114,17 @@ function run(argv) {
 
   // commit() drops an unwritable append instead of throwing (hooks must never
   // block), so the receipt is also the failure detector: a verdict that is not
-  // on the chain is reported, never assumed.
+  // on the chain is reported, never assumed. The search runs from the tail — a
+  // byte-identical re-run in the same millisecond would otherwise report the
+  // earlier record's seq.
   const chain = log.readAll() || [];
-  const seq = written.rec
-    ? chain.findIndex(function (r) { return r && r.event_hash === written.rec.event_hash; })
-    : -1;
+  let seq = -1;
+  for (let i = chain.length - 1; written.rec && i >= 0; i--) {
+    if (chain[i] && chain[i].event_hash === written.rec.event_hash) { seq = i; break; }
+  }
   if (seq < 0) {
-    console.error(PREFIXES.internal + ' human_verdict was NOT appended — the evidence store refused the write ' +
-      '(reason on stderr above, e.g. read-only legacy migration or an unreadable store). Chain unchanged.');
+    console.error(PREFIXES.config + ' human_verdict was NOT appended — the evidence store refused the write, or ' +
+      'could not be read back (the evidence-log note above says which). This run changed no existing record.');
     process.exitCode = 1;
     return;
   }

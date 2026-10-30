@@ -49,6 +49,9 @@ test('the pack contract names the rules file, both plugin hook maps, and the mar
     'adapters/claude-code/.claude-plugin/plugin.json',
     'adapters/claude-code/hooks/hooks.json',
     '.claude-plugin/marketplace.json',
+    // #85: the write side of adjudication went missing from the repo once, and
+    // a tarball without it fails only on a user's machine.
+    'scripts/resolve.js',
   ]) {
     expect(REQUIRED_PACK_FILES).toContain(rel);
   }

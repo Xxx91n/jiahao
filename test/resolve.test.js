@@ -18,8 +18,17 @@ const { createEvidenceLog, createRecord } = require(path.join(root, 'src', 'evid
 
 const PASS_ARGS = ['--verdict', 'pass', '--reason', 're-ran rung 1: no hook was killed, the run finished', '--reviewer', 'alice'];
 
+// every fixture owns its config dir; remove them once the file is done
+const dirs = [];
+afterAll(() => {
+  for (const dir of dirs) {
+    try { fs.rmSync(dir, { recursive: true, force: true }); } catch (e) { /* best effort */ }
+  }
+});
+
 function configDir() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-resolve-'));
+  dirs.push(dir);
   fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full\n', 'utf8');
   fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'verifier\n', 'utf8');
   return dir;
@@ -160,4 +169,36 @@ test('#85: a fail verdict is recorded but releases nothing', () => {
   // the human agreed the claim was unsupported: the turn still has to be
   // re-verified, so the stale record keeps gating.
   expect(stop(dir, { stop_hook_active: false }).status).toBe(2);
+});
+
+test('#85: --flag=value is accepted and a repeated flag is refused', () => {
+  const dir = configDir();
+  seedStaleRecord(dir);
+
+  const r = resolve(dir, ['--verdict=pass', '--reason=re-ran rung 1: the run finished', '--reviewer=alice']);
+  expect(r.status).toBe(0);
+  expect(chainOf(dir).map(rec => rec.reason).filter(Boolean)).toEqual(['re-ran rung 1: the run finished']);
+
+  // two verdicts in one invocation is a typo, not a decision: refuse rather
+  // than pick one.
+  const dup = resolve(dir, ['--verdict', 'pass', '--verdict', 'fail', '--reason', 'x', '--reviewer', 'alice']);
+  expect(dup.status).not.toBe(0);
+  expect(dup.stderr).toContain('[usage]:');
+});
+
+test('#85: a store that refuses the write is reported, not assumed written', () => {
+  const dir = configDir();
+  // A legacy chain broken at genesis: migration is refused for the verifier
+  // profile, so commit() drops the append. The CLI must say so and leave the
+  // existing file exactly as it found it.
+  const broken = [{ gate_id: 'det-0', status: 'passed', prev_hash: 'f'.repeat(64), event_hash: '0'.repeat(64) }];
+  const storePath = path.join(dir, '.jiahao-evidence');
+  fs.writeFileSync(storePath, JSON.stringify(broken), 'utf8');
+
+  const r = resolve(dir, PASS_ARGS);
+  expect(r.status).not.toBe(0);
+  expect(r.stderr).toContain('NOT appended');
+  expect(r.stderr).toContain('[config]:');
+  expect(r.stdout).not.toContain('event_hash');
+  expect(JSON.parse(fs.readFileSync(storePath, 'utf8'))).toEqual(broken);
 });

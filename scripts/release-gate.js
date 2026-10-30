@@ -376,11 +376,13 @@ step('egress', 'code that runs after install makes no network call', () => {
     }
   }
   // A scan that found nothing to scan proves nothing. Pin the load-bearing
-  // files: the installer, the Stop gate, the evidence log, and the sources the
-  // plugin bundles vendor byte-for-byte (the `generated` step asserts the copies).
+  // files: the installer and the resolve entry it dispatches, the Stop gate, the
+  // evidence log, and the sources the plugin bundles vendor byte-for-byte (the
+  // `generated` step asserts the copies).
   const scanned = new Set(targets.map(f => path.relative(root, f).split(path.sep).join('/')));
   const unseen = [
     'scripts/install.js',
+    'scripts/resolve.js',
     'hooks/jiahao-verdict-gate.js',
     'src/evidence-log.js',
     'jiahao-mcp/index.js',
