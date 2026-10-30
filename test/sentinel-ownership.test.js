@@ -134,16 +134,26 @@ test('D3: SessionEnd is registered wherever a hook map exists', () => {
   // The repo-level map is hand-kept; a bundle's map is generated output, so it
   // comes from the in-memory generator (a disk read would be the truncation
   // hazard #66 measured).
-  const { buildAdapters, HOSTS } = require('../scripts/build-adapters');
+  const { buildAdapters, HOSTS, dialectOf } = require('../scripts/build-adapters');
   const generated = buildAdapters();
   const claude = JSON.parse(fs.readFileSync(path.join(REPO, 'hooks', 'jiahao-hooks.json'), 'utf8'));
   expect(claude.hooks.SessionEnd[0].hooks[0].command).toContain('jiahao-sweep.js');
   let wired = 0;
   for (const host of HOSTS) {
-    if (!Object.prototype.hasOwnProperty.call(host.hooks || {}, 'SessionEnd')) continue;
+    const events = Object.keys(host.hooks || {});
+    if (events.length === 0) continue;
+    const dialect = dialectOf(host);
+    // The host's own name for its session-end event is whatever the row wires to
+    // the sweep (Copilot calls it sessionEnd, the Claude-shaped hosts SessionEnd);
+    // every hook-bearing row must have one, so a renamed event cannot drop it.
+    const sweepEvent = events.find((ev) => host.hooks[ev].script === 'jiahao-sweep');
+    expect(sweepEvent).toBeDefined();
     wired++;
-    const map = JSON.parse(generated[host.dir + '/hooks/hooks.json']);
-    expect(map.hooks.SessionEnd[0].hooks[0].command).toContain('jiahao-sweep.js');
+    const map = JSON.parse(generated[host.dir + '/' + dialect.hookMapPath]);
+    const entry = map.hooks[sweepEvent][0];
+    const hook = Array.isArray(entry.hooks) ? entry.hooks[0] : entry;
+    const command = dialect.commandFields.map((field) => hook[field]).join(' ');
+    expect(command).toContain('jiahao-sweep.js');
   }
   // Every hook-bearing host sweeps: the count is the invariant, so dropping
   // SessionEnd from one row does not hide behind the other row's wiring.
