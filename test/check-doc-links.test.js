@@ -66,6 +66,12 @@ describe('link extraction', () => {
     ]);
   });
 
+  // HTML accepts either quote style; a single-quoted dead link must not slip
+  // past while a double-quoted live one keeps the elsewhere-nonzero count.
+  test('single-quoted HTML attributes are read too', () => {
+    expect(linksIn("<a href='gone.md'>x</a>\n")).toEqual([{ target: 'gone.md', line: 1 }]);
+  });
+
   test('an HTML link inside a code fence is not collected', () => {
     expect(linksIn('```html\n<a href="gone.md">x</a>\n```\n')).toEqual([]);
   });
@@ -111,6 +117,29 @@ describe('audit', () => {
     const dir = fixture({ 'README.md': '<a href="gone.md">中文</a>\n[ok](a.md)\n', 'a.md': '# a\n' });
     expect(audit(dir, ['README.md', 'a.md'])).toEqual([
       { file: 'README.md', line: 1, target: 'gone.md', reason: 'not in the package' },
+    ]);
+  });
+
+  // The single-quoted variant is the one a quote-style bug hides: the valid
+  // link beside it keeps `checked` > 0, so an empty-scan guard cannot catch it.
+  test('a dead single-quoted HTML href is red even beside a valid link', () => {
+    const dir = fixture({ 'README.md': "<a href='gone.md'>x</a>\n[ok](a.md)\n", 'a.md': '# a\n' });
+    expect(audit(dir, ['README.md', 'a.md'])).toEqual([
+      { file: 'README.md', line: 1, target: 'gone.md', reason: 'not in the package' },
+    ]);
+  });
+
+  // npm and GitHub both publish the decoded path; comparing the percent-escaped
+  // spelling against the pack list would call a valid link dead.
+  test('a percent-encoded target is decoded before the package lookup', () => {
+    const dir = fixture({ 'README.md': '[g](docs/a%20b.md)\n', 'docs/a b.md': '# a\n' });
+    expect(audit(dir, ['README.md', 'docs/a b.md'])).toEqual([]);
+  });
+
+  test('a malformed percent escape is reported as a broken link', () => {
+    const dir = fixture({ 'README.md': '[g](docs/%zz.md)\n', 'docs/x.md': '# x\n' });
+    expect(audit(dir, ['README.md', 'docs/x.md'])).toEqual([
+      { file: 'README.md', line: 1, target: 'docs/%zz.md', reason: 'malformed percent-encoding' },
     ]);
   });
 

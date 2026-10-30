@@ -64,10 +64,13 @@ function linksIn(text) {
     out.push({ target: inner[1], line: lineAt(m.index) });
   }
 
-  const htmlRe = /<[a-z][^>]*?\s(?:href|src)\s*=\s*"([^"]*)"[^>]*>/gi;
+  // Both quote styles: HTML accepts either, and a single-quoted dead link would
+  // otherwise slip through while a valid double-quoted one kept `checked` > 0.
+  const htmlRe = /<[a-z][^>]*?\s(?:href|src)\s*=\s*(?:"([^"]*)"|'([^']*)')[^>]*>/gi;
   while ((m = htmlRe.exec(masked))) {
-    if (!m[1]) continue;
-    out.push({ target: m[1], line: lineAt(m.index) });
+    const target = m[1] !== undefined ? m[1] : m[2];
+    if (!target) continue;
+    out.push({ target: target, line: lineAt(m.index) });
   }
   out.sort((a, b) => a.line - b.line);
   return out;
@@ -117,8 +120,17 @@ function auditDocLinks(files, opts) {
       if (raw.startsWith('#') || EXTERNAL.test(raw)) continue;
       const clean = raw.split('#')[0].split('?')[0];
       if (!clean) continue;
+      let decoded;
+      try {
+        decoded = decodeURIComponent(clean);
+      } catch (e) {
+        // A malformed escape is a broken link, not something to resolve.
+        checked++;
+        problems.push({ file: rel, line: link.line, target: raw, reason: 'malformed percent-encoding' });
+        continue;
+      }
       checked++;
-      const resolved = resolveTarget(rel, clean.startsWith('/') ? clean.slice(1) : clean);
+      const resolved = resolveTarget(rel, decoded.startsWith('/') ? decoded.slice(1) : decoded);
       const reason = resolved === null
         ? 'escapes the package root'
         : (packed.has(resolved) ? null : (dirs.has(resolved) ? null : 'not in the package'));

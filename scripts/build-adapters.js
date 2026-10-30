@@ -1138,7 +1138,7 @@ read from the host log: [\`probes/codex-hook-wrapper.js\`](https://github.com/Xx
 runs the installed gate, appends one JSON line per invocation, then replays
 the output and exits with the same code. Reuse it when probing a new build;
 the surrounding evidence layout is described in
-[\`docs/agents/evidence-review.md\`](../../docs/agents/evidence-review.md).
+[\`docs/agents/evidence-review.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
 
 Loop guard: an unconditional exit-0 JSON block in a throwaway user Stop hook
 continued for 785 runs (786 assistant messages, 33M input tokens) before the

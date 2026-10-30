@@ -18,7 +18,7 @@ const { execFileSync } = require('child_process');
 
 // One enumeration base for the working-tree surface, shared with the generator
 // gate so "which files exist" cannot drift between them (#102).
-const { listWorkingTreePaths } = require('../src/shared/tracked-surface');
+const { listWorkingTreePaths, listDeletedPaths } = require('../src/shared/tracked-surface');
 
 // Frozen evaluation records keep the bytes they were captured with. Every entry
 // needs a reason, and an entry that stops matching a real violation is reported
@@ -63,14 +63,17 @@ function auditFiles(files, opts) {
     root: process.cwd(),
     allowlist: ALLOWLIST,
     readFile: (abs) => fs.readFileSync(abs),
+    deleted: [],
   }, opts || {});
   const allowlist = options.allowlist || {};
+  const deleted = new Set(options.deleted || []);
   const scanned = new Set(files);
   const problems = [];
   const allowlistProblems = [];
   const used = new Set();
   let textFiles = 0;
   let binaryFiles = 0;
+  let skippedDeletions = 0;
 
   for (const rel of files) {
     if (BINARY_EXT.test(rel)) { binaryFiles++; continue; }
@@ -78,9 +81,13 @@ function auditFiles(files, opts) {
     try {
       buffer = options.readFile(path.join(options.root, ...rel.split('/')));
     } catch (e) {
-      // A path git listed but we cannot read is a gap in the scan, not a clean
-      // file: reporting green over it would be the "counted without reading"
-      // shape this check exists to prevent.
+      // A tracked file deleted from the working tree but not staged is still in
+      // the index, so git lists it; that is a pending deletion, not a hole in
+      // the scan. Any other read failure is a hole and stays a violation.
+      if (deleted.has(rel) && (e.code === 'ENOENT' || e.code === 'ENOTDIR')) {
+        skippedDeletions++;
+        continue;
+      }
       problems.push({ file: rel, line: 0, kind: 'unreadable' });
       continue;
     }
@@ -104,7 +111,7 @@ function auditFiles(files, opts) {
     else if (!used.has(rel)) allowlistProblems.push({ file: rel, kind: 'redundant-allowlist' });
   }
 
-  return { problems, allowlistProblems, textFiles, binaryFiles, allowlisted: [...used].sort() };
+  return { problems, allowlistProblems, textFiles, binaryFiles, skippedDeletions, allowlisted: [...used].sort() };
 }
 
 function listWorkingTree(root) {
@@ -136,14 +143,16 @@ function main() {
   }
 
   let files;
+  let deleted;
   try {
     files = listWorkingTree(root);
+    deleted = listDeletedPaths(root);
   } catch (e) {
     console.error('error: git ls-files failed: ' + (e.stderr ? String(e.stderr).trim() : e.message));
     process.exit(2);
   }
 
-  const result = auditFiles(files, { root: root });
+  const result = auditFiles(files, { root: root, deleted: deleted });
 
   for (const p of result.problems) {
     console.error(p.file + (p.line ? ':' + p.line : '') + ': ' + KIND_LABEL[p.kind]);
@@ -166,7 +175,9 @@ function main() {
   }
 
   console.log(result.textFiles + ' text files scanned (tracked + untracked, ' +
-    result.binaryFiles + ' binary skipped): no trailing whitespace, no blank line at EOF' +
+    result.binaryFiles + ' binary skipped' +
+    (result.skippedDeletions ? ', ' + result.skippedDeletions + ' pending deletion(s) skipped' : '') +
+    '): no trailing whitespace, no blank line at EOF' +
     (result.allowlisted.length ? ' (' + result.allowlisted.length + ' frozen record(s) allowlisted)' : ''));
   process.exit(0);
 }

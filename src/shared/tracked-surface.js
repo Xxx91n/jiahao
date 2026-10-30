@@ -56,6 +56,14 @@ function listWorkingTreePaths(root) {
   return out.split('\0').filter(Boolean);
 }
 
+// Tracked paths deleted from the working tree but not staged. They stay in the
+// index, so listWorkingTreePaths still lists them; a reader that opens every
+// listed path would otherwise call a deliberate deletion an unreadable file.
+function listDeletedPaths(root) {
+  const out = execFileSync('git', ['ls-files', '-z', '--deleted'], { cwd: root, encoding: 'utf8' });
+  return out.split('\0').filter(Boolean);
+}
+
 // Content-hash every tracked path present in the working tree. A tracked path
 // that is missing from disk hashes to the sentinel below rather than being
 // skipped: a leg that DELETES a tracked file is a mutation, and dropping the
@@ -115,4 +123,4 @@ function trackedSurface(opts) {
   };
 }
 
-module.exports = { trackedSurface, listTrackedPaths, listWorkingTreePaths, hashTrackedPaths, changedPaths, MISSING };
+module.exports = { trackedSurface, listTrackedPaths, listWorkingTreePaths, listDeletedPaths, hashTrackedPaths, changedPaths, MISSING };

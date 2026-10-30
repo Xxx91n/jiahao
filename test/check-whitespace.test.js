@@ -121,7 +121,44 @@ describe('auditFiles', () => {
   // the number rather than swallowing the empty scan.
   test('an empty file list reports zero text files read', () => {
     expect(auditFiles([], { root: os.tmpdir(), allowlist: {} })).toEqual({
-      problems: [], allowlistProblems: [], textFiles: 0, binaryFiles: 0, allowlisted: [],
+      problems: [], allowlistProblems: [], textFiles: 0, binaryFiles: 0, skippedDeletions: 0, allowlisted: [],
     });
+  });
+
+  // A tracked file deleted from the working tree but not staged stays in the
+  // index, so it is still listed. That is a pending deletion, not a hole.
+  test('a pending tracked deletion is skipped, not reported unreadable', () => {
+    const result = auditFiles(['gone.md', 'kept.md'], {
+      root: os.tmpdir(),
+      allowlist: {},
+      deleted: ['gone.md'],
+      readFile: (abs) => {
+        if (abs.endsWith('gone.md')) {
+          const err = new Error('ENOENT');
+          err.code = 'ENOENT';
+          throw err;
+        }
+        return Buffer.from('ok\n', 'utf8');
+      },
+    });
+    expect(result.problems).toEqual([]);
+    expect(result.skippedDeletions).toBe(1);
+    expect(result.textFiles).toBe(1);
+  });
+
+  // The exemption is the deletion, not the failure to read: a permission error
+  // on that same path is still a hole in the scan.
+  test('a permission failure on a deleted path is still a problem', () => {
+    const result = auditFiles(['gone.md'], {
+      root: os.tmpdir(),
+      allowlist: {},
+      deleted: ['gone.md'],
+      readFile: () => {
+        const err = new Error('EACCES');
+        err.code = 'EACCES';
+        throw err;
+      },
+    });
+    expect(result.problems).toEqual([{ file: 'gone.md', line: 0, kind: 'unreadable' }]);
   });
 });

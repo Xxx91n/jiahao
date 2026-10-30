@@ -31,13 +31,15 @@ the claim; the files are the support.
    #80 artifacts report `0.2.0` while documenting v0.3.0 content; the file that
    says this also names who owns the bump. A reader must not have to infer it.
 
-5. **Anything that can loop was reported with the kill switch it ran under, and
-   the process tree is shown to have exited.** An always-block hook continued 785
-   times on Codex. Evidence for a host CLI must say which wrapper bounded it
-   (`timeout`, or a Job Object on Windows) and the log has to show the wrapper
-   stopping it — not the CLI deciding to stop. Wrapping the CLI is the owner's
-   global `AGENTS.md` rule, not a check in this repository; the reviewer's job is
-   to confirm the evidence states how it was bounded.
+5. **Anything that can loop was bounded, and the bound is named.** An
+   always-block hook continued 785 times on Codex. Evidence for a host CLI must
+   say which wrapper bounded it (`timeout`, or a Job Object on Windows), and
+   when the deadline fired the log has to show the wrapper stopping the CLI, not
+   the CLI deciding to stop. A probe that finishes on its own is a valid result
+   too: then the evidence shows the host completing, and says the timeout never
+   fired. Wrapping the CLI is the owner's global `AGENTS.md` rule, not a check in
+   this repository; the reviewer's job is to confirm the evidence states how it
+   was bounded.
 
 6. **Isolated state is stated, not implied.** Probes run against an isolated
    `CODEX_HOME` / `COPILOT_HOME` / `CLAUDE_CONFIG_DIR`; the reference says which
@@ -60,8 +62,13 @@ the claim; the files are the support.
    `npm run check:links` covers the packed Markdown; a link to a path that does
    not ship needs an absolute GitHub URL.
 
-9. **The bundle the evidence describes is the bundle that shipped.** Regenerate
-   and compare (`node scripts/build-adapters.js --check`). Evidence for a
+9. **The bundle the evidence describes is the bundle that shipped, and the
+   record names which commit it was.** `node scripts/build-adapters.js --check`
+   proves only that the committed generated files match the generator; it does
+   not tie the artifact to the bundle that was probed, so a later change passes
+   `--check` while the evidence still describes the older bundle. The evidence
+   has to name the commit (or the `release-gate` tree hash) it ran against, and
+   the reviewer compares that against the PR's merge point. Evidence for a
    hand-edited adapter is evidence for a file nobody installs.
 
 ## Out of scope here (owner actions)
