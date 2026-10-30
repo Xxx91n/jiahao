@@ -75,4 +75,4 @@ function writeHookOutput(text, event) {
   }
 }
 
-module.exports = { detectHost, writeHookOutput };
+module.exports = { detectHost, writeHookOutput, PLATFORMS };

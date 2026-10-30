@@ -41,7 +41,7 @@ test('tarball carries the rules directory and both plugin bundles, and no privat
 
 // Pin the contract itself: if REQUIRED_PACK_FILES lost an exit, the assertion
 // above would still pass, because both sides would be equally wrong.
-test('the pack contract names the rules file, both plugin hook maps, and the marketplace', () => {
+test('the pack contract names the rules file, every plugin hook map, and both marketplaces', () => {
   for (const rel of [
     'skills/jiahao/SKILL.md',
     'adapters/codebuddy/.claude-plugin/plugin.json',
@@ -60,6 +60,16 @@ test('the pack contract names the rules file, both plugin hook maps, and the mar
     expect(REQUIRED_PACK_FILES).toContain(rel);
   }
   expect(FORBIDDEN_PACK_PREFIXES).toEqual(expect.arrayContaining(['private/', 'bench/', 'docs/research/']));
+});
+
+// #77: the required list must grow with the generator, not sit one marketplace
+// behind it. Restated as a fixpoint over what the generator emits, so a third
+// marketplace (or a renamed one) cannot be produced and left out of the tarball.
+test('every generated marketplace manifest is a required pack file', () => {
+  const { buildAdapters } = require('../scripts/build-adapters');
+  const marketplaces = Object.keys(buildAdapters()).filter((rel) => rel.endsWith('/marketplace.json'));
+  expect(marketplaces.length).toBeGreaterThanOrEqual(2);
+  for (const rel of marketplaces) expect(REQUIRED_PACK_FILES).toContain(rel);
 });
 
 test('the packed version is the package version the tag will be checked against', () => {

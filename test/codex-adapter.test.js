@@ -52,8 +52,13 @@ function runBundled(script, opts) {
 
 describe('configuration template', () => {
   const cfg = JSON.parse(generated[GENERATED_PREFIX + 'hooks/hooks.json']);
+  // Codex's own event vocabulary, written down here rather than read back from
+  // the row that generated the template: comparing the file with its own source
+  // would pass even if both drifted off the host's names.
+  const CODEX_EVENTS = ['SessionStart', 'SubagentStart', 'UserPromptSubmit', 'Stop', 'SubagentStop', 'SessionEnd'];
 
-  test('registers the turn-end event and names the platform on every command', () => {
+  test('registers the host\'s own event names, including the turn-end event', () => {
+    expect(Object.keys(cfg.hooks)).toEqual(CODEX_EVENTS);
     expect(Object.keys(cfg.hooks)).toContain('Stop');
     const stop = cfg.hooks.Stop[0].hooks;
     expect(stop.length).toBe(1);
@@ -66,12 +71,13 @@ describe('configuration template', () => {
   });
 
   test('the template carries no decision logic: only a script and the platform name', () => {
-    // The file is host-owned data. A decision word here would mean the same
-    // judgement got written a second time per host.
-    const text = generated[GENERATED_PREFIX + 'hooks/hooks.json'];
-    expect(text).not.toMatch(/decision|block|evidence|verdict.*if|requires/i);
+    // Structure, not a word blacklist: the file may hold nothing but a
+    // description and the hook map, and each entry only type/command/timeout.
+    expect(Object.keys(cfg).sort()).toEqual(['description', 'hooks']);
     for (const event of Object.keys(cfg.hooks)) {
-      const hook = cfg.hooks[event][0].hooks[0];
+      const group = cfg.hooks[event][0];
+      expect(Object.keys(group).sort()).toEqual(['hooks']);
+      const hook = group.hooks[0];
       expect(Object.keys(hook).sort()).toEqual(['command', 'timeout', 'type']);
       expect(hook.type).toBe('command');
     }

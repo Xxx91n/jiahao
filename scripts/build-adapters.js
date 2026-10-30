@@ -9,6 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 const { splitByProfile, validateGsrHeaders } = require('../hooks/jiahao-profile');
+const { PLATFORMS } = require('../hooks/jiahao-runtime');
 const { listTrackedPaths } = require('../src/shared/tracked-surface');
 
 const root = path.join(__dirname, '..');
@@ -51,6 +52,9 @@ const GENERATED_DIRS = ['adapters/', 'skills/', '.claude-plugin/', '.agents/'];
 const CLAUDE_DIALECT = {
   manifestDir: '.claude-plugin',
   pluginRootVar: 'CLAUDE_PLUGIN_ROOT',
+  // Codex requires manifest component paths to be './'-prefixed; the
+  // Claude-compatible manifests write them bare.
+  manifestPathPrefix: '',
   platformArg: null,
   defaultEnabled: true,
 };
@@ -185,15 +189,16 @@ const HOSTS = [
     dialect: {
       manifestDir: '.codex-plugin',
       pluginRootVar: 'PLUGIN_ROOT',
+      manifestPathPrefix: './',
       platformArg: 'codex',
       defaultEnabled: false,
     },
     manifest: {
       description: 'Verification discipline for Codex CLI: profile injection at session start, verdict gate at turn end (A 档候选, live probe pending). Self-contained plugin.',
       author: { name: 'Xxx91n' },
-      // Codex does not auto-discover the hook map; the manifest names it. Paths
-      // are relative to the plugin root and start with './' (Codex manifest rule).
-      hooks: './hooks/hooks.json',
+      // Codex does not auto-discover the hook map; the manifest names it (the
+      // dialect adds the required './' prefix).
+      hooks: 'hooks/hooks.json',
     },
     autoDiscovered: [],
     mcp: null,
@@ -208,9 +213,11 @@ const HOSTS = [
 const MARKETPLACE_HOST = HOSTS.find(host => host.name === 'claude-code');
 
 // Codex reads its own marketplace file (`.agents/plugins/marketplace.json`);
-// the entry points at the same bundle the row describes. Selected by dialect so
-// a second Codex-dialect host cannot silently overwrite this entry.
-const CODEX_MARKETPLACE_HOST = HOSTS.find(host => dialectOf(host).manifestDir === '.codex-plugin');
+// the entry points at the same bundle the row describes. Exactly one row may
+// own that file: two Codex-dialect rows would otherwise leave one silently
+// unshelved, and the build catches it instead.
+const CODEX_DIALECT_HOSTS = HOSTS.filter(host => dialectOf(host).manifestDir === '.codex-plugin');
+const CODEX_MARKETPLACE_HOST = CODEX_DIALECT_HOSTS.length === 1 ? CODEX_DIALECT_HOSTS[0] : null;
 
 // Retired, and not to be re-added without a self-contained directory and tests:
 // aider, cline, cursor, instruction-tier, opencode, and windsurf were
@@ -340,8 +347,13 @@ function hostShapeProblems(hosts) {
     if (!/^(?:[A-Z][A-Z0-9]*_)*PLUGIN_ROOT$/.test(dialect.pluginRootVar || '')) {
       problems.push(label + ': dialect.pluginRootVar must be an UPPER_SNAKE *_PLUGIN_ROOT variable');
     }
-    if (dialect.platformArg !== null && !/^[a-z0-9-]+$/.test(dialect.platformArg || '')) {
-      problems.push(label + ': dialect.platformArg must be a lowercase platform name or null');
+    if (dialect.platformArg !== null && !PLATFORMS.includes(dialect.platformArg)) {
+      // A template may only pass a name the hook layer has a shape for; the
+      // lowercase check alone let a typo fall back to the Claude branch.
+      problems.push(label + ': dialect.platformArg "' + dialect.platformArg + '" is not one of ' + PLATFORMS.join('/'));
+    }
+    if (!['', './'].includes(dialect.manifestPathPrefix)) {
+      problems.push(label + ': dialect.manifestPathPrefix must be "" or "./"');
     }
     // defaultEnabled is a Claude-compatible manifest field; a host whose
     // manifest lives elsewhere must not claim it.
@@ -389,6 +401,14 @@ function emitPluginManifest(host) {
       license: PKG.license,
       repository: PKG_REPOSITORY,
     });
+  // Component paths follow the host's rule; the row writes them bundle-relative
+  // and the dialect decides the prefix, so one host's './' cannot leak to
+  // another's manifest.
+  for (const key of ['hooks', 'mcpServers']) {
+    if (typeof manifest[key] === 'string') {
+      manifest[key] = dialect.manifestPathPrefix + manifest[key].replace(/^\.\//, '');
+    }
+  }
   if (dialect.defaultEnabled) {
     // conservative: opt-in enable; plugin hooks bypass the
     // untrusted-frontmatter gate and execute on enable
@@ -502,7 +522,10 @@ function buildAdapters() {
   // Codex reads `.agents/plugins/marketplace.json`, whose `source.path` resolves
   // from the marketplace root (the repo). The entry names the row's bundle and
   // carries no version: `.codex-plugin/plugin.json` is the authority.
-  if (!CODEX_MARKETPLACE_HOST) throw new Error('a Codex-dialect host must be a row in HOSTS for its marketplace');
+  if (!CODEX_MARKETPLACE_HOST) {
+    throw new Error('exactly one Codex-dialect host must own .agents/plugins/marketplace.json (found ' +
+      CODEX_DIALECT_HOSTS.length + ')');
+  }
   adapters['.agents/plugins/marketplace.json'] = JSON.stringify({
     name: 'jiahao',
     plugins: [
@@ -788,6 +811,10 @@ The repository root is also a Codex marketplace
    \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
    (\`generator\` for advisory-only). Start a new session after changing
    \`.jiahao-profile\`.
+
+The feature flags (step 3) and the trust step (step 4) are the **documented host
+contract, not a live-probed recipe**: #74 lists both as open probes, and nobody
+has watched this install run in-host yet (#80).
 
 Install, upgrade, and uninstall are the host's own plugin commands; the repo
 root is never a plugin entry.

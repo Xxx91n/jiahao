@@ -19,6 +19,7 @@ const {
   buildAdapters, HOSTS, MARKETPLACE_HOST, CODEX_MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
   dialectOf,
 } = require('../scripts/build-adapters');
+const { PLATFORMS } = require('../hooks/jiahao-runtime');
 
 const ROOT = path.join(__dirname, '..');
 const generated = buildAdapters();
@@ -91,12 +92,6 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
   const dialect = dialectOf(host);
   const manifestRel = P + dialect.manifestDir + '/plugin.json';
   const manifest = JSON.parse(readGenerated(manifestRel));
-  const manifestValue = (key) => {
-    const raw = manifest[key];
-    if (raw === undefined) return raw;
-    // Codex requires './'-prefixed manifest paths; Claude's host accepts both.
-    return String(raw).replace(/^\.\//, '');
-  };
 
   describe('bundle shape', () => {
     test('the manifest lives only in the host dialect directory, with the skill body, README, and identity pin', () => {
@@ -149,20 +144,22 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
       else expect(manifest.defaultEnabled).toBeUndefined();
     });
 
-    test('every component path it names is emitted, and auto-discovered files are not repeated', () => {
+    test('every component path it names is emitted, prefixed the way this host requires, and auto-discovered files are not repeated', () => {
       // These two keys name the generator's own files, not host data.
       // A host that does not auto-discover a component has to be told about it
       // in the manifest, or the file never loads - so the key is required, not
       // merely checked when present.
+      const prefix = dialect.manifestPathPrefix;
       if (events.length && !host.autoDiscovered.includes('hooks/hooks.json')) {
-        expect(manifestValue('hooks')).toBe('hooks/hooks.json');
+        expect(manifest.hooks).toBe(prefix + 'hooks/hooks.json');
       }
       if (host.mcp && !host.autoDiscovered.includes('.mcp.json')) {
-        expect(manifestValue('mcpServers')).toBe('.mcp.json');
+        expect(manifest.mcpServers).toBe(prefix + '.mcp.json');
       }
       for (const key of ['hooks', 'mcpServers']) {
         if (manifest[key] === undefined) continue;
-        expect(typeof generated[P + manifestValue(key)]).toBe('string');
+        expect(manifest[key].startsWith(prefix)).toBe(true);
+        expect(typeof generated[P + manifest[key].slice(prefix.length)]).toBe('string');
       }
       // Auto-discovery is the host's job: the file may or may not ship, but a
       // manifest entry would load it a second time.
@@ -465,5 +462,14 @@ describe('tier contract', () => {
     expect(codex).toBeDefined();
     expect(dialectOf(codex).manifestDir).toBe('.codex-plugin');
     expect(dialectOf(codex).platformArg).toBe('codex');
+  });
+
+  test('every platform name a config template passes is a name the hook layer implements', () => {
+    // A template that passes a name detectHost() does not know would silently
+    // fall back to the Claude envelope. The generator rejects that at build
+    // time; this pins the same invariant from the shipped rows.
+    const passed = HOSTS.map((host) => dialectOf(host).platformArg).filter((p) => p !== null);
+    expect(passed).toContain('codex');
+    for (const platform of passed) expect(PLATFORMS).toContain(platform);
   });
 });

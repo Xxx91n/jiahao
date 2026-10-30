@@ -41,6 +41,10 @@ The repository root is also a Codex marketplace
    (`generator` for advisory-only). Start a new session after changing
    `.jiahao-profile`.
 
+The feature flags (step 3) and the trust step (step 4) are the **documented host
+contract, not a live-probed recipe**: #74 lists both as open probes, and nobody
+has watched this install run in-host yet (#80).
+
 Install, upgrade, and uninstall are the host's own plugin commands; the repo
 root is never a plugin entry.
 
