@@ -435,7 +435,6 @@ step('egress', 'code that runs after install makes no network call', () => {
         }
         for (const hook of commands) {
           if (hook.type !== 'command') continue;
-          checked++;
           // Each field is checked against its own pattern: a bash entry spelled
           // with the PowerShell variable is a command the host would run in the
           // wrong shell, not an acceptable variant.
@@ -449,6 +448,9 @@ step('egress', 'code that runs after install makes no network call', () => {
               throw new Error(rel + ' hook ' + event + ' runs a ' + field + ' command naming a file that is not in the bundle: ' + m[1]);
             }
           }
+          // Counted only after every field passed, so a row with no command
+          // fields cannot report a checked command without a validated pattern.
+          checked++;
         }
       }
     }
