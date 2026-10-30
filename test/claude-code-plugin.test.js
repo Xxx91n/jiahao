@@ -12,7 +12,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { buildAdapters } = require('../scripts/build-adapters');
-const { materializeBundle, assertAbsolutePluginRoot } = require('./helpers/generated-bundle');
+const { materializeBundle } = require('./helpers/generated-bundle');
 const { spawnHook, expectExit, parseJson, hostEnv } = require('./helpers/spawned-hook');
 
 const generated = buildAdapters();
@@ -30,7 +30,6 @@ describe('bundled Claude Code hooks (live spawn, temp config dir)', () => {
   });
 
   function runBundled(script, opts) {
-    assertAbsolutePluginRoot(bundleDir);
     return spawnHook(path.join(bundleDir, 'hooks', script), {
       stdin: opts.stdin, env: hostEnv(opts.configDir, bundleDir),
     });

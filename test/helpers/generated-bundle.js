@@ -16,7 +16,8 @@ const path = require('path');
 // path.join() onto such a key yields something that looks like a path but
 // resolves against whatever cwd the test process happens to have. That is how
 // #76 silently changed what an assertion measured without any merge conflict;
-// the check lives here so every host bundle (#77/#78 included) gets it.
+// the check lives here so each host wrapper (#77/#78 included) applies the same
+// rule to the root its caller passes in.
 function assertAbsolutePluginRoot(pluginRoot) {
   if (pluginRoot !== undefined && !path.isAbsolute(pluginRoot)) {
     throw new Error('pluginRoot must be an absolute directory (a materialized bundle), got ' +
@@ -24,12 +25,12 @@ function assertAbsolutePluginRoot(pluginRoot) {
   }
 }
 
-function materializeBundle(generated, dirPrefix) {
+function materializeBundle(generated, generatedPrefix) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-bundle-'));
   try {
     for (const [rel, text] of Object.entries(generated)) {
-      if (!rel.startsWith(dirPrefix)) continue;
-      const abs = path.join(dir, rel.slice(dirPrefix.length).split('/').join(path.sep));
+      if (!rel.startsWith(generatedPrefix)) continue;
+      const abs = path.join(dir, rel.slice(generatedPrefix.length).split('/').join(path.sep));
       fs.mkdirSync(path.dirname(abs), { recursive: true });
       fs.writeFileSync(abs, text, 'utf8');
     }
