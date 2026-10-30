@@ -22,6 +22,7 @@ tag 推送时 CI 跑同一条命令（`.github/workflows/ci.yml` 的 `release-ga
 | `generated` | `build-adapters.js --check`：已提交的生成物 == 生成器输出 | 生成检查 |
 | `drift` | `check-drift.js`：两份 profile 片段在位，退役适配器目录没有复活 | 漂移检查 |
 | `tests` | `npm test`：全套用例，含 `test/packaging.test.js` 的打包断言 | 测试 + 打包断言 |
+| `links` | `check-doc-links.js`：包里每份 Markdown 的相对链接都落到包内（文件或目录）；指到没进 `files` 的路径即红，外链不查 | 包内文档链接可达 |
 | `artifact` | 跑测试后先确认工作区仍然干净；再打两次 `npm pack`：必须包含 / 必须排除逐条核过，两次字节相同才算可复现，算 `sha256`，算各出口目录的树哈希 | 包内容正确、产物附 SHA256、可复现 |
 | `install` | `install.js init --dry-run` 退出 0、打印目标路径；临时配置目录和临时工作目录里都没有落文件 | 安装 dry-run |
 | `egress` | 扫描会随安装跑起来的代码：没有 `http/http2/https/net/dns/tls/dgram` 的 require、没有 `fetch(` / `https.request`；`package.json` 没有安装生命周期脚本；四个插件的每条钩子命令都指向各自插件根，且平台名后缀按方言校验：`${CLAUDE_PLUGIN_ROOT}/hooks/*.js`（Claude Code / CodeBuddy），`$PLUGIN_ROOT` / `$env:PLUGIN_ROOT`（Copilot CLI），`${PLUGIN_ROOT}/hooks/*.js codex`（Codex） | 无网络外呼 |
@@ -29,7 +30,7 @@ tag 推送时 CI 跑同一条命令（`.github/workflows/ci.yml` 的 `release-ga
 
 顺序是刻意的：生成检查排在 `npm test` 前面，过期或手改的产物在测试之前就被抓住。测试套件不再重跑生成器改写工作区（#76 收了 #66：生成类用例只写临时目录，产物内容从内存里的生成结果读；有一条哨兵用例会临时往产物里塞手改，跑完子进程里两个曾读工作区产物的套件后恢复，用来证明手改不会被抹掉），所以这个顺序是保险，而不是唯一的保障。`artifact` 仍在打包前再看一次 `git status`：万一有测试写脏了已跟踪文件，这棵树已经不是 tag 那棵树，不能拿来算哈希。
 
-tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD`：分支 job 因为跳过 tag 而不跑白空格检查，这条补上。（用 `HEAD^1` 而不是 `git show --check`：合并提交上 `git show` 是组合 diff，什么都不报。）
+tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一条 `npm run check:whitespace`：分支 job 因为跳过 tag 而不跑这两条，这里补上。（`git diff --check` 用 `HEAD^1` 而不是 `git show --check`：合并提交上 `git show` 是组合 diff，什么都不报。它只看 diff 带的行，未跟踪文件靠 `check:whitespace`。）
 
 ## 产物与 SHA256
 

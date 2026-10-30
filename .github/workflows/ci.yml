@@ -47,12 +47,19 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm install --ignore-scripts
+      # The diff step above only sees changed lines; a file that was never
+      # `git add`ed is invisible to it. This one reads every text file in the
+      # tree, untracked included (#102).
+      - run: npm run check:whitespace
       # The generator gates run before the suite: a stale or hand-edited
       # artifact must be caught before anything else. The suite no longer
       # regenerates the working tree (#76 closed #66), so this order is a belt,
       # not the only thing keeping the comparison honest.
       - run: npm run check:adapters
       - run: npm run check:drift
+      # A relative link that points at something `files` does not pack renders
+      # dead on npmjs while every local check stays green (#102).
+      - run: npm run check:links
       - run: npm test
 
   # #63: a tag is a release attempt. One command decides whether it may be
@@ -84,6 +91,9 @@ jobs:
           fi
           git diff --check HEAD^1 HEAD
       - run: npm ci --ignore-scripts
+      # The branch job carries the untracked-aware whitespace scan; a tag build
+      # never runs that job, so it runs here too.
+      - run: npm run check:whitespace
       - name: Release gate
         run: npm run release:gate -- --evidence release-artifacts/release-evidence.json --artifact-dir release-artifacts
       - name: Step summary

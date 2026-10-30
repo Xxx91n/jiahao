@@ -97,6 +97,13 @@ interactive `/hooks` trust-and-restart flow itself was not step-by-step
 probed. Commands and captured output live in
 [`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
+The hook's own exit code, stdout, and stderr were recorded by a wrapper, not
+read from the host log: [`probes/codex-hook-wrapper.js`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/codex-hook-wrapper.js)
+runs the installed gate, appends one JSON line per invocation, then replays
+the output and exits with the same code. Reuse it when probing a new build;
+the surrounding evidence layout is described in
+[`docs/agents/evidence-review.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
+
 Loop guard: an unconditional exit-0 JSON block in a throwaway user Stop hook
 continued for 785 runs (786 assistant messages, 33M input tokens) before the
 host completed the turn; no small host cap like Copilot's 8 appeared. The

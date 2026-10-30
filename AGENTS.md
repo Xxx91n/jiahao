@@ -6,6 +6,7 @@
 
 - `npm install` 后跑 `node scripts/install.js`；`--profile generator` 切换生成档。
 - 测试：`npm test`。改 `src/SKILL.md` 或 `src/`、`hooks/`、`jiahao-mcp/`、生成器的宿主表（`scripts/build-adapters.js` 的 `HOSTS`）、宿主方言文件（`scripts/hosts/`），或改 `package.json` 的版本与仓库元数据后，必须跑 `node scripts/build-adapters.js`（漂移检查：`node scripts/check-drift.js`）。
+- 提交前跑 `npm run check:whitespace`（行尾空白、EOF 空行，覆盖未跟踪文件；`git diff --check` 只看 diff 带的行）与 `npm run check:links`（包里 Markdown 的相对链接必须落在包内）。
 
 ## 版本控制
 
@@ -15,6 +16,12 @@
 ## 不要改的目录
 
 - `adapters/`、`skills/`、`.claude-plugin/`、`.agents/`：由 `src/`、`hooks/`、`jiahao-mcp/` 与 `package.json` 的版本/元数据生成，改任一处后重跑生成器。
+- 生成物覆盖整个目录，不只是源码副本。看着像手写文档的这几类也由生成器产出，手改会在下一次 `--check` 里被抹掉：
+  - 各出口的 `README.md`（`adapters/*/README.md`，内容来自 `scripts/build-adapters.js` 里各宿主的 `*Readme()` 模板）；
+  - 插件清单与钩子表：`adapters/*/.claude-plugin/plugin.json`、`adapters/codex/.codex-plugin/plugin.json`、`adapters/copilot/plugin.json`、`adapters/*/hooks/hooks.json`、`adapters/codebuddy/.mcp.json`，以及两份 marketplace（`.claude-plugin/marketplace.json`、`.agents/plugins/marketplace.json`）；
+  - 规则与技能副本：`adapters/*/rules/*.md`、`adapters/*/src/**`、`skills/jiahao/SKILL.md`；
+  - 出口里 vendor 的钩子与服务端：`adapters/*/hooks/*.js`、`adapters/*/jiahao-mcp/**`。
+  要改这些内容，改生成器的输入（`src/`、`hooks/`、宿主表与 `*Readme()` 模板、`scripts/hosts/*.js`），然后跑 `node scripts/build-adapters.js`；判断改得对不对用 `node scripts/build-adapters.js --check`。
 - `private/`：私有词表，不要展开到输出或日志。
 - `bench/research/out/`、`bench/polygraph/results/`：冻结的评测记录。
 
@@ -38,3 +45,7 @@ Five canonical triage roles map one-to-one to label strings. See `docs/agents/tr
 ### Domain docs
 
 Single-context layout: vocabulary at the repo root, behavior contract in `src/SKILL.md`. See `docs/agents/domain.md`.
+
+### Evidence review
+
+Any PR carrying acceptance evidence — live-host runs, probe logs, release records — is reviewed against `docs/agents/evidence-review.md`, item by item. The checklist is drawn from the #80 rework: numbers must match a cited artifact, hook exit code and session id must come from the same run, and unprobed claims are labeled as such.
