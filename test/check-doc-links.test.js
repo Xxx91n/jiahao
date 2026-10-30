@@ -76,6 +76,22 @@ describe('link extraction', () => {
     expect(linksIn('```html\n<a href="gone.md">x</a>\n```\n')).toEqual([]);
   });
 
+  // A regex over the whole tag reads `href=` inside a quoted title as the
+  // attribute and then misses the real one, so a dead href passes green.
+  test('an href= inside a quoted attribute value does not steal the match', () => {
+    expect(linksIn(`<a title="See href='https://example.com'" href='missing.md'>`)).toEqual([
+      { target: 'missing.md', line: 1 },
+    ]);
+  });
+
+  test('a ">" inside a quoted attribute value does not end the tag', () => {
+    expect(linksIn('<a title="a > b" href="real.md">x</a>')).toEqual([{ target: 'real.md', line: 1 }]);
+  });
+
+  test('a bare (unquoted) attribute value is read', () => {
+    expect(linksIn('<a href=bare.md>x</a>')).toEqual([{ target: 'bare.md', line: 1 }]);
+  });
+
   test('masking preserves length so offsets still map to the same line', () => {
     const text = '```\nabc\n```\nreal\n';
     expect(maskCode(text).length).toBe(text.length);

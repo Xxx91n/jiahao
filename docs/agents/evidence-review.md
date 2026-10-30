@@ -64,12 +64,13 @@ the claim; the files are the support.
 
 9. **The bundle the evidence describes is the bundle that shipped, and the
    record names which commit it was.** `node scripts/build-adapters.js --check`
-   proves only that the committed generated files match the generator; it does
-   not tie the artifact to the bundle that was probed, so a later change passes
-   `--check` while the evidence still describes the older bundle. The evidence
-   has to name the commit (or the `release-gate` tree hash) it ran against, and
-   the reviewer compares that against the PR's merge point. Evidence for a
-   hand-edited adapter is evidence for a file nobody installs.
+   compares the committed generated files with the generator's output for the
+   current working tree; it does not read the Git index, so on a dirty checkout
+   an uncommitted regeneration can pass while the committed bundle is stale, and
+   in any case it does not tie the artifact to the bundle that was probed. The
+   evidence has to name the commit (or the `release-gate` tree hash) it ran
+   against, and the reviewer compares that against the PR's merge point.
+   Evidence for a hand-edited adapter is evidence for a file nobody installs.
 
 ## Out of scope here (owner actions)
 

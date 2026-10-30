@@ -51,6 +51,49 @@ function maskCode(text) {
 // Raw HTML in Markdown is a link too: both READMEs switch languages with
 // <a href="README-zh-CN.md">, which is the one relative link a reader hits
 // first. href/src are read wherever they appear outside code.
+// Raw HTML in Markdown is a link too: both READMEs switch languages with
+// <a href="README-zh-CN.md">, which is the one relative link a reader hits
+// first. Tags are walked character by character so a '>' or an href= inside a
+// quoted attribute value (title="See href='…'") cannot end the tag or be
+// mistaken for the real attribute.
+function htmlLinksIn(masked) {
+  const out = [];
+  let i = 0;
+  while (i < masked.length) {
+    const start = masked.indexOf('<', i);
+    if (start === -1) break;
+    if (!/[a-zA-Z]/.test(masked[start + 1] || '')) { i = start + 1; continue; }
+    let j = start + 1;
+    let quote = null;
+    for (; j < masked.length; j++) {
+      const c = masked[j];
+      if (quote) { if (c === quote) quote = null; continue; }
+      if (c === '"' || c === "'") { quote = c; continue; }
+      if (c === '>') break;
+    }
+    if (j >= masked.length) break;
+    out.push(...attributesIn(masked.slice(start + 1, j), start));
+    i = j + 1;
+  }
+  return out;
+}
+
+// name=value, value in either quote style or bare. Reading attributes this way
+// keeps quoted values opaque, which is what a regex over the whole tag misses.
+function attributesIn(tagBody, startIndex) {
+  const found = [];
+  const re = /([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/g;
+  let m;
+  while ((m = re.exec(tagBody))) {
+    const name = m[1].toLowerCase();
+    if (name !== 'href' && name !== 'src') continue;
+    const value = m[2] !== undefined ? m[2] : (m[3] !== undefined ? m[3] : m[4]);
+    if (!value) continue;
+    found.push({ target: value, index: startIndex });
+  }
+  return found;
+}
+
 function linksIn(text) {
   const masked = maskCode(text);
   const out = [];
@@ -64,13 +107,8 @@ function linksIn(text) {
     out.push({ target: inner[1], line: lineAt(m.index) });
   }
 
-  // Both quote styles: HTML accepts either, and a single-quoted dead link would
-  // otherwise slip through while a valid double-quoted one kept `checked` > 0.
-  const htmlRe = /<[a-z][^>]*?\s(?:href|src)\s*=\s*(?:"([^"]*)"|'([^']*)')[^>]*>/gi;
-  while ((m = htmlRe.exec(masked))) {
-    const target = m[1] !== undefined ? m[1] : m[2];
-    if (!target) continue;
-    out.push({ target: target, line: lineAt(m.index) });
+  for (const link of htmlLinksIn(masked)) {
+    out.push({ target: link.target, line: lineAt(link.index) });
   }
   out.sort((a, b) => a.line - b.line);
   return out;
