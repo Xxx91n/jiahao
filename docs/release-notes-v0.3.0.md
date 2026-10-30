@@ -91,11 +91,18 @@ $ CLAUDE_CONFIG_DIR=<isolated> claude plugin marketplace add <v0.2.0 checkout>
 Adding marketplace…✔ Successfully added marketplace: jiahao     # exit 0
 $ CLAUDE_CONFIG_DIR=<isolated> claude plugin install jiahao@jiahao
 ✔ Successfully installed plugin: jiahao@jiahao (scope: user)    # exit 0
-$ claude plugin list        # Version: 0.2.0
-$ claude plugin enable jiahao@jiahao                            # 装上默认是 disabled
+$ CLAUDE_CONFIG_DIR=<isolated> claude plugin list              # Version: 0.2.0
+$ CLAUDE_CONFIG_DIR=<isolated> claude plugin enable jiahao@jiahao   # 装上默认是 disabled
 ```
 
-装回 0.3.0 就是同样的两条命令，把 marketplace 指回 `main` 那棵树，列表显示 `Version: 0.3.0`。
+装回 0.3.0 同样三步，把 marketplace 指回 `main` 那棵树；**`enable` 不能省**，否则插件是「装了但没启用」，列表里 `Status: ✘ disabled`：
+
+```bash
+$ CLAUDE_CONFIG_DIR=<isolated> claude plugin marketplace add <main checkout>
+$ CLAUDE_CONFIG_DIR=<isolated> claude plugin install jiahao@jiahao
+$ CLAUDE_CONFIG_DIR=<isolated> claude plugin enable jiahao@jiahao
+$ CLAUDE_CONFIG_DIR=<isolated> claude plugin list              # Version: 0.3.0
+```
 
 **Codex — 只有卸载（实测）**
 
@@ -119,7 +126,16 @@ Plugin "jiahao" uninstalled successfully.                        # exit 0
 
 **CodeBuddy**：CLI 安装路径本身 declared-unverified。卸载走宿主自己的插件命令，或恢复安装前的 `.codebuddy/settings.json` 备份；这一步本机没实测。
 
-**Qoder（C 档）**：删掉 `.qoder/rules/jiahao.md`（或用户级同名文件）即可，没有别的状态。
+**Qoder（C 档）— 实测**
+
+```bash
+$ cp adapters/qoder/rules/jiahao.md <project>/.qoder/rules/jiahao.md
+# exit 0，落地 10585 B
+$ rm <project>/.qoder/rules/jiahao.md
+# exit 0，目录清空，临时目录内 0 个文件残留
+```
+
+这个出口没有安装命令，落地就是一个 Markdown 文件，所以「回滚」= 删掉 `.qoder/rules/jiahao.md`（项目级）或 `~/.qoder/rules/jiahao.md`（用户级）。它不写别的状态、不留缓存。注意：实测的是文件层面的复制与删除，**不是 Qoder 宿主的加载行为**——加载仍是 declared-unverified。
 
 **这些命令不会撤销的东西**：降级/卸载只动宿主目录里的插件文件，不碰 `<config>` 下的 `.jiahao-profile`、`.jiahao-active`，也不改证据链（只追加）。也就是说降级会改变「还会不会被拦」，不会改变「以前记下了什么」。
 
