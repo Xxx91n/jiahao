@@ -16,7 +16,8 @@ const path = require('path');
 const { isBuiltin } = require('module');
 
 const {
-  buildAdapters, HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
+  buildAdapters, HOSTS, MARKETPLACE_HOST, CODEX_MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
+  dialectOf,
 } = require('../scripts/build-adapters');
 
 const ROOT = path.join(__dirname, '..');
@@ -26,7 +27,12 @@ const pkgRepository = pkg.repository.url.replace(/^git\+/, '').replace(/\.git$/,
 
 // Bundle-local wiring the generator writes itself; everything else under a
 // bundle directory is vendored from the repository and must be byte-identical.
-const BUNDLE_WIRING = /^(\.claude-plugin\/|rules\/|hooks\/hooks\.json$|\.mcp\.json$|README\.md$)/;
+// The manifest directory comes from the row's dialect: Claude-compatible hosts
+// publish `.claude-plugin/`, Codex publishes `.codex-plugin/`.
+function bundleWiring(host) {
+  const manifestDir = dialectOf(host).manifestDir.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp('^(' + manifestDir + '/|rules/|hooks/hooks\\.json$|\\.mcp\\.json$|README\\.md$)');
+}
 
 function readGenerated(rel) {
   const text = generated[rel];
@@ -82,11 +88,18 @@ function repoClosure(seeds) {
 describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
   const P = host.dir + '/';
   const events = Object.keys(host.hooks || {});
-  const manifestRel = P + '.claude-plugin/plugin.json';
+  const dialect = dialectOf(host);
+  const manifestRel = P + dialect.manifestDir + '/plugin.json';
   const manifest = JSON.parse(readGenerated(manifestRel));
+  const manifestValue = (key) => {
+    const raw = manifest[key];
+    if (raw === undefined) return raw;
+    // Codex requires './'-prefixed manifest paths; Claude's host accepts both.
+    return String(raw).replace(/^\.\//, '');
+  };
 
   describe('bundle shape', () => {
-    test('the manifest lives only in .claude-plugin/, with the skill body, README, and identity pin', () => {
+    test('the manifest lives only in the host dialect directory, with the skill body, README, and identity pin', () => {
       expect(typeof generated[manifestRel]).toBe('string');
       expect(generated[P + 'plugin.json']).toBeUndefined();
       for (const rel of [P + 'src/SKILL.md', P + 'src/instrument-identity.json', P + 'README.md']) {
@@ -101,13 +114,14 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
     });
 
     test('the bundle ships exactly the wired closure, nothing orphaned', () => {
+      const wiring = bundleWiring(host);
       const expected = new Set(['src/SKILL.md', 'src/instrument-identity.json']);
       for (const rel of repoClosure(bundleSeeds(host))) expected.add(rel);
       for (const rel of (host.mcp ? host.mcp.files : [])) expected.add(rel);
       const vendored = Object.keys(generated)
         .filter((rel) => rel.startsWith(P))
         .map((rel) => rel.slice(P.length))
-        .filter((rel) => !BUNDLE_WIRING.test(rel));
+        .filter((rel) => !wiring.test(rel));
       expect(vendored.sort()).toEqual(Array.from(expected).sort());
     });
 
@@ -124,12 +138,15 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
   });
 
   describe('manifest', () => {
-    test('parses; name, version, license, repository, and the conservative default come from the package', () => {
+    test('parses; name, version, license, and repository come from the package', () => {
       expect(manifest.name).toBe('jiahao');
       expect(manifest.version).toBe(pkg.version);
       expect(manifest.license).toBe(pkg.license);
       expect(manifest.repository).toBe(pkgRepository);
-      expect(manifest.defaultEnabled).toBe(false);
+      // The conservative opt-in flag belongs to the Claude-compatible manifest;
+      // a host that does not read the field must not be told it is disabled.
+      if (dialect.defaultEnabled) expect(manifest.defaultEnabled).toBe(false);
+      else expect(manifest.defaultEnabled).toBeUndefined();
     });
 
     test('every component path it names is emitted, and auto-discovered files are not repeated', () => {
@@ -138,14 +155,14 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
       // in the manifest, or the file never loads - so the key is required, not
       // merely checked when present.
       if (events.length && !host.autoDiscovered.includes('hooks/hooks.json')) {
-        expect(manifest.hooks).toBe('hooks/hooks.json');
+        expect(manifestValue('hooks')).toBe('hooks/hooks.json');
       }
       if (host.mcp && !host.autoDiscovered.includes('.mcp.json')) {
-        expect(manifest.mcpServers).toBe('.mcp.json');
+        expect(manifestValue('mcpServers')).toBe('.mcp.json');
       }
       for (const key of ['hooks', 'mcpServers']) {
         if (manifest[key] === undefined) continue;
-        expect(typeof generated[P + manifest[key]]).toBe('string');
+        expect(typeof generated[P + manifestValue(key)]).toBe('string');
       }
       // Auto-discovery is the host's job: the file may or may not ship, but a
       // manifest entry would load it a second time.
@@ -170,14 +187,17 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
       expect(Object.keys(cfg.hooks)).toEqual(events);
     });
 
-    test('every command runs a vendored script through the plugin root, within the timeout budget', () => {
+    test('every command runs a vendored script through the plugin root and names its platform, within the timeout budget', () => {
+      const varName = dialect.pluginRootVar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const suffix = dialect.platformArg ? ' ' + dialect.platformArg : '';
+      const pattern = new RegExp('^node "\\$\\{' + varName + '\\}/(hooks/[a-z0-9-]+\\.js)"' + suffix + '$');
       for (const ev of events) {
         for (const entry of cfg.hooks[ev]) {
           for (const h of entry.hooks) {
             expect(h.type).toBe('command');
             expect(h.timeout).toBe(host.hooks[ev].timeout);
             expect(h.timeout).toBeLessThanOrEqual(60);
-            const m = /^node "\$\{CLAUDE_PLUGIN_ROOT\}\/(hooks\/[a-z0-9-]+\.js)"$/.exec(h.command);
+            const m = pattern.exec(h.command);
             expect(m).not.toBeNull();
             expect(typeof generated[P + m[1]]).toBe('string');
             expect(h.command).not.toContain('adapters/');
@@ -278,7 +298,7 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
     test('.mcp.json registers the vendored MCP entry and its package file ships', () => {
       const mcp = JSON.parse(readGenerated(P + '.mcp.json'));
       expect(mcp.mcpServers['jiahao-mcp'].command).toBe('node');
-      expect(mcp.mcpServers['jiahao-mcp'].args[0]).toBe('${CLAUDE_PLUGIN_ROOT}/' + host.mcp.entry);
+      expect(mcp.mcpServers['jiahao-mcp'].args[0]).toBe('${' + dialect.pluginRootVar + '}/' + host.mcp.entry);
       expect(typeof generated[P + host.mcp.entry]).toBe('string');
       for (const rel of host.mcp.files) expect(typeof generated[P + rel]).toBe('string');
     });
@@ -290,7 +310,7 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
   }
 });
 
-describe('marketplace manifest', () => {
+describe('marketplace manifest (Claude Code)', () => {
   const marketplace = JSON.parse(readGenerated('.claude-plugin/marketplace.json'));
   const sourceHost = MARKETPLACE_HOST;
 
@@ -313,6 +333,32 @@ describe('marketplace manifest', () => {
     const m = JSON.parse(readGenerated(sourceHost.dir + '/.claude-plugin/plugin.json'));
     expect(marketplace.plugins[0].name).toBe(m.name);
     expect(marketplace.plugins[0].version).toBeUndefined();
+  });
+});
+
+describe('marketplace manifest (Codex CLI)', () => {
+  const marketplace = JSON.parse(readGenerated('.agents/plugins/marketplace.json'));
+  const sourceHost = CODEX_MARKETPLACE_HOST;
+
+  test('has a name and one entry, and the entry points inside the repository', () => {
+    expect(marketplace.name).toMatch(/^[A-Za-z0-9][A-Za-z0-9._-]*$/);
+    expect(Array.isArray(marketplace.plugins)).toBe(true);
+    expect(marketplace.plugins.length).toBe(1);
+    const entry = marketplace.plugins[0];
+    // Codex resolves source.path from the marketplace root (the repository),
+    // and requires the './' prefix.
+    expect(entry.source.source).toBe('local');
+    expect(entry.source.path.startsWith('./')).toBe(true);
+    expect(entry.source.path).not.toContain('..');
+    expect(path.posix.normalize(entry.source.path).replace(/\/$/, '')).toBe(sourceHost.dir);
+  });
+
+  test('the entry name matches the Codex-dialect manifest, and the version lives in plugin.json only', () => {
+    const manifestDir = dialectOf(sourceHost).manifestDir;
+    const m = JSON.parse(readGenerated(sourceHost.dir + '/' + manifestDir + '/plugin.json'));
+    expect(marketplace.plugins[0].name).toBe(m.name);
+    expect(marketplace.plugins[0].version).toBeUndefined();
+    expect(typeof generated[sourceHost.dir + '/hooks/hooks.json']).toBe('string');
   });
 });
 
@@ -391,5 +437,33 @@ describe('tier contract', () => {
       expect(host.hooks.SubagentStop.script).toBe(host.hooks[host.turnEnd].script);
       expect(host.hooks.SubagentStop.timeout).toBe(host.hooks[host.turnEnd].timeout);
     }
+  });
+
+  test('a malformed dialect is rejected instead of emitting an unreadable bundle', () => {
+    const badDir = Object.assign({}, good, { dialect: { manifestDir: 'codex-plugin' } });
+    expect(hostShapeProblems([badDir]).join('\n')).toMatch(/manifestDir/);
+    const badVar = Object.assign({}, good, { dialect: { pluginRootVar: 'plugin_root' } });
+    expect(hostShapeProblems([badVar]).join('\n')).toMatch(/pluginRootVar/);
+    const badPlatform = Object.assign({}, good, { dialect: { platformArg: 'Codex!' } });
+    expect(hostShapeProblems([badPlatform]).join('\n')).toMatch(/platformArg/);
+    const badPath = Object.assign({}, good, { manifest: { description: 'probe', hooks: '../hooks/hooks.json' } });
+    expect(hostShapeProblems([badPath]).join('\n')).toMatch(/bundle-relative/);
+  });
+
+  test('the conservative enable flag only rides a Claude-compatible manifest', () => {
+    const foreign = Object.assign({}, good, {
+      dialect: { manifestDir: '.other-plugin', pluginRootVar: 'OTHER_PLUGIN_ROOT', defaultEnabled: true },
+      manifest: { description: 'probe', hooks: './hooks/hooks.json' },
+    });
+    expect(hostShapeProblems([foreign]).join('\n')).toMatch(/defaultEnabled belongs to the \.claude-plugin manifest/);
+  });
+
+  test('the default dialect is Claude-compatible, and the Codex row is the Codex dialect', () => {
+    expect(dialectOf(good).manifestDir).toBe('.claude-plugin');
+    expect(dialectOf(good).platformArg).toBeNull();
+    const codex = HOSTS.find((host) => host.name === 'codex');
+    expect(codex).toBeDefined();
+    expect(dialectOf(codex).manifestDir).toBe('.codex-plugin');
+    expect(dialectOf(codex).platformArg).toBe('codex');
   });
 });

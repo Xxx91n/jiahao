@@ -29,10 +29,35 @@ const PKG_REPOSITORY = PKG.repository.url.replace(/^git\+/, '').replace(/\.git$/
 // The directories the generator owns. A file tracked under them that this
 // script does not emit is an orphan; a file this script emits that is not
 // tracked never ships. Both halves are compared in --check.
-// `.claude-plugin/` at the repo root is the marketplace manifest: the repo is
-// the marketplace, so it ships with the same generated-and-audited guarantee
-// as the plugin dirs it points at.
-const GENERATED_DIRS = ['adapters/', 'skills/', '.claude-plugin/'];
+// `.claude-plugin/` and `.agents/plugins/` at the repo root are the two
+// marketplaces: the repo is the marketplace for both Claude Code and Codex, so
+// they ship with the same generated-and-audited guarantee as the plugin dirs
+// they point at.
+const GENERATED_DIRS = ['adapters/', 'skills/', '.claude-plugin/', '.agents/'];
+
+// ---- per-host dialect ----
+//
+// Where a host puts the manifest, which variable expands to the plugin root, and
+// whether its own config passes a platform name to the hook are all host facts,
+// not decision logic. They live here as data so a bundle cannot grow a second
+// flavour: the emitter writes one shape, and the tests read the row instead of
+// hardcoding Claude's.
+//
+// `platformArg` is the name the host's config template appends to the hook
+// command (e.g. `... jiahao-verdict-gate.js codex`). hooks/jiahao-runtime.js
+// already knows every platform name; passing it lets the template say which host
+// it is instead of making the hook guess from the environment. A host whose
+// config cannot pass an argument leaves it null and keeps the env probe.
+const CLAUDE_DIALECT = {
+  manifestDir: '.claude-plugin',
+  pluginRootVar: 'CLAUDE_PLUGIN_ROOT',
+  platformArg: null,
+  defaultEnabled: true,
+};
+
+function dialectOf(host) {
+  return Object.assign({}, CLAUDE_DIALECT, (host && host.dialect) || {});
+}
 
 // ---- host table: the one place a plugin host is described ----
 //
@@ -132,6 +157,49 @@ const HOSTS = [
     ],
     readme: codebuddyReadme,
   },
+  {
+    name: 'codex',
+    label: 'Codex CLI',
+    dir: 'adapters/codex',
+    tier: 'A',
+    turnEnd: 'Stop',
+    // Spec #74 reserves "会拦" for a watched live block. Codex documents a Stop
+    // hook that receives stop_hook_active and answers with JSON on stdout, but
+    // the sources disagree on whether Stop blocks the turn or only records it
+    // (docs/research/hook-distribution-2026-10-29.md, probe list). Until #80
+    // watches one, this row is an A-tier CANDIDATE.
+    provenance: 'Codex CLI plugin hooks contract (openai/plugins .codex-plugin + hooks/hooks.json, read 2026-10-30): Stop registered; live turn-end block NOT observed - A 档候选 pending #80',
+    // Codex event vocabulary is PascalCase and includes Stop. SessionEnd has a
+    // 3s hard cap in the host, so the sweep is budgeted inside it.
+    hooks: {
+      SessionStart: { script: 'jiahao-activate', timeout: 5 },
+      SubagentStart: { script: 'jiahao-subagent', timeout: 5 },
+      UserPromptSubmit: { script: 'jiahao-mode-tracker', timeout: 5 },
+      Stop: { script: 'jiahao-verdict-gate', timeout: 10 },
+      SubagentStop: { script: 'jiahao-verdict-gate', timeout: 10 },
+      SessionEnd: { script: 'jiahao-sweep', timeout: 3 },
+    },
+    // Codex's plugin manifest is `.codex-plugin/plugin.json`; the host expands
+    // ${PLUGIN_ROOT} in hook commands and passes PLUGIN_DATA to the hook process
+    // (the name hooks/jiahao-runtime.js already branches on).
+    dialect: {
+      manifestDir: '.codex-plugin',
+      pluginRootVar: 'PLUGIN_ROOT',
+      platformArg: 'codex',
+      defaultEnabled: false,
+    },
+    manifest: {
+      description: 'Verification discipline for Codex CLI: profile injection at session start, verdict gate at turn end (A 档候选, live probe pending). Self-contained plugin.',
+      author: { name: 'Xxx91n' },
+      // Codex does not auto-discover the hook map; the manifest names it. Paths
+      // are relative to the plugin root and start with './' (Codex manifest rule).
+      hooks: './hooks/hooks.json',
+    },
+    autoDiscovered: [],
+    mcp: null,
+    rules: [],
+    readme: codexReadme,
+  },
 ];
 
 // The marketplace is the repository root, and its single entry is the plugin a
@@ -139,15 +207,21 @@ const HOSTS = [
 // generator and the test read its dir instead of repeating a name lookup.
 const MARKETPLACE_HOST = HOSTS.find(host => host.name === 'claude-code');
 
+// Codex reads its own marketplace file (`.agents/plugins/marketplace.json`);
+// the entry points at the same bundle the row describes. Selected by dialect so
+// a second Codex-dialect host cannot silently overwrite this entry.
+const CODEX_MARKETPLACE_HOST = HOSTS.find(host => dialectOf(host).manifestDir === '.codex-plugin');
+
 // Retired, and not to be re-added without a self-contained directory and tests:
 // aider, cline, cursor, instruction-tier, opencode, and windsurf were
 // instruction-only copies, replaced by the standard rules directory
-// (skills/jiahao/); codex, copilot, qoder, and mcp registered hooks or notes
+// (skills/jiahao/); copilot, qoder, and mcp registered hooks or notes
 // without shipping the scripts next to them, so a copied directory could not
-// run. The MCP server itself stays at jiahao-mcp/. check-drift refuses a
-// directory for any of these names, so #62's convergence cannot quietly come
-// back.
-const RETIRED_HOSTS = ['aider', 'cline', 'codex', 'copilot', 'cursor',
+// run. codex left this list in #77: it is a self-contained plugin bundle again,
+// generated from the host table and covered by the structure tests.
+// The MCP server itself stays at jiahao-mcp/. check-drift refuses a directory
+// for any of these names, so #62's convergence cannot quietly come back.
+const RETIRED_HOSTS = ['aider', 'cline', 'copilot', 'cursor',
   'instruction-tier', 'mcp', 'opencode', 'qoder', 'windsurf'];
 
 function readRepoFile(rel) {
@@ -256,6 +330,32 @@ function hostShapeProblems(hosts) {
     for (const rel of autoDiscovered) {
       if (Object.values(host.manifest || {}).includes(rel)) problems.push(label + ': the manifest repeats auto-discovered ' + rel);
     }
+
+    // The dialect is data the emitter trusts, so a malformed one fails the
+    // build instead of producing a bundle no host can read.
+    const dialect = dialectOf(host);
+    if (!/^\.[a-z0-9-]+-plugin$/.test(dialect.manifestDir || '')) {
+      problems.push(label + ': dialect.manifestDir must be a dotted *-plugin directory');
+    }
+    if (!/^(?:[A-Z][A-Z0-9]*_)*PLUGIN_ROOT$/.test(dialect.pluginRootVar || '')) {
+      problems.push(label + ': dialect.pluginRootVar must be an UPPER_SNAKE *_PLUGIN_ROOT variable');
+    }
+    if (dialect.platformArg !== null && !/^[a-z0-9-]+$/.test(dialect.platformArg || '')) {
+      problems.push(label + ': dialect.platformArg must be a lowercase platform name or null');
+    }
+    // defaultEnabled is a Claude-compatible manifest field; a host whose
+    // manifest lives elsewhere must not claim it.
+    if (dialect.defaultEnabled && dialect.manifestDir !== '.claude-plugin') {
+      problems.push(label + ': dialect.defaultEnabled belongs to the .claude-plugin manifest only');
+    }
+    // Manifest keys that name a component must resolve inside the bundle.
+    for (const key of ['hooks', 'mcpServers']) {
+      const rel = (host.manifest || {})[key];
+      if (rel === undefined) continue;
+      if (typeof rel !== 'string' || rel.startsWith('/') || /(^|\/)\.\.(\/|$)/.test(rel)) {
+        problems.push(label + ': manifest.' + key + ' must be a bundle-relative path');
+      }
+    }
     const rules = Array.isArray(host.rules) ? host.rules : [];
     if (!Array.isArray(host.rules)) problems.push(label + ': rules must be an array (empty when the bundle ships none)');
     for (const rule of rules) {
@@ -278,29 +378,39 @@ function hostShapeProblems(hosts) {
 // The manifest carries the package version and repository, not copies of them:
 // a second hardcoded number is a version assertion that can rot (spec: one
 // version), and the bundles cannot disagree about where they came from.
+// `defaultEnabled` is emitted only for the Claude-compatible manifest: it is
+// that host family's opt-in enable field, not a portable one.
 function emitPluginManifest(host) {
-  return JSON.stringify(Object.assign(
+  const dialect = dialectOf(host);
+  const manifest = Object.assign(
     { name: 'jiahao', version: PKG.version },
     host.manifest,
     {
       license: PKG.license,
       repository: PKG_REPOSITORY,
-      // conservative: opt-in enable; plugin hooks bypass the
-      // untrusted-frontmatter gate and execute on enable
-      defaultEnabled: false,
-    }), null, 2) + '\n';
+    });
+  if (dialect.defaultEnabled) {
+    // conservative: opt-in enable; plugin hooks bypass the
+    // untrusted-frontmatter gate and execute on enable
+    manifest.defaultEnabled = false;
+  }
+  return JSON.stringify(manifest, null, 2) + '\n';
 }
 
-// Every command resolves through ${CLAUDE_PLUGIN_ROOT} so nothing points at the
-// repo root, and every event/timeout pair comes from the host row. Matchers are
-// case-sensitive and none are narrowed.
+// Every command resolves through the host's own plugin-root variable so nothing
+// points at the repo root, and every event/timeout pair comes from the host row.
+// When the row names a platform, the command passes it after the script: the
+// template then says which host it is, and the hook does not have to infer it
+// from the environment. Matchers are case-sensitive and none are narrowed.
 function emitHookMap(host) {
+  const dialect = dialectOf(host);
   const hooks = {};
   for (const [event, hook] of Object.entries(host.hooks)) {
     hooks[event] = [{
       hooks: [{
         type: 'command',
-        command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/' + hook.script + '.js"',
+        command: 'node "${' + dialect.pluginRootVar + '}/hooks/' + hook.script + '.js"' +
+          (dialect.platformArg ? ' ' + dialect.platformArg : ''),
         timeout: hook.timeout,
       }],
     }];
@@ -359,9 +469,10 @@ function buildAdapters() {
   // so a file cannot be wired without being shipped.
   for (const host of HOSTS) {
     const prefix = host.dir + '/';
+    const dialect = dialectOf(host);
     emitBundle(adapters, prefix, bundleSeeds(host), skill, host.mcp ? host.mcp.files : []);
 
-    adapters[prefix + '.claude-plugin/plugin.json'] = emitPluginManifest(host);
+    adapters[prefix + dialect.manifestDir + '/plugin.json'] = emitPluginManifest(host);
     if (Object.keys(host.hooks).length) adapters[prefix + 'hooks/hooks.json'] = emitHookMap(host);
     if (host.mcp) adapters[prefix + '.mcp.json'] = emitMcpJson(host.mcp);
     for (const rule of host.rules) adapters[prefix + 'rules/' + rule.file] = emitRule(rule, profiles);
@@ -383,6 +494,23 @@ function buildAdapters() {
         name: 'jiahao',
         source: './' + MARKETPLACE_HOST.dir,
         description: 'Anti-false-completion verification discipline: verifier gate on Stop, profile injection on SessionStart.',
+      },
+    ],
+  }, null, 2) + '\n';
+
+  // ---- codex marketplace: the same repository, a second host's shelf ----
+  // Codex reads `.agents/plugins/marketplace.json`, whose `source.path` resolves
+  // from the marketplace root (the repo). The entry names the row's bundle and
+  // carries no version: `.codex-plugin/plugin.json` is the authority.
+  if (!CODEX_MARKETPLACE_HOST) throw new Error('a Codex-dialect host must be a row in HOSTS for its marketplace');
+  adapters['.agents/plugins/marketplace.json'] = JSON.stringify({
+    name: 'jiahao',
+    plugins: [
+      {
+        name: 'jiahao',
+        source: { source: 'local', path: './' + CODEX_MARKETPLACE_HOST.dir },
+        category: 'Productivity',
+        interface: { displayName: 'Jiahao' },
       },
     ],
   }, null, 2) + '\n';
@@ -615,6 +743,103 @@ run.
 `;
 }
 
+// Codex CLI install manual + hook disclosure. Regenerated from this single
+// source; edit the string, never the emitted file.
+function codexReadme() {
+  return `# Codex CLI Adapter (self-contained plugin, A 档候选)
+
+This directory is a **self-contained Codex CLI plugin**: the manifest
+(\`.codex-plugin/plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook
+scripts and their \`require()\` closure, \`src/SKILL.md\`, and the identity pin
+the gate loads are vendored inside; there is no third-party runtime
+dependency. Every hook command resolves through \`\${PLUGIN_ROOT}\`, so nothing
+reads from the repository root.
+
+**Capability tier: A 档候选 (candidate).** The host documents a \`Stop\` hook
+that reports \`stop_hook_active\` and answers with JSON on stdout, and this
+bundle wires \`Stop\` to the verdict gate. No live turn-end block has been
+observed yet (#80), so this adapter does not claim "会拦" — it claims
+"registered and runnable", and the tier table stays a release-period
+conclusion.
+
+## Install (host-native commands)
+
+The repository root is also a Codex marketplace
+(\`.agents/plugins/marketplace.json\`, whose single \`source.path\` points at
+\`./adapters/codex\`).
+
+1. \`codex plugin marketplace add Xxx91n/jiahao\`
+2. \`codex plugin add jiahao --marketplace jiahao\`
+3. Turn the hook feature on in \`$CODEX_HOME/config.toml\`
+   (default \`~/.codex/config.toml\`):
+
+   \`\`\`toml
+   [features]
+   hooks = true
+   plugin_hooks = true
+   \`\`\`
+
+4. Review and trust the plugin's hook commands once — Codex skips an untrusted
+   hook silently (\`/hooks\`).
+5. Activate the jiahao profile flag, same as every host. Resolve the config
+   directory once (\`CLAUDE_CONFIG_DIR\`, else \`$HOME\`, else \`/tmp\`):
+   \`CONFIG="\${CLAUDE_CONFIG_DIR:-\${HOME:-/tmp}}"\`, then
+   \`echo full > "$CONFIG/.jiahao-active"\` and
+   \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
+   (\`generator\` for advisory-only). Start a new session after changing
+   \`.jiahao-profile\`.
+
+Install, upgrade, and uninstall are the host's own plugin commands; the repo
+root is never a plugin entry.
+
+## Configuration template
+
+\`hooks/hooks.json\` is the whole template. Each entry names the script to run
+and the platform name \`codex\` passed to it; there is no decision logic in the
+file. The platform name is what the hook uses to pick Codex's output envelope
+(the same branch \`hooks/jiahao-runtime.js\` already has), so the template does
+not re-implement host detection.
+
+| Event | Script | Behavior |
+| --- | --- | --- |
+| SessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext |
+| SubagentStart | hooks/jiahao-subagent.js | same injection on subagent spawn |
+| UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
+| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: exit 2 + {decision:"block"} when the evidence chain is empty (verifier profile) |
+| SubagentStop | hooks/jiahao-verdict-gate.js | same gate on subagent finish (parity) |
+| SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
+
+Timeouts stay inside the host budget (5/5/5/10/10/3s; Codex caps
+\`SessionEnd\` at 3s). Event names are the host's own PascalCase set.
+
+## Write scope and network
+
+- Hooks write only under the config dir (\`$CLAUDE_CONFIG_DIR\`, else
+  \`$HOME\`): \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\` (plus
+  its sidecar and pairer shadow records), \`.jiahao-pretool.jsonl\`, and the
+  sentinel state and lock files. Nothing inside the repo or this plugin
+  directory is written by a hook.
+- No network calls: no hook fetches anything, and the bundle has no
+  third-party runtime dependency to install.
+
+## Verification status (honest tiering)
+
+Pinned offline by \`test/plugin-bundles.test.js\` (structure, run once per host
+row) and \`test/codex-adapter.test.js\` (the Codex envelope and the bundled Stop
+gate, spawned as a subprocess from a temp materialization of the generator
+output): the manifest parses, its version and license come from
+\`package.json\`, the marketplace \`source.path\` resolves to this directory,
+every referenced file is emitted (\`--check\` pins the emitted set to disk),
+every hook command stays inside \`\${PLUGIN_ROOT}\`, and no vendored relative
+\`require()\` escapes the bundle.
+
+**Not yet live-probed**: install through \`codex plugin\`, the \`/hooks\` trust
+step, and a real blocked false-completion are owner actions in #80. This
+adapter is admitted on the documented host contract; it does not claim a live
+run.
+`;
+}
+
 // Minimal zero-dependency unified diff (LCS over lines, 3 lines of context).
 function unifiedDiff(rel, oldText, newText) {
   const a = oldText.split('\n');
@@ -807,5 +1032,6 @@ if (require.main === module) main();
 
 module.exports = {
   buildAdapters, unifiedDiff, checkAll, writeAll, auditTrackedSet, SKILL_DIR, SOURCE_NAME,
-  HOSTS, RETIRED_HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
+  HOSTS, RETIRED_HOSTS, MARKETPLACE_HOST, CODEX_MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
+  dialectOf, GENERATED_DIRS,
 };

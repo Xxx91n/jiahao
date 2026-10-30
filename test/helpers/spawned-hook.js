@@ -22,14 +22,18 @@ function describeSpawn(res) {
 
 function spawnHook(script, opts) {
   const o = opts || {};
-  const res = spawnSync(process.execPath, [script], {
+  // argv after the script: a host config that passes its platform name (Codex
+  // does) is spawned exactly as the template writes it, so the envelope test
+  // exercises the real path instead of a hand-set env variable.
+  const args = [script].concat(o.args || []);
+  const res = spawnSync(process.execPath, args, {
     input: o.stdin === undefined ? '{}' : o.stdin,
     env: o.env || process.env,
     cwd: o.cwd,
     encoding: 'utf8',
     timeout: o.timeoutMs || 15000,
   });
-  res.commandLine = 'node ' + script;
+  res.commandLine = 'node ' + args.join(' ');
   return res;
 }
 

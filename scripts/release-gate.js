@@ -36,9 +36,16 @@ const path = require('path');
 const crypto = require('crypto');
 const { spawnSync } = require('child_process');
 
-const { HOSTS } = require('./build-adapters');
+const { HOSTS, CODEX_MARKETPLACE_HOST, dialectOf } = require('./build-adapters');
 
 const root = path.join(__dirname, '..');
+
+// The manifest of each bundle lives in the host's own dialect directory
+// (`.claude-plugin/` for the Claude-compatible family, `.codex-plugin/` for
+// Codex), so the pack/serve lists read it from the row instead of hardcoding one.
+function manifestRel(host) {
+  return host.dir + '/' + dialectOf(host).manifestDir + '/plugin.json';
+}
 
 // What the packed artifact must carry and must never carry. Shared with
 // test/packaging.test.js so the jest assertion and the tag command cannot
@@ -53,10 +60,11 @@ const REQUIRED_PACK_FILES = [
   // machine.
   'scripts/resolve.js',
   'skills/jiahao/SKILL.md',
-  ...HOSTS.map(host => host.dir + '/.claude-plugin/plugin.json'),
+  ...HOSTS.map(manifestRel),
   ...HOSTS.filter(host => Object.keys(host.hooks || {}).length > 0).map(host => host.dir + '/hooks/hooks.json'),
   ...HOSTS.flatMap(host => host.rules.map(rule => host.dir + '/rules/' + rule.file)),
   '.claude-plugin/marketplace.json',
+  ...(CODEX_MARKETPLACE_HOST ? ['.agents/plugins/marketplace.json'] : []),
   'docs/release.md',
 ];
 // Private corpus and the research / frozen-evaluation records never ship.
@@ -67,7 +75,7 @@ const FORBIDDEN_PACK_PREFIXES = ['private/', 'bench/', 'docs/research/'];
 // bundle is easier to name than a tarball diff.
 const HASHED_TREES = ['skills/jiahao', ...HOSTS.map(host => host.dir)];
 
-const PLUGIN_MANIFESTS = HOSTS.map(host => host.dir + '/.claude-plugin/plugin.json');
+const PLUGIN_MANIFESTS = HOSTS.map(manifestRel);
 const MARKETPLACE_MANIFEST = '.claude-plugin/marketplace.json';
 
 // Files that run on a user's machine once jiahao is installed: the installer
@@ -81,9 +89,10 @@ const NETWORK_MODULE = /\brequire\(\s*['"](?:node:)?(?:https?|http2|net|dns|tls|
 const NETWORK_CALL = /(?:\bfetch\s*\(|XMLHttpRequest|https?\.(?:request|get)\s*\()/;
 // Lifecycle scripts would turn `npm install` into "download and execute".
 const FORBIDDEN_LIFECYCLE = ['preinstall', 'install', 'postinstall', 'prepare', 'prepack', 'postpack'];
-// Plugin hook commands must resolve inside the bundle. CodeBuddy additionally
-// expands ${CODEBUDDY_PLUGIN_ROOT}, so both names are accepted.
-const BUNDLED_COMMAND = /^node "?\$\{(?:CLAUDE|CODEBUDDY)_PLUGIN_ROOT\}\/hooks\/[A-Za-z0-9._-]+\.js"?$/;
+// Plugin hook commands must resolve inside the bundle. Each host family expands
+// its own plugin-root variable (CLAUDE / CODEBUDDY / PLUGIN_ROOT), and a config
+// template may append its platform name after the script.
+const BUNDLED_COMMAND = /^node "?\$\{(?:CLAUDE_|CODEBUDDY_)?PLUGIN_ROOT\}\/hooks\/[A-Za-z0-9._-]+\.js"?(?: [a-z0-9-]+)?$/;
 
 function parseTag(tag) {
   const m = /^v(\d+\.\d+\.\d+)$/.exec(String(tag || ''));
@@ -415,7 +424,7 @@ step('egress', 'code that runs after install makes no network call', () => {
     // row is deliberate, skipping one that declares events would let
     // `--only egress` report green over a bundle that has no commands.
     if (Object.keys(host.hooks || {}).length === 0) continue;
-    const rel = host.dir + '/.claude-plugin/plugin.json';
+    const rel = manifestRel(host);
     const hookMapPath = path.join(root, host.dir.split('/').join(path.sep), 'hooks', 'hooks.json');
     if (!fs.existsSync(hookMapPath)) throw new Error(rel + ' has no hooks/hooks.json beside it');
     const map = JSON.parse(fs.readFileSync(hookMapPath, 'utf8'));

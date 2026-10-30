@@ -36,13 +36,16 @@ test('build-adapters generates the retained exits', () => {
       'adapters/codebuddy/hooks/hooks.json',
       'adapters/codebuddy/rules/jiahao-verifier.md',
       'adapters/codebuddy/rules/jiahao-generator.md',
+      'adapters/codex/.codex-plugin/plugin.json',
+      'adapters/codex/hooks/hooks.json',
+      '.agents/plugins/marketplace.json',
       'skills/jiahao/SKILL.md',
     ];
     expected.forEach(rel => {
       expect(fs.existsSync(path.join(dir, rel))).toBe(true);
     });
-    // Everything the generator produced reached the target - not just the six
-    // exits above - so a writeAll that skips a file is red here.
+    // Everything the generator produced reached the target - not just the exits
+    // above - so a writeAll that skips a file is red here.
     emitted.forEach(rel => {
       expect(fs.existsSync(path.join(dir, rel))).toBe(true);
     });
@@ -62,21 +65,27 @@ test('the rules-version skill carries both profiles', () => {
 });
 
 test('retired adapters are neither emitted nor present', () => {
-  const { buildAdapters, RETIRED_HOSTS } = require('../scripts/build-adapters');
+  const { buildAdapters, RETIRED_HOSTS, HOSTS } = require('../scripts/build-adapters');
   const emitted = Object.keys(buildAdapters());
   // One list, in the generator (check-drift reads the same one). The floor is
   // what stops the list from being silently emptied instead of honoured.
-  expect(RETIRED_HOSTS.length).toBeGreaterThanOrEqual(10);
+  expect(RETIRED_HOSTS.length).toBeGreaterThanOrEqual(9);
   for (const name of RETIRED_HOSTS) {
     expect(emitted.some(rel => rel.startsWith('adapters/' + name + '/'))).toBe(false);
     expect(fs.existsSync(path.join(root, 'adapters', name))).toBe(false);
   }
+  // #77 brought Codex back with a self-contained directory, so a host row and a
+  // retirement entry cannot name the same host: that would mean #62's
+  // convergence is fighting the generator.
+  const retiredAndShipped = HOSTS.filter(host => RETIRED_HOSTS.includes(host.name)).map(host => host.name);
+  expect(retiredAndShipped).toEqual([]);
+  expect(RETIRED_HOSTS).not.toContain('codex');
 });
 
 test('build-adapters --check is green and accounts for every tracked generated file', () => {
   const out = execSync('node scripts/build-adapters.js --check', { cwd: root, encoding: 'utf8', timeout: 15000 });
   expect(out).toContain('regen-diff clean');
-  const tracked = execSync('git ls-files -z -- adapters skills .claude-plugin', { cwd: root, encoding: 'utf8', timeout: 15000 })
+  const tracked = execSync('git ls-files -z -- adapters skills .claude-plugin .agents', { cwd: root, encoding: 'utf8', timeout: 15000 })
     .split('\0').filter(Boolean).length;
   const m = out.match(/All (\d+) tracked generated files accounted for: (\d+) generated \+ (\d+) allowlisted/);
   expect(m).not.toBeNull();
@@ -95,7 +104,8 @@ test('the generator emits the rules-version skill file', () => {
 test('every generated path falls inside a directory the audit enumerates', () => {
   const { buildAdapters } = require('../scripts/build-adapters');
   const outside = Object.keys(buildAdapters())
-    .filter(rel => !rel.startsWith('adapters/') && !rel.startsWith('skills/') && !rel.startsWith('.claude-plugin/'));
+    .filter(rel => !rel.startsWith('adapters/') && !rel.startsWith('skills/')
+      && !rel.startsWith('.claude-plugin/') && !rel.startsWith('.agents/'));
   expect(outside).toEqual([]);
 });
 
@@ -205,6 +215,21 @@ test('--check audits the root marketplace manifest in both directions', () => {
     expect(res.status).toBe(1);
     expect(res.stderr).toContain('ORPHAN: .claude-plugin/zz-orphan-probe.json');
     expect(res.stderr).toContain('UNTRACKED: .claude-plugin/marketplace.json');
+  });
+});
+
+// #77: the Codex marketplace is a second shelf for the same repository, and it
+// is generated too. Auditing only `.claude-plugin/` would let its deletion pass.
+test('--check audits the Codex marketplace manifest in both directions', () => {
+  withTempIndex((env) => {
+    stageOrphan(env, '.agents/plugins/zz-orphan-probe.json');
+    execFileSync('git', ['rm', '--cached', '--quiet', '--', '.agents/plugins/marketplace.json'], {
+      cwd: root, env, encoding: 'utf8', timeout: 15000,
+    });
+    const res = runCheck(env);
+    expect(res.status).toBe(1);
+    expect(res.stderr).toContain('ORPHAN: .agents/plugins/zz-orphan-probe.json');
+    expect(res.stderr).toContain('UNTRACKED: .agents/plugins/marketplace.json');
   });
 });
 

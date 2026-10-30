@@ -48,6 +48,10 @@ test('the pack contract names the rules file, both plugin hook maps, and the mar
     'adapters/codebuddy/hooks/hooks.json',
     'adapters/claude-code/.claude-plugin/plugin.json',
     'adapters/claude-code/hooks/hooks.json',
+    // #77: Codex ships its own manifest location and the second marketplace.
+    'adapters/codex/.codex-plugin/plugin.json',
+    'adapters/codex/hooks/hooks.json',
+    '.agents/plugins/marketplace.json',
     '.claude-plugin/marketplace.json',
     // #85: the write side of adjudication went missing from the repo once, and
     // a tarball without it fails only on a user's machine.

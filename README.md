@@ -36,15 +36,15 @@ Installs `skills/jiahao/SKILL.md` into a host that reads the standard Agent Skil
 
 ### Plugin version — host-native command, with hooks
 
-CodeBuddy is one of the two plugin bundles (the other is Claude Code, described below):
+CodeBuddy is one of the three plugin bundles (the others are Claude Code and Codex CLI, described below):
 
 ```bash
 codebuddy plugin install <path-to>/adapters/codebuddy
 ```
 
-The plugin ships disabled (`defaultEnabled: false`); enable it after install. Then write the profile with the installer (`node scripts/install.js init -y`), which prints the value it wrote (see Profile). Once enabled, `hooks/hooks.json` wires the verifier enforcement. The bundle ships both profile rule files with `alwaysApply: true`; rule-level profile selection is declared-unverified, and the hook is the enforcement layer. The CLI plugin-install path is documented but declared-unverified; the live-verified fallback is the `.codebuddy/settings.json` merge. Install steps, the hook map, and the full verified / declared-unverified boundary are in [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md). Claude Code is the second plugin bundle: its self-contained bundle lives in [`adapters/claude-code/`](adapters/claude-code/), installed from the repository marketplace with `claude plugin marketplace add Xxx91n/jiahao` and `claude plugin install jiahao@jiahao`. The bundle's README shows the hook map and states what is not yet live-verified.
+The plugin ships disabled (`defaultEnabled: false`); enable it after install. Then write the profile with the installer (`node scripts/install.js init -y`), which prints the value it wrote (see Profile). Once enabled, `hooks/hooks.json` wires the verifier enforcement. The bundle ships both profile rule files with `alwaysApply: true`; rule-level profile selection is declared-unverified, and the hook is the enforcement layer. The CLI plugin-install path is documented but declared-unverified; the live-verified fallback is the `.codebuddy/settings.json` merge. Install steps, the hook map, and the full verified / declared-unverified boundary are in [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md). Claude Code is the second plugin bundle: its self-contained bundle lives in [`adapters/claude-code/`](adapters/claude-code/), installed from the repository marketplace with `claude plugin marketplace add Xxx91n/jiahao` and `claude plugin install jiahao@jiahao`. The bundle's README shows the hook map and states what is not yet live-verified. Codex CLI is the third: its self-contained bundle lives in [`adapters/codex/`](adapters/codex/), installed from the repository's Codex marketplace with `codex plugin marketplace add Xxx91n/jiahao` and `codex plugin add jiahao --marketplace jiahao`; the host also needs `[features] hooks = true` and `plugin_hooks = true` in `$CODEX_HOME/config.toml`, and its hook commands have to be trusted once. Codex is an **A-tier candidate** (A 档候选): the turn-end entry is registered and the bundled gate is exercised at script level, but no live turn-end block has been observed yet, so this release does not claim that it blocks. Details in [`adapters/codex/README.md`](adapters/codex/README.md).
 
-The codex, copilot, qoder, and mcp directories are no longer install exits; the MCP server itself remains at [`jiahao-mcp/`](jiahao-mcp/).
+The copilot, qoder, and mcp directories are no longer install exits; the MCP server itself remains at [`jiahao-mcp/`](jiahao-mcp/).
 
 ### Profile
 
