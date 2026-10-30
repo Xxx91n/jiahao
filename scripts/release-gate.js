@@ -422,10 +422,9 @@ step('egress', 'code that runs after install makes no network call', () => {
       host.dir.split('/').join(path.sep), dialect.hookMapPath.split('/').join(path.sep));
     if (!fs.existsSync(hookMapPath)) throw new Error(rel + ' has no ' + dialect.hookMapPath + ' beside it');
     const map = JSON.parse(fs.readFileSync(hookMapPath, 'utf8'));
-    if (Object.keys(map.hooks || {}).length === 0) {
-      throw new Error(rel + ' has a hook map that registers no events');
-    }
+    let entryCount = 0;
     for (const [event, entries] of Object.entries(map.hooks || {})) {
+      entryCount += entries.length;
       for (const entry of entries) {
         const commands = hookEntryCommands(entry);
         if (commands.length === 0) {
@@ -449,6 +448,9 @@ step('egress', 'code that runs after install makes no network call', () => {
         }
       }
     }
+    // An event registered with an empty array also reaches here with nothing
+    // checked, so the count is taken from the flattened entries, not the keys.
+    if (entryCount === 0) throw new Error(rel + ' has a hook map with no command entries');
   }
 
   return targets.length + ' install-path files scanned: no http/http2/https/net/dns/tls/dgram require, no fetch or https.request, ' +
