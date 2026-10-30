@@ -11,6 +11,8 @@ const path = require('path');
 const { splitByProfile, validateGsrHeaders } = require('../hooks/jiahao-profile');
 const { listTrackedPaths } = require('../src/shared/tracked-surface');
 const copilotDialect = require('./hosts/copilot');
+const codexDialect = require('./hosts/codex');
+const { PLATFORMS } = require('../hooks/jiahao-runtime');
 
 const root = path.join(__dirname, '..');
 
@@ -30,10 +32,11 @@ const PKG_REPOSITORY = PKG.repository.url.replace(/^git\+/, '').replace(/\.git$/
 // The directories the generator owns. A file tracked under them that this
 // script does not emit is an orphan; a file this script emits that is not
 // tracked never ships. Both halves are compared in --check.
-// `.claude-plugin/` at the repo root is the marketplace manifest: the repo is
-// the marketplace, so it ships with the same generated-and-audited guarantee
-// as the plugin dirs it points at.
-const GENERATED_DIRS = ['adapters/', 'skills/', '.claude-plugin/'];
+// `.claude-plugin/` and `.agents/plugins/` at the repo root are the two
+// marketplaces: the repo is the marketplace for both Claude Code and Codex, so
+// they ship with the same generated-and-audited guarantee as the plugin dirs
+// they point at.
+const GENERATED_DIRS = ['adapters/', 'skills/', '.claude-plugin/', '.agents/'];
 
 // ---- host table: the one place a plugin host is described ----
 //
@@ -166,6 +169,40 @@ const HOSTS = [
     readme: copilotCliReadme,
   },
   {
+    name: 'codex',
+    label: 'Codex CLI',
+    dir: 'adapters/codex',
+    tier: 'A',
+    turnEnd: 'Stop',
+    // Spec #74 reserves "会拦" for a watched live block. Codex documents a Stop
+    // hook whose exit-2 path reads a continuation prompt from stderr, but no
+    // live turn has been watched being blocked (#80 owns that probe), so this
+    // row stays an A-tier CANDIDATE.
+    provenance: 'Codex CLI plugin hooks contract (openai/plugins .codex-plugin + hooks/hooks.json + codex-rs hooks/src/events/stop.rs, read 2026-10-30): Stop registered; live turn-end block NOT observed - A 档候选 pending #80',
+    // Codex event vocabulary is PascalCase and includes Stop. SessionEnd has a
+    // 3s hard cap in the host, so the sweep is budgeted inside it.
+    hooks: {
+      SessionStart: { script: 'jiahao-activate', timeout: 5 },
+      SubagentStart: { script: 'jiahao-subagent', timeout: 5 },
+      UserPromptSubmit: { script: 'jiahao-mode-tracker', timeout: 5 },
+      Stop: { script: 'jiahao-verdict-gate', timeout: 10 },
+      SubagentStop: { script: 'jiahao-verdict-gate', timeout: 10 },
+      SessionEnd: { script: 'jiahao-sweep', timeout: 3 },
+    },
+    // Codex's manifest, hook-map path, ${PLUGIN_ROOT} spelling, './' component
+    // paths, and the platform name the template passes all live in
+    // scripts/hosts/codex.js.
+    dialect: codexDialect,
+    manifest: {
+      description: 'Verification discipline for Codex CLI: profile injection at session start, verdict gate at turn end (A 档候选, live probe pending). Self-contained plugin.',
+      author: { name: 'Xxx91n' },
+    },
+    autoDiscovered: [],
+    mcp: null,
+    rules: [],
+    readme: codexReadme,
+  },
+  {
     name: 'qoder',
     label: 'Qoder',
     dir: 'adapters/qoder',
@@ -195,6 +232,7 @@ const HOSTS = [
 // generator and the test read its dir instead of repeating a name lookup.
 const MARKETPLACE_HOST = HOSTS.find(host => host.name === 'claude-code');
 
+
 // Retired, and not to be re-added without a self-contained directory and tests:
 // aider, cline, cursor, instruction-tier, opencode, and windsurf were
 // instruction-only copies, replaced by the standard rules directory
@@ -203,10 +241,11 @@ const MARKETPLACE_HOST = HOSTS.find(host => host.name === 'claude-code');
 // itself stays at jiahao-mcp/. check-drift refuses a directory for any of these
 // names, so #62's convergence cannot quietly come back.
 //
-// copilot left this list in #78 and qoder in #79, each because it now has a host
-// table row and a generated directory (copilot a self-contained bundle, qoder the
-// rules-only shape with the no-registration assertion); codex leaves it in #77.
-const RETIRED_HOSTS = ['aider', 'cline', 'codex', 'cursor',
+// codex left this list in #77, copilot in #78, and qoder in #79, each because it
+// now has a host table row and a generated directory (codex and copilot
+// self-contained bundles, qoder the rules-only shape with the
+// no-registration assertion).
+const RETIRED_HOSTS = ['aider', 'cline', 'cursor',
   'instruction-tier', 'mcp', 'opencode', 'windsurf'];
 
 // A host row may name a dialect module (scripts/hosts/<name>.js) when its
@@ -231,6 +270,13 @@ const CLAUDE_DIALECT = {
 function dialectOf(host) {
   return Object.assign({}, CLAUDE_DIALECT, host.dialect || {});
 }
+
+// Codex reads its own marketplace file (`.agents/plugins/marketplace.json`);
+// the entry points at the same bundle the row describes. Exactly one row may
+// own that file: two Codex-dialect rows would otherwise leave one silently
+// unshelved, and the build catches it instead.
+const CODEX_DIALECT_HOSTS = HOSTS.filter(host => (host.dialect || {}).marketplace === 'codex');
+const CODEX_MARKETPLACE_HOST = CODEX_DIALECT_HOSTS.length === 1 ? CODEX_DIALECT_HOSTS[0] : null;
 
 // Claude-shaped maps nest their commands under `hooks`; a flat dialect's entry
 // IS the command. One reader, so the gate and the suites cannot disagree about
@@ -382,6 +428,14 @@ function hostShapeProblems(hosts) {
       if (!Array.isArray(host.mcp.files)) problems.push(label + ': the MCP server needs a files array (what else ships beside it)');
     }
     if (host.dialect) {
+      if (host.dialect.platform !== undefined && !PLATFORMS.includes(host.dialect.platform)) {
+        // A config template may only pass a name the hook layer has a shape for;
+        // a typo would silently fall back to the Claude branch at runtime.
+        problems.push(label + ': dialect platform "' + host.dialect.platform + '" is not one of ' + PLATFORMS.join('/'));
+      }
+      if (host.dialect.manifestPathPrefix !== undefined && !['', './'].includes(host.dialect.manifestPathPrefix)) {
+        problems.push(label + ': dialect manifestPathPrefix must be "" or "./"');
+      }
       for (const key of ['manifestPath', 'hookMapPath']) {
         const rel = host.dialect[key];
         if (typeof rel !== 'string' || !rel.endsWith('.json') ||
@@ -554,6 +608,28 @@ function buildAdapters() {
       },
     ],
   }, null, 2) + '\n';
+
+  // ---- codex marketplace: the same repository, a second host's shelf ----
+  // Codex reads `.agents/plugins/marketplace.json`, whose `source.path` resolves
+  // from the marketplace root (the repo). The entry names the row's bundle and
+  // carries no version: `.codex-plugin/plugin.json` is the authority.
+  if (CODEX_DIALECT_HOSTS.length > 1) {
+    throw new Error('at most one Codex-dialect host may own .agents/plugins/marketplace.json (found ' +
+      CODEX_DIALECT_HOSTS.length + ')');
+  }
+  if (CODEX_MARKETPLACE_HOST) {
+    adapters['.agents/plugins/marketplace.json'] = JSON.stringify({
+      name: 'jiahao',
+      plugins: [
+        {
+          name: 'jiahao',
+          source: { source: 'local', path: './' + CODEX_MARKETPLACE_HOST.dir },
+          category: 'Productivity',
+          interface: { displayName: 'Jiahao' },
+        },
+      ],
+    }, null, 2) + '\n';
+  }
 
   // ---- rules version: the standard Agent Skills directory ----
   // The one output with no host-specific shape: `npx skills add <this repo>`
@@ -949,6 +1025,101 @@ judgment logic is the same \`hooks/jiahao-verdict-gate.js\` every host runs.
 `;
 }
 
+// Codex CLI install manual + hook disclosure. Regenerated from this single
+// source; edit the string, never the emitted file.
+function codexReadme() {
+  return `# Codex CLI Adapter (self-contained plugin, A 档候选)
+
+This directory is a **self-contained Codex CLI plugin**: the manifest
+(\`.codex-plugin/plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook
+scripts and their \`require()\` closure, \`src/SKILL.md\`, and the identity pin
+the gate loads are vendored inside; there is no third-party runtime
+dependency. Every hook command resolves through \`\${PLUGIN_ROOT}\`, so nothing
+reads from the repository root.
+
+**Capability tier: A 档候选 (candidate).** The host documents a \`Stop\` hook
+that reports \`stop_hook_active\` and answers with JSON on stdout, and this
+bundle wires \`Stop\` to the verdict gate. No live turn-end block has been
+observed yet (#80), so this adapter does not claim "会拦" — it claims
+"registered and runnable", and the tier table stays a release-period
+conclusion.
+
+## Install (host-native commands)
+
+The repository root is also a Codex marketplace
+(\`.agents/plugins/marketplace.json\`, whose single \`source.path\` points at
+\`./adapters/codex\`).
+
+1. \`codex plugin marketplace add Xxx91n/jiahao\`
+2. \`codex plugin add jiahao --marketplace jiahao\`
+3. Review and trust the plugin's hook commands once — Codex skips an untrusted
+   hook silently (\`/hooks\`).
+4. Activate the jiahao profile flag, same as every host. Resolve the config
+   directory once (\`CLAUDE_CONFIG_DIR\`, else \`$HOME\`, else \`/tmp\`):
+   \`CONFIG="\${CLAUDE_CONFIG_DIR:-\${HOME:-/tmp}}"\`, then
+   \`echo full > "$CONFIG/.jiahao-active"\` and
+   \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
+   (\`generator\` for advisory-only). Start a new session after changing
+   \`.jiahao-profile\`.
+
+Current Codex builds enable hooks by default; no \`[features]\` flag is part of
+this recipe. Whether a given build needs one switched on, and the trust step
+above, are still the host contract rather than a live-probed recipe: #74 lists
+both as open probes, and nobody has watched this install run in-host yet (#80).
+If an older build refuses the plugin's hooks, look for a \`[features] hooks\`
+switch in \`$CODEX_HOME/config.toml\` rather than copying a flag block from here.
+
+Install, upgrade, and uninstall are the host's own plugin commands; the repo
+root is never a plugin entry.
+
+## Configuration template
+
+\`hooks/hooks.json\` is the whole template. Each entry names the script to run
+and the platform name \`codex\` passed to it; there is no decision logic in the
+file. The platform name is what the hook uses to pick Codex's output envelope
+(the same branch \`hooks/jiahao-runtime.js\` already has), so the template does
+not re-implement host detection.
+
+| Event | Script | Behavior |
+| --- | --- | --- |
+| SessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext |
+| SubagentStart | hooks/jiahao-subagent.js | same injection on subagent spawn |
+| UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
+| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: exit 2 + {decision:"block"} on stdout, with the same reason on stderr - the Codex exit-2 path reads stderr and ignores stdout; blocks an empty evidence chain (verifier profile) |
+| SubagentStop | hooks/jiahao-verdict-gate.js | same gate on subagent finish (parity) |
+| SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
+
+Timeouts stay inside the host budget (5/5/5/10/10/3s; Codex caps
+\`SessionEnd\` at 3s). Event names are the host's own PascalCase set.
+
+## Write scope and network
+
+- Hooks write only under the config dir (\`$CLAUDE_CONFIG_DIR\`, else
+  \`$HOME\`): \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\` (plus
+  its sidecar and pairer shadow records), \`.jiahao-pretool.jsonl\`, and the
+  sentinel state and lock files. Nothing inside the repo or this plugin
+  directory is written by a hook.
+- No network calls: no hook fetches anything, and the bundle has no
+  third-party runtime dependency to install.
+
+## Verification status (honest tiering)
+
+Pinned offline by \`test/plugin-bundles.test.js\` (structure, run once per host
+row) and \`test/codex-adapter.test.js\` (the Codex envelope and the bundled Stop
+gate, spawned as a subprocess from a temp materialization of the generator
+output): the manifest parses, its version and license come from
+\`package.json\`, the marketplace \`source.path\` resolves to this directory,
+every referenced file is emitted (\`--check\` pins the emitted set to disk),
+every hook command stays inside \`\${PLUGIN_ROOT}\`, and no vendored relative
+\`require()\` escapes the bundle.
+
+**Not yet live-probed**: install through \`codex plugin\`, the \`/hooks\` trust
+step, and a real blocked false-completion are owner actions in #80. This
+adapter is admitted on the documented host contract; it does not claim a live
+run.
+`;
+}
+
 // Minimal zero-dependency unified diff (LCS over lines, 3 lines of context).
 function unifiedDiff(rel, oldText, newText) {
   const a = oldText.split('\n');
@@ -1141,6 +1312,6 @@ if (require.main === module) main();
 
 module.exports = {
   buildAdapters, unifiedDiff, checkAll, writeAll, auditTrackedSet, SKILL_DIR, SOURCE_NAME,
-  HOSTS, RETIRED_HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds, dialectOf,
-  hookEntryCommands, isRulesOnlyDirectory,
+  HOSTS, RETIRED_HOSTS, MARKETPLACE_HOST, CODEX_MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
+  dialectOf, hookEntryCommands, isRulesOnlyDirectory,
 };

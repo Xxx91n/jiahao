@@ -39,6 +39,9 @@ test('build-adapters generates the retained exits', () => {
       'adapters/codebuddy/rules/jiahao-generator.md',
       'adapters/copilot/plugin.json',
       'adapters/copilot/hooks/hooks.json',
+      'adapters/codex/.codex-plugin/plugin.json',
+      'adapters/codex/hooks/hooks.json',
+      '.agents/plugins/marketplace.json',
       'adapters/qoder/README.md',
       'adapters/qoder/rules/jiahao.md',
       'skills/jiahao/SKILL.md',
@@ -67,25 +70,28 @@ test('the rules-version skill carries both profiles', () => {
 });
 
 test('retired adapters are neither emitted nor present', () => {
-  const { buildAdapters, RETIRED_HOSTS } = require('../scripts/build-adapters');
+  const { buildAdapters, RETIRED_HOSTS, HOSTS } = require('../scripts/build-adapters');
   const emitted = Object.keys(buildAdapters());
   // One list, in the generator (check-drift reads the same one). The floor is
   // what stops the list from being silently emptied instead of honoured.
-  // copilot left in #78 and qoder in #79 (codex leaves in #77), so eight names
-  // remain. The loop proves none of them is emitted or present; check-drift
+  // codex left in #77, copilot in #78, and qoder in #79, so seven names remain. The loop proves none of them is emitted or present; check-drift
   // refuses a directory for any listed name, and "check-drift passes on the
   // committed tree" below runs it.
-  expect(RETIRED_HOSTS.length).toBeGreaterThanOrEqual(8);
+  expect(RETIRED_HOSTS.length).toBeGreaterThanOrEqual(7);
   for (const name of RETIRED_HOSTS) {
     expect(emitted.some(rel => rel.startsWith('adapters/' + name + '/'))).toBe(false);
     expect(fs.existsSync(path.join(root, 'adapters', name))).toBe(false);
   }
+  // A host row and a retirement entry cannot name the same host: that would mean
+  // #62's convergence is fighting the generator.
+  const retiredAndShipped = HOSTS.filter(host => RETIRED_HOSTS.includes(host.name)).map(host => host.name);
+  expect(retiredAndShipped).toEqual([]);
 });
 
 test('build-adapters --check is green and accounts for every tracked generated file', () => {
   const out = execSync('node scripts/build-adapters.js --check', { cwd: root, encoding: 'utf8', timeout: 15000 });
   expect(out).toContain('regen-diff clean');
-  const tracked = execSync('git ls-files -z -- adapters skills .claude-plugin', { cwd: root, encoding: 'utf8', timeout: 15000 })
+  const tracked = execSync('git ls-files -z -- adapters skills .claude-plugin .agents', { cwd: root, encoding: 'utf8', timeout: 15000 })
     .split('\0').filter(Boolean).length;
   const m = out.match(/All (\d+) tracked generated files accounted for: (\d+) generated \+ (\d+) allowlisted/);
   expect(m).not.toBeNull();
@@ -164,7 +170,8 @@ describe('Qoder rules-only exit (#79)', () => {
 test('every generated path falls inside a directory the audit enumerates', () => {
   const { buildAdapters } = require('../scripts/build-adapters');
   const outside = Object.keys(buildAdapters())
-    .filter(rel => !rel.startsWith('adapters/') && !rel.startsWith('skills/') && !rel.startsWith('.claude-plugin/'));
+    .filter(rel => !rel.startsWith('adapters/') && !rel.startsWith('skills/')
+      && !rel.startsWith('.claude-plugin/') && !rel.startsWith('.agents/'));
   expect(outside).toEqual([]);
 });
 
@@ -274,6 +281,21 @@ test('--check audits the root marketplace manifest in both directions', () => {
     expect(res.status).toBe(1);
     expect(res.stderr).toContain('ORPHAN: .claude-plugin/zz-orphan-probe.json');
     expect(res.stderr).toContain('UNTRACKED: .claude-plugin/marketplace.json');
+  });
+});
+
+// #77: the Codex marketplace is a second shelf for the same repository, and it
+// is generated too. Auditing only `.claude-plugin/` would let its deletion pass.
+test('--check audits the Codex marketplace manifest in both directions', () => {
+  withTempIndex((env) => {
+    stageOrphan(env, '.agents/plugins/zz-orphan-probe.json');
+    execFileSync('git', ['rm', '--cached', '--quiet', '--', '.agents/plugins/marketplace.json'], {
+      cwd: root, env, encoding: 'utf8', timeout: 15000,
+    });
+    const res = runCheck(env);
+    expect(res.status).toBe(1);
+    expect(res.stderr).toContain('ORPHAN: .agents/plugins/zz-orphan-probe.json');
+    expect(res.stderr).toContain('UNTRACKED: .agents/plugins/marketplace.json');
   });
 });
 

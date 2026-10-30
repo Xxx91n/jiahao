@@ -41,7 +41,7 @@ test('tarball carries the rules directory and every plugin bundle, and no privat
 
 // Pin the contract itself: if REQUIRED_PACK_FILES lost an exit, the assertion
 // above would still pass, because both sides would be equally wrong.
-test('the pack contract names the rules file, every plugin manifest and hook map, the Qoder rules exit, and the marketplace', () => {
+test('the pack contract names the rules file, every plugin manifest and hook map, the Qoder rules exit, and both marketplaces', () => {
   for (const rel of [
     'skills/jiahao/SKILL.md',
     'adapters/codebuddy/.claude-plugin/plugin.json',
@@ -52,6 +52,10 @@ test('the pack contract names the rules file, every plugin manifest and hook map
     // that drops it ships a bundle the host cannot discover.
     'adapters/copilot/plugin.json',
     'adapters/copilot/hooks/hooks.json',
+    // #77: Codex ships its own manifest location and the second marketplace.
+    'adapters/codex/.codex-plugin/plugin.json',
+    'adapters/codex/hooks/hooks.json',
+    '.agents/plugins/marketplace.json',
     // #79: Qoder is a rules-only exit. Its rule file and install manual are
     // required in the tarball; a hook map would be a defect, not a requirement.
     'adapters/qoder/rules/jiahao.md',
@@ -75,6 +79,16 @@ test('the Qoder rules-only exit is packed as exactly its rule and README', () =>
     'adapters/qoder/README.md',
     'adapters/qoder/rules/jiahao.md',
   ]);
+});
+
+// #77: the required list must grow with the generator, not sit one marketplace
+// behind it. Restated as a fixpoint over what the generator emits, so a third
+// marketplace (or a renamed one) cannot be produced and left out of the tarball.
+test('every generated marketplace manifest is a required pack file', () => {
+  const { buildAdapters } = require('../scripts/build-adapters');
+  const marketplaces = Object.keys(buildAdapters()).filter((rel) => rel.endsWith('/marketplace.json'));
+  expect(marketplaces.length).toBeGreaterThanOrEqual(2);
+  for (const rel of marketplaces) expect(REQUIRED_PACK_FILES).toContain(rel);
 });
 
 test('the packed version is the package version the tag will be checked against', () => {

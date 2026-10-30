@@ -18,8 +18,8 @@ const path = require('path');
 const { isBuiltin } = require('module');
 
 const {
-  buildAdapters, HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds, dialectOf,
-  hookEntryCommands, isRulesOnlyDirectory,
+  buildAdapters, HOSTS, MARKETPLACE_HOST, CODEX_MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
+  dialectOf, hookEntryCommands, isRulesOnlyDirectory,
 } = require('../scripts/build-adapters');
 const { hookRegistrationPaths } = require('./helpers/generated-bundle');
 
@@ -178,15 +178,19 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
       // A host that does not auto-discover a component has to be told about it
       // in the manifest, or the file never loads - so the key is required, not
       // merely checked when present.
+      // Component paths follow the host's rule: Codex requires './', the
+      // Claude-shaped hosts write them bare. The dialect carries the prefix so
+      // the assertion stays exact instead of accepting either spelling.
+      const pathPrefix = dialect.manifestPathPrefix || '';
       if (events.length && !host.autoDiscovered.includes(dialect.hookMapPath)) {
-        expect(manifest.hooks).toBe(dialect.hookMapPath);
+        expect(manifest.hooks).toBe(pathPrefix + dialect.hookMapPath);
       }
       if (host.mcp && !host.autoDiscovered.includes('.mcp.json')) {
-        expect(manifest.mcpServers).toBe('.mcp.json');
+        expect(manifest.mcpServers).toBe(pathPrefix + '.mcp.json');
       }
       for (const key of ['hooks', 'mcpServers']) {
         if (manifest[key] === undefined) continue;
-        expect(typeof generated[P + manifest[key]]).toBe('string');
+        expect(typeof generated[P + String(manifest[key]).slice(pathPrefix.length)]).toBe('string');
       }
       // Auto-discovery is the host's job: the file may or may not ship, but a
       // manifest entry would load it a second time.
@@ -393,6 +397,32 @@ describe('marketplace manifest', () => {
   });
 });
 
+describe('marketplace manifest (Codex CLI)', () => {
+  const marketplace = JSON.parse(readGenerated('.agents/plugins/marketplace.json'));
+  const sourceHost = CODEX_MARKETPLACE_HOST;
+
+  test('has a name and one entry whose local source points inside the repository', () => {
+    expect(marketplace.name).toMatch(/^[A-Za-z0-9][A-Za-z0-9._-]*$/);
+    expect(Array.isArray(marketplace.plugins)).toBe(true);
+    expect(marketplace.plugins.length).toBe(1);
+    const entry = marketplace.plugins[0];
+    // Codex resolves source.path from the marketplace root (the repository)
+    // and requires the './' prefix.
+    expect(entry.source.source).toBe('local');
+    expect(entry.source.path.startsWith('./')).toBe(true);
+    expect(entry.source.path).not.toContain('..');
+    expect(path.posix.normalize(entry.source.path).replace(/\/$/, '')).toBe(sourceHost.dir);
+  });
+
+  test('the entry name matches the Codex manifest, and the version lives in plugin.json only', () => {
+    const manifestRel = sourceHost.dir + '/' + dialectOf(sourceHost).manifestPath;
+    const m = JSON.parse(readGenerated(manifestRel));
+    expect(marketplace.plugins[0].name).toBe(m.name);
+    expect(marketplace.plugins[0].version).toBeUndefined();
+    expect(typeof generated[sourceHost.dir + '/' + dialectOf(sourceHost).hookMapPath]).toBe('string');
+  });
+});
+
 describe('tier contract', () => {
   const good = {
     name: 'probe-host',
@@ -518,6 +548,16 @@ describe('tier contract', () => {
     expect(hostShapeProblems([Object.assign({}, rulesOnly, {
       rules: [{ file: 'x.md', profile: 'nope', description: 'probe' }],
     })]).join('\n')).toMatch(/unknown profile/);
+  });
+
+  test('every platform name a config template passes is a name the hook layer implements', () => {
+    // A template that passes a name detectHost() does not know would silently
+    // fall back to the Claude envelope. The generator rejects that at build
+    // time; this pins the same invariant from the shipped rows.
+    const { PLATFORMS } = require('../hooks/jiahao-runtime');
+    const passed = HOSTS.map((host) => (host.dialect || {}).platform).filter(Boolean);
+    expect(passed).toContain('codex');
+    for (const platform of passed) expect(PLATFORMS).toContain(platform);
   });
 
   test('a host that registers SubagentStop runs the same gate as its turn-end event', () => {

@@ -14,7 +14,7 @@
 
 ## 不要改的目录
 
-- `adapters/`、`skills/`、`.claude-plugin/`：由 `src/`、`hooks/`、`jiahao-mcp/` 与 `package.json` 的版本/元数据生成，改任一处后重跑生成器。
+- `adapters/`、`skills/`、`.claude-plugin/`、`.agents/`：由 `src/`、`hooks/`、`jiahao-mcp/` 与 `package.json` 的版本/元数据生成，改任一处后重跑生成器。
 - `private/`：私有词表，不要展开到输出或日志。
 - `bench/research/out/`、`bench/polygraph/results/`：冻结的评测记录。
 

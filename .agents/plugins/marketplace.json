@@ -1,0 +1,16 @@
+{
+  "name": "jiahao",
+  "plugins": [
+    {
+      "name": "jiahao",
+      "source": {
+        "source": "local",
+        "path": "./adapters/codex"
+      },
+      "category": "Productivity",
+      "interface": {
+        "displayName": "Jiahao"
+      }
+    }
+  ]
+}

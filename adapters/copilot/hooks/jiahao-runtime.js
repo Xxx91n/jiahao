@@ -1,7 +1,21 @@
 // jiahao-runtime.js — host detection + per-host output shape
 // Mirrors ponytail-runtime.js writeHookOutput pattern.
 
+// The platform names this module can answer for. Kept next to the branches
+// below so a name a config template passes can never be a name with no shape.
+const PLATFORMS = ['claude', 'codex', 'copilot', 'qoder', 'codebuddy'];
+
+// Host detection, in two steps:
+//   1. An explicit platform name as the hook's first argument. The host config
+//      that spawns the script is what passes it (Codex: `... jiahao-verdict-gate.js
+//      codex`); that is host-owned data and beats an environment variable
+//      inherited from another agent on the same machine. Every script here is an
+//      entrypoint spawned for one event, so the argument is read from the
+//      process, not from a caller.
+//   2. The environment probe, for hosts whose config cannot pass an argument.
 function detectHost() {
+  const explicit = process.argv[2];
+  if (PLATFORMS.includes(explicit)) return explicit;
   if (process.env.PLUGIN_DATA) return 'codex';
   if (process.env.COPILOT_PLUGIN_DATA) return 'copilot';
   if (process.env.QODER_SESSION_ID) return 'qoder';
@@ -77,4 +91,4 @@ function writeHookOutput(text, event) {
   }
 }
 
-module.exports = { detectHost, writeHookOutput, normalizePayload };
+module.exports = { detectHost, writeHookOutput, normalizePayload, PLATFORMS };

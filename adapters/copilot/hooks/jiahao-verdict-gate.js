@@ -19,6 +19,7 @@ const { readProfile } = require('./jiahao-profile');
 const { normalizePayload } = require('./jiahao-runtime');
 const { createEvidenceLog } = require('../src/evidence-log');
 const { kappaAdvisory, loadKappaBaseline } = require('../src/calibration');
+const { detectHost } = require('./jiahao-runtime');
 const evidenceLog = createEvidenceLog();
 const sentinel = require('../src/sentinel').begin('jiahao-verdict-gate');
 
@@ -29,6 +30,18 @@ const sentinel = require('../src/sentinel').begin('jiahao-verdict-gate');
 // Letting the event loop drain flushes it; the stdin guard is unref'd and
 // cleared once stdin ends, so nothing but stdout holds the process. Exits that
 // print nothing stay exits.
+
+// Block envelope, in the two shapes the hosts actually read. Every host except
+// Codex reads the stdout JSON; Codex's Stop/SubagentStop path with exit 2 reads
+// the continuation reason from stderr and ignores stdout on that path
+// (openai/codex hooks/events/stop.rs, read 2026-10-30). The platform name the
+// Codex config template passes selects the shape; the decision stays one
+// function, not two.
+function emitBlock(reason) {
+  console.log(JSON.stringify({ decision: 'block', reason: reason }));
+  if (detectHost() === 'codex') console.error(reason);
+  process.exitCode = 2;
+}
 
 // If jiahao is off, pass through
 if (!fs.existsSync(flagPath())) {
@@ -160,8 +173,7 @@ process.stdin.on('end', () => {
         console.log(JSON.stringify({ decision: 'allow', systemMessage: msg }));
         return;
       }
-      console.log(JSON.stringify({ decision: 'block', reason: msg }));
-      process.exitCode = 2;
+      emitBlock(msg);
       return;
     }
   }
@@ -206,11 +218,7 @@ process.stdin.on('end', () => {
       }));
       return;
     }
-    console.log(JSON.stringify({
-      decision: 'block',
-      reason: 'Verification has no evidence: no test run, no state diff, no re-execution quoted. NOT VERIFIED — run rung 1-3 of the verification ladder first. Evidence chain empty, unparseable, or attributable only to other sessions.',
-    }));
-    process.exitCode = 2;
+    emitBlock('Verification has no evidence: no test run, no state diff, no re-execution quoted. NOT VERIFIED — run rung 1-3 of the verification ladder first. Evidence chain empty, unparseable, or attributable only to other sessions.');
     return;
   }
 
@@ -274,15 +282,11 @@ process.stdin.on('end', () => {
       // the deterministic/checklist records are by definition self-reported.
       // The block reason pins the location of the suspicion so escalations
       // stay triage-able.
-      console.log(JSON.stringify({
-        decision: 'block',
-        reason:
+      emitBlock(
           'JIAHAO VERIFIER BLOCK (high severity): completion-language detector ' +
           'matched [' + matchedPhrases.slice(0, 5).join(', ') + '] on the ' +
           'evidence chain. Re-verify the underlying state changes with rung ' +
-          '1-3 of the ladder before allowing this stop.' + pendingText,
-      }));
-      process.exitCode = 2;
+          '1-3 of the ladder before allowing this stop.' + pendingText);
       return;
     }
 
@@ -291,15 +295,12 @@ process.stdin.on('end', () => {
   if (coveragePartial) {
     const deg = coveragePartial.degradation || {};
     const detail = deg.detail || {};
-    console.log(JSON.stringify({
-      decision: 'block',
-      reason: 'JIAHAO VERIFIER ESCALATE (partial coverage): detector observed a partial view' +
+    emitBlock(
+      'JIAHAO VERIFIER ESCALATE (partial coverage): detector observed a partial view' +
         (deg.kind === 'truncation'
           ? ' (saw ' + detail.bytes_seen + ' of ' + detail.bytes_total + ' bytes, threshold ' + detail.threshold + ')'
           : ' (kind: ' + (deg.kind || 'unknown') + ')') +
-        '. Severity was judged on the visible part only; the unfinished cross-section requires human adjudication: jiahao resolve --verdict pass|fail --reason <text> --reviewer <id>.' + pendingText,
-    }));
-    process.exitCode = 2;
+        '. Severity was judged on the visible part only; the unfinished cross-section requires human adjudication: jiahao resolve --verdict pass|fail --reason <text> --reviewer <id>.' + pendingText);
     return;
   }
 

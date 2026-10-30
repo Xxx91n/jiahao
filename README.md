@@ -40,7 +40,7 @@ Qoder is a C-tier rules-only exit at [`adapters/qoder/`](adapters/qoder/): one r
 
 ### Plugin version — host-native command, with hooks
 
-CodeBuddy is one of the plugin bundles (the others are Claude Code, described below, and GitHub Copilot CLI):
+CodeBuddy is one of the four plugin bundles (the others are Claude Code, GitHub Copilot CLI, and Codex CLI):
 
 ```bash
 codebuddy plugin install <path-to>/adapters/codebuddy
@@ -48,7 +48,7 @@ codebuddy plugin install <path-to>/adapters/codebuddy
 
 The plugin ships disabled (`defaultEnabled: false`); enable it after install. Then write the profile with the installer (`node scripts/install.js init -y`), which prints the value it wrote (see Profile). Once enabled, `hooks/hooks.json` wires the verifier enforcement. The bundle ships both profile rule files with `alwaysApply: true`; rule-level profile selection is declared-unverified, and the hook is the enforcement layer. The CLI plugin-install path is documented but declared-unverified; the live-verified fallback is the `.codebuddy/settings.json` merge. Install steps, the hook map, and the full verified / declared-unverified boundary are in [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md). Claude Code is the second plugin bundle: its self-contained bundle lives in [`adapters/claude-code/`](adapters/claude-code/), installed from the repository marketplace with `claude plugin marketplace add Xxx91n/jiahao` and `claude plugin install jiahao@jiahao`. The bundle's README shows the hook map and states what is not yet live-verified.
 
-The codex and mcp directories are no longer install exits; the MCP server itself remains at [`jiahao-mcp/`](jiahao-mcp/). GitHub Copilot CLI is a third self-contained bundle (`copilot plugin install <path-to>/adapters/copilot`) and an **A-tier candidate**: the host documents an `agentStop` block, nobody has watched a real turn get blocked yet, and its README states that boundary along with the camelCase / bash+powershell dialect.
+The mcp directory is no longer an install exit; the MCP server itself remains at [`jiahao-mcp/`](jiahao-mcp/). GitHub Copilot CLI is a third self-contained bundle (`copilot plugin install <path-to>/adapters/copilot`) and an **A-tier candidate**: the host documents an `agentStop` block, nobody has watched a real turn get blocked yet, and its README states that boundary along with the camelCase / bash+powershell dialect. Codex CLI is the fourth self-contained bundle, installed from the repository's Codex marketplace (`.agents/plugins/marketplace.json`) with `codex plugin marketplace add Xxx91n/jiahao` and `codex plugin add jiahao --marketplace jiahao`; its hook commands have to be trusted once (`/hooks`), and current Codex builds enable hooks by default (whether an older build needs a `[features] hooks` switch is an open probe in #74). Codex is an **A-tier candidate** too: the turn-end entry is registered and the bundled gate is exercised at script level (stdout JSON plus the stderr continuation prompt Codex's exit-2 path reads), but no live turn-end block has been observed, so this release does not claim that it blocks. Details in [`adapters/codex/README.md`](adapters/codex/README.md).
 
 ### Profile
 

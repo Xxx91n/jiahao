@@ -41,7 +41,7 @@
 *避免*：手工编辑生成出来的目录、承诺规则版会按 `.jiahao-profile` 选 profile、把「规则已加载」说成「拦截已生效」。
 
 **插件版（Plugin Version）**：
-自包含的插件目录（`adapters/claude-code/`、`adapters/codebuddy/`、`adapters/copilot/`）：清单、插件启用后宿主自动加载的钩子配置、钩子脚本及其 require 闭包、`src/` 副本与 SKILL 正文都在目录内；按宿主文档用原生命令安装（Claude Code 经仓库根的 marketplace 清单，CodeBuddy 与 Copilot CLI 直接装目录）；只有插件版带强制拦截，且拦截按宿主档位说话（Copilot CLI 在真机探针前是 A 档候选）。安装路径的真机验证状态见各适配器说明。
+自包含的插件目录（`adapters/claude-code/`、`adapters/codebuddy/`、`adapters/copilot/`、`adapters/codex/`）：清单、插件启用后宿主自动加载的钩子配置、钩子脚本及其 require 闭包、`src/` 副本与 SKILL 正文都在目录内；按宿主文档用原生命令安装（Claude Code 与 Codex 各经仓库根的 marketplace 清单，CodeBuddy 与 Copilot CLI 直接装目录）；只有插件版带强制拦截，且拦截按宿主档位说话（Copilot CLI 与 Codex 在真机探针前都是 A 档候选）。安装路径的真机验证状态见各适配器说明。
 *避免*：只登记钩子却不带脚本、把插件目录说成「装上规则就生效」、把「装上」说成「真机已验证」。
 
 **出口（Exit）**：
@@ -53,7 +53,7 @@
 *避免*：在测试或门禁里再抄一份宿主清单、加宿主时复制另一个宿主的断言。
 
 **方言（Dialect）**：
-一个宿主自己的配置形态：事件名怎么写、命令字段分几支、超时键叫什么、清单与钩子映射放在目录哪一处。方言只许落在该宿主的宿主行与一个方言文件（`scripts/hosts/<name>.js`）里；判定逻辑（判定脚本与输出信封）对所有宿主共用一份。
+一个宿主自己的配置形态：事件名怎么写、命令字段分几支、超时键叫什么、清单与钩子映射放在目录哪一处、清单里的路径要不要 `./` 前缀、配置模板是否把平台名传给钩子（Codex 传 `codex`，由 `detectHost()` 识别）。方言只许落在该宿主的宿主行与一个方言文件（`scripts/hosts/<name>.js`）里；判定逻辑（判定脚本与输出信封）对所有宿主共用一份。
 *避免*：把宿主差异写进判定脚本、在测试或门禁里再抄一份命令写法。
 
 **能力档位（Capability Tier）**：

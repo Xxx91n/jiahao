@@ -36,7 +36,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { spawnSync } = require('child_process');
 
-const { HOSTS, dialectOf, hookEntryCommands, isRulesOnlyDirectory } = require('./build-adapters');
+const { HOSTS, CODEX_MARKETPLACE_HOST, dialectOf, hookEntryCommands, isRulesOnlyDirectory } = require('./build-adapters');
 
 const root = path.join(__dirname, '..');
 
@@ -61,6 +61,7 @@ const REQUIRED_PACK_FILES = [
   ...HOSTS.filter(host => Object.keys(host.hooks || {}).length > 0).map(host => host.dir + '/' + dialectOf(host).hookMapPath),
   ...HOSTS.flatMap(host => host.rules.map(rule => host.dir + '/rules/' + rule.file)),
   '.claude-plugin/marketplace.json',
+  ...(CODEX_MARKETPLACE_HOST ? ['.agents/plugins/marketplace.json'] : []),
   'docs/release.md',
 ];
 // Private corpus and the research / frozen-evaluation records never ship.
