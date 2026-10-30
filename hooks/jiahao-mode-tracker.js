@@ -11,6 +11,7 @@ let input = '';
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', chunk => input += chunk);
 process.stdin.on('end', () => {
+  clearTimeout(stdinGuard); // stdin arrived; the hang guard has done its job
   let parsed = {};
   try { parsed = JSON.parse(input); } catch (e) { /* fail-open */ }
   sentinel.set('scan', parsed.session_id || null);
@@ -42,5 +43,9 @@ process.stdin.on('end', () => {
   }
 });
 
-// Windows stdin hang guard
-setTimeout(() => process.exit(0), 1000).unref();
+// Windows stdin hang guard (same convention as the other hooks). Cleared once
+// stdin ends: after that the only thing that can still be pending is the stdout
+// write, and a forced exit into it would truncate the envelope - the loss the
+// no-exit-after-log rule above exists to prevent (#84).
+const stdinGuard = setTimeout(() => process.exit(0), 1000);
+stdinGuard.unref();

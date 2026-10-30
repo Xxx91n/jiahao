@@ -86,6 +86,7 @@ let input = '';
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', chunk => input += chunk);
 process.stdin.on('end', () => {
+  clearTimeout(stdinGuard); // stdin arrived; the hang guard has done its job
   let parsed = {};
   try { parsed = JSON.parse(input); } catch (e) { /* fail-open */ }
   sentinel.set('verify', parsed.session_id || null);
@@ -315,5 +316,8 @@ process.stdin.on('end', () => {
 
 // Windows stdin hang guard. Exit with the decision code when one was set: a
 // forced exit(0) here would turn a block (exit 2) into an allow if anything
-// kept the loop alive past the guard.
-setTimeout(() => process.exit(typeof process.exitCode === 'number' ? process.exitCode : 0), 1000).unref();
+// kept the loop alive past the guard. Cleared once stdin ends: from then on the
+// only thing that can still be pending is the stdout write, and exiting into
+// it would truncate the decision (#84).
+const stdinGuard = setTimeout(() => process.exit(typeof process.exitCode === 'number' ? process.exitCode : 0), 1000);
+stdinGuard.unref();
