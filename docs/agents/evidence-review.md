@@ -68,9 +68,13 @@ These were part of #80's cost but are not this repository's CI's job. They are
 recorded here so they are not silently dropped, and they are deliberately not
 turned into checks:
 
-- The global (user-level) `AGENTS.md`: the repository `AGENTS.md` overrides
-  GitButler and the timeout rule for possibly-looping host CLIs. That file
-  lives outside this repository.
-- Evidence directory naming: artifacts under `docs/evidence/v0.3.0/` still
-  report `0.2.0`. Naming evidence by ticket number is an option; the bump is
-  owned elsewhere (#81).
+- **Global (user-level) `AGENTS.md`.** Two rules belong there, not here: the
+  repository `AGENTS.md` overrides the GitButler default, and a host CLI that
+  can loop (Codex continued 785 times) is wrapped in `timeout` or a Job Object
+  with the process tree confirmed exited. A repository check cannot see a file
+  outside the repository or a process on the reviewer's machine.
+- **Evidence directory naming.** Artifacts under `docs/evidence/v0.3.0/` still
+  report `0.2.0`, and #81 owns the bump. Naming evidence by ticket number
+  instead of version is an option, not a requirement; whichever is chosen, the
+  directory and the version it documents have to be reconciled out loud (item
+  4 above).
