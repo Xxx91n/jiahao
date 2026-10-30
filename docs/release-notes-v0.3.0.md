@@ -83,33 +83,39 @@ Claude Code 与 CodeBuddy 在 v0.2.0 就带着钩子发布，本版本没有改�
 
 ```bash
 # 卸掉 0.3.0
-$ CLAUDE_CONFIG_DIR=<isolated> claude plugin uninstall jiahao@jiahao
+CLAUDE_CONFIG_DIR=<isolated> claude plugin uninstall jiahao@jiahao
 ✔ Successfully uninstalled plugin: jiahao (scope: user)        # exit 0
 
 # 指向 v0.2.0 那棵树再装，装出来是 0.2.0
-$ CLAUDE_CONFIG_DIR=<isolated> claude plugin marketplace add <v0.2.0 checkout>
+CLAUDE_CONFIG_DIR=<isolated> claude plugin marketplace add <v0.2.0 checkout>
 Adding marketplace…✔ Successfully added marketplace: jiahao     # exit 0
-$ CLAUDE_CONFIG_DIR=<isolated> claude plugin install jiahao@jiahao
+CLAUDE_CONFIG_DIR=<isolated> claude plugin install jiahao@jiahao
 ✔ Successfully installed plugin: jiahao@jiahao (scope: user)    # exit 0
-$ CLAUDE_CONFIG_DIR=<isolated> claude plugin list              # Version: 0.2.0
-$ CLAUDE_CONFIG_DIR=<isolated> claude plugin enable jiahao@jiahao   # 装上默认是 disabled
+CLAUDE_CONFIG_DIR=<isolated> claude plugin list              # Version: 0.2.0
+CLAUDE_CONFIG_DIR=<isolated> claude plugin enable jiahao@jiahao   # 装上默认是 disabled
 ```
 
-装回 0.3.0 同样三步，把 marketplace 指回 `main` 那棵树；**`enable` 不能省**，否则插件是「装了但没启用」，列表里 `Status: ✘ disabled`：
+装回 0.3.0 **必须先移除旧 marketplace**，否则版本不会变——实测过：同名 marketplace 再 `add` 一次后跑 `install`，输出是 `Plugin "jiahao@jiahao" is already installed`，列表仍是 `Version: 0.2.0`。`marketplace remove` 会连带卸掉该插件（随后 `claude plugin update` 报 `Plugin "jiahao" is not installed`），所以序列是移除 → 加新源 → 装 → 启用：
 
 ```bash
-$ CLAUDE_CONFIG_DIR=<isolated> claude plugin marketplace add <main checkout>
-$ CLAUDE_CONFIG_DIR=<isolated> claude plugin install jiahao@jiahao
-$ CLAUDE_CONFIG_DIR=<isolated> claude plugin enable jiahao@jiahao
-$ CLAUDE_CONFIG_DIR=<isolated> claude plugin list              # Version: 0.3.0
+CLAUDE_CONFIG_DIR=<isolated> claude plugin marketplace remove jiahao
+✔ Successfully removed marketplace: jiahao                     # 插件同时被卸掉
+CLAUDE_CONFIG_DIR=<isolated> claude plugin marketplace add <main checkout>
+Adding marketplace…✔ Successfully added marketplace: jiahao     # exit 0
+CLAUDE_CONFIG_DIR=<isolated> claude plugin install jiahao@jiahao
+✔ Successfully installed plugin: jiahao@jiahao (scope: user)    # exit 0
+CLAUDE_CONFIG_DIR=<isolated> claude plugin enable jiahao@jiahao
+CLAUDE_CONFIG_DIR=<isolated> claude plugin list              # Version: 0.3.0
 ```
+
+**`enable` 不能省**：装完是 `Status: ✘ disabled`，不启用等于没装。
 
 **Codex — 只有卸载（实测）**
 
 ```bash
-$ CODEX_HOME=<isolated> codex plugin remove jiahao@jiahao
+CODEX_HOME=<isolated> codex plugin remove jiahao@jiahao
 Removed plugin `jiahao` from marketplace `jiahao`.               # exit 0
-$ CODEX_HOME=<isolated> codex plugin marketplace remove jiahao
+CODEX_HOME=<isolated> codex plugin marketplace remove jiahao
 Removed marketplace `jiahao`.                                    # exit 0
 ```
 
@@ -118,7 +124,7 @@ Removed marketplace `jiahao`.                                    # exit 0
 **Copilot — 只有卸载（实测）**
 
 ```bash
-$ COPILOT_HOME=<isolated> copilot plugin uninstall jiahao
+COPILOT_HOME=<isolated> copilot plugin uninstall jiahao
 Plugin "jiahao" uninstalled successfully.                        # exit 0
 ```
 
@@ -129,9 +135,9 @@ Plugin "jiahao" uninstalled successfully.                        # exit 0
 **Qoder（C 档）— 实测**
 
 ```bash
-$ cp adapters/qoder/rules/jiahao.md <project>/.qoder/rules/jiahao.md
+cp adapters/qoder/rules/jiahao.md <project>/.qoder/rules/jiahao.md
 # exit 0，落地 10585 B
-$ rm <project>/.qoder/rules/jiahao.md
+rm <project>/.qoder/rules/jiahao.md
 # exit 0，目录清空，临时目录内 0 个文件残留
 ```
 
