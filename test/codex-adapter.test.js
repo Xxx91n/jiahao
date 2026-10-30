@@ -12,7 +12,8 @@
 //   2. the turn-end entry actually reaches the bundled verdict gate, with the
 //      exit code and envelope the gate emits.
 //
-// Nothing here claims a live turn-end block: the tier is A 档候选 until #80.
+// The live block was probed in #80 (2026-10-30, codex-cli 0.163.0); this file
+// pins the envelope the shipped bundle must keep emitting.
 
 const fs = require('fs');
 const os = require('os');
@@ -55,8 +56,8 @@ describe('configuration template', () => {
   // The host's documented event names, written down here rather than read back
   // from the row that generated the template: comparing the file with its own
   // source would pass even if both drifted off the host's names. That Stop is
-  // the turn-end event is documented; whether the host blocks on it is the
-  // open probe (#80), not something this test claims.
+  // the turn-end event is documented; the live block is recorded in
+  // docs/evidence/v0.3.0/, not claimed by this test.
   const CODEX_EVENTS = ['SessionStart', 'SubagentStart', 'UserPromptSubmit', 'Stop', 'SubagentStop', 'SessionEnd'];
 
   test('registers the host\'s own event names, including the turn-end event', () => {
@@ -116,18 +117,18 @@ describe('Codex output envelope (spawned hook, temp config dir)', () => {
     expect(out.hookSpecificOutput.additionalContext).toContain('JIAHAO MODE');
   }, 20000);
 
-  test('the bundled Stop gate runs from the turn-end entry and blocks an empty chain (exit 2)', () => {
+  test('the bundled Stop gate runs from the turn-end entry and blocks an empty chain (decision field, exit 0)', () => {
     const dir = mkConfigDir('verifier');
     const res = runBundled('jiahao-verdict-gate.js', {
       configDir: dir, args: [PLATFORM], stdin: JSON.stringify({ stop_hook_active: false, session_id: 'probe' }),
     });
-    expectExit(res, 2);
+    // Codex 0.163.0 honors the decision field on exit 0; exit 2 + stderr ended
+    // the turn without a continuation in the live probe (#80, 2026-10-30).
+    expectExit(res, 0);
     const out = parseJson(res);
     expect(out.decision).toBe('block');
     expect(out.reason).toContain('no evidence');
-    // Codex's exit-2 path reads the continuation reason from stderr and ignores
-    // stdout (openai/codex hooks/events/stop.rs); without this the host records
-    // a failed hook instead of a block.
+    // The stderr copy is kept for host logs; it is not the blocking channel.
     expect(String(res.stderr)).toContain('no evidence');
   }, 20000);
 });

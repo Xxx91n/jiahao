@@ -1,0 +1,3 @@
+$ codex features list | grep '^hooks '
+hooks                                    stable             true
+# codex-cli 0.163.0

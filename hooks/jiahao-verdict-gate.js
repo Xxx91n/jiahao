@@ -16,10 +16,9 @@ const path = require('path');
 const { flagPath } = require('../src/shared/paths');
 const { readProfile } = require('./jiahao-profile');
 // One shape from every host: sessionId/agentName spellings are normalized here.
-const { normalizePayload } = require('./jiahao-runtime');
+const { normalizePayload, writeBlockOutput } = require('./jiahao-runtime');
 const { createEvidenceLog } = require('../src/evidence-log');
 const { kappaAdvisory, loadKappaBaseline } = require('../src/calibration');
-const { detectHost } = require('./jiahao-runtime');
 const evidenceLog = createEvidenceLog();
 const sentinel = require('../src/sentinel').begin('jiahao-verdict-gate');
 
@@ -31,16 +30,11 @@ const sentinel = require('../src/sentinel').begin('jiahao-verdict-gate');
 // cleared once stdin ends, so nothing but stdout holds the process. Exits that
 // print nothing stay exits.
 
-// Block envelope, in the two shapes the hosts actually read. Every host except
-// Codex reads the stdout JSON; Codex's Stop/SubagentStop path with exit 2 reads
-// the continuation reason from stderr and ignores stdout on that path
-// (openai/codex hooks/events/stop.rs, read 2026-10-30). The platform name the
-// Codex config template passes selects the shape; the decision stays one
-// function, not two.
+// The stdout JSON decision is shared; the exit code and the Codex stderr copy
+// are host dialect. Both live in hooks/jiahao-runtime.js (writeBlockOutput),
+// next to the per-host output shapes, so this judgment script stays host-neutral.
 function emitBlock(reason) {
-  console.log(JSON.stringify({ decision: 'block', reason: reason }));
-  if (detectHost() === 'codex') console.error(reason);
-  process.exitCode = 2;
+  writeBlockOutput(reason);
 }
 
 // If jiahao is off, pass through
@@ -158,7 +152,7 @@ process.stdin.on('end', () => {
 
   // chain-corruption detection runs BEFORE any severity case.
   // A broken chain is treated as missing evidence in verifier profile
-  // (block, exit 2); advisory-only in generator profile.
+  // (block); advisory-only in generator profile.
   if (evidenceChain) {
     // + : verifyTail hot path — active segment plus
     // previous-segment anchor prechecks. Legacy files are whole-chain
@@ -291,7 +285,7 @@ process.stdin.on('end', () => {
     }
 
   // fail-closed on coverage. A verdict on partial evidence is
-  // indeterminate (XACML semantics) — route to human adjudication, exit 2.
+  // indeterminate (XACML semantics) — route to human adjudication.
   if (coveragePartial) {
     const deg = coveragePartial.degradation || {};
     const detail = deg.detail || {};

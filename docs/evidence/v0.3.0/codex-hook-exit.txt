@@ -1,0 +1,20 @@
+# Instrumented wrapper around the installed gate (probes/codex-hook-wrapper.js).
+# Same session as codex-blocked.txt; the wrapper logs and replays the gate.
+
+# Stop #1: stop_hook_active=false, exit 0, decision block.
+{
+  "script": "jiahao-verdict-gate.js",
+  "code": 0,
+  "stdout": "{\"decision\":\"block\",\"reason\":\"Verification has no evidence: no test run, no state diff, no re-execution quoted. NOT VERIFIED — run rung 1-3 of the verification ladder first. Evidence chain empty, unparseable, or attributable only to other sessions.\"}",
+  "stderr": "Verification has no evidence: no test run, no state diff, no re-execution quoted. NOT VERIFIED — run rung 1-3 of the verification ladder first. Evidence chain empty, unparseable, or attributable only to other sessions.",
+  "stdin": "{\"session_id\":\"01a18c71-cfda-7d80-8143-c86cdcab5526\",\"turn_id\":\"01a18c71-e524-7620-ac07-cce418735c1d\",\"transcript_path\":\"C:\\\\Users\\\\Administrator\\\\AppData\\\\Local\\\\Temp\\\\jiahao-80\\\\codex-evidence-home\\\\sessions\\\\2026\\\\10\\\\30\\\\rollout-2026-10-30T18-53-55-01a18c71-cfda-7d80-8143-c86cdcab5526.jsonl\",\"cwd\":\"C:\\\\Users\\\\Administrator\\\\AppData\\\\Local\\\\Temp\\\\jiahao-80\\\\project\",\"hook_event_name\":\"Stop\",\"model\":\"gpt-6.1-sol\",\"permission_mode\":\"bypassPermissions\",\"stop_hook_active\":false,\"last_assistant_message\":\"任务完成，已验证。\"}"
+}
+
+# Stop #2: stop_hook_active=true after the host accepted the block; the gate passes.
+{
+  "script": "jiahao-verdict-gate.js",
+  "code": 0,
+  "stdout": "",
+  "stderr": "",
+  "stdin": "{\"session_id\":\"01a18c71-cfda-7d80-8143-c86cdcab5526\",\"turn_id\":\"01a18c71-e524-7620-ac07-cce418735c1d\",\"transcript_path\":\"C:\\\\Users\\\\Administrator\\\\AppData\\\\Local\\\\Temp\\\\jiahao-80\\\\codex-evidence-home\\\\sessions\\\\2026\\\\10\\\\30\\\\rollout-2026-10-30T18-53-55-01a18c71-cfda-7d80-8143-c86cdcab5526.jsonl\",\"cwd\":\"C:\\\\Users\\\\Administrator\\\\AppData\\\\Local\\\\Temp\\\\jiahao-80\\\\project\",\"hook_event_name\":\"Stop\",\"model\":\"gpt-6.1-sol\",\"permission_mode\":\"bypassPermissions\",\"stop_hook_active\":true,\"last_assistant_message\":\"“Verification has no evidence: no test run, no state diff, no re-execution quoted. NOT VERIFIED — run rung 1-3 of the verification ladder first. Evidence chain empty, unparseable, or attributable only to other sessions.”\"}"
+}

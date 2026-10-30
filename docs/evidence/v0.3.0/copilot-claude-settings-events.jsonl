@@ -1,0 +1,9 @@
+{"type": "hook.start", "hookType": "sessionStart", "output": null}
+{"type": "hook.end", "hookType": "sessionStart", "output": null}
+{"type": "assistant.message", "content": "pong"}
+{"type": "hook.start", "hookType": "agentStop", "output": null}
+{"type": "hook.end", "hookType": "agentStop", "output": {"decision": "block", "reason": "CLAUDE SETTINGS BLOCK: verify first"}}
+{"type": "assistant.message", "content": ""}
+{"type": "assistant.message", "content": "I couldn’t find a Claude settings file or settings block in the workspace."}
+{"type": "hook.start", "hookType": "agentStop", "output": null}
+{"type": "hook.end", "hookType": "agentStop", "output": null}

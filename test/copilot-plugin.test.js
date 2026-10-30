@@ -8,8 +8,9 @@
 // agentStop block decision.
 //
 // Copilot's dialect: `additionalContext` on stdout for sessionStart, and
-// `{decision:"block", reason}` for agentStop - the decision field blocks, the
-// exit code does not (exit 2 is only a warning outside preToolUse).
+// `{decision:"block", reason}` for agentStop - the decision field blocks, but
+// only on a zero exit: the live probe (#80) showed exit 2 is logged as a failed
+// hook and the turn ends anyway.
 
 const fs = require('fs');
 const os = require('os');
@@ -31,9 +32,9 @@ describe('bundled Copilot CLI hooks (live spawn, temp config dir)', () => {
     if (bundleDir) fs.rmSync(bundleDir, { recursive: true, force: true });
   });
 
-  // detectHost() keys the Copilot branch on COPILOT_PLUGIN_DATA. Whether the
-  // host really sets it is declared-unverified (#80); this spawn proves the
-  // branch the host is documented to reach, not the marker itself.
+  // detectHost() keys the Copilot branch on COPILOT_PLUGIN_DATA. The live probe
+  // (#80) recorded the host setting it for plugin hooks
+  // (docs/evidence/v0.3.0/copilot-plugin-env.txt); this spawn pins the branch.
   function copilotEnv(configDir) {
     const env = hostEnv(configDir, bundleDir);
     env.COPILOT_PLUGIN_DATA = bundleDir;
@@ -59,9 +60,9 @@ describe('bundled Copilot CLI hooks (live spawn, temp config dir)', () => {
       configDir: dir,
       stdin: JSON.stringify({ stop_hook_active: false, session_id: 'probe', stopReason: 'complete' }),
     });
-    // Exit 2 is a warning on this host, never the block signal; pinned so the
-    // suite states what the host reads rather than implying the code blocks.
-    expectExit(res, 2);
+    // Exit 0 carries the decision; exit 2 would be logged as a failed hook and
+    // the turn would end, which is what the live probe (#80) caught.
+    expectExit(res, 0);
     const out = parseJson(res);
     expect(out.decision).toBe('block');
     expect(out.reason).toContain('no evidence');
@@ -81,7 +82,7 @@ describe('bundled Copilot CLI hooks (live spawn, temp config dir)', () => {
       configDir: dir,
       stdin: JSON.stringify({ stop_hook_active: false, sessionId: 'session-new', stopReason: 'complete' }),
     });
-    expectExit(other, 2);
+    expectExit(other, 0);
     expect(parseJson(other).reason).toContain('no evidence');
 
     const own = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null, { session_id: 'session-new' });
@@ -91,6 +92,9 @@ describe('bundled Copilot CLI hooks (live spawn, temp config dir)', () => {
       stdin: JSON.stringify({ stop_hook_active: false, sessionId: 'session-new', stopReason: 'complete' }),
     });
     expectExit(mine, 0);
+    // A block also exits 0 on this host, so the quiet pass is pinned by its
+    // silence: no evidence problem and no pending advisory means no stdout.
+    expect(String(mine.stdout).trim()).toBe('');
   });
 
   // CodeRabbit on PR #95: subagentStart's reliable field is `agentName`

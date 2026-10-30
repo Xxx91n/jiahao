@@ -1,0 +1,32 @@
+# Project .claude/settings.json: SessionStart marker + Stop hook
+#   node probes/claude-block.js -> prints {"decision":"block","reason":"CLAUDE SETTINGS BLOCK: verify first"} once, exits 0
+# Project .github/copilot/settings.json: {"hooks":{}}
+# The jiahao plugin was uninstalled for this probe so only the Claude-schema hook could block.
+
+$ copilot -p 'Reply exactly: pong' --trust-folder --disable-client-telemetry
+exit 0
+
+● Auto selected GPT-6 Luna because it was the best choice out of the models available in your plan.
+
+pong
+
+● Auto selected GPT-6 Luna because it was the best choice out of the models available in your plan.
+
+/ Search (glob)
+  │ "**/CLAUDE*"
+  └ No matches found
+
+/ Search (grep)
+  │ "CLAUDE|settings block|SETTINGS BLOCK"
+  └ No matches found
+
+I couldn’t find a Claude settings file or settings block in the workspace.
+
+session events (435bf73d-9dbc-454e-8a34-f4bc62fa5a51):
+{"type": "hook.start", "hookType": "sessionStart", "output": null}
+{"type": "hook.end", "hookType": "sessionStart", "output": null}
+{"type": "assistant.message", "content": "pong"}
+{"type": "hook.end", "hookType": "agentStop", "output": {"decision": "block", "reason": "CLAUDE SETTINGS BLOCK: verify first"}}
+{"type": "assistant.message", "content": ""}
+{"type": "assistant.message", "content": "I couldn’t find a Claude settings file or settings block in the workspace."}
+{"type": "hook.end", "hookType": "agentStop", "output": null}

@@ -52,8 +52,9 @@ const GENERATED_DIRS = ['adapters/', 'skills/', '.claude-plugin/', '.agents/'];
 // `turnEnd` names the host's own end-of-turn event and must run the verdict
 // gate; only an A row may declare it. `provenance` is the evidence behind the
 // tier (host build + what was actually observed): a tier is a release-period
-// conclusion, not a permanent property, and the published wording stays
-// "A 档候选" until a probe watches a real turn get blocked.
+// conclusion, not a permanent property. "A 档候选" is only for a
+// documented-but-unwatched block; Codex and Copilot each had a live turn
+// blocked on 2026-10-30 (#80).
 const HOSTS = [
   {
     name: 'claude-code',
@@ -143,11 +144,11 @@ const HOSTS = [
     dir: 'adapters/copilot',
     tier: 'A',
     turnEnd: 'agentStop',
-    // Docs contract, not a live probe: the hooks reference says agentStop honors
-    // {decision:"block"} and that the CLI ends the turn after 8 consecutive
-    // blocks. Nobody has watched a real turn get blocked yet (#80), so the
-    // published wording stays "A 档候选".
-    provenance: 'GitHub Copilot CLI 1.0.105 (docs.github.com hooks reference + copilot-cli changelog, read 2026-10-30): agentStop {decision:"block"} documented, capped at 8 consecutive blocks; plugin hooks receive PLUGIN_ROOT; no live turn-end block observed',
+    // Live probe (#80, 2026-10-30, Copilot CLI 1.0.105 on win32): a false
+    // completion claim was continued only after agentStop answered
+    // {decision:"block"} on exit 0. Exit 2 did not block. Eight consecutive
+    // block continuations followed by a forced end matched the documented cap.
+    provenance: 'GitHub Copilot CLI 1.0.105 (2026-10-30, #80): live agentStop {decision:"block"} on exit 0 continued the turn; exit 2 did not block; 8 consecutive continuations then the CLI ended; .claude/settings.json SessionStart/Stop hooks observed; COPILOT_PLUGIN_DATA set for plugin hooks',
     // camelCase event names and the bash/powershell pair are this host's
     // dialect; they live in scripts/hosts/copilot.js alone, never in the hook
     // scripts. subagentStop is deliberately not wired: the ticket asks for the
@@ -174,11 +175,11 @@ const HOSTS = [
     dir: 'adapters/codex',
     tier: 'A',
     turnEnd: 'Stop',
-    // Spec #74 reserves "会拦" for a watched live block. Codex documents a Stop
-    // hook whose exit-2 path reads a continuation prompt from stderr, but no
-    // live turn has been watched being blocked (#80 owns that probe), so this
-    // row stays an A-tier CANDIDATE.
-    provenance: 'Codex CLI plugin hooks contract (openai/plugins .codex-plugin + hooks/hooks.json + codex-rs hooks/src/events/stop.rs, read 2026-10-30): Stop registered; live turn-end block NOT observed - A 档候选 pending #80',
+    // Live probe (#80, 2026-10-30, codex-cli 0.163.0 on win32): a false
+    // completion claim was continued only after Stop answered
+    // {decision:"block"} on exit 0. Exit 2 + stderr ended the turn without a
+    // continuation. Untrusted plugin hooks were skipped in codex exec.
+    provenance: 'Codex CLI 0.163.0 (2026-10-30, #80): live Stop block via exit 0 + {decision:"block"} continued the turn; exit 2 + stderr did not block; untrusted plugin hooks skipped in codex exec; hooks on by default',
     // Codex event vocabulary is PascalCase and includes Stop. SessionEnd has a
     // 3s hard cap in the host, so the sweep is budgeted inside it.
     hooks: {
@@ -194,7 +195,7 @@ const HOSTS = [
     // scripts/hosts/codex.js.
     dialect: codexDialect,
     manifest: {
-      description: 'Verification discipline for Codex CLI: profile injection at session start, verdict gate at turn end (A 档候选, live probe pending). Self-contained plugin.',
+      description: 'Verification discipline for Codex CLI: profile injection at session start, verdict gate at turn end (A tier, live block verified 2026-10-30). Self-contained plugin.',
       author: { name: 'Xxx91n' },
     },
     autoDiscovered: [],
@@ -929,19 +930,23 @@ through \`$PLUGIN_ROOT\` - Copilot CLI hands plugin hooks \`PLUGIN_ROOT\` (and
 also \`COPILOT_PLUGIN_ROOT\` / \`CLAUDE_PLUGIN_ROOT\`) pointing at the installed
 plugin - so nothing reads from the repository root.
 
-Tier: **A-tier candidate**. The host documents an \`agentStop\` block; no live
-turn has been watched being blocked yet (#80 owns that probe), so this README
-does not claim "it blocks".
+Tier: **A (verified 2026-10-30, Copilot CLI 1.0.105)**. A live turn was
+blocked by \`agentStop\`: the false completion claim continued only after the
+gate printed \`{decision:"block"}\` on exit 0. Exit 2 was logged as a failed
+hook and did not block. Evidence:
+[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 ## Install
 
 1. \`copilot plugin install <path-to-this-dir>\` (native command; the
-   \`/plugin install\` slash command does the same inside a session). This is
-   the documented path, not yet probed - see the table below.
-2. Enable the plugin for the repository (\`enabledPlugins\` in
-   \`.github/copilot/settings.json\`) or for yourself
-   (\`~/.copilot/settings.json\`). The field name and path are documented,
-   not probed - see the table below.
+   \`/plugin install\` slash command does the same inside a session). Live
+   probe: the install ran the bundled hooks. The CLI warns that direct
+   installs are deprecated in favour of marketplace installs.
+2. The plugin is enabled on install (\`copilot plugin list --json\` reports
+   \`enabled: true\`); a direct install needed no \`enabledPlugins\` entry.
+   Project-level settings hooks need folder trust in prompt mode:
+   \`--trust-folder\` (or \`COPILOT_ALLOW_ALL=true\`); the live probe used
+   \`--trust-folder\`.
 3. Activate the jiahao profile flag, same as every host. Resolve the config
    directory once (\`CLAUDE_CONFIG_DIR\`, else \`$HOME\`, else \`/tmp\`):
    \`CONFIG="\${CLAUDE_CONFIG_DIR:-\${HOME:-/tmp}}"\`, then
@@ -951,7 +956,8 @@ does not claim "it blocks".
    \`.jiahao-profile\`.
 
 Install and upgrade are the host's own plugin commands; the repository root is
-never a plugin entry. The install path is documented, not live-probed.
+never a plugin entry. The install path was live-probed with a local plugin
+directory on 1.0.105.
 
 ## Hook behavior disclosure (read before enabling)
 
@@ -960,7 +966,7 @@ never a plugin entry. The install path is documented, not live-probed.
 | sessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext |
 | subagentStart | hooks/jiahao-subagent.js | same injection on subagent spawn |
 | userPromptSubmitted | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
-| agentStop | hooks/jiahao-verdict-gate.js | verifier gate: prints \`{decision:"block", reason}\`; the docs name that decision field as the block channel |
+| agentStop | hooks/jiahao-verdict-gate.js | verifier gate: prints \`{decision:"block", reason}\` and exits 0; the zero exit is required for the decision to be honored (exit 2 is non-blocking; the host logs it as failed) |
 | sessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
 
 Timeouts stay within the host's default 30s budget (10/10/10/30/10s).
@@ -968,8 +974,9 @@ Timeouts stay within the host's default 30s budget (10/10/10/30/10s).
 ## Dialect: what differs from the Claude-shaped hosts
 
 Two config-side differences live in \`scripts/hosts/copilot.js\` and in this
-config. The host's block channel needs no translation (the shared gate already
-prints it), and the camelCase payload names (\`sessionId\`, \`agentName\`) are
+config. The host's block channel is the decision field; the shared gate prints
+it and exits 0 for this host (see the dialect bullets below). The camelCase
+payload names (\`sessionId\`, \`agentName\`) are
 folded into the shared shape by \`hooks/jiahao-runtime.js\`, the hook-side
 adapter file that already owns \`detectHost()\` and the per-host envelopes. The
 judgment logic is the same \`hooks/jiahao-verdict-gate.js\` every host runs.
@@ -980,37 +987,36 @@ judgment logic is the same \`hooks/jiahao-verdict-gate.js\` every host runs.
 - **Each entry carries \`bash\` and \`powershell\` branches.** The host picks one
   by operating system; \`$PLUGIN_ROOT\` and \`$env:PLUGIN_ROOT\` expand to the
   installed plugin directory. There is no \`command\` key here.
-- **The block channel is the decision field, not the exit code** (as the host
-  documents it): \`agentStop\` and \`subagentStop\` honor
-  \`{decision:"block", reason}\` on stdout; this bundle wires \`agentStop\` only.
-  Exit 2 is only a warning outside \`preToolUse\` / \`permissionRequest\`, and any
-  other non-zero code is fail-open. The gate prints that decision field.
-- **The docs state a cap of 8 consecutive block continuations**, after which the
-  CLI ends the turn anyway. \`agentStop\` receives \`stop_hook_active\`, and the
-  gate already lets that pass.
+- **The block channel is the decision field on a zero exit.** \`agentStop\` and
+  \`subagentStop\` honor \`{decision:"block", reason}\` on stdout; this bundle
+  wires \`agentStop\` only. The live probe showed exit 2 is logged as a failed
+  hook and ends the turn without a continuation even when the decision field is
+  on stdout, so the gate exits 0 for this host. Any other non-zero code is
+  fail-open.
+- **The cap is 8 consecutive block continuations** (live-probed: 9
+  \`agentStop\` invocations and 9 assistant messages; the ninth block was not
+  continued and the CLI ended). \`agentStop\` receives \`stop_hook_active\`; the
+  gate lets that pass, so a normal block continues once and then finishes.
 
-## Injection surface - Verified vs Declared-unverified
+## Live probe (2026-10-30, Copilot CLI 1.0.105, win32)
 
-### Documented contract (read 2026-10-30; not live-probed)
+The probe used an isolated \`COPILOT_HOME\`, a real prompt-mode session
+(\`copilot -p ... --trust-folder\`), and the installed bundle. Commands and
+captured output live in
+[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
-| Point | Evidence |
+| Point | Result |
 | --- | --- |
-| Event names, \`bash\`/\`powershell\` entry fields | docs.github.com hooks reference and Copilot CLI hooks guide |
-| \`decision:"block"\` honored on \`agentStop\` / \`subagentStop\`; 8-block cap | hooks reference |
-| \`additionalContext\` honored on \`sessionStart\` / \`subagentStart\` | hooks reference |
-| Plugin hooks receive \`PLUGIN_ROOT\` | copilot-cli changelog (plugin hook env vars) |
-
-### Declared-unverified (pending-confirmation, #80)
-
-| Point | Status |
-| --- | --- |
-| A real turn-end block (\`agentStop\` + \`decision:"block"\`) | pending-confirmation |
-| Native \`copilot plugin install\` reading \`plugin.json\` + \`hooks/hooks.json\` | pending-confirmation |
-| Whether \`userPromptSubmitted\` output reaches the model (docs list no injection field for it) | pending-confirmation |
-| \`COPILOT_PLUGIN_DATA\` marks a session as Copilot for the shared envelope branch (\`hooks/jiahao-runtime.js\`) | pending-confirmation |
-| camelCase payload fields (\`sessionId\`, \`agentName\`) are what the shared hooks normalize | pending-confirmation |
-| \`enabledPlugins\` in \`.github/copilot/settings.json\` / \`~/.copilot/settings.json\` enables the plugin | pending-confirmation |
-| \`sessionEnd\` fires for plugin hooks | pending-confirmation |
+| A real turn-end block (\`agentStop\` + \`decision:"block"\`) | **Verified**: the model's \`任务完成，已验证。\` continued only after the gate's \`decision:"block"\`; the block reason arrived as the next user message |
+| Exit 2 as the block channel | **Refuted**: exit 2 ended the turn without a continuation; the gate now exits 0 for Copilot |
+| Native \`copilot plugin install\` reading \`plugin.json\` + \`hooks/hooks.json\` | **Verified**: the install ran the bundled sessionStart/agentStop hooks |
+| \`.claude/settings.json\` | **Read**: both SessionStart and Stop entries ran; a hand-written Claude-schema Stop block (exit 0) also continued the turn. The jiahao bundle installs as a Copilot plugin, not through this file |
+| \`COPILOT_PLUGIN_DATA\` for plugin hooks | **Set**: observed in the plugin hook environment, so \`detectHost()\` selects the Copilot envelope |
+| camelCase payload (\`sessionId\`) | **Observed** in the plugin hook input; normalized by \`hooks/jiahao-runtime.js\` |
+| 8 consecutive block continuations | **Confirmed**: 8 continuations, then the CLI ended; the ninth block was not continued |
+| \`userPromptSubmitted\` output reaches the model | Not probed here; the mode reminder is advisory and does not gate |
+| \`enabledPlugins\` in \`.github/copilot/settings.json\` / \`~/.copilot/settings.json\` | Not needed for a direct install (enabled on install); marketplace install not probed |
+| \`sessionEnd\` fires for plugin hooks | **Verified**: the final session's event log contains \`sessionEnd\` hook events |
 
 ## Write scope and network
 
@@ -1028,7 +1034,7 @@ judgment logic is the same \`hooks/jiahao-verdict-gate.js\` every host runs.
 // Codex CLI install manual + hook disclosure. Regenerated from this single
 // source; edit the string, never the emitted file.
 function codexReadme() {
-  return `# Codex CLI Adapter (self-contained plugin, A 档候选)
+  return `# Codex CLI Adapter (self-contained plugin, A tier, live-probed 2026-10-30)
 
 This directory is a **self-contained Codex CLI plugin**: the manifest
 (\`.codex-plugin/plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook
@@ -1037,12 +1043,12 @@ the gate loads are vendored inside; there is no third-party runtime
 dependency. Every hook command resolves through \`\${PLUGIN_ROOT}\`, so nothing
 reads from the repository root.
 
-**Capability tier: A 档候选 (candidate).** The host documents a \`Stop\` hook
-that reports \`stop_hook_active\` and answers with JSON on stdout, and this
-bundle wires \`Stop\` to the verdict gate. No live turn-end block has been
-observed yet (#80), so this adapter does not claim "会拦" — it claims
-"registered and runnable", and the tier table stays a release-period
-conclusion.
+**Capability tier: A (verified 2026-10-30, codex-cli 0.163.0).** A live
+prompt-mode session continued a false completion claim only after \`Stop\`
+answered \`{decision:"block"}\` on exit 0. The exit-2 + stderr path documented
+by the host source ended the turn without a continuation in this build.
+Evidence:
+[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 ## Install (host-native commands)
 
@@ -1053,7 +1059,10 @@ The repository root is also a Codex marketplace
 1. \`codex plugin marketplace add Xxx91n/jiahao\`
 2. \`codex plugin add jiahao --marketplace jiahao\`
 3. Review and trust the plugin's hook commands once — Codex skips an untrusted
-   hook silently (\`/hooks\`).
+   hook silently (\`/hooks\`). Live probe: an untrusted plugin's hooks did not
+   run in \`codex exec\`. Unattended automation either persists that trust (the
+   \`/hooks\` flow; source-verified, not step-by-step probed) or passes
+   \`--dangerously-bypass-hook-trust\` after vetting the source.
 4. Activate the jiahao profile flag, same as every host. Resolve the config
    directory once (\`CLAUDE_CONFIG_DIR\`, else \`$HOME\`, else \`/tmp\`):
    \`CONFIG="\${CLAUDE_CONFIG_DIR:-\${HOME:-/tmp}}"\`, then
@@ -1062,12 +1071,13 @@ The repository root is also a Codex marketplace
    (\`generator\` for advisory-only). Start a new session after changing
    \`.jiahao-profile\`.
 
-Current Codex builds enable hooks by default; no \`[features]\` flag is part of
-this recipe. Whether a given build needs one switched on, and the trust step
-above, are still the host contract rather than a live-probed recipe: #74 lists
-both as open probes, and nobody has watched this install run in-host yet (#80).
-If an older build refuses the plugin's hooks, look for a \`[features] hooks\`
-switch in \`$CODEX_HOME/config.toml\` rather than copying a flag block from here.
+Codex 0.163.0 enables hooks by default: \`codex features list\` reports
+\`hooks stable true\`, and a fresh \`CODEX_HOME\` with no \`config.toml\` ran the
+plugin's hooks. No \`[features] hooks\` switch is part of this recipe. The trust
+step above is separate and required: the probe saw untrusted hooks skipped
+silently in \`codex exec\`. If an older build refuses the plugin's hooks, look
+for a \`[features] hooks\` switch in \`$CODEX_HOME/config.toml\` rather than
+copying a flag block from here.
 
 Install, upgrade, and uninstall are the host's own plugin commands; the repo
 root is never a plugin entry.
@@ -1085,8 +1095,8 @@ not re-implement host detection.
 | SessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext |
 | SubagentStart | hooks/jiahao-subagent.js | same injection on subagent spawn |
 | UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
-| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: exit 2 + {decision:"block"} on stdout, with the same reason on stderr - the Codex exit-2 path reads stderr and ignores stdout; blocks an empty evidence chain (verifier profile) |
-| SubagentStop | hooks/jiahao-verdict-gate.js | same gate on subagent finish (parity) |
+| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: exit 0 + {decision:"block"} on stdout, with the same reason on stderr for host logs; blocks an empty evidence chain (verifier profile). Exit 2 did not block in the 0.163.0 live probe |
+| SubagentStop | hooks/jiahao-verdict-gate.js | same gate on subagent finish (parity; Stop was live-probed, SubagentStop was not separately probed) |
 | SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
 
 Timeouts stay inside the host budget (5/5/5/10/10/3s; Codex caps
@@ -1113,10 +1123,21 @@ every referenced file is emitted (\`--check\` pins the emitted set to disk),
 every hook command stays inside \`\${PLUGIN_ROOT}\`, and no vendored relative
 \`require()\` escapes the bundle.
 
-**Not yet live-probed**: install through \`codex plugin\`, the \`/hooks\` trust
-step, and a real blocked false-completion are owner actions in #80. This
-adapter is admitted on the documented host contract; it does not claim a live
-run.
+**Live probe (2026-10-30, codex-cli 0.163.0, win32)**: \`codex plugin
+marketplace add <local path>\` and \`codex plugin add jiahao --marketplace
+jiahao\` installed the bundle. Without persisted trust the hooks were skipped
+in \`codex exec\` and the false claim passed; with
+\`--dangerously-bypass-hook-trust\` the Stop gate answered
+\`{decision:"block"}\` and the next model turn quoted the reason. The
+interactive \`/hooks\` trust-and-restart flow itself was not step-by-step
+probed. Commands and captured output live in
+[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+
+Loop guard: an unconditional exit-0 JSON block in a throwaway user Stop hook
+continued for 785 runs (786 assistant messages, 33M input tokens) before the
+host completed the turn; no small host cap like Copilot's 8 appeared. The
+bundled gate is not unconditional - it passes when the host sends
+\`stop_hook_active\` on the continuation - so the block happens once per turn.
 `;
 }
 
