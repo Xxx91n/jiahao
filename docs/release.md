@@ -7,7 +7,7 @@
 ## 一条命令
 
 ```bash
-npm run release:gate -- --tag v0.2.0
+npm run release:gate -- --tag v0.3.0
 ```
 
 tag 推送时 CI 跑同一条命令（`.github/workflows/ci.yml` 的 `release-gate` job），tag 从 `GITHUB_REF_NAME` 读，产物和证据落在 `release-artifacts/` 并作为构建产物上传。
@@ -39,7 +39,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 - 带 `--artifact-dir` 时 tarball 被留下，并在旁边写 `jiahao-<version>.tgz.sha256`（`sha256sum -c` 直接可验）。带 `--evidence` 时同一批数字落进 JSON，CI 把两者都作为构建产物上传。
 - 包里为什么还有两份 marketplace 清单：`.claude-plugin/marketplace.json` 是 Claude Code 的入口（`source` 指向 `./adapters/claude-code`），`.agents/plugins/marketplace.json` 是 Codex 的入口（`source.path` 指向 `./adapters/codex`）。少了它们，tarball 只能是"插件目录的副本"，不能当对应宿主的 marketplace 根用。两份都进了 `files`，也进了必须包含清单。
 
-`v0.2.0` 的产物数字不写进本文件。这份文件在 tarball 里，写自己的 `sha256` 会让记录指向另一棵树。tag 上跑出的 `artifact`、`sha256`、当时的三个 tree 哈希，连真机验收记录一起记在 [`docs/release-notes-v0.2.0.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/release-notes-v0.2.0.md)；那份说明不在包里，也不在当时的三个 tree 哈希的范围内，所以不会改变被记录的那棵树。这里用 GitHub 绝对链接，因为 npm 包里没有那份说明。
+`v0.2.0` 的产物数字不写进本文件。这份文件在 tarball 里，写自己的 `sha256` 会让记录指向另一棵树。tag 上跑出的 `artifact`、`sha256`、当时的各出口 tree 哈希，连真机验收记录一起记在该版本的发布说明里（[`docs/release-notes-v0.2.0.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/release-notes-v0.2.0.md)、[`docs/release-notes-v0.3.0.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/release-notes-v0.3.0.md)）；那些说明不在包里，也不在各自版本的 tree 哈希范围内，所以不会改变被记录的那棵树。这里用 GitHub 绝对链接，因为 npm 包里没有这些说明。
 
 ## 升级路径
 
@@ -76,6 +76,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 | 校准记录 | `<config>/.jiahao-calibration.jsonl` | 校准点被记录时（当前运行时没有调用点，写入方是 `src/calibration.js` 的导出函数） |
 | 宿主（插件版） | 宿主自己的插件目录或插件缓存 | `claude plugin install` / `codebuddy plugin install` / `copilot plugin install` / `codex plugin add` |
 | 宿主（规则版） | 宿主自己的技能目录，落地 `<host>/skills/jiahao/SKILL.md` | `npx skills add` |
+| 人（Qoder 规则出口，C 档） | 复制到 `.qoder/rules/jiahao.md`（项目级）或 `~/.qoder/rules/jiahao.md`（用户级） | 手工复制，没有安装命令 |
 
 范围之外：不改系统设置，不写仓库以外的源码目录，不在当前工作目录落文件。所有运行时写入都落在 `<config>` 下。
 
@@ -100,9 +101,9 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 ## 在干净检出上复跑
 
 ```bash
-git clone --depth 1 --branch v0.2.0 https://github.com/Xxx91n/jiahao.git /tmp/jiahao-clean
+git clone --depth 1 --branch v0.3.0 https://github.com/Xxx91n/jiahao.git /tmp/jiahao-clean
 cd /tmp/jiahao-clean && npm ci
-npm run release:gate -- --tag v0.2.0
+npm run release:gate -- --tag v0.3.0
 ```
 
 对账点：`RELEASE GATE GREEN` 那行、`sha256`、各出口目录的 tree 哈希，应与发布时记录的值逐字相同。
