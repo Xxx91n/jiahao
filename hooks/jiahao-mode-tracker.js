@@ -3,7 +3,7 @@
 // Track /jiahao [lite|full|ultra|off] commands + anti-drift reminder.
 
 const fs = require('fs');
-const { writeHookOutput } = require('./jiahao-runtime');
+const { writeHookOutput, normalizePayload } = require('./jiahao-runtime');
 const { flagPath } = require('../src/shared/paths');
 const sentinel = require('../src/sentinel').begin('jiahao-mode-tracker');
 
@@ -19,6 +19,7 @@ process.stdin.on('end', () => {
   clearTimeout(stdinGuard); // stdin arrived; the hang guard has done its job
   let parsed = {};
   try { parsed = JSON.parse(input); } catch (e) { /* fail-open */ }
+  parsed = normalizePayload(parsed);
   sentinel.set('scan', parsed.session_id || null);
 
   const prompt = parsed.prompt || '';

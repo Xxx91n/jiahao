@@ -37,18 +37,20 @@ test('build-adapters generates the retained exits', () => {
       'adapters/codebuddy/hooks/hooks.json',
       'adapters/codebuddy/rules/jiahao-verifier.md',
       'adapters/codebuddy/rules/jiahao-generator.md',
+      'adapters/copilot/plugin.json',
+      'adapters/copilot/hooks/hooks.json',
       'adapters/codex/.codex-plugin/plugin.json',
       'adapters/codex/hooks/hooks.json',
+      '.agents/plugins/marketplace.json',
       'adapters/qoder/README.md',
       'adapters/qoder/rules/jiahao.md',
-      '.agents/plugins/marketplace.json',
       'skills/jiahao/SKILL.md',
     ];
     expected.forEach(rel => {
       expect(fs.existsSync(path.join(dir, rel))).toBe(true);
     });
-    // Everything the generator produced reached the target - not just the exits
-    // above - so a writeAll that skips a file is red here.
+    // Everything the generator produced reached the target - not just the
+    // exits listed above - so a writeAll that skips a file is red here.
     emitted.forEach(rel => {
       expect(fs.existsSync(path.join(dir, rel))).toBe(true);
     });
@@ -71,21 +73,19 @@ test('retired adapters are neither emitted nor present', () => {
   const { buildAdapters, RETIRED_HOSTS, HOSTS } = require('../scripts/build-adapters');
   const emitted = Object.keys(buildAdapters());
   // One list, in the generator (check-drift reads the same one). The floor is
-  // what stops the list from being silently emptied instead of honoured. #79
-  // re-admits qoder as a rules-only exit and #77 re-admits codex as a plugin
-  // bundle, so the floor drops by two; the remaining eight still have to be
-  // honoured.
-  expect(RETIRED_HOSTS.length).toBeGreaterThanOrEqual(8);
+  // what stops the list from being silently emptied instead of honoured.
+  // codex left in #77, copilot in #78, and qoder in #79, so seven names remain. The loop proves none of them is emitted or present; check-drift
+  // refuses a directory for any listed name, and "check-drift passes on the
+  // committed tree" below runs it.
+  expect(RETIRED_HOSTS.length).toBeGreaterThanOrEqual(7);
   for (const name of RETIRED_HOSTS) {
     expect(emitted.some(rel => rel.startsWith('adapters/' + name + '/'))).toBe(false);
     expect(fs.existsSync(path.join(root, 'adapters', name))).toBe(false);
   }
-  // #77 brought Codex back with a self-contained directory, so a host row and a
-  // retirement entry cannot name the same host: that would mean #62's
-  // convergence is fighting the generator.
+  // A host row and a retirement entry cannot name the same host: that would mean
+  // #62's convergence is fighting the generator.
   const retiredAndShipped = HOSTS.filter(host => RETIRED_HOSTS.includes(host.name)).map(host => host.name);
   expect(retiredAndShipped).toEqual([]);
-  expect(RETIRED_HOSTS).not.toContain('codex');
 });
 
 test('build-adapters --check is green and accounts for every tracked generated file', () => {

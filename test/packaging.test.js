@@ -32,22 +32,26 @@ test('tarball contains no brand assets', () => {
   expect(packed.filter((p) => p.startsWith('docs/assets/'))).toEqual([]);
 });
 
-// #63: the packed artifact is the release artifact, so it has to carry every
-// exit. The rules directory is generated, so it is also the one output a hand
-// edit or a stale build could leave out without anyone noticing.
+// #63: the packed artifact is the release artifact, so it has to carry both
+// exits. The rules directory is generated, so it is also the one output a
+// hand edit or a stale build could leave out without anyone noticing.
 test('tarball carries the rules directory and every plugin bundle, and no private or research files', () => {
   expect(auditPackFiles(packed)).toEqual([]);
 });
 
 // Pin the contract itself: if REQUIRED_PACK_FILES lost an exit, the assertion
 // above would still pass, because both sides would be equally wrong.
-test('the pack contract names the rules file, every plugin hook map, the Qoder rules exit, and both marketplaces', () => {
+test('the pack contract names the rules file, every plugin manifest and hook map, the Qoder rules exit, and both marketplaces', () => {
   for (const rel of [
     'skills/jiahao/SKILL.md',
     'adapters/codebuddy/.claude-plugin/plugin.json',
     'adapters/codebuddy/hooks/hooks.json',
     'adapters/claude-code/.claude-plugin/plugin.json',
     'adapters/claude-code/hooks/hooks.json',
+    // #78: the Copilot bundle carries a host-native manifest path; a tarball
+    // that drops it ships a bundle the host cannot discover.
+    'adapters/copilot/plugin.json',
+    'adapters/copilot/hooks/hooks.json',
     // #77: Codex ships its own manifest location and the second marketplace.
     'adapters/codex/.codex-plugin/plugin.json',
     'adapters/codex/hooks/hooks.json',
@@ -68,6 +72,15 @@ test('the pack contract names the rules file, every plugin hook map, the Qoder r
   expect(FORBIDDEN_PACK_PREFIXES).toEqual(expect.arrayContaining(['private/', 'bench/', 'docs/research/']));
 });
 
+test('the Qoder rules-only exit is packed as exactly its rule and README', () => {
+  // Exact set, not just "contains": adapters/ is whitelisted wholesale, so an
+  // untracked adapters/qoder/hooks/hooks.json would ship without this check.
+  expect(packed.filter((p) => p.startsWith('adapters/qoder/')).sort()).toEqual([
+    'adapters/qoder/README.md',
+    'adapters/qoder/rules/jiahao.md',
+  ]);
+});
+
 // #77: the required list must grow with the generator, not sit one marketplace
 // behind it. Restated as a fixpoint over what the generator emits, so a third
 // marketplace (or a renamed one) cannot be produced and left out of the tarball.
@@ -76,15 +89,6 @@ test('every generated marketplace manifest is a required pack file', () => {
   const marketplaces = Object.keys(buildAdapters()).filter((rel) => rel.endsWith('/marketplace.json'));
   expect(marketplaces.length).toBeGreaterThanOrEqual(2);
   for (const rel of marketplaces) expect(REQUIRED_PACK_FILES).toContain(rel);
-});
-
-test('the Qoder rules-only exit is packed as exactly its rule and README', () => {
-  // Exact set, not just "contains": adapters/ is whitelisted wholesale, so an
-  // untracked adapters/qoder/hooks/hooks.json would ship without this check.
-  expect(packed.filter((p) => p.startsWith('adapters/qoder/')).sort()).toEqual([
-    'adapters/qoder/README.md',
-    'adapters/qoder/rules/jiahao.md',
-  ]);
 });
 
 test('the packed version is the package version the tag will be checked against', () => {

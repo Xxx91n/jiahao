@@ -40,15 +40,15 @@ Qoder 是 C 档的规则出口，位于 [`adapters/qoder/`](adapters/qoder/)：�
 
 ### 插件版 —— 宿主原生命令，带钩子
 
-CodeBuddy 是三个插件目录之一（另外两个是 Claude Code 与 Codex CLI，见下文）：
+CodeBuddy 是四个插件目录之一（另外三个是 Claude Code、GitHub Copilot CLI 与 Codex CLI，见下文）：
 
 ```bash
 codebuddy plugin install <path-to>/adapters/codebuddy
 ```
 
-插件默认关闭（`defaultEnabled: false`），安装后需要显式启用。随后用安装器写入 profile（`node scripts/install.js init -y`），它会打印实际写入的值（见 Profile）。启用后 `hooks/hooks.json` 接上 verifier 纪律的强制拦截。插件同时带两份 `alwaysApply: true` 的规则文件；规则级 profile 选择属于待确认，强制层是钩子。CLI 插件安装路径已记录但属于待确认；现场验证过的回退路径是合并 `.codebuddy/settings.json`。完整安装步骤、钩子表，以及已验证 / 待确认边界见 [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)。Claude Code 是第二个插件目录：自包含插件在 [`adapters/claude-code/`](adapters/claude-code/)，用仓库根的 marketplace 安装——`claude plugin marketplace add Xxx91n/jiahao`、`claude plugin install jiahao@jiahao`。钩子表与尚未真机验证的部分见该目录的 README。Codex CLI 是第三个：自包含插件在 [`adapters/codex/`](adapters/codex/)，用仓库里的 Codex marketplace 安装——`codex plugin marketplace add Xxx91n/jiahao`、`codex plugin add jiahao --marketplace jiahao`；它的钩子命令要一次性信任（`/hooks`），当前 Codex 默认就开着钩子（旧版本是否要 `[features] hooks` 开关是 #74 的待实测项）。Codex 属 **A 档候选**：收尾事件已注册、打包的判定脚本在脚本层跑过，但还没有真机观察到的收尾阻断，所以本版本不说「会拦」。细节见 [`adapters/codex/README.md`](adapters/codex/README.md)。
+插件默认关闭（`defaultEnabled: false`），安装后需要显式启用。随后用安装器写入 profile（`node scripts/install.js init -y`），它会打印实际写入的值（见 Profile）。启用后 `hooks/hooks.json` 接上 verifier 纪律的强制拦截。插件同时带两份 `alwaysApply: true` 的规则文件；规则级 profile 选择属于待确认，强制层是钩子。CLI 插件安装路径已记录但属于待确认；现场验证过的回退路径是合并 `.codebuddy/settings.json`。完整安装步骤、钩子表，以及已验证 / 待确认边界见 [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)。Claude Code 是第二个插件目录：自包含插件在 [`adapters/claude-code/`](adapters/claude-code/)，用仓库根的 marketplace 安装——`claude plugin marketplace add Xxx91n/jiahao`、`claude plugin install jiahao@jiahao`。钩子表与尚未真机验证的部分见该目录的 README。
 
-copilot、mcp 目录不再作为安装出口；MCP 服务端本身保留在 [`jiahao-mcp/`](jiahao-mcp/)。
+mcp 目录不再作为安装出口；MCP 服务端本身保留在 [`jiahao-mcp/`](jiahao-mcp/)。GitHub Copilot CLI 是第三个自包含目录（`copilot plugin install <路径>/adapters/copilot`），档位是 **A 档候选**：宿主文档写了 `agentStop` 能阻断，但还没人真机看它拦过一次；方言（驼峰事件名、bash / powershell 两支、决策字段阻断）与未验证边界都写在它的 README 里。Codex CLI 是第四个自包含目录，用仓库里的 Codex marketplace（`.agents/plugins/marketplace.json`）安装——`codex plugin marketplace add Xxx91n/jiahao`、`codex plugin add jiahao --marketplace jiahao`；它的钩子命令要一次性信任（`/hooks`），当前 Codex 默认就开着钩子（旧版本是否要 `[features] hooks` 开关是 #74 的待实测项）。Codex 同样是 **A 档候选**：收尾事件已注册、打包的判定脚本在脚本层跑过（stdout JSON，另按 Codex 的 exit 2 口径把续跑原因写 stderr），但还没有真机观察到的收尾阻断，所以本版本不说「会拦」。细节见 [`adapters/codex/README.md`](adapters/codex/README.md)。
 
 ### Profile
 

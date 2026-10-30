@@ -31,6 +31,7 @@
     "skills/",
     ".claude-plugin/",
     ".agents/",
+    ".agents/",
     "schemas/",
     "hooks/",
     "GLOSSARY.md",

@@ -5,7 +5,7 @@
 ## 安装、运行、测试
 
 - `npm install` 后跑 `node scripts/install.js`；`--profile generator` 切换生成档。
-- 测试：`npm test`。改 `src/SKILL.md` 或 `src/`、`hooks/`、`jiahao-mcp/`、生成器的宿主表（`scripts/build-adapters.js` 的 `HOSTS`），或改 `package.json` 的版本与仓库元数据后，必须跑 `node scripts/build-adapters.js`（漂移检查：`node scripts/check-drift.js`）。
+- 测试：`npm test`。改 `src/SKILL.md` 或 `src/`、`hooks/`、`jiahao-mcp/`、生成器的宿主表（`scripts/build-adapters.js` 的 `HOSTS`）、宿主方言文件（`scripts/hosts/`），或改 `package.json` 的版本与仓库元数据后，必须跑 `node scripts/build-adapters.js`（漂移检查：`node scripts/check-drift.js`）。
 
 ## 版本控制
 

@@ -2,7 +2,7 @@
 // Mirrors ponytail-runtime.js writeHookOutput pattern.
 
 // The platform names this module can answer for. Kept next to the branches
-// below so a name the template passes can never be a name with no shape.
+// below so a name a config template passes can never be a name with no shape.
 const PLATFORMS = ['claude', 'codex', 'copilot', 'qoder', 'codebuddy'];
 
 // Host detection, in two steps:
@@ -24,6 +24,20 @@ function detectHost() {
   // codebuddy var, so precedence is safe (grill-t30).
   if (process.env.CODEBUDDY_PLUGIN_ROOT) return 'codebuddy';
   return 'claude'; // native Claude Code (default)
+}
+
+// Field names differ per host: the Claude-shaped payloads carry session_id and
+// agent_type, Copilot CLI's camelCase events carry sessionId and agentName (with
+// agentType only when known). Normalizing at the stdin boundary gives every hook
+// one shape for those identity fields, and keeps the spelling of a host's
+// payload in this adapter file instead of spreading host names through the
+// judgment logic. Other payload fields are read in their host-neutral form and
+// are not renamed here.
+function normalizePayload(parsed) {
+  const p = (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
+  const sessionId = p.session_id || p.sessionId || null;
+  const agentType = p.agent_type || p.agentType || p.agentName || '';
+  return Object.assign({}, p, { session_id: sessionId, agent_type: agentType });
 }
 
 // Write hook output in the format the current host expects.
@@ -77,4 +91,4 @@ function writeHookOutput(text, event) {
   }
 }
 
-module.exports = { detectHost, writeHookOutput, PLATFORMS };
+module.exports = { detectHost, writeHookOutput, normalizePayload, PLATFORMS };

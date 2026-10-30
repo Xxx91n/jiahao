@@ -5,7 +5,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { writeHookOutput } = require('./jiahao-runtime');
+const { writeHookOutput, normalizePayload } = require('./jiahao-runtime');
 const sentinel = require('../src/sentinel').begin('jiahao-subagent');
 
 // Read stdin (hook input JSON)
@@ -21,9 +21,11 @@ process.stdin.on('end', () => {
   clearTimeout(stdinGuard); // stdin arrived; the hang guard has done its job
   let parsed = {};
   try { parsed = JSON.parse(input); } catch (e) { /* fail-open */ }
+  parsed = normalizePayload(parsed);
   sentinel.set('scan', parsed.session_id || null);
 
-  const agentType = parsed.agent_type || parsed.agentType || '';
+  // normalizePayload already folded the host's spelling into agent_type.
+  const agentType = parsed.agent_type || '';
   const matcher = process.env.JIAHAO_SUBAGENT_MATCHER || 'verify|review|critic|check';
 
   // Fail-open: if we cannot determine agent type, inject anyway

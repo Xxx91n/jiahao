@@ -19,9 +19,8 @@ const { isBuiltin } = require('module');
 
 const {
   buildAdapters, HOSTS, MARKETPLACE_HOST, CODEX_MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
-  dialectOf, isRulesOnlyDirectory,
+  dialectOf, hookEntryCommands, isRulesOnlyDirectory,
 } = require('../scripts/build-adapters');
-const { PLATFORMS } = require('../hooks/jiahao-runtime');
 const { hookRegistrationPaths } = require('./helpers/generated-bundle');
 
 const ROOT = path.join(__dirname, '..');
@@ -31,11 +30,12 @@ const pkgRepository = pkg.repository.url.replace(/^git\+/, '').replace(/\.git$/,
 
 // Bundle-local wiring the generator writes itself; everything else under a
 // bundle directory is vendored from the repository and must be byte-identical.
-// The manifest directory comes from the row's dialect: Claude-compatible hosts
-// publish `.claude-plugin/`, Codex publishes `.codex-plugin/`.
-function bundleWiring(host) {
-  const manifestDir = dialectOf(host).manifestDir.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp('^(' + manifestDir + '/|rules/|hooks/hooks\\.json$|\\.mcp\\.json$|README\\.md$)');
+// The manifest and hook-map paths come from the row's dialect, so a host with a
+// different config schema does not have to pass a Claude-shaped path test.
+function isWiring(dialect, rel) {
+  if (rel === dialect.manifestPath) return true;
+  if (rel === dialect.hookMapPath) return true;
+  return /^(rules\/|\.mcp\.json$|README\.md$)/.test(rel);
 }
 
 function readGenerated(rel) {
@@ -91,9 +91,9 @@ function repoClosure(seeds) {
 
 describe.each(HOSTS)('$label exit ($dir)', (host) => {
   const P = host.dir + '/';
-  const events = Object.keys(host.hooks || {});
   const dialect = dialectOf(host);
-  const manifestRel = P + dialect.manifestDir + '/plugin.json';
+  const events = Object.keys(host.hooks || {});
+  const manifestRel = P + dialect.manifestPath;
   // A rules-only row has no plugin manifest to parse; the shape tests below
   // assert that absence instead.
   const manifest = isRulesOnlyDirectory(host) ? null : JSON.parse(readGenerated(manifestRel));
@@ -107,7 +107,9 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
         return;
       }
       expect(typeof generated[manifestRel]).toBe('string');
-      expect(generated[P + 'plugin.json']).toBeUndefined();
+      const manifests = Object.keys(generated)
+        .filter((rel) => rel.startsWith(P) && /(^|\/)plugin\.json$/.test(rel));
+      expect(manifests).toEqual([manifestRel]);
       for (const rel of [P + 'src/SKILL.md', P + 'src/instrument-identity.json', P + 'README.md']) {
         expect(typeof generated[rel]).toBe('string');
       }
@@ -120,7 +122,6 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
     });
 
     test('the bundle ships exactly the wired closure, nothing orphaned', () => {
-      const wiring = bundleWiring(host);
       const expected = new Set();
       if (!isRulesOnlyDirectory(host)) {
         expected.add('src/SKILL.md');
@@ -131,7 +132,7 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
       const vendored = Object.keys(generated)
         .filter((rel) => rel.startsWith(P))
         .map((rel) => rel.slice(P.length))
-        .filter((rel) => !wiring.test(rel));
+        .filter((rel) => !isWiring(dialect, rel));
       expect(vendored.sort()).toEqual(Array.from(expected).sort());
     });
 
@@ -158,33 +159,38 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
       return;
     }
 
-    test('parses; name, version, license, and repository come from the package', () => {
+    test('parses; name, version, license, repository, and the conservative default come from the package', () => {
       expect(manifest.name).toBe('jiahao');
       expect(manifest.version).toBe(pkg.version);
       expect(manifest.license).toBe(pkg.license);
       expect(manifest.repository).toBe(pkgRepository);
-      // The conservative opt-in flag belongs to the Claude-compatible manifest;
-      // a host that does not read the field must not be told it is disabled.
-      if (dialect.defaultEnabled) expect(manifest.defaultEnabled).toBe(false);
-      else expect(manifest.defaultEnabled).toBeUndefined();
+      // The conservative opt-in flag is declared per dialect: a host that does
+      // not document the field must not be given a key it never reads.
+      if (dialect.defaultEnabledFlag) {
+        expect(manifest.defaultEnabled).toBe(false);
+      } else {
+        expect(manifest.defaultEnabled).toBeUndefined();
+      }
     });
 
-    test('every component path it names is emitted, prefixed the way this host requires, and auto-discovered files are not repeated', () => {
+    test('every component path it names is emitted, and auto-discovered files are not repeated', () => {
       // These two keys name the generator's own files, not host data.
       // A host that does not auto-discover a component has to be told about it
       // in the manifest, or the file never loads - so the key is required, not
       // merely checked when present.
-      const prefix = dialect.manifestPathPrefix;
-      if (events.length && !host.autoDiscovered.includes('hooks/hooks.json')) {
-        expect(manifest.hooks).toBe(prefix + 'hooks/hooks.json');
+      // Component paths follow the host's rule: Codex requires './', the
+      // Claude-shaped hosts write them bare. The dialect carries the prefix so
+      // the assertion stays exact instead of accepting either spelling.
+      const pathPrefix = dialect.manifestPathPrefix || '';
+      if (events.length && !host.autoDiscovered.includes(dialect.hookMapPath)) {
+        expect(manifest.hooks).toBe(pathPrefix + dialect.hookMapPath);
       }
       if (host.mcp && !host.autoDiscovered.includes('.mcp.json')) {
-        expect(manifest.mcpServers).toBe(prefix + '.mcp.json');
+        expect(manifest.mcpServers).toBe(pathPrefix + '.mcp.json');
       }
       for (const key of ['hooks', 'mcpServers']) {
         if (manifest[key] === undefined) continue;
-        expect(manifest[key].startsWith(prefix)).toBe(true);
-        expect(typeof generated[P + manifest[key].slice(prefix.length)]).toBe('string');
+        expect(typeof generated[P + String(manifest[key]).slice(pathPrefix.length)]).toBe('string');
       }
       // Auto-discovery is the host's job: the file may or may not ship, but a
       // manifest entry would load it a second time.
@@ -197,7 +203,7 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
   describe('hook map', () => {
     if (events.length === 0) {
       test('a rules-only bundle registers no hooks at all', () => {
-        expect(generated[P + 'hooks/hooks.json']).toBeUndefined();
+        expect(generated[P + dialect.hookMapPath]).toBeUndefined();
         expect(Object.keys(generated).filter((rel) => rel.startsWith(P + 'hooks/'))).toEqual([]);
       });
 
@@ -207,38 +213,61 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
       return;
     }
 
-    const cfg = JSON.parse(readGenerated(P + 'hooks/hooks.json'));
+    const cfg = JSON.parse(readGenerated(P + dialect.hookMapPath));
 
     test('registers exactly the host table event set', () => {
       expect(Object.keys(cfg.hooks)).toEqual(events);
     });
 
-    test('every command runs a vendored script through the plugin root and names its platform, within the timeout budget', () => {
-      const varName = dialect.pluginRootVar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const suffix = dialect.platformArg ? ' ' + dialect.platformArg : '';
-      const pattern = new RegExp('^node "\\$\\{' + varName + '\\}/(hooks/[a-z0-9-]+\\.js)"' + suffix + '$');
+    test('every command runs a vendored script through the plugin root, within the timeout budget', () => {
       for (const ev of events) {
         for (const entry of cfg.hooks[ev]) {
-          for (const h of entry.hooks) {
+          const commands = hookEntryCommands(entry);
+          for (const h of commands) {
             expect(h.type).toBe('command');
-            expect(h.timeout).toBe(host.hooks[ev].timeout);
-            expect(h.timeout).toBeLessThanOrEqual(60);
-            const m = pattern.exec(h.command);
-            expect(m).not.toBeNull();
-            expect(typeof generated[P + m[1]]).toBe('string');
-            expect(h.command).not.toContain('adapters/');
-            expect(h.command).not.toContain('..');
+            expect(h[dialect.timeoutField]).toBe(host.hooks[ev].timeout);
+            expect(h[dialect.timeoutField]).toBeLessThanOrEqual(60);
+            for (const field of dialect.commandFields) {
+              // The row's own pattern for this field: a host spells a command
+              // its own way, and one pattern per field keeps a wrong-shell
+              // command from passing as a legal variant.
+              const cmd = String(h[field]);
+              const pattern = dialect.commandPatterns[field];
+              expect(pattern instanceof RegExp).toBe(true);
+              const m = pattern.exec(cmd);
+              expect(m).not.toBeNull();
+              expect(typeof generated[P + m[1]]).toBe('string');
+              expect(cmd).not.toContain('adapters/');
+              expect(cmd).not.toContain('..');
+            }
           }
         }
       }
     });
+
+    const allEntries = events.flatMap((ev) => cfg.hooks[ev]);
+    const flatEntries = allEntries.filter((entry) => !Array.isArray(entry.hooks));
+    if (flatEntries.length) {
+      // A flat dialect's entry must carry exactly its command fields plus the
+      // timeout key - a leftover `command` or `timeout` key is the other host's
+      // dialect and would be ignored here. A map mixing both shapes is a defect
+      // of its own, so assert every entry is flat, not just the first event's.
+      test('every flat entry carries exactly the dialect command fields and timeout key', () => {
+        expect(flatEntries.length).toBe(allEntries.length);
+        const allowed = ['type', dialect.timeoutField].concat(dialect.commandFields).sort();
+        for (const entry of flatEntries) {
+          expect(Object.keys(entry).sort()).toEqual(allowed);
+        }
+      });
+    }
 
     test('the turn-end event carries the verdict gate, and every script is a repo hook', () => {
       for (const ev of events) {
         expect(fs.existsSync(path.join(ROOT, 'hooks', host.hooks[ev].script + '.js'))).toBe(true);
       }
       if (host.turnEnd) {
-        const command = cfg.hooks[host.turnEnd][0].hooks[0].command;
+        const h = hookEntryCommands(cfg.hooks[host.turnEnd][0])[0];
+        const command = dialect.commandFields.map((field) => h[field]).join(' ');
         expect(command).toContain('jiahao-verdict-gate.js');
       }
     });
@@ -330,7 +359,7 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
     test('.mcp.json registers the vendored MCP entry and its package file ships', () => {
       const mcp = JSON.parse(readGenerated(P + '.mcp.json'));
       expect(mcp.mcpServers['jiahao-mcp'].command).toBe('node');
-      expect(mcp.mcpServers['jiahao-mcp'].args[0]).toBe('${' + dialect.pluginRootVar + '}/' + host.mcp.entry);
+      expect(mcp.mcpServers['jiahao-mcp'].args[0]).toBe('${CLAUDE_PLUGIN_ROOT}/' + host.mcp.entry);
       expect(typeof generated[P + host.mcp.entry]).toBe('string');
       for (const rel of host.mcp.files) expect(typeof generated[P + rel]).toBe('string');
     });
@@ -342,7 +371,7 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
   }
 });
 
-describe('marketplace manifest (Claude Code)', () => {
+describe('marketplace manifest', () => {
   const marketplace = JSON.parse(readGenerated('.claude-plugin/marketplace.json'));
   const sourceHost = MARKETPLACE_HOST;
 
@@ -372,12 +401,12 @@ describe('marketplace manifest (Codex CLI)', () => {
   const marketplace = JSON.parse(readGenerated('.agents/plugins/marketplace.json'));
   const sourceHost = CODEX_MARKETPLACE_HOST;
 
-  test('has a name and one entry, and the entry points inside the repository', () => {
+  test('has a name and one entry whose local source points inside the repository', () => {
     expect(marketplace.name).toMatch(/^[A-Za-z0-9][A-Za-z0-9._-]*$/);
     expect(Array.isArray(marketplace.plugins)).toBe(true);
     expect(marketplace.plugins.length).toBe(1);
     const entry = marketplace.plugins[0];
-    // Codex resolves source.path from the marketplace root (the repository),
+    // Codex resolves source.path from the marketplace root (the repository)
     // and requires the './' prefix.
     expect(entry.source.source).toBe('local');
     expect(entry.source.path.startsWith('./')).toBe(true);
@@ -385,12 +414,12 @@ describe('marketplace manifest (Codex CLI)', () => {
     expect(path.posix.normalize(entry.source.path).replace(/\/$/, '')).toBe(sourceHost.dir);
   });
 
-  test('the entry name matches the Codex-dialect manifest, and the version lives in plugin.json only', () => {
-    const manifestDir = dialectOf(sourceHost).manifestDir;
-    const m = JSON.parse(readGenerated(sourceHost.dir + '/' + manifestDir + '/plugin.json'));
+  test('the entry name matches the Codex manifest, and the version lives in plugin.json only', () => {
+    const manifestRel = sourceHost.dir + '/' + dialectOf(sourceHost).manifestPath;
+    const m = JSON.parse(readGenerated(manifestRel));
     expect(marketplace.plugins[0].name).toBe(m.name);
     expect(marketplace.plugins[0].version).toBeUndefined();
-    expect(typeof generated[sourceHost.dir + '/hooks/hooks.json']).toBe('string');
+    expect(typeof generated[sourceHost.dir + '/' + dialectOf(sourceHost).hookMapPath]).toBe('string');
   });
 });
 
@@ -452,6 +481,40 @@ describe('tier contract', () => {
     expect(hostShapeProblems([row]).join('\n')).toMatch(/must not set version/);
   });
 
+  test('a dialect that points its manifest or hook map outside the bundle is rejected', () => {
+    const escaping = Object.assign({}, good, {
+      dialect: {
+        manifestPath: '../plugin.json', hookMapPath: 'hooks/hooks.json',
+        timeoutField: 'timeout', commandFields: ['command'],
+        commandPatterns: { command: /^x$/ },
+        emitManifest: () => '', emitHookMap: () => '',
+      },
+    });
+    expect(hostShapeProblems([escaping]).join('\n')).toMatch(/relative \.json path inside the bundle/);
+    const silent = Object.assign({}, good, { dialect: { commandFields: [] } });
+    expect(hostShapeProblems([silent]).join('\n')).toMatch(/relative \.json path|must name its command fields/);
+    // A dialect may only rename paths: the emitters are optional, so a row is
+    // not forced to reimplement a manifest it does not change.
+    const renameOnly = Object.assign({}, good, {
+      dialect: {
+        manifestPath: 'plugin.json', hookMapPath: 'hooks/copilot-hooks.json',
+        timeoutField: 'timeout', commandFields: ['command'],
+        commandPatterns: { command: /^x$/ },
+      },
+    });
+    expect(hostShapeProblems([renameOnly])).toEqual([]);
+    // A renamed command shape without its own emitter would ship the shared
+    // emitter's `command`/`timeout` map, which this host silently skips.
+    const hollow = Object.assign({}, good, {
+      dialect: {
+        manifestPath: '.claude-plugin/plugin.json', hookMapPath: 'hooks/hooks.json',
+        timeoutField: 'timeoutSec', commandFields: ['bash', 'powershell'],
+        commandPatterns: { bash: /^x$/, powershell: /^y$/ },
+      },
+    });
+    expect(hostShapeProblems([hollow]).join('\n')).toMatch(/needs its own emitHookMap/);
+  });
+
   test('a rules-only C row is a valid row and ships no hooks', () => {
     const rulesOnly = {
       name: 'probe-rules', label: 'Probe', dir: 'adapters/probe-rules', tier: 'C',
@@ -487,48 +550,21 @@ describe('tier contract', () => {
     })]).join('\n')).toMatch(/unknown profile/);
   });
 
+  test('every platform name a config template passes is a name the hook layer implements', () => {
+    // A template that passes a name detectHost() does not know would silently
+    // fall back to the Claude envelope. The generator rejects that at build
+    // time; this pins the same invariant from the shipped rows.
+    const { PLATFORMS } = require('../hooks/jiahao-runtime');
+    const passed = HOSTS.map((host) => (host.dialect || {}).platform).filter(Boolean);
+    expect(passed).toContain('codex');
+    for (const platform of passed) expect(PLATFORMS).toContain(platform);
+  });
+
   test('a host that registers SubagentStop runs the same gate as its turn-end event', () => {
     for (const host of HOSTS) {
       if (!host.hooks.SubagentStop) continue;
       expect(host.hooks.SubagentStop.script).toBe(host.hooks[host.turnEnd].script);
       expect(host.hooks.SubagentStop.timeout).toBe(host.hooks[host.turnEnd].timeout);
     }
-  });
-
-  test('a malformed dialect is rejected instead of emitting an unreadable bundle', () => {
-    const badDir = Object.assign({}, good, { dialect: { manifestDir: 'codex-plugin' } });
-    expect(hostShapeProblems([badDir]).join('\n')).toMatch(/manifestDir/);
-    const badVar = Object.assign({}, good, { dialect: { pluginRootVar: 'plugin_root' } });
-    expect(hostShapeProblems([badVar]).join('\n')).toMatch(/pluginRootVar/);
-    const badPlatform = Object.assign({}, good, { dialect: { platformArg: 'Codex!' } });
-    expect(hostShapeProblems([badPlatform]).join('\n')).toMatch(/platformArg/);
-    const badPath = Object.assign({}, good, { manifest: { description: 'probe', hooks: '../hooks/hooks.json' } });
-    expect(hostShapeProblems([badPath]).join('\n')).toMatch(/bundle-relative/);
-  });
-
-  test('the conservative enable flag only rides a Claude-compatible manifest', () => {
-    const foreign = Object.assign({}, good, {
-      dialect: { manifestDir: '.other-plugin', pluginRootVar: 'OTHER_PLUGIN_ROOT', defaultEnabled: true },
-      manifest: { description: 'probe', hooks: './hooks/hooks.json' },
-    });
-    expect(hostShapeProblems([foreign]).join('\n')).toMatch(/defaultEnabled belongs to the \.claude-plugin manifest/);
-  });
-
-  test('the default dialect is Claude-compatible, and the Codex row is the Codex dialect', () => {
-    expect(dialectOf(good).manifestDir).toBe('.claude-plugin');
-    expect(dialectOf(good).platformArg).toBeNull();
-    const codex = HOSTS.find((host) => host.name === 'codex');
-    expect(codex).toBeDefined();
-    expect(dialectOf(codex).manifestDir).toBe('.codex-plugin');
-    expect(dialectOf(codex).platformArg).toBe('codex');
-  });
-
-  test('every platform name a config template passes is a name the hook layer implements', () => {
-    // A template that passes a name detectHost() does not know would silently
-    // fall back to the Claude envelope. The generator rejects that at build
-    // time; this pins the same invariant from the shipped rows.
-    const passed = HOSTS.map((host) => dialectOf(host).platformArg).filter((p) => p !== null);
-    expect(passed).toContain('codex');
-    for (const platform of passed) expect(PLATFORMS).toContain(platform);
   });
 });
