@@ -1,5 +1,5 @@
 # Project .claude/settings.json: SessionStart marker + Stop hook
-#   node claude-block.js -> prints {"decision":"block","reason":"CLAUDE SETTINGS BLOCK: verify first"} once, exits 0
+#   node probes/claude-block.js -> prints {"decision":"block","reason":"CLAUDE SETTINGS BLOCK: verify first"} once, exits 0
 # Project .github/copilot/settings.json: {"hooks":{}}
 # The jiahao plugin was uninstalled for this probe so only the Claude-schema hook could block.
 
@@ -23,6 +23,8 @@ pong
 I couldn’t find a Claude settings file or settings block in the workspace.
 
 session events (435bf73d-9dbc-454e-8a34-f4bc62fa5a51):
+{"type": "hook.start", "hookType": "sessionStart", "output": null}
+{"type": "hook.end", "hookType": "sessionStart", "output": null}
 {"type": "assistant.message", "content": "pong"}
 {"type": "hook.end", "hookType": "agentStop", "output": {"decision": "block", "reason": "CLAUDE SETTINGS BLOCK: verify first"}}
 {"type": "assistant.message", "content": ""}

@@ -26,8 +26,11 @@ v0.3.0 content.
   `任务完成，已验证。`; Stop returned `{decision:"block"}` and the next agent
   message quoted the reason (`codex-blocked.txt`,
   `codex-evidence-chain.jsonl`).
-- Stop semantics: block via exit 0 + stdout decision. Exit 2 + stderr ended the
-  turn without a continuation in this build (`codex-probe-notes.md`).
+- Stop semantics: block via exit 0 + stdout decision. The instrumented wrapper
+  recorded the gate's own exit 0, `{decision:"block"}` stdout, and the stderr
+  reason, then the `stop_hook_active` pass (`codex-hook-exit.txt`). Exit 2 +
+  stderr ended the turn without a continuation in this build
+  (`codex-probe-notes.md`).
 - Loop guard: an unconditional exit-0 block continued 80+ turns with no host
   cap observed; the gate's `stop_hook_active` pass is required.
 
@@ -42,10 +45,10 @@ v0.3.0 content.
   `NOT VERIFIED ...`; the second `agentStop` (`stop_hook_active`) passed
   (`copilot-blocked.txt`, `copilot-events.jsonl`,
   `copilot-evidence-chain.jsonl`).
-- `.claude/settings.json`: read. SessionStart and Stop entries ran; a
-  Claude-schema Stop block was logged as `agentStop decision=block` and the
-  turn continued (`copilot-claude-settings.txt`,
-  `copilot-claude-settings-events.jsonl`).
+- `.claude/settings.json`: read. The session events show the SessionStart hook
+  and the Stop hook (mapped to `agentStop`); a Claude-schema Stop block was
+  logged as `agentStop decision=block` and the turn continued
+  (`copilot-claude-settings.txt`, `copilot-claude-settings-events.jsonl`).
 - Cap: 8 consecutive block continuations, then the CLI ended. Observed 9
   `agentStop` invocations and 9 assistant messages (initial + 8
   continuations); the ninth block was not continued (`copilot-cap.txt`).
@@ -54,6 +57,13 @@ v0.3.0 content.
   (`copilot-plugin-env.txt`).
 - `sessionStart` and `sessionEnd` fired for plugin hooks in the final session
   (`copilot-lifecycle-hooks.txt`).
+
+## Reproduction
+
+The throwaway probe hooks and the instrumented wrapper are in `probes/`; each
+file's header states the hook config and the expected observation. Every
+session above ran with an isolated `CODEX_HOME` / `COPILOT_HOME` and a separate
+`CLAUDE_CONFIG_DIR`, so no user-wide profile or plugin state was involved.
 
 ## Tier conclusion
 

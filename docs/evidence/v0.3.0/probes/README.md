@@ -1,0 +1,24 @@
+# Probe scripts (#80)
+
+Throwaway hooks used for the v0.3.0 acceptance. They are evidence artifacts,
+not part of any distributed bundle. Hook configs point at the absolute path of
+these files; paths inside the scripts are relative to this directory.
+
+## Codex CLI 0.163.0
+
+- `codex-exit2.js`: user-level Stop hook, exit 2 + stderr. Observed: one turn,
+  no continuation.
+- `codex-always-block.js`: user-level Stop hook, exit 0 + decision block every
+  time. Observed: 80+ continuations, no host cap; the probe was stopped.
+- `codex-hook-wrapper.js`: wraps the installed gate, logs the hook's own
+  stdin/stdout/stderr/exit, then replays them. Used only for
+  `../codex-hook-exit.txt`; the gate logic is unchanged.
+
+## GitHub Copilot CLI 1.0.105
+
+- `copilot-always-block.js`: project `agentStop` hook that always blocks.
+  Observed: 9 invocations, 8 continuations, then the CLI ended.
+- `claude-block.js`: one-shot Claude-schema `Stop` hook placed in
+  `.claude/settings.json`. Copilot maps it to `agentStop` and continues.
+- `copilot-marker.js`: logs selected environment variables and an input prefix;
+  used for the plugin-env probe and as a non-blocking project-hook marker.

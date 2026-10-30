@@ -95,13 +95,13 @@ function writeHookOutput(text, event) {
 // 1.0.105 (win32, probed 2026-10-30, #80) only continued the turn on exit 0;
 // Claude-shaped hosts block on exit 2. The Codex stderr copy is a log aid on
 // its exit-0 path, not the block channel.
-const BLOCK_EXIT_CODES = Object.freeze({ codex: 0, copilot: 0, claude: 2, codebuddy: 2, qoder: 2 });
+const BLOCK_EXIT_CODES = Object.freeze({ codex: 0, copilot: 0, claude: 2, codebuddy: 2 });
 
 function writeBlockOutput(reason) {
   console.log(JSON.stringify({ decision: 'block', reason: reason }));
   const host = detectHost();
   if (host === 'codex') console.error(reason);
-  process.exitCode = BLOCK_EXIT_CODES[host] === undefined ? 2 : BLOCK_EXIT_CODES[host];
+  process.exitCode = BLOCK_EXIT_CODES[host] ?? 2;
 }
 
 module.exports = { detectHost, writeHookOutput, writeBlockOutput, normalizePayload, PLATFORMS };

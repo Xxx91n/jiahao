@@ -1,3 +1,5 @@
+{"type": "hook.start", "hookType": "sessionStart", "output": null}
+{"type": "hook.end", "hookType": "sessionStart", "output": null}
 {"type": "assistant.message", "content": "pong"}
 {"type": "hook.end", "hookType": "agentStop", "output": {"decision": "block", "reason": "CLAUDE SETTINGS BLOCK: verify first"}}
 {"type": "assistant.message", "content": ""}

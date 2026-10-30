@@ -78,7 +78,8 @@ judgment logic is the same `hooks/jiahao-verdict-gate.js` every host runs.
 
 The probe used an isolated `COPILOT_HOME`, a real prompt-mode session
 (`copilot -p ... --trust-folder`), and the installed bundle. Commands and
-captured output live in `docs/evidence/v0.3.0/`.
+captured output live in
+[`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 | Point | Result |
 | --- | --- |
