@@ -796,6 +796,7 @@ already satisfies. The judgment logic is the same
 | Native \`copilot plugin install\` reading \`plugin.json\` + \`hooks/hooks.json\` | pending-confirmation |
 | Whether \`userPromptSubmitted\` output reaches the model (docs list no injection field for it) | pending-confirmation |
 | \`COPILOT_PLUGIN_DATA\` marks a session as Copilot for the shared envelope branch (\`hooks/jiahao-runtime.js\`) | pending-confirmation |
+| camelCase payload fields (\`sessionId\`, \`agentName\`) are what the shared hooks normalize | pending-confirmation |
 
 ## Write scope and network
 

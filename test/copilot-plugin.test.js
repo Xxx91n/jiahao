@@ -17,6 +17,7 @@ const path = require('path');
 const { buildAdapters } = require('../scripts/build-adapters');
 const { materializeBundle } = require('./helpers/generated-bundle');
 const { spawnHook, expectExit, parseJson, hostEnv } = require('./helpers/spawned-hook');
+const { createRecord: createEvidence } = require('../src/evidence-log');
 
 const generated = buildAdapters();
 const GENERATED_PREFIX = 'adapters/copilot/';
@@ -65,6 +66,48 @@ describe('bundled Copilot CLI hooks (live spawn, temp config dir)', () => {
     expect(out.reason).toContain('no evidence');
     // Copilot parses one JSON line from stdout.
     expect(String(res.stdout).trim().indexOf('\n')).toBe(-1);
+  });
+
+  // CodeRabbit on PR #95: the camelCase events carry `sessionId`, not
+  // `session_id`. Without the normalization in hooks/jiahao-runtime.js the #75
+  // scoping silently read null here and every turn counted every session's
+  // records - the exact protection this host was supposed to inherit.
+  test('the camelCase sessionId scopes agentStop evidence like session_id does', () => {
+    const dir = configDir('verifier');
+    const foreign = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null, { session_id: 'session-old' });
+    fs.writeFileSync(path.join(dir, '.jiahao-evidence'), JSON.stringify([foreign]), 'utf8');
+    const other = runBundled('jiahao-verdict-gate.js', {
+      configDir: dir,
+      stdin: JSON.stringify({ stop_hook_active: false, sessionId: 'session-new', stopReason: 'complete' }),
+    });
+    expectExit(other, 2);
+    expect(parseJson(other).reason).toContain('no evidence');
+
+    const own = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null, { session_id: 'session-new' });
+    fs.writeFileSync(path.join(dir, '.jiahao-evidence'), JSON.stringify([own]), 'utf8');
+    const mine = runBundled('jiahao-verdict-gate.js', {
+      configDir: dir,
+      stdin: JSON.stringify({ stop_hook_active: false, sessionId: 'session-new', stopReason: 'complete' }),
+    });
+    expectExit(mine, 0);
+  });
+
+  // CodeRabbit on PR #95: subagentStart's reliable field is `agentName`
+  // (`agentType` only arrives when known), so the matcher read empty and
+  // injected the full ruleset into every subagent.
+  test('subagentStart reads the camelCase agentName for the matcher', () => {
+    const dir = configDir('verifier');
+    const writer = runBundled('jiahao-subagent.js', {
+      configDir: dir, stdin: JSON.stringify({ agentName: 'docs-writer', sessionId: 'probe' }),
+    });
+    expectExit(writer, 0);
+    expect(String(writer.stdout).trim()).toBe('');
+
+    const reviewer = runBundled('jiahao-subagent.js', {
+      configDir: dir, stdin: JSON.stringify({ agentName: 'reviewer', sessionId: 'probe' }),
+    });
+    expectExit(reviewer, 0);
+    expect(reviewer.stdout).toContain('verification ladder');
   });
 
   test('sessionStart injects the verifier profile through the flat additionalContext envelope', () => {

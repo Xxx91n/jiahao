@@ -15,6 +15,8 @@ const fs = require('fs');
 const path = require('path');
 const { flagPath } = require('../src/shared/paths');
 const { readProfile } = require('./jiahao-profile');
+// One shape from every host: sessionId/agentName spellings are normalized here.
+const { normalizePayload } = require('./jiahao-runtime');
 const { createEvidenceLog } = require('../src/evidence-log');
 const { kappaAdvisory, loadKappaBaseline } = require('../src/calibration');
 const evidenceLog = createEvidenceLog();
@@ -95,6 +97,7 @@ process.stdin.on('end', () => {
   clearTimeout(stdinGuard); // stdin arrived; the hang guard has done its job
   let parsed = {};
   try { parsed = JSON.parse(input); } catch (e) { /* fail-open */ }
+  parsed = normalizePayload(parsed);
   sentinel.set('verify', parsed.session_id || null);
 
   // stop_hook_active = host already forced pass once; let it through

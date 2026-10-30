@@ -5,7 +5,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { writeHookOutput } = require('./jiahao-runtime');
+const { writeHookOutput, normalizePayload } = require('./jiahao-runtime');
 const sentinel = require('../src/sentinel').begin('jiahao-subagent');
 
 // Read stdin (hook input JSON)
@@ -21,6 +21,7 @@ process.stdin.on('end', () => {
   clearTimeout(stdinGuard); // stdin arrived; the hang guard has done its job
   let parsed = {};
   try { parsed = JSON.parse(input); } catch (e) { /* fail-open */ }
+  parsed = normalizePayload(parsed);
   sentinel.set('scan', parsed.session_id || null);
 
   const agentType = parsed.agent_type || parsed.agentType || '';
