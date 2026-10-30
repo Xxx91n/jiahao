@@ -9,7 +9,7 @@
 
 ## 版本控制
 
-- 普通 git：轮次分支 `grill-mental-model-rN` 承载一轮工作，票面分支的 PR base 取该轮次分支 tip。
+- 普通 git：票面分支 `feat/<主题>-<票号>` 直接对 `main` 开 PR，base = `main`；`Closes #N` 因此生效。仓库里没有 `grill-mental-model-rN` 轮次分支。
 - GitButler 在本仓库未初始化（`but status` 报 Setup required），`but setup` 会把 HEAD 切到 `gitbutler/workspace`——893 个提交不在 `main` 上的孤儿线。全局那条 GitButler 规矩在这里让位给普通 git。
 
 ## 不要改的目录
