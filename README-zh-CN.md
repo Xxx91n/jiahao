@@ -76,11 +76,14 @@ node scripts/install.js init -y
 以下命令在磁盘上检查代码、生成产物与仓库状态：
 
 ```bash
-npm test                                # 全量 Jest 物理测试（22 套件）
+npm test                                # 全量 Jest 测试
 node scripts/build-adapters.js --check  # 生成产物一致性检查
 node scripts/check-drift.js             # Profile 与退役出口漂移检查
-git diff --check                        # 格式与行尾空格检查
+npm run check:whitespace                # 行尾空白 / EOF 空行，未跟踪文件也算
+npm run check:links                     # 包里 Markdown 的相对链接必须落在包内
 ```
+
+`git diff --check` 只看看 diff 带出来的行，没 `git add` 过的新文件和未跟踪文件末尾的空行都会漏掉；`npm run check:whitespace` 直接读全部已跟踪与未跟踪的文本文件。
 
 发布 tag 上还会多跑一条 `npm run release:gate -- --tag vX.Y.Z`：把上面的检查与 tag/版本一致、包内容断言、产物 SHA256、安装 dry-run、无网络外呼合并成一道门。门禁证明什么、包里有什么、安装会写哪里、怎么在干净检出上复跑，见 [`docs/release.md`](docs/release.md)。
 

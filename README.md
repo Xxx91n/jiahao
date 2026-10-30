@@ -76,11 +76,14 @@ The private benchmark corpus (`private/bench-corpus/`) is a maintainer/CI asset:
 These commands check the code, the generated outputs, and repository state on disk:
 
 ```bash
-npm test                                # Full physical test suite (22 suites)
+npm test                                # Full Jest suite
 node scripts/build-adapters.js --check  # Generated output sync check
 node scripts/check-drift.js             # Profile and retired adapter drift check
-git diff --check                        # Whitespace and formatting check
+npm run check:whitespace                # Trailing whitespace / EOF blank lines, untracked files included
+npm run check:links                     # Relative links in packed Markdown resolve inside the package
 ```
+
+`git diff --check` only sees the lines a diff carries, so it misses a file that was never staged and a blank line at the end of an untracked file; `npm run check:whitespace` reads every tracked and untracked text file instead.
 
 A release tag runs one more command, `npm run release:gate -- --tag vX.Y.Z`, which bundles the checks above with the tag/version match, the packed-content audit, the artifact SHA256, an install dry-run, and the no-network assertion. What the gate proves, what the artifact carries, what install writes, and how to re-run it on a clean checkout: [`docs/release.md`](docs/release.md).
 

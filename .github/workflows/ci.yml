@@ -91,6 +91,9 @@ jobs:
           fi
           git diff --check HEAD^1 HEAD
       - run: npm ci --ignore-scripts
+      # The branch job carries the untracked-aware whitespace scan; a tag build
+      # never runs that job, so it runs here too.
+      - run: npm run check:whitespace
       - name: Release gate
         run: npm run release:gate -- --evidence release-artifacts/release-evidence.json --artifact-dir release-artifacts
       - name: Step summary
