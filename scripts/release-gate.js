@@ -95,7 +95,7 @@ const FORBIDDEN_LIFECYCLE = ['preinstall', 'install', 'postinstall', 'prepare', 
 // template may append its platform name after the script - one of the names the
 // hook layer implements, not any lowercase token.
 const PLATFORM_NAMES = PLATFORMS.join('|');
-const BUNDLED_COMMAND = new RegExp('^node "\\$\\{(?:CLAUDE_|CODEBUDDY_)?PLUGIN_ROOT\\}/hooks/[A-Za-z0-9._-]+\\.js"?(?: (?:' + PLATFORM_NAMES + '))?$');
+const BUNDLED_COMMAND = new RegExp('^node "\\$\\{(?:CLAUDE_|CODEBUDDY_)?PLUGIN_ROOT\\}/hooks/[A-Za-z0-9._-]+\\.js"(?: (?:' + PLATFORM_NAMES + '))?$');
 
 function parseTag(tag) {
   const m = /^v(\d+\.\d+\.\d+)$/.exec(String(tag || ''));

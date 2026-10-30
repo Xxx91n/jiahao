@@ -795,18 +795,9 @@ The repository root is also a Codex marketplace
 
 1. \`codex plugin marketplace add Xxx91n/jiahao\`
 2. \`codex plugin add jiahao --marketplace jiahao\`
-3. Turn the hook feature on in \`$CODEX_HOME/config.toml\`
-   (default \`~/.codex/config.toml\`):
-
-   \`\`\`toml
-   [features]
-   hooks = true
-   plugin_hooks = true
-   \`\`\`
-
-4. Review and trust the plugin's hook commands once — Codex skips an untrusted
+3. Review and trust the plugin's hook commands once — Codex skips an untrusted
    hook silently (\`/hooks\`).
-5. Activate the jiahao profile flag, same as every host. Resolve the config
+4. Activate the jiahao profile flag, same as every host. Resolve the config
    directory once (\`CLAUDE_CONFIG_DIR\`, else \`$HOME\`, else \`/tmp\`):
    \`CONFIG="\${CLAUDE_CONFIG_DIR:-\${HOME:-/tmp}}"\`, then
    \`echo full > "$CONFIG/.jiahao-active"\` and
@@ -814,9 +805,12 @@ The repository root is also a Codex marketplace
    (\`generator\` for advisory-only). Start a new session after changing
    \`.jiahao-profile\`.
 
-The feature flags (step 3) and the trust step (step 4) are the **documented host
-contract, not a live-probed recipe**: #74 lists both as open probes, and nobody
-has watched this install run in-host yet (#80).
+Current Codex builds enable hooks by default; no \`[features]\` flag is part of
+this recipe. Whether a given build needs one switched on, and the trust step
+above, are still the host contract rather than a live-probed recipe: #74 lists
+both as open probes, and nobody has watched this install run in-host yet (#80).
+If an older build refuses the plugin's hooks, look for a \`[features] hooks\`
+switch in \`$CODEX_HOME/config.toml\` rather than copying a flag block from here.
 
 Install, upgrade, and uninstall are the host's own plugin commands; the repo
 root is never a plugin entry.
