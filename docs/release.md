@@ -52,7 +52,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD`：分�
 
 ## 写入范围
 
-会写哪些文件，按代码事实列（`src/shared/paths.js`、`scripts/install.js`、`hooks/*.js`）。
+会写哪些文件，按代码事实列（`src/shared/paths.js`、`scripts/install.js`、`scripts/resolve.js`、`hooks/*.js`）。
 
 `<config>` 指配置目录：`$CLAUDE_CONFIG_DIR`，没有就用 `$HOME`，两者都没有时退到 `/tmp`。
 
@@ -65,6 +65,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD`：分�
 | 同上 | `<config>/.jiahao-evidence/`、`<config>/.jiahao-evidence.keys` | 同上；首次安装没有证据时是空操作 |
 | 钩子 SessionStart | `<config>/.jiahao-active`（不存在时写 `full`） | 每个会话开始 |
 | 钩子 UserPromptSubmit | `<config>/.jiahao-active` | 模式命令（`lite\|full\|ultra`） |
+| `jiahao resolve` | `<config>/.jiahao-evidence/*.jsonl`、`.jiahao-evidence.keys`、`.jiahao-anchor.json`；同一次写入期间的 `.jiahao-evidence.lock/`；旧单文件链迁移时的 `.jiahao-evidence.legacy.bak*` | 手工执行人工裁定（只追加，不改写既有记录） |
 | 钩子 Stop / SubagentStop | `<config>/.jiahao-evidence/*.jsonl`、`.jiahao-evidence.keys`、`.jiahao-anchor.json` | 每次判定 |
 | 同上 | `<config>/.jiahao-evidence.lock/` | 每次写证据期间的短锁，写完即删 |
 | 同上 | `<config>/.jiahao-evidence.legacy.bak*` | 只在本地存在旧的单文件证据链、需要迁移时写 |
@@ -78,13 +79,13 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD`：分�
 
 ## 无网络外呼
 
-「外呼」就是往外发网络请求。这一节声明：**装到用户机器上会跑起来的那部分 jiahao 代码不联网**——装完之后的钩子、运行时、安装器，以及 MCP 服务端的入口 `jiahao-mcp/index.js`，都不发起任何网络请求。安装也不下载、不执行远程脚本：`node scripts/install.js` 是仓库里的本地文件，两个插件目录是本地目录，复制即可。
+「外呼」就是往外发网络请求。这一节声明：**装到用户机器上会跑起来的那部分 jiahao 代码不联网**——装完之后的钩子、运行时、安装器、人工裁定命令 `scripts/resolve.js`，以及 MCP 服务端的入口 `jiahao-mcp/index.js`，都不发起任何网络请求。安装也不下载、不执行远程脚本：`node scripts/install.js` 是仓库里的本地文件，两个插件目录是本地目录，复制即可。
 
 这条声明由门禁的 `egress` 步骤每次重跑，不是一次性的口头保证：
 
-- 扫描装到用户机器上会跑的代码：`scripts/install.js`、`hooks/`、`src/`、`jiahao-mcp/index.js`。命中网络模块（`http`/`http2`/`https`/`net`/`dns`/`tls`/`dgram`）或网络调用（`fetch(`、`https.request`）即红。
+- 扫描装到用户机器上会跑的代码：`scripts/install.js`、`scripts/resolve.js`、`hooks/`、`src/`、`jiahao-mcp/index.js`。命中网络模块（`http`/`http2`/`https`/`net`/`dns`/`tls`/`dgram`）或网络调用（`fetch(`、`https.request`）即红。
 - 两个插件目录里的钩子与 `src/` 是这些文件的逐字节副本（`generated` 步骤每次重算比对），所以扫源目录就等于扫随插件发出去的那份。
-- 扫描如果连 `scripts/install.js`、`hooks/jiahao-verdict-gate.js`、`src/evidence-log.js`、`jiahao-mcp/index.js` 都没扫到，直接红——扫不到东西的检查不算检查。
+- 扫描如果连 `scripts/install.js`、`scripts/resolve.js`、`hooks/jiahao-verdict-gate.js`、`src/evidence-log.js`、`jiahao-mcp/index.js` 都没扫到，直接红——扫不到东西的检查不算检查。
 - `package.json` 出现 `preinstall`/`install`/`postinstall`/`prepare`/`prepack` 即红；插件钩子命令只要不是包内 `hooks/*.js` 即红。
 
 维护者工具（门禁脚本、生成器、漂移检查）不在扫描范围内：它们不是安装路径，也不会在用户机器上运行。已知边界两条：静态正则抓不到动态 `require()` 拼出来的模块名；MCP 服务端依赖的 SDK 依赖树没有随包 vendoring，不在扫描范围，装它那一步本身就是下面第 2 条例外。
