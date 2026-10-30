@@ -2,6 +2,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { execSync, execFileSync, spawnSync } = require('child_process');
+const { hookRegistrationPaths } = require('./helpers/generated-bundle');
 
 const root = path.join(__dirname, '..');
 
@@ -38,6 +39,8 @@ test('build-adapters generates the retained exits', () => {
       'adapters/codebuddy/rules/jiahao-generator.md',
       'adapters/copilot/plugin.json',
       'adapters/copilot/hooks/hooks.json',
+      'adapters/qoder/README.md',
+      'adapters/qoder/rules/jiahao.md',
       'skills/jiahao/SKILL.md',
     ];
     expected.forEach(rel => {
@@ -68,11 +71,11 @@ test('retired adapters are neither emitted nor present', () => {
   const emitted = Object.keys(buildAdapters());
   // One list, in the generator (check-drift reads the same one). The floor is
   // what stops the list from being silently emptied instead of honoured.
-  // copilot returned as a real bundle in #78, so nine names remain (codex
-  // returns in #77 and drops this floor to eight). The loop proves none of them
-  // is emitted or present; check-drift refuses a directory for any listed name,
-  // and "check-drift passes on the committed tree" below runs it.
-  expect(RETIRED_HOSTS.length).toBeGreaterThanOrEqual(9);
+  // copilot left in #78 and qoder in #79 (codex leaves in #77), so eight names
+  // remain. The loop proves none of them is emitted or present; check-drift
+  // refuses a directory for any listed name, and "check-drift passes on the
+  // committed tree" below runs it.
+  expect(RETIRED_HOSTS.length).toBeGreaterThanOrEqual(8);
   for (const name of RETIRED_HOSTS) {
     expect(emitted.some(rel => rel.startsWith('adapters/' + name + '/'))).toBe(false);
     expect(fs.existsSync(path.join(root, 'adapters', name))).toBe(false);
@@ -93,6 +96,66 @@ test('build-adapters --check is green and accounts for every tracked generated f
 test('the generator emits the rules-version skill file', () => {
   const { buildAdapters } = require('../scripts/build-adapters');
   expect(Object.keys(buildAdapters())).toContain('skills/jiahao/SKILL.md');
+});
+
+describe('Qoder rules-only exit (#79)', () => {
+  const { buildAdapters } = require('../scripts/build-adapters');
+  const generated = buildAdapters();
+  const PREFIX = 'adapters/qoder/';
+  const bodyOf = (text) => text.replace(/^---[\s\S]*?---\n/, '');
+
+  test('emits only a README and one rule file', () => {
+    expect(Object.keys(generated).filter((rel) => rel.startsWith(PREFIX)).sort()).toEqual([
+      PREFIX + 'README.md',
+      PREFIX + 'rules/jiahao.md',
+    ]);
+  });
+
+  test('registers no hook anywhere, and the assertion is red when one is planted', () => {
+    expect(hookRegistrationPaths(generated, PREFIX)).toEqual([]);
+    const plantedHookMap = Object.assign({}, generated, {
+      [PREFIX + 'hooks/hooks.json']: JSON.stringify({ hooks: { Stop: [] } }),
+    });
+    expect(hookRegistrationPaths(plantedHookMap, PREFIX)).toEqual([PREFIX + 'hooks/hooks.json']);
+    const plantedManifest = Object.assign({}, generated, {
+      [PREFIX + 'rules/plugin.json']: JSON.stringify({ name: 'jiahao', hooks: {} }),
+    });
+    expect(hookRegistrationPaths(plantedManifest, PREFIX)).toEqual([PREFIX + 'rules/plugin.json']);
+  });
+
+  test('the rule body is the rules-version body', () => {
+    expect(bodyOf(generated[PREFIX + 'rules/jiahao.md']))
+      .toBe(bodyOf(generated['skills/jiahao/SKILL.md']));
+  });
+
+  test('the install manual says rules only and no enforcement, without a blocking claim', () => {
+    const readme = generated[PREFIX + 'README.md'];
+    expect(readme).toMatch(/rules-only/i);
+    expect(readme).toMatch(/no enforcement/i);
+    expect(readme).toMatch(/declared-unverified|not live-probed/i);
+    expect(readme).not.toMatch(/\bwill block\b|\bblocks?\b|\bstops?\b|\bprevents?\b|会拦|拦截/i);
+  });
+
+  test('both READMEs list Qoder as a rules-only exit, not a retired directory', () => {
+    const en = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
+    const zh = fs.readFileSync(path.join(root, 'README-zh-CN.md'), 'utf8');
+    expect(en).toContain('adapters/qoder/');
+    expect(en).toMatch(/no enforcement/i);
+    expect(en).toMatch(/declared-unverified|not live-probed/i);
+    expect(en).not.toMatch(/codex, copilot, qoder/i);
+    expect(zh).toContain('adapters/qoder/');
+    expect(zh).toContain('只加载规则');
+    expect(zh).toContain('没有强制');
+    expect(zh).toMatch(/declared-unverified|尚未真机验证/i);
+    expect(zh).not.toMatch(/codex、copilot、qoder/i);
+    // The blocking-claim guard applies to the Qoder section, not to the
+    // plugin-version paragraphs elsewhere in the same file.
+    const enQoder = en.slice(en.indexOf('#### Qoder'), en.indexOf('### Plugin version'));
+    const zhQoder = zh.slice(zh.indexOf('#### Qoder'), zh.indexOf('### 插件版'));
+    const blocking = /\bwill block\b|\bblocks?\b|\bstops?\b|\bprevents?\b|会拦|拦截/i;
+    expect(enQoder).not.toMatch(blocking);
+    expect(zhQoder).not.toMatch(blocking);
+  });
 });
 
 // Literal roots, not the production constant: an emitted path outside every

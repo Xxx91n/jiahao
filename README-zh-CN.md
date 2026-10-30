@@ -24,7 +24,7 @@ AI Agent 普遍存在虚假完工综合征：不测就宣称搞定、报错找�
 
 ## 安装
 
-两个出口共用一份内容源。**规则版只有指令；插件版才有钩子和强制拦截。**
+所有出口共用一份内容源。**规则版只有指令；插件版才有钩子和强制拦截。**
 
 ### 规则版 —— 标准 CLI，只有指令
 
@@ -33,6 +33,10 @@ npx skills add Xxx91n/jiahao
 ```
 
 把 `skills/jiahao/SKILL.md` 装进读取标准 Agent Skills 目录的宿主。文件里两份纪律都在，宿主自行取用。没有钩子运行，因此不会拦截任何动作。6 个纯指令适配器目录（aider、cline、cursor、instruction-tier、opencode、windsurf）已退役；没有标准技能目录的宿主（例如 aider）在这个版本里没有打包适配器，但可以把生成的 `skills/jiahao/SKILL.md` 当普通文本复制过去。
+
+#### Qoder 规则出口（C 档，只有规则）
+
+Qoder 是 C 档的规则出口，位于 [`adapters/qoder/`](adapters/qoder/)：规则文件与规则版同源，没有任何钩子。把 `rules/jiahao.md` 复制到 `.qoder/rules/`（项目级）或 `~/.qoder/rules/`（用户级）。这个出口只加载规则，没有强制；加载行为属于 declared-unverified，尚未真机验证，安装步骤与验证状态见该目录 README。
 
 ### 插件版 —— 宿主原生命令，带钩子
 
@@ -44,7 +48,7 @@ codebuddy plugin install <path-to>/adapters/codebuddy
 
 插件默认关闭（`defaultEnabled: false`），安装后需要显式启用。随后用安装器写入 profile（`node scripts/install.js init -y`），它会打印实际写入的值（见 Profile）。启用后 `hooks/hooks.json` 接上 verifier 纪律的强制拦截。插件同时带两份 `alwaysApply: true` 的规则文件；规则级 profile 选择属于待确认，强制层是钩子。CLI 插件安装路径已记录但属于待确认；现场验证过的回退路径是合并 `.codebuddy/settings.json`。完整安装步骤、钩子表，以及已验证 / 待确认边界见 [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)。Claude Code 是第二个插件目录：自包含插件在 [`adapters/claude-code/`](adapters/claude-code/)，用仓库根的 marketplace 安装——`claude plugin marketplace add Xxx91n/jiahao`、`claude plugin install jiahao@jiahao`。钩子表与尚未真机验证的部分见该目录的 README。
 
-codex、qoder、mcp 目录不再作为安装出口；MCP 服务端本身保留在 [`jiahao-mcp/`](jiahao-mcp/)。GitHub Copilot CLI 是第三个自包含目录（`copilot plugin install <路径>/adapters/copilot`），档位是 **A 档候选**：宿主文档写了 `agentStop` 能阻断，但还没人真机看它拦过一次；方言（驼峰事件名、bash / powershell 两支、决策字段阻断）与未验证边界都写在它的 README 里。
+codex、mcp 目录不再作为安装出口；MCP 服务端本身保留在 [`jiahao-mcp/`](jiahao-mcp/)。GitHub Copilot CLI 是第三个自包含目录（`copilot plugin install <路径>/adapters/copilot`），档位是 **A 档候选**：宿主文档写了 `agentStop` 能阻断，但还没人真机看它拦过一次；方言（驼峰事件名、bash / powershell 两支、决策字段阻断）与未验证边界都写在它的 README 里。
 
 ### Profile
 

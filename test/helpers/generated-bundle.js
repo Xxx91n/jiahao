@@ -41,4 +41,25 @@ function materializeBundle(generated, generatedPrefix) {
   return dir;
 }
 
-module.exports = { materializeBundle, assertAbsolutePluginRoot };
+// A rules-only exit must not register a hook anywhere: no file under hooks/,
+// and no emitted JSON whose top level carries a hooks key. Paths only - prose
+// that mentions hooks is not a registration, and a parse failure is not a
+// registration either.
+function hookRegistrationPaths(generated, generatedPrefix) {
+  return Object.keys(generated)
+    .filter((rel) => rel.startsWith(generatedPrefix))
+    .filter((rel) => {
+      if (rel.includes('/hooks/')) return true;
+      if (!rel.endsWith('.json')) return false;
+      try {
+        const parsed = JSON.parse(generated[rel]);
+        return parsed && typeof parsed === 'object' &&
+          Object.prototype.hasOwnProperty.call(parsed, 'hooks');
+      } catch (e) {
+        return false;
+      }
+    })
+    .sort();
+}
+
+module.exports = { materializeBundle, assertAbsolutePluginRoot, hookRegistrationPaths };

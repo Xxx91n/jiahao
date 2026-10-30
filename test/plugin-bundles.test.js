@@ -1,6 +1,8 @@
 'use strict';
-// test/plugin-bundles.test.js - #76: the structural contract of every plugin
-// bundle, asserted once per row of the generator's host table.
+// test/plugin-bundles.test.js - #76: the structural contract of every host
+// exit, asserted once per row of the generator's host table. A row with a
+// manifest is a plugin bundle; a row with manifest: null is the rules-only
+// shape (rule text + README, no manifest, no hooks).
 //
 // Adding a host is a row in the generator's HOSTS table; this file names no host.
 // Everything is read from the IN-MEMORY generator output: the committed bytes
@@ -17,8 +19,9 @@ const { isBuiltin } = require('module');
 
 const {
   buildAdapters, HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds, dialectOf,
-  hookEntryCommands,
+  hookEntryCommands, isRulesOnlyDirectory,
 } = require('../scripts/build-adapters');
+const { hookRegistrationPaths } = require('./helpers/generated-bundle');
 
 const ROOT = path.join(__dirname, '..');
 const generated = buildAdapters();
@@ -86,15 +89,23 @@ function repoClosure(seeds) {
   return seen;
 }
 
-describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
+describe.each(HOSTS)('$label exit ($dir)', (host) => {
   const P = host.dir + '/';
   const dialect = dialectOf(host);
   const events = Object.keys(host.hooks || {});
   const manifestRel = P + dialect.manifestPath;
-  const manifest = JSON.parse(readGenerated(manifestRel));
+  // A rules-only row has no plugin manifest to parse; the shape tests below
+  // assert that absence instead.
+  const manifest = isRulesOnlyDirectory(host) ? null : JSON.parse(readGenerated(manifestRel));
 
   describe('bundle shape', () => {
-    test('the manifest lives only at the dialect path, with the skill body, README, and identity pin', () => {
+    test('the exit ships exactly the files its shape declares', () => {
+      if (isRulesOnlyDirectory(host)) {
+        expect(generated[manifestRel]).toBeUndefined();
+        expect(Object.keys(generated).filter((rel) => rel.startsWith(P + 'src/'))).toEqual([]);
+        expect(typeof generated[P + 'README.md']).toBe('string');
+        return;
+      }
       expect(typeof generated[manifestRel]).toBe('string');
       const manifests = Object.keys(generated)
         .filter((rel) => rel.startsWith(P) && /(^|\/)plugin\.json$/.test(rel));
@@ -111,7 +122,11 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
     });
 
     test('the bundle ships exactly the wired closure, nothing orphaned', () => {
-      const expected = new Set(['src/SKILL.md', 'src/instrument-identity.json']);
+      const expected = new Set();
+      if (!isRulesOnlyDirectory(host)) {
+        expected.add('src/SKILL.md');
+        expected.add('src/instrument-identity.json');
+      }
       for (const rel of repoClosure(bundleSeeds(host))) expected.add(rel);
       for (const rel of (host.mcp ? host.mcp.files : [])) expected.add(rel);
       const vendored = Object.keys(generated)
@@ -128,12 +143,22 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
       for (const rel of vendoredJs) {
         expect(generated[rel]).toBe(readRepo(rel.slice(P.length)));
       }
-      expect(generated[P + 'src/SKILL.md']).toBe(readRepo('src/SKILL.md'));
-      expect(generated[P + 'src/instrument-identity.json']).toBe(readRepo('src/instrument-identity.json'));
+      if (!isRulesOnlyDirectory(host)) {
+        expect(generated[P + 'src/SKILL.md']).toBe(readRepo('src/SKILL.md'));
+        expect(generated[P + 'src/instrument-identity.json']).toBe(readRepo('src/instrument-identity.json'));
+      }
     });
   });
 
   describe('manifest', () => {
+    if (isRulesOnlyDirectory(host)) {
+      test('a rules-only exit ships no plugin manifest at all', () => {
+        expect(generated[manifestRel]).toBeUndefined();
+        expect(Object.keys(generated).filter((rel) => rel.startsWith(P) && rel.endsWith('plugin.json'))).toEqual([]);
+      });
+      return;
+    }
+
     test('parses; name, version, license, repository, and the conservative default come from the package', () => {
       expect(manifest.name).toBe('jiahao');
       expect(manifest.version).toBe(pkg.version);
@@ -176,6 +201,10 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
       test('a rules-only bundle registers no hooks at all', () => {
         expect(generated[P + dialect.hookMapPath]).toBeUndefined();
         expect(Object.keys(generated).filter((rel) => rel.startsWith(P + 'hooks/'))).toEqual([]);
+      });
+
+      test('no emitted file in a rules-only exit carries a hook registration', () => {
+        expect(hookRegistrationPaths(generated, P)).toEqual([]);
       });
       return;
     }
@@ -305,7 +334,13 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
           text[rule.profile] = readGenerated(P + 'rules/' + rule.file);
           expect(text[rule.profile]).toMatch(/alwaysApply:\s*true/);
           expect(text[rule.profile]).toMatch(/jiahao/i);
-          expect(text[rule.profile]).toContain(rule.profile === 'generator' ? 'Generator Profile' : 'Verifier Profile');
+          if (rule.profile === 'both') {
+            // The rules-version body: one file carries both profiles.
+            expect(text[rule.profile]).toContain('Generator Profile');
+            expect(text[rule.profile]).toContain('Verifier Profile');
+          } else {
+            expect(text[rule.profile]).toContain(rule.profile === 'generator' ? 'Generator Profile' : 'Verifier Profile');
+          }
         }
         if (text.verifier && text.generator) expect(text.verifier).not.toBe(text.generator);
       });
@@ -454,11 +489,35 @@ describe('tier contract', () => {
     const rulesOnly = {
       name: 'probe-rules', label: 'Probe', dir: 'adapters/probe-rules', tier: 'C',
       turnEnd: null, provenance: 'probe', hooks: {},
-      manifest: { description: 'probe' }, autoDiscovered: [], mcp: null, rules: [],
+      manifest: { description: 'probe' }, autoDiscovered: [], mcp: null,
+      rules: [{ file: 'jiahao.md', profile: 'verifier', description: 'probe' }],
       readme: () => '',
     };
     expect(hostShapeProblems([rulesOnly])).toEqual([]);
     expect(bundleSeeds(rulesOnly)).toEqual([]);
+  });
+
+  test('a manifest-less row is the rules-only shape and must carry at least one rule', () => {
+    const rulesOnly = {
+      name: 'probe-rules', label: 'Probe', dir: 'adapters/probe-rules', tier: 'C',
+      turnEnd: null, provenance: 'probe', hooks: {}, manifest: null,
+      autoDiscovered: [], mcp: null,
+      rules: [{ file: 'jiahao.md', profile: 'both', description: 'probe' }],
+      readme: () => '',
+    };
+    expect(hostShapeProblems([rulesOnly])).toEqual([]);
+    expect(bundleSeeds(rulesOnly)).toEqual([]);
+    expect(hostShapeProblems([Object.assign({}, rulesOnly, { rules: [] })]).join('\n'))
+      .toMatch(/must ship at least one rule/);
+    expect(hostShapeProblems([Object.assign({}, rulesOnly, {
+      tier: 'A', turnEnd: 'Stop', hooks: { Stop: { script: 'jiahao-verdict-gate', timeout: 10 } },
+    })]).join('\n')).toMatch(/manifest-less exit is rules-only/);
+    expect(hostShapeProblems([Object.assign({}, rulesOnly, {
+      mcp: { entry: 'index.js', files: [] },
+    })]).join('\n')).toMatch(/no MCP registration/);
+    expect(hostShapeProblems([Object.assign({}, rulesOnly, {
+      rules: [{ file: 'x.md', profile: 'nope', description: 'probe' }],
+    })]).join('\n')).toMatch(/unknown profile/);
   });
 
   test('a host that registers SubagentStop runs the same gate as its turn-end event', () => {
