@@ -44,3 +44,7 @@ Five canonical triage roles map one-to-one to label strings. See `docs/agents/tr
 ### Domain docs
 
 Single-context layout: vocabulary at the repo root, behavior contract in `src/SKILL.md`. See `docs/agents/domain.md`.
+
+### Evidence review
+
+Any PR carrying acceptance evidence — live-host runs, probe logs, release records — is reviewed against `docs/agents/evidence-review.md`, item by item. The checklist is drawn from the #80 rework: numbers must match a cited artifact, hook exit code and session id must come from the same run, and unprobed claims are labeled as such.
