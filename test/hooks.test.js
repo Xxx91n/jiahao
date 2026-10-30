@@ -101,19 +101,40 @@ test('mode-tracker responds to /jiahao full command', () => {
 // envelope queued. The preload holds the loop past the guard and prints only if
 // it survived - clearing the guard when stdin ends is what lets that line appear.
 test('the stdin hang guard is cleared once stdin ends', () => {
-  const dir = freshDir('jiahao-hooks-test-');
-  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
-  const env = hostEnv(dir);
-  env.NODE_OPTIONS = '--require=' + path.join(__dirname, 'helpers', 'slow-stdin.js').split(path.sep).join('/');
-  const res = spawnHook(path.join(hooksDir, 'jiahao-instructions-assert.js'), {
-    stdin: '{}', env: env, cwd: repoRoot,
-  });
-  expectExit(res, 0);
-  expect(res.stdout).toContain('JIAHAO rules integrity');
-  expect(res.stdout).toContain('PRELOAD-ALIVE');
-});
+  const preload = path.join(__dirname, 'helpers', 'slow-stdin.js').split(path.sep).join('/');
+  // Every stdin-reading hook gets the same treatment: a regression in one must
+  // not stay green because only its sibling was pinned.
+  // Each payload reaches that hook's output path, so the process stays alive
+  // instead of taking an early exit that prints nothing.
+  const cases = [
+    { script: 'jiahao-instructions-assert.js', code: 0, stdin: '{}' },
+    { script: 'jiahao-mode-tracker.js', code: 0, stdin: JSON.stringify({ prompt: '/jiahao full' }) },
+    { script: 'jiahao-subagent.js', code: 0, stdin: '{}' },
+    {
+      script: 'jiahao-pretool-guard.js', code: 0,
+      stdin: JSON.stringify({
+        tool_name: 'Edit',
+        tool_input: { file_path: path.join(repoRoot, 'adapters', 'codebuddy', 'rules', 'jiahao-verifier.md') },
+      }),
+      pluginRoot: repoRoot,
+    },
+    { script: 'jiahao-verdict-gate.js', code: 2, stdin: JSON.stringify({ stop_hook_active: false }) },
+  ];
+  for (const c of cases) {
+    const dir = freshDir('jiahao-hooks-test-');
+    fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+    const env = hostEnv(dir, c.pluginRoot);
+    env.NODE_OPTIONS = [process.env.NODE_OPTIONS, '--require=' + preload].filter(Boolean).join(' ');
+    const res = spawnHook(path.join(hooksDir, c.script), {
+      stdin: c.stdin, env: env, cwd: repoRoot,
+    });
+    expectExit(res, c.code);
+    expect(res.stdout).toContain('PRELOAD-ALIVE');
+  }
+}, 30000);
 
-test('verdict-gate blocks without evidence', () => {  const dir = freshDir('jiahao-hooks-test-');
+test('verdict-gate blocks without evidence', () => {
+  const dir = freshDir('jiahao-hooks-test-');
   fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
   const res = runHook('jiahao-verdict-gate.js', {
     dir: dir, stdin: JSON.stringify({ stop_hook_active: false }),
