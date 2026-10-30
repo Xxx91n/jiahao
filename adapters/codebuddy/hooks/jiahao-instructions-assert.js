@@ -71,7 +71,9 @@ process.stdin.on('end', () => {
     (present === RULES.length ? '' : ' — MISSING (see .jiahao-instructions.jsonl)'),
     'InstructionsLoaded'
   );
-  process.exit(0);
+  // No process.exit() after the write (#84): stdout to a pipe is asynchronous
+  // on POSIX, and exiting here can drop the context envelope. The loop drains
+  // once stdin ends, and the guard timer below is unref'd.
 });
 
 // Windows stdin hang guard (same convention as the other hooks)
