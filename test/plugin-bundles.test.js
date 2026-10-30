@@ -18,7 +18,7 @@ const path = require('path');
 const { isBuiltin } = require('module');
 
 const {
-  buildAdapters, HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds, isRulesOnlyHost,
+  buildAdapters, HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds, isRulesOnlyDirectory,
 } = require('../scripts/build-adapters');
 const { hookRegistrationPaths } = require('./helpers/generated-bundle');
 
@@ -88,11 +88,11 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
   const manifestRel = P + '.claude-plugin/plugin.json';
   // A rules-only row has no plugin manifest to parse; the shape tests below
   // assert that absence instead.
-  const manifest = isRulesOnlyHost(host) ? null : JSON.parse(readGenerated(manifestRel));
+  const manifest = isRulesOnlyDirectory(host) ? null : JSON.parse(readGenerated(manifestRel));
 
   describe('bundle shape', () => {
     test('the exit ships exactly the files its shape declares', () => {
-      if (isRulesOnlyHost(host)) {
+      if (isRulesOnlyDirectory(host)) {
         expect(generated[manifestRel]).toBeUndefined();
         expect(Object.keys(generated).filter((rel) => rel.startsWith(P + 'src/'))).toEqual([]);
         expect(typeof generated[P + 'README.md']).toBe('string');
@@ -113,7 +113,7 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
 
     test('the bundle ships exactly the wired closure, nothing orphaned', () => {
       const expected = new Set();
-      if (!isRulesOnlyHost(host)) {
+      if (!isRulesOnlyDirectory(host)) {
         expected.add('src/SKILL.md');
         expected.add('src/instrument-identity.json');
       }
@@ -133,7 +133,7 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
       for (const rel of vendoredJs) {
         expect(generated[rel]).toBe(readRepo(rel.slice(P.length)));
       }
-      if (!isRulesOnlyHost(host)) {
+      if (!isRulesOnlyDirectory(host)) {
         expect(generated[P + 'src/SKILL.md']).toBe(readRepo('src/SKILL.md'));
         expect(generated[P + 'src/instrument-identity.json']).toBe(readRepo('src/instrument-identity.json'));
       }
@@ -141,7 +141,7 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
   });
 
   describe('manifest', () => {
-    if (isRulesOnlyHost(host)) {
+    if (isRulesOnlyDirectory(host)) {
       test('a rules-only exit ships no plugin manifest at all', () => {
         expect(generated[manifestRel]).toBeUndefined();
         expect(Object.keys(generated).filter((rel) => rel.startsWith(P) && rel.endsWith('plugin.json'))).toEqual([]);

@@ -36,7 +36,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { spawnSync } = require('child_process');
 
-const { HOSTS, isRulesOnlyHost } = require('./build-adapters');
+const { HOSTS, isRulesOnlyDirectory } = require('./build-adapters');
 
 const root = path.join(__dirname, '..');
 
@@ -46,6 +46,8 @@ const root = path.join(__dirname, '..');
 // generator's host table, so a new exit is required in the tarball without
 // touching this list. A rules-only row contributes its README and rule files
 // but no plugin manifest and no hook map.
+const PLUGIN_HOSTS = HOSTS.filter(host => !isRulesOnlyDirectory(host));
+const RULES_ONLY_HOSTS = HOSTS.filter(host => isRulesOnlyDirectory(host));
 const REQUIRED_PACK_FILES = [
   'package.json',
   // `jiahao resolve` is dispatched from the installer and its module went
@@ -54,8 +56,8 @@ const REQUIRED_PACK_FILES = [
   // machine.
   'scripts/resolve.js',
   'skills/jiahao/SKILL.md',
-  ...HOSTS.filter(host => !isRulesOnlyHost(host)).map(host => host.dir + '/.claude-plugin/plugin.json'),
-  ...HOSTS.filter(host => isRulesOnlyHost(host)).map(host => host.dir + '/README.md'),
+  ...PLUGIN_HOSTS.map(host => host.dir + '/.claude-plugin/plugin.json'),
+  ...RULES_ONLY_HOSTS.map(host => host.dir + '/README.md'),
   ...HOSTS.filter(host => Object.keys(host.hooks || {}).length > 0).map(host => host.dir + '/hooks/hooks.json'),
   ...HOSTS.flatMap(host => host.rules.map(rule => host.dir + '/rules/' + rule.file)),
   '.claude-plugin/marketplace.json',
@@ -69,7 +71,7 @@ const FORBIDDEN_PACK_PREFIXES = ['private/', 'bench/', 'docs/research/'];
 // bundle is easier to name than a tarball diff.
 const HASHED_TREES = ['skills/jiahao', ...HOSTS.map(host => host.dir)];
 
-const PLUGIN_MANIFESTS = HOSTS.filter(host => !isRulesOnlyHost(host)).map(host => host.dir + '/.claude-plugin/plugin.json');
+const PLUGIN_MANIFESTS = PLUGIN_HOSTS.map(host => host.dir + '/.claude-plugin/plugin.json');
 const MARKETPLACE_MANIFEST = '.claude-plugin/marketplace.json';
 
 // Files that run on a user's machine once jiahao is installed: the installer

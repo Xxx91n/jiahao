@@ -38,8 +38,8 @@ switch here because no hook reads that file.
 ## What this exit does not do
 
 - No hook registration, no subprocess, and no evidence file.
-- No enforcement: the file is instructions only. Qoder treats it as context,
-  not as a gate.
+- No enforcement: the file is instructions only. This exit registers nothing
+  that acts on a turn or a tool call.
 - No installer: copy the file into Qoder's own rules directory.
 
 ## Update

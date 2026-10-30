@@ -98,7 +98,7 @@ describe('Qoder rules-only exit (#79)', () => {
   const { buildAdapters } = require('../scripts/build-adapters');
   const generated = buildAdapters();
   const PREFIX = 'adapters/qoder/';
-  const stripFrontmatter = (text) => text.replace(/^---\n[\s\S]*?\n---\n/, '');
+  const bodyOf = (text) => text.replace(/^---[\s\S]*?---\n/, '');
 
   test('emits only a README and one rule file', () => {
     expect(Object.keys(generated).filter((rel) => rel.startsWith(PREFIX)).sort()).toEqual([
@@ -120,8 +120,8 @@ describe('Qoder rules-only exit (#79)', () => {
   });
 
   test('the rule body is the rules-version body', () => {
-    expect(stripFrontmatter(generated[PREFIX + 'rules/jiahao.md']))
-      .toBe(stripFrontmatter(generated['skills/jiahao/SKILL.md']));
+    expect(bodyOf(generated[PREFIX + 'rules/jiahao.md']))
+      .toBe(bodyOf(generated['skills/jiahao/SKILL.md']));
   });
 
   test('the install manual says rules only and no enforcement, without a blocking claim', () => {
@@ -137,11 +137,20 @@ describe('Qoder rules-only exit (#79)', () => {
     const zh = fs.readFileSync(path.join(root, 'README-zh-CN.md'), 'utf8');
     expect(en).toContain('adapters/qoder/');
     expect(en).toMatch(/no enforcement/i);
+    expect(en).toMatch(/declared-unverified|not live-probed/i);
     expect(en).not.toMatch(/codex, copilot, qoder/i);
     expect(zh).toContain('adapters/qoder/');
     expect(zh).toContain('只加载规则');
     expect(zh).toContain('没有强制');
+    expect(zh).toMatch(/declared-unverified|尚未真机验证/i);
     expect(zh).not.toMatch(/codex、copilot、qoder/i);
+    // The blocking-claim guard applies to the Qoder section, not to the
+    // plugin-version paragraphs elsewhere in the same file.
+    const enQoder = en.slice(en.indexOf('#### Qoder'), en.indexOf('### Plugin version'));
+    const zhQoder = zh.slice(zh.indexOf('#### Qoder'), zh.indexOf('### 插件版'));
+    const blocking = /\bwill block\b|\bblocks?\b|\bstops?\b|\bprevents?\b|会拦|拦截/i;
+    expect(enQoder).not.toMatch(blocking);
+    expect(zhQoder).not.toMatch(blocking);
   });
 });
 

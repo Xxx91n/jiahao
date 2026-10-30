@@ -247,10 +247,10 @@ const VERDICT_GATE = 'jiahao-verdict-gate';
 // would be silently overridden, so it is a table error instead.
 const RESERVED_MANIFEST_KEYS = ['name', 'version', 'license', 'repository', 'defaultEnabled'];
 
-// A rules-only exit is the manifest-less shape. One predicate, so the
-// generator, both gates, and the tests cannot disagree about which rows have
-// a plugin scaffold.
-function isRulesOnlyHost(host) {
+// A rules-only directory is the manifest-less shape: rule text + README, no
+// plugin scaffold. One predicate, so the generator, both gates, and the tests
+// cannot disagree about which rows have a plugin scaffold.
+function isRulesOnlyDirectory(host) {
   return host.manifest === null;
 }
 
@@ -299,7 +299,7 @@ function hostShapeProblems(hosts) {
     // manifest: null is the rules-only shape: no plugin manifest, no src/ copy,
     // no hooks. It must be C tier and register nothing the host could load as a
     // component.
-    const rulesOnly = isRulesOnlyHost(host);
+    const rulesOnly = isRulesOnlyDirectory(host);
     if (host.manifest === undefined || (!rulesOnly && (typeof host.manifest !== 'object' || Array.isArray(host.manifest)))) {
       problems.push(label + ': manifest must be an object, or null for a rules-only exit');
     }
@@ -412,7 +412,7 @@ function buildAdapters() {
   // src/ copy, and by the shape check above, no hook map.
   for (const host of HOSTS) {
     const prefix = host.dir + '/';
-    if (!isRulesOnlyHost(host)) {
+    if (!isRulesOnlyDirectory(host)) {
       emitBundle(adapters, prefix, bundleSeeds(host), skill, host.mcp ? host.mcp.files : []);
 
       adapters[prefix + '.claude-plugin/plugin.json'] = emitPluginManifest(host);
@@ -624,8 +624,8 @@ switch here because no hook reads that file.
 ## What this exit does not do
 
 - No hook registration, no subprocess, and no evidence file.
-- No enforcement: the file is instructions only. Qoder treats it as context,
-  not as a gate.
+- No enforcement: the file is instructions only. This exit registers nothing
+  that acts on a turn or a tool call.
 - No installer: copy the file into Qoder's own rules directory.
 
 ## Update
@@ -919,5 +919,5 @@ if (require.main === module) main();
 
 module.exports = {
   buildAdapters, unifiedDiff, checkAll, writeAll, auditTrackedSet, SKILL_DIR, SOURCE_NAME,
-  HOSTS, RETIRED_HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds, isRulesOnlyHost,
+  HOSTS, RETIRED_HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds, isRulesOnlyDirectory,
 };

@@ -9,7 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const { HOSTS, RETIRED_HOSTS, SKILL_DIR, isRulesOnlyHost } = require('./build-adapters');
+const { HOSTS, RETIRED_HOSTS, SKILL_DIR, isRulesOnlyDirectory } = require('./build-adapters');
 
 // impl (audit L1): no top-level side effects - the body runs inside
 // main() so requiring this module never probes or exits.
@@ -46,7 +46,7 @@ const GENERATOR_REQUIRED = [
 // markers, and byte equality is --check's job.
 const CHECKS = [
   { rel: SKILL_DIR + '/SKILL.md', kind: 'both' },
-  ...HOSTS.filter(host => !isRulesOnlyHost(host)).map(host => ({ rel: host.dir + '/src/SKILL.md', kind: 'both' })),
+  ...HOSTS.filter(host => !isRulesOnlyDirectory(host)).map(host => ({ rel: host.dir + '/src/SKILL.md', kind: 'both' })),
   ...HOSTS.flatMap(host => host.rules.map(rule => ({ rel: host.dir + '/rules/' + rule.file, kind: rule.profile }))),
 ];
 

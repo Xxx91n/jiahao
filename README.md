@@ -34,7 +34,9 @@ npx skills add Xxx91n/jiahao
 
 Installs `skills/jiahao/SKILL.md` into a host that reads the standard Agent Skills directory. The file carries both profiles as text; the host takes what it needs. No hook runs, so nothing is blocked. The six instruction-only adapter directories (aider, cline, cursor, instruction-tier, opencode, windsurf) are retired; a host without a standard skill directory (for example aider) has no packaged adapter in this release, though the generated `skills/jiahao/SKILL.md` can be copied as plain text.
 
-Qoder is a C-tier rules-only exit at [`adapters/qoder/`](adapters/qoder/): one rule file generated from the same source as the rules version, and no hooks. Copy `rules/jiahao.md` into `.qoder/rules/` (project) or `~/.qoder/rules/` (user); Qoder loads it as always-on context. This exit only loads rules: it has no enforcement.
+#### Qoder rules exit (C tier, rules only)
+
+Qoder is a C-tier rules-only exit at [`adapters/qoder/`](adapters/qoder/): one rule file generated from the same source as the rules version, and no hooks. Copy `rules/jiahao.md` into `.qoder/rules/` (project) or `~/.qoder/rules/` (user). This exit only loads rules: it has no enforcement. The host-side loading behavior is declared-unverified, not live-probed; the directory README carries the install steps and verification status.
 
 ### Plugin version — host-native command, with hooks
 

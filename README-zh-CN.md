@@ -34,7 +34,9 @@ npx skills add Xxx91n/jiahao
 
 把 `skills/jiahao/SKILL.md` 装进读取标准 Agent Skills 目录的宿主。文件里两份纪律都在，宿主自行取用。没有钩子运行，因此不会拦截任何动作。6 个纯指令适配器目录（aider、cline、cursor、instruction-tier、opencode、windsurf）已退役；没有标准技能目录的宿主（例如 aider）在这个版本里没有打包适配器，但可以把生成的 `skills/jiahao/SKILL.md` 当普通文本复制过去。
 
-Qoder 是 C 档的规则出口，位于 [`adapters/qoder/`](adapters/qoder/)：规则文件与规则版同源，没有任何钩子。把 `rules/jiahao.md` 复制到 `.qoder/rules/`（项目级）或 `~/.qoder/rules/`（用户级），Qoder 会把它当 always-on 上下文加载。这个出口只加载规则，没有强制。
+#### Qoder 规则出口（C 档，只有规则）
+
+Qoder 是 C 档的规则出口，位于 [`adapters/qoder/`](adapters/qoder/)：规则文件与规则版同源，没有任何钩子。把 `rules/jiahao.md` 复制到 `.qoder/rules/`（项目级）或 `~/.qoder/rules/`（用户级）。这个出口只加载规则，没有强制；加载行为属于 declared-unverified，尚未真机验证，安装步骤与验证状态见该目录 README。
 
 ### 插件版 —— 宿主原生命令，带钩子
 

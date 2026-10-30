@@ -34,7 +34,7 @@ function readFrontmatter(text, label) {
   return data;
 }
 
-const { buildAdapters, SKILL_DIR, SOURCE_NAME, HOSTS, isRulesOnlyHost } = require('../scripts/build-adapters');
+const { buildAdapters, SKILL_DIR, SOURCE_NAME, HOSTS, isRulesOnlyDirectory } = require('../scripts/build-adapters');
 const { listTrackedPaths } = require('../src/shared/tracked-surface');
 // The generated text, not the file on disk: another suite reruns the generator
 // while jest works, and a read landing in writeFileSync's truncate window gets a
@@ -79,7 +79,7 @@ test('the tracked SKILL.md set stays exactly the known set', () => {
     .filter((rel) => rel !== SKILL_DIR + '/SKILL.md')
     .sort();
   const expected = ['src/SKILL.md']
-    .concat(HOSTS.filter((host) => !isRulesOnlyHost(host)).map((host) => host.dir + '/src/SKILL.md'))
+    .concat(HOSTS.filter((host) => !isRulesOnlyDirectory(host)).map((host) => host.dir + '/src/SKILL.md'))
     .sort();
   expect(claimants).toEqual(expected);
 });
