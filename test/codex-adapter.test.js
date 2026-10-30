@@ -125,5 +125,9 @@ describe('Codex output envelope (spawned hook, temp config dir)', () => {
     const out = parseJson(res);
     expect(out.decision).toBe('block');
     expect(out.reason).toContain('no evidence');
+    // Codex's exit-2 path reads the continuation reason from stderr and ignores
+    // stdout (openai/codex hooks/events/stop.rs); without this the host records
+    // a failed hook instead of a block.
+    expect(String(res.stderr)).toContain('no evidence');
   }, 20000);
 });

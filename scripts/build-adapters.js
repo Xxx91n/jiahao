@@ -940,7 +940,7 @@ not re-implement host detection.
 | SessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext |
 | SubagentStart | hooks/jiahao-subagent.js | same injection on subagent spawn |
 | UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
-| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: exit 2 + {decision:"block"} when the evidence chain is empty (verifier profile) |
+| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: exit 2 + {decision:"block"} on stdout, with the same reason on stderr - the Codex exit-2 path reads stderr and ignores stdout; blocks an empty evidence chain (verifier profile) |
 | SubagentStop | hooks/jiahao-verdict-gate.js | same gate on subagent finish (parity) |
 | SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
 
