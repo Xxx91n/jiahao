@@ -81,15 +81,10 @@ const NETWORK_MODULE = /\brequire\(\s*['"](?:node:)?(?:https?|http2|net|dns|tls|
 const NETWORK_CALL = /(?:\bfetch\s*\(|XMLHttpRequest|https?\.(?:request|get)\s*\()/;
 // Lifecycle scripts would turn `npm install` into "download and execute".
 const FORBIDDEN_LIFECYCLE = ['preinstall', 'install', 'postinstall', 'prepare', 'prepack', 'postpack'];
-// Plugin hook commands must resolve inside the bundle. CodeBuddy additionally
-// expands ${CODEBUDDY_PLUGIN_ROOT}, so both names are accepted.
-const BUNDLED_COMMAND = /^node "?\$\{(?:CLAUDE|CODEBUDDY)_PLUGIN_ROOT\}\/hooks\/[A-Za-z0-9._-]+\.js"?$/;
-// Copilot CLI hands plugin hooks $PLUGIN_ROOT and spells the same variable
-// $env:PLUGIN_ROOT in its PowerShell branch; both must stay inside the bundle.
-const COPILOT_COMMANDS = [
-  /^node "\$PLUGIN_ROOT\/hooks\/[A-Za-z0-9._-]+\.js"$/,
-  /^node "\$env:PLUGIN_ROOT\/hooks\/[A-Za-z0-9._-]+\.js"$/,
-];
+// Plugin hook commands must resolve inside the bundle. The spelling of each
+// command field is the host row's dialect (scripts/hosts/*.js), not a second
+// copy here: one pattern per field, and the capture names the path inside the
+// bundle so "the script it runs" can be checked to exist as well.
 
 function parseTag(tag) {
   const m = /^v(\d+\.\d+\.\d+)$/.exec(String(tag || ''));
@@ -434,13 +429,17 @@ step('egress', 'code that runs after install makes no network call', () => {
         const commands = Array.isArray(entry.hooks) ? entry.hooks : [entry];
         for (const hook of commands) {
           if (hook.type !== 'command') continue;
+          // Each field is checked against its own pattern: a bash entry spelled
+          // with the PowerShell variable is a command the host would run in the
+          // wrong shell, not an acceptable variant.
           for (const field of dialect.commandFields) {
             const cmd = String(hook[field] || '').trim();
-            const ok = dialect.kind === 'copilot'
-              ? COPILOT_COMMANDS.some(rx => rx.test(cmd))
-              : BUNDLED_COMMAND.test(cmd);
-            if (!ok) {
+            const m = dialect.commandPatterns[field].exec(cmd);
+            if (!m) {
               throw new Error(rel + ' hook ' + event + ' runs a ' + field + ' command outside the bundle: ' + cmd);
+            }
+            if (!fs.existsSync(path.join(root, host.dir.split('/').join(path.sep), m[1].split('/').join(path.sep)))) {
+              throw new Error(rel + ' hook ' + event + ' runs a ' + field + ' command naming a file that is not in the bundle: ' + m[1]);
             }
           }
         }

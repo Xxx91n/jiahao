@@ -143,11 +143,13 @@ test('D3: SessionEnd is registered wherever a hook map exists', () => {
     const events = Object.keys(host.hooks || {});
     if (events.length === 0) continue;
     const dialect = dialectOf(host);
-    // The host's own name for its session-end event is whatever the row wires to
-    // the sweep (Copilot calls it sessionEnd, the Claude-shaped hosts SessionEnd);
-    // every hook-bearing row must have one, so a renamed event cannot drop it.
-    const sweepEvent = events.find((ev) => host.hooks[ev].script === 'jiahao-sweep');
-    expect(sweepEvent).toBeDefined();
+    // The dialect names the host's own session-end event (Copilot: sessionEnd,
+    // the Claude-shaped hosts: SessionEnd). Pinning the sweep to THAT event keeps
+    // the invariant about the end of the session, so a row that moves the sweep
+    // to sessionStart cannot pass by having a sweep somewhere.
+    const sweepEvent = dialect.sessionEndEvent;
+    expect(host.hooks[sweepEvent]).toBeDefined();
+    expect(host.hooks[sweepEvent].script).toBe('jiahao-sweep');
     wired++;
     const map = JSON.parse(generated[host.dir + '/' + dialect.hookMapPath]);
     const entry = map.hooks[sweepEvent][0];

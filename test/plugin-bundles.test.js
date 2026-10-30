@@ -145,9 +145,9 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
       expect(manifest.version).toBe(pkg.version);
       expect(manifest.license).toBe(pkg.license);
       expect(manifest.repository).toBe(pkgRepository);
-      // The conservative opt-in flag is a Claude-shaped manifest field; a host
-      // that does not document it must not be given a key it never reads.
-      if (dialect.kind === 'claude') {
+      // The conservative opt-in flag is declared per dialect: a host that does
+      // not document the field must not be given a key it never reads.
+      if (dialect.defaultEnabledFlag) {
         expect(manifest.defaultEnabled).toBe(false);
       } else {
         expect(manifest.defaultEnabled).toBeUndefined();
@@ -202,35 +202,32 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
             expect(h[dialect.timeoutField]).toBe(host.hooks[ev].timeout);
             expect(h[dialect.timeoutField]).toBeLessThanOrEqual(60);
             for (const field of dialect.commandFields) {
-              const cmd = h[field];
-              let m;
-              if (dialect.kind === 'copilot') {
-                // The two shell branches, each through the host's own variable.
-                const rx = field === 'bash'
-                  ? /^node "\$PLUGIN_ROOT\/(hooks\/[a-z0-9-]+\.js)"$/
-                  : /^node "\$env:PLUGIN_ROOT\/(hooks\/[a-z0-9-]+\.js)"$/;
-                m = rx.exec(String(cmd));
-              } else {
-                m = /^node "\$\{CLAUDE_PLUGIN_ROOT\}\/(hooks\/[a-z0-9-]+\.js)"$/.exec(String(cmd));
-              }
+              // The row's own pattern for this field: a host spells a command
+              // its own way, and one pattern per field keeps a wrong-shell
+              // command from passing as a legal variant.
+              const cmd = String(h[field]);
+              const pattern = dialect.commandPatterns[field];
+              expect(pattern instanceof RegExp).toBe(true);
+              const m = pattern.exec(cmd);
               expect(m).not.toBeNull();
               expect(typeof generated[P + m[1]]).toBe('string');
-              expect(String(cmd)).not.toContain('adapters/');
-              expect(String(cmd)).not.toContain('..');
+              expect(cmd).not.toContain('adapters/');
+              expect(cmd).not.toContain('..');
             }
           }
         }
       }
     });
 
-    if (dialect.kind === 'copilot') {
-      test('every entry carries both a bash and a powershell branch', () => {
+    if (!Array.isArray(cfg.hooks[events[0]][0].hooks)) {
+      // A flat entry (no nested `hooks`) must carry exactly the dialect's
+      // command fields plus the timeout key - a leftover `command` or `timeout`
+      // key is the other host's dialect and would be ignored here.
+      test('every flat entry carries exactly the dialect command fields and timeout key', () => {
+        const allowed = ['type', dialect.timeoutField].concat(dialect.commandFields).sort();
         for (const ev of events) {
           for (const entry of cfg.hooks[ev]) {
-            expect(typeof entry.bash).toBe('string');
-            expect(typeof entry.powershell).toBe('string');
-            expect(entry.command).toBeUndefined();
-            expect(entry.timeout).toBeUndefined();
+            expect(Object.keys(entry).sort()).toEqual(allowed);
           }
         }
       });

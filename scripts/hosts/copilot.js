@@ -1,25 +1,27 @@
 'use strict';
-// scripts/hosts/copilot.js - the one file where GitHub Copilot CLI's dialect lives.
+// scripts/hosts/copilot.js - the one file where GitHub Copilot CLI's config
+// dialect lives.
 //
-// Copilot CLI differs from the Claude-shaped hosts in three places, and all
-// three stay here instead of leaking into hooks/*.js or the generator's shared
-// emitters:
+// Two config-side differences from the Claude-shaped hosts live here:
 //   1. event names are camelCase (sessionStart, agentStop), not PascalCase;
 //   2. a command entry carries two shell branches, `bash` and `powershell`,
-//      because the host picks one by operating system;
-//   3. an agentStop block is the `decision: "block"` field on stdout, not an
-//      exit code - exit 2 is only a warning outside preToolUse/permissionRequest
-//      (docs.github.com/en/copilot/reference/hooks-reference, read 2026-10-30).
-//
-// The judgment logic stays in hooks/jiahao-verdict-gate.js, shared with every
-// other host; this module only says which event name runs which script and how
-// that command is spelled on the two shells.
+//      because the host picks one by operating system.
+// The third difference - an agentStop block is the `decision: "block"` field on
+// stdout, not an exit code - is the host's own contract, not a translation:
+// the shared hooks/jiahao-verdict-gate.js already prints that field, and its
+// exit 2 is only a warning on this host (docs.github.com/en/copilot/reference/
+// hooks-reference, read 2026-10-30). Nothing about the verdict is duplicated
+// here; this module only says which event name runs which script and how the
+// command is spelled on the two shells, so a second dialect host edits this
+// shape once instead of editing the gate and the tests again.
 //
 // Plugin layout (legacy Copilot format, documented): plugin.json at the plugin
 // root, hooks.json at the root or in hooks/, skills/<name>/SKILL.md. Plugin
 // hooks receive PLUGIN_ROOT, COPILOT_PLUGIN_ROOT and CLAUDE_PLUGIN_ROOT with the
-// installation directory (copilot-cli changelog 1.0.105 line for plugin hooks);
-// PLUGIN_ROOT is the name used here so nothing depends on Claude compatibility.
+// installation directory (copilot-cli changelog, 1.0.105); PLUGIN_ROOT is the
+// name used here so nothing depends on Claude compatibility.
+
+const HOOK_MAP_PATH = 'hooks/hooks.json';
 
 function scriptPath(script) {
   return 'hooks/' + script + '.js';
@@ -27,7 +29,14 @@ function scriptPath(script) {
 
 // Bash and PowerShell expand different variables for the same directory. Both
 // stay inside the plugin root - the path is relative to $PLUGIN_ROOT, never to
-// the repository or the working directory.
+// the repository or the working directory. The patterns are the contract the
+// release gate and the structure test both read, so the two spellings cannot
+// drift apart per reader (the first capture is the path inside the bundle).
+const COMMAND_PATTERNS = {
+  bash: /^node "\$PLUGIN_ROOT\/(hooks\/[a-z0-9-]+\.js)"$/,
+  powershell: /^node "\$env:PLUGIN_ROOT\/(hooks\/[a-z0-9-]+\.js)"$/,
+};
+
 function bashCommand(script) {
   return 'node "$PLUGIN_ROOT/' + scriptPath(script) + '"';
 }
@@ -64,7 +73,7 @@ function emitManifest(ctx) {
     author: { name: 'Xxx91n' },
     license: ctx.pkg.license,
     repository: ctx.repository,
-    hooks: 'hooks/hooks.json',
+    hooks: HOOK_MAP_PATH,
     skills: 'skills/',
   }, null, 2) + '\n';
 }
@@ -72,9 +81,12 @@ function emitManifest(ctx) {
 module.exports = {
   kind: 'copilot',
   manifestPath: 'plugin.json',
-  hookMapPath: 'hooks/hooks.json',
+  hookMapPath: HOOK_MAP_PATH,
+  sessionEndEvent: 'sessionEnd',
   timeoutField: 'timeoutSec',
+  defaultEnabledFlag: false,
   commandFields: ['bash', 'powershell'],
+  commandPatterns: COMMAND_PATTERNS,
   shipShippedSkill: true,
   emitManifest: emitManifest,
   emitHookMap: emitHookMap,

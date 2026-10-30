@@ -69,9 +69,10 @@ test('retired adapters are neither emitted nor present', () => {
   const emitted = Object.keys(buildAdapters());
   // One list, in the generator (check-drift reads the same one). The floor is
   // what stops the list from being silently emptied instead of honoured.
-  // copilot returned as a real bundle in #78 (codex returns in #77); the
-  // remaining names are still refused by check-drift.
-  expect(RETIRED_HOSTS.length).toBeGreaterThanOrEqual(8);
+  // copilot returned as a real bundle in #78, so nine names remain (codex
+  // returns in #77 and drops this floor to eight); the loop below still proves
+  // every listed name is refused by check-drift.
+  expect(RETIRED_HOSTS.length).toBeGreaterThanOrEqual(9);
   for (const name of RETIRED_HOSTS) {
     expect(emitted.some(rel => rel.startsWith('adapters/' + name + '/'))).toBe(false);
     expect(fs.existsSync(path.join(root, 'adapters', name))).toBe(false);

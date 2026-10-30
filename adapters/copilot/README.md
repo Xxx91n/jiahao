@@ -15,7 +15,8 @@ does not claim "it blocks".
 ## Install
 
 1. `copilot plugin install <path-to-this-dir>` (native command; the
-   `/plugin install` slash command does the same inside a session).
+   `/plugin install` slash command does the same inside a session). This is
+   the documented path, not yet probed - see the table below.
 2. Enable the plugin for the repository (`enabledPlugins` in
    `.github/copilot/settings.json`) or for yourself
    (`~/.copilot/settings.json`).
@@ -45,8 +46,10 @@ Timeouts stay within the host's default 30s budget (10/10/10/30/30/10s).
 
 ## Dialect: what differs from the Claude-shaped hosts
 
-The three differences live in `scripts/hosts/copilot.js` and in this config;
-the judgment logic is the same `hooks/jiahao-verdict-gate.js` every host runs.
+Two config-side differences live in `scripts/hosts/copilot.js` and in this
+config; the third is the host's own block contract, which the shared gate
+already satisfies. The judgment logic is the same
+`hooks/jiahao-verdict-gate.js` every host runs.
 
 - **Event names are camelCase** (`sessionStart`, `agentStop`), not
   `SessionStart` / `Stop`. A copied PascalCase map is a config this host
@@ -80,6 +83,7 @@ the judgment logic is the same `hooks/jiahao-verdict-gate.js` every host runs.
 | A real turn-end block (`agentStop` + `decision:"block"`) | pending-confirmation |
 | Native `copilot plugin install` reading `plugin.json` + `hooks/hooks.json` | pending-confirmation |
 | Whether `userPromptSubmitted` output reaches the model (docs list no injection field for it) | pending-confirmation |
+| `COPILOT_PLUGIN_DATA` marks a session as Copilot for the shared envelope branch (`hooks/jiahao-runtime.js`) | pending-confirmation |
 
 ## Write scope and network
 
