@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execSync, spawnSync } = require('child_process');
 
 const TMP = require('os').tmpdir().replace(/\\/g, '/') + '/jiahao-hooks-test';
 
@@ -400,4 +400,148 @@ test('verifier gate surfaces pending escalation count (advisory, exit 0)', () =>
   });
   expect(output).toContain('Pending escalations: 1');
   expect(output).toContain('jiahao resolve');
+});
+
+// ---- #75: the severity/coverage scan is a decision about THIS turn ----
+// Before this, the scan covered the whole append-only chain, so one stale
+// record - a killed hook's sentinel-reconcile coverage:partial, or an enforce
+// pairer-lane high severity - gated every later Stop, and human adjudication
+// could not release it.
+
+const { recordHash } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
+
+// Each case runs against its own config dir. The shared TMP above is what the
+// other tests in this file use, and two overlapping runs - a second agent in
+// another worktree, or a sharded job - clobber the chain mid-assertion, which
+// turns a block into a pass.
+function gateFixture() {
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'jiahao-gate-75-'));
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'verifier', 'utf8');
+  return {
+    chain: function (records) {
+      fs.writeFileSync(path.join(dir, '.jiahao-evidence'), JSON.stringify(records), 'utf8');
+    },
+    stop: function (payload) {
+      // spawnSync with an argv array and the payload on stdin: no shell string to
+      // interpolate, and a block (exit 2) is a normal result rather than a throw.
+      const res = spawnSync(process.execPath,
+        [path.join(__dirname, '..', 'hooks', 'jiahao-verdict-gate.js')], {
+          input: JSON.stringify(payload),
+          env: { ...process.env, CLAUDE_CONFIG_DIR: dir },
+          encoding: 'utf8', timeout: 15000,
+        });
+      return { status: res.status, stdout: String(res.stdout || '') };
+    },
+  };
+}
+
+function highSeverityRecord(prevHash, sessionId) {
+  const extras = { detector: detect('搞定了') };
+  if (sessionId) extras.session_id = sessionId;
+  return createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, prevHash, extras);
+}
+
+// What a killed hook actually leaves behind: nothing suspicious in the claim
+// text, only a degraded view of it.
+function partialCoverageRecord(prevHash, sessionId) {
+  const extras = {
+    detector: {
+      suspicious: false, matched_phrases: [], severity: null, coverage: 'partial',
+      degradation: { kind: 'timeout', detail: { hook: 'jiahao-verdict-gate', phase: 'stdin' } },
+    },
+  };
+  if (sessionId) extras.session_id = sessionId;
+  return createEvidence('sentinel-reconcile', 'sentinel', 'suspect',
+    'hook killed before sentinel.end: jiahao-verdict-gate at phase stdin', null, prevHash, extras);
+}
+
+function humanVerdict(prevHash, verdict, sessionId) {
+  const rec = {
+    kind: 'human_verdict', reviewer_id: 'alice', verdict,
+    reason: verdict === 'pass'
+      ? 're-ran rung 1 against the migration; the claim holds'
+      : 'diff shows the migration is still missing',
+    corrected_output: null, second_reviewer: null, overturn: false,
+    timestamp: new Date().toISOString(), prev_hash: prevHash,
+  };
+  if (sessionId) rec.session_id = sessionId;
+  rec.event_hash = recordHash(rec);
+  return rec;
+}
+
+test('#75: an adjudication recorded under another session still releases what it cleared', () => {
+  const gate = gateFixture();
+  const stale = partialCoverageRecord(null);
+  // a reviewer working in their own conversation clears the escalation the
+  // agent hit in a different one - the release must be readable from anywhere,
+  // or scoping the scan has only produced a new permanent block.
+  const pass = humanVerdict(stale.event_hash, 'pass', 'session-reviewer');
+  gate.chain([stale, pass]);
+  expect(gate.stop({ stop_hook_active: false, session_id: 'session-current' }).status).toBe(0);
+});
+
+test('#75: another session records do not vouch for this session', () => {
+  const gate = gateFixture();
+  // The machine has been used: a clean, fully verified turn from an earlier
+  // conversation sits on the chain. That is not this turn's evidence.
+  gate.chain([createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null, { session_id: 'session-old' })]);
+  const res = gate.stop({ stop_hook_active: false, session_id: 'session-new' });
+  expect(res.status).toBe(2);
+  expect(JSON.parse(res.stdout).reason).toMatch(/no evidence/);
+});
+
+test('#75: a high-severity record from another session does not gate this Stop', () => {
+  const gate = gateFixture();
+  const own = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null, { session_id: 'session-new' });
+  gate.chain([own, highSeverityRecord(own.event_hash, 'session-old')]);
+  expect(gate.stop({ stop_hook_active: false, session_id: 'session-new' }).status).toBe(0);
+});
+
+test('#75: a partial-coverage record from another session does not gate this Stop', () => {
+  const gate = gateFixture();
+  const own = createEvidence('det-0', 'deterministic', 'passed', 'ok', 0.9, null, { session_id: 'session-new' });
+  gate.chain([own, partialCoverageRecord(own.event_hash, 'session-old')]);
+  expect(gate.stop({ stop_hook_active: false, session_id: 'session-new' }).status).toBe(0);
+});
+
+test('#75: the same records still gate inside their own session', () => {
+  const gate = gateFixture();
+  gate.chain([highSeverityRecord(null, 'session-a')]);
+  const high = gate.stop({ stop_hook_active: false, session_id: 'session-a' });
+  expect(high.status).toBe(2);
+  expect(JSON.parse(high.stdout).reason).toMatch(/high severity/);
+
+  gate.chain([partialCoverageRecord(null, 'session-b')]);
+  const partial = gate.stop({ stop_hook_active: false, session_id: 'session-b' });
+  expect(partial.status).toBe(2);
+  expect(JSON.parse(partial.stdout).reason).toMatch(/partial coverage/);
+});
+
+test('#75: a passed human verdict releases a stale coverage record', () => {
+  const gate = gateFixture();
+  const stale = partialCoverageRecord(null);
+  gate.chain([stale]);
+  // unattributed records stay in scope - a host that sends no session_id gets
+  // no free pass, and adjudication is their only release.
+  expect(gate.stop({ stop_hook_active: false }).status).toBe(2);
+
+  const pass = humanVerdict(stale.event_hash, 'pass');
+  gate.chain([stale, pass]);
+  expect(gate.stop({ stop_hook_active: false }).status).toBe(0);
+  // released for good: the adjudication lives on the append-only chain, so the
+  // next Stop sees the same answer.
+  expect(gate.stop({ stop_hook_active: false }).status).toBe(0);
+});
+
+test('#75: a passed human verdict releases a stale severity record, a failed one does not', () => {
+  const gate = gateFixture();
+  const stale = highSeverityRecord(null);
+  const fail = humanVerdict(stale.event_hash, 'fail');
+  gate.chain([stale, fail]);
+  expect(gate.stop({ stop_hook_active: false }).status).toBe(2);
+
+  const pass = humanVerdict(fail.event_hash, 'pass');
+  gate.chain([stale, fail, pass]);
+  expect(gate.stop({ stop_hook_active: false }).status).toBe(0);
 });

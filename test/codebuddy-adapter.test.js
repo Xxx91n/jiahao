@@ -109,26 +109,105 @@ describe('hook behavior (bundle copies, live spawn)', () => {
     const dir = mkConfigDir({ '.jiahao-profile': 'verifier' });
     const shapes = [
       'rm rules/jiahao-verifier.md',
-      'rm .mcp.json',
-      'del hooks\\hooks.json',
       'rm C:/x/plugin/rules/jiahao-verifier.md extra',
       'cat .jiahao-pretool.jsonl',
       'rm -rf hooks/jiahao-pretool-guard.js',
-      'move .claude-plugin/plugin.json out.json',
+      // #75: none of these are name fragments any more - containment under the
+      // bundle root is what protects them, so they are pinned by the host's own
+      // absolute spelling (the reading a real tool_input carries). bundleDir, not
+      // BUNDLE: BUNDLE is a key into the generator's map ('adapters/codebuddy/'),
+      // and joining onto it silently produces a relative path that resolves
+      // wherever the test process happens to sit - which is how this assertion
+      // went red in a merge with no textual conflict.
+      'rm ' + path.join(bundleDir, 'hooks', 'hooks.json'),
+      'rm ' + path.join(bundleDir, '.mcp.json'),
+      'move ' + path.join(bundleDir, '.claude-plugin', 'plugin.json') + ' out.json',
+      'rm ' + path.join(bundleDir, 'src', 'SKILL.md'),
+      'rm ' + path.join(bundleDir, 'src', 'shared', 'paths.js'),
     ];
     for (const command of shapes) {
       const res = runBundleHook('jiahao-pretool-guard.js', {
         configDir: dir, pluginRoot: bundleDir,
         stdin: JSON.stringify({ tool_name: 'Bash', tool_input: { command: command } }),
       });
-      expect(res.status).toBe(0);
-      const out = JSON.parse(res.stdout.trim());
-      expect(out.hookSpecificOutput.permissionDecision).toBe('deny');
+      // Name the shape when the guard stays silent. An empty stdout here means a
+      // tool call that should have been denied went through, and JSON.parse's
+      // "Unexpected end of JSON input" says nothing about which payload did it.
+      if (res.status !== 0 || !String(res.stdout).trim()) {
+        throw new Error('shape not denied: ' + JSON.stringify({
+          command: command, status: res.status, stdout: res.stdout, stderr: res.stderr,
+        }));
+      }
+      expect(JSON.parse(res.stdout).hookSpecificOutput.permissionDecision).toBe('deny');
     }
     // non-protected payloads still pass silently
     const benign = runBundleHook('jiahao-pretool-guard.js', {
       configDir: dir, pluginRoot: bundleDir,
       stdin: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'rm rules/other.md && cat README.md' } }),
+    });
+    expect(benign.stdout.trim()).toBe('');
+  });
+
+  // #75: `.mcp.json`, `hooks/hooks.json` and `.claude-plugin/plugin.json` are
+  // ordinary filenames in any user project. They belong to the enforcement
+  // surface only INSIDE the plugin root, so a bare or elsewhere-anchored
+  // occurrence must pass silently and must not be counted as a bypass attempt.
+  test('PreToolUse leaves a user project\'s own same-named files alone (#75)', () => {
+    const dir = mkConfigDir({ '.jiahao-profile': 'verifier' });
+    // A scratch user project, not this repo: the repo root is itself a plugin
+    // source, so its own .claude-plugin/ is apparatus by another route and the
+    // assertion would not be about a stranger's project.
+    const project = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-user-project-'));
+    const ownFiles = ['.mcp.json', path.join('hooks', 'hooks.json'), path.join('.claude-plugin', 'plugin.json')]
+      .map((rel) => path.join(project, rel));
+    for (const abs of ownFiles) {
+      fs.mkdirSync(path.dirname(abs), { recursive: true });
+      fs.writeFileSync(abs, '{}', 'utf8');
+    }
+    const commands = [
+      'rm .mcp.json',
+      'del hooks\\hooks.json',
+      'move .claude-plugin/plugin.json out.json',
+    ].concat(ownFiles.map((p) => 'rm ' + p));
+    for (const command of commands) {
+      const res = runBundleHook('jiahao-pretool-guard.js', {
+        configDir: dir, pluginRoot: bundleDir,
+        stdin: JSON.stringify({ tool_name: 'Bash', tool_input: { command: command } }),
+      });
+      expect(res.status).toBe(0);
+      expect(res.stdout.trim()).toBe('');
+    }
+    for (const file_path of ownFiles) {
+      const res = runBundleHook('jiahao-pretool-guard.js', {
+        configDir: dir, pluginRoot: bundleDir,
+        stdin: JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: file_path } }),
+      });
+      expect(res.status).toBe(0);
+      expect(res.stdout.trim()).toBe('');
+    }
+    // nothing was recorded either: a non-attempt is not telemetry
+    expect(fs.existsSync(path.join(dir, '.jiahao-pretool.jsonl'))).toBe(false);
+  });
+
+  // The host sends an absolute file_path; a directory name with a space inside it
+  // must not switch containment off (CodeRabbit Major on PR #83).
+  test('PreToolUse denies a spaced absolute path inside the plugin root', () => {
+    const dir = mkConfigDir({ '.jiahao-profile': 'verifier' });
+    const spaced = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao spaced-'));
+    const hookMap = path.join(spaced, 'hooks', 'hooks.json');
+    fs.mkdirSync(path.dirname(hookMap), { recursive: true });
+    fs.writeFileSync(hookMap, '{}', 'utf8');
+    const res = runBundleHook('jiahao-pretool-guard.js', {
+      configDir: dir, pluginRoot: spaced,
+      stdin: JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: hookMap } }),
+    });
+    expect(res.status).toBe(0);
+    expect(JSON.parse(res.stdout.trim()).hookSpecificOutput.permissionDecision).toBe('deny');
+
+    const outside = path.join(spaced, '..', 'John Doe project', '.mcp.json');
+    const benign = runBundleHook('jiahao-pretool-guard.js', {
+      configDir: dir, pluginRoot: spaced,
+      stdin: JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: outside } }),
     });
     expect(benign.stdout.trim()).toBe('');
   });

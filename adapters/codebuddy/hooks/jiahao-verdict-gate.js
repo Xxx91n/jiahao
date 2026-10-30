@@ -28,6 +28,47 @@ if (!fs.existsSync(flagPath())) {
 const profile = readProfile();
 const isGenerator = profile === 'generator';
 
+// #75: which records a Stop decision may be made about. The chain is append-only
+// and shared by every session on the machine, so reading all of it let one stale
+// record - a killed hook's sentinel-reconcile coverage:partial, or an enforce
+// pairer-lane high severity - gate every later turn forever, and human
+// adjudication could not release it.
+//   scopedToSession: with a session_id on the payload, a record MARKED as another
+//     conversation's can neither block this Stop nor vouch for it. Case A applies
+//     this rule to the whole chain and gatingRecords applies it after the release
+//     point, so the two sets diverge once anything has been adjudicated.
+//     Unmarked records stay in scope for every session - gate.js and the sentinel
+//     write that shape, and dropping them would hand a host that sends no
+//     session_id a free pass. The costs are stated rather than hidden: a payload
+//     without a session_id filters nothing at all, and because the chain is
+//     append-only, an unmarked record already on it vouches for every later
+//     session for good - Case A has no release point to advance past, and
+//     stamping future writers would not retire what is already written.
+//   gatingRecords: additionally drops everything up to the last passed human
+//     adjudication, read wherever it sits - including under a different
+//     session_id, or a reviewer who cleared a stale escalation from their own
+//     conversation could never release it, and #75 would have traded one
+//     permanent block for another. A `fail` verdict does not release: the human
+//     agreed the claim was unsupported, so the turn still has to be re-verified.
+// The chain-integrity check and the κ / pending-escalation advisories keep
+// reading the whole chain: corruption has no session, and both are advisory only.
+function scopedToSession(chain, sessionId) {
+  if (!chain) return [];
+  if (!sessionId) return chain;
+  return chain.filter(function (rec) {
+    return !rec || !rec.session_id || rec.session_id === sessionId;
+  });
+}
+
+function gatingRecords(chain, sessionId) {
+  let releasedAt = -1;
+  for (let i = 0; i < chain.length; i++) {
+    const rec = chain[i];
+    if (rec && rec.kind === 'human_verdict' && rec.verdict === 'pass') releasedAt = i;
+  }
+  return scopedToSession(chain.slice(releasedAt + 1), sessionId);
+}
+
 // dead-man switch (hook-tier hosts): the judge seam re-verification
 // deadline is machine-readable. The state is DERIVED from the content-anchored
 // deadline constants + the append-only reverify ledger tail, never stored --
@@ -76,6 +117,14 @@ process.stdin.on('end', () => {
     return !(r && r.detector && r.detector.source === 'pairer-instrument' && r.detector.shadow === true);
   }) : rawChain;
   const evidenceChain = (effective && effective.length === 0) ? null : effective;
+  // #75: evidence speaks for the session that wrote it - as long as the payload
+  // says which session that was. Case A is judged on this session's records plus
+  // everything unattributed, so an earlier conversation's marked records can
+  // neither block this turn nor vouch for it; with no session_id on the payload
+  // nothing is filtered and the whole chain counts. The integrity check below and
+  // the advisories stay on the whole chain: corruption has no session, and both
+  // are advisory.
+  const sessionEvidence = scopedToSession(evidenceChain, parsed.session_id || null);
 
   // chain-corruption detection runs BEFORE any severity case.
   // A broken chain is treated as missing evidence in verifier profile
@@ -126,9 +175,11 @@ process.stdin.on('end', () => {
   // soft-deadline banner rides pendingText (advisory only,
   // never changes exit codes -- same discipline as the kappa advisory).
 
-  // ---- Case A: no evidence at all --------------------------------------
-  // Behaviour unchanged: block verifier, advisory generator.
-  if (!evidenceChain) {
+  // ---- Case A: no evidence for this turn -------------------------------
+  // Block verifier, advisory generator. #75 narrowed the chain this case reads to
+  // this session plus the unattributed records: an earlier conversation's marked
+  // records are neither this turn's blocker nor this turn's proof.
+  if (sessionEvidence.length === 0) {
     if (isGenerator) {
       console.log(JSON.stringify({
         decision: 'allow',
@@ -139,20 +190,21 @@ process.stdin.on('end', () => {
     }
     console.log(JSON.stringify({
       decision: 'block',
-      reason: 'Verification has no evidence: no test run, no state diff, no re-execution quoted. NOT VERIFIED — run rung 1-3 of the verification ladder first. Evidence file empty or unparseable.',
+      reason: 'Verification has no evidence: no test run, no state diff, no re-execution quoted. NOT VERIFIED — run rung 1-3 of the verification ladder first. Evidence chain empty, unparseable, or attributable only to other sessions.',
     }));
     process.exit(2);
   }
 
   // ---- Case B: evidence exists — apply profile × severity matrix (D2) --
-  // Find the highest severity on any record in the chain. Records without
-  // a detector field (or with severity === null) are not suspicious.
+  // Find the highest severity among the records this Stop is about. Records
+  // without a detector field (or with severity === null) are not suspicious.
+  const gating = gatingRecords(evidenceChain, parsed.session_id || null);
   let highestSeverity = null;
   let matchedPhrases = [];
   // coverage is orthogonal to severity — scan it even on
   // non-suspicious records (a benign claim on a truncated view still gates).
   let coveragePartial = null;
-  for (const rec of evidenceChain) {
+  for (const rec of gating) {
     // shadow records never enter the severity matrix.
     if (rec && rec.detector && rec.detector.shadow === true) continue;
     if (rec && rec.detector) {
