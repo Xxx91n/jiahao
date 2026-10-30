@@ -10,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const { splitByProfile, validateGsrHeaders } = require('../hooks/jiahao-profile');
 const { listTrackedPaths } = require('../src/shared/tracked-surface');
+const copilotDialect = require('./hosts/copilot');
 
 const root = path.join(__dirname, '..');
 
@@ -132,6 +133,37 @@ const HOSTS = [
     ],
     readme: codebuddyReadme,
   },
+  {
+    name: 'copilot',
+    label: 'GitHub Copilot CLI',
+    dir: 'adapters/copilot',
+    tier: 'A',
+    turnEnd: 'agentStop',
+    // Docs contract, not a live probe: the hooks reference says agentStop honors
+    // {decision:"block"} and that the CLI ends the turn after 8 consecutive
+    // blocks. Nobody has watched a real turn get blocked yet (#80), so the
+    // published wording stays "A 档候选".
+    provenance: 'GitHub Copilot CLI 1.0.105 (docs.github.com hooks reference + copilot-cli changelog, read 2026-10-30): agentStop {decision:"block"} documented, capped at 8 consecutive blocks; plugin hooks receive PLUGIN_ROOT; no live turn-end block observed',
+    // camelCase event names and the bash/powershell pair are this host's
+    // dialect; they live in scripts/hosts/copilot.js alone, never in the hook
+    // scripts. subagentStop runs the same gate as agentStop (D5 parity).
+    dialect: copilotDialect,
+    hooks: {
+      sessionStart: { script: 'jiahao-activate', timeout: 10 },
+      subagentStart: { script: 'jiahao-subagent', timeout: 10 },
+      userPromptSubmitted: { script: 'jiahao-mode-tracker', timeout: 10 },
+      agentStop: { script: 'jiahao-verdict-gate', timeout: 30 },
+      subagentStop: { script: 'jiahao-verdict-gate', timeout: 30 },
+      sessionEnd: { script: 'jiahao-sweep', timeout: 10 },
+    },
+    manifest: {
+      description: 'Dual-profile verification discipline for GitHub Copilot CLI: verifier gate on agentStop, profile injection on sessionStart.',
+    },
+    autoDiscovered: [],
+    mcp: null,
+    rules: [],
+    readme: copilotCliReadme,
+  },
 ];
 
 // The marketplace is the repository root, and its single entry is the plugin a
@@ -142,13 +174,32 @@ const MARKETPLACE_HOST = HOSTS.find(host => host.name === 'claude-code');
 // Retired, and not to be re-added without a self-contained directory and tests:
 // aider, cline, cursor, instruction-tier, opencode, and windsurf were
 // instruction-only copies, replaced by the standard rules directory
-// (skills/jiahao/); codex, copilot, qoder, and mcp registered hooks or notes
-// without shipping the scripts next to them, so a copied directory could not
-// run. The MCP server itself stays at jiahao-mcp/. check-drift refuses a
-// directory for any of these names, so #62's convergence cannot quietly come
-// back.
-const RETIRED_HOSTS = ['aider', 'cline', 'codex', 'copilot', 'cursor',
+// (skills/jiahao/); codex, qoder, and mcp registered hooks or notes without
+// shipping the scripts next to them, so a copied directory could not run. The
+// MCP server itself stays at jiahao-mcp/. copilot left this list in #78 (and
+// codex leaves it in #77) only because it now has a host table row and a
+// self-contained bundle; #62's convergence still holds for every name below,
+// and check-drift refuses a directory for any of them.
+const RETIRED_HOSTS = ['aider', 'cline', 'codex', 'cursor',
   'instruction-tier', 'mcp', 'opencode', 'qoder', 'windsurf'];
+
+// A host row may name a dialect module (scripts/hosts/<name>.js) when its
+// config schema differs from the Claude-shaped default. The dialect owns the
+// manifest and hook-map paths, the command spelling, the timeout key, and any
+// extra generated files; vendoring, tier checks, and regen-diff stay shared, so
+// a second copy of the judgment logic cannot grow per host.
+const CLAUDE_DIALECT = {
+  kind: 'claude',
+  manifestPath: '.claude-plugin/plugin.json',
+  hookMapPath: 'hooks/hooks.json',
+  timeoutField: 'timeout',
+  commandFields: ['command'],
+  shipShippedSkill: false,
+};
+
+function dialectOf(host) {
+  return Object.assign({}, CLAUDE_DIALECT, host.dialect || {});
+}
 
 function readRepoFile(rel) {
   return fs.readFileSync(path.join(root, rel.split('/').join(path.sep)), 'utf8');
@@ -270,6 +321,21 @@ function hostShapeProblems(hosts) {
       if (!host.mcp.entry) problems.push(label + ': the MCP server needs an entry file');
       if (!Array.isArray(host.mcp.files)) problems.push(label + ': the MCP server needs a files array (what else ships beside it)');
     }
+    if (host.dialect) {
+      for (const key of ['manifestPath', 'hookMapPath']) {
+        const rel = host.dialect[key];
+        if (typeof rel !== 'string' || !rel.endsWith('.json') ||
+            rel.startsWith('/') || rel.split('/').includes('..')) {
+          problems.push(label + ': dialect ' + key + ' must be a relative .json path inside the bundle');
+        }
+      }
+      if (typeof host.dialect.emitManifest !== 'function' || typeof host.dialect.emitHookMap !== 'function') {
+        problems.push(label + ': dialect must emit its manifest and hook map');
+      }
+      if (!Array.isArray(host.dialect.commandFields) || host.dialect.commandFields.length === 0) {
+        problems.push(label + ': dialect must name its command fields');
+      }
+    }
     if (typeof host.readme !== 'function') problems.push(label + ': readme must be a function that returns the bundle README');
   }
   return problems;
@@ -359,10 +425,23 @@ function buildAdapters() {
   // so a file cannot be wired without being shipped.
   for (const host of HOSTS) {
     const prefix = host.dir + '/';
+    const dialect = dialectOf(host);
     emitBundle(adapters, prefix, bundleSeeds(host), skill, host.mcp ? host.mcp.files : []);
 
-    adapters[prefix + '.claude-plugin/plugin.json'] = emitPluginManifest(host);
-    if (Object.keys(host.hooks).length) adapters[prefix + 'hooks/hooks.json'] = emitHookMap(host);
+    adapters[prefix + dialect.manifestPath] = dialect.emitManifest
+      ? dialect.emitManifest({
+        host: host,
+        pkg: PKG,
+        repository: PKG_REPOSITORY,
+        description: (host.manifest || {}).description,
+      })
+      : emitPluginManifest(host);
+    if (Object.keys(host.hooks).length) {
+      adapters[prefix + dialect.hookMapPath] = dialect.emitHookMap
+        ? dialect.emitHookMap(host)
+        : emitHookMap(host);
+    }
+    if (dialect.shipShippedSkill) adapters[prefix + SKILL_DIR + '/SKILL.md'] = toShippedSkill(skill);
     if (host.mcp) adapters[prefix + '.mcp.json'] = emitMcpJson(host.mcp);
     for (const rule of host.rules) adapters[prefix + 'rules/' + rule.file] = emitRule(rule, profiles);
     adapters[prefix + 'README.md'] = host.readme();
@@ -615,6 +694,105 @@ run.
 `;
 }
 
+// GitHub Copilot CLI install manual + dialect disclosure. Regenerated from this
+// single source; edit the string, never the emitted file.
+function copilotCliReadme() {
+  return `# GitHub Copilot CLI Adapter (self-contained plugin)
+
+This directory is a **self-contained plugin for GitHub Copilot CLI**: the
+manifest (\`plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook scripts
+and their \`require()\` closure, \`src/SKILL.md\`, and the shipped skill
+(\`skills/jiahao/SKILL.md\`) are vendored inside. Every hook command resolves
+through \`$PLUGIN_ROOT\` - Copilot CLI hands plugin hooks \`PLUGIN_ROOT\` (and
+also \`COPILOT_PLUGIN_ROOT\` / \`CLAUDE_PLUGIN_ROOT\`) pointing at the installed
+plugin - so nothing reads from the repository root.
+
+Tier: **A-tier candidate**. The host documents an \`agentStop\` block; no live
+turn has been watched being blocked yet (#80 owns that probe), so this README
+does not claim "it blocks".
+
+## Install
+
+1. \`copilot plugin install <path-to-this-dir>\` (native command; the
+   \`/plugin install\` slash command does the same inside a session).
+2. Enable the plugin for the repository (\`enabledPlugins\` in
+   \`.github/copilot/settings.json\`) or for yourself
+   (\`~/.copilot/settings.json\`).
+3. Activate the jiahao profile flag, same as every host. Resolve the config
+   directory once (\`CLAUDE_CONFIG_DIR\`, else \`$HOME\`, else \`/tmp\`):
+   \`CONFIG="\${CLAUDE_CONFIG_DIR:-\${HOME:-/tmp}}"\`, then
+   \`echo full > "$CONFIG/.jiahao-active"\` and
+   \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
+   (\`generator\` for advisory-only). Start a new session after changing
+   \`.jiahao-profile\`.
+
+Install and upgrade are the host's own plugin commands; the repository root is
+never a plugin entry. The install path is documented, not live-probed.
+
+## Hook behavior disclosure (read before enabling)
+
+| Event | Script | Behavior |
+| --- | --- | --- |
+| sessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext |
+| subagentStart | hooks/jiahao-subagent.js | same injection on subagent spawn |
+| userPromptSubmitted | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
+| agentStop | hooks/jiahao-verdict-gate.js | verifier block: stdout \`{decision:"block", reason}\` |
+| subagentStop | hooks/jiahao-verdict-gate.js | same gate on subagent finish (D5 parity) |
+| sessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
+
+Timeouts stay within the host's default 30s budget (10/10/10/30/30/10s).
+
+## Dialect: what differs from the Claude-shaped hosts
+
+The three differences live in \`scripts/hosts/copilot.js\` and in this config;
+the judgment logic is the same \`hooks/jiahao-verdict-gate.js\` every host runs.
+
+- **Event names are camelCase** (\`sessionStart\`, \`agentStop\`), not
+  \`SessionStart\` / \`Stop\`. A copied PascalCase map is a config this host
+  ignores.
+- **Each entry carries \`bash\` and \`powershell\` branches.** The host picks one
+  by operating system; \`$PLUGIN_ROOT\` and \`$env:PLUGIN_ROOT\` expand to the
+  installed plugin directory. There is no \`command\` key here.
+- **The block is the decision field, not the exit code.** \`agentStop\` and
+  \`subagentStop\` honor \`{decision:"block", reason}\` on stdout; exit 2 is only a
+  warning outside \`preToolUse\` / \`permissionRequest\`, and any other non-zero
+  code is fail-open. The gate prints the decision field, which is what blocks.
+- **Blocks are capped at 8 consecutive continuations**; after that the CLI ends
+  the turn anyway. \`agentStop\` receives \`stop_hook_active\`, and the gate
+  already lets that pass.
+
+## Injection surface - Verified vs Declared-unverified
+
+### Verified contract (documented, read 2026-10-30 - not live-probed)
+
+| Point | Evidence |
+| --- | --- |
+| Event names, \`bash\`/\`powershell\` entry fields | docs.github.com hooks reference and Copilot CLI hooks guide |
+| \`decision:"block"\` honored on \`agentStop\` / \`subagentStop\`; 8-block cap | hooks reference |
+| \`additionalContext\` honored on \`sessionStart\` / \`subagentStart\` | hooks reference |
+| Plugin hooks receive \`PLUGIN_ROOT\` | copilot-cli changelog (plugin hook env vars) |
+
+### Declared-unverified (pending-confirmation, #80)
+
+| Point | Status |
+| --- | --- |
+| A real turn-end block (\`agentStop\` + \`decision:"block"\`) | pending-confirmation |
+| Native \`copilot plugin install\` reading \`plugin.json\` + \`hooks/hooks.json\` | pending-confirmation |
+| Whether \`userPromptSubmitted\` output reaches the model (docs list no injection field for it) | pending-confirmation |
+
+## Write scope and network
+
+- Hooks write only under the Claude config dir (\`$CLAUDE_CONFIG_DIR\`, else
+  \`$HOME\`), the same flag and evidence files every host uses:
+  \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\` (plus the
+  \`.jiahao-evidence.keys\` sidecar and \`pairer-instrument\` shadow records),
+  \`.jiahao-pretool.jsonl\`, and the sentinel state and lock files. Nothing
+  inside the repository or this plugin directory is written by a hook.
+- No network calls: no hook fetches anything, and the bundle has no
+  third-party runtime dependency to install.
+`;
+}
+
 // Minimal zero-dependency unified diff (LCS over lines, 3 lines of context).
 function unifiedDiff(rel, oldText, newText) {
   const a = oldText.split('\n');
@@ -807,5 +985,5 @@ if (require.main === module) main();
 
 module.exports = {
   buildAdapters, unifiedDiff, checkAll, writeAll, auditTrackedSet, SKILL_DIR, SOURCE_NAME,
-  HOSTS, RETIRED_HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
+  HOSTS, RETIRED_HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds, dialectOf,
 };

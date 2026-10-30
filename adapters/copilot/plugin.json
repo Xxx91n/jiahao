@@ -1,0 +1,12 @@
+{
+  "name": "jiahao",
+  "version": "0.2.0",
+  "description": "Dual-profile verification discipline for GitHub Copilot CLI: verifier gate on agentStop, profile injection on sessionStart.",
+  "author": {
+    "name": "Xxx91n"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/Xxx91n/jiahao",
+  "hooks": "hooks/hooks.json",
+  "skills": "skills/"
+}

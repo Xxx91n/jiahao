@@ -48,6 +48,10 @@ test('the pack contract names the rules file, both plugin hook maps, and the mar
     'adapters/codebuddy/hooks/hooks.json',
     'adapters/claude-code/.claude-plugin/plugin.json',
     'adapters/claude-code/hooks/hooks.json',
+    // #78: the Copilot bundle carries a host-native manifest path; a tarball
+    // that drops it ships a bundle the host cannot discover.
+    'adapters/copilot/plugin.json',
+    'adapters/copilot/hooks/hooks.json',
     '.claude-plugin/marketplace.json',
     // #85: the write side of adjudication went missing from the repo once, and
     // a tarball without it fails only on a user's machine.

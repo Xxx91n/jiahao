@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "bash": "node \"$PLUGIN_ROOT/hooks/jiahao-activate.js\"",
+        "powershell": "node \"$env:PLUGIN_ROOT/hooks/jiahao-activate.js\"",
+        "timeoutSec": 10
+      }
+    ],
+    "subagentStart": [
+      {
+        "type": "command",
+        "bash": "node \"$PLUGIN_ROOT/hooks/jiahao-subagent.js\"",
+        "powershell": "node \"$env:PLUGIN_ROOT/hooks/jiahao-subagent.js\"",
+        "timeoutSec": 10
+      }
+    ],
+    "userPromptSubmitted": [
+      {
+        "type": "command",
+        "bash": "node \"$PLUGIN_ROOT/hooks/jiahao-mode-tracker.js\"",
+        "powershell": "node \"$env:PLUGIN_ROOT/hooks/jiahao-mode-tracker.js\"",
+        "timeoutSec": 10
+      }
+    ],
+    "agentStop": [
+      {
+        "type": "command",
+        "bash": "node \"$PLUGIN_ROOT/hooks/jiahao-verdict-gate.js\"",
+        "powershell": "node \"$env:PLUGIN_ROOT/hooks/jiahao-verdict-gate.js\"",
+        "timeoutSec": 30
+      }
+    ],
+    "subagentStop": [
+      {
+        "type": "command",
+        "bash": "node \"$PLUGIN_ROOT/hooks/jiahao-verdict-gate.js\"",
+        "powershell": "node \"$env:PLUGIN_ROOT/hooks/jiahao-verdict-gate.js\"",
+        "timeoutSec": 30
+      }
+    ],
+    "sessionEnd": [
+      {
+        "type": "command",
+        "bash": "node \"$PLUGIN_ROOT/hooks/jiahao-sweep.js\"",
+        "powershell": "node \"$env:PLUGIN_ROOT/hooks/jiahao-sweep.js\"",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}

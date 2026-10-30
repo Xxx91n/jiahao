@@ -36,7 +36,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { spawnSync } = require('child_process');
 
-const { HOSTS } = require('./build-adapters');
+const { HOSTS, dialectOf } = require('./build-adapters');
 
 const root = path.join(__dirname, '..');
 
@@ -53,8 +53,8 @@ const REQUIRED_PACK_FILES = [
   // machine.
   'scripts/resolve.js',
   'skills/jiahao/SKILL.md',
-  ...HOSTS.map(host => host.dir + '/.claude-plugin/plugin.json'),
-  ...HOSTS.filter(host => Object.keys(host.hooks || {}).length > 0).map(host => host.dir + '/hooks/hooks.json'),
+  ...HOSTS.map(host => host.dir + '/' + dialectOf(host).manifestPath),
+  ...HOSTS.filter(host => Object.keys(host.hooks || {}).length > 0).map(host => host.dir + '/' + dialectOf(host).hookMapPath),
   ...HOSTS.flatMap(host => host.rules.map(rule => host.dir + '/rules/' + rule.file)),
   '.claude-plugin/marketplace.json',
   'docs/release.md',
@@ -67,7 +67,7 @@ const FORBIDDEN_PACK_PREFIXES = ['private/', 'bench/', 'docs/research/'];
 // bundle is easier to name than a tarball diff.
 const HASHED_TREES = ['skills/jiahao', ...HOSTS.map(host => host.dir)];
 
-const PLUGIN_MANIFESTS = HOSTS.map(host => host.dir + '/.claude-plugin/plugin.json');
+const PLUGIN_MANIFESTS = HOSTS.map(host => host.dir + '/' + dialectOf(host).manifestPath);
 const MARKETPLACE_MANIFEST = '.claude-plugin/marketplace.json';
 
 // Files that run on a user's machine once jiahao is installed: the installer
@@ -84,6 +84,12 @@ const FORBIDDEN_LIFECYCLE = ['preinstall', 'install', 'postinstall', 'prepare', 
 // Plugin hook commands must resolve inside the bundle. CodeBuddy additionally
 // expands ${CODEBUDDY_PLUGIN_ROOT}, so both names are accepted.
 const BUNDLED_COMMAND = /^node "?\$\{(?:CLAUDE|CODEBUDDY)_PLUGIN_ROOT\}\/hooks\/[A-Za-z0-9._-]+\.js"?$/;
+// Copilot CLI hands plugin hooks $PLUGIN_ROOT and spells the same variable
+// $env:PLUGIN_ROOT in its PowerShell branch; both must stay inside the bundle.
+const COPILOT_COMMANDS = [
+  /^node "\$PLUGIN_ROOT\/hooks\/[A-Za-z0-9._-]+\.js"$/,
+  /^node "\$env:PLUGIN_ROOT\/hooks\/[A-Za-z0-9._-]+\.js"$/,
+];
 
 function parseTag(tag) {
   const m = /^v(\d+\.\d+\.\d+)$/.exec(String(tag || ''));
@@ -415,16 +421,27 @@ step('egress', 'code that runs after install makes no network call', () => {
     // row is deliberate, skipping one that declares events would let
     // `--only egress` report green over a bundle that has no commands.
     if (Object.keys(host.hooks || {}).length === 0) continue;
-    const rel = host.dir + '/.claude-plugin/plugin.json';
-    const hookMapPath = path.join(root, host.dir.split('/').join(path.sep), 'hooks', 'hooks.json');
-    if (!fs.existsSync(hookMapPath)) throw new Error(rel + ' has no hooks/hooks.json beside it');
+    const dialect = dialectOf(host);
+    const rel = host.dir + '/' + dialect.manifestPath;
+    const hookMapPath = path.join(root,
+      host.dir.split('/').join(path.sep), dialect.hookMapPath.split('/').join(path.sep));
+    if (!fs.existsSync(hookMapPath)) throw new Error(rel + ' has no ' + dialect.hookMapPath + ' beside it');
     const map = JSON.parse(fs.readFileSync(hookMapPath, 'utf8'));
-    for (const [event, groups] of Object.entries(map.hooks || {})) {
-      for (const group of groups) {
-        for (const hook of group.hooks || []) {
+    for (const [event, entries] of Object.entries(map.hooks || {})) {
+      for (const entry of entries) {
+        // Claude-shaped maps nest the commands under `hooks`; Copilot's flat
+        // entries ARE the command (one bash/powershell pair each).
+        const commands = Array.isArray(entry.hooks) ? entry.hooks : [entry];
+        for (const hook of commands) {
           if (hook.type !== 'command') continue;
-          if (!BUNDLED_COMMAND.test(String(hook.command || '').trim())) {
-            throw new Error(rel + ' hook ' + event + ' runs a command outside the bundle: ' + hook.command);
+          for (const field of dialect.commandFields) {
+            const cmd = String(hook[field] || '').trim();
+            const ok = dialect.kind === 'copilot'
+              ? COPILOT_COMMANDS.some(rx => rx.test(cmd))
+              : BUNDLED_COMMAND.test(cmd);
+            if (!ok) {
+              throw new Error(rel + ' hook ' + event + ' runs a ' + field + ' command outside the bundle: ' + cmd);
+            }
           }
         }
       }

@@ -16,7 +16,7 @@ const path = require('path');
 const { isBuiltin } = require('module');
 
 const {
-  buildAdapters, HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
+  buildAdapters, HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds, dialectOf,
 } = require('../scripts/build-adapters');
 
 const ROOT = path.join(__dirname, '..');
@@ -26,7 +26,14 @@ const pkgRepository = pkg.repository.url.replace(/^git\+/, '').replace(/\.git$/,
 
 // Bundle-local wiring the generator writes itself; everything else under a
 // bundle directory is vendored from the repository and must be byte-identical.
-const BUNDLE_WIRING = /^(\.claude-plugin\/|rules\/|hooks\/hooks\.json$|\.mcp\.json$|README\.md$)/;
+// The manifest and hook-map paths come from the row's dialect, so a host with a
+// different config schema does not have to pass a Claude-shaped path test.
+function isWiring(dialect, rel) {
+  if (rel === dialect.manifestPath) return true;
+  if (rel === dialect.hookMapPath) return true;
+  if (dialect.shipShippedSkill && rel.startsWith('skills/')) return true;
+  return /^(rules\/|\.mcp\.json$|README\.md$)/.test(rel);
+}
 
 function readGenerated(rel) {
   const text = generated[rel];
@@ -81,18 +88,27 @@ function repoClosure(seeds) {
 
 describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
   const P = host.dir + '/';
+  const dialect = dialectOf(host);
   const events = Object.keys(host.hooks || {});
-  const manifestRel = P + '.claude-plugin/plugin.json';
+  const manifestRel = P + dialect.manifestPath;
   const manifest = JSON.parse(readGenerated(manifestRel));
 
   describe('bundle shape', () => {
-    test('the manifest lives only in .claude-plugin/, with the skill body, README, and identity pin', () => {
+    test('the manifest lives only at the dialect path, with the skill body, README, and identity pin', () => {
       expect(typeof generated[manifestRel]).toBe('string');
-      expect(generated[P + 'plugin.json']).toBeUndefined();
+      const manifests = Object.keys(generated)
+        .filter((rel) => rel.startsWith(P) && /(^|\/)plugin\.json$/.test(rel));
+      expect(manifests).toEqual([manifestRel]);
       for (const rel of [P + 'src/SKILL.md', P + 'src/instrument-identity.json', P + 'README.md']) {
         expect(typeof generated[rel]).toBe('string');
       }
     });
+
+    if (dialect.shipShippedSkill) {
+      test('ships the rules body twice at its two names: the vendored source and the shippable skill twin', () => {
+        expect(generated[P + 'skills/jiahao/SKILL.md']).toBe(readRepo('skills/jiahao/SKILL.md'));
+      });
+    }
 
     test('every wired event has a vendored script', () => {
       for (const hook of Object.values(host.hooks)) {
@@ -107,7 +123,7 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
       const vendored = Object.keys(generated)
         .filter((rel) => rel.startsWith(P))
         .map((rel) => rel.slice(P.length))
-        .filter((rel) => !BUNDLE_WIRING.test(rel));
+        .filter((rel) => !isWiring(dialect, rel));
       expect(vendored.sort()).toEqual(Array.from(expected).sort());
     });
 
@@ -129,7 +145,13 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
       expect(manifest.version).toBe(pkg.version);
       expect(manifest.license).toBe(pkg.license);
       expect(manifest.repository).toBe(pkgRepository);
-      expect(manifest.defaultEnabled).toBe(false);
+      // The conservative opt-in flag is a Claude-shaped manifest field; a host
+      // that does not document it must not be given a key it never reads.
+      if (dialect.kind === 'claude') {
+        expect(manifest.defaultEnabled).toBe(false);
+      } else {
+        expect(manifest.defaultEnabled).toBeUndefined();
+      }
     });
 
     test('every component path it names is emitted, and auto-discovered files are not repeated', () => {
@@ -137,8 +159,8 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
       // A host that does not auto-discover a component has to be told about it
       // in the manifest, or the file never loads - so the key is required, not
       // merely checked when present.
-      if (events.length && !host.autoDiscovered.includes('hooks/hooks.json')) {
-        expect(manifest.hooks).toBe('hooks/hooks.json');
+      if (events.length && !host.autoDiscovered.includes(dialect.hookMapPath)) {
+        expect(manifest.hooks).toBe(dialect.hookMapPath);
       }
       if (host.mcp && !host.autoDiscovered.includes('.mcp.json')) {
         expect(manifest.mcpServers).toBe('.mcp.json');
@@ -158,13 +180,13 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
   describe('hook map', () => {
     if (events.length === 0) {
       test('a rules-only bundle registers no hooks at all', () => {
-        expect(generated[P + 'hooks/hooks.json']).toBeUndefined();
+        expect(generated[P + dialect.hookMapPath]).toBeUndefined();
         expect(Object.keys(generated).filter((rel) => rel.startsWith(P + 'hooks/'))).toEqual([]);
       });
       return;
     }
 
-    const cfg = JSON.parse(readGenerated(P + 'hooks/hooks.json'));
+    const cfg = JSON.parse(readGenerated(P + dialect.hookMapPath));
 
     test('registers exactly the host table event set', () => {
       expect(Object.keys(cfg.hooks)).toEqual(events);
@@ -173,26 +195,55 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
     test('every command runs a vendored script through the plugin root, within the timeout budget', () => {
       for (const ev of events) {
         for (const entry of cfg.hooks[ev]) {
-          for (const h of entry.hooks) {
+          // Claude-shaped maps nest `hooks`; Copilot's flat entry is the command.
+          const commands = Array.isArray(entry.hooks) ? entry.hooks : [entry];
+          for (const h of commands) {
             expect(h.type).toBe('command');
-            expect(h.timeout).toBe(host.hooks[ev].timeout);
-            expect(h.timeout).toBeLessThanOrEqual(60);
-            const m = /^node "\$\{CLAUDE_PLUGIN_ROOT\}\/(hooks\/[a-z0-9-]+\.js)"$/.exec(h.command);
-            expect(m).not.toBeNull();
-            expect(typeof generated[P + m[1]]).toBe('string');
-            expect(h.command).not.toContain('adapters/');
-            expect(h.command).not.toContain('..');
+            expect(h[dialect.timeoutField]).toBe(host.hooks[ev].timeout);
+            expect(h[dialect.timeoutField]).toBeLessThanOrEqual(60);
+            for (const field of dialect.commandFields) {
+              const cmd = h[field];
+              let m;
+              if (dialect.kind === 'copilot') {
+                // The two shell branches, each through the host's own variable.
+                const rx = field === 'bash'
+                  ? /^node "\$PLUGIN_ROOT\/(hooks\/[a-z0-9-]+\.js)"$/
+                  : /^node "\$env:PLUGIN_ROOT\/(hooks\/[a-z0-9-]+\.js)"$/;
+                m = rx.exec(String(cmd));
+              } else {
+                m = /^node "\$\{CLAUDE_PLUGIN_ROOT\}\/(hooks\/[a-z0-9-]+\.js)"$/.exec(String(cmd));
+              }
+              expect(m).not.toBeNull();
+              expect(typeof generated[P + m[1]]).toBe('string');
+              expect(String(cmd)).not.toContain('adapters/');
+              expect(String(cmd)).not.toContain('..');
+            }
           }
         }
       }
     });
+
+    if (dialect.kind === 'copilot') {
+      test('every entry carries both a bash and a powershell branch', () => {
+        for (const ev of events) {
+          for (const entry of cfg.hooks[ev]) {
+            expect(typeof entry.bash).toBe('string');
+            expect(typeof entry.powershell).toBe('string');
+            expect(entry.command).toBeUndefined();
+            expect(entry.timeout).toBeUndefined();
+          }
+        }
+      });
+    }
 
     test('the turn-end event carries the verdict gate, and every script is a repo hook', () => {
       for (const ev of events) {
         expect(fs.existsSync(path.join(ROOT, 'hooks', host.hooks[ev].script + '.js'))).toBe(true);
       }
       if (host.turnEnd) {
-        const command = cfg.hooks[host.turnEnd][0].hooks[0].command;
+        const entry = cfg.hooks[host.turnEnd][0];
+        const h = Array.isArray(entry.hooks) ? entry.hooks[0] : entry;
+        const command = dialect.commandFields.map((field) => h[field]).join(' ');
         expect(command).toContain('jiahao-verdict-gate.js');
       }
     });
@@ -372,6 +423,19 @@ describe('tier contract', () => {
   test('a row that rewrites a manifest key the emitter pins is rejected', () => {
     const row = Object.assign({}, good, { manifest: { description: 'probe', version: '9.9.9' } });
     expect(hostShapeProblems([row]).join('\n')).toMatch(/must not set version/);
+  });
+
+  test('a dialect that points its manifest or hook map outside the bundle is rejected', () => {
+    const escaping = Object.assign({}, good, {
+      dialect: {
+        kind: 'probe', manifestPath: '../plugin.json', hookMapPath: 'hooks/hooks.json',
+        timeoutField: 'timeout', commandFields: ['command'],
+        emitManifest: () => '', emitHookMap: () => '',
+      },
+    });
+    expect(hostShapeProblems([escaping]).join('\n')).toMatch(/relative \.json path inside the bundle/);
+    const silent = Object.assign({}, good, { dialect: { commandFields: [] } });
+    expect(hostShapeProblems([silent]).join('\n')).toMatch(/dialect must emit|dialect must name/);
   });
 
   test('a rules-only C row is a valid row and ships no hooks', () => {

@@ -36,6 +36,9 @@ test('build-adapters generates the retained exits', () => {
       'adapters/codebuddy/hooks/hooks.json',
       'adapters/codebuddy/rules/jiahao-verifier.md',
       'adapters/codebuddy/rules/jiahao-generator.md',
+      'adapters/copilot/plugin.json',
+      'adapters/copilot/hooks/hooks.json',
+      'adapters/copilot/skills/jiahao/SKILL.md',
       'skills/jiahao/SKILL.md',
     ];
     expected.forEach(rel => {
@@ -66,7 +69,9 @@ test('retired adapters are neither emitted nor present', () => {
   const emitted = Object.keys(buildAdapters());
   // One list, in the generator (check-drift reads the same one). The floor is
   // what stops the list from being silently emptied instead of honoured.
-  expect(RETIRED_HOSTS.length).toBeGreaterThanOrEqual(10);
+  // copilot returned as a real bundle in #78 (codex returns in #77); the
+  // remaining names are still refused by check-drift.
+  expect(RETIRED_HOSTS.length).toBeGreaterThanOrEqual(8);
   for (const name of RETIRED_HOSTS) {
     expect(emitted.some(rel => rel.startsWith('adapters/' + name + '/'))).toBe(false);
     expect(fs.existsSync(path.join(root, 'adapters', name))).toBe(false);
