@@ -6,13 +6,15 @@
 const PLATFORMS = ['claude', 'codex', 'copilot', 'qoder', 'codebuddy'];
 
 // Host detection, in two steps:
-//   1. An explicit platform name as the first argument. A host whose config can
-//      pass one (Codex: `... jiahao-verdict-gate.js codex`) lets the template say
-//      which host it is; that is host-owned data and beats an environment
-//      variable inherited from another agent on the same machine.
+//   1. An explicit platform name as the hook's first argument. The host config
+//      that spawns the script is what passes it (Codex: `... jiahao-verdict-gate.js
+//      codex`); that is host-owned data and beats an environment variable
+//      inherited from another agent on the same machine. Every script here is an
+//      entrypoint spawned for one event, so the argument is read from the
+//      process, not from a caller.
 //   2. The environment probe, for hosts whose config cannot pass an argument.
-function detectHost(argv) {
-  const explicit = (argv || process.argv.slice(2))[0];
+function detectHost() {
+  const explicit = process.argv[2];
   if (PLATFORMS.includes(explicit)) return explicit;
   if (process.env.PLUGIN_DATA) return 'codex';
   if (process.env.COPILOT_PLUGIN_DATA) return 'copilot';

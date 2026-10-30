@@ -72,7 +72,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD`：分�
 | 钩子运行期 | `<config>/.jiahao-sentinel.<hook>`、`<config>/.jiahao-sentinel.<hook>.lock/` | 钩子开始到结束之间存在；正常结束删掉，被宿主杀掉则由下一次 SessionEnd 清扫回收 |
 | 钩子 PreToolUse / InstructionsLoaded | `<config>/.jiahao-pretool.jsonl`、`<config>/.jiahao-instructions.jsonl` | 每次命中 |
 | 校准记录 | `<config>/.jiahao-calibration.jsonl` | 校准点被记录时（当前运行时没有调用点，写入方是 `src/calibration.js` 的导出函数） |
-| 宿主（插件版） | 宿主自己的插件目录 | `claude plugin install` / `codebuddy plugin install` |
+| 宿主（插件版） | 宿主自己的插件目录或插件缓存 | `claude plugin install` / `codebuddy plugin install` / `codex plugin add` |
 | 宿主（规则版） | 宿主自己的技能目录，落地 `<host>/skills/jiahao/SKILL.md` | `npx skills add` |
 
 范围之外：不改系统设置，不写仓库以外的源码目录，不在当前工作目录落文件。所有运行时写入都落在 `<config>` 下。

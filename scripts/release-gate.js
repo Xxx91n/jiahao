@@ -3,8 +3,8 @@
 // release-gate.js — what a tag must prove before anyone calls it released (#63).
 //
 // One command, named steps, exit 0 only when every step passes:
-//   1 metadata      a tag is given; package.json version == tag; both plugin
-//                   manifests agree; HEAD is the tag's commit; tree is clean
+//   1 metadata      a tag is given; package.json version == tag; every plugin
+//                   manifest agrees; HEAD is the tag's commit; tree is clean
 //   2 generated     build-adapters.js --check (committed output == generator)
 //   3 drift         check-drift.js (profile fragments + retired adapter exits)
 //   4 tests         npm test (full suite, includes test/packaging.test.js)
