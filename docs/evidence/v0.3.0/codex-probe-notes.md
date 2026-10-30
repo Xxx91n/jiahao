@@ -37,6 +37,8 @@ not required on this build.
 ## Loop guard
 
 A throwaway user Stop hook that always returned exit 0 +
-`{decision:"block"}` continued for 80+ turns before the probe was stopped; no
-host-side cap appeared in that window. The bundled gate passes when the host
-sends `stop_hook_active` on the continuation, so it blocks once per turn.
+`{decision:"block"}` continued for 785 runs (788 assistant messages,
+33,032,805 input tokens) before the host completed the turn; no small cap like
+Copilot's 8 appeared. Raw record: `codex-loop-guard.txt`. The bundled gate
+passes when the host sends `stop_hook_active` on the continuation, so it blocks
+once per turn.

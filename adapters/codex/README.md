@@ -98,6 +98,7 @@ probed. Commands and captured output live in
 [`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 Loop guard: an unconditional exit-0 JSON block in a throwaway user Stop hook
-continued for 80+ turns before the probe was stopped, and no host cap appeared.
-The bundled gate is not unconditional - it passes when the host sends
+continued for 785 runs (788 assistant messages, 33M input tokens) before the
+host completed the turn; no small host cap like Copilot's 8 appeared. The
+bundled gate is not unconditional - it passes when the host sends
 `stop_hook_active` on the continuation - so the block happens once per turn.

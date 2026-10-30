@@ -974,8 +974,9 @@ Timeouts stay within the host's default 30s budget (10/10/10/30/10s).
 ## Dialect: what differs from the Claude-shaped hosts
 
 Two config-side differences live in \`scripts/hosts/copilot.js\` and in this
-config. The host's block channel needs no translation (the shared gate already
-prints it), and the camelCase payload names (\`sessionId\`, \`agentName\`) are
+config. The host's block channel is the decision field; the shared gate prints
+it and exits 0 for this host (see the dialect bullets below). The camelCase
+payload names (\`sessionId\`, \`agentName\`) are
 folded into the shared shape by \`hooks/jiahao-runtime.js\`, the hook-side
 adapter file that already owns \`detectHost()\` and the per-host envelopes. The
 judgment logic is the same \`hooks/jiahao-verdict-gate.js\` every host runs.
@@ -1008,7 +1009,7 @@ captured output live in
 | A real turn-end block (\`agentStop\` + \`decision:"block"\`) | **Verified**: the model's \`任务完成，已验证。\` continued only after the gate's \`decision:"block"\`; the block reason arrived as the next user message |
 | Exit 2 as the block channel | **Refuted**: exit 2 ended the turn without a continuation; the gate now exits 0 for Copilot |
 | Native \`copilot plugin install\` reading \`plugin.json\` + \`hooks/hooks.json\` | **Verified**: the install ran the bundled sessionStart/agentStop hooks |
-| \`.claude/settings.json\` | **Read**: both SessionStart and Stop entries ran; a Claude-schema Stop block also continued the turn |
+| \`.claude/settings.json\` | **Read**: both SessionStart and Stop entries ran; a hand-written Claude-schema Stop block (exit 0) also continued the turn. The jiahao bundle installs as a Copilot plugin, not through this file |
 | \`COPILOT_PLUGIN_DATA\` for plugin hooks | **Set**: observed in the plugin hook environment, so \`detectHost()\` selects the Copilot envelope |
 | camelCase payload (\`sessionId\`) | **Observed** in the plugin hook input; normalized by \`hooks/jiahao-runtime.js\` |
 | 8 consecutive block continuations | **Confirmed**: 8 continuations, then the CLI ended; the ninth block was not continued |
@@ -1132,8 +1133,9 @@ probed. Commands and captured output live in
 [\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 Loop guard: an unconditional exit-0 JSON block in a throwaway user Stop hook
-continued for 80+ turns before the probe was stopped, and no host cap appeared.
-The bundled gate is not unconditional - it passes when the host sends
+continued for 785 runs (788 assistant messages, 33M input tokens) before the
+host completed the turn; no small host cap like Copilot's 8 appeared. The
+bundled gate is not unconditional - it passes when the host sends
 \`stop_hook_active\` on the continuation - so the block happens once per turn.
 `;
 }

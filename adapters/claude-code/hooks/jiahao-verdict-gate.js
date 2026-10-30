@@ -152,7 +152,7 @@ process.stdin.on('end', () => {
 
   // chain-corruption detection runs BEFORE any severity case.
   // A broken chain is treated as missing evidence in verifier profile
-  // (block, exit 2); advisory-only in generator profile.
+  // (block); advisory-only in generator profile.
   if (evidenceChain) {
     // + : verifyTail hot path — active segment plus
     // previous-segment anchor prechecks. Legacy files are whole-chain
@@ -285,7 +285,7 @@ process.stdin.on('end', () => {
     }
 
   // fail-closed on coverage. A verdict on partial evidence is
-  // indeterminate (XACML semantics) — route to human adjudication, exit 2.
+  // indeterminate (XACML semantics) — route to human adjudication.
   if (coveragePartial) {
     const deg = coveragePartial.degradation || {};
     const detail = deg.detail || {};

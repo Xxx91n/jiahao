@@ -1,0 +1,12 @@
+# Throwaway user-level Stop hook (equivalent to probes/codex-always-block.js):
+#   exit 0 + {"decision":"block","reason":"ALWAYS BLOCK: loop probe"}, no stop_hook_active guard.
+$ CODEX_HOME=<isolated> codex exec --json --skip-git-repo-check --dangerously-bypass-hook-trust 'Do not run any tools. Reply exactly: hi.'
+exit 0 (host; turn completed after the loop below)
+recorded hook invocations: 785
+assistant messages: 786
+turn completed: yes (33,032,805 input tokens)
+first: {"type":"item.completed","item":{"id":"item_2","type":"agent_message","text":"hi."}}
+last:  {"type":"item.completed","item":{"id":"item_787","type":"agent_message","text":"hi."}}
+
+# No small host cap comparable to Copilot's 8; the bundled gate's stop_hook_active
+# pass is what keeps a normal block to one continuation.

@@ -101,6 +101,7 @@ function writeBlockOutput(reason) {
   console.log(JSON.stringify({ decision: 'block', reason: reason }));
   const host = detectHost();
   if (host === 'codex') console.error(reason);
+  // Unknown hosts keep the Claude exit-2 channel rather than silently passing.
   process.exitCode = BLOCK_EXIT_CODES[host] ?? 2;
 }
 

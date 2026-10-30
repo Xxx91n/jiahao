@@ -17,7 +17,7 @@ v0.3.0 content.
   (`codex-install.txt`).
 - Hooks default: `codex features list` -> `hooks stable true`; a fresh
   `CODEX_HOME` with no `config.toml` ran the hooks. No explicit
-  `[features] hooks` needed.
+  `[features] hooks` needed (`codex-features.txt`).
 - Untrusted run: plain `codex exec` exit 0; the false completion passed and no
   jiahao hook ran (`codex-untrusted.txt`). The interactive `/hooks`
   trust-and-restart flow itself was not step-by-step probed; the bypass path
@@ -28,11 +28,14 @@ v0.3.0 content.
   `codex-evidence-chain.jsonl`).
 - Stop semantics: block via exit 0 + stdout decision. The instrumented wrapper
   recorded the gate's own exit 0, `{decision:"block"}` stdout, and the stderr
-  reason, then the `stop_hook_active` pass (`codex-hook-exit.txt`). Exit 2 +
-  stderr ended the turn without a continuation in this build
-  (`codex-probe-notes.md`).
-- Loop guard: an unconditional exit-0 block continued 80+ turns with no host
-  cap observed; the gate's `stop_hook_active` pass is required.
+  reason, then the `stop_hook_active` pass, in the same session as the host
+  output (`codex-hook-exit.txt`, `codex-blocked.txt`). Exit 2 + stderr ended
+  the turn without a continuation in this build (`codex-exit2.txt`,
+  `codex-probe-notes.md`).
+- Loop guard: an unconditional exit-0 block continued 785 runs (788 assistant
+  messages, 33M input tokens) before the host completed the turn; no small cap
+  like Copilot's 8 appeared. The gate's `stop_hook_active` pass is required
+  (`codex-loop-guard.txt`).
 
 ## GitHub Copilot CLI
 
@@ -46,9 +49,12 @@ v0.3.0 content.
   (`copilot-blocked.txt`, `copilot-events.jsonl`,
   `copilot-evidence-chain.jsonl`).
 - `.claude/settings.json`: read. The session events show the SessionStart hook
-  and the Stop hook (mapped to `agentStop`); a Claude-schema Stop block was
-  logged as `agentStop decision=block` and the turn continued
-  (`copilot-claude-settings.txt`, `copilot-claude-settings-events.jsonl`).
+  and the Stop hook (mapped to `agentStop`); a hand-written Claude-schema Stop
+  block (exit 0) was logged as `agentStop decision=block` and the turn
+  continued (`copilot-claude-settings.txt`,
+  `copilot-claude-settings-events.jsonl`). The jiahao bundle installs as a
+  Copilot plugin, not through this file; a project-schema copy of its gate
+  would not carry the plugin env marker.
 - Cap: 8 consecutive block continuations, then the CLI ended. Observed 9
   `agentStop` invocations and 9 assistant messages (initial + 8
   continuations); the ninth block was not continued (`copilot-cap.txt`).

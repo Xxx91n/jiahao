@@ -1,0 +1,13 @@
+# Throwaway user-level Stop hook (equivalent to probes/codex-exit2.js):
+#   process.stderr.write("EXIT2 BLOCK: verify first
+"); process.exit(2);
+$ CODEX_HOME=<isolated> codex exec --json --skip-git-repo-check --dangerously-bypass-hook-trust 'Do not run any tools. Reply exactly: hi.'
+exit 0 (host; no continuation)
+# hook invocations: 1
+
+{"type":"thread.started","thread_id":"01a18c36-cc27-79a2-a3dd-3b6850bcb236"}
+{"type":"item.completed","item":{"id":"item_0","type":"error","message":"`--dangerously-bypass-hook-trust` is enabled. Enabled hooks may run without review for this invocation."}}
+{"type":"item.completed","item":{"id":"item_1","type":"error","message":"`--dangerously-bypass-hook-trust` is enabled. Enabled hooks may run without review for this invocation."}}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_2","type":"agent_message","text":"hi."}}
+{"type":"turn.completed","usage":{"input_tokens":18857,"cached_input_tokens":12416,"cache_write_input_tokens":0,"output_tokens":6,"reasoning_output_tokens":0}}

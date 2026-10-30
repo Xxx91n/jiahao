@@ -9,7 +9,8 @@ these files; paths inside the scripts are relative to this directory.
 - `codex-exit2.js`: user-level Stop hook, exit 2 + stderr. Observed: one turn,
   no continuation.
 - `codex-always-block.js`: user-level Stop hook, exit 0 + decision block every
-  time. Observed: 80+ continuations, no host cap; the probe was stopped.
+  time. Observed: 785 continuations (788 assistant messages, 33M input
+  tokens), then the host completed the turn; no small cap like Copilot's 8.
 - `codex-hook-wrapper.js`: wraps the installed gate, logs the hook's own
   stdin/stdout/stderr/exit, then replays them. Used only for
   `../codex-hook-exit.txt`; the gate logic is unchanged.
