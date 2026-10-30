@@ -15,6 +15,12 @@
 ## 不要改的目录
 
 - `adapters/`、`skills/`、`.claude-plugin/`、`.agents/`：由 `src/`、`hooks/`、`jiahao-mcp/` 与 `package.json` 的版本/元数据生成，改任一处后重跑生成器。
+- 生成物覆盖整个目录，不只是源码副本。看着像手写文档的这几类也由生成器产出，手改会在下一次 `--check` 里被抹掉：
+  - 各出口的 `README.md`（`adapters/*/README.md`，内容来自 `scripts/build-adapters.js` 里各宿主的 `*Readme()` 模板）；
+  - 插件清单与钩子表：`adapters/*/.claude-plugin/plugin.json`、`adapters/codex/.codex-plugin/plugin.json`、`adapters/copilot/plugin.json`、`adapters/*/hooks/hooks.json`、`adapters/codebuddy/.mcp.json`，以及两份 marketplace（`.claude-plugin/marketplace.json`、`.agents/plugins/marketplace.json`）；
+  - 规则与技能副本：`adapters/*/rules/*.md`、`adapters/*/src/**`、`skills/jiahao/SKILL.md`；
+  - 出口里 vendor 的钩子与服务端：`adapters/*/hooks/*.js`、`adapters/*/jiahao-mcp/**`。
+  要改这些内容，改生成器的输入（`src/`、`hooks/`、宿主表与 `*Readme()` 模板、`scripts/hosts/*.js`），然后跑 `node scripts/build-adapters.js`；判断改得对不对用 `node scripts/build-adapters.js --check`。
 - `private/`：私有词表，不要展开到输出或日志。
 - `bench/research/out/`、`bench/polygraph/results/`：冻结的评测记录。
 
