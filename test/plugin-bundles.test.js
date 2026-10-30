@@ -104,7 +104,6 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
       }
     });
 
-
     test('every wired event has a vendored script', () => {
       for (const hook of Object.values(host.hooks)) {
         expect(typeof generated[P + 'hooks/' + hook.script + '.js']).toBe('string');

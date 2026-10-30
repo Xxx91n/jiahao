@@ -20,10 +20,12 @@
 // gate and the tests again.
 //
 // Plugin layout (legacy Copilot format, documented): plugin.json at the plugin
-// root, hooks.json at the root or in hooks/, skills/<name>/SKILL.md. Plugin
-// hooks receive PLUGIN_ROOT, COPILOT_PLUGIN_ROOT and CLAUDE_PLUGIN_ROOT with the
-// installation directory (copilot-cli changelog, 1.0.105); PLUGIN_ROOT is the
-// name used here so nothing depends on Claude compatibility.
+// root, hooks.json at the root or in hooks/. The rules body ships as the
+// vendored src/SKILL.md the sessionStart hook injects; this bundle contributes
+// no host-discovered skill directory. Plugin hooks receive PLUGIN_ROOT,
+// COPILOT_PLUGIN_ROOT and CLAUDE_PLUGIN_ROOT with the installation directory
+// (copilot-cli changelog, 1.0.105); PLUGIN_ROOT is the name used here so
+// nothing depends on Claude compatibility.
 
 const HOOK_MAP_PATH = 'hooks/hooks.json';
 
@@ -65,10 +67,10 @@ function emitHookMap(host) {
   return JSON.stringify({ version: 1, hooks: hooks }, null, 2) + '\n';
 }
 
-// The manifest names the hook map and the skill directory instead of relying on
-// discovery, and carries the package version and repository the same way the
-// other bundles do. `defaultEnabled` is deliberately absent: Copilot CLI has no
-// such field, and a made-up key is a claim no host reads.
+// The manifest names the hook map instead of relying on discovery, and carries
+// the package version and repository the same way the other bundles do.
+// `defaultEnabled` is deliberately absent: Copilot CLI has no such field, and a
+// made-up key is a claim no host reads.
 function emitManifest(ctx) {
   return JSON.stringify({
     name: 'jiahao',

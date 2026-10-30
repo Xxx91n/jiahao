@@ -356,11 +356,15 @@ function hostShapeProblems(hosts) {
           problems.push(label + ': dialect needs a command pattern for ' + field);
         }
       }
-      // The shared emitter writes `command` + `timeout`; a row that renames the
-      // command shape without its own emitter would ship a Claude-shaped map the
-      // host silently skips, so the shape and the emitter must change together.
-      const customShape = (host.dialect.commandFields || []).join(',') !== CLAUDE_DIALECT.commandFields.join(',') ||
-        host.dialect.timeoutField !== CLAUDE_DIALECT.timeoutField;
+      // The shared emitter writes exactly the default `command` + `timeout`
+      // keys; a row that renames the command shape without its own emitter
+      // would ship a Claude-shaped map the host silently skips, so the shape and
+      // the emitter must change together. Compared as a set, so reordering the
+      // fields is not mistaken for a new shape.
+      const fields = host.dialect.commandFields || [];
+      const sameFields = fields.length === CLAUDE_DIALECT.commandFields.length &&
+        fields.every((field) => CLAUDE_DIALECT.commandFields.includes(field));
+      const customShape = !sameFields || host.dialect.timeoutField !== CLAUDE_DIALECT.timeoutField;
       if (customShape && typeof host.dialect.emitHookMap !== 'function') {
         problems.push(label + ': a non-default command shape needs its own emitHookMap');
       }

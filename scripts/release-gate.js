@@ -422,6 +422,9 @@ step('egress', 'code that runs after install makes no network call', () => {
       host.dir.split('/').join(path.sep), dialect.hookMapPath.split('/').join(path.sep));
     if (!fs.existsSync(hookMapPath)) throw new Error(rel + ' has no ' + dialect.hookMapPath + ' beside it');
     const map = JSON.parse(fs.readFileSync(hookMapPath, 'utf8'));
+    if (Object.keys(map.hooks || {}).length === 0) {
+      throw new Error(rel + ' has a hook map that registers no events');
+    }
     for (const [event, entries] of Object.entries(map.hooks || {})) {
       for (const entry of entries) {
         const commands = hookEntryCommands(entry);
