@@ -114,12 +114,16 @@ describe('hook behavior (bundle copies, live spawn)', () => {
       'rm -rf hooks/jiahao-pretool-guard.js',
       // #75: none of these are name fragments any more - containment under the
       // bundle root is what protects them, so they are pinned by the host's own
-      // absolute spelling (the reading a real tool_input carries).
-      'rm ' + path.join(BUNDLE, 'hooks', 'hooks.json'),
-      'rm ' + path.join(BUNDLE, '.mcp.json'),
-      'move ' + path.join(BUNDLE, '.claude-plugin', 'plugin.json') + ' out.json',
-      'rm ' + path.join(BUNDLE, 'src', 'SKILL.md'),
-      'rm ' + path.join(BUNDLE, 'src', 'shared', 'paths.js'),
+      // absolute spelling (the reading a real tool_input carries). bundleDir, not
+      // BUNDLE: BUNDLE is a key into the generator's map ('adapters/codebuddy/'),
+      // and joining onto it silently produces a relative path that resolves
+      // wherever the test process happens to sit - which is how this assertion
+      // went red in a merge with no textual conflict.
+      'rm ' + path.join(bundleDir, 'hooks', 'hooks.json'),
+      'rm ' + path.join(bundleDir, '.mcp.json'),
+      'move ' + path.join(bundleDir, '.claude-plugin', 'plugin.json') + ' out.json',
+      'rm ' + path.join(bundleDir, 'src', 'SKILL.md'),
+      'rm ' + path.join(bundleDir, 'src', 'shared', 'paths.js'),
     ];
     for (const command of shapes) {
       const res = runBundleHook('jiahao-pretool-guard.js', {
@@ -167,7 +171,7 @@ describe('hook behavior (bundle copies, live spawn)', () => {
     ].concat(ownFiles.map((p) => 'rm ' + p));
     for (const command of commands) {
       const res = runBundleHook('jiahao-pretool-guard.js', {
-        configDir: dir, pluginRoot: BUNDLE,
+        configDir: dir, pluginRoot: bundleDir,
         stdin: JSON.stringify({ tool_name: 'Bash', tool_input: { command: command } }),
       });
       expect(res.status).toBe(0);
@@ -175,7 +179,7 @@ describe('hook behavior (bundle copies, live spawn)', () => {
     }
     for (const file_path of ownFiles) {
       const res = runBundleHook('jiahao-pretool-guard.js', {
-        configDir: dir, pluginRoot: BUNDLE,
+        configDir: dir, pluginRoot: bundleDir,
         stdin: JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: file_path } }),
       });
       expect(res.status).toBe(0);
