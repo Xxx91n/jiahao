@@ -5,7 +5,7 @@
 - 版本号：`0.3.0`，五个插件清单由生成器从 `package.json` 抄写。
 - 内容验收：#80（真机），证据在 [`docs/evidence/v0.3.0/`](evidence/v0.3.0/)。
 - 本文与证据目录都不在 npm 包内，不参与 tree 哈希。
-- tag 树里的这份文件不可能包含自己产物的哈希；发布后的数字以 GitHub Release 说明为准。
+- `v0.3.0` tag 指向 `587e4394`；tag 树里的这份文件是定稿前的上一版（门禁数字是在 tag 上跑出来后才补的），`main` 上的本文件与 GitHub Release 说明才是定稿。
 
 ## 出口与档位
 
@@ -149,9 +149,23 @@ rm <project>/.qoder/rules/jiahao.md
 
 ```bash
 npm run release:gate -- --tag v0.3.0 --artifact-dir release-artifacts --evidence release-artifacts/release-evidence.json
+# exit 0
 ```
 
-九步全过才算发布结论。tag 上跑出的 `artifact`、`sha256`、各出口 tree 哈希以 **GitHub Release 正文**与 `release-artifacts/` 里的证据为准；本文件与 `release.md` 在包里，写自己的哈希会让记录指向另一棵树，所以不放数字。
+tag [[v0.3.0]](https://github.com/Xxx91n/jiahao/releases/tag/v0.3.0) 指向 `587e4394`。九步全绿（`metadata`、`generated`、`drift`、`tests`、`links`、`artifact`、`install`、`egress`、`declarations`），本机跑出的数字：
+
+```text
+artifact  jiahao-0.3.0.tgz  319527 B, 167 files
+sha256    25008d5176615adb5b4664a75e508912792fecf7c84873007a7f77b58e2baab2   (两次打包相同)
+tree      skills/jiahao          a8c365957cc22b0ca12a3b8196186b0f9c3c3a851ddd459dbe4cc7fea41debe2
+tree      adapters/claude-code   d6bed7e644141e3eaedb4e0d38fbaa215a358f017b9d8b5fb95524ec00106930
+tree      adapters/codebuddy     b41d04740566338e7fef58be7793d3fdfea11388b8367eacfb300bf0c3ba27a7
+tree      adapters/copilot       8a5bfcb10f5ceb238bdac19b7e2262bd496b1338d1be87c77a781a7881550d61
+tree      adapters/codex         96348f637483ce4ba017875245404d7763adb32647a0408669c698c96a3ab442
+tree      adapters/qoder         c03886a993b4405638963ad47db7846ca159e0f4d1dcb23ba364b60336487d7b
+```
+
+测试 455 项：454 passed / 1 skipped（Windows 上 inode 替换检测那条）。这些数字是 tag 提交 `587e4394` 上的 `main` 跑出来的；tag 的 CI job 会再跑一次同一命令。
 
 ## 不在本版本
 
