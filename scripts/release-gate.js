@@ -8,12 +8,14 @@
 //   2 generated     build-adapters.js --check (committed output == generator)
 //   3 drift         check-drift.js (profile fragments + retired adapter exits)
 //   4 tests         npm test (full suite, includes test/packaging.test.js)
-//   5 artifact      npm pack -> include/exclude audit, sha256, per-directory
+//   5 links         every relative link in packed Markdown resolves inside
+//                   the package
+//   6 artifact      npm pack -> include/exclude audit, sha256, per-directory
 //                   tree hashes
-//   6 install       install.js init --dry-run exits 0 and writes nothing
-//   7 egress        code that runs after install makes no network call; no
+//   7 install       install.js init --dry-run exits 0 and writes nothing
+//   8 egress        code that runs after install makes no network call; no
 //                   install lifecycle scripts; hook commands stay in the bundle
-//   8 declarations  docs/release.md carries the write-scope and no-egress
+//   9 declarations  docs/release.md carries the write-scope and no-egress
 //                   statements this gate relies on
 //
 // Step order is not cosmetic: the generator gates run BEFORE npm test so a
@@ -274,6 +276,12 @@ step('tests', 'full test suite (npm test)', () => {
   if (res.status !== 0) throw new Error('npm test failed (exit ' + res.status + '):\n' + tailLines(res.stderr || res.stdout, '  '));
   const summary = (res.stderr || res.stdout).match(/Tests:.*$/m);
   return summary ? summary[0].trim() : 'npm test exited 0';
+});
+
+step('links', 'relative Markdown links resolve inside the pack', () => {
+  const res = runCommand(process.execPath, [path.join('scripts', 'check-doc-links.js')]);
+  if (res.status !== 0) throw new Error('packed Markdown has links the tarball cannot satisfy:\n' + tailLines(res.stderr || res.stdout, '  '));
+  return res.stdout.trim();
 });
 
 step('artifact', 'pack contents, sha256, per-tree hashes', (ctx) => {

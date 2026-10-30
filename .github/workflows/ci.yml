@@ -53,6 +53,9 @@ jobs:
       # not the only thing keeping the comparison honest.
       - run: npm run check:adapters
       - run: npm run check:drift
+      # A relative link that points at something `files` does not pack renders
+      # dead on npmjs while every local check stays green (#102).
+      - run: npm run check:links
       - run: npm test
 
   # #63: a tag is a release attempt. One command decides whether it may be

@@ -22,6 +22,7 @@ tag 推送时 CI 跑同一条命令（`.github/workflows/ci.yml` 的 `release-ga
 | `generated` | `build-adapters.js --check`：已提交的生成物 == 生成器输出 | 生成检查 |
 | `drift` | `check-drift.js`：两份 profile 片段在位，退役适配器目录没有复活 | 漂移检查 |
 | `tests` | `npm test`：全套用例，含 `test/packaging.test.js` 的打包断言 | 测试 + 打包断言 |
+| `links` | `check-doc-links.js`：包里每份 Markdown 的相对链接都落到包内（文件或目录）；指到没进 `files` 的路径即红，外链不查 | 包内文档链接可达 |
 | `artifact` | 跑测试后先确认工作区仍然干净；再打两次 `npm pack`：必须包含 / 必须排除逐条核过，两次字节相同才算可复现，算 `sha256`，算各出口目录的树哈希 | 包内容正确、产物附 SHA256、可复现 |
 | `install` | `install.js init --dry-run` 退出 0、打印目标路径；临时配置目录和临时工作目录里都没有落文件 | 安装 dry-run |
 | `egress` | 扫描会随安装跑起来的代码：没有 `http/http2/https/net/dns/tls/dgram` 的 require、没有 `fetch(` / `https.request`；`package.json` 没有安装生命周期脚本；四个插件的每条钩子命令都指向各自插件根，且平台名后缀按方言校验：`${CLAUDE_PLUGIN_ROOT}/hooks/*.js`（Claude Code / CodeBuddy），`$PLUGIN_ROOT` / `$env:PLUGIN_ROOT`（Copilot CLI），`${PLUGIN_ROOT}/hooks/*.js codex`（Codex） | 无网络外呼 |
