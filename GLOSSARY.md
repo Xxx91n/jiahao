@@ -57,5 +57,5 @@
 *避免*：把 B 档或 C 档说成「会拦」、凭宿主文档推断档位、把档位当成宿主的永久标签。
 
 **人工裁定（Human Verdict）**：
-人工对某次完工主张的终审，唯一写法是 `jiahao resolve --verdict pass|fail|inconclusive --reason <text> --reviewer <id>`。它往证据链**追加**一条 `kind:'human_verdict'` 记录，回执给出这条记录的 event_hash 与它在链上的 seq。`pass` 放行它之前写入的记录（Stop 只看最后一条 pass 之后的记录）；`fail` 与 `inconclusive` 只留痕、不放行。没有理由的裁定不算裁定。
-*避免*：手改 JSONL 解链、把裁定当成改写历史、把「命令退出 0」当成「已经落链」（回执里的 event_hash 与 seq 才是凭证）、把 inconclusive 当成中立样本（κ 只把 pass 记作人机一致）。
+人工对某次完工主张的终审，唯一入口是 `jiahao resolve --verdict pass|fail|inconclusive --reason <text> --reviewer <id>`。它往证据链**追加**一条 `kind:'human_verdict'` 记录，回执给出这条记录的 event_hash 与它在链上的 seq。`pass` 放行它之前写入的记录（Stop 只看最后一条 pass 之后的记录）；`fail` 与 `inconclusive` 只留痕、不放行。没有理由的裁定不算裁定。
+*避免*：手改 JSONL 解链、把裁定当成改写历史、把「命令退出 0」当成「已经落链」（回执里的 event_hash 与 seq 才是凭证）、把 inconclusive 当成中立样本（校准统计只把 pass 记作人机一致）、照着钩子提示以为只有 pass|fail 两种（钩子文案还没跟上，属后续改动）。

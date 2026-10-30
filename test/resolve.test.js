@@ -109,6 +109,18 @@ test('#85: the receipt names the appended record, its seq, and its event_hash', 
   expect(hv.session_id).toBeUndefined();
   expect(hv.prev_hash).toBe(chain[0].event_hash);
 
+  // the recorded shape is the one test/evidence-log.test.js pins; every field
+  // is present, null included, so a reader or a later migration never has to
+  // guess whether a missing key meant "not stated" or "writer forgot it".
+  expect(Object.keys(hv).sort()).toEqual([
+    'corrected_output', 'event_hash', 'kind', 'overturn', 'prev_hash', 'reason',
+    'reviewer_id', 'second_reviewer', 'timestamp', 'verdict',
+  ]);
+  expect(hv.corrected_output).toBeNull();
+  expect(hv.second_reviewer).toBeNull();
+  expect(hv.overturn).toBeNull();
+  expect(Number.isNaN(Date.parse(hv.timestamp))).toBe(false);
+
   expect(r.stdout).toContain(hv.event_hash);
   expect(r.stdout).toContain('seq 1 (chain length 2)');
 });
@@ -189,6 +201,24 @@ test('#85: --flag=value is accepted and a repeated flag is refused', () => {
   const dup = resolve(dir, ['--verdict', 'pass', '--verdict', 'fail', '--reason', 'x', '--reviewer', 'alice']);
   expect(dup.status).not.toBe(0);
   expect(dup.stderr).toContain(PREFIXES.usage);
+});
+
+test('#85: an unreadable config fails with a prefix, not a bare message', () => {
+  const dir = configDir();
+  seedStaleRecord(dir);
+  const segment = path.join(dir, '.jiahao-evidence', '00000000000000000000.jsonl');
+  const before = fs.readFileSync(segment, 'utf8');
+  // A corrupt anchor config makes evidence-log throw before it can append. The
+  // installer's own catch prints a bare e.message, so run() has to name the
+  // failure class itself — otherwise `jiahao resolve` loses the prefix exactly
+  // on the command the hooks advertise.
+  fs.writeFileSync(path.join(dir, '.jiahao-anchor.json'), 'not json', 'utf8');
+
+  const r = resolve(dir, PASS_ARGS);
+  expect(r.status).not.toBe(0);
+  expect(r.stderr).toContain(PREFIXES.config);
+  expect(r.stderr).toContain('no human_verdict was confirmed');
+  expect(fs.readFileSync(segment, 'utf8')).toBe(before);
 });
 
 test('#85: a store that refuses the write is reported, not assumed written', () => {

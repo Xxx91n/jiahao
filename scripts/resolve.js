@@ -14,7 +14,7 @@
 // verdict is never a rewrite of an existing record, and a chain it cannot read
 // is left untouched.
 
-const { createEvidenceLog, recordHash } = require('../src/evidence-log');
+const { createEvidenceLog, recordHash, WITNESS_HARD_STOP_CODE } = require('../src/evidence-log');
 const { PREFIXES } = require('../src/shared/prefix-vocab');
 const { VERDICTS } = require('../src/shared/verdict-vocab');
 
@@ -86,7 +86,7 @@ function tailReceipt(chain) {
   return 'chain tail: seq ' + (chain.length - 1) + ' (chain length ' + chain.length + ') event_hash ' + hash;
 }
 
-function writeVerdict(argv) {
+function writeVerdict(log, argv) {
   let flags;
   try {
     flags = parseFlags(argv || []);
@@ -98,7 +98,6 @@ function writeVerdict(argv) {
     return;
   }
 
-  const log = createEvidenceLog();
   // commit() runs the builder under the narrow append lock and hands it the
   // real chain tail, so prev_hash cannot go stale between build and write.
   // This CLI has no input for corrected_output / second_reviewer / overturn;
@@ -156,16 +155,31 @@ function writeVerdict(argv) {
   console.log('event_hash ' + written.rec.event_hash);
 }
 
+// Anything that escapes writeVerdict still has to tell the operator which class
+// of failure it was, because scripts/install.js prints a bare message for
+// whatever is thrown out of run(). Two classes are operable states rather than
+// bugs: an unreadable config (ConfigLoadError) and the witness hard stop, whose
+// own message says to run the rebuild command.
+function failurePrefix(log, e) {
+  // ConfigLoadError is only reachable through a log instance, and the factory
+  // itself throws it — before a log exists the name is the only handle left.
+  const isConfig = log ? e instanceof log.ConfigLoadError : (e && e.name === 'ConfigLoadError');
+  if (isConfig) return PREFIXES.config;
+  if (e && e.code === WITNESS_HARD_STOP_CODE) return PREFIXES.config;
+  return PREFIXES.internal;
+}
+
 // Every failure carries a prefix, including the ones that escape through
-// scripts/install.js: that dispatcher prints a bare e.message for anything
-// thrown out of run(), and a bare message is the fail-path this repo replaced
-// with a closed enum.
+// scripts/install.js: a bare message is the fail-path this repo replaced with a
+// closed enum.
 function run(argv) {
+  let log = null;
   try {
-    writeVerdict(argv);
+    log = createEvidenceLog();
+    writeVerdict(log, argv);
   } catch (e) {
-    const prefix = e && e.name === 'ConfigLoadError' ? PREFIXES.config : PREFIXES.internal;
-    console.error(prefix + ' no human_verdict was confirmed: ' + (e && e.message ? e.message : String(e)));
+    console.error(failurePrefix(log, e) + ' no human_verdict was confirmed: ' +
+      (e && e.message ? e.message : String(e)));
     process.exitCode = 1;
   }
 }
