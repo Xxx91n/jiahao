@@ -275,7 +275,7 @@ function dialectOf(host) {
 // the entry points at the same bundle the row describes. Exactly one row may
 // own that file: two Codex-dialect rows would otherwise leave one silently
 // unshelved, and the build catches it instead.
-const CODEX_DIALECT_HOSTS = HOSTS.filter(host => dialectOf(host).manifestPath === '.codex-plugin/plugin.json');
+const CODEX_DIALECT_HOSTS = HOSTS.filter(host => (host.dialect || {}).marketplace === 'codex');
 const CODEX_MARKETPLACE_HOST = CODEX_DIALECT_HOSTS.length === 1 ? CODEX_DIALECT_HOSTS[0] : null;
 
 // Claude-shaped maps nest their commands under `hooks`; a flat dialect's entry

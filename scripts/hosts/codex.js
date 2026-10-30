@@ -73,6 +73,8 @@ module.exports = {
   // Consumers: the generator rejects a platform name the hook layer does not
   // implement, and the structure test re-checks the shipped rows.
   platform: PLATFORM,
+  // Tells the generator which repo-level marketplace shelf this row owns.
+  marketplace: 'codex',
   emitManifest: emitManifest,
   emitHookMap: emitHookMap,
 };
