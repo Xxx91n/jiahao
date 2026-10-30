@@ -49,7 +49,7 @@
 *避免*：把「出口」和物理退出码混用、把退役的适配器目录当成受支持的出口。
 
 **宿主方言（Host Dialect）**：
-宿主表的 `dialect` 字段，只记三个宿主事实：清单放哪个目录（`.claude-plugin/` / `.codex-plugin/`）、钩子命令用哪个插件根变量展开（`${CLAUDE_PLUGIN_ROOT}` / `${PLUGIN_ROOT}`）、配置模板是否把平台名作为参数传给钩子（Codex 传 `codex`，由 `hooks/jiahao-runtime.js` 的 `detectHost()` 识别）。方言只写字段，不写判定逻辑；判定逻辑与输出信封仍只有一份。
+宿主表的 `dialect` 字段，只记宿主事实：清单放哪个目录（`.claude-plugin/` / `.codex-plugin/`）、钩子命令用哪个插件根变量展开（`${CLAUDE_PLUGIN_ROOT}` / `${PLUGIN_ROOT}`）、清单里的组件路径要不要 `./` 前缀、配置模板是否把平台名作为参数传给钩子（Codex 传 `codex`，由 `hooks/jiahao-runtime.js` 的 `detectHost()` 识别），以及是否输出 Claude 系清单的 `defaultEnabled` 字段。方言只写字段，不写判定逻辑；判定逻辑与输出信封仍只有一份。
 *避免*：为某个宿主在判定脚本里加分支、把方言差异散进测试或门禁。
 
 **宿主表（Host Table）**：

@@ -32,10 +32,10 @@ test('tarball contains no brand assets', () => {
   expect(packed.filter((p) => p.startsWith('docs/assets/'))).toEqual([]);
 });
 
-// #63: the packed artifact is the release artifact, so it has to carry both
-// exits. The rules directory is generated, so it is also the one output a
-// hand edit or a stale build could leave out without anyone noticing.
-test('tarball carries the rules directory and both plugin bundles, and no private or research files', () => {
+// #63: the packed artifact is the release artifact, so it has to carry every
+// exit. The rules directory is generated, so it is also the one output a hand
+// edit or a stale build could leave out without anyone noticing.
+test('tarball carries the rules directory and every plugin bundle, and no private or research files', () => {
   expect(auditPackFiles(packed)).toEqual([]);
 });
 

@@ -37,6 +37,7 @@ const crypto = require('crypto');
 const { spawnSync } = require('child_process');
 
 const { HOSTS, CODEX_MARKETPLACE_HOST, dialectOf } = require('./build-adapters');
+const { PLATFORMS } = require('../hooks/jiahao-runtime');
 
 const root = path.join(__dirname, '..');
 
@@ -91,8 +92,10 @@ const NETWORK_CALL = /(?:\bfetch\s*\(|XMLHttpRequest|https?\.(?:request|get)\s*\
 const FORBIDDEN_LIFECYCLE = ['preinstall', 'install', 'postinstall', 'prepare', 'prepack', 'postpack'];
 // Plugin hook commands must resolve inside the bundle. Each host family expands
 // its own plugin-root variable (CLAUDE / CODEBUDDY / PLUGIN_ROOT), and a config
-// template may append its platform name after the script.
-const BUNDLED_COMMAND = /^node "?\$\{(?:CLAUDE_|CODEBUDDY_)?PLUGIN_ROOT\}\/hooks\/[A-Za-z0-9._-]+\.js"?(?: [a-z0-9-]+)?$/;
+// template may append its platform name after the script - one of the names the
+// hook layer implements, not any lowercase token.
+const PLATFORM_NAMES = PLATFORMS.join('|');
+const BUNDLED_COMMAND = new RegExp('^node "\\$\\{(?:CLAUDE_|CODEBUDDY_)?PLUGIN_ROOT\\}/hooks/[A-Za-z0-9._-]+\\.js"?(?: (?:' + PLATFORM_NAMES + '))?$');
 
 function parseTag(tag) {
   const m = /^v(\d+\.\d+\.\d+)$/.exec(String(tag || ''));

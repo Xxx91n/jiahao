@@ -522,21 +522,23 @@ function buildAdapters() {
   // Codex reads `.agents/plugins/marketplace.json`, whose `source.path` resolves
   // from the marketplace root (the repo). The entry names the row's bundle and
   // carries no version: `.codex-plugin/plugin.json` is the authority.
-  if (!CODEX_MARKETPLACE_HOST) {
-    throw new Error('exactly one Codex-dialect host must own .agents/plugins/marketplace.json (found ' +
+  if (CODEX_DIALECT_HOSTS.length > 1) {
+    throw new Error('at most one Codex-dialect host may own .agents/plugins/marketplace.json (found ' +
       CODEX_DIALECT_HOSTS.length + ')');
   }
-  adapters['.agents/plugins/marketplace.json'] = JSON.stringify({
-    name: 'jiahao',
-    plugins: [
-      {
-        name: 'jiahao',
-        source: { source: 'local', path: './' + CODEX_MARKETPLACE_HOST.dir },
-        category: 'Productivity',
-        interface: { displayName: 'Jiahao' },
-      },
-    ],
-  }, null, 2) + '\n';
+  if (CODEX_MARKETPLACE_HOST) {
+    adapters['.agents/plugins/marketplace.json'] = JSON.stringify({
+      name: 'jiahao',
+      plugins: [
+        {
+          name: 'jiahao',
+          source: { source: 'local', path: './' + CODEX_MARKETPLACE_HOST.dir },
+          category: 'Productivity',
+          interface: { displayName: 'Jiahao' },
+        },
+      ],
+    }, null, 2) + '\n';
+  }
 
   // ---- rules version: the standard Agent Skills directory ----
   // The one output with no host-specific shape: `npx skills add <this repo>`
@@ -1060,5 +1062,5 @@ if (require.main === module) main();
 module.exports = {
   buildAdapters, unifiedDiff, checkAll, writeAll, auditTrackedSet, SKILL_DIR, SOURCE_NAME,
   HOSTS, RETIRED_HOSTS, MARKETPLACE_HOST, CODEX_MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
-  dialectOf, GENERATED_DIRS,
+  dialectOf,
 };

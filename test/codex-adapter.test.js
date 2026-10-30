@@ -52,9 +52,11 @@ function runBundled(script, opts) {
 
 describe('configuration template', () => {
   const cfg = JSON.parse(generated[GENERATED_PREFIX + 'hooks/hooks.json']);
-  // Codex's own event vocabulary, written down here rather than read back from
-  // the row that generated the template: comparing the file with its own source
-  // would pass even if both drifted off the host's names.
+  // The host's documented event names, written down here rather than read back
+  // from the row that generated the template: comparing the file with its own
+  // source would pass even if both drifted off the host's names. That Stop is
+  // the turn-end event is documented; whether the host blocks on it is the
+  // open probe (#80), not something this test claims.
   const CODEX_EVENTS = ['SessionStart', 'SubagentStart', 'UserPromptSubmit', 'Stop', 'SubagentStop', 'SessionEnd'];
 
   test('registers the host\'s own event names, including the turn-end event', () => {
