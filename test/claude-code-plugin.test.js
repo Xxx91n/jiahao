@@ -13,7 +13,7 @@ const os = require('os');
 const path = require('path');
 const { buildAdapters } = require('../scripts/build-adapters');
 const { materializeBundle, assertAbsolutePluginRoot } = require('./helpers/generated-bundle');
-const { spawnHook, expectExit, parseJson } = require('./helpers/spawned-hook');
+const { spawnHook, expectExit, parseJson, hostEnv } = require('./helpers/spawned-hook');
 
 const generated = buildAdapters();
 // The generator map's key, not a directory - same #84 rename as the codebuddy
@@ -31,11 +31,9 @@ describe('bundled Claude Code hooks (live spawn, temp config dir)', () => {
 
   function runBundled(script, opts) {
     assertAbsolutePluginRoot(bundleDir);
-    const env = Object.assign({}, process.env);
-    for (const k of ['PLUGIN_DATA', 'COPILOT_PLUGIN_DATA', 'QODER_SESSION_ID', 'CODEBUDDY_PLUGIN_ROOT']) delete env[k];
-    env.CLAUDE_CONFIG_DIR = opts.configDir;
-    env.CLAUDE_PLUGIN_ROOT = bundleDir;
-    return spawnHook(path.join(bundleDir, 'hooks', script), { stdin: opts.stdin, env: env });
+    return spawnHook(path.join(bundleDir, 'hooks', script), {
+      stdin: opts.stdin, env: hostEnv(opts.configDir, bundleDir),
+    });
   }
 
   function configDir(profile) {

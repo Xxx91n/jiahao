@@ -9,7 +9,7 @@
 
 const { spawnSync } = require('child_process');
 
-function describe(res) {
+function describeSpawn(res) {
   return JSON.stringify({
     command: res.commandLine,
     status: res.status,
@@ -37,7 +37,7 @@ function spawnHook(script, opts) {
 // status and the reason is on the streams. Report all of it.
 function expectExit(res, code) {
   if (res.status !== code) {
-    throw new Error('expected exit ' + code + ', got ' + res.status + ': ' + describe(res));
+    throw new Error('expected exit ' + code + ', got ' + res.status + ': ' + describeSpawn(res));
   }
   return res;
 }
@@ -46,8 +46,20 @@ function parseJson(res) {
   try {
     return JSON.parse(String(res.stdout).trim());
   } catch (e) {
-    throw new Error('stdout is not JSON (' + e.message + '): ' + describe(res));
+    throw new Error('stdout is not JSON (' + e.message + '): ' + describeSpawn(res));
   }
 }
 
-module.exports = { spawnHook, expectExit, parseJson, describe };
+// Hooks read host context from the environment, and the test process may itself
+// run under a host. Scrub every host marker so the spawn sees one host only,
+// pin the config dir, and set the absolute plugin root the hook runs from.
+function hostEnv(configDir, pluginRoot) {
+  const env = Object.assign({}, process.env);
+  for (const k of ['PLUGIN_DATA', 'COPILOT_PLUGIN_DATA', 'QODER_SESSION_ID',
+    'CLAUDE_PLUGIN_ROOT', 'CODEBUDDY_PLUGIN_ROOT']) delete env[k];
+  env.CLAUDE_CONFIG_DIR = configDir;
+  if (pluginRoot !== undefined) env.CLAUDE_PLUGIN_ROOT = pluginRoot;
+  return env;
+}
+
+module.exports = { spawnHook, expectExit, parseJson, describeSpawn, hostEnv };

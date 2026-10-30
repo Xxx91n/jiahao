@@ -13,7 +13,7 @@ const path = require('path');
 
 const { buildAdapters } = require('../scripts/build-adapters');
 const { materializeBundle, assertAbsolutePluginRoot } = require('./helpers/generated-bundle');
-const { spawnHook, expectExit, parseJson, describe } = require('./helpers/spawned-hook');
+const { spawnHook, expectExit, parseJson, describeSpawn, hostEnv } = require('./helpers/spawned-hook');
 
 // A key into the generator's map, NOT a directory (#84). The old name read like
 // a path, so path.join() onto it silently produced a relative path that
@@ -42,19 +42,14 @@ function mkConfigDir(files) {
 
 function runBundleHook(script, opts) {
   const o = opts || {};
+  const pluginRoot = o.pluginRoot === undefined ? bundleDir : o.pluginRoot;
   // Structure, not convention: a relative root makes every containment
-  // assertion measure the wrong thing while still passing. Default is the
-  // materialized directory the hook is actually spawned from.
-  assertAbsolutePluginRoot(o.pluginRoot);
-  const env = Object.assign({}, process.env);
-  delete env.PLUGIN_DATA;
-  delete env.COPILOT_PLUGIN_DATA;
-  delete env.QODER_SESSION_ID;
-  delete env.CLAUDE_PLUGIN_ROOT;
-  delete env.CODEBUDDY_PLUGIN_ROOT;
-  env.CLAUDE_CONFIG_DIR = o.configDir;
-  env.CLAUDE_PLUGIN_ROOT = o.pluginRoot === undefined ? bundleDir : o.pluginRoot;
-  return spawnHook(path.join(bundleDir, 'hooks', script), { stdin: o.stdin, env: env });
+  // assertion measure the wrong thing while still passing. The default is the
+  // materialized directory the hook is spawned from, and it is checked too.
+  assertAbsolutePluginRoot(pluginRoot);
+  return spawnHook(path.join(bundleDir, 'hooks', script), {
+    stdin: o.stdin, env: hostEnv(o.configDir, pluginRoot),
+  });
 }
 
 describe('hook behavior (bundle copies, live spawn)', () => {
@@ -139,7 +134,8 @@ describe('hook behavior (bundle copies, live spawn)', () => {
       // tool call that should have been denied went through, and JSON.parse's
       // "Unexpected end of JSON input" says nothing about which payload did it.
       if (res.status !== 0 || !String(res.stdout).trim()) {
-        throw new Error('shape not denied: ' + describe(res));
+        throw new Error('shape not denied: ' + JSON.stringify({ payload: command }) +
+          ' — ' + describeSpawn(res));
       }
       expect(parseJson(res).hookSpecificOutput.permissionDecision).toBe('deny');
     }
@@ -148,6 +144,7 @@ describe('hook behavior (bundle copies, live spawn)', () => {
       configDir: dir, pluginRoot: bundleDir,
       stdin: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'rm rules/other.md && cat README.md' } }),
     });
+    expectExit(benign, 0);
     expect(benign.stdout.trim()).toBe('');
   });
 

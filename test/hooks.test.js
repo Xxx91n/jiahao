@@ -4,7 +4,7 @@ const path = require('path');
 
 const repoRoot = path.join(__dirname, '..');
 const hooksDir = path.join(repoRoot, 'hooks');
-const { spawnHook, expectExit, parseJson } = require('./helpers/spawned-hook');
+const { spawnHook, expectExit, parseJson, hostEnv } = require('./helpers/spawned-hook');
 const { createRecord: createEvidence } = require(path.join(repoRoot, 'src', 'evidence-log.js'));
 const { detect } = require(path.join(repoRoot, 'src', 'detector.js'));
 
@@ -29,20 +29,12 @@ function freshDir(prefix) {
   return dir;
 }
 
-function hookEnv(dir) {
-  const env = Object.assign({}, process.env);
-  for (const k of ['PLUGIN_DATA', 'COPILOT_PLUGIN_DATA', 'QODER_SESSION_ID',
-    'CLAUDE_PLUGIN_ROOT', 'CODEBUDDY_PLUGIN_ROOT']) delete env[k];
-  env.CLAUDE_CONFIG_DIR = dir;
-  return env;
-}
-
 function runHook(script, opts) {
   const o = opts || {};
   const dir = o.dir || freshDir('jiahao-hooks-test-');
   return spawnHook(path.join(hooksDir, script), {
     stdin: o.stdin,
-    env: hookEnv(dir),
+    env: hostEnv(dir),
     cwd: repoRoot,
   });
 }
@@ -316,7 +308,7 @@ function gateFixture() {
       // and a block (exit 2) is a normal result rather than a throw.
       return spawnHook(path.join(hooksDir, 'jiahao-verdict-gate.js'), {
         stdin: JSON.stringify(payload),
-        env: hookEnv(dir),
+        env: hostEnv(dir),
         cwd: repoRoot,
       });
     },

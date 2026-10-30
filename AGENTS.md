@@ -23,7 +23,7 @@
 - 证据链落在 `.jiahao-evidence/`，改路径要同步 `src/shared/paths.js` 和 hook 侧。
 - Windows 上 inode 替换检测无效，`test/sentinel-ownership.test.js` 有一条跳过。
 - `src/SKILL.md` 的 frontmatter 有三处只属于源：`name: jiahao-source`、`metadata:` / `internal: true`、`argument-hint:`。别从源里删它们，也别手改产物——各管一头；原因和实测写在 `scripts/build-adapters.js` 的 `toShippedSkill` 注释上（技能 CLI 按名字索取会绑到 `src/`，官方校验器拒绝规范外的键）。
-- 改一个常量的**语义**（不是拼写）时，即使文本零冲突，也要 grep 全部引用点，确认每个断言测的还是它以为的东西。#84 的实例：`BUNDLE` 从「仓库里的绝对插件目录」改成生成映射的键 `'adapters/codebuddy/'` 后，`path.join(BUNDLE, ...)` 与 `pluginRoot: BUNDLE` 静默变成相对路径；与 #75 合并时 `merge-tree` 报零冲突，CI 连红三轮才定位。现在前缀叫 `GENERATED_PREFIX`，`runBundleHook` 经 `assertAbsolutePluginRoot` 拒绝相对根。
+- 改一个常量的**语义**（不是拼写）时，即使文本零冲突，也要 grep 全部引用点，确认每个断言测的还是它以为的东西。#76 把 `BUNDLE` 从「仓库里的绝对插件目录」改成生成映射的键 `'adapters/codebuddy/'` 后，`path.join(BUNDLE, ...)` 与 `pluginRoot: BUNDLE` 静默变成相对路径；与 #75 合并时 `merge-tree` 报零冲突，CI 连红三轮才定位（#84 收尾改名）。现在前缀叫 `GENERATED_PREFIX`，`runBundleHook` 经 `assertAbsolutePluginRoot` 拒绝相对根。
 
 ## Agent skills
 

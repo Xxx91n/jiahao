@@ -313,5 +313,7 @@ process.stdin.on('end', () => {
   // fall through: the loop drains when stdin has ended, flushing stdout
 });
 
-// Windows stdin hang guard
-setTimeout(() => process.exit(0), 1000).unref();
+// Windows stdin hang guard. Exit with the decision code when one was set: a
+// forced exit(0) here would turn a block (exit 2) into an allow if anything
+// kept the loop alive past the guard.
+setTimeout(() => process.exit(typeof process.exitCode === 'number' ? process.exitCode : 0), 1000).unref();

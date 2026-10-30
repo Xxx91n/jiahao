@@ -2,10 +2,10 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const os = require('os');
 
 const root = path.join(__dirname, '..');
-const TMP = require('os').tmpdir().replace(/\\/g, '/') + '/jiahao-dual-profile-test';
+const { spawnHook, expectExit, hostEnv } = require('./helpers/spawned-hook');
 
 const skillPath = path.join(root, 'src', 'SKILL.md');
 
@@ -14,7 +14,21 @@ const skillPath = path.join(root, 'src', 'SKILL.md');
 // (#66), and the committed bytes are --check's job.
 const generated = require('../scripts/build-adapters').buildAdapters();
 
-beforeAll(() => { fs.mkdirSync(TMP, { recursive: true }); });
+// A fresh config dir per test (#84 / #86 A): a file-wide TMP let two
+// overlapping runs overwrite each other's profile and evidence mid-assertion.
+let tempDirs;
+beforeEach(() => { tempDirs = []; });
+afterEach(() => {
+  for (const dir of tempDirs) {
+    try { fs.rmSync(dir, { recursive: true, force: true }); } catch (e) { /* best effort */ }
+  }
+});
+
+function freshDir() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-dual-profile-test-'));
+  tempDirs.push(dir);
+  return dir;
+}
 
 test('SKILL.md has both profile sections', () => {
   const content = fs.readFileSync(skillPath, 'utf8');
@@ -79,60 +93,30 @@ test('build-adapters emits both codebuddy rules and the rules-version skill', ()
 });
 
 test('activate hook uses generator profile when flag set', () => {
-  // Write generator flag
-  fs.writeFileSync(path.join(TMP, '.jiahao-profile'), 'generator', 'utf8');
-  fs.writeFileSync(path.join(TMP, '.jiahao-active'), 'full', 'utf8');
-  try { fs.unlinkSync(path.join(TMP, '.jiahao-evidence')); } catch(e) {}
-
-  const origDir = process.cwd();
-  process.chdir(root);
-  try {
-    const output = execSync('node hooks/jiahao-activate.js', {
-      encoding: 'utf8',
-      env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 15000,
-    });
-    // Generator profile should NOT contain verification ladder content
-    expect(output).not.toContain('deterministic machine check');
-    expect(output).not.toContain('second-party verifier');
-    // Should contain generator rules
-    expect(output).toContain('No evidence, no completion claim');
-  } finally {
-    process.chdir(origDir);
-    try { fs.unlinkSync(path.join(TMP, '.jiahao-profile')); } catch(e) {}
-    try { fs.unlinkSync(path.join(TMP, '.jiahao-active')); } catch(e) {}
-  }
+  const dir = freshDir();
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'generator', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  const res = spawnHook(path.join(root, 'hooks', 'jiahao-activate.js'), {
+    env: hostEnv(dir), cwd: root,
+  });
+  expectExit(res, 0);
+  // Generator profile should NOT contain verification ladder content
+  expect(res.stdout).not.toContain('deterministic machine check');
+  expect(res.stdout).not.toContain('second-party verifier');
+  // Should contain generator rules
+  expect(res.stdout).toContain('No evidence, no completion claim');
 });
 
 test('verdict-gate advisory mode for generator profile', () => {
-  fs.writeFileSync(path.join(TMP, '.jiahao-profile'), 'generator', 'utf8');
-  fs.writeFileSync(path.join(TMP, '.jiahao-active'), 'full', 'utf8');
-  try { fs.unlinkSync(path.join(TMP, '.jiahao-evidence')); } catch(e) {}
-
-  const origDir = process.cwd();
-  process.chdir(root);
-  try {
-    const input = JSON.stringify({ stop_hook_active: false });
-    const output = execSync('echo \'' + input + '\' | node hooks/jiahao-verdict-gate.js', {
-      encoding: 'utf8',
-      env: { ...process.env, CLAUDE_CONFIG_DIR: TMP },
-      timeout: 15000,
-      shell: 'bash',
-    });
-    // Generator mode: allow, not block — verify explicit advisory output
-    expect(output).toContain('"decision":"allow"');
-    expect(output).toContain('JIAHAO ADVISORY');
-    expect(output).not.toContain('"decision":"block"');
-  } finally {
-    process.chdir(origDir);
-    try { fs.unlinkSync(path.join(TMP, '.jiahao-profile')); } catch(e) {}
-    try { fs.unlinkSync(path.join(TMP, '.jiahao-active')); } catch(e) {}
-  }
-});
-
-// Cleanup temp files after all tests
-afterAll(() => {
-  ['.jiahao-profile', '.jiahao-active', '.jiahao-evidence'].forEach(f => {
-    try { fs.unlinkSync(path.join(TMP, f)); } catch(e) {}
+  const dir = freshDir();
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'generator', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  const res = spawnHook(path.join(root, 'hooks', 'jiahao-verdict-gate.js'), {
+    stdin: JSON.stringify({ stop_hook_active: false }), env: hostEnv(dir), cwd: root,
   });
+  // Generator mode: allow, not block — verify explicit advisory output
+  expectExit(res, 0);
+  expect(res.stdout).toContain('"decision":"allow"');
+  expect(res.stdout).toContain('JIAHAO ADVISORY');
+  expect(res.stdout).not.toContain('"decision":"block"');
 });
