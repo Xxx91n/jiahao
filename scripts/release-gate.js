@@ -425,6 +425,9 @@ step('egress', 'code that runs after install makes no network call', () => {
     for (const [event, entries] of Object.entries(map.hooks || {})) {
       for (const entry of entries) {
         const commands = hookEntryCommands(entry);
+        if (commands.length === 0) {
+          throw new Error(rel + ' hook ' + event + ' registers no command');
+        }
         for (const hook of commands) {
           if (hook.type !== 'command') continue;
           // Each field is checked against its own pattern: a bash entry spelled

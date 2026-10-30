@@ -2,8 +2,8 @@
 
 This directory is a **self-contained plugin for GitHub Copilot CLI**: the
 manifest (`plugin.json`), the hook map (`hooks/hooks.json`), the hook scripts
-and their `require()` closure, `src/SKILL.md`, and the shipped skill
-(`skills/jiahao/SKILL.md`) are vendored inside. Every hook command resolves
+and their `require()` closure, and `src/SKILL.md` (the rules body the
+sessionStart hook injects) are vendored inside. Every hook command resolves
 through `$PLUGIN_ROOT` - Copilot CLI hands plugin hooks `PLUGIN_ROOT` (and
 also `COPILOT_PLUGIN_ROOT` / `CLAUDE_PLUGIN_ROOT`) pointing at the installed
 plugin - so nothing reads from the repository root.
@@ -47,9 +47,11 @@ Timeouts stay within the host's default 30s budget (10/10/10/30/30/10s).
 ## Dialect: what differs from the Claude-shaped hosts
 
 Two config-side differences live in `scripts/hosts/copilot.js` and in this
-config; the third is the host's own block contract, which the shared gate
-already satisfies. The judgment logic is the same
-`hooks/jiahao-verdict-gate.js` every host runs.
+config. The host's block channel needs no translation (the shared gate already
+prints it), and the camelCase payload names (`sessionId`, `agentName`) are
+folded into the shared shape by `hooks/jiahao-runtime.js`, the hook-side
+adapter file that already owns `detectHost()` and the per-host envelopes. The
+judgment logic is the same `hooks/jiahao-verdict-gate.js` every host runs.
 
 - **Event names are camelCase** (`sessionStart`, `agentStop`), not
   `SessionStart` / `Stop`. A copied PascalCase map is a config this host
@@ -57,13 +59,14 @@ already satisfies. The judgment logic is the same
 - **Each entry carries `bash` and `powershell` branches.** The host picks one
   by operating system; `$PLUGIN_ROOT` and `$env:PLUGIN_ROOT` expand to the
   installed plugin directory. There is no `command` key here.
-- **The block is the decision field, not the exit code.** `agentStop` and
-  `subagentStop` honor `{decision:"block", reason}` on stdout; exit 2 is only a
-  warning outside `preToolUse` / `permissionRequest`, and any other non-zero
-  code is fail-open. The gate prints the decision field, which is what blocks.
-- **Blocks are capped at 8 consecutive continuations**; after that the CLI ends
-  the turn anyway. `agentStop` receives `stop_hook_active`, and the gate
-  already lets that pass.
+- **The block channel is the decision field, not the exit code** (as the host
+  documents it): `agentStop` and `subagentStop` honor
+  `{decision:"block", reason}` on stdout; exit 2 is only a warning outside
+  `preToolUse` / `permissionRequest`, and any other non-zero code is
+  fail-open. The gate prints that decision field.
+- **The docs state a cap of 8 consecutive block continuations**, after which the
+  CLI ends the turn anyway. `agentStop` receives `stop_hook_active`, and the
+  gate already lets that pass.
 
 ## Injection surface - Verified vs Declared-unverified
 

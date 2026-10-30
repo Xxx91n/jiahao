@@ -38,7 +38,6 @@ test('build-adapters generates the retained exits', () => {
       'adapters/codebuddy/rules/jiahao-generator.md',
       'adapters/copilot/plugin.json',
       'adapters/copilot/hooks/hooks.json',
-      'adapters/copilot/skills/jiahao/SKILL.md',
       'skills/jiahao/SKILL.md',
     ];
     expected.forEach(rel => {

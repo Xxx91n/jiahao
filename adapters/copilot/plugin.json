@@ -7,6 +7,5 @@
   },
   "license": "MIT",
   "repository": "https://github.com/Xxx91n/jiahao",
-  "hooks": "hooks/hooks.json",
-  "skills": "skills/"
+  "hooks": "hooks/hooks.json"
 }

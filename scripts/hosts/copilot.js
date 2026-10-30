@@ -10,10 +10,14 @@
 // stdout, not an exit code - is the host's own contract, not a translation:
 // the shared hooks/jiahao-verdict-gate.js already prints that field, and its
 // exit 2 is only a warning on this host (docs.github.com/en/copilot/reference/
-// hooks-reference, read 2026-10-30). Nothing about the verdict is duplicated
-// here; this module only says which event name runs which script and how the
-// command is spelled on the two shells, so a second dialect host edits this
-// shape once instead of editing the gate and the tests again.
+// hooks-reference, read 2026-10-30). Payload field names are the fourth: the
+// camelCase events send `sessionId` / `agentName`, and folding those into the
+// shared names is the job of hooks/jiahao-runtime.js, the hook-side adapter
+// file that already owns detectHost() and the per-host envelopes (spec #74 D3).
+// Nothing about the verdict is duplicated here; this module only says which
+// event name runs which script and how the command is spelled on the two
+// shells, so a second dialect host edits this shape once instead of editing the
+// gate and the tests again.
 //
 // Plugin layout (legacy Copilot format, documented): plugin.json at the plugin
 // root, hooks.json at the root or in hooks/, skills/<name>/SKILL.md. Plugin
@@ -74,7 +78,6 @@ function emitManifest(ctx) {
     license: ctx.pkg.license,
     repository: ctx.repository,
     hooks: HOOK_MAP_PATH,
-    skills: 'skills/',
   }, null, 2) + '\n';
 }
 
@@ -86,7 +89,6 @@ module.exports = {
   defaultEnabledFlag: false,
   commandFields: ['bash', 'powershell'],
   commandPatterns: COMMAND_PATTERNS,
-  shipShippedSkill: true,
   emitManifest: emitManifest,
   emitHookMap: emitHookMap,
 };

@@ -34,7 +34,7 @@ function readFrontmatter(text, label) {
   return data;
 }
 
-const { buildAdapters, SKILL_DIR, SOURCE_NAME, HOSTS, dialectOf } = require('../scripts/build-adapters');
+const { buildAdapters, SKILL_DIR, SOURCE_NAME, HOSTS } = require('../scripts/build-adapters');
 const { listTrackedPaths } = require('../src/shared/tracked-surface');
 // The generated text, not the file on disk: another suite reruns the generator
 // while jest works, and a read landing in writeFileSync's truncate window gets a
@@ -77,13 +77,8 @@ test('the tracked SKILL.md set stays exactly the known set', () => {
     .filter((rel) => rel.endsWith('/SKILL.md'))
     .filter((rel) => rel !== SKILL_DIR + '/SKILL.md')
     .sort();
-  // A bundle whose dialect ships the shippable twin (Copilot CLI's skills/) is
-  // a second claimant on purpose: it is the rules body the host loads, not a
-  // discovery target, and it carries the shipped name so it is acknowledged here.
   const expected = ['src/SKILL.md']
     .concat(HOSTS.map((host) => host.dir + '/src/SKILL.md'))
-    .concat(HOSTS.filter((host) => dialectOf(host).shipShippedSkill)
-      .map((host) => host.dir + '/' + SKILL_DIR + '/SKILL.md'))
     .sort();
   expect(claimants).toEqual(expected);
 });

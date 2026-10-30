@@ -14,9 +14,11 @@ function detectHost() {
 
 // Field names differ per host: the Claude-shaped payloads carry session_id and
 // agent_type, Copilot CLI's camelCase events carry sessionId and agentName (with
-// agentType only when known). Normalizing at the stdin boundary keeps every hook
-// reading one shape, and keeps the spelling of a host's payload in this adapter
-// file instead of spreading host names through the judgment logic.
+// agentType only when known). Normalizing at the stdin boundary gives every hook
+// one shape for those identity fields, and keeps the spelling of a host's
+// payload in this adapter file instead of spreading host names through the
+// judgment logic. Other payload fields are read in their host-neutral form and
+// are not renamed here.
 function normalizePayload(parsed) {
   const p = (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
   const sessionId = p.session_id || p.sessionId || null;

@@ -17,7 +17,7 @@ const { isBuiltin } = require('module');
 
 const {
   buildAdapters, HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds, dialectOf,
-  hookEntryCommands, SKILL_DIR,
+  hookEntryCommands,
 } = require('../scripts/build-adapters');
 
 const ROOT = path.join(__dirname, '..');
@@ -32,7 +32,6 @@ const pkgRepository = pkg.repository.url.replace(/^git\+/, '').replace(/\.git$/,
 function isWiring(dialect, rel) {
   if (rel === dialect.manifestPath) return true;
   if (rel === dialect.hookMapPath) return true;
-  if (dialect.shipShippedSkill && rel === SKILL_DIR + '/SKILL.md') return true;
   return /^(rules\/|\.mcp\.json$|README\.md$)/.test(rel);
 }
 
@@ -105,11 +104,6 @@ describe.each(HOSTS)('$label plugin bundle ($dir)', (host) => {
       }
     });
 
-    if (dialect.shipShippedSkill) {
-      test('ships the rules body twice at its two names: the vendored source and the shippable skill twin', () => {
-        expect(generated[P + 'skills/jiahao/SKILL.md']).toBe(readRepo('skills/jiahao/SKILL.md'));
-      });
-    }
 
     test('every wired event has a vendored script', () => {
       for (const hook of Object.values(host.hooks)) {
@@ -445,6 +439,16 @@ describe('tier contract', () => {
       },
     });
     expect(hostShapeProblems([renameOnly])).toEqual([]);
+    // A renamed command shape without its own emitter would ship the shared
+    // emitter's `command`/`timeout` map, which this host silently skips.
+    const hollow = Object.assign({}, good, {
+      dialect: {
+        manifestPath: '.claude-plugin/plugin.json', hookMapPath: 'hooks/hooks.json',
+        timeoutField: 'timeoutSec', commandFields: ['bash', 'powershell'],
+        commandPatterns: { bash: /^x$/, powershell: /^y$/ },
+      },
+    });
+    expect(hostShapeProblems([hollow]).join('\n')).toMatch(/needs its own emitHookMap/);
   });
 
   test('a rules-only C row is a valid row and ships no hooks', () => {
