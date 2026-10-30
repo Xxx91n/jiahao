@@ -64,9 +64,13 @@ test('the pack contract names the rules file, both plugin hook maps, the Qoder r
   expect(FORBIDDEN_PACK_PREFIXES).toEqual(expect.arrayContaining(['private/', 'bench/', 'docs/research/']));
 });
 
-test('the Qoder rules-only exit is packaged', () => {
-  expect(packed).toContain('adapters/qoder/rules/jiahao.md');
-  expect(packed).toContain('adapters/qoder/README.md');
+test('the Qoder rules-only exit is packed as exactly its rule and README', () => {
+  // Exact set, not just "contains": adapters/ is whitelisted wholesale, so an
+  // untracked adapters/qoder/hooks/hooks.json would ship without this check.
+  expect(packed.filter((p) => p.startsWith('adapters/qoder/')).sort()).toEqual([
+    'adapters/qoder/README.md',
+    'adapters/qoder/rules/jiahao.md',
+  ]);
 });
 
 test('the packed version is the package version the tag will be checked against', () => {

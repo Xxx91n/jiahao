@@ -140,9 +140,10 @@ const HOSTS = [
     tier: 'C',
     turnEnd: null,
     // Spec #74's probe list still owns Qoder's turn-end question. Until a probe
-    // answers it, the table records what was observed: nothing. The exit is
-    // rules only, so there is no hook that could be mistaken for enforcement.
-    provenance: 'Qoder (spec #74 probe list): turn-end behavior unprobed; no live run observed, so the exit stays C tier (rules only)',
+    // answers it, the table records what was observed: nothing (no host build
+    // was recorded for this row). The exit is rules only, so there is no hook
+    // that could be mistaken for enforcement.
+    provenance: 'Qoder (host build not recorded; spec #74 probe list, 2026-10-30): turn-end behavior unprobed, no live run observed; C tier (rules only) is the spec-assigned ceiling',
     // A manifest-less row IS the rules-only exit: no plugin manifest, no
     // vendored scripts, no src/ copy. The one rule file carries the same body
     // as the rules version; see qoderReadme for the install surface.
@@ -246,6 +247,13 @@ const VERDICT_GATE = 'jiahao-verdict-gate';
 // would be silently overridden, so it is a table error instead.
 const RESERVED_MANIFEST_KEYS = ['name', 'version', 'license', 'repository', 'defaultEnabled'];
 
+// A rules-only exit is the manifest-less shape. One predicate, so the
+// generator, both gates, and the tests cannot disagree about which rows have
+// a plugin scaffold.
+function isRulesOnlyHost(host) {
+  return host.manifest === null;
+}
+
 function hostShapeProblems(hosts) {
   const problems = [];
   const names = new Set();
@@ -286,10 +294,12 @@ function hostShapeProblems(hosts) {
     for (const rule of rules) {
       if (!['generator', 'verifier', 'both'].includes(rule.profile)) problems.push(label + ': rule ' + rule.file + ' has unknown profile ' + rule.profile);
     }
+    // A C-tier host exists to carry rules; an empty one is not an exit.
+    if (host.tier === 'C' && rules.length === 0) problems.push(label + ': a C-tier host is rules-only and must ship at least one rule');
     // manifest: null is the rules-only shape: no plugin manifest, no src/ copy,
-    // no hooks. It must be C tier, carry at least one rule, and register
-    // nothing the host could load as a component.
-    const rulesOnly = host.manifest === null;
+    // no hooks. It must be C tier and register nothing the host could load as a
+    // component.
+    const rulesOnly = isRulesOnlyHost(host);
     if (host.manifest === undefined || (!rulesOnly && (typeof host.manifest !== 'object' || Array.isArray(host.manifest)))) {
       problems.push(label + ': manifest must be an object, or null for a rules-only exit');
     }
@@ -297,7 +307,6 @@ function hostShapeProblems(hosts) {
       if (host.tier !== 'C') problems.push(label + ': a manifest-less exit is rules-only (tier C)');
       if (autoDiscovered.length) problems.push(label + ': a rules-only exit auto-discovers nothing');
       if (host.mcp) problems.push(label + ': a rules-only exit has no MCP registration');
-      if (rules.length === 0) problems.push(label + ': a rules-only exit must ship at least one rule');
     }
     for (const key of RESERVED_MANIFEST_KEYS) {
       if (Object.prototype.hasOwnProperty.call(host.manifest || {}, key)) {
@@ -374,10 +383,11 @@ function buildAdapters() {
   const skillPath = path.join(root, 'src', 'SKILL.md');
   const skill = fs.readFileSync(skillPath, 'utf8');
 
-  const profiles = splitByProfile(skill);
-  // The `both` profile is the full body the rules version ships: a rules-only
-  // host takes the same text in one file, with `alwaysApply: true` in front.
-  profiles.both = skill.replace(/^---[\s\S]*?---\n/, '');
+  const profiles = Object.assign(splitByProfile(skill), {
+    // The `both` profile is the full body the rules version ships: a rules-only
+    // host takes the same text in one file, with `alwaysApply: true` in front.
+    both: skill.replace(/^---[\s\S]*?---\n/, ''),
+  });
 
   // gsr rule headers are the structural latch for the generator
   // profile; fail the build (and the --check golden layer) on malformed rules.
@@ -402,7 +412,7 @@ function buildAdapters() {
   // src/ copy, and by the shape check above, no hook map.
   for (const host of HOSTS) {
     const prefix = host.dir + '/';
-    if (host.manifest) {
+    if (!isRulesOnlyHost(host)) {
       emitBundle(adapters, prefix, bundleSeeds(host), skill, host.mcp ? host.mcp.files : []);
 
       adapters[prefix + '.claude-plugin/plugin.json'] = emitPluginManifest(host);
@@ -579,28 +589,37 @@ function qoderReadme() {
 This directory is the **rules-only exit** for Qoder. It carries one rule file
 generated from \`src/SKILL.md\`, the same source as the rules version
 (\`skills/jiahao/SKILL.md\`). It registers **no hooks**: there is no
-\`hooks/hooks.json\`, no hook script, and no plugin manifest. Qoder loads the
-rule as always-on context; that is all this exit does.
+\`hooks/hooks.json\`, no hook script, and no plugin manifest.
 
 ## Capability tier
 
 C tier: rules only. Qoder's turn-end hook behavior is still on the probe list
-(spec #74). Until a probe answers that question, this exit does not claim
-enforcement and stays at C tier. A probe result is a separate ticket.
+(spec #74). No Qoder session was run for this exit; C tier is the spec-assigned
+ceiling, not an observed result. A probe that answers the turn-end question is
+a separate ticket.
 
 ## Install
 
 1. Copy \`rules/jiahao.md\` into \`.qoder/rules/\` in the project, or into
    \`~/.qoder/rules/\` for every project.
-2. Keep \`alwaysApply: true\` in the frontmatter. Qoder loads rules without a
-   \`paths\` or \`trigger\` selector eagerly, and \`alwaysApply: true\` is one of
-   the always-on forms (Qoder rules reference: https://docs.qoder.com/cli/memory).
+2. Keep \`alwaysApply: true\` in the frontmatter. Qoder's rules documentation
+   says rules without a \`paths\` or \`trigger\` selector load eagerly, and
+   \`alwaysApply: true\` is one of the always-on forms (declared-unverified
+   here; reference: https://docs.qoder.com/cli/memory).
 3. Start a new Qoder session. The file is plain Markdown; no script runs and
    nothing needs installing.
 
 The rule body carries both profiles (generator and verifier), exactly like the
 rules version. The host takes what it needs; there is no \`.jiahao-profile\`
 switch here because no hook reads that file.
+
+## Verification status
+
+- Structural facts are pinned by tests: this directory contains only the rule
+  file and this README, and no hook registration.
+- Not live-probed: no Qoder session was run for this exit. The loading behavior
+  in step 2 is quoted from Qoder's documentation, not observed here.
+- C tier is the probe list's open question, not a claim about what Qoder can do.
 
 ## What this exit does not do
 
@@ -900,5 +919,5 @@ if (require.main === module) main();
 
 module.exports = {
   buildAdapters, unifiedDiff, checkAll, writeAll, auditTrackedSet, SKILL_DIR, SOURCE_NAME,
-  HOSTS, RETIRED_HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
+  HOSTS, RETIRED_HOSTS, MARKETPLACE_HOST, hostShapeProblems, bundleSeeds, isRulesOnlyHost,
 };

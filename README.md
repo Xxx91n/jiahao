@@ -24,7 +24,7 @@ Action First · Probing Over Guessing · Zero Rationalization on Red · Goal vs 
 
 ## Install
 
-Two exit forms share one content source. **The rules version is instructions only; only the plugin version adds hooks and enforcement.**
+All exits share one content source. **The rules version is instructions only; only the plugin version adds hooks and enforcement.**
 
 ### Rules version — standard CLI, instructions only
 

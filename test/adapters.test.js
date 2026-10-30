@@ -128,7 +128,8 @@ describe('Qoder rules-only exit (#79)', () => {
     const readme = generated[PREFIX + 'README.md'];
     expect(readme).toMatch(/rules-only/i);
     expect(readme).toMatch(/no enforcement/i);
-    expect(readme).not.toMatch(/\bwill block\b|\bblocks?\b|会拦/i);
+    expect(readme).toMatch(/declared-unverified|not live-probed/i);
+    expect(readme).not.toMatch(/\bwill block\b|\bblocks?\b|\bstops?\b|\bprevents?\b|会拦|拦截/i);
   });
 
   test('both READMEs list Qoder as a rules-only exit, not a retired directory', () => {
