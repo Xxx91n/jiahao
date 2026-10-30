@@ -13,14 +13,18 @@
 
 | 出口 | 档位 | 依据 |
 | --- | --- | --- |
-| Claude Code | A | v0.2.0 起即有；`Stop` exit 2 阻断 |
-| CodeBuddy | A | v0.2.0 起即有（CLI 安装路径 declared-unverified，回退 settings 合并） |
+| Claude Code | A 档候选（脚本级已验证，宿主级未验） | 钩子脚本在 `exit 2` 时阻断，有脚本级用例与 v0.2.0 安装记录；受模型端点 401 影响，**没有一次完整的宿主会话把假完工拦下** |
+| CodeBuddy | A 档候选（脚本级已验证，宿主级未验） | 同上；CLI 安装路径仍是 declared-unverified，回退 settings 合并 |
 | Codex CLI | A | 2026-10-30 实测，codex-cli 0.163.0 |
 | GitHub Copilot CLI | A | 2026-10-30 实测，Copilot CLI 1.0.105 |
 | Qoder | C | 只有规则，没有钩子；加载行为 declared-unverified |
 | 规则版 | 不适用 | 只注入指令，任何宿主都没有强制 |
 
-**A 档的含义**：真实会话里 Agent 声称「做完并已验证」，宿主在回合结束前把它拦住，直到它改口或补上证据。证据形式、宿主版本、日期都落在 `docs/evidence/` 里。
+**A 档的含义**：真实会话里 Agent 声称「做完并已验证」，宿主在回合结束前把它拦住一次，续跑后 `stop_hook_active` 为 `true` 时 gate 直接放行、不再检查 claim 与证据。也就是说拦截保证的是「不让你一句话收工」，不是「必须改口才放行」。证据形式、宿主版本、日期都落在 `docs/evidence/` 里。
+
+**A 档候选的含义**：脚本层证明它能阻断，但还没有一次宿主级真机会话为它作证。对外只能说「插件已装、脚本会拦」，不能说「这个宿主真的拦过我」。
+
+Claude Code 与 CodeBuddy 在 v0.2.0 就带着钩子发布，本版本没有改动它们的拦截逻辑；缺的那次真机会话是历史遗留，不是本版本引入的。
 
 ## 真机验收（#80，2026-10-30）
 
@@ -69,13 +73,38 @@
 
 完整写入范围与门禁清单见 [`release.md`](release.md)。
 
+## 回滚到 v0.2.0
+
+下面四条在本机实测过（2026-10-30，版本号会随目标 tag 变）。
+
+```bash
+# Codex：先取掉插件，再取掉 marketplace（顺序反了 marketplace 会拒绝移除）
+$ CODEX_HOME=<isolated> codex plugin remove jiahao@jiahao
+Removed plugin `jiahao` from marketplace `jiahao`.            # exit 0
+$ CODEX_HOME=<isolated> codex plugin marketplace remove jiahao
+Removed marketplace `jiahao`.                                  # exit 0
+
+# Copilot
+$ COPILOT_HOME=<isolated> copilot plugin install D:/Aworker/jiahao/adapters/copilot
+Plugin "jiahao" installed successfully.                        # exit 0（v0.3.0 目录）
+$ COPILOT_HOME=<isolated> copilot plugin uninstall jiahao
+Plugin "jiahao" uninstalled successfully.                      # exit 0
+```
+
+- **Claude Code**：`claude plugin update jiahao@jiahao@<older>` 或先 `claude plugin uninstall jiahao@jiahao` 再装回 v0.2.0 的 marketplace 版本；本机当前装的是 0.2.0，未做降级实测。
+- **CodeBuddy**：CLI 安装路径本身 declared-unverified；回滚用宿主自己的插件卸载，或恢复安装前的 `.codebuddy/settings.json` 备份。
+- **Qoder（C 档）**：删掉 `.qoder/rules/jiahao.md`（或用户级同名文件）即可，没有别的状态。
+- 回滚只替换宿主目录里的插件文件，不碰 `<config>` 下的 `.jiahao-profile` 与 `.jiahao-active`；证据链也只追加，不因降级被改写。
+
+`codex plugin remove jiahao`（不带 `@marketplace`）会以 exit 1 报错要求限定 marketplace——这是实测的坑，命令要写成 `jiahao@jiahao`。
+
 ## 发布门禁
 
 ```bash
 npm run release:gate -- --tag v0.3.0 --artifact-dir release-artifacts --evidence release-artifacts/release-evidence.json
 ```
 
-九步全过才算发布结论。tag 上跑出的 `artifact` / `sha256` / 各出口 tree 哈希，以 Release 正文与 `release-artifacts/` 的证据为准。
+九步全过才算发布结论。tag 上跑出的 `artifact`、`sha256`、各出口 tree 哈希以 **GitHub Release 正文**与 `release-artifacts/` 里的证据为准；本文件与 `release.md` 在包里，写自己的哈希会让记录指向另一棵树，所以不放数字。
 
 ## 不在本版本
 
