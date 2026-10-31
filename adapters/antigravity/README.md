@@ -18,11 +18,18 @@ host ended the turn without continuation. Evidence:
 
 1. `agy plugin install <path-to-adapters/antigravity>`
 2. `agy plugin list` to verify `jiahao` is imported and enabled.
-3. Activate the jiahao profile flag:
+3. Activate the jiahao profile flag. In a POSIX shell:
    `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-/tmp}}"`
+   `mkdir -p "$CONFIG"`
    `echo full > "$CONFIG/.jiahao-active"`
    `echo verifier > "$CONFIG/.jiahao-profile"`
    Start a new session after changing `.jiahao-profile`.
+   In PowerShell:
+   `$env:CLAUDE_CONFIG_DIR = Join-Path $HOME '.jiahao'`
+   `New-Item -ItemType Directory -Force -Path $env:CLAUDE_CONFIG_DIR | Out-Null`
+   `'full' | Set-Content (Join-Path $env:CLAUDE_CONFIG_DIR '.jiahao-active')`
+   `'verifier' | Set-Content (Join-Path $env:CLAUDE_CONFIG_DIR '.jiahao-profile')`
+   Launch `agy` from that PowerShell session; start a new session after changing `.jiahao-profile`.
 
 Install, upgrade, and uninstall are the host's own plugin commands:
 - Upgrade: re-run `agy plugin install <path-to-adapters/antigravity>`
@@ -47,8 +54,8 @@ Timeouts stay inside the host budget (5/10/5s). Event names are the host's own P
 
 - Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else `$HOME`):
   `.jiahao-active`, `.jiahao-profile`, `.jiahao-evidence/` (plus its sidecar
-  and pairer shadow records), `.jiahao-pretool.jsonl`, and the sentinel state
-  and lock files. Nothing inside the repo or this plugin directory is written by a hook.
+  and pairer shadow records), and the sentinel state and lock files. Nothing
+  inside the repo or this plugin directory is written by a hook.
 - No network calls: no hook fetches anything, and the bundle has no third-party
   runtime dependency to install.
 

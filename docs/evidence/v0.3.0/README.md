@@ -86,9 +86,17 @@ v0.3.0 content.
 ## Reproduction
 
 The throwaway probe hooks and the instrumented wrapper are in `probes/`; each
-file's header states the hook config and the expected observation. Every
-session above ran with an isolated `CODEX_HOME` / `COPILOT_HOME` / `CLAUDE_CONFIG_DIR`,
-so no user-wide profile or plugin state was involved.
+file's header states the hook config and the expected observation.
+
+For Codex and Copilot, sessions ran with an isolated `CODEX_HOME` / `COPILOT_HOME`
+and a separate `CLAUDE_CONFIG_DIR`, so no user-wide host profile or plugin state
+was involved.
+
+For Google Antigravity, plugin installation was registered in the user-wide
+plugin registry (`~/.gemini/config/plugins/jiahao`) and cleanly uninstalled
+with `agy plugin uninstall jiahao` after probing; Jiahao's own runtime state
+(`.jiahao-active`, `.jiahao-profile`, and `.jiahao-evidence/`) was isolated under
+`CLAUDE_CONFIG_DIR=<temp>/jiahao-111`.
 
 ## Tier conclusion
 
