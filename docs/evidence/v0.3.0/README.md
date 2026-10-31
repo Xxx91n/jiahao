@@ -71,36 +71,63 @@ probed artifact on 2026-10-30, not about the tree you can check out today.
 - `sessionStart` and `sessionEnd` fired for plugin hooks in the final session
   (`copilot-lifecycle-hooks.txt`).
 
+## Google Antigravity
+
+- Host: `Google Antigravity 1.2.12` (win32 x64, isolated `CLAUDE_CONFIG_DIR`, commit `bf68d15f`, #111).
+- Install (**verified**): `agy plugin install <repo-root>/adapters/antigravity`, exit 0;
+  `agy plugin list` shows `jiahao` with `hooks: 1 processed` (`antigravity-install.txt`).
+- Block run (**verified**): `agy -p ... --dangerously-skip-permissions`, exit 0. First agent message
+  `任务完成，已验证。`; `Stop` returned `{decision:"block"}` on exit 0;
+  the reason was injected as `<SYSTEM_MESSAGE>Stop hook blocked termination: ...</SYSTEM_MESSAGE>`;
+  the next agent message quoted the reason verbatim; the second `Stop` (`executionNum: 1`,
+  mapped to `stop_hook_active`) passed (`antigravity-blocked.txt`, `antigravity-hook-exit.txt`).
+- Exit 2 (**verified**): a `Stop` hook that printed to stderr and exited 2 was logged as a failed hook
+  (`command failed: exit status 2`) and the turn ended without continuation (`antigravity-exit2.txt`).
+- Cap (**verified**, always-block probe, not the shipped gate): the unconditional `{decision:"block"}` probe (`probes/antigravity-always-block.js`) reached 10 forced continuations before the CLI terminated at `MAX_FORCED_INVOCATIONS` (`antigravity-cap.txt`).
+- SessionStart (**verified**): injects Jiahao instructions via `injectSteps` (`antigravity-blocked.txt`).
+- SessionEnd (**declared-unverified**): wired to `hooks/jiahao-sweep.js` per repository sentinel-reconciliation contract; live SessionEnd firing not probed.
+
 ## Reproduction
 
 The throwaway probe hooks and the instrumented wrapper are in `probes/`; each
-file's header states the hook config and the expected observation. Every **#80**
-session above ran with an isolated `CODEX_HOME` / `COPILOT_HOME` and a separate
-`CLAUDE_CONFIG_DIR`, so no user-wide profile or plugin state was involved. The
-**#109** Qoder runs are the exception and say so: a Desktop session is spawned by
-the app, so there is no isolated config home to point it at, and the probe armed a
-project-scope `.qoder/settings.json` in the operator's live checkout with every
-block gated on a marker string. Both files were deleted afterwards. See
-`qoder-hook-probe-2026-10-31.md`, which records the isolation state per run.
+file's header states the hook config and the expected observation.
+
+For Codex and Copilot, sessions ran with an isolated `CODEX_HOME` / `COPILOT_HOME`
+and a separate `CLAUDE_CONFIG_DIR`, so no user-wide host profile or plugin state
+was involved.
+
+For Google Antigravity, plugin installation was registered in the user-wide
+plugin registry (`~/.gemini/config/plugins/jiahao`) and cleanly uninstalled
+with `agy plugin uninstall jiahao` after probing; Jiahao's own runtime state
+(`.jiahao-active`, `.jiahao-profile`, and `.jiahao-evidence/`) was isolated under
+`CLAUDE_CONFIG_DIR=<temp>/jiahao-111`.
+
+For Qoder (#109) the run was **not isolated**, and could not be: a Desktop session
+is spawned by the app, so there is no `*_HOME` override to point it at. The probe
+armed a project-scope `.qoder/settings.json` in the operator's live checkout,
+gated every block on a marker string so no other session could be affected, and
+bounded the loop with its own per-session cap. Both hook config files and the
+probe's temp state were deleted afterwards; `qoder-hook-probe-2026-10-31.md`
+records the isolation state per run.
 
 ## Tier conclusion
 
 Labels follow `docs/agents/evidence-review.md` item 3: **verified** means a run in
-this directory shows it, **declared-unverified** means it is asserted from files
-or documentation and was not watched happen.
+this directory shows it, **declared-unverified** means it is asserted from files or
+documentation and was not watched happen.
 
-The two #80 hosts are **A tier** - **verified**: a live turn-end block on the
-recorded version and date. #109 later answered Qoder's open probe item and is
-split the same way:
+**Verified - A tier**: Codex CLI 0.163.0 and GitHub Copilot CLI 1.0.105
+(2026-10-30, #80), Google Antigravity 1.2.12 (2026-10-31, #111), and Qoder CN
+Desktop 0.4.11 (2026-10-31, #109) each blocked a real turn end on the recorded
+version and date. On Qoder it was a config-registered `Stop` hook on both channels
+(exit 0 + flat `{"decision":"block"}`, and exit 2 + stderr), with
+`stop_hook_active` set on every re-entry - which supersedes this file's earlier
+line that Qoder remained C tier and that no probe had changed it.
 
-- **verified** - on Qoder CN Desktop 0.4.11 a config-registered `Stop` hook blocked
-  and continued a real turn, on two channels; `stop_hook_active` was set on
-  re-entry. That makes this variant **A tier**, superseding this file's earlier
-  line that Qoder remained C tier and did not change it.
-- **declared-unverified** - the plugin registration path (`adapters/qoder/`
-  installed as a Desktop plugin), `${QODER_PLUGIN_ROOT}` in a shell-form command,
-  and the shipped gate's own verdict logic running under Qoder: read from the
-  host's files, never watched.
-- **not probed** - the international Qoder Desktop 0.4.11, which therefore keeps
-  C tier rather than borrowing the CN result, and Qoder IDE/CLI, which keeps the
-  rules-only exit.
+**Declared-unverified - Qoder**: the plugin registration path
+(`adapters/qoder/` installed as a Desktop plugin), `${QODER_PLUGIN_ROOT}` in a
+shell-form command, and the shipped gate's own verdict logic running under Qoder.
+All read out of the host's files; none watched happening.
+
+**Not probed**: the international Qoder Desktop 0.4.11, which keeps C tier rather
+than borrowing the CN result, and Qoder IDE/CLI, which keeps the rules-only exit.

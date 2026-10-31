@@ -55,6 +55,9 @@ test('the pack contract names the rules file, every plugin manifest and hook map
     // #77: Codex ships its own manifest location and the second marketplace.
     'adapters/codex/.codex-plugin/plugin.json',
     'adapters/codex/hooks/hooks.json',
+    // #111: Antigravity ships native plugin.json and hooks.json at root.
+    'adapters/antigravity/plugin.json',
+    'adapters/antigravity/hooks.json',
     '.agents/plugins/marketplace.json',
     // #79 shipped Qoder as rules-only; #109 turned it into a Desktop plugin
     // row and kept the rule file for the IDE/CLI line, so both halves have to

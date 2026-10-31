@@ -40,6 +40,8 @@ test('build-adapters generates the retained exits', () => {
       'adapters/copilot/hooks/hooks.json',
       'adapters/codex/.codex-plugin/plugin.json',
       'adapters/codex/hooks/hooks.json',
+      'adapters/antigravity/plugin.json',
+      'adapters/antigravity/hooks.json',
       '.agents/plugins/marketplace.json',
       'adapters/qoder/README.md',
       'adapters/qoder/rules/jiahao.md',

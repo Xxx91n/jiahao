@@ -41,7 +41,7 @@
 *避免*：手工编辑生成出来的目录、承诺规则版会按 `.jiahao-profile` 选 profile、把「规则已加载」说成「拦截已生效」。
 
 **插件版（Plugin Version）**：
-自包含的插件目录（`adapters/claude-code/`、`adapters/codebuddy/`、`adapters/copilot/`、`adapters/codex/`、`adapters/qoder/`）：清单、插件启用后宿主自动加载的钩子配置、钩子脚本及其 require 闭包、`src/` 副本与 SKILL 正文都在目录内；按宿主文档用原生命令安装（Claude Code 与 Codex 各经仓库根的 marketplace 清单，CodeBuddy 与 Copilot CLI 直接装目录，Qoder Desktop 由 app 的插件设置装本地压缩包）；只有插件版带强制拦截，且拦截按宿主档位说话（Copilot CLI 1.0.105 与 Codex CLI 0.163.0 已于 2026-10-30 真机看到收尾阻断，Qoder CN Desktop 0.4.11 于 2026-10-31 看到，均记为 A 档）。安装路径的真机验证状态见各适配器说明。
+自包含的插件目录（`adapters/claude-code/`、`adapters/codebuddy/`、`adapters/copilot/`、`adapters/codex/`、`adapters/antigravity/`、`adapters/qoder/`）：清单、插件启用后宿主自动加载的钩子配置、钩子脚本及其 require 闭包、`src/` 副本与 SKILL 正文都在目录内；按宿主文档用原生命令安装（Claude Code 与 Codex 各经仓库根的 marketplace 清单，CodeBuddy 与 Copilot CLI 直接装目录，Google Antigravity 用 `agy plugin install`，Qoder Desktop 由 app 的插件设置装本地压缩包）；只有插件版带强制拦截，且拦截按宿主档位说话（Copilot CLI 1.0.105 与 Codex CLI 0.163.0 已于 2026-10-30 真机看到收尾阻断，Google Antigravity 1.2.12（#111）与 Qoder CN Desktop 0.4.11（#109）于 2026-10-31 看到，均记为 A 档）。安装路径的真机验证状态见各适配器说明。
 *避免*：只登记钩子却不带脚本、把插件目录说成「装上规则就生效」、把「装上」说成「真机已验证」。
 
 **出口（Exit）**：
