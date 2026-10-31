@@ -79,7 +79,7 @@ v0.3.0 content.
   mapped to `stop_hook_active`) passed (`antigravity-blocked.txt`, `antigravity-hook-exit.txt`).
 - Exit 2 (**verified**): a `Stop` hook that printed to stderr and exited 2 was logged as a failed hook
   (`command failed: exit status 2`) and the turn ended without continuation (`antigravity-exit2.txt`).
-- Cap (**verified**): 10 forced continuations max before CLI terminated at `MAX_FORCED_INVOCATIONS` (`antigravity-cap.txt`).
+- Cap (**verified**, always-block probe, not the shipped gate): the unconditional `{decision:"block"}` probe (`probes/antigravity-always-block.js`) reached 10 forced continuations before the CLI terminated at `MAX_FORCED_INVOCATIONS` (`antigravity-cap.txt`).
 - SessionStart (**verified**): injects Jiahao instructions via `injectSteps` (`antigravity-blocked.txt`).
 - SessionEnd (**declared-unverified**): wired to `hooks/jiahao-sweep.js` per repository sentinel-reconciliation contract; live SessionEnd firing not probed.
 
