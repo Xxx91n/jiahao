@@ -1,8 +1,9 @@
-# Probe scripts (#80)
+# Probe scripts (#80, #109)
 
-Throwaway hooks used for the v0.3.0 acceptance. They are evidence artifacts,
-not part of any distributed bundle. Hook configs point at the absolute path of
-these files; paths inside the scripts are relative to this directory.
+Throwaway hooks used for the v0.3.0 acceptance and the #109 Qoder probe. They
+are evidence artifacts, not part of any distributed bundle. Hook configs point
+at the absolute path of these files; paths inside the scripts are relative to
+this directory.
 
 ## Codex CLI 0.163.0
 
@@ -27,3 +28,20 @@ these files; paths inside the scripts are relative to this directory.
   own exit/stdout/stderr, then replays them.
 - `copilot-exit2.js`: emits the decision field but exits 2. Observed: hook exit
   2; the host logged it as failed and the turn ended without a continuation.
+
+## Qoder CN Desktop 0.4.11 (#109)
+
+- `qoder-stop-probe.js`: a `Stop` hook for the Desktop app. It needs a
+  project-scope `.qoder/settings.json` registering it on `Stop`, and the mode and
+  per-session block cap come from `<temp>/jiahao-109-probe-state/mode.txt`
+  because this host's settings-scope hook schema has no `env` field. It should
+  observe: whether a config-registered command hook fires on `Stop`, the payload
+  it receives, whether the run continues after a block, and whether the host sets
+  `stop_hook_active` on re-entry. It blocks only when the turn's
+  `last_assistant_message` contains `JIAHAO109-CLAIM-DONE`, and caps blocks per
+  session, so arming it in a live desktop app cannot loop an unrelated session.
+  Observed: `Stop` fired from the project scope (`.qoder-cn/settings.json` did
+  not), both the exit-0 flat decision and exit 2 + stderr continued the turn, 6
+  consecutive blocks were honored before the probe's own cap ended the run, and
+  the subprocess got `QODER_PROJECT_DIR` / `QODER_CONFIG_DIR` but no
+  `QODER_SESSION_ID`. Record: `../qoder-hook-probe-2026-10-31.md`.

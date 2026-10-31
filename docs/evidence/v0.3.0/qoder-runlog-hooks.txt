@@ -1,0 +1,11 @@
+# extracted from the host's own run log (Qoder CN Desktop, this window's session)
+# source: ~/.qoder-cn/logs/runs/2026-10-31T15-45-52-699+08-00-88akba-p6040/qodercli.log
+## Stop hook fired in a real turn (source=system, the host's own goal-loop-stop hook)
+hook.started hook_name="Stop" hook_event_name="Stop" source="system" hook_index=1 total_hooks=1 display_text="goal-loop-stop"
+hook.started hook_name="Stop" hook_event_name="Stop" source="system" hook_index=1 total_hooks=1 display_text="goal-loop-stop"
+hook.finished hook_name="Stop" hook_event_name="Stop" source="system" success=true duration_ms=0
+hook.finished hook_name="Stop" hook_event_name="Stop" source="system" success=true duration_ms=1
+
+## a plugin-registered command hook runs in-host, with its exit code logged
+hook.finished hook_name="SessionStart:resume" hook_event_name="SessionStart" source="plugins" success=true duration_ms=110 exit_code=0 plugin_id="qoder-context@qoderapp-bundler" plugin_root="C:\\Users\\Administrator\\.qoder-cn\\plugins\\cache\\qoderapp-bundler\\qoder-context\\1.0.84.f756706"
+hook.finished hook_name="SessionStart:startup" hook_event_name="SessionStart" source="plugins" success=true duration_ms=61 exit_code=0 plugin_id="qoder-context@qoderapp-bundler" plugin_root="C:\\Users\\Administrator\\.qoder-cn\\plugins\\cache\\qoderapp-bundler\\qoder-context\\1.0.84.f756706"
