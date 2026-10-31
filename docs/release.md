@@ -18,7 +18,7 @@ tag 推送时 CI 跑同一条命令（`.github/workflows/ci.yml` 的 `release-ga
 
 | 步骤 | 检查什么 | 对应验收 |
 | --- | --- | --- |
-| `metadata` | tag 形如 `vX.Y.Z`；`package.json` 版本 == tag；四个插件清单版本一致且能解析；工作区干净；HEAD 就是 tag 指向的提交 | 版本号与 tag 一致 |
+| `metadata` | tag 形如 `vX.Y.Z`；`package.json` 版本 == tag；每个插件清单版本一致且能解析；工作区干净；HEAD 就是 tag 指向的提交 | 版本号与 tag 一致 |
 | `generated` | `build-adapters.js --check`：已提交的生成物 == 生成器输出 | 生成检查 |
 | `drift` | `check-drift.js`：两份 profile 片段在位，退役适配器目录没有复活 | 漂移检查 |
 | `tests` | `npm test`：全套用例，含 `test/packaging.test.js` 的打包断言 | 测试 + 打包断言 |
@@ -43,7 +43,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 
 ## 升级路径
 
-版本号只有 `package.json` 一处，四个插件清单由生成器从它抄写，所以升级不需要换命令：
+版本号只有 `package.json` 一处，每个插件清单由生成器从它抄写，所以升级不需要换命令：
 
 - 规则版：重跑安装时那条 `npx skills add`，范围参数保持一致——项目级不带 `-g`，全局级带 `-g -a <host> -y --copy`。`npx skills update jiahao -g -y` 只适合全局安装；skills 1.7.4 在本机（Windows、本地路径源）的项目级 `update` 报无匹配并 exit 127；该环境下项目级用重跑 `add`。装到的就是仓库当前版本；`1.0.0` 打出来后同一路径升到 `1.0.0`。
 - 插件版：Claude Code 用 `claude plugin marketplace update jiahao`，再 `claude plugin update jiahao@jiahao`；CodeBuddy 用宿主自己的插件更新/安装路径（CLI 安装路径 declared-unverified，见 `adapters/codebuddy/README.md`），或用新 bundle 重做已验证的 settings 合并；Copilot CLI 用宿主自己的插件命令重装目录（本地目录直装已在 1.0.105 实测，宿主提示该形态将废弃，见 `adapters/copilot/README.md`）；Codex 用 `codex plugin marketplace upgrade jiahao`，再 `codex plugin add jiahao --marketplace jiahao`（安装与未信任钩子的跳过行为已于 2026-10-30 在 0.163.0 真机验证；`/hooks` 持久化信任流程本身未逐步实测，无人值守可用 `--dangerously-bypass-hook-trust`）。按宿主提示重开会话；`1.0.0` 不换路径。
@@ -113,7 +113,7 @@ npm run release:gate -- --tag v0.3.0
 
 ## 已知限制
 
-- 版本号只有 `package.json` 一处，四个插件清单由生成器从它抄，不手改。
+- 版本号只有 `package.json` 一处，每个插件清单由生成器从它抄，不手改。
 - 测试套件不再改写工作区生成物（#76 收了 #66）：生成类用例只写临时目录（哨兵用例会临时往一个产物里塞手改、跑完恢复，用来证明它不会被抹掉）。门禁仍把生成检查放在测试前，打包前再查一次工作区是否干净，作为兜底。
 - 不发布到 npm：tarball 是发布产物和复跑证据，不是分发渠道。规则版走 git tag，插件版走宿主原生命令。
 - 门禁不调用官方 Agent Skills 规范校验器，也不跑标准 CLI 的真实安装；那两条在 #67。
