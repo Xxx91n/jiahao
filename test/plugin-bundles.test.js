@@ -423,6 +423,44 @@ describe('marketplace manifest (Codex CLI)', () => {
   });
 });
 
+// Every bundle's own manifest and hook map have to sit inside the enforcement
+// surface the PreToolUse guard defends. Nothing checked this before #110: the
+// protected list named `.claude-plugin` only, so three bundles shipped a
+// manifest the guard could not deny - and adding a fourth host copied the gap
+// instead of catching it. Table-driven over the same rows, so a new host cannot
+// land with an unprotected manifest.
+describe('manifest protection', () => {
+  const { isProtected } = require('../src/shared/protected-path');
+
+  test('every bundle manifest and hook map resolves inside the protected surface', () => {
+    const unprotected = [];
+    const shapes = [
+      { sep: '/', root: '/plugins/jiahao', P: path.posix },
+      { sep: '\\', root: 'C:\\plugins\\jiahao', P: path.win32 },
+    ];
+    for (const host of HOSTS) {
+      if (isRulesOnlyDirectory(host)) continue;
+      const dialect = dialectOf(host);
+      for (const rel of [dialect.manifestPath, dialect.hookMapPath]) {
+        for (const shape of shapes) {
+          const target = shape.root + shape.sep + rel.split('/').join(shape.sep);
+          const ok = isProtected('rm ' + target, shape.root, { pathImpl: shape.P, cwd: shape.root });
+          if (!ok) unprotected.push(host.name + ' ' + rel + ' (' + shape.sep + ')');
+        }
+      }
+    }
+    expect(unprotected).toEqual([]);
+  });
+
+  test('a same-named manifest outside the plugin root stays unprotected', () => {
+    // The rule is containment, not a name blacklist: a project's own
+    // `.workbuddy-plugin/plugin.json` is not the bundle's.
+    for (const rel of ['.workbuddy-plugin/plugin.json', '.codex-plugin/plugin.json', 'plugin.json']) {
+      expect(isProtected('rm ' + '/home/u/project/' + rel, '/plugins/jiahao', { pathImpl: path.posix })).toBe(false);
+    }
+  });
+});
+
 describe('tier contract', () => {
   const good = {
     name: 'probe-host',
