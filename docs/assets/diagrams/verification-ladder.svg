@@ -25,7 +25,7 @@
     <rect x="128" y="40" width="700" height="40" rx="8" class="box"/>
     <text x="146" y="58" class="lbl" font-size="14">deterministic machine check</text>
     <text x="146" y="74" class="sml" font-size="11.5">tests, compilers, hash, state diff</text>
-    
+
   </g>
   <g>
     <rect x="70" y="92" width="44" height="40" rx="8" class="rung"/>
@@ -33,7 +33,7 @@
     <rect x="128" y="92" width="700" height="40" rx="8" class="box"/>
     <text x="146" y="110" class="lbl" font-size="14">ground truth the generator never saw</text>
     <text x="146" y="126" class="sml" font-size="11.5">db state, oracle output, re-derivation</text>
-    
+
   </g>
   <g>
     <rect x="70" y="144" width="44" height="40" rx="8" class="rung"/>
@@ -41,7 +41,7 @@
     <rect x="128" y="144" width="700" height="40" rx="8" class="box"/>
     <text x="146" y="162" class="lbl" font-size="14">independent re-execution</text>
     <text x="146" y="178" class="sml" font-size="11.5">re-run, re-query, replay in fresh context</text>
-    
+
   </g>
   <g>
     <rect x="70" y="196" width="44" height="40" rx="8" class="rung"/>
@@ -49,7 +49,7 @@
     <rect x="128" y="196" width="700" height="40" rx="8" class="box"/>
     <text x="146" y="214" class="lbl" font-size="14">checklist decomposition</text>
     <text x="146" y="230" class="sml" font-size="11.5">binary verifiable assertions, item by item</text>
-    
+
   </g>
   <g>
     <rect x="70" y="248" width="44" height="40" rx="8" class="rung"/>
@@ -65,7 +65,7 @@
     <rect x="128" y="300" width="700" height="40" rx="8" class="box"/>
     <text x="146" y="318" class="lbl" font-size="14">cannot be verified? say so</text>
     <text x="146" y="334" class="sml" font-size="11.5">NOT VERIFIED is a complete verdict</text>
-    
+
   </g>
   <path d="M880 60 L 930 330" stroke="#57606a" stroke-width="1.5" stroke-dasharray="5 5" fill="none"/>
   <text x="940" y="40" class="accT" font-size="12.5">rung-5 indecisive → ESCALATE</text>

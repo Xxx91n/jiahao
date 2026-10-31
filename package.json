@@ -1,6 +1,6 @@
 {
   "name": "jiahao",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Prompt-as-mental-model skill distribution for second-party agents",
   "license": "MIT",
   "repository": {
@@ -12,6 +12,8 @@
     "build": "node scripts/build-adapters.js",
     "check:adapters": "node scripts/build-adapters.js --check",
     "check:drift": "node scripts/check-drift.js",
+    "check:links": "node scripts/check-doc-links.js",
+    "check:whitespace": "node scripts/check-whitespace.js",
     "release:gate": "node scripts/release-gate.js"
   },
   "devDependencies": {

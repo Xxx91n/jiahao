@@ -87,6 +87,20 @@ describe('configuration template', () => {
   });
 });
 
+describe('evidence pointer', () => {
+  // #102: the wrapper that recorded the hook's own exit code has to be
+  // reachable from the bundle a reader installs, and the pointer has to name a
+  // file that exists. The link is absolute because the evidence directory is
+  // frozen and does not ship.
+  test('the README points at the probe wrapper and the evidence checklist', () => {
+    const readme = generated[GENERATED_PREFIX + 'README.md'];
+    expect(readme).toContain('docs/evidence/v0.3.0/probes/codex-hook-wrapper.js');
+    expect(readme).toContain('docs/agents/evidence-review.md');
+    expect(fs.existsSync(path.join(__dirname, '..', 'docs', 'evidence', 'v0.3.0', 'probes', 'codex-hook-wrapper.js'))).toBe(true);
+    expect(fs.existsSync(path.join(__dirname, '..', 'docs', 'agents', 'evidence-review.md'))).toBe(true);
+  });
+});
+
 describe('Codex output envelope (spawned hook, temp config dir)', () => {
   test('SessionStart answers with the Codex envelope selected by the platform argument', () => {
     // No PLUGIN_DATA in the environment: hostEnv scrubs it. The only thing that

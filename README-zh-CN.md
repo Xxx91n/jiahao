@@ -48,7 +48,7 @@ codebuddy plugin install <path-to>/adapters/codebuddy
 
 插件默认关闭（`defaultEnabled: false`），安装后需要显式启用。随后用安装器写入 profile（`node scripts/install.js init -y`），它会打印实际写入的值（见 Profile）。启用后 `hooks/hooks.json` 接上 verifier 纪律的强制拦截。插件同时带两份 `alwaysApply: true` 的规则文件；规则级 profile 选择属于待确认，强制层是钩子。CLI 插件安装路径已记录但属于待确认；现场验证过的回退路径是合并 `.codebuddy/settings.json`。完整安装步骤、钩子表，以及已验证 / 待确认边界见 [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)。Claude Code 是第二个插件目录：自包含插件在 [`adapters/claude-code/`](adapters/claude-code/)，用仓库根的 marketplace 安装——`claude plugin marketplace add Xxx91n/jiahao`、`claude plugin install jiahao@jiahao`。钩子表与尚未真机验证的部分见该目录的 README。
 
-mcp 目录不再作为安装出口；MCP 服务端本身保留在 [`jiahao-mcp/`](jiahao-mcp/)。GitHub Copilot CLI 是第三个自包含目录（`copilot plugin install <路径>/adapters/copilot`），档位是 **A 档**：2026-10-30 在 Copilot CLI 1.0.105 的真机会话里，假完工只在 `agentStop` 以 exit 0 返回 `{decision:"block"}` 后继续；exit 2 不阻断；连续 8 次阻断续跑后，第 9 次阻断时 CLI 结束回合。方言（驼峰事件名、bash / powershell 两支、决策字段阻断）、`.claude/settings.json` 实测与证据路径都写在它的 README 里。Codex CLI 是第四个自包含目录，用仓库里的 Codex marketplace（`.agents/plugins/marketplace.json`）安装——`codex plugin marketplace add Xxx91n/jiahao`、`codex plugin add jiahao --marketplace jiahao`；它的钩子命令要一次性信任（`/hooks`），Codex 0.163.0 默认就开着钩子（未信任插件的钩子在 `codex exec` 里被静默跳过，无人值守需持久化信任或 `--dangerously-bypass-hook-trust`）。Codex 同样是 **A 档**：2026-10-30 在 codex-cli 0.163.0 的真机会话里，回合只在 Stop 以 exit 0 返回 `{decision:"block"}` 后继续；exit 2 + stderr 不阻断。细节与证据路径见 [`adapters/codex/README.md`](adapters/codex/README.md) 与 [docs/evidence/v0.3.0/](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/)。
+mcp 目录不再作为安装出口；MCP 服务端本身保留在 [`jiahao-mcp/`](https://github.com/Xxx91n/jiahao/tree/main/jiahao-mcp)。GitHub Copilot CLI 是第三个自包含目录（`copilot plugin install <路径>/adapters/copilot`），档位是 **A 档**：2026-10-30 在 Copilot CLI 1.0.105 的真机会话里，假完工只在 `agentStop` 以 exit 0 返回 `{decision:"block"}` 后继续；exit 2 不阻断；连续 8 次阻断续跑后，第 9 次阻断时 CLI 结束回合。方言（驼峰事件名、bash / powershell 两支、决策字段阻断）、`.claude/settings.json` 实测与证据路径都写在它的 README 里。Codex CLI 是第四个自包含目录，用仓库里的 Codex marketplace（`.agents/plugins/marketplace.json`）安装——`codex plugin marketplace add Xxx91n/jiahao`、`codex plugin add jiahao --marketplace jiahao`；它的钩子命令要一次性信任（`/hooks`），Codex 0.163.0 默认就开着钩子（未信任插件的钩子在 `codex exec` 里被静默跳过，无人值守需持久化信任或 `--dangerously-bypass-hook-trust`）。Codex 同样是 **A 档**：2026-10-30 在 codex-cli 0.163.0 的真机会话里，回合只在 Stop 以 exit 0 返回 `{decision:"block"}` 后继续；exit 2 + stderr 不阻断。细节与证据路径见 [`adapters/codex/README.md`](adapters/codex/README.md) 与 [docs/evidence/v0.3.0/](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/)。
 
 ### Profile
 
@@ -76,11 +76,14 @@ node scripts/install.js init -y
 以下命令在磁盘上检查代码、生成产物与仓库状态：
 
 ```bash
-npm test                                # 全量 Jest 物理测试（22 套件）
+npm test                                # 全量 Jest 测试
 node scripts/build-adapters.js --check  # 生成产物一致性检查
 node scripts/check-drift.js             # Profile 与退役出口漂移检查
-git diff --check                        # 格式与行尾空格检查
+npm run check:whitespace                # 行尾空白 / EOF 空行，未跟踪文件也算
+npm run check:links                     # 包里 Markdown 的相对链接必须落在包内
 ```
+
+`git diff --check` 只看看 diff 带出来的行，没 `git add` 过的新文件和未跟踪文件末尾的空行都会漏掉；`npm run check:whitespace` 直接读全部已跟踪与未跟踪的文本文件。
 
 发布 tag 上还会多跑一条 `npm run release:gate -- --tag vX.Y.Z`：把上面的检查与 tag/版本一致、包内容断言、产物 SHA256、安装 dry-run、无网络外呼合并成一道门。门禁证明什么、包里有什么、安装会写哪里、怎么在干净检出上复跑，见 [`docs/release.md`](docs/release.md)。
 

@@ -7,7 +7,7 @@
 ## 一条命令
 
 ```bash
-npm run release:gate -- --tag v0.2.0
+npm run release:gate -- --tag v0.3.0
 ```
 
 tag 推送时 CI 跑同一条命令（`.github/workflows/ci.yml` 的 `release-gate` job），tag 从 `GITHUB_REF_NAME` 读，产物和证据落在 `release-artifacts/` 并作为构建产物上传。
@@ -22,6 +22,7 @@ tag 推送时 CI 跑同一条命令（`.github/workflows/ci.yml` 的 `release-ga
 | `generated` | `build-adapters.js --check`：已提交的生成物 == 生成器输出 | 生成检查 |
 | `drift` | `check-drift.js`：两份 profile 片段在位，退役适配器目录没有复活 | 漂移检查 |
 | `tests` | `npm test`：全套用例，含 `test/packaging.test.js` 的打包断言 | 测试 + 打包断言 |
+| `links` | `check-doc-links.js`：包里每份 Markdown 的相对链接都落到包内（文件或目录）；指到没进 `files` 的路径即红，外链不查 | 包内文档链接可达 |
 | `artifact` | 跑测试后先确认工作区仍然干净；再打两次 `npm pack`：必须包含 / 必须排除逐条核过，两次字节相同才算可复现，算 `sha256`，算各出口目录的树哈希 | 包内容正确、产物附 SHA256、可复现 |
 | `install` | `install.js init --dry-run` 退出 0、打印目标路径；临时配置目录和临时工作目录里都没有落文件 | 安装 dry-run |
 | `egress` | 扫描会随安装跑起来的代码：没有 `http/http2/https/net/dns/tls/dgram` 的 require、没有 `fetch(` / `https.request`；`package.json` 没有安装生命周期脚本；四个插件的每条钩子命令都指向各自插件根，且平台名后缀按方言校验：`${CLAUDE_PLUGIN_ROOT}/hooks/*.js`（Claude Code / CodeBuddy），`$PLUGIN_ROOT` / `$env:PLUGIN_ROOT`（Copilot CLI），`${PLUGIN_ROOT}/hooks/*.js codex`（Codex） | 无网络外呼 |
@@ -29,7 +30,7 @@ tag 推送时 CI 跑同一条命令（`.github/workflows/ci.yml` 的 `release-ga
 
 顺序是刻意的：生成检查排在 `npm test` 前面，过期或手改的产物在测试之前就被抓住。测试套件不再重跑生成器改写工作区（#76 收了 #66：生成类用例只写临时目录，产物内容从内存里的生成结果读；有一条哨兵用例会临时往产物里塞手改，跑完子进程里两个曾读工作区产物的套件后恢复，用来证明手改不会被抹掉），所以这个顺序是保险，而不是唯一的保障。`artifact` 仍在打包前再看一次 `git status`：万一有测试写脏了已跟踪文件，这棵树已经不是 tag 那棵树，不能拿来算哈希。
 
-tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD`：分支 job 因为跳过 tag 而不跑白空格检查，这条补上。（用 `HEAD^1` 而不是 `git show --check`：合并提交上 `git show` 是组合 diff，什么都不报。）
+tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一条 `npm run check:whitespace`：分支 job 因为跳过 tag 而不跑这两条，这里补上。（`git diff --check` 用 `HEAD^1` 而不是 `git show --check`：合并提交上 `git show` 是组合 diff，什么都不报。它只看 diff 带的行，未跟踪文件靠 `check:whitespace`。）
 
 ## 产物与 SHA256
 
@@ -38,7 +39,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD`：分�
 - 带 `--artifact-dir` 时 tarball 被留下，并在旁边写 `jiahao-<version>.tgz.sha256`（`sha256sum -c` 直接可验）。带 `--evidence` 时同一批数字落进 JSON，CI 把两者都作为构建产物上传。
 - 包里为什么还有两份 marketplace 清单：`.claude-plugin/marketplace.json` 是 Claude Code 的入口（`source` 指向 `./adapters/claude-code`），`.agents/plugins/marketplace.json` 是 Codex 的入口（`source.path` 指向 `./adapters/codex`）。少了它们，tarball 只能是"插件目录的副本"，不能当对应宿主的 marketplace 根用。两份都进了 `files`，也进了必须包含清单。
 
-`v0.2.0` 的产物数字不写进本文件。这份文件在 tarball 里，写自己的 `sha256` 会让记录指向另一棵树。tag 上跑出的 `artifact`、`sha256`、当时的三个 tree 哈希，连真机验收记录一起记在 [`docs/release-notes-v0.2.0.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/release-notes-v0.2.0.md)；那份说明不在包里，也不在当时的三个 tree 哈希的范围内，所以不会改变被记录的那棵树。这里用 GitHub 绝对链接，因为 npm 包里没有那份说明。
+`v0.3.0` 的产物数字以 **GitHub Release 正文**为准。这份文件在 tarball 里，写自己的 `sha256` 会让记录指向另一棵树。tag 上跑出的 `artifact`、`sha256`、当时的各出口 tree 哈希，连真机验收记录一起记在该版本的发布说明与 Release 里（[`docs/release-notes-v0.2.0.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/release-notes-v0.2.0.md)、[`docs/release-notes-v0.3.0.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/release-notes-v0.3.0.md)）；那些说明不在包里，也不在各自版本的 tree 哈希范围内，所以不会改变被记录的那棵树。这里用 GitHub 绝对链接，因为 npm 包里没有这些说明。
 
 ## 升级路径
 
@@ -75,6 +76,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD`：分�
 | 校准记录 | `<config>/.jiahao-calibration.jsonl` | 校准点被记录时（当前运行时没有调用点，写入方是 `src/calibration.js` 的导出函数） |
 | 宿主（插件版） | 宿主自己的插件目录或插件缓存 | `claude plugin install` / `codebuddy plugin install` / `copilot plugin install` / `codex plugin add` |
 | 宿主（规则版） | 宿主自己的技能目录，落地 `<host>/skills/jiahao/SKILL.md` | `npx skills add` |
+| 人（Qoder 规则出口，C 档） | 复制到 `.qoder/rules/jiahao.md`（项目级）或 `~/.qoder/rules/jiahao.md`（用户级） | 手工复制，没有安装命令 |
 
 范围之外：不改系统设置，不写仓库以外的源码目录，不在当前工作目录落文件。所有运行时写入都落在 `<config>` 下。
 
@@ -99,9 +101,9 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD`：分�
 ## 在干净检出上复跑
 
 ```bash
-git clone --depth 1 --branch v0.2.0 https://github.com/Xxx91n/jiahao.git /tmp/jiahao-clean
+git clone --depth 1 --branch v0.3.0 https://github.com/Xxx91n/jiahao.git /tmp/jiahao-clean
 cd /tmp/jiahao-clean && npm ci
-npm run release:gate -- --tag v0.2.0
+npm run release:gate -- --tag v0.3.0
 ```
 
 对账点：`RELEASE GATE GREEN` 那行、`sha256`、各出口目录的 tree 哈希，应与发布时记录的值逐字相同。
