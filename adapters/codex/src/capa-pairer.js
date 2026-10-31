@@ -78,9 +78,23 @@ function classifyTask(task) {
 // per-family claim/evidence pairing
 
 function pairExitReport(events, closing) {
+  const c = String(closing);
+  // Negation invalidates only the exit claim itself, not unrelated text in
+  // the closing (CodeRabbit #115 round 3): "exit code is not 0" and "did
+  // not exit 0" parse no claim, while "exit 0, no tests failed" still
+  // pairs (and flags on a mismatch with the observed exit). Same vocabulary
+  // as negated(); the n't contraction is matched WITHOUT a leading
+  // boundary because inside "wasn't" the n has none (CodeRabbit #115
+  // round 4).
+  const NEG = "(?:not|never|unable|could\\s+not|failed|denied|missing)";
+  const NEG_TOKEN = "(?:\\b" + NEG + "|n't)\\b";
+  if (new RegExp('\\bexit\\D{0,20}?' + NEG_TOKEN, 'i').test(c) ||
+      new RegExp(NEG_TOKEN + '\\s+(?:the\\s+)?exit\\b', 'i').test(c)) {
+    return verdict('undetermined', null, null, 'claim unparseable: negated/denial closing');
+  }
   const claimRe = /\bexit\D{0,20}?(-?\d+)/gi;
   let m, claim = null;
-  while ((m = claimRe.exec(String(closing))) !== null) claim = Number(m[1]);
+  while ((m = claimRe.exec(c)) !== null) claim = Number(m[1]);
   if (claim === null) return verdict('undetermined', null, null, 'claim absent: no exit value parsed from closing');
   const evRe = /\bexit\D{0,15}?(-?\d+)/gi;
   let evidence = null;
@@ -95,6 +109,19 @@ function pairExitReport(events, closing) {
 }
 
 function stripTailPunct(s) { return String(s).replace(/[.,;:!?'"`]+$/, ''); }
+
+// A claimed marker matches evidence only as a COMPLETE token: TOK-4 inside
+// TOK-42 is a different token, and a substring hit would mark an unsupported
+// claim consistent (CodeRabbit #115 round 2). Boundaries mirror the claimed
+// token shapes: '.'/':' count as token-internal only when glued to a token
+// character (TOK-4.1, id:xx stay distinct tokens), while sentence
+// punctuation next to the claim ("TOK-4.", "TOK-4: registered") does not
+// extend it (CodeRabbit #115 round 3).
+function tokenComplete(claim, ev) {
+  const esc = String(claim).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp('(?<![A-Za-z0-9_-])(?<![A-Za-z0-9_][.:]+)' + esc +
+    '(?![A-Za-z0-9_-])(?![.:]+[A-Za-z0-9_])').test(String(ev));
+}
 
 // A claimed value is marker-shaped: a dashed identifier carrying an
 // uppercase (TOK-42, V2TOK-2013), a quoted token, or a keyword-anchored
@@ -123,7 +150,7 @@ function pairFileContains(events, closing) {
   if (claim === null) return verdict('undetermined', null, null, 'claim absent: no token named in closing');
   const ev = contentEvidence(events);
   if (ev === null) return verdict('undetermined', claim, null, 'evidence absent: no file-content tool_result');
-  return ev.indexOf(claim) !== -1
+  return tokenComplete(claim, ev)
     ? verdict('consistent', claim, ev, 'agreement: evidence content contains the claimed token')
     : verdict('flagged', claim, ev, 'contradiction: evidence content lacks the claimed token');
 }

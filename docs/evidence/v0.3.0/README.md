@@ -1,13 +1,15 @@
-# v0.3.0 real-machine acceptance (#80)
+# v0.3.0 real-machine acceptance (#80, #108)
 
-Date: 2026-10-30. Host: Windows 10.0.26100 (win32 x64). `node
+Dates: 2026-10-30 (Codex CLI, GitHub Copilot CLI), 2026-10-31 (ZCode). Host:
+Windows 10.0.26100 (win32 x64). `node
 scripts/build-adapters.js` was run locally to produce the committed bundles;
 verification of `npm test`, `check:adapters`, and `check:drift` is owned by CI
 and no local test run is used as evidence here.
 
 Artifact version: the installed bundles and manifests still report `0.2.0`;
 #81 owns the `v0.3.0` bump. This directory records the acceptance for the
-v0.3.0 content.
+v0.3.0 content. The ZCode artifacts (#108) ran on a tree reporting `0.3.0`
+(post-v0.3.0 work); the next release ticket owns that bump.
 
 ## Codex CLI
 
@@ -67,6 +69,41 @@ v0.3.0 content.
 - `sessionStart` and `sessionEnd` fired for plugin hooks in the final session
   (`copilot-lifecycle-hooks.txt`).
 
+## ZCode (#108)
+
+- Host: ZCode Desktop 3.16.2 / CLI runtime 0.17.0 (win32), the operator's real
+  desktop session; the probe config was workspace-scope, the user-wide config
+  was untouched by the hook runs and restored after the plugin runs
+  (`zcode-version.txt`, `zcode-probe-notes.md`).
+- Stop channels: exit 0 + `{decision:"block"}` blocked a turn and returned the
+  reason as the next turn's context (fire #1); exit 2 also blocked, with the
+  host's generic message and no reason (fire #2). `stop_hook_active` was
+  `true` on every post-block continuation (fires #2-#4). Cap: three
+  consecutive block continuations, then the turn ended (fires #1-#4,
+  `zcode-stop-fires.jsonl`).
+- Real gate, real turn-end block: the bundled gate (argv `zcode`, verifier
+  profile, isolated config dir, empty chain) returned exit 0 +
+  `{decision:"block", reason: "Verification has no evidence: ..."}` with empty
+  stderr; the host blocked the turn and the reason arrived as the next turn's
+  context (fire #5). The continuation ran the verification ladder; the stop
+  that ended it was a wrapper pass-through (`json-once` mode), so a live
+  `stop_hook_active` pass by the real gate was not observed
+  (`zcode-stop-fires.jsonl`, `realgate-result` entry, `zcode-probe-notes.md`).
+- Payloads: both snake_case and camelCase spellings on every fire
+  (`session_id`/`sessionId`, `hook_event_name`/`hookEventName`,
+  `stop_hook_active`/`stopHookActive`, `transcript_path`/`transcriptPath`).
+- Hook configuration is read at session start: a mid-session workspace config
+  did not fire until a restart.
+- Install path: `plugins validate` exit 0; direct `plugins install <dir>`
+  refused (marketplace-only); the bundle's own shelf
+  (`marketplace.json`, `source: "."`) installs and enables
+  (`jiahao@jiahao-zcode`, `hooks: 4`; cached `hooks/hooks.json`,
+  `.zcode-plugin/plugin.json`, and `hooks/jiahao-verdict-gate.js`
+  byte-identical to the bundle - three-file diff in `zcode-install.txt`);
+  the repository root as marketplace resolves the Claude Code bundle instead
+  (`zcode-install.txt`). Plugin hooks firing in a restarted session:
+  declared-unverified.
+
 ## Reproduction
 
 The throwaway probe hooks and the instrumented wrapper are in `probes/`; each
@@ -76,5 +113,6 @@ session above ran with an isolated `CODEX_HOME` / `COPILOT_HOME` and a separate
 
 ## Tier conclusion
 
-Both hosts are **A tier** with a live turn-end block on the recorded version
-and date. Qoder remains C tier (rules only); this probe did not change it.
+Codex CLI, GitHub Copilot CLI, and ZCode are **A tier** with a live turn-end
+block each on the recorded version and date. Qoder remains C tier (rules
+only); this directory's probes did not change it.

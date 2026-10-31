@@ -62,6 +62,12 @@ const REQUIRED_PACK_FILES = [
   ...RULES_ONLY_HOSTS.map(host => host.dir + '/README.md'),
   ...HOSTS.filter(host => Object.keys(host.hooks || {}).length > 0).map(host => host.dir + '/' + dialectOf(host).hookMapPath),
   ...HOSTS.flatMap(host => host.rules.map(rule => host.dir + '/rules/' + rule.file)),
+  // A bundle-local marketplace shelf (ZCode, #108) rides inside the bundle the
+  // user points marketplace add at; a tarball without it breaks the install.
+  ...HOSTS.flatMap(host => {
+    const shelf = (host.dialect || {}).marketplaceShelfPath;
+    return shelf ? [host.dir + '/' + shelf] : [];
+  }),
   '.claude-plugin/marketplace.json',
   ...(CODEX_MARKETPLACE_HOST ? ['.agents/plugins/marketplace.json'] : []),
   'docs/release.md',
