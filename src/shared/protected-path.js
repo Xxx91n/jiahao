@@ -41,10 +41,16 @@ const PROTECTED_FRAGMENTS = [
 // Apparatus dirs under the resolved plugin root (absolute containment).
 // src/ is here because the bundle vendors the rule text and the runtime copies
 // the gate reads - rewriting either is the bypass the hook map alone cannot
-// stop (#71 item 2).
-const PROTECTED_DIRS = ['hooks', 'rules', 'src', '.claude-plugin'];
-// Bundle-root files that are apparatus by position, not by name.
-const PROTECTED_ROOT_FILES = ['.mcp.json'];
+// stop (#71 item 2). Every host's manifest directory is listed, not just the
+// Claude-shaped one: a bundle whose manifest sits somewhere unlisted is a
+// manifest the guard cannot defend, which is what the WorkBuddy row exposed
+// (#110). Codex's `.codex-plugin/` and WorkBuddy's `.workbuddy-plugin/` are
+// bundle-local names, so listing them costs a project nothing.
+const PROTECTED_DIRS = ['hooks', 'rules', 'src', '.claude-plugin', '.codex-plugin', '.workbuddy-plugin'];
+// Bundle-root files that are apparatus by position, not by name. `.mcp.json` is
+// the shared registration; `plugin.json` is the Copilot CLI manifest, which
+// lives at the bundle root rather than in a manifest directory.
+const PROTECTED_ROOT_FILES = ['.mcp.json', 'plugin.json'];
 
 // ---------------------------------------------------------------- candidates --
 

@@ -1,6 +1,8 @@
 # WorkBuddy turn-end hook probe (#110)
 
-Date: 2026-10-31 (local, UTC+8). Host: Windows 10.0.26100 (win32 x64).
+Date: 2026-10-31 UTC, which is 2026-11-01 00:06-00:16 at the host's UTC+8 local
+time - both dates appear here because the record's timestamps are UTC while the
+session was local. Host: Windows 10.0.26100 (win32 x64).
 Ticket: #110, answering spec #74's A-tier admission rule for a host the spec did
 not cover. Acceptance standard: #74 D5 and
 `docs/agents/evidence-review.md`.

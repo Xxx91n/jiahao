@@ -47,6 +47,10 @@ for (const plat of PLATFORMS) {
         'rm ' + inRoot('.mcp.json'),
         'move ' + inRoot('.claude-plugin', 'plugin.json') + ' out.json',
         'cat ' + inRoot('hooks', 'hooks.json') + ' && echo done',
+        // #110: every host's manifest location, not just the Claude-shaped one.
+        'move ' + inRoot('.workbuddy-plugin', 'plugin.json') + ' out.json',
+        'move ' + inRoot('.codex-plugin', 'plugin.json') + ' out.json',
+        'rm ' + inRoot('plugin.json'),
       ];
       for (const text of shapes) expect(check(plat, text)).toBe(true);
     });
@@ -68,6 +72,8 @@ for (const plat of PLATFORMS) {
         'rm .mcp.json',
         'cat hooks/hooks.json',
         'move .claude-plugin/plugin.json out.json',
+        'move .workbuddy-plugin/plugin.json out.json',
+        'rm plugin.json',
         'rm ' + outside('.mcp.json'),
         'rm ' + outside('hooks', 'hooks.json'),
         'rm ' + outside('.claude-plugin', 'plugin.json'),

@@ -45,16 +45,19 @@ directory is read too - that is the file the 2026-10-31 probe used. Note the
 project directory name: `.codebuddy`, not `.workbuddy`; a twin written to
 `.workbuddy/settings.json` at the same time did not fire.
 
-1. Copy `hooks/` next to a stable path and merge the event map from
-   `hooks/hooks.json` into the settings file, replacing
-   `${CODEBUDDY_PLUGIN_ROOT}` with that path.
-2. Append the platform name to every command, as the shipped map does
+1. Copy the **whole bundle** to a stable path - `hooks/`, `src/`, and
+   `src/SKILL.md` together. The hook scripts require `../src/*` (the gate loads
+   the evidence log, calibration, sentinel, and pairer modules from there), so a
+   copy of `hooks/` alone fails before it can inject or decide anything.
+2. Merge the event map from `hooks/hooks.json` into the settings file,
+   replacing `${CODEBUDDY_PLUGIN_ROOT}` with the path you copied to.
+3. Append the platform name to every command, as the shipped map does
    (`... jiahao-verdict-gate.js workbuddy`). A settings-tier hook receives no
    plugin root, and the environment carries both `CODEBUDDY_*` and
    `WORKBUDDY_*` variables, so the argument is what identifies the host.
-3. Activate the jiahao profile flag: `echo full > "$HOME/.jiahao-active"` and
+4. Activate the jiahao profile flag: `echo full > "$HOME/.jiahao-active"` and
    `echo verifier > "$HOME/.jiahao-profile"` (`generator` for advisory-only).
-4. Start a new session after changing settings. The hook map is resolved per
+5. Start a new session after changing settings. The hook map is resolved per
    turn in the probe (an edit made during a turn applied at the next turn end),
    and one turn end in three produced no invocation at all, so a mid-session
    edit is not something to rely on.
