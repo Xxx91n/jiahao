@@ -249,6 +249,26 @@ test('shared paths module exports flagPath and evidencePath', () => {
   expect(evidenceKeysPath()).toContain('.jiahao-evidence.keys');
 });
 
+// #108 audit (CodeRabbit round 5): with no CLAUDE_CONFIG_DIR and no HOME,
+// the config dir resolves to os.homedir() (USERPROFILE on Windows) — /tmp
+// is neither the documented flag location nor guaranteed to exist.
+test('configDir falls back to os.homedir(), never /tmp', () => {
+  const { configDir } = require(path.join(repoRoot, 'src', 'shared', 'paths.js'));
+  const os = require('os');
+  const saved = { cc: process.env.CLAUDE_CONFIG_DIR, home: process.env.HOME };
+  delete process.env.CLAUDE_CONFIG_DIR;
+  delete process.env.HOME;
+  try {
+    expect(configDir()).toBe(os.homedir());
+    expect(configDir()).not.toBe('/tmp');
+  } finally {
+    if (saved.cc === undefined) delete process.env.CLAUDE_CONFIG_DIR;
+    else process.env.CLAUDE_CONFIG_DIR = saved.cc;
+    if (saved.home === undefined) delete process.env.HOME;
+    else process.env.HOME = saved.home;
+  }
+});
+
 test('verdict-gate respects stop_hook_active', () => {
   const dir = freshDir('jiahao-hooks-test-');
   fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');

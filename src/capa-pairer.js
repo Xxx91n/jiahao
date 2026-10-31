@@ -113,14 +113,14 @@ function stripTailPunct(s) { return String(s).replace(/[.,;:!?'"`]+$/, ''); }
 // A claimed marker matches evidence only as a COMPLETE token: TOK-4 inside
 // TOK-42 is a different token, and a substring hit would mark an unsupported
 // claim consistent (CodeRabbit #115 round 2). Boundaries mirror the claimed
-// token shapes: '.'/':' count as token-internal only when glued to a token
-// character (TOK-4.1, id:xx stay distinct tokens), while sentence
-// punctuation next to the claim ("TOK-4.", "TOK-4: registered") does not
-// extend it (CodeRabbit #115 round 3).
+// token shapes: '.'/':'/'-' count as token-internal only when glued to a
+// token character (TOK-4.1, TOK-4:-extra, id:xx stay distinct tokens), while
+// sentence punctuation next to the claim ("TOK-4.", "TOK-4: registered")
+// does not extend it (CodeRabbit #115 rounds 3-5).
 function tokenComplete(claim, ev) {
   const esc = String(claim).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp('(?<![A-Za-z0-9_-])(?<![A-Za-z0-9_][.:]+)' + esc +
-    '(?![A-Za-z0-9_-])(?![.:]+[A-Za-z0-9_])').test(String(ev));
+  return new RegExp('(?<![A-Za-z0-9_-])(?<![A-Za-z0-9_][.:-]+)' + esc +
+    '(?![A-Za-z0-9_-])(?![.:]+[A-Za-z0-9_-])').test(String(ev));
 }
 
 // A claimed value is marker-shaped: a dashed identifier carrying an

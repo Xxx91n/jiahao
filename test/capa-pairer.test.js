@@ -100,6 +100,15 @@ describe('file-contains family', () => {
     expect(r.state).toBe('flagged');
   });
 
+  test('TOK-4:-extra does not satisfy a TOK-4 claim (dash after glue)', () => {
+    // '-' is part of the claimed token shapes, so 'TOK-4:-extra' is a bigger
+    // token, not TOK-4 followed by punctuation (CodeRabbit #115 round 5).
+    const r = pairItem({ task: task, transcript: transcript(
+      [{ type: 'tool_result', content: 'marker TOK-4:-extra' }],
+      'the file now has TOK-4') });
+    expect(r.state).toBe('flagged');
+  });
+
   test('sentence punctuation next to the claim does not reject it', () => {
     // '.'/':' are token-internal only when glued to a token character;
     // trailing sentence punctuation is not part of the token.
