@@ -130,12 +130,16 @@ tier and that no probe had changed it. The two Desktop builds were probed
 separately; the CN run's record is `qoder-hook-probe-2026-10-31.md` and the
 international one's is `qoder-intl-hook-probe-2026-11-01.md`.
 
-**Declared-unverified - Qoder**: the plugin registration path
+**Declared-unverified - Qoder**: the bundle's own plugin registration path
 (`adapters/qoder/` installed as a Desktop plugin), `${QODER_PLUGIN_ROOT}` in a
 shell-form command, and the shipped gate's own verdict logic running under Qoder.
-On the international build the plugin path was seen carrying a `Stop` event at
-all (the host's own bundled `qoder-context` 1.0.84 lists one and its `Stop` hooks
-finished `exit_code=0`); that is a file-plus-log observation of the host's
-plugin, not of this bundle, and no plugin-path hook was watched blocking.
+All read out of the host's files; none watched happening.
+
+**Verified - plugin path carries `Stop` on the international build**: the host's
+own bundled `qoder-context` 1.0.84 lists a `Stop` event there
+(`qoder-intl-host-versions.txt`) and its `Stop` hooks finished `exit_code=0` in
+the host run log (`qoder-intl-runlog-probe-hooks.txt`). That is an observation of
+the **host's** plugin, not of this bundle: no plugin-path hook was watched
+blocking.
 
 **Not probed**: Qoder IDE/CLI, which keeps the rules-only exit.

@@ -62,6 +62,7 @@ this directory.
   before the cap, and the subprocess env matched CN (`QODER_PROJECT_DIR`,
   `QODER_CONFIG_DIR`, no `QODER_SESSION_ID`, no `CLAUDE_CONFIG_DIR`/`HOME`).
   Record: `../qoder-intl-hook-probe-2026-11-01.md`.
+
 ## Google Antigravity 1.2.12 (#111)
 
 - `antigravity-exit2.js`: Stop hook, exit 2 + stderr. Observed: hook failed with exit status 2, turn ended without continuation.

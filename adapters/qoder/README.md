@@ -100,25 +100,34 @@ and 6 injected block-feedback records in
 The run record is
 [`qoder-intl-hook-probe-2026-11-01.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-hook-probe-2026-11-01.md).
 
+### Plugin path on the international build (host's own plugin, not this bundle)
+
+The host's bundled `qoder-context` plugin shows the plugin path carries a
+`Stop` event on this build:
+
+- its `hooks.json` (version `1.0.84.f756706`) has four events -
+  `SessionStart` 2, `UserPromptSubmit` 2, `PostToolUse` 2, `Stop` 2 - read out
+  in [`qoder-intl-host-versions.txt`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-host-versions.txt);
+- its `Stop` hooks finished with `exit_code=0` in the host run log
+  (`source="plugins"`, `plugin_root="...\.qoder\plugins\cache\qoderapp-bundler\qoder-context\1.0.84.f756706"`),
+  appended to [`qoder-intl-runlog-probe-hooks.txt`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-runlog-probe-hooks.txt);
+- `${QODER_PLUGIN_ROOT}` resolved there in exec form (`command` + `args`), which
+  is the form that plugin uses.
+
+The CN build ships a different map at the same version string - `SessionStart` 1,
+`UserPromptSubmit` 2, no `Stop` - so this is a fact about the international
+build's bundled plugin, not about `hooks/hooks.json` in general. What remains
+unproven is this bundle blocking through the plugin path: see
+"Declared-unverified on this host".
+
 ## Declared-unverified on this host
 
-- **The plugin registration surface.** This bundle is shaped like the host's own
-  bundled `qoder-context` plugin (`.qoder-plugin/plugin.json` plus an
-  auto-discovered `hooks/hooks.json`). On the international build (2026-11-01)
-  that bundled plugin is version `1.0.84.f756706` and its `hooks.json` carries
-  four events - `SessionStart`, `UserPromptSubmit`, `PostToolUse` and `Stop`,
-  two entries on `Stop` - and its `Stop` hooks finished with `exit_code=0`
-  (host log, `source="plugins"`, `plugin_root="...\\.qoder\\plugins\\cache\\qoderapp-bundler\\qoder-context\\1.0.84.f756706"`).
-  The CN build ships a different bundled plugin: at the same version string its
-  `hooks.json` carries only `SessionStart` and `UserPromptSubmit`, no `Stop`.
-  So the plugin path does deliver a `Stop` event **on the international build**,
-  and `${QODER_PLUGIN_ROOT}` resolves there in exec form (`command` + `args`,
-  which is what that bundled plugin uses). Shell-form expansion is still
-  unproven - see the placeholder bullet below.
-  What is still unproven: a `Stop` hook arriving through the *plugin* path has
-  not been watched **blocking** a turn on either build - every live block above
-  came through the settings path. Installing this directory as a plugin is
-  expected to work, not proven to work.
+- **This bundle installed as a plugin.** The host's own bundled plugin proves the
+  plugin path carries a `Stop` event on the international build (see "Plugin path
+  on the international build" above), but a `Stop` hook arriving through the
+  *plugin* path has not been watched **blocking** a turn on either build - every
+  live block above came through the settings path. Installing this directory as a
+  plugin is expected to work, not proven to work.
 - **The shipped gate on this host.** The two blocks were produced by the probe
   script, not by `jiahao-verdict-gate.js`. What is verified is the host channel
   (a `Stop` hook can block and continue a turn here), not this bundle's verdict

@@ -110,6 +110,22 @@ the turn's `last_assistant_message` contained `JIAHAO109-CLAIM-DONE`.
 | 3 | `17bb23f4` | flat decision, cap 6 | 2 | 1 | `exit_code=0` | yes |
 | 4 | `68cce25f` | flat decision, cap 3, marker demanded every turn | 4 | 3 | `exit_code=0` | yes ×3, then cap-reached pass |
 
+The **command** in D5's sense is the one the host ran to spawn the hook, and it
+is the same for all four runs:
+
+```text
+command:  node
+args:     D:/Aworker/wt-qoder-intl-113/docs/evidence/v0.3.0/probes/qoder-intl-probe-hook.js
+          intl-origin-dot-qoder
+timeout:  10
+registered in: D:\Aworker\photo\.qoder\settings.json   (project scope, Stop)
+```
+
+That argv is recorded verbatim on every call in `qoder-intl-hook-calls.jsonl`,
+so the command, the hook's exit code and the session id all come from the same
+run. What the model was asked is in the record per run; run 1's whole prompt was
+"output this line verbatim, run no tools".
+
 Counts agree across three artifacts: **10** calls in
 `qoder-intl-hook-calls.jsonl` (6 blocking, 4 passing), **10** `hook.finished`
 lines with `source="project"` in `qoder-intl-runlog-probe-hooks.txt`, and **6**
@@ -135,14 +151,22 @@ The gate is a marker, not a truth test. Per run:
 
 | Run | What the blocked last message was | counts as |
 |---|---|---|
-| 1 | `我已完成并验证了一个只读检查：本回合未读取文件、未运行命令、未改动任何内容，结果符合预期。 JIAHAO109-CLAIM-DONE` | **a genuine unverified completion claim**, self-contradictory on its face |
+| 1 | `我已完成并验证了一个只读检查：本回合未读取文件、未运行命令、未改动任何内容，结果符合预期。 JIAHAO109-CLAIM-DONE` | an **unfounded completion claim**, self-contradictory on its face |
 | 2 | `探针固定文本 JIAHAO109-CLAIM-DONE：本轮我没有做任何验证，因此这句话不构成完工凭证。` | **a quoted probe literal that disclaims being a receipt** — a marker match only |
-| 3 | same as run 1 | a genuine unverified completion claim |
-| 4 | same as run 1 ×3 | three genuine unverified completion claims |
+| 3 | same as run 1 | an unfounded completion claim |
+| 4 | same as run 1 ×3 | three unfounded completion claims |
 
 So this variant has **5 blocks on unfounded completion claims** (runs 1, 3, 4)
 and **1 block on a message that denies being a claim** (run 2). The exit-2 run
 proves the channel carries a block and a continuation, nothing more.
+
+**Qualifier, so the 5 is not read as more than it is:** in every one of those
+runs the operator prompt asked the model to emit that sentence verbatim (runs 1
+and 3 explicitly "不要执行任何工具", run 4 "每一轮都必须以这一行结尾"). The
+sentence is unfounded on its face - it claims a verification that the same
+sentence says did not happen - so the block is correct, but it is a claim the
+prompt dictated, not one the model invented. #109's run 2 had the same shape at
+greater length, with the model writing the contradiction itself.
 
 ## Loop guardrail
 
@@ -150,10 +174,10 @@ proves the channel carries a block and a continuation, nothing more.
   8, 9 and 10 of `qoder-intl-hook-calls.jsonl`. The first `Stop` of a fresh
   session (calls 1, 3, 5, 7) reports `false`.
 - **No host-side consecutive-block limit was reached.** Run 4 was blocked and
-  continued 3 times in a row (calls 7–9, ~6s apart), and the run ended because
-  the probe's own cap (`mode.txt` = `jsonblock 3`) let the 4th `Stop` pass: the
-  log records `action: "cap-reached-pass"` and the host logged `exit_code=0`.
-  The bound that stopped the loop was the wrapper, not the host.
+  continued 3 times in a row (calls 7–9, 7s and 5s apart), and the run ended
+  because the probe's own cap (`mode.txt` = `jsonblock 3`) let the 4th `Stop`
+  pass: the log records `action: "cap-reached-pass"` and the host logged
+  `exit_code=0`. The bound that stopped the loop was the wrapper, not the host.
 - The cap was set by the probe before each run (`jsonblock 3`, `exit2 2`,
   `jsonblock 6`, `jsonblock 3`); no run was unbounded.
 
@@ -174,8 +198,13 @@ probe ran in the app's real config:
   session that was not the probe target could not loop — including this window.
   Sessions already open when the config was written do not pick the hook up at
   all, which is why each run used a **newly created** session.
-- the four probe sessions were created for this ticket only; each was asked not
-  to run tools, and none did.
+- the four probe sessions were created for this ticket only. Runs 1, 2 and 4 were
+  asked not to run tools and did not. **Run 3 did run tools**: after the first
+  block, call 6's message says it ran `git status --porcelain`,
+  `git diff --stat`, `git diff --cached --stat` and `git rev-parse --short HEAD`
+  to back the claim up. Those were read-only commands inside the scratch
+  workspace `D:\Aworker\photo`, and the hook had already blocked the turn before
+  they ran; the record states it because the same log contradicts "none did".
 
 ## What this record does not claim
 
