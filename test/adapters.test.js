@@ -153,7 +153,11 @@ describe('Qoder rules-only exit (#79)', () => {
     expect(readme).toContain('Qoder IDE/CLI');
     expect(readme).toContain('~/.qoder-cn/skills/jiahao/SKILL.md');
     expect(readme).not.toMatch(/\bwill block\b|\bblocks?\b|\bstops?\b|\bprevents?\b|会拦|拦截/i);
-    const desktop = readme.slice(readme.indexOf('## Qoder Desktop'), readme.indexOf('## Qoder IDE/CLI'));
+    const desktopStart = readme.indexOf('## Qoder Desktop');
+    const ideStart = readme.indexOf('## Qoder IDE/CLI');
+    expect(desktopStart).toBeGreaterThanOrEqual(0);
+    expect(ideStart).toBeGreaterThan(desktopStart);
+    const desktop = readme.slice(desktopStart, ideStart);
     expect(desktop).toContain('npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy');
     expect(desktop).toContain('qoder-desktop-install-2026-10-31.md');
   });
@@ -161,10 +165,19 @@ describe('Qoder rules-only exit (#79)', () => {
   test('the install evidence file carries the numbers the docs cite', () => {
     const evidence = fs.readFileSync(
       path.join(root, 'docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md'), 'utf8');
-    expect(evidence).toContain('0.4.11');
-    expect(evidence).toContain('exit 0');
-    expect(evidence).toContain('~/.qoder-cn/skills/jiahao/SKILL.md');
-    expect(evidence).toContain('1ff7e45df7a0b5ec38e617b5f6be46627401a157213e48b7d5100c9a0ce61fc9');
+    const runAStart = evidence.indexOf('## Run A');
+    const runBStart = evidence.indexOf('## Run B');
+    const intlStart = evidence.indexOf('## International');
+    expect(runAStart).toBeGreaterThanOrEqual(0);
+    expect(runBStart).toBeGreaterThan(runAStart);
+    expect(intlStart).toBeGreaterThan(runBStart);
+    const runA = evidence.slice(runAStart, runBStart);
+    const runB = evidence.slice(runBStart, intlStart);
+    expect(runA).toContain('npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy');
+    expect(runA).toContain('# exit 0');
+    expect(runA).toContain('1ff7e45df7a0b5ec38e617b5f6be46627401a157213e48b7d5100c9a0ce61fc9');
+    expect(runB).toContain('0.4.11');
+    expect(runB).toMatch(/verified in Run B/i);
   });
 
   test('both READMEs point Desktop at the standard skill directory and stop offering the IDE rules path', () => {
@@ -195,8 +208,12 @@ describe('Qoder rules-only exit (#79)', () => {
       expect(section).toContain('.qoder/rules/');
       expect(section).not.toContain('~/.qoder/rules');
     }
-    const enDesktop = enQoder.slice(0, enQoder.indexOf('**Qoder IDE/CLI**'));
-    const zhDesktop = zhQoder.slice(0, zhQoder.indexOf('**Qoder IDE/CLI**'));
+    const enSplit = enQoder.indexOf('**Qoder IDE/CLI**');
+    const zhSplit = zhQoder.indexOf('**Qoder IDE/CLI**');
+    expect(enSplit).toBeGreaterThan(0);
+    expect(zhSplit).toBeGreaterThan(0);
+    const enDesktop = enQoder.slice(0, enSplit);
+    const zhDesktop = zhQoder.slice(0, zhSplit);
     for (const section of [enDesktop, zhDesktop]) {
       expect(section).toContain('npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy');
       expect(section).toContain('qoder-desktop-install-2026-10-31.md');

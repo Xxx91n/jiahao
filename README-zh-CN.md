@@ -36,13 +36,13 @@ npx skills add Xxx91n/jiahao
 
 #### Qoder：Desktop 与 IDE/CLI（C 档，只有规则）
 
-Qoder 现在有两个产品，读的路径不同。**Qoder Desktop**（0.x 工作台，含 Qoder CN）不加载 IDE 的规则目录；请把规则版装进它的标准技能目录：
+Qoder 现在有两个产品，读的路径不同。**Qoder Desktop**（0.x 工作台，含 Qoder CN）没有规则面；#106 在 Qoder CN Desktop 0.4.11 上检查到 IDE 规则路径未被加载。请把规则版装进它的标准技能目录：
 
 ```bash
 npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # Qoder CN → ~/.qoder-cn/skills/jiahao/SKILL.md
 ```
 
-2026-10-31 的安装命令 exit 0，落地的 `SKILL.md` 与仓库里的 `skills/jiahao/SKILL.md` SHA-256 一致；新开独立会话能看到该技能（见[运行记录](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md)；这条会话观察来自 #106，本次未重跑）。国际版别名是 `-a qoder`，其落地路径与加载本机尚未真机验证。两种都只加载规则，没有强制。
+2026-10-31 的安装命令 exit 0，落地的 `SKILL.md` 与仓库里的 `skills/jiahao/SKILL.md` SHA-256 一致（Run A）。新开独立会话能看到该技能，这一点在 #106 的另一次运行（Run B）中验证，本次未重跑（见[运行记录](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md)）。国际版别名是 `-a qoder`，其落地路径与加载本机尚未真机验证。两种都只加载规则，没有强制。
 
 **Qoder IDE/CLI** 读取项目级 `.qoder/rules/`。这正是 [`adapters/qoder/`](adapters/qoder/) 的用途：规则文件与规则版同源，没有任何钩子。把 `rules/jiahao.md` 复制到 `.qoder/rules/`；这条路径的宿主加载行为属于 declared-unverified，尚未真机验证。两条安装路径与验证状态见该目录 README。
 

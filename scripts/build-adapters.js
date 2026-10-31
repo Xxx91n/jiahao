@@ -786,9 +786,10 @@ rule file generated from \`src/SKILL.md\`, the same source as the rules version
 (\`skills/jiahao/SKILL.md\`). It registers **no hooks**: there is no
 \`hooks/hooks.json\`, no hook script, and no plugin manifest.
 
-Qoder Desktop (the 0.x workbench, including Qoder CN) does not load this
-directory or the IDE rules path. It reads the standard skill directory installed
-by the rules version; see "Qoder Desktop" below.
+Qoder Desktop (the 0.x workbench, including Qoder CN) reads the standard skill
+directory installed by the rules version, not this directory. The #106 check on
+Qoder CN Desktop 0.4.11 found \`~/.qoder/rules\` was not loaded; see "Qoder
+Desktop" below.
 
 ## Capability tier
 
@@ -807,9 +808,9 @@ npx skills add Xxx91n/jiahao -g -a qoder -y --copy      # international alias (n
 \`\`\`
 
 - Qoder CN lands \`~/.qoder-cn/skills/jiahao/SKILL.md\`. On 2026-10-31 the
-  command exited 0, the installed file's SHA-256 matched
-  \`skills/jiahao/SKILL.md\`, and #106 records a fresh session seeing the skill.
-  The run record is
+  documented command exited 0 and the installed file's SHA-256 matched
+  \`skills/jiahao/SKILL.md\` (Run A). The fresh-session visibility is verified in
+  #106's Run B, a separate run not repeated here. The run record is
   [qoder-desktop-install-2026-10-31.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md).
 - The international alias writes \`~/.qoder/skills/jiahao/SKILL.md\` according to
   the skills CLI's host matrix; loading there was not live-probed here, so it
@@ -843,12 +844,13 @@ switch here because no hook reads that file.
 
 - Structural facts are pinned by tests: this directory contains only the rule
   file and this README, and no hook registration.
-- Live-checked for Qoder Desktop (Qoder CN Desktop 0.4.11, 2026-10-31): install
-  exit 0, the file at \`~/.qoder-cn/skills/jiahao/SKILL.md\`, and a SHA-256 match
-  with \`skills/jiahao/SKILL.md\`. That is the Desktop path, not this directory.
-  The fresh-session visibility is issue-attested in #106, not re-run here; the
-  install wrote to the operator's real \`~/.qoder-cn\` and overwrote an existing
-  file with identical bytes, so no isolated config directory was used.
+- Run A (2026-10-31) verified the install: exit 0, the file at
+  \`~/.qoder-cn/skills/jiahao/SKILL.md\`, and a SHA-256 match with
+  \`skills/jiahao/SKILL.md\`. That is the Desktop path, not this directory. The
+  host version 0.4.11 and the fresh-session visibility come from #106's Run B,
+  a separate run not repeated here. The install wrote to the operator's real
+  \`~/.qoder-cn\` and overwrote an existing file with identical bytes, so no
+  isolated config directory was used.
 - Not live-probed: Qoder IDE/CLI rule loading. The behavior in the IDE/CLI
   steps is quoted from Qoder's documentation, not observed here.
 - C tier is the probe list's open question, not a claim about what Qoder can do.
@@ -867,6 +869,7 @@ switch here because no hook reads that file.
 - Qoder Desktop: re-run the same \`npx skills add\` command, then open a new
   session.
 - Qoder IDE/CLI: re-copy \`rules/jiahao.md\` after a release.
+
 The body is generated from \`src/SKILL.md\`; \`node scripts/build-adapters.js --check\`
 keeps the committed copy identical to the generator output.
 `;
