@@ -45,6 +45,23 @@ this directory.
   consecutive blocks were honored before the probe's own cap ended the run, and
   the subprocess got `QODER_PROJECT_DIR` / `QODER_CONFIG_DIR` but no
   `QODER_SESSION_ID`. Record: `../qoder-hook-probe-2026-10-31.md`.
+
+## Qoder international Desktop 0.4.11 (#113)
+
+- `qoder-intl-probe-hook.js`: a log-path shim over `qoder-stop-probe.js` above.
+  It only sets `JIAHAO_QODER_PROBE_LOG` (to `../qoder-intl-hook-calls.jsonl`)
+  before loading the shared probe, so the international run's lines do not
+  append to the CN artifact; the marker, per-session cap and mode gate are the
+  shared ones. Register it in **both** `.qoder/settings.json` and
+  `.qoder-cn/settings.json` of the probe workspace, with a different origin
+  label as the first argv (`intl-origin-dot-qoder` / `intl-origin-dot-qoder-cn`).
+  It should observe the same things as the CN probe, plus which of the two
+  project files registers hooks on this build. Observed: only
+  `intl-origin-dot-qoder` ever fired, both channels continued the turn,
+  `stop_hook_active` was set on re-entry, 3 consecutive blocks were honored
+  before the cap, and the subprocess env matched CN (`QODER_PROJECT_DIR`,
+  `QODER_CONFIG_DIR`, no `QODER_SESSION_ID`, no `CLAUDE_CONFIG_DIR`/`HOME`).
+  Record: `../qoder-intl-hook-probe-2026-11-01.md`.
 ## Google Antigravity 1.2.12 (#111)
 
 - `antigravity-exit2.js`: Stop hook, exit 2 + stderr. Observed: hook failed with exit status 2, turn ended without continuation.

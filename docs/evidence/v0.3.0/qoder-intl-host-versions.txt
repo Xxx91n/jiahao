@@ -1,0 +1,69 @@
+# host build and config root read from this machine on 2026-11-01 (international Qoder Desktop)
+
+$ cat "$env:LOCALAPPDATA/Qoder/Qoder Launcher/state.ini"
+[launcher]
+schemaVersion=3
+status=healthy
+installDir=D:\Qoder
+appExecutable=.qoder-versions\0.4.11\Qoder.exe
+targetVersion=0.4.11
+updatedAt=2026-10-31T08:22:34.955Z
+
+# worker runtime shipped inside the international Desktop build
+$ cat <install>/resources/app.asar.unpacked/node_modules/@qoder-ai/qoder-agent-sdk/dist/_worker/runtime-info.json
+{
+ "name": "qoder-worker-runtime",
+ "version": "1.1.75-hotfix.1",
+ "target": "win32-x64",
+ "commit": "cb3c036",
+ "build": {
+  "site": "global",
+  "productName": "qodercli",
+  "buildEnv": "dev"
+ }
+}
+
+# config root this app names in QODER_CONFIG_DIR, read from a subprocess the app spawned
+$ node -e "console.log(process.env.QODER_CONFIG_DIR)"
+C:\Users\Administrator\.qoder
+
+# settings keys present before the probe (no hooks key)
+$ node -e "const j=require('C:/Users/Administrator/.qoder/settings.json');console.log(Object.keys(j).join(', '))"
+enabledPlugins, mcpServers, providers
+
+# which product this build logs itself in as (account fields redacted)
+$ cat ~/.qoder/.qoder-app-status.json
+{
+  "logged_in": true,
+  "name": "<redacted>",
+  "email": "<redacted>",
+  "avatar_url": "<redacted>",
+  "version": "0.4.11",
+  "schema_version": 1,
+  "product": "qoder",
+  "snapshot_at": "2026-10-31T08:22:26.255Z",
+  "writer": "main"
+}
+
+# the same file for the CN build, for contrast: product discriminator differs
+$ cat ~/.qoder-cn/.qoder-app-status.json
+{
+  "logged_in": true,
+  "name": "<redacted>",
+  "avatar_url": "<redacted>",
+  "version": "0.4.11",
+  "schema_version": 1,
+  "product": "qodercn",
+  "snapshot_at": "2026-10-31T07:45:51.183Z",
+  "writer": "main"
+}
+
+# user-scope plugin registry before the probe (the bundle under test is NOT installed)
+$ cat ~/.qoder/plugins/installed_plugins_v2.json
+{
+  "version": 2,
+  "plugins": {
+    "qoder-context@qoderapp-bundler": [ ... bundled, userVisible false ... ],
+    "Presentations@qoder-marketplace": [ ... 0.1.3 ... ]
+  }
+}

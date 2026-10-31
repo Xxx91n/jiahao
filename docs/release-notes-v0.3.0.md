@@ -18,8 +18,7 @@
 | Codex CLI | A | 2026-10-30 实测，codex-cli 0.163.0 |
 | GitHub Copilot CLI | A | 2026-10-30 实测，Copilot CLI 1.0.105 |
 | Google Antigravity | A | 2026-10-31 实测，Google Antigravity 1.2.12 (#111) |
-| Qoder | C | 只有规则，没有钩子；2026-10-31 重跑标准技能目录安装（Run A，exit 0，SHA 一致）；Qoder CN Desktop 0.4.11 的新会话可见性由 #106 的 Run B 记录，本窗口未重跑；Qoder IDE/CLI 规则加载仍 declared-unverified |
-| Qoder | C（v0.3.0 发出去的出口） | 只有规则，没有钩子；2026-10-31 重跑标准技能目录安装（Run A，exit 0，SHA 一致）；Qoder CN Desktop 0.4.11 的新会话可见性由 #106 的 Run B 记录，本窗口未重跑；Qoder IDE/CLI 规则加载仍 declared-unverified。**2026-10-31 #109 探针回填**：Qoder CN Desktop 0.4.11 的 `Stop` 钩子在真机会话里把回合拦下来并续跑，两条通道都成立：exit 0 + `{decision:"block"}` 拦下 6 次「已完成并验证」的空口完工声明（另 1 次是同一句包了「这是探针载荷」的限定语）；exit 2 + stderr 拦下 3 次带标记的消息，而那三条文本自己声明「本轮未做任何验证」，属于标记命中、不是假完工命中。该变体升 A 档；升档的插件出口不在 v0.3.0 里，随下一个版本发。国际版 Desktop 与 IDE/CLI 未被实测，档位不动。见 [`docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md`](evidence/v0.3.0/qoder-hook-probe-2026-10-31.md) |
+| Qoder | C（v0.3.0 发出去的出口） | 只有规则，没有钩子；2026-10-31 重跑标准技能目录安装（Run A，exit 0，SHA 一致）；Qoder CN Desktop 0.4.11 的新会话可见性由 #106 的 Run B 记录，本窗口未重跑；Qoder IDE/CLI 规则加载仍 declared-unverified。**2026-10-31 #109 探针回填**：Qoder CN Desktop 0.4.11 的 `Stop` 钩子在真机会话里把回合拦下来并续跑，两条通道都成立：exit 0 + `{decision:"block"}` 拦下 6 次「已完成并验证」的空口完工声明（另 1 次是同一句包了「这是探针载荷」的限定语）；exit 2 + stderr 拦下 3 次带标记的消息，而那三条文本自己声明「本轮未做任何验证」，属于标记命中、不是假完工命中。该变体升 A 档；升档的插件出口不在 v0.3.0 里，随下一个版本发。**2026-11-01 #113 探针回填**：国际版 Qoder Desktop 0.4.11 单独实测，同样两条通道都成立（exit 0 + `{decision:"block"}`，exit 2 + stderr 由宿主记为 `success=false exit_code=2` 且理由照常回注），重入回合 `stop_hook_active` 为 true，连续 3 次阻断后由探针自带上限放行；同时武装的 `.qoder-cn/settings.json` 一次都没触发，与 CN 一致。它那 6 次阻断里 5 次是空口完工声明、1 次（exit 2 轮）是自己声明未做验证的文本。该变体同样升 A 档；IDE/CLI 未被实测，档位不动。见 [`docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md`](evidence/v0.3.0/qoder-hook-probe-2026-10-31.md) 与 [`docs/evidence/v0.3.0/qoder-intl-hook-probe-2026-11-01.md`](evidence/v0.3.0/qoder-intl-hook-probe-2026-11-01.md) |
 | 规则版 | 不适用 | 只注入指令，任何宿主都没有强制 |
 
 **A 档的含义**：真实会话里 Agent 声称「做完并已验证」，宿主在回合结束前把它拦住一次，续跑后 `stop_hook_active` 为 `true` 时 gate 直接放行、不再检查 claim 与证据。也就是说拦截保证的是「不让你一句话收工」，不是「必须改口才放行」。证据形式、宿主版本、日期都落在 `docs/evidence/` 里。
@@ -155,7 +154,7 @@ agy plugin list
 
 **Qoder（C 档）— 实测与 2026-10-31 更正**
 
-v0.3.0 最初写的安装路径是 `~/.qoder/rules/`。这条对 Qoder CN Desktop（0.4.11 已实测）无效：`~/.qoder` 属于另一条 Qoder 产品线，CN Desktop 不读其中的 `rules/`。国际版未实测，不适用此结论。正确路径是规则版的标准技能目录：
+v0.3.0 最初写的安装路径是 `~/.qoder/rules/`。这条对 Qoder CN Desktop（0.4.11 已实测）无效：CN 桌面版的配置根是 `~/.qoder-cn`，`~/.qoder` 是国际版的根，两个变体各读各的，所以 CN 不会读 `~/.qoder/rules/`。正确路径是规则版的标准技能目录：
 
 ```bash
 npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy
@@ -198,7 +197,7 @@ tree      adapters/qoder         c03886a993b4405638963ad47db7846ca159e0f4d1dcb23
 
 ## 不在本版本
 
-- Qoder 升 A 档：本版本不带它。Qoder CN Desktop 0.4.11 的收尾钩子已于 2026-10-31 实测能拦（#109），升档的插件出口随下一个版本发；国际版 Desktop 与 Qoder IDE/CLI 的收尾钩子仍未实测，这两个变体保持 C 档。
+- Qoder 升 A 档：本版本不带它。两个 Desktop 变体都已实测条收尾钩子能拦——Qoder CN Desktop 0.4.11 于 2026-10-31（#109），国际版 0.4.11 于 2026-11-01（#113）——升档的插件出口随下一个版本发；Qoder IDE/CLI 的收尾钩子仍未实测，那个变体保持 C 档。
 - 人工裁定的凭据（#90）：被拦方仍能自己写一条 pass 把自己放行，这是 append-only 链的信任边界，v0.3.0 之后单独定。
 - 规则文本重写（#25）、profile 缺省值（#40）：都等 #23 的人工标注数据。
 - 发布到 npm；公开评测；签名体系。
