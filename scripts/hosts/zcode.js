@@ -73,7 +73,7 @@ function emitManifest(ctx) {
 // the repository root instead resolves `.claude-plugin/marketplace.json` and
 // installs the Claude-Code bundle (probed 2026-10-31); the README warns
 // against it.
-function emitMarketplaceShelf(ctx) {
+function emitMarketplaceShelf(description) {
   return JSON.stringify({
     name: 'jiahao-zcode',
     owner: { name: 'Xxx91n' },
@@ -81,7 +81,7 @@ function emitMarketplaceShelf(ctx) {
       {
         name: 'jiahao',
         source: '.',
-        description: ctx.description,
+        description: description,
       },
     ],
   }, null, 2) + '\n';

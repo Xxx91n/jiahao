@@ -134,9 +134,12 @@ generator output): the manifest parses, its version and license come from
 set to disk), every hook command stays inside `${ZCODE_PLUGIN_ROOT}`, and no
 vendored relative `require()` escapes the bundle.
 
-The hook's own exit code, stdin, and stdout are recorded by the same wrapper
-pattern the Codex probe used:
-[`probes/codex-hook-wrapper.js`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/codex-hook-wrapper.js)
-runs the real hook, appends one JSON line per invocation, then replays the
-output and exits with the same code. The evidence layout is described in
+The hook's own exit code, stdin, and stdout are recorded by the probe
+wrapper:
+[`probes/zcode-stop-wrapper.js`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/zcode-stop-wrapper.js)
+logs one JSON line per fire (payload and environment key names), and in
+`realgate` mode spawns the real bundled gate, logs its exit/stdout/stderr,
+then replays them. The raw fires live in
+[`zcode-stop-fires.jsonl`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/zcode-stop-fires.jsonl);
+the evidence layout is described in
 [`docs/agents/evidence-review.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).

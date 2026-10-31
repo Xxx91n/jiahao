@@ -62,13 +62,12 @@ describe('configuration template', () => {
   // what this bundle must NOT register (a copied PascalCase map with them is
   // a config the host rejects outright).
   const ZCODE_EVENTS = ['SessionStart', 'UserPromptSubmit', 'Stop', 'PreToolUse'];
-  const UNSUPPORTED_EVENTS = ['SubagentStart', 'SubagentStop', 'SessionEnd'];
 
   test('registers the host\'s own event names, including the turn-end event', () => {
+    // The exact-set equality pins the seven-event subset: a copied
+    // PascalCase map with SubagentStart/SubagentStop/SessionEnd would fail
+    // here, and those are events the host does not support.
     expect(Object.keys(cfg.hooks)).toEqual(ZCODE_EVENTS);
-    for (const unsupported of UNSUPPORTED_EVENTS) {
-      expect(Object.keys(cfg.hooks)).not.toContain(unsupported);
-    }
     const stop = cfg.hooks.Stop[0].hooks;
     expect(stop.length).toBe(1);
     expect(stop[0].command).toContain('${ZCODE_PLUGIN_ROOT}/hooks/jiahao-verdict-gate.js');
@@ -92,15 +91,17 @@ describe('configuration template', () => {
 });
 
 describe('evidence pointer', () => {
-  // #102: the wrapper that recorded the hook's own exit code has to be
-  // reachable from the bundle a reader installs, and the pointer has to name a
-  // file that exists. The link is absolute because the evidence directory is
-  // frozen and does not ship.
-  test('the README points at the probe wrapper and the evidence checklist', () => {
+  // #108: the wrapper that recorded the fires has to be reachable from the
+  // bundle a reader installs, and the pointer has to name files that exist.
+  // The links are absolute because the evidence directory is frozen and does
+  // not ship.
+  test('the README points at the probe wrapper, the raw fires, and the evidence checklist', () => {
     const readme = generated[GENERATED_PREFIX + 'README.md'];
-    expect(readme).toContain('docs/evidence/v0.3.0/probes/codex-hook-wrapper.js');
+    expect(readme).toContain('docs/evidence/v0.3.0/probes/zcode-stop-wrapper.js');
+    expect(readme).toContain('docs/evidence/v0.3.0/zcode-stop-fires.jsonl');
     expect(readme).toContain('docs/agents/evidence-review.md');
-    expect(fs.existsSync(path.join(__dirname, '..', 'docs', 'evidence', 'v0.3.0', 'probes', 'codex-hook-wrapper.js'))).toBe(true);
+    expect(fs.existsSync(path.join(__dirname, '..', 'docs', 'evidence', 'v0.3.0', 'probes', 'zcode-stop-wrapper.js'))).toBe(true);
+    expect(fs.existsSync(path.join(__dirname, '..', 'docs', 'evidence', 'v0.3.0', 'zcode-stop-fires.jsonl'))).toBe(true);
     expect(fs.existsSync(path.join(__dirname, '..', 'docs', 'agents', 'evidence-review.md'))).toBe(true);
   });
 });

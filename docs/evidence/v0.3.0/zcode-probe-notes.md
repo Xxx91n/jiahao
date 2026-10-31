@@ -12,7 +12,13 @@ user-wide jiahao flag or evidence state was involved.
 Artifact version: the working tree reports package `0.3.0`; the evidence
 directory stays `v0.3.0` (the #106 precedent) and the version bump is owned by
 the next release ticket. The probed bundle is the one committed on the #108
-branch (commit `0734a288` for the implementation the real-gate run executed).
+branch, named per run: the real-gate run executed the gate bytes committed in
+`0734a288` (vendored copies byte-identical to the sources). The install-path
+runs ran between the two commits, against a working tree whose hook map,
+manifest, and gate bytes are the same in both `0734a288` and `71d333af` (only
+the bundle README text and the marketplace shelf changed between them); the
+three-file cache diff recorded in `zcode-install.txt` compares the installed
+cache with those committed bytes.
 
 ## Route note: headless CLI could not be used
 

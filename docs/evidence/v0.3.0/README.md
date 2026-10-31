@@ -95,7 +95,9 @@ v0.3.0 content. The ZCode artifacts (#108) ran on a tree reporting `0.3.0`
 - Install path: `plugins validate` exit 0; direct `plugins install <dir>`
   refused (marketplace-only); the bundle's own shelf
   (`marketplace.json`, `source: "."`) installs and enables
-  (`jiahao@jiahao-zcode`, `hooks: 4`, cached bytes identical to the bundle);
+  (`jiahao@jiahao-zcode`, `hooks: 4`; cached `hooks/hooks.json`,
+  `.zcode-plugin/plugin.json`, and `hooks/jiahao-verdict-gate.js`
+  byte-identical to the bundle - three-file diff in `zcode-install.txt`);
   the repository root as marketplace resolves the Claude Code bundle instead
   (`zcode-install.txt`). Plugin hooks firing in a restarted session:
   declared-unverified.

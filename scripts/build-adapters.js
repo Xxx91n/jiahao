@@ -627,12 +627,8 @@ function buildAdapters() {
         // A bundle-local marketplace shelf (ZCode): the install command only
         // resolves plugin@marketplace names, and the shelf rides inside the
         // bundle so `marketplace add <this dir>` resolves exactly these bytes.
-        adapters[prefix + dialect.marketplaceShelfPath] = dialect.emitMarketplaceShelf({
-          host: host,
-          pkg: PKG,
-          repository: PKG_REPOSITORY,
-          description: (host.manifest || {}).description,
-        });
+        adapters[prefix + dialect.marketplaceShelfPath] =
+          dialect.emitMarketplaceShelf((host.manifest || {}).description);
       }
       if (host.mcp) adapters[prefix + '.mcp.json'] = emitMcpJson(host.mcp);
     }
@@ -1386,11 +1382,14 @@ generator output): the manifest parses, its version and license come from
 set to disk), every hook command stays inside \`\${ZCODE_PLUGIN_ROOT}\`, and no
 vendored relative \`require()\` escapes the bundle.
 
-The hook's own exit code, stdin, and stdout are recorded by the same wrapper
-pattern the Codex probe used:
-[\`probes/codex-hook-wrapper.js\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/codex-hook-wrapper.js)
-runs the real hook, appends one JSON line per invocation, then replays the
-output and exits with the same code. The evidence layout is described in
+The hook's own exit code, stdin, and stdout are recorded by the probe
+wrapper:
+[\`probes/zcode-stop-wrapper.js\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/zcode-stop-wrapper.js)
+logs one JSON line per fire (payload and environment key names), and in
+\`realgate\` mode spawns the real bundled gate, logs its exit/stdout/stderr,
+then replays them. The raw fires live in
+[\`zcode-stop-fires.jsonl\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/zcode-stop-fires.jsonl);
+the evidence layout is described in
 [\`docs/agents/evidence-review.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
 `;
 }

@@ -142,3 +142,12 @@ $ cleanup
 Uninstalled plugin jiahao@jiahao-zcode
 Removed marketplace jiahao-zcode
 user config restored from backup
+=== supplementary: three-file byte diff of the installed cache (same cycle as above) ===
+Added marketplace jiahao-zcode (1 plugins)
+Installed plugin jiahao@jiahao-zcode (0.3.0) [enabled]
+hooks/hooks.json identical
+.zcode-plugin/plugin.json identical
+hooks/jiahao-verdict-gate.js identical
+Uninstalled plugin jiahao@jiahao-zcode
+Removed marketplace jiahao-zcode
+user config restored from backup
