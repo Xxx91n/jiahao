@@ -55,6 +55,10 @@ test('the pack contract names the rules file, every plugin manifest and hook map
     // #77: Codex ships its own manifest location and the second marketplace.
     'adapters/codex/.codex-plugin/plugin.json',
     'adapters/codex/hooks/hooks.json',
+    // #110: WorkBuddy's loader accepts .workbuddy-plugin/; a tarball without it
+    // ships a bundle the desktop cannot discover.
+    'adapters/workbuddy/.workbuddy-plugin/plugin.json',
+    'adapters/workbuddy/hooks/hooks.json',
     '.agents/plugins/marketplace.json',
     // #79: Qoder is a rules-only exit. Its rule file and install manual are
     // required in the tarball; a hook map would be a defect, not a requirement.

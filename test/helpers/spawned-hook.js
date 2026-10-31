@@ -60,7 +60,8 @@ function parseJson(res) {
 function hostEnv(configDir, pluginRoot) {
   const env = Object.assign({}, process.env);
   for (const k of ['PLUGIN_DATA', 'COPILOT_PLUGIN_DATA', 'QODER_SESSION_ID',
-    'CLAUDE_PLUGIN_ROOT', 'CODEBUDDY_PLUGIN_ROOT']) delete env[k];
+    'CLAUDE_PLUGIN_ROOT', 'CODEBUDDY_PLUGIN_ROOT', 'WORKBUDDY_APP_VERSION',
+    'CODEBUDDY_HOST']) delete env[k];
   env.CLAUDE_CONFIG_DIR = configDir;
   if (pluginRoot !== undefined) env.CLAUDE_PLUGIN_ROOT = pluginRoot;
   return env;

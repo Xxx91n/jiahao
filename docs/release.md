@@ -18,14 +18,14 @@ tag 推送时 CI 跑同一条命令（`.github/workflows/ci.yml` 的 `release-ga
 
 | 步骤 | 检查什么 | 对应验收 |
 | --- | --- | --- |
-| `metadata` | tag 形如 `vX.Y.Z`；`package.json` 版本 == tag；四个插件清单版本一致且能解析；工作区干净；HEAD 就是 tag 指向的提交 | 版本号与 tag 一致 |
+| `metadata` | tag 形如 `vX.Y.Z`；`package.json` 版本 == tag；五个插件清单版本一致且能解析；工作区干净；HEAD 就是 tag 指向的提交 | 版本号与 tag 一致 |
 | `generated` | `build-adapters.js --check`：已提交的生成物 == 生成器输出 | 生成检查 |
 | `drift` | `check-drift.js`：两份 profile 片段在位，退役适配器目录没有复活 | 漂移检查 |
 | `tests` | `npm test`：全套用例，含 `test/packaging.test.js` 的打包断言 | 测试 + 打包断言 |
 | `links` | `check-doc-links.js`：包里每份 Markdown 的相对链接都落到包内（文件或目录）；指到没进 `files` 的路径即红，外链不查 | 包内文档链接可达 |
 | `artifact` | 跑测试后先确认工作区仍然干净；再打两次 `npm pack`：必须包含 / 必须排除逐条核过，两次字节相同才算可复现，算 `sha256`，算各出口目录的树哈希 | 包内容正确、产物附 SHA256、可复现 |
 | `install` | `install.js init --dry-run` 退出 0、打印目标路径；临时配置目录和临时工作目录里都没有落文件 | 安装 dry-run |
-| `egress` | 扫描会随安装跑起来的代码：没有 `http/http2/https/net/dns/tls/dgram` 的 require、没有 `fetch(` / `https.request`；`package.json` 没有安装生命周期脚本；四个插件的每条钩子命令都指向各自插件根，且平台名后缀按方言校验：`${CLAUDE_PLUGIN_ROOT}/hooks/*.js`（Claude Code / CodeBuddy），`$PLUGIN_ROOT` / `$env:PLUGIN_ROOT`（Copilot CLI），`${PLUGIN_ROOT}/hooks/*.js codex`（Codex） | 无网络外呼 |
+| `egress` | 扫描会随安装跑起来的代码：没有 `http/http2/https/net/dns/tls/dgram` 的 require、没有 `fetch(` / `https.request`；`package.json` 没有安装生命周期脚本；五个插件的每条钩子命令都指向各自插件根，且平台名后缀按方言校验：`${CLAUDE_PLUGIN_ROOT}/hooks/*.js`（Claude Code / CodeBuddy），`$PLUGIN_ROOT` / `$env:PLUGIN_ROOT`（Copilot CLI），`${PLUGIN_ROOT}/hooks/*.js codex`（Codex），`${CODEBUDDY_PLUGIN_ROOT}/hooks/*.js workbuddy`（WorkBuddy） | 无网络外呼 |
 | `declarations` | 本文件带着「写入范围」「无网络外呼」两节；写入范围表的行里逐个出现代码会写的路径；README 链到这里 | 写入范围声明 |
 
 顺序是刻意的：生成检查排在 `npm test` 前面，过期或手改的产物在测试之前就被抓住。测试套件不再重跑生成器改写工作区（#76 收了 #66：生成类用例只写临时目录，产物内容从内存里的生成结果读；有一条哨兵用例会临时往产物里塞手改，跑完子进程里两个曾读工作区产物的套件后恢复，用来证明手改不会被抹掉），所以这个顺序是保险，而不是唯一的保障。`artifact` 仍在打包前再看一次 `git status`：万一有测试写脏了已跟踪文件，这棵树已经不是 tag 那棵树，不能拿来算哈希。
@@ -43,10 +43,10 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 
 ## 升级路径
 
-版本号只有 `package.json` 一处，四个插件清单由生成器从它抄写，所以升级不需要换命令：
+版本号只有 `package.json` 一处，五个插件清单由生成器从它抄写，所以升级不需要换命令：
 
 - 规则版：重跑安装时那条 `npx skills add`，范围参数保持一致——项目级不带 `-g`，全局级带 `-g -a <host> -y --copy`。`npx skills update jiahao -g -y` 只适合全局安装；skills 1.7.4 在本机（Windows、本地路径源）的项目级 `update` 报无匹配并 exit 127；该环境下项目级用重跑 `add`。装到的就是仓库当前版本；`1.0.0` 打出来后同一路径升到 `1.0.0`。
-- 插件版：Claude Code 用 `claude plugin marketplace update jiahao`，再 `claude plugin update jiahao@jiahao`；CodeBuddy 用宿主自己的插件更新/安装路径（CLI 安装路径 declared-unverified，见 `adapters/codebuddy/README.md`），或用新 bundle 重做已验证的 settings 合并；Copilot CLI 用宿主自己的插件命令重装目录（本地目录直装已在 1.0.105 实测，宿主提示该形态将废弃，见 `adapters/copilot/README.md`）；Codex 用 `codex plugin marketplace upgrade jiahao`，再 `codex plugin add jiahao --marketplace jiahao`（安装与未信任钩子的跳过行为已于 2026-10-30 在 0.163.0 真机验证；`/hooks` 持久化信任流程本身未逐步实测，无人值守可用 `--dangerously-bypass-hook-trust`）。按宿主提示重开会话；`1.0.0` 不换路径。
+- 插件版：Claude Code 用 `claude plugin marketplace update jiahao`，再 `claude plugin update jiahao@jiahao`；CodeBuddy 用宿主自己的插件更新/安装路径（CLI 安装路径 declared-unverified，见 `adapters/codebuddy/README.md`），或用新 bundle 重做已验证的 settings 合并；Copilot CLI 用宿主自己的插件命令重装目录（本地目录直装已在 1.0.105 实测，宿主提示该形态将废弃，见 `adapters/copilot/README.md`）；Codex 用 `codex plugin marketplace upgrade jiahao`，再 `codex plugin add jiahao --marketplace jiahao`（安装与未信任钩子的跳过行为已于 2026-10-30 在 0.163.0 真机验证；`/hooks` 持久化信任流程本身未逐步实测，无人值守可用 `--dangerously-bypass-hook-trust`）。按宿主提示重开会话；`1.0.0` 不换路径。 WorkBuddy：国际版（WorkBuddy AI 5.9.4，配置根 `~/.workbuddy-ai`）与国内版（WorkBuddy 5.9.3，配置根 `~/.workbuddy`）共用同一份 CLI 与同一份 bundle；插件路径用桌面自带 CLI 的 `codebuddy plugin add <路径>`，实测过的路径是把 `hooks/hooks.json` 并进 `<config>/settings.json` 或项目级 `.codebuddy/settings.json`（项目目录名是 `.codebuddy`，写进 `.workbuddy/settings.json` 不会触发）。钩子在会话开始时读取，改完要开新会话。
 - Qoder Desktop（C 档）：重跑 `npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy`（国际版别名 `qoder`，未真机验证），再开新会话。装的是标准技能目录，没有插件安装命令，也没有 profile 文件要改。
 - Qoder IDE/CLI（C 档）：重新复制 `adapters/qoder/rules/jiahao.md` 到项目的 `.qoder/rules/`，再开新会话。
 - 升级只替换宿主目录里的插件/技能文件，不碰 `<config>` 下的 `.jiahao-profile` 和 `.jiahao-active`；profile 由人改，不由升级改。
@@ -75,7 +75,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 | 钩子运行期 | `<config>/.jiahao-sentinel.<hook>`、`<config>/.jiahao-sentinel.<hook>.lock/` | 钩子开始到结束之间存在；正常结束删掉，被宿主杀掉则由下一次 SessionEnd 清扫回收 |
 | 钩子 PreToolUse / InstructionsLoaded | `<config>/.jiahao-pretool.jsonl`、`<config>/.jiahao-instructions.jsonl` | 每次命中 |
 | 校准记录 | `<config>/.jiahao-calibration.jsonl` | 校准点被记录时（当前运行时没有调用点，写入方是 `src/calibration.js` 的导出函数） |
-| 宿主（插件版） | 宿主自己的插件目录或插件缓存 | `claude plugin install` / `codebuddy plugin install` / `copilot plugin install` / `codex plugin add` |
+| 宿主（插件版） | 宿主自己的插件目录或插件缓存 | `claude plugin install` / `codebuddy plugin install` / `copilot plugin install` / `codex plugin add`；WorkBuddy 用桌面自带 CLI 的 `codebuddy plugin add`，或把钩子表并进 `<config>/settings.json` / 项目级 `.codebuddy/settings.json` |
 | 宿主（规则版，含 Qoder Desktop） | 宿主自己的技能目录，落地 `<host>/skills/jiahao/SKILL.md`；Qoder CN 是 `~/.qoder-cn/skills/jiahao/SKILL.md`，国际版按 skills CLI 矩阵是 `~/.qoder/skills/jiahao/SKILL.md`（未真机验证） | `npx skills add`（Qoder 用 `-a qoder-cn` / `-a qoder`） |
 | 人（Qoder IDE/CLI 规则出口，C 档） | 复制到项目的 `.qoder/rules/jiahao.md` | 手工复制，没有安装命令 |
 
@@ -83,12 +83,12 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 
 ## 无网络外呼
 
-「外呼」就是往外发网络请求。这一节声明：**装到用户机器上会跑起来的那部分 jiahao 代码不联网**——装完之后的钩子、运行时、安装器、人工裁定命令 `scripts/resolve.js`，以及 MCP 服务端的入口 `jiahao-mcp/index.js`，都不发起任何网络请求。安装也不下载、不执行远程脚本：`node scripts/install.js` 是仓库里的本地文件，四个插件目录是本地目录，复制即可。
+「外呼」就是往外发网络请求。这一节声明：**装到用户机器上会跑起来的那部分 jiahao 代码不联网**——装完之后的钩子、运行时、安装器、人工裁定命令 `scripts/resolve.js`，以及 MCP 服务端的入口 `jiahao-mcp/index.js`，都不发起任何网络请求。安装也不下载、不执行远程脚本：`node scripts/install.js` 是仓库里的本地文件，五个插件目录是本地目录，复制即可。
 
 这条声明由门禁的 `egress` 步骤每次重跑，不是一次性的口头保证：
 
 - 扫描装到用户机器上会跑的代码：`scripts/install.js`、`scripts/resolve.js`、`hooks/`、`src/`、`jiahao-mcp/index.js`。命中网络模块（`http`/`http2`/`https`/`net`/`dns`/`tls`/`dgram`）或网络调用（`fetch(`、`https.request`）即红。
-- 四个插件目录里的钩子与 `src/` 是这些文件的逐字节副本（`generated` 步骤每次重算比对），所以扫源目录就等于扫随插件发出去的那份。
+- 五个插件目录里的钩子与 `src/` 是这些文件的逐字节副本（`generated` 步骤每次重算比对），所以扫源目录就等于扫随插件发出去的那份。
 - 扫描如果连 `scripts/install.js`、`scripts/resolve.js`、`hooks/jiahao-verdict-gate.js`、`src/evidence-log.js`、`jiahao-mcp/index.js` 都没扫到，直接红——扫不到东西的检查不算检查。
 - `package.json` 出现 `preinstall`/`install`/`postinstall`/`prepare`/`prepack` 即红；插件钩子命令只要不是包内 `hooks/*.js` 即红。
 
