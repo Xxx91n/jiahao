@@ -9,9 +9,18 @@ Baseline: the working tree of branch `feat/workbuddy-exit-110`, whose base was
 `107eeef5` (origin/main, clean). The hook that fired was
 [`probes/workbuddy-hook-probe.js`](probes/workbuddy-hook-probe.js) - the probe
 script, not the shipped bundle, the same arrangement #109 used for Qoder. The
-bundle this record justifies is generated from the host table in the commit
-these artifacts land in; `node scripts/build-adapters.js --check` and the release
-gate tie that bundle to its commit.
+bundle this record justifies was introduced in `1ddf492f`; later commits in the
+same pull request touch prose and tests only, and
+`node scripts/build-adapters.js --check` pins the bundle bytes to the tree the
+release gate hashes.
+
+What the probe hook does, stated plainly: it **blocks unconditionally** on the
+first finish and passes when the host sets `stop_hook_active`. It does not read
+the evidence chain. So this record establishes the host's turn-end channel - the
+thing spec #74 D2 admits a host on - and **not** the shipped gate's judgment.
+That judgment is pinned at script level by `test/workbuddy-adapter.test.js` and
+was live-probed on Codex and Copilot (#80); it has not been run inside a live
+WorkBuddy turn.
 
 ## Verdict per variant
 
@@ -28,13 +37,15 @@ claim.
 ## Where the record lives
 
 [`workbuddy-hook-calls.jsonl`](workbuddy-hook-calls.jsonl) holds one line per
-hook invocation. It is a **transcription** of the probe's own JSONL, not the raw
-file: the hook environment carries a gateway password and two service tokens, so
-the raw log stayed outside the repository and was deleted after the fields below
-were copied out. Each line says whether it is `full` (payload captured verbatim)
-or `partial` (only event, time, session, flag, and decision were transcribed
-before deletion). The two `Stop` lines and the `SubagentStop` line carry the
-values this document cites; the `UserPromptSubmit` line is `partial`.
+invocation **this document cites**, in the same order and with the same numbers
+as the table below. It is a **transcription** of the probe's own JSONL, not the
+raw file: the hook environment carries a gateway password and two service
+tokens, so the raw log stayed outside the repository and was deleted after the
+fields below were copied out. Only record 2 is `full` (its payload was captured
+verbatim); records 1, 3, and 4 are `partial` - event, time, session, flag, and
+decision were transcribed before deletion, the rest was not. The separate
+`PreToolUse` surface probe wrote to its own log, which is not transcribed here;
+that surface is described in prose only.
 
 ## Product identity - read from `product.json`, not from documentation
 

@@ -1346,9 +1346,9 @@ the same \`hooks/jiahao-verdict-gate.js\` every host runs.
 
 - **Manifest path is \`.workbuddy-plugin/plugin.json\`** - the product-native
   directory the shared loader scans.
-- **Commands expand \`\${CODEBUDDY_PLUGIN_ROOT}\`**, the variable this host sets
-  for plugin hooks, and pass the platform name \`workbuddy\` as the first
-  argument.
+- **Commands expand \`\${CODEBUDDY_PLUGIN_ROOT}\`**, the variable the shared loader
+  sets for plugin hooks (read from the bundled CLI; not observed in a run), and
+  pass the platform name \`workbuddy\` as the first argument.
 - **The block channel is the decision field on a zero exit.** \`Stop\` honours
   \`{decision:"block", reason}\` on stdout; the gate exits 0 for this host. Exit 2
   was not probed here.
