@@ -57,7 +57,12 @@ process.stdin.on('end', () => {
 
   if (!isProtected(text, pluginRoot)) process.exit(0);
 
-  const profile = readProfile();
+  // Fail-soft by contract (header): a decision-stage throw must not wedge the
+  // host with a nonzero exit. readProfile() hardening makes the throw
+  // unreachable today; the catch keeps that true for future read sources.
+  // The fallback is the documented default, so a protected target still denies.
+  let profile;
+  try { profile = readProfile(); } catch (e) { profile = 'verifier'; }
   const verdict = profile === 'verifier' ? 'deny' : 'observe';
   try {
     fs.appendFileSync(path.join(configDir(), LOG_NAME), JSON.stringify({

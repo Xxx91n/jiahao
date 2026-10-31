@@ -78,9 +78,14 @@ function classifyTask(task) {
 // per-family claim/evidence pairing
 
 function pairExitReport(events, closing) {
+  const c = String(closing);
+  // Same guard as the other families: a negated closing ("exit code is not
+  // 0") is a denial, and parsing a value out of it fabricates the claim the
+  // closing argues against (CodeRabbit #115 round 2).
+  if (negated(c)) return verdict('undetermined', null, null, 'claim unparseable: negated/denial closing');
   const claimRe = /\bexit\D{0,20}?(-?\d+)/gi;
   let m, claim = null;
-  while ((m = claimRe.exec(String(closing))) !== null) claim = Number(m[1]);
+  while ((m = claimRe.exec(c)) !== null) claim = Number(m[1]);
   if (claim === null) return verdict('undetermined', null, null, 'claim absent: no exit value parsed from closing');
   const evRe = /\bexit\D{0,15}?(-?\d+)/gi;
   let evidence = null;
@@ -95,6 +100,15 @@ function pairExitReport(events, closing) {
 }
 
 function stripTailPunct(s) { return String(s).replace(/[.,;:!?'"`]+$/, ''); }
+
+// A claimed marker matches evidence only as a COMPLETE token: TOK-4 inside
+// TOK-42 is a different token, and a substring hit would mark an unsupported
+// claim consistent (CodeRabbit #115 round 2). Boundaries mirror the claimed
+// token shapes ([\w.:-]).
+function tokenComplete(claim, ev) {
+  const esc = String(claim).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp('(?<![A-Za-z0-9_.:-])' + esc + '(?![A-Za-z0-9_.:-])').test(String(ev));
+}
 
 // A claimed value is marker-shaped: a dashed identifier carrying an
 // uppercase (TOK-42, V2TOK-2013), a quoted token, or a keyword-anchored
@@ -123,7 +137,7 @@ function pairFileContains(events, closing) {
   if (claim === null) return verdict('undetermined', null, null, 'claim absent: no token named in closing');
   const ev = contentEvidence(events);
   if (ev === null) return verdict('undetermined', claim, null, 'evidence absent: no file-content tool_result');
-  return ev.indexOf(claim) !== -1
+  return tokenComplete(claim, ev)
     ? verdict('consistent', claim, ev, 'agreement: evidence content contains the claimed token')
     : verdict('flagged', claim, ev, 'contradiction: evidence content lacks the claimed token');
 }

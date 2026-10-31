@@ -33,11 +33,17 @@ function loadProfileSections(root) {
 
 // Read agent profile from .jiahao-profile (default: verifier for backward compat).
 // Single source of truth — used by jiahao-activate, jiahao-verdict-gate, MCP.
+// A read error (the path is a directory, or the file is unreadable) returns
+// the documented default: every caller runs this at top level or on the
+// decision path, and a throw there would kill the Stop check outright
+// (CodeRabbit #115 round 2).
 function readProfile() {
   const { profilePath } = require('../src/shared/paths');
   const p = profilePath();
   if (!fs.existsSync(p)) return 'verifier';
-  const v = fs.readFileSync(p, 'utf8').trim().toLowerCase();
+  let v = '';
+  try { v = fs.readFileSync(p, 'utf8').trim().toLowerCase(); }
+  catch (e) { return 'verifier'; }
   return v === 'generator' ? 'generator' : 'verifier';
 }
 

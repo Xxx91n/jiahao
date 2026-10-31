@@ -68,7 +68,7 @@ test('runtime detectHost returns a string', () => {
   const { detectHost } = require(path.join(hooksDir, 'jiahao-runtime.js'));
   const host = detectHost();
   expect(typeof host).toBe('string');
-  expect(['claude', 'codex', 'copilot', 'qoder', 'codebuddy']).toContain(host);
+  expect(['claude', 'codex', 'copilot', 'qoder', 'codebuddy', 'zcode']).toContain(host);
 });
 
 test('runtime writeHookOutput respects 10k cap', () => {
@@ -177,6 +177,66 @@ test('verdict-gate blocks with plain text evidence (not JSON)', () => {
   });
   expectExit(res, 2);
   expect(parseJson(res).decision).toBe('block');
+});
+
+// #108 audit (CodeRabbit round 2): an enforce-mode pairer record with an
+// undetermined state classifies nothing (adapter failure / pairItem
+// exception), so it must not stand in for evidence the way a shadow record
+// never could - a chain holding only it means "no evidence" and the
+// verifier blocks.
+test('an undetermined enforce-mode pairer record does not satisfy the no-evidence check', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  const rec = createEvidence('pl-0', 'pairer-lane', 'observed',
+    'pairer-lane[enforce] undetermined — adapter: transcript unadaptable', null, null, {
+      detector: {
+        suspicious: false, matched_phrases: [], severity: null,
+        source: 'pairer-instrument', shadow: false,
+        pairer: { state: 'undetermined' },
+      },
+    });
+  fs.writeFileSync(path.join(dir, '.jiahao-evidence'), JSON.stringify([rec]), 'utf8');
+  const res = runHook('jiahao-verdict-gate.js', {
+    dir: dir, stdin: JSON.stringify({ stop_hook_active: false }),
+  });
+  expectExit(res, 2);
+  const parsed = parseJson(res);
+  expect(parsed.decision).toBe('block');
+  expect(parsed.reason).toMatch(/no evidence/i);
+});
+
+// #108 audit (CodeRabbit round 2): readProfile() hardened at the source -
+// a directory (or unreadable file) at .jiahao-profile returns the documented
+// default instead of killing the hook at top level.
+test('readProfile falls back to the verifier default when the profile path is unreadable', () => {
+  const dir = freshDir('jiahao-profile-test-');
+  fs.mkdirSync(path.join(dir, '.jiahao-profile')); // a directory where the file should be
+  const { readProfile } = require(path.join(hooksDir, 'jiahao-profile.js'));
+  const prev = process.env.CLAUDE_CONFIG_DIR;
+  process.env.CLAUDE_CONFIG_DIR = dir;
+  try {
+    expect(readProfile()).toBe('verifier');
+  } finally {
+    if (prev === undefined) delete process.env.CLAUDE_CONFIG_DIR;
+    else process.env.CLAUDE_CONFIG_DIR = prev;
+  }
+});
+
+// #108 audit (CodeRabbit round 2): the guard's fail-soft contract holds when
+// the profile source misbehaves - a protected target with an unreadable
+// profile denies (the documented default), it does not exit nonzero.
+test('pretool-guard denies a protected target and exits 0 with an unreadable profile', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.mkdirSync(path.join(dir, '.jiahao-profile'));
+  const input = JSON.stringify({
+    tool_name: 'Write',
+    tool_input: { file_path: path.join(repoRoot, 'hooks', 'jiahao-verdict-gate.js') },
+  });
+  const res = runHook('jiahao-pretool-guard.js', { dir: dir, stdin: input });
+  expectExit(res, 0);
+  const parsed = parseJson(res);
+  expect(parsed.hookSpecificOutput.permissionDecision).toBe('deny');
 });
 
 test('shared paths module exports flagPath and evidencePath', () => {

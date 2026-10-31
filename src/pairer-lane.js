@@ -25,7 +25,7 @@ const path = require('path');
 const { convictionLaneOffPath, convictionLaneEnforcePath } = require('./shared/paths');
 const { adaptTranscriptFile } = require('./transcript-adapter');
 const pairer = require('./capa-pairer');
-const { recordHash } = require('./evidence-log');
+const { recordHash, WITNESS_HARD_STOP_CODE } = require('./evidence-log');
 
 const SOURCE = 'pairer-instrument';
 
@@ -84,31 +84,43 @@ function run(payload, opts) {
   let appended = false;
   if (evidenceLog && typeof evidenceLog.commit === 'function' && typeof evidenceLog.createRecord === 'function') {
     const obs = { r: r, mode: mode, adapted: adapted, latencyMs: latencyMs, sessionId: sessionId };
-    evidenceLog.commit(function (chain, prevHash) {
-      const rec = evidenceLog.createRecord('pairer-lane', SOURCE,
-        obs.r.state === 'flagged' ? 'suspect' : 'observed',
-        detailOf(obs.mode, obs.r), null, prevHash, {
-          session_id: obs.sessionId,
-          detector: {
-            suspicious: obs.r.state === 'flagged',
-            matched_phrases: [],
-            severity: obs.r.state === 'flagged' ? 'high' : null,
-            source: SOURCE,
-            shadow: obs.mode === 'shadow',
-            pairer: {
-              family: obs.r.family,
-              state: obs.r.state,
-              claim: obs.r.claim,
-              evidence: obs.r.evidence,
-              reason: obs.r.reason,
-              latency_ms: obs.latencyMs,
+    try {
+      evidenceLog.commit(function (chain, prevHash) {
+        const rec = evidenceLog.createRecord('pairer-lane', SOURCE,
+          obs.r.state === 'flagged' ? 'suspect' : 'observed',
+          detailOf(obs.mode, obs.r), null, prevHash, {
+            session_id: obs.sessionId,
+            detector: {
+              suspicious: obs.r.state === 'flagged',
+              matched_phrases: [],
+              severity: obs.r.state === 'flagged' ? 'high' : null,
+              source: SOURCE,
+              shadow: obs.mode === 'shadow',
+              pairer: {
+                family: obs.r.family,
+                state: obs.r.state,
+                claim: obs.r.claim,
+                evidence: obs.r.evidence,
+                reason: obs.r.reason,
+                latency_ms: obs.latencyMs,
+              },
             },
-          },
-        });
-      rec._idem = laneIdem(obs.sessionId, obs.adapted);
-      rec.event_hash = recordHash(rec);
-      return [rec];
-    });
+          });
+        rec._idem = laneIdem(obs.sessionId, obs.adapted);
+        rec.event_hash = recordHash(rec);
+        return [rec];
+      });
+    } catch (e) {
+      if (e && e.code === WITNESS_HARD_STOP_CODE) {
+        // The dead-man switch refused to record this Stop. That refusal is a
+        // lane OUTCOME, not lane noise: the gate turns it into a verifier
+        // block, because allowing the turn would let it pass on a chain that
+        // just refused its witness. A generic commit failure keeps
+        // propagating to the gate's fail-open catch.
+        return { lane: 'hard-stop', mode: mode, state: null, reason: e.message };
+      }
+      throw e;
+    }
     appended = true;
   }
 
