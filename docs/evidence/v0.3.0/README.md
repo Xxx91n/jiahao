@@ -74,7 +74,15 @@ file's header states the hook config and the expected observation. Every
 session above ran with an isolated `CODEX_HOME` / `COPILOT_HOME` and a separate
 `CLAUDE_CONFIG_DIR`, so no user-wide profile or plugin state was involved.
 
+The WorkBuddy probe (#110, `workbuddy-hook-probe-2026-10-31.md`) is the
+exception: its host refuses a headless turn without an interactive login, so it
+ran in the operator's live desktop session with a project-scope settings file.
+That record states what it touched and how the workspace was restored; it does
+not claim the isolation the two sessions above had.
+
 ## Tier conclusion
 
 Both hosts are **A tier** with a live turn-end block on the recorded version
 and date. Qoder remains C tier (rules only); this probe did not change it.
+WorkBuddy AI 5.9.4 is A tier on its own record; its domestic 5.9.3 build stays
+C until the run described in that record happens.

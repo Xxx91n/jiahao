@@ -3,7 +3,7 @@
 
 // The platform names this module can answer for. Kept next to the branches
 // below so a name a config template passes can never be a name with no shape.
-const PLATFORMS = ['claude', 'codex', 'copilot', 'qoder', 'codebuddy'];
+const PLATFORMS = ['claude', 'codex', 'copilot', 'qoder', 'codebuddy', 'workbuddy'];
 
 // Host detection, in two steps:
 //   1. An explicit platform name as the hook's first argument. The host config
@@ -19,6 +19,12 @@ function detectHost() {
   if (process.env.PLUGIN_DATA) return 'codex';
   if (process.env.COPILOT_PLUGIN_DATA) return 'copilot';
   if (process.env.QODER_SESSION_ID) return 'qoder';
+  // No environment branch for WorkBuddy, deliberately. Its desktop sets
+  // WORKBUDDY_* and CODEBUDDY_HOST for every child process, so a session started
+  // from a WorkBuddy terminal - or a test suite running on that machine - would
+  // answer 'workbuddy' no matter which host actually spawned the hook. The
+  // adapter map passes `workbuddy` as argv instead (#110), the same way Qoder's
+  // does.
   // CodeBuddy sets CODEBUDDY_PLUGIN_ROOT (preferred) and recognizes
   // CLAUDE_PLUGIN_ROOT verbatim; a Claude Code session never sets the
   // codebuddy var, so precedence is safe (grill-t30).
@@ -66,10 +72,13 @@ function writeHookOutput(text, event) {
         additionalContext: trimmed,
       },
     }));
-  } else if (host === 'codebuddy') {
+  } else if (host === 'codebuddy' || host === 'workbuddy') {
     // CodeBuddy: the live-verified envelope on the Claude-Code-compatible
     // path is hookSpecificOutput JSON for every event (settings-path hooks
     // probed on CodeBuddy Code CLI 2.151.0) - SessionStart included.
+    // WorkBuddy runs the same agent CLI (@genie/agent-cli 2.165.0) and accepts
+    // the same shape; its own live probe covered the Stop channel, not the
+    // injection envelope (#110), so this branch is shared rather than copied.
     console.log(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: event,
@@ -94,8 +103,12 @@ function writeHookOutput(text, event) {
 // Exit code that carries a block decision. Codex 0.163.0 and Copilot CLI
 // 1.0.105 (win32, probed 2026-10-30, #80) only continued the turn on exit 0;
 // Claude-shaped hosts block on exit 2. The Codex stderr copy is a log aid on
-// its exit-0 path, not the block channel.
-const BLOCK_EXIT_CODES = Object.freeze({ codex: 0, copilot: 0, claude: 2, codebuddy: 2 });
+// its exit-0 path, not the block channel. WorkBuddy AI 5.9.4 continued a live
+// turn only after a Stop hook printed {decision:"block"} and exited 0 (#110);
+// exit 2 was not probed on that host, so the observed channel is the one used.
+const BLOCK_EXIT_CODES = Object.freeze({
+  codex: 0, copilot: 0, workbuddy: 0, claude: 2, codebuddy: 2,
+});
 
 function writeBlockOutput(reason) {
   console.log(JSON.stringify({ decision: 'block', reason: reason }));

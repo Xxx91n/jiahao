@@ -1,0 +1,32 @@
+{
+  "schema_version": 2,
+  "rules_version": "critic-v1",
+  "rules_alias": "src/SKILL.md",
+  "rules_digest": "f6c6c843c4ad4151f709345d86079f4a5e0c7d216305155f75e7329638bc6154",
+  "model_identity": {
+    "tag": "jiahao-judge-critic-v1",
+    "provider_snapshot": "UNRESOLVED",
+    "revision_commit": "UNRESOLVED",
+    "weights_sha256": "UNRESOLVED"
+  },
+  "model_checkpoint_digest": "UNRESOLVED",
+  "inference_config": {
+    "decode_parameters": {
+      "temperature": 0
+    },
+    "decode_policy": "greedy",
+    "provider_contract": "temperature-0-is-request-only",
+    "observation": {
+      "system_fingerprint": null,
+      "backend_version": null,
+      "timestamp": null,
+      "concurrency": 1
+    }
+  },
+  "inference_config_hash": "41c7df6354424a59180ae855de4afc764b38b1ddfd2aec9312d9195342fecac7",
+  "measured_repeatability": {
+    "sample_size": 0,
+    "agreement": null,
+    "method": "same-input-reruns"
+  }
+}
