@@ -155,8 +155,15 @@ const HOSTS = [
     // same hook answered a SubagentStop with the same decision and the subagent
     // was not continued, so only the turn-end event is wired. Both observations
     // were settings-tier (project .codebuddy/settings.json); the plugin-bundle
-    // path was not watched firing, and the domestic 5.9.3 build was not probed.
-    provenance: 'WorkBuddy AI 5.9.4 international (2026-10-31, #110): live Stop {decision:"block"} on exit 0 continued the turn with "Stop hook feedback"; SubagentStop fired but its block was not continued; settings-tier hooks (project .codebuddy/settings.json) were the probed surface; plugin-bundle hooks and the domestic 5.9.3 build unprobed',
+    // path was not watched firing.
+    //
+    // #118, 2026-11-01, WorkBuddy 5.9.3 (domestic, win32, D:\WorkBuddy,
+    // ~/.workbuddy): the same run repeated on the other build, from its own
+    // session and its own settings file - same block, same "Stop hook feedback"
+    // continuation, same stop_hook_active pass on re-entry, same ignored
+    // SubagentStop block. The two variants were probed separately; neither
+    // result stands in for the other, even though both bundle agent-cli 2.165.0.
+    provenance: 'WorkBuddy AI 5.9.4 international (2026-10-31, #110) and WorkBuddy 5.9.3 domestic (2026-11-01, #118), each on its own run: live Stop {decision:"block"} on exit 0 continued the turn with "Stop hook feedback" and the re-entry carried stop_hook_active:true; SubagentStop fired on both builds but its block was not continued; settings-tier hooks (project .codebuddy/settings.json) were the probed surface on both; plugin-bundle hooks unprobed on both',
     // Product identity, config roots, the two manifest directories the loader
     // accepts, and the platform name the template passes all live in
     // scripts/hosts/workbuddy.js.
@@ -169,7 +176,7 @@ const HOSTS = [
       SessionEnd: { script: 'jiahao-sweep', timeout: 3 },
     },
     manifest: {
-      description: 'Dual-profile verification discipline for WorkBuddy: profile injection on SessionStart, verdict gate on Stop. A tier on the international 5.9.4 build (live turn-end block 2026-10-31); the domestic 5.9.3 build was not probed.',
+      description: 'Dual-profile verification discipline for WorkBuddy: profile injection on SessionStart, verdict gate on Stop. A tier on both builds - a live turn-end block on the international 5.9.4 (2026-10-31) and on the domestic 5.9.3 (2026-11-01), each probed on its own run.',
     },
     autoDiscovered: [],
     mcp: null,
@@ -1436,11 +1443,12 @@ bundled gate is not unconditional - it passes when the host sends
 }
 
 // WorkBuddy install manual: one host row, two products. The identity facts, the
-// config roots, and the two install surfaces are stated per variant because the
-// tier evidence covers only the international build. Regenerated from this
-// single source; edit the string, never the emitted file.
+// config roots, and the two install surfaces are stated per variant because
+// each build carries its own live probe - the international 5.9.4 run in #110
+// and the domestic 5.9.3 run in #118. Regenerated from this single source; edit
+// the string, never the emitted file.
 function workbuddyReadme() {
-  return `# WorkBuddy Adapter (self-contained plugin, A tier on the international build)
+  return `# WorkBuddy Adapter (self-contained plugin, A tier on both builds)
 
 This directory is a **self-contained plugin bundle for WorkBuddy**: the manifest
 (\`.workbuddy-plugin/plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook
@@ -1462,16 +1470,33 @@ endpoints, and two config roots, and each was identified from its own
 
 ## Capability tier
 
-**A tier on the international build** (verified 2026-10-31, WorkBuddy AI 5.9.4,
-win32): a real turn whose last assistant message claimed \`任务完成，已验证。\`
-continued only after a \`Stop\` hook printed \`{decision:"block"}\` and exited 0.
-The host injected the reason as \`Stop hook feedback: ...\` and re-ran the turn.
-Evidence:
+**A tier on both builds** - verified twice, once per variant, each on its own
+run and its own date:
+
+- **International** (2026-10-31, WorkBuddy AI 5.9.4): a real turn whose last
+  assistant message claimed \`任务完成，已验证。\` continued only after a \`Stop\`
+  hook printed \`{decision:"block"}\` and exited 0. The host injected the reason
+  as \`Stop hook feedback: ...\` and re-ran the turn.
+- **Domestic** (2026-11-01, WorkBuddy 5.9.3, \`D:\\WorkBuddy\`, config root
+  \`~/.workbuddy\`): the same shape on the other build - the false completion
+  continued only after the \`Stop\` hook printed \`{decision:"block"}\` and exited
+  0, the reason arrived as \`Stop hook feedback: ...\`, and the re-entry carried
+  \`stop_hook_active: true\`.
+
+These are two observations, not one inferred from the shared agent CLI
+(\`@genie/agent-cli 2.165.0\` on both). The domestic row came from its own
+session, its own settings file, and its own run; the international row was not
+substituted for it, and this document does not extend either result to a third
+build it has not run. Evidence:
 [\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
-The domestic 5.9.3 build is **not** covered by that observation. Same CLI build,
-same hook surface, but no turn was watched blocking there, so this README makes
-no blocking claim for it.
+One qualification belongs with the domestic row. The probe assigns exit 0 on
+every path by construction and records its decision before it writes stdout, so
+the exit status in the 5.9.3 run was **not captured by an independent wrapper**.
+What that run observed directly is the host continuing the turn after the logged
+block decision; "exit 0" above is the probe's own contract, not a captured
+return code. Re-running it inside a wrapper is the way to turn that into an
+artifact.
 
 ## Install
 
@@ -1526,10 +1551,11 @@ project directory name: \`.codebuddy\`, not \`.workbuddy\`; a twin written to
    \`CLAUDE_CONFIG_DIR\` left unset, the hooks fall back to \`HOME\` and then to
    \`/tmp\` (\`C:\\tmp\` on Windows), so the flags would have to sit in whichever
    of those the desktop's own environment resolves - check it rather than guess.
-5. Start a new session after changing settings. The hook map is resolved per
-   turn in the probe (an edit made during a turn applied at the next turn end),
-   and one turn end in three produced no invocation at all, so a mid-session
-   edit is not something to rely on.
+5. Start a new session after changing settings. On 5.9.4 the hook map was
+   resolved per turn (an edit made during a turn applied at the next turn end),
+   and one turn end in three produced no invocation at all; the 5.9.3 run's own
+   timing is written down in its record rather than generalized here. Either
+   way, a mid-session edit is not something to rely on.
 
 ### Plugin tier (declared-unverified)
 
@@ -1547,11 +1573,11 @@ the surface with evidence.
 
 ## Hook behavior disclosure (read before enabling)
 
-| Event | Script | Behavior | Observed on 5.9.4? |
+| Event | Script | Behavior | Observed? |
 | --- | --- | --- | --- |
 | SessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext | no |
 | UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder | fired; its output was not read back |
-| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: prints \`{decision:"block", reason}\` and exits 0; the zero exit is the observed channel | **yes**, live block |
+| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: prints \`{decision:"block", reason}\` and exits 0; the zero exit is the observed channel | **yes, the channel** on both builds - observed with the probe hook, not with this script; the gate's own judgment was not run live |
 | PreToolUse | hooks/jiahao-pretool-guard.js | emits \`permissionDecision: "deny"\` (verifier profile) for tool calls that target the hook map, the plugin manifest, \`jiahao-*\` hook files, any \`.mcp.json\`, or the jiahao state/evidence files - that is the script's output, **not** an observed host denial | fired; neither the deny output nor the host applying it was exercised |
 | SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep | no |
 
@@ -1562,8 +1588,9 @@ names are the host's own PascalCase set.
 shape (it carries \`agent_id\`, \`agent_type\`, and \`last_assistant_message\`), but
 the 2026-10-31 probe answered it with \`{decision:"block"}\` on exit 0 and the
 subagent was **not** continued: one invocation, no \`stop_hook_active\` re-entry.
-A gate there would print a decision the host ignores, so the bundle stays on the
-event that was watched working.
+The 2026-11-01 domestic run repeated that result on 5.9.3. A gate there would
+print a decision the host ignores, so the bundle stays on the event that was
+watched working on both builds.
 
 ## Dialect: what differs from the Claude-shaped hosts
 
@@ -1582,24 +1609,28 @@ the same \`hooks/jiahao-verdict-gate.js\` every host runs.
   It rejects \`prompt\` / \`agent\` / \`http\` hook types; \`command\` hooks - the
   only kind this bundle ships - still load.
 
-## Live probe (2026-10-31, WorkBuddy AI 5.9.4, win32)
+## Live probe (international 2026-10-31, domestic 2026-11-01, win32)
 
-The probe used a project-scope \`.codebuddy/settings.json\` in the workspace and
+Both runs used a project-scope \`.codebuddy/settings.json\` in the workspace and
 the throwaway hook in \`docs/evidence/v0.3.0/probes/workbuddy-hook-probe.js\`.
-Commands, payloads, and the recorded environment live in
-[\`docs/evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md).
+Commands, payloads, and the recorded environments are in
+[\`workbuddy-hook-probe-2026-10-31.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md)
+(international) and
+[\`workbuddy-cn-hook-probe-2026-11-01.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/workbuddy-cn-hook-probe-2026-11-01.md)
+(domestic). The probe hook stands in for the shipped gate in both runs; see
+[Verification status](#verification-status-honest-tiering).
 
-| Point | Result |
-| --- | --- |
-| Project-scope \`.codebuddy/settings.json\` hooks are read by the desktop session | **Verified**: a \`PreToolUse\` probe logged every tool call of the session |
-| \`.workbuddy/settings.json\` project twin | **Did not fire**; the project directory name is \`.codebuddy\` |
-| A real turn-end block (\`Stop\` + \`decision:"block"\` on exit 0) | **Verified**: the claim continued only after the decision; the reason arrived as \`Stop hook feedback\` |
-| \`SubagentStop\` block | **Refuted as an enforcement point**: fired once, decision ignored |
-| Payload identity fields | **Observed**: \`hook_event_name\`, \`stop_hook_active\`, \`last_assistant_message\`, \`transcript_path\`, \`client:"WorkBuddy"\`, \`version:"5.9.4"\` |
-| Hook environment | **Observed**: \`WORKBUDDY_APP_NAME\`, \`WORKBUDDY_APP_VERSION\`, \`WORKBUDDY_DATA_FOLDER_NAME\`, \`CODEBUDDY_HOST=workbuddy-desktop\`; no \`*_PLUGIN_ROOT\` for settings-tier hooks |
-| Exit 2 as a block channel | Not probed on this host |
-| Plugin-bundle hooks firing | Not probed; the loader code path was read, no run was watched |
-| Domestic 5.9.3 build | Not probed |
+| Point | International 5.9.4 | Domestic 5.9.3 |
+| --- | --- | --- |
+| Project-scope \`.codebuddy/settings.json\` hooks are read by the desktop session | **Verified**: a \`PreToolUse\` probe logged every tool call | **Verified**: 4 invocations between 17:10:44Z and 17:11:13Z |
+| \`.workbuddy/settings.json\` project twin | **Did not fire**; the project directory name is \`.codebuddy\` | **Did not fire**; the probe's log file was never created |
+| A real turn-end block (\`Stop\` + \`decision:"block"\` on exit 0) | **Verified**: the claim continued only after the decision; the reason arrived as \`Stop hook feedback\` | **Verified**: same shape and same message text; the exit status itself was not captured on this build - the record says so |
+| \`stop_hook_active\` on re-entry | \`true\`, and the hook passed on it | \`true\` and passed on it, with the probe's marker deleted first |
+| \`SubagentStop\` block | **Refuted as an enforcement point**: fired once, decision ignored | **Same negative result**: fired once, no re-entry, subagent not continued |
+| Payload identity fields | \`hook_event_name\`, \`stop_hook_active\`, \`last_assistant_message\`, \`transcript_path\`, \`client:"WorkBuddy"\`, \`version:"5.9.4"\` | same keys, with \`version:"5.9.3"\` |
+| Hook environment | \`WORKBUDDY_APP_NAME\`, \`WORKBUDDY_APP_VERSION\`, \`WORKBUDDY_DATA_FOLDER_NAME\`, \`CODEBUDDY_HOST=workbuddy-desktop\`; no \`*_PLUGIN_ROOT\` | same shape: \`WorkBuddy\`, \`5.9.3\`, \`.workbuddy\`, config dir \`~/.workbuddy\` |
+| Exit 2 as a block channel | Not probed | Not probed |
+| Plugin-bundle hooks firing | Not probed; the loader code path was read | Not probed |
 
 ## Write scope and network
 
