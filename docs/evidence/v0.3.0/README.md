@@ -69,7 +69,7 @@ v0.3.0 content.
 
 ## Google Antigravity
 
-- Host: `Google Antigravity 1.2.12` (win32 x64, isolated `CLAUDE_CONFIG_DIR`, #111).
+- Host: `Google Antigravity 1.2.12` (win32 x64, isolated `CLAUDE_CONFIG_DIR`, commit `bf68d15f`, #111).
 - Install (**verified**): `agy plugin install <repo-root>/adapters/antigravity`, exit 0;
   `agy plugin list` shows `jiahao` with `hooks: 1 processed` (`antigravity-install.txt`).
 - Block run (**verified**): `agy -p ... --dangerously-skip-permissions`, exit 0. First agent message

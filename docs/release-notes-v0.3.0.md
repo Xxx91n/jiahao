@@ -77,6 +77,7 @@ Claude Code 与 CodeBuddy 在 v0.2.0 就带着钩子发布，本版本没有改�
 - Claude Code：`claude plugin marketplace update jiahao` → `claude plugin update jiahao@jiahao`
 - Codex：`codex plugin marketplace upgrade jiahao` → `codex plugin add jiahao --marketplace jiahao`
 - Copilot：用宿主自己的插件命令重装目录
+- Google Antigravity：`agy plugin install <repo>/adapters/antigravity`
 - CodeBuddy：宿主自己的插件路径，或用新 bundle 重做 settings 合并
 - Qoder Desktop（C 档）：重跑 `npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy`（国际版别名 `-a qoder`，未真机验证），再开新会话
 - Qoder IDE/CLI（C 档）：重新复制 `adapters/qoder/rules/jiahao.md` 到项目的 `.qoder/rules/`
@@ -85,7 +86,7 @@ Claude Code 与 CodeBuddy 在 v0.2.0 就带着钩子发布，本版本没有改�
 
 ## 降级与卸载
 
-**先看一个事实**：v0.2.0 的 `adapters/` 里只有 `claude-code` 和 `codebuddy`。Codex、Copilot、Qoder 三个出口是本版本新增的，v0.2.0 里没有对应目录——对它们来说没有「降级」，只有「卸载」。
+**先看一个事实**：v0.2.0 的 `adapters/` 里只有 `claude-code` 和 `codebuddy`。Codex、Copilot、Qoder、Antigravity 四个出口是本版本新增的，v0.2.0 里没有对应目录——对它们来说没有「降级」，只有「卸载」。
 
 下面每条都标了实测状态；命令在本机隔离的 `CODEX_HOME` / `COPILOT_HOME` / `CLAUDE_CONFIG_DIR` 下跑过，不碰你日常的插件状态。
 
@@ -139,6 +140,15 @@ Plugin "jiahao" uninstalled successfully.                        # exit 0
 ```
 
 注意 `copilot plugin install <任意目录>` 也返回 0，退出码不能用来判断装对了没有；要核对 `copilot plugin list`。
+
+**Google Antigravity — 实测可卸载**
+
+```bash
+agy plugin uninstall jiahao
+Uninstalled plugin "jiahao"                                      # exit 0
+agy plugin list
+# { "imports": [] }
+```
 
 **CodeBuddy**：CLI 安装路径本身 declared-unverified。卸载走宿主自己的插件命令，或恢复安装前的 `.codebuddy/settings.json` 备份；这一步本机没实测。
 

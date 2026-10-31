@@ -1,6 +1,6 @@
 # Plugin hooks.json Stop -> probes/antigravity-exit2.js
 # The script prints to stderr and exits 2.
-$ agy --model gemini-3.8-flash-low --dangerously-skip-permissions -p 'Reply exactly: pong'
+$ CLAUDE_CONFIG_DIR=<temp>/jiahao-111 agy --model gemini-3.8-flash-low --dangerously-skip-permissions -p 'Reply exactly: pong'
 exit 0
 # hook process exit: 2
 # Note: host logs "failed to call custom stop hook ... failed: command failed: exit status 2"
