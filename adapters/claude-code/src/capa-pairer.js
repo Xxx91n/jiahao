@@ -83,10 +83,13 @@ function pairExitReport(events, closing) {
   // the closing (CodeRabbit #115 round 3): "exit code is not 0" and "did
   // not exit 0" parse no claim, while "exit 0, no tests failed" still
   // pairs (and flags on a mismatch with the observed exit). Same vocabulary
-  // as negated().
-  const NEG = "(?:not|n't|never|unable|could\\s+not|failed|denied|missing)";
-  if (new RegExp('\\bexit\\D{0,20}?\\b' + NEG + '\\b', 'i').test(c) ||
-      new RegExp('\\b' + NEG + '\\s+(?:the\\s+)?exit\\b', 'i').test(c)) {
+  // as negated(); the n't contraction is matched WITHOUT a leading
+  // boundary because inside "wasn't" the n has none (CodeRabbit #115
+  // round 4).
+  const NEG = "(?:not|never|unable|could\\s+not|failed|denied|missing)";
+  const NEG_TOKEN = "(?:\\b" + NEG + "|n't)\\b";
+  if (new RegExp('\\bexit\\D{0,20}?' + NEG_TOKEN, 'i').test(c) ||
+      new RegExp(NEG_TOKEN + '\\s+(?:the\\s+)?exit\\b', 'i').test(c)) {
     return verdict('undetermined', null, null, 'claim unparseable: negated/denial closing');
   }
   const claimRe = /\bexit\D{0,20}?(-?\d+)/gi;
@@ -116,8 +119,8 @@ function stripTailPunct(s) { return String(s).replace(/[.,;:!?'"`]+$/, ''); }
 // extend it (CodeRabbit #115 round 3).
 function tokenComplete(claim, ev) {
   const esc = String(claim).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp('(?<![A-Za-z0-9_-])(?<![A-Za-z0-9_][.:])' + esc +
-    '(?![A-Za-z0-9_-])(?![.:][A-Za-z0-9_])').test(String(ev));
+  return new RegExp('(?<![A-Za-z0-9_-])(?<![A-Za-z0-9_][.:]+)' + esc +
+    '(?![A-Za-z0-9_-])(?![.:]+[A-Za-z0-9_])').test(String(ev));
 }
 
 // A claimed value is marker-shaped: a dashed identifier carrying an

@@ -47,6 +47,16 @@ describe('exit-report family', () => {
     expect(r.claim).toBeNull();
   });
 
+  test("a contraction negator (wasn't) parses nothing too", () => {
+    // \bn't has no boundary inside "wasn't"; the contraction needs its own
+    // alternation arm (CodeRabbit #115 round 4).
+    const r = pairItem({ task: task, transcript: transcript(
+      [{ type: 'tool_result', content: 'exit 0' }],
+      "the exit wasn't 0") });
+    expect(r.state).toBe('undetermined');
+    expect(r.claim).toBeNull();
+  });
+
   test('negation of unrelated text does not mask an exit contradiction', () => {
     // "no tests failed" rides on a different clause: the exit claim still
     // pairs, and exit 0 claimed vs exit 1 observed is a contradiction
@@ -109,5 +119,17 @@ describe('file-contains family', () => {
       [{ type: 'tool_result', content: 'id:TOK-4' }],
       'the file now has TOK-4') });
     expect(r.state).toBe('flagged');
+  });
+
+  test('punctuation runs glued to the claim stay part of a bigger token', () => {
+    // '.:'/':' runs are internal when glued to a token character on the
+    // claim side (CodeRabbit #115 round 4): 'v1..TOK-4' and 'TOK-4::end'
+    // are bigger tokens than TOK-4.
+    for (const content of ['v1..TOK-4', 'TOK-4::end']) {
+      const r = pairItem({ task: task, transcript: transcript(
+        [{ type: 'tool_result', content: content }],
+        'the file now has TOK-4') });
+      expect(r.state).toBe('flagged');
+    }
   });
 });
