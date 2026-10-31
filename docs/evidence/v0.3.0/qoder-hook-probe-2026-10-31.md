@@ -116,9 +116,9 @@ are and not as what was measured:
   `QODER_CONFIG_DIR` and `USERPROFILE`, and `paths.js` looks at neither.
 
 Fixing `configDir()` is a shared-path change that reaches every host, so it is
-**not** folded into #109 without the owner's decision; see the PR discussion. Until
-it lands, the Qoder plugin exit is A-tier on the channel and known-broken on the
-state location, and the adapter README says so.
+**not** folded into #109: the owner decided to track it as **#116** and leave this
+ticket's scope alone. Until that lands, the Qoder plugin exit is A-tier on the
+channel and known-broken on the state location, and the adapter README says so.
 
 ## Blocking channel — both Claude-shaped channels work
 

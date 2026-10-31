@@ -88,8 +88,9 @@ and the run record is
   the `QODER_CONFIG_DIR` (`~/.qoder-cn`) the host does name. The turn-end block
   above is unaffected - it was measured through the hook's own stdout/stderr -
   but the shipped gate's profile read and evidence chain are. Repairing that is a
-  shared-path change that reaches every host, so it is not made inside this exit;
-  until it is, treat the plugin's state location on Qoder as wrong, not untested.
+  shared-path change reaching every host, tracked as #116 and deliberately not
+  made inside this exit; until it lands, treat the plugin's state location on
+  Qoder as wrong, not untested.
 - **Which root registers hooks is only known for the CN build.** Project-scope
   `.qoder/settings.json` fired and a `.qoder-cn/settings.json` placed beside it
   did not; the international build's root was never tested, so one dialect row
