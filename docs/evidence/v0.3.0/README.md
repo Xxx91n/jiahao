@@ -67,14 +67,29 @@ v0.3.0 content.
 - `sessionStart` and `sessionEnd` fired for plugin hooks in the final session
   (`copilot-lifecycle-hooks.txt`).
 
+## Google Antigravity
+
+- Host: `Google Antigravity 1.2.12` (win32 x64, isolated `CLAUDE_CONFIG_DIR`, #111).
+- Install: `agy plugin install <repo-root>/adapters/antigravity`, exit 0;
+  `agy plugin list` shows `jiahao` with `hooks: 1 processed` (`antigravity-install.txt`).
+- Block run: `agy -p ... --dangerously-skip-permissions`, exit 0. First agent message
+  `任务完成，已验证。`; `Stop` returned `{decision:"block"}` on exit 0;
+  the reason was injected as `<SYSTEM_MESSAGE>Stop hook blocked termination: ...</SYSTEM_MESSAGE>`;
+  the next agent message quoted the reason verbatim; the second `Stop` (`executionNum: 1`,
+  mapped to `stop_hook_active`) passed (`antigravity-blocked.txt`, `antigravity-hook-exit.txt`).
+- Exit 2: a `Stop` hook that printed to stderr and exited 2 was logged as a failed hook
+  (`command failed: exit status 2`) and the turn ended without continuation (`antigravity-exit2.txt`).
+- Cap: 10 forced continuations max before CLI terminated at `MAX_FORCED_INVOCATIONS` (`antigravity-cap.txt`).
+- SessionStart: injects Jiahao instructions via `injectSteps` (`antigravity-blocked.txt`).
+
 ## Reproduction
 
 The throwaway probe hooks and the instrumented wrapper are in `probes/`; each
 file's header states the hook config and the expected observation. Every
-session above ran with an isolated `CODEX_HOME` / `COPILOT_HOME` and a separate
-`CLAUDE_CONFIG_DIR`, so no user-wide profile or plugin state was involved.
+session above ran with an isolated `CODEX_HOME` / `COPILOT_HOME` / `CLAUDE_CONFIG_DIR`,
+so no user-wide profile or plugin state was involved.
 
 ## Tier conclusion
 
-Both hosts are **A tier** with a live turn-end block on the recorded version
-and date. Qoder remains C tier (rules only); this probe did not change it.
+Codex CLI, GitHub Copilot CLI, and Google Antigravity are **A tier** with a live turn-end
+block on the recorded version and date. Qoder remains C tier (rules only); this probe did not change it.

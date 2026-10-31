@@ -1,0 +1,11 @@
+# Plugin hooks.json Stop -> probes/antigravity-exit2.js
+# The script prints to stderr and exits 2.
+$ agy --model gemini-3.8-flash-low --dangerously-skip-permissions -p 'Reply exactly: pong'
+exit 0
+# hook process exit: 2
+# Note: host logs "failed to call custom stop hook ... failed: command failed: exit status 2"
+# and ends the turn without a continuation.
+# assistant messages: 1 (no continuation)
+# host log: E1031 23:06:46.106827 511 stophooks.go:62] failed to call custom stop hook jsonhook__hooks_Stop_0_0: JSON hook "jsonhook__hooks_Stop_0_0" failed: command failed: exit status 2, stderr: ANTIGRAVITY EXIT2 PROBE: hook failed with exit status 2
+
+pong

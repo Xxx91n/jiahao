@@ -1,0 +1,25 @@
+# Plugin hooks.json Stop hook (always blocks):
+#   node antigravity-always-block.js -> prints {"decision":"block","reason":"ANTIGRAVITY ALWAYS BLOCK probe"} and exits 0
+
+$ agy --model gemini-3.8-flash-low --dangerously-skip-permissions -p 'Reply exactly: pong'
+exit 0
+
+always-block Stop invocations: 10
+# session transcript:
+# conversationId: ad64ce3d-aa12-4ffa-bbcd-1b87e0c9125b
+# total stop hook blocks: 10
+# executionNum 0 through 9 blocked; the 10th block reached MAX_FORCED_INVOCATIONS
+# and the conversation stream was stopped by conversation_manager.
+
+tail of the CLI output:
+pong
+pong
+pong
+pong
+pong
+pong
+pong
+pong
+pong
+pong
+pong
