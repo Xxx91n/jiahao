@@ -36,7 +36,7 @@ npx skills add Xxx91n/jiahao
 
 #### Qoder：Desktop 与 IDE/CLI（C 档，只有规则）
 
-Qoder 现在有两个产品，读的路径不同。**Qoder Desktop**（0.x 工作台，含 Qoder CN）走标准技能目录；#106 在 Qoder CN Desktop 0.4.11 上检查到用户级规则路径未被加载。请把规则版装进它的标准技能目录：
+Qoder 现在有两个产品，读的路径不同。**Qoder Desktop**（0.x 工作台）通过标准技能目录加载规则版；Qoder CN 上，#106 在 Desktop 0.4.11 上检查到用户级规则路径未被加载。请把规则版装进它的标准技能目录：
 
 ```bash
 npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # Qoder CN → ~/.qoder-cn/skills/jiahao/SKILL.md

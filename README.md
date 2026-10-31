@@ -36,7 +36,7 @@ Installs `skills/jiahao/SKILL.md` into a host that reads the standard Agent Skil
 
 #### Qoder: Desktop vs IDE/CLI (C tier, rules only)
 
-Qoder has two product lines and they read different paths. **Qoder Desktop** (the 0.x workbench, including Qoder CN) uses the standard skill directory; the #106 check on Qoder CN Desktop 0.4.11 found the user-level rules path unloaded. Install the rules version into its standard skills directory:
+Qoder has two product lines and they read different paths. **Qoder Desktop** (the 0.x workbench) takes the rules version through its standard skill directory. On Qoder CN, the #106 check on Desktop 0.4.11 found the user-level rules path unloaded. Install the rules version into its standard skills directory:
 
 ```bash
 npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # Qoder CN → ~/.qoder-cn/skills/jiahao/SKILL.md

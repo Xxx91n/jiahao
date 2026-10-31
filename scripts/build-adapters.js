@@ -786,10 +786,10 @@ rule file generated from \`src/SKILL.md\`, the same source as the rules version
 (\`skills/jiahao/SKILL.md\`). It registers **no hooks**: there is no
 \`hooks/hooks.json\`, no hook script, and no plugin manifest.
 
-Qoder Desktop (the 0.x workbench, including Qoder CN) reads the standard skill
-directory installed by the rules version, not this directory. The #106 check on
-Qoder CN Desktop 0.4.11 found \`~/.qoder/rules\` was not loaded; see "Qoder
-Desktop" below.
+Qoder Desktop (the 0.x workbench) installs the standard skill directory from
+the rules version, not this directory. The #106 check on Qoder CN Desktop
+0.4.11 found \`~/.qoder/rules\` was not loaded; the international build was not
+probed. See "Qoder Desktop" below.
 
 ## Capability tier
 

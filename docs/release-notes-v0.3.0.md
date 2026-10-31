@@ -135,7 +135,7 @@ Plugin "jiahao" uninstalled successfully.                        # exit 0
 
 **Qoder（C 档）— 实测与 2026-10-31 更正**
 
-v0.3.0 最初写的安装路径是 `~/.qoder/rules/`。这条对 Qoder Desktop（0.x 工作台，含 Qoder CN）无效：`~/.qoder` 属于另一条 Qoder 产品线，Desktop 不读其中的 `rules/`。正确路径是规则版的标准技能目录：
+v0.3.0 最初写的安装路径是 `~/.qoder/rules/`。这条对 Qoder CN Desktop（0.4.11 已实测）无效：`~/.qoder` 属于另一条 Qoder 产品线，CN Desktop 不读其中的 `rules/`。国际版未实测，不适用此结论。正确路径是规则版的标准技能目录：
 
 ```bash
 npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy
@@ -148,7 +148,7 @@ sha256sum ~/.qoder-cn/skills/jiahao/SKILL.md
 
 国际版 Qoder Desktop 的宿主名是 `qoder`，skills CLI 矩阵写入 `~/.qoder/skills/jiahao/SKILL.md`；本机没有对国际版做真机复核，落地与加载都按 declared-unverified 记。
 
-Qoder IDE/CLI（`rules` 文档在 `/user-guide/rules`）才读项目级 `.qoder/rules/`；`adapters/qoder/rules/jiahao.md` 保留给它们。「回滚」按两条路径分开：Desktop 删掉 `~/.qoder-cn/skills/jiahao/`（国际版 `~/.qoder/skills/jiahao/`）；IDE/CLI 删掉项目的 `.qoder/rules/jiahao.md`。它们不写别的状态、不留缓存。旧文档里的 `~/.qoder/rules/jiahao.md` 不再作为任何 Desktop 的有效路径；本机误装的那份已删除。
+Qoder IDE/CLI（`rules` 文档在 `/user-guide/rules`）才读项目级 `.qoder/rules/`；`adapters/qoder/rules/jiahao.md` 保留给它们。「回滚」按两条路径分开：Desktop 删掉 `~/.qoder-cn/skills/jiahao/`（国际版 `~/.qoder/skills/jiahao/`）；IDE/CLI 删掉项目的 `.qoder/rules/jiahao.md`。它们不写别的状态、不留缓存。旧文档里的 `~/.qoder/rules/jiahao.md` 不再作为 Qoder CN Desktop 的有效路径（国际版未实测）；本机误装的那份已删除。
 
 **这些命令不会撤销的东西**：降级/卸载只动宿主目录里的插件文件，不碰 `<config>` 下的 `.jiahao-profile`、`.jiahao-active`，也不改证据链（只追加）。也就是说降级会改变「还会不会被拦」，不会改变「以前记下了什么」。
 
