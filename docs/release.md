@@ -35,7 +35,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 ## 产物与 SHA256
 
 - 产物是 `npm pack` 打出的 `jiahao-<version>.tgz`。npm 固定了包内时间戳，同一棵树打两次字节相同——门禁真的打两次并比对 `sha256`，不同就是红，所以这个哈希才值得引用。
-- 门禁最后打印：tarball 大小、`sha256`、各出口目录的树哈希。树哈希 = 把目录里每个文件的 `sha256` 按路径排序拼起来再哈希一次，用来一眼看出是哪个出口（规则版 / CodeBuddy / Claude Code / Copilot CLI / Codex / Qoder 规则出口）变了。
+- 门禁最后打印：tarball 大小、`sha256`、各出口目录的树哈希。树哈希 = 把目录里每个文件的 `sha256` 按路径排序拼起来再哈希一次，用来一眼看出是哪个出口（规则版 / CodeBuddy / Claude Code / Copilot CLI / Codex / Qoder IDE/CLI 规则出口）变了。
 - 带 `--artifact-dir` 时 tarball 被留下，并在旁边写 `jiahao-<version>.tgz.sha256`（`sha256sum -c` 直接可验）。带 `--evidence` 时同一批数字落进 JSON，CI 把两者都作为构建产物上传。
 - 包里为什么还有两份 marketplace 清单：`.claude-plugin/marketplace.json` 是 Claude Code 的入口（`source` 指向 `./adapters/claude-code`），`.agents/plugins/marketplace.json` 是 Codex 的入口（`source.path` 指向 `./adapters/codex`）。少了它们，tarball 只能是"插件目录的副本"，不能当对应宿主的 marketplace 根用。两份都进了 `files`，也进了必须包含清单。
 
@@ -47,7 +47,8 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 
 - 规则版：重跑安装时那条 `npx skills add`，范围参数保持一致——项目级不带 `-g`，全局级带 `-g -a <host> -y --copy`。`npx skills update jiahao -g -y` 只适合全局安装；skills 1.7.4 在本机（Windows、本地路径源）的项目级 `update` 报无匹配并 exit 127；该环境下项目级用重跑 `add`。装到的就是仓库当前版本；`1.0.0` 打出来后同一路径升到 `1.0.0`。
 - 插件版：Claude Code 用 `claude plugin marketplace update jiahao`，再 `claude plugin update jiahao@jiahao`；CodeBuddy 用宿主自己的插件更新/安装路径（CLI 安装路径 declared-unverified，见 `adapters/codebuddy/README.md`），或用新 bundle 重做已验证的 settings 合并；Copilot CLI 用宿主自己的插件命令重装目录（本地目录直装已在 1.0.105 实测，宿主提示该形态将废弃，见 `adapters/copilot/README.md`）；Codex 用 `codex plugin marketplace upgrade jiahao`，再 `codex plugin add jiahao --marketplace jiahao`（安装与未信任钩子的跳过行为已于 2026-10-30 在 0.163.0 真机验证；`/hooks` 持久化信任流程本身未逐步实测，无人值守可用 `--dangerously-bypass-hook-trust`）。按宿主提示重开会话；`1.0.0` 不换路径。
-- Qoder 规则出口（C 档）：重新复制 `adapters/qoder/rules/jiahao.md` 到项目的 `.qoder/rules/`（或用户级 `~/.qoder/rules/`），再开新会话。没有插件安装命令，也没有 profile 文件要改。
+- Qoder Desktop（C 档）：重跑 `npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy`（国际版别名 `qoder`，未真机验证），再开新会话。装的是标准技能目录，没有插件安装命令，也没有 profile 文件要改。
+- Qoder IDE/CLI（C 档）：重新复制 `adapters/qoder/rules/jiahao.md` 到项目的 `.qoder/rules/`，再开新会话。
 - 升级只替换宿主目录里的插件/技能文件，不碰 `<config>` 下的 `.jiahao-profile` 和 `.jiahao-active`；profile 由人改，不由升级改。
 
 升级命令在 `0.2.0` 上实测过：全局 `npx skills update jiahao -g -y` 报 up to date（exit 0）；项目级 `update -p` 在 skills 1.7.4 上报无匹配并 exit 127，项目级重跑 `add` 成功覆盖（exit 0）；`claude plugin update` 报 already at the latest version（exit 0）。这些只证明命令可用，不证明换版本。`1.0.0` 尚未发布，这条路径只承诺命令不变。
@@ -75,8 +76,8 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 | 钩子 PreToolUse / InstructionsLoaded | `<config>/.jiahao-pretool.jsonl`、`<config>/.jiahao-instructions.jsonl` | 每次命中 |
 | 校准记录 | `<config>/.jiahao-calibration.jsonl` | 校准点被记录时（当前运行时没有调用点，写入方是 `src/calibration.js` 的导出函数） |
 | 宿主（插件版） | 宿主自己的插件目录或插件缓存 | `claude plugin install` / `codebuddy plugin install` / `copilot plugin install` / `codex plugin add` |
-| 宿主（规则版） | 宿主自己的技能目录，落地 `<host>/skills/jiahao/SKILL.md` | `npx skills add` |
-| 人（Qoder 规则出口，C 档） | 复制到 `.qoder/rules/jiahao.md`（项目级）或 `~/.qoder/rules/jiahao.md`（用户级） | 手工复制，没有安装命令 |
+| 宿主（规则版，含 Qoder Desktop） | 宿主自己的技能目录，落地 `<host>/skills/jiahao/SKILL.md`；Qoder CN 是 `~/.qoder-cn/skills/jiahao/SKILL.md`，国际版按 skills CLI 矩阵是 `~/.qoder/skills/jiahao/SKILL.md`（未真机验证） | `npx skills add`（Qoder 用 `-a qoder-cn` / `-a qoder`） |
+| 人（Qoder IDE/CLI 规则出口，C 档） | 复制到项目的 `.qoder/rules/jiahao.md` | 手工复制，没有安装命令 |
 
 范围之外：不改系统设置，不写仓库以外的源码目录，不在当前工作目录落文件。所有运行时写入都落在 `<config>` 下。
 

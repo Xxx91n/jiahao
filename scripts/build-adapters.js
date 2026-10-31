@@ -209,14 +209,17 @@ const HOSTS = [
     dir: 'adapters/qoder',
     tier: 'C',
     turnEnd: null,
-    // Spec #74's probe list still owns Qoder's turn-end question. Until a probe
-    // answers it, the table records what was observed: nothing (no host build
-    // was recorded for this row). The exit is rules only, so there is no hook
-    // that could be mistaken for enforcement.
-    provenance: 'Qoder (host build not recorded; spec #74 probe list, 2026-10-30): turn-end behavior unprobed, no live run observed; C tier (rules only) is the spec-assigned ceiling',
+    // This rules-only row is the IDE/CLI exit: Qoder IDE/CLI reads project
+    // `.qoder/rules/`. Qoder Desktop (the 0.x workbench, including Qoder CN)
+    // does not load it; Desktop installs the rules version's standard skill
+    // directory instead (#106). That Desktop check is recorded in the adapter
+    // README and the evidence file; it is not this row's tier evidence. Spec
+    // #74's probe list still owns Qoder's turn-end question, and this exit
+    // registers no hook that could be mistaken for enforcement.
+    provenance: 'Qoder IDE/CLI (host build not recorded; spec #74 probe list): project .qoder/rules loading unprobed; turn-end behavior unprobed; C tier (rules only) is the spec-assigned ceiling',
     // A manifest-less row IS the rules-only exit: no plugin manifest, no
     // vendored scripts, no src/ copy. The one rule file carries the same body
-    // as the rules version; see qoderReadme for the install surface.
+    // as the rules version; see qoderReadme for both install surfaces.
     hooks: {},
     manifest: null,
     autoDiscovered: [],
@@ -769,35 +772,73 @@ deviations ride errata records).
 }
 
 
-// Qoder install manual. C tier means rules only: the file is context, not a
-// gate. The wording stays inside what was observed (nothing), and the test
-// suite pins both the absence of hook registration and the absence of a
-// blocking claim.
+// Qoder install manual. This directory is the C-tier IDE/CLI exit: the file is
+// context, not a gate. Qoder Desktop (0.x workbench, incl. Qoder CN) reads the
+// rules version's standard skill directory instead (#106); the two scopes are
+// kept apart here so the rules path is not offered as a Desktop recipe again.
+// The wording stays inside what was observed, and the test suite pins both the
+// absence of hook registration and the absence of a blocking claim.
 function qoderReadme() {
   return `# Qoder Adapter (C tier: rules only)
 
-This directory is the **rules-only exit** for Qoder. It carries one rule file
-generated from \`src/SKILL.md\`, the same source as the rules version
+This directory is the **rules-only exit for Qoder IDE/CLI**. It carries one
+rule file generated from \`src/SKILL.md\`, the same source as the rules version
 (\`skills/jiahao/SKILL.md\`). It registers **no hooks**: there is no
 \`hooks/hooks.json\`, no hook script, and no plugin manifest.
+
+Qoder Desktop (the 0.x workbench) installs the standard skill directory from
+the rules version, not this directory. The #106 check on Qoder CN Desktop
+0.4.11 found \`~/.qoder/rules\` was not loaded; the international build was not
+probed. See "Qoder Desktop" below.
 
 ## Capability tier
 
 C tier: rules only. Qoder's turn-end hook behavior is still on the probe list
-(spec #74). No Qoder session was run for this exit; C tier is the spec-assigned
+(spec #74). No Qoder hook was run for this exit; C tier is the spec-assigned
 ceiling, not an observed result. A probe that answers the turn-end question is
 a separate ticket.
 
-## Install
+## Qoder Desktop (0.x workbench, including Qoder CN)
 
-1. Copy \`rules/jiahao.md\` into \`.qoder/rules/\` in the project, or into
-   \`~/.qoder/rules/\` for every project.
+Install the rules version into the host's standard skills directory:
+
+\`\`\`bash
+npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # Qoder CN
+npx skills add Xxx91n/jiahao -g -a qoder -y --copy      # international alias (not live-probed here)
+\`\`\`
+
+- Qoder CN lands \`~/.qoder-cn/skills/jiahao/SKILL.md\`. On 2026-10-31 the
+  documented command exited 0 and the installed file's SHA-256 matched
+  \`skills/jiahao/SKILL.md\` (Run A). A fresh session reported the skill visible
+  in #106's Run B, a separate run not re-probed here. The run record is
+  [qoder-desktop-install-2026-10-31.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md).
+- The international alias writes \`~/.qoder/skills/jiahao/SKILL.md\` according to
+  the skills CLI's host matrix; loading there was not live-probed here, so it
+  stays declared-unverified.
+- The install is plain text: no hook runs and nothing is enforced.
+
+Do not copy this directory's rule file into a Qoder Desktop rules path. On
+Qoder CN the config root is \`~/.qoder-cn\`; the \`~/.qoder\` tree belongs to the
+other Qoder product line, and the #106 check found \`~/.qoder/rules\` unloaded
+there. The international Desktop was not probed, so no rules path is offered
+for it.
+
+## Qoder IDE/CLI
+
+The IDE/CLI line reads project rules from \`.qoder/rules/\`
+(https://docs.qoder.com/zh/user-guide/rules). This directory is that exit:
+
+1. Copy \`rules/jiahao.md\` into \`.qoder/rules/\` in the project.
 2. Keep \`alwaysApply: true\` in the frontmatter. Qoder's rules documentation
    says rules without a \`paths\` or \`trigger\` selector load eagerly, and
-   \`alwaysApply: true\` is one of the always-on forms (declared-unverified
-   here; reference: https://docs.qoder.com/cli/memory).
+   \`alwaysApply: true\` is one of the always-on forms (reference:
+   https://docs.qoder.com/cli/memory; project-rules page:
+   https://docs.qoder.com/zh/user-guide/rules).
 3. Start a new Qoder session. The file is plain Markdown; no script runs and
    nothing needs installing.
+
+The project-level path is the one Qoder's rules documentation names; a
+user-level rules directory is not documented there and is not offered here.
 
 The rule body carries both profiles (generator and verifier), exactly like the
 rules version. The host takes what it needs; there is no \`.jiahao-profile\`
@@ -807,8 +848,15 @@ switch here because no hook reads that file.
 
 - Structural facts are pinned by tests: this directory contains only the rule
   file and this README, and no hook registration.
-- Not live-probed: no Qoder session was run for this exit. The loading behavior
-  in step 2 is quoted from Qoder's documentation, not observed here.
+- Run A (2026-10-31) verified the install: exit 0, the file at
+  \`~/.qoder-cn/skills/jiahao/SKILL.md\`, and a SHA-256 match with
+  \`skills/jiahao/SKILL.md\`. That is the Desktop path, not this directory. The
+  host version 0.4.11 and the fresh-session visibility are #106's Run B, a
+  separate run not re-probed here. The install wrote to the operator's real
+  \`~/.qoder-cn\` and overwrote an existing file with identical bytes, so no
+  isolated config directory was used.
+- Not live-probed: Qoder IDE/CLI rule loading. The behavior in the IDE/CLI
+  steps is quoted from Qoder's documentation, not observed here.
 - C tier is the probe list's open question, not a claim about what Qoder can do.
 
 ## What this exit does not do
@@ -816,13 +864,18 @@ switch here because no hook reads that file.
 - No hook registration, no subprocess, and no evidence file.
 - No enforcement: the file is instructions only. This exit registers nothing
   that acts on a turn or a tool call.
-- No installer: copy the file into Qoder's own rules directory.
+- No installer for the IDE/CLI path: copy the file into Qoder's own rules
+  directory. Qoder Desktop installs the rules version through the standard
+  skills CLI instead.
 
 ## Update
 
-Re-copy \`rules/jiahao.md\` after a release. The body is generated from
-\`src/SKILL.md\`; \`node scripts/build-adapters.js --check\` keeps the committed
-copy identical to the generator output.
+- Qoder Desktop: re-run the same \`npx skills add\` command, then open a new
+  session.
+- Qoder IDE/CLI: re-copy \`rules/jiahao.md\` after a release.
+
+The body is generated from \`src/SKILL.md\`; \`node scripts/build-adapters.js --check\`
+keeps the committed copy identical to the generator output.
 `;
 }
 

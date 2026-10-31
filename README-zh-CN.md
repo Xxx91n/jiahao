@@ -34,9 +34,17 @@ npx skills add Xxx91n/jiahao
 
 把 `skills/jiahao/SKILL.md` 装进读取标准 Agent Skills 目录的宿主。文件里两份纪律都在，宿主自行取用。没有钩子运行，因此不会拦截任何动作。6 个纯指令适配器目录（aider、cline、cursor、instruction-tier、opencode、windsurf）已退役；没有标准技能目录的宿主（例如 aider）在这个版本里没有打包适配器，但可以把生成的 `skills/jiahao/SKILL.md` 当普通文本复制过去。
 
-#### Qoder 规则出口（C 档，只有规则）
+#### Qoder：Desktop 与 IDE/CLI（C 档，只有规则）
 
-Qoder 是 C 档的规则出口，位于 [`adapters/qoder/`](adapters/qoder/)：规则文件与规则版同源，没有任何钩子。把 `rules/jiahao.md` 复制到 `.qoder/rules/`（项目级）或 `~/.qoder/rules/`（用户级）。这个出口只加载规则，没有强制；加载行为属于 declared-unverified，尚未真机验证，安装步骤与验证状态见该目录 README。
+Qoder 现在有两个产品，读的路径不同。**Qoder Desktop**（0.x 工作台）通过标准技能目录加载规则版；Qoder CN 上，#106 在 Desktop 0.4.11 上检查到用户级规则路径未被加载。请把规则版装进它的标准技能目录：
+
+```bash
+npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # Qoder CN → ~/.qoder-cn/skills/jiahao/SKILL.md
+```
+
+2026-10-31 的安装命令 exit 0，落地的 `SKILL.md` 与仓库里的 `skills/jiahao/SKILL.md` SHA-256 一致（Run A）。新开独立会话能看到该技能，这是 #106 另一次运行（Run B）的记录，本次未重跑（见[运行记录](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md)）。国际版别名是 `-a qoder`，其落地路径与加载本机尚未真机验证。两种都只加载规则，没有强制。
+
+**Qoder IDE/CLI** 读取项目级 `.qoder/rules/`。这正是 [`adapters/qoder/`](adapters/qoder/) 的用途：规则文件与规则版同源，没有任何钩子。把 `rules/jiahao.md` 复制到 `.qoder/rules/`；这条路径的宿主加载行为属于 declared-unverified，尚未真机验证。两条安装路径与验证状态见该目录 README。
 
 ### 插件版 —— 宿主原生命令，带钩子
 

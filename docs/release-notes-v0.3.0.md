@@ -17,7 +17,7 @@
 | CodeBuddy | A 档候选（脚本级已验证，宿主级未验） | 宿主版本 CodeBuddy Code CLI 2.151.0（`settings.json` 路径实测于 v0.2.0），**没有带日期的宿主级 Stop 拦截结果**；CLI 安装路径仍是 declared-unverified |
 | Codex CLI | A | 2026-10-30 实测，codex-cli 0.163.0 |
 | GitHub Copilot CLI | A | 2026-10-30 实测，Copilot CLI 1.0.105 |
-| Qoder | C | 只有规则，没有钩子；加载行为 declared-unverified |
+| Qoder | C | 只有规则，没有钩子；2026-10-31 重跑标准技能目录安装（Run A，exit 0，SHA 一致）；Qoder CN Desktop 0.4.11 的新会话可见性由 #106 的 Run B 记录，本窗口未重跑；Qoder IDE/CLI 规则加载仍 declared-unverified |
 | 规则版 | 不适用 | 只注入指令，任何宿主都没有强制 |
 
 **A 档的含义**：真实会话里 Agent 声称「做完并已验证」，宿主在回合结束前把它拦住一次，续跑后 `stop_hook_active` 为 `true` 时 gate 直接放行、不再检查 claim 与证据。也就是说拦截保证的是「不让你一句话收工」，不是「必须改口才放行」。证据形式、宿主版本、日期都落在 `docs/evidence/` 里。
@@ -69,7 +69,8 @@ Claude Code 与 CodeBuddy 在 v0.2.0 就带着钩子发布，本版本没有改�
 - Codex：`codex plugin marketplace upgrade jiahao` → `codex plugin add jiahao --marketplace jiahao`
 - Copilot：用宿主自己的插件命令重装目录
 - CodeBuddy：宿主自己的插件路径，或用新 bundle 重做 settings 合并
-- Qoder（C 档）：重新复制 `adapters/qoder/rules/jiahao.md`
+- Qoder Desktop（C 档）：重跑 `npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy`（国际版别名 `-a qoder`，未真机验证），再开新会话
+- Qoder IDE/CLI（C 档）：重新复制 `adapters/qoder/rules/jiahao.md` 到项目的 `.qoder/rules/`
 
 完整写入范围与门禁清单见 [`release.md`](release.md)。
 
@@ -132,16 +133,22 @@ Plugin "jiahao" uninstalled successfully.                        # exit 0
 
 **CodeBuddy**：CLI 安装路径本身 declared-unverified。卸载走宿主自己的插件命令，或恢复安装前的 `.codebuddy/settings.json` 备份；这一步本机没实测。
 
-**Qoder（C 档）— 实测**
+**Qoder（C 档）— 实测与 2026-10-31 更正**
+
+v0.3.0 最初写的安装路径是 `~/.qoder/rules/`。这条对 Qoder CN Desktop（0.4.11 已实测）无效：`~/.qoder` 属于另一条 Qoder 产品线，CN Desktop 不读其中的 `rules/`。国际版未实测，不适用此结论。正确路径是规则版的标准技能目录：
 
 ```bash
-cp adapters/qoder/rules/jiahao.md <project>/.qoder/rules/jiahao.md
-# exit 0，落地 10585 B
-rm <project>/.qoder/rules/jiahao.md
-# exit 0，目录清空，临时目录内 0 个文件残留
+npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy
+# exit 0 → ~/.qoder-cn/skills/jiahao/SKILL.md
+sha256sum ~/.qoder-cn/skills/jiahao/SKILL.md
+1ff7e45df7a0b5ec38e617b5f6be46627401a157213e48b7d5100c9a0ce61fc9   # == git show v0.3.0:skills/jiahao/SKILL.md
 ```
 
-这个出口没有安装命令，落地就是一个 Markdown 文件，所以「回滚」= 删掉 `.qoder/rules/jiahao.md`（项目级）或 `~/.qoder/rules/jiahao.md`（用户级）。它不写别的状态、不留缓存。注意：实测的是文件层面的复制与删除，**不是 Qoder 宿主的加载行为**——加载仍是 declared-unverified。
+2026-10-31 的安装重跑（本窗口，Run A）：文档里的命令 exit 0，落在 `~/.qoder-cn/skills/jiahao/SKILL.md`，SHA-256 与仓库文件一致。新开独立会话的只读复核由 #106 的另一次运行（Run B）记录（技能存在、description 含「No receipt, no claim」、位置为 `~/.qoder-cn/skills/jiahao`），本窗口没有重跑会话。完整运行记录见 [`qoder-desktop-install-2026-10-31.md`](evidence/v0.3.0/qoder-desktop-install-2026-10-31.md)。
+
+国际版 Qoder Desktop 的宿主名是 `qoder`，skills CLI 矩阵写入 `~/.qoder/skills/jiahao/SKILL.md`；本机没有对国际版做真机复核，落地与加载都按 declared-unverified 记。
+
+Qoder IDE/CLI（`rules` 文档在 `/user-guide/rules`）才读项目级 `.qoder/rules/`；`adapters/qoder/rules/jiahao.md` 保留给它们。「回滚」按两条路径分开：Desktop 删掉 `~/.qoder-cn/skills/jiahao/`（国际版 `~/.qoder/skills/jiahao/`）；IDE/CLI 删掉项目的 `.qoder/rules/jiahao.md`。它们不写别的状态、不留缓存。旧文档里的 `~/.qoder/rules/jiahao.md` 不再作为 Qoder CN Desktop 的有效路径（国际版未实测）；本机误装的那份已删除。
 
 **这些命令不会撤销的东西**：降级/卸载只动宿主目录里的插件文件，不碰 `<config>` 下的 `.jiahao-profile`、`.jiahao-active`，也不改证据链（只追加）。也就是说降级会改变「还会不会被拦」，不会改变「以前记下了什么」。
 
@@ -164,6 +171,8 @@ tree      adapters/copilot       8a5bfcb10f5ceb238bdac19b7e2262bd496b1338d1be87c
 tree      adapters/codex         96348f637483ce4ba017875245404d7763adb32647a0408669c698c96a3ab442
 tree      adapters/qoder         c03886a993b4405638963ad47db7846ca159e0f4d1dcb23ba364b60336487d7b
 ```
+
+上面 `adapters/qoder` 的 tree 哈希属于 tag `587e4394`。2026-10-31 的 #106 更正改了 `adapters/qoder/README.md`，所以从 `main` 重新打包不会得到同一行；tag 本身的记录不变。
 
 测试 455 项：454 passed / 1 skipped（Windows 上 inode 替换检测那条）。这些数字是 tag 提交 `587e4394` 上的 `main` 跑出来的；tag 的 CI job 会再跑一次同一命令。
 
