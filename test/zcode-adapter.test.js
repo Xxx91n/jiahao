@@ -64,9 +64,10 @@ describe('configuration template', () => {
   const ZCODE_EVENTS = ['SessionStart', 'UserPromptSubmit', 'Stop', 'PreToolUse'];
 
   test('registers the host\'s own event names, including the turn-end event', () => {
-    // The exact-set equality pins the seven-event subset: a copied
-    // PascalCase map with SubagentStart/SubagentStop/SessionEnd would fail
-    // here, and those are events the host does not support.
+    // The exact-set equality pins the host's four supported events out of its
+    // seven-event vocabulary: a copied PascalCase map with
+    // SubagentStart/SubagentStop/SessionEnd would fail here - events the
+    // host does not support (and silently drops, per the install probe).
     expect(Object.keys(cfg.hooks)).toEqual(ZCODE_EVENTS);
     const stop = cfg.hooks.Stop[0].hooks;
     expect(stop.length).toBe(1);
