@@ -20,7 +20,7 @@ const os = require('os');
 const path = require('path');
 
 const { buildAdapters } = require('../scripts/build-adapters');
-const { materializeBundle } = require('./helpers/generated-bundle');
+const { materializeBundle, assertAbsolutePluginRoot } = require('./helpers/generated-bundle');
 const { spawnHook, expectExit, parseJson, hostEnv } = require('./helpers/spawned-hook');
 
 const GENERATED_PREFIX = 'adapters/antigravity/';
@@ -30,6 +30,7 @@ let bundleDir;
 
 beforeAll(() => {
   bundleDir = materializeBundle(generated, GENERATED_PREFIX);
+  assertAbsolutePluginRoot(bundleDir);
 });
 
 afterAll(() => {
@@ -103,7 +104,7 @@ describe('Antigravity output envelope (spawned hook, temp config dir)', () => {
   test('the bundled Stop gate runs from the turn-end entry and blocks an empty chain (decision field, exit 0)', () => {
     const dir = mkConfigDir('verifier');
     const res = runBundled('jiahao-verdict-gate.js', {
-      configDir: dir, args: [PLATFORM], stdin: JSON.stringify({ executionNum: 0, session_id: 'probe' }),
+      configDir: dir, args: [PLATFORM], stdin: JSON.stringify({ executionNum: 0, conversationId: 'probe' }),
     });
     expectExit(res, 0);
     const out = parseJson(res);
@@ -114,9 +115,18 @@ describe('Antigravity output envelope (spawned hook, temp config dir)', () => {
   test('the bundled Stop gate allows turn completion when executionNum > 0 (stop_hook_active mapped from executionNum)', () => {
     const dir = mkConfigDir('verifier');
     const res = runBundled('jiahao-verdict-gate.js', {
-      configDir: dir, args: [PLATFORM], stdin: JSON.stringify({ executionNum: 1, session_id: 'probe' }),
+      configDir: dir, args: [PLATFORM], stdin: JSON.stringify({ executionNum: 1, conversationId: 'probe' }),
     });
     expectExit(res, 0);
     expect(res.stdout.trim()).toBe('');
   }, 20000);
+
+  test('conversationId normalizes to session_id for cross-session scoping', () => {
+    const { normalizePayload } = require('../hooks/jiahao-runtime');
+    const norm = normalizePayload({ conversationId: 'conv-xyz', executionNum: 0 });
+    expect(norm.session_id).toBe('conv-xyz');
+    expect(norm.stop_hook_active).toBe(false);
+    const normActive = normalizePayload({ conversationId: 'conv-xyz', executionNum: 1 });
+    expect(normActive.stop_hook_active).toBe(true);
+  });
 });

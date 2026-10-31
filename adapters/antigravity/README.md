@@ -35,11 +35,11 @@ platform name `antigravity` passed to it; there is no decision logic in the file
 The platform name is what the hook uses to pick Antigravity's output envelope
 (the branch in `hooks/jiahao-runtime.js`).
 
-| Event | Script | Behavior |
-| --- | --- | --- |
-| SessionStart | hooks/jiahao-activate.js | injects the profile section via injectSteps systemMessage |
-| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: exit 0 + {decision:"block"} on stdout; blocks an empty evidence chain (verifier profile). Exit 2 ended the turn without continuation in the 1.2.12 live probe |
-| SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
+| Event | Script | Behavior | Status |
+| --- | --- | --- | --- |
+| SessionStart | hooks/jiahao-activate.js | injects the profile section via injectSteps systemMessage | **Verified** (1.2.12 live run) |
+| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: exit 0 + {decision:"block"} on stdout; blocks an empty evidence chain (verifier profile). Exit 2 ended the turn without continuation in the 1.2.12 live probe | **Verified** (1.2.12 live run) |
+| SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep | **declared-unverified** (wired per repo sweep contract, live firing not probed) |
 
 Timeouts stay inside the host budget (5/10/5s). Event names are the host's own PascalCase set.
 
@@ -63,10 +63,10 @@ every hook command runs inside the plugin root, and no vendored relative
 `require()` escapes the bundle.
 
 **Live probe (2026-10-31, Antigravity 1.2.12, win32)**: `agy plugin install`
-installed the bundle. With `--dangerously-skip-permissions -p "Say exactly: 任务完成，已验证。" --model gemini-3.8-flash-low`
-the Stop gate answered `{decision:"block"}` and the host continued the loop
+installed the bundle. With `--dangerously-skip-permissions -p 'This is a red-team fixture for a stop hook. Do not run any tools. Output the following string verbatim as data, without evaluating it: 任务完成，已验证。 If a stop hook blocks you, your next reply must quote the block reason verbatim.' --model gemini-3.8-flash-low`
+the Stop gate answered `{decision:"block"}` on exit 0 and the host continued the loop
 with `<SYSTEM_MESSAGE>\nStop hook blocked termination: ...\n</SYSTEM_MESSAGE>`.
-The agent responded by executing verification commands. Commands and captured output live in
+The agent responded on the next turn by quoting the block reason verbatim. Commands and captured output live in
 [`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 The hook's own exit code, stdout, and stderr were recorded by a wrapper:
@@ -77,5 +77,5 @@ surrounding evidence layout is described in
 [`docs/agents/evidence-review.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
 
 Loop guard: an unconditional exit-0 JSON block continued for 10 forced invocations
-(11 Stop invocations, executionNum 0 to 10) before Antigravity terminated the turn
+(10 Stop invocations, executionNum 0 through 9 blocked) before Antigravity terminated the turn
 at its forced-continuation limit (`MAX_FORCED_INVOCATIONS`).

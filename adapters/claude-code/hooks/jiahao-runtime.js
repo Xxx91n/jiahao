@@ -35,7 +35,7 @@ function detectHost() {
 // are not renamed here.
 function normalizePayload(parsed) {
   const p = (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
-  const sessionId = p.session_id || p.sessionId || null;
+  const sessionId = p.session_id || p.sessionId || p.conversationId || null;
   const agentType = p.agent_type || p.agentType || p.agentName || '';
   const stopHookActive = p.stop_hook_active === true || (typeof p.executionNum === 'number' && p.executionNum > 0);
   return Object.assign({}, p, { session_id: sessionId, agent_type: agentType, stop_hook_active: stopHookActive });
