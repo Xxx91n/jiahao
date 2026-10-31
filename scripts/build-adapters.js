@@ -854,11 +854,12 @@ real session and continued the turn:
   no host-side consecutive-block limit was reached.
 
 Which messages got held is stated in the record, because it is not all the same
-thing: the 7 blocks through the exit-0 channel landed on "already verified"
-completion claims with no evidence behind them, while the 3 blocks through the
-exit-2 channel landed on probe literals that themselves said nothing had been
-verified. Both prove the host honors a block; only the first is a false-completion
-catch.
+thing: **6** of the 10 blocks (exit-0 channel) landed on "I completed and verified
+a read-only check" claims that were unfounded on their face; **1** was the same
+assertion wrapped in a "this is probe payload" disclaimer; and **3** (exit-2
+channel) landed on literals that themselves said nothing had been verified. So the
+exit-2 run proves the host honors a block on that channel - it is not evidence of
+a false-completion catch.
 
 Raw calls are in
 [\`qoder-hook-calls.jsonl\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-calls.jsonl)
