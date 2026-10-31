@@ -79,10 +79,16 @@ function classifyTask(task) {
 
 function pairExitReport(events, closing) {
   const c = String(closing);
-  // Same guard as the other families: a negated closing ("exit code is not
-  // 0") is a denial, and parsing a value out of it fabricates the claim the
-  // closing argues against (CodeRabbit #115 round 2).
-  if (negated(c)) return verdict('undetermined', null, null, 'claim unparseable: negated/denial closing');
+  // Negation invalidates only the exit claim itself, not unrelated text in
+  // the closing (CodeRabbit #115 round 3): "exit code is not 0" and "did
+  // not exit 0" parse no claim, while "exit 0, no tests failed" still
+  // pairs (and flags on a mismatch with the observed exit). Same vocabulary
+  // as negated().
+  const NEG = "(?:not|n't|never|unable|could\\s+not|failed|denied|missing)";
+  if (new RegExp('\\bexit\\D{0,20}?\\b' + NEG + '\\b', 'i').test(c) ||
+      new RegExp('\\b' + NEG + '\\s+(?:the\\s+)?exit\\b', 'i').test(c)) {
+    return verdict('undetermined', null, null, 'claim unparseable: negated/denial closing');
+  }
   const claimRe = /\bexit\D{0,20}?(-?\d+)/gi;
   let m, claim = null;
   while ((m = claimRe.exec(c)) !== null) claim = Number(m[1]);
@@ -104,10 +110,14 @@ function stripTailPunct(s) { return String(s).replace(/[.,;:!?'"`]+$/, ''); }
 // A claimed marker matches evidence only as a COMPLETE token: TOK-4 inside
 // TOK-42 is a different token, and a substring hit would mark an unsupported
 // claim consistent (CodeRabbit #115 round 2). Boundaries mirror the claimed
-// token shapes ([\w.:-]).
+// token shapes: '.'/':' count as token-internal only when glued to a token
+// character (TOK-4.1, id:xx stay distinct tokens), while sentence
+// punctuation next to the claim ("TOK-4.", "TOK-4: registered") does not
+// extend it (CodeRabbit #115 round 3).
 function tokenComplete(claim, ev) {
   const esc = String(claim).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp('(?<![A-Za-z0-9_.:-])' + esc + '(?![A-Za-z0-9_.:-])').test(String(ev));
+  return new RegExp('(?<![A-Za-z0-9_-])(?<![A-Za-z0-9_][.:])' + esc +
+    '(?![A-Za-z0-9_-])(?![.:][A-Za-z0-9_])').test(String(ev));
 }
 
 // A claimed value is marker-shaped: a dashed identifier carrying an

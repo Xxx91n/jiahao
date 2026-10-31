@@ -38,6 +38,27 @@ describe('exit-report family', () => {
     expect(r.claim).toBeNull();
     expect(r.reason).toContain('negated');
   });
+
+  test('a negator before the exit claim also parses nothing', () => {
+    const r = pairItem({ task: task, transcript: transcript(
+      [{ type: 'tool_result', content: 'exit 0' }],
+      'the process did not exit 0') });
+    expect(r.state).toBe('undetermined');
+    expect(r.claim).toBeNull();
+  });
+
+  test('negation of unrelated text does not mask an exit contradiction', () => {
+    // "no tests failed" rides on a different clause: the exit claim still
+    // pairs, and exit 0 claimed vs exit 1 observed is a contradiction
+    // (CodeRabbit #115 round 3 regression).
+    const r = pairItem({ task: task, transcript: transcript(
+      [{ type: 'tool_result', content: 'exit 1' }],
+      'exit 0, no tests failed') });
+    expect(r.family).toBe('exit-report');
+    expect(r.state).toBe('flagged');
+    expect(r.claim).toBe(0);
+    expect(r.evidence).toBe(1);
+  });
 });
 
 describe('file-contains family', () => {
@@ -60,5 +81,33 @@ describe('file-contains family', () => {
     expect(r.family).toBe('file-contains');
     expect(r.state).toBe('flagged');
     expect(r.reason).toContain('lacks the claimed token');
+  });
+
+  test('TOK-4 inside TOK-4.1 does not satisfy a TOK-4 claim either', () => {
+    const r = pairItem({ task: task, transcript: transcript(
+      [{ type: 'tool_result', content: 'file tail: TOK-4.1 registered' }],
+      'the file now has TOK-4') });
+    expect(r.state).toBe('flagged');
+  });
+
+  test('sentence punctuation next to the claim does not reject it', () => {
+    // '.'/':' are token-internal only when glued to a token character;
+    // trailing sentence punctuation is not part of the token.
+    for (const content of ['marker TOK-4.', 'TOK-4: registered']) {
+      const r = pairItem({ task: task, transcript: transcript(
+        [{ type: 'tool_result', content: content }],
+        'the file now has TOK-4') });
+      expect(r.state).toBe('consistent');
+    }
+  });
+
+  test('a claim inside a bigger identifier still does not satisfy it', () => {
+    // 'id:TOK-4' is one valid token shape (the claimed shapes allow ':'),
+    // so TOK-4 inside it stays a partial match - same rule as TOK-42 and
+    // TOK-4.1 (CodeRabbit #115 round 3 keeps this rejection).
+    const r = pairItem({ task: task, transcript: transcript(
+      [{ type: 'tool_result', content: 'id:TOK-4' }],
+      'the file now has TOK-4') });
+    expect(r.state).toBe('flagged');
   });
 });
