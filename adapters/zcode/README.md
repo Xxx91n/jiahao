@@ -36,12 +36,15 @@ resolves `plugin@marketplace` names - a direct directory install is refused
    unsupported events of a Claude-shaped map silently, 7 events down to
    `hooks: 4`).
 5. Activate the jiahao profile flag, same as every host. Resolve the config
-   directory once (`CLAUDE_CONFIG_DIR`, else `$HOME`, else `/tmp`):
-   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-/tmp}}"`, then
+   directory once (`CLAUDE_CONFIG_DIR`, else `$HOME`, else `/tmp`).
+   POSIX shell: `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-/tmp}}"`, then
    `echo full > "$CONFIG/.jiahao-active"` and
    `echo verifier > "$CONFIG/.jiahao-profile"` for the blocking profile
-   (`generator` for advisory-only). Start a new session after changing
-   `.jiahao-profile`.
+   (`generator` for advisory-only). PowerShell:
+   `$c = If ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } Else { $HOME }`,
+   then `Set-Content -NoNewline -Path "$c/.jiahao-active" -Value full` and
+   `Set-Content -NoNewline -Path "$c/.jiahao-profile" -Value verifier`.
+   Start a new session after changing `.jiahao-profile`.
 6. Restart or open a new session. Hook configuration — plugin or
    config-file — is read at session start; a map added mid-session did not
    fire until a restart (live probe, 2026-10-31).

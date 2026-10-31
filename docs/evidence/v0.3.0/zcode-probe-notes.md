@@ -41,8 +41,11 @@ changed mid-session.
 
 ## Payloads (UserPromptSubmit and Stop fires)
 
-`zcode-stop-fires.jsonl` holds every fire (five Stop fires, one
-UserPromptSubmit fire). Both events carry both spellings of every identity
+`zcode-stop-fires.jsonl` holds every fire - six Stop fires and three
+UserPromptSubmit fires by the time the probe concluded; the tail beyond the
+table below is the wrapper's own `json-once` pass-through logging of turns
+that ended after the blocking experiments were over. Both events carry both
+spellings of every identity
 field: `session_id`/`sessionId`, `hook_event_name`/`hookEventName`,
 `transcript_path`/`transcriptPath`, `stop_hook_active`/`stopHookActive`. The
 Stop payload also carries `responsePreview`/`responseText`,
@@ -92,8 +95,13 @@ The host blocked the turn and the reason arrived as the next turn's context
 `session_cdf996954ae464b500d704e9f60f7b1d` - the same session as the wrapper
 log). The continuation then ran the verification ladder
 (`build-adapters --check`, `check-drift`, `check-doc-links`,
-`check-whitespace`, four jest suites - 117 tests passing) and the following
-stop passed.
+`check-whitespace`, four jest suites - 117 tests passing). The stop that
+ended that turn was judged by the wrapper in `json-once` mode
+(pass-through) - the mode had been switched back before the turn ended, so
+the real gate was not consulted on it. A live `stop_hook_active` pass by the
+real gate was therefore not observed; that pass-through is pinned by the hook
+source (`hooks/jiahao-verdict-gate.js`) and the subprocess tests, not by a
+live run.
 
 ## Plugin install path (CLI-level, `zcode-install.txt`)
 

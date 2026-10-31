@@ -41,8 +41,9 @@ const PROTECTED_FRAGMENTS = [
 // Apparatus dirs under the resolved plugin root (absolute containment).
 // src/ is here because the bundle vendors the rule text and the runtime copies
 // the gate reads - rewriting either is the bypass the hook map alone cannot
-// stop (#71 item 2).
-const PROTECTED_DIRS = ['hooks', 'rules', 'src', '.claude-plugin'];
+// stop (#71 item 2). .zcode-plugin is ZCode's manifest directory (#108), the
+// same protection .claude-plugin gets for the other bundles.
+const PROTECTED_DIRS = ['hooks', 'rules', 'src', '.claude-plugin', '.zcode-plugin'];
 // Bundle-root files that are apparatus by position, not by name.
 const PROTECTED_ROOT_FILES = ['.mcp.json'];
 

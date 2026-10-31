@@ -85,8 +85,10 @@ v0.3.0 content. The ZCode artifacts (#108) ran on a tree reporting `0.3.0`
   profile, isolated config dir, empty chain) returned exit 0 +
   `{decision:"block", reason: "Verification has no evidence: ..."}` with empty
   stderr; the host blocked the turn and the reason arrived as the next turn's
-  context (fire #5). The continuation ran the verification ladder and the next
-  stop passed (`zcode-stop-fires.jsonl`, `realgate-result` entry).
+  context (fire #5). The continuation ran the verification ladder; the stop
+  that ended it was a wrapper pass-through (`json-once` mode), so a live
+  `stop_hook_active` pass by the real gate was not observed
+  (`zcode-stop-fires.jsonl`, `realgate-result` entry, `zcode-probe-notes.md`).
 - Payloads: both snake_case and camelCase spellings on every fire
   (`session_id`/`sessionId`, `hook_event_name`/`hookEventName`,
   `stop_hook_active`/`stopHookActive`, `transcript_path`/`transcriptPath`).
