@@ -53,9 +53,23 @@ Labels:
 The ticket records a fresh, independent Qoder CN Desktop 0.4.11 session with
 three read-only questions: the skill exists, its description contains
 "No receipt, no claim", and it lives under `~/.qoder-cn/skills/jiahao`. That
-observation is **verified in Run B**, a separate run; #106 does not carry a
+observation is **reported in Run B**, a separate run; #106 does not carry a
 session id and this window did not repeat it. The same check found that
 `~/.qoder/rules` was not loaded; that is the only rules path it tested.
+
+## Wrong-path cleanup
+
+On 2026-10-31, after the install run:
+
+```text
+$ ls -la ~/.qoder/rules
+ls: cannot access '/c/Users/Administrator/.qoder/rules': No such file or directory
+$ test -e ~/.qoder/rules/jiahao.md
+absent
+```
+
+**verified**: the previously reported wrong-path file and its directory are
+gone on this machine.
 
 ## International alias
 

@@ -809,8 +809,8 @@ npx skills add Xxx91n/jiahao -g -a qoder -y --copy      # international alias (n
 
 - Qoder CN lands \`~/.qoder-cn/skills/jiahao/SKILL.md\`. On 2026-10-31 the
   documented command exited 0 and the installed file's SHA-256 matched
-  \`skills/jiahao/SKILL.md\` (Run A). The fresh-session visibility is verified in
-  #106's Run B, a separate run not repeated here. The run record is
+  \`skills/jiahao/SKILL.md\` (Run A). A fresh session reported the skill visible
+  in #106's Run B, a separate run not re-probed here. The run record is
   [qoder-desktop-install-2026-10-31.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md).
 - The international alias writes \`~/.qoder/skills/jiahao/SKILL.md\` according to
   the skills CLI's host matrix; loading there was not live-probed here, so it
@@ -819,7 +819,9 @@ npx skills add Xxx91n/jiahao -g -a qoder -y --copy      # international alias (n
 
 Do not copy this directory's rule file into a Qoder Desktop rules path. On
 Qoder CN the config root is \`~/.qoder-cn\`; the \`~/.qoder\` tree belongs to the
-other Qoder product line, and Desktop does not read its \`rules/\` directory.
+other Qoder product line, and the #106 check found \`~/.qoder/rules\` unloaded
+there. The international Desktop was not probed, so no rules path is offered
+for it.
 
 ## Qoder IDE/CLI
 
@@ -829,7 +831,9 @@ The IDE/CLI line reads project rules from \`.qoder/rules/\`
 1. Copy \`rules/jiahao.md\` into \`.qoder/rules/\` in the project.
 2. Keep \`alwaysApply: true\` in the frontmatter. Qoder's rules documentation
    says rules without a \`paths\` or \`trigger\` selector load eagerly, and
-   \`alwaysApply: true\` is one of the always-on forms.
+   \`alwaysApply: true\` is one of the always-on forms (reference:
+   https://docs.qoder.com/cli/memory; project-rules page:
+   https://docs.qoder.com/zh/user-guide/rules).
 3. Start a new Qoder session. The file is plain Markdown; no script runs and
    nothing needs installing.
 
@@ -847,8 +851,8 @@ switch here because no hook reads that file.
 - Run A (2026-10-31) verified the install: exit 0, the file at
   \`~/.qoder-cn/skills/jiahao/SKILL.md\`, and a SHA-256 match with
   \`skills/jiahao/SKILL.md\`. That is the Desktop path, not this directory. The
-  host version 0.4.11 and the fresh-session visibility come from #106's Run B,
-  a separate run not repeated here. The install wrote to the operator's real
+  host version 0.4.11 and the fresh-session visibility are #106's Run B, a
+  separate run not re-probed here. The install wrote to the operator's real
   \`~/.qoder-cn\` and overwrote an existing file with identical bytes, so no
   isolated config directory was used.
 - Not live-probed: Qoder IDE/CLI rule loading. The behavior in the IDE/CLI

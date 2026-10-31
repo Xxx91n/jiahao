@@ -177,7 +177,7 @@ describe('Qoder rules-only exit (#79)', () => {
     expect(runA).toContain('# exit 0');
     expect(runA).toContain('1ff7e45df7a0b5ec38e617b5f6be46627401a157213e48b7d5100c9a0ce61fc9');
     expect(runB).toContain('0.4.11');
-    expect(runB).toMatch(/verified in Run B/i);
+    expect(runB).toMatch(/reported in Run B/i);
   });
 
   test('both READMEs point Desktop at the standard skill directory and stop offering the IDE rules path', () => {
