@@ -2,12 +2,15 @@
 // scripts/hosts/qoder.js - the one file where Qoder Desktop's config dialect
 // lives.
 //
-// Qoder Desktop (the 0.x workbench, CN and international) reads a plugin
-// manifest at `.qoder-plugin/plugin.json` and auto-discovers `hooks/hooks.json`
-// beside it - the host's own bundled `qoder-context` plugin is shaped exactly
-// that way and its hooks were watched firing in a live session. The manifest
-// therefore does NOT name the hook map; naming an auto-discovered file is the
-// row's `autoDiscovered` list, not a manifest key.
+// The shape below is copied from the host's own bundled plugin: Qoder CN Desktop
+// 0.4.11 ships `qoder-context` as `.qoder-plugin/plugin.json` plus an
+// auto-discovered `hooks/hooks.json`, and that plugin's hooks were watched
+// firing in a live session. The manifest therefore does NOT name the hook map;
+// naming an auto-discovered file is the row's `autoDiscovered` list, not a
+// manifest key. Two halves stay unwatched and are listed as declared-unverified
+// in the adapter README: whether a `Stop` hook arriving through the *plugin*
+// path blocks a turn (the #109 block came through the settings path), and
+// whether the international build registers hooks from the same root at all.
 //
 // Event vocabulary and the block channel are the host's own contract, observed
 // on Qoder CN Desktop 0.4.11 (#109, 2026-10-31): the payload is snake_case
@@ -25,9 +28,11 @@
 const HOOK_MAP_PATH = 'hooks/hooks.json';
 const PLATFORM = 'qoder';
 
-// The host expands ${QODER_PLUGIN_ROOT} in a hook command (its own bundled
-// plugin uses that spelling). The platform name after the script is part of the
-// contract the structure test and the release gate both read.
+// The host's own bundled plugin spells its command root as this placeholder
+// (quoted in docs/evidence/v0.3.0/qoder-runtime-hook-schema.txt), which proves
+// the name the host uses - not that a shell-form `node "..."` command resolves
+// it, since the probe ran exec form. The platform name after the script is part
+// of the contract the structure test and the release gate both read.
 const COMMAND_PATTERNS = {
   command: /^node "\$\{QODER_PLUGIN_ROOT\}\/(hooks\/[a-z0-9-]+\.js)" qoder$/,
 };

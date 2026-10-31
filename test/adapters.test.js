@@ -244,7 +244,7 @@ describe('Qoder Desktop exit (#79 rules file, #109 turn-end gate)', () => {
     expect(blocksBy('97d52e4d')).toBe(1);   // exit 0 + flat decision
     expect(blocksBy('53e7f9c2')).toBe(6);   // same channel, capped at 6
     expect(blocksBy('2f2199e1')).toBe(3);   // exit 2 + stderr
-    expect(calls.length).toBe(14);
+    expect(calls.length).toBe(15);   // 14 from the three runs + the env-only call
     // The re-entry flag the gate relies on, counted where it was recorded.
     expect(calls.filter((c) => c.payload.stop_hook_active).length).toBe(10);
     // The host fed every block back into the conversation: same counts.

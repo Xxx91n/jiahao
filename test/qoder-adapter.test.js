@@ -3,15 +3,19 @@
 // when the host runs it.
 //
 // test/plugin-bundles.test.js covers the structural contract for every row of
-// the host table. This file pins the Qoder-specific facts the live probe
-// established, so a regeneration cannot quietly change the surface the probe
-// measured:
-//   1. the hook map registers the events #109 exercised, plus SessionEnd for the
-//      sweep the sentinel-reclamation invariant requires, and every command
-//      passes the platform name `qoder` (the host gives a hook subprocess no
-//      QODER_SESSION_ID, so an argv-less command would answer with the Claude
-//      envelope instead);
-//   2. the injection events answer with the hookSpecificOutput envelope;
+// the host table. This file pins the Qoder-specific shape the live probe left
+// behind, so a regeneration cannot quietly change it:
+//   1. the hook map registers `Stop` (the event #109 watched block and continue a
+//      real turn), `SessionStart` and `UserPromptSubmit` (both watched firing on
+//      this host, but only as the host's own bundled plugin's hooks - never as
+//      this bundle's), plus `SessionEnd` for the sweep the sentinel-reclamation
+//      invariant requires (never observed on this host). Every command passes the
+//      platform name `qoder`, because the hook subprocess gets no
+//      QODER_SESSION_ID and an argv-less command would answer with the Claude
+//      envelope instead;
+//   2. the injection events answer with the hookSpecificOutput envelope - the
+//      shape the host's schema asks for, asserted by spawning our script, not by
+//      watching this host deliver it;
 //   3. the turn-end entry blocks with the decision field AND exit 2, which is
 //      the channel the host was watched honoring on Qoder CN Desktop 0.4.11.
 //
@@ -57,12 +61,13 @@ function runBundled(script, opts) {
 describe('hook map', () => {
   const cfg = JSON.parse(generated[GENERATED_PREFIX + 'hooks/hooks.json']);
   // Written down from the #109 probe rather than read back from the row that
-  // generated the file: the three events the probe measured, plus SessionEnd for
-  // the sweep that reclaims sentinels. PreToolUse and SubagentStop blocking were
-  // never exercised on this host.
+  // generated the file: `Stop` is the event that was watched blocking, the two
+  // injection events were watched firing (as the host's own plugin's hooks), and
+  // `SessionEnd` is wired for the sweep. PreToolUse and SubagentStop blocking
+  // were never exercised on this host, so they stay out.
   const QODER_EVENTS = ['SessionStart', 'UserPromptSubmit', 'Stop', 'SessionEnd'];
 
-  test('registers the probed events, the sweep, and nothing else', () => {
+  test('registers the block-verified Stop, the two injection events, and the sweep', () => {
     expect(Object.keys(cfg.hooks).sort()).toEqual(QODER_EVENTS.slice().sort());
     expect(cfg.hooks).not.toHaveProperty('PreToolUse');
     expect(cfg.hooks).not.toHaveProperty('SubagentStop');

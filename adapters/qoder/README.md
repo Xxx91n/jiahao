@@ -78,8 +78,22 @@ and the run record is
   that placeholder, but the probe ran exec-form hooks (`command` + `args`), so
   this exact spelling has not been watched resolving.
 - **Whether a hook subprocess gets `QODER_SESSION_ID`.** It does not: the probe
-  saw only `QODER_PROJECT_DIR` and `QODER_CONFIG_DIR`. That is why the hook map
-  passes the platform name `qoder` on the command line.
+  saw `QODER_PROJECT_DIR`, `QODER_CONFIG_DIR`, `USERPROFILE`, `TEMP` and `TMP`.
+  That is why the hook map passes the platform name `qoder` on the command line.
+- **Where jiahao's own state lands on this host - measured, and broken.** The
+  hook subprocess gets neither `CLAUDE_CONFIG_DIR` nor `HOME`, and
+  `src/shared/paths.js` resolves its config directory as
+  `CLAUDE_CONFIG_DIR || HOME || '/tmp'`, so a hook spawned by Qoder reads and
+  writes `.jiahao-profile` and `.jiahao-evidence` under `<drive>:\tmp` instead of
+  the `QODER_CONFIG_DIR` (`~/.qoder-cn`) the host does name. The turn-end block
+  above is unaffected - it was measured through the hook's own stdout/stderr -
+  but the shipped gate's profile read and evidence chain are. Repairing that is a
+  shared-path change that reaches every host, so it is not made inside this exit;
+  until it is, treat the plugin's state location on Qoder as wrong, not untested.
+- **Which root registers hooks is only known for the CN build.** Project-scope
+  `.qoder/settings.json` fired and a `.qoder-cn/settings.json` placed beside it
+  did not; the international build's root was never tested, so one dialect row
+  cannot speak for it.
 - **`PreToolUse` and `SubagentStop`.** Not wired here; neither was exercised on
   this host.
 

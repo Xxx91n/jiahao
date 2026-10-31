@@ -43,10 +43,13 @@ const CAP = Number.parseInt(
 
 // Env the host is expected to hand a hook subprocess; recording which of these
 // exist is what tells us whether hooks/jiahao-runtime.js's QODER_SESSION_ID
-// detection is true on this host.
+// detection is true on this host, and where src/shared/paths.js resolves
+// configDir() (CLAUDE_CONFIG_DIR, else HOME, else /tmp) for a hook this host
+// spawns.
 const ENV_PROBE = [
   'QODER_SESSION_ID', 'QODER_PROJECT_DIR', 'QODER_CONFIG_DIR',
   'QODER_USER_CONFIG_DIR', 'QODER_PLUGIN_ROOT', 'QODER_PLUGIN_DATA',
+  'CLAUDE_CONFIG_DIR', 'HOME', 'USERPROFILE', 'TMPDIR', 'TEMP', 'TMP',
 ];
 
 function appendLine(obj) {

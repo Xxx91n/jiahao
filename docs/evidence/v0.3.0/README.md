@@ -1,4 +1,4 @@
-# v0.3.0 real-machine acceptance (#80)
+# v0.3.0 real-machine acceptance (#80, #109)
 
 Date: 2026-10-30. Host: Windows 10.0.26100 (win32 x64). `node
 scripts/build-adapters.js` was run locally to produce the committed bundles;
@@ -70,11 +70,20 @@ v0.3.0 content.
 ## Reproduction
 
 The throwaway probe hooks and the instrumented wrapper are in `probes/`; each
-file's header states the hook config and the expected observation. Every
+file's header states the hook config and the expected observation. Every **#80**
 session above ran with an isolated `CODEX_HOME` / `COPILOT_HOME` and a separate
-`CLAUDE_CONFIG_DIR`, so no user-wide profile or plugin state was involved.
+`CLAUDE_CONFIG_DIR`, so no user-wide profile or plugin state was involved. The
+**#109** Qoder runs are the exception and say so: a Desktop session is spawned by
+the app, so there is no isolated config home to point it at, and the probe armed a
+project-scope `.qoder/settings.json` in the operator's live checkout with every
+block gated on a marker string. Both files were deleted afterwards. See
+`qoder-hook-probe-2026-10-31.md`, which records the isolation state per run.
 
 ## Tier conclusion
 
-Both hosts are **A tier** with a live turn-end block on the recorded version
-and date. Qoder remains C tier (rules only); this probe did not change it.
+The two #80 hosts are **A tier** with a live turn-end block on the recorded
+version and date. #109 later answered Qoder's open probe item: **Qoder CN Desktop
+0.4.11 is A tier** (a `Stop` hook blocked and continued a real turn, twice), which
+supersedes this file's earlier line that Qoder remained C tier and did not change
+it. The international Qoder Desktop 0.4.11 was never watched blocking and stays
+C, and Qoder IDE/CLI keeps the rules-only exit.

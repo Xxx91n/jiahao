@@ -43,7 +43,9 @@ output. Facts read from disk, not from documentation:
   source `project`
   ([`qoder-runlog-probe-hooks.txt`](qoder-runlog-probe-hooks.txt)).
 - `~/.qoder-cn/skills/` and `.qoder/rules/` are not hook surfaces and are not
-  claimed as one. #106 stands: Desktop loads the rules version's skill directory.
+  claimed as one. #106's own record stands as it was written there (Run A install
+  + SHA, Run B visibility reported separately): Desktop loads the rules version's
+  skill directory. This probe added nothing about that path.
 
 ## Version reconciliation, said out loud
 
@@ -85,6 +87,39 @@ cannot identify this host, and the hook map has to pass the platform name as
 argv. That is why the generated `hooks/hooks.json` ends every command with
 `qoder`.
 
+### What that leaves the shipped gate unable to find (measured, 2026-10-31)
+
+A second observe-only call (line 15 of `qoder-hook-calls.jsonl`, session
+`665569f3-6e48-5838-a916-b93fe8403ed3`) recorded the whole env set the host
+passes:
+
+```text
+env_present: QODER_PROJECT_DIR, QODER_CONFIG_DIR, USERPROFILE, TEMP, TMP
+QODER_CONFIG_DIR = C:\Users\Administrator\.qoder-cn
+USERPROFILE      = C:\Users\Administrator
+```
+
+`CLAUDE_CONFIG_DIR` and `HOME` are **absent**. `src/shared/paths.js` resolves
+every jiahao state file as `CLAUDE_CONFIG_DIR || HOME || '/tmp'`, so a hook this
+host spawns lands on `D:\tmp\.jiahao-evidence` (node resolves a bare `/tmp`
+against the current drive on Windows) instead of `~/.qoder-cn` — the directory
+the host itself names in `QODER_CONFIG_DIR`. Consequences, stated as what they
+are and not as what was measured:
+
+- the tier claim is untouched: a `Stop` hook can block and continue a turn on
+  this host, and that is what was watched, twice;
+- the **bundle** would keep its evidence chain and its `.jiahao-profile` read in
+  that temp location, so the profile an operator writes elsewhere is invisible to
+  the gate, and two different checkouts on two drives would get two different
+  `D:\tmp` / `C:\tmp` buckets;
+- this is jiahao's own path resolution, not a Qoder limitation: the host supplies
+  `QODER_CONFIG_DIR` and `USERPROFILE`, and `paths.js` looks at neither.
+
+Fixing `configDir()` is a shared-path change that reaches every host, so it is
+**not** folded into #109 without the owner's decision; see the PR discussion. Until
+it lands, the Qoder plugin exit is A-tier on the channel and known-broken on the
+state location, and the adapter README says so.
+
 ## Blocking channel — both Claude-shaped channels work
 
 Three runs, one per channel question. The hook blocked only when the turn's
@@ -96,11 +131,14 @@ Three runs, one per channel question. The hook blocked only when the turn's
 | 2 | `53e7f9c2` | same channel, cap 6 | 7 | 6 | `exit_code=0` | yes, 6 times |
 | 3 | `2f2199e1` | exit 2 + reason on stderr | 5 | 3 | `exit_code=2` (`success=false`) | yes, 3 times |
 
-Counts agree across three artifacts: 14 calls in `qoder-hook-calls.jsonl`
-(2 + 7 + 5), 14 `hook.finished` lines in `qoder-runlog-probe-hooks.txt`, and
-**10** injected block-feedback records in
+Counts agree across three artifacts: the three runs make up **14** calls in
+`qoder-hook-calls.jsonl` (2 + 7 + 5), 14 `hook.finished` lines in
+`qoder-runlog-probe-hooks.txt`, and **10** injected block-feedback records in
 [`qoder-transcript-block-lines.jsonl`](qoder-transcript-block-lines.jsonl)
-(1 + 6 + 3 — the 4 non-blocked calls injected nothing).
+(1 + 6 + 3 — the 4 non-blocked calls injected nothing). The file now carries a
+15th line: the later observe-only env call (`665569f3`, `action: "pass"`, no
+marker, nothing injected), which is why its total is 15 and the cross-checked
+total above is 14.
 
 The host's feedback channel is the transcript: each block appended a `user` line
 with `"isMeta":true` whose content is the hook's reason, e.g.
