@@ -12,6 +12,7 @@ const { splitByProfile, validateGsrHeaders } = require('../hooks/jiahao-profile'
 const { listTrackedPaths } = require('../src/shared/tracked-surface');
 const copilotDialect = require('./hosts/copilot');
 const codexDialect = require('./hosts/codex');
+const qoderDialect = require('./hosts/qoder');
 const { PLATFORMS } = require('../hooks/jiahao-runtime');
 
 const root = path.join(__dirname, '..');
@@ -207,22 +208,37 @@ const HOSTS = [
     name: 'qoder',
     label: 'Qoder',
     dir: 'adapters/qoder',
-    tier: 'C',
-    turnEnd: null,
-    // This rules-only row is the IDE/CLI exit: Qoder IDE/CLI reads project
-    // `.qoder/rules/`. Qoder Desktop (the 0.x workbench, including Qoder CN)
-    // does not load it; Desktop installs the rules version's standard skill
-    // directory instead (#106). That Desktop check is recorded in the adapter
-    // README and the evidence file; it is not this row's tier evidence. Spec
-    // #74's probe list still owns Qoder's turn-end question, and this exit
-    // registers no hook that could be mistaken for enforcement.
-    provenance: 'Qoder IDE/CLI (host build not recorded; spec #74 probe list): project .qoder/rules loading unprobed; turn-end behavior unprobed; C tier (rules only) is the spec-assigned ceiling',
-    // A manifest-less row IS the rules-only exit: no plugin manifest, no
-    // vendored scripts, no src/ copy. The one rule file carries the same body
-    // as the rules version; see qoderReadme for both install surfaces.
-    hooks: {},
-    manifest: null,
-    autoDiscovered: [],
+    tier: 'A',
+    turnEnd: 'Stop',
+    // #109 live probe (2026-10-31, Qoder CN Desktop 0.4.11 on win32): a Stop hook
+    // registered from the project's `.qoder/settings.json` fired in a real turn
+    // and continued it on BOTH channels - exit 0 with a flat
+    // {"decision":"block"} on stdout, and exit 2 with the reason on stderr. The
+    // host set stop_hook_active on every re-entry and honored 6 consecutive
+    // blocks; the probe's own cap ended that run, so no host-side cap was
+    // reached. Two claims stay open: the international Desktop 0.4.11 shares this
+    // worker runtime (1.1.75-hotfix.1, same commit) but was never watched
+    // blocking, and the plugin registration surface here is read from the host's
+    // own bundled `qoder-context` plugin, not watched firing in a turn. The
+    // IDE/CLI line keeps the rules exit below.
+    provenance: 'Qoder CN Desktop 0.4.11 (2026-10-31, #109): live Stop block observed twice - exit 0 + {decision:"block"} and exit 2 + stderr - with stop_hook_active on re-entry and 6 consecutive continuations before the probe capped it; international Desktop 0.4.11 and Qoder IDE/CLI turn-end behavior unprobed, plugin-scope registration inferred from the host\'s own bundled plugin',
+    // PascalCase events and the Claude-shaped payload are this host's dialect;
+    // they live in scripts/hosts/qoder.js alone. SessionEnd and PreToolUse are
+    // deliberately not wired: the sweep's timeout budget and the PreToolUse deny
+    // channel were never exercised on this host (#109), and SubagentStop blocking
+    // is a separate unprobed surface.
+    dialect: qoderDialect,
+    hooks: {
+      SessionStart: { script: 'jiahao-activate', timeout: 5 },
+      UserPromptSubmit: { script: 'jiahao-mode-tracker', timeout: 5 },
+      Stop: { script: 'jiahao-verdict-gate', timeout: 10 },
+    },
+    manifest: {
+      description: 'Verification discipline for Qoder Desktop: profile injection at session start, verdict gate at turn end (A tier on Qoder CN Desktop 0.4.11, live block 2026-10-31). Self-contained plugin.',
+    },
+    // The host loads `hooks/hooks.json` by itself, the way it loads its own
+    // bundled plugin's map; naming it in the manifest would load it twice.
+    autoDiscovered: ['hooks/hooks.json'],
     mcp: null,
     rules: [
       { file: 'jiahao.md', profile: 'both', description: 'Jiahao anti-false-completion discipline (rules only)' },
@@ -772,35 +788,86 @@ deviations ride errata records).
 }
 
 
-// Qoder install manual. This directory is the C-tier IDE/CLI exit: the file is
-// context, not a gate. Qoder Desktop (0.x workbench, incl. Qoder CN) reads the
-// rules version's standard skill directory instead (#106); the two scopes are
-// kept apart here so the rules path is not offered as a Desktop recipe again.
-// The wording stays inside what was observed, and the test suite pins both the
-// absence of hook registration and the absence of a blocking claim.
+// Qoder install manual. One directory, three surfaces with three different
+// claims: the Desktop plugin bundle (A tier on the single build that was watched
+// blocking a turn end), the rules version's standard skill directory (#106, text
+// only), and the IDE/CLI rule file (text only). The wording keeps the surfaces
+// apart so neither the skill directory nor `.qoder/rules/` reads as a hook, and
+// so the blocking claim names the build it was observed on.
 function qoderReadme() {
-  return `# Qoder Adapter (C tier: rules only)
+  return `# Qoder Adapter (self-contained plugin; A tier on Qoder CN Desktop)
 
-This directory is the **rules-only exit for Qoder IDE/CLI**. It carries one
-rule file generated from \`src/SKILL.md\`, the same source as the rules version
-(\`skills/jiahao/SKILL.md\`). It registers **no hooks**: there is no
-\`hooks/hooks.json\`, no hook script, and no plugin manifest.
-
-Qoder Desktop (the 0.x workbench) installs the standard skill directory from
-the rules version, not this directory. The #106 check on Qoder CN Desktop
-0.4.11 found \`~/.qoder/rules\` was not loaded; the international build was not
-probed. See "Qoder Desktop" below.
+This directory is a **self-contained Qoder Desktop plugin**: the manifest
+(\`.qoder-plugin/plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook
+scripts and their \`require()\` closure, \`src/SKILL.md\`, and the identity pin
+the gate loads are vendored inside; nothing reads from the repository root and
+there is no third-party runtime dependency. It also carries \`rules/jiahao.md\`,
+which is the **Qoder IDE/CLI** rule file and is not part of the plugin.
 
 ## Capability tier
 
-C tier: rules only. Qoder's turn-end hook behavior is still on the probe list
-(spec #74). No Qoder hook was run for this exit; C tier is the spec-assigned
-ceiling, not an observed result. A probe that answers the turn-end question is
-a separate ticket.
+| Surface | Tier | Basis |
+|---|---|---|
+| Qoder CN Desktop 0.4.11 | A | turn-end block watched in a live session on 2026-10-31 (#109) |
+| Qoder international Desktop 0.4.11 | not rated | same worker runtime, never watched blocking |
+| Qoder IDE/CLI | C | rules text only; no hook was run for this exit |
 
-## Qoder Desktop (0.x workbench, including Qoder CN)
+A tier means the host can be stopped before a turn ends. The claim is stated only
+for the build that was measured; the international Desktop and the IDE/CLI line
+are not covered by it.
 
-Install the rules version into the host's standard skills directory:
+## What was observed on Qoder CN Desktop 0.4.11 (#109, 2026-10-31)
+
+A \`Stop\` hook registered in the project's \`.qoder/settings.json\` fired in a
+real session and continued the turn:
+
+- exit 0 with a flat \`{"decision":"block","reason":"..."}\` on stdout: the host
+  injected the reason as a meta user message and the model ran another turn;
+- exit 2 with the reason on stderr: same outcome;
+- the payload is Claude-shaped (\`session_id\`, \`cwd\`, \`transcript_path\`,
+  \`hook_event_name\`, \`last_assistant_message\`) and the host sets
+  \`stop_hook_active: true\` on every re-entry;
+- 6 consecutive blocks were honored before the probe's own cap ended the run, so
+  no host-side consecutive-block limit was reached.
+
+Raw calls are in
+[\`qoder-hook-calls.jsonl\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-calls.jsonl)
+and the run record is
+[\`qoder-hook-probe-2026-10-31.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md).
+
+## Declared-unverified on this host
+
+- **The plugin registration surface.** This bundle is shaped like the host's own
+  bundled \`qoder-context\` plugin (\`.qoder-plugin/plugin.json\` plus an
+  auto-discovered \`hooks/hooks.json\`), and that plugin's \`SessionStart\` and
+  \`UserPromptSubmit\` hooks were watched firing. A \`Stop\` hook arriving through
+  the *plugin* path has not been watched blocking a turn: the live block above
+  came through the settings path. Installing this directory as a plugin is
+  expected to work, not proven to work.
+- **\`\${QODER_PLUGIN_ROOT}\` in a shell-form command.** The host's own plugin uses
+  that placeholder, but the probe ran exec-form hooks (\`command\` + \`args\`), so
+  this exact spelling has not been watched resolving.
+- **Whether a hook subprocess gets \`QODER_SESSION_ID\`.** It does not: the probe
+  saw only \`QODER_PROJECT_DIR\` and \`QODER_CONFIG_DIR\`. That is why the hook map
+  passes the platform name \`qoder\` on the command line.
+- **\`SessionEnd\`, \`PreToolUse\` and \`SubagentStop\`.** Not wired here; none was
+  exercised on this host.
+
+## Qoder Desktop - plugin (enforcement)
+
+Qoder Desktop installs a plugin from a local archive at user scope: package this
+directory into a \`.zip\` whose root holds \`.qoder-plugin/\`, and install it from
+the Desktop app's plugin settings. Then start a new session: hook configuration
+is read at session start, and a session already open does not pick it up.
+
+What the bundle does once loaded: \`SessionStart\` injects the active profile,
+\`UserPromptSubmit\` tracks the mode, and \`Stop\` runs the verdict gate, which can
+hold a turn open until a completion claim carries a receipt.
+
+## Qoder Desktop - rules version (no enforcement)
+
+For instructions only, with no hook, install the rules version's standard skill
+directory:
 
 \`\`\`bash
 npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # Qoder CN
@@ -815,7 +882,7 @@ npx skills add Xxx91n/jiahao -g -a qoder -y --copy      # international alias (n
 - The international alias writes \`~/.qoder/skills/jiahao/SKILL.md\` according to
   the skills CLI's host matrix; loading there was not live-probed here, so it
   stays declared-unverified.
-- The install is plain text: no hook runs and nothing is enforced.
+- This path is plain text: no hook runs and nothing is enforced by it.
 
 Do not copy this directory's rule file into a Qoder Desktop rules path. On
 Qoder CN the config root is \`~/.qoder-cn\`; the \`~/.qoder\` tree belongs to the
@@ -826,7 +893,7 @@ for it.
 ## Qoder IDE/CLI
 
 The IDE/CLI line reads project rules from \`.qoder/rules/\`
-(https://docs.qoder.com/zh/user-guide/rules). This directory is that exit:
+(https://docs.qoder.com/zh/user-guide/rules). \`rules/jiahao.md\` is that exit:
 
 1. Copy \`rules/jiahao.md\` into \`.qoder/rules/\` in the project.
 2. Keep \`alwaysApply: true\` in the frontmatter. Qoder's rules documentation
@@ -837,41 +904,44 @@ The IDE/CLI line reads project rules from \`.qoder/rules/\`
 3. Start a new Qoder session. The file is plain Markdown; no script runs and
    nothing needs installing.
 
-The project-level path is the one Qoder's rules documentation names; a
+The rule file registers nothing: it is not a hook and it is not the Desktop
+plugin. The project-level path is the one Qoder's rules documentation names; a
 user-level rules directory is not documented there and is not offered here.
 
 The rule body carries both profiles (generator and verifier), exactly like the
-rules version. The host takes what it needs; there is no \`.jiahao-profile\`
-switch here because no hook reads that file.
+rules version.
 
 ## Verification status
 
-- Structural facts are pinned by tests: this directory contains only the rule
-  file and this README, and no hook registration.
-- Run A (2026-10-31) verified the install: exit 0, the file at
-  \`~/.qoder-cn/skills/jiahao/SKILL.md\`, and a SHA-256 match with
-  \`skills/jiahao/SKILL.md\`. That is the Desktop path, not this directory. The
-  host version 0.4.11 and the fresh-session visibility are #106's Run B, a
-  separate run not re-probed here. The install wrote to the operator's real
-  \`~/.qoder-cn\` and overwrote an existing file with identical bytes, so no
-  isolated config directory was used.
-- Not live-probed: Qoder IDE/CLI rule loading. The behavior in the IDE/CLI
-  steps is quoted from Qoder's documentation, not observed here.
-- C tier is the probe list's open question, not a claim about what Qoder can do.
+- Structural facts are pinned by tests: the bundle is self-contained, the
+  manifest and hook map come from this row, and \`Stop\` runs the verdict gate.
+- The turn-end block is a live observation on Qoder CN Desktop 0.4.11 through a
+  project-scope \`.qoder/settings.json\` hook (#109). The probe ran against the
+  operator's real checkout rather than an isolated config home; every block was
+  gated on a marker string so no other session could be affected, and the hook's
+  own cap bounded the loop.
+- The script that recorded those calls is
+  [\`probes/qoder-stop-probe.js\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/qoder-stop-probe.js),
+  and the checklist the run is reviewed against is
+  [\`docs/agents/evidence-review.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
+- Not live-probed: this directory installed as a Desktop plugin, the international
+  Desktop build, and Qoder IDE/CLI rule loading. The IDE/CLI steps are quoted from
+  Qoder's documentation, not observed here.
 
 ## What this exit does not do
 
-- No hook registration, no subprocess, and no evidence file.
-- No enforcement: the file is instructions only. This exit registers nothing
-  that acts on a turn or a tool call.
-- No installer for the IDE/CLI path: copy the file into Qoder's own rules
-  directory. Qoder Desktop installs the rules version through the standard
-  skills CLI instead.
+- No installer command: the Desktop app installs the plugin from a local archive
+  through its own settings, and the IDE/CLI path is a file copy.
+- No claim about the international Desktop or the IDE/CLI line beyond the tier
+  table above.
+- No MCP server registration in this bundle.
 
 ## Update
 
-- Qoder Desktop: re-run the same \`npx skills add\` command, then open a new
-  session.
+- Qoder Desktop plugin: reinstall the archive built from this directory, then
+  open a new session.
+- Qoder Desktop rules version: re-run the same \`npx skills add\` command, then
+  open a new session.
 - Qoder IDE/CLI: re-copy \`rules/jiahao.md\` after a release.
 
 The body is generated from \`src/SKILL.md\`; \`node scripts/build-adapters.js --check\`

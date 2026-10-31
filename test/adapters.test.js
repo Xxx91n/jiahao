@@ -44,6 +44,10 @@ test('build-adapters generates the retained exits', () => {
       '.agents/plugins/marketplace.json',
       'adapters/qoder/README.md',
       'adapters/qoder/rules/jiahao.md',
+      // #109: Qoder Desktop became a plugin row, so its two wiring files join
+      // the retained-exit list a dropped scaffold would disappear from.
+      'adapters/qoder/.qoder-plugin/plugin.json',
+      'adapters/qoder/hooks/hooks.json',
       'skills/jiahao/SKILL.md',
     ];
     expected.forEach(rel => {
@@ -104,29 +108,50 @@ test('the generator emits the rules-version skill file', () => {
   expect(Object.keys(buildAdapters())).toContain('skills/jiahao/SKILL.md');
 });
 
-describe('Qoder rules-only exit (#79)', () => {
+describe('Qoder Desktop exit (#79 rules file, #109 turn-end gate)', () => {
   const { buildAdapters } = require('../scripts/build-adapters');
   const generated = buildAdapters();
   const PREFIX = 'adapters/qoder/';
   const bodyOf = (text) => text.replace(/^---[\s\S]*?---\n/, '');
 
-  test('emits only a README and one rule file', () => {
-    expect(Object.keys(generated).filter((rel) => rel.startsWith(PREFIX)).sort()).toEqual([
+  test('emits the plugin scaffold and the IDE/CLI rule file, and no MCP registration', () => {
+    const emitted = Object.keys(generated).filter((rel) => rel.startsWith(PREFIX));
+    for (const rel of [
       PREFIX + 'README.md',
       PREFIX + 'rules/jiahao.md',
-    ]);
+      PREFIX + '.qoder-plugin/plugin.json',
+      PREFIX + 'hooks/hooks.json',
+      PREFIX + 'src/SKILL.md',
+    ]) {
+      expect(emitted).toContain(rel);
+    }
+    // #109 wired three events and left the rest of the host's surface alone; an
+    // unplanned fourth registration is a claim the probe never covered.
+    expect(emitted.filter((rel) => rel.startsWith(PREFIX + 'hooks/')))
+      .toEqual(expect.arrayContaining([PREFIX + 'hooks/hooks.json']));
+    expect(emitted).not.toContain(PREFIX + '.mcp.json');
   });
 
-  test('registers no hook anywhere, and the assertion is red when one is planted', () => {
-    expect(hookRegistrationPaths(generated, PREFIX)).toEqual([]);
-    const plantedHookMap = Object.assign({}, generated, {
-      [PREFIX + 'hooks/hooks.json']: JSON.stringify({ hooks: { Stop: [] } }),
-    });
-    expect(hookRegistrationPaths(plantedHookMap, PREFIX)).toEqual([PREFIX + 'hooks/hooks.json']);
-    const plantedManifest = Object.assign({}, generated, {
-      [PREFIX + 'rules/plugin.json']: JSON.stringify({ name: 'jiahao', hooks: {} }),
-    });
-    expect(hookRegistrationPaths(plantedManifest, PREFIX)).toEqual([PREFIX + 'rules/plugin.json']);
+  test('Stop runs the verdict gate, and only the three probed events are registered', () => {
+    const map = JSON.parse(generated[PREFIX + 'hooks/hooks.json']);
+    const events = Object.keys(map.hooks).sort();
+    // SessionEnd, PreToolUse and SubagentStop exist in this host but #109 never
+    // exercised a block through them, so they stay unwired.
+    expect(events).toEqual(['SessionStart', 'Stop', 'UserPromptSubmit']);
+    const entries = map.hooks.Stop.flatMap((group) => group.hooks);
+    expect(entries).toHaveLength(1);
+    expect(entries[0].command).toContain('jiahao-verdict-gate.js');
+    // The host gives a hook subprocess no QODER_SESSION_ID, so the platform name
+    // has to ride the command or detectHost() falls through to the Claude branch.
+    expect(entries[0].command).toMatch(/" qoder$/);
+  });
+
+  test('the manifest leaves the hook map to the host\'s own discovery', () => {
+    const manifest = JSON.parse(generated[PREFIX + '.qoder-plugin/plugin.json']);
+    // The host's bundled plugin carries no hooks key and still loads
+    // hooks/hooks.json; repeating it would register the map twice.
+    expect(manifest.hooks).toBeUndefined();
+    expect(hookRegistrationPaths(generated, PREFIX)).toEqual([PREFIX + 'hooks/hooks.json']);
   });
 
   test('the rule body is the rules-version body', () => {
@@ -144,22 +169,31 @@ describe('Qoder rules-only exit (#79)', () => {
     expect(generated[PREFIX + 'rules/jiahao.md']).toContain('alwaysApply: true');
   });
 
-  test('the install manual separates Desktop from IDE/CLI, without a blocking claim', () => {
+  test('the install manual claims A only for the build that was measured', () => {
     const readme = generated[PREFIX + 'README.md'];
-    expect(readme).toMatch(/rules-only/i);
-    expect(readme).toMatch(/no enforcement/i);
-    expect(readme).toMatch(/declared-unverified|not live-probed/i);
-    expect(readme).toContain('Qoder Desktop');
+    expect(readme).toContain('Qoder CN Desktop 0.4.11');
+    expect(readme).toContain('Qoder international Desktop 0.4.11');
     expect(readme).toContain('Qoder IDE/CLI');
-    expect(readme).toContain('~/.qoder-cn/skills/jiahao/SKILL.md');
-    expect(readme).not.toMatch(/\bwill block\b|\bblocks?\b|\bstops?\b|\bprevents?\b|会拦|拦截/i);
-    const desktopStart = readme.indexOf('## Qoder Desktop');
-    const ideStart = readme.indexOf('## Qoder IDE/CLI');
+    // The block claim is allowed now, but only with its evidence beside it.
+    const desktopStart = readme.indexOf('## What was observed on Qoder CN Desktop');
     expect(desktopStart).toBeGreaterThanOrEqual(0);
-    expect(ideStart).toBeGreaterThan(desktopStart);
-    const desktop = readme.slice(desktopStart, ideStart);
-    expect(desktop).toContain('npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy');
-    expect(desktop).toContain('qoder-desktop-install-2026-10-31.md');
+    const observed = readme.slice(desktopStart, readme.indexOf('## Declared-unverified'));
+    expect(observed).toContain('qoder-hook-calls.jsonl');
+    expect(observed).toContain('stop_hook_active');
+    // The unprobed surfaces keep the #79 discipline: a claim they were watched
+    // firing would be the "会拦" mistake the tier contract forbids.
+    const unverified = readme.slice(readme.indexOf('## Declared-unverified'),
+      readme.indexOf('## Qoder Desktop - plugin'));
+    for (const phrase of ['plugin registration surface', 'QODER_PLUGIN_ROOT', 'QODER_SESSION_ID']) {
+      expect(unverified).toContain(phrase);
+    }
+    // Neither the skill directory nor the IDE rule file may read as a hook.
+    const ideStart = readme.indexOf('## Qoder IDE/CLI');
+    const rulesSection = readme.slice(ideStart, readme.indexOf('## Verification status'));
+    expect(rulesSection).toContain('registers nothing');
+    expect(rulesSection).not.toMatch(/Stop hook|verdict gate/i);
+    expect(readme).toContain('npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy');
+    expect(readme).toContain('~/.qoder-cn/skills/jiahao/SKILL.md');
   });
 
   test('the install evidence file carries the numbers the docs cite', () => {
@@ -180,7 +214,7 @@ describe('Qoder rules-only exit (#79)', () => {
     expect(runB).toMatch(/reported in Run B/i);
   });
 
-  test('both READMEs point Desktop at the standard skill directory and stop offering the IDE rules path', () => {
+  test('both READMEs rate Desktop by build and keep the IDE rules path claim-free', () => {
     const en = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
     const zh = fs.readFileSync(path.join(root, 'README-zh-CN.md'), 'utf8');
     expect(en).toContain('adapters/qoder/');
@@ -192,15 +226,12 @@ describe('Qoder rules-only exit (#79)', () => {
     expect(zh).toContain('没有强制');
     expect(zh).toMatch(/declared-unverified|尚未真机验证/i);
     expect(zh).not.toMatch(/codex、copilot、qoder/i);
-    // The blocking-claim guard applies to the Qoder section, not to the
-    // plugin-version paragraphs elsewhere in the same file.
+    // The blocking-claim guard applies to the Qoder IDE/CLI path and to the
+    // international Desktop, not to the one Desktop build that was measured.
     const enQoder = en.slice(en.indexOf('#### Qoder'), en.indexOf('### Plugin version'));
     const zhQoder = zh.slice(zh.indexOf('#### Qoder'), zh.indexOf('### 插件版'));
     const blocking = /\bwill block\b|\bblocks?\b|\bstops?\b|\bprevents?\b|会拦|拦截/i;
-    expect(enQoder).not.toMatch(blocking);
-    expect(zhQoder).not.toMatch(blocking);
-    // #106: Desktop's verified path is the rules version's skill directory.
-    // The IDE rules path must no longer be presented as a Desktop recipe, and
+    // #106: the rules version's skill directory stays the no-hook recipe, and
     // `~/.qoder/rules` was the specific wrong path from v0.3.0.
     for (const section of [enQoder, zhQoder]) {
       expect(section).toContain('-a qoder-cn');
@@ -212,12 +243,39 @@ describe('Qoder rules-only exit (#79)', () => {
     const zhSplit = zhQoder.indexOf('**Qoder IDE/CLI**');
     expect(enSplit).toBeGreaterThan(0);
     expect(zhSplit).toBeGreaterThan(0);
+    for (const section of [enQoder.slice(enSplit), zhQoder.slice(zhSplit)]) {
+      expect(section).not.toMatch(blocking);
+    }
+    // #109: the Desktop half may say the gate blocks, but only with the run
+    // record named beside it and the untested build called out.
     const enDesktop = enQoder.slice(0, enSplit);
     const zhDesktop = zhQoder.slice(0, zhSplit);
-    for (const section of [enDesktop, zhDesktop]) {
+    for (const [section, evidence] of [[enDesktop, 'qoder-hook-probe-2026-10-31.md'],
+      [zhDesktop, 'qoder-hook-probe-2026-10-31.md']]) {
       expect(section).toContain('npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy');
       expect(section).toContain('qoder-desktop-install-2026-10-31.md');
+      expect(section).toContain(evidence);
     }
+    expect(enDesktop).toMatch(/Qoder CN Desktop 0\.4\.11/i);
+    expect(zhDesktop).toMatch(/Qoder CN Desktop 0\.4\.11/i);
+    for (const section of [enDesktop, zhDesktop]) {
+      expect(section).toMatch(/international|国际版/i);
+      expect(section).toMatch(/not live-probed|declared-unverified|尚未真机验证/);
+    }
+  });
+
+  test('the #109 probe record carries the numbers the README cites', () => {
+    const evidence = fs.readFileSync(
+      path.join(root, 'docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md'), 'utf8');
+    // Every figure the adapter README repeats has to be in the record it links.
+    for (const needle of ['0.4.11', 'stop_hook_active', '6', 'exit 2', '.qoder/settings.json']) {
+      expect(evidence).toContain(needle);
+    }
+    expect(evidence).toContain('qoder-hook-calls.jsonl');
+    expect(evidence).toMatch(/97d52e4d|53e7f9c2|2f2199e1/);
+    // The negative half of the ticket: the build nobody watched is named.
+    expect(evidence).toMatch(/international/i);
+    expect(evidence).toMatch(/not (live-)?probed|unprobed|never watched/i);
   });
 });
 

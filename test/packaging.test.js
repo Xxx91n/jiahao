@@ -56,10 +56,13 @@ test('the pack contract names the rules file, every plugin manifest and hook map
     'adapters/codex/.codex-plugin/plugin.json',
     'adapters/codex/hooks/hooks.json',
     '.agents/plugins/marketplace.json',
-    // #79: Qoder is a rules-only exit. Its rule file and install manual are
-    // required in the tarball; a hook map would be a defect, not a requirement.
+    // #79 shipped Qoder as rules-only; #109 turned it into a Desktop plugin
+    // row and kept the rule file for the IDE/CLI line, so both halves have to
+    // be in the tarball.
     'adapters/qoder/rules/jiahao.md',
     'adapters/qoder/README.md',
+    'adapters/qoder/.qoder-plugin/plugin.json',
+    'adapters/qoder/hooks/hooks.json',
     '.claude-plugin/marketplace.json',
     // #85: the write side of adjudication went missing from the repo once, and
     // a tarball without it fails only on a user's machine.
@@ -67,18 +70,22 @@ test('the pack contract names the rules file, every plugin manifest and hook map
   ]) {
     expect(REQUIRED_PACK_FILES).toContain(rel);
   }
-  expect(REQUIRED_PACK_FILES).not.toContain('adapters/qoder/hooks/hooks.json');
+  // The Qoder bundle is a Desktop plugin: its manifest is `.qoder-plugin/`, and
+  // a Claude-shaped path in the contract would be a file no host reads.
   expect(REQUIRED_PACK_FILES).not.toContain('adapters/qoder/.claude-plugin/plugin.json');
   expect(FORBIDDEN_PACK_PREFIXES).toEqual(expect.arrayContaining(['private/', 'bench/', 'docs/research/']));
 });
 
-test('the Qoder rules-only exit is packed as exactly its rule and README', () => {
-  // Exact set, not just "contains": adapters/ is whitelisted wholesale, so an
-  // untracked adapters/qoder/hooks/hooks.json would ship without this check.
-  expect(packed.filter((p) => p.startsWith('adapters/qoder/')).sort()).toEqual([
-    'adapters/qoder/README.md',
-    'adapters/qoder/rules/jiahao.md',
-  ]);
+test('the Qoder exit ships exactly the files the generator emits for it', () => {
+  // Exact set, not just "contains": adapters/ is whitelisted wholesale, so a
+  // hand-dropped vendored file or an untracked extra would be invisible to a
+  // contains-only assertion. The expectation is read from the generator, so it
+  // tracks the require() closure instead of a hand-copied list that rots.
+  const { buildAdapters } = require('../scripts/build-adapters');
+  const expected = Object.keys(buildAdapters())
+    .filter((rel) => rel.startsWith('adapters/qoder/')).sort();
+  expect(expected).toContain('adapters/qoder/hooks/hooks.json');
+  expect(packed.filter((p) => p.startsWith('adapters/qoder/')).sort()).toEqual(expected);
 });
 
 // #77: the required list must grow with the generator, not sit one marketplace

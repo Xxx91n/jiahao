@@ -17,7 +17,7 @@
 | CodeBuddy | A 档候选（脚本级已验证，宿主级未验） | 宿主版本 CodeBuddy Code CLI 2.151.0（`settings.json` 路径实测于 v0.2.0），**没有带日期的宿主级 Stop 拦截结果**；CLI 安装路径仍是 declared-unverified |
 | Codex CLI | A | 2026-10-30 实测，codex-cli 0.163.0 |
 | GitHub Copilot CLI | A | 2026-10-30 实测，Copilot CLI 1.0.105 |
-| Qoder | C | 只有规则，没有钩子；2026-10-31 重跑标准技能目录安装（Run A，exit 0，SHA 一致）；Qoder CN Desktop 0.4.11 的新会话可见性由 #106 的 Run B 记录，本窗口未重跑；Qoder IDE/CLI 规则加载仍 declared-unverified |
+| Qoder | C（v0.3.0 发出去的出口） | 只有规则，没有钩子；2026-10-31 重跑标准技能目录安装（Run A，exit 0，SHA 一致）；Qoder CN Desktop 0.4.11 的新会话可见性由 #106 的 Run B 记录，本窗口未重跑；Qoder IDE/CLI 规则加载仍 declared-unverified。**2026-10-31 #109 探针回填**：Qoder CN Desktop 0.4.11 的 `Stop` 钩子在真机会话里两次拦下假完工（exit 0 + `{decision:"block"}`、exit 2 + stderr），该变体升 A 档；升档的插件出口不在 v0.3.0 里，随下一个版本发。国际版 Desktop 与 IDE/CLI 未被实测，档位不动。见 [`docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md`](evidence/v0.3.0/qoder-hook-probe-2026-10-31.md) |
 | 规则版 | 不适用 | 只注入指令，任何宿主都没有强制 |
 
 **A 档的含义**：真实会话里 Agent 声称「做完并已验证」，宿主在回合结束前把它拦住一次，续跑后 `stop_hook_active` 为 `true` 时 gate 直接放行、不再检查 claim 与证据。也就是说拦截保证的是「不让你一句话收工」，不是「必须改口才放行」。证据形式、宿主版本、日期都落在 `docs/evidence/` 里。
@@ -178,7 +178,7 @@ tree      adapters/qoder         c03886a993b4405638963ad47db7846ca159e0f4d1dcb23
 
 ## 不在本版本
 
-- Qoder 升 A 档：它的收尾钩子还没实测，仍是探针问题。
+- Qoder 升 A 档：它的收尾钩子还没实测，仍是探针问题。（2026-10-31 #109 回填：Qoder CN Desktop 0.4.11 实测能拦，插件出口随下一个版本发；国际版 Desktop 与 Qoder IDE/CLI 仍未实测。）
 - 人工裁定的凭据（#90）：被拦方仍能自己写一条 pass 把自己放行，这是 append-only 链的信任边界，v0.3.0 之后单独定。
 - 规则文本重写（#25）、profile 缺省值（#40）：都等 #23 的人工标注数据。
 - 发布到 npm；公开评测；签名体系。

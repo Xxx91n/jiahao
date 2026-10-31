@@ -34,21 +34,23 @@ npx skills add Xxx91n/jiahao
 
 把 `skills/jiahao/SKILL.md` 装进读取标准 Agent Skills 目录的宿主。文件里两份纪律都在，宿主自行取用。没有钩子运行，因此不会拦截任何动作。6 个纯指令适配器目录（aider、cline、cursor、instruction-tier、opencode、windsurf）已退役；没有标准技能目录的宿主（例如 aider）在这个版本里没有打包适配器，但可以把生成的 `skills/jiahao/SKILL.md` 当普通文本复制过去。
 
-#### Qoder：Desktop 与 IDE/CLI（C 档，只有规则）
+#### Qoder：Desktop 插件出口（Qoder CN Desktop 是 A 档）与 IDE/CLI 规则（C 档）
 
-Qoder 现在有两个产品，读的路径不同。**Qoder Desktop**（0.x 工作台）通过标准技能目录加载规则版；Qoder CN 上，#106 在 Desktop 0.4.11 上检查到用户级规则路径未被加载。请把规则版装进它的标准技能目录：
+Qoder 现在有两个产品，读的路径不同。**Qoder Desktop**（0.x 工作台）有两个出口。不要求强制的那个，是把规则版装进它的标准技能目录；Qoder CN 上，#106 在 Desktop 0.4.11 上检查到用户级规则路径未被加载：
 
 ```bash
 npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # Qoder CN → ~/.qoder-cn/skills/jiahao/SKILL.md
 ```
 
-2026-10-31 的安装命令 exit 0，落地的 `SKILL.md` 与仓库里的 `skills/jiahao/SKILL.md` SHA-256 一致（Run A）。新开独立会话能看到该技能，这是 #106 另一次运行（Run B）的记录，本次未重跑（见[运行记录](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md)）。国际版别名是 `-a qoder`，其落地路径与加载本机尚未真机验证。两种都只加载规则，没有强制。
+2026-10-31 的安装命令 exit 0，落地的 `SKILL.md` 与仓库里的 `skills/jiahao/SKILL.md` SHA-256 一致（Run A）。新开独立会话能看到该技能，这是 #106 另一次运行（Run B）的记录，本次未重跑（见[运行记录](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md)）。国际版别名是 `-a qoder`，其落地路径与加载本机尚未真机验证。这条路只加载规则，没有强制。
 
-**Qoder IDE/CLI** 读取项目级 `.qoder/rules/`。这正是 [`adapters/qoder/`](adapters/qoder/) 的用途：规则文件与规则版同源，没有任何钩子。把 `rules/jiahao.md` 复制到 `.qoder/rules/`；这条路径的宿主加载行为属于 declared-unverified，尚未真机验证。两条安装路径与验证状态见该目录 README。
+要强制，就是第五个自包含目录 [`adapters/qoder/`](adapters/qoder/)，而 **Qoder CN Desktop 0.4.11 是 A 档宿主**：2026-10-31 的真机会话里（#109），一次没有凭证的完工声明先被 `Stop` 钩子以 exit 0 返回 `{"decision":"block"}` 阻断续跑，又在同一个钩子以 exit 2 + stderr 给出理由时同样续跑；宿主在每次重入都把 `stop_hook_active` 置为 true，并连续接受 6 次阻断续跑，直到探针自带的上限放行才结束回合。这次阻断是用项目级 `.qoder/settings.json` 注册的钩子观察到的；把这个目录作为 Desktop 插件安装、以及国际版 Qoder Desktop 0.4.11，本机尚未真机验证，属于 declared-unverified。运行记录见 [qoder-hook-probe-2026-10-31.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md)。
+
+**Qoder IDE/CLI** 读取项目级 `.qoder/rules/`。该目录里的 `rules/jiahao.md` 就是这个出口：规则文件与规则版同源，不注册任何东西。把它复制到 `.qoder/rules/`；这条路径的宿主加载行为属于 declared-unverified，尚未真机验证。三条路径与验证状态见该目录 README。
 
 ### 插件版 —— 宿主原生命令，带钩子
 
-CodeBuddy 是四个插件目录之一（另外三个是 Claude Code、GitHub Copilot CLI 与 Codex CLI，见下文）：
+CodeBuddy 是五个插件目录之一（另外四个是 Claude Code、GitHub Copilot CLI、Codex CLI 与 Qoder，见下文）：
 
 ```bash
 codebuddy plugin install <path-to>/adapters/codebuddy
@@ -56,7 +58,7 @@ codebuddy plugin install <path-to>/adapters/codebuddy
 
 插件默认关闭（`defaultEnabled: false`），安装后需要显式启用。随后用安装器写入 profile（`node scripts/install.js init -y`），它会打印实际写入的值（见 Profile）。启用后 `hooks/hooks.json` 接上 verifier 纪律的强制拦截。插件同时带两份 `alwaysApply: true` 的规则文件；规则级 profile 选择属于待确认，强制层是钩子。CLI 插件安装路径已记录但属于待确认；现场验证过的回退路径是合并 `.codebuddy/settings.json`。完整安装步骤、钩子表，以及已验证 / 待确认边界见 [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)。Claude Code 是第二个插件目录：自包含插件在 [`adapters/claude-code/`](adapters/claude-code/)，用仓库根的 marketplace 安装——`claude plugin marketplace add Xxx91n/jiahao`、`claude plugin install jiahao@jiahao`。钩子表与尚未真机验证的部分见该目录的 README。
 
-mcp 目录不再作为安装出口；MCP 服务端本身保留在 [`jiahao-mcp/`](https://github.com/Xxx91n/jiahao/tree/main/jiahao-mcp)。GitHub Copilot CLI 是第三个自包含目录（`copilot plugin install <路径>/adapters/copilot`），档位是 **A 档**：2026-10-30 在 Copilot CLI 1.0.105 的真机会话里，假完工只在 `agentStop` 以 exit 0 返回 `{decision:"block"}` 后继续；exit 2 不阻断；连续 8 次阻断续跑后，第 9 次阻断时 CLI 结束回合。方言（驼峰事件名、bash / powershell 两支、决策字段阻断）、`.claude/settings.json` 实测与证据路径都写在它的 README 里。Codex CLI 是第四个自包含目录，用仓库里的 Codex marketplace（`.agents/plugins/marketplace.json`）安装——`codex plugin marketplace add Xxx91n/jiahao`、`codex plugin add jiahao --marketplace jiahao`；它的钩子命令要一次性信任（`/hooks`），Codex 0.163.0 默认就开着钩子（未信任插件的钩子在 `codex exec` 里被静默跳过，无人值守需持久化信任或 `--dangerously-bypass-hook-trust`）。Codex 同样是 **A 档**：2026-10-30 在 codex-cli 0.163.0 的真机会话里，回合只在 Stop 以 exit 0 返回 `{decision:"block"}` 后继续；exit 2 + stderr 不阻断。细节与证据路径见 [`adapters/codex/README.md`](adapters/codex/README.md) 与 [docs/evidence/v0.3.0/](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/)。
+mcp 目录不再作为安装出口；MCP 服务端本身保留在 [`jiahao-mcp/`](https://github.com/Xxx91n/jiahao/tree/main/jiahao-mcp)。GitHub Copilot CLI 是第三个自包含目录（`copilot plugin install <路径>/adapters/copilot`），档位是 **A 档**：2026-10-30 在 Copilot CLI 1.0.105 的真机会话里，假完工只在 `agentStop` 以 exit 0 返回 `{decision:"block"}` 后继续；exit 2 不阻断；连续 8 次阻断续跑后，第 9 次阻断时 CLI 结束回合。方言（驼峰事件名、bash / powershell 两支、决策字段阻断）、`.claude/settings.json` 实测与证据路径都写在它的 README 里。Codex CLI 是第四个自包含目录，用仓库里的 Codex marketplace（`.agents/plugins/marketplace.json`）安装——`codex plugin marketplace add Xxx91n/jiahao`、`codex plugin add jiahao --marketplace jiahao`；它的钩子命令要一次性信任（`/hooks`），Codex 0.163.0 默认就开着钩子（未信任插件的钩子在 `codex exec` 里被静默跳过，无人值守需持久化信任或 `--dangerously-bypass-hook-trust`）。Codex 同样是 **A 档**：2026-10-30 在 codex-cli 0.163.0 的真机会话里，回合只在 Stop 以 exit 0 返回 `{decision:"block"}` 后继续；exit 2 + stderr 不阻断。细节与证据路径见 [`adapters/codex/README.md`](adapters/codex/README.md) 与 [docs/evidence/v0.3.0/](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/)。Qoder 是第五个自包含目录：本仓库没有 Qoder 的 marketplace，它由 Desktop 的插件设置以本地压缩包安装（用户级），方言只写在 `scripts/hosts/qoder.js` 一处——清单是 `.qoder-plugin/plugin.json`，钩子映射 `hooks/hooks.json` 由宿主自己发现，命令用 `${QODER_PLUGIN_ROOT}` 并在参数里带上平台名 `qoder`（宿主的钩子子进程拿不到 `QODER_SESSION_ID`）。A 档的结论只属于 Qoder CN Desktop 0.4.11，且是通过项目级 `.qoder/settings.json` 的钩子实测的；插件安装路径与国际版 Desktop 尚未真机验证，见 [qoder-hook-probe-2026-10-31.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md)。
 
 ### Profile
 

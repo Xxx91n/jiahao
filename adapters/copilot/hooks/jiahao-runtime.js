@@ -18,6 +18,9 @@ function detectHost() {
   if (PLATFORMS.includes(explicit)) return explicit;
   if (process.env.PLUGIN_DATA) return 'codex';
   if (process.env.COPILOT_PLUGIN_DATA) return 'copilot';
+  // Qoder Desktop hands a hook subprocess QODER_PROJECT_DIR and
+  // QODER_CONFIG_DIR but no QODER_SESSION_ID (#109), so this branch only fires
+  // on builds that do; the adapter map passes `qoder` as argv instead.
   if (process.env.QODER_SESSION_ID) return 'qoder';
   // CodeBuddy sets CODEBUDDY_PLUGIN_ROOT (preferred) and recognizes
   // CLAUDE_PLUGIN_ROOT verbatim; a Claude Code session never sets the
@@ -57,9 +60,10 @@ function writeHookOutput(text, event) {
     // Copilot flat output: additionalContext (multi-event since CLI 1.0.11, #2142)
     console.log(JSON.stringify({ additionalContext: trimmed }));
   } else if (host === 'qoder') {
-    // Qoder HAS SessionStart (matcher startup/resume/clear, non-blocking);
-    // hookSpecificOutput.hookEventName contract is homologous to Claude Code
-    // (docs.qoder.com/cli/hooks-reference, verified 2026-08)
+    // Qoder Desktop 0.4.11 takes the Claude-shaped envelope: the host's own
+    // plugin hooks inject through it, and its schema rejects a
+    // hookSpecificOutput without hookEventName (#109 read the schema; the
+    // SessionStart injection itself was not watched in that probe).
     console.log(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: event,
@@ -93,9 +97,11 @@ function writeHookOutput(text, event) {
 
 // Exit code that carries a block decision. Codex 0.163.0 and Copilot CLI
 // 1.0.105 (win32, probed 2026-10-30, #80) only continued the turn on exit 0;
-// Claude-shaped hosts block on exit 2. The Codex stderr copy is a log aid on
-// its exit-0 path, not the block channel.
-const BLOCK_EXIT_CODES = Object.freeze({ codex: 0, copilot: 0, claude: 2, codebuddy: 2 });
+// Claude-shaped hosts block on exit 2. Qoder CN Desktop 0.4.11 (win32, probed
+// 2026-10-31, #109) continued the turn on exit 2 with the reason on stderr AND
+// on exit 0 with the decision field, so it stays on the Claude code. The Codex
+// stderr copy is a log aid on its exit-0 path, not the block channel.
+const BLOCK_EXIT_CODES = Object.freeze({ codex: 0, copilot: 0, qoder: 2, claude: 2, codebuddy: 2 });
 
 function writeBlockOutput(reason) {
   console.log(JSON.stringify({ decision: 'block', reason: reason }));
