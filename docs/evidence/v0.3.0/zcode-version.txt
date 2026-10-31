@@ -1,0 +1,10 @@
+
+
+ProductName    : ZCode
+ProductVersion : 3.16.2.0
+FileVersion    : 3.16.2
+
+
+
+=== zcode.cjs (CLI runtime) ===
+0.17.0

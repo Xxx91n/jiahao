@@ -64,6 +64,29 @@ function emitManifest(ctx) {
   }, null, 2) + '\n';
 }
 
+// The bundle carries its own marketplace shelf: ZCode's install command only
+// resolves plugin@marketplace names - a direct directory install is refused
+// ("Plugin not found in any marketplace", CLI 0.17.0, probed 2026-10-31) - and
+// a marketplace is whatever directory the user points at. `source: "."` is the
+// bundle directory itself, so `marketplace add <this dir>` plus
+// `plugins install jiahao@jiahao-zcode` installs exactly these bytes. Adding
+// the repository root instead resolves `.claude-plugin/marketplace.json` and
+// installs the Claude-Code bundle (probed 2026-10-31); the README warns
+// against it.
+function emitMarketplaceShelf(ctx) {
+  return JSON.stringify({
+    name: 'jiahao-zcode',
+    owner: { name: 'Xxx91n' },
+    plugins: [
+      {
+        name: 'jiahao',
+        source: '.',
+        description: ctx.description,
+      },
+    ],
+  }, null, 2) + '\n';
+}
+
 module.exports = {
   manifestPath: MANIFEST_PATH,
   hookMapPath: HOOK_MAP_PATH,
@@ -77,6 +100,9 @@ module.exports = {
   // Consumers: the generator rejects a platform name the hook layer does not
   // implement, and the structure test re-checks the shipped rows.
   platform: PLATFORM,
+  // The bundle-local marketplace shelf the generator emits beside the manifest.
+  marketplaceShelfPath: 'marketplace.json',
   emitManifest: emitManifest,
   emitHookMap: emitHookMap,
+  emitMarketplaceShelf: emitMarketplaceShelf,
 };

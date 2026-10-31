@@ -105,6 +105,24 @@ describe('evidence pointer', () => {
   });
 });
 
+describe('self-marketplace shelf', () => {
+  // ZCode's install command only resolves plugin@marketplace names (a direct
+  // directory install is refused), and a marketplace is whatever directory the
+  // user points at. The shelf rides inside the bundle with `source: "."`, so
+  // `marketplace add <this dir>` plus `plugins install jiahao@jiahao-zcode`
+  // installs exactly these bytes (probed 2026-10-31, ZCode 3.16.2 / CLI
+  // 0.17.0). Adding the repository root instead resolves the Claude-Code
+  // bundle - the README warns against it.
+  const shelf = JSON.parse(generated[GENERATED_PREFIX + 'marketplace.json']);
+
+  test('names one plugin and points the source at the bundle directory itself', () => {
+    expect(shelf.name).toBe('jiahao-zcode');
+    expect(shelf.plugins.length).toBe(1);
+    expect(shelf.plugins[0].name).toBe('jiahao');
+    expect(shelf.plugins[0].source).toBe('.');
+  });
+});
+
 describe('ZCode output envelope (spawned hook, temp config dir)', () => {
   test('SessionStart answers with the ZCode envelope selected by the platform argument', () => {
     const dir = mkConfigDir('verifier');

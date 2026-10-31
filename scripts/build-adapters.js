@@ -215,7 +215,7 @@ const HOSTS = [
     // {decision:"block"} on exit 0, and the block reason arrived back as the
     // next turn's context. Payloads carry both snake_case and camelCase
     // spellings; hook configuration is read at session start only.
-    provenance: 'ZCode 3.16.2 (2026-10-31, #108): live Stop block via exit 0 + {decision:"block"} continued the turn; payload session_id/sessionId + stop_hook_active observed; hook config loaded at session start only (restart required)',
+    provenance: 'ZCode 3.16.2 / CLI 0.17.0 (2026-10-31, #108): live Stop block via exit 0 + {decision:"block"} (exit 2 also blocked, without a reason); stop_hook_active true on continuations; 3 block continuations then the turn ended; install via the bundle marketplace shelf verified (hooks:4, byte-identical cache); payload dual-spelling; hook config read at session start only',
     // ZCode's event vocabulary is PascalCase but holds exactly seven events;
     // SubagentStart/SubagentStop/SessionEnd do not exist, so no sweep hook is
     // wired (scripts/hosts/zcode.js sets sessionEndEvent: null).
@@ -622,6 +622,17 @@ function buildAdapters() {
         adapters[prefix + dialect.hookMapPath] = dialect.emitHookMap
           ? dialect.emitHookMap(host)
           : emitHookMap(host);
+      }
+      if (dialect.marketplaceShelfPath) {
+        // A bundle-local marketplace shelf (ZCode): the install command only
+        // resolves plugin@marketplace names, and the shelf rides inside the
+        // bundle so `marketplace add <this dir>` resolves exactly these bytes.
+        adapters[prefix + dialect.marketplaceShelfPath] = dialect.emitMarketplaceShelf({
+          host: host,
+          pkg: PKG,
+          repository: PKG_REPOSITORY,
+          description: (host.manifest || {}).description,
+        });
       }
       if (host.mcp) adapters[prefix + '.mcp.json'] = emitMcpJson(host.mcp);
     }
@@ -1256,26 +1267,43 @@ next turn's context. Evidence:
 
 ## Install (host-native commands)
 
-1. \`zcode plugins install <path-to-this-dir>\` (CLI) or Settings → Plugin
-   Management (desktop). Validate with \`zcode plugins list\`.
-2. Enable the plugin if the install leaves it disabled
-   (\`zcode plugins enable jiahao\`). The manifest carries no
-   \`defaultEnabled\`: ZCode's manifest reference does not document that key,
-   so the bundle makes no claim about it.
-3. Activate the jiahao profile flag, same as every host. Resolve the config
+The bundle carries its own marketplace shelf (\`marketplace.json\`, with
+\`source: "."\` pointing at itself), because ZCode's install command only
+resolves \`plugin@marketplace\` names - a direct directory install is refused
+("Plugin not found in any marketplace", CLI 0.17.0, probed 2026-10-31).
+
+1. \`zcode plugins marketplace add <path-to-this-dir>\` - the shelf inside the
+   bundle is the marketplace; exit 0 reports \`Added marketplace jiahao-zcode
+   (1 plugins)\`.
+2. \`zcode plugins install jiahao@jiahao-zcode\` - installs and enables in one
+   step; \`zcode plugins list\` reports \`hooks: 4\` (the host parses
+   \`hooks/hooks.json\` itself; the manifest carries no hooks pointer). The
+   cached hook map, manifest, and gate script are byte-identical to this
+   bundle (diff-verified 2026-10-31).
+3. \`zcode plugins validate <path-to-this-dir>\` is the host's own manifest
+   check; it accepts this bundle (exit 0).
+4. Do NOT point \`marketplace add\` at the repository root: the host then
+   resolves \`.claude-plugin/marketplace.json\` and installs the **Claude
+   Code** bundle instead (probed 2026-10-31 - and its parser drops the
+   unsupported events of a Claude-shaped map silently, 7 events down to
+   \`hooks: 4\`).
+5. Activate the jiahao profile flag, same as every host. Resolve the config
    directory once (\`CLAUDE_CONFIG_DIR\`, else \`$HOME\`, else \`/tmp\`):
    \`CONFIG="\${CLAUDE_CONFIG_DIR:-\${HOME:-/tmp}}"\`, then
    \`echo full > "$CONFIG/.jiahao-active"\` and
    \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
    (\`generator\` for advisory-only). Start a new session after changing
    \`.jiahao-profile\`.
-4. Restart or open a new session. Hook configuration — plugin or
+6. Restart or open a new session. Hook configuration — plugin or
    config-file — is read at session start; a map added mid-session did not
    fire until a restart (live probe, 2026-10-31).
 
-Install, upgrade (\`zcode plugins update\`), and uninstall
-(\`zcode plugins uninstall jiahao\`) are the host's own plugin commands; the
-repository root is never a plugin entry.
+Upgrade is \`zcode plugins update\` (the subcommand exists; not live-probed).
+Uninstall is \`zcode plugins uninstall jiahao@jiahao-zcode --force\`
+(non-interactive shells need \`--force\`), then
+\`zcode plugins marketplace remove jiahao-zcode\`. Install, upgrade, and
+uninstall are the host's own plugin commands; the repository root is never a
+plugin entry.
 
 ## Hook behavior disclosure (read before enabling)
 
@@ -1325,13 +1353,17 @@ gate. Commands and captured payloads live in
 
 | Point | Result |
 | --- | --- |
-| A real turn-end block (Stop + \`decision:"block"\`) | **Verified**: the session's turn end was blocked; the reason arrived as the next turn's context |
-| \`stop_hook_active\` on the continuation | declared-unverified |
-| Exit 2 as the block channel | declared-unverified |
-| Consecutive-block cap | declared-unverified |
+| A real turn-end block (Stop + \`decision:"block"\`) | **Verified**: the real bundled gate blocked a session's turn end (verifier profile, empty evidence chain); the reason arrived as the next turn's context |
+| Exit 2 as the block channel | **Verified, refuted as the gate's channel**: exit 2 also blocked, but with the host's generic "Hook blocked execution" and no reason; the gate keeps exit 0 + the decision field, which carries the reason |
+| \`stop_hook_active\` on the continuation | **Verified**: \`true\` on every post-block Stop (both spellings); the gate's pass-through needs no change |
+| Consecutive-block cap | **Verified**: three consecutive block continuations were honored (fires #1-#4 in \`zcode-stop-fires.jsonl\`); the fourth consecutive block was followed by the turn ending without a further continuation (the session user was present at that boundary) |
 | Payload spellings | **Verified**: both snake_case and camelCase on every fire |
 | Hook config read at session start | **Verified**: mid-session config did not fire until restart |
-| \`zcode plugins install\` reading \`.zcode-plugin/plugin.json\` + \`hooks/hooks.json\` | declared-unverified |
+| \`zcode plugins validate\` on the bundle | **Verified**: exit 0, "Plugin manifest is valid" |
+| Install through the bundle's own marketplace shelf | **Verified**: \`marketplace add <this dir>\` + \`plugins install jiahao@jiahao-zcode\` installed the bundle \`[enabled]\`; \`plugins list\` reports \`hooks: 4\`; the cached hook map, manifest, and gate are byte-identical to the generated bundle |
+| Repository root as the marketplace | **Refuted for this bundle**: the host resolved \`.claude-plugin/marketplace.json\` and installed the Claude Code bundle |
+| Direct \`zcode plugins install <dir>\` | **Refuted**: refused with "Plugin not found in any marketplace" |
+| Plugin hooks firing in a live session (post-restart) | declared-unverified: the installed bytes are identical to the probed bundle and the block channel is host-level, but a plugin-spawned hook was not observed in a restarted session |
 | SessionStart \`additionalContext\` injection | declared-unverified: the envelope follows the documented strict schema; the injection itself was not observed |
 
 ## Write scope and network
