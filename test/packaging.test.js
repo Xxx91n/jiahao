@@ -90,6 +90,7 @@ test('the Qoder exit ships its plugin bundle, the rule file, and nothing unplann
     'adapters/qoder/hooks/jiahao-runtime.js',
     'adapters/qoder/hooks/jiahao-profile.js',
     'adapters/qoder/hooks/jiahao-verdict-gate.js',
+    'adapters/qoder/hooks/jiahao-sweep.js',
     'adapters/qoder/src/SKILL.md',
     'adapters/qoder/src/instrument-identity.json',
   ];

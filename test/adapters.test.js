@@ -234,18 +234,35 @@ describe('Qoder Desktop exit (#79 rules file, #109 turn-end gate)', () => {
     }
   });
 
-  test('the #109 probe record carries the numbers the README cites', () => {
-    const evidence = fs.readFileSync(
-      path.join(root, 'docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md'), 'utf8');
-    // Every figure the adapter README repeats has to be in the record it links.
-    for (const needle of ['0.4.11', 'stop_hook_active', '6', 'exit 2', '.qoder/settings.json']) {
-      expect(evidence).toContain(needle);
+  test('the #109 numbers the README cites are in the artifacts, not just the prose', () => {
+    const dir = path.join(root, 'docs/evidence/v0.3.0');
+    const calls = fs.readFileSync(path.join(dir, 'qoder-hook-calls.jsonl'), 'utf8')
+      .trim().split('\n').map((l) => JSON.parse(l));
+    const blocksBy = (sid) => calls.filter((c) =>
+      c.payload.session_id.startsWith(sid) && c.action.startsWith('block-')).length;
+    // Written from the runs, so editing the log without editing the record goes red.
+    expect(blocksBy('97d52e4d')).toBe(1);   // exit 0 + flat decision
+    expect(blocksBy('53e7f9c2')).toBe(6);   // same channel, capped at 6
+    expect(blocksBy('2f2199e1')).toBe(3);   // exit 2 + stderr
+    expect(calls.length).toBe(14);
+    // The re-entry flag the gate relies on, counted where it was recorded.
+    expect(calls.filter((c) => c.payload.stop_hook_active).length).toBe(10);
+    // The host fed every block back into the conversation: same counts.
+    const injected = fs.readFileSync(path.join(dir, 'qoder-transcript-block-lines.jsonl'), 'utf8')
+      .trim().split('\n').map((l) => JSON.parse(l));
+    expect(injected).toHaveLength(10);
+    for (const sid of ['97d52e4d', '53e7f9c2', '2f2199e1']) {
+      expect(injected.filter((l) => l.sessionId.startsWith(sid)).length).toBe(blocksBy(sid));
     }
-    expect(evidence).toContain('qoder-hook-calls.jsonl');
-    expect(evidence).toMatch(/97d52e4d|53e7f9c2|2f2199e1/);
-    // The negative half of the ticket: the build nobody watched is named.
-    expect(evidence).toMatch(/international/i);
-    expect(evidence).toMatch(/not (live-)?probed|unprobed|never watched/i);
+    // And the prose cites those files rather than restating their contents.
+    const record = fs.readFileSync(path.join(dir, 'qoder-hook-probe-2026-10-31.md'), 'utf8');
+    for (const needle of ['qoder-hook-calls.jsonl', 'stop_hook_active', 'exit 2',
+      '.qoder/settings.json', 'qoder-runtime-hook-schema.txt']) {
+      expect(record).toContain(needle);
+    }
+    // The negative half: the variant nobody watched is named, and stays C.
+    expect(record).toMatch(/international/i);
+    expect(record).toMatch(/never watched|not probed|was not observed/i);
   });
 });
 

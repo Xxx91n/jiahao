@@ -5,9 +5,8 @@ This directory is a **self-contained Qoder Desktop plugin**: the manifest
 scripts and their `require()` closure, `src/SKILL.md`, and the identity pin
 the gate loads are vendored inside; nothing reads from the repository root and
 there is no third-party runtime dependency. The same directory also carries
-`rules/jiahao.md`, the **Qoder IDE/CLI** rule file: it travels in the archive
-because one directory holds both exits, but Qoder Desktop loads it as a rule and
-not as a component of the plugin, and it registers nothing.
+`rules/jiahao.md` for the **Qoder IDE/CLI** rules path: it travels in the
+archive because one directory holds both exits, and it registers nothing.
 
 ## Capability tier
 
@@ -91,12 +90,11 @@ directory into a `.zip` whose root holds `.qoder-plugin/`, and install it from
 the Desktop app's plugin settings. Then start a new session: hook configuration
 is read at session start, and a session already open does not pick it up.
 
-What the map wires: `SessionStart` answers with the active profile,
-`UserPromptSubmit` tracks the mode, `Stop` runs the verdict gate, and
-`SessionEnd` runs the sweep. The host channel for a `Stop` block is measured
-(table above); the bundle's own path to it is not (see
-Declared-unverified) - so this section describes wiring, not a witnessed block
-by these scripts.
+The event list, scripts, and timeouts are in "The hook map this bundle ships"
+above - stated once, so the two cannot drift apart. What is measured is the
+host's `Stop` channel (table above); what is not, is this bundle's own path to
+it (Declared-unverified) - so that section describes wiring, not a witnessed
+block by these scripts.
 
 ## Qoder Desktop - rules version (no enforcement)
 

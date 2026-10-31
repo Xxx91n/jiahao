@@ -60,10 +60,11 @@ function writeHookOutput(text, event) {
     // Copilot flat output: additionalContext (multi-event since CLI 1.0.11, #2142)
     console.log(JSON.stringify({ additionalContext: trimmed }));
   } else if (host === 'qoder') {
-    // Qoder CN Desktop 0.4.11 answers this envelope: its bundled hook-config
-    // skill and the zod schema in the shipped worker runtime both require
-    // hookSpecificOutput.hookEventName (read from the host's files, #109). No
-    // injection was watched landing in a real Qoder turn.
+    // Qoder CN Desktop 0.4.11 answers this envelope: the shipped worker runtime
+    // per-branch zod schema requires hookSpecificOutput.hookEventName, lines
+    // quoted in docs/evidence/v0.3.0/qoder-runtime-hook-schema.txt. File
+    // evidence from the installed build - no injection was watched landing in a
+    // real Qoder turn (#109).
     console.log(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: event,

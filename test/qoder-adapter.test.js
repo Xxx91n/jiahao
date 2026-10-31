@@ -3,10 +3,11 @@
 // when the host runs it.
 //
 // test/plugin-bundles.test.js covers the structural contract for every row of
-// the host table. This file pins the three Qoder-specific facts the live probe
+// the host table. This file pins the Qoder-specific facts the live probe
 // established, so a regeneration cannot quietly change the surface the probe
 // measured:
-//   1. the hook map registers only the events #109 exercised, and every command
+//   1. the hook map registers the events #109 exercised, plus SessionEnd for the
+//      sweep the sentinel-reclamation invariant requires, and every command
 //      passes the platform name `qoder` (the host gives a hook subprocess no
 //      QODER_SESSION_ID, so an argv-less command would answer with the Claude
 //      envelope instead);

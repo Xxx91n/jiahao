@@ -1,0 +1,49 @@
+# read out of the installed Qoder CN Desktop 0.4.11 build on 2026-10-31 (file evidence, not a run)
+# these are the host's own files; nothing below was observed firing in a turn
+
+## 1. event enum, from the shipped worker runtime
+$ grep -a -o -E '.{60}"Stop".{260}' <worker>/qoder-worker-runtime.obf.mjs
+PreCompact",e.PostCompact="PostCompact",e.Stop="Stop",e.QueryEnd="QueryEnd",e.UserPromptSubmit="UserPromptSubmit",e.ConfigChange="ConfigChange",e.StopFailure="StopFailure",e.TeammateIdle="TeammateIdle",e.InstructionsLoaded="InstructionsLoaded",e.CwdChanged="CwdChanged",e.FileChanged="FileChan
+
+## 2. the schema a hook's stdout JSON must satisfy (hookSpecificOutput requires hookEventName)
+$ grep -a -o -E '.{120}hookEventName:.*(literal).{80}' <worker>/qoder-worker-runtime.obf.mjs
+hookEventName:J.literal("SessionStart"),additionalContext:J.string().optional()}),lAu=J.object({hookEventName:J.literal("Setup"),additionalContext:J.string().optional()}),uAu=J.object({hookEventName:J.literal("PostToolUseFailure"),additionalContext:J.string().optional()}),dAu=J.
+
+## 3. stop_hook_active in the Stop payload, same file
+async fireStopEvent(A=!1,e,t){let i={...this.createBaseInput("Stop"),stop_hook_active:A,...e&&{last_assistant_message:e}};return this.executeHooks("Stop",i,void 0,t)}async fireStopEventWithContext(A,e,t=!1,i,r,n){let o=
+
+## 4. the host's own bundled hook-config skill (dist/_worker/builtin/hook-config/SKILL.md)
+**Exit code semantics:**
+
+| Exit Code | Meaning                          |
+| --------- | -------------------------------- |
+| 0         | Success — parse stdout as JSON   |
+| 2         | Blocking deny — stderr is reason |
+| Other     | Non-blocking error, execution continues |
+
+
+**Stdout** JSON output (all fields optional, but `hookSpecificOutput` requires `hookEventName`):
+
+```json
+{
+  "decision": "allow",
+  "reason": "Checks passed",
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "additionalContext": "Message injected into conversation"
+  }
+}
+```
+
+Note: outputs whose `hookSpecificOutput` lacks `hookEventName` are rejected with `hookSpecificOutput is missing required field "hookEventName"`. Match `hookEventName` to the event your hook is registered on.
+
+## 5. the host's own plugin manifest shape (qoder-context 1.0.84)
+{
+  "name": "qoder-context",
+  "displayName": "Qoder Context",
+  "version": "1.0.84.f756706",
+  "description": "Wiki, retrieval engine, and more for Qoder"
+}
+
+## 6. ...and its hooks/hooks.json event keys (no hooks key in the manifest above)
+SessionStart, UserPromptSubmit

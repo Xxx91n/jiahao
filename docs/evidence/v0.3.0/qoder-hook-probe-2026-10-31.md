@@ -52,9 +52,9 @@ that v0.3.0 published its tier table with, the same way #106's correction is
 filed there. It is **not** evidence about the released v0.3.0 artifact: the v0.3.0
 tag had no Qoder plugin bundle at all. The bundle this ticket generates carries
 `version: 0.3.0` in `.qoder-plugin/plugin.json` because the emitter copies
-`package.json`, and nobody has bumped the package yet — the bump belongs to the
-next release ticket, which owns reconciling this directory's version with the tag
-that ships it.
+`package.json`, and nobody has bumped the package yet. The bump is owned by the
+next **release** ticket — the way v0.3.0's was owned by #81 — and no such ticket is
+open as of 2026-10-31, so this PR deliberately does not touch `package.json`.
 
 ## Does a turn-end event exist? Yes — `Stop`
 
@@ -176,8 +176,11 @@ Nothing below was observed, and none of it is claimed by the adapter README:
 
 - **the plugin registration surface.** `.qoder-plugin/plugin.json` plus an
   auto-discovered `hooks/hooks.json` is the shape of the host's own bundled
-  `qoder-context` plugin, and that plugin's `SessionStart` **and**
-  `UserPromptSubmit` hooks were watched firing with `exit_code=0`
+  `qoder-context` plugin (manifest keys and event names quoted in
+  [`qoder-runtime-hook-schema.txt`](qoder-runtime-hook-schema.txt) §5–6). That
+  plugin's hooks were watched firing in the host run log: `SessionStart` lines
+  carry `exit_code=0`, and `UserPromptSubmit` lines show the registration and the
+  resolved `plugin_root` but no exit code
   ([`qoder-runlog-hooks.txt`](qoder-runlog-hooks.txt)). A `Stop` hook arriving
   through the plugin path was never watched blocking: both blocks above came
   through the **settings** path.

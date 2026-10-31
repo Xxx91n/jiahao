@@ -18,14 +18,14 @@ tag 推送时 CI 跑同一条命令（`.github/workflows/ci.yml` 的 `release-ga
 
 | 步骤 | 检查什么 | 对应验收 |
 | --- | --- | --- |
-| `metadata` | tag 形如 `vX.Y.Z`；`package.json` 版本 == tag；四个插件清单版本一致且能解析；工作区干净；HEAD 就是 tag 指向的提交 | 版本号与 tag 一致 |
+| `metadata` | tag 形如 `vX.Y.Z`；`package.json` 版本 == tag；五个插件清单版本一致且能解析；工作区干净；HEAD 就是 tag 指向的提交 | 版本号与 tag 一致 |
 | `generated` | `build-adapters.js --check`：已提交的生成物 == 生成器输出 | 生成检查 |
 | `drift` | `check-drift.js`：两份 profile 片段在位，退役适配器目录没有复活 | 漂移检查 |
 | `tests` | `npm test`：全套用例，含 `test/packaging.test.js` 的打包断言 | 测试 + 打包断言 |
 | `links` | `check-doc-links.js`：包里每份 Markdown 的相对链接都落到包内（文件或目录）；指到没进 `files` 的路径即红，外链不查 | 包内文档链接可达 |
 | `artifact` | 跑测试后先确认工作区仍然干净；再打两次 `npm pack`：必须包含 / 必须排除逐条核过，两次字节相同才算可复现，算 `sha256`，算各出口目录的树哈希 | 包内容正确、产物附 SHA256、可复现 |
 | `install` | `install.js init --dry-run` 退出 0、打印目标路径；临时配置目录和临时工作目录里都没有落文件 | 安装 dry-run |
-| `egress` | 扫描会随安装跑起来的代码：没有 `http/http2/https/net/dns/tls/dgram` 的 require、没有 `fetch(` / `https.request`；`package.json` 没有安装生命周期脚本；四个插件的每条钩子命令都指向各自插件根，且平台名后缀按方言校验：`${CLAUDE_PLUGIN_ROOT}/hooks/*.js`（Claude Code / CodeBuddy），`$PLUGIN_ROOT` / `$env:PLUGIN_ROOT`（Copilot CLI），`${PLUGIN_ROOT}/hooks/*.js codex`（Codex） | 无网络外呼 |
+| `egress` | 扫描会随安装跑起来的代码：没有 `http/http2/https/net/dns/tls/dgram` 的 require、没有 `fetch(` / `https.request`；`package.json` 没有安装生命周期脚本；五个插件的每条钩子命令都指向各自插件根，且平台名后缀按方言校验：`${CLAUDE_PLUGIN_ROOT}/hooks/*.js`（Claude Code / CodeBuddy），`$PLUGIN_ROOT` / `$env:PLUGIN_ROOT`（Copilot CLI），`${PLUGIN_ROOT}/hooks/*.js codex`（Codex），`${QODER_PLUGIN_ROOT}/hooks/*.js qoder`（Qoder Desktop） | 无网络外呼 |
 | `declarations` | 本文件带着「写入范围」「无网络外呼」两节；写入范围表的行里逐个出现代码会写的路径；README 链到这里 | 写入范围声明 |
 
 顺序是刻意的：生成检查排在 `npm test` 前面，过期或手改的产物在测试之前就被抓住。测试套件不再重跑生成器改写工作区（#76 收了 #66：生成类用例只写临时目录，产物内容从内存里的生成结果读；有一条哨兵用例会临时往产物里塞手改，跑完子进程里两个曾读工作区产物的套件后恢复，用来证明手改不会被抹掉），所以这个顺序是保险，而不是唯一的保障。`artifact` 仍在打包前再看一次 `git status`：万一有测试写脏了已跟踪文件，这棵树已经不是 tag 那棵树，不能拿来算哈希。
@@ -89,7 +89,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 这条声明由门禁的 `egress` 步骤每次重跑，不是一次性的口头保证：
 
 - 扫描装到用户机器上会跑的代码：`scripts/install.js`、`scripts/resolve.js`、`hooks/`、`src/`、`jiahao-mcp/index.js`。命中网络模块（`http`/`http2`/`https`/`net`/`dns`/`tls`/`dgram`）或网络调用（`fetch(`、`https.request`）即红。
-- 四个插件目录里的钩子与 `src/` 是这些文件的逐字节副本（`generated` 步骤每次重算比对），所以扫源目录就等于扫随插件发出去的那份。
+- 五个插件目录里的钩子与 `src/` 是这些文件的逐字节副本（`generated` 步骤每次重算比对），所以扫源目录就等于扫随插件发出去的那份。
 - 扫描如果连 `scripts/install.js`、`scripts/resolve.js`、`hooks/jiahao-verdict-gate.js`、`src/evidence-log.js`、`jiahao-mcp/index.js` 都没扫到，直接红——扫不到东西的检查不算检查。
 - `package.json` 出现 `preinstall`/`install`/`postinstall`/`prepare`/`prepack` 即红；插件钩子命令只要不是包内 `hooks/*.js` 即红。
 
@@ -114,7 +114,7 @@ npm run release:gate -- --tag v0.3.0
 
 ## 已知限制
 
-- 版本号只有 `package.json` 一处，四个插件清单由生成器从它抄，不手改。
+- 版本号只有 `package.json` 一处，五个插件清单由生成器从它抄，不手改。
 - 测试套件不再改写工作区生成物（#76 收了 #66）：生成类用例只写临时目录（哨兵用例会临时往一个产物里塞手改、跑完恢复，用来证明它不会被抹掉）。门禁仍把生成检查放在测试前，打包前再查一次工作区是否干净，作为兜底。
 - 不发布到 npm：tarball 是发布产物和复跑证据，不是分发渠道。规则版走 git tag，插件版走宿主原生命令。
 - 门禁不调用官方 Agent Skills 规范校验器，也不跑标准 CLI 的真实安装；那两条在 #67。
