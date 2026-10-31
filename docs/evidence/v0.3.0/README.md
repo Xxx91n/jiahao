@@ -1,13 +1,17 @@
-# v0.3.0 real-machine acceptance (#80)
+# v0.3.0 real-machine acceptance (#80, #109)
 
 Date: 2026-10-30. Host: Windows 10.0.26100 (win32 x64). `node
 scripts/build-adapters.js` was run locally to produce the committed bundles;
 verification of `npm test`, `check:adapters`, and `check:drift` is owned by CI
 and no local test run is used as evidence here.
 
-Artifact version: the installed bundles and manifests still report `0.2.0`;
-#81 owns the `v0.3.0` bump. This directory records the acceptance for the
-v0.3.0 content.
+Artifact version: at the time #80 recorded this, the installed bundles and
+manifests still reported `0.2.0`, and #81 owned the `v0.3.0` bump. This directory
+records the acceptance for the v0.3.0 content. **Reconciled afterwards, so nobody
+has to infer it:** #81 landed and every committed manifest - `adapters/claude-code`,
+`adapters/codebuddy`, `adapters/copilot`, `adapters/codex` and, since #109,
+`adapters/qoder` - now reports `0.3.0`. The `0.2.0` above is a statement about the
+probed artifact on 2026-10-30, not about the tree you can check out today.
 
 ## Codex CLI
 
@@ -98,7 +102,32 @@ with `agy plugin uninstall jiahao` after probing; Jiahao's own runtime state
 (`.jiahao-active`, `.jiahao-profile`, and `.jiahao-evidence/`) was isolated under
 `CLAUDE_CONFIG_DIR=<temp>/jiahao-111`.
 
+For Qoder (#109) the run was **not isolated**, and could not be: a Desktop session
+is spawned by the app, so there is no `*_HOME` override to point it at. The probe
+armed a project-scope `.qoder/settings.json` in the operator's live checkout,
+gated every block on a marker string so no other session could be affected, and
+bounded the loop with its own per-session cap. Both hook config files and the
+probe's temp state were deleted afterwards; `qoder-hook-probe-2026-10-31.md`
+records the isolation state per run.
+
 ## Tier conclusion
 
-Codex CLI, GitHub Copilot CLI, and Google Antigravity are **A tier** with a live turn-end
-block on the recorded version and date. Qoder remains C tier (rules only); this probe did not change it.
+Labels follow `docs/agents/evidence-review.md` item 3: **verified** means a run in
+this directory shows it, **declared-unverified** means it is asserted from files or
+documentation and was not watched happen.
+
+**Verified - A tier**: Codex CLI 0.163.0 and GitHub Copilot CLI 1.0.105
+(2026-10-30, #80), Google Antigravity 1.2.12 (2026-10-31, #111), and Qoder CN
+Desktop 0.4.11 (2026-10-31, #109) each blocked a real turn end on the recorded
+version and date. On Qoder it was a config-registered `Stop` hook on both channels
+(exit 0 + flat `{"decision":"block"}`, and exit 2 + stderr), with
+`stop_hook_active` set on every re-entry - which supersedes this file's earlier
+line that Qoder remained C tier and that no probe had changed it.
+
+**Declared-unverified - Qoder**: the plugin registration path
+(`adapters/qoder/` installed as a Desktop plugin), `${QODER_PLUGIN_ROOT}` in a
+shell-form command, and the shipped gate's own verdict logic running under Qoder.
+All read out of the host's files; none watched happening.
+
+**Not probed**: the international Qoder Desktop 0.4.11, which keeps C tier rather
+than borrowing the CN result, and Qoder IDE/CLI, which keeps the rules-only exit.

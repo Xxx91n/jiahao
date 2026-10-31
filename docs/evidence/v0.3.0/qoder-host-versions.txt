@@ -1,0 +1,61 @@
+# host builds and config roots read from this machine on 2026-10-31
+
+$ cat "$env:LOCALAPPDATA/Qoder CN/Qoder CN Launcher/state.ini"
+schemaVersion=3
+status=healthy
+installDir=D:\Qoder CN
+appExecutable=.qoder-versions\0.4.11\Qoder CN.exe
+targetVersion=0.4.11
+updatedAt=2026-10-31T07:46:00.061Z
+
+$ cat "\C:\Users\Administrator\AppData\Local/Qoder/Qoder Launcher/state.ini"
+schemaVersion=3
+status=healthy
+installDir=D:\Qoder
+appExecutable=.qoder-versions\0.4.11\Qoder.exe
+targetVersion=0.4.11
+updatedAt=2026-10-31T08:22:34.955Z
+
+# worker runtime shipped inside each Desktop build
+$ cat <install>/resources/app.asar.unpacked/node_modules/@qoder-ai/qoder-cn-agent-sdk/dist/_worker/runtime-info.json
+{
+ "name": "qoder-worker-runtime",
+ "version": "1.1.75-hotfix.1",
+ "target": "win32-x64",
+ "commit": "cb3c036",
+ "build": {
+  "site": "cn",
+  "productName": "qoderclicn",
+  "buildEnv": "dev"
+ }
+}
+$ cat <intl install>/.../qoder-agent-sdk/dist/_worker/runtime-info.json
+{
+ "name": "qoder-worker-runtime",
+ "version": "1.1.75-hotfix.1",
+ "target": "win32-x64",
+ "commit": "cb3c036",
+ "build": {
+  "site": "global",
+  "productName": "qodercli",
+  "buildEnv": "dev"
+ }
+}
+
+# settings keys present in each config root (no hooks key before this probe)
+$ node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('C:/Users/Administrator/.qoder-cn/settings.json','utf8'));console.log(Object.keys(j).join(', '))"
+enabledPlugins, mcpServers, providers
+$ node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('C:/Users/Administrator/.qoder/settings.json','utf8'));console.log(Object.keys(j).join(', '))"
+enabledPlugins, mcpServers, providers
+
+# Qoder IDE/CLI product line: not installed on this machine, so its hook surface was never probed
+$ which qoderclicn qodercn qoder qodercli
+(no output; exit 1)
+$ echo $?
+1
+$ ls ~/.qoder-cn/bin
+7zr.exe*
+qoder-cn-computer-use/
+$ ls ~/.qoder/bin
+7zr.exe*
+qoder-computer-use/

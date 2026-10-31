@@ -59,10 +59,13 @@ test('the pack contract names the rules file, every plugin manifest and hook map
     'adapters/antigravity/plugin.json',
     'adapters/antigravity/hooks.json',
     '.agents/plugins/marketplace.json',
-    // #79: Qoder is a rules-only exit. Its rule file and install manual are
-    // required in the tarball; a hook map would be a defect, not a requirement.
+    // #79 shipped Qoder as rules-only; #109 turned it into a Desktop plugin
+    // row and kept the rule file for the IDE/CLI line, so both halves have to
+    // be in the tarball.
     'adapters/qoder/rules/jiahao.md',
     'adapters/qoder/README.md',
+    'adapters/qoder/.qoder-plugin/plugin.json',
+    'adapters/qoder/hooks/hooks.json',
     '.claude-plugin/marketplace.json',
     // #85: the write side of adjudication went missing from the repo once, and
     // a tarball without it fails only on a user's machine.
@@ -70,18 +73,38 @@ test('the pack contract names the rules file, every plugin manifest and hook map
   ]) {
     expect(REQUIRED_PACK_FILES).toContain(rel);
   }
-  expect(REQUIRED_PACK_FILES).not.toContain('adapters/qoder/hooks/hooks.json');
+  // The Qoder bundle is a Desktop plugin: its manifest is `.qoder-plugin/`, and
+  // a Claude-shaped path in the contract would be a file no host reads.
   expect(REQUIRED_PACK_FILES).not.toContain('adapters/qoder/.claude-plugin/plugin.json');
   expect(FORBIDDEN_PACK_PREFIXES).toEqual(expect.arrayContaining(['private/', 'bench/', 'docs/research/']));
 });
 
-test('the Qoder rules-only exit is packed as exactly its rule and README', () => {
-  // Exact set, not just "contains": adapters/ is whitelisted wholesale, so an
-  // untracked adapters/qoder/hooks/hooks.json would ship without this check.
-  expect(packed.filter((p) => p.startsWith('adapters/qoder/')).sort()).toEqual([
+test('the Qoder exit ships its plugin bundle, the rule file, and nothing unplanned', () => {
+  // Two directions, because adapters/ is whitelisted wholesale. The required
+  // list is written here rather than read from the generator: a file dropped
+  // from the emit set would otherwise shrink both sides of an equality and pass.
+  const required = [
+    'adapters/qoder/.qoder-plugin/plugin.json',
     'adapters/qoder/README.md',
     'adapters/qoder/rules/jiahao.md',
-  ]);
+    'adapters/qoder/hooks/hooks.json',
+    'adapters/qoder/hooks/jiahao-activate.js',
+    'adapters/qoder/hooks/jiahao-mode-tracker.js',
+    'adapters/qoder/hooks/jiahao-runtime.js',
+    'adapters/qoder/hooks/jiahao-profile.js',
+    'adapters/qoder/hooks/jiahao-verdict-gate.js',
+    'adapters/qoder/hooks/jiahao-sweep.js',
+    'adapters/qoder/src/SKILL.md',
+    'adapters/qoder/src/instrument-identity.json',
+  ];
+  const qoder = packed.filter((p) => p.startsWith('adapters/qoder/'));
+  for (const rel of required) expect(qoder).toContain(rel);
+  // #109's bundle must not need the repository: a vendored file the pack drops
+  // breaks only on the user's machine, so anything the generator emits has to be
+  // inside the tarball.
+  const { buildAdapters } = require('../scripts/build-adapters');
+  const generated = Object.keys(buildAdapters()).filter((rel) => rel.startsWith('adapters/qoder/'));
+  expect(qoder.slice().sort()).toEqual(generated.slice().sort());
 });
 
 // #77: the required list must grow with the generator, not sit one marketplace
