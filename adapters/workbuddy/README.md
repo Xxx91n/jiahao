@@ -5,7 +5,8 @@ This directory is a **self-contained plugin bundle for WorkBuddy**: the manifest
 scripts and their `require()` closure, `src/SKILL.md`, and the identity pin
 the gate loads are vendored inside; there is no third-party runtime dependency.
 Every hook command resolves through `${CODEBUDDY_PLUGIN_ROOT}`, the variable the
-host hands a plugin hook, so nothing reads from the repository root.
+shared loader sets for plugin hooks (read from the bundled CLI, not observed in
+a run), so nothing reads from the repository root.
 
 WorkBuddy is **not** a CodeBuddy alias, even though both bundle the same agent
 CLI (`@genie/agent-cli 2.165.0`). Two builds ship under two product names, two
@@ -32,7 +33,8 @@ no blocking claim for it.
 
 ## Install
 
-Two surfaces were identified; only the second one was watched blocking a turn.
+Two surfaces were identified; only the settings tier was watched blocking a
+turn.
 
 ### Settings tier (the probed surface)
 
@@ -73,16 +75,16 @@ the surface with evidence.
 
 ## Hook behavior disclosure (read before enabling)
 
-| Event | Script | Behavior |
-| --- | --- | --- |
-| SessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext |
-| UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
-| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: prints `{decision:"block", reason}` and exits 0; the zero exit is the observed channel |
-| PreToolUse | hooks/jiahao-pretool-guard.js | denies (verifier profile) tool calls that target the hook map, the plugin manifest, `jiahao-*` hook files, any `.mcp.json`, or the jiahao state/evidence files |
-| SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
+| Event | Script | Behavior | Observed on 5.9.4? |
+| --- | --- | --- | --- |
+| SessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext | no |
+| UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder | fired; its output was not read back |
+| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: prints `{decision:"block", reason}` and exits 0; the zero exit is the observed channel | **yes**, live block |
+| PreToolUse | hooks/jiahao-pretool-guard.js | denies (verifier profile) tool calls that target the hook map, the plugin manifest, `jiahao-*` hook files, any `.mcp.json`, or the jiahao state/evidence files | fired; the deny path was not exercised |
+| SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep | no |
 
-Timeouts stay inside the host budget (5/5/10/5/3s). Event names are the host's
-own PascalCase set.
+Timeouts are 5/5/10/5/3s; the host's own per-hook cap was not measured. Event
+names are the host's own PascalCase set.
 
 `SubagentStop` is deliberately **not** wired. It fires with the same payload
 shape (it carries `agent_id`, `agent_type`, and `last_assistant_message`), but
@@ -111,7 +113,7 @@ the same `hooks/jiahao-verdict-gate.js` every host runs.
 ## Live probe (2026-10-31, WorkBuddy AI 5.9.4, win32)
 
 The probe used a project-scope `.codebuddy/settings.json` in the workspace and
-the throwaway hook in `docs/evidence/v0.3.0/probes/workbuddy-stop-probe.js`.
+the throwaway hook in `docs/evidence/v0.3.0/probes/workbuddy-hook-probe.js`.
 Commands, payloads, and the recorded environment live in
 [`docs/evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md).
 

@@ -76,7 +76,9 @@ describe('configuration template', () => {
     expect(Object.keys(cfg.hooks)).not.toContain('SubagentStop');
     const readme = generated[GENERATED_PREFIX + 'README.md'];
     expect(readme).toContain('SubagentStop');
-    expect(readme).toMatch(/not\s+\*\*not\*\*|not\*\* wired|deliberately/);
+    // The exact sentence, not a keyword: a looser match passed on the word
+    // "deliberately" anywhere in the file (#110 review).
+    expect(readme).toContain('`SubagentStop` is deliberately **not** wired');
   });
 
   test('the manifest is the product-native directory and names the hook map', () => {
@@ -241,9 +243,49 @@ describe('tier disclosure', () => {
   });
 
   test('the README points at the probe artifact, and that file exists', () => {
-    const probe = path.join(__dirname, '..', 'docs', 'evidence', 'v0.3.0', 'probes', 'workbuddy-stop-probe.js');
+    const probe = path.join(__dirname, '..', 'docs', 'evidence', 'v0.3.0', 'probes', 'workbuddy-hook-probe.js');
     expect(fs.existsSync(probe)).toBe(true);
-    expect(readme).toContain('docs/evidence/v0.3.0/probes/workbuddy-stop-probe.js');
+    expect(readme).toContain('docs/evidence/v0.3.0/probes/workbuddy-hook-probe.js');
     expect(readme).toContain('workbuddy-hook-probe-2026-10-31.md');
+  });
+});
+
+describe('evidence record', () => {
+  // evidence-review.md: every number in the prose must appear in a cited file,
+  // and the hook's decision and the session id must come from the same run.
+  // The record file is the citation; this test fails if the two drift apart.
+  const evidenceDir = path.join(__dirname, '..', 'docs', 'evidence', 'v0.3.0');
+  const doc = fs.readFileSync(path.join(evidenceDir, 'workbuddy-hook-probe-2026-10-31.md'), 'utf8');
+  const records = fs.readFileSync(path.join(evidenceDir, 'workbuddy-hook-calls.jsonl'), 'utf8')
+    .trim().split('\n').map((line) => JSON.parse(line));
+
+  test('the record file carries the block and the flag pass from one session', () => {
+    const blocks = records.filter((r) => r.event === 'Stop' && r.stop_hook_active === false);
+    const passes = records.filter((r) => r.event === 'Stop' && r.stop_hook_active === true);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].decision).toBe('block');
+    expect(passes).toHaveLength(1);
+    expect(passes[0].decision).toBe('pass (stop_hook_active)');
+    const session = blocks[0].session_id;
+    expect(session).toMatch(/^[0-9a-f-]{36}$/);
+    for (const r of records) expect(r.session_id).toBe(session);
+  });
+
+  test('the numbers the document cites are the numbers in the record', () => {
+    for (const r of records) {
+      expect(doc).toContain(r.at);
+      expect(doc).toContain(r.session_id);
+    }
+    expect(doc).toContain('workbuddy-hook-calls.jsonl');
+    expect(doc).toContain('5.9.4');
+  });
+
+  test('the SubagentStop negative result is in the record, not only in prose', () => {
+    const sub = records.filter((r) => r.event === 'SubagentStop');
+    expect(sub).toHaveLength(1);
+    expect(sub[0].decision).toBe('block');
+    // One invocation: no re-entry with the flag set, which is what makes the
+    // event a non-enforcement surface.
+    expect(sub.filter((r) => r.stop_hook_active === true)).toEqual([]);
   });
 });

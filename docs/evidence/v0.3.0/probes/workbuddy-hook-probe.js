@@ -1,5 +1,5 @@
 'use strict';
-// workbuddy-stop-probe.js - throwaway hook for the #110 WorkBuddy probe.
+// workbuddy-hook-probe.js - throwaway hook for the #110 WorkBuddy probe.
 //
 // Evidence artifact, not part of any distributed bundle. It records what the
 // host actually hands a hook subprocess and, in `block-once` mode, answers the
@@ -7,7 +7,7 @@
 // the point is to watch the host's own channel, not to enforce jiahao.
 //
 // Usage (the hook command in settings.json spells this out):
-//   node <abs path>/workbuddy-stop-probe.js <mode> <log path> [marker path]
+//   node <abs path>/workbuddy-hook-probe.js <mode> <log path> [marker path]
 //     mode = log          record the payload, print nothing, exit 0
 //            block-once   record, then block the first invocation only
 //            block-always  record, then block every invocation (loop-guard probe)
@@ -76,12 +76,7 @@ const event = payload.hook_event_name || payload.hookEventName || '';
 const stopHookActive = payload.stop_hook_active === true;
 
 let decision = 'none';
-if (mode === 'block-until-active') {
-  // The shipped gate's contract: block the first finish, pass once the host
-  // marks the re-entry. No marker, so the record shows which of the two rules
-  // applied instead of a file the probe wrote itself.
-  decision = stopHookActive ? 'pass (stop_hook_active)' : 'block';
-} else if (mode === 'block-once') {
+if (mode === 'block-once') {
   if (stopHookActive) {
     decision = 'pass (stop_hook_active)';
   } else if (fs.existsSync(markerPath)) {

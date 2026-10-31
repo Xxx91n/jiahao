@@ -30,7 +30,7 @@ these files; paths inside the scripts are relative to this directory.
 
 ## WorkBuddy AI 5.9.4 (#110, 2026-10-31)
 
-- `workbuddy-stop-probe.js`: one script, three modes, used from a project-scope
+- `workbuddy-hook-probe.js`: one script, three modes, used from a project-scope
   `.codebuddy/settings.json`.
   - `log`: records the payload and the hook environment, prints nothing. Used
     for the `PreToolUse` surface probe and the `UserPromptSubmit` record.

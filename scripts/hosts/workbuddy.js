@@ -60,7 +60,7 @@ function emitHookMap(host) {
 
 // The manifest names its hook map (the same key CodeBuddy reads on this shared
 // runtime), and keeps `defaultEnabled: false`: enabling a bundle that installs
-// seven hook points should be a deliberate act. Version, license, and repository
+// five hook points should be a deliberate act. Version, license, and repository
 // come from the package like every other bundle.
 function emitManifest(ctx) {
   return JSON.stringify({
