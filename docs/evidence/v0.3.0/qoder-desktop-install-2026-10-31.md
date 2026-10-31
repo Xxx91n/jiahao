@@ -64,7 +64,7 @@ On 2026-10-31, after the install run:
 ```text
 $ ls -la ~/.qoder/rules
 ls: cannot access '/c/Users/Administrator/.qoder/rules': No such file or directory
-$ test -e ~/.qoder/rules/jiahao.md
+$ test -e ~/.qoder/rules/jiahao.md && echo present || echo absent
 absent
 ```
 
