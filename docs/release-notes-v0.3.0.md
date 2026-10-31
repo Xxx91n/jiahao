@@ -18,7 +18,7 @@
 | Codex CLI | A | 2026-10-30 实测，codex-cli 0.163.0 |
 | GitHub Copilot CLI | A | 2026-10-30 实测，Copilot CLI 1.0.105 |
 | Qoder | C | 只有规则，没有钩子；2026-10-31 重跑标准技能目录安装（Run A，exit 0，SHA 一致）；Qoder CN Desktop 0.4.11 的新会话可见性由 #106 的 Run B 记录，本窗口未重跑；Qoder IDE/CLI 规则加载仍 declared-unverified |
-| WorkBuddy（v0.3.0 未包含） | 国际版 A 档（2026-10-31 实测），国内版未测 | 2026-10-31 #110 探针回填：WorkBuddy AI 5.9.4 国际版的 `Stop` 钩子在真机会话里以 exit 0 + `{decision:"block"}` 拦下一次假完工，原因以 `Stop hook feedback` 注入；`SubagentStop` 发出同一决策但子代理未被续跑，因此只接回合结束事件。国内版 WorkBuddy 5.9.3 未做真机探针，不写「会拦」。插件出口随下一个版本发。见 [`docs/evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md`](evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md) |
+| WorkBuddy（v0.3.0 未包含） | A：国际版（2026-10-31 实测）、国内版（2026-11-01 实测） | 两个变体各跑各的探针，各有一份证据。2026-10-31 #110：WorkBuddy AI 5.9.4 国际版的 `Stop` 钩子在真机会话里以 exit 0 + `{decision:"block"}` 拦下一次假完工，原因以 `Stop hook feedback` 注入，见 [`docs/evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md`](evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md)。2026-11-01 #118：WorkBuddy 5.9.3 国内版（`D:\WorkBuddy`、配置根 `~/.workbuddy`）在同一形状下重跑出同一结果——假完工被拦、原因以 `Stop hook feedback` 续跑、重入时 `stop_hook_active` 为 `true` 并据此放行、项目级注册面仍是 `.codebuddy/settings.json`（`.workbuddy/settings.json` 双胞胎不触发），见 [`docs/evidence/v0.3.0/workbuddy-cn-hook-probe-2026-11-01.md`](evidence/v0.3.0/workbuddy-cn-hook-probe-2026-11-01.md)。两个变体共用一个 agent CLI，但国内版这一行不是从国际版推出来的。`SubagentStop` 在两个构建上都发出同一决策、都不被续跑，因此只接回合结束事件。插件出口随下一个版本发。 |
 | 规则版 | 不适用 | 只注入指令，任何宿主都没有强制 |
 
 **A 档的含义**：真实会话里 Agent 声称「做完并已验证」，宿主在回合结束前把它拦住一次，续跑后 `stop_hook_active` 为 `true` 时 gate 直接放行、不再检查 claim 与证据。也就是说拦截保证的是「不让你一句话收工」，不是「必须改口才放行」。证据形式、宿主版本、日期都落在 `docs/evidence/` 里。

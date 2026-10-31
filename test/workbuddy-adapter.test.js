@@ -219,7 +219,7 @@ describe('WorkBuddy output envelope (spawned hook, temp config dir)', () => {
 describe('tier disclosure', () => {
   const readme = generated[GENERATED_PREFIX + 'README.md'];
 
-  test('the README separates the two variants and makes the A claim for one build only', () => {
+  test('the README separates the two variants and attributes the block to a run per build', () => {
     expect(readme).toContain('WorkBuddy AI');
     expect(readme).toContain('5.9.4');
     expect(readme).toContain('5.9.3');
@@ -227,10 +227,17 @@ describe('tier disclosure', () => {
     expect(readme).toContain('~/.workbuddy');
     expect(readme).toContain('www.workbuddy.ai');
     expect(readme).toContain('www.workbuddy.cn');
-    // The domestic build has no live block, so the document must not claim one
-    // for it.
-    const domestic = readme.slice(readme.indexOf('The domestic 5.9.3 build'));
-    expect(domestic).toMatch(/no blocking claim/i);
+    // #118: both builds now carry the A claim, so the guard changed from "must
+    // not claim a block" to "must not borrow one". The domestic row has to
+    // name its own observation - the continuation channel and the flag pass -
+    // and point at its own record, because the two variants share an agent CLI
+    // and a claim inferred from that sharing is the failure this pins against.
+    const domestic = readme.slice(readme.indexOf('**Domestic** (2026-11-01'));
+    expect(domestic).toContain('Stop hook feedback');
+    expect(domestic).toContain('stop_hook_active: true');
+    expect(readme).toContain('workbuddy-cn-hook-probe-2026-11-01.md');
+    // Neither result may be presented as covering the other build.
+    expect(readme).toContain('These are two observations, not one inferred from the shared agent CLI');
   });
 
   test('the README names the surface that was probed and the one that was not', () => {
@@ -286,6 +293,54 @@ describe('evidence record', () => {
     expect(sub[0].decision).toBe('block');
     // One invocation: no re-entry with the flag set, which is what makes the
     // event a non-enforcement surface.
+    expect(sub.filter((r) => r.stop_hook_active === true)).toEqual([]);
+  });
+});
+
+describe('evidence record (domestic 5.9.3, #118)', () => {
+  // Same rule as the record above: the document's numbers must be the record's
+  // numbers, and the block and the flag pass must come from one session. The
+  // #118 record is a second run, not a re-reading of the 5.9.4 one.
+  const evidenceDir = path.join(__dirname, '..', 'docs', 'evidence', 'v0.3.0');
+  const doc = fs.readFileSync(path.join(evidenceDir, 'workbuddy-cn-hook-probe-2026-11-01.md'), 'utf8');
+  const records = fs.readFileSync(path.join(evidenceDir, 'workbuddy-cn-hook-calls.jsonl'), 'utf8')
+    .trim().split('\n').map((line) => JSON.parse(line));
+
+  test('the record carries the block and the flag pass from one domestic session', () => {
+    const blocks = records.filter((r) => r.event === 'Stop' && r.stop_hook_active === false);
+    const passes = records.filter((r) => r.event === 'Stop' && r.stop_hook_active === true);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].decision).toBe('block');
+    expect(passes).toHaveLength(1);
+    expect(passes[0].decision).toBe('pass (stop_hook_active)');
+    const session = blocks[0].session_id;
+    expect(session).toMatch(/^[0-9a-f-]{36}$/);
+    for (const r of records) expect(r.session_id).toBe(session);
+  });
+
+  test('the numbers the document cites are the numbers in the record', () => {
+    for (const r of records) {
+      expect(doc).toContain(r.at);
+      expect(doc).toContain(r.session_id);
+    }
+    expect(doc).toContain('workbuddy-cn-hook-calls.jsonl');
+    expect(doc).toContain('5.9.3');
+    // The registration-surface result is a count, so the count has to be
+    // readable off the cited file rather than asserted only in prose.
+    expect(doc).toContain('4 invocations');
+  });
+
+  test('the continuation is recorded as the host\'s own, not as a new user turn', () => {
+    const cont = records.filter((r) => r.event === 'UserPromptSubmit');
+    expect(cont).toHaveLength(1);
+    expect(cont[0].note).toContain('Stop hook feedback');
+    expect(doc).toContain('is_internal_continuation');
+  });
+
+  test('the SubagentStop negative result is in the record on this build too', () => {
+    const sub = records.filter((r) => r.event === 'SubagentStop');
+    expect(sub).toHaveLength(1);
+    expect(sub[0].decision).toBe('block');
     expect(sub.filter((r) => r.stop_hook_active === true)).toEqual([]);
   });
 });

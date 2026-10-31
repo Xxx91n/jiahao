@@ -41,7 +41,7 @@
 *避免*：手工编辑生成出来的目录、承诺规则版会按 `.jiahao-profile` 选 profile、把「规则已加载」说成「拦截已生效」。
 
 **插件版（Plugin Version）**：
-自包含的插件目录（`adapters/claude-code/`、`adapters/codebuddy/`、`adapters/copilot/`、`adapters/codex/`、`adapters/workbuddy/`）：清单、插件启用后宿主自动加载的钩子配置、钩子脚本及其 require 闭包、`src/` 副本与 SKILL 正文都在目录内；按宿主文档用原生命令安装（Claude Code 与 Codex 各经仓库根的 marketplace 清单，CodeBuddy 与 Copilot CLI 直接装目录）；只有插件版带强制拦截，且拦截按宿主档位说话（Copilot CLI 1.0.105 与 Codex CLI 0.163.0 已于 2026-10-30 真机看到收尾阻断，均记为 A 档；WorkBuddy AI 5.9.4 国际版于 2026-10-31 真机看到收尾阻断，同为 A 档，国内版 5.9.3 未实测）。安装路径的真机验证状态见各适配器说明。
+自包含的插件目录（`adapters/claude-code/`、`adapters/codebuddy/`、`adapters/copilot/`、`adapters/codex/`、`adapters/workbuddy/`）：清单、插件启用后宿主自动加载的钩子配置、钩子脚本及其 require 闭包、`src/` 副本与 SKILL 正文都在目录内；按宿主文档用原生命令安装（Claude Code 与 Codex 各经仓库根的 marketplace 清单，CodeBuddy 与 Copilot CLI 直接装目录）；只有插件版带强制拦截，且拦截按宿主档位说话（Copilot CLI 1.0.105 与 Codex CLI 0.163.0 已于 2026-10-30 真机看到收尾阻断，均记为 A 档；WorkBuddy 的两个变体各自真机看到收尾阻断：国际版 WorkBuddy AI 5.9.4 于 2026-10-31、国内版 WorkBuddy 5.9.3 于 2026-11-01，均记为 A 档；这两次观测都用探针钩子顶替发货的 gate，因此证明的是宿主的回合结束通道，不是 gate 自身的判定在真机上跑过）。安装路径的真机验证状态见各适配器说明。
 *避免*：只登记钩子却不带脚本、把插件目录说成「装上规则就生效」、把「装上」说成「真机已验证」。
 
 **出口（Exit）**：
