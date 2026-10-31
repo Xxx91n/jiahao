@@ -853,6 +853,13 @@ real session and continued the turn:
 - 6 consecutive blocks were honored before the probe's own cap ended the run, so
   no host-side consecutive-block limit was reached.
 
+Which messages got held is stated in the record, because it is not all the same
+thing: the 7 blocks through the exit-0 channel landed on "already verified"
+completion claims with no evidence behind them, while the 3 blocks through the
+exit-2 channel landed on probe literals that themselves said nothing had been
+verified. Both prove the host honors a block; only the first is a false-completion
+catch.
+
 Raw calls are in
 [\`qoder-hook-calls.jsonl\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-calls.jsonl)
 and the run record is

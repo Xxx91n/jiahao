@@ -37,9 +37,12 @@ const [fileMode, fileCap] = (() => {
   }
 })();
 const MODE = process.env.JIAHAO_QODER_PROBE_MODE || fileMode || 'observe';
-const CAP = Number.parseInt(
+// A garbage cap must not silently become "no cap": NaN would fail every `> CAP`
+// comparison and let a marker keep a live desktop session looping.
+const RAW_CAP = Number.parseInt(
   process.env.JIAHAO_QODER_PROBE_CAP || fileCap || '3', 10,
 );
+const CAP = Number.isInteger(RAW_CAP) && RAW_CAP >= 0 ? RAW_CAP : 3;
 
 // Env the host is expected to hand a hook subprocess; recording which of these
 // exist is what tells us whether hooks/jiahao-runtime.js's QODER_SESSION_ID
@@ -87,7 +90,10 @@ process.stdin.on('end', () => {
   const markerMatched = lastMessage.includes(MARKER);
 
   let action = 'pass';
-  if (event === 'Stop' && markerMatched) {
+  // Only a blocking mode may consume a block slot. Counting an observe-mode pass
+  // would burn the cap without blocking, so a session switched from observe to a
+  // blocking mode later could pass its very first block attempt.
+  if (event === 'Stop' && markerMatched && MODE !== 'observe') {
     const seen = blockCount(parsed.session_id);
     if (seen > CAP) {
       action = 'cap-reached-pass';

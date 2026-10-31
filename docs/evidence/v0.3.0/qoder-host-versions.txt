@@ -43,9 +43,9 @@ $ cat <intl install>/.../qoder-agent-sdk/dist/_worker/runtime-info.json
 }
 
 # settings keys present in each config root (no hooks key before this probe)
-$ node -e Object.keys(~/.qoder-cn/settings.json)
+$ node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('C:/Users/Administrator/.qoder-cn/settings.json','utf8'));console.log(Object.keys(j).join(', '))"
 enabledPlugins, mcpServers, providers
-$ node -e Object.keys(~/.qoder/settings.json)
+$ node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('C:/Users/Administrator/.qoder/settings.json','utf8'));console.log(Object.keys(j).join(', '))"
 enabledPlugins, mcpServers, providers
 
 # Qoder IDE/CLI product line: not installed on this machine, so its hook surface was never probed

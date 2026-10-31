@@ -85,9 +85,22 @@ block gated on a marker string. Both files were deleted afterwards. See
 
 ## Tier conclusion
 
-The two #80 hosts are **A tier** with a live turn-end block on the recorded
-version and date. #109 later answered Qoder's open probe item: **Qoder CN Desktop
-0.4.11 is A tier** (a `Stop` hook blocked and continued a real turn, twice), which
-supersedes this file's earlier line that Qoder remained C tier and did not change
-it. The international Qoder Desktop 0.4.11 was never watched blocking and stays
-C, and Qoder IDE/CLI keeps the rules-only exit.
+Labels follow `docs/agents/evidence-review.md` item 3: **verified** means a run in
+this directory shows it, **declared-unverified** means it is asserted from files
+or documentation and was not watched happen.
+
+The two #80 hosts are **A tier** - **verified**: a live turn-end block on the
+recorded version and date. #109 later answered Qoder's open probe item and is
+split the same way:
+
+- **verified** - on Qoder CN Desktop 0.4.11 a config-registered `Stop` hook blocked
+  and continued a real turn, on two channels; `stop_hook_active` was set on
+  re-entry. That makes this variant **A tier**, superseding this file's earlier
+  line that Qoder remained C tier and did not change it.
+- **declared-unverified** - the plugin registration path (`adapters/qoder/`
+  installed as a Desktop plugin), `${QODER_PLUGIN_ROOT}` in a shell-form command,
+  and the shipped gate's own verdict logic running under Qoder: read from the
+  host's files, never watched.
+- **not probed** - the international Qoder Desktop 0.4.11, which therefore keeps
+  C tier rather than borrowing the CN result, and Qoder IDE/CLI, which keeps the
+  rules-only exit.

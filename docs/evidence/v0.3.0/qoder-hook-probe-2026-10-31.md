@@ -152,7 +152,29 @@ with `"isMeta":true` whose content is the hook's reason, e.g.
 JIAHAO109-CLAIM-DONE claimed without a verification receipt; hook #109 blocked this turn end.
 ```
 
-and the model then ran another turn in the same `turnId`. So on Qoder CN Desktop:
+and the model then ran another turn in the same `turnId`.
+
+### What the blocked messages actually were — the distinction matters
+
+The gate is a marker, not a truth test, so "blocked a false completion" needs
+qualifying per channel:
+
+| Run | What the blocked last message was | blocks | counts as |
+|---|---|---|---|
+| 1 | `已确认并验证仓库 README 里出现 jiahao 这个词 …JIAHAO109-CLAIM-DONE` — the session read nothing | 1 | a genuine unverified completion claim |
+| 2 | `我已完成并验证了一个只读检查：本回合未读取文件、未运行命令 …` — same shape, repeated | 6 | a genuine unverified completion claim |
+| 3 | `探针固定文本 JIAHAO109-CLAIM-DONE：本轮我没有做任何验证，因此这句话不构成完工凭证。` | 3 | **a quoted probe literal that disclaims being a receipt** — a marker match, not a false claim |
+
+So: the channel measured for a real false-completion block is the **exit 0 + flat
+decision** one (7 blocks across runs 1–2). Runs 3's exit-2 blocks prove the
+channel carries a block and a continuation, but the message it blocked was an
+honest literal. Run 3 also produced the more interesting negative result: when
+asked plainly to claim an unverified completion, the probe session **refused**
+(call 10, `action: "pass"`, no marker) because the installed jiahao skill talked
+it out of it.
+
+Claims elsewhere (adapter README, root READMEs, release notes) are worded to match
+this split. So on Qoder CN Desktop:
 
 - **exit 0 + flat `{"decision":"block","reason":...}` blocks** — the channel the
   shared gate already prints;
@@ -212,6 +234,14 @@ A second observation worth keeping: run 3's first call logged
 claim the prompt asked for — the installed jiahao skill talked it out of it. The
 follow-up prompt asked it to quote the marker as a literal instead, which is how
 the exit-2 channel got measured.
+
+Two more changes to this script landed **after** the runs, both from review, and
+neither alters a recorded call: an invalid cap (`jsonblock six` → `NaN`) used to
+mean "never reaches the cap", so it now falls back to 3; and an observe-mode call
+used to consume a block slot, which could make a session's first real block pass
+as `cap-reached-pass` — it now counts only blocking modes. Run 1's `observe` line
+was produced under the first version of the mode bug described above, and run 3's
+`pass` line did not increment any counter, so the log stands as written.
 
 ## Declared-unverified
 
