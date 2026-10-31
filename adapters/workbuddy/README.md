@@ -50,13 +50,21 @@ project directory name: `.codebuddy`, not `.workbuddy`; a twin written to
    the evidence log, calibration, sentinel, and pairer modules from there), so a
    copy of `hooks/` alone fails before it can inject or decide anything.
 2. Merge the event map from `hooks/hooks.json` into the settings file,
-   replacing `${CODEBUDDY_PLUGIN_ROOT}` with the path you copied to.
+   replacing `${CODEBUDDY_PLUGIN_ROOT}` with the path you copied to. That value
+   is a JSON string: on Windows write the separators as `/`
+   (`D:/Workbuddy.ai/jiahao`) or escape them (`D:\\Workbuddy.ai\\jiahao`),
+   otherwise the settings file stops parsing and no hook loads at all.
 3. Append the platform name to every command, as the shipped map does
    (`... jiahao-verdict-gate.js workbuddy`). A settings-tier hook receives no
    plugin root, and the environment carries both `CODEBUDDY_*` and
    `WORKBUDDY_*` variables, so the argument is what identifies the host.
-4. Activate the jiahao profile flag: `echo full > "$HOME/.jiahao-active"` and
-   `echo verifier > "$HOME/.jiahao-profile"` (`generator` for advisory-only).
+4. Activate the jiahao profile flag in the **config directory the hooks read**:
+   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-/tmp}}"`, then
+   `echo full > "$CONFIG/.jiahao-active"` and
+   `echo verifier > "$CONFIG/.jiahao-profile"` (`generator` for advisory-only).
+   The hooks resolve `CLAUDE_CONFIG_DIR` first (`src/shared/paths.js`), so
+   writing to `$HOME` while that variable is set leaves the gate on the default
+   profile.
 5. Start a new session after changing settings. The hook map is resolved per
    turn in the probe (an edit made during a turn applied at the next turn end),
    and one turn end in three produced no invocation at all, so a mid-session
@@ -144,8 +152,10 @@ Commands, payloads, and the recorded environment live in
 
 ## Update and uninstall
 
-- Settings tier: replace the copied `hooks/` directory, keep the settings
-  entries, and start a new session.
+- Settings tier: replace the **whole copied bundle** - `hooks/` and `src/`
+  together - keep the settings entries, and start a new session. Replacing only
+  `hooks/` leaves `src/SKILL.md` and the vendored modules at the old version,
+  which is the stale half the gate reads.
 - Plugin tier: the host's own plugin commands (`codebuddy plugin remove jiahao`
   or the desktop plugin manager). Removing the bundle removes its hook map; the
   settings-tier copy, if you also installed it, is removed by hand.

@@ -242,6 +242,19 @@ describe('tier disclosure', () => {
     expect(readme).toMatch(/not `\.workbuddy`|\.codebuddy`, not `\.workbuddy`/);
   });
 
+  test('the settings-tier recipe is runnable as written', () => {
+    // Three ways the recipe failed a reader on PR #117: the copy step omitted
+    // src/, the flag went to $HOME while the hooks read CLAUDE_CONFIG_DIR, and
+    // the JSON path example had unescaped Windows separators. Each is pinned
+    // here so the prose cannot regress silently.
+    expect(readme).toContain('`hooks/`, `src/`, and\n   `src/SKILL.md` together');
+    expect(readme).toContain('CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-/tmp}}"');
+    expect(readme).toContain('D:/Workbuddy.ai/jiahao');
+    expect(readme).toMatch(/JSON string/);
+    const update = readme.slice(readme.indexOf('## Update and uninstall'));
+    expect(update).toContain('whole copied bundle');
+  });
+
   test('the README points at the probe artifact, and that file exists', () => {
     const probe = path.join(__dirname, '..', 'docs', 'evidence', 'v0.3.0', 'probes', 'workbuddy-hook-probe.js');
     expect(fs.existsSync(probe)).toBe(true);
