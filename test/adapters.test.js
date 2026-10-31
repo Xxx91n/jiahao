@@ -151,10 +151,20 @@ describe('Qoder rules-only exit (#79)', () => {
     expect(readme).toMatch(/declared-unverified|not live-probed/i);
     expect(readme).toContain('Qoder Desktop');
     expect(readme).toContain('Qoder IDE/CLI');
-    expect(readme).toContain('npx skills add');
-    expect(readme).toContain('-a qoder-cn');
     expect(readme).toContain('~/.qoder-cn/skills/jiahao/SKILL.md');
     expect(readme).not.toMatch(/\bwill block\b|\bblocks?\b|\bstops?\b|\bprevents?\b|会拦|拦截/i);
+    const desktop = readme.slice(readme.indexOf('## Qoder Desktop'), readme.indexOf('## Qoder IDE/CLI'));
+    expect(desktop).toContain('npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy');
+    expect(desktop).toContain('qoder-desktop-install-2026-10-31.md');
+  });
+
+  test('the install evidence file carries the numbers the docs cite', () => {
+    const evidence = fs.readFileSync(
+      path.join(root, 'docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md'), 'utf8');
+    expect(evidence).toContain('0.4.11');
+    expect(evidence).toContain('exit 0');
+    expect(evidence).toContain('~/.qoder-cn/skills/jiahao/SKILL.md');
+    expect(evidence).toContain('1ff7e45df7a0b5ec38e617b5f6be46627401a157213e48b7d5100c9a0ce61fc9');
   });
 
   test('both READMEs point Desktop at the standard skill directory and stop offering the IDE rules path', () => {
@@ -184,6 +194,12 @@ describe('Qoder rules-only exit (#79)', () => {
       expect(section).toContain('~/.qoder-cn/skills/jiahao/SKILL.md');
       expect(section).toContain('.qoder/rules/');
       expect(section).not.toContain('~/.qoder/rules');
+    }
+    const enDesktop = enQoder.slice(0, enQoder.indexOf('**Qoder IDE/CLI**'));
+    const zhDesktop = zhQoder.slice(0, zhQoder.indexOf('**Qoder IDE/CLI**'));
+    for (const section of [enDesktop, zhDesktop]) {
+      expect(section).toContain('npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy');
+      expect(section).toContain('qoder-desktop-install-2026-10-31.md');
     }
   });
 });

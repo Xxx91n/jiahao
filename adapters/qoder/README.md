@@ -22,25 +22,24 @@ Install the rules version into the host's standard skills directory:
 
 ```bash
 npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # Qoder CN
-npx skills add Xxx91n/jiahao -g -a qoder -y --copy      # international Qoder Desktop
+npx skills add Xxx91n/jiahao -g -a qoder -y --copy      # international alias (not live-probed here)
 ```
 
-- Qoder CN lands `~/.qoder-cn/skills/jiahao/SKILL.md`. This was live-checked
-  on 2026-10-31 with Qoder CN Desktop 0.4.11: exit 0; the installed file's
-  SHA-256 was `1ff7e45df7a0b5ec38e617b5f6be46627401a157213e48b7d5100c9a0ce61fc9`,
-  the same as `git show v0.3.0:skills/jiahao/SKILL.md`; and a fresh session
-  answered that the `jiahao` skill was present, that its description contains
-  "No receipt, no claim", and that it lives under `~/.qoder-cn/skills/jiahao`.
-- The international Desktop alias writes `~/.qoder/skills/jiahao/SKILL.md`.
-  The layout is the same, but this path was not live-probed here; treat its
-  loading as declared-unverified.
+- Qoder CN lands `~/.qoder-cn/skills/jiahao/SKILL.md`. On 2026-10-31 the
+  command exited 0, the installed file's SHA-256 matched
+  `skills/jiahao/SKILL.md`, and #106 records a fresh session seeing the skill.
+  The run record is
+  [qoder-desktop-install-2026-10-31.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md).
+- The international alias writes `~/.qoder/skills/jiahao/SKILL.md` according to
+  the skills CLI's host matrix; loading there was not live-probed here, so it
+  stays declared-unverified.
 - The install is plain text: no hook runs and nothing is enforced.
 
 Do not copy this directory's rule file into a Qoder Desktop rules path. On
 Qoder CN the config root is `~/.qoder-cn`; the `~/.qoder` tree belongs to the
 other Qoder product line, and Desktop does not read its `rules/` directory.
 
-## Qoder IDE/CLI (1.x product)
+## Qoder IDE/CLI
 
 The IDE/CLI line reads project rules from `.qoder/rules/`
 (https://docs.qoder.com/zh/user-guide/rules). This directory is that exit:
@@ -52,6 +51,9 @@ The IDE/CLI line reads project rules from `.qoder/rules/`
 3. Start a new Qoder session. The file is plain Markdown; no script runs and
    nothing needs installing.
 
+The project-level path is the one Qoder's rules documentation names; a
+user-level rules directory is not documented there and is not offered here.
+
 The rule body carries both profiles (generator and verifier), exactly like the
 rules version. The host takes what it needs; there is no `.jiahao-profile`
 switch here because no hook reads that file.
@@ -60,9 +62,12 @@ switch here because no hook reads that file.
 
 - Structural facts are pinned by tests: this directory contains only the rule
   file and this README, and no hook registration.
-- Live-checked for Qoder Desktop (Qoder CN Desktop 0.4.11, 2026-10-31): the
-  rules version installed through `npx skills add ... -a qoder-cn` and loaded
-  in a fresh session. That is the Desktop path, not this directory.
+- Live-checked for Qoder Desktop (Qoder CN Desktop 0.4.11, 2026-10-31): install
+  exit 0, the file at `~/.qoder-cn/skills/jiahao/SKILL.md`, and a SHA-256 match
+  with `skills/jiahao/SKILL.md`. That is the Desktop path, not this directory.
+  The fresh-session visibility is issue-attested in #106, not re-run here; the
+  install wrote to the operator's real `~/.qoder-cn` and overwrote an existing
+  file with identical bytes, so no isolated config directory was used.
 - Not live-probed: Qoder IDE/CLI rule loading. The behavior in the IDE/CLI
   steps is quoted from Qoder's documentation, not observed here.
 - C tier is the probe list's open question, not a claim about what Qoder can do.

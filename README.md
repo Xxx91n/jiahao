@@ -42,9 +42,9 @@ Qoder has two product lines and they read different paths. **Qoder Desktop** (th
 npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # Qoder CN → ~/.qoder-cn/skills/jiahao/SKILL.md
 ```
 
-Verified live on 2026-10-31 with Qoder CN Desktop 0.4.11: exit 0, the installed `SKILL.md` SHA-256 equal to the repository's `skills/jiahao/SKILL.md`, and a fresh session loaded the skill. The international Qoder Desktop uses the same command with `-a qoder` (→ `~/.qoder/skills/jiahao/SKILL.md`); that path was not live-probed here. Either way this is rules only: it has no enforcement.
+The 2026-10-31 run exited 0, the installed `SKILL.md` SHA-256 matched the repository's `skills/jiahao/SKILL.md`, and a fresh session reported the skill visible (see the [run record](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md); the fresh-session observation is issue-attested in #106, not re-run here). The international alias is `-a qoder`; its landing path and loading were not live-probed here. Either way this is rules only: it has no enforcement.
 
-**Qoder IDE/CLI** (the 1.x line that was renamed from Desktop) reads project rules at `.qoder/rules/`. That is what [`adapters/qoder/`](adapters/qoder/) is for: one rule file generated from the same source and no hooks. Copy `rules/jiahao.md` into `.qoder/rules/`; the host-side loading there is declared-unverified, not live-probed. The directory README carries both install paths and the verification status.
+**Qoder IDE/CLI** reads project rules at `.qoder/rules/`. That is what [`adapters/qoder/`](adapters/qoder/) is for: one rule file generated from the same source and no hooks. Copy `rules/jiahao.md` into `.qoder/rules/`; the host-side loading there is declared-unverified, not live-probed. The directory README carries both install paths and the verification status.
 
 ### Plugin version — host-native command, with hooks
 

@@ -42,9 +42,9 @@ Qoder 现在有两个产品，读的路径不同。**Qoder Desktop**（0.x 工�
 npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # Qoder CN → ~/.qoder-cn/skills/jiahao/SKILL.md
 ```
 
-2026-10-31 在 Qoder CN Desktop 0.4.11 真机复核：exit 0，落地的 `SKILL.md` 与仓库里的 `skills/jiahao/SKILL.md` SHA-256 一致，新开独立会话能读到该技能。国际版 Qoder Desktop 用同一条命令、宿主名换成 `-a qoder`（→ `~/.qoder/skills/jiahao/SKILL.md`），这条路径本机尚未真机验证。两种都只加载规则，没有强制。
+2026-10-31 的安装命令 exit 0，落地的 `SKILL.md` 与仓库里的 `skills/jiahao/SKILL.md` SHA-256 一致；新开独立会话能看到该技能（见[运行记录](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md)；这条会话观察来自 #106，本次未重跑）。国际版别名是 `-a qoder`，其落地路径与加载本机尚未真机验证。两种都只加载规则，没有强制。
 
-**Qoder IDE/CLI**（原 Desktop 改名而来的 1.x 线）读取项目级 `.qoder/rules/`。这正是 [`adapters/qoder/`](adapters/qoder/) 的用途：规则文件与规则版同源，没有任何钩子。把 `rules/jiahao.md` 复制到 `.qoder/rules/`；这条路径的宿主加载行为属于 declared-unverified，尚未真机验证。两条安装路径与验证状态见该目录 README。
+**Qoder IDE/CLI** 读取项目级 `.qoder/rules/`。这正是 [`adapters/qoder/`](adapters/qoder/) 的用途：规则文件与规则版同源，没有任何钩子。把 `rules/jiahao.md` 复制到 `.qoder/rules/`；这条路径的宿主加载行为属于 declared-unverified，尚未真机验证。两条安装路径与验证状态见该目录 README。
 
 ### 插件版 —— 宿主原生命令，带钩子
 
