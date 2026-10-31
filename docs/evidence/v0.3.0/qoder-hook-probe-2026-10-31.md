@@ -16,12 +16,13 @@ and the release gate tie that bundle to its commit.
 | Variant | Tier | Basis |
 |---|---|---|
 | Qoder CN Desktop 0.4.11 | **A** | a `Stop` hook blocked and continued a real turn twice, through two channels (this record) |
-| Qoder international Desktop 0.4.11 | **C, unchanged** | same worker runtime and the same settings keys, but no turn was ever watched blocking there, so #109's own rule keeps it at C |
+| Qoder international Desktop 0.4.11 | **A, by its own probe** | this record left it at C because no turn was watched blocking there; #113 probed that build separately on 2026-11-01 and watched the same two channels block and continue - see [qoder-intl-hook-probe-2026-11-01.md](qoder-intl-hook-probe-2026-11-01.md). That later record is the evidence; nothing below was borrowed from this one. |
 | Qoder IDE/CLI | **C, unchanged** | the rules exit at `adapters/qoder/rules/`; no Qoder CLI is installed on this machine, so its hook surface was not probed at all |
 
 The international build was **not** substituted for by the CN result. Its own
-probe is a separate ticket; the row's provenance and the adapter README name the
-CN build as the only A-tier claim.
+probe is a separate ticket; when this record was written the row's provenance and
+the adapter README named the CN build as the only A-tier claim, and #113 has
+since added the second claim on its own evidence.
 
 ## Versions, config roots, and where a hook config lives
 

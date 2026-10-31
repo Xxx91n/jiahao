@@ -824,8 +824,8 @@ deviations ride errata records).
 
 
 // Qoder install manual. One directory, three surfaces with three different
-// claims: the Desktop plugin bundle (A tier on the single build that was watched
-// blocking a turn end), the rules version's standard skill directory (#106, text
+// claims: the Desktop plugin bundle (A tier on each Desktop build, each measured
+// by its own probe), the rules version's standard skill directory (#106, text
 // only), and the IDE/CLI rule file (text only). The wording keeps the surfaces
 // apart so neither the skill directory nor `.qoder/rules/` reads as a hook, and
 // so the blocking claim names the build it was observed on.
@@ -920,8 +920,11 @@ inheriting it:
 Which messages got held: **5** blocks landed on "I completed and verified a
 read-only check" claims that were unfounded on their face (runs 1, 3, 4), and
 **1** landed on a literal that itself said nothing had been verified (run 2,
-exit-2 channel). As on CN, the exit-2 run proves the channel carries a block and
-a continuation, not a false-completion catch.
+exit-2 channel). The 5 were dictated by the probe prompt (the model was told to
+emit that sentence verbatim), so they prove the block fires on a self-
+contradictory claim, not that the model invented one. As on CN, the exit-2 run
+proves the channel carries a block and a continuation, not a false-completion
+catch.
 
 Counts agree: 10 hook calls in
 [\`qoder-intl-hook-calls.jsonl\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-hook-calls.jsonl)
@@ -943,8 +946,11 @@ The host's bundled \`qoder-context\` plugin shows the plugin path carries a
 - its \`Stop\` hooks finished with \`exit_code=0\` in the host run log
   (\`source="plugins"\`, \`plugin_root="...\\.qoder\\plugins\\cache\\qoderapp-bundler\\qoder-context\\1.0.84.f756706"\`),
   appended to [\`qoder-intl-runlog-probe-hooks.txt\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-runlog-probe-hooks.txt);
-- \`\${QODER_PLUGIN_ROOT}\` resolved there in exec form (\`command\` + \`args\`), which
-  is the form that plugin uses.
+- \`\${QODER_PLUGIN_ROOT}\` is the placeholder that plugin spells; it uses exec form
+  (\`command\` + \`args\`), and its hooks finished with \`exit_code=0\`, which is
+  consistent with the root being substituted - but the logged line fields keep
+  the literal, so this is not a direct observation of the substitution. Shell-form
+  expansion is unproven - see the placeholder bullet below.
 
 The CN build ships a different map at the same version string - \`SessionStart\` 1,
 \`UserPromptSubmit\` 2, no \`Stop\` - so this is a fact about the international
@@ -954,13 +960,13 @@ unproven is this bundle blocking through the plugin path: see
 
 ## Declared-unverified on this host
 
-- **This bundle installed as a plugin.** The host's own bundled plugin proves the
-  plugin path carries a \`Stop\` event on the international build (see "Plugin path
-  on the international build" above), but a \`Stop\` hook arriving through the
-  *plugin* path has not been watched **blocking** a turn on either build - every
-  live block above came through the settings path. Installing this directory as a
-  plugin is expected to work, not proven to work.
-- **The shipped gate on this host.** The two blocks were produced by the probe
+- **The plugin registration surface, for this bundle.** The host's own bundled
+  plugin proves the plugin path carries a \`Stop\` event on the international build
+  (see "Plugin path on the international build" above), but a \`Stop\` hook
+  arriving through the *plugin* path has not been watched **blocking** a turn on
+  either build - every live block above came through the settings path.
+  Installing this directory as a plugin is expected to work, not proven to work.
+- **The shipped gate on this host.** Every block above was produced by the probe
   script, not by \`jiahao-verdict-gate.js\`. What is verified is the host channel
   (a \`Stop\` hook can block and continue a turn here), not this bundle's verdict
   logic running under Qoder.

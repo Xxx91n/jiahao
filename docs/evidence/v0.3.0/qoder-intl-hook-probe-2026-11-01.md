@@ -9,8 +9,10 @@ Baseline: this ran in the worktree `D:\Aworker\wt-qoder-intl-113` on branch
 #109 into `main`). The hook that fired was
 [`probes/qoder-intl-probe-hook.js`](probes/qoder-intl-probe-hook.js), a log-path
 shim over the #109 probe `probes/qoder-stop-probe.js` — the probe script, not
-the shipped bundle. The bundle this record informs is generated from the host
-table in the commit these artifacts land in.
+the shipped bundle. Nothing was probed against the shipped bundle; the bundle
+this record informs is generated from the host table, and
+`node scripts/build-adapters.js --check` is what ties that generated bundle to
+the commit these artifacts land in.
 
 ## Verdict per variant
 
@@ -40,7 +42,11 @@ and raw output:
 - `state.ini` (launcher): `installDir=D:\Qoder`, `targetVersion=0.4.11`.
 - Worker runtime `qoder-worker-runtime 1.1.75-hotfix.1`, commit `cb3c036`,
   `win32-x64`, `build.site = global`, `productName = qodercli` — the same
-  runtime version and commit as the CN build, but a different site/product.
+  runtime version and commit as the CN build, but a different site/product. Read
+  from `.qoder-versions\0.4.11\resources\...`, the tree the running app loads;
+  `D:\Qoder\resources\...` (the launcher's `installDir`) holds an older
+  `1.1.75` / `793448a` and both paths are quoted in the artifact so the number
+  reproduces.
 - Config root, read from a subprocess this app spawned:
   `QODER_CONFIG_DIR = C:\Users\Administrator\.qoder`.
 - `~/.qoder/settings.json` had exactly `enabledPlugins, mcpServers, providers`
@@ -121,8 +127,11 @@ timeout:  10
 registered in: D:\Aworker\photo\.qoder\settings.json   (project scope, Stop)
 ```
 
-That argv is recorded verbatim on every call in `qoder-intl-hook-calls.jsonl`,
-so the command, the hook's exit code and the session id all come from the same
+The full config file is quoted in
+[`qoder-intl-host-versions.txt`](qoder-intl-host-versions.txt); the calls
+themselves record only the trailing origin label (`argv: ["intl-origin-dot-qoder"]`),
+which is what shows which of the two armed files fired. The command, the hook's
+exit code and the session id all come from the same
 run. What the model was asked is in the record per run; run 1's whole prompt was
 "output this line verbatim, run no tools".
 
@@ -174,7 +183,7 @@ greater length, with the model writing the contradiction itself.
   8, 9 and 10 of `qoder-intl-hook-calls.jsonl`. The first `Stop` of a fresh
   session (calls 1, 3, 5, 7) reports `false`.
 - **No host-side consecutive-block limit was reached.** Run 4 was blocked and
-  continued 3 times in a row (calls 7–9, 7s and 5s apart), and the run ended
+  continued 3 times in a row (calls 7–9, 6.7s and 5.5s apart), and the run ended
   because the probe's own cap (`mode.txt` = `jsonblock 3`) let the 4th `Stop`
   pass: the log records `action: "cap-reached-pass"` and the host logged
   `exit_code=0`. The bound that stopped the loop was the wrapper, not the host.
@@ -240,7 +249,11 @@ side is the file read in
 [`qoder-runtime-hook-schema.txt`](qoder-runtime-hook-schema.txt) §6, which lists
 two events. Note this is a **file-plus-log** observation of the host's own
 plugin, not of this bundle: it shows the plugin path can deliver a `Stop` on the
-international build, and that `${QODER_PLUGIN_ROOT}` resolves in exec form there.
+international build. What is *not* shown: the `display_text`/`hookName` fields keep
+the placeholder literal (`${QODER_PLUGIN_ROOT}/bin/qoder-context-hook.exe`), so
+those hooks ran with the root substituted is inferred from `exit_code=0` and the
+binary being present at the logged `plugin_root`, not watched in a separately
+substituted command line. Shell-form `node "..."` expansion remains unproven.
 It does not show this bundle blocking, and the adapter README keeps that
 distinction.
 

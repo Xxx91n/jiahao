@@ -75,8 +75,14 @@ gone on this machine.
 
 `-a qoder` is in the skills CLI's host matrix and writes `~/.qoder/skills/`.
 Those landing and loading claims are **declared-unverified** here: no
-international Desktop session was run, and this machine's `~/.qoder` belongs to
-the other Qoder product line.
+international Desktop session was run in this record.
+
+Correction (2026-11-01, #113): this record used to say `~/.qoder` "belongs to the
+other Qoder product line". It does not. A hook subprocess spawned by the
+international Desktop reports `QODER_CONFIG_DIR=C:\Users\Administrator\.qoder`,
+so `~/.qoder` **is** that build's config root; `~/.qoder-cn` is the CN build's.
+The skills-CLI landing and loading for the international alias remain
+declared-unverified - that part of this section stands.
 
 ## Reproduction
 
