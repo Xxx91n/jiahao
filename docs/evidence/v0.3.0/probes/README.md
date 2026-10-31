@@ -27,3 +27,9 @@ these files; paths inside the scripts are relative to this directory.
   own exit/stdout/stderr, then replays them.
 - `copilot-exit2.js`: emits the decision field but exits 2. Observed: hook exit
   2; the host logged it as failed and the turn ended without a continuation.
+
+## Google Antigravity 1.2.12 (#111)
+
+- `antigravity-exit2.js`: Stop hook, exit 2 + stderr. Observed: hook failed with exit status 2, turn ended without continuation.
+- `antigravity-always-block.js`: Stop hook, exit 0 + decision block every time. Observed: 10 forced continuations (10 Stop invocations, executionNum 0 through 9 blocked), then the host ended the turn at `MAX_FORCED_INVOCATIONS`.
+- `antigravity-hook-wrapper.js`: wraps the installed gate, logs the hook's own stdin/stdout/stderr/exit, then replays them. Used for `../antigravity-hook-exit.txt`.

@@ -55,6 +55,9 @@ test('the pack contract names the rules file, every plugin manifest and hook map
     // #77: Codex ships its own manifest location and the second marketplace.
     'adapters/codex/.codex-plugin/plugin.json',
     'adapters/codex/hooks/hooks.json',
+    // #111: Antigravity ships native plugin.json and hooks.json at root.
+    'adapters/antigravity/plugin.json',
+    'adapters/antigravity/hooks.json',
     '.agents/plugins/marketplace.json',
     // #79: Qoder is a rules-only exit. Its rule file and install manual are
     // required in the tarball; a hook map would be a defect, not a requirement.

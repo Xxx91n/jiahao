@@ -17,6 +17,7 @@
 | CodeBuddy | A 档候选（脚本级已验证，宿主级未验） | 宿主版本 CodeBuddy Code CLI 2.151.0（`settings.json` 路径实测于 v0.2.0），**没有带日期的宿主级 Stop 拦截结果**；CLI 安装路径仍是 declared-unverified |
 | Codex CLI | A | 2026-10-30 实测，codex-cli 0.163.0 |
 | GitHub Copilot CLI | A | 2026-10-30 实测，Copilot CLI 1.0.105 |
+| Google Antigravity | A | 2026-10-31 实测，Google Antigravity 1.2.12 (#111) |
 | Qoder | C | 只有规则，没有钩子；2026-10-31 重跑标准技能目录安装（Run A，exit 0，SHA 一致）；Qoder CN Desktop 0.4.11 的新会话可见性由 #106 的 Run B 记录，本窗口未重跑；Qoder IDE/CLI 规则加载仍 declared-unverified |
 | 规则版 | 不适用 | 只注入指令，任何宿主都没有强制 |
 
@@ -47,10 +48,18 @@ Claude Code 与 CodeBuddy 在 v0.2.0 就带着钩子发布，本版本没有改�
 - 会读 `.claude/settings.json`：手写的 Claude 形状 Stop 被识别为 `agentStop decision=block` 并续跑。但 jiahao 走的是插件安装，不是这个文件。
 - 上限：连续 8 次阻断后续跑，第 9 次阻断不再续跑，CLI 结束。
 
-## 两条已知边界（不要省略）
+**Google Antigravity 1.2.12 (#111)**
+
+- 安装：`agy plugin install <repo>/adapters/antigravity`，exit 0，`agy plugin list` 显示 `hooks: 1 processed`。
+- `Stop` 返回 `{"decision":"block"}`（exit 0），理由作为 `<SYSTEM_MESSAGE>` 注入；第二次 `Stop`（`executionNum: 1` 映射为 `stop_hook_active`）放行。
+- exit 2 被记为 failed hook，不阻断。
+- 上限：连续 10 次阻断后达到 `MAX_FORCED_INVOCATIONS`，CLI 结束。
+
+## 已知边界（不要省略）
 
 1. **Codex 的 `/hooks` 交互式信任流程没有逐步实测。** 实测过的是：不受信任时钩子被跳过、`--dangerously-bypass-hook-trust` 能放行。无人值守场景必须先持久化信任，或显式用这个开关。
 2. **Copilot 的阻断有 8 次上限。** 一个永远不放行的判定会在第 9 次被宿主默默结束回合，结果是「没拦住但看起来结束得正常」。
+3. **Antigravity 的阻断有 10 次上限。** 连续 10 次阻断后达到 `MAX_FORCED_INVOCATIONS`，会话被宿主终止。
 
 ## 本版本修掉的三条拦截缺陷（#75）
 
@@ -68,6 +77,7 @@ Claude Code 与 CodeBuddy 在 v0.2.0 就带着钩子发布，本版本没有改�
 - Claude Code：`claude plugin marketplace update jiahao` → `claude plugin update jiahao@jiahao`
 - Codex：`codex plugin marketplace upgrade jiahao` → `codex plugin add jiahao --marketplace jiahao`
 - Copilot：用宿主自己的插件命令重装目录
+- Google Antigravity：`agy plugin install <repo>/adapters/antigravity`
 - CodeBuddy：宿主自己的插件路径，或用新 bundle 重做 settings 合并
 - Qoder Desktop（C 档）：重跑 `npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy`（国际版别名 `-a qoder`，未真机验证），再开新会话
 - Qoder IDE/CLI（C 档）：重新复制 `adapters/qoder/rules/jiahao.md` 到项目的 `.qoder/rules/`
@@ -76,7 +86,7 @@ Claude Code 与 CodeBuddy 在 v0.2.0 就带着钩子发布，本版本没有改�
 
 ## 降级与卸载
 
-**先看一个事实**：v0.2.0 的 `adapters/` 里只有 `claude-code` 和 `codebuddy`。Codex、Copilot、Qoder 三个出口是本版本新增的，v0.2.0 里没有对应目录——对它们来说没有「降级」，只有「卸载」。
+**先看一个事实**：v0.2.0 的 `adapters/` 里只有 `claude-code` 和 `codebuddy`。Codex、Copilot、Qoder、Antigravity 四个出口是本版本新增的，v0.2.0 里没有对应目录——对它们来说没有「降级」，只有「卸载」。
 
 下面每条都标了实测状态；命令在本机隔离的 `CODEX_HOME` / `COPILOT_HOME` / `CLAUDE_CONFIG_DIR` 下跑过，不碰你日常的插件状态。
 
@@ -130,6 +140,15 @@ Plugin "jiahao" uninstalled successfully.                        # exit 0
 ```
 
 注意 `copilot plugin install <任意目录>` 也返回 0，退出码不能用来判断装对了没有；要核对 `copilot plugin list`。
+
+**Google Antigravity — 实测可卸载**
+
+```bash
+agy plugin uninstall jiahao
+Uninstalled plugin "jiahao"                                      # exit 0
+agy plugin list
+# { "imports": [] }
+```
 
 **CodeBuddy**：CLI 安装路径本身 declared-unverified。卸载走宿主自己的插件命令，或恢复安装前的 `.codebuddy/settings.json` 备份；这一步本机没实测。
 

@@ -3,7 +3,7 @@
 
 // The platform names this module can answer for. Kept next to the branches
 // below so a name a config template passes can never be a name with no shape.
-const PLATFORMS = ['claude', 'codex', 'copilot', 'qoder', 'codebuddy'];
+const PLATFORMS = ['claude', 'codex', 'copilot', 'qoder', 'codebuddy', 'antigravity'];
 
 // Host detection, in two steps:
 //   1. An explicit platform name as the hook's first argument. The host config
@@ -35,9 +35,10 @@ function detectHost() {
 // are not renamed here.
 function normalizePayload(parsed) {
   const p = (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
-  const sessionId = p.session_id || p.sessionId || null;
+  const sessionId = p.session_id || p.sessionId || p.conversationId || null;
   const agentType = p.agent_type || p.agentType || p.agentName || '';
-  return Object.assign({}, p, { session_id: sessionId, agent_type: agentType });
+  const stopHookActive = p.stop_hook_active === true || (typeof p.executionNum === 'number' && p.executionNum > 0);
+  return Object.assign({}, p, { session_id: sessionId, agent_type: agentType, stop_hook_active: stopHookActive });
 }
 
 // Write hook output in the format the current host expects.
@@ -76,6 +77,25 @@ function writeHookOutput(text, event) {
         additionalContext: trimmed,
       },
     }));
+  } else if (host === 'antigravity') {
+    if (event === 'SessionStart') {
+      console.log(JSON.stringify({
+        injectSteps: [
+          {
+            systemMessage: {
+              systemMessage: trimmed,
+            },
+          },
+        ],
+      }));
+    } else {
+      console.log(JSON.stringify({
+        hookSpecificOutput: {
+          hookEventName: event,
+          additionalContext: trimmed,
+        },
+      }));
+    }
   } else {
     // Native Claude Code: SessionStart = plain stdout, SubagentStart = JSON
     if (event === 'SessionStart') {
@@ -91,11 +111,11 @@ function writeHookOutput(text, event) {
   }
 }
 
-// Exit code that carries a block decision. Codex 0.163.0 and Copilot CLI
-// 1.0.105 (win32, probed 2026-10-30, #80) only continued the turn on exit 0;
-// Claude-shaped hosts block on exit 2. The Codex stderr copy is a log aid on
-// its exit-0 path, not the block channel.
-const BLOCK_EXIT_CODES = Object.freeze({ codex: 0, copilot: 0, claude: 2, codebuddy: 2 });
+// Exit code that carries a block decision. Codex 0.163.0, Copilot CLI
+// 1.0.105, and Antigravity 1.2.12 (win32, #80/#111) only continued the turn on
+// exit 0; Claude-shaped hosts block on exit 2. The Codex stderr copy is a log aid
+// on its exit-0 path, not the block channel.
+const BLOCK_EXIT_CODES = Object.freeze({ codex: 0, copilot: 0, antigravity: 0, claude: 2, codebuddy: 2 });
 
 function writeBlockOutput(reason) {
   console.log(JSON.stringify({ decision: 'block', reason: reason }));
