@@ -6,13 +6,15 @@
 // the host table. This file pins the Qoder-specific shape the live probe left
 // behind, so a regeneration cannot quietly change it:
 //   1. the hook map registers `Stop` (the event #109 watched block and continue a
-//      real turn), `SessionStart` and `UserPromptSubmit` (both watched firing on
-//      this host, but only as the host's own bundled plugin's hooks - never as
-//      this bundle's), plus `SessionEnd` for the sweep the sentinel-reclamation
-//      invariant requires (never observed on this host). Every command passes the
-//      platform name `qoder`, because the hook subprocess gets no
-//      QODER_SESSION_ID and an argv-less command would answer with the Claude
-//      envelope instead;
+//      real turn), `SessionStart` and `UserPromptSubmit` (both watched being
+//      invoked on this host, but only as the host's own bundled plugin's hooks -
+//      the run log records `SessionStart` with `exit_code=0` and
+//      `UserPromptSubmit` as registered with no exit code logged, and never as
+//      this bundle's registration), plus `SessionEnd` for the sweep the
+//      sentinel-reclamation invariant requires (never observed on this host).
+//      Every command passes the platform name `qoder`, because the hook
+//      subprocess gets no QODER_SESSION_ID and an argv-less command would answer
+//      with the Claude envelope instead;
 //   2. the injection events answer with the hookSpecificOutput envelope - the
 //      shape the host's schema asks for, asserted by spawning our script, not by
 //      watching this host deliver it;

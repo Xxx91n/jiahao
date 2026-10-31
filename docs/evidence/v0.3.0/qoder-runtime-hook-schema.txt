@@ -47,3 +47,20 @@ Note: outputs whose `hookSpecificOutput` lacks `hookEventName` are rejected with
 
 ## 6. ...and its hooks/hooks.json event keys (no hooks key in the manifest above)
 SessionStart, UserPromptSubmit
+
+## 7. the plugin path itself, as installed (this is where .qoder-plugin/ and hooks/hooks.json live)
+$ ls -1a <cache>/qoder-context/1.0.84.f756706
+.qoder-plugin/
+README.md
+bin/
+hooks/
+mcp.json
+runtime/
+
+$ cat .qoder-plugin/plugin.json  (path: /c/Users/Administrator/.qoder-cn/plugins/cache/qoderapp-bundler/qoder-context/1.0.84.f756706/.qoder-plugin/plugin.json)
+(contents in §5 — that manifest carries no `hooks` key, yet §6's file is loaded)
+
+## 8. the placeholder as the host writes it, from its hooks/hooks.json
+SessionStart: command=${QODER_PLUGIN_ROOT}/bin/qoder-context-hook.exe args=["qoder-context-prompt"]
+UserPromptSubmit: command=${QODER_PLUGIN_ROOT}/bin/qoder-context-hook.exe args=["user-prompt-submit"]
+UserPromptSubmit: command=${QODER_PLUGIN_ROOT}/bin/qoder-context-hook.exe args=["qoder-context-prompt"]

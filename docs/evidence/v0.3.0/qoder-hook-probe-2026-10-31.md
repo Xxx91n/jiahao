@@ -54,9 +54,12 @@ that v0.3.0 published its tier table with, the same way #106's correction is
 filed there. It is **not** evidence about the released v0.3.0 artifact: the v0.3.0
 tag had no Qoder plugin bundle at all. The bundle this ticket generates carries
 `version: 0.3.0` in `.qoder-plugin/plugin.json` because the emitter copies
-`package.json`, and nobody has bumped the package yet. The bump is owned by the
-next **release** ticket — the way v0.3.0's was owned by #81 — and no such ticket is
-open as of 2026-10-31, so this PR deliberately does not touch `package.json`.
+`package.json`, and this PR does not bump it: the next version number is owned by
+the next **release** ticket — the way v0.3.0's bump was owned by #81 — and no such
+ticket is open as of 2026-10-31. So `0.3.0` here means "the released 0.3.0 package
+version", and the bundle carrying it is new content that 0.3.0 never shipped; a
+reader who installs `v0.3.0` from the tag will not find `adapters/qoder/hooks/` at
+all (the tag's Qoder row is the rules-only exit).
 
 ## Does a turn-end event exist? Yes — `Stop`
 
@@ -90,8 +93,10 @@ argv. That is why the generated `hooks/hooks.json` ends every command with
 ### What that leaves the shipped gate unable to find (measured, 2026-10-31)
 
 A second observe-only call (line 15 of `qoder-hook-calls.jsonl`, session
-`665569f3-6e48-5838-a916-b93fe8403ed3`) recorded the whole env set the host
-passes:
+`665569f3-6e48-5838-a916-b93fe8403ed3`) recorded the environment names the probe
+asks about. Note the candidate list is a fixed 12-name list in the script,
+widened for this call — calls 1–14 logged two hits, call 15 logged five, so this
+is a targeted probe of names, not a dump of the whole environment:
 
 ```text
 env_present: QODER_PROJECT_DIR, QODER_CONFIG_DIR, USERPROFILE, TEMP, TMP

@@ -28,11 +28,12 @@
 const HOOK_MAP_PATH = 'hooks/hooks.json';
 const PLATFORM = 'qoder';
 
-// The host's own bundled plugin spells its command root as this placeholder
-// (quoted in docs/evidence/v0.3.0/qoder-runtime-hook-schema.txt), which proves
-// the name the host uses - not that a shell-form `node "..."` command resolves
-// it, since the probe ran exec form. The platform name after the script is part
-// of the contract the structure test and the release gate both read.
+// The host's own bundled plugin spells its command root as this placeholder -
+// its `hooks/hooks.json` writes `command=${QODER_PLUGIN_ROOT}/bin/...`, quoted
+// in docs/evidence/v0.3.0/qoder-runtime-hook-schema.txt §7-8. That proves the
+// name the host uses, not that a shell-form `node "..."` command resolves it:
+// the probe ran exec form. The platform name after the script is part of the
+// contract the structure test and the release gate both read.
 const COMMAND_PATTERNS = {
   command: /^node "\$\{QODER_PLUGIN_ROOT\}\/(hooks\/[a-z0-9-]+\.js)" qoder$/,
 };

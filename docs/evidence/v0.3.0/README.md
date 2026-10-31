@@ -5,9 +5,13 @@ scripts/build-adapters.js` was run locally to produce the committed bundles;
 verification of `npm test`, `check:adapters`, and `check:drift` is owned by CI
 and no local test run is used as evidence here.
 
-Artifact version: the installed bundles and manifests still report `0.2.0`;
-#81 owns the `v0.3.0` bump. This directory records the acceptance for the
-v0.3.0 content.
+Artifact version: at the time #80 recorded this, the installed bundles and
+manifests still reported `0.2.0`, and #81 owned the `v0.3.0` bump. This directory
+records the acceptance for the v0.3.0 content. **Reconciled afterwards, so nobody
+has to infer it:** #81 landed and every committed manifest - `adapters/claude-code`,
+`adapters/codebuddy`, `adapters/copilot`, `adapters/codex` and, since #109,
+`adapters/qoder` - now reports `0.3.0`. The `0.2.0` above is a statement about the
+probed artifact on 2026-10-30, not about the tree you can check out today.
 
 ## Codex CLI
 
