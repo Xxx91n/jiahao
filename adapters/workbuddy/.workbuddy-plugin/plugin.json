@@ -1,7 +1,7 @@
 {
   "name": "jiahao",
   "version": "0.3.0",
-  "description": "Dual-profile verification discipline for WorkBuddy: profile injection on SessionStart, verdict gate on Stop. A tier on the international 5.9.4 build (live turn-end block 2026-10-31); the domestic 5.9.3 build was not probed.",
+  "description": "Dual-profile verification discipline for WorkBuddy: profile injection on SessionStart, verdict gate on Stop. A tier on both builds - a live turn-end block on the international 5.9.4 (2026-10-31) and on the domestic 5.9.3 (2026-11-01), each probed on its own run.",
   "author": {
     "name": "Xxx91n"
   },
