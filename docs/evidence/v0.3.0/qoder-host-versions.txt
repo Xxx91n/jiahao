@@ -47,3 +47,15 @@ $ node -e Object.keys(~/.qoder-cn/settings.json)
 enabledPlugins, mcpServers, providers
 $ node -e Object.keys(~/.qoder/settings.json)
 enabledPlugins, mcpServers, providers
+
+# Qoder IDE/CLI product line: not installed on this machine, so its hook surface was never probed
+$ which qoderclicn qodercn qoder qodercli
+(no output; exit 1)
+$ echo $?
+1
+$ ls ~/.qoder-cn/bin
+7zr.exe*
+qoder-cn-computer-use/
+$ ls ~/.qoder/bin
+7zr.exe*
+qoder-computer-use/

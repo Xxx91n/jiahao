@@ -16,7 +16,7 @@ and the release gate tie that bundle to its commit.
 | Variant | Tier | Basis |
 |---|---|---|
 | Qoder CN Desktop 0.4.11 | **A** | a `Stop` hook blocked and continued a real turn twice, through two channels (this record) |
-| Qoder international Desktop 0.4.11 | **not rated — stays C** | same worker runtime and the same settings keys, but no turn was ever watched blocking there |
+| Qoder international Desktop 0.4.11 | **C, unchanged** | same worker runtime and the same settings keys, but no turn was ever watched blocking there, so #109's own rule keeps it at C |
 | Qoder IDE/CLI | **C, unchanged** | the rules exit at `adapters/qoder/rules/`; no Qoder CLI is installed on this machine, so its hook surface was not probed at all |
 
 The international build was **not** substituted for by the CN result. Its own
@@ -44,6 +44,17 @@ output. Facts read from disk, not from documentation:
   ([`qoder-runlog-probe-hooks.txt`](qoder-runlog-probe-hooks.txt)).
 - `~/.qoder-cn/skills/` and `.qoder/rules/` are not hook surfaces and are not
   claimed as one. #106 stands: Desktop loads the rules version's skill directory.
+
+## Version reconciliation, said out loud
+
+This record lives under `docs/evidence/v0.3.0/` because it answers the probe list
+that v0.3.0 published its tier table with, the same way #106's correction is
+filed there. It is **not** evidence about the released v0.3.0 artifact: the v0.3.0
+tag had no Qoder plugin bundle at all. The bundle this ticket generates carries
+`version: 0.3.0` in `.qoder-plugin/plugin.json` because the emitter copies
+`package.json`, and nobody has bumped the package yet — the bump belongs to the
+next release ticket, which owns reconciling this directory's version with the tag
+that ships it.
 
 ## Does a turn-end event exist? Yes — `Stop`
 
@@ -165,16 +176,24 @@ Nothing below was observed, and none of it is claimed by the adapter README:
 
 - **the plugin registration surface.** `.qoder-plugin/plugin.json` plus an
   auto-discovered `hooks/hooks.json` is the shape of the host's own bundled
-  `qoder-context` plugin, and that plugin's `SessionStart` hooks were watched
-  firing with `exit_code=0`. A `Stop` hook arriving through the plugin path was
-  never watched blocking: both blocks above came through the **settings** path.
-- **`${QODER_PLUGIN_ROOT}` in a shell-form command.** The probe ran exec-form
-  hooks (`command` + `args`), so the exact spelling the generated map uses has
-  not been watched resolving.
+  `qoder-context` plugin, and that plugin's `SessionStart` **and**
+  `UserPromptSubmit` hooks were watched firing with `exit_code=0`
+  ([`qoder-runlog-hooks.txt`](qoder-runlog-hooks.txt)). A `Stop` hook arriving
+  through the plugin path was never watched blocking: both blocks above came
+  through the **settings** path.
+- **`${QODER_PLUGIN_ROOT}` in a shell-form command.** The host's own plugin uses
+  that placeholder, and the run log prints it verbatim in `display_text`
+  (`display_text="${QODER_PLUGIN_ROOT}/bin/qoder-context-hook.exe"`) — which
+  shows the host keeps the string for display, not that it substituted it before
+  the command ran. The probe itself used exec form (`command` + `args`), so the
+  spelling in the generated map has not been watched resolving.
 - `SessionEnd`, `PreToolUse`, `PostToolUse`, `SubagentStop`, `Notification` and
   the `prompt`/`agent` handler types on this host. The host's bundled hook-config
-  skill documents them; none was exercised here, so the bundle registers none of
-  them beyond the three probed events.
+  skill documents them; none was exercised here. `SessionEnd` is nevertheless
+  wired to `jiahao-sweep` in the shipped map — the sentinel-reclamation invariant
+  (`test/sentinel-ownership.test.js` D3) has no other collector, and an unwired
+  sweep leaks `<config>/.jiahao-sentinel.*`. That wiring is a repo invariant
+  being honoured, not a probe result, and the adapter README says so.
 - whether a Stop block also accepts `hookSpecificOutput` fields, and whether
   `additionalContext` injected at `SessionStart` reaches the model on Qoder.
 - the Qoder IDE/CLI product line's hook surface: no `qoderclicn`/`qodercli` binary

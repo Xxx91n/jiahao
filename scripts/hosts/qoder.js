@@ -23,6 +23,7 @@
 // as argv is what makes the envelope choice deterministic.
 
 const HOOK_MAP_PATH = 'hooks/hooks.json';
+const PLATFORM = 'qoder';
 
 // The host expands ${QODER_PLUGIN_ROOT} in a hook command (its own bundled
 // plugin uses that spelling). The platform name after the script is part of the
@@ -37,7 +38,7 @@ function emitHookMap(host) {
     hooks[event] = [{
       hooks: [{
         type: 'command',
-        command: 'node "${QODER_PLUGIN_ROOT}/hooks/' + hook.script + '.js" qoder',
+        command: 'node "${QODER_PLUGIN_ROOT}/hooks/' + hook.script + '.js" ' + PLATFORM,
         timeout: hook.timeout,
       }],
     }];
@@ -48,16 +49,20 @@ function emitHookMap(host) {
   }, null, 2) + '\n';
 }
 
-// Qoder's own manifest shape, from the host's bundled plugin: name,
-// displayName, description, version. `author`, `license`, `repository` and
-// `defaultEnabled` are keys this host does not read, so they are absent rather
-// than decorative.
+// Qoder's own manifest shape comes from the host's bundled plugin: name,
+// displayName, description, version. `displayName` is a key this host reads and
+// Claude's does not; `defaultEnabled` is not a Qoder field, so it stays absent
+// (the dialect's `defaultEnabledFlag: false` is what keeps it out).
+// `license` and `repository` are package metadata every bundle carries, and a
+// key the host ignores is not a claim about the host.
 function emitManifest(ctx) {
   return JSON.stringify({
     name: 'jiahao',
     displayName: 'Jiahao',
     description: ctx.description,
     version: ctx.pkg.version,
+    license: ctx.pkg.license,
+    repository: ctx.repository,
   }, null, 2) + '\n';
 }
 

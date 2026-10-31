@@ -2,7 +2,6 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { execSync, execFileSync, spawnSync } = require('child_process');
-const { hookRegistrationPaths } = require('./helpers/generated-bundle');
 
 const root = path.join(__dirname, '..');
 
@@ -114,44 +113,15 @@ describe('Qoder Desktop exit (#79 rules file, #109 turn-end gate)', () => {
   const PREFIX = 'adapters/qoder/';
   const bodyOf = (text) => text.replace(/^---[\s\S]*?---\n/, '');
 
-  test('emits the plugin scaffold and the IDE/CLI rule file, and no MCP registration', () => {
+  test('the Desktop plugin upgrade keeps the IDE/CLI rule exit in the same directory', () => {
+    // #109's DoD names both halves: an A-tier bundle for Desktop AND the
+    // preserved rules exit. The bundle's own shape is asserted by
+    // test/plugin-bundles.test.js and test/qoder-adapter.test.js; this pins the
+    // half that could silently disappear when `manifest: null` became a manifest.
     const emitted = Object.keys(generated).filter((rel) => rel.startsWith(PREFIX));
-    for (const rel of [
-      PREFIX + 'README.md',
-      PREFIX + 'rules/jiahao.md',
-      PREFIX + '.qoder-plugin/plugin.json',
-      PREFIX + 'hooks/hooks.json',
-      PREFIX + 'src/SKILL.md',
-    ]) {
-      expect(emitted).toContain(rel);
-    }
-    // #109 wired three events and left the rest of the host's surface alone; an
-    // unplanned fourth registration is a claim the probe never covered.
-    expect(emitted.filter((rel) => rel.startsWith(PREFIX + 'hooks/')))
-      .toEqual(expect.arrayContaining([PREFIX + 'hooks/hooks.json']));
+    expect(emitted).toContain(PREFIX + 'rules/jiahao.md');
+    expect(emitted).toContain(PREFIX + '.qoder-plugin/plugin.json');
     expect(emitted).not.toContain(PREFIX + '.mcp.json');
-  });
-
-  test('Stop runs the verdict gate, and only the three probed events are registered', () => {
-    const map = JSON.parse(generated[PREFIX + 'hooks/hooks.json']);
-    const events = Object.keys(map.hooks).sort();
-    // SessionEnd, PreToolUse and SubagentStop exist in this host but #109 never
-    // exercised a block through them, so they stay unwired.
-    expect(events).toEqual(['SessionStart', 'Stop', 'UserPromptSubmit']);
-    const entries = map.hooks.Stop.flatMap((group) => group.hooks);
-    expect(entries).toHaveLength(1);
-    expect(entries[0].command).toContain('jiahao-verdict-gate.js');
-    // The host gives a hook subprocess no QODER_SESSION_ID, so the platform name
-    // has to ride the command or detectHost() falls through to the Claude branch.
-    expect(entries[0].command).toMatch(/" qoder$/);
-  });
-
-  test('the manifest leaves the hook map to the host\'s own discovery', () => {
-    const manifest = JSON.parse(generated[PREFIX + '.qoder-plugin/plugin.json']);
-    // The host's bundled plugin carries no hooks key and still loads
-    // hooks/hooks.json; repeating it would register the map twice.
-    expect(manifest.hooks).toBeUndefined();
-    expect(hookRegistrationPaths(generated, PREFIX)).toEqual([PREFIX + 'hooks/hooks.json']);
   });
 
   test('the rule body is the rules-version body', () => {

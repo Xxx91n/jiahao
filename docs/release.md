@@ -48,7 +48,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 - 规则版：重跑安装时那条 `npx skills add`，范围参数保持一致——项目级不带 `-g`，全局级带 `-g -a <host> -y --copy`。`npx skills update jiahao -g -y` 只适合全局安装；skills 1.7.4 在本机（Windows、本地路径源）的项目级 `update` 报无匹配并 exit 127；该环境下项目级用重跑 `add`。装到的就是仓库当前版本；`1.0.0` 打出来后同一路径升到 `1.0.0`。
 - 插件版：Claude Code 用 `claude plugin marketplace update jiahao`，再 `claude plugin update jiahao@jiahao`；CodeBuddy 用宿主自己的插件更新/安装路径（CLI 安装路径 declared-unverified，见 `adapters/codebuddy/README.md`），或用新 bundle 重做已验证的 settings 合并；Copilot CLI 用宿主自己的插件命令重装目录（本地目录直装已在 1.0.105 实测，宿主提示该形态将废弃，见 `adapters/copilot/README.md`）；Codex 用 `codex plugin marketplace upgrade jiahao`，再 `codex plugin add jiahao --marketplace jiahao`（安装与未信任钩子的跳过行为已于 2026-10-30 在 0.163.0 真机验证；`/hooks` 持久化信任流程本身未逐步实测，无人值守可用 `--dangerously-bypass-hook-trust`）。按宿主提示重开会话；`1.0.0` 不换路径。
 - Qoder Desktop（规则版，无强制）：重跑 `npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy`（国际版别名 `qoder`，未真机验证），再开新会话。装的是标准技能目录，没有 profile 文件要改。
-- Qoder Desktop（插件出口，A 档只在 Qoder CN Desktop 0.4.11 实测）：用 Desktop 的插件设置重装由 `adapters/qoder/` 打的本地压缩包（用户级安装），再开新会话——钩子配置在会话开始时读取，已开着的会话不会接管。本仓库没有 Qoder 的 marketplace，所以没有 `plugin update` 那条命令；安装路径本身尚未真机验证（见 `docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md`）。
+- Qoder Desktop（插件出口，A 档只在 Qoder CN Desktop 0.4.11 实测）：用 Desktop 的插件设置重装由 `adapters/qoder/` 打的本地压缩包（用户级安装），再开新会话——钩子配置在会话开始时读取，已开着的会话不会接管。本仓库没有 Qoder 的 marketplace，所以没有 `plugin update` 那条命令；安装路径本身尚未真机验证（见 [qoder-hook-probe-2026-10-31.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md)）。
 - Qoder IDE/CLI（C 档）：重新复制 `adapters/qoder/rules/jiahao.md` 到项目的 `.qoder/rules/`，再开新会话。
 - 升级只替换宿主目录里的插件/技能文件，不碰 `<config>` 下的 `.jiahao-profile` 和 `.jiahao-active`；profile 由人改，不由升级改。
 

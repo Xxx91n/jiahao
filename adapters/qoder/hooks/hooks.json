@@ -33,6 +33,17 @@
           }
         ]
       }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${QODER_PLUGIN_ROOT}/hooks/jiahao-sweep.js\" qoder",
+            "timeout": 3
+          }
+        ]
+      }
     ]
   }
 }

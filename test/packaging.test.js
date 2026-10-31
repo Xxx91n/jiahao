@@ -76,16 +76,31 @@ test('the pack contract names the rules file, every plugin manifest and hook map
   expect(FORBIDDEN_PACK_PREFIXES).toEqual(expect.arrayContaining(['private/', 'bench/', 'docs/research/']));
 });
 
-test('the Qoder exit ships exactly the files the generator emits for it', () => {
-  // Exact set, not just "contains": adapters/ is whitelisted wholesale, so a
-  // hand-dropped vendored file or an untracked extra would be invisible to a
-  // contains-only assertion. The expectation is read from the generator, so it
-  // tracks the require() closure instead of a hand-copied list that rots.
+test('the Qoder exit ships its plugin bundle, the rule file, and nothing unplanned', () => {
+  // Two directions, because adapters/ is whitelisted wholesale. The required
+  // list is written here rather than read from the generator: a file dropped
+  // from the emit set would otherwise shrink both sides of an equality and pass.
+  const required = [
+    'adapters/qoder/.qoder-plugin/plugin.json',
+    'adapters/qoder/README.md',
+    'adapters/qoder/rules/jiahao.md',
+    'adapters/qoder/hooks/hooks.json',
+    'adapters/qoder/hooks/jiahao-activate.js',
+    'adapters/qoder/hooks/jiahao-mode-tracker.js',
+    'adapters/qoder/hooks/jiahao-runtime.js',
+    'adapters/qoder/hooks/jiahao-profile.js',
+    'adapters/qoder/hooks/jiahao-verdict-gate.js',
+    'adapters/qoder/src/SKILL.md',
+    'adapters/qoder/src/instrument-identity.json',
+  ];
+  const qoder = packed.filter((p) => p.startsWith('adapters/qoder/'));
+  for (const rel of required) expect(qoder).toContain(rel);
+  // #109's bundle must not need the repository: a vendored file the pack drops
+  // breaks only on the user's machine, so anything the generator emits has to be
+  // inside the tarball.
   const { buildAdapters } = require('../scripts/build-adapters');
-  const expected = Object.keys(buildAdapters())
-    .filter((rel) => rel.startsWith('adapters/qoder/')).sort();
-  expect(expected).toContain('adapters/qoder/hooks/hooks.json');
-  expect(packed.filter((p) => p.startsWith('adapters/qoder/')).sort()).toEqual(expected);
+  const generated = Object.keys(buildAdapters()).filter((rel) => rel.startsWith('adapters/qoder/'));
+  expect(qoder.slice().sort()).toEqual(generated.slice().sort());
 });
 
 // #77: the required list must grow with the generator, not sit one marketplace

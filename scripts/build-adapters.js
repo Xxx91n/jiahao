@@ -223,15 +223,18 @@ const HOSTS = [
     // IDE/CLI line keeps the rules exit below.
     provenance: 'Qoder CN Desktop 0.4.11 (2026-10-31, #109): live Stop block observed twice - exit 0 + {decision:"block"} and exit 2 + stderr - with stop_hook_active on re-entry and 6 consecutive continuations before the probe capped it; international Desktop 0.4.11 and Qoder IDE/CLI turn-end behavior unprobed, plugin-scope registration inferred from the host\'s own bundled plugin',
     // PascalCase events and the Claude-shaped payload are this host's dialect;
-    // they live in scripts/hosts/qoder.js alone. SessionEnd and PreToolUse are
-    // deliberately not wired: the sweep's timeout budget and the PreToolUse deny
-    // channel were never exercised on this host (#109), and SubagentStop blocking
-    // is a separate unprobed surface.
+    // they live in scripts/hosts/qoder.js alone. PreToolUse and SubagentStop are
+    // deliberately not wired: the deny channel and a blocked subagent finish were
+    // never exercised on this host (#109). SessionEnd is wired even though its
+    // firing was not observed either, because the sentinel-reclamation invariant
+    // (test/sentinel-ownership.test.js D3) requires the sweep in every hook map,
+    // and an unwired sweep leaks `<config>/.jiahao-sentinel.*` files.
     dialect: qoderDialect,
     hooks: {
       SessionStart: { script: 'jiahao-activate', timeout: 5 },
       UserPromptSubmit: { script: 'jiahao-mode-tracker', timeout: 5 },
       Stop: { script: 'jiahao-verdict-gate', timeout: 10 },
+      SessionEnd: { script: 'jiahao-sweep', timeout: 3 },
     },
     manifest: {
       description: 'Verification discipline for Qoder Desktop: profile injection at session start, verdict gate at turn end (A tier on Qoder CN Desktop 0.4.11, live block 2026-10-31). Self-contained plugin.',
@@ -241,7 +244,7 @@ const HOSTS = [
     autoDiscovered: ['hooks/hooks.json'],
     mcp: null,
     rules: [
-      { file: 'jiahao.md', profile: 'both', description: 'Jiahao anti-false-completion discipline (rules only)' },
+      { file: 'jiahao.md', profile: 'both', description: 'Jiahao anti-false-completion discipline (Qoder IDE/CLI rule file)' },
     ],
     readme: qoderReadme,
   },
@@ -801,20 +804,39 @@ This directory is a **self-contained Qoder Desktop plugin**: the manifest
 (\`.qoder-plugin/plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook
 scripts and their \`require()\` closure, \`src/SKILL.md\`, and the identity pin
 the gate loads are vendored inside; nothing reads from the repository root and
-there is no third-party runtime dependency. It also carries \`rules/jiahao.md\`,
-which is the **Qoder IDE/CLI** rule file and is not part of the plugin.
+there is no third-party runtime dependency. The same directory also carries
+\`rules/jiahao.md\`, the **Qoder IDE/CLI** rule file: it travels in the archive
+because one directory holds both exits, but Qoder Desktop loads it as a rule and
+not as a component of the plugin, and it registers nothing.
 
 ## Capability tier
 
 | Surface | Tier | Basis |
 |---|---|---|
 | Qoder CN Desktop 0.4.11 | A | turn-end block watched in a live session on 2026-10-31 (#109) |
-| Qoder international Desktop 0.4.11 | not rated | same worker runtime, never watched blocking |
+| Qoder international Desktop 0.4.11 | C | same worker runtime, but no turn was ever watched blocking there, so it keeps the C-tier ceiling #109 assigned it |
 | Qoder IDE/CLI | C | rules text only; no hook was run for this exit |
 
 A tier means the host can be stopped before a turn ends. The claim is stated only
 for the build that was measured; the international Desktop and the IDE/CLI line
-are not covered by it.
+stay C until their own probes report. #109 says so explicitly: one variant's
+result may not stand in for another's.
+
+This directory supersedes the #79 rule that no hook registration may appear in
+it. #79 shipped the Qoder exit as rules-only *because* the turn-end question was
+open; #109 answered it for Qoder CN Desktop, so the registration is now the
+point of the directory and the no-registration assertion was replaced (not
+deleted) by tests that pin exactly which events are wired.
+
+## The hook map this bundle ships
+
+Wiring order, script, and per-event timeout, so a reader can compare the table
+with \`hooks/hooks.json\`: SessionStart runs \`jiahao-activate.js\` (5s),
+UserPromptSubmit runs \`jiahao-mode-tracker.js\` (5s), Stop runs
+\`jiahao-verdict-gate.js\` (10s), and SessionEnd runs \`jiahao-sweep.js\` (3s) -
+the timeouts are 5/5/10/3s. The sweep is wired for sentinel reclamation (leaked
+\`<config>/.jiahao-sentinel.*\` files have no other collector); its firing on this
+host was not observed.
 
 ## What was observed on Qoder CN Desktop 0.4.11 (#109, 2026-10-31)
 
@@ -839,19 +861,28 @@ and the run record is
 
 - **The plugin registration surface.** This bundle is shaped like the host's own
   bundled \`qoder-context\` plugin (\`.qoder-plugin/plugin.json\` plus an
-  auto-discovered \`hooks/hooks.json\`), and that plugin's \`SessionStart\` and
-  \`UserPromptSubmit\` hooks were watched firing. A \`Stop\` hook arriving through
-  the *plugin* path has not been watched blocking a turn: the live block above
-  came through the settings path. Installing this directory as a plugin is
-  expected to work, not proven to work.
+  auto-discovered \`hooks/hooks.json\`), and that plugin's \`SessionStart\` hook was
+  watched firing with \`exit_code=0\`. A \`Stop\` hook arriving through the *plugin*
+  path has not been watched blocking a turn: the live block came through the
+  settings path. Installing this directory as a plugin is expected to work, not
+  proven to work.
+- **The shipped gate on this host.** The two blocks were produced by the probe
+  script, not by \`jiahao-verdict-gate.js\`. What is verified is the host channel
+  (a \`Stop\` hook can block and continue a turn here), not this bundle's verdict
+  logic running under Qoder.
+- **Whether an \`additionalContext\` injection reaches the model on Qoder.** The
+  envelope is the shape the host's schema asks for; no injection was watched in
+  the #109 session.
+- **\`SessionEnd\` firing and its timeout budget.** Wired for reclamation, never
+  observed on this host.
 - **\`\${QODER_PLUGIN_ROOT}\` in a shell-form command.** The host's own plugin uses
   that placeholder, but the probe ran exec-form hooks (\`command\` + \`args\`), so
   this exact spelling has not been watched resolving.
 - **Whether a hook subprocess gets \`QODER_SESSION_ID\`.** It does not: the probe
   saw only \`QODER_PROJECT_DIR\` and \`QODER_CONFIG_DIR\`. That is why the hook map
   passes the platform name \`qoder\` on the command line.
-- **\`SessionEnd\`, \`PreToolUse\` and \`SubagentStop\`.** Not wired here; none was
-  exercised on this host.
+- **\`PreToolUse\` and \`SubagentStop\`.** Not wired here; neither was exercised on
+  this host.
 
 ## Qoder Desktop - plugin (enforcement)
 
@@ -860,9 +891,12 @@ directory into a \`.zip\` whose root holds \`.qoder-plugin/\`, and install it fr
 the Desktop app's plugin settings. Then start a new session: hook configuration
 is read at session start, and a session already open does not pick it up.
 
-What the bundle does once loaded: \`SessionStart\` injects the active profile,
-\`UserPromptSubmit\` tracks the mode, and \`Stop\` runs the verdict gate, which can
-hold a turn open until a completion claim carries a receipt.
+What the map wires: \`SessionStart\` answers with the active profile,
+\`UserPromptSubmit\` tracks the mode, \`Stop\` runs the verdict gate, and
+\`SessionEnd\` runs the sweep. The host channel for a \`Stop\` block is measured
+(table above); the bundle's own path to it is not (see
+Declared-unverified) - so this section describes wiring, not a witnessed block
+by these scripts.
 
 ## Qoder Desktop - rules version (no enforcement)
 

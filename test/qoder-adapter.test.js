@@ -22,7 +22,7 @@ const os = require('os');
 const path = require('path');
 
 const { buildAdapters } = require('../scripts/build-adapters');
-const { materializeBundle } = require('./helpers/generated-bundle');
+const { materializeBundle, hookRegistrationPaths } = require('./helpers/generated-bundle');
 const { spawnHook, expectExit, parseJson, hostEnv } = require('./helpers/spawned-hook');
 
 const GENERATED_PREFIX = 'adapters/qoder/';
@@ -56,13 +56,13 @@ function runBundled(script, opts) {
 describe('hook map', () => {
   const cfg = JSON.parse(generated[GENERATED_PREFIX + 'hooks/hooks.json']);
   // Written down from the #109 probe rather than read back from the row that
-  // generated the file: SessionEnd, PreToolUse and SubagentStop exist on this
-  // host but nothing was watched blocking through them.
-  const QODER_EVENTS = ['SessionStart', 'UserPromptSubmit', 'Stop'];
+  // generated the file: the three events the probe measured, plus SessionEnd for
+  // the sweep that reclaims sentinels. PreToolUse and SubagentStop blocking were
+  // never exercised on this host.
+  const QODER_EVENTS = ['SessionStart', 'UserPromptSubmit', 'Stop', 'SessionEnd'];
 
-  test('registers the probed events and nothing the probe left untouched', () => {
+  test('registers the probed events, the sweep, and nothing else', () => {
     expect(Object.keys(cfg.hooks).sort()).toEqual(QODER_EVENTS.slice().sort());
-    expect(cfg.hooks).not.toHaveProperty('SessionEnd');
     expect(cfg.hooks).not.toHaveProperty('PreToolUse');
     expect(cfg.hooks).not.toHaveProperty('SubagentStop');
   });
@@ -79,6 +79,7 @@ describe('hook map', () => {
     const stop = cfg.hooks.Stop[0].hooks;
     expect(stop).toHaveLength(1);
     expect(stop[0].command).toContain('jiahao-verdict-gate.js');
+    expect(cfg.hooks.SessionEnd[0].hooks[0].command).toContain('jiahao-sweep.js');
   });
 
   test('the template carries no decision logic: only a script and the platform name', () => {
@@ -95,14 +96,24 @@ describe('hook map', () => {
 describe('plugin manifest', () => {
   const manifest = JSON.parse(generated[GENERATED_PREFIX + '.qoder-plugin/plugin.json']);
 
-  test('is the shape the host reads from its own bundled plugin', () => {
-    expect(Object.keys(manifest).sort()).toEqual(['description', 'displayName', 'name', 'version']);
-    expect(manifest.name).toBe('jiahao');
-    expect(manifest.version).toBe(JSON.parse(
-      fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8')).version);
-    // The host auto-discovers hooks/hooks.json; naming it here would register
-    // the map twice, which is what the row's autoDiscovered list records.
+  test('leaves the hook map to the host\'s own discovery', () => {
+    // The host loads its bundled plugin's hooks/hooks.json without a manifest
+    // key. Naming it here would register the same map a second time, and any
+    // other JSON under this exit carrying a `hooks` key is an unplanned
+    // registration.
     expect(manifest.hooks).toBeUndefined();
+    const registrations = hookRegistrationPaths(generated, GENERATED_PREFIX)
+      .filter((rel) => rel.endsWith('.json'));
+    expect(registrations).toEqual([GENERATED_PREFIX + 'hooks/hooks.json']);
+  });
+
+  test('carries the keys this host reads, plus the package metadata', () => {
+    expect(Object.keys(manifest).sort())
+      .toEqual(['description', 'displayName', 'license', 'name', 'repository', 'version']);
+    expect(manifest.name).toBe('jiahao');
+    // `defaultEnabled` is a Claude-shaped key; Qoder's own manifest has no such
+    // field, so the dialect leaves it out rather than decorating.
+    expect(manifest.defaultEnabled).toBeUndefined();
   });
 });
 

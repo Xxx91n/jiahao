@@ -2,5 +2,7 @@
   "name": "jiahao",
   "displayName": "Jiahao",
   "description": "Verification discipline for Qoder Desktop: profile injection at session start, verdict gate at turn end (A tier on Qoder CN Desktop 0.4.11, live block 2026-10-31). Self-contained plugin.",
-  "version": "0.3.0"
+  "version": "0.3.0",
+  "license": "MIT",
+  "repository": "https://github.com/Xxx91n/jiahao"
 }
