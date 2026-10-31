@@ -34,9 +34,17 @@ npx skills add Xxx91n/jiahao
 
 Installs `skills/jiahao/SKILL.md` into a host that reads the standard Agent Skills directory. The file carries both profiles as text; the host takes what it needs. No hook runs, so nothing is blocked. The six instruction-only adapter directories (aider, cline, cursor, instruction-tier, opencode, windsurf) are retired; a host without a standard skill directory (for example aider) has no packaged adapter in this release, though the generated `skills/jiahao/SKILL.md` can be copied as plain text.
 
-#### Qoder rules exit (C tier, rules only)
+#### Qoder: Desktop vs IDE/CLI (C tier, rules only)
 
-Qoder is a C-tier rules-only exit at [`adapters/qoder/`](adapters/qoder/): one rule file generated from the same source as the rules version, and no hooks. Copy `rules/jiahao.md` into `.qoder/rules/` (project) or `~/.qoder/rules/` (user). This exit only loads rules: it has no enforcement. The host-side loading behavior is declared-unverified, not live-probed; the directory README carries the install steps and verification status.
+Qoder has two product lines and they read different paths. **Qoder Desktop** (the 0.x workbench, including Qoder CN) does not load the IDE rules directory. Install the rules version into its standard skills directory:
+
+```bash
+npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # Qoder CN → ~/.qoder-cn/skills/jiahao/SKILL.md
+```
+
+Verified live on 2026-10-31 with Qoder CN Desktop 0.4.11: exit 0, the installed `SKILL.md` SHA-256 equal to the repository's `skills/jiahao/SKILL.md`, and a fresh session loaded the skill. The international Qoder Desktop uses the same command with `-a qoder` (→ `~/.qoder/skills/jiahao/SKILL.md`); that path was not live-probed here. Either way this is rules only: it has no enforcement.
+
+**Qoder IDE/CLI** (the 1.x line that was renamed from Desktop) reads project rules at `.qoder/rules/`. That is what [`adapters/qoder/`](adapters/qoder/) is for: one rule file generated from the same source and no hooks. Copy `rules/jiahao.md` into `.qoder/rules/`; the host-side loading there is declared-unverified, not live-probed. The directory README carries both install paths and the verification status.
 
 ### Plugin version — host-native command, with hooks
 
