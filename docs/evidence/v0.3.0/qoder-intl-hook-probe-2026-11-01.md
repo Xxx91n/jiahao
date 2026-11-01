@@ -9,10 +9,14 @@ Baseline: this ran in the worktree `D:\Aworker\wt-qoder-intl-113` on branch
 #109 into `main`). The hook that fired was
 [`probes/qoder-intl-probe-hook.js`](probes/qoder-intl-probe-hook.js), a log-path
 shim over the #109 probe `probes/qoder-stop-probe.js` — the probe script, not
-the shipped bundle. Nothing was probed against the shipped bundle; the bundle
-this record informs is generated from the host table, and
-`node scripts/build-adapters.js --check` is what ties that generated bundle to
-the commit these artifacts land in.
+the shipped bundle. Nothing here was probed against the shipped bundle.
+
+Named commit: these artifacts land in the commit titled
+`feat(#113): Qoder 国际版 Desktop 升 A 档（第二个变体的真机探针）` on this
+branch, whose parent is `9f6e9ba0`. `docs/agents/evidence-review.md` item 9 is
+explicit that `node scripts/build-adapters.js --check` does **not** tie an
+artifact to the bundle that was probed, and that record applies here: what ties
+the generated bundle to this branch is the commit hash above, not `--check`.
 
 ## Verdict per variant
 
@@ -251,11 +255,11 @@ two events. Note this is a **file-plus-log** observation of the host's own
 plugin, not of this bundle: it shows the plugin path can deliver a `Stop` on the
 international build. What is *not* shown: the `display_text`/`hookName` fields keep
 the placeholder literal (`${QODER_PLUGIN_ROOT}/bin/qoder-context-hook.exe`), so
-those hooks ran with the root substituted is inferred from `exit_code=0` and the
-binary being present at the logged `plugin_root`, not watched in a separately
-substituted command line. Shell-form `node "..."` expansion remains unproven.
-It does not show this bundle blocking, and the adapter README keeps that
-distinction.
+"those hooks ran with the root substituted" is inferred from `exit_code=0` and
+the binary being present at the logged `plugin_root`, not watched in a
+separately substituted command line. Shell-form `node "..."` expansion remains
+unproven. It does not show this bundle blocking, and the adapter README keeps
+that distinction.
 
 Not done, and not claimed: zipping `adapters/qoder/` and installing it through
 the Desktop plugin settings. That step needs the app's UI (there is no Qoder CLI

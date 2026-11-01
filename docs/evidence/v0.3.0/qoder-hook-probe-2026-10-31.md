@@ -279,11 +279,18 @@ Nothing below was observed, and none of it is claimed by the adapter README:
 - the Qoder IDE/CLI product line's hook surface: no `qoderclicn`/`qodercli` binary
   is installed here (`which` finds none, `~/.qoder-cn/bin/` holds only `7zr.exe`
   and `qoder-cn-computer-use`), so that line stays on the probe list.
-- the international Desktop build, for the whole list above.
+- the international Desktop build, for the whole list above **as of this run**;
+  #113 has since probed that build separately on 2026-11-01 and its own record
+  answers the same list for it. Nothing in this section was inherited by #113
+  and nothing in #113 is borrowed here.
 
 ## Follow-ups
 
 - International Desktop 0.4.11 probe: filed as a separate ticket; the A-tier row
-  stays scoped to the CN build until someone watches a block there.
+  stayed scoped to the CN build until someone watched a block there. **Done:**
+  #113 watched both channels block and continue on that build on 2026-11-01, and
+  the row now carries its own claim - see
+  [qoder-intl-hook-probe-2026-11-01.md](qoder-intl-hook-probe-2026-11-01.md).
 - Plugin-surface live check (install the generated bundle as a Desktop plugin and
-  watch its `Stop` hook fire): named in the adapter README as the open item.
+  watch its `Stop` hook fire): named in the adapter README as the open item, and
+  still open after #113.

@@ -89,8 +89,8 @@ Which messages got held: **5** blocks landed on "I completed and verified a
 read-only check" claims that were unfounded on their face (runs 1, 3, 4), and
 **1** landed on a literal that itself said nothing had been verified (run 2,
 exit-2 channel). The 5 were dictated by the probe prompt (the model was told to
-emit that sentence verbatim), so they prove the block fires on a self-
-contradictory claim, not that the model invented one. As on CN, the exit-2 run
+emit that sentence verbatim), so they prove the block fires on a
+self-contradictory claim, not that the model invented one. As on CN, the exit-2 run
 proves the channel carries a block and a continuation, not a false-completion
 catch.
 
