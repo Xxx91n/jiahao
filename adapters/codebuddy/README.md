@@ -38,7 +38,8 @@ server are vendored inside, so nothing resolves outside the bundle.
 
 Settings-tier alternative (CLI): merge the hook map into
 `.codebuddy/settings.json` and copy the rules into `.codebuddy/rules/`.
-The settings path is the one live-verified end to end (see
+The settings path is the one live-verified at SessionStart, PreToolUse, and
+PostToolUse; turn-end blocking was not probed on this host (see
 "Verified and declared-unverified").
 
 ## Hook map
@@ -106,10 +107,14 @@ may carry over - the settings-tier path is the verified fallback.
   (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`),
   then the OS home, never `/tmp`): `.jiahao-active`, `.jiahao-profile`,
   `.jiahao-evidence/` (plus its sidecar and pairer shadow records),
-  `.jiahao-pretool.jsonl`, and the sentinel state and lock files. Nothing
-  inside the repository or this plugin directory is written by a hook.
-- No network calls: no hook fetches anything, and the bundle has no
-  third-party runtime dependency to install.
+  `.jiahao-pretool.jsonl`, `.jiahao-instructions.jsonl` (the
+  InstructionsLoaded telemetry log, which carries session IDs), and the
+  sentinel state and lock files. Nothing inside the repository or this plugin
+  directory is written by a hook.
+- No network calls: no hook fetches anything. The hook scripts have no
+  third-party runtime dependency; the vendored MCP server has its own
+  (`@modelcontextprotocol/sdk`, `zod`), installed with
+  `npm install --omit=dev` inside `jiahao-mcp/` as above.
 
 ## Trial boundary
 

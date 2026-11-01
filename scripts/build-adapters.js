@@ -883,7 +883,8 @@ ${PROFILE_UNREADABLE_NOTE}4. MCP server: run \`npm install --omit=dev\` inside t
 
 Settings-tier alternative (CLI): merge the hook map into
 \`.codebuddy/settings.json\` and copy the rules into \`.codebuddy/rules/\`.
-The settings path is the one live-verified end to end (see
+The settings path is the one live-verified at SessionStart, PreToolUse, and
+PostToolUse; turn-end blocking was not probed on this host (see
 "Verified and declared-unverified").
 
 ## Hook map
@@ -951,10 +952,14 @@ may carry over - the settings-tier path is the verified fallback.
   (\`QODER_CONFIG_DIR\`, \`CODEBUDDY_CONFIG_DIR\` or \`WORKBUDDY_CONFIG_DIR\`),
   then the OS home, never \`/tmp\`): \`.jiahao-active\`, \`.jiahao-profile\`,
   \`.jiahao-evidence/\` (plus its sidecar and pairer shadow records),
-  \`.jiahao-pretool.jsonl\`, and the sentinel state and lock files. Nothing
-  inside the repository or this plugin directory is written by a hook.
-- No network calls: no hook fetches anything, and the bundle has no
-  third-party runtime dependency to install.
+  \`.jiahao-pretool.jsonl\`, \`.jiahao-instructions.jsonl\` (the
+  InstructionsLoaded telemetry log, which carries session IDs), and the
+  sentinel state and lock files. Nothing inside the repository or this plugin
+  directory is written by a hook.
+- No network calls: no hook fetches anything. The hook scripts have no
+  third-party runtime dependency; the vendored MCP server has its own
+  (\`@modelcontextprotocol/sdk\`, \`zod\`), installed with
+  \`npm install --omit=dev\` inside \`jiahao-mcp/\` as above.
 
 ## Trial boundary
 
@@ -1361,12 +1366,19 @@ plugin-level \`rules/\` directory for the host to load.
   the bundle.
 - The bundled Stop gate, spawned from a temp materialization of the generator
   output, blocks (exit 2) when the evidence chain is empty.
+- \`claude plugin marketplace add\` + \`claude plugin install\` +
+  \`claude plugin enable\` + \`claude plugin list\`: exit 0 each on Claude
+  Code 2.1.251 (v0.2.0 acceptance, \`docs/release-notes-v0.2.0.md\`).
+- The SessionStart hook ran in-host: \`.jiahao-active\` appeared after a real
+  session (same record).
 
 **Declared-unverified / not probed** (the limitations of this record):
 
-- Install through \`claude plugin\`, SessionStart injection, and a real
-  blocked false-completion: **not yet live-probed**; they are owner actions
-  in #64.
+- The SessionStart injection reaching the model and a host-fired Stop block
+  on a real turn end: **not yet live-probed**; the 2026-02 model endpoint
+  returned 401 before a full loop ran, and the no-evidence block result came
+  from invoking the installed gate copy directly, not a host event. Owner
+  actions in #64.
 
 This adapter is admitted on the documented host contract; it does not claim a
 live run.
@@ -1837,8 +1849,10 @@ run and its own date:
   as \`Stop hook feedback: ...\` and re-ran the turn.
 - **Domestic** (2026-11-01, WorkBuddy 5.9.3, \`D:\\WorkBuddy\`, config root
   \`~/.workbuddy\`): the same shape on the other build - the false completion
-  continued only after the \`Stop\` hook printed \`{decision:"block"}\` and exited
-  0, the reason arrived as \`Stop hook feedback: ...\`, and the re-entry carried
+  continued only after the \`Stop\` hook printed \`{decision:"block"}\`; the
+  probe exits 0 by construction, so the exit status is inferred from the
+  probe's implementation rather than captured from the run. The reason
+  arrived as \`Stop hook feedback: ...\`, and the re-entry carried
   \`stop_hook_active: true\`.
 
 These are two observations, not one inferred from the shared agent CLI

@@ -43,13 +43,13 @@ npx skills add Xxx91n/jiahao
 
 #### Qoder：Desktop 插件出口（两个 Desktop 变体都是 A 档）与 IDE/CLI 规则（C 档）
 
-Qoder 有两个产品线，读的路径不同。**Qoder Desktop**（0.x 工作台）把规则版装进它的标准技能目录——Qoder CN 上，#106 在 Desktop 0.4.11 查到用户级规则路径未被加载：
+Qoder 有两个产品线，读的路径不同。**Qoder Desktop**（0.x 工作台）把规则版装进它的标准技能目录——Qoder CN Desktop 0.4.11 上，#106 探到 `~/.qoder` 下的用户级 `rules/` 目录未被加载（该次检查只测了这一条规则路径），所以 CN 安装走 CN 自己的技能目录：
 
 ```bash
 npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # → ~/.qoder-cn/skills/jiahao/SKILL.md
 ```
 
-2026-10-31 的安装 exit 0，落地文件的 SHA-256 与 `skills/jiahao/SKILL.md` 一致（[运行记录](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md)）；国际版别名 `-a qoder`，落地路径未真机验证。这条路只加载规则，没有强制。要强制，是自包含目录 [`adapters/qoder/`](adapters/qoder/)，由 Desktop 的插件设置以本地压缩包安装。两个 Desktop 变体都 **A 档**，各自经项目级 `.qoder/settings.json` 的 `Stop` 钩子实测——Qoder CN Desktop 0.4.11 于 2026-10-31（[qoder-hook-probe-2026-10-31.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md)，#109），国际版 Desktop 0.4.11 于 2026-11-01（[qoder-intl-hook-probe-2026-11-01.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-hook-probe-2026-11-01.md)，#113）。两个版本上 `Stop` 钩子都在两条通道按住过真实回合收尾（exit 0 返回扁平 `{"decision":"block"}`，以及 exit 2 + stderr），每次重入 `stop_hook_active` 都置 true，连续按住数到探针自带上限为止。把 `adapters/qoder/` 当 Desktop 插件安装属 declared-unverified；#116 修的状态落点缺陷，在插件路径上以「同一套环境变量」为前提，那条路径没有观测过。分版本的完整记录见 [`adapters/qoder/README.md`](adapters/qoder/README.md)。
+2026-10-31 的安装 exit 0，落地文件的 SHA-256 与 `skills/jiahao/SKILL.md` 一致（[运行记录](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md)）。CN 技能路径只加载规则，没有强制。国际版别名 `-a qoder` 写 `~/.qoder/skills/`，落地路径与加载未真机验证。要强制，是自包含目录 [`adapters/qoder/`](adapters/qoder/)，由 Desktop 的插件设置以本地压缩包安装。两个 Desktop 变体都 **A 档**，各自经项目级 `.qoder/settings.json` 的 `Stop` 钩子实测——Qoder CN Desktop 0.4.11 于 2026-10-31（[qoder-hook-probe-2026-10-31.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md)，#109），国际版 Desktop 0.4.11 于 2026-11-01（[qoder-intl-hook-probe-2026-11-01.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-hook-probe-2026-11-01.md)，#113）。两个版本上 `Stop` 钩子都在两条通道按住过真实回合收尾（exit 0 返回扁平 `{"decision":"block"}`，以及 exit 2 + stderr），每次重入 `stop_hook_active` 都置 true，连续按住数到探针自带上限为止。把 `adapters/qoder/` 当 Desktop 插件安装属 declared-unverified；#116 修的状态落点缺陷，在插件路径上以「同一套环境变量」为前提，那条路径没有观测过。分版本的完整记录见 [`adapters/qoder/README.md`](adapters/qoder/README.md)。
 
 **Qoder IDE/CLI** 读取项目级 `.qoder/rules/`。该目录里的 `rules/jiahao.md` 就是这个出口：规则文件与规则版同源，不注册任何东西。把它复制到 `.qoder/rules/`；这条路径的宿主加载行为属于 declared-unverified，尚未真机验证。三条路径与验证状态见该目录 README。
 

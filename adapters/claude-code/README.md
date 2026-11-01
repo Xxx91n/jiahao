@@ -74,12 +74,19 @@ plugin-level `rules/` directory for the host to load.
   the bundle.
 - The bundled Stop gate, spawned from a temp materialization of the generator
   output, blocks (exit 2) when the evidence chain is empty.
+- `claude plugin marketplace add` + `claude plugin install` +
+  `claude plugin enable` + `claude plugin list`: exit 0 each on Claude
+  Code 2.1.251 (v0.2.0 acceptance, `docs/release-notes-v0.2.0.md`).
+- The SessionStart hook ran in-host: `.jiahao-active` appeared after a real
+  session (same record).
 
 **Declared-unverified / not probed** (the limitations of this record):
 
-- Install through `claude plugin`, SessionStart injection, and a real
-  blocked false-completion: **not yet live-probed**; they are owner actions
-  in #64.
+- The SessionStart injection reaching the model and a host-fired Stop block
+  on a real turn end: **not yet live-probed**; the 2026-02 model endpoint
+  returned 401 before a full loop ran, and the no-evidence block result came
+  from invoking the installed gate copy directly, not a host event. Owner
+  actions in #64.
 
 This adapter is admitted on the documented host contract; it does not claim a
 live run.

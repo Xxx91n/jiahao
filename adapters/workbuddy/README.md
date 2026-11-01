@@ -178,8 +178,10 @@ run and its own date:
   as `Stop hook feedback: ...` and re-ran the turn.
 - **Domestic** (2026-11-01, WorkBuddy 5.9.3, `D:\WorkBuddy`, config root
   `~/.workbuddy`): the same shape on the other build - the false completion
-  continued only after the `Stop` hook printed `{decision:"block"}` and exited
-  0, the reason arrived as `Stop hook feedback: ...`, and the re-entry carried
+  continued only after the `Stop` hook printed `{decision:"block"}`; the
+  probe exits 0 by construction, so the exit status is inferred from the
+  probe's implementation rather than captured from the run. The reason
+  arrived as `Stop hook feedback: ...`, and the re-entry carried
   `stop_hook_active: true`.
 
 These are two observations, not one inferred from the shared agent CLI

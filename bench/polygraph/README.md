@@ -45,10 +45,11 @@ movement of any pre-registered threshold. The waiver is recorded here so
 that the absence of a metric claim is *declared* rather than silently
 skipped, keeping pre-registration discipline intact (floor, band).
 Scope: only research rounds that carry no threshold claim.
-`thresholds.json` is unchanged and still gates `npm run bench:gate`; any
-detector change that *does* claim a metric must re-run the gate against
-the frozen corpus and stay inside the pre-registered band. The
-lightweight-feature product round itself is a separate, later round.
+`thresholds.json` is unchanged, but the command it gated was retired in
+`de43cd7d`; any detector change that *does* claim a metric would have to
+establish a new gate against the frozen corpus and stay inside the
+pre-registered band. The lightweight-feature product round itself is a
+separate, later round.
 
 ## Run
 

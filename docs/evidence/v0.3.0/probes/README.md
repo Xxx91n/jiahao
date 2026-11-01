@@ -48,8 +48,9 @@ relative to this directory.
   observe: whether a config-registered command hook fires on `Stop`, the payload
   it receives, whether the run continues after a block, and whether the host sets
   `stop_hook_active` on re-entry. It blocks only when the turn's
-  `last_assistant_message` contains `JIAHAO109-CLAIM-DONE`, and caps blocks per
-  session, so arming it in a live desktop app cannot loop an unrelated session.
+  `last_assistant_message` contains `JIAHAO109-CLAIM-DONE` — a content gate on
+  each turn, not a session identifier — and caps blocks per session, so a turn
+  without the marker is never blocked.
   Observed: `Stop` fired from the project scope (`.qoder-cn/settings.json` did
   not), both the exit-0 flat decision and exit 2 + stderr continued the turn, 6
   consecutive blocks were honored before the probe's own cap ended the run, and
