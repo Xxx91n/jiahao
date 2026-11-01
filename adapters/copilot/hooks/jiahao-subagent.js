@@ -31,7 +31,8 @@ process.stdin.on('end', () => {
   const matcher = process.env.JIAHAO_SUBAGENT_MATCHER || 'verify|review|critic|check';
 
   // Fail-open: if we cannot determine agent type, inject anyway
-  const shouldInject = !agentType || new RegExp(matcher, 'i').test(agentType);
+  const isVerifierAgent = !!agentType && new RegExp(matcher, 'i').test(agentType);
+  const shouldInject = !agentType || isVerifierAgent;
 
   if (!shouldInject) {
     sentinel.end();
@@ -48,9 +49,7 @@ process.stdin.on('end', () => {
   // when the parent runs generator; any other subagent inherits the parent's
   // own profile. Injecting the whole SKILL.md handed both profiles' mutually
   // exclusive rules to the same agent.
-  const profile = agentType && new RegExp(matcher, 'i').test(agentType)
-    ? 'verifier'
-    : readProfile();
+  const profile = isVerifierAgent ? 'verifier' : readProfile();
   const sections = loadProfileSections(path.join(__dirname, '..'));
   const body = sections[profile === 'generator' ? 'generator' : 'verifier'];
 

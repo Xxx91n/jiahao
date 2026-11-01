@@ -235,3 +235,13 @@ test('#71: a Codex environment_context preamble does not become the task', () =>
   const msgs = r.transcript.events.filter(e => e.type === 'message').map(e => e.text);
   expect(msgs).toEqual(['Run the tests.', 'ok']);
 });
+
+test('#71 item 8: a new turn clears the previous turn closing', () => {
+  const r = adaptTranscriptText([
+    userTextLine('First task.'),
+    assistantLine('chatcmpl-c1', [{ type: 'text', text: 'First answer.' }], 1),
+    userTextLine('Second task, not answered yet.'),
+  ].join('\n'));
+  expect(r.task).toBe('Second task, not answered yet.');
+  expect(r.transcript.closing).toBe('');
+});

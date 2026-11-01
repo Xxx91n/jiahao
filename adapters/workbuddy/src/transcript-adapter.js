@@ -26,7 +26,7 @@ const fs = require('fs');
 // Claude Code's <system-reminder>, Codex's <environment_context> /
 // <user_instructions> preamble. It neither opens a turn nor becomes a task
 // (#71 item 8: a preamble that reset the turn would overwrite the real task).
-const MACHINE_TEXT_RE = /^\s*<(system-reminder|environment_context|user_instructions|instructions|local-command-[a-z-]+)\b/i;
+const MACHINE_TEXT_RE = /^\s*<(system-reminder|environment_context|user_instructions)\b/i;
 
 function isMachineText(text) {
   return MACHINE_TEXT_RE.test(String(text || ''));
@@ -98,8 +98,11 @@ function adaptTranscriptText(text) {
   const callNames = Object.create(null);   // tool_use_id -> tool name
   let task = null;
   let closing = '';
+  let toolResultCount = 0;
   // One place opens a turn, so the Claude and Codex branches cannot drift.
-  function openTurn(text) { events = []; task = text; }
+  // The closing text is the previous turn's "claim" side, so it resets with
+  // the events: otherwise turn 2's task pairs with turn 1's last answer.
+  function openTurn(text) { events = []; task = text; closing = ''; }
   entries.forEach(function (e, i) {
     const ts = typeof e.timestamp === 'string' ? e.timestamp : null;
     const msg = e.message && typeof e.message === 'object' ? e.message : {};
@@ -158,6 +161,7 @@ function adaptTranscriptText(text) {
           truncated: false,
           content: text,
         });
+        toolResultCount += 1;
         return;
       }
       return;
@@ -216,6 +220,7 @@ function adaptTranscriptText(text) {
             truncated: false,
             content: textOf(b.content),
           });
+          toolResultCount += 1;
         } else if (b.type === 'text' && typeof b.text === 'string' && b.text.trim() && !isMachineText(b.text)) {
           events.push({ type: 'message', ts: ts, text: b.text });
         }
@@ -233,7 +238,9 @@ function adaptTranscriptText(text) {
       lines: lines.length,
       parsed: entries.length,
       skipped: skipped,
-      tool_results: events.filter(function (x) { return x.type === 'tool_result'; }).length,
+      // Whole-file count: the turn-scoped `events` array is what the pairer
+      // reads, but the stats describe the transcript that was parsed.
+      tool_results: toolResultCount,
     },
   };
 }

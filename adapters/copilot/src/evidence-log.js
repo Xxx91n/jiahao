@@ -1387,8 +1387,12 @@ function createEvidenceLog(overrideConfigDir, opts) {
   // everything below runs inside ONE narrow lock (ep + '.lock').
   // make(chain, prevHash) receives the materialized concatenated records
   // (anchors included) plus the chain tail hash; it returns records to
-  // append ([] = no-op). Lock failure degrades to an unlocked write
-  // (best-effort invariant: hooks never block).
+  // append ([] = no-op).
+  // Returns the number of records actually written (0 for a no-op, an
+  // idempotency dedup, or a dropped sink). Lock failure degrades to one
+  // unlocked write (best-effort invariant: hooks never block); a throw from
+  // make() or the append INSIDE the lock is not retried, because it may
+  // already have written records (#71).
   function commit(make, opts) {
     opts = opts || {};
     const boundedAppend = !!opts.boundedAppend;
