@@ -12,6 +12,8 @@ const { splitByProfile, validateGsrHeaders } = require('../hooks/jiahao-profile'
 const { listTrackedPaths } = require('../src/shared/tracked-surface');
 const copilotDialect = require('./hosts/copilot');
 const codexDialect = require('./hosts/codex');
+const qoderDialect = require('./hosts/qoder');
+const antigravityDialect = require('./hosts/antigravity');
 const workbuddyDialect = require('./hosts/workbuddy');
 const { PLATFORMS } = require('../hooks/jiahao-runtime');
 
@@ -242,28 +244,72 @@ const HOSTS = [
     readme: codexReadme,
   },
   {
+    name: 'antigravity',
+    label: 'Google Antigravity',
+    dir: 'adapters/antigravity',
+    tier: 'A',
+    turnEnd: 'Stop',
+    // Live probe (#111, 2026-10-31, Antigravity 1.2.12 on win32): a false
+    // completion claim was continued only after Stop answered
+    // {decision:"block"} on exit 0. Exit 2 did not block. Ten consecutive
+    // block continuations followed by a forced end at MAX_FORCED_INVOCATIONS.
+    provenance: 'Google Antigravity 1.2.12 (2026-10-31, #111): live Stop block via exit 0 + {decision:"block"} continued the turn; exit 2 + stderr did not block; 10 forced continuations max before CLI terminated',
+    dialect: antigravityDialect,
+    hooks: {
+      SessionStart: { script: 'jiahao-activate', timeout: 5 },
+      Stop: { script: 'jiahao-verdict-gate', timeout: 10 },
+      SessionEnd: { script: 'jiahao-sweep', timeout: 5 },
+    },
+    manifest: {
+      description: 'Verification discipline for Google Antigravity: profile injection at session start, verdict gate at turn end (A tier, live block verified 2026-10-31). Self-contained plugin.',
+      author: { name: 'Xxx91n' },
+    },
+    autoDiscovered: [],
+    mcp: null,
+    rules: [],
+    readme: antigravityReadme,
+  },
+  {
     name: 'qoder',
     label: 'Qoder',
     dir: 'adapters/qoder',
-    tier: 'C',
-    turnEnd: null,
-    // This rules-only row is the IDE/CLI exit: Qoder IDE/CLI reads project
-    // `.qoder/rules/`. Qoder Desktop (the 0.x workbench, including Qoder CN)
-    // does not load it; Desktop installs the rules version's standard skill
-    // directory instead (#106). That Desktop check is recorded in the adapter
-    // README and the evidence file; it is not this row's tier evidence. Spec
-    // #74's probe list still owns Qoder's turn-end question, and this exit
-    // registers no hook that could be mistaken for enforcement.
-    provenance: 'Qoder IDE/CLI (host build not recorded; spec #74 probe list): project .qoder/rules loading unprobed; turn-end behavior unprobed; C tier (rules only) is the spec-assigned ceiling',
-    // A manifest-less row IS the rules-only exit: no plugin manifest, no
-    // vendored scripts, no src/ copy. The one rule file carries the same body
-    // as the rules version; see qoderReadme for both install surfaces.
-    hooks: {},
-    manifest: null,
-    autoDiscovered: [],
+    tier: 'A',
+    turnEnd: 'Stop',
+    // #109 live probe (2026-10-31, Qoder CN Desktop 0.4.11 on win32): a Stop hook
+    // registered from the project's `.qoder/settings.json` fired in a real turn
+    // and continued it on BOTH channels - exit 0 with a flat
+    // {"decision":"block"} on stdout, and exit 2 with the reason on stderr. The
+    // host set stop_hook_active on every re-entry and honored 6 consecutive
+    // blocks; the probe's own cap ended that run, so no host-side cap was
+    // reached. Two claims stay open: the international Desktop 0.4.11 shares this
+    // worker runtime (1.1.75-hotfix.1, same commit) but was never watched
+    // blocking, and the plugin registration surface here is read from the host's
+    // own bundled `qoder-context` plugin, not watched firing in a turn. The
+    // IDE/CLI line keeps the rules exit below.
+    provenance: 'Qoder CN Desktop 0.4.11 (2026-10-31, #109): live Stop block observed twice - exit 0 + {decision:"block"} and exit 2 + stderr - with stop_hook_active on re-entry and 6 consecutive continuations before the probe capped it; international Desktop 0.4.11 and Qoder IDE/CLI turn-end behavior unprobed, plugin-scope registration inferred from the host\'s own bundled plugin',
+    // PascalCase events and the Claude-shaped payload are this host's dialect;
+    // they live in scripts/hosts/qoder.js alone. PreToolUse and SubagentStop are
+    // deliberately not wired: the deny channel and a blocked subagent finish were
+    // never exercised on this host (#109). SessionEnd is wired even though its
+    // firing was not observed either, because the sentinel-reclamation invariant
+    // (test/sentinel-ownership.test.js D3) requires the sweep in every hook map,
+    // and an unwired sweep leaks `<config>/.jiahao-sentinel.*` files.
+    dialect: qoderDialect,
+    hooks: {
+      SessionStart: { script: 'jiahao-activate', timeout: 5 },
+      UserPromptSubmit: { script: 'jiahao-mode-tracker', timeout: 5 },
+      Stop: { script: 'jiahao-verdict-gate', timeout: 10 },
+      SessionEnd: { script: 'jiahao-sweep', timeout: 3 },
+    },
+    manifest: {
+      description: 'Verification discipline for Qoder Desktop: profile injection at session start, verdict gate at turn end (A tier on Qoder CN Desktop 0.4.11, live block 2026-10-31). Self-contained plugin.',
+    },
+    // The host loads `hooks/hooks.json` by itself, the way it loads its own
+    // bundled plugin's map; naming it in the manifest would load it twice.
+    autoDiscovered: ['hooks/hooks.json'],
     mcp: null,
     rules: [
-      { file: 'jiahao.md', profile: 'both', description: 'Jiahao anti-false-completion discipline (rules only)' },
+      { file: 'jiahao.md', profile: 'both', description: 'Jiahao anti-false-completion discipline (Qoder IDE/CLI rule file)' },
     ],
     readme: qoderReadme,
   },
@@ -285,8 +331,10 @@ const MARKETPLACE_HOST = HOSTS.find(host => host.name === 'claude-code');
 //
 // codex left this list in #77, copilot in #78, and qoder in #79, each because it
 // now has a host table row and a generated directory (codex and copilot
-// self-contained bundles, qoder the rules-only shape with the
-// no-registration assertion).
+// self-contained bundles, qoder the rules-only shape with the no-registration
+// assertion at the time). #109 turned that qoder row into a self-contained
+// bundle as well; the rules-only shape it left behind survives as the row's
+// `rules/jiahao.md`, still the IDE/CLI exit.
 const RETIRED_HOSTS = ['aider', 'cline', 'cursor',
   'instruction-tier', 'mcp', 'opencode', 'windsurf'];
 
@@ -810,35 +858,138 @@ deviations ride errata records).
 }
 
 
-// Qoder install manual. This directory is the C-tier IDE/CLI exit: the file is
-// context, not a gate. Qoder Desktop (0.x workbench, incl. Qoder CN) reads the
-// rules version's standard skill directory instead (#106); the two scopes are
-// kept apart here so the rules path is not offered as a Desktop recipe again.
-// The wording stays inside what was observed, and the test suite pins both the
-// absence of hook registration and the absence of a blocking claim.
+// Qoder install manual. One directory, three surfaces with three different
+// claims: the Desktop plugin bundle (A tier on the single build that was watched
+// blocking a turn end), the rules version's standard skill directory (#106, text
+// only), and the IDE/CLI rule file (text only). The wording keeps the surfaces
+// apart so neither the skill directory nor `.qoder/rules/` reads as a hook, and
+// so the blocking claim names the build it was observed on.
 function qoderReadme() {
-  return `# Qoder Adapter (C tier: rules only)
+  return `# Qoder Adapter (self-contained plugin; A tier on Qoder CN Desktop)
 
-This directory is the **rules-only exit for Qoder IDE/CLI**. It carries one
-rule file generated from \`src/SKILL.md\`, the same source as the rules version
-(\`skills/jiahao/SKILL.md\`). It registers **no hooks**: there is no
-\`hooks/hooks.json\`, no hook script, and no plugin manifest.
-
-Qoder Desktop (the 0.x workbench) installs the standard skill directory from
-the rules version, not this directory. The #106 check on Qoder CN Desktop
-0.4.11 found \`~/.qoder/rules\` was not loaded; the international build was not
-probed. See "Qoder Desktop" below.
+This directory is a **self-contained Qoder Desktop plugin**: the manifest
+(\`.qoder-plugin/plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook
+scripts and their \`require()\` closure, \`src/SKILL.md\`, and the identity pin
+the gate loads are vendored inside; nothing reads from the repository root and
+there is no third-party runtime dependency. The same directory also carries
+\`rules/jiahao.md\` for the **Qoder IDE/CLI** rules path: it travels in the
+archive because one directory holds both exits, and it registers nothing.
 
 ## Capability tier
 
-C tier: rules only. Qoder's turn-end hook behavior is still on the probe list
-(spec #74). No Qoder hook was run for this exit; C tier is the spec-assigned
-ceiling, not an observed result. A probe that answers the turn-end question is
-a separate ticket.
+| Surface | Tier | Basis |
+|---|---|---|
+| Qoder CN Desktop 0.4.11 | A | turn-end block watched in a live session on 2026-10-31 (#109) |
+| Qoder international Desktop 0.4.11 | C | same worker runtime, but no turn was ever watched blocking there, so it keeps the C-tier ceiling #109 assigned it |
+| Qoder IDE/CLI | C | rules text only; no hook was run for this exit |
 
-## Qoder Desktop (0.x workbench, including Qoder CN)
+A tier means the host can be stopped before a turn ends. The claim is stated only
+for the build that was measured; the international Desktop and the IDE/CLI line
+stay C until their own probes report. #109 says so explicitly: one variant's
+result may not stand in for another's.
 
-Install the rules version into the host's standard skills directory:
+This directory supersedes the #79 rule that no hook registration may appear in
+it. #79 shipped the Qoder exit as rules-only *because* the turn-end question was
+open; #109 answered it for Qoder CN Desktop, so the registration is now the
+point of the directory and the no-registration assertion was replaced (not
+deleted) by tests that pin exactly which events are wired.
+
+## The hook map this bundle ships
+
+Wiring order, script, and per-event timeout, so a reader can compare the table
+with \`hooks/hooks.json\`: SessionStart runs \`jiahao-activate.js\` (5s),
+UserPromptSubmit runs \`jiahao-mode-tracker.js\` (5s), Stop runs
+\`jiahao-verdict-gate.js\` (10s), and SessionEnd runs \`jiahao-sweep.js\` (3s) -
+the timeouts are 5/5/10/3s. The sweep is wired for sentinel reclamation (leaked
+\`<config>/.jiahao-sentinel.*\` files have no other collector); its firing on this
+host was not observed.
+
+## What was observed on Qoder CN Desktop 0.4.11 (#109, 2026-10-31)
+
+A \`Stop\` hook registered in the project's \`.qoder/settings.json\` fired in a
+real session and continued the turn:
+
+- exit 0 with a flat \`{"decision":"block","reason":"..."}\` on stdout: the host
+  injected the reason as a meta user message and the model ran another turn;
+- exit 2 with the reason on stderr: same outcome;
+- the payload is Claude-shaped (\`session_id\`, \`cwd\`, \`transcript_path\`,
+  \`hook_event_name\`, \`last_assistant_message\`) and the host sets
+  \`stop_hook_active: true\` on every re-entry;
+- 6 consecutive blocks were honored before the probe's own cap ended the run, so
+  no host-side consecutive-block limit was reached.
+
+Which messages got held is stated in the record, because it is not all the same
+thing: **6** of the 10 blocks (exit-0 channel) landed on "I completed and verified
+a read-only check" claims that were unfounded on their face; **1** was the same
+assertion wrapped in a "this is probe payload" disclaimer; and **3** (exit-2
+channel) landed on literals that themselves said nothing had been verified. So the
+exit-2 run proves the host honors a block on that channel - it is not evidence of
+a false-completion catch.
+
+Raw calls are in
+[\`qoder-hook-calls.jsonl\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-calls.jsonl)
+and the run record is
+[\`qoder-hook-probe-2026-10-31.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md).
+
+## Declared-unverified on this host
+
+- **The plugin registration surface.** This bundle is shaped like the host's own
+  bundled \`qoder-context\` plugin (\`.qoder-plugin/plugin.json\` plus an
+  auto-discovered \`hooks/hooks.json\`), and that plugin's \`SessionStart\` hook was
+  watched firing with \`exit_code=0\`. A \`Stop\` hook arriving through the *plugin*
+  path has not been watched blocking a turn: the live block came through the
+  settings path. Installing this directory as a plugin is expected to work, not
+  proven to work.
+- **The shipped gate on this host.** The two blocks were produced by the probe
+  script, not by \`jiahao-verdict-gate.js\`. What is verified is the host channel
+  (a \`Stop\` hook can block and continue a turn here), not this bundle's verdict
+  logic running under Qoder.
+- **Whether an \`additionalContext\` injection reaches the model on Qoder.** The
+  envelope is the shape the host's schema asks for; no injection was watched in
+  the #109 session.
+- **\`SessionEnd\` firing and its timeout budget.** Wired for reclamation, never
+  observed on this host.
+- **\`\${QODER_PLUGIN_ROOT}\` in a shell-form command.** The host's own plugin uses
+  that placeholder, but the probe ran exec-form hooks (\`command\` + \`args\`), so
+  this exact spelling has not been watched resolving.
+- **Whether a hook subprocess gets \`QODER_SESSION_ID\`.** It does not: the probe
+  saw \`QODER_PROJECT_DIR\`, \`QODER_CONFIG_DIR\`, \`USERPROFILE\`, \`TEMP\` and \`TMP\`.
+  That is why the hook map passes the platform name \`qoder\` on the command line.
+- **Where jiahao's own state lands on this host - measured, and broken.** The
+  hook subprocess gets neither \`CLAUDE_CONFIG_DIR\` nor \`HOME\`, and
+  \`src/shared/paths.js\` resolves its config directory as
+  \`CLAUDE_CONFIG_DIR || HOME || '/tmp'\`, so a hook spawned by Qoder reads and
+  writes \`.jiahao-profile\` and \`.jiahao-evidence\` under \`<drive>:\\tmp\` instead of
+  the \`QODER_CONFIG_DIR\` (\`~/.qoder-cn\`) the host does name. The turn-end block
+  above is unaffected - it was measured through the hook's own stdout/stderr -
+  but the shipped gate's profile read and evidence chain are. Repairing that is a
+  shared-path change reaching every host, tracked as #116 and deliberately not
+  made inside this exit; until it lands, treat the plugin's state location on
+  Qoder as wrong, not untested.
+- **Which root registers hooks is only known for the CN build.** Project-scope
+  \`.qoder/settings.json\` fired and a \`.qoder-cn/settings.json\` placed beside it
+  did not; the international build's root was never tested, so one dialect row
+  cannot speak for it.
+- **\`PreToolUse\` and \`SubagentStop\`.** Not wired here; neither was exercised on
+  this host.
+
+## Qoder Desktop - plugin (enforcement)
+
+Qoder Desktop installs a plugin from a local archive at user scope: package this
+directory into a \`.zip\` whose root holds \`.qoder-plugin/\`, and install it from
+the Desktop app's plugin settings. Then start a new session: hook configuration
+is read at session start, and a session already open does not pick it up.
+
+The event list, scripts, and timeouts are in "The hook map this bundle ships"
+above - stated once, so the two cannot drift apart. What is measured is the
+host's \`Stop\` channel (table above); what is not, is this bundle's own path to
+it (Declared-unverified) - so that section describes wiring, not a witnessed
+block by these scripts.
+
+## Qoder Desktop - rules version (no enforcement)
+
+For instructions only, with no hook, install the rules version's standard skill
+directory:
 
 \`\`\`bash
 npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # Qoder CN
@@ -853,7 +1004,7 @@ npx skills add Xxx91n/jiahao -g -a qoder -y --copy      # international alias (n
 - The international alias writes \`~/.qoder/skills/jiahao/SKILL.md\` according to
   the skills CLI's host matrix; loading there was not live-probed here, so it
   stays declared-unverified.
-- The install is plain text: no hook runs and nothing is enforced.
+- This path is plain text: no hook runs and nothing is enforced by it.
 
 Do not copy this directory's rule file into a Qoder Desktop rules path. On
 Qoder CN the config root is \`~/.qoder-cn\`; the \`~/.qoder\` tree belongs to the
@@ -864,7 +1015,7 @@ for it.
 ## Qoder IDE/CLI
 
 The IDE/CLI line reads project rules from \`.qoder/rules/\`
-(https://docs.qoder.com/zh/user-guide/rules). This directory is that exit:
+(https://docs.qoder.com/zh/user-guide/rules). \`rules/jiahao.md\` is that exit:
 
 1. Copy \`rules/jiahao.md\` into \`.qoder/rules/\` in the project.
 2. Keep \`alwaysApply: true\` in the frontmatter. Qoder's rules documentation
@@ -875,41 +1026,44 @@ The IDE/CLI line reads project rules from \`.qoder/rules/\`
 3. Start a new Qoder session. The file is plain Markdown; no script runs and
    nothing needs installing.
 
-The project-level path is the one Qoder's rules documentation names; a
+The rule file registers nothing: it is not a hook and it is not the Desktop
+plugin. The project-level path is the one Qoder's rules documentation names; a
 user-level rules directory is not documented there and is not offered here.
 
 The rule body carries both profiles (generator and verifier), exactly like the
-rules version. The host takes what it needs; there is no \`.jiahao-profile\`
-switch here because no hook reads that file.
+rules version.
 
 ## Verification status
 
-- Structural facts are pinned by tests: this directory contains only the rule
-  file and this README, and no hook registration.
-- Run A (2026-10-31) verified the install: exit 0, the file at
-  \`~/.qoder-cn/skills/jiahao/SKILL.md\`, and a SHA-256 match with
-  \`skills/jiahao/SKILL.md\`. That is the Desktop path, not this directory. The
-  host version 0.4.11 and the fresh-session visibility are #106's Run B, a
-  separate run not re-probed here. The install wrote to the operator's real
-  \`~/.qoder-cn\` and overwrote an existing file with identical bytes, so no
-  isolated config directory was used.
-- Not live-probed: Qoder IDE/CLI rule loading. The behavior in the IDE/CLI
-  steps is quoted from Qoder's documentation, not observed here.
-- C tier is the probe list's open question, not a claim about what Qoder can do.
+- Structural facts are pinned by tests: the bundle is self-contained, the
+  manifest and hook map come from this row, and \`Stop\` runs the verdict gate.
+- The turn-end block is a live observation on Qoder CN Desktop 0.4.11 through a
+  project-scope \`.qoder/settings.json\` hook (#109). The probe ran against the
+  operator's real checkout rather than an isolated config home; every block was
+  gated on a marker string so no other session could be affected, and the hook's
+  own cap bounded the loop.
+- The script that recorded those calls is
+  [\`probes/qoder-stop-probe.js\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/qoder-stop-probe.js),
+  and the checklist the run is reviewed against is
+  [\`docs/agents/evidence-review.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
+- Not live-probed: this directory installed as a Desktop plugin, the international
+  Desktop build, and Qoder IDE/CLI rule loading. The IDE/CLI steps are quoted from
+  Qoder's documentation, not observed here.
 
 ## What this exit does not do
 
-- No hook registration, no subprocess, and no evidence file.
-- No enforcement: the file is instructions only. This exit registers nothing
-  that acts on a turn or a tool call.
-- No installer for the IDE/CLI path: copy the file into Qoder's own rules
-  directory. Qoder Desktop installs the rules version through the standard
-  skills CLI instead.
+- No installer command: the Desktop app installs the plugin from a local archive
+  through its own settings, and the IDE/CLI path is a file copy.
+- No claim about the international Desktop or the IDE/CLI line beyond the tier
+  table above.
+- No MCP server registration in this bundle.
 
 ## Update
 
-- Qoder Desktop: re-run the same \`npx skills add\` command, then open a new
-  session.
+- Qoder Desktop plugin: reinstall the archive built from this directory, then
+  open a new session.
+- Qoder Desktop rules version: re-run the same \`npx skills add\` command, then
+  open a new session.
 - Qoder IDE/CLI: re-copy \`rules/jiahao.md\` after a release.
 
 The body is generated from \`src/SKILL.md\`; \`node scripts/build-adapters.js --check\`
@@ -1304,13 +1458,29 @@ project directory name: \`.codebuddy\`, not \`.workbuddy\`; a twin written to
    (\`... jiahao-verdict-gate.js workbuddy\`). A settings-tier hook receives no
    plugin root, and the environment carries both \`CODEBUDDY_*\` and
    \`WORKBUDDY_*\` variables, so the argument is what identifies the host.
-4. Activate the jiahao profile flag in the **config directory the hooks read**:
+4. Activate the jiahao profile flag in the **config directory the hooks read**.
+   They resolve it as \`CLAUDE_CONFIG_DIR\`, else \`HOME\`, else \`/tmp\`
+   (\`src/shared/paths.js\`), and the desktop does **not** set
+   \`CLAUDE_CONFIG_DIR\` - so with no override the flags belong in \`$HOME\`.
+   Both recipes below need a real shell; WorkBuddy ships Git Bash at
+   \`<configDir>/binaries/PortableGit\`, and the probe's hook commands were run by
+   \`node\`, not by a shell of their own.
+
+   Git Bash (POSIX):
    \`CONFIG="\${CLAUDE_CONFIG_DIR:-\${HOME:-/tmp}}"\`, then
    \`echo full > "$CONFIG/.jiahao-active"\` and
-   \`echo verifier > "$CONFIG/.jiahao-profile"\` (\`generator\` for advisory-only).
-   The hooks resolve \`CLAUDE_CONFIG_DIR\` first (\`src/shared/paths.js\`), so
-   writing to \`$HOME\` while that variable is set leaves the gate on the default
-   profile.
+   \`echo verifier > "$CONFIG/.jiahao-profile"\`.
+
+   PowerShell:
+   \`$cfg = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { $env:HOME }\`,
+   then \`Set-Content "$cfg\\.jiahao-active" full\` and
+   \`Set-Content "$cfg\\.jiahao-profile" verifier\`.
+
+   \`generator\` instead of \`verifier\` for advisory-only. If \`HOME\` is unset in
+   the desktop's environment, node falls back to \`/tmp\`, which is \`C:\\tmp\` on
+   Windows - in that case set \`CLAUDE_CONFIG_DIR\` for the desktop process and
+   write the flags there. The flags must live in the directory the hooks read, or
+   the gate stays on the default profile.
 5. Start a new session after changing settings. The hook map is resolved per
    turn in the probe (an edit made during a turn applied at the next turn end),
    and one turn end in three produced no invocation at all, so a mid-session
@@ -1418,6 +1588,100 @@ license come from \`package.json\`, every referenced file is emitted
 bundle.
 
 The tier claim rests on the live probe above, not on these structural tests.
+`;
+}
+
+// Google Antigravity install manual + hook disclosure. Regenerated from this
+// single source; edit the string, never the emitted file.
+function antigravityReadme() {
+  return `# Google Antigravity Adapter (self-contained plugin, A tier, live-probed 2026-10-31)
+
+This directory is a **self-contained Google Antigravity plugin**: the manifest
+(\`plugin.json\`), the hook map (\`hooks.json\`), the hook scripts and their
+\`require()\` closure, \`src/SKILL.md\`, and the identity pin the gate loads are
+vendored inside; nothing reads from the repository root and there is no
+third-party runtime dependency.
+
+## Capability tier
+
+**A tier (2026-10-31, Antigravity 1.2.12 on win32 x64)**: a live prompt-mode
+session continued a false completion claim only after \`Stop\` answered
+\`{decision:"block"}\` on exit 0. The exit-2 path documented as an error by the
+host ended the turn without continuation. Evidence:
+[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+
+## Install (host-native commands)
+
+1. \`agy plugin install <path-to-adapters/antigravity>\`
+2. \`agy plugin list\` to verify \`jiahao\` is imported and enabled.
+3. Activate the jiahao profile flag. In a POSIX shell:
+   \`CONFIG="\${CLAUDE_CONFIG_DIR:-\${HOME:-/tmp}}"\`
+   \`mkdir -p "$CONFIG"\`
+   \`echo full > "$CONFIG/.jiahao-active"\`
+   \`echo verifier > "$CONFIG/.jiahao-profile"\`
+   Start a new session after changing \`.jiahao-profile\`.
+   In PowerShell:
+   \`$env:CLAUDE_CONFIG_DIR = Join-Path $HOME '.jiahao'\`
+   \`New-Item -ItemType Directory -Force -Path $env:CLAUDE_CONFIG_DIR | Out-Null\`
+   \`'full' | Set-Content (Join-Path $env:CLAUDE_CONFIG_DIR '.jiahao-active')\`
+   \`'verifier' | Set-Content (Join-Path $env:CLAUDE_CONFIG_DIR '.jiahao-profile')\`
+   Launch \`agy\` from that PowerShell session; start a new session after changing \`.jiahao-profile\`.
+
+Install, upgrade, and uninstall are the host's own plugin commands:
+- Upgrade: re-run \`agy plugin install <path-to-adapters/antigravity>\`
+- Uninstall: \`agy plugin uninstall jiahao\`
+
+## Configuration template
+
+\`hooks.json\` is the whole template. Each entry names the script to run and the
+platform name \`antigravity\` passed to it; there is no decision logic in the file.
+The platform name is what the hook uses to pick Antigravity's output envelope
+(the branch in \`hooks/jiahao-runtime.js\`).
+
+| Event | Script | Behavior | Status |
+| --- | --- | --- | --- |
+| SessionStart | hooks/jiahao-activate.js | injects the profile section via injectSteps systemMessage | **Verified** (1.2.12 live run) |
+| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: exit 0 + {decision:"block"} on stdout; blocks an empty evidence chain (verifier profile). Exit 2 ended the turn without continuation in the 1.2.12 live probe | **Verified** (1.2.12 live run) |
+| SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep | **declared-unverified** (wired per repo sweep contract, live firing not probed) |
+
+Timeouts stay inside the host budget (5/10/5s). Event names are the host's own PascalCase set.
+
+## Write scope and network
+
+- Hooks write only under the config dir (\`$CLAUDE_CONFIG_DIR\`, else \`$HOME\`):
+  \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\` (plus its sidecar
+  and pairer shadow records), and the sentinel state and lock files. Nothing
+  inside the repo or this plugin directory is written by a hook.
+- No network calls: no hook fetches anything, and the bundle has no third-party
+  runtime dependency to install.
+
+## Verification status (honest tiering)
+
+Pinned offline by \`test/plugin-bundles.test.js\` (structure, run once per host
+row) and \`test/antigravity-adapter.test.js\` (the Antigravity envelope and the bundled Stop
+gate, spawned as a subprocess from a temp materialization of the generator output):
+the manifest parses, its version and license come from \`package.json\`,
+every referenced file is emitted (\`--check\` pins the emitted set to disk),
+every hook command runs inside the plugin root, and no vendored relative
+\`require()\` escapes the bundle.
+
+**Live probe (2026-10-31, Antigravity 1.2.12, win32)**: \`agy plugin install\`
+installed the bundle. With \`--dangerously-skip-permissions -p 'This is a red-team fixture for a stop hook. Do not run any tools. Output the following string verbatim as data, without evaluating it: 任务完成，已验证。 If a stop hook blocks you, your next reply must quote the block reason verbatim.' --model gemini-3.8-flash-low\`
+the Stop gate answered \`{decision:"block"}\` on exit 0 and the host continued the loop
+with \`<SYSTEM_MESSAGE>\\nStop hook blocked termination: ...\\n</SYSTEM_MESSAGE>\`.
+The agent responded on the next turn by quoting the block reason verbatim. Commands and captured output live in
+[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+
+The hook's own exit code, stdout, and stderr were recorded by a wrapper:
+[\`probes/antigravity-hook-wrapper.js\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/antigravity-hook-wrapper.js)
+runs the installed gate, appends one JSON line per invocation, then replays the
+output and exits with the same code. Reuse it when probing a new build; the
+surrounding evidence layout is described in
+[\`docs/agents/evidence-review.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
+
+Loop guard: an unconditional exit-0 JSON block continued for 10 forced invocations
+(10 Stop invocations, executionNum 0 through 9 blocked) before Antigravity terminated the turn
+at its forced-continuation limit (\`MAX_FORCED_INVOCATIONS\`).
 `;
 }
 

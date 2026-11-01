@@ -58,13 +58,29 @@ project directory name: `.codebuddy`, not `.workbuddy`; a twin written to
    (`... jiahao-verdict-gate.js workbuddy`). A settings-tier hook receives no
    plugin root, and the environment carries both `CODEBUDDY_*` and
    `WORKBUDDY_*` variables, so the argument is what identifies the host.
-4. Activate the jiahao profile flag in the **config directory the hooks read**:
+4. Activate the jiahao profile flag in the **config directory the hooks read**.
+   They resolve it as `CLAUDE_CONFIG_DIR`, else `HOME`, else `/tmp`
+   (`src/shared/paths.js`), and the desktop does **not** set
+   `CLAUDE_CONFIG_DIR` - so with no override the flags belong in `$HOME`.
+   Both recipes below need a real shell; WorkBuddy ships Git Bash at
+   `<configDir>/binaries/PortableGit`, and the probe's hook commands were run by
+   `node`, not by a shell of their own.
+
+   Git Bash (POSIX):
    `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-/tmp}}"`, then
    `echo full > "$CONFIG/.jiahao-active"` and
-   `echo verifier > "$CONFIG/.jiahao-profile"` (`generator` for advisory-only).
-   The hooks resolve `CLAUDE_CONFIG_DIR` first (`src/shared/paths.js`), so
-   writing to `$HOME` while that variable is set leaves the gate on the default
-   profile.
+   `echo verifier > "$CONFIG/.jiahao-profile"`.
+
+   PowerShell:
+   `$cfg = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { $env:HOME }`,
+   then `Set-Content "$cfg\.jiahao-active" full` and
+   `Set-Content "$cfg\.jiahao-profile" verifier`.
+
+   `generator` instead of `verifier` for advisory-only. If `HOME` is unset in
+   the desktop's environment, node falls back to `/tmp`, which is `C:\tmp` on
+   Windows - in that case set `CLAUDE_CONFIG_DIR` for the desktop process and
+   write the flags there. The flags must live in the directory the hooks read, or
+   the gate stays on the default profile.
 5. Start a new session after changing settings. The hook map is resolved per
    turn in the probe (an edit made during a turn applied at the next turn end),
    and one turn end in three produced no invocation at all, so a mid-session

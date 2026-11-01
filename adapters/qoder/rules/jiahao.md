@@ -1,5 +1,5 @@
 ---
-description: Jiahao anti-false-completion discipline (rules only)
+description: Jiahao anti-false-completion discipline (Qoder IDE/CLI rule file)
 alwaysApply: true
 ---
 

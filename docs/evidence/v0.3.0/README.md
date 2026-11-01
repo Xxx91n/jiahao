@@ -1,13 +1,17 @@
-# v0.3.0 real-machine acceptance (#80)
+# v0.3.0 real-machine acceptance (#80, #109)
 
 Date: 2026-10-30. Host: Windows 10.0.26100 (win32 x64). `node
 scripts/build-adapters.js` was run locally to produce the committed bundles;
 verification of `npm test`, `check:adapters`, and `check:drift` is owned by CI
 and no local test run is used as evidence here.
 
-Artifact version: the installed bundles and manifests still report `0.2.0`;
-#81 owns the `v0.3.0` bump. This directory records the acceptance for the
-v0.3.0 content.
+Artifact version: at the time #80 recorded this, the installed bundles and
+manifests still reported `0.2.0`, and #81 owned the `v0.3.0` bump. This directory
+records the acceptance for the v0.3.0 content. **Reconciled afterwards, so nobody
+has to infer it:** #81 landed and every committed manifest - `adapters/claude-code`,
+`adapters/codebuddy`, `adapters/copilot`, `adapters/codex` and, since #109,
+`adapters/qoder` - now reports `0.3.0`. The `0.2.0` above is a statement about the
+probed artifact on 2026-10-30, not about the tree you can check out today.
 
 ## Codex CLI
 
@@ -67,12 +71,44 @@ v0.3.0 content.
 - `sessionStart` and `sessionEnd` fired for plugin hooks in the final session
   (`copilot-lifecycle-hooks.txt`).
 
+## Google Antigravity
+
+- Host: `Google Antigravity 1.2.12` (win32 x64, isolated `CLAUDE_CONFIG_DIR`, commit `bf68d15f`, #111).
+- Install (**verified**): `agy plugin install <repo-root>/adapters/antigravity`, exit 0;
+  `agy plugin list` shows `jiahao` with `hooks: 1 processed` (`antigravity-install.txt`).
+- Block run (**verified**): `agy -p ... --dangerously-skip-permissions`, exit 0. First agent message
+  `任务完成，已验证。`; `Stop` returned `{decision:"block"}` on exit 0;
+  the reason was injected as `<SYSTEM_MESSAGE>Stop hook blocked termination: ...</SYSTEM_MESSAGE>`;
+  the next agent message quoted the reason verbatim; the second `Stop` (`executionNum: 1`,
+  mapped to `stop_hook_active`) passed (`antigravity-blocked.txt`, `antigravity-hook-exit.txt`).
+- Exit 2 (**verified**): a `Stop` hook that printed to stderr and exited 2 was logged as a failed hook
+  (`command failed: exit status 2`) and the turn ended without continuation (`antigravity-exit2.txt`).
+- Cap (**verified**, always-block probe, not the shipped gate): the unconditional `{decision:"block"}` probe (`probes/antigravity-always-block.js`) reached 10 forced continuations before the CLI terminated at `MAX_FORCED_INVOCATIONS` (`antigravity-cap.txt`).
+- SessionStart (**verified**): injects Jiahao instructions via `injectSteps` (`antigravity-blocked.txt`).
+- SessionEnd (**declared-unverified**): wired to `hooks/jiahao-sweep.js` per repository sentinel-reconciliation contract; live SessionEnd firing not probed.
+
 ## Reproduction
 
 The throwaway probe hooks and the instrumented wrapper are in `probes/`; each
-file's header states the hook config and the expected observation. Every
-session above ran with an isolated `CODEX_HOME` / `COPILOT_HOME` and a separate
-`CLAUDE_CONFIG_DIR`, so no user-wide profile or plugin state was involved.
+file's header states the hook config and the expected observation.
+
+For Codex and Copilot, sessions ran with an isolated `CODEX_HOME` / `COPILOT_HOME`
+and a separate `CLAUDE_CONFIG_DIR`, so no user-wide host profile or plugin state
+was involved.
+
+For Google Antigravity, plugin installation was registered in the user-wide
+plugin registry (`~/.gemini/config/plugins/jiahao`) and cleanly uninstalled
+with `agy plugin uninstall jiahao` after probing; Jiahao's own runtime state
+(`.jiahao-active`, `.jiahao-profile`, and `.jiahao-evidence/`) was isolated under
+`CLAUDE_CONFIG_DIR=<temp>/jiahao-111`.
+
+For Qoder (#109) the run was **not isolated**, and could not be: a Desktop session
+is spawned by the app, so there is no `*_HOME` override to point it at. The probe
+armed a project-scope `.qoder/settings.json` in the operator's live checkout,
+gated every block on a marker string so no other session could be affected, and
+bounded the loop with its own per-session cap. Both hook config files and the
+probe's temp state were deleted afterwards; `qoder-hook-probe-2026-10-31.md`
+records the isolation state per run.
 
 The WorkBuddy probe (#110, `workbuddy-hook-probe-2026-10-31.md`) is the
 exception: its host refuses a headless turn without an interactive login, so it
@@ -82,7 +118,26 @@ not claim the isolation the two sessions above had.
 
 ## Tier conclusion
 
-Both hosts are **A tier** with a live turn-end block on the recorded version
-and date. Qoder remains C tier (rules only); this probe did not change it.
-WorkBuddy AI 5.9.4 is A tier on its own record; its domestic 5.9.3 build stays
-C until the run described in that record happens.
+Labels follow `docs/agents/evidence-review.md` item 3: **verified** means a run in
+this directory shows it, **declared-unverified** means it is asserted from files or
+documentation and was not watched happen.
+
+**Verified - A tier**: Codex CLI 0.163.0 and GitHub Copilot CLI 1.0.105
+(2026-10-30, #80), Google Antigravity 1.2.12 (2026-10-31, #111), Qoder CN
+Desktop 0.4.11 (2026-10-31, #109), and WorkBuddy AI 5.9.4 international
+(2026-10-31, #110) each blocked a real turn end on the recorded version and
+date. On WorkBuddy the block was a settings-tier `Stop` hook answering
+`{decision:"block"}` on exit 0, and `SubagentStop` was watched answering the
+same decision without a continuation. On Qoder it was a config-registered `Stop` hook on both channels
+(exit 0 + flat `{"decision":"block"}`, and exit 2 + stderr), with
+`stop_hook_active` set on every re-entry - which supersedes this file's earlier
+line that Qoder remained C tier and that no probe had changed it.
+
+**Declared-unverified - Qoder**: the plugin registration path
+(`adapters/qoder/` installed as a Desktop plugin), `${QODER_PLUGIN_ROOT}` in a
+shell-form command, and the shipped gate's own verdict logic running under Qoder.
+All read out of the host's files; none watched happening.
+
+**Not probed**: the international Qoder Desktop 0.4.11, which keeps C tier rather
+than borrowing the CN result; Qoder IDE/CLI, which keeps the rules-only exit; and
+the domestic WorkBuddy 5.9.3, which keeps C tier for the same reason.

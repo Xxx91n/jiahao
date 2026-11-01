@@ -50,7 +50,9 @@ for (const plat of PLATFORMS) {
         // #110: every host's manifest location, not just the Claude-shaped one.
         'move ' + inRoot('.workbuddy-plugin', 'plugin.json') + ' out.json',
         'move ' + inRoot('.codex-plugin', 'plugin.json') + ' out.json',
+        'move ' + inRoot('.qoder-plugin', 'plugin.json') + ' out.json',
         'rm ' + inRoot('plugin.json'),
+        'rm ' + inRoot('hooks.json'),
       ];
       for (const text of shapes) expect(check(plat, text)).toBe(true);
     });

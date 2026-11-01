@@ -249,6 +249,12 @@ describe('tier disclosure', () => {
     // here so the prose cannot regress silently.
     expect(readme).toContain('`hooks/`, `src/`, and\n   `src/SKILL.md` together');
     expect(readme).toContain('CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-/tmp}}"');
+    // The recipe needs a shell the Windows desktop user actually has; both
+    // spellings are pinned, plus the `/tmp` -> `C:\tmp` fallback that bites when
+    // HOME is unset in the desktop's environment.
+    expect(readme).toContain('Git Bash');
+    expect(readme).toContain('Set-Content');
+    expect(readme).toContain('C:\\tmp');
     expect(readme).toContain('D:/Workbuddy.ai/jiahao');
     expect(readme).toMatch(/JSON string/);
     const update = readme.slice(readme.indexOf('## Update and uninstall'));

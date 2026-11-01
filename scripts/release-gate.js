@@ -46,10 +46,10 @@ const root = path.join(__dirname, '..');
 // test/packaging.test.js so the jest assertion and the tag command cannot
 // drift apart: one list, two readers. The per-host entries come from the
 // generator's host table, so a new exit is required in the tarball without
-// touching this list. A rules-only row contributes its README and rule files
-// but no plugin manifest and no hook map.
+// touching this list. Every row emits an install manual; only a row with a
+// manifest contributes a plugin manifest and a hook map, and a rules-only row
+// contributes its rule files instead.
 const PLUGIN_HOSTS = HOSTS.filter(host => !isRulesOnlyDirectory(host));
-const RULES_ONLY_HOSTS = HOSTS.filter(host => isRulesOnlyDirectory(host));
 const REQUIRED_PACK_FILES = [
   'package.json',
   // `jiahao resolve` is dispatched from the installer and its module went
@@ -59,7 +59,7 @@ const REQUIRED_PACK_FILES = [
   'scripts/resolve.js',
   'skills/jiahao/SKILL.md',
   ...PLUGIN_HOSTS.map(host => host.dir + '/' + dialectOf(host).manifestPath),
-  ...RULES_ONLY_HOSTS.map(host => host.dir + '/README.md'),
+  ...HOSTS.map(host => host.dir + '/README.md'),
   ...HOSTS.filter(host => Object.keys(host.hooks || {}).length > 0).map(host => host.dir + '/' + dialectOf(host).hookMapPath),
   ...HOSTS.flatMap(host => host.rules.map(rule => host.dir + '/rules/' + rule.file)),
   '.claude-plugin/marketplace.json',
