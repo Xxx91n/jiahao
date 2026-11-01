@@ -146,9 +146,10 @@ function begin(hook, overrideDir) {
     // openSync('w') created; when openSync itself threw, fd is null and we
     // leave whatever sits at the path alone.
     if (fd !== null) {
-      try { fs.unlinkSync(file); } catch (e2) { /* gone */ }
+      // close BEFORE unlink: an open handle can make unlink fail (EPERM) on win32
       try { fs.closeSync(fd); } catch (e2) {}
       fd = null;
+      try { fs.unlinkSync(file); } catch (e2) { /* gone */ }
     }
     if (release) { release(); release = null; }
   }

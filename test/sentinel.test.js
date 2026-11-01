@@ -132,8 +132,8 @@ test('#125: failed plant releases the lock and end() spares a parallel sentinel'
     if (typeof str === 'string' && str.indexOf('"jiahao-fail"') !== -1) throw new Error('injected plant failure');
     return realWriteSync.apply(fs, arguments);
   });
-  const s = begin('jiahao-fail', DIR);
-  spy.mockRestore();
+  let s;
+  try { s = begin('jiahao-fail', DIR); } finally { spy.mockRestore(); } // no leak into later tests if begin throws
   // nothing of ours stays behind: the half-created sentinel is cleaned up
   expect(fs.existsSync(file)).toBe(false);
   // the ownership lock was given back: a fresh try-lock wins
