@@ -104,8 +104,100 @@ for (const plat of PLATFORMS) {
       ];
       for (const text of shapes) expect(check(plat, text)).toBe(true);
     });
+
+    // #88 item 4: the state files the guard could not name before. The reserved
+    // `.jiahao-*` namespace makes this table a census, not the pattern's source
+    // of truth - the binding test below keeps the two from drifting again.
+    // Each one is a way for the agent to switch its own discipline off: the
+    // conviction kill switch, the evidence chain, its lock, and the anchor /
+    // persistence declarations.
+    test('every jiahao state file is protected wherever it appears', () => {
+      const names = [
+        '.jiahao-active',
+        '.jiahao-profile',
+        '.jiahao-evidence',
+        '.jiahao-evidence.keys',
+        '.jiahao-evidence.lock',
+        '.jiahao-pretool.jsonl',
+        '.jiahao-instructions.jsonl',
+        '.jiahao-conviction-off',
+        '.jiahao-conviction-enforce',
+        '.jiahao-kappa-baseline.json',
+        '.jiahao-anchor.json',
+        '.jiahao-persistence.json',
+        '.jiahao-calibration.jsonl',
+        '.jiahao-sentinel.pretool-guard',
+      ];
+      for (const name of names) {
+        expect(check(plat, 'rm ' + name)).toBe(true);
+        expect(check(plat, 'echo x > ' + outside(name))).toBe(true);
+      }
+      // files INSIDE the evidence directory are the chain itself
+      expect(check(plat, 'rm ' + outside('.jiahao-evidence', 'segments', '0001.jsonl'))).toBe(true);
+      // the namespace is a prefix, not a substring: a user name that merely
+      // contains `jiahao` is still none of the guard's business
+      expect(check(plat, 'rm my-jiahao-notes')).toBe(false);
+      expect(check(plat, 'rm user.jiahao-profile')).toBe(false);
+    });
+
+    // #88 item 6: jiahao-mcp/ is the vendored MCP server, i.e. the writer the
+    // evidence chain relies on. An agent that can rewrite it can rewrite the
+    // writer, so it joins the apparatus dirs.
+    test('the vendored MCP server directory is apparatus', () => {
+      expect(check(plat, 'rm ' + inRoot('jiahao-mcp', 'index.js'))).toBe(true);
+      expect(check(plat, 'sed -i s/a/b/ ' + inRoot('jiahao-mcp', 'package.json'))).toBe(true);
+      expect(check(plat, 'rm ' + outside('jiahao-mcp', 'index.js'))).toBe(false);
+    });
   });
 }
+
+// #88 item 4 acceptance: the fragment list must stop being a second
+// hand-maintained copy of the state names. The source is the list - every
+// `.jiahao-*` literal that src/ or hooks/ can write has to be denied. Adding a
+// state file without extending protection turns this red.
+describe('protected path (state file binding, #88 item 4)', () => {
+  const fs = require('fs');
+
+  function jsFiles(dir) {
+    const out = [];
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) out.push(...jsFiles(full));
+      else if (entry.name.endsWith('.js')) out.push(full);
+    }
+    return out;
+  }
+
+  test('every .jiahao-* name written by src/ or hooks/ is protected', () => {
+    const root = path.join(__dirname, '..');
+    const files = jsFiles(path.join(root, 'src')).concat(jsFiles(path.join(root, 'hooks')));
+    const found = new Set();
+    for (const file of files) {
+      const text = fs.readFileSync(file, 'utf8');
+      // quoted literals only: prose in comments may name a shape without the
+      // code writing it, and a comment is not something the agent can delete.
+      for (const match of text.matchAll(/['"]\.jiahao-[a-z0-9.-]+['"]/g)) found.add(match[0].slice(1, -1));
+    }
+    // a scan that finds nothing proves nothing
+    expect(found.size).toBeGreaterThan(10);
+    const missed = [...found].filter((name) => !isProtected('rm ' + name, null, { pathImpl: path.posix }));
+    expect(missed).toEqual([]);
+  });
+
+  test('the names src/shared/paths.js resolves are in that set', () => {
+    // Spot-check the state this module owns, so a future edit to paths.js that
+    // introduces a new spelling is caught even if the scan regex is narrowed.
+    const paths = require('../src/shared/paths');
+    const names = [
+      paths.flagPath(), paths.evidencePath(), paths.evidenceKeysPath(),
+      paths.profilePath(), paths.convictionLaneOffPath(),
+      paths.convictionLaneEnforcePath(), paths.kappaBaselinePath(),
+    ].map((p) => path.basename(p));
+    for (const name of names) {
+      expect(isProtected('rm ' + name, null, { pathImpl: path.posix })).toBe(true);
+    }
+  });
+});
 
 describe('protected path (shell spellings)', () => {
   // A Bash payload reaches the guard as text: `~`, `$HOME` and the host's own
@@ -357,5 +449,16 @@ describe('protected path (separator spellings)', () => {
   test('a case-shifted apparatus dir is the same dir on Windows', () => {
     expect(check(win32, 'rm C:\\Users\\u\\proj\\.codebuddy\\plugins\\JIAHAO\\SRC\\SKILL.md')).toBe(true);
     expect(check(win32, 'rm C:\\Users\\u\\other-project\\SRC\\SKILL.md')).toBe(false);
+  });
+
+  // The same filesystem rule applies to the state namespace: on Windows
+  // `.JIAHAO-PROFILE` deletes `.jiahao-profile`. On POSIX it is a different
+  // file and must stay allowed (#88 item 4 keeps the namespace case-sensitive
+  // everywhere the host is).
+  test('a case-shifted state name is the same file only on Windows', () => {
+    expect(check(win32, 'rm C:\\Users\\u\\.JIAHAO-PROFILE')).toBe(true);
+    expect(check(win32, 'rm .JIAHAO-EVIDENCE\\segments\\0001.jsonl')).toBe(true);
+    expect(check(win32, 'rm user.jiahao-profile')).toBe(false);
+    expect(check(posix, 'rm .JIAHAO-PROFILE')).toBe(false);
   });
 });
