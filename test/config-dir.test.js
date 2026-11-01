@@ -24,7 +24,12 @@ const { configDirFrom, HOST_CONFIG_DIR_ENV } = paths;
 
 // Every variable the resolver may consult, taken from the resolver itself so
 // the table cannot fall behind a host root added to HOST_CONFIG_DIR_ENV.
-const RESOLUTION_ENV = ['CLAUDE_CONFIG_DIR', 'HOME'].concat(HOST_CONFIG_DIR_ENV);
+// USERPROFILE is listed because configDirFrom honours it when the caller hands
+// over an environment; the process-level helpers below use PROCESS_ENV, which
+// leaves it alone - deleting USERPROFILE from a real process is not something
+// a test should do, and os.homedir() reads it anyway.
+const RESOLUTION_ENV = ['CLAUDE_CONFIG_DIR', 'HOME', 'USERPROFILE'].concat(HOST_CONFIG_DIR_ENV);
+const PROCESS_ENV = ['CLAUDE_CONFIG_DIR', 'HOME'].concat(HOST_CONFIG_DIR_ENV);
 
 function envOf(values) {
   const env = {};
@@ -39,7 +44,7 @@ function envOf(values) {
 // diff against whatever this test process happens to carry.
 function withEnv(values, fn) {
   const saved = {};
-  for (const name of RESOLUTION_ENV) {
+  for (const name of PROCESS_ENV) {
     saved[name] = process.env[name];
     if (Object.prototype.hasOwnProperty.call(values, name) && values[name] !== undefined) {
       process.env[name] = values[name];
@@ -50,7 +55,7 @@ function withEnv(values, fn) {
   try {
     return fn();
   } finally {
-    for (const name of RESOLUTION_ENV) {
+    for (const name of PROCESS_ENV) {
       if (saved[name] === undefined) delete process.env[name];
       else process.env[name] = saved[name];
     }
@@ -115,6 +120,19 @@ describe('configDir resolution order', () => {
       name: 'no host marker at all falls to the OS home, never /tmp',
       env: {},
       expected: OS_HOME,
+    },
+    {
+      // #116: "USERPROFILE is what the host actually hands over". An injected
+      // environment that names one must be honoured; answering with the
+      // process user's home instead made the injected value a lie.
+      name: 'an injected USERPROFILE is honoured instead of the process home',
+      env: { USERPROFILE: 'C:/injected/home' },
+      expected: 'C:/injected/home',
+    },
+    {
+      name: 'a host root still outranks an injected USERPROFILE',
+      env: { USERPROFILE: 'C:/injected/home', QODER_CONFIG_DIR: 'C:/qoder' },
+      expected: 'C:/qoder',
     },
   ];
 
@@ -397,5 +415,69 @@ describe('the README recipes resolve the same directory as the hooks', () => {
     // And it must not sneak in earlier as a substring of `$env:HOME`.
     expect(POWERSHELL_CONFIG_SNIPPET.indexOf('$HOME')).toBe(
       POWERSHELL_CONFIG_SNIPPET.lastIndexOf('$HOME'));
+  });
+});
+
+describe('the POSIX recipe is executable, not just readable', () => {
+  // Reading the snippet and nodding is how a stray brace survived a round of
+  // review (#127): the string looked right and the shell answered with a
+  // trailing `}`. Run it and compare against the resolver instead.
+  const { POSIX_CONFIG_SNIPPET } = require(path.join(repoRoot, 'scripts', 'build-adapters'));
+  const { spawnSync } = require('child_process');
+
+  // `sh -c` is not enough, and neither is an absent HOME in the env: Git Bash
+  // re-derives HOME from USERPROFILE before the script runs, so the host-root
+  // branch could never be reached and the first version of this case answered
+  // with the OS home for every input. `unset` inside the script is the only way
+  // to hand the recipe the environment a host actually hands a hook.
+  const scriptPath = path.join(os.tmpdir(), 'jiahao-recipe-' + process.pid + '.sh');
+  beforeAll(() => {
+    fs.writeFileSync(scriptPath, POSIX_CONFIG_SNIPPET + '\nprintf "%s" "$CONFIG"\n', 'utf8');
+  });
+  afterAll(() => {
+    try { fs.unlinkSync(scriptPath); } catch (e) { /* already gone */ }
+  });
+
+  function resolvedByRecipe(env) {
+    // Start from a clean environment, then unset every variable the case does
+    // not name - so the shell's own HOME derivation cannot answer for one.
+    const raw = { PATH: process.env.PATH };
+    for (const name of RESOLUTION_ENV) {
+      if (Object.prototype.hasOwnProperty.call(env, name)) raw[name] = env[name];
+    }
+    const unset = RESOLUTION_ENV
+      .filter((name) => !Object.prototype.hasOwnProperty.call(env, name))
+      .map((name) => 'unset ' + name + ' 2>/dev/null')
+      .join('\n');
+    const wrapper = path.join(os.tmpdir(), 'jiahao-recipe-run-' + process.pid + '.sh');
+    fs.writeFileSync(wrapper, unset + '\n. "' + scriptPath.replace(/\\/g, '/') + '"\n', 'utf8');
+    try {
+      const res = spawnSync('bash', [wrapper], { env: raw, encoding: 'utf8' });
+      if (res.error) throw res.error;
+      if (res.status !== 0) throw new Error('recipe failed: ' + res.stderr);
+      return String(res.stdout);
+    } finally {
+      try { fs.unlinkSync(wrapper); } catch (e) { /* already gone */ }
+    }
+  }
+
+  const cases = [
+    { name: 'Qoder shape', env: { QODER_CONFIG_DIR: '/q/.qoder-cn' }, want: '/q/.qoder-cn' },
+    { name: 'WorkBuddy root only', env: { WORKBUDDY_CONFIG_DIR: '/wb' }, want: '/wb' },
+    { name: 'CodeBuddy root only', env: { CODEBUDDY_CONFIG_DIR: '/cb' }, want: '/cb' },
+    { name: 'HOME outranks host roots', env: { HOME: '/home/u', QODER_CONFIG_DIR: '/q' }, want: '/home/u' },
+    { name: 'CLAUDE_CONFIG_DIR wins', env: { CLAUDE_CONFIG_DIR: '/pinned', HOME: '/home/u' }, want: '/pinned' },
+  ];
+
+  for (const c of cases) {
+    test(c.name + ': the recipe prints exactly the resolved dir', () => {
+      expect(resolvedByRecipe(c.env)).toBe(c.want);
+    });
+  }
+
+  test('the recipe output has no trailing brace or whitespace', () => {
+    const out = resolvedByRecipe({ QODER_CONFIG_DIR: '/q/.qoder-cn' });
+    expect(out).toBe(out.trim());
+    expect(out.endsWith('}')).toBe(false);
   });
 });

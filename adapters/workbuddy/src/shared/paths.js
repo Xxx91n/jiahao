@@ -25,8 +25,10 @@ const { PREFIXES } = require('./prefix-vocab'); // prefix vocabulary fact source
 //      the host itself names. Only these three names are listed because they
 //      are the ones a probe record shows a hook subprocess being handed; a
 //      host with no such variable falls to step 4 exactly as it did before.
-//   4. os.homedir() - the OS answer (USERPROFILE on Windows) when no host
-//      marker exists at all. Never '/tmp': on Windows that resolves against
+//   4. os.homedir() - the OS answer when no host marker exists at all. With
+//      process.env this is what USERPROFILE says, so the two agree; with an
+//      injected env, an explicit USERPROFILE is honoured first and this is
+//      only the last resort. Never '/tmp': on Windows that resolves against
 //      the current drive and is what #116 was filed about.
 //
 // A host that sets neither Claude variable and names no config root still
@@ -49,9 +51,20 @@ function hostConfigDir(env) {
 // Same order, injectable environment: capability.js and detector.js resolve
 // the config dir from an env they may be handed rather than process.env, and
 // they must not grow a second copy of this order.
+//
+// USERPROFILE is step 4's input when the caller supplies an environment.
+// os.homedir() asks the OS, which is the right answer for process.env but the
+// wrong one for an injected env: a caller that hands over `{ USERPROFILE }`
+// and nothing else means that directory, and silently answering with the
+// process user's home made the injected value a lie (#116 ticket: "USERPROFILE
+// is what the host actually hands over").
 function configDirFrom(env) {
   const e = env || process.env;
-  return e.CLAUDE_CONFIG_DIR || e.HOME || hostConfigDir(e) || os.homedir();
+  return e.CLAUDE_CONFIG_DIR
+    || e.HOME
+    || hostConfigDir(e)
+    || e.USERPROFILE
+    || os.homedir();
 }
 
 function configDir() {

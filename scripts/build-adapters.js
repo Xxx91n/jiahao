@@ -1594,19 +1594,25 @@ project directory name: \`.codebuddy\`, not \`.workbuddy\`; a twin written to
    the hooks see the same value; without it the flags sit in a directory the
    desktop never looks at.
 
-   Git Bash, path two - no pin, both sides at \`HOME\`:
+   Git Bash, path two - no pin, resolve the way the hooks do:
    \`env -u CLAUDE_CONFIG_DIR node scripts/install.js init -y\` (it prints the
-   absolute file it wrote; check that path is under \`$HOME\`), then
-   \`echo full > "$HOME/.jiahao-active"\` and
-   \`echo verifier > "$HOME/.jiahao-profile"\`.
+   absolute file it wrote - that is the directory to compare against), then
+   \`${POSIX_CONFIG_SNIPPET}\`,
+   \`echo full > "$CONFIG/.jiahao-active"\` and
+   \`echo verifier > "$CONFIG/.jiahao-profile"\`.
 
    PowerShell, path one (after the \`setx\` above and a desktop restart, in a
    shell opened after it): \`$c = $env:CLAUDE_CONFIG_DIR\`, then
    \`Set-Content "$c\\.jiahao-active" full\` and
    \`Set-Content "$c\\.jiahao-profile" verifier\`.
 
-   PowerShell, path two: \`Set-Content "$HOME\\.jiahao-active" full\` and
-   \`Set-Content "$HOME\\.jiahao-profile" verifier\`.
+   PowerShell, path two - no pin. Do not write to \`$HOME\` directly: that is
+   PowerShell's automatic variable and it is always set, while the hook reads
+   the HOME *environment* variable and falls through to
+   \`WORKBUDDY_CONFIG_DIR\` when it is absent. Resolve the same way instead:
+   \`${POWERSHELL_CONFIG_SNIPPET}\`, then
+   \`Set-Content "$c\\.jiahao-active" full\` and
+   \`Set-Content "$c\\.jiahao-profile" verifier\`.
 
    \`generator\` instead of \`verifier\` for advisory-only. Whichever way you go,
    read the installer's printed path and make sure it is the directory the
