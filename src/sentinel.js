@@ -7,9 +7,9 @@
 // residual sentinel into an evidence record (degradation kind='timeout'),
 // which routes through the fail-closed coverage path.
 // begin holds a mkdir lock on <sentinel>.lock for the hook's
-// lifetime — taken before the sentinel file is planted, so a live sentinel is
-// never visible without its lock (#122); reconcile try-locks residuals — lock
-// obtained = owner is dead,
+// lifetime, taken before it plants the sentinel so the file is not visible
+// unlocked (exception: the null/'error' unchecked path, see begin — #122);
+// reconcile try-locks residuals — lock obtained = owner is dead,
 // lock refused (fresh) = a LIVE parallel session, keep the sentinel, append
 // nothing. Stale (>STALE_MS) locks are reclaimed (dead owners leave a frozen
 // lock dir behind; live owners refresh mtime on every set()).

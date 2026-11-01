@@ -94,7 +94,8 @@ test('#122: sentinel never visible unlocked — a reconcile racing at creation h
     seen.healed = reconcile(DIR);
     return realFsync(fd);
   });
-  const s = begin('jiahao-race', DIR);
+  let s;
+  try { s = begin('jiahao-race', DIR); } finally { spy.mockRestore(); } // no leak into later tests if begin throws before fsync
   expect(seen.lockAtCreation).toBe(true);
   expect(seen.healed).toEqual([]);
   expect(fs.existsSync(file)).toBe(true);
