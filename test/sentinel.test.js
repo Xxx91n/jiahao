@@ -141,8 +141,8 @@ test('#125: failed plant releases the lock and end() spares a parallel sentinel'
   expect(fs.existsSync(file)).toBe(false);
   // the ownership lock was given back: a fresh try-lock wins
   const relock = tryLockSync(file);
-  expect(typeof relock).toBe('function');
-  relock();
+  expect(relock.ok).toBe(true);
+  relock.release();
   // a parallel begin now plants a live sentinel at the same path
   fs.writeFileSync(file, JSON.stringify({ hook: 'jiahao-fail', phase: 'scan' }), 'utf8');
   s.end(); // planted nothing -> must not unlink it, must not touch any lock

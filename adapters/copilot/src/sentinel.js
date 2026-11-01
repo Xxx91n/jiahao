@@ -54,13 +54,13 @@ function reconcile(dir) {
   const healed = [];
   for (const f of files) {
     const file = path.join(dir, f);
-    // D1: try-lock arbitration. null = fresh lock held = live owner -> skip
-    // silently (no record, no unlink). 'error' = fs refused -> degrade to
+    // D1: try-lock arbitration. fresh = a live owner -> skip
+    // silently (no record, no unlink). error = fs refused -> degrade to
     // pre- behavior with ownership:'unchecked'.
-    const lockResult = tryLockSync(file);
-    if (lockResult === null) continue;
-    const release = lockResult === 'error' ? null : lockResult;
-    const ownership = lockResult === 'error' ? 'unchecked' : 'locked';
+    const lock = tryLockSync(file);
+    if (lock.fresh) continue;
+    const release = lock.ok ? lock.release : null;
+    const ownership = lock.ok ? 'locked' : 'unchecked';
     let st0 = null;
     try { st0 = fs.statSync(file); } catch (e) { /* vanished mid-reconcile */ }
     if (!st0) { if (release) release(); continue; }
@@ -127,11 +127,11 @@ function begin(hook, overrideDir) {
   // lock BEFORE the file exists (#122): a sentinel visible while its ownership
   // lock does not exist yet is indistinguishable from a residual, so a parallel
   // reconcile would try-lock the fresh path, win, and heal a live hook. The
-  // lock is held for the hook's lifetime. null = parallel live owner with the
-  // same hook name — keep going anyway (unchecked); 'error' likewise. Never
+  // lock is held for the hook's lifetime. fresh = parallel live owner with the
+  // same hook name — keep going anyway (unchecked); error likewise. Never
   // block the hook.
-  const lockResult = tryLockSync(file);
-  let release = (lockResult && lockResult !== 'error') ? lockResult : null;
+  const lock = tryLockSync(file);
+  let release = lock.ok ? lock.release : null;
   let fd = null;
   let planted = false;
   try {
