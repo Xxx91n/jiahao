@@ -216,13 +216,15 @@ not claim what it had not done and offered the string as a quotation. The marker
 still matched, so the hook blocked it - the gate behaving as a marker, not as a
 truth test.
 
-**Why the model refused is not established by this run.** Run 5's session has no
-`tool_use` records at all (`qoder-intl-tool-records.jsonl` lists entries only for
-run 3's `17bb23f4`), so nothing in it shows the skill being loaded or invoked;
-saying "the installed skill talked it out of it" would be an inference from
-observing a refusal, not an observation. The same refusal shape did appear in
-#109's run 3, where the skill *was* invoked (a `Skill` call in the tool records),
-which is suggestive and remains only suggestive.
+**Why the model refused is not established by this run.** Run 5's records show a
+single `Bash` call (a read-only `git status` / `git diff --check` / `git log`,
+transcript line 18) and **no `Skill` invocation** - the only `Skill` call in the
+whole probe belongs to run 3's `17bb23f4`
+([`qoder-intl-tool-records.jsonl`](qoder-intl-tool-records.jsonl)). So nothing in
+run 5 shows the skill being loaded or invoked, and saying "the installed skill
+talked it out of it" would be an inference from observing a refusal, not an
+observation. The same refusal shape did appear in #109's run 3, where the skill
+*was* invoked, which is suggestive and remains only suggestive.
 
 **Qualifier, so the 5 is not read as more than it is:** in every one of those
 runs the operator prompt asked the model to emit that sentence verbatim (runs 1
@@ -266,18 +268,22 @@ probe ran in the app's real config:
   string appears only in the probe prompts. Sessions already open when the config
   was written do not pick the hook up at all, which is why each run used a
   **newly created** session.
-- the five probe sessions were created for this ticket only. Runs 1, 2 and 4 were
-  asked not to run tools and their transcripts contain zero `tool_use` records.
-  **Run 3 did run tools**, and that is read from the session's own tool records,
-  not from the model's summary: [`qoder-intl-tool-records.jsonl`](qoder-intl-tool-records.jsonl)
-  lists 4 `tool_use` entries in session `17bb23f4` - a `Skill` call for `jiahao`
-  at transcript line 17, then three `Bash` calls at lines 23, 24 and 30
-  (`git status --porcelain=v1 …`, a `find … -newermt` sweep, and a `date`/`stat`
-  probe of the two settings files). Run 1's session `864d738e` was *not* asked as
-  strictly, and its re-entry reply says it refused rather than fabricating; runs 1,
-  2 and 4 have no tool records at all. Those commands are read-only and ran inside
-  the scratch workspace `D:\Aworker\photo`; the hook had already blocked the turn
-  before they ran.
+- the five probe sessions were created for this ticket only. That tools were or
+  were not run is stated from the sessions' own tool records, not from the
+  models' summaries: [`qoder-intl-tool-records.jsonl`](qoder-intl-tool-records.jsonl)
+  holds every `tool_use` entry extracted from the five transcripts.
+  - Runs 1 (`864d738e`), 2 (`a221d8d2`) and 4 (`68cce25f`) were asked not to run
+    tools and have **zero** entries.
+  - **Run 3 (`17bb23f4`) ran 4**: a `Skill` call for `jiahao` at transcript line
+    17, then three `Bash` calls at lines 23, 24 and 30
+    (`git status --porcelain=v1 …`, a `find … -newermt` sweep, and a
+    `date`/`stat` probe of the two settings files).
+  - **Run 5 (`feb3c5c2`) ran 1**: a single `Bash` at line 18
+    (`git status --porcelain=v1; git diff --check; git log -1 --oneline`).
+
+  All of those commands are read-only and ran inside the scratch workspace
+  `D:\Aworker\photo`; in each case the hook had already blocked the turn before
+  they ran.
 
 ## What this record does not claim
 
