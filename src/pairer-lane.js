@@ -29,14 +29,6 @@ const { recordHash, WITNESS_HARD_STOP_CODE } = require('./evidence-log');
 
 const SOURCE = 'pairer-instrument';
 
-// The payload's event name is the only thing that says WHOSE transcript
-// transcript_path is. Hosts spell it hook_event_name (Claude Code) or
-// hookEventName (camelCase hosts); both reach here through normalizePayload.
-function eventNameOf(payload) {
-  const n = payload && (payload.hook_event_name || payload.hookEventName);
-  return typeof n === 'string' ? n : null;
-}
-
 function transcriptPathOf(payload) {
   if (!payload) return null;
   // #71 item 11: Claude Code documents SubagentStop as carrying the
@@ -46,8 +38,10 @@ function transcriptPathOf(payload) {
   // subagent's (or the parent's) results. For a subagent stop the agent
   // transcript wins and transcript_path is the fallback; every other event
   // keeps transcript_path first, and still falls back to the agent path when
-  // the host omits the event name.
-  const ev = eventNameOf(payload);
+  // the host omits the event name. Hosts spell the event hook_event_name
+  // (Claude Code) or hookEventName (camelCase hosts); normalizePayload keeps
+  // both on the payload.
+  const ev = payload.hook_event_name || payload.hookEventName;
   const isSubagentStop = ev === 'SubagentStop' || ev === 'subagent_stop' || ev === 'subagentStop';
   const order = isSubagentStop
     ? ['agent_transcript_path', 'agentTranscriptPath', 'transcript_path', 'transcriptPath']

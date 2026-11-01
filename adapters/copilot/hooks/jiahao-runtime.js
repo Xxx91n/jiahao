@@ -40,6 +40,21 @@ function detectHost() {
   return 'claude'; // native Claude Code (default)
 }
 
+// Read-only tool names, per host family. The guard is a modification guard:
+// reading the injected rules is how a verifier works, not a bypass (#71 item 3).
+// The names are host dialect, so they live here with the payload/output shapes
+// rather than in the judgment script. Shell/exec tools are deliberately absent
+// even when their command happens to be read-only - only tools that cannot
+// write are listed.
+const READ_ONLY_TOOLS = Object.freeze([
+  'read', 'view', 'glob', 'grep', 'ls', 'list_directory', 'list_dir',
+  'notebookread', 'read_file', 'search_files', 'file_search', 'grep_search',
+]);
+
+function isReadOnlyTool(toolName) {
+  return READ_ONLY_TOOLS.indexOf(String(toolName || '').toLowerCase()) !== -1;
+}
+
 // Field names differ per host: the Claude-shaped payloads carry session_id and
 // agent_type, Copilot CLI's camelCase events carry sessionId and agentName (with
 // agentType only when known). Normalizing at the stdin boundary gives every hook
@@ -162,4 +177,4 @@ function writeBlockOutput(reason) {
   process.exitCode = BLOCK_EXIT_CODES[host] ?? 2;
 }
 
-module.exports = { detectHost, writeHookOutput, writeBlockOutput, normalizePayload, PLATFORMS };
+module.exports = { detectHost, writeHookOutput, writeBlockOutput, normalizePayload, isReadOnlyTool, PLATFORMS };

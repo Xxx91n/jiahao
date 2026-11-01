@@ -95,3 +95,43 @@ test('#71: a deduped zero-record commit does not report appended', () => {
   expect(res.lane).toBe('recorded');
   expect(res.appended).toBe(false);
 });
+
+// #71 item 11: the selection is only useful if run() actually uses it.
+test('#71 item 11: run() reads the agent transcript for a SubagentStop payload', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-lane-agent-'));
+  const agentFile = path.join(dir, 'agent.jsonl');
+  fs.writeFileSync(agentFile, [
+    JSON.stringify({ type: 'user', message: { role: 'user', content: 'Subagent task.' } }),
+    JSON.stringify({ type: 'assistant', message: { id: 'a1', content: [{ type: 'text', text: 'Subagent done.' }] } }),
+  ].join('\n'), 'utf8');
+  const flagDir = freshFlagDir();
+
+  function capture(payload) {
+    let seen = null;
+    const log = {
+      createRecord: function (kind, source, status, detail, ref, prev, extras) { seen = extras; return {}; },
+      commit: function (make) { make([], null); return 1; },
+    };
+    const res = run(payload, { dir: flagDir, evidenceLog: log });
+    return { res: res, seen: seen };
+  }
+
+  const agent = capture({
+    hook_event_name: 'SubagentStop',
+    transcript_path: path.join(dir, 'missing-parent.jsonl'),
+    agent_transcript_path: agentFile,
+  });
+  expect(agent.res.lane).toBe('recorded');
+  expect(String(agent.seen.detector.pairer.reason || '')).not.toMatch(/^adapter:/);
+
+  // Control: the same payload as a plain Stop reads the (missing) parent, so
+  // the contrast is the event switch, not a coincidence.
+  const parent = capture({
+    hook_event_name: 'Stop',
+    transcript_path: path.join(dir, 'missing-parent.jsonl'),
+    agent_transcript_path: agentFile,
+  });
+  expect(String(parent.seen.detector.pairer.reason || '')).toMatch(/^adapter:/);
+
+  fs.rmSync(dir, { recursive: true, force: true });
+});

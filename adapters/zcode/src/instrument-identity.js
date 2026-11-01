@@ -542,8 +542,9 @@ function openExposures(history) {
 // disposition lands (ISO/IEC 17025:2017 7.10 nonconforming work).
 // A conditional_signoff is a sign-off on a narrower interval: it releases the
 // identity only until its expiry, so a later drift exposure reaches it exactly
-// as it reaches a full signoff (#71 item 14). Omitting it let an earlier
-// conditional certification stay silently valid across an open exposure.
+// as it reaches a full signoff (#71 item 14). Omitting it left this projection
+// incomplete: an affected conditional certification was invisible to every
+// consumer of the projection.
 const SIGNOFF_KINDS = ['signoff', 'conditional_signoff', 'record_signoff'];
 
 function affectedSignoffs(history) {

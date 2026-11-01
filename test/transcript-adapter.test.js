@@ -211,3 +211,27 @@ test('#71: Codex rollout keeps a non-JSON function_call argument readable', () =
   const call = r.transcript.events.filter(e => e.type === 'tool_call')[0];
   expect(call.arguments).toEqual({ _raw: 'ls -la' });
 });
+
+test('#71 item 8: a system-reminder user line does not open a turn or become the task', () => {
+  const r = adaptTranscriptText([
+    userTextLine('Real task.'),
+    assistantLine('chatcmpl-r1', [{ type: 'text', text: 'Working.' }], 1),
+    userTextLine('<system-reminder>Context window is 60% full.</system-reminder>'),
+    assistantLine('chatcmpl-r2', [{ type: 'text', text: 'Still working.' }], 2),
+  ].join('\n'));
+  expect(r.task).toBe('Real task.');
+  const msgs = r.transcript.events.filter(e => e.type === 'message').map(e => e.text);
+  expect(msgs).toEqual(['Real task.', 'Working.', 'Still working.']);
+});
+
+test('#71: a Codex environment_context preamble does not become the task', () => {
+  const r = adaptTranscriptText([
+    JSON.stringify({ timestamp: '2026-11-01T09:59:00.000Z', type: 'session_meta', payload: { id: 'codex-s2' } }),
+    codexLine({ type: 'message', role: 'user', content: [{ type: 'input_text', text: '<environment_context>cwd=/repo</environment_context>' }] }, 1),
+    codexLine({ type: 'message', role: 'user', content: [{ type: 'input_text', text: 'Run the tests.' }] }, 2),
+    codexLine({ type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'ok' }] }, 3),
+  ].join('\n'));
+  expect(r.task).toBe('Run the tests.');
+  const msgs = r.transcript.events.filter(e => e.type === 'message').map(e => e.text);
+  expect(msgs).toEqual(['Run the tests.', 'ok']);
+});

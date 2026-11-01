@@ -22,6 +22,16 @@
 
 const fs = require('fs');
 
+// Host-injected text that rides a user-role line but is not the user's request:
+// Claude Code's <system-reminder>, Codex's <environment_context> /
+// <user_instructions> preamble. It neither opens a turn nor becomes a task
+// (#71 item 8: a preamble that reset the turn would overwrite the real task).
+const MACHINE_TEXT_RE = /^\s*<(system-reminder|environment_context|user_instructions|instructions|local-command-[a-z-]+)\b/i;
+
+function isMachineText(text) {
+  return MACHINE_TEXT_RE.test(String(text || ''));
+}
+
 function textOf(content) {
   // tool_result / message content may be a string or a block list; flatten to
   // a single string. Unknown block types contribute nothing.
@@ -88,6 +98,8 @@ function adaptTranscriptText(text) {
   const callNames = Object.create(null);   // tool_use_id -> tool name
   let task = null;
   let closing = '';
+  // One place opens a turn, so the Claude and Codex branches cannot drift.
+  function openTurn(text) { events = []; task = text; }
   entries.forEach(function (e, i) {
     const ts = typeof e.timestamp === 'string' ? e.timestamp : null;
     const msg = e.message && typeof e.message === 'object' ? e.message : {};
@@ -109,13 +121,10 @@ function adaptTranscriptText(text) {
         for (const b of (Array.isArray(p.content) ? p.content : [])) {
           if (b && typeof b === 'object' &&
             (b.type === 'input_text' || b.type === 'output_text' || b.type === 'text') &&
-            typeof b.text === 'string' && b.text.trim()) texts.push(b.text);
+            typeof b.text === 'string' && b.text.trim() && !isMachineText(b.text)) texts.push(b.text);
         }
         if (texts.length === 0) return;
-        if (isUser) {
-          events = [];
-          task = texts[0];
-        }
+        if (isUser) openTurn(texts[0]);
         for (const t of texts) events.push({ type: 'message', ts: ts, text: t });
         if (!isUser) closing = texts.join('\n');
         return;
@@ -191,12 +200,9 @@ function adaptTranscriptText(text) {
         : (Array.isArray(content) ? content : []);
       const textBlocks = blocks.filter(function (b) {
         return b && typeof b === 'object' && b.type === 'text' &&
-          typeof b.text === 'string' && b.text.trim();
+          typeof b.text === 'string' && b.text.trim() && !isMachineText(b.text);
       });
-      if (textBlocks.length > 0) {
-        events = [];              // new turn: previous turn's events do not pair with this task
-        task = textBlocks[0].text; // the latest user request is the turn's task
-      }
+      if (textBlocks.length > 0) openTurn(textBlocks[0].text); // new turn: previous events do not pair with this task
       for (const b of blocks) {
         if (!b || typeof b !== 'object') continue;
         if (b.type === 'tool_result') {
@@ -210,7 +216,7 @@ function adaptTranscriptText(text) {
             truncated: false,
             content: textOf(b.content),
           });
-        } else if (b.type === 'text' && typeof b.text === 'string' && b.text.trim()) {
+        } else if (b.type === 'text' && typeof b.text === 'string' && b.text.trim() && !isMachineText(b.text)) {
           events.push({ type: 'message', ts: ts, text: b.text });
         }
       }

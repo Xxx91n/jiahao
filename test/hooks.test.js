@@ -304,6 +304,28 @@ test('pretool-guard lets a read-only tool read a protected target', () => {
   expect(String(res.stdout).trim()).toBe(''); // no deny envelope
 });
 
+test('pretool-guard lets a read-only tool reach a protected directory', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  const res = runHook('jiahao-pretool-guard.js', {
+    dir: dir,
+    stdin: JSON.stringify({ tool_name: 'Grep', tool_input: { path: path.join(repoRoot, 'hooks') } }),
+  });
+  expectExit(res, 0);
+  expect(String(res.stdout).trim()).toBe('');
+});
+
+test('pretool-guard still denies a shell command that writes a protected file', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  const res = runHook('jiahao-pretool-guard.js', {
+    dir: dir,
+    stdin: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'rm hooks/jiahao-verdict-gate.js' } }),
+  });
+  expectExit(res, 0);
+  expect(parseJson(res).hookSpecificOutput.permissionDecision).toBe('deny');
+});
+
 // #71 item 4: a subagent gets ONE ruleset. Injecting the whole SKILL.md handed
 // it both profiles' mutually exclusive rules.
 test('subagent injection carries only the verifier section for a verifier subagent', () => {
@@ -345,7 +367,23 @@ test('verdict-gate blocks through the host envelope when the evidence log cannot
   expect(parsed.reason).toMatch(/could not initialize/);
 });
 
-test('shared paths module exports flagPath and evidencePath', () => {  const { flagPath, evidencePath, evidenceKeysPath } = require(path.join(__dirname, '..', 'src', 'shared', 'paths.js'));
+test('verdict-gate init failure stays advisory in the generator profile (D2)', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'generator', 'utf8');
+  const preload = path.join(__dirname, 'helpers', 'fail-evidence-log-init.js').split(path.sep).join('/');
+  const env = Object.assign(hostEnv(dir), { NODE_OPTIONS: '--require ' + preload });
+  const res = spawnHook(path.join(hooksDir, 'jiahao-verdict-gate.js'), {
+    stdin: JSON.stringify({ stop_hook_active: false }), env: env, cwd: repoRoot,
+  });
+  expectExit(res, 0);
+  const parsed = parseJson(res);
+  expect(parsed.decision).toBeUndefined();
+  expect(parsed.systemMessage).toMatch(/could not initialize/);
+});
+
+test('shared paths module exports flagPath and evidencePath', () => {
+  const { flagPath, evidencePath, evidenceKeysPath } = require(path.join(__dirname, '..', 'src', 'shared', 'paths.js'));
   expect(typeof flagPath).toBe('function');
   expect(typeof evidencePath).toBe('function');
   expect(typeof evidenceKeysPath).toBe('function');

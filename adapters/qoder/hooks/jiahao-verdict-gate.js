@@ -118,13 +118,21 @@ process.stdin.on('end', () => {
     process.exit(0);
   }
 
-  // #71 item 12. Fail closed: a gate that cannot read the chain cannot judge
-  // this Stop, and a silent allow is the failure the gate exists to prevent.
-  // Every host keeps its own envelope and exit code through emitBlock.
+  // #71 item 12. Verifier fails closed: a gate that cannot read the chain
+  // cannot judge this Stop, and a silent allow is the failure the gate exists
+  // to prevent. Generator stays advisory (D2: it never blocks) and says so
+  // instead of passing silently. Every host keeps its own envelope/exit code.
   if (initError) {
+    const detail = initError && initError.message ? initError.message : String(initError);
+    if (isGenerator) {
+      console.log(JSON.stringify({
+        systemMessage: 'JIAHAO ADVISORY: evidence log could not initialize (' +
+          detail + '); this stop was not judged.',
+      }));
+      return;
+    }
     emitBlock('JIAHAO VERDICT GATE: evidence log could not initialize (' +
-      (initError && initError.message ? initError.message : String(initError)) +
-      '). Failing closed — this Stop cannot be judged.');
+      detail + '). Failing closed — this Stop cannot be judged.');
     return;
   }
 
