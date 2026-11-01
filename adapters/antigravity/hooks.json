@@ -1,0 +1,25 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "node hooks/jiahao-activate.js antigravity",
+        "timeout": 5
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "node hooks/jiahao-verdict-gate.js antigravity",
+        "timeout": 10
+      }
+    ],
+    "SessionEnd": [
+      {
+        "type": "command",
+        "command": "node hooks/jiahao-sweep.js antigravity",
+        "timeout": 5
+      }
+    ]
+  }
+}

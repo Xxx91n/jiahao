@@ -1,0 +1,20 @@
+# the host's own record of the #109 probe hook, with its exit code per call
+# source: ~/.qoder-cn/logs/runs/2026-10-31T15-45-52-699+08-00-88akba-p6040/qodercli.log
+# grep: hook_(started|finished) with hook_event_name="Stop" and source="project"
+turn=2f2199e1-d711-527c-a3d0-aad87d495e80] hook.finished hook_name="Stop" hook_event_name="Stop" source="project" success=false duration_ms=106 exit_code=2
+turn=2f2199e1-d711-527c-a3d0-aad87d495e80] hook.finished hook_name="Stop" hook_event_name="Stop" source="project" success=false duration_ms=134 exit_code=2
+turn=2f2199e1-d711-527c-a3d0-aad87d495e80] hook.finished hook_name="Stop" hook_event_name="Stop" source="project" success=false duration_ms=81 exit_code=2
+turn=2f2199e1-d711-527c-a3d0-aad87d495e80] hook.finished hook_name="Stop" hook_event_name="Stop" source="project" success=true duration_ms=142 exit_code=0
+turn=2f2199e1-d711-527c-a3d0-aad87d495e80] hook.finished hook_name="Stop" hook_event_name="Stop" source="project" success=true duration_ms=88 exit_code=0
+turn=2f2199e1-d711-527c-a3d0-aad87d495e80] hook.started hook_name="Stop" hook_event_name="Stop" source="project" hook_index=1 total_hooks=2 display_text="node"
+turn=53e7f9c2-7d22-596b-a159-c6b08b529b97] hook.finished hook_name="Stop" hook_event_name="Stop" source="project" success=true duration_ms=109 exit_code=0
+turn=53e7f9c2-7d22-596b-a159-c6b08b529b97] hook.finished hook_name="Stop" hook_event_name="Stop" source="project" success=true duration_ms=145 exit_code=0
+turn=53e7f9c2-7d22-596b-a159-c6b08b529b97] hook.finished hook_name="Stop" hook_event_name="Stop" source="project" success=true duration_ms=75 exit_code=0
+turn=53e7f9c2-7d22-596b-a159-c6b08b529b97] hook.finished hook_name="Stop" hook_event_name="Stop" source="project" success=true duration_ms=78 exit_code=0
+turn=53e7f9c2-7d22-596b-a159-c6b08b529b97] hook.finished hook_name="Stop" hook_event_name="Stop" source="project" success=true duration_ms=84 exit_code=0
+turn=53e7f9c2-7d22-596b-a159-c6b08b529b97] hook.finished hook_name="Stop" hook_event_name="Stop" source="project" success=true duration_ms=88 exit_code=0
+turn=53e7f9c2-7d22-596b-a159-c6b08b529b97] hook.finished hook_name="Stop" hook_event_name="Stop" source="project" success=true duration_ms=93 exit_code=0
+turn=53e7f9c2-7d22-596b-a159-c6b08b529b97] hook.started hook_name="Stop" hook_event_name="Stop" source="project" hook_index=1 total_hooks=2 display_text="node"
+turn=97d52e4d-c4b4-528b-a221-a37d1b41d865] hook.finished hook_name="Stop" hook_event_name="Stop" source="project" success=true duration_ms=120 exit_code=0
+turn=97d52e4d-c4b4-528b-a221-a37d1b41d865] hook.finished hook_name="Stop" hook_event_name="Stop" source="project" success=true duration_ms=312 exit_code=0
+turn=97d52e4d-c4b4-528b-a221-a37d1b41d865] hook.started hook_name="Stop" hook_event_name="Stop" source="project" hook_index=1 total_hooks=2 display_text="node"

@@ -1,0 +1,22 @@
+$ agy plugin install <repo-root>/adapters/antigravity
+  [ok]    jiahao
+          - skills      : skipped (not found)
+          - agents      : skipped (not found)
+          - commands    : skipped (not found)
+          - mcpServers  : skipped (not found)
+          ✔ hooks       : 1 processed
+# exit 0
+
+$ agy plugin list
+{
+  "imports": [
+    {
+      "name": "jiahao",
+      "source": "antigravity",
+      "importedAt": "2026-10-31T15:05:59Z",
+      "components": [
+        "hooks"
+      ]
+    }
+  ]
+}

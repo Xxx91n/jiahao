@@ -3,7 +3,7 @@
 
 // The platform names this module can answer for. Kept next to the branches
 // below so a name a config template passes can never be a name with no shape.
-const PLATFORMS = ['claude', 'codex', 'copilot', 'qoder', 'codebuddy', 'zcode'];
+const PLATFORMS = ['claude', 'codex', 'copilot', 'qoder', 'codebuddy', 'antigravity', 'zcode'];
 
 // Host detection, in two steps:
 //   1. An explicit platform name as the hook's first argument. The host config
@@ -18,6 +18,9 @@ function detectHost() {
   if (PLATFORMS.includes(explicit)) return explicit;
   if (process.env.PLUGIN_DATA) return 'codex';
   if (process.env.COPILOT_PLUGIN_DATA) return 'copilot';
+  // Qoder Desktop hands a hook subprocess QODER_PROJECT_DIR and
+  // QODER_CONFIG_DIR but no QODER_SESSION_ID (#109), so this branch only fires
+  // on builds that do; the adapter map passes `qoder` as argv instead.
   if (process.env.QODER_SESSION_ID) return 'qoder';
   // CodeBuddy sets CODEBUDDY_PLUGIN_ROOT (preferred) and recognizes
   // CLAUDE_PLUGIN_ROOT verbatim; a Claude Code session never sets the
@@ -40,9 +43,10 @@ function detectHost() {
 // are not renamed here.
 function normalizePayload(parsed) {
   const p = (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
-  const sessionId = p.session_id || p.sessionId || null;
+  const sessionId = p.session_id || p.sessionId || p.conversationId || null;
   const agentType = p.agent_type || p.agentType || p.agentName || '';
-  return Object.assign({}, p, { session_id: sessionId, agent_type: agentType });
+  const stopHookActive = p.stop_hook_active === true || (typeof p.executionNum === 'number' && p.executionNum > 0);
+  return Object.assign({}, p, { session_id: sessionId, agent_type: agentType, stop_hook_active: stopHookActive });
 }
 
 // Write hook output in the format the current host expects.
@@ -62,9 +66,11 @@ function writeHookOutput(text, event) {
     // Copilot flat output: additionalContext (multi-event since CLI 1.0.11, #2142)
     console.log(JSON.stringify({ additionalContext: trimmed }));
   } else if (host === 'qoder') {
-    // Qoder HAS SessionStart (matcher startup/resume/clear, non-blocking);
-    // hookSpecificOutput.hookEventName contract is homologous to Claude Code
-    // (docs.qoder.com/cli/hooks-reference, verified 2026-08)
+    // Qoder CN Desktop 0.4.11 answers this envelope: the shipped worker runtime
+    // per-branch zod schema requires hookSpecificOutput.hookEventName, lines
+    // quoted in docs/evidence/v0.3.0/qoder-runtime-hook-schema.txt. File
+    // evidence from the installed build - no injection was watched landing in a
+    // real Qoder turn (#109).
     console.log(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: event,
@@ -92,6 +98,25 @@ function writeHookOutput(text, event) {
         additionalContext: trimmed,
       },
     }));
+  } else if (host === 'antigravity') {
+    if (event === 'SessionStart') {
+      console.log(JSON.stringify({
+        injectSteps: [
+          {
+            systemMessage: {
+              systemMessage: trimmed,
+            },
+          },
+        ],
+      }));
+    } else {
+      console.log(JSON.stringify({
+        hookSpecificOutput: {
+          hookEventName: event,
+          additionalContext: trimmed,
+        },
+      }));
+    }
   } else {
     // Native Claude Code: SessionStart = plain stdout, SubagentStart = JSON
     if (event === 'SessionStart') {
@@ -107,12 +132,15 @@ function writeHookOutput(text, event) {
   }
 }
 
-// Exit code that carries a block decision. Codex 0.163.0 and Copilot CLI
-// 1.0.105 (win32, probed 2026-10-30, #80) only continued the turn on exit 0;
-// Claude-shaped hosts block on exit 2. ZCode 3.16.2 continued a live turn on
-// exit 0 + {decision:"block"} (#108 probe, 2026-10-31). The Codex stderr copy
-// is a log aid on its exit-0 path, not the block channel.
-const BLOCK_EXIT_CODES = Object.freeze({ codex: 0, copilot: 0, claude: 2, codebuddy: 2, zcode: 0 });
+// Exit code that carries a block decision. Codex 0.163.0, Copilot CLI
+// 1.0.105 (#80, 2026-10-30), Antigravity 1.2.12 (#111) and ZCode 3.16.2
+// (#108 probe, 2026-10-31) continued the turn on exit 0 only - there, exit 2
+// did not block. Claude-shaped hosts block on exit 2, and Qoder CN Desktop
+// 0.4.11 (#109, 2026-10-31) sits with them: it continued the turn on exit 2
+// with the reason on stderr AND on exit 0 with the decision field, so it
+// keeps the Claude code. The Codex stderr copy is a log aid on its exit-0
+// path, not the block channel.
+const BLOCK_EXIT_CODES = Object.freeze({ codex: 0, copilot: 0, antigravity: 0, qoder: 2, claude: 2, codebuddy: 2, zcode: 0 });
 
 function writeBlockOutput(reason) {
   console.log(JSON.stringify({ decision: 'block', reason: reason }));
