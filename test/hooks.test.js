@@ -226,7 +226,7 @@ test('readProfile falls back to the verifier default when the profile path is un
 // its payload on stderr so an operator can tell a defaulted profile from a
 // misconfigured one (#84's fail-path convention). EISDIR is the measured
 // shape (a directory where the flag file should be).
-test('readProfile leaves the failure payload on stderr when the profile path is unreadable', () => {
+test('finding 1: readProfile leaves the failure payload on stderr when the profile path is unreadable', () => {
   const dir = freshDir('jiahao-profile-test-');
   fs.mkdirSync(path.join(dir, '.jiahao-profile')); // a directory where the file should be
   const { readProfile } = require(path.join(hooksDir, 'jiahao-profile.js'));

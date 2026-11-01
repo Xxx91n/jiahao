@@ -65,15 +65,15 @@ function adaptTranscriptText(text) {
     if (e.type !== 'assistant') return;
     const id = e.message && typeof e.message.id === 'string' ? e.message.id : null;
     if (id === null) return;
-    let m = mergedById.get(id);
-    if (!m) { m = { blocks: [], seen: new Set(), firstIdx: i }; mergedById.set(id, m); }
+    let merged = mergedById.get(id);
+    if (!merged) { merged = { blocks: [], seen: new Set(), firstIdx: i }; mergedById.set(id, merged); }
     const blocks = Array.isArray(e.message.content) ? e.message.content : [];
     for (const b of blocks) {
       if (!b || typeof b !== 'object') continue;
       const key = JSON.stringify(b);
-      if (m.seen.has(key)) continue;
-      m.seen.add(key);
-      m.blocks.push(b);
+      if (merged.seen.has(key)) continue;
+      merged.seen.add(key);
+      merged.blocks.push(b);
     }
   });
 
@@ -91,9 +91,9 @@ function adaptTranscriptText(text) {
       const id = typeof msg.id === 'string' ? msg.id : null;
       let blocks = Array.isArray(content) ? content : [];
       if (id !== null) {
-        const m = mergedById.get(id);
-        if (!m || m.firstIdx !== i) return; // part line: folded into the union emitted at the id's first line
-        blocks = m.blocks;
+        const merged = mergedById.get(id);
+        if (!merged || merged.firstIdx !== i) return; // part line: folded into the union emitted at the id's first line
+        blocks = merged.blocks;
       }
       let msgText = '';
       for (const b of blocks) {

@@ -173,7 +173,9 @@ unproven is this bundle blocking through the plugin path: see
   path the fixed resolution is conditional on it. The live in-app half - a Qoder
   session whose evidence chain is seen in `~/.qoder-cn` - is not yet in this
   repository's records; the turn-end block above is unaffected either way,
-  because it was measured through the hook's own stdout/stderr.
+  because it was measured through the hook's own stdout/stderr. An unreadable
+  `.jiahao-profile` (a directory in its place, or unreadable permissions) also
+  resolves to the default `verifier`, with a `[config]:` note on stderr.
 - **Which root registers hooks - now known for both builds.** Project-scope
   `.qoder/settings.json` fired and a `.qoder-cn/settings.json` placed beside it
   did not, on the CN build (#109) and again on the international one (#113).
