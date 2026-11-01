@@ -62,6 +62,13 @@ this directory.
   before the cap, and the subprocess env matched CN (`QODER_PROJECT_DIR`,
   `QODER_CONFIG_DIR`, no `QODER_SESSION_ID`, no `CLAUDE_CONFIG_DIR`/`HOME`).
   Record: `../qoder-intl-hook-probe-2026-11-01.md`.
+- `qoder-intl-io-probe-hook.js`: the same shim, but it runs the shared probe
+  through `codex-hook-wrapper.js` so each invocation also lands in
+  `../qoder-intl-probe-io.jsonl` with the hook's own **stdin, stdout, stderr and
+  exit code** in one record (evidence-review item 7). Register it the same way,
+  with a distinct argv label (`intl-io-origin-dot-qoder`). Observed: 2
+  invocations; call 1 `code: 0` with the flat `{"decision":"block",...}` on
+  stdout and empty stderr, matching what the host logged for the same turn.
 
 ## Google Antigravity 1.2.12 (#111)
 

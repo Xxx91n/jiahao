@@ -154,9 +154,16 @@ session is spawned by the app, so there is no `*_HOME` override to point it at.
 #113 armed **both** `.qoder/` and `.qoder-cn/` in a separate scratch repository
 (`D:\Aworker\photo`, clean, on `main`) rather than in the ticket's checkout, with a
 different origin label in each file's argv so the log shows which one fired. Both
-runs gated every block on a marker string so no other session could be affected,
-bounded the loop with a per-session cap, and deleted both hook config files and
-the probe's temp state afterwards. `qoder-hook-probe-2026-10-31.md` and
+runs gated every block on a marker string and bounded the loop with a per-session
+cap, then deleted both hook config files and the probe's temp state afterwards.
+
+**What that guard does and does not cover:** the marker keeps an *unrelated*
+session out - a session whose turn does not contain `JIAHAO109-CLAIM-DONE` can
+never be blocked. It does not identify a session: any *other* new turn in the
+armed project that happened to contain that exact string could be blocked too,
+up to the cap. No such turn occurred here (the marker appears only in the probe
+prompts), but the guard is a content gate, not a session gate, and the records
+should be read that way. `qoder-hook-probe-2026-10-31.md` and
 `qoder-intl-hook-probe-2026-11-01.md` record the isolation state per run.
 
 The WorkBuddy probes are also exceptions: that host refuses a headless turn

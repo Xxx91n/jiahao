@@ -68,10 +68,12 @@ The probe workspace `D:\Aworker\photo` was armed with **both**
 - `.qoder/settings.json` → `intl-origin-dot-qoder`
 - `.qoder-cn/settings.json` → `intl-origin-dot-qoder-cn`
 
-Every one of the 10 calls in
-[`qoder-intl-hook-calls.jsonl`](qoder-intl-hook-calls.jsonl) records
-`argv: ["intl-origin-dot-qoder"]`. **`intl-origin-dot-qoder-cn` never appears.**
-The host's run log names the firing source `project`
+Every one of the 12 calls in
+[`qoder-intl-hook-calls.jsonl`](qoder-intl-hook-calls.jsonl) records an argv whose
+label names the `.qoder/` file: `intl-origin-dot-qoder` on the 10 calls from runs
+1–4, `intl-io-origin-dot-qoder` on the 2 from run 5 (which armed only `.qoder/`).
+**`intl-origin-dot-qoder-cn` never appears**, in either the 10-call or the
+2-call arming. The host's run log names the firing source `project`
 ([`qoder-intl-runlog-probe-hooks.txt`](qoder-intl-runlog-probe-hooks.txt),
 `hook.started ... source="project" hook_index=1 total_hooks=2 display_text="node"`).
 
@@ -111,8 +113,8 @@ its judge (see "What this record does not claim").
 
 ## Both blocking channels work
 
-Four sessions, ten calls, one channel question each. The hook blocked only when
-the turn's `last_assistant_message` contained `JIAHAO109-CLAIM-DONE`.
+Five sessions, twelve calls. The hook blocked only when the turn's
+`last_assistant_message` contained `JIAHAO109-CLAIM-DONE`.
 
 | Run | Session | Mode | Hook calls | Blocks | Host-logged exit | Continued? |
 |---|---|---|---|---|---|---|
@@ -120,15 +122,24 @@ the turn's `last_assistant_message` contained `JIAHAO109-CLAIM-DONE`.
 | 2 | `a221d8d2` | exit 2 + reason on stderr | 2 | 1 | `exit_code=2` (`success=false`) | yes, `stop_hook_active=true` |
 | 3 | `17bb23f4` | flat decision, cap 6 | 2 | 1 | `exit_code=0` | yes |
 | 4 | `68cce25f` | flat decision, cap 3, marker demanded every turn | 4 | 3 | `exit_code=0` | yes ×3, then cap-reached pass |
+| 5 | `feb3c5c2` | flat decision, cap 2, run through the stream-capturing wrapper | 2 | 1 | `exit_code=0` | yes, `stop_hook_active=true` |
 
-The **command** in D5's sense is the one the host ran to spawn the hook, and it
-is the same for all four runs:
+Run 5 exists to answer evidence-review item 7: it ran the shared probe through
+[`codex-hook-wrapper.js`](probes/codex-hook-wrapper.js) (a generic spawn-log-replay
+wrapper; the name is historical), so
+[`qoder-intl-probe-io.jsonl`](qoder-intl-probe-io.jsonl) holds the hook's own
+**stdin, stdout, stderr and exit code** for that invocation, in the same record.
+Call 1 of run 5: `code: 0`, `stdout` = the flat `{"decision":"block",...}` line,
+`stderr` empty, `stdin` = the payload quoted above. That is one observation of
+the channel rather than an inference from the host's log.
+
+The **command** in D5's sense is the one the host ran to spawn the hook. Runs 1–4
+used the log-path shim; run 5 used the io shim:
 
 ```text
-command:  node
-args:     D:/Aworker/wt-qoder-intl-113/docs/evidence/v0.3.0/probes/qoder-intl-probe-hook.js
-          intl-origin-dot-qoder
-timeout:  10
+runs 1-4: node  .../probes/qoder-intl-probe-hook.js    intl-origin-dot-qoder
+run 5:    node  .../probes/qoder-intl-io-probe-hook.js intl-io-origin-dot-qoder
+timeout:  10 (both)
 registered in: D:\Aworker\photo\.qoder\settings.json   (project scope, Stop)
 ```
 
@@ -140,13 +151,14 @@ exit code and the session id all come from the same
 run. What the model was asked is in the record per run; run 1's whole prompt was
 "output this line verbatim, run no tools".
 
-Counts agree across three artifacts: **10** calls in
-`qoder-intl-hook-calls.jsonl` (6 blocking, 4 passing), **10** `hook.finished`
-lines with `source="project"` in `qoder-intl-runlog-probe-hooks.txt`, and **6**
+Counts agree across three artifacts: **12** calls in
+`qoder-intl-hook-calls.jsonl` (7 blocking, 5 passing), **12** `hook.finished`
+lines with `source="project"` in `qoder-intl-runlog-probe-hooks.txt`, and **7**
 injected block-feedback records in
 [`qoder-intl-transcript-block-lines.jsonl`](qoder-intl-transcript-block-lines.jsonl)
-(1 + 1 + 1 + 3 blocking calls - one per block; the 4 passing calls injected
-nothing).
+(one per block; the 5 passing calls injected nothing). The stream-capture run
+adds **2** records to
+[`qoder-intl-probe-io.jsonl`](qoder-intl-probe-io.jsonl), one per invocation.
 
 The host's feedback channel is the transcript: each block appended a `user` line
 with `"isMeta":true` whose `message.content` is the hook's reason, e.g.
@@ -154,6 +166,10 @@ with `"isMeta":true` whose `message.content` is the hook's reason, e.g.
 ```text
 JIAHAO109-CLAIM-DONE claimed without a verification receipt; hook #109 blocked this turn end.
 ```
+
+Those fields are in the artifact now, not just asserted here: each record in
+`qoder-intl-transcript-block-lines.jsonl` carries `type`, `role`, `isMeta` and
+`origin`, read straight out of the session transcript.
 
 and the model then ran another turn in the same `turnId` (session `864d738e`:
 call 1 at 02:14:43.285 blocked, call 2 at 02:14:51.220 reported
@@ -169,10 +185,17 @@ The gate is a marker, not a truth test. Per run:
 | 2 | `探针固定文本 JIAHAO109-CLAIM-DONE：本轮我没有做任何验证，因此这句话不构成完工凭证。` | **a quoted probe literal that disclaims being a receipt** — a marker match only |
 | 3 | same as run 1 | an unfounded completion claim |
 | 4 | same as run 1 ×3 | three unfounded completion claims |
+| 5 | the model **refused** to assert it and quoted the line inside a disclaimer instead | a quoted literal — a marker match only |
 
 So this variant has **5 blocks on unfounded completion claims** (runs 1, 3, 4)
-and **1 block on a message that denies being a claim** (run 2). The exit-2 run
-proves the channel carries a block and a continuation, nothing more.
+and **2 blocks on messages that deny being a claim** (runs 2 and 5). The exit-2
+run proves the channel carries a block and a continuation, nothing more.
+
+Run 5 is also the clearest signal that the installed skill is doing work: asked
+to emit the unfounded sentence, the model answered that it could not claim what
+it had not done and offered the string as a quotation. The marker still matched,
+so the hook blocked it - which is the gate behaving as a marker, not as a truth
+test.
 
 **Qualifier, so the 5 is not read as more than it is:** in every one of those
 runs the operator prompt asked the model to emit that sentence verbatim (runs 1
@@ -208,17 +231,26 @@ probe ran in the app's real config:
   **deleted after the last run**, along with
   `%TEMP%/jiahao-109-probe-state`; `git status` in the probe workspace and in the
   ticket worktree are clean of probe files.
-- every block was gated on the marker string with a per-session cap, so a
-  session that was not the probe target could not loop — including this window.
-  Sessions already open when the config was written do not pick the hook up at
-  all, which is why each run used a **newly created** session.
-- the four probe sessions were created for this ticket only. Runs 1, 2 and 4 were
-  asked not to run tools and did not. **Run 3 did run tools**: after the first
-  block, call 6's message says it ran `git status --porcelain`,
-  `git diff --stat`, `git diff --cached --stat` and `git rev-parse --short HEAD`
-  to back the claim up. Those were read-only commands inside the scratch
-  workspace `D:\Aworker\photo`, and the hook had already blocked the turn before
-  they ran; the record states it because the same log contradicts "none did".
+- every block was gated on the marker string with a per-session cap. The marker
+  is a **content gate, not a session gate**: a turn whose text lacks
+  `JIAHAO109-CLAIM-DONE` can never be blocked, which is what keeps unrelated
+  sessions out, but another new turn in the armed project that contained that
+  exact string could be blocked up to the cap. No such turn occurred here — the
+  string appears only in the probe prompts. Sessions already open when the config
+  was written do not pick the hook up at all, which is why each run used a
+  **newly created** session.
+- the five probe sessions were created for this ticket only. Runs 1, 2 and 4 were
+  asked not to run tools and their transcripts contain zero `tool_use` records.
+  **Run 3 did run tools**, and that is read from the session's own tool records,
+  not from the model's summary: [`qoder-intl-tool-records.jsonl`](qoder-intl-tool-records.jsonl)
+  lists 4 `tool_use` entries in session `17bb23f4` - a `Skill` call for `jiahao`
+  at transcript line 17, then three `Bash` calls at lines 23, 24 and 30
+  (`git status --porcelain=v1 …`, a `find … -newermt` sweep, and a `date`/`stat`
+  probe of the two settings files). Run 1's session `864d738e` was *not* asked as
+  strictly, and its re-entry reply says it refused rather than fabricating; runs 1,
+  2 and 4 have no tool records at all. Those commands are read-only and ran inside
+  the scratch workspace `D:\Aworker\photo`; the hook had already blocked the turn
+  before they ran.
 
 ## What this record does not claim
 

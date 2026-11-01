@@ -82,24 +82,29 @@ inheriting it:
   build gave, now measured rather than assumed;
 - the hook subprocess gets `QODER_PROJECT_DIR`, `QODER_CONFIG_DIR`,
   `USERPROFILE`, `TEMP` and `TMP`, but no `QODER_SESSION_ID`, no
-  `CLAUDE_CONFIG_DIR` and no `HOME` - so #116's state-location defect applies to
-  this build too.
+  `CLAUDE_CONFIG_DIR` and no `HOME`. This was measured on a **project-scope
+  `.qoder/settings.json` hook**; the plugin path has not been observed spawning a
+  hook, so whether it hands over the same environment is unproven. If it does,
+  #116's state-location defect applies to this build as well - see the
+  conditional wording in "Declared-unverified on this host".
 
 Which messages got held: **5** blocks landed on "I completed and verified a
 read-only check" claims that were unfounded on their face (runs 1, 3, 4), and
-**1** landed on a literal that itself said nothing had been verified (run 2,
-exit-2 channel). The 5 were dictated by the probe prompt (the model was told to
+**2** landed on literals that themselves said nothing had been verified (run 2's
+exit-2 channel, and run 5, where the model refused to assert it and quoted the
+line instead). The 5 were dictated by the probe prompt (the model was told to
 emit that sentence verbatim), so they prove the block fires on a
-self-contradictory claim, not that the model invented one. As on CN, the exit-2 run
-proves the channel carries a block and a continuation, not a false-completion
-catch.
+self-contradictory claim, not that the model invented one. The exit-2 run proves
+the channel carries a block and a continuation, not a false-completion catch.
 
-Counts agree: 10 hook calls in
+Counts agree: 12 hook calls in
 [`qoder-intl-hook-calls.jsonl`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-hook-calls.jsonl)
-(6 blocking, 4 passing), 10 `hook.finished` lines with `source="project"` in
+(7 blocking, 5 passing), 12 `hook.finished` lines with `source="project"` in
 [`qoder-intl-runlog-probe-hooks.txt`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-runlog-probe-hooks.txt),
-and 6 injected block-feedback records in
-[`qoder-intl-transcript-block-lines.jsonl`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-transcript-block-lines.jsonl).
+7 injected block-feedback records in
+[`qoder-intl-transcript-block-lines.jsonl`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-transcript-block-lines.jsonl),
+and 2 per-invocation stream records (stdin/stdout/stderr/exit) in
+[`qoder-intl-probe-io.jsonl`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-probe-io.jsonl).
 The run record is
 [`qoder-intl-hook-probe-2026-11-01.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-hook-probe-2026-11-01.md).
 
@@ -149,18 +154,22 @@ unproven is this bundle blocking through the plugin path: see
 - **Whether a hook subprocess gets `QODER_SESSION_ID`.** It does not: the probe
   saw `QODER_PROJECT_DIR`, `QODER_CONFIG_DIR`, `USERPROFILE`, `TEMP` and `TMP`.
   That is why the hook map passes the platform name `qoder` on the command line.
-- **Where jiahao's own state lands on this host - measured, and broken.** The
-  hook subprocess gets neither `CLAUDE_CONFIG_DIR` nor `HOME`, and
+- **Where jiahao's own state lands on this host - measured on the settings path,
+  open on the plugin path.** The hook subprocess gets neither
+  `CLAUDE_CONFIG_DIR` nor `HOME`, and
   `src/shared/paths.js` resolves its config directory as
   `CLAUDE_CONFIG_DIR || HOME || '/tmp'`, so a hook spawned by Qoder reads and
   writes `.jiahao-profile` and `.jiahao-evidence` under `<drive>:\tmp` instead of
   the `QODER_CONFIG_DIR` the host does name (`~/.qoder-cn` on CN, `~/.qoder` on
-  international). The turn-end block above is unaffected - it was measured
-  through the hook's own stdout/stderr - but the shipped gate's profile read and
-  evidence chain are. Repairing that is a
+  international). **That measurement came from a project-scope
+  `.qoder/settings.json` hook.** Whether a plugin-path hook is spawned with the
+  same environment was not observed, so the plugin's state location is
+  **conditional on that**, not established: if the plugin hook also lacks both
+  variables it lands in the same place. The turn-end block above is unaffected -
+  it was measured through the hook's own stdout/stderr - but the shipped gate's
+  profile read and evidence chain are at stake on both paths. Repairing that is a
   shared-path change reaching every host, tracked as #116 and deliberately not
-  made inside this exit; until it lands, treat the plugin's state location on
-  Qoder as wrong, not untested.
+  made inside this exit.
 - **Which root registers hooks - now known for both builds.** Project-scope
   `.qoder/settings.json` fired and a `.qoder-cn/settings.json` placed beside it
   did not, on the CN build (#109) and again on the international one (#113).
