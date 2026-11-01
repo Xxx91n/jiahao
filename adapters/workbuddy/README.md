@@ -77,17 +77,17 @@ project directory name: `.codebuddy`, not `.workbuddy`; a twin written to
    `WORKBUDDY_*` variables, so the argument is what identifies the host.
 4. Activate the jiahao profile flag **where the hooks read it**, and pin that
    directory first. The hooks resolve it as `CLAUDE_CONFIG_DIR`, else `HOME`,
-   else `WORKBUDDY_CONFIG_DIR` / `CODEBUDDY_CONFIG_DIR`, else the OS home
-   (`src/shared/paths.js`). The probe recorded `CLAUDE_CONFIG_DIR` as absent for
-   the desktop's agent and both builder config-dir variables set to the build's
-   own root; whether that environment also sets `HOME` was **not recorded** in
-   the probe, and a shell supplies a `HOME` of its own. Writing the flag from a
-   shell can therefore land where no hook looks, and the gate then finds no
-   `.jiahao-active` and never arms. Measured on the operator machine
-   (2026-11-01, #116): the desktop's hook process had `CLAUDE_CONFIG_DIR`
-   unset and `HOME` set, while the shell that ran the installer carried
-   `CLAUDE_CONFIG_DIR` from another agent - so the installer wrote the flag
-   where the hook does not read it and a profile switch failed silently.
+   else `CODEBUDDY_CONFIG_DIR` / `WORKBUDDY_CONFIG_DIR` (the order
+   `src/shared/paths.js` checks), else the OS home. What the record says, and
+   what it does not: the 2026-10-31 and 2026-11-01 probe sessions logged
+   `CLAUDE_CONFIG_DIR` absent and both builder config-dir variables set to
+   that build's own root, and neither record logs `HOME` at all. The owner's
+   separate run on 2026-11-01 (#116) saw the desktop's guard process with
+   `CLAUDE_CONFIG_DIR` unset and `HOME` set, while the shell that ran the
+   installer carried `CLAUDE_CONFIG_DIR` from another agent - so the installer
+   wrote the flag where the hook does not read it and a profile switch failed
+   silently. A shell supplies a `HOME` of its own, which is exactly why
+   writing the flag from an arbitrary shell can land out of view.
 
    The reliable recipe pins one directory for both sides. Either set
    `CLAUDE_CONFIG_DIR` for the desktop process (a user environment variable

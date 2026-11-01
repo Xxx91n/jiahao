@@ -62,7 +62,7 @@ mcp 目录不再作为安装出口；MCP 服务端本身保留在 [`jiahao-mcp/`
 
 ### Profile
 
-插件版在没有 `.jiahao-profile` 时缺省为 `verifier`。标记文件位于 `CLAUDE_CONFIG_DIR`，未设置时取 `$HOME`；两者都没有时取宿主自己的配置根（Qoder 是 `QODER_CONFIG_DIR`，WorkBuddy 是 `WORKBUDDY_CONFIG_DIR`），再没有才退到操作系统给的家目录，不再退到 `/tmp`。在克隆里运行安装器；`-y` 接受缺省值并打印实际写入的值：
+插件版在没有 `.jiahao-profile` 时缺省为 `verifier`。标记文件位于 `CLAUDE_CONFIG_DIR`，未设置时取 `$HOME`；两者都没有时取宿主报出的配置根（`QODER_CONFIG_DIR`、`CODEBUDDY_CONFIG_DIR` 或 `WORKBUDDY_CONFIG_DIR`），再没有才退到操作系统给的家目录，不再退到 `/tmp`。在克隆里运行安装器；`-y` 接受缺省值并打印实际写入的值：
 
 ```bash
 node scripts/install.js init -y

@@ -62,7 +62,7 @@ The mcp directory is no longer an install exit; the MCP server itself remains at
 
 ### Profile
 
-The plugin version defaults to `verifier` when `.jiahao-profile` is absent. The flag lives under `CLAUDE_CONFIG_DIR`, else `$HOME`; when a hook has neither, it takes the host's own config root (Qoder's `QODER_CONFIG_DIR`, WorkBuddy's `WORKBUDDY_CONFIG_DIR`), then the OS home — never `/tmp`. Run the installer from the clone; `-y` accepts the default and prints the value it wrote:
+The plugin version defaults to `verifier` when `.jiahao-profile` is absent. The flag lives under `CLAUDE_CONFIG_DIR`, else `$HOME`; when a hook has neither, it takes a config root the host reports (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`), then the OS home — never `/tmp`. Run the installer from the clone; `-y` accepts the default and prints the value it wrote:
 
 ```bash
 node scripts/install.js init -y
