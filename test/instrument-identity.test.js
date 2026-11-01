@@ -40,3 +40,13 @@ test('#71 item 14: a disposed exposure marks nothing', () => {
   expect(openExposures(history)).toEqual([]);
   expect(affectedSignoffs(history)).toEqual([]);
 });
+
+test('#71 item 14: a sign-off between two open exposures is still affected', () => {
+  const history = [
+    { seq: 1, kind: 'drift_exposure' },
+    { seq: 2, kind: 'conditional_signoff' },
+    { seq: 3, kind: 'drift_exposure' },
+  ];
+  expect(openExposures(history).map(e => e.seq)).toEqual([1, 3]);
+  expect(affectedSignoffs(history).map(a => a.seq)).toEqual([2]);
+});

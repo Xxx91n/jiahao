@@ -387,7 +387,12 @@ test('verdict-gate blocks through the host envelope when the evidence log cannot
   const dir = freshDir('jiahao-hooks-test-');
   fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
   const preload = path.join(__dirname, 'helpers', 'fail-evidence-log-init.js').split(path.sep).join('/');
-  const env = Object.assign(hostEnv(dir), { NODE_OPTIONS: '--require ' + preload });
+  // JSON.stringify quotes the path: NODE_OPTIONS is parsed as a shell-like
+  // string, so an unquoted checkout path with a space would split.
+  const env = Object.assign(hostEnv(dir), {
+    NODE_OPTIONS: [process.env.NODE_OPTIONS, '--require=' + JSON.stringify(preload)]
+      .filter(Boolean).join(' '),
+  });
   const res = spawnHook(path.join(hooksDir, 'jiahao-verdict-gate.js'), {
     stdin: JSON.stringify({ stop_hook_active: false }), env: env, cwd: repoRoot,
   });
@@ -402,7 +407,12 @@ test('verdict-gate init failure stays advisory in the generator profile (D2)', (
   fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
   fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'generator', 'utf8');
   const preload = path.join(__dirname, 'helpers', 'fail-evidence-log-init.js').split(path.sep).join('/');
-  const env = Object.assign(hostEnv(dir), { NODE_OPTIONS: '--require ' + preload });
+  // JSON.stringify quotes the path: NODE_OPTIONS is parsed as a shell-like
+  // string, so an unquoted checkout path with a space would split.
+  const env = Object.assign(hostEnv(dir), {
+    NODE_OPTIONS: [process.env.NODE_OPTIONS, '--require=' + JSON.stringify(preload)]
+      .filter(Boolean).join(' '),
+  });
   const res = spawnHook(path.join(hooksDir, 'jiahao-verdict-gate.js'), {
     stdin: JSON.stringify({ stop_hook_active: false }), env: env, cwd: repoRoot,
   });

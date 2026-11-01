@@ -550,12 +550,16 @@ const SIGNOFF_KINDS = ['signoff', 'conditional_signoff', 'record_signoff'];
 function affectedSignoffs(history) {
   const open = openExposures(history);
   if (!open.length) return [];
-  const oldestExposureSeq = open[0].seq;
+  // The LATEST open exposure is the cutoff (#71, CodeRabbit on PR #133): a
+  // sign-off that sits between an earlier exposure and a later one is still a
+  // prior-interval sign-off with respect to the later one, so it is affected
+  // too. The oldest-exposure cutoff skipped it.
+  const latestExposureSeq = open[open.length - 1].seq;
   const affected = [];
   for (const ev of history || []) {
     if (!ev) continue;
     if (SIGNOFF_KINDS.indexOf(ev.kind) === -1) continue;
-    if (ev.seq < oldestExposureSeq) {
+    if (ev.seq < latestExposureSeq) {
       affected.push({ seq: ev.seq, kind: ev.kind, status: 'affected/under-review' });
     }
   }
