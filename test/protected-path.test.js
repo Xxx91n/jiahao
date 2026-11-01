@@ -190,12 +190,12 @@ describe('protected path (state file binding, #88 item 4)', () => {
     const found = new Set();
     for (const file of files) {
       const text = fs.readFileSync(file, 'utf8');
-      // Quoted literals only: prose in comments may name a shape without the
-      // code writing it, and a comment is not something the agent can delete.
-      // The suffix class is deliberately WIDER than the fragment's alphabet
-      // (`\w` adds `_` and capitals): a state file spelled some other way has
-      // to turn this red instead of vanishing from the census.
-      for (const match of text.matchAll(/['"`](\.jiahao-[A-Za-z0-9][\w.-]*)['"`]/g)) found.add(match[1]);
+      // Single- or double-quoted string literals only (backticks excluded on
+      // purpose: comments here wrap names in backticks, and prose is not
+      // something the agent can delete). The suffix class is deliberately
+      // WIDER than the fragment's alphabet (`\w` adds `_` and capitals): a
+      // state file spelled some other way has to turn this red.
+      for (const match of text.matchAll(/['"](\.jiahao-[A-Za-z0-9][\w.-]*)['"]/g)) found.add(match[1]);
     }
     // every literal spelling the census expects must really be in the tree
     for (const { literal } of STATE_SURFACE) {

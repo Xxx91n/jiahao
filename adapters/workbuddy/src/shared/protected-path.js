@@ -47,8 +47,8 @@ const path = require('path');
 // `.jiahao-calibration.jsonl` - and `([\\/]|$)` also catches the files inside
 // the evidence directory. The list is no longer a second hand-maintained copy
 // of `src/shared/paths.js`: test/protected-path.test.js reads every quoted
-// `.jiahao…` name out of src/, hooks/ and jiahao-mcp/ and requires each to be
-// denied. The census scans a WIDER suffix alphabet than this fragment -
+// `.jiahao…` name out of the .js source under src/, hooks/ and jiahao-mcp/ and
+// requires each to be denied. The census scans a WIDER suffix alphabet than this fragment -
 // underscores and capitals included - so a state file spelled some other way
 // turns the suite red instead of escaping silently.
 //
@@ -63,9 +63,10 @@ const PROTECTED_FRAGMENTS = [
 ];
 
 // Windows resolves names case-insensitively, so `.JIAHAO-PROFILE` deletes the
-// same file the lowercase spelling names. The fragments are compiled twice and
-// the win32 reading takes the folded set; a case-sensitive POSIX host keeps the
-// two names distinct. isProtected() derives one `caseInsensitive` flag from the
+// same file the lowercase spelling names - the Windows half of item 4, not a
+// new protection class. The fragments are compiled twice and the win32 reading
+// takes the folded set; a case-sensitive POSIX host keeps the two names
+// distinct. isProtected() derives one `caseInsensitive` flag from the
 // injected path implementation and hands it to both channels - the fragment set
 // here and apparatusName() below - so the rule cannot drift between them.
 // macOS reports POSIX separators but normally runs a case-insensitive
@@ -357,12 +358,14 @@ function isProtected(text, pluginRoot, opts) {
   // typed. os.homedir() asks the kernel instead of the environment.
   let home = env.HOME || env.USERPROFILE || null;
   if (!home) { try { home = (o.homedir || os.homedir)() || null; } catch (e) { home = null; } }
-  // The host's own filesystem decides case sensitivity, not the host's name.
+  // The injected path implementation's separator decides: win32 folds, POSIX
+  // does not. It is a proxy for the host's filesystem, not the filesystem
+  // itself - macOS is the documented residual above.
   const caseInsensitive = P.sep === '\\';
   const ctx = { P: P, cwd: o.cwd || null, rootAbs: rootAbs, home: home, env: env, caseInsensitive: caseInsensitive };
   const fragments = caseInsensitive ? PROTECTED_FRAGMENTS_FOLDED : PROTECTED_FRAGMENTS;
 
-  for (const tok of tokens(text, P.sep === '/')) {
+  for (const tok of tokens(text, !caseInsensitive)) {
     for (const re of fragments) if (re.test(tok)) return true;
     if (!rootAbs) continue;
     for (const abs of readings(ctx, tok)) {
