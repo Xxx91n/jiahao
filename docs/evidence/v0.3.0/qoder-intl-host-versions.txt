@@ -131,3 +131,28 @@ jsonblock 3     # run 1
 exit2 2         # run 2
 jsonblock 6     # run 3
 jsonblock 3     # run 4
+
+# the separate arming used for run 5 (the stream-capturing wrapper).
+# The block above is the runs 1-4 arming; run 5 replaced it, then deleted it too.
+$ cat D:/Aworker/photo/.qoder/settings.json      # run 5
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "D:/Aworker/wt-qoder-intl-113/docs/evidence/v0.3.0/probes/qoder-intl-io-probe-hook.js",
+              "intl-io-origin-dot-qoder"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
+# only .qoder/ was armed for run 5; the .qoder-cn/ twin was not recreated,
+# which is why no intl-origin-dot-qoder-cn label appears anywhere in the log.

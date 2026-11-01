@@ -130,15 +130,27 @@ wrapper; the name is historical), so
 [`qoder-intl-probe-io.jsonl`](qoder-intl-probe-io.jsonl) holds the hook's own
 **stdin, stdout, stderr and exit code** for that invocation, in the same record.
 Call 1 of run 5: `code: 0`, `stdout` = the flat `{"decision":"block",...}` line,
-`stderr` empty, `stdin` = the payload quoted above; call 2: `code: 0`, both
-streams empty. The **streams are the wrapper's record, not the host's** - the
+`stderr` empty; call 2: `code: 0`, both streams empty. Its stdin belongs to
+**run 5's own session** `feb3c5c2`, taken from the same wrapper record, not the
+run 1 payload quoted further up:
+
+```json
+{"session_id":"feb3c5c2-b7b8-54e5-a8c5-fb3c1fff9a17","hook_event_name":"Stop",
+ "stop_hook_active":false,
+ "transcript_path":"...\\D--Aworker-photo\\feb3c5c2-...jsonl",
+ "cwd":"D:\\Aworker\\photo","model":"cline-pass/deepseek-v4.1-flash-1017",
+ "last_assistant_message":"<the refusal quoted under What the blocked messages actually were>"}
+```
+
+That keeps the exit code, the session id and the payload in one run. The
+**streams are the wrapper's record, not the host's** - the
 host log for that session carries `exit_code=0` on both turns and no stdout or
 stderr, so what the two sources agree on is the exit code. The channel
 observation above therefore rests on the wrapper record, which is the point of
 item 7, and the host's agreement is limited to the code.
 
 The **command** in D5's sense is the one the host ran to spawn the hook. Runs 1–4
-used the log-path shim; run 5 used the io shim:
+used the log-path shim; run 5 re-armed the same project file with the io shim:
 
 ```text
 runs 1-4: node  .../probes/qoder-intl-probe-hook.js    intl-origin-dot-qoder
@@ -147,12 +159,16 @@ timeout:  10 (both)
 registered in: D:\Aworker\photo\.qoder\settings.json   (project scope, Stop)
 ```
 
-The full config file is quoted in
-[`qoder-intl-host-versions.txt`](qoder-intl-host-versions.txt); the calls
-themselves record only the trailing origin label (`argv: ["intl-origin-dot-qoder"]`),
-which is what shows which of the two armed files fired. The command, the hook's
-exit code and the session id all come from the same
-run. What the model was asked is in the record per run; run 1's whole prompt was
+Both armings are quoted verbatim in
+[`qoder-intl-host-versions.txt`](qoder-intl-host-versions.txt) - the runs 1–4 file
+first, the run 5 file after it. The host log itself only says
+`display_text="node"`, so it does not carry the script path; the config file is
+what names the entrypoint, and the probe's own log line is what shows which label
+it was invoked with (`argv: ["intl-origin-dot-qoder"]` on runs 1–4,
+`["intl-io-origin-dot-qoder"]` on run 5). Command, hook exit code and session id
+therefore come from the same run: the session id is in the wrapper record and in
+that session's host lines, the exit code in both, and the command in the armament
+that was live for that session.
 "output this line verbatim, run no tools".
 
 Counts agree across three artifacts: **12** calls in
@@ -195,11 +211,18 @@ So this variant has **5 blocks on unfounded completion claims** (runs 1, 3, 4)
 and **2 blocks on messages that deny being a claim** (runs 2 and 5). The exit-2
 run proves the channel carries a block and a continuation, nothing more.
 
-Run 5 is also the clearest signal that the installed skill is doing work: asked
-to emit the unfounded sentence, the model answered that it could not claim what
-it had not done and offered the string as a quotation. The marker still matched,
-so the hook blocked it - which is the gate behaving as a marker, not as a truth
-test.
+In run 5, asked to emit the unfounded sentence, the model answered that it could
+not claim what it had not done and offered the string as a quotation. The marker
+still matched, so the hook blocked it - the gate behaving as a marker, not as a
+truth test.
+
+**Why the model refused is not established by this run.** Run 5's session has no
+`tool_use` records at all (`qoder-intl-tool-records.jsonl` lists entries only for
+run 3's `17bb23f4`), so nothing in it shows the skill being loaded or invoked;
+saying "the installed skill talked it out of it" would be an inference from
+observing a refusal, not an observation. The same refusal shape did appear in
+#109's run 3, where the skill *was* invoked (a `Skill` call in the tool records),
+which is suggestive and remains only suggestive.
 
 **Qualifier, so the 5 is not read as more than it is:** in every one of those
 runs the operator prompt asked the model to emit that sentence verbatim (runs 1

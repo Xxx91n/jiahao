@@ -1166,9 +1166,11 @@ rules version.
   Qoder CN Desktop 0.4.11 (#109, 2026-10-31) and international Desktop 0.4.11
   (#113, 2026-11-01), both through a project-scope \`.qoder/settings.json\` hook.
   Neither probe ran against an isolated config home (a Desktop worker is spawned
-  by the app and has no home override); both used a marker string as the block
-  gate so no other session could be affected, and each probe's own cap bounded
-  the loop.
+  by the app and has no home override). Both gated every block on a marker
+  string with a per-session cap, and that guard is a **content gate, not a
+  session gate**: an unrelated turn whose text lacks the marker can never be
+  blocked, but another new turn in the armed project that happened to contain it
+  could be, up to the cap. No such turn occurred in either probe.
 - The scripts that recorded those calls are
   [\`probes/qoder-stop-probe.js\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/qoder-stop-probe.js)
   (CN) and its log-path shim
