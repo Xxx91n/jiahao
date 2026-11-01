@@ -58,29 +58,29 @@ project directory name: `.codebuddy`, not `.workbuddy`; a twin written to
    (`... jiahao-verdict-gate.js workbuddy`). A settings-tier hook receives no
    plugin root, and the environment carries both `CODEBUDDY_*` and
    `WORKBUDDY_*` variables, so the argument is what identifies the host.
-4. Activate the jiahao profile flag in the **config directory the hooks read**.
-   They resolve it as `CLAUDE_CONFIG_DIR`, else `HOME`, else `/tmp`
-   (`src/shared/paths.js`), and the desktop does **not** set
-   `CLAUDE_CONFIG_DIR` - so with no override the flags belong in `$HOME`.
-   Both recipes below need a real shell; WorkBuddy ships Git Bash at
-   `<configDir>/binaries/PortableGit`, and the probe's hook commands were run by
-   `node`, not by a shell of their own.
+4. Activate the jiahao profile flag **where the hooks read it**, and pin that
+   directory first. The hooks resolve it as `CLAUDE_CONFIG_DIR`, else `HOME`,
+   else `/tmp` (`src/shared/paths.js`); the desktop sets neither variable for
+   its agent, while a shell supplies a `HOME` of its own. Writing the flag from
+   a shell can therefore land where no hook looks, and the gate then finds no
+   `.jiahao-active` and never arms.
 
-   Git Bash (POSIX):
-   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-/tmp}}"`, then
-   `echo full > "$CONFIG/.jiahao-active"` and
-   `echo verifier > "$CONFIG/.jiahao-profile"`.
+   The reliable recipe pins one directory for both sides: set
+   `CLAUDE_CONFIG_DIR` for the desktop process (a user environment variable
+   works on Windows), restart the desktop, then write the flags there.
+
+   Git Bash (WorkBuddy ships it at `<configDir>/binaries/PortableGit`):
+   `echo full > "$CLAUDE_CONFIG_DIR/.jiahao-active"` and
+   `echo verifier > "$CLAUDE_CONFIG_DIR/.jiahao-profile"`.
 
    PowerShell:
-   `$cfg = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { $env:HOME }`,
-   then `Set-Content "$cfg\.jiahao-active" full` and
-   `Set-Content "$cfg\.jiahao-profile" verifier`.
+   `Set-Content "$env:CLAUDE_CONFIG_DIR\.jiahao-active" full` and
+   `Set-Content "$env:CLAUDE_CONFIG_DIR\.jiahao-profile" verifier`.
 
-   `generator` instead of `verifier` for advisory-only. If `HOME` is unset in
-   the desktop's environment, node falls back to `/tmp`, which is `C:\tmp` on
-   Windows - in that case set `CLAUDE_CONFIG_DIR` for the desktop process and
-   write the flags there. The flags must live in the directory the hooks read, or
-   the gate stays on the default profile.
+   `generator` instead of `verifier` for advisory-only. With
+   `CLAUDE_CONFIG_DIR` left unset, the hooks fall back to `HOME` and then to
+   `/tmp` (`C:\tmp` on Windows), so the flags would have to sit in whichever
+   of those the desktop's own environment resolves - check it rather than guess.
 5. Start a new session after changing settings. The hook map is resolved per
    turn in the probe (an edit made during a turn applied at the next turn end),
    and one turn end in three produced no invocation at all, so a mid-session

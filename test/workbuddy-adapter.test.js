@@ -248,10 +248,10 @@ describe('tier disclosure', () => {
     // the JSON path example had unescaped Windows separators. Each is pinned
     // here so the prose cannot regress silently.
     expect(readme).toContain('`hooks/`, `src/`, and\n   `src/SKILL.md` together');
-    expect(readme).toContain('CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-/tmp}}"');
+    expect(readme).toContain('CLAUDE_CONFIG_DIR');
     // The recipe needs a shell the Windows desktop user actually has; both
     // spellings are pinned, plus the `/tmp` -> `C:\tmp` fallback that bites when
-    // HOME is unset in the desktop's environment.
+    // the desktop's environment resolves neither variable.
     expect(readme).toContain('Git Bash');
     expect(readme).toContain('Set-Content');
     expect(readme).toContain('C:\\tmp');
