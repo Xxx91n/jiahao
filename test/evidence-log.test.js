@@ -222,3 +222,17 @@ test('#71: a make() throw inside the lock is not retried unlocked', () => {
   expect(calls).toBe(1);
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test('#71: commit returns the count written; a deduped append returns 0', () => {
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'jiahao-evidence-count-'));
+  const log = createEvidenceLog(dir);
+  const mk = function () {
+    const r = log.createRecord('gate-71', 'deterministic', 'passed', 'ok', null, null, {});
+    r._idem = 'idem-71';
+    r.event_hash = recordHash(r);
+    return r;
+  };
+  expect(log.commit(function () { return [mk()]; })).toBe(1);
+  expect(log.commit(function () { return [mk()]; })).toBe(0);
+  fs.rmSync(dir, { recursive: true, force: true });
+});

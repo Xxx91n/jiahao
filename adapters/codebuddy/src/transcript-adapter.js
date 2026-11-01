@@ -23,10 +23,11 @@
 const fs = require('fs');
 
 // Host-injected text that rides a user-role line but is not the user's request:
-// Claude Code's <system-reminder>, Codex's <environment_context> /
-// <user_instructions> preamble. It neither opens a turn nor becomes a task
-// (#71 item 8: a preamble that reset the turn would overwrite the real task).
-const MACHINE_TEXT_RE = /^\s*<(system-reminder|environment_context|user_instructions)\b/i;
+// Claude Code's <system-reminder>, <local-command-stdout> / <command-name>
+// slash-command lines, Codex's <environment_context> / <user_instructions>
+// preamble. It neither opens a turn nor becomes a task (#71 item 8: a preamble
+// that reset the turn would overwrite the real task).
+const MACHINE_TEXT_RE = /^\s*<(system-reminder|environment_context|user_instructions|local-command-stdout|command-name)\b/i;
 
 function isMachineText(text) {
   return MACHINE_TEXT_RE.test(String(text || ''));

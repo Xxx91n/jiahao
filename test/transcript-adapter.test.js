@@ -245,3 +245,29 @@ test('#71 item 8: a new turn clears the previous turn closing', () => {
   expect(r.task).toBe('Second task, not answered yet.');
   expect(r.transcript.closing).toBe('');
 });
+
+test('#71 item 8: every tolerated host wrapper tag is skipped, never treated as a task', () => {
+  const tags = ['system-reminder', 'environment_context', 'user_instructions', 'local-command-stdout', 'command-name'];
+  for (const tag of tags) {
+    const r = adaptTranscriptText([
+      userTextLine('<' + tag + '>injected</' + tag + '>'),
+      userTextLine('Real task.'),
+    ].join('\n'));
+    expect(r.task).toBe('Real task.');
+    const msgs = r.transcript.events.filter(e => e.type === 'message').map(e => e.text);
+    expect(msgs).toEqual(['Real task.']);
+  }
+});
+
+test('#71 item 8: stats.tool_results counts the whole file, not just the last turn', () => {
+  const r = adaptTranscriptText([
+    userTextLine('First.'),
+    assistantLine('chatcmpl-s1', [{ type: 'tool_use', id: 'call_s1', name: 'Read', input: {} }], 1),
+    userToolResultLine('call_s1', 'one'),
+    userTextLine('Second.'),
+    assistantLine('chatcmpl-s2', [{ type: 'tool_use', id: 'call_s2', name: 'Read', input: {} }], 2),
+    userToolResultLine('call_s2', 'two'),
+  ].join('\n'));
+  expect(r.transcript.events.filter(e => e.type === 'tool_result')).toHaveLength(1); // turn-scoped
+  expect(r.stats.tool_results).toBe(2); // transcript-scoped
+});

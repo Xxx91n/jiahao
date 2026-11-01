@@ -1388,11 +1388,12 @@ function createEvidenceLog(overrideConfigDir, opts) {
   // make(chain, prevHash) receives the materialized concatenated records
   // (anchors included) plus the chain tail hash; it returns records to
   // append ([] = no-op).
-  // Returns the number of records actually written (0 for a no-op, an
-  // idempotency dedup, or a dropped sink). Lock failure degrades to one
-  // unlocked write (best-effort invariant: hooks never block); a throw from
-  // make() or the append INSIDE the lock is not retried, because it may
-  // already have written records (#71).
+  // Returns the number of records this call appended (0 for a no-op, an
+  // idempotency dedup, or a dropped sink); after a mid-write throw it reports
+  // only what landed before the throw. Lock failure degrades to one unlocked
+  // write (best-effort invariant: hooks never block); a throw from make() or
+  // the append INSIDE the lock is not retried, because it may already have
+  // written records (#71).
   function commit(make, opts) {
     opts = opts || {};
     const boundedAppend = !!opts.boundedAppend;
@@ -1401,7 +1402,9 @@ function createEvidenceLog(overrideConfigDir, opts) {
     } else {
       _witnessPreCheck();
     }
+    let writtenSoFar = 0;
     const run = () => {
+      writtenSoFar = 0; // one attempt's view; a retried call restarts it
       if (legacyReadOnly) { note('read-only legacy mode — append dropped'); return; }
       if (!ensureSegmented()) return;
       let existing;
@@ -1530,6 +1533,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
         }
         fs.appendFileSync(activePath, JSON.stringify(rec) + '\n', 'utf8');
         applied.push(rec);
+        writtenSoFar += 1;
         if (rec._idem) seen.add(rec._idem);
         tail = rec.event_hash;
         total += 1;
@@ -1564,9 +1568,10 @@ function createEvidenceLog(overrideConfigDir, opts) {
     try { written = withLockSync(ep, guarded, { retries: 40, retrySleepMs: 10 }) || 0; }
     catch (e) {
       if (!entered) {
-        try { written = run() || 0; } catch (e2) { /* sink broken — drop */ }
+        try { written = run() || 0; } catch (e2) { written = writtenSoFar; }
       } else {
-        note('append failed inside the lock — dropped: ' + ((e && e.message) || String(e)));
+        written = writtenSoFar; // report what landed before the throw
+        note('append failed inside the lock — stopped after ' + written + ' record(s): ' + ((e && e.message) || String(e)));
       }
     }
     return written;
