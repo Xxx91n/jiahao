@@ -7,9 +7,11 @@ the turn ends?"). Acceptance standard: #74 D5 and `docs/agents/evidence-review.m
 Baseline: this ran in the working tree of branch `feat/qoder-hook-probe-109`
 whose HEAD was `107eeef5` (main, clean). The hook that fired was
 [`probes/qoder-stop-probe.js`](probes/qoder-stop-probe.js) — the probe script,
-not the shipped bundle. The bundle this record justifies is generated from the
-host table in the commit these artifacts land in; `node scripts/build-adapters.js --check`
-and the release gate tie that bundle to its commit.
+not the shipped bundle. The bundle these artifacts justify is generated from the
+host table in the commit they land in. (Corrected 2026-11-01: this line used to
+say `node scripts/build-adapters.js --check` "ties that bundle to its commit".
+It does not - `docs/agents/evidence-review.md` item 9 says so explicitly. What
+ties the artifacts to a tree is the commit they land in.)
 
 ## Verdict per variant
 

@@ -11,12 +11,13 @@ Baseline: this ran in the worktree `D:\Aworker\wt-qoder-intl-113` on branch
 shim over the #109 probe `probes/qoder-stop-probe.js` — the probe script, not
 the shipped bundle. Nothing here was probed against the shipped bundle.
 
-Named commit: these artifacts land in the commit titled
-`feat(#113): Qoder 国际版 Desktop 升 A 档（第二个变体的真机探针）` on this
-branch, whose parent is `9f6e9ba0`. `docs/agents/evidence-review.md` item 9 is
-explicit that `node scripts/build-adapters.js --check` does **not** tie an
-artifact to the bundle that was probed, and that record applies here: what ties
-the generated bundle to this branch is the commit hash above, not `--check`.
+Named commit: the probe ran from `dafb2ac6` (the commit titled
+`feat(#113): Qoder 国际版 Desktop 升 A 档（第二个变体的真机探针）`, parent
+`9f6e9ba0`); the record and its artifacts were then corrected by later commits on
+the same branch. `docs/agents/evidence-review.md` item 9 is explicit that
+`node scripts/build-adapters.js --check` does **not** tie an artifact to the
+bundle that was probed, and that caveat applies here: what ties this record to a
+tree is the commit `dafb2ac6` above, not `--check`.
 
 ## Verdict per variant
 
