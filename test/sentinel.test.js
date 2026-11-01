@@ -69,6 +69,57 @@ function healedEvidenceKinds() {
   return (readEvidence() || []).map(r => r.detector && r.detector.degradation && r.detector.degradation.kind);
 }
 
+test('#122: reconcile skips a begun-not-ended sentinel (no heal, file kept)', () => {
+  const s = begin('jiahao-live', DIR);
+  const file = path.join(DIR, PREFIX + 'jiahao-live');
+  expect(reconcile(DIR)).toEqual([]);
+  expect(fs.existsSync(file)).toBe(true);
+  expect(readEvidence()).toBeNull();
+  s.end();
+  expect(fs.existsSync(file)).toBe(false);
+});
+
+// #122: the ownership lock must cover the sentinel's creation window. The
+// injection fires at the creation fsync — the sentinel content is on disk and
+// a parallel reconcile scans right here. Under the old file-first order it
+// would win the lock, heal, and unlink a live sentinel; under lock-first the
+// lock already exists and the reconciler skips.
+test('#122: sentinel never visible unlocked — a reconcile racing at creation heals nothing', () => {
+  const file = path.join(DIR, PREFIX + 'jiahao-race');
+  const realFsync = fs.fsyncSync;
+  const seen = { lockAtCreation: null, healed: null };
+  const spy = jest.spyOn(fs, 'fsyncSync').mockImplementation(function (fd) {
+    spy.mockRestore(); // one-shot; the injected reconcile below uses real fsyncs
+    seen.lockAtCreation = fs.existsSync(file + '.lock');
+    seen.healed = reconcile(DIR);
+    return realFsync(fd);
+  });
+  const s = begin('jiahao-race', DIR);
+  expect(seen.lockAtCreation).toBe(true);
+  expect(seen.healed).toEqual([]);
+  expect(fs.existsSync(file)).toBe(true);
+  expect(readEvidence()).toBeNull();
+  s.end();
+  expect(fs.existsSync(file)).toBe(false);
+});
+
+// #122: lock lost to a parallel live owner — the existing unchecked-continue
+// semantics: the sentinel is still planted and the hook is never blocked.
+test('#122: lock held by a parallel owner — begin plants the sentinel unchecked', () => {
+  const file = path.join(DIR, PREFIX + 'jiahao-contended');
+  fs.mkdirSync(file + '.lock'); // a fresh lock: a parallel live owner of this hook
+  const s = begin('jiahao-contended', DIR);
+  expect(fs.existsSync(file)).toBe(true);
+  expect(JSON.parse(fs.readFileSync(file, 'utf8')).phase).toBe('stdin');
+  s.set('scan', 'turn-r');
+  const live = JSON.parse(fs.readFileSync(file, 'utf8'));
+  expect(live.phase).toBe('scan');
+  expect(live.turn).toBe('turn-r');
+  s.end();
+  expect(fs.existsSync(file)).toBe(false);
+  fs.rmdirSync(file + '.lock'); // the "parallel owner" cleans up its own lock
+});
+
 test('D4: unknown degradation kind is preserved in detail.unrecognized_kind', () => {
   const rec = createRecord('g1', 'test', 'ok', 'payload', 0.5, null, {
     detector: {

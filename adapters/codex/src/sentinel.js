@@ -7,7 +7,9 @@
 // residual sentinel into an evidence record (degradation kind='timeout'),
 // which routes through the fail-closed coverage path.
 // begin holds a mkdir lock on <sentinel>.lock for the hook's
-// lifetime; reconcile try-locks residuals — lock obtained = owner is dead,
+// lifetime — taken before the sentinel file is planted, so a live sentinel is
+// never visible without its lock (#122); reconcile try-locks residuals — lock
+// obtained = owner is dead,
 // lock refused (fresh) = a LIVE parallel session, keep the sentinel, append
 // nothing. Stale (>STALE_MS) locks are reclaimed (dead owners leave a frozen
 // lock dir behind; live owners refresh mtime on every set()).
@@ -111,8 +113,8 @@ function reconcile(dir) {
   return healed;
 }
 
-// begin(hookName) — one line at hook entry. Reconciles residuals, then plants
-// this hook's sentinel and holds its ownership lock. Returns
+// begin(hookName) — one line at hook entry. Reconciles residuals, then holds
+// this hook's ownership lock and plants its sentinel under that lock. Returns
 // { set(phase), end() }. Normal exit removes both via a process exit hook, so
 // killed processes leave them behind for the next reconcile.
 function begin(hook, overrideDir) {
@@ -122,17 +124,20 @@ function begin(hook, overrideDir) {
   const file = sentinelPath(dir, hook);
   const now = new Date().toISOString();
   const state = { hook: hook, turn: null, started_at: now, phase: 'stdin', phase_at: now };
+  // lock BEFORE the file exists (#122): a sentinel visible while its ownership
+  // lock does not exist yet is indistinguishable from a residual, so a parallel
+  // reconcile would try-lock the fresh path, win, and heal a live hook. The
+  // lock is held for the hook's lifetime. null = parallel live owner with the
+  // same hook name — keep going anyway (unchecked); 'error' likewise. Never
+  // block the hook.
+  const lockResult = tryLockSync(file);
+  const release = (lockResult && lockResult !== 'error') ? lockResult : null;
   let fd = null;
   try {
     fd = fs.openSync(file, 'w');
     fs.writeSync(fd, JSON.stringify(state), 0, 'utf8');
     fs.fsyncSync(fd); // existence durability — fsync once at creation
   } catch (e) { fd = null; }
-  // hold the ownership lock for the hook's lifetime.
-  // null = parallel live owner with the same hook name — keep going anyway
-  // (unchecked); 'error' likewise. Never block the hook.
-  const lockResult = tryLockSync(file);
-  const release = (lockResult && lockResult !== 'error') ? lockResult : null;
 
   let ended = false;
   function end() {
