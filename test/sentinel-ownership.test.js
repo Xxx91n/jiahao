@@ -31,7 +31,9 @@ afterAll(() => {
 test('D1: fresh lock held by a live owner — reconcile skips, no record, file kept', () => {
   const file = path.join(DIR, PREFIX + 'live-hook');
   fs.writeFileSync(file, JSON.stringify({ hook: 'live-hook', phase: 'scan', started_at: 'x' }), 'utf8');
-  const release = tryLockSync(file); // same fd-lifetime semantics as begin()
+  const owned = tryLockSync(file); // same lock semantics as begin()
+  expect(owned.ok).toBe(true);
+  const release = owned.release;
   expect(typeof release).toBe('function');
   const healed = reconcile(DIR);
   expect(healed).toEqual([]);
