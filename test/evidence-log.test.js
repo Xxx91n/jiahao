@@ -194,8 +194,9 @@ test('human_verdict record appends and chain stays valid', () => {
 // #119 finding 4: 'null' is legal JSON, so both anchor readers dereferenced
 // the parsed value before judging its shape; the TypeError fell into the
 // outer catch and classified a present-but-wrong witness as
-// witness_unavailable (torn witness — the class that may fall back to the
-// last good seal) instead of unreadable (corruption). Shape must be judged
+// witness_unavailable — the degradable class (read errors and
+// missing-on-sealed witnesses land there too, not just torn files) —
+// instead of unreadable (corruption). Shape must be judged
 // before any dereference.
 test('finding 4: a null witness file reads as unreadable, not witness_unavailable', () => {
   const dir = path.join(TMP, 'null-anchor-' + process.pid + '-' + Date.now());
