@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { begin, reconcile, PREFIX } = require('../src/sentinel');
+const { tryLockSync } = require('../src/file-lock');
 const { createRecord, KNOWN_DEGRADATION_KINDS } = require('../src/evidence-log');
 
 const DIR = path.join(os.tmpdir(), 'jiahao-sentinel-test');
@@ -119,6 +120,31 @@ test('#122: lock held by a parallel owner — begin plants the sentinel unchecke
   s.end();
   expect(fs.existsSync(file)).toBe(false);
   fs.rmdirSync(file + '.lock'); // the "parallel owner" cleans up its own lock
+});
+
+// Review finding on #125: a plant that throws after the lock was taken must
+// give back everything it took — remove the half-created file, close the fd,
+// release the lock — and end() must never unlink a sentinel that is not ours.
+test('#125: failed plant releases the lock and end() spares a parallel sentinel', () => {
+  const file = path.join(DIR, PREFIX + 'jiahao-fail');
+  const realWriteSync = fs.writeSync;
+  const spy = jest.spyOn(fs, 'writeSync').mockImplementation(function (fdArg, str) {
+    if (typeof str === 'string' && str.indexOf('"jiahao-fail"') !== -1) throw new Error('injected plant failure');
+    return realWriteSync.apply(fs, arguments);
+  });
+  const s = begin('jiahao-fail', DIR);
+  spy.mockRestore();
+  // nothing of ours stays behind: the half-created sentinel is cleaned up
+  expect(fs.existsSync(file)).toBe(false);
+  // the ownership lock was given back: a fresh try-lock wins
+  const relock = tryLockSync(file);
+  expect(typeof relock).toBe('function');
+  relock();
+  // a parallel begin now plants a live sentinel at the same path
+  fs.writeFileSync(file, JSON.stringify({ hook: 'jiahao-fail', phase: 'scan' }), 'utf8');
+  s.end(); // planted nothing -> must not unlink it, must not touch any lock
+  expect(fs.existsSync(file)).toBe(true);
+  fs.unlinkSync(file);
 });
 
 test('D4: unknown degradation kind is preserved in detail.unrecognized_kind', () => {

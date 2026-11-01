@@ -131,20 +131,34 @@ function begin(hook, overrideDir) {
   // same hook name — keep going anyway (unchecked); 'error' likewise. Never
   // block the hook.
   const lockResult = tryLockSync(file);
-  const release = (lockResult && lockResult !== 'error') ? lockResult : null;
+  let release = (lockResult && lockResult !== 'error') ? lockResult : null;
   let fd = null;
+  let planted = false;
   try {
     fd = fs.openSync(file, 'w');
     fs.writeSync(fd, JSON.stringify(state), 0, 'utf8');
     fs.fsyncSync(fd); // existence durability — fsync once at creation
-  } catch (e) { fd = null; }
+    planted = true;
+  } catch (e) {
+    // failed to plant: give back everything we took, so a parallel begin can
+    // own the path cleanly and our end() cannot unlink a sentinel that is not
+    // ours (#125 review). The unlink is safe for the file our own
+    // openSync('w') created; when openSync itself threw, fd is null and we
+    // leave whatever sits at the path alone.
+    if (fd !== null) {
+      try { fs.unlinkSync(file); } catch (e2) { /* gone */ }
+      try { fs.closeSync(fd); } catch (e2) {}
+      fd = null;
+    }
+    if (release) { release(); release = null; }
+  }
 
   let ended = false;
   function end() {
     if (ended) return;
     ended = true;
     if (fd !== null) { try { fs.closeSync(fd); } catch (e) {} fd = null; }
-    try { fs.unlinkSync(file); } catch (e) { /* gone */ }
+    if (planted) { try { fs.unlinkSync(file); } catch (e) { /* gone */ } }
     if (release) release(); // unlock LAST so a reconciler never heals a live hook
   }
   process.on('exit', end); // sync cleanup on any normal exit path
