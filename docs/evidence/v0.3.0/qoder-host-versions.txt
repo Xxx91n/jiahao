@@ -16,8 +16,15 @@ appExecutable=.qoder-versions\0.4.11\Qoder.exe
 targetVersion=0.4.11
 updatedAt=2026-10-31T08:22:34.955Z
 
-# worker runtime shipped inside each Desktop build
-$ cat <install>/resources/app.asar.unpacked/node_modules/@qoder-ai/qoder-cn-agent-sdk/dist/_worker/runtime-info.json
+# worker runtime shipped inside each Desktop build.
+# NOTE the path: the running app is .qoder-versions\0.4.11\, NOT the launcher's
+# installDir. Both builds keep an older runtime at the installDir level, so the
+# installDir paths are listed too - without them the quoted numbers do not reproduce.
+
+$ cat "D:/Qoder CN/resources/app.asar.unpacked/node_modules/@qoder-ai/qoder-cn-agent-sdk/dist/_worker/runtime-info.json"
+{ "version": "1.1.64", "commit": "8928898", "build": { "site": "cn", "productName": "qoderclicn" } }
+
+$ cat "D:/Qoder CN/.qoder-versions/0.4.11/resources/app.asar.unpacked/node_modules/@qoder-ai/qoder-cn-agent-sdk/dist/_worker/runtime-info.json"
 {
  "name": "qoder-worker-runtime",
  "version": "1.1.75-hotfix.1",
@@ -29,7 +36,11 @@ $ cat <install>/resources/app.asar.unpacked/node_modules/@qoder-ai/qoder-cn-agen
   "buildEnv": "dev"
  }
 }
-$ cat <intl install>/.../qoder-agent-sdk/dist/_worker/runtime-info.json
+
+$ cat "D:/Qoder/resources/app.asar.unpacked/node_modules/@qoder-ai/qoder-agent-sdk/dist/_worker/runtime-info.json"
+{ "version": "1.1.75", "commit": "793448a", "build": { "site": "global", "productName": "qodercli" } }
+
+$ cat "D:/Qoder/.qoder-versions/0.4.11/resources/app.asar.unpacked/node_modules/@qoder-ai/qoder-agent-sdk/dist/_worker/runtime-info.json"
 {
  "name": "qoder-worker-runtime",
  "version": "1.1.75-hotfix.1",

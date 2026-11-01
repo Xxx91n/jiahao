@@ -2,23 +2,27 @@
 // scripts/hosts/qoder.js - the one file where Qoder Desktop's config dialect
 // lives.
 //
-// The shape below is copied from the host's own bundled plugin: Qoder CN Desktop
-// 0.4.11 ships `qoder-context` as `.qoder-plugin/plugin.json` plus an
+// The shape below is copied from the host's own bundled plugin: both Desktop
+// builds ship `qoder-context` as `.qoder-plugin/plugin.json` plus an
 // auto-discovered `hooks/hooks.json`, and that plugin's hooks were watched
 // firing in a live session. The manifest therefore does NOT name the hook map;
 // naming an auto-discovered file is the row's `autoDiscovered` list, not a
-// manifest key. Two halves stay unwatched and are listed as declared-unverified
+// manifest key. One half stays unwatched and is listed as declared-unverified
 // in the adapter README: whether a `Stop` hook arriving through the *plugin*
-// path blocks a turn (the #109 block came through the settings path), and
-// whether the international build registers hooks from the same root at all.
+// path blocks a turn - every observed block, on both builds, came through the
+// settings path.
 //
 // Event vocabulary and the block channel are the host's own contract, observed
-// on Qoder CN Desktop 0.4.11 (#109, 2026-10-31): the payload is snake_case
-// Claude-shaped (`session_id`, `hook_event_name`, `stop_hook_active`,
-// `last_assistant_message`), and a Stop hook continued the turn on BOTH
-// exit 0 + a flat `{"decision":"block"}` stdout AND exit 2 + stderr. Because
-// exit 2 blocks here, the shared gate keeps the Claude exit code
-// (hooks/jiahao-runtime.js) and this file says nothing about the verdict.
+// on both builds separately: Qoder CN Desktop 0.4.11 (#109, 2026-10-31) and
+// international Desktop 0.4.11 (#113, 2026-11-01). Each has its own record, and
+// each showed the same thing - the payload is snake_case Claude-shaped
+// (`session_id`, `hook_event_name`, `stop_hook_active`,
+// `last_assistant_message`), a `Stop` hook registered from the project's
+// `.qoder/settings.json` continued the turn on BOTH exit 0 + a flat
+// `{"decision":"block"}` stdout AND exit 2 + stderr, and a
+// `.qoder-cn/settings.json` armed beside it never fired. Because exit 2 blocks
+// here, the shared gate keeps the Claude exit code (hooks/jiahao-runtime.js) and
+// this file says nothing about the verdict.
 //
 // The platform name rides the command: Qoder hands a hook subprocess
 // QODER_PROJECT_DIR and QODER_CONFIG_DIR but NOT QODER_SESSION_ID, so the

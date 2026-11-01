@@ -1,4 +1,4 @@
-# v0.3.0 real-machine acceptance (#80, #109, #111, #108)
+# v0.3.0 real-machine acceptance (#80, #109, #111, #108, #113)
 
 Date: 2026-10-30. Host: Windows 10.0.26100 (win32 x64). `node
 scripts/build-adapters.js` was run locally to produce the committed bundles;
@@ -148,13 +148,23 @@ with `agy plugin uninstall jiahao` after probing; Jiahao's own runtime state
 (`.jiahao-active`, `.jiahao-profile`, and `.jiahao-evidence/`) was isolated under
 `CLAUDE_CONFIG_DIR=<temp>/jiahao-111`.
 
-For Qoder (#109) the run was **not isolated**, and could not be: a Desktop session
-is spawned by the app, so there is no `*_HOME` override to point it at. The probe
-armed a project-scope `.qoder/settings.json` in the operator's live checkout,
-gated every block on a marker string so no other session could be affected, and
-bounded the loop with its own per-session cap. Both hook config files and the
-probe's temp state were deleted afterwards; `qoder-hook-probe-2026-10-31.md`
-records the isolation state per run.
+For Qoder (#109, #113) the runs were **not isolated**, and could not be: a Desktop
+session is spawned by the app, so there is no `*_HOME` override to point it at.
+#109 armed a project-scope `.qoder/settings.json` in the operator's live checkout.
+#113 armed **both** `.qoder/` and `.qoder-cn/` in a separate scratch repository
+(`D:\Aworker\photo`, clean, on `main`) rather than in the ticket's checkout, with a
+different origin label in each file's argv so the log shows which one fired. Both
+runs gated every block on a marker string and bounded the loop with a per-session
+cap, then deleted both hook config files and the probe's temp state afterwards.
+
+**What that guard does and does not cover:** the marker keeps an *unrelated*
+session out - a session whose turn does not contain `JIAHAO109-CLAIM-DONE` can
+never be blocked. It does not identify a session: any *other* new turn in the
+armed project that happened to contain that exact string could be blocked too,
+up to the cap. No such turn occurred here (the marker appears only in the probe
+prompts), but the guard is a content gate, not a session gate, and the records
+should be read that way. `qoder-hook-probe-2026-10-31.md` and
+`qoder-intl-hook-probe-2026-11-01.md` record the isolation state per run.
 
 The WorkBuddy probes are also exceptions: that host refuses a headless turn
 without an interactive login, so both ran in the operator's live desktop session
@@ -174,7 +184,8 @@ documentation and was not watched happen.
 
 **Verified - A tier**: Codex CLI 0.163.0 and GitHub Copilot CLI 1.0.105
 (2026-10-30, #80), Google Antigravity 1.2.12 (2026-10-31, #111), Qoder CN
-Desktop 0.4.11 (2026-10-31, #109), ZCode 3.16.2 (2026-10-31, #108), WorkBuddy AI 5.9.4
+Desktop 0.4.11 (2026-10-31, #109), Qoder international Desktop 0.4.11
+(2026-11-01, #113), ZCode 3.16.2 (2026-10-31, #108), WorkBuddy AI 5.9.4
 international (2026-10-31, #110), and WorkBuddy 5.9.3 domestic (2026-11-01, #118)
 each blocked a real turn end on the recorded version and date. On WorkBuddy the
 block was a settings-tier `Stop` hook answering
@@ -184,12 +195,22 @@ own runs; the domestic row is not inferred from the shared agent CLI, and both
 runs used the probe hook where the shipped gate would sit. On Qoder it was a config-registered `Stop` hook on both channels
 (exit 0 + flat `{"decision":"block"}`, and exit 2 + stderr), with
 `stop_hook_active` set on every re-entry - which supersedes this file's earlier
-line that Qoder remained C tier and that no probe had changed it.
+line that Qoder remained C tier and that no probe had changed it. The two Qoder
+Desktop builds were probed separately; the CN run's record is
+`qoder-hook-probe-2026-10-31.md` and the international one's is
+`qoder-intl-hook-probe-2026-11-01.md`.
 
-**Declared-unverified - Qoder**: the plugin registration path
+**Declared-unverified - Qoder**: the bundle's own plugin registration path
 (`adapters/qoder/` installed as a Desktop plugin), `${QODER_PLUGIN_ROOT}` in a
 shell-form command, and the shipped gate's own verdict logic running under Qoder.
 All read out of the host's files; none watched happening.
+
+**Verified - plugin path carries `Stop` on the international build**: the host's
+own bundled `qoder-context` 1.0.84 lists a `Stop` event there
+(`qoder-intl-host-versions.txt`) and its `Stop` hooks finished `exit_code=0` in
+the host run log (`qoder-intl-runlog-probe-hooks.txt`). That is an observation of
+the **host's** plugin, not of this bundle: no plugin-path hook was watched
+blocking.
 
 **Declared-unverified - ZCode**: `zcode plugins update` only. The two items
 this entry used to list - plugin-path hooks firing in a restarted session and
@@ -197,5 +218,6 @@ the SessionStart `additionalContext` injection - were verified post-merge on
 2026-11-01 in the operator's restarted session (ZCode section above and
 `zcode-probe-notes.md`).
 
-**Not probed**: the international Qoder Desktop 0.4.11, which keeps C tier rather
-than borrowing the CN result; and Qoder IDE/CLI, which keeps the rules-only exit.
+**Not probed**: Qoder IDE/CLI, which keeps the rules-only exit. (Both Qoder
+Desktop builds are verified above; the earlier line here that the international
+build "keeps C tier" is superseded by #113.)

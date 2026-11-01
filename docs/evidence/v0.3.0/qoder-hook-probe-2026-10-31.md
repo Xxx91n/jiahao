@@ -7,21 +7,24 @@ the turn ends?"). Acceptance standard: #74 D5 and `docs/agents/evidence-review.m
 Baseline: this ran in the working tree of branch `feat/qoder-hook-probe-109`
 whose HEAD was `107eeef5` (main, clean). The hook that fired was
 [`probes/qoder-stop-probe.js`](probes/qoder-stop-probe.js) — the probe script,
-not the shipped bundle. The bundle this record justifies is generated from the
-host table in the commit these artifacts land in; `node scripts/build-adapters.js --check`
-and the release gate tie that bundle to its commit.
+not the shipped bundle. The bundle these artifacts justify is generated from the
+host table in the commit they land in. (Corrected 2026-11-01: this line used to
+say `node scripts/build-adapters.js --check` "ties that bundle to its commit".
+It does not - `docs/agents/evidence-review.md` item 9 says so explicitly. What
+ties the artifacts to a tree is the commit they land in.)
 
 ## Verdict per variant
 
 | Variant | Tier | Basis |
 |---|---|---|
 | Qoder CN Desktop 0.4.11 | **A** | a `Stop` hook blocked and continued a real turn twice, through two channels (this record) |
-| Qoder international Desktop 0.4.11 | **C, unchanged** | same worker runtime and the same settings keys, but no turn was ever watched blocking there, so #109's own rule keeps it at C |
+| Qoder international Desktop 0.4.11 | **A, by its own probe** | this record left it at C because no turn was watched blocking there; #113 probed that build separately on 2026-11-01 and watched the same two channels block and continue - see [qoder-intl-hook-probe-2026-11-01.md](qoder-intl-hook-probe-2026-11-01.md). That later record is the evidence; nothing below was borrowed from this one. |
 | Qoder IDE/CLI | **C, unchanged** | the rules exit at `adapters/qoder/rules/`; no Qoder CLI is installed on this machine, so its hook surface was not probed at all |
 
 The international build was **not** substituted for by the CN result. Its own
-probe is a separate ticket; the row's provenance and the adapter README name the
-CN build as the only A-tier claim.
+probe is a separate ticket; when this record was written the row's provenance and
+the adapter README named the CN build as the only A-tier claim, and #113 has
+since added the second claim on its own evidence.
 
 ## Versions, config roots, and where a hook config lives
 
@@ -278,11 +281,18 @@ Nothing below was observed, and none of it is claimed by the adapter README:
 - the Qoder IDE/CLI product line's hook surface: no `qoderclicn`/`qodercli` binary
   is installed here (`which` finds none, `~/.qoder-cn/bin/` holds only `7zr.exe`
   and `qoder-cn-computer-use`), so that line stays on the probe list.
-- the international Desktop build, for the whole list above.
+- the international Desktop build, for the whole list above **as of this run**;
+  #113 has since probed that build separately on 2026-11-01 and its own record
+  answers the same list for it. Nothing in this section was inherited by #113
+  and nothing in #113 is borrowed here.
 
 ## Follow-ups
 
 - International Desktop 0.4.11 probe: filed as a separate ticket; the A-tier row
-  stays scoped to the CN build until someone watches a block there.
+  stayed scoped to the CN build until someone watched a block there. **Done:**
+  #113 watched both channels block and continue on that build on 2026-11-01, and
+  the row now carries its own claim - see
+  [qoder-intl-hook-probe-2026-11-01.md](qoder-intl-hook-probe-2026-11-01.md).
 - Plugin-surface live check (install the generated bundle as a Desktop plugin and
-  watch its `Stop` hook fire): named in the adapter README as the open item.
+  watch its `Stop` hook fire): named in the adapter README as the open item, and
+  still open after #113.
