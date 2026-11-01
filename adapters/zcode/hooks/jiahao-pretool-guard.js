@@ -27,6 +27,15 @@ const { detectHost, normalizePayload } = require('./jiahao-runtime');
 
 const LOG_NAME = '.jiahao-pretool.jsonl';
 
+// Read-only calls cannot modify the enforcement surface — reading the rules is
+// how a verifier works, not a bypass. Matched case-insensitively against the
+// host's tool name; a name not listed keeps the deny path (#71 item 3).
+const READ_ONLY_TOOLS = new Set([
+  'read', 'view', 'glob', 'grep', 'ls', 'list_directory', 'list_dir',
+  'notebookread', 'webfetch', 'websearch', 'read_file', 'search_files',
+  'file_search', 'grep_search',
+]);
+
 if (!fs.existsSync(flagPath())) process.exit(0);
 
 function candidateText(parsed) {
@@ -50,6 +59,7 @@ process.stdin.on('end', () => {
   try { parsed = JSON.parse(input); } catch (e) { /* fail-open */ }
   parsed = normalizePayload(parsed);
   const tool = (parsed && parsed.tool_name) || 'unknown';
+  if (READ_ONLY_TOOLS.has(String(tool).toLowerCase())) process.exit(0);
   const text = candidateText(parsed);
   const pluginRoot = process.env.CODEBUDDY_PLUGIN_ROOT
     || process.env.CLAUDE_PLUGIN_ROOT

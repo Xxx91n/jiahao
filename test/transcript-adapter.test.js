@@ -144,3 +144,70 @@ test('finding 5: adaptTranscriptFile keeps every part of a split message on disk
   expect(r.transcript.events.filter(e => e.type === 'tool_call')).toHaveLength(1);
   expect(r.transcript.closing).toBe('Marker appended.\nexit code 0');
 });
+
+// ---- #71 item 8: one task per turn --------------------------------------
+test('#71 item 8: a later user text opens a new turn (task and events are not mixed)', () => {
+  const r = adaptTranscriptText([
+    userTextLine('First task: inspect A.'),
+    assistantLine('chatcmpl-t1', [{ type: 'tool_use', id: 'call_a', name: 'Read', input: { file_path: 'A' } }], 1),
+    userToolResultLine('call_a', 'A contents'),
+    assistantLine('chatcmpl-t1', [{ type: 'text', text: 'Read A.' }], 2),
+    userTextLine('Second task: inspect B.'),
+    assistantLine('chatcmpl-t2', [{ type: 'tool_use', id: 'call_b', name: 'Read', input: { file_path: 'B' } }], 3),
+    userToolResultLine('call_b', 'B contents'),
+    assistantLine('chatcmpl-t2', [{ type: 'text', text: 'Read B.' }], 4),
+  ].join('\n'));
+
+  expect(r.task).toBe('Second task: inspect B.');
+  const msgs = r.transcript.events.filter(e => e.type === 'message').map(e => e.text);
+  expect(msgs).toEqual(['Second task: inspect B.', 'Read B.']);
+  const calls = r.transcript.events.filter(e => e.type === 'tool_call');
+  expect(calls.map(e => e.call_id)).toEqual(['call_b']);
+  const results = r.transcript.events.filter(e => e.type === 'tool_result');
+  expect(results.map(e => e.call_id)).toEqual(['call_b']);
+  expect(r.transcript.closing).toBe('Read B.');
+});
+
+// ---- #71 / PR #97 review: Codex rollout shapes ---------------------------
+function codexLine(payload, seq) {
+  return JSON.stringify({
+    timestamp: '2026-11-01T10:00:0' + (seq % 10) + '.000Z',
+    type: 'response_item',
+    payload: payload,
+  });
+}
+
+test('#71: Codex rollout response_item shapes map onto the pairer event model', () => {
+  const r = adaptTranscriptText([
+    JSON.stringify({ timestamp: '2026-11-01T09:59:00.000Z', type: 'session_meta', payload: { id: 'codex-s1' } }),
+    codexLine({ type: 'message', role: 'user', content: [{ type: 'input_text', text: 'Run the tests and quote the exit code.' }] }, 1),
+    codexLine({ type: 'reasoning', summary: [], content: null }, 2),
+    codexLine({ type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'Running them.' }] }, 3),
+    codexLine({ type: 'function_call', name: 'shell', arguments: '{"command":["npm","test"]}', call_id: 'call_1' }, 4),
+    codexLine({ type: 'function_call_output', call_id: 'call_1', output: 'Tests: 10 passed' }, 5),
+    codexLine({ type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'Exit code 0.' }] }, 6),
+  ].join('\n'));
+
+  expect(r.ok).toBe(true);
+  expect(r.task).toBe('Run the tests and quote the exit code.');
+  const kinds = r.transcript.events.map(e => e.type);
+  expect(kinds).toEqual(['message', 'message', 'tool_call', 'tool_result', 'message']);
+  const call = r.transcript.events.filter(e => e.type === 'tool_call')[0];
+  expect(call.name).toBe('shell');
+  expect(call.call_id).toBe('call_1');
+  expect(call.arguments).toEqual({ command: ['npm', 'test'] });
+  const result = r.transcript.events.filter(e => e.type === 'tool_result')[0];
+  expect(result.name).toBe('shell'); // call-name mapping survives
+  expect(result.content).toBe('Tests: 10 passed');
+  expect(result.is_error).toBe(false);
+  expect(r.transcript.closing).toBe('Exit code 0.');
+  expect(r.stats.tool_results).toBe(1);
+});
+
+test('#71: Codex rollout keeps a non-JSON function_call argument readable', () => {
+  const r = adaptTranscriptText([
+    codexLine({ type: 'function_call', name: 'shell', arguments: 'ls -la', call_id: 'call_raw' }, 1),
+  ].join('\n'));
+  const call = r.transcript.events.filter(e => e.type === 'tool_call')[0];
+  expect(call.arguments).toEqual({ _raw: 'ls -la' });
+});

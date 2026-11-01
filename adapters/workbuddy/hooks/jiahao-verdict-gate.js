@@ -19,7 +19,13 @@ const { readProfile } = require('./jiahao-profile');
 const { normalizePayload, writeBlockOutput } = require('./jiahao-runtime');
 const { createEvidenceLog } = require('../src/evidence-log');
 const { kappaAdvisory, loadKappaBaseline } = require('../src/calibration');
-const evidenceLog = createEvidenceLog();
+// #71 item 12: a factory throw used to kill the hook at module load, before any
+// judgment — every host then read a silent Stop hook, which is a fail-open
+// gate. Hold the error and turn it into the normal block decision below, after
+// stdin is in and stop_hook_active has been honoured.
+let evidenceLog = null;
+let initError = null;
+try { evidenceLog = createEvidenceLog(); } catch (e) { initError = e; }
 const sentinel = require('../src/sentinel').begin('jiahao-verdict-gate');
 
 // Output discipline (#84): every decision below is written with console.log and
@@ -112,6 +118,16 @@ process.stdin.on('end', () => {
     process.exit(0);
   }
 
+  // #71 item 12. Fail closed: a gate that cannot read the chain cannot judge
+  // this Stop, and a silent allow is the failure the gate exists to prevent.
+  // Every host keeps its own envelope and exit code through emitBlock.
+  if (initError) {
+    emitBlock('JIAHAO VERDICT GATE: evidence log could not initialize (' +
+      (initError && initError.message ? initError.message : String(initError)) +
+      '). Failing closed — this Stop cannot be judged.');
+    return;
+  }
+
   // the conviction lane rides this invocation — transcript_path
   // -> transcript adapter -> pairItem -> source:pairer-instrument shadow
   // record. Shadow records are telemetry: they never enter the severity
@@ -151,6 +167,15 @@ process.stdin.on('end', () => {
   // nothing (pairer-lane: they never flag and never block), so they must not
   // satisfy the no-evidence check any more than shadow records do
   // (CodeRabbit #115 round 2).
+  // ADJUDICATED (#71 item 15): enforce-mode pairer records COUNT as Case A
+  // evidence. Promotion out of shadow is a deliberate human act (the
+  // .jiahao-conviction-enforce marker is not written by the lane), and the
+  // record carries the pairer's own claim/evidence pair, so it is a checked
+  // observation rather than transport telemetry. Shadow records stay
+  // telemetry because nobody has accepted the lane's verdict yet. Keeping
+  // enforce records out of Case A would make the only evidence they carry
+  // invisible to the check that decides "was anything verified" — the
+  // opposite of what promotion means.
   const effective = rawChain ? rawChain.filter(function (r) {
     if (!(r && r.detector && r.detector.source === 'pairer-instrument')) return true;
     if (r.detector.shadow === true) return false;
@@ -180,7 +205,7 @@ process.stdin.on('end', () => {
         'index ' + chainCheck.broken_at + ' (' + chainCheck.reason + '). ' +
         'Possible tamper or truncation — do not trust this chain.';
       if (isGenerator) {
-        console.log(JSON.stringify({ decision: 'allow', systemMessage: msg }));
+        console.log(JSON.stringify({ systemMessage: msg }));
         return;
       }
       emitBlock(msg);
@@ -222,7 +247,6 @@ process.stdin.on('end', () => {
   if (sessionEvidence.length === 0) {
     if (isGenerator) {
       console.log(JSON.stringify({
-        decision: 'allow',
         systemMessage: 'JIAHAO ADVISORY: Verification has no evidence — ' +
           'run deterministic checks before claiming done.' + pendingText,
       }));
@@ -267,14 +291,12 @@ process.stdin.on('end', () => {
     // severity is judged on the visible part, never inflated or deflated.
     if (coveragePartial && !highestSeverity) {
       console.log(JSON.stringify({
-        decision: 'allow',
         systemMessage: 'JIAHAO ADVISORY (partial coverage): detector saw only a part of this turn (' + coverageKind + '); triage is based on the visible portion.' + pendingText,
       }));
       return;
     }
     if (highestSeverity) {
       console.log(JSON.stringify({
-        decision: 'allow',
         systemMessage:
           'JIAHAO ADVISORY (' + highestSeverity + '): completion language ' +
           'matched [' + matchedPhrases.slice(0, 5).join(', ') + ']. ' +
@@ -316,7 +338,6 @@ process.stdin.on('end', () => {
 
   if (highestSeverity === 'low') {
     console.log(JSON.stringify({
-      decision: 'allow',
       systemMessage:
         'JIAHAO ADVISORY (low): soft completion language matched [' +
         matchedPhrases.slice(0, 5).join(', ') + '].' + pendingText,
@@ -328,8 +349,12 @@ process.stdin.on('end', () => {
   // D4: do NOT consume the evidence file. Idempotent under repeat Stop /
   // SubagentStop fire.
   // pending escalations surface even on the quiet path.
+  // #71 item 5: an allow is an ABSENT decision. The host's decision field only
+  // defines "block"; echoing "allow" invented a value the contract does not
+  // have (and WorkBuddy, which blocks on {decision:"block"} alone, has no
+  // reason to parse it). The advisory rides systemMessage.
   if (pendingText) {
-    console.log(JSON.stringify({ decision: 'allow', systemMessage: 'JIAHAO:' + pendingText }));
+    console.log(JSON.stringify({ systemMessage: 'JIAHAO:' + pendingText }));
   }
   // fall through: the loop drains when stdin has ended, flushing stdout
 });

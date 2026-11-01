@@ -1,5 +1,7 @@
 // jiahao calibration.js — confidence calibration module
-// Platt sigmoid calibration: P(pass|score) = 1/(1+exp(a*score+b))
+// Platt sigmoid calibration: P(pass|score) = 1/(1+exp(-(a*score+b)))
+// (the same z = a*score+b that fitPlatt optimises and calibrateScore applies;
+// every threshold below inverts it with logit p = ln(p/(1-p))).
 // Minimal viable: zero-dependency, ~60 lines. Isotonic is the upgrade path
 // when sufficient data (1000+ labeled samples) exists.
 //
@@ -46,7 +48,7 @@ function loadCalibrationPoints() {
 }
 
 // Fit Platt sigmoid via gradient descent.
-// Platt's original: P(y=1|s) = 1/(1+exp(A*s+B))
+// P(y=1|s) = 1/(1+exp(-(A*s+B))) — the convention calibrateScore applies.
 // We optimize log-loss via simple gradient descent (no external libs).
 // Returns { a, b, n } or null if insufficient data.
 function fitPlatt(points, opts) {
@@ -88,21 +90,30 @@ function calibrateScore(score, model) {
 function deriveThresholds(model, targetPrecision, floorPrecision) {
   if (!model) return { ...STATIC_BAND, floor: STATIC_BAND.low, target: STATIC_BAND.high };
 
-  // High threshold: solve calibrateScore(s, model) = targetPrecision
-  // 1/(1+exp(a*s+b)) = targetPrecision => a*s+b = ln(1/targetPrecision - 1)
+  // Every boundary below is the inverse of calibrateScore:
+  //   calibrateScore(s, model) = P  <=>  a*s + b = logit(P) = ln(P / (1 - P))
+  // #71 item 13 / PR #117 item 13: the floor boundary used ln(1/P - 1), which
+  // is logit(1 - P) — the opposite side of the curve. With floorPrecision 0.7
+  // that put the blocking boundary at P = 0.3. The low/high pair carried the
+  // same inversion but Math.min/Math.max swapped the labels back, so only the
+  // floor surfaced.
+  const logit = (p) => Math.log(p / (1 - p));
+
+  // High threshold: the score where P(pass) = targetPrecision.
   const tp = targetPrecision || 0.85;
-  const logitHigh = Math.log(1 / tp - 1);
+  const logitHigh = logit(tp);
   const high = (logitHigh - model.b) / model.a;
 
-  // Low threshold: solve for (1 - targetPrecision) as the "definitely fail" boundary
-  const logitLow = Math.log(1 / (1 - tp) - 1);
+  // Low threshold: the score where P(pass) = 1 - targetPrecision — the
+  // "definitely fail" boundary.
+  const logitLow = logit(1 - tp);
   const low = (logitLow - model.b) / model.a;
 
   // floor/target dual boundary (maf-evals pattern).
   // floor = blocking boundary (calibrated P(pass) < floorPrec -> block),
   // target = warning boundary; scores inside the band are warnings.
   const fp_ = floorPrecision || 0.5;
-  const logitFloor = Math.log(1 / fp_ - 1);
+  const logitFloor = logit(fp_);
   const floor = (logitFloor - model.b) / model.a;
 
   // Degenerate fit (constant-score points -> a === 0): no calibrated signal;

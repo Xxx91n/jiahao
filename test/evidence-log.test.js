@@ -207,3 +207,18 @@ test('finding 4: a null witness file reads as unreadable, not witness_unavailabl
   fs.writeFileSync(log.genesisAnchorPath(), 'null', 'utf8');
   expect(log.readGenesisAnchor(log.genesisAnchorPath()).status).toBe('unreadable');
 });
+
+// #71 (PR #97 review): lock failure and a throw from the commit body are
+// different events. The body used to be retried WITHOUT the lock after any
+// throw, so a make() that had already appended could append twice.
+test('#71: a make() throw inside the lock is not retried unlocked', () => {
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'jiahao-evidence-commit-'));
+  const log = createEvidenceLog(dir);
+  let calls = 0;
+  log.commit(function () {
+    calls += 1;
+    throw new Error('make failed');
+  });
+  expect(calls).toBe(1);
+  fs.rmSync(dir, { recursive: true, force: true });
+});

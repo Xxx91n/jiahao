@@ -289,8 +289,63 @@ test('pretool-guard denies a protected target and exits 0 with an unreadable pro
   expect(parsed.hookSpecificOutput.permissionDecision).toBe('deny');
 });
 
-test('shared paths module exports flagPath and evidencePath', () => {
-  const { flagPath, evidencePath, evidenceKeysPath } = require(path.join(__dirname, '..', 'src', 'shared', 'paths.js'));
+// #71 item 3: the guard is a modification guard. Reading the injected rules
+// is how a verifier works; only a call that can change the apparatus is a
+// bypass.
+test('pretool-guard lets a read-only tool read a protected target', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  const input = JSON.stringify({
+    tool_name: 'Read',
+    tool_input: { file_path: path.join(repoRoot, 'hooks', 'jiahao-verdict-gate.js') },
+  });
+  const res = runHook('jiahao-pretool-guard.js', { dir: dir, stdin: input });
+  expectExit(res, 0);
+  expect(String(res.stdout).trim()).toBe(''); // no deny envelope
+});
+
+// #71 item 4: a subagent gets ONE ruleset. Injecting the whole SKILL.md handed
+// it both profiles' mutually exclusive rules.
+test('subagent injection carries only the verifier section for a verifier subagent', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'generator', 'utf8');
+  const res = runHook('jiahao-subagent.js', { dir: dir, stdin: JSON.stringify({ agent_type: 'review' }) });
+  expectExit(res, 0);
+  const ctx = parseJson(res).hookSpecificOutput.additionalContext;
+  expect(ctx).toContain('## Verifier Profile');
+  expect(ctx).not.toContain('## Generator Profile');
+});
+
+test('subagent injection inherits the parent profile when the agent type is unknown', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'generator', 'utf8');
+  // No agent_type: the hook fails open and injects, using the parent's profile.
+  const res = runHook('jiahao-subagent.js', { dir: dir, stdin: '{}' });
+  expectExit(res, 0);
+  const ctx = parseJson(res).hookSpecificOutput.additionalContext;
+  expect(ctx).toContain('## Generator Profile');
+  expect(ctx).not.toContain('## Verifier Profile');
+});
+
+// #71 item 12: a factory throw used to kill the hook before any judgment -
+// a silent fail-open gate. It must now reach the normal block envelope.
+test('verdict-gate blocks through the host envelope when the evidence log cannot initialize', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  const preload = path.join(__dirname, 'helpers', 'fail-evidence-log-init.js').split(path.sep).join('/');
+  const env = Object.assign(hostEnv(dir), { NODE_OPTIONS: '--require ' + preload });
+  const res = spawnHook(path.join(hooksDir, 'jiahao-verdict-gate.js'), {
+    stdin: JSON.stringify({ stop_hook_active: false }), env: env, cwd: repoRoot,
+  });
+  expectExit(res, 2);
+  const parsed = parseJson(res);
+  expect(parsed.decision).toBe('block');
+  expect(parsed.reason).toMatch(/could not initialize/);
+});
+
+test('shared paths module exports flagPath and evidencePath', () => {  const { flagPath, evidencePath, evidenceKeysPath } = require(path.join(__dirname, '..', 'src', 'shared', 'paths.js'));
   expect(typeof flagPath).toBe('function');
   expect(typeof evidencePath).toBe('function');
   expect(typeof evidenceKeysPath).toBe('function');
@@ -369,7 +424,7 @@ test('D2: generator profile never blocks on high-severity suspicion (advisory on
   });
   expectExit(res, 0);
   const parsed = parseJson(res);
-  expect(parsed.decision).toBe('allow');
+  expect(parsed.decision).toBeUndefined(); // #71 item 5: allow = absent decision
   expect(parsed.systemMessage).toMatch(/JIAHAO ADVISORY \(high\)/);
 });
 
@@ -401,7 +456,7 @@ test('D2: verifier profile low-severity suspicion = advisory, not block', () => 
   });
   expectExit(res, 0);
   const parsed = parseJson(res);
-  expect(parsed.decision).toBe('allow');
+  expect(parsed.decision).toBeUndefined(); // #71 item 5: allow = absent decision
   expect(parsed.systemMessage).toMatch(/JIAHAO ADVISORY \(low\)/);
 });
 

@@ -11,7 +11,7 @@ const os = require('os');
 const path = require('path');
 
 const repoRoot = path.join(__dirname, '..');
-const { run } = require(path.join(repoRoot, 'src', 'pairer-lane.js'));
+const { run, transcriptPathOf } = require(path.join(repoRoot, 'src', 'pairer-lane.js'));
 const { WITNESS_HARD_STOP_CODE } = require(path.join(repoRoot, 'src', 'evidence-log.js'));
 
 // A transcript path that does not exist: the adapter reports ok:false, the
@@ -53,4 +53,45 @@ test('a healthy commit appends and reports the recorded outcome', () => {
   expect(res.lane).toBe('recorded');
   expect(res.appended).toBe(true);
   expect(res.state).toBe('undetermined'); // unadaptable transcript classifies nothing
+});
+
+// #71 item 11: SubagentStop carries the subagent's own transcript in
+// agent_transcript_path; transcript_path stays the parent session. Reading only
+// transcript_path paired the parent conversation with the subagent's results.
+test('#71 item 11: SubagentStop reads the subagent transcript', () => {
+  expect(transcriptPathOf({
+    hook_event_name: 'SubagentStop',
+    transcript_path: '/parent.jsonl',
+    agent_transcript_path: '/agent.jsonl',
+  })).toBe('/agent.jsonl');
+});
+
+test('#71 item 11: SubagentStop falls back to transcript_path when the agent path is absent', () => {
+  expect(transcriptPathOf({
+    hook_event_name: 'SubagentStop',
+    transcript_path: '/parent.jsonl',
+  })).toBe('/parent.jsonl');
+});
+
+test('#71 item 11: Stop keeps the session transcript even when an agent path rides along', () => {
+  expect(transcriptPathOf({
+    hook_event_name: 'Stop',
+    transcript_path: '/parent.jsonl',
+    agent_transcript_path: '/agent.jsonl',
+  })).toBe('/parent.jsonl');
+});
+
+test('#71 item 11: camelCase hookEventName is honoured', () => {
+  expect(transcriptPathOf({
+    hookEventName: 'SubagentStop',
+    transcript_path: '/parent.jsonl',
+    agentTranscriptPath: '/agent.jsonl',
+  })).toBe('/agent.jsonl');
+});
+
+// #71 (PR #97 review): the commit result says whether anything was written.
+test('#71: a deduped zero-record commit does not report appended', () => {
+  const res = run(PAYLOAD, { dir: freshFlagDir(), evidenceLog: stubLog(function () { return 0; }) });
+  expect(res.lane).toBe('recorded');
+  expect(res.appended).toBe(false);
 });

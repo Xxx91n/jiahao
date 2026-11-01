@@ -1548,9 +1548,24 @@ function createEvidenceLog(overrideConfigDir, opts) {
         fs.writeFileSync(kp, allKeys.join('\n') + '\n', 'utf8');
         _writeTailAnchorForChain(existing.concat(applied));
       }
+      return applied.length; // #71 (PR #97 review): callers can see a no-op commit
     };
-    try { withLockSync(ep, run, { retries: 40, retrySleepMs: 10 }); }
-    catch (e) { try { run(); } catch (e2) { /* sink broken — drop */ } }
+    // Lock failure and a throw from run() itself are different events. The
+    // first keeps the documented best-effort degrade (write unlocked); the
+    // second may already have appended records, and re-running it unlocked
+    // would duplicate them. `entered` separates the two (PR #97 review, #71).
+    let entered = false;
+    const guarded = function () { entered = true; return run(); };
+    let written = 0;
+    try { written = withLockSync(ep, guarded, { retries: 40, retrySleepMs: 10 }) || 0; }
+    catch (e) {
+      if (!entered) {
+        try { written = run() || 0; } catch (e2) { /* sink broken — drop */ }
+      } else {
+        note('append failed inside the lock — dropped: ' + ((e && e.message) || String(e)));
+      }
+    }
+    return written;
   }
 
   // Chain integrity over a materialized array (unchanged legacy contract).
