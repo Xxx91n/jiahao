@@ -1,4 +1,4 @@
-# Probe scripts (#80, #109)
+# Probe scripts (#80, #108, #109)
 
 Throwaway hooks used for the v0.3.0 acceptance and the #109 Qoder probe. They
 are evidence artifacts, not part of any distributed bundle. Hook configs point
@@ -50,6 +50,22 @@ this directory.
 - `antigravity-exit2.js`: Stop hook, exit 2 + stderr. Observed: hook failed with exit status 2, turn ended without continuation.
 - `antigravity-always-block.js`: Stop hook, exit 0 + decision block every time. Observed: 10 forced continuations (10 Stop invocations, executionNum 0 through 9 blocked), then the host ended the turn at `MAX_FORCED_INVOCATIONS`.
 - `antigravity-hook-wrapper.js`: wraps the installed gate, logs the hook's own stdin/stdout/stderr/exit, then replays them. Used for `../antigravity-hook-exit.txt`.
+
+## ZCode 3.16.2 (#108, 2026-10-31)
+
+- `zcode-stop-wrapper.js`: the workspace Stop hook for the whole probe. Logs
+  one JSON line per fire (payload + env key names), then acts per a mode file
+  read at fire time: `json-once` (block this session's first Stop via
+  `{decision:"block"}` on exit 0), `exit2` (exit 2, no output), `cap` (block
+  every Stop), `realgate` (spawn the real bundled gate with argv `zcode`
+  under an isolated `CLAUDE_CONFIG_DIR`, log its exit/stdout/stderr, then
+  replay them). Raw fires: `../zcode-stop-fires.jsonl`.
+- `zcode-log-only.js`: log-only hook used on `UserPromptSubmit` to capture
+  the payload shape without blocking anything.
+- The hook config was a workspace `.zcode/config.json` in the repository
+  (loaded at session start, removed after the probe); the wrapper scripts
+  themselves live outside the repository.
+
 ## WorkBuddy AI 5.9.4 (#110, 2026-10-31)
 
 - `workbuddy-hook-probe.js`: one script, three modes, used from a project-scope

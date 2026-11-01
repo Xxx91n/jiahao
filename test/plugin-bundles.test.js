@@ -35,6 +35,7 @@ const pkgRepository = pkg.repository.url.replace(/^git\+/, '').replace(/\.git$/,
 function isWiring(dialect, rel) {
   if (rel === dialect.manifestPath) return true;
   if (rel === dialect.hookMapPath) return true;
+  if (rel === dialect.marketplaceShelfPath) return true;
   return /^(rules\/|\.mcp\.json$|README\.md$)/.test(rel);
 }
 

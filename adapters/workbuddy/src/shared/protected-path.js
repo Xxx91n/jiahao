@@ -44,9 +44,10 @@ const PROTECTED_FRAGMENTS = [
 // stop (#71 item 2). Every host's manifest directory is listed, not just the
 // Claude-shaped one: a bundle whose manifest sits somewhere unlisted is a
 // manifest the guard cannot defend, which is what the WorkBuddy row exposed
-// (#110). Codex's `.codex-plugin/` and WorkBuddy's `.workbuddy-plugin/` are
-// bundle-local names, so listing them costs a project nothing.
-const PROTECTED_DIRS = ['hooks', 'rules', 'src', '.claude-plugin', '.codex-plugin', '.workbuddy-plugin', '.qoder-plugin'];
+// (#110). `.codex-plugin/`, `.workbuddy-plugin/`, `.zcode-plugin/`, and
+// `.qoder-plugin/` are bundle-local names, so listing them costs a project
+// nothing.
+const PROTECTED_DIRS = ['hooks', 'rules', 'src', '.claude-plugin', '.codex-plugin', '.workbuddy-plugin', '.zcode-plugin', '.qoder-plugin'];
 // Bundle-root files that are apparatus by position, not by name. `.mcp.json` is
 // the shared registration; `plugin.json` is the Copilot CLI / Antigravity
 // manifest and `hooks.json` the Antigravity hook map - both live at the bundle

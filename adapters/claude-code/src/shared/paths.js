@@ -2,11 +2,15 @@
 // Single source of truth for flag/evidence file locations.
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { PREFIXES } = require('./prefix-vocab'); // prefix vocabulary fact source
 
 function configDir() {
-  return process.env.CLAUDE_CONFIG_DIR || process.env.HOME || '/tmp';
+  // os.homedir() as the last resort, not /tmp: on Windows a hook process
+  // without HOME has USERPROFILE, and /tmp is neither the documented flag
+  // location nor guaranteed to exist (CodeRabbit #115 round 5).
+  return process.env.CLAUDE_CONFIG_DIR || process.env.HOME || os.homedir();
 }
 
 function flagPath() {

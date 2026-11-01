@@ -120,7 +120,17 @@ process.stdin.on('end', () => {
   let laneResult = null;
   try { laneResult = require('../src/pairer-lane').run(parsed, { evidenceLog: evidenceLog }); } catch (e) { laneResult = null; }
   let laneText = '';
-  if (laneResult && laneResult.lane === 'recorded' && laneResult.state === 'flagged') {
+  if (laneResult && laneResult.lane === 'hard-stop') {
+    // The dead-man switch refused to record this Stop (pairer-lane surfaces
+    // the typed refusal as an outcome). A turn may not be allowed on a chain
+    // that just refused its witness: verifier blocks with the refusal reason;
+    // generator stays advisory-fail-open (D2).
+    if (!isGenerator) {
+      emitBlock(laneResult.reason || 'evidence log refused the stop record');
+      return;
+    }
+    laneText = ' ' + (laneResult.reason || 'evidence log refused the stop record');
+  } else if (laneResult && laneResult.lane === 'recorded' && laneResult.state === 'flagged') {
     laneText = ' Conviction lane (' + laneResult.mode + '): pairer flagged ' +
       (laneResult.family || 'unsupported') + ' — claim ' + JSON.stringify(laneResult.claim) +
       ' vs evidence ' + JSON.stringify(laneResult.evidence) +
@@ -136,9 +146,15 @@ process.stdin.on('end', () => {
   // shadow pairer-lane records are instrument telemetry, not agent
   // verification evidence — a chain holding only shadow records still means
   // "no evidence" for the Case A check below. Enforce-mode records
-  // (shadow:false) DO enter the matrix and stay visible here.
+  // (shadow:false) DO enter the matrix and stay visible here — except the
+  // undetermined ones: an adapter failure or a pairItem exception classifies
+  // nothing (pairer-lane: they never flag and never block), so they must not
+  // satisfy the no-evidence check any more than shadow records do
+  // (CodeRabbit #115 round 2).
   const effective = rawChain ? rawChain.filter(function (r) {
-    return !(r && r.detector && r.detector.source === 'pairer-instrument' && r.detector.shadow === true);
+    if (!(r && r.detector && r.detector.source === 'pairer-instrument')) return true;
+    if (r.detector.shadow === true) return false;
+    return !(r.detector.pairer && r.detector.pairer.state === 'undetermined');
   }) : rawChain;
   const evidenceChain = (effective && effective.length === 0) ? null : effective;
   // #75: evidence speaks for the session that wrote it - as long as the payload
