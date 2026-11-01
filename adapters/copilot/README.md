@@ -35,6 +35,9 @@ hook and did not block. Evidence:
    `echo verifier > "$CONFIG/.jiahao-profile"` for the blocking profile
    (`generator` for advisory-only). Start a new session after changing
    `.jiahao-profile`.
+   An unreadable `.jiahao-profile` (a directory in its place, or unreadable
+   permissions) also resolves to the default `verifier`, with a `[config]:` note
+   on stderr.
 
 Install and upgrade are the host's own plugin commands; the repository root is
 never a plugin entry. The install path was live-probed with a local plugin

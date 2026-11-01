@@ -222,6 +222,56 @@ test('readProfile falls back to the verifier default when the profile path is un
   }
 });
 
+// #119 finding 1: the fallback must not be silent — a read failure leaves
+// its payload on stderr so an operator can tell a defaulted profile from a
+// misconfigured one (#84's fail-path convention). EISDIR is the measured
+// shape (a directory where the flag file should be).
+test('finding 1: readProfile leaves the failure payload on stderr when the profile path is unreadable', () => {
+  const dir = freshDir('jiahao-profile-test-');
+  fs.mkdirSync(path.join(dir, '.jiahao-profile')); // a directory where the file should be
+  const { readProfile } = require(path.join(hooksDir, 'jiahao-profile.js'));
+  const prev = process.env.CLAUDE_CONFIG_DIR;
+  process.env.CLAUDE_CONFIG_DIR = dir;
+  const errWrites = [];
+  const origWrite = process.stderr.write;
+  process.stderr.write = (chunk) => { errWrites.push(String(chunk)); return true; };
+  try {
+    expect(readProfile()).toBe('verifier');
+  } finally {
+    process.stderr.write = origWrite;
+    if (prev === undefined) delete process.env.CLAUDE_CONFIG_DIR;
+    else process.env.CLAUDE_CONFIG_DIR = prev;
+  }
+  const joined = errWrites.join('');
+  expect(joined).toContain('[config]:');
+  expect(joined).toContain('.jiahao-profile');
+});
+
+// The read-no-longer-goes-through existsSync (CodeRabbit PR #129 round 1:
+// existsSync swallowed every stat failure, e.g. a symlink to an inaccessible
+// target), so the two arms of the contract need pinning separately: ENOENT
+// is the documented absent-file default and stays silent, any other read
+// error warns. (A dangling-symlink fixture is not portable on Windows —
+// symlinkSync needs privileges there — so the arms are pinned with the
+// shapes every host can produce: absent file and a directory in the way.)
+test('finding 1: an absent profile file is the documented default and stays silent', () => {
+  const dir = freshDir('jiahao-profile-test-');
+  const { readProfile } = require(path.join(hooksDir, 'jiahao-profile.js'));
+  const prev = process.env.CLAUDE_CONFIG_DIR;
+  process.env.CLAUDE_CONFIG_DIR = dir;
+  const errWrites = [];
+  const origWrite = process.stderr.write;
+  process.stderr.write = (chunk) => { errWrites.push(String(chunk)); return true; };
+  try {
+    expect(readProfile()).toBe('verifier');
+  } finally {
+    process.stderr.write = origWrite;
+    if (prev === undefined) delete process.env.CLAUDE_CONFIG_DIR;
+    else process.env.CLAUDE_CONFIG_DIR = prev;
+  }
+  expect(errWrites).toEqual([]);
+});
+
 // #108 audit (CodeRabbit round 2): the guard's fail-soft contract holds when
 // the profile source misbehaves - a protected target with an unreadable
 // profile denies (the documented default), it does not exit nonzero.

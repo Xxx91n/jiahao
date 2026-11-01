@@ -107,6 +107,9 @@ project directory name: `.codebuddy`, not `.workbuddy`; a twin written to
    `echo verifier > "$CONFIG/.jiahao-profile"`. The `setx` line is what makes
    the hooks see the same value; without it the flags sit in a directory the
    desktop never looks at.
+   An unreadable `.jiahao-profile` (a directory in its place, or unreadable
+   permissions) also resolves to the default `verifier`, with a `[config]:` note
+   on stderr.
 
    Git Bash, path two - no pin. Clear the variable in THIS shell, not just for
    the installer: `env -u CLAUDE_CONFIG_DIR` affects only that child, and the

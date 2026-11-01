@@ -70,6 +70,8 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 - `src/shared/capability.js`、`src/detector.js`：读侧的同一顺序（语料探针、私有词表）。宿主没报配置根时它们落到操作系统家目录，与写侧一致（**换**，且与写侧同向）。
 - 各 `adapters/*/` 下的 vendored 副本：由生成器逐字节复制，跟随源（**换**）。
 
+读侧失败行为（#119）：`.jiahao-profile` 读取失败时按 fail-open 回落默认档 `verifier`，按错误类分两档：文件不存在（`ENOENT`，含符号链接的目标已失效）是文档化的正常默认，不告警；其余非 `ENOENT` 的读取错误（权限拒绝、位置被目录占用、符号链接成环等）在 stderr 留一条 `[config]:` 凭证，让「读到了默认档」与「读坏了才走到兜底」可区分。证据链锚文件里「存在但形状或校验不对」的见证（含内容为合法 JSON `null` 的）归 `unreadable`（corruption 家族，验证直接 fatal）；可借 last_good_seal 降级的是 `witness_unavailable`，那一档涵盖读取错误（如权限拒绝）与 sealed 链上的见证缺失，不只撕毁（torn）一种。
+
 | 谁写 | 写什么 | 什么时候 |
 | --- | --- | --- |
 | `scripts/install.js init` | `<config>/.jiahao-profile` | 手工执行安装命令 |

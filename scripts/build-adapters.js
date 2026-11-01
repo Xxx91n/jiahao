@@ -67,6 +67,15 @@ const POSIX_CONFIG_SNIPPET =
 // somewhere, and there the OS home is what the resolver's fallback answers.
 const POWERSHELL_CONFIG_SNIPPET =
   '$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1; New-Item -ItemType Directory -Force -Path $c | Out-Null';
+// The unreadable-profile fallback sentence (#119 finding 1), shared by every
+// README that documents the `.jiahao-profile` flag - one string so the exits
+// cannot drift apart on it. Claude Code's profile step and Qoder's
+// state-location bullet get the same facts inline because their passage
+// shapes differ (a fused sentence and a bullet paragraph respectively).
+const PROFILE_UNREADABLE_NOTE =
+  '   An unreadable `.jiahao-profile` (a directory in its place, or unreadable\n'
+  + '   permissions) also resolves to the default `verifier`, with a `[config]:` note\n'
+  + '   on stderr.\n';
 
 // ---- host table: the one place a plugin host is described ----
 //
@@ -865,7 +874,7 @@ server are vendored inside, so nothing resolves outside the bundle.
    (\`generator\` for advisory-only). Start a new session after changing
    \`.jiahao-profile\`. The file is shared by all agents using the same config
    directory; use separate config directories for concurrent profiles.
-4. MCP server: run \`npm install --omit=dev\` inside the bundle's
+${PROFILE_UNREADABLE_NOTE}4. MCP server: run \`npm install --omit=dev\` inside the bundle's
    \`jiahao-mcp/\` once (the server source is vendored; dependencies are
    not). The bundle's \`.mcp.json\` registers it via
    \`\${CLAUDE_PLUGIN_ROOT}/jiahao-mcp/index.js\`.
@@ -1121,7 +1130,9 @@ unproven is this bundle blocking through the plugin path: see
   path the fixed resolution is conditional on it. The live in-app half - a Qoder
   session whose evidence chain is seen in \`~/.qoder-cn\` - is not yet in this
   repository's records; the turn-end block above is unaffected either way,
-  because it was measured through the hook's own stdout/stderr.
+  because it was measured through the hook's own stdout/stderr. An unreadable
+  \`.jiahao-profile\` (a directory in its place, or unreadable permissions) also
+  resolves to the default \`verifier\`, with a \`[config]:\` note on stderr.
 - **Which root registers hooks - now known for both builds.** Project-scope
   \`.qoder/settings.json\` fired and a \`.qoder-cn/settings.json\` placed beside it
   did not, on the CN build (#109) and again on the international one (#113).
@@ -1267,7 +1278,9 @@ whose single entry \`source\` points at \`./adapters/claude-code\`).
    PreToolUse guard; the SubagentStart injection is not flag-gated.
 4. Switch profile if needed: \`echo generator > "$CLAUDE_CONFIG_DIR/.jiahao-profile"\`
    (or \`$HOME/.jiahao-profile\` when the env var is unset) for advisory-only.
-   Deleting the file returns to the default \`verifier\`. Both flag files live
+   Deleting the file returns to the default \`verifier\`; an unreadable one
+   (a directory in its place, or unreadable permissions) resolves the same way
+   and leaves a \`[config]:\` note on stderr. Both flag files live
    in the config dir, never in the project directory.
 
 Install, upgrade, and uninstall are the host's own plugin commands; the repo
@@ -1368,7 +1381,7 @@ hook and did not block. Evidence:
    \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
    (\`generator\` for advisory-only). Start a new session after changing
    \`.jiahao-profile\`.
-
+${PROFILE_UNREADABLE_NOTE}
 Install and upgrade are the host's own plugin commands; the repository root is
 never a plugin entry. The install path was live-probed with a local plugin
 directory on 1.0.105.
@@ -1489,7 +1502,7 @@ The repository root is also a Codex marketplace
    \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
    (\`generator\` for advisory-only). Start a new session after changing
    \`.jiahao-profile\`.
-
+${PROFILE_UNREADABLE_NOTE}
 Codex 0.163.0 enables hooks by default: \`codex features list\` reports
 \`hooks stable true\`, and a fresh \`CODEX_HOME\` with no \`config.toml\` ran the
 plugin's hooks. No \`[features] hooks\` switch is part of this recipe. The trust
@@ -1684,7 +1697,7 @@ project directory name: \`.codebuddy\`, not \`.workbuddy\`; a twin written to
    \`echo verifier > "$CONFIG/.jiahao-profile"\`. The \`setx\` line is what makes
    the hooks see the same value; without it the flags sit in a directory the
    desktop never looks at.
-
+${PROFILE_UNREADABLE_NOTE}
    Git Bash, path two - no pin. Clear the variable in THIS shell, not just for
    the installer: \`env -u CLAUDE_CONFIG_DIR\` affects only that child, and the
    \`CONFIG\` line below would still pick up the parent's value, writing the
@@ -1858,7 +1871,7 @@ host ended the turn without continuation. Evidence:
    \`echo full > "$CONFIG/.jiahao-active"\`
    \`echo verifier > "$CONFIG/.jiahao-profile"\`
    Start a new session after changing \`.jiahao-profile\`.
-   In PowerShell, resolve the same directory the hooks read and write there:
+${PROFILE_UNREADABLE_NOTE}   In PowerShell, resolve the same directory the hooks read and write there:
    \`${POWERSHELL_CONFIG_SNIPPET}\`
    \`'full' | Set-Content (Join-Path $c '.jiahao-active')\`
    \`'verifier' | Set-Content (Join-Path $c '.jiahao-profile')\`
@@ -1979,7 +1992,7 @@ resolves \`plugin@marketplace\` names - a direct directory install is refused
    then \`Set-Content -NoNewline -Path "$c/.jiahao-active" -Value full\` and
    \`Set-Content -NoNewline -Path "$c/.jiahao-profile" -Value verifier\`.
    Start a new session after changing \`.jiahao-profile\`.
-6. Restart or open a new session. Hook configuration — plugin or
+${PROFILE_UNREADABLE_NOTE}6. Restart or open a new session. Hook configuration — plugin or
    config-file — is read at session start; a map added mid-session did not
    fire until a restart (live probe, 2026-10-31).
 

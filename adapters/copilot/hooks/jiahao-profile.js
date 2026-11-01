@@ -33,17 +33,26 @@ function loadProfileSections(root) {
 
 // Read agent profile from .jiahao-profile (default: verifier for backward compat).
 // Single source of truth — used by jiahao-activate, jiahao-verdict-gate, MCP.
-// A read error (the path is a directory, or the file is unreadable) returns
-// the documented default: every caller runs this at top level or on the
-// decision path, and a throw there would kill the Stop check outright
-// (CodeRabbit #115 round 2).
+// Read the flag directly and treat only ENOENT as the documented absent-file
+// default: existsSync() would silently swallow every other stat failure too
+// (a symlink to an inaccessible target among them, CodeRabbit PR #129 round
+// 1), and a throw here would kill the Stop check outright — every caller
+// runs this at top level or on the decision path (CodeRabbit #115 round 2).
+// The fallback is not silent — the failure payload lands on stderr so a
+// defaulted profile is distinguishable from a read one (#119 finding 1,
+// #84's fail-path convention).
 function readProfile() {
   const { profilePath } = require('../src/shared/paths');
-  const p = profilePath();
-  if (!fs.existsSync(p)) return 'verifier';
+  const { PREFIXES } = require('../src/shared/prefix-vocab');
   let v = '';
-  try { v = fs.readFileSync(p, 'utf8').trim().toLowerCase(); }
-  catch (e) { return 'verifier'; }
+  try { v = fs.readFileSync(profilePath(), 'utf8').trim().toLowerCase(); }
+  catch (e) {
+    if (e && e.code === 'ENOENT') return 'verifier';
+    process.stderr.write(PREFIXES.config + ' [profile] .jiahao-profile unreadable ('
+      + ((e && e.code) || e.message) + '); using the verifier default'
+      + String.fromCharCode(10));
+    return 'verifier';
+  }
   return v === 'generator' ? 'generator' : 'verifier';
 }
 

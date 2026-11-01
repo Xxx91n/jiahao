@@ -5,7 +5,7 @@
 //
 // This is NOT the adjudication instrument: it performs no pairing logic and is
 // never part of the adjudication pin. Its contract is mechanical extraction
-// (contract tests in test/adr-0070-transcript-adapter.test.js).
+// (contract tests in test/transcript-adapter.test.js).
 //
 // Tolerance rules (honest, never silent):
 //   - lines that fail JSON.parse are skipped and counted in stats.skipped
@@ -48,15 +48,33 @@ function adaptTranscriptText(text) {
     entries.push(e);
   }
 
-  // Claude Code transcripts can write more than one line per assistant
-  // message id (cumulative snapshots while streaming). Keep the LAST entry
-  // per message id, preserving entry order; all other entry types pass
-  // through untouched.
-  const lastIdxByMsg = new Map();
+  // Assistant lines that share one message id: both shipped hosts append one
+  // disjoint part per line under the same id (Qoder splits thinking, text and
+  // tool_use across chatcmpl-* lines; measured on real transcripts, #119
+  // finding 5 — 3346/3346 same-id groups disjoint across three Qoder
+  // sessions and 545/545 across 19 Claude Code sessions, so the old
+  // "cumulative snapshot" premise no longer holds anywhere and keep-last
+  // dropped every earlier part). Union the blocks per id in encounter order
+  // and dedup identical blocks, so a host that still rewrites the whole
+  // content array adds nothing; the union is emitted once, at the id's FIRST
+  // line — every tool_use part then precedes its tool_result, so the
+  // call-name mapping survives the split. Other entry types pass through
+  // untouched.
+  const mergedById = new Map(); // message id -> { blocks, seen, firstIdx }
   entries.forEach(function (e, i) {
     if (e.type !== 'assistant') return;
     const id = e.message && typeof e.message.id === 'string' ? e.message.id : null;
-    if (id !== null) lastIdxByMsg.set(id, i);
+    if (id === null) return;
+    let merged = mergedById.get(id);
+    if (!merged) { merged = { blocks: [], seen: new Set(), firstIdx: i }; mergedById.set(id, merged); }
+    const blocks = Array.isArray(e.message.content) ? e.message.content : [];
+    for (const b of blocks) {
+      if (!b || typeof b !== 'object') continue;
+      const key = JSON.stringify(b);
+      if (merged.seen.has(key)) continue;
+      merged.seen.add(key);
+      merged.blocks.push(b);
+    }
   });
 
   const events = [];
@@ -71,8 +89,12 @@ function adaptTranscriptText(text) {
 
     if (e.type === 'assistant') {
       const id = typeof msg.id === 'string' ? msg.id : null;
-      if (id !== null && lastIdxByMsg.get(id) !== i) return; // superseded snapshot
-      const blocks = Array.isArray(content) ? content : [];
+      let blocks = Array.isArray(content) ? content : [];
+      if (id !== null) {
+        const merged = mergedById.get(id);
+        if (!merged || merged.firstIdx !== i) return; // part line: folded into the union emitted at the id's first line
+        blocks = merged.blocks;
+      }
       let msgText = '';
       for (const b of blocks) {
         if (!b || typeof b !== 'object') continue;

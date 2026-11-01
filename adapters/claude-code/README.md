@@ -27,7 +27,9 @@ whose single entry `source` points at `./adapters/claude-code`).
    PreToolUse guard; the SubagentStart injection is not flag-gated.
 4. Switch profile if needed: `echo generator > "$CLAUDE_CONFIG_DIR/.jiahao-profile"`
    (or `$HOME/.jiahao-profile` when the env var is unset) for advisory-only.
-   Deleting the file returns to the default `verifier`. Both flag files live
+   Deleting the file returns to the default `verifier`; an unreadable one
+   (a directory in its place, or unreadable permissions) resolves the same way
+   and leaves a `[config]:` note on stderr. Both flag files live
    in the config dir, never in the project directory.
 
 Install, upgrade, and uninstall are the host's own plugin commands; the repo

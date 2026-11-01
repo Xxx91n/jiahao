@@ -263,10 +263,14 @@ function readTailAnchor(file) {
   }
   try {
     const anchor = JSON.parse(raw);
-    const checksum = _hashAnchorTriple(anchor.latest_seq, anchor.total_count, anchor.head_hash);
+    // shape check BEFORE any dereference: 'null' (or any primitive) is a
+    // legal JSON.parse result, and a present-but-wrong witness is
+    // corruption (unreadable), never a torn witness (#119 finding 4).
+    // Short-circuiting also keeps the checksum off a non-conforming anchor.
     if (!anchor || anchor.version !== HEAD_ANCHOR_VERSION ||
       typeof anchor.latest_seq !== 'number' || typeof anchor.total_count !== 'number' ||
-      typeof anchor.head_hash !== 'string' || anchor.checksum !== checksum) {
+      typeof anchor.head_hash !== 'string' ||
+      anchor.checksum !== _hashAnchorTriple(anchor.latest_seq, anchor.total_count, anchor.head_hash)) {
       return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null };
     }
     return { status: KNOWN_ANCHOR_STATUS.anchored, anchor: anchor };
@@ -311,9 +315,12 @@ function readGenesisAnchor(file) {
   }
   try {
     const anchor = JSON.parse(raw);
-    const checksum = _hashGenesis(anchor.first_hash);
+    // shape check BEFORE any dereference: 'null' (or any primitive) is a
+    // legal JSON.parse result, and a present-but-wrong witness is
+    // corruption (unreadable), never a torn witness (#119 finding 4).
     if (!anchor || anchor.version !== GENESIS_ANCHOR_VERSION ||
-      typeof anchor.first_hash !== 'string' || anchor.checksum !== checksum) {
+      typeof anchor.first_hash !== 'string' ||
+      anchor.checksum !== _hashGenesis(anchor.first_hash)) {
       return { status: KNOWN_ANCHOR_STATUS.unreadable, anchor: null };
     }
     return { status: KNOWN_ANCHOR_STATUS.anchored, anchor: anchor };

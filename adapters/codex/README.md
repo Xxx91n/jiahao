@@ -37,6 +37,9 @@ The repository root is also a Codex marketplace
    `echo verifier > "$CONFIG/.jiahao-profile"` for the blocking profile
    (`generator` for advisory-only). Start a new session after changing
    `.jiahao-profile`.
+   An unreadable `.jiahao-profile` (a directory in its place, or unreadable
+   permissions) also resolves to the default `verifier`, with a `[config]:` note
+   on stderr.
 
 Codex 0.163.0 enables hooks by default: `codex features list` reports
 `hooks stable true`, and a fresh `CODEX_HOME` with no `config.toml` ran the
