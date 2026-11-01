@@ -16,8 +16,9 @@ server are vendored inside, so nothing resolves outside the bundle.
    plugin hooks bypass the `allowUntrustedFrontmatterHooks` gate and
    execute the moment the plugin is enabled.
 3. Activate the jiahao profile flag, same as every host. Resolve the config
-   directory once (`CLAUDE_CONFIG_DIR`, else `$HOME`, else `/tmp`):
-   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-/tmp}}"`, then
+   directory once (`CLAUDE_CONFIG_DIR`, else `$HOME`; when a hook has neither,
+   it takes the host's own config root, then the OS home - `src/shared/paths.js`):
+   `CONFIG="${CLAUDE_CONFIG_DIR:-$HOME}"`, then
    `echo full > "$CONFIG/.jiahao-active"` and
    `echo verifier > "$CONFIG/.jiahao-profile"` for the blocking profile
    (`generator` for advisory-only). Start a new session after changing

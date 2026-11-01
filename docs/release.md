@@ -58,7 +58,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 
 会写哪些文件，按代码事实列（`src/shared/paths.js`、`scripts/install.js`、`scripts/resolve.js`、`hooks/*.js`）。
 
-`<config>` 指配置目录：`$CLAUDE_CONFIG_DIR`，没有就用 `$HOME`，两者都没有时退到 `/tmp`。
+`<config>` 指配置目录，按 `src/shared/paths.js` 的顺序解析，逐项都是代码事实：`$CLAUDE_CONFIG_DIR`，没有就用 `$HOME`；两者都没有时取宿主自己报给钩子子进程的配置根（`$QODER_CONFIG_DIR`，再 `$CODEBUDDY_CONFIG_DIR` / `$WORKBUDDY_CONFIG_DIR`）；再没有就退到操作系统给的家目录（Windows 上是 `USERPROFILE`），不再退到 `/tmp`——在 Windows 上 `/tmp` 会落到当前盘符，这正是 [#116](https://github.com/Xxx91n/jiahao/issues/116) 要修的现象。设了 `CLAUDE_CONFIG_DIR` 或 `HOME` 的宿主，落点与之前完全一致。
 
 | 谁写 | 写什么 | 什么时候 |
 | --- | --- | --- |

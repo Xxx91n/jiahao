@@ -77,8 +77,11 @@ function resolvePhrasesPath() {
     return { path: process.env.JIAHAO_WORDLIST, source: "env" };
   }
   // prefer the private dir outside the shared cwd.
-  // install.js plants phrases.json at <CLAUDE_CONFIG_DIR>/private/phrases.json.
-  const configDir = process.env.CLAUDE_CONFIG_DIR || process.env.HOME || null;
+  // install.js plants phrases.json at <config dir>/private/phrases.json.
+  // The config dir follows src/shared/paths.js so a host that only names its
+  // own root (Qoder's QODER_CONFIG_DIR, #116) is read the same way the gate
+  // reads its profile.
+  const configDir = require('./shared/paths').configDir();
   if (configDir) {
     const cp = path.join(configDir, "private", "phrases.json");
     if (fs.existsSync(cp)) return { path: cp, source: "config-private" };

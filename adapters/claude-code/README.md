@@ -59,7 +59,8 @@ directory for the host to load.
 ## Write scope and network
 
 - Hooks write only under the Claude config dir (`$CLAUDE_CONFIG_DIR`, else
-  `$HOME`): `.jiahao-active`, `.jiahao-evidence/` (plus the
+  `$HOME`; a hook that gets neither uses this host's own config root, then the
+  OS home): `.jiahao-active`, `.jiahao-evidence/` (plus the
   `.jiahao-evidence.keys` sidecar and `pairer-instrument` shadow records the
   Stop lane may append), `.jiahao-pretool.jsonl`, and the sentinel state and
   lock files `.jiahao-sentinel.<hook>(.lock)`. Nothing inside the repo or this

@@ -77,30 +77,38 @@ project directory name: `.codebuddy`, not `.workbuddy`; a twin written to
    `WORKBUDDY_*` variables, so the argument is what identifies the host.
 4. Activate the jiahao profile flag **where the hooks read it**, and pin that
    directory first. The hooks resolve it as `CLAUDE_CONFIG_DIR`, else `HOME`,
-   else `/tmp` (`src/shared/paths.js`). The probe recorded
-   `CLAUDE_CONFIG_DIR` as absent for the desktop's agent; whether the desktop
-   sets `HOME` was **not recorded**, and a shell supplies a `HOME` of its own.
-   Writing the flag from a shell can therefore land where no hook looks, and the
-   gate then finds no `.jiahao-active` and never arms.
+   else `WORKBUDDY_CONFIG_DIR` / `CODEBUDDY_CONFIG_DIR`, else the OS home
+   (`src/shared/paths.js`). The probe recorded `CLAUDE_CONFIG_DIR` as absent for
+   the desktop's agent and both builder config-dir variables set to the build's
+   own root; whether that environment also sets `HOME` was **not recorded** in
+   the probe, and a shell supplies a `HOME` of its own. Writing the flag from a
+   shell can therefore land where no hook looks, and the gate then finds no
+   `.jiahao-active` and never arms. Measured on the operator machine
+   (2026-11-01, #116): the desktop's hook process had `CLAUDE_CONFIG_DIR`
+   unset and `HOME` set, while the shell that ran the installer carried
+   `CLAUDE_CONFIG_DIR` from another agent - so the installer wrote the flag
+   where the hook does not read it and a profile switch failed silently.
 
-   The reliable recipe pins one directory for both sides: set
+   The reliable recipe pins one directory for both sides. Either set
    `CLAUDE_CONFIG_DIR` for the desktop process (a user environment variable
    works on Windows), restart the desktop, then write the flags there from a
    **freshly opened shell** - a shell started before the change keeps the old,
-   unset value.
+   unset value; or, if the shell carries a `CLAUDE_CONFIG_DIR` that the
+   desktop does not, drop it for the installer run:
 
    Git Bash (WorkBuddy ships it at `<configDir>/binaries/PortableGit`):
-   `echo full > "$CLAUDE_CONFIG_DIR/.jiahao-active"` and
-   `echo verifier > "$CLAUDE_CONFIG_DIR/.jiahao-profile"`.
+   `env -u CLAUDE_CONFIG_DIR node scripts/install.js init -y`, which prints the
+   absolute file it wrote; then
+   `echo full > "$HOME/.jiahao-active"` and
+   `echo verifier > "$HOME/.jiahao-profile"`.
 
    PowerShell:
-   `Set-Content "$env:CLAUDE_CONFIG_DIR\.jiahao-active" full` and
-   `Set-Content "$env:CLAUDE_CONFIG_DIR\.jiahao-profile" verifier`.
+   `Set-Content "$HOME\.jiahao-active" full` and
+   `Set-Content "$HOME\.jiahao-profile" verifier`.
 
-   `generator` instead of `verifier` for advisory-only. With
-   `CLAUDE_CONFIG_DIR` left unset, the hooks fall back to `HOME` and then to
-   `/tmp` (`C:\tmp` on Windows), so the flags would have to sit in whichever
-   of those the desktop's own environment resolves - check it rather than guess.
+   `generator` instead of `verifier` for advisory-only. Whichever way you go,
+   read the installer's printed path and make sure it is the directory the
+   hooks resolve - the flag is only read from one place.
 5. Start a new session after changing settings. On 5.9.4 the hook map was
    resolved per turn (an edit made during a turn applied at the next turn end),
    and one turn end in three produced no invocation at all; the 5.9.3 run's own
@@ -184,7 +192,8 @@ Commands, payloads, and the recorded environments are in
 
 ## Write scope and network
 
-- Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else `$HOME`):
+- Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else `$HOME`;
+  a hook that gets neither uses this host's own config root, then the OS home):
   `.jiahao-active`, `.jiahao-profile`, `.jiahao-evidence/` (plus its sidecar
   and pairer shadow records), `.jiahao-pretool.jsonl`, and the sentinel state
   and lock files. Nothing inside the repository or this plugin directory is

@@ -36,8 +36,7 @@ process.stdin.on('end', () => {
     process.exit(0);
   }
 
-  const configDir = process.env.CLAUDE_CONFIG_DIR || process.env.HOME || '/tmp';
-  const flagPath = configDir + '/.jiahao-active';
+  const flagPath = require('../src/shared/paths').flagPath();
   const mode = fs.existsSync(flagPath)
     ? fs.readFileSync(flagPath, 'utf8').trim()
     : 'full';

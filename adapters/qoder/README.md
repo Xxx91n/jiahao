@@ -88,17 +88,18 @@ and the run record is
 - **Whether a hook subprocess gets `QODER_SESSION_ID`.** It does not: the probe
   saw `QODER_PROJECT_DIR`, `QODER_CONFIG_DIR`, `USERPROFILE`, `TEMP` and `TMP`.
   That is why the hook map passes the platform name `qoder` on the command line.
-- **Where jiahao's own state lands on this host - measured, and broken.** The
-  hook subprocess gets neither `CLAUDE_CONFIG_DIR` nor `HOME`, and
-  `src/shared/paths.js` resolves its config directory as
-  `CLAUDE_CONFIG_DIR || HOME || '/tmp'`, so a hook spawned by Qoder reads and
-  writes `.jiahao-profile` and `.jiahao-evidence` under `<drive>:\tmp` instead of
-  the `QODER_CONFIG_DIR` (`~/.qoder-cn`) the host does name. The turn-end block
-  above is unaffected - it was measured through the hook's own stdout/stderr -
-  but the shipped gate's profile read and evidence chain are. Repairing that is a
-  shared-path change reaching every host, tracked as #116 and deliberately not
-  made inside this exit; until it lands, treat the plugin's state location on
-  Qoder as wrong, not untested.
+- **Where jiahao's own state lands on this host.** The hook subprocess gets
+  neither `CLAUDE_CONFIG_DIR` nor `HOME`, so before [#116](https://github.com/Xxx91n/jiahao/issues/116)
+  `src/shared/paths.js` fell through to its last resort and a hook spawned by
+  Qoder read and wrote `.jiahao-profile` and `.jiahao-evidence` under
+  `<drive>:\tmp` instead of the `QODER_CONFIG_DIR` (`~/.qoder-cn`) the host
+  does name. `paths.js` now takes that host root after `CLAUDE_CONFIG_DIR`
+  and `HOME`, and a spawned-hook test runs the real bundled gate under this
+  host's environment shape (Qoder's two variables, the two Claude ones absent)
+  and asserts the state lands inside `QODER_CONFIG_DIR`. The live in-app half -
+  a Qoder session whose evidence chain is seen in `~/.qoder-cn` - is not yet in
+  this repository's records; the turn-end block above is unaffected either way,
+  because it was measured through the hook's own stdout/stderr.
 - **Which root registers hooks is only known for the CN build.** Project-scope
   `.qoder/settings.json` fired and a `.qoder-cn/settings.json` placed beside it
   did not; the international build's root was never tested, so one dialect row

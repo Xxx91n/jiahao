@@ -44,7 +44,7 @@ npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # Qoder CN → ~/.qoder-
 
 2026-10-31 的安装命令 exit 0，落地的 `SKILL.md` 与仓库里的 `skills/jiahao/SKILL.md` SHA-256 一致（Run A）。新开独立会话能看到该技能，这是 #106 另一次运行（Run B）的记录，本次未重跑（见[运行记录](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md)）。国际版别名是 `-a qoder`，其落地路径与加载本机尚未真机验证。这条路只加载规则，没有强制。
 
-要强制，就是第六个自包含目录 [`adapters/qoder/`](adapters/qoder/)，而 **Qoder CN Desktop 0.4.11 是 A 档宿主**：2026-10-31 的真机会话里（#109），`Stop` 钩子以 exit 0 返回 `{"decision":"block"}` 后，宿主把回合按住并续跑——其中 6 次拦的是拿不出任何凭证的「已完成并验证」声明，1 次拦的是同一句话包了层「这是探针载荷」限定语。同一个钩子改用 exit 2 + stderr 同样能阻断续跑（3 次），但那三条消息自己就写着「本轮未做任何验证」，所以那一轮证明的是通道成立，不是拦下了假完工。宿主在每次重入都把 `stop_hook_active` 置为 true，并连续接受 6 次阻断续跑，直到探针自带的上限放行才结束回合。这次阻断是用项目级 `.qoder/settings.json` 注册的钩子观察到的；把这个目录作为 Desktop 插件安装属于 declared-unverified，国际版 Qoder Desktop 0.4.11 本机一行都没实测，因此它保持 C 档，不借用 CN 的结果。另有一处实测出来的缺陷要先说清：Qoder 给钩子子进程的环境变量里没有 `CLAUDE_CONFIG_DIR`、也没有 `HOME`，而 `src/shared/paths.js` 就按这两个值找配置目录，所以出厂 gate 的 `.jiahao-profile` 与 `.jiahao-evidence` 现在会落到 `<盘>:\tmp`，而不是宿主自己点名的 `~/.qoder-cn`——档位结论不受影响（阻断是真的拦到的），状态落点是坏的，修它要动所有宿主共用的路径解析，另开 [#116](https://github.com/Xxx91n/jiahao/issues/116) 追，不在本出口里夹带。运行记录见 [qoder-hook-probe-2026-10-31.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md)。
+要强制，就是第六个自包含目录 [`adapters/qoder/`](adapters/qoder/)，而 **Qoder CN Desktop 0.4.11 是 A 档宿主**：2026-10-31 的真机会话里（#109），`Stop` 钩子以 exit 0 返回 `{"decision":"block"}` 后，宿主把回合按住并续跑——其中 6 次拦的是拿不出任何凭证的「已完成并验证」声明，1 次拦的是同一句话包了层「这是探针载荷」限定语。同一个钩子改用 exit 2 + stderr 同样能阻断续跑（3 次），但那三条消息自己就写着「本轮未做任何验证」，所以那一轮证明的是通道成立，不是拦下了假完工。宿主在每次重入都把 `stop_hook_active` 置为 true，并连续接受 6 次阻断续跑，直到探针自带的上限放行才结束回合。这次阻断是用项目级 `.qoder/settings.json` 注册的钩子观察到的；把这个目录作为 Desktop 插件安装属于 declared-unverified，国际版 Qoder Desktop 0.4.11 本机一行都没实测，因此它保持 C 档，不借用 CN 的结果。随那个出口一起落地的实测缺陷已在 [#116](https://github.com/Xxx91n/jiahao/issues/116) 修掉：Qoder 给钩子子进程的环境变量里既没有 `CLAUDE_CONFIG_DIR` 也没有 `HOME`，当时的路径解析会让出厂 gate 的 `.jiahao-profile` 与 `.jiahao-evidence` 落到 `<盘>:\tmp`，而不是宿主自己点名的 `~/.qoder-cn`。现在 `src/shared/paths.js` 在 `CLAUDE_CONFIG_DIR`、`HOME` 之后取宿主自己的配置根（`QODER_CONFIG_DIR`），所以 Qoder 的钩子落在 `~/.qoder-cn` 里面；设了这两个 Claude 变量中任一个的宿主不会搬家。档位结论从不依赖这个落点（阻断是从钩子自己的通道看到的），而「Qoder 会话的证据链在 `~/.qoder-cn` 里被看到」这一条真机观测，本仓库的记录里还没有。运行记录见 [qoder-hook-probe-2026-10-31.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md)。
 
 **Qoder IDE/CLI** 读取项目级 `.qoder/rules/`。该目录里的 `rules/jiahao.md` 就是这个出口：规则文件与规则版同源，不注册任何东西。把它复制到 `.qoder/rules/`；这条路径的宿主加载行为属于 declared-unverified，尚未真机验证。三条路径与验证状态见该目录 README。
 
@@ -62,7 +62,7 @@ mcp 目录不再作为安装出口；MCP 服务端本身保留在 [`jiahao-mcp/`
 
 ### Profile
 
-插件版在没有 `.jiahao-profile` 时缺省为 `verifier`。标记文件位于 `CLAUDE_CONFIG_DIR`，未设置时取 `$HOME`，两者都没有时兜底 `/tmp`。在克隆里运行安装器；`-y` 接受缺省值并打印实际写入的值：
+插件版在没有 `.jiahao-profile` 时缺省为 `verifier`。标记文件位于 `CLAUDE_CONFIG_DIR`，未设置时取 `$HOME`；两者都没有时取宿主自己的配置根（Qoder 是 `QODER_CONFIG_DIR`，WorkBuddy 是 `WORKBUDDY_CONFIG_DIR`），再没有才退到操作系统给的家目录，不再退到 `/tmp`。在克隆里运行安装器；`-y` 接受缺省值并打印实际写入的值：
 
 ```bash
 node scripts/install.js init -y
