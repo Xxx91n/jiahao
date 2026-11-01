@@ -133,3 +133,35 @@ live run.
 - No claim about `zcode plugins update` (not run).
 - The headless CLI route failure is a probe-environment note, not a host
   behavior claim.
+
+## Post-merge live verification (2026-11-01, plugin path, restarted operator session)
+
+After the squash merge to main (`f8b16c93`), the bundle was installed formally
+from a clean release checkout of that commit (`zcode plugins marketplace add
+<checkout>/adapters/zcode`, then `zcode plugins install jiahao@jiahao-zcode` -
+enabled on install, `hooks: 4`, cached bytes diff-verified against the
+checkout). After a ZCode restart, the plugin-path hooks were observed live in
+the operator's own session:
+
+- SessionStart: the rules body arrived as hook additional context.
+- UserPromptSubmit: the mode reminder arrived (`JIAHAO MODE ACTIVE - level:
+  full`).
+- PreToolUse: a Bash tool call whose command text named the state/evidence
+  files was **denied** (verifier profile), with the bypass-attempt telemetry
+  line recorded per the deny envelope's own message.
+- Stop: a jargon-wrapped completion claim with no evidence was **blocked**
+  with the Case A reason verbatim ("Verification has no evidence: ... NOT
+  VERIFIED - run rung 1-3 of the verification ladder first."); after rung-1
+  verification (release-checkout `--check` + `check-drift` + clean tree,
+  quoted in the session) the next stop passed on `stop_hook_active`.
+
+Honest gaps: the host's own hook-execution log location was not identified in
+this build (the CLI-side daily log records no hook runs for the plugin), so
+these observations are the host-delivered hook contexts and decisions quoted
+in the session transcript, not host log lines; the guard's telemetry file is
+on the operator's machine and was not read back through the tool surface
+(the same command would be denied by the guard by design).
+
+This supersedes the declared-unverified rows in `adapters/zcode/README.md`
+and the evidence index for: plugin-path hooks firing in a restarted session,
+and SessionStart `additionalContext` injection.

@@ -114,8 +114,8 @@ gate. Commands and captured payloads live in
 | Install through the bundle's own marketplace shelf | **Verified**: `marketplace add <this dir>` + `plugins install jiahao@jiahao-zcode` installed the bundle `[enabled]`; `plugins list` reports `hooks: 4`; the cached hook map, manifest, and gate are byte-identical to the generated bundle |
 | Repository root as the marketplace | **Refuted for this bundle**: the host resolved `.claude-plugin/marketplace.json` and installed the Claude Code bundle |
 | Direct `zcode plugins install <dir>` | **Refuted**: refused with "Plugin not found in any marketplace" |
-| Plugin hooks firing in a live session (post-restart) | declared-unverified: the installed bytes are identical to the probed bundle and the block channel is host-level, but a plugin-spawned hook was not observed in a restarted session |
-| SessionStart `additionalContext` injection | declared-unverified: the envelope follows the documented strict schema; the injection itself was not observed |
+| Plugin-path hooks in the operator's restarted session (2026-11-01, post-merge formal install) | **Verified**: all four registered events observed live - SessionStart injected the rules body, UserPromptSubmit injected the mode reminder, PreToolUse **denied** a tool call whose command text named the state/evidence files (bypass-attempt telemetry written per the deny envelope), and Stop **blocked** a jargon-wrapped no-evidence completion claim with the Case A reason verbatim before passing on `stop_hook_active` after rung-1 verification |
+| SessionStart `additionalContext` injection | **Verified**: the injected rules body arrived as the next turn's hook additional context in the restarted session |
 
 ## Write scope and network
 
