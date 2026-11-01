@@ -46,8 +46,13 @@ const GENERATED_DIRS = ['adapters/', 'skills/', '.claude-plugin/', '.agents/'];
 // directory `src/shared/paths.js` resolves, or the flag lands where no hook
 // looks (CodeRabbit #127). Written once here so eight rows cannot drift: the
 // list of host roots must stay in step with HOST_CONFIG_DIR_ENV there.
+// `${USERPROFILE}` sits between the host roots and node's homedir because that
+// is where src/shared/paths.js puts it. It matters on Windows shells: node's
+// os.homedir() reads HOME and then the passwd entry on POSIX, and USERPROFILE
+// on Windows, so leaving it out let a recipe answer with the shell's own home
+// while the resolver answered with USERPROFILE (CodeRabbit #127).
 const POSIX_CONFIG_SNIPPET =
-  'CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-$(node -p \'require("os").homedir()\')}}}}}"';
+  'CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p \'require("os").homedir()\')}}}}}}"';
 // `$env:HOME`, not `$HOME`: PowerShell's `$HOME` is an automatic variable built
 // from USERPROFILE and is always set, while `src/shared/paths.js` reads the
 // HOME *environment variable*. Using `$HOME` here resolved to the OS home on a
@@ -56,7 +61,7 @@ const POSIX_CONFIG_SNIPPET =
 // last resort because a PS session without the env var still has to write
 // somewhere, and there the OS home is what the resolver's fallback answers.
 const POWERSHELL_CONFIG_SNIPPET =
-  '$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $HOME) | Where-Object { $_ } | Select-Object -First 1';
+  '$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1';
 
 // ---- host table: the one place a plugin host is described ----
 //
@@ -1594,8 +1599,11 @@ project directory name: \`.codebuddy\`, not \`.workbuddy\`; a twin written to
    the hooks see the same value; without it the flags sit in a directory the
    desktop never looks at.
 
-   Git Bash, path two - no pin, resolve the way the hooks do:
-   \`env -u CLAUDE_CONFIG_DIR node scripts/install.js init -y\` (it prints the
+   Git Bash, path two - no pin. Clear the variable in THIS shell, not just for
+   the installer: \`env -u CLAUDE_CONFIG_DIR\` affects only that child, and the
+   \`CONFIG\` line below would still pick up the parent's value, writing the
+   flags somewhere else than the installer just reported.
+   \`unset CLAUDE_CONFIG_DIR && node scripts/install.js init -y\` (it prints the
    absolute file it wrote - that is the directory to compare against), then
    \`${POSIX_CONFIG_SNIPPET}\`,
    \`echo full > "$CONFIG/.jiahao-active"\` and

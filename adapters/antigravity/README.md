@@ -19,13 +19,13 @@ host ended the turn without continuation. Evidence:
 1. `agy plugin install <path-to-adapters/antigravity>`
 2. `agy plugin list` to verify `jiahao` is imported and enabled.
 3. Activate the jiahao profile flag. In a POSIX shell:
-   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-$(node -p 'require("os").homedir()')}}}}}"`
+   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"`
    `mkdir -p "$CONFIG"`
    `echo full > "$CONFIG/.jiahao-active"`
    `echo verifier > "$CONFIG/.jiahao-profile"`
    Start a new session after changing `.jiahao-profile`.
    In PowerShell, resolve the same directory the hooks read and write there:
-   `$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $HOME) | Where-Object { $_ } | Select-Object -First 1`
+   `$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1`
    `New-Item -ItemType Directory -Force -Path $c | Out-Null`
    `'full' | Set-Content (Join-Path $c '.jiahao-active')`
    `'verifier' | Set-Content (Join-Path $c '.jiahao-profile')`

@@ -424,6 +424,25 @@ describe('the POSIX recipe is executable, not just readable', () => {
   // trailing `}`. Run it and compare against the resolver instead.
   const { POSIX_CONFIG_SNIPPET } = require(path.join(repoRoot, 'scripts', 'build-adapters'));
   const { spawnSync } = require('child_process');
+  const { skipTest } = require('./helpers/skip');
+
+  // A Windows box without Git Bash on PATH has no `bash` to run. The recipe
+  // itself is POSIX-only prose in that case, so the case is skipped with a
+  // reason instead of failing the suite (#127) - but the recipe test still runs
+  // wherever the shell exists, which is every CI image this repo uses.
+  const bashDir = findBash();
+  const recipeTest = (name, fn) => {
+    if (!bashDir) {
+      return skipTest('no POSIX shell on PATH: this suite runs a recipe through bash', name, fn);
+    }
+    return test(name, fn);
+  };
+
+  function findBash() {
+    const probe = spawnSync('bash', ['-c', 'exit 0'], { encoding: 'utf8' });
+    if (probe.error || probe.status !== 0) return null;
+    return 'bash';
+  }
 
   // `sh -c` is not enough, and neither is an absent HOME in the env: Git Bash
   // re-derives HOME from USERPROFILE before the script runs, so the host-root
@@ -467,15 +486,29 @@ describe('the POSIX recipe is executable, not just readable', () => {
     { name: 'CodeBuddy root only', env: { CODEBUDDY_CONFIG_DIR: '/cb' }, want: '/cb' },
     { name: 'HOME outranks host roots', env: { HOME: '/home/u', QODER_CONFIG_DIR: '/q' }, want: '/home/u' },
     { name: 'CLAUDE_CONFIG_DIR wins', env: { CLAUDE_CONFIG_DIR: '/pinned', HOME: '/home/u' }, want: '/pinned' },
+    {
+      // The resolver's step 4 with an injected env. Node's os.homedir() reads
+      // HOME and then the passwd entry on POSIX, never USERPROFILE, so without
+      // this step the recipe answered with the shell's home while the resolver
+      // answered with USERPROFILE.
+      name: 'an injected USERPROFILE is the fourth step',
+      env: { USERPROFILE: '/injected/home' },
+      want: '/injected/home',
+    },
+    {
+      name: 'a host root still outranks USERPROFILE',
+      env: { USERPROFILE: '/injected/home', QODER_CONFIG_DIR: '/q' },
+      want: '/q',
+    },
   ];
 
   for (const c of cases) {
-    test(c.name + ': the recipe prints exactly the resolved dir', () => {
+    recipeTest(c.name + ': the recipe prints exactly the resolved dir', () => {
       expect(resolvedByRecipe(c.env)).toBe(c.want);
     });
   }
 
-  test('the recipe output has no trailing brace or whitespace', () => {
+  recipeTest('the recipe output has no trailing brace or whitespace', () => {
     const out = resolvedByRecipe({ QODER_CONFIG_DIR: '/q/.qoder-cn' });
     expect(out).toBe(out.trim());
     expect(out.endsWith('}')).toBe(false);

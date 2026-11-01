@@ -108,10 +108,13 @@ project directory name: `.codebuddy`, not `.workbuddy`; a twin written to
    the hooks see the same value; without it the flags sit in a directory the
    desktop never looks at.
 
-   Git Bash, path two - no pin, resolve the way the hooks do:
-   `env -u CLAUDE_CONFIG_DIR node scripts/install.js init -y` (it prints the
+   Git Bash, path two - no pin. Clear the variable in THIS shell, not just for
+   the installer: `env -u CLAUDE_CONFIG_DIR` affects only that child, and the
+   `CONFIG` line below would still pick up the parent's value, writing the
+   flags somewhere else than the installer just reported.
+   `unset CLAUDE_CONFIG_DIR && node scripts/install.js init -y` (it prints the
    absolute file it wrote - that is the directory to compare against), then
-   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-$(node -p 'require("os").homedir()')}}}}}"`,
+   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"`,
    `echo full > "$CONFIG/.jiahao-active"` and
    `echo verifier > "$CONFIG/.jiahao-profile"`.
 
@@ -124,7 +127,7 @@ project directory name: `.codebuddy`, not `.workbuddy`; a twin written to
    PowerShell's automatic variable and it is always set, while the hook reads
    the HOME *environment* variable and falls through to
    `WORKBUDDY_CONFIG_DIR` when it is absent. Resolve the same way instead:
-   `$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $HOME) | Where-Object { $_ } | Select-Object -First 1`, then
+   `$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1`, then
    `Set-Content "$c\.jiahao-active" full` and
    `Set-Content "$c\.jiahao-profile" verifier`.
 
