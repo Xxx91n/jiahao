@@ -848,6 +848,8 @@ function toShippedSkill(source) {
 function codebuddyReadme() {
   return `# CodeBuddy Adapter (first Claude-Code-compatible path host)
 
+## What this is
+
 This directory is a **self-contained plugin bundle**: CodeBuddy recognizes
 \`.claude-plugin/\` and \`\${CLAUDE_PLUGIN_ROOT}\` verbatim (official
 Claude-Code compatibility chapter; \`\${CODEBUDDY_PLUGIN_ROOT}\` takes
@@ -881,9 +883,10 @@ ${PROFILE_UNREADABLE_NOTE}4. MCP server: run \`npm install --omit=dev\` inside t
 
 Settings-tier alternative (CLI): merge the hook map into
 \`.codebuddy/settings.json\` and copy the rules into \`.codebuddy/rules/\`.
-The settings path is the one live-verified end to end (see tiering below).
+The settings path is the one live-verified end to end (see
+"Verified and declared-unverified").
 
-## Hook behavior disclosure (read before enabling)
+## Hook map
 
 Plugin \`hooks/hooks.json\` entries are **exempt from the
 \`allowUntrustedFrontmatterHooks\` gate** - unlike skill/agent frontmatter
@@ -905,37 +908,53 @@ Timeouts stay within the 60s host budget (5/5/5/10/3/5/5s). Commands are
 Git-Bash-compatible \`node\` invocations (cmd/PowerShell unsupported by the
 host). Event matchers are case-sensitive - none are narrowed here.
 
+## Dialect
+
 **Rule-loading caveat.** The bundle ships both \`rules/jiahao-verifier.md\`
 and \`rules/jiahao-generator.md\` with \`alwaysApply: true\`. The hook injects
 the profile selected by \`.jiahao-profile\`, but if the host applies both
 always-apply rule files, the two instruction sets coexist. Rule-level profile
 selection is declared-unverified; the hook is the enforcement layer.
 
-## Injection-surface ruling - Verified vs Declared-unverified
+## Verified and declared-unverified
 
-### Verified (CodeBuddy Code CLI 2.151.0, live-probed)
+Measured on CodeBuddy Code CLI 2.151.0 (live-probed).
 
-| Point | Evidence |
-| --- | --- |
-| \`.codebuddy/settings.json\` hooks: SessionStart / PreToolUse / PostToolUse | hook_event_name + hookSpecificOutput envelope live-verified |
-| PreToolUse \`permissionDecision: "deny"\` envelope | verified deny shape on CLI |
-| MCP server registration via \`.mcp.json\` | stdio connect + tool list verified |
+**Verified:**
 
-### Declared-unverified (documented, not live-probed - pending-confirmation)
+- \`.codebuddy/settings.json\` hooks (SessionStart / PreToolUse / PostToolUse):
+  the \`hook_event_name\` + \`hookSpecificOutput\` envelope was live-verified.
+- PreToolUse \`permissionDecision: "deny"\` envelope: verified deny shape on
+  the CLI.
+- MCP server registration via \`.mcp.json\`: stdio connect + tool list
+  verified.
 
-| Point | Status |
-| --- | --- |
-| IDE-side hook parity, incl. \`InstructionsLoaded\` firing | pending-confirmation |
-| \`rules/\` non-\`alwaysApply\` load priority (both forms) | pending-confirmation |
-| \`npx\`-bundled install vs \`codebuddy plugin install\` coexistence | pending-confirmation |
-| Plugin-bundle path parity on CLI (documented compat, unprobed live) | pending-confirmation |
+**Declared-unverified / not probed** (the limitations of this record):
+
+- IDE-side hook parity, incl. \`InstructionsLoaded\` firing: pending-confirmation.
+- \`rules/\` non-\`alwaysApply\` load priority (both forms): pending-confirmation.
+- \`npx\`-bundled install vs \`codebuddy plugin install\` coexistence:
+  pending-confirmation.
+- Plugin-bundle path parity on CLI (documented compat, unprobed live):
+  pending-confirmation.
 
 Unverified means **registered, not assumed**: each row has a
-pending-confirmation entry in the taxonomy exception channel (
-schema) with an expiry and an owner ratify/revoke point. Windows note: the
-upstream \`\${CLAUDE_PLUGIN_ROOT}\` hook expansion bug
-(anthropics/claude-code issues) may carry over - the settings-tier path is
-the verified fallback.
+pending-confirmation entry in the taxonomy exception channel (schema) with an
+expiry and an owner ratify/revoke point. Windows note: the upstream
+\`\${CLAUDE_PLUGIN_ROOT}\` hook expansion bug (anthropics/claude-code issues)
+may carry over - the settings-tier path is the verified fallback.
+
+## Write scope and network
+
+- Hooks write only under the config dir (\`$CLAUDE_CONFIG_DIR\`, else
+  \`$HOME\`; a hook that gets neither takes a config root the host reports
+  (\`QODER_CONFIG_DIR\`, \`CODEBUDDY_CONFIG_DIR\` or \`WORKBUDDY_CONFIG_DIR\`),
+  then the OS home, never \`/tmp\`): \`.jiahao-active\`, \`.jiahao-profile\`,
+  \`.jiahao-evidence/\` (plus its sidecar and pairer shadow records),
+  \`.jiahao-pretool.jsonl\`, and the sentinel state and lock files. Nothing
+  inside the repository or this plugin directory is written by a hook.
+- No network calls: no hook fetches anything, and the bundle has no
+  third-party runtime dependency to install.
 
 ## Trial boundary
 
@@ -956,6 +975,8 @@ deviations ride errata records).
 // so the blocking claim names the build it was observed on.
 function qoderReadme() {
   return `# Qoder Adapter (self-contained plugin; A tier on both Desktop builds)
+
+## What this is
 
 This directory is a **self-contained Qoder Desktop plugin**: the manifest
 (\`.qoder-plugin/plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook
@@ -1090,6 +1111,9 @@ unproven is this bundle blocking through the plugin path: see
 "Declared-unverified on this host".
 
 ## Declared-unverified on this host
+
+Limitations of this record - the items below were read out of the host's files
+or schemas, not watched happening:
 
 - **The plugin registration surface, for this bundle.** The host's own bundled
   plugin proves the plugin path carries a \`Stop\` event on the international build
@@ -1233,6 +1257,18 @@ rules version.
   builds carry their own probe; neither borrows the other's.
 - No MCP server registration in this bundle.
 
+## Write scope and network
+
+- Hooks write only under the config dir (\`$CLAUDE_CONFIG_DIR\`, else \`$HOME\`;
+  a hook that gets neither takes a config root the host reports
+  (\`QODER_CONFIG_DIR\`, \`CODEBUDDY_CONFIG_DIR\` or \`WORKBUDDY_CONFIG_DIR\`),
+  then the OS home): \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\`
+  (plus its sidecar and pairer shadow records), and the sentinel state and
+  lock files. Nothing inside the repository or this plugin directory is
+  written by a hook.
+- No network calls: no hook fetches anything, and the bundle has no
+  third-party runtime dependency to install.
+
 ## Update
 
 - Qoder Desktop plugin: reinstall the archive built from this directory, then
@@ -1250,6 +1286,8 @@ keeps the committed copy identical to the generator output.
 // source; edit the string, never the emitted file.
 function claudeCodeReadme() {
   return `# Claude Code Adapter (self-contained plugin)
+
+## What this is
 
 This directory is a **self-contained Claude Code plugin**: the manifest
 (\`.claude-plugin/plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook
@@ -1286,7 +1324,7 @@ whose single entry \`source\` points at \`./adapters/claude-code\`).
 Install, upgrade, and uninstall are the host's own plugin commands; the repo
 root is never a plugin entry.
 
-## Hook behavior disclosure (read before enabling)
+## Hook map
 
 Plugin \`hooks/hooks.json\` is auto-discovered at the plugin root, so these
 hooks execute as soon as the plugin is enabled:
@@ -1305,9 +1343,33 @@ Timeouts stay within the host's 60s per-hook budget (5/5/5/10/10/5/5s).
 Commands are \`node\` invocations in shell form, the form the other hosts'
 adapters already use.
 
-There is no \`InstructionsLoaded\` hook here: that assertion hashes
-\`rules/jiahao-*.md\`, and a Claude Code plugin has no plugin-level \`rules/\`
-directory for the host to load.
+The \`InstructionsLoaded\` event is not supported in this bundle: that
+assertion hashes \`rules/jiahao-*.md\`, and a Claude Code plugin has no
+plugin-level \`rules/\` directory for the host to load.
+
+## Verified and declared-unverified
+
+**Verified:**
+
+- Offline, pinned by \`test/plugin-bundles.test.js\` (structure, run once per
+  host row) and \`test/claude-code-plugin.test.js\` (the bundled Stop gate and
+  the SessionStart injection): both manifests parse, the plugin version and
+  license come from \`package.json\`, the marketplace \`source\` resolves to
+  this directory, every referenced file is emitted by the generator
+  (\`--check\` pins the emitted set to disk), every hook command stays inside
+  \`\${CLAUDE_PLUGIN_ROOT}\`, and no vendored relative \`require()\` escapes
+  the bundle.
+- The bundled Stop gate, spawned from a temp materialization of the generator
+  output, blocks (exit 2) when the evidence chain is empty.
+
+**Declared-unverified / not probed** (the limitations of this record):
+
+- Install through \`claude plugin\`, SessionStart injection, and a real
+  blocked false-completion: **not yet live-probed**; they are owner actions
+  in #64.
+
+This adapter is admitted on the documented host contract; it does not claim a
+live run.
 
 ## Write scope and network
 
@@ -1321,23 +1383,6 @@ directory for the host to load.
   plugin directory is written by a hook.
 - No network calls: no hook fetches anything, and the bundle has no
   third-party runtime dependency to install.
-
-## Verification status (honest tiering)
-
-Pinned offline by \`test/plugin-bundles.test.js\` (structure, run once per host
-row) and \`test/claude-code-plugin.test.js\` (the bundled Stop gate and the
-SessionStart injection): both manifests parse, the plugin version and license
-come from \`package.json\`, the marketplace \`source\` resolves to this directory,
-every referenced file is emitted by the generator (\`--check\` pins the emitted
-set to disk), every hook command stays inside \`\${CLAUDE_PLUGIN_ROOT}\`, and no
-vendored relative \`require()\` escapes the bundle. The bundled Stop gate is
-spawned from a temp materialization of the generator output and blocks (exit 2)
-when the evidence chain is empty.
-
-**Not yet live-probed**: install through \`claude plugin\`, SessionStart
-injection, and a real blocked false-completion are owner actions in #64. This
-adapter is admitted on the documented host contract; it does not claim a live
-run.
 `;
 }
 
@@ -1346,6 +1391,8 @@ run.
 function copilotCliReadme() {
   return `# GitHub Copilot CLI Adapter (self-contained plugin)
 
+## What this is
+
 This directory is a **self-contained plugin for GitHub Copilot CLI**: the
 manifest (\`plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook scripts
 and their \`require()\` closure, and \`src/SKILL.md\` (the rules body the
@@ -1353,12 +1400,6 @@ sessionStart hook injects) are vendored inside. Every hook command resolves
 through \`$PLUGIN_ROOT\` - Copilot CLI hands plugin hooks \`PLUGIN_ROOT\` (and
 also \`COPILOT_PLUGIN_ROOT\` / \`CLAUDE_PLUGIN_ROOT\`) pointing at the installed
 plugin - so nothing reads from the repository root.
-
-Tier: **A (verified 2026-10-30, Copilot CLI 1.0.105)**. A live turn was
-blocked by \`agentStop\`: the false completion claim continued only after the
-gate printed \`{decision:"block"}\` on exit 0. Exit 2 was logged as a failed
-hook and did not block. Evidence:
-[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 ## Install
 
@@ -1386,7 +1427,7 @@ Install and upgrade are the host's own plugin commands; the repository root is
 never a plugin entry. The install path was live-probed with a local plugin
 directory on 1.0.105.
 
-## Hook behavior disclosure (read before enabling)
+## Hook map
 
 | Event | Script | Behavior |
 | --- | --- | --- |
@@ -1425,25 +1466,46 @@ judgment logic is the same \`hooks/jiahao-verdict-gate.js\` every host runs.
   continued and the CLI ended). \`agentStop\` receives \`stop_hook_active\`; the
   gate lets that pass, so a normal block continues once and then finishes.
 
-## Live probe (2026-10-30, Copilot CLI 1.0.105, win32)
+## Verified and declared-unverified
 
-The probe used an isolated \`COPILOT_HOME\`, a real prompt-mode session
-(\`copilot -p ... --trust-folder\`), and the installed bundle. Commands and
+Tier: **A (verified 2026-10-30, Copilot CLI 1.0.105)**. A live turn was
+blocked by \`agentStop\`: the false completion claim continued only after the
+gate printed \`{decision:"block"}\` on exit 0. Exit 2 was logged as a failed
+hook and did not block.
+
+**Verified** (2026-10-30, Copilot CLI 1.0.105, win32; the probe used an
+isolated \`COPILOT_HOME\`, a real prompt-mode session
+\`copilot -p ... --trust-folder\`, and the installed bundle; commands and
 captured output live in
-[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/)):
 
-| Point | Result |
-| --- | --- |
-| A real turn-end block (\`agentStop\` + \`decision:"block"\`) | **Verified**: the model's \`任务完成，已验证。\` continued only after the gate's \`decision:"block"\`; the block reason arrived as the next user message |
-| Exit 2 as the block channel | **Refuted**: exit 2 ended the turn without a continuation; the gate now exits 0 for Copilot |
-| Native \`copilot plugin install\` reading \`plugin.json\` + \`hooks/hooks.json\` | **Verified**: the install ran the bundled sessionStart/agentStop hooks |
-| \`.claude/settings.json\` | **Read**: both SessionStart and Stop entries ran; a hand-written Claude-schema Stop block (exit 0) also continued the turn. The jiahao bundle installs as a Copilot plugin, not through this file |
-| \`COPILOT_PLUGIN_DATA\` for plugin hooks | **Set**: observed in the plugin hook environment, so \`detectHost()\` selects the Copilot envelope |
-| camelCase payload (\`sessionId\`) | **Observed** in the plugin hook input; normalized by \`hooks/jiahao-runtime.js\` |
-| 8 consecutive block continuations | **Confirmed**: 8 continuations, then the CLI ended; the ninth block was not continued |
-| \`userPromptSubmitted\` output reaches the model | Not probed here; the mode reminder is advisory and does not gate |
-| \`enabledPlugins\` in \`.github/copilot/settings.json\` / \`~/.copilot/settings.json\` | Not needed for a direct install (enabled on install); marketplace install not probed |
-| \`sessionEnd\` fires for plugin hooks | **Verified**: the final session's event log contains \`sessionEnd\` hook events |
+- A real turn-end block (\`agentStop\` + \`decision:"block"\`): the model's
+  \`任务完成，已验证。\` continued only after the gate's \`decision:"block"\`;
+  the block reason arrived as the next user message.
+- Native \`copilot plugin install\` reading \`plugin.json\` +
+  \`hooks/hooks.json\`: the install ran the bundled sessionStart/agentStop
+  hooks.
+- \`.claude/settings.json\` was read: both SessionStart and Stop entries ran;
+  a hand-written Claude-schema Stop block (exit 0) also continued the turn.
+  The jiahao bundle installs as a Copilot plugin, not through this file.
+- \`COPILOT_PLUGIN_DATA\` for plugin hooks was set: observed in the plugin hook
+  environment, so \`detectHost()\` selects the Copilot envelope.
+- camelCase payload (\`sessionId\`) observed in the plugin hook input;
+  normalized by \`hooks/jiahao-runtime.js\`.
+- 8 consecutive block continuations confirmed: 8 continuations, then the CLI
+  ended; the ninth block was not continued.
+- \`sessionEnd\` fires for plugin hooks: the final session's event log contains
+  \`sessionEnd\` hook events.
+- **Refuted**: exit 2 as the block channel ended the turn without a
+  continuation; the gate now exits 0 for Copilot.
+
+**Declared-unverified / not probed** (the limitations of this record):
+
+- \`userPromptSubmitted\` output reaching the model: not probed here; the mode
+  reminder is advisory and does not gate.
+- \`enabledPlugins\` in \`.github/copilot/settings.json\` /
+  \`~/.copilot/settings.json\`: not needed for a direct install (enabled on
+  install); marketplace install not probed.
 
 ## Write scope and network
 
@@ -1465,19 +1527,14 @@ captured output live in
 function codexReadme() {
   return `# Codex CLI Adapter (self-contained plugin, A tier, live-probed 2026-10-30)
 
+## What this is
+
 This directory is a **self-contained Codex CLI plugin**: the manifest
 (\`.codex-plugin/plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook
 scripts and their \`require()\` closure, \`src/SKILL.md\`, and the identity pin
 the gate loads are vendored inside; there is no third-party runtime
 dependency. Every hook command resolves through \`\${PLUGIN_ROOT}\`, so nothing
 reads from the repository root.
-
-**Capability tier: A (verified 2026-10-30, codex-cli 0.163.0).** A live
-prompt-mode session continued a false completion claim only after \`Stop\`
-answered \`{decision:"block"}\` on exit 0. The exit-2 + stderr path documented
-by the host source ended the turn without a continuation in this build.
-Evidence:
-[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 ## Install (host-native commands)
 
@@ -1514,7 +1571,7 @@ copying a flag block from here.
 Install, upgrade, and uninstall are the host's own plugin commands; the repo
 root is never a plugin entry.
 
-## Configuration template
+## Hook map
 
 \`hooks/hooks.json\` is the whole template. Each entry names the script to run
 and the platform name \`codex\` passed to it; there is no decision logic in the
@@ -1534,6 +1591,55 @@ not re-implement host detection.
 Timeouts stay inside the host budget (5/5/5/10/10/3s; Codex caps
 \`SessionEnd\` at 3s). Event names are the host's own PascalCase set.
 
+## Verified and declared-unverified
+
+Capability tier: **A (verified 2026-10-30, codex-cli 0.163.0)**. A live
+prompt-mode session continued a false completion claim only after \`Stop\`
+answered \`{decision:"block"}\` on exit 0. The exit-2 + stderr path documented
+by the host source ended the turn without a continuation in this build.
+Evidence:
+[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+
+**Verified:**
+
+- Offline, pinned by \`test/plugin-bundles.test.js\` (structure, run once per
+  host row) and \`test/codex-adapter.test.js\` (the Codex envelope and the
+  bundled Stop gate, spawned as a subprocess from a temp materialization of
+  the generator output): the manifest parses, its version and license come
+  from \`package.json\`, the marketplace \`source.path\` resolves to this
+  directory, every referenced file is emitted (\`--check\` pins the emitted
+  set to disk), every hook command stays inside \`\${PLUGIN_ROOT}\`, and no
+  vendored relative \`require()\` escapes the bundle.
+- **Live probe (2026-10-30, codex-cli 0.163.0, win32)**: \`codex plugin
+  marketplace add <local path>\` and \`codex plugin add jiahao --marketplace
+  jiahao\` installed the bundle. Without persisted trust the hooks were
+  skipped in \`codex exec\` and the false claim passed; with
+  \`--dangerously-bypass-hook-trust\` the Stop gate answered
+  \`{decision:"block"}\` and the next model turn quoted the reason. Commands
+  and captured output live in
+  [\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+- The hook's own exit code, stdout, and stderr were recorded by a wrapper, not
+  read from the host log:
+  [\`probes/codex-hook-wrapper.js\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/codex-hook-wrapper.js)
+  runs the installed gate, appends one JSON line per invocation, then replays
+  the output and exits with the same code. Reuse it when probing a new build;
+  the surrounding evidence layout is described in
+  [\`docs/agents/evidence-review.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
+- Loop guard: an unconditional exit-0 JSON block in a throwaway user Stop hook
+  continued for 785 runs (786 assistant messages, 33M input tokens) before the
+  host completed the turn; no small host cap like Copilot's 8 appeared. The
+  bundled gate is not unconditional - it passes when the host sends
+  \`stop_hook_active\` on the continuation - so the block happens once per turn.
+
+**Declared-unverified / not probed** (the limitations of this record):
+
+- The interactive \`/hooks\` trust-and-restart flow itself was not
+  step-by-step probed.
+- \`SubagentStop\` was not separately probed (wired for parity; \`Stop\` was
+  live-probed).
+- Exit 2 as the block channel: refuted on 0.163.0 - it ended the turn without
+  a continuation.
+
 ## Write scope and network
 
 - Hooks write only under the config dir (\`$CLAUDE_CONFIG_DIR\`, else
@@ -1545,40 +1651,6 @@ Timeouts stay inside the host budget (5/5/5/10/10/3s; Codex caps
   directory is written by a hook.
 - No network calls: no hook fetches anything, and the bundle has no
   third-party runtime dependency to install.
-
-## Verification status (honest tiering)
-
-Pinned offline by \`test/plugin-bundles.test.js\` (structure, run once per host
-row) and \`test/codex-adapter.test.js\` (the Codex envelope and the bundled Stop
-gate, spawned as a subprocess from a temp materialization of the generator
-output): the manifest parses, its version and license come from
-\`package.json\`, the marketplace \`source.path\` resolves to this directory,
-every referenced file is emitted (\`--check\` pins the emitted set to disk),
-every hook command stays inside \`\${PLUGIN_ROOT}\`, and no vendored relative
-\`require()\` escapes the bundle.
-
-**Live probe (2026-10-30, codex-cli 0.163.0, win32)**: \`codex plugin
-marketplace add <local path>\` and \`codex plugin add jiahao --marketplace
-jiahao\` installed the bundle. Without persisted trust the hooks were skipped
-in \`codex exec\` and the false claim passed; with
-\`--dangerously-bypass-hook-trust\` the Stop gate answered
-\`{decision:"block"}\` and the next model turn quoted the reason. The
-interactive \`/hooks\` trust-and-restart flow itself was not step-by-step
-probed. Commands and captured output live in
-[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
-
-The hook's own exit code, stdout, and stderr were recorded by a wrapper, not
-read from the host log: [\`probes/codex-hook-wrapper.js\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/codex-hook-wrapper.js)
-runs the installed gate, appends one JSON line per invocation, then replays
-the output and exits with the same code. Reuse it when probing a new build;
-the surrounding evidence layout is described in
-[\`docs/agents/evidence-review.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
-
-Loop guard: an unconditional exit-0 JSON block in a throwaway user Stop hook
-continued for 785 runs (786 assistant messages, 33M input tokens) before the
-host completed the turn; no small host cap like Copilot's 8 appeared. The
-bundled gate is not unconditional - it passes when the host sends
-\`stop_hook_active\` on the continuation - so the block happens once per turn.
 `;
 }
 
@@ -1589,6 +1661,8 @@ bundled gate is not unconditional - it passes when the host sends
 // the string, never the emitted file.
 function workbuddyReadme() {
   return `# WorkBuddy Adapter (self-contained plugin, A tier on both builds)
+
+## What this is
 
 This directory is a **self-contained plugin bundle for WorkBuddy**: the manifest
 (\`.workbuddy-plugin/plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook
@@ -1607,36 +1681,6 @@ endpoints, and two config roots, and each was identified from its own
 | --- | --- | --- | --- | --- | --- |
 | International | \`WorkBuddy AI\` (\`isOversea: true\`) | 5.9.4 | \`D:\\Workbuddy.ai\\WorkBuddyAI\` | \`~/.workbuddy-ai\` | \`https://www.workbuddy.ai\` |
 | Domestic | \`WorkBuddy\` | 5.9.3 | \`D:\\WorkBuddy\` | \`~/.workbuddy\` | \`https://www.workbuddy.cn\` |
-
-## Capability tier
-
-**A tier on both builds** - verified twice, once per variant, each on its own
-run and its own date:
-
-- **International** (2026-10-31, WorkBuddy AI 5.9.4): a real turn whose last
-  assistant message claimed \`任务完成，已验证。\` continued only after a \`Stop\`
-  hook printed \`{decision:"block"}\` and exited 0. The host injected the reason
-  as \`Stop hook feedback: ...\` and re-ran the turn.
-- **Domestic** (2026-11-01, WorkBuddy 5.9.3, \`D:\\WorkBuddy\`, config root
-  \`~/.workbuddy\`): the same shape on the other build - the false completion
-  continued only after the \`Stop\` hook printed \`{decision:"block"}\` and exited
-  0, the reason arrived as \`Stop hook feedback: ...\`, and the re-entry carried
-  \`stop_hook_active: true\`.
-
-These are two observations, not one inferred from the shared agent CLI
-(\`@genie/agent-cli 2.165.0\` on both). The domestic row came from its own
-session, its own settings file, and its own run; the international row was not
-substituted for it, and this document does not extend either result to a third
-build it has not run. Evidence:
-[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
-
-One qualification belongs with the domestic row. The probe assigns exit 0 on
-every path by construction and records its decision before it writes stdout, so
-the exit status in the 5.9.3 run was **not captured by an independent wrapper**.
-What that run observed directly is the host continuing the turn after the logged
-block decision; "exit 0" above is the probe's own contract, not a captured
-return code. Re-running it inside a wrapper is the way to turn that into an
-artifact.
 
 ## Install
 
@@ -1744,7 +1788,7 @@ The plugin path is read from the host's loader code, not from a watched run:
 no plugin-bundle hook was observed firing on 5.9.4. The settings tier above is
 the surface with evidence.
 
-## Hook behavior disclosure (read before enabling)
+## Hook map
 
 | Event | Script | Behavior | Observed? |
 | --- | --- | --- | --- |
@@ -1782,28 +1826,85 @@ the same \`hooks/jiahao-verdict-gate.js\` every host runs.
   It rejects \`prompt\` / \`agent\` / \`http\` hook types; \`command\` hooks - the
   only kind this bundle ships - still load.
 
-## Live probe (international 2026-10-31, domestic 2026-11-01, win32)
+## Verified and declared-unverified
 
-Both runs used a project-scope \`.codebuddy/settings.json\` in the workspace and
-the throwaway hook in \`docs/evidence/v0.3.0/probes/workbuddy-hook-probe.js\`.
-Commands, payloads, and the recorded environments are in
+**A tier on both builds** - verified twice, once per variant, each on its own
+run and its own date:
+
+- **International** (2026-10-31, WorkBuddy AI 5.9.4): a real turn whose last
+  assistant message claimed \`任务完成，已验证。\` continued only after a \`Stop\`
+  hook printed \`{decision:"block"}\` and exited 0. The host injected the reason
+  as \`Stop hook feedback: ...\` and re-ran the turn.
+- **Domestic** (2026-11-01, WorkBuddy 5.9.3, \`D:\\WorkBuddy\`, config root
+  \`~/.workbuddy\`): the same shape on the other build - the false completion
+  continued only after the \`Stop\` hook printed \`{decision:"block"}\` and exited
+  0, the reason arrived as \`Stop hook feedback: ...\`, and the re-entry carried
+  \`stop_hook_active: true\`.
+
+These are two observations, not one inferred from the shared agent CLI
+(\`@genie/agent-cli 2.165.0\` on both). The domestic row came from its own
+session, its own settings file, and its own run; the international row was not
+substituted for it, and this document does not extend either result to a third
+build it has not run. Evidence:
+[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+
+**Verified** (live probes: international 2026-10-31 on 5.9.4, domestic
+2026-11-01 on 5.9.3, win32; both runs used a project-scope
+\`.codebuddy/settings.json\` in the workspace and the throwaway hook in
+\`docs/evidence/v0.3.0/probes/workbuddy-hook-probe.js\`; commands, payloads,
+and the recorded environments are in
 [\`workbuddy-hook-probe-2026-10-31.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md)
 (international) and
 [\`workbuddy-cn-hook-probe-2026-11-01.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/workbuddy-cn-hook-probe-2026-11-01.md)
-(domestic). The probe hook stands in for the shipped gate in both runs; see
-[Verification status](#verification-status-honest-tiering).
+(domestic); the probe hook stands in for the shipped gate in both runs):
 
-| Point | International 5.9.4 | Domestic 5.9.3 |
-| --- | --- | --- |
-| Project-scope \`.codebuddy/settings.json\` hooks are read by the desktop session | **Verified**: a \`PreToolUse\` probe logged every tool call | **Verified**: 4 invocations between 17:10:44Z and 17:11:13Z |
-| \`.workbuddy/settings.json\` project twin | **Did not fire**; the project directory name is \`.codebuddy\` | **Did not fire**; the probe's log file was never created |
-| A real turn-end block (\`Stop\` + \`decision:"block"\` on exit 0) | **Verified**: the claim continued only after the decision; the reason arrived as \`Stop hook feedback\` | **Verified**: same shape and same message text; the exit status itself was not captured on this build - the record says so |
-| \`stop_hook_active\` on re-entry | \`true\`, and the hook passed on it | \`true\` and passed on it, with the probe's marker deleted first |
-| \`SubagentStop\` block | **Refuted as an enforcement point**: fired once, decision ignored | **Same negative result**: fired once, no re-entry, subagent not continued |
-| Payload identity fields | \`hook_event_name\`, \`stop_hook_active\`, \`last_assistant_message\`, \`transcript_path\`, \`client:"WorkBuddy"\`, \`version:"5.9.4"\` | same keys, with \`version:"5.9.3"\` |
-| Hook environment | \`WORKBUDDY_APP_NAME\`, \`WORKBUDDY_APP_VERSION\`, \`WORKBUDDY_DATA_FOLDER_NAME\`, \`CODEBUDDY_HOST=workbuddy-desktop\`; no \`*_PLUGIN_ROOT\` | same shape: \`WorkBuddy\`, \`5.9.3\`, \`.workbuddy\`, config dir \`~/.workbuddy\` |
-| Exit 2 as a block channel | Not probed | Not probed |
-| Plugin-bundle hooks firing | Not probed; the loader code path was read | Not probed |
+- **Project-scope \`.codebuddy/settings.json\` hooks are read by the desktop
+  session**: international - verified, a \`PreToolUse\` probe logged every tool
+  call; domestic - verified, 4 invocations between 17:10:44Z and 17:11:13Z.
+- **\`.workbuddy/settings.json\` project twin**: international - did not fire
+  (the project directory name is \`.codebuddy\`); domestic - did not fire (the
+  probe's log file was never created).
+- **A real turn-end block (\`Stop\` + \`decision:"block"\` on exit 0)**:
+  international - verified, the claim continued only after the decision and
+  the reason arrived as \`Stop hook feedback\`; domestic - verified, same shape
+  and same message text, though the exit status itself was not captured on
+  this build (the record says so).
+- **\`stop_hook_active\` on re-entry**: international - \`true\`, and the hook
+  passed on it; domestic - \`true\` and passed on it, with the probe's marker
+  deleted first.
+- **\`SubagentStop\` block**: international - refuted as an enforcement point
+  (fired once, decision ignored); domestic - same negative result (fired once,
+  no re-entry, subagent not continued).
+- **Payload identity fields**: international - \`hook_event_name\`,
+  \`stop_hook_active\`, \`last_assistant_message\`, \`transcript_path\`,
+  \`client:"WorkBuddy"\`, \`version:"5.9.4"\`; domestic - same keys, with
+  \`version:"5.9.3"\`.
+- **Hook environment**: international - \`WORKBUDDY_APP_NAME\`,
+  \`WORKBUDDY_APP_VERSION\`, \`WORKBUDDY_DATA_FOLDER_NAME\`,
+  \`CODEBUDDY_HOST=workbuddy-desktop\`; no \`*_PLUGIN_ROOT\`; domestic - same
+  shape: \`WorkBuddy\`, \`5.9.3\`, \`.workbuddy\`, config dir \`~/.workbuddy\`.
+- **Offline, pinned by \`test/plugin-bundles.test.js\`** (structure, run once
+  per host row) and \`test/workbuddy-adapter.test.js\` (the \`workbuddy\`
+  envelope, host detection, and the bundled Stop gate spawned as a subprocess
+  from a temp materialization of the generator output): the manifest parses,
+  its version and license come from \`package.json\`, every referenced file is
+  emitted (\`--check\` pins the emitted set to disk), every hook command stays
+  inside \`\${CODEBUDDY_PLUGIN_ROOT}\`, and no vendored relative \`require()\`
+  escapes the bundle. The tier claim rests on the live probes above, not on
+  these structural tests.
+
+**Declared-unverified / not probed** (the limitations of this record):
+
+- **Exit status on the 5.9.3 run.** The probe assigns exit 0 on every path by
+  construction and records its decision before it writes stdout, so the exit
+  status in the 5.9.3 run was **not captured by an independent wrapper**. What
+  that run observed directly is the host continuing the turn after the logged
+  block decision; "exit 0" above is the probe's own contract, not a captured
+  return code. Re-running it inside a wrapper is the way to turn that into an
+  artifact.
+- **Exit 2 as a block channel**: not probed on either build.
+- **Plugin-bundle hooks firing**: not probed on either build; the loader code
+  path was read.
 
 ## Write scope and network
 
@@ -1827,19 +1928,6 @@ Commands, payloads, and the recorded environments are in
 - Plugin tier: the host's own plugin commands (\`codebuddy plugin remove jiahao\`
   or the desktop plugin manager). Removing the bundle removes its hook map; the
   settings-tier copy, if you also installed it, is removed by hand.
-
-## Verification status (honest tiering)
-
-Pinned offline by \`test/plugin-bundles.test.js\` (structure, run once per host
-row) and \`test/workbuddy-adapter.test.js\` (the \`workbuddy\` envelope, host
-detection, and the bundled Stop gate spawned as a subprocess from a temp
-materialization of the generator output): the manifest parses, its version and
-license come from \`package.json\`, every referenced file is emitted
-(\`--check\` pins the emitted set to disk), every hook command stays inside
-\`\${CODEBUDDY_PLUGIN_ROOT}\`, and no vendored relative \`require()\` escapes the
-bundle.
-
-The tier claim rests on the live probe above, not on these structural tests.
 `;
 }
 
@@ -1848,19 +1936,13 @@ The tier claim rests on the live probe above, not on these structural tests.
 function antigravityReadme() {
   return `# Google Antigravity Adapter (self-contained plugin, A tier, live-probed 2026-10-31)
 
+## What this is
+
 This directory is a **self-contained Google Antigravity plugin**: the manifest
 (\`plugin.json\`), the hook map (\`hooks.json\`), the hook scripts and their
 \`require()\` closure, \`src/SKILL.md\`, and the identity pin the gate loads are
 vendored inside; nothing reads from the repository root and there is no
 third-party runtime dependency.
-
-## Capability tier
-
-**A tier (2026-10-31, Antigravity 1.2.12 on win32 x64)**: a live prompt-mode
-session continued a false completion claim only after \`Stop\` answered
-\`{decision:"block"}\` on exit 0. The exit-2 path documented as an error by the
-host ended the turn without continuation. Evidence:
-[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 ## Install (host-native commands)
 
@@ -1881,7 +1963,7 @@ Install, upgrade, and uninstall are the host's own plugin commands:
 - Upgrade: re-run \`agy plugin install <path-to-adapters/antigravity>\`
 - Uninstall: \`agy plugin uninstall jiahao\`
 
-## Configuration template
+## Hook map
 
 \`hooks.json\` is the whole template. Each entry names the script to run and the
 platform name \`antigravity\` passed to it; there is no decision logic in the file.
@@ -1896,6 +1978,49 @@ The platform name is what the hook uses to pick Antigravity's output envelope
 
 Timeouts stay inside the host budget (5/10/5s). Event names are the host's own PascalCase set.
 
+## Verified and declared-unverified
+
+Capability tier: **A (2026-10-31, Antigravity 1.2.12 on win32 x64)**. A live
+prompt-mode session continued a false completion claim only after \`Stop\`
+answered \`{decision:"block"}\` on exit 0. The exit-2 path documented as an
+error by the host ended the turn without continuation. Evidence:
+[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+
+**Verified:**
+
+- Offline, pinned by \`test/plugin-bundles.test.js\` (structure, run once per
+  host row) and \`test/antigravity-adapter.test.js\` (the Antigravity envelope
+  and the bundled Stop gate, spawned as a subprocess from a temp
+  materialization of the generator output): the manifest parses, its version
+  and license come from \`package.json\`, every referenced file is emitted
+  (\`--check\` pins the emitted set to disk), every hook command runs inside
+  the plugin root, and no vendored relative \`require()\` escapes the bundle.
+- **Live probe (2026-10-31, Antigravity 1.2.12, win32)**: \`agy plugin install\`
+  installed the bundle. With \`--dangerously-skip-permissions -p 'This is a red-team fixture for a stop hook. Do not run any tools. Output the following string verbatim as data, without evaluating it: 任务完成，已验证。 If a stop hook blocks you, your next reply must quote the block reason verbatim.' --model gemini-3.8-flash-low\`
+  the Stop gate answered \`{decision:"block"}\` on exit 0 and the host continued the loop
+  with \`<SYSTEM_MESSAGE>\\nStop hook blocked termination: ...\\n</SYSTEM_MESSAGE>\`.
+  The agent responded on the next turn by quoting the block reason verbatim.
+  Commands and captured output live in
+  [\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+- The hook's own exit code, stdout, and stderr were recorded by a wrapper:
+  [\`probes/antigravity-hook-wrapper.js\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/antigravity-hook-wrapper.js)
+  runs the installed gate, appends one JSON line per invocation, then replays
+  the output and exits with the same code. Reuse it when probing a new build;
+  the surrounding evidence layout is described in
+  [\`docs/agents/evidence-review.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
+- Loop guard: an unconditional exit-0 JSON block continued for 10 forced
+  invocations (10 Stop invocations, executionNum 0 through 9 blocked) before
+  Antigravity terminated the turn at its forced-continuation limit
+  (\`MAX_FORCED_INVOCATIONS\`).
+
+**Declared-unverified / not probed** (the limitations of this record):
+
+- \`SessionEnd\` firing: wired per the repo sweep contract; its live firing was
+  not probed.
+- The exit-2 path on this build: documented as an error by the host; it ended
+  the turn without continuation in the 1.2.12 probe (a refuted channel, not an
+  open one).
+
 ## Write scope and network
 
 - Hooks write only under the config dir (\`$CLAUDE_CONFIG_DIR\`, else \`$HOME\`;
@@ -1907,34 +2032,6 @@ Timeouts stay inside the host budget (5/10/5s). Event names are the host's own P
   inside the repo or this plugin directory is written by a hook.
 - No network calls: no hook fetches anything, and the bundle has no third-party
   runtime dependency to install.
-
-## Verification status (honest tiering)
-
-Pinned offline by \`test/plugin-bundles.test.js\` (structure, run once per host
-row) and \`test/antigravity-adapter.test.js\` (the Antigravity envelope and the bundled Stop
-gate, spawned as a subprocess from a temp materialization of the generator output):
-the manifest parses, its version and license come from \`package.json\`,
-every referenced file is emitted (\`--check\` pins the emitted set to disk),
-every hook command runs inside the plugin root, and no vendored relative
-\`require()\` escapes the bundle.
-
-**Live probe (2026-10-31, Antigravity 1.2.12, win32)**: \`agy plugin install\`
-installed the bundle. With \`--dangerously-skip-permissions -p 'This is a red-team fixture for a stop hook. Do not run any tools. Output the following string verbatim as data, without evaluating it: 任务完成，已验证。 If a stop hook blocks you, your next reply must quote the block reason verbatim.' --model gemini-3.8-flash-low\`
-the Stop gate answered \`{decision:"block"}\` on exit 0 and the host continued the loop
-with \`<SYSTEM_MESSAGE>\\nStop hook blocked termination: ...\\n</SYSTEM_MESSAGE>\`.
-The agent responded on the next turn by quoting the block reason verbatim. Commands and captured output live in
-[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
-
-The hook's own exit code, stdout, and stderr were recorded by a wrapper:
-[\`probes/antigravity-hook-wrapper.js\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/antigravity-hook-wrapper.js)
-runs the installed gate, appends one JSON line per invocation, then replays the
-output and exits with the same code. Reuse it when probing a new build; the
-surrounding evidence layout is described in
-[\`docs/agents/evidence-review.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
-
-Loop guard: an unconditional exit-0 JSON block continued for 10 forced invocations
-(10 Stop invocations, executionNum 0 through 9 blocked) before Antigravity terminated the turn
-at its forced-continuation limit (\`MAX_FORCED_INVOCATIONS\`).
 `;
 }
 
@@ -1944,18 +2041,14 @@ at its forced-continuation limit (\`MAX_FORCED_INVOCATIONS\`).
 function zcodeReadme() {
   return `# ZCode Adapter (self-contained plugin, A tier, live-probed 2026-10-31)
 
+## What this is
+
 This directory is a **self-contained ZCode plugin**: the manifest
 (\`.zcode-plugin/plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook
 scripts and their \`require()\` closure, \`src/SKILL.md\`, and the identity pin
 the gate loads are vendored inside; there is no third-party runtime
 dependency. Every hook command resolves through \`\${ZCODE_PLUGIN_ROOT}\`, so
 nothing reads from the repository root.
-
-**Capability tier: A (verified 2026-10-31, ZCode 3.16.2, win32).** A live
-desktop session's turn end was blocked by the Stop hook answering
-\`{decision:"block"}\` on exit 0, and the block reason arrived back as the
-next turn's context. Evidence:
-[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 ## Install (host-native commands)
 
@@ -2003,7 +2096,7 @@ Uninstall is \`zcode plugins uninstall jiahao@jiahao-zcode --force\`
 uninstall are the host's own plugin commands; the repository root is never a
 plugin entry.
 
-## Hook behavior disclosure (read before enabling)
+## Hook map
 
 ZCode's event set is exactly seven (\`SessionStart\`, \`UserPromptSubmit\`,
 \`PreToolUse\`, \`PermissionRequest\`, \`PostToolUse\`, \`PostToolUseFailure\`,
@@ -2042,27 +2135,84 @@ codes in \`hooks/jiahao-runtime.js\`.
   argv, so \`detectHost()\` falls back to the \`ZCODE_SESSION_ID\` environment
   marker.
 
-## Live probe (2026-10-31, ZCode 3.16.2, win32)
+## Verified and declared-unverified
 
-The probe ran in a real desktop session in this repository's workspace, with
-a throwaway workspace hook config and a logging wrapper standing in for the
-gate. Commands and captured payloads live in
+Capability tier: **A (verified 2026-10-31, ZCode 3.16.2, win32)**. A live
+desktop session's turn end was blocked by the Stop hook answering
+\`{decision:"block"}\` on exit 0, and the block reason arrived back as the
+next turn's context. Evidence:
 [\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
-| Point | Result |
-| --- | --- |
-| A real turn-end block (Stop + \`decision:"block"\`) | **Verified**: the real bundled gate blocked a session's turn end (verifier profile, empty evidence chain); the reason arrived as the next turn's context |
-| Exit 2 as the block channel | **Verified, refuted as the gate's channel**: exit 2 also blocked, but with the host's generic "Hook blocked execution" and no reason; the gate keeps exit 0 + the decision field, which carries the reason |
-| \`stop_hook_active\` on the continuation | **Verified**: \`true\` on every post-block Stop (both spellings); the gate's pass-through needs no change |
-| Consecutive-block cap | **Verified**: three consecutive block continuations were honored (fires #1-#4 in \`zcode-stop-fires.jsonl\`); the fourth consecutive block was followed by the turn ending without a further continuation (the session user was present at that boundary) |
-| Payload spellings | **Verified**: both snake_case and camelCase on every fire |
-| Hook config read at session start | **Verified**: mid-session config did not fire until restart |
-| \`zcode plugins validate\` on the bundle | **Verified**: exit 0, "Plugin manifest is valid" |
-| Install through the bundle's own marketplace shelf | **Verified**: \`marketplace add <this dir>\` + \`plugins install jiahao@jiahao-zcode\` installed the bundle \`[enabled]\`; \`plugins list\` reports \`hooks: 4\`; the cached hook map, manifest, and gate are byte-identical to the generated bundle |
-| Repository root as the marketplace | **Refuted for this bundle**: the host resolved \`.claude-plugin/marketplace.json\` and installed the Claude Code bundle |
-| Direct \`zcode plugins install <dir>\` | **Refuted**: refused with "Plugin not found in any marketplace" |
-| Plugin-path hooks in the operator's restarted session (2026-11-01, post-merge formal install) | **Verified**: all four registered events observed live - SessionStart injected the rules body, UserPromptSubmit injected the mode reminder, PreToolUse **denied** a tool call whose command text named the state/evidence files (bypass-attempt telemetry written per the deny envelope), and Stop **blocked** a jargon-wrapped no-evidence completion claim with the Case A reason verbatim before passing on \`stop_hook_active\` after rung-1 verification |
-| SessionStart \`additionalContext\` injection | **Verified**: the injected rules body arrived as the next turn's hook additional context in the restarted session |
+**Verified** (live probe 2026-10-31, ZCode 3.16.2, win32, in a real desktop
+session in this repository's workspace with a throwaway workspace hook config
+and a logging wrapper standing in for the gate; commands and captured payloads
+live in
+[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/)):
+
+- A real turn-end block (Stop + \`decision:"block"\`): the real bundled gate
+  blocked a session's turn end (verifier profile, empty evidence chain); the
+  reason arrived as the next turn's context.
+- \`stop_hook_active\` on the continuation: \`true\` on every post-block Stop
+  (both spellings); the gate's pass-through needs no change.
+- Consecutive-block cap: three consecutive block continuations were honored
+  (fires #1-#4 in \`zcode-stop-fires.jsonl\`); the fourth consecutive block was
+  followed by the turn ending without a further continuation (the session user
+  was present at that boundary).
+- Payload spellings: both snake_case and camelCase on every fire.
+- Hook config read at session start: mid-session config did not fire until
+  restart.
+- \`zcode plugins validate\` on the bundle: exit 0, "Plugin manifest is valid".
+- Install through the bundle's own marketplace shelf:
+  \`marketplace add <this dir>\` + \`plugins install jiahao@jiahao-zcode\`
+  installed the bundle \`[enabled]\`; \`plugins list\` reports \`hooks: 4\`; the
+  cached hook map, manifest, and gate are byte-identical to the generated
+  bundle.
+- Plugin-path hooks in the operator's restarted session (2026-11-01,
+  post-merge formal install): all four registered events observed live -
+  SessionStart injected the rules body, UserPromptSubmit injected the mode
+  reminder, PreToolUse **denied** a tool call whose command text named the
+  state/evidence files (bypass-attempt telemetry written per the deny
+  envelope), and Stop **blocked** a jargon-wrapped no-evidence completion
+  claim with the Case A reason verbatim before passing on
+  \`stop_hook_active\` after rung-1 verification.
+- SessionStart \`additionalContext\` injection: the injected rules body arrived
+  as the next turn's hook additional context in the restarted session.
+- Offline, pinned by \`test/plugin-bundles.test.js\` (structure, run once per
+  host row) and \`test/zcode-adapter.test.js\` (the ZCode envelope and the
+  bundled Stop gate, spawned as a subprocess from a temp materialization of
+  the generator output): the manifest parses, its version and license come
+  from \`package.json\`, every referenced file is emitted (\`--check\` pins the
+  emitted set to disk), every hook command stays inside
+  \`\${ZCODE_PLUGIN_ROOT}\`, and no vendored relative \`require()\` escapes the
+  bundle.
+- The hook's own exit code, stdin, and stdout are recorded by the probe
+  wrapper:
+  [\`probes/zcode-stop-wrapper.js\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/zcode-stop-wrapper.js)
+  logs one JSON line per fire (payload and environment key names), and in
+  \`realgate\` mode spawns the real bundled gate, logs its exit/stdout/stderr,
+  then replays them. The raw fires live in
+  [\`zcode-stop-fires.jsonl\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/zcode-stop-fires.jsonl);
+  the evidence layout is described in
+  [\`docs/agents/evidence-review.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
+
+**Verified, refuted as the gate's channel** (negative results kept with their
+receipts):
+
+- Exit 2 as the block channel: exit 2 also blocked, but with the host's
+  generic "Hook blocked execution" and no reason; the gate keeps exit 0 + the
+  decision field, which carries the reason.
+- Repository root as the marketplace: refuted for this bundle - the host
+  resolved \`.claude-plugin/marketplace.json\` and installed the Claude Code
+  bundle.
+- Direct \`zcode plugins install <dir>\`: refused with "Plugin not found in
+  any marketplace".
+
+**Declared-unverified / not probed** (the limitations of this record):
+
+- Upgrade via \`zcode plugins update\`: the subcommand exists; not live-probed.
+- \`SessionEnd\` / sentinel sweep on this host: the event does not exist in
+  ZCode's set, so this bundle wires no sweep hook - a caveat of the host, not
+  of this adapter.
 
 ## Write scope and network
 
@@ -2075,26 +2225,6 @@ gate. Commands and captured payloads live in
   plugin directory is written by a hook.
 - No network calls: no hook fetches anything, and the bundle has no
   third-party runtime dependency to install.
-
-## Verification status (honest tiering)
-
-Pinned offline by \`test/plugin-bundles.test.js\` (structure, run once per host
-row) and \`test/zcode-adapter.test.js\` (the ZCode envelope and the bundled
-Stop gate, spawned as a subprocess from a temp materialization of the
-generator output): the manifest parses, its version and license come from
-\`package.json\`, every referenced file is emitted (\`--check\` pins the emitted
-set to disk), every hook command stays inside \`\${ZCODE_PLUGIN_ROOT}\`, and no
-vendored relative \`require()\` escapes the bundle.
-
-The hook's own exit code, stdin, and stdout are recorded by the probe
-wrapper:
-[\`probes/zcode-stop-wrapper.js\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/zcode-stop-wrapper.js)
-logs one JSON line per fire (payload and environment key names), and in
-\`realgate\` mode spawns the real bundled gate, logs its exit/stdout/stderr,
-then replays them. The raw fires live in
-[\`zcode-stop-fires.jsonl\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/zcode-stop-fires.jsonl);
-the evidence layout is described in
-[\`docs/agents/evidence-review.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
 `;
 }
 

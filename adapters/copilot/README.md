@@ -1,5 +1,7 @@
 # GitHub Copilot CLI Adapter (self-contained plugin)
 
+## What this is
+
 This directory is a **self-contained plugin for GitHub Copilot CLI**: the
 manifest (`plugin.json`), the hook map (`hooks/hooks.json`), the hook scripts
 and their `require()` closure, and `src/SKILL.md` (the rules body the
@@ -7,12 +9,6 @@ sessionStart hook injects) are vendored inside. Every hook command resolves
 through `$PLUGIN_ROOT` - Copilot CLI hands plugin hooks `PLUGIN_ROOT` (and
 also `COPILOT_PLUGIN_ROOT` / `CLAUDE_PLUGIN_ROOT`) pointing at the installed
 plugin - so nothing reads from the repository root.
-
-Tier: **A (verified 2026-10-30, Copilot CLI 1.0.105)**. A live turn was
-blocked by `agentStop`: the false completion claim continued only after the
-gate printed `{decision:"block"}` on exit 0. Exit 2 was logged as a failed
-hook and did not block. Evidence:
-[`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 ## Install
 
@@ -43,7 +39,7 @@ Install and upgrade are the host's own plugin commands; the repository root is
 never a plugin entry. The install path was live-probed with a local plugin
 directory on 1.0.105.
 
-## Hook behavior disclosure (read before enabling)
+## Hook map
 
 | Event | Script | Behavior |
 | --- | --- | --- |
@@ -82,25 +78,46 @@ judgment logic is the same `hooks/jiahao-verdict-gate.js` every host runs.
   continued and the CLI ended). `agentStop` receives `stop_hook_active`; the
   gate lets that pass, so a normal block continues once and then finishes.
 
-## Live probe (2026-10-30, Copilot CLI 1.0.105, win32)
+## Verified and declared-unverified
 
-The probe used an isolated `COPILOT_HOME`, a real prompt-mode session
-(`copilot -p ... --trust-folder`), and the installed bundle. Commands and
+Tier: **A (verified 2026-10-30, Copilot CLI 1.0.105)**. A live turn was
+blocked by `agentStop`: the false completion claim continued only after the
+gate printed `{decision:"block"}` on exit 0. Exit 2 was logged as a failed
+hook and did not block.
+
+**Verified** (2026-10-30, Copilot CLI 1.0.105, win32; the probe used an
+isolated `COPILOT_HOME`, a real prompt-mode session
+`copilot -p ... --trust-folder`, and the installed bundle; commands and
 captured output live in
-[`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+[`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/)):
 
-| Point | Result |
-| --- | --- |
-| A real turn-end block (`agentStop` + `decision:"block"`) | **Verified**: the model's `任务完成，已验证。` continued only after the gate's `decision:"block"`; the block reason arrived as the next user message |
-| Exit 2 as the block channel | **Refuted**: exit 2 ended the turn without a continuation; the gate now exits 0 for Copilot |
-| Native `copilot plugin install` reading `plugin.json` + `hooks/hooks.json` | **Verified**: the install ran the bundled sessionStart/agentStop hooks |
-| `.claude/settings.json` | **Read**: both SessionStart and Stop entries ran; a hand-written Claude-schema Stop block (exit 0) also continued the turn. The jiahao bundle installs as a Copilot plugin, not through this file |
-| `COPILOT_PLUGIN_DATA` for plugin hooks | **Set**: observed in the plugin hook environment, so `detectHost()` selects the Copilot envelope |
-| camelCase payload (`sessionId`) | **Observed** in the plugin hook input; normalized by `hooks/jiahao-runtime.js` |
-| 8 consecutive block continuations | **Confirmed**: 8 continuations, then the CLI ended; the ninth block was not continued |
-| `userPromptSubmitted` output reaches the model | Not probed here; the mode reminder is advisory and does not gate |
-| `enabledPlugins` in `.github/copilot/settings.json` / `~/.copilot/settings.json` | Not needed for a direct install (enabled on install); marketplace install not probed |
-| `sessionEnd` fires for plugin hooks | **Verified**: the final session's event log contains `sessionEnd` hook events |
+- A real turn-end block (`agentStop` + `decision:"block"`): the model's
+  `任务完成，已验证。` continued only after the gate's `decision:"block"`;
+  the block reason arrived as the next user message.
+- Native `copilot plugin install` reading `plugin.json` +
+  `hooks/hooks.json`: the install ran the bundled sessionStart/agentStop
+  hooks.
+- `.claude/settings.json` was read: both SessionStart and Stop entries ran;
+  a hand-written Claude-schema Stop block (exit 0) also continued the turn.
+  The jiahao bundle installs as a Copilot plugin, not through this file.
+- `COPILOT_PLUGIN_DATA` for plugin hooks was set: observed in the plugin hook
+  environment, so `detectHost()` selects the Copilot envelope.
+- camelCase payload (`sessionId`) observed in the plugin hook input;
+  normalized by `hooks/jiahao-runtime.js`.
+- 8 consecutive block continuations confirmed: 8 continuations, then the CLI
+  ended; the ninth block was not continued.
+- `sessionEnd` fires for plugin hooks: the final session's event log contains
+  `sessionEnd` hook events.
+- **Refuted**: exit 2 as the block channel ended the turn without a
+  continuation; the gate now exits 0 for Copilot.
+
+**Declared-unverified / not probed** (the limitations of this record):
+
+- `userPromptSubmitted` output reaching the model: not probed here; the mode
+  reminder is advisory and does not gate.
+- `enabledPlugins` in `.github/copilot/settings.json` /
+  `~/.copilot/settings.json`: not needed for a direct install (enabled on
+  install); marketplace install not probed.
 
 ## Write scope and network
 

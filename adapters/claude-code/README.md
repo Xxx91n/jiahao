@@ -1,5 +1,7 @@
 # Claude Code Adapter (self-contained plugin)
 
+## What this is
+
 This directory is a **self-contained Claude Code plugin**: the manifest
 (`.claude-plugin/plugin.json`), the hook map (`hooks/hooks.json`), the hook
 scripts and their `require()` closure, `src/SKILL.md`, and the identity pin
@@ -35,7 +37,7 @@ whose single entry `source` points at `./adapters/claude-code`).
 Install, upgrade, and uninstall are the host's own plugin commands; the repo
 root is never a plugin entry.
 
-## Hook behavior disclosure (read before enabling)
+## Hook map
 
 Plugin `hooks/hooks.json` is auto-discovered at the plugin root, so these
 hooks execute as soon as the plugin is enabled:
@@ -54,9 +56,33 @@ Timeouts stay within the host's 60s per-hook budget (5/5/5/10/10/5/5s).
 Commands are `node` invocations in shell form, the form the other hosts'
 adapters already use.
 
-There is no `InstructionsLoaded` hook here: that assertion hashes
-`rules/jiahao-*.md`, and a Claude Code plugin has no plugin-level `rules/`
-directory for the host to load.
+The `InstructionsLoaded` event is not supported in this bundle: that
+assertion hashes `rules/jiahao-*.md`, and a Claude Code plugin has no
+plugin-level `rules/` directory for the host to load.
+
+## Verified and declared-unverified
+
+**Verified:**
+
+- Offline, pinned by `test/plugin-bundles.test.js` (structure, run once per
+  host row) and `test/claude-code-plugin.test.js` (the bundled Stop gate and
+  the SessionStart injection): both manifests parse, the plugin version and
+  license come from `package.json`, the marketplace `source` resolves to
+  this directory, every referenced file is emitted by the generator
+  (`--check` pins the emitted set to disk), every hook command stays inside
+  `${CLAUDE_PLUGIN_ROOT}`, and no vendored relative `require()` escapes
+  the bundle.
+- The bundled Stop gate, spawned from a temp materialization of the generator
+  output, blocks (exit 2) when the evidence chain is empty.
+
+**Declared-unverified / not probed** (the limitations of this record):
+
+- Install through `claude plugin`, SessionStart injection, and a real
+  blocked false-completion: **not yet live-probed**; they are owner actions
+  in #64.
+
+This adapter is admitted on the documented host contract; it does not claim a
+live run.
 
 ## Write scope and network
 
@@ -70,20 +96,3 @@ directory for the host to load.
   plugin directory is written by a hook.
 - No network calls: no hook fetches anything, and the bundle has no
   third-party runtime dependency to install.
-
-## Verification status (honest tiering)
-
-Pinned offline by `test/plugin-bundles.test.js` (structure, run once per host
-row) and `test/claude-code-plugin.test.js` (the bundled Stop gate and the
-SessionStart injection): both manifests parse, the plugin version and license
-come from `package.json`, the marketplace `source` resolves to this directory,
-every referenced file is emitted by the generator (`--check` pins the emitted
-set to disk), every hook command stays inside `${CLAUDE_PLUGIN_ROOT}`, and no
-vendored relative `require()` escapes the bundle. The bundled Stop gate is
-spawned from a temp materialization of the generator output and blocks (exit 2)
-when the evidence chain is empty.
-
-**Not yet live-probed**: install through `claude plugin`, SessionStart
-injection, and a real blocked false-completion are owner actions in #64. This
-adapter is admitted on the documented host contract; it does not claim a live
-run.

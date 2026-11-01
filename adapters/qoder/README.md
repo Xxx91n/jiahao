@@ -1,5 +1,7 @@
 # Qoder Adapter (self-contained plugin; A tier on both Desktop builds)
 
+## What this is
+
 This directory is a **self-contained Qoder Desktop plugin**: the manifest
 (`.qoder-plugin/plugin.json`), the hook map (`hooks/hooks.json`), the hook
 scripts and their `require()` closure, `src/SKILL.md`, and the identity pin
@@ -133,6 +135,9 @@ unproven is this bundle blocking through the plugin path: see
 "Declared-unverified on this host".
 
 ## Declared-unverified on this host
+
+Limitations of this record - the items below were read out of the host's files
+or schemas, not watched happening:
 
 - **The plugin registration surface, for this bundle.** The host's own bundled
   plugin proves the plugin path carries a `Stop` event on the international build
@@ -275,6 +280,18 @@ rules version.
 - No claim about the IDE/CLI line beyond the tier table above. Both Desktop
   builds carry their own probe; neither borrows the other's.
 - No MCP server registration in this bundle.
+
+## Write scope and network
+
+- Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else `$HOME`;
+  a hook that gets neither takes a config root the host reports
+  (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`),
+  then the OS home): `.jiahao-active`, `.jiahao-profile`, `.jiahao-evidence/`
+  (plus its sidecar and pairer shadow records), and the sentinel state and
+  lock files. Nothing inside the repository or this plugin directory is
+  written by a hook.
+- No network calls: no hook fetches anything, and the bundle has no
+  third-party runtime dependency to install.
 
 ## Update
 

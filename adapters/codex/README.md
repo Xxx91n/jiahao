@@ -1,18 +1,13 @@
 # Codex CLI Adapter (self-contained plugin, A tier, live-probed 2026-10-30)
 
+## What this is
+
 This directory is a **self-contained Codex CLI plugin**: the manifest
 (`.codex-plugin/plugin.json`), the hook map (`hooks/hooks.json`), the hook
 scripts and their `require()` closure, `src/SKILL.md`, and the identity pin
 the gate loads are vendored inside; there is no third-party runtime
 dependency. Every hook command resolves through `${PLUGIN_ROOT}`, so nothing
 reads from the repository root.
-
-**Capability tier: A (verified 2026-10-30, codex-cli 0.163.0).** A live
-prompt-mode session continued a false completion claim only after `Stop`
-answered `{decision:"block"}` on exit 0. The exit-2 + stderr path documented
-by the host source ended the turn without a continuation in this build.
-Evidence:
-[`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 ## Install (host-native commands)
 
@@ -52,7 +47,7 @@ copying a flag block from here.
 Install, upgrade, and uninstall are the host's own plugin commands; the repo
 root is never a plugin entry.
 
-## Configuration template
+## Hook map
 
 `hooks/hooks.json` is the whole template. Each entry names the script to run
 and the platform name `codex` passed to it; there is no decision logic in the
@@ -72,6 +67,55 @@ not re-implement host detection.
 Timeouts stay inside the host budget (5/5/5/10/10/3s; Codex caps
 `SessionEnd` at 3s). Event names are the host's own PascalCase set.
 
+## Verified and declared-unverified
+
+Capability tier: **A (verified 2026-10-30, codex-cli 0.163.0)**. A live
+prompt-mode session continued a false completion claim only after `Stop`
+answered `{decision:"block"}` on exit 0. The exit-2 + stderr path documented
+by the host source ended the turn without a continuation in this build.
+Evidence:
+[`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+
+**Verified:**
+
+- Offline, pinned by `test/plugin-bundles.test.js` (structure, run once per
+  host row) and `test/codex-adapter.test.js` (the Codex envelope and the
+  bundled Stop gate, spawned as a subprocess from a temp materialization of
+  the generator output): the manifest parses, its version and license come
+  from `package.json`, the marketplace `source.path` resolves to this
+  directory, every referenced file is emitted (`--check` pins the emitted
+  set to disk), every hook command stays inside `${PLUGIN_ROOT}`, and no
+  vendored relative `require()` escapes the bundle.
+- **Live probe (2026-10-30, codex-cli 0.163.0, win32)**: `codex plugin
+  marketplace add <local path>` and `codex plugin add jiahao --marketplace
+  jiahao` installed the bundle. Without persisted trust the hooks were
+  skipped in `codex exec` and the false claim passed; with
+  `--dangerously-bypass-hook-trust` the Stop gate answered
+  `{decision:"block"}` and the next model turn quoted the reason. Commands
+  and captured output live in
+  [`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+- The hook's own exit code, stdout, and stderr were recorded by a wrapper, not
+  read from the host log:
+  [`probes/codex-hook-wrapper.js`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/codex-hook-wrapper.js)
+  runs the installed gate, appends one JSON line per invocation, then replays
+  the output and exits with the same code. Reuse it when probing a new build;
+  the surrounding evidence layout is described in
+  [`docs/agents/evidence-review.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
+- Loop guard: an unconditional exit-0 JSON block in a throwaway user Stop hook
+  continued for 785 runs (786 assistant messages, 33M input tokens) before the
+  host completed the turn; no small host cap like Copilot's 8 appeared. The
+  bundled gate is not unconditional - it passes when the host sends
+  `stop_hook_active` on the continuation - so the block happens once per turn.
+
+**Declared-unverified / not probed** (the limitations of this record):
+
+- The interactive `/hooks` trust-and-restart flow itself was not
+  step-by-step probed.
+- `SubagentStop` was not separately probed (wired for parity; `Stop` was
+  live-probed).
+- Exit 2 as the block channel: refuted on 0.163.0 - it ended the turn without
+  a continuation.
+
 ## Write scope and network
 
 - Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else
@@ -83,37 +127,3 @@ Timeouts stay inside the host budget (5/5/5/10/10/3s; Codex caps
   directory is written by a hook.
 - No network calls: no hook fetches anything, and the bundle has no
   third-party runtime dependency to install.
-
-## Verification status (honest tiering)
-
-Pinned offline by `test/plugin-bundles.test.js` (structure, run once per host
-row) and `test/codex-adapter.test.js` (the Codex envelope and the bundled Stop
-gate, spawned as a subprocess from a temp materialization of the generator
-output): the manifest parses, its version and license come from
-`package.json`, the marketplace `source.path` resolves to this directory,
-every referenced file is emitted (`--check` pins the emitted set to disk),
-every hook command stays inside `${PLUGIN_ROOT}`, and no vendored relative
-`require()` escapes the bundle.
-
-**Live probe (2026-10-30, codex-cli 0.163.0, win32)**: `codex plugin
-marketplace add <local path>` and `codex plugin add jiahao --marketplace
-jiahao` installed the bundle. Without persisted trust the hooks were skipped
-in `codex exec` and the false claim passed; with
-`--dangerously-bypass-hook-trust` the Stop gate answered
-`{decision:"block"}` and the next model turn quoted the reason. The
-interactive `/hooks` trust-and-restart flow itself was not step-by-step
-probed. Commands and captured output live in
-[`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
-
-The hook's own exit code, stdout, and stderr were recorded by a wrapper, not
-read from the host log: [`probes/codex-hook-wrapper.js`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/codex-hook-wrapper.js)
-runs the installed gate, appends one JSON line per invocation, then replays
-the output and exits with the same code. Reuse it when probing a new build;
-the surrounding evidence layout is described in
-[`docs/agents/evidence-review.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
-
-Loop guard: an unconditional exit-0 JSON block in a throwaway user Stop hook
-continued for 785 runs (786 assistant messages, 33M input tokens) before the
-host completed the turn; no small host cap like Copilot's 8 appeared. The
-bundled gate is not unconditional - it passes when the host sends
-`stop_hook_active` on the continuation - so the block happens once per turn.
