@@ -120,8 +120,18 @@ reporting `0.3.0`; the next release ticket owns the next bump.
   `.zcode-plugin/plugin.json`, and `hooks/jiahao-verdict-gate.js`
   byte-identical to the bundle - three-file diff in `zcode-install.txt`);
   the repository root as marketplace resolves the Claude Code bundle instead
-  (`zcode-install.txt`). Plugin hooks firing in a restarted session:
-  declared-unverified.
+  (`zcode-install.txt`).
+- Post-merge live verification (2026-11-01, formal install from a clean
+  release checkout of the merged main, operator session after a restart):
+  **all four plugin-path surfaces observed live** - SessionStart injected the
+  rules body, UserPromptSubmit injected the mode reminder, PreToolUse denied
+  a tool call whose command text named the state/evidence files (bypass
+  attempt recorded per the deny envelope), and Stop blocked a jargon-wrapped
+  no-evidence completion claim with the Case A reason verbatim, passing on
+  `stop_hook_active` after rung-1 verification. Honest gap: the host's
+  hook-execution log location was not identified in this build, so the
+  observations are the host-delivered hook contexts and decisions quoted in
+  the session transcript (`zcode-probe-notes.md`).
 
 ## Reproduction
 
@@ -181,9 +191,11 @@ line that Qoder remained C tier and that no probe had changed it.
 shell-form command, and the shipped gate's own verdict logic running under Qoder.
 All read out of the host's files; none watched happening.
 
-**Declared-unverified - ZCode**: the plugin-path hooks firing in a restarted
-session, the SessionStart `additionalContext` injection, and
-`zcode plugins update` (`zcode-probe-notes.md`).
+**Declared-unverified - ZCode**: `zcode plugins update` only. The two items
+this entry used to list - plugin-path hooks firing in a restarted session and
+the SessionStart `additionalContext` injection - were verified post-merge on
+2026-11-01 in the operator's restarted session (ZCode section above and
+`zcode-probe-notes.md`).
 
 **Not probed**: the international Qoder Desktop 0.4.11, which keeps C tier rather
 than borrowing the CN result; and Qoder IDE/CLI, which keeps the rules-only exit.
