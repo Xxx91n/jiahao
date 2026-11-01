@@ -1,9 +1,19 @@
-# Probe scripts (#80, #108, #109)
+# Probe scripts (#80, #108–#111, #113, #116, #118)
 
-Throwaway hooks used for the v0.3.0 acceptance and the #109 Qoder probe. They
-are evidence artifacts, not part of any distributed bundle. Hook configs point
-at the absolute path of these files; paths inside the scripts are relative to
-this directory.
+Throwaway hooks used for the v0.3.0 acceptance and the follow-up host probes.
+They are evidence artifacts, not part of any distributed bundle. Hook configs
+point at the absolute path of these files; paths inside the scripts are
+relative to this directory.
+
+## Limitations
+
+- Raw probe logs are not committed when they could capture secrets: the
+  WorkBuddy hook environment carries service tokens, so
+  `workbuddy-hook-probe.js` writes outside the repository and
+  `qoder-state-probe.js` promotes a log into a record only when a run is
+  written up. The claims stand on the recorded observations, not on committed
+  transcripts.
+- This directory is not shipped in any bundle or npm pack file.
 
 ## Codex CLI 0.163.0
 
