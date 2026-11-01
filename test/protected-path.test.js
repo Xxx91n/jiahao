@@ -11,6 +11,28 @@
 const path = require('path');
 const { isProtected } = require('../src/shared/protected-path');
 
+// #88 item 4 census: ONE table, two consumers. `name` is the file the guard has
+// to deny; `literal` is the quoted spelling the source actually contains, or
+// null when the name is derived rather than written (`file-lock` appends
+// `.lock`; the sentinel name is `PREFIX + hook`). Keeping both in one row means
+// the behaviour test and the binding scan cannot drift into separate lists.
+const STATE_SURFACE = [
+  { name: '.jiahao-active', literal: '.jiahao-active' },
+  { name: '.jiahao-profile', literal: '.jiahao-profile' },
+  { name: '.jiahao-evidence', literal: '.jiahao-evidence' },
+  { name: '.jiahao-evidence.keys', literal: '.jiahao-evidence.keys' },
+  { name: '.jiahao-evidence.lock', literal: null }, // lockDir(target) = target + '.lock'
+  { name: '.jiahao-pretool.jsonl', literal: '.jiahao-pretool.jsonl' },
+  { name: '.jiahao-instructions.jsonl', literal: '.jiahao-instructions.jsonl' },
+  { name: '.jiahao-conviction-off', literal: '.jiahao-conviction-off' },
+  { name: '.jiahao-conviction-enforce', literal: '.jiahao-conviction-enforce' },
+  { name: '.jiahao-kappa-baseline.json', literal: '.jiahao-kappa-baseline.json' },
+  { name: '.jiahao-anchor.json', literal: '.jiahao-anchor.json' },
+  { name: '.jiahao-persistence.json', literal: '.jiahao-persistence.json' },
+  { name: '.jiahao-calibration.jsonl', literal: '.jiahao-calibration.jsonl' },
+  { name: '.jiahao-sentinel.pretool-guard', literal: '.jiahao-sentinel.' }, // PREFIX + hook
+];
+
 const PLATFORMS = [
   {
     name: 'posix',
@@ -112,23 +134,7 @@ for (const plat of PLATFORMS) {
     // conviction kill switch, the evidence chain, its lock, and the anchor /
     // persistence declarations.
     test('every jiahao state file is protected wherever it appears', () => {
-      const names = [
-        '.jiahao-active',
-        '.jiahao-profile',
-        '.jiahao-evidence',
-        '.jiahao-evidence.keys',
-        '.jiahao-evidence.lock',
-        '.jiahao-pretool.jsonl',
-        '.jiahao-instructions.jsonl',
-        '.jiahao-conviction-off',
-        '.jiahao-conviction-enforce',
-        '.jiahao-kappa-baseline.json',
-        '.jiahao-anchor.json',
-        '.jiahao-persistence.json',
-        '.jiahao-calibration.jsonl',
-        '.jiahao-sentinel.pretool-guard',
-      ];
-      for (const name of names) {
+      for (const { name } of STATE_SURFACE) {
         expect(check(plat, 'rm ' + name)).toBe(true);
         expect(check(plat, 'echo x > ' + outside(name))).toBe(true);
       }
@@ -157,7 +163,8 @@ for (const plat of PLATFORMS) {
 
 // #88 item 4 acceptance: the fragment list must stop being a second
 // hand-maintained copy of the state names. The source is the list - every
-// `.jiahao-*` literal that src/ or hooks/ can write has to be denied. Adding a
+// quoted `.jiahao-…` name under src/, hooks/ or jiahao-mcp/ has to be denied -
+// with STATE_SURFACE pinning the census so an empty walk cannot pass. Adding a
 // state file without extending protection turns this red.
 describe('protected path (state file binding, #88 item 4)', () => {
   const fs = require('fs');
@@ -171,17 +178,6 @@ describe('protected path (state file binding, #88 item 4)', () => {
     }
     return out;
   }
-
-  // The census this ticket exists for. Pinning them by name keeps the scan
-  // from passing vacuously if a directory move or rename empties it.
-  const EXPECTED = [
-    '.jiahao-active', '.jiahao-profile', '.jiahao-evidence',
-    '.jiahao-evidence.keys', '.jiahao-conviction-off',
-    '.jiahao-conviction-enforce', '.jiahao-kappa-baseline.json',
-    '.jiahao-anchor.json', '.jiahao-persistence.json',
-    '.jiahao-calibration.jsonl', '.jiahao-pretool.jsonl',
-    '.jiahao-instructions.jsonl', '.jiahao-sentinel.',
-  ];
 
   test('every .jiahao name written by src/, hooks/ or jiahao-mcp/ is protected', () => {
     const root = path.join(__dirname, '..');
@@ -201,8 +197,14 @@ describe('protected path (state file binding, #88 item 4)', () => {
       // to turn this red instead of vanishing from the census.
       for (const match of text.matchAll(/['"`](\.jiahao-[A-Za-z0-9][\w.-]*)['"`]/g)) found.add(match[1]);
     }
-    for (const name of EXPECTED) expect(found.has(name)).toBe(true);
-    const missed = [...found].filter((name) => !isProtected('rm ' + name, null, { pathImpl: path.posix }));
+    // every literal spelling the census expects must really be in the tree
+    for (const { literal } of STATE_SURFACE) {
+      if (literal) expect(found.has(literal)).toBe(true);
+    }
+    // and every name found must be denied on BOTH path implementations
+    const missed = [...found].filter((name) =>
+      !isProtected('rm ' + name, null, { pathImpl: path.posix }) ||
+      !isProtected('rm ' + name, null, { pathImpl: path.win32 }));
     expect(missed).toEqual([]);
   });
 });

@@ -29,8 +29,10 @@
 const os = require('os');
 const path = require('path');
 
-// Distinctive fragments - fragments only cover paths whose names are
-// jiahao-owned, so a same-named user file elsewhere does not trip the deny.
+// Distinctive fragments. The hook/rule names below are jiahao-owned, so a
+// same-named user file elsewhere (an ordinary `hooks/` directory, a user's
+// `plugin.json`) does not trip the deny; the `.jiahao-*` namespace is reserved
+// wholesale below, so a user file that starts with that prefix does.
 // Anchored at a candidate's END ($), so trailing args / flags cannot defeat it
 // (grill-t30 audit B-4). ^ alternation covers bare relative paths
 // ("rm rules/jiahao-verifier.md"). Both separator spellings are accepted inside
@@ -62,10 +64,12 @@ const PROTECTED_FRAGMENTS = [
 
 // Windows resolves names case-insensitively, so `.JIAHAO-PROFILE` deletes the
 // same file the lowercase spelling names. The fragments are compiled twice and
-// the win32 reading takes the folded set; on POSIX the two names are different
-// files and must stay so. isProtected() derives one `caseInsensitive` flag from
-// the injected path implementation and hands it to both channels - the fragment
-// set here and apparatusName() below - so the rule cannot drift between them.
+// the win32 reading takes the folded set; a case-sensitive POSIX host keeps the
+// two names distinct. isProtected() derives one `caseInsensitive` flag from the
+// injected path implementation and hands it to both channels - the fragment set
+// here and apparatusName() below - so the rule cannot drift between them.
+// macOS reports POSIX separators but normally runs a case-insensitive
+// filesystem; that residual is documented in the not-covered block below.
 const PROTECTED_FRAGMENTS_FOLDED = PROTECTED_FRAGMENTS.map((re) => new RegExp(re.source, re.flags + 'i'));
 
 // Apparatus dirs under the resolved plugin root (absolute containment).
@@ -99,20 +103,29 @@ const PROTECTED_ROOT_FILES = ['.mcp.json', 'plugin.json', 'hooks.json'];
 //   spelling has to be known before the shell resolves it, so an alias root
 //   still passes. #88 accepted that cost (#88 comment, 2026-10-30).
 //
+// item 2 - the plugin root itself and its ancestors (`rm -rf <root>`): deferred
+//   to #71 item 3 (read-only tool calls are still denied). Denying `<root>`
+//   here would also deny `ls <root>` until that split lands.
+//
 // item 3 - `cd "$CLAUDE_PLUGIN_ROOT" && rm -f src/shared/protected-path.js`:
 //   relative targets resolve against the hook process cwd, never a candidate
 //   cwd. Treating the plugin root as a candidate cwd would also deny the same
 //   relative name inside a user project - exactly the false positive #75
 //   removed. Not modelled, on purpose.
 //
-// item 5 - brace expansion (`rm hooks/jiahao-verdict-gate.js{,.bak}`): `{`
-//   ends a shell word here and nothing expands braces, so the end-anchored
-//   fragment never sees the real name. The 53f1a2e2 baseline misses the same
-//   shape; documented, not fixed.
+// item 5 - brace expansion (`rm hooks/jiahao-verdict-gate.js{,.bak}`): nothing
+//   expands braces here, so the token keeps the `{,.bak}` suffix, the token is
+//   not split (braces are not WORD_SEPARATORS), and the end-anchored fragment
+//   never sees the `.js` ending. The 53f1a2e2 baseline misses the same shape;
+//   documented, not fixed.
 //
-// item 2 - the plugin root itself and its ancestors (`rm -rf <root>`): deferred
-//   to #71 item 3 (read-only tool calls are still denied). Denying `<root>`
-//   here would also deny `ls <root>` until that split lands.
+// case folding on macOS: the folded fragment set is chosen by the injected path
+//   implementation's separator, so Windows folds and a POSIX reading does not.
+//   macOS ships case-insensitive APFS by default while reporting POSIX
+//   separators, so `.JIAHAO-CONVICTION-OFF` is not folded there. Detecting the
+//   filesystem's case-sensitivity would cost an fs probe per candidate and can
+//   fail on a missing path; the 53f1a2e2 baseline misses the same shape.
+//   Documented, not fixed (#88 item 4 reserves the namespace, not the disk).
 //
 // Still deliberately not modelled, and not pretended to be: command
 // substitution (`$(...)`, backticks) and variables the host never exported
