@@ -13,10 +13,9 @@
 //     fragments anchor at the candidate's end; the state namespace also
 //     matches at a name boundary so files inside `.jiahao-evidence/` count.
 //     The state files are one prefix, not an enumerated list: #88 item 4 found
-//     the list had already missed the conviction switches, the κ baseline, the
-//     evidence lock and the calibration log, and the #110 review surfaced
-//     anchor / persistence as two more, so the namespace itself is the
-//     fragment and a new state file needs no second registration here;
+//     the list had already missed several state files, so the namespace itself
+//     is the fragment and a new state file needs no second registration here
+//     (the census is in the fragment note below);
 //   - absolute containment under the plugin root: everything the bundle keeps
 //     in an apparatus directory, including names that are ordinary elsewhere
 //     (.mcp.json, hooks/hooks.json, .claude-plugin/plugin.json) and therefore
@@ -36,8 +35,10 @@ const path = require('path');
 // same-named user file elsewhere (an ordinary `hooks/` directory, a user's
 // `plugin.json`) does not trip the deny; the `.jiahao-*` namespace is reserved
 // wholesale below, so a user file that starts with that prefix does.
-// Anchored at a candidate's END ($), so trailing args / flags cannot defeat it
-// (grill-t30 audit B-4). ^ alternation covers bare relative paths
+// Hook and rule fragments are anchored at a candidate's END ($), so trailing
+// args / flags cannot defeat them (grill-t30 audit B-4). The state fragment
+// below also matches at a name boundary, so a file inside `.jiahao-evidence/`
+// counts. ^ alternation covers bare relative paths
 // ("rm rules/jiahao-verifier.md"). Both separator spellings are accepted inside
 // a fragment: a tool_input may carry either, and a fragment names a file, not a
 // path.
