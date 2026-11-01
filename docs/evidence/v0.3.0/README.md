@@ -146,6 +146,12 @@ bounded the loop with its own per-session cap. Both hook config files and the
 probe's temp state were deleted afterwards; `qoder-hook-probe-2026-10-31.md`
 records the isolation state per run.
 
+The WorkBuddy probe (#110, `workbuddy-hook-probe-2026-10-31.md`) is the
+exception: its host refuses a headless turn without an interactive login, so it
+ran in the operator's live desktop session with a project-scope settings file.
+That record states what it touched and how the workspace was restored; it does
+not claim the isolation the two sessions above had.
+
 ## Tier conclusion
 
 Labels follow `docs/agents/evidence-review.md` item 3: **verified** means a run in
@@ -154,8 +160,11 @@ documentation and was not watched happen.
 
 **Verified - A tier**: Codex CLI 0.163.0 and GitHub Copilot CLI 1.0.105
 (2026-10-30, #80), Google Antigravity 1.2.12 (2026-10-31, #111), Qoder CN
-Desktop 0.4.11 (2026-10-31, #109), and ZCode 3.16.2 (2026-10-31, #108) each blocked a real turn end on the recorded
-version and date. On Qoder it was a config-registered `Stop` hook on both channels
+Desktop 0.4.11 (2026-10-31, #109), ZCode 3.16.2 (2026-10-31, #108), and WorkBuddy AI 5.9.4
+international (2026-10-31, #110) each blocked a real turn end on the recorded
+version and date. On WorkBuddy the block was a settings-tier `Stop` hook answering
+`{decision:"block"}` on exit 0, and `SubagentStop` was watched answering the same
+decision without a continuation. On Qoder it was a config-registered `Stop` hook on both channels
 (exit 0 + flat `{"decision":"block"}`, and exit 2 + stderr), with
 `stop_hook_active` set on every re-entry - which supersedes this file's earlier
 line that Qoder remained C tier and that no probe had changed it.
@@ -170,4 +179,5 @@ session, the SessionStart `additionalContext` injection, and
 `zcode plugins update` (`zcode-probe-notes.md`).
 
 **Not probed**: the international Qoder Desktop 0.4.11, which keeps C tier rather
-than borrowing the CN result, and Qoder IDE/CLI, which keeps the rules-only exit.
+than borrowing the CN result; Qoder IDE/CLI, which keeps the rules-only exit; and
+the domestic WorkBuddy 5.9.3, which keeps C tier for the same reason.

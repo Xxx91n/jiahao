@@ -55,6 +55,10 @@ test('the pack contract names the rules file, every plugin manifest and hook map
     // #77: Codex ships its own manifest location and the second marketplace.
     'adapters/codex/.codex-plugin/plugin.json',
     'adapters/codex/hooks/hooks.json',
+    // #110: WorkBuddy's loader accepts .workbuddy-plugin/; a tarball without it
+    // ships a bundle the desktop cannot discover.
+    'adapters/workbuddy/.workbuddy-plugin/plugin.json',
+    'adapters/workbuddy/hooks/hooks.json',
     // #108: ZCode ships its own manifest location, like Codex.
     'adapters/zcode/.zcode-plugin/plugin.json',
     'adapters/zcode/hooks/hooks.json',

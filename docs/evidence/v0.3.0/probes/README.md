@@ -65,3 +65,18 @@ this directory.
 - The hook config was a workspace `.zcode/config.json` in the repository
   (loaded at session start, removed after the probe); the wrapper scripts
   themselves live outside the repository.
+
+## WorkBuddy AI 5.9.4 (#110, 2026-10-31)
+
+- `workbuddy-hook-probe.js`: one script, three modes, used from a project-scope
+  `.codebuddy/settings.json`.
+  - `log`: records the payload and the hook environment, prints nothing. Used
+    for the `PreToolUse` surface probe and the `UserPromptSubmit` record.
+  - `block-once`: blocks the first finish, passes when a marker file exists or
+    when the host sends `stop_hook_active: true`.
+  - `block-always`: blocks every finish (kept for a future loop-guard run; not
+    used here).
+- It writes one JSONL line per invocation, plus a `spawned` line before stdin is
+  read - a hook the host spawned but never fed is a different fact from a hook
+  the host never spawned. The record lives outside the repository: the hook
+  environment carries service tokens, which is why no raw log is committed.

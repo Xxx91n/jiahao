@@ -1,0 +1,12 @@
+{
+  "name": "jiahao",
+  "version": "0.3.0",
+  "description": "Dual-profile verification discipline for WorkBuddy: profile injection on SessionStart, verdict gate on Stop. A tier on the international 5.9.4 build (live turn-end block 2026-10-31); the domestic 5.9.3 build was not probed.",
+  "author": {
+    "name": "Xxx91n"
+  },
+  "hooks": "hooks/hooks.json",
+  "license": "MIT",
+  "repository": "https://github.com/Xxx91n/jiahao",
+  "defaultEnabled": false
+}
