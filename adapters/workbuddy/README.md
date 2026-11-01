@@ -60,14 +60,17 @@ project directory name: `.codebuddy`, not `.workbuddy`; a twin written to
    `WORKBUDDY_*` variables, so the argument is what identifies the host.
 4. Activate the jiahao profile flag **where the hooks read it**, and pin that
    directory first. The hooks resolve it as `CLAUDE_CONFIG_DIR`, else `HOME`,
-   else `/tmp` (`src/shared/paths.js`); the desktop sets neither variable for
-   its agent, while a shell supplies a `HOME` of its own. Writing the flag from
-   a shell can therefore land where no hook looks, and the gate then finds no
-   `.jiahao-active` and never arms.
+   else `/tmp` (`src/shared/paths.js`). The probe recorded
+   `CLAUDE_CONFIG_DIR` as absent for the desktop's agent; whether the desktop
+   sets `HOME` was **not recorded**, and a shell supplies a `HOME` of its own.
+   Writing the flag from a shell can therefore land where no hook looks, and the
+   gate then finds no `.jiahao-active` and never arms.
 
    The reliable recipe pins one directory for both sides: set
    `CLAUDE_CONFIG_DIR` for the desktop process (a user environment variable
-   works on Windows), restart the desktop, then write the flags there.
+   works on Windows), restart the desktop, then write the flags there from a
+   **freshly opened shell** - a shell started before the change keeps the old,
+   unset value.
 
    Git Bash (WorkBuddy ships it at `<configDir>/binaries/PortableGit`):
    `echo full > "$CLAUDE_CONFIG_DIR/.jiahao-active"` and
@@ -107,7 +110,7 @@ the surface with evidence.
 | SessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext | no |
 | UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder | fired; its output was not read back |
 | Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: prints `{decision:"block", reason}` and exits 0; the zero exit is the observed channel | **yes**, live block |
-| PreToolUse | hooks/jiahao-pretool-guard.js | denies (verifier profile) tool calls that target the hook map, the plugin manifest, `jiahao-*` hook files, any `.mcp.json`, or the jiahao state/evidence files | fired; the deny path was not exercised |
+| PreToolUse | hooks/jiahao-pretool-guard.js | emits `permissionDecision: "deny"` (verifier profile) for tool calls that target the hook map, the plugin manifest, `jiahao-*` hook files, any `.mcp.json`, or the jiahao state/evidence files - that is the script's output, **not** an observed host denial | fired; neither the deny output nor the host applying it was exercised |
 | SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep | no |
 
 Timeouts are 5/5/10/5/3s; the host's own per-hook cap was not measured. Event
