@@ -433,15 +433,44 @@ describe('the POSIX recipe is executable, not just readable', () => {
   const bashDir = findBash();
   const recipeTest = (name, fn) => {
     if (!bashDir) {
-      return skipTest('no POSIX shell on PATH: this suite runs a recipe through bash', name, fn);
+      return skipTest(BASH_PROBE_HINT, name, fn);
     }
     return test(name, fn);
   };
 
+  // A shell that merely exits 0 is not enough: the cases below depend on POSIX
+  // parameter expansion (`${A:-${B:-...}}`), on running a script file by path,
+  // on `unset` actually removing the variable, and on the snippet's `mkdir -p`.
+  // cmd.exe and a bare PowerShell both exit 0 and would make every case fail for
+  // the wrong reason. So the probe runs the real snippet against a scratch
+  // directory and demands the real answer; anything else means "no compatible
+  // shell", which skips with a reason (#127).
+  const BASH_PROBE_HINT = 'no POSIX shell that runs the profile recipe: this suite executes it through bash';
+
   function findBash() {
-    const probe = spawnSync('bash', ['-c', 'exit 0'], { encoding: 'utf8' });
-    if (probe.error || probe.status !== 0) return null;
-    return 'bash';
+    const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-bash-probe-'));
+    const expectedFs = path.join(scratch, 'created-by-recipe');
+    // The shell prints the path the way the recipe wrote it (forward slashes on
+    // Git Bash), so compare in that spelling and check existence with the OS
+    // spelling.
+    const expectedShell = expectedFs.replace(/\\/g, '/');
+    const probePath = path.join(scratch, 'probe.sh');
+    try {
+      fs.writeFileSync(probePath,
+        'unset HOME CLAUDE_CONFIG_DIR CODEBUDDY_CONFIG_DIR WORKBUDDY_CONFIG_DIR USERPROFILE\n' +
+        'QODER_CONFIG_DIR="' + expectedShell + '"\n' +
+        POSIX_CONFIG_SNIPPET + '\nprintf "%s" "$CONFIG"\n', 'utf8');
+      const res = spawnSync('bash', [probePath], {
+        env: { PATH: process.env.PATH }, encoding: 'utf8',
+      });
+      if (res.error || res.status !== 0) return null;
+      if (String(res.stdout) !== expectedShell) return null;
+      // The snippet's `mkdir -p` must have run: without it every write below
+      // fails on a fresh machine, which is the defect this probe guards.
+      return fs.existsSync(expectedFs) ? 'bash' : null;
+    } finally {
+      try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (e) { /* best effort */ }
+    }
   }
 
   // `sh -c` is not enough, and neither is an absent HOME in the env: Git Bash
@@ -512,5 +541,44 @@ describe('the POSIX recipe is executable, not just readable', () => {
     const out = resolvedByRecipe({ QODER_CONFIG_DIR: '/q/.qoder-cn' });
     expect(out).toBe(out.trim());
     expect(out.endsWith('}')).toBe(false);
+  });
+});
+
+describe('both recipes create the directory they resolved', () => {
+  // CodeRabbit #127: `Set-Content` into a directory that does not exist fails
+  // with "Could not find a part of the path" (measured on PS 5.1), and only
+  // some of the recipes remembered `mkdir -p`. Both snippets now create it, so
+  // a fresh machine - where a pin like ~/.jiahao has never been made - works
+  // from the first line.
+  const { POSIX_CONFIG_SNIPPET, POWERSHELL_CONFIG_SNIPPET } = require(
+    path.join(repoRoot, 'scripts', 'build-adapters'));
+
+  test('the POSIX snippet runs mkdir -p on the resolved dir', () => {
+    expect(POSIX_CONFIG_SNIPPET).toContain('mkdir -p "$CONFIG"');
+    // And it runs after CONFIG is assigned, never before.
+    expect(POSIX_CONFIG_SNIPPET.indexOf('mkdir -p'))
+      .toBeGreaterThan(POSIX_CONFIG_SNIPPET.indexOf('CONFIG='));
+  });
+
+  test('the PowerShell snippet creates the selected dir with New-Item', () => {
+    expect(POWERSHELL_CONFIG_SNIPPET).toMatch(/New-Item -ItemType Directory -Force -Path \$c/);
+    expect(POWERSHELL_CONFIG_SNIPPET.indexOf('New-Item'))
+      .toBeGreaterThan(POWERSHELL_CONFIG_SNIPPET.indexOf('$c = @('));
+  });
+
+  test('every recipe that writes a flag creates its directory first', () => {
+    // The snippets own the creation now. A row that writes a flag path without
+    // ever creating it fails on a fresh machine; that was true of three rows
+    // before this fix. WorkBuddy's pinned path sets CONFIG itself and carries
+    // its own mkdir - the check is that no row is left without one, not that
+    // each row has exactly one.
+    const generated = require(path.join(repoRoot, 'scripts', 'build-adapters')).buildAdapters();
+    for (const [rel, text] of Object.entries(generated)) {
+      if (!rel.endsWith('/README.md')) continue;
+      const writesPosixFlags = text.includes('.jiahao-active"') && text.includes('Set-Content') === false;
+      if (!writesPosixFlags) continue;
+      const creates = text.includes('mkdir -p "$CONFIG"');
+      expect({ rel, creates }).toEqual({ rel, creates: true });
+    }
   });
 });

@@ -51,8 +51,13 @@ const GENERATED_DIRS = ['adapters/', 'skills/', '.claude-plugin/', '.agents/'];
 // os.homedir() reads HOME and then the passwd entry on POSIX, and USERPROFILE
 // on Windows, so leaving it out let a recipe answer with the shell's own home
 // while the resolver answered with USERPROFILE (CodeRabbit #127).
+// Both snippets also create the directory. The resolved root usually does not
+// exist yet on a fresh machine (a Qoder hook root exists, a pin like
+// `~/.jiahao` does not), and `Set-Content` into a missing directory fails with
+// "Could not find a part of the path" - measured on PS 5.1, CodeRabbit #127.
+// Leaving the mkdir out of the snippet meant three of eight recipes forgot it.
 const POSIX_CONFIG_SNIPPET =
-  'CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p \'require("os").homedir()\')}}}}}}"';
+  'CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p \'require("os").homedir()\')}}}}}}"; mkdir -p "$CONFIG"'
 // `$env:HOME`, not `$HOME`: PowerShell's `$HOME` is an automatic variable built
 // from USERPROFILE and is always set, while `src/shared/paths.js` reads the
 // HOME *environment variable*. Using `$HOME` here resolved to the OS home on a
@@ -61,7 +66,7 @@ const POSIX_CONFIG_SNIPPET =
 // last resort because a PS session without the env var still has to write
 // somewhere, and there the OS home is what the resolver's fallback answers.
 const POWERSHELL_CONFIG_SNIPPET =
-  '$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1';
+  '$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1; New-Item -ItemType Directory -Force -Path $c | Out-Null';
 
 // ---- host table: the one place a plugin host is described ----
 //
@@ -1769,13 +1774,11 @@ host ended the turn without continuation. Evidence:
 2. \`agy plugin list\` to verify \`jiahao\` is imported and enabled.
 3. Activate the jiahao profile flag. In a POSIX shell:
    \`${POSIX_CONFIG_SNIPPET}\`
-   \`mkdir -p "$CONFIG"\`
    \`echo full > "$CONFIG/.jiahao-active"\`
    \`echo verifier > "$CONFIG/.jiahao-profile"\`
    Start a new session after changing \`.jiahao-profile\`.
    In PowerShell, resolve the same directory the hooks read and write there:
    \`${POWERSHELL_CONFIG_SNIPPET}\`
-   \`New-Item -ItemType Directory -Force -Path $c | Out-Null\`
    \`'full' | Set-Content (Join-Path $c '.jiahao-active')\`
    \`'verifier' | Set-Content (Join-Path $c '.jiahao-profile')\`
    Launch \`agy\` from that PowerShell session; start a new session after changing \`.jiahao-profile\`.

@@ -114,7 +114,7 @@ project directory name: `.codebuddy`, not `.workbuddy`; a twin written to
    flags somewhere else than the installer just reported.
    `unset CLAUDE_CONFIG_DIR && node scripts/install.js init -y` (it prints the
    absolute file it wrote - that is the directory to compare against), then
-   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"`,
+   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"; mkdir -p "$CONFIG"`,
    `echo full > "$CONFIG/.jiahao-active"` and
    `echo verifier > "$CONFIG/.jiahao-profile"`.
 
@@ -127,7 +127,7 @@ project directory name: `.codebuddy`, not `.workbuddy`; a twin written to
    PowerShell's automatic variable and it is always set, while the hook reads
    the HOME *environment* variable and falls through to
    `WORKBUDDY_CONFIG_DIR` when it is absent. Resolve the same way instead:
-   `$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1`, then
+   `$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1; New-Item -ItemType Directory -Force -Path $c | Out-Null`, then
    `Set-Content "$c\.jiahao-active" full` and
    `Set-Content "$c\.jiahao-profile" verifier`.
 
