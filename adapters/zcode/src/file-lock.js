@@ -75,6 +75,11 @@ function withLockSync(target, fn, opts) {
       throw e;
     }
   }
+  // Race paths above can exhaust the loop with acquired === false (lock dir
+  // vanished between mkdir and stat, or a stale takeover lost to a faster
+  // competitor). Callers own their degrade path — never run fn() unprotected,
+  // and never rmdir a lock that belongs to someone else.
+  if (!acquired) throw new Error('file lock not acquired: ' + ld);
   try { return fn(); } finally { try { fs.rmdirSync(ld); } catch (e) { /* taken over */ } }
 }
 
