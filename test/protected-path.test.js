@@ -30,7 +30,7 @@ const STATE_SURFACE = [
   { name: '.jiahao-anchor.json', literal: '.jiahao-anchor.json' },
   { name: '.jiahao-persistence.json', literal: '.jiahao-persistence.json' },
   { name: '.jiahao-calibration.jsonl', literal: '.jiahao-calibration.jsonl' },
-  { name: '.jiahao-sentinel.pretool-guard', literal: '.jiahao-sentinel.' }, // PREFIX + hook
+  { name: '.jiahao-sentinel.jiahao-verdict-gate', literal: '.jiahao-sentinel.' }, // PREFIX + hook
 ];
 
 const PLATFORMS = [

@@ -8,12 +8,15 @@
 //
 // The guard protects jiahao's own apparatus. Two channels decide it:
 //   - PROTECTED_FRAGMENTS: the names jiahao owns outright - its hook scripts,
-//     its rule files, and the reserved `.jiahao-*` state namespace - matched at
-//     a candidate's end regardless of position in the argv
-//     (grill-t30 audit B-4). The state files are one prefix, not an enumerated
-//     list: #88 item 4 found four state files the list had already missed, and
-//     two more arrived with #110, so the namespace itself is the fragment and
-//     a new state file needs no second registration here;
+//     its rule files, and the reserved `.jiahao-*` state namespace - matched
+//     regardless of position in the argv (grill-t30 audit B-4). Hook and rule
+//     fragments anchor at the candidate's end; the state namespace also
+//     matches at a name boundary so files inside `.jiahao-evidence/` count.
+//     The state files are one prefix, not an enumerated list: #88 item 4 found
+//     the list had already missed the conviction switches, the κ baseline, the
+//     evidence lock and the calibration log, and the #110 review surfaced
+//     anchor / persistence as two more, so the namespace itself is the
+//     fragment and a new state file needs no second registration here;
 //   - absolute containment under the plugin root: everything the bundle keeps
 //     in an apparatus directory, including names that are ordinary elsewhere
 //     (.mcp.json, hooks/hooks.json, .claude-plugin/plugin.json) and therefore
@@ -40,9 +43,10 @@ const path = require('path');
 // path.
 // The `.jiahao-*` namespace is reserved wholesale (#88 item 4). An enumerated
 // list was the shape of the bug: `.jiahao-conviction-off` / `-enforce`,
-// `.jiahao-kappa-baseline.json` and `.jiahao-evidence.lock` were missing, and
-// `.jiahao-anchor.json` / `.jiahao-persistence.json` arrived later still
-// (#110 review). `[a-z0-9.-]+` is the alphabet every state name spells -
+// `.jiahao-kappa-baseline.json`, `.jiahao-evidence.lock` and
+// `.jiahao-calibration.jsonl` were missing, and the #110 review surfaced
+// `.jiahao-anchor.json` / `.jiahao-persistence.json` as two more.
+// `[a-z0-9.-]+` is the alphabet every state name spells -
 // `.jiahao-evidence.keys`, `.jiahao-evidence.lock`, `.jiahao-sentinel.<hook>`,
 // `.jiahao-calibration.jsonl` - and `([\\/]|$)` also catches the files inside
 // the evidence directory. The list is no longer a second hand-maintained copy
@@ -128,10 +132,8 @@ const PROTECTED_ROOT_FILES = ['.mcp.json', 'plugin.json', 'hooks.json'];
 //   fail on a missing path; the 53f1a2e2 baseline misses the same shape.
 //   Documented, not fixed (#88 item 4 reserves the namespace, not the disk).
 //
-// Still deliberately not modelled, and not pretended to be: command
-// substitution (`$(...)`, backticks) and variables the host never exported
-// (the values are not knowable here), and glob expansion (the files may not
-// exist yet). See expandedSpelling() below.
+// Command substitution, variables the host never exported, and glob expansion
+// are excluded for the reasons stated at expandedSpelling() below.
 
 // ---------------------------------------------------------------- candidates --
 
