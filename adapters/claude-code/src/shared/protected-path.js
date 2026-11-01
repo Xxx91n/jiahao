@@ -45,8 +45,15 @@ const path = require('path');
 // `.jiahao-calibration.jsonl` - and `([\\/]|$)` also catches the files inside
 // the evidence directory. The list is no longer a second hand-maintained copy
 // of `src/shared/paths.js`: test/protected-path.test.js reads every quoted
-// `.jiahao-*` literal out of src/ and hooks/ and requires each to be denied,
-// so a state file added later cannot fall outside this silently.
+// `.jiahao…` name out of src/, hooks/ and jiahao-mcp/ and requires each to be
+// denied. The census scans a WIDER suffix alphabet than this fragment -
+// underscores and capitals included - so a state file spelled some other way
+// turns the suite red instead of escaping silently.
+//
+// There is no exception table today. The whole prefix is reserved, so a user
+// project file that happens to start with `.jiahao-` is denied as collateral;
+// a name that must stay writable gets an explicit exception HERE rather than a
+// narrower pattern (#88 lists the alternative as "一把抓 + 例外表").
 const PROTECTED_FRAGMENTS = [
   /(^|[\\/=])hooks[\\/]jiahao-[a-z0-9-]+\.js$/,
   /(^|[\\/=])rules[\\/]jiahao-(verifier|generator)\.md$/,
@@ -56,8 +63,9 @@ const PROTECTED_FRAGMENTS = [
 // Windows resolves names case-insensitively, so `.JIAHAO-PROFILE` deletes the
 // same file the lowercase spelling names. The fragments are compiled twice and
 // the win32 reading takes the folded set; on POSIX the two names are different
-// files and must stay so. (The containment channel folds case through
-// apparatusName() below for the same reason.)
+// files and must stay so. isProtected() derives one `caseInsensitive` flag from
+// the injected path implementation and hands it to both channels - the fragment
+// set here and apparatusName() below - so the rule cannot drift between them.
 const PROTECTED_FRAGMENTS_FOLDED = PROTECTED_FRAGMENTS.map((re) => new RegExp(re.source, re.flags + 'i'));
 
 // Apparatus dirs under the resolved plugin root (absolute containment).
@@ -321,7 +329,7 @@ function belowRoot(ctx, abs) {
 // Windows compares paths case-insensitively, so `SRC` is `src`; on a POSIX host
 // they are different directories and the name is taken as written.
 function apparatusName(ctx, name) {
-  return ctx.P.sep === '\\' ? name.toLowerCase() : name;
+  return ctx.caseInsensitive ? name.toLowerCase() : name;
 }
 
 function isProtected(text, pluginRoot, opts) {
@@ -336,9 +344,10 @@ function isProtected(text, pluginRoot, opts) {
   // typed. os.homedir() asks the kernel instead of the environment.
   let home = env.HOME || env.USERPROFILE || null;
   if (!home) { try { home = (o.homedir || os.homedir)() || null; } catch (e) { home = null; } }
-  const ctx = { P: P, cwd: o.cwd || null, rootAbs: rootAbs, home: home, env: env };
   // The host's own filesystem decides case sensitivity, not the host's name.
-  const fragments = P.sep === '\\' ? PROTECTED_FRAGMENTS_FOLDED : PROTECTED_FRAGMENTS;
+  const caseInsensitive = P.sep === '\\';
+  const ctx = { P: P, cwd: o.cwd || null, rootAbs: rootAbs, home: home, env: env, caseInsensitive: caseInsensitive };
+  const fragments = caseInsensitive ? PROTECTED_FRAGMENTS_FOLDED : PROTECTED_FRAGMENTS;
 
   for (const tok of tokens(text, P.sep === '/')) {
     for (const re of fragments) if (re.test(tok)) return true;

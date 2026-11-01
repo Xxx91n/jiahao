@@ -138,6 +138,10 @@ for (const plat of PLATFORMS) {
       // contains `jiahao` is still none of the guard's business
       expect(check(plat, 'rm my-jiahao-notes')).toBe(false);
       expect(check(plat, 'rm user.jiahao-profile')).toBe(false);
+      // reserved wholesale: a user file that DOES start with `.jiahao-` is
+      // denied as collateral (#88 "一把抓 + 例外表"). Pinned so the widening is
+      // a visible decision; an exception goes in protected-path.js.
+      expect(check(plat, 'rm .jiahao-notes')).toBe(true);
     });
 
     // #88 item 6: jiahao-mcp/ is the vendored MCP server, i.e. the writer the
@@ -168,34 +172,38 @@ describe('protected path (state file binding, #88 item 4)', () => {
     return out;
   }
 
-  test('every .jiahao-* name written by src/ or hooks/ is protected', () => {
+  // The census this ticket exists for. Pinning them by name keeps the scan
+  // from passing vacuously if a directory move or rename empties it.
+  const EXPECTED = [
+    '.jiahao-active', '.jiahao-profile', '.jiahao-evidence',
+    '.jiahao-evidence.keys', '.jiahao-conviction-off',
+    '.jiahao-conviction-enforce', '.jiahao-kappa-baseline.json',
+    '.jiahao-anchor.json', '.jiahao-persistence.json',
+    '.jiahao-calibration.jsonl', '.jiahao-pretool.jsonl',
+    '.jiahao-instructions.jsonl', '.jiahao-sentinel.',
+  ];
+
+  test('every .jiahao name written by src/, hooks/ or jiahao-mcp/ is protected', () => {
     const root = path.join(__dirname, '..');
-    const files = jsFiles(path.join(root, 'src')).concat(jsFiles(path.join(root, 'hooks')));
+    const files = jsFiles(path.join(root, 'src'))
+      .concat(jsFiles(path.join(root, 'hooks')))
+      .concat(jsFiles(path.join(root, 'jiahao-mcp')));
+    // the list this must bind to lives in src/shared/paths.js: prove the walk
+    // actually reached it before trusting an empty `missed`
+    expect(files).toContain(path.join(root, 'src', 'shared', 'paths.js'));
     const found = new Set();
     for (const file of files) {
       const text = fs.readFileSync(file, 'utf8');
-      // quoted literals only: prose in comments may name a shape without the
+      // Quoted literals only: prose in comments may name a shape without the
       // code writing it, and a comment is not something the agent can delete.
-      for (const match of text.matchAll(/['"]\.jiahao-[a-z0-9.-]+['"]/g)) found.add(match[0].slice(1, -1));
+      // The suffix class is deliberately WIDER than the fragment's alphabet
+      // (`\w` adds `_` and capitals): a state file spelled some other way has
+      // to turn this red instead of vanishing from the census.
+      for (const match of text.matchAll(/['"`](\.jiahao-[A-Za-z0-9][\w.-]*)['"`]/g)) found.add(match[1]);
     }
-    // a scan that finds nothing proves nothing
-    expect(found.size).toBeGreaterThan(10);
+    for (const name of EXPECTED) expect(found.has(name)).toBe(true);
     const missed = [...found].filter((name) => !isProtected('rm ' + name, null, { pathImpl: path.posix }));
     expect(missed).toEqual([]);
-  });
-
-  test('the names src/shared/paths.js resolves are in that set', () => {
-    // Spot-check the state this module owns, so a future edit to paths.js that
-    // introduces a new spelling is caught even if the scan regex is narrowed.
-    const paths = require('../src/shared/paths');
-    const names = [
-      paths.flagPath(), paths.evidencePath(), paths.evidenceKeysPath(),
-      paths.profilePath(), paths.convictionLaneOffPath(),
-      paths.convictionLaneEnforcePath(), paths.kappaBaselinePath(),
-    ].map((p) => path.basename(p));
-    for (const name of names) {
-      expect(isProtected('rm ' + name, null, { pathImpl: path.posix })).toBe(true);
-    }
   });
 });
 
@@ -460,5 +468,13 @@ describe('protected path (separator spellings)', () => {
     expect(check(win32, 'rm .JIAHAO-EVIDENCE\\segments\\0001.jsonl')).toBe(true);
     expect(check(win32, 'rm user.jiahao-profile')).toBe(false);
     expect(check(posix, 'rm .JIAHAO-PROFILE')).toBe(false);
+  });
+
+  // The folded set covers the hooks/rules fragments too, not just the state
+  // namespace: `RULES\JIAHAO-VERIFIER.MD` is the same rule file on Windows.
+  test('a case-shifted rule or hook name is the same file on Windows', () => {
+    expect(check(win32, 'rm RULES\\JIAHAO-VERIFIER.MD')).toBe(true);
+    expect(check(win32, 'rm HOOKS\\JIAHAO-PRETOOL-GUARD.JS')).toBe(true);
+    expect(check(posix, 'rm RULES/JIAHAO-VERIFIER.MD')).toBe(false);
   });
 });
