@@ -205,6 +205,36 @@ test('an undetermined enforce-mode pairer record does not satisfy the no-evidenc
   expect(parsed.reason).toMatch(/no evidence/i);
 });
 
+// #71 item 15 (adjudicated): an enforce-mode pairer record that DID determine
+// a state is verification evidence - it satisfies Case A. A shadow record with
+// the same state is still telemetry and leaves the chain "no evidence".
+test('a determined enforce-mode pairer record satisfies Case A, a shadow one does not', () => {
+  function runWith(shadow) {
+    const dir = freshDir('jiahao-hooks-test-');
+    fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+    const rec = createEvidence('pl-1', 'pairer-lane', 'observed',
+      'pairer-lane[' + (shadow ? 'shadow' : 'enforce') + '] consistent', null, null, {
+        detector: {
+          suspicious: false, matched_phrases: [], severity: null,
+          source: 'pairer-instrument', shadow: shadow,
+          pairer: { state: 'consistent' },
+        },
+      });
+    fs.writeFileSync(path.join(dir, '.jiahao-evidence'), JSON.stringify([rec]), 'utf8');
+    return runHook('jiahao-verdict-gate.js', {
+      dir: dir, stdin: JSON.stringify({ stop_hook_active: false }),
+    });
+  }
+
+  const enforce = runWith(false);
+  expectExit(enforce, 0);
+  expect(String(enforce.stdout)).not.toContain('no evidence');
+
+  const shadow = runWith(true);
+  expectExit(shadow, 2);
+  expect(parseJson(shadow).reason).toMatch(/no evidence/i);
+});
+
 // #108 audit (CodeRabbit round 2): readProfile() hardened at the source -
 // a directory (or unreadable file) at .jiahao-profile returns the documented
 // default instead of killing the hook at top level.

@@ -236,3 +236,14 @@ test('#71: commit returns the count written; a deduped append returns 0', () => 
   expect(log.commit(function () { return [mk()]; })).toBe(0);
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test('#71: a mid-write throw reports the records that landed before it', () => {
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'jiahao-evidence-partial-'));
+  const log = createEvidenceLog(dir);
+  const good = log.createRecord('gate-71c', 'deterministic', 'passed', 'ok', null, null, {});
+  const circular = { prev_hash: good.event_hash };
+  circular.self = circular; // JSON.stringify throws after `good` is on disk
+  const written = log.commit(function () { return [good, circular]; });
+  expect(written).toBe(1);
+  fs.rmSync(dir, { recursive: true, force: true });
+});

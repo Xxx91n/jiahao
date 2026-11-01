@@ -1515,6 +1515,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
             tail = anchor.event_hash;
             total += 1;
             applied.push(anchor);
+            writtenSoFar += 1;
             tailIsAnchor = true;
             // Splice the pending record onto the new segment's anchor so the
             // concatenated chain stays valid across the boundary.
@@ -1556,7 +1557,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
         fs.writeFileSync(kp, allKeys.join('\n') + '\n', 'utf8');
         _writeTailAnchorForChain(existing.concat(applied));
       }
-      return applied.length; // #71 (PR #97 review): callers can see a no-op commit
+      return writtenSoFar; // one counter for both the success and throw paths
     };
     // Lock failure and a throw from run() itself are different events. The
     // first keeps the documented best-effort degrade (write unlocked); the

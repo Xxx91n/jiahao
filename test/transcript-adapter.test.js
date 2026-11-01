@@ -249,9 +249,11 @@ test('#71 item 8: a new turn clears the previous turn closing', () => {
 test('#71 item 8: every tolerated host wrapper tag is skipped, never treated as a task', () => {
   const tags = ['system-reminder', 'environment_context', 'user_instructions', 'local-command-stdout', 'command-name'];
   for (const tag of tags) {
+    // The wrapper comes AFTER the real task: if it opened a turn it would
+    // overwrite `task` and wipe the earlier event, so both assertions go red.
     const r = adaptTranscriptText([
-      userTextLine('<' + tag + '>injected</' + tag + '>'),
       userTextLine('Real task.'),
+      userTextLine('<' + tag + '>injected</' + tag + '>'),
     ].join('\n'));
     expect(r.task).toBe('Real task.');
     const msgs = r.transcript.events.filter(e => e.type === 'message').map(e => e.text);
