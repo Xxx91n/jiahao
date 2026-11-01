@@ -130,8 +130,12 @@ wrapper; the name is historical), so
 [`qoder-intl-probe-io.jsonl`](qoder-intl-probe-io.jsonl) holds the hook's own
 **stdin, stdout, stderr and exit code** for that invocation, in the same record.
 Call 1 of run 5: `code: 0`, `stdout` = the flat `{"decision":"block",...}` line,
-`stderr` empty, `stdin` = the payload quoted above. That is one observation of
-the channel rather than an inference from the host's log.
+`stderr` empty, `stdin` = the payload quoted above; call 2: `code: 0`, both
+streams empty. The **streams are the wrapper's record, not the host's** - the
+host log for that session carries `exit_code=0` on both turns and no stdout or
+stderr, so what the two sources agree on is the exit code. The channel
+observation above therefore rests on the wrapper record, which is the point of
+item 7, and the host's agreement is limited to the code.
 
 The **command** in D5's sense is the one the host ran to spawn the hook. Runs 1–4
 used the log-path shim; run 5 used the io shim:

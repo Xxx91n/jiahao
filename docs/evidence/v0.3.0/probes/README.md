@@ -67,8 +67,12 @@ this directory.
   `../qoder-intl-probe-io.jsonl` with the hook's own **stdin, stdout, stderr and
   exit code** in one record (evidence-review item 7). Register it the same way,
   with a distinct argv label (`intl-io-origin-dot-qoder`). Observed: 2
-  invocations; call 1 `code: 0` with the flat `{"decision":"block",...}` on
-  stdout and empty stderr, matching what the host logged for the same turn.
+  invocations. Streams and exit codes come from the wrapper record only - call 1
+  `code: 0` with the flat `{"decision":"block",...}` on stdout and empty stderr,
+  call 2 `code: 0` with both streams empty. The host's own log for that session
+  carries `exit_code=0` on both turns and **no** stdout/stderr, so what it
+  corroborates is the exit code; the streams are the wrapper's record, not the
+  host's.
 
 ## Google Antigravity 1.2.12 (#111)
 
