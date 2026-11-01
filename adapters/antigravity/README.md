@@ -23,6 +23,9 @@ host ended the turn without continuation. Evidence:
    `echo full > "$CONFIG/.jiahao-active"`
    `echo verifier > "$CONFIG/.jiahao-profile"`
    Start a new session after changing `.jiahao-profile`.
+   An unreadable `.jiahao-profile` (a directory in its place, or unreadable
+   permissions) also resolves to the default `verifier`, with a `[config]:` note
+   on stderr.
    In PowerShell, resolve the same directory the hooks read and write there:
    `$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1; New-Item -ItemType Directory -Force -Path $c | Out-Null`
    `'full' | Set-Content (Join-Path $c '.jiahao-active')`

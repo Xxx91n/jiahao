@@ -48,6 +48,9 @@ resolves `plugin@marketplace` names - a direct directory install is refused
    then `Set-Content -NoNewline -Path "$c/.jiahao-active" -Value full` and
    `Set-Content -NoNewline -Path "$c/.jiahao-profile" -Value verifier`.
    Start a new session after changing `.jiahao-profile`.
+   An unreadable `.jiahao-profile` (a directory in its place, or unreadable
+   permissions) also resolves to the default `verifier`, with a `[config]:` note
+   on stderr.
 6. Restart or open a new session. Hook configuration — plugin or
    config-file — is read at session start; a map added mid-session did not
    fire until a restart (live probe, 2026-10-31).

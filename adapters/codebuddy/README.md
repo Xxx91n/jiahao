@@ -26,6 +26,9 @@ server are vendored inside, so nothing resolves outside the bundle.
    (`generator` for advisory-only). Start a new session after changing
    `.jiahao-profile`. The file is shared by all agents using the same config
    directory; use separate config directories for concurrent profiles.
+   An unreadable `.jiahao-profile` (a directory in its place, or unreadable
+   permissions) also resolves to the default `verifier`, with a `[config]:` note
+   on stderr.
 4. MCP server: run `npm install --omit=dev` inside the bundle's
    `jiahao-mcp/` once (the server source is vendored; dependencies are
    not). The bundle's `.mcp.json` registers it via

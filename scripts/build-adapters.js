@@ -865,6 +865,9 @@ server are vendored inside, so nothing resolves outside the bundle.
    (\`generator\` for advisory-only). Start a new session after changing
    \`.jiahao-profile\`. The file is shared by all agents using the same config
    directory; use separate config directories for concurrent profiles.
+   An unreadable \`.jiahao-profile\` (a directory in its place, or unreadable
+   permissions) also resolves to the default \`verifier\`, with a \`[config]:\` note
+   on stderr.
 4. MCP server: run \`npm install --omit=dev\` inside the bundle's
    \`jiahao-mcp/\` once (the server source is vendored; dependencies are
    not). The bundle's \`.mcp.json\` registers it via
@@ -1267,7 +1270,9 @@ whose single entry \`source\` points at \`./adapters/claude-code\`).
    PreToolUse guard; the SubagentStart injection is not flag-gated.
 4. Switch profile if needed: \`echo generator > "$CLAUDE_CONFIG_DIR/.jiahao-profile"\`
    (or \`$HOME/.jiahao-profile\` when the env var is unset) for advisory-only.
-   Deleting the file returns to the default \`verifier\`. Both flag files live
+   Deleting the file returns to the default \`verifier\`; an unreadable one
+   (a directory in its place, or unreadable permissions) resolves the same way
+   and leaves a \`[config]:\` note on stderr. Both flag files live
    in the config dir, never in the project directory.
 
 Install, upgrade, and uninstall are the host's own plugin commands; the repo
@@ -1368,6 +1373,9 @@ hook and did not block. Evidence:
    \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
    (\`generator\` for advisory-only). Start a new session after changing
    \`.jiahao-profile\`.
+   An unreadable \`.jiahao-profile\` (a directory in its place, or unreadable
+   permissions) also resolves to the default \`verifier\`, with a \`[config]:\` note
+   on stderr.
 
 Install and upgrade are the host's own plugin commands; the repository root is
 never a plugin entry. The install path was live-probed with a local plugin
@@ -1489,6 +1497,9 @@ The repository root is also a Codex marketplace
    \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
    (\`generator\` for advisory-only). Start a new session after changing
    \`.jiahao-profile\`.
+   An unreadable \`.jiahao-profile\` (a directory in its place, or unreadable
+   permissions) also resolves to the default \`verifier\`, with a \`[config]:\` note
+   on stderr.
 
 Codex 0.163.0 enables hooks by default: \`codex features list\` reports
 \`hooks stable true\`, and a fresh \`CODEX_HOME\` with no \`config.toml\` ran the
@@ -1684,6 +1695,9 @@ project directory name: \`.codebuddy\`, not \`.workbuddy\`; a twin written to
    \`echo verifier > "$CONFIG/.jiahao-profile"\`. The \`setx\` line is what makes
    the hooks see the same value; without it the flags sit in a directory the
    desktop never looks at.
+   An unreadable \`.jiahao-profile\` (a directory in its place, or unreadable
+   permissions) also resolves to the default \`verifier\`, with a \`[config]:\` note
+   on stderr.
 
    Git Bash, path two - no pin. Clear the variable in THIS shell, not just for
    the installer: \`env -u CLAUDE_CONFIG_DIR\` affects only that child, and the
@@ -1858,6 +1872,9 @@ host ended the turn without continuation. Evidence:
    \`echo full > "$CONFIG/.jiahao-active"\`
    \`echo verifier > "$CONFIG/.jiahao-profile"\`
    Start a new session after changing \`.jiahao-profile\`.
+   An unreadable \`.jiahao-profile\` (a directory in its place, or unreadable
+   permissions) also resolves to the default \`verifier\`, with a \`[config]:\` note
+   on stderr.
    In PowerShell, resolve the same directory the hooks read and write there:
    \`${POWERSHELL_CONFIG_SNIPPET}\`
    \`'full' | Set-Content (Join-Path $c '.jiahao-active')\`
@@ -1979,6 +1996,9 @@ resolves \`plugin@marketplace\` names - a direct directory install is refused
    then \`Set-Content -NoNewline -Path "$c/.jiahao-active" -Value full\` and
    \`Set-Content -NoNewline -Path "$c/.jiahao-profile" -Value verifier\`.
    Start a new session after changing \`.jiahao-profile\`.
+   An unreadable \`.jiahao-profile\` (a directory in its place, or unreadable
+   permissions) also resolves to the default \`verifier\`, with a \`[config]:\` note
+   on stderr.
 6. Restart or open a new session. Hook configuration — plugin or
    config-file — is read at session start; a map added mid-session did not
    fire until a restart (live probe, 2026-10-31).
