@@ -9,13 +9,10 @@
 // The guard protects jiahao's own apparatus. Two channels decide it:
 //   - PROTECTED_FRAGMENTS: the names jiahao owns outright - its hook scripts,
 //     its rule files, and the reserved `.jiahao-*` state namespace - matched
-//     regardless of position in the argv (grill-t30 audit B-4). Hook and rule
-//     fragments anchor at the candidate's end; the state namespace also
-//     matches at a name boundary so files inside `.jiahao-evidence/` count.
-//     The state files are one prefix, not an enumerated list: #88 item 4 found
-//     the list had already missed several state files, so the namespace itself
-//     is the fragment and a new state file needs no second registration here
-//     (the census is in the fragment note below);
+//     regardless of position in the argv (grill-t30 audit B-4). The state
+//     files are one prefix, not an enumerated list (#88 item 4); the matching
+//     detail and the missed names are in the note below the list, and the
+//     census lives in STATE_SURFACE in test/protected-path.test.js;
 //   - absolute containment under the plugin root: everything the bundle keeps
 //     in an apparatus directory, including names that are ordinary elsewhere
 //     (.mcp.json, hooks/hooks.json, .claude-plugin/plugin.json) and therefore
