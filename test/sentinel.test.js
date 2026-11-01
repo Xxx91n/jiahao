@@ -70,14 +70,20 @@ function healedEvidenceKinds() {
   return (readEvidence() || []).map(r => r.detector && r.detector.degradation && r.detector.degradation.kind);
 }
 
-test('#122: reconcile skips a begun-not-ended sentinel (no heal, file kept)', () => {
-  const s = begin('jiahao-live', DIR);
-  const file = path.join(DIR, PREFIX + 'jiahao-live');
-  expect(reconcile(DIR)).toEqual([]);
+// live-sentinel invariant: a begun-not-ended sentinel stays on disk, leaves
+// no evidence trail, and end() removes it.
+function expectLiveThenEnd(file, s) {
   expect(fs.existsSync(file)).toBe(true);
   expect(readEvidence()).toBeNull();
   s.end();
   expect(fs.existsSync(file)).toBe(false);
+}
+
+test('#122: reconcile skips a begun-not-ended sentinel (no heal, file kept)', () => {
+  const s = begin('jiahao-live', DIR);
+  const file = path.join(DIR, PREFIX + 'jiahao-live');
+  expect(reconcile(DIR)).toEqual([]);
+  expectLiveThenEnd(file, s);
 });
 
 // #122: the ownership lock must cover the sentinel's creation window. The
@@ -99,10 +105,7 @@ test('#122: sentinel never visible unlocked — a reconcile racing at creation h
   try { s = begin('jiahao-race', DIR); } finally { spy.mockRestore(); } // no leak into later tests if begin throws before fsync
   expect(seen.lockAtCreation).toBe(true);
   expect(seen.healed).toEqual([]);
-  expect(fs.existsSync(file)).toBe(true);
-  expect(readEvidence()).toBeNull();
-  s.end();
-  expect(fs.existsSync(file)).toBe(false);
+  expectLiveThenEnd(file, s);
 });
 
 // #122: lock lost to a parallel live owner — the existing unchecked-continue
