@@ -19,13 +19,12 @@ const os = require('os');
 const path = require('path');
 
 const repoRoot = path.join(__dirname, '..');
-const { configDirFrom } = require(path.join(repoRoot, 'src', 'shared', 'paths'));
+const paths = require(path.join(repoRoot, 'src', 'shared', 'paths'));
+const { configDirFrom, HOST_CONFIG_DIR_ENV } = paths;
 
-// Every variable the resolver may consult. A case sets the ones it means and
-// deletes the rest, so the table states a whole environment rather than a
-// diff against whatever this test process happens to carry.
-const RESOLUTION_ENV = ['CLAUDE_CONFIG_DIR', 'HOME', 'QODER_CONFIG_DIR',
-  'CODEBUDDY_CONFIG_DIR', 'WORKBUDDY_CONFIG_DIR'];
+// Every variable the resolver may consult, taken from the resolver itself so
+// the table cannot fall behind a host root added to HOST_CONFIG_DIR_ENV.
+const RESOLUTION_ENV = ['CLAUDE_CONFIG_DIR', 'HOME'].concat(HOST_CONFIG_DIR_ENV);
 
 function envOf(values) {
   const env = {};
@@ -33,6 +32,29 @@ function envOf(values) {
     env[name] = Object.prototype.hasOwnProperty.call(values, name) ? values[name] : undefined;
   }
   return env;
+}
+
+// Run fn with exactly the given variables set, restoring the process
+// environment afterwards. Every case states a whole environment rather than a
+// diff against whatever this test process happens to carry.
+function withEnv(values, fn) {
+  const saved = {};
+  for (const name of RESOLUTION_ENV) {
+    saved[name] = process.env[name];
+    if (Object.prototype.hasOwnProperty.call(values, name) && values[name] !== undefined) {
+      process.env[name] = values[name];
+    } else {
+      delete process.env[name];
+    }
+  }
+  try {
+    return fn();
+  } finally {
+    for (const name of RESOLUTION_ENV) {
+      if (saved[name] === undefined) delete process.env[name];
+      else process.env[name] = saved[name];
+    }
+  }
 }
 
 // os.homedir() is the last resort; the table pins "the OS answer", whatever it
@@ -113,28 +135,16 @@ describe('every state file follows the same base', () => {
   // ticket names; each is built on configDir(), so pinning the base once is
   // what keeps a second resolution order from growing in one of them.
   test('the exported path helpers are rooted at configDir()', () => {
-    const paths = require(path.join(repoRoot, 'src', 'shared', 'paths'));
-    const saved = {};
-    for (const k of RESOLUTION_ENV) {
-      saved[k] = process.env[k];
-      delete process.env[k];
-    }
-    process.env.QODER_CONFIG_DIR = path.join(repoRoot, '.no-such-qoder-root');
-    try {
-      const base = process.env.QODER_CONFIG_DIR;
-      expect(paths.configDir()).toBe(base);
+    const root = path.join(repoRoot, '.no-such-qoder-root');
+    withEnv({ QODER_CONFIG_DIR: root }, () => {
+      expect(paths.configDir()).toBe(root);
       for (const build of [paths.flagPath, paths.evidencePath,
         paths.evidenceKeysPath, paths.profilePath,
         paths.convictionLaneOffPath, paths.convictionLaneEnforcePath,
         paths.kappaBaselinePath]) {
-        expect(path.dirname(build())).toBe(base);
+        expect(path.dirname(build())).toBe(root);
       }
-    } finally {
-      for (const k of RESOLUTION_ENV) {
-        if (saved[k] === undefined) delete process.env[k];
-        else process.env[k] = saved[k];
-      }
-    }
+    });
   });
 });
 
@@ -154,8 +164,13 @@ describe('capability and detector read the same order', () => {
       // can answer true is by resolving the host root.
       expect(capability.probe('bench-corpus',
         { root: emptyRoot, env: envOf({ QODER_CONFIG_DIR: planted }) })).toBe(true);
+      // The negative case pins the ORDER, not the absence of a corpus: env that
+      // resolves elsewhere must not find the one planted under the host root.
+      // (The developer's own OS home may legitimately hold a planted corpus, so
+      // asserting "false" for an empty env would be a gate that goes red on a
+      // machine that ran the installer.)
       expect(capability.probe('bench-corpus',
-        { root: emptyRoot, env: envOf({}) })).toBe(false);
+        { root: emptyRoot, env: envOf({ CLAUDE_CONFIG_DIR: emptyRoot }) })).toBe(false);
     } finally {
       fs.rmSync(planted, { recursive: true, force: true });
       fs.rmSync(emptyRoot, { recursive: true, force: true });
@@ -165,24 +180,16 @@ describe('capability and detector read the same order', () => {
   test('detector looks for phrases.json under the resolved config dir', () => {
     const detector = require(path.join(repoRoot, 'src', 'detector'));
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-detect-'));
-    const saved = {};
-    for (const k of RESOLUTION_ENV) {
-      saved[k] = process.env[k];
-      delete process.env[k];
-    }
     try {
       fs.mkdirSync(path.join(dir, 'private'), { recursive: true });
       fs.writeFileSync(path.join(dir, 'private', 'phrases.json'), '{}', 'utf8');
-      process.env.QODER_CONFIG_DIR = dir;
-      const found = detector.resolvePhrasesPath();
-      expect(found.source).toBe('config-private');
-      expect(found.path).toBe(path.join(dir, 'private', 'phrases.json'));
+      withEnv({ QODER_CONFIG_DIR: dir }, () => {
+        const found = detector.resolvePhrasesPath();
+        expect(found.source).toBe('config-private');
+        expect(found.path).toBe(path.join(dir, 'private', 'phrases.json'));
+      });
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
-      for (const k of RESOLUTION_ENV) {
-        if (saved[k] === undefined) delete process.env[k];
-        else process.env[k] = saved[k];
-      }
     }
   });
 });
@@ -218,16 +225,22 @@ describe('spawned gate under a Qoder-shaped environment', () => {
     return env;
   }
 
-  function qoderConfigDir() {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-qoder-state-'));
-    fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  function tempDir(prefix) {
+    return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  }
+
+  // A directory holding only the profile flag: the state the gate reads before
+  // it decides anything.
+  function dirWithProfile() {
+    const dir = tempDir('jiahao-qoder-state-');
     fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'verifier', 'utf8');
     return dir;
   }
 
   test('a Stop gate blocks out of the flag file it finds under QODER_CONFIG_DIR', () => {
-    const dir = qoderConfigDir();
+    const dir = dirWithProfile();
     try {
+      fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
       const res = spawnHook(path.join(bundleDir, 'hooks', 'jiahao-verdict-gate.js'), {
         stdin: JSON.stringify({ session_id: 'issue-116', stop_hook_active: false }),
         args: [PLATFORM],
@@ -244,50 +257,75 @@ describe('spawned gate under a Qoder-shaped environment', () => {
     }
   }, 20000);
 
-  test('the state the gate writes stays inside QODER_CONFIG_DIR', () => {
-    const dir = qoderConfigDir();
-    const homeBefore = fs.existsSync(path.join(OS_HOME, '.jiahao-evidence'))
-      ? fs.readdirSync(path.join(OS_HOME, '.jiahao-evidence')).length
-      : 0;
+  test('SessionStart creates the flag inside QODER_CONFIG_DIR', () => {
+    // No pre-seeded flag: the file that appears is the one this hook wrote, so
+    // its location is the resolver's answer rather than the fixture's.
+    const dir = dirWithProfile();
     try {
+      expect(fs.existsSync(path.join(dir, '.jiahao-active'))).toBe(false);
       const res = spawnHook(path.join(bundleDir, 'hooks', 'jiahao-activate.js'), {
         stdin: '{}',
         args: [PLATFORM],
         env: qoderEnv(dir),
       });
       expectExit(res, 0);
-      // SessionStart plants the flag and reconciles sentinels; both are writes
-      // under the config dir. The flag is the one it creates when missing.
       expect(fs.existsSync(path.join(dir, '.jiahao-active'))).toBe(true);
-      // No sentinel is left behind by a hook that ran to completion.
-      const leaked = fs.readdirSync(dir).filter((f) => f.startsWith('.jiahao-sentinel.'));
-      expect(leaked).toEqual([]);
-      // And nothing new appeared in the OS home, which is where the pre-#116
-      // resolution would have put it on this machine.
-      const homeAfter = fs.existsSync(path.join(OS_HOME, '.jiahao-evidence'))
-        ? fs.readdirSync(path.join(OS_HOME, '.jiahao-evidence')).length
-        : 0;
-      expect(homeAfter).toBe(homeBefore);
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }
   }, 20000);
 
-  test('the sweep hook reconciles inside QODER_CONFIG_DIR, not the OS home', () => {
-    const dir = qoderConfigDir();
+  test('a reconciled sentinel writes its evidence record inside QODER_CONFIG_DIR', () => {
+    // A killed hook leaves a sentinel; the next hook start reconciles it into a
+    // timeout record. That append is the write the ticket is about - it must
+    // land in the host root, not wherever the old fallback pointed.
+    const dir = dirWithProfile();
     try {
+      fs.writeFileSync(path.join(dir, '.jiahao-sentinel.jiahao-orphan'), JSON.stringify({
+        hook: 'jiahao-orphan', turn: 't-116', started_at: '2026-08-28T00:00:00.000Z',
+        phase: 'verify', phase_at: '2026-08-28T00:00:01.000Z',
+      }), 'utf8');
       const res = spawnHook(path.join(bundleDir, 'hooks', 'jiahao-sweep.js'), {
         stdin: '{}',
         args: [PLATFORM],
         env: qoderEnv(dir),
       });
       expectExit(res, 0);
-      // The sweep is best-effort by contract; what it must not do is create a
-      // bucket somewhere else. Its own directory is empty of sentinels, so the
-      // check is that the run left the directory unchanged.
-      expect(fs.readdirSync(dir).sort()).toEqual(['.jiahao-active', '.jiahao-profile']);
+      expect(fs.existsSync(path.join(dir, '.jiahao-sentinel.jiahao-orphan'))).toBe(false);
+      const evidenceDir = path.join(dir, '.jiahao-evidence');
+      expect(fs.existsSync(evidenceDir)).toBe(true);
+      const records = fs.readdirSync(evidenceDir)
+        .filter((f) => f.endsWith('.jsonl'))
+        .map((f) => fs.readFileSync(path.join(evidenceDir, f), 'utf8'))
+        .join('');
+      expect(records).toContain('sentinel-reconcile');
+      expect(records).toContain('jiahao-orphan');
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
+  test('a hook that also gets HOME keeps writing under HOME, not the host root', () => {
+    // #116 accepts the host root only *after* HOME. The spawned proof: a
+    // session carrying both variables must put its flag in HOME. This is the
+    // "no host that sets HOME may move" claim, measured rather than asserted
+    // against a table.
+    const homeDir = tempDir('jiahao-fake-home-');
+    const qoderDir = dirWithProfile();
+    try {
+      const env = qoderEnv(qoderDir);
+      env.HOME = homeDir;
+      const res = spawnHook(path.join(bundleDir, 'hooks', 'jiahao-activate.js'), {
+        stdin: '{}',
+        args: [PLATFORM],
+        env: env,
+      });
+      expectExit(res, 0);
+      expect(fs.existsSync(path.join(homeDir, '.jiahao-active'))).toBe(true);
+      expect(fs.existsSync(path.join(qoderDir, '.jiahao-active'))).toBe(false);
+    } finally {
+      fs.rmSync(homeDir, { recursive: true, force: true });
+      fs.rmSync(qoderDir, { recursive: true, force: true });
     }
   }, 20000);
 });

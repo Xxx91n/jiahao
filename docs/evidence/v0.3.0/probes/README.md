@@ -80,3 +80,21 @@ this directory.
   read - a hook the host spawned but never fed is a different fact from a hook
   the host never spawned. The record lives outside the repository: the hook
   environment carries service tokens, which is why no raw log is committed.
+
+## Qoder Desktop state location (#116, 2026-11-01)
+
+- `qoder-state-probe.js`: a `Stop` hook used from a project-scope
+  `.qoder/settings.json` (the surface #109 watched firing). It answers one
+  question: where does the shipped gate put its own state on a host that hands
+  a hook subprocess neither `CLAUDE_CONFIG_DIR` nor `HOME`?
+  - It records which of the eight environment names the host actually sets
+    (names only; the config root is the one value written down, because it is
+    what the claim is about), then resolves the state paths by `require`-ing the
+    repository's `src/shared/paths.js` rather than copying its order.
+  - It spawns the **generated bundle's** `jiahao-verdict-gate.js` with the same
+    stdin and environment, records that gate's exit code, and lists the segment
+    files under the resolved `.jiahao-evidence` before and after, so "the chain
+    grew here" is read back from the directory instead of inferred from output.
+  - It always exits 0: this probe observes, it never holds a turn.
+  - Raw fires: `../qoder-state-probe.jsonl` (written by the probe). The
+    directory this file sits in is *not* shipped in any bundle.

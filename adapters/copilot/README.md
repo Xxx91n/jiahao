@@ -100,7 +100,8 @@ captured output live in
 ## Write scope and network
 
 - Hooks write only under the Claude config dir (`$CLAUDE_CONFIG_DIR`, else
-  `$HOME`; a hook that gets neither uses this host's own config root, then the
+  `$HOME`; a hook that gets neither takes a config root its host reports
+  (Qoder's `QODER_CONFIG_DIR`, WorkBuddy's `WORKBUDDY_CONFIG_DIR`), then the
   OS home), the same flag and evidence files every host uses:
   `.jiahao-active`, `.jiahao-profile`, `.jiahao-evidence/` (plus the
   `.jiahao-evidence.keys` sidecar and `pairer-instrument` shadow records),

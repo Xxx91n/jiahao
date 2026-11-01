@@ -94,12 +94,16 @@ and the run record is
   Qoder read and wrote `.jiahao-profile` and `.jiahao-evidence` under
   `<drive>:\tmp` instead of the `QODER_CONFIG_DIR` (`~/.qoder-cn`) the host
   does name. `paths.js` now takes that host root after `CLAUDE_CONFIG_DIR`
-  and `HOME`, and a spawned-hook test runs the real bundled gate under this
-  host's environment shape (Qoder's two variables, the two Claude ones absent)
-  and asserts the state lands inside `QODER_CONFIG_DIR`. The live in-app half -
-  a Qoder session whose evidence chain is seen in `~/.qoder-cn` - is not yet in
-  this repository's records; the turn-end block above is unaffected either way,
-  because it was measured through the hook's own stdout/stderr.
+  and `HOME`; a host that sets either one does not move. The spawned-hook
+  tests in `test/config-dir.test.js` run this bundle's own hooks under the
+  environment the #109 probe recorded (Qoder's two variables, the two Claude
+  ones absent) and read the directory back: `SessionStart` creates
+  `.jiahao-active` there, a reconciled sentinel appends its evidence record
+  under `<config>/.jiahao-evidence/`, and a spawned Stop gate blocks out of the
+  flag file it finds there. The live in-app half - a Qoder session whose
+  evidence chain is seen in `~/.qoder-cn` - is not yet in this repository's
+  records; the turn-end block above is unaffected either way, because it was
+  measured through the hook's own stdout/stderr.
 - **Which root registers hooks is only known for the CN build.** Project-scope
   `.qoder/settings.json` fired and a `.qoder-cn/settings.json` placed beside it
   did not; the international build's root was never tested, so one dialect row

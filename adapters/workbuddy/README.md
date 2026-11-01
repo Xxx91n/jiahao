@@ -91,19 +91,29 @@ project directory name: `.codebuddy`, not `.workbuddy`; a twin written to
 
    The reliable recipe pins one directory for both sides. Either set
    `CLAUDE_CONFIG_DIR` for the desktop process (a user environment variable
-   works on Windows), restart the desktop, then write the flags there from a
-   **freshly opened shell** - a shell started before the change keeps the old,
-   unset value; or, if the shell carries a `CLAUDE_CONFIG_DIR` that the
-   desktop does not, drop it for the installer run:
+   works on Windows), restart the desktop, then write the flags **there** from
+   a **freshly opened shell** - a shell started before the change keeps the
+   old, unset value; or, if the shell carries a `CLAUDE_CONFIG_DIR` that the
+   desktop does not, drop it for the installer run so both sides fall to the
+   same `HOME`:
 
-   Git Bash (WorkBuddy ships it at `<configDir>/binaries/PortableGit`):
-   `env -u CLAUDE_CONFIG_DIR node scripts/install.js init -y`, which prints the
-   absolute file it wrote; then
+   Git Bash (WorkBuddy ships it at `<configDir>/binaries/PortableGit`), path
+   one - the desktop is pinned to one directory:
+   `CONFIG="C:/Users/<you>/.jiahao"`, `mkdir -p "$CONFIG"`,
+   `echo full > "$CONFIG/.jiahao-active"`,
+   `echo verifier > "$CONFIG/.jiahao-profile"`.
+
+   Git Bash, path two - no pin, both sides at `HOME`:
+   `env -u CLAUDE_CONFIG_DIR node scripts/install.js init -y` (it prints the
+   absolute file it wrote; check that path is under `$HOME`), then
    `echo full > "$HOME/.jiahao-active"` and
    `echo verifier > "$HOME/.jiahao-profile"`.
 
-   PowerShell:
-   `Set-Content "$HOME\.jiahao-active" full` and
+   PowerShell, path one: `$c = 'C:\Users\<you>\.jiahao'`, then
+   `Set-Content "$c\.jiahao-active" full` and
+   `Set-Content "$c\.jiahao-profile" verifier`.
+
+   PowerShell, path two: `Set-Content "$HOME\.jiahao-active" full` and
    `Set-Content "$HOME\.jiahao-profile" verifier`.
 
    `generator` instead of `verifier` for advisory-only. Whichever way you go,
@@ -193,7 +203,8 @@ Commands, payloads, and the recorded environments are in
 ## Write scope and network
 
 - Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else `$HOME`;
-  a hook that gets neither uses this host's own config root, then the OS home):
+  a hook that gets neither takes a config root its host reports (Qoder's
+  `QODER_CONFIG_DIR`, WorkBuddy's `WORKBUDDY_CONFIG_DIR`), then the OS home):
   `.jiahao-active`, `.jiahao-profile`, `.jiahao-evidence/` (plus its sidecar
   and pairer shadow records), `.jiahao-pretool.jsonl`, and the sentinel state
   and lock files. Nothing inside the repository or this plugin directory is

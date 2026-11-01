@@ -12,23 +12,27 @@ const { PREFIXES } = require('./prefix-vocab'); // prefix vocabulary fact source
 //      an operator to use it, so it must keep winning everywhere.
 //   2. HOME - the location every host that already resolves today keeps
 //      resolving to. #116 requires that no host setting this variable moves,
-//      so a host's own root cannot outrank it (WorkBuddy's hook subprocess
-//      does set HOME; measured in docs/evidence/v0.3.0/workbuddy-*-probe-*.md).
+//      so a host's own root cannot outrank it. WorkBuddy's hook subprocess is
+//      the measured case: its PreToolUse guard had no CLAUDE_CONFIG_DIR and did
+//      have HOME, while the shell that ran the installer carried
+//      CLAUDE_CONFIG_DIR (owner's run, 2026-11-01, recorded in the ticket's
+//      comment rather than under docs/evidence/).
 //   3. The host's own config root, reported by the host to its hook
 //      subprocess. This is the #116 fix: Qoder Desktop hands a hook
 //      QODER_CONFIG_DIR and no CLAUDE_CONFIG_DIR / HOME, so before this step
 //      existed the resolution fell through to os.homedir() and the whole
 //      state - profile, evidence, sentinels - landed outside the directory
 //      the host itself names. Only these three names are listed because they
-//      are the ones an evidence record shows a hook subprocess being handed;
-//      a host with no such variable falls to step 4 exactly as it did before.
+//      are the ones a probe record shows a hook subprocess being handed; a
+//      host with no such variable falls to step 4 exactly as it did before.
 //   4. os.homedir() - the OS answer (USERPROFILE on Windows) when no host
 //      marker exists at all. Never '/tmp': on Windows that resolves against
 //      the current drive and is what #116 was filed about.
 //
-// A hook that gets none of these resolves where it did before; nothing that
-// reads a config dir today starts reading a different one because of a
-// variable it never sets.
+// A host that sets neither Claude variable and names no config root still
+// resolves to the OS home, which is where the previous order already sent a
+// hook that had HOME unset - so the only hosts whose location changes are the
+// ones that hand over a config root and neither Claude variable.
 const HOST_CONFIG_DIR_ENV = [
   'QODER_CONFIG_DIR',
   'CODEBUDDY_CONFIG_DIR',
@@ -127,4 +131,4 @@ function requireCorpus(name) {
   process.exit(1);
 }
 
-module.exports = { configDir, configDirFrom, flagPath, evidencePath, evidenceKeysPath, profilePath, kappaBaselinePath, convictionLaneOffPath, convictionLaneEnforcePath, corpusDir, corpusPath, repoCorpusPath, requireCorpus, corpusMissingMessage };
+module.exports = { configDir, configDirFrom, HOST_CONFIG_DIR_ENV, flagPath, evidencePath, evidenceKeysPath, profilePath, kappaBaselinePath, convictionLaneOffPath, convictionLaneEnforcePath, corpusDir, corpusPath, repoCorpusPath, requireCorpus, corpusMissingMessage };

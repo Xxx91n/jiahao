@@ -60,6 +60,16 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 
 `<config>` 指配置目录，按 `src/shared/paths.js` 的顺序解析，逐项都是代码事实：`$CLAUDE_CONFIG_DIR`，没有就用 `$HOME`；两者都没有时取宿主自己报给钩子子进程的配置根（`$QODER_CONFIG_DIR`，再 `$CODEBUDDY_CONFIG_DIR` / `$WORKBUDDY_CONFIG_DIR`）；再没有就退到操作系统给的家目录（Windows 上是 `USERPROFILE`），不再退到 `/tmp`——在 Windows 上 `/tmp` 会落到当前盘符，这正是 [#116](https://github.com/Xxx91n/jiahao/issues/116) 要修的现象。设了 `CLAUDE_CONFIG_DIR` 或 `HOME` 的宿主，落点与之前完全一致。
 
+谁读这个目录（#116 要求逐个点名，括号里是它在**没有** `CLAUDE_CONFIG_DIR`、也没有 `HOME`、但宿主报了配置根时是否换地方）：
+
+- `scripts/install.js`：写 `.jiahao-profile`、`private/`、`.jiahao-persistence.json`、证据链（**换**，跟宿主根走）。
+- `scripts/resolve.js`：经 `createEvidenceLog()` 落到 `evidencePath()`（**换**）。
+- `hooks/jiahao-activate.js`、`hooks/jiahao-mode-tracker.js`、`hooks/jiahao-verdict-gate.js`、`hooks/jiahao-subagent.js`、`hooks/jiahao-sweep.js`：标记文件、profile、证据链、哨兵（**换**）。
+- `hooks/jiahao-pretool-guard.js`、`hooks/jiahao-instructions-assert.js`：`configDir()` 下的旁路记录（**换**）。
+- `src/sentinel.js`、`src/calibration.js`、`src/pairer-lane.js`、`src/evidence-log.js`：都经由 `paths.js` 的同一个基（**换**）。
+- `src/shared/capability.js`、`src/detector.js`：读侧的同一顺序（语料探针、私有词表）。宿主没报配置根时它们落到操作系统家目录，与写侧一致（**换**，且与写侧同向）。
+- 各 `adapters/*/` 下的 vendored 副本：由生成器逐字节复制，跟随源（**换**）。
+
 | 谁写 | 写什么 | 什么时候 |
 | --- | --- | --- |
 | `scripts/install.js init` | `<config>/.jiahao-profile` | 手工执行安装命令 |

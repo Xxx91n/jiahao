@@ -70,8 +70,9 @@ Timeouts stay inside the host budget (5/5/5/10/10/3s; Codex caps
 ## Write scope and network
 
 - Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else
-  `$HOME`; a hook that gets neither uses this host's own config root, then the
-  OS home): `.jiahao-active`, `.jiahao-profile`, `.jiahao-evidence/` (plus
+  `$HOME`; a hook that gets neither takes a config root its host reports
+  (Qoder's `QODER_CONFIG_DIR`, WorkBuddy's `WORKBUDDY_CONFIG_DIR`), then the
+  OS home - never `/tmp`): `.jiahao-active`, `.jiahao-profile`, `.jiahao-evidence/` (plus
   its sidecar and pairer shadow records), `.jiahao-pretool.jsonl`, and the
   sentinel state and lock files. Nothing inside the repo or this plugin
   directory is written by a hook.

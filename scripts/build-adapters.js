@@ -1011,12 +1011,16 @@ and the run record is
   Qoder read and wrote \`.jiahao-profile\` and \`.jiahao-evidence\` under
   \`<drive>:\\tmp\` instead of the \`QODER_CONFIG_DIR\` (\`~/.qoder-cn\`) the host
   does name. \`paths.js\` now takes that host root after \`CLAUDE_CONFIG_DIR\`
-  and \`HOME\`, and a spawned-hook test runs the real bundled gate under this
-  host's environment shape (Qoder's two variables, the two Claude ones absent)
-  and asserts the state lands inside \`QODER_CONFIG_DIR\`. The live in-app half -
-  a Qoder session whose evidence chain is seen in \`~/.qoder-cn\` - is not yet in
-  this repository's records; the turn-end block above is unaffected either way,
-  because it was measured through the hook's own stdout/stderr.
+  and \`HOME\`; a host that sets either one does not move. The spawned-hook
+  tests in \`test/config-dir.test.js\` run this bundle's own hooks under the
+  environment the #109 probe recorded (Qoder's two variables, the two Claude
+  ones absent) and read the directory back: \`SessionStart\` creates
+  \`.jiahao-active\` there, a reconciled sentinel appends its evidence record
+  under \`<config>/.jiahao-evidence/\`, and a spawned Stop gate blocks out of the
+  flag file it finds there. The live in-app half - a Qoder session whose
+  evidence chain is seen in \`~/.qoder-cn\` - is not yet in this repository's
+  records; the turn-end block above is unaffected either way, because it was
+  measured through the hook's own stdout/stderr.
 - **Which root registers hooks is only known for the CN build.** Project-scope
   \`.qoder/settings.json\` fired and a \`.qoder-cn/settings.json\` placed beside it
   did not; the international build's root was never tested, so one dialect row
@@ -1186,8 +1190,9 @@ directory for the host to load.
 ## Write scope and network
 
 - Hooks write only under the Claude config dir (\`$CLAUDE_CONFIG_DIR\`, else
-  \`$HOME\`; a hook that gets neither uses this host's own config root, then the
-  OS home): \`.jiahao-active\`, \`.jiahao-evidence/\` (plus the
+  \`$HOME\`; a hook that gets neither takes a config root its host reports
+  (Qoder's \`QODER_CONFIG_DIR\`, WorkBuddy's \`WORKBUDDY_CONFIG_DIR\`), then the
+  OS home - never \`/tmp\`): \`.jiahao-active\`, \`.jiahao-evidence/\` (plus the
   \`.jiahao-evidence.keys\` sidecar and \`pairer-instrument\` shadow records the
   Stop lane may append), \`.jiahao-pretool.jsonl\`, and the sentinel state and
   lock files \`.jiahao-sentinel.<hook>(.lock)\`. Nothing inside the repo or this
@@ -1319,7 +1324,8 @@ captured output live in
 ## Write scope and network
 
 - Hooks write only under the Claude config dir (\`$CLAUDE_CONFIG_DIR\`, else
-  \`$HOME\`; a hook that gets neither uses this host's own config root, then the
+  \`$HOME\`; a hook that gets neither takes a config root its host reports
+  (Qoder's \`QODER_CONFIG_DIR\`, WorkBuddy's \`WORKBUDDY_CONFIG_DIR\`), then the
   OS home), the same flag and evidence files every host uses:
   \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\` (plus the
   \`.jiahao-evidence.keys\` sidecar and \`pairer-instrument\` shadow records),
@@ -1405,8 +1411,9 @@ Timeouts stay inside the host budget (5/5/5/10/10/3s; Codex caps
 ## Write scope and network
 
 - Hooks write only under the config dir (\`$CLAUDE_CONFIG_DIR\`, else
-  \`$HOME\`; a hook that gets neither uses this host's own config root, then the
-  OS home): \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\` (plus
+  \`$HOME\`; a hook that gets neither takes a config root its host reports
+  (Qoder's \`QODER_CONFIG_DIR\`, WorkBuddy's \`WORKBUDDY_CONFIG_DIR\`), then the
+  OS home - never \`/tmp\`): \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\` (plus
   its sidecar and pairer shadow records), \`.jiahao-pretool.jsonl\`, and the
   sentinel state and lock files. Nothing inside the repo or this plugin
   directory is written by a hook.
@@ -1548,19 +1555,29 @@ project directory name: \`.codebuddy\`, not \`.workbuddy\`; a twin written to
 
    The reliable recipe pins one directory for both sides. Either set
    \`CLAUDE_CONFIG_DIR\` for the desktop process (a user environment variable
-   works on Windows), restart the desktop, then write the flags there from a
-   **freshly opened shell** - a shell started before the change keeps the old,
-   unset value; or, if the shell carries a \`CLAUDE_CONFIG_DIR\` that the
-   desktop does not, drop it for the installer run:
+   works on Windows), restart the desktop, then write the flags **there** from
+   a **freshly opened shell** - a shell started before the change keeps the
+   old, unset value; or, if the shell carries a \`CLAUDE_CONFIG_DIR\` that the
+   desktop does not, drop it for the installer run so both sides fall to the
+   same \`HOME\`:
 
-   Git Bash (WorkBuddy ships it at \`<configDir>/binaries/PortableGit\`):
-   \`env -u CLAUDE_CONFIG_DIR node scripts/install.js init -y\`, which prints the
-   absolute file it wrote; then
+   Git Bash (WorkBuddy ships it at \`<configDir>/binaries/PortableGit\`), path
+   one - the desktop is pinned to one directory:
+   \`CONFIG="C:/Users/<you>/.jiahao"\`, \`mkdir -p "$CONFIG"\`,
+   \`echo full > "$CONFIG/.jiahao-active"\`,
+   \`echo verifier > "$CONFIG/.jiahao-profile"\`.
+
+   Git Bash, path two - no pin, both sides at \`HOME\`:
+   \`env -u CLAUDE_CONFIG_DIR node scripts/install.js init -y\` (it prints the
+   absolute file it wrote; check that path is under \`$HOME\`), then
    \`echo full > "$HOME/.jiahao-active"\` and
    \`echo verifier > "$HOME/.jiahao-profile"\`.
 
-   PowerShell:
-   \`Set-Content "$HOME\\.jiahao-active" full\` and
+   PowerShell, path one: \`$c = 'C:\\Users\\<you>\\.jiahao'\`, then
+   \`Set-Content "$c\\.jiahao-active" full\` and
+   \`Set-Content "$c\\.jiahao-profile" verifier\`.
+
+   PowerShell, path two: \`Set-Content "$HOME\\.jiahao-active" full\` and
    \`Set-Content "$HOME\\.jiahao-profile" verifier\`.
 
    \`generator\` instead of \`verifier\` for advisory-only. Whichever way you go,
@@ -1650,7 +1667,8 @@ Commands, payloads, and the recorded environments are in
 ## Write scope and network
 
 - Hooks write only under the config dir (\`$CLAUDE_CONFIG_DIR\`, else \`$HOME\`;
-  a hook that gets neither uses this host's own config root, then the OS home):
+  a hook that gets neither takes a config root its host reports (Qoder's
+  \`QODER_CONFIG_DIR\`, WorkBuddy's \`WORKBUDDY_CONFIG_DIR\`), then the OS home):
   \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\` (plus its sidecar
   and pairer shadow records), \`.jiahao-pretool.jsonl\`, and the sentinel state
   and lock files. Nothing inside the repository or this plugin directory is
@@ -1741,7 +1759,8 @@ Timeouts stay inside the host budget (5/10/5s). Event names are the host's own P
 ## Write scope and network
 
 - Hooks write only under the config dir (\`$CLAUDE_CONFIG_DIR\`, else \`$HOME\`;
-  a hook that gets neither uses this host's own config root, then the OS home):
+  a hook that gets neither takes a config root its host reports (Qoder's
+  \`QODER_CONFIG_DIR\`, WorkBuddy's \`WORKBUDDY_CONFIG_DIR\`), then the OS home):
   \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\` (plus its sidecar
   and pairer shadow records), and the sentinel state and lock files. Nothing
   inside the repo or this plugin directory is written by a hook.
@@ -1905,8 +1924,9 @@ gate. Commands and captured payloads live in
 ## Write scope and network
 
 - Hooks write only under the config dir (\`$CLAUDE_CONFIG_DIR\`, else
-  \`$HOME\`; a hook that gets neither uses this host's own config root, then the
-  OS home): \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\`
+  \`$HOME\`; a hook that gets neither takes a config root its host reports
+  (Qoder's \`QODER_CONFIG_DIR\`, WorkBuddy's \`WORKBUDDY_CONFIG_DIR\`), then the
+  OS home - never \`/tmp\`): \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\`
   (plus its sidecar and pairer shadow records), \`.jiahao-pretool.jsonl\`, and
   the sentinel state and lock files. Nothing inside the repository or this
   plugin directory is written by a hook.
