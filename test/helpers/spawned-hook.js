@@ -60,7 +60,11 @@ function parseJson(res) {
 function hostEnv(configDir, pluginRoot) {
   const env = Object.assign({}, process.env);
   for (const k of ['PLUGIN_DATA', 'COPILOT_PLUGIN_DATA', 'QODER_SESSION_ID',
-    'CLAUDE_PLUGIN_ROOT', 'CODEBUDDY_PLUGIN_ROOT', 'ZCODE_SESSION_ID']) delete env[k];
+    'CLAUDE_PLUGIN_ROOT', 'CODEBUDDY_PLUGIN_ROOT', 'ZCODE_SESSION_ID',
+    // A host's own config root outranks the OS home in configDir() (#116), so
+    // a test process running inside such a host would otherwise hand the spawn
+    // a second answer. The config dir this helper pins is the only one.
+    'QODER_CONFIG_DIR', 'CODEBUDDY_CONFIG_DIR', 'WORKBUDDY_CONFIG_DIR']) delete env[k];
   env.CLAUDE_CONFIG_DIR = configDir;
   if (pluginRoot !== undefined) env.CLAUDE_PLUGIN_ROOT = pluginRoot;
   return env;

@@ -77,30 +77,63 @@ project directory name: `.codebuddy`, not `.workbuddy`; a twin written to
    `WORKBUDDY_*` variables, so the argument is what identifies the host.
 4. Activate the jiahao profile flag **where the hooks read it**, and pin that
    directory first. The hooks resolve it as `CLAUDE_CONFIG_DIR`, else `HOME`,
-   else `/tmp` (`src/shared/paths.js`). The probe recorded
-   `CLAUDE_CONFIG_DIR` as absent for the desktop's agent; whether the desktop
-   sets `HOME` was **not recorded**, and a shell supplies a `HOME` of its own.
-   Writing the flag from a shell can therefore land where no hook looks, and the
-   gate then finds no `.jiahao-active` and never arms.
+   else `CODEBUDDY_CONFIG_DIR` / `WORKBUDDY_CONFIG_DIR` (the order
+   `src/shared/paths.js` checks), else the OS home. What the record says, and
+   what it does not: the 2026-10-31 and 2026-11-01 probe sessions logged
+   `CLAUDE_CONFIG_DIR` absent and both builder config-dir variables set to
+   that build's own root, and neither record logs `HOME` at all. The owner's
+   separate run on 2026-11-01 (#116) saw the desktop's guard process with
+   `CLAUDE_CONFIG_DIR` unset and `HOME` set, while the shell that ran the
+   installer carried `CLAUDE_CONFIG_DIR` from another agent - so the installer
+   wrote the flag where the hook does not read it and a profile switch failed
+   silently. A shell supplies a `HOME` of its own, which is exactly why
+   writing the flag from an arbitrary shell can land out of view.
 
-   The reliable recipe pins one directory for both sides: set
+   The reliable recipe pins one directory for both sides. Either set
    `CLAUDE_CONFIG_DIR` for the desktop process (a user environment variable
-   works on Windows), restart the desktop, then write the flags there from a
-   **freshly opened shell** - a shell started before the change keeps the old,
-   unset value.
+   works on Windows), restart the desktop, then write the flags **there** from
+   a **freshly opened shell** - a shell started before the change keeps the
+   old, unset value; or, if the shell carries a `CLAUDE_CONFIG_DIR` that the
+   desktop does not, drop it for the installer run so both sides fall to the
+   same `HOME`:
 
-   Git Bash (WorkBuddy ships it at `<configDir>/binaries/PortableGit`):
-   `echo full > "$CLAUDE_CONFIG_DIR/.jiahao-active"` and
-   `echo verifier > "$CLAUDE_CONFIG_DIR/.jiahao-profile"`.
+   Git Bash (WorkBuddy ships it at `<configDir>/binaries/PortableGit`), path
+   one - the desktop is pinned to one directory. Set the *user* environment
+   variable first (Settings > System > Environment Variables, or
+   `setx CLAUDE_CONFIG_DIR "C:\Users\<you>\.jiahao"`), restart the desktop,
+   then from a shell that was opened AFTER the change:
+   `CONFIG="$CLAUDE_CONFIG_DIR"`, `mkdir -p "$CONFIG"`,
+   `echo full > "$CONFIG/.jiahao-active"`,
+   `echo verifier > "$CONFIG/.jiahao-profile"`. The `setx` line is what makes
+   the hooks see the same value; without it the flags sit in a directory the
+   desktop never looks at.
 
-   PowerShell:
-   `Set-Content "$env:CLAUDE_CONFIG_DIR\.jiahao-active" full` and
-   `Set-Content "$env:CLAUDE_CONFIG_DIR\.jiahao-profile" verifier`.
+   Git Bash, path two - no pin. Clear the variable in THIS shell, not just for
+   the installer: `env -u CLAUDE_CONFIG_DIR` affects only that child, and the
+   `CONFIG` line below would still pick up the parent's value, writing the
+   flags somewhere else than the installer just reported.
+   `unset CLAUDE_CONFIG_DIR && node scripts/install.js init -y` (it prints the
+   absolute file it wrote - that is the directory to compare against), then
+   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"; mkdir -p "$CONFIG"`,
+   `echo full > "$CONFIG/.jiahao-active"` and
+   `echo verifier > "$CONFIG/.jiahao-profile"`.
 
-   `generator` instead of `verifier` for advisory-only. With
-   `CLAUDE_CONFIG_DIR` left unset, the hooks fall back to `HOME` and then to
-   `/tmp` (`C:\tmp` on Windows), so the flags would have to sit in whichever
-   of those the desktop's own environment resolves - check it rather than guess.
+   PowerShell, path one (after the `setx` above and a desktop restart, in a
+   shell opened after it): `$c = $env:CLAUDE_CONFIG_DIR`, then
+   `Set-Content "$c\.jiahao-active" full` and
+   `Set-Content "$c\.jiahao-profile" verifier`.
+
+   PowerShell, path two - no pin. Do not write to `$HOME` directly: that is
+   PowerShell's automatic variable and it is always set, while the hook reads
+   the HOME *environment* variable and falls through to
+   `WORKBUDDY_CONFIG_DIR` when it is absent. Resolve the same way instead:
+   `$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1; New-Item -ItemType Directory -Force -Path $c | Out-Null`, then
+   `Set-Content "$c\.jiahao-active" full` and
+   `Set-Content "$c\.jiahao-profile" verifier`.
+
+   `generator` instead of `verifier` for advisory-only. Whichever way you go,
+   read the installer's printed path and make sure it is the directory the
+   hooks resolve - the flag is only read from one place.
 5. Start a new session after changing settings. On 5.9.4 the hook map was
    resolved per turn (an edit made during a turn applied at the next turn end),
    and one turn end in three produced no invocation at all; the 5.9.3 run's own
@@ -184,7 +217,10 @@ Commands, payloads, and the recorded environments are in
 
 ## Write scope and network
 
-- Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else `$HOME`):
+- Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else `$HOME`;
+  a hook that gets neither takes a config root the host reports
+  (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`),
+  then the OS home):
   `.jiahao-active`, `.jiahao-profile`, `.jiahao-evidence/` (plus its sidecar
   and pairer shadow records), `.jiahao-pretool.jsonl`, and the sentinel state
   and lock files. Nothing inside the repository or this plugin directory is

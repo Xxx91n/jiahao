@@ -77,12 +77,12 @@ function resolvePhrasesPath() {
     return { path: process.env.JIAHAO_WORDLIST, source: "env" };
   }
   // prefer the private dir outside the shared cwd.
-  // install.js plants phrases.json at <CLAUDE_CONFIG_DIR>/private/phrases.json.
-  const configDir = process.env.CLAUDE_CONFIG_DIR || process.env.HOME || null;
-  if (configDir) {
-    const cp = path.join(configDir, "private", "phrases.json");
-    if (fs.existsSync(cp)) return { path: cp, source: "config-private" };
-  }
+  // install.js plants phrases.json at <config dir>/private/phrases.json, and
+  // the config dir is whatever src/shared/paths.js resolves - so the read side
+  // cannot drift from the write side by spelling the order differently.
+  const configDir = require('./shared/paths').configDir();
+  const cp = path.join(configDir, "private", "phrases.json");
+  if (fs.existsSync(cp)) return { path: cp, source: "config-private" };
   if (process.env.CLAUDE_PLUGIN_ROOT) {
     const pp = path.join(process.env.CLAUDE_PLUGIN_ROOT, "private", "phrases.json");
     if (fs.existsSync(pp)) return { path: pp, source: "plugin-private" };

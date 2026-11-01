@@ -249,15 +249,25 @@ test('shared paths module exports flagPath and evidencePath', () => {
   expect(evidenceKeysPath()).toContain('.jiahao-evidence.keys');
 });
 
-// #108 audit (CodeRabbit round 5): with no CLAUDE_CONFIG_DIR and no HOME,
-// the config dir resolves to os.homedir() (USERPROFILE on Windows) — /tmp
-// is neither the documented flag location nor guaranteed to exist.
+// #108 audit (CodeRabbit round 5): with no CLAUDE_CONFIG_DIR, no HOME and no
+// host root (#116), the config dir resolves to os.homedir() (USERPROFILE on
+// Windows) — /tmp is neither the documented flag location nor guaranteed to
+// exist.
 test('configDir falls back to os.homedir(), never /tmp', () => {
   const { configDir } = require(path.join(repoRoot, 'src', 'shared', 'paths.js'));
   const os = require('os');
-  const saved = { cc: process.env.CLAUDE_CONFIG_DIR, home: process.env.HOME };
+  const saved = {
+    cc: process.env.CLAUDE_CONFIG_DIR,
+    home: process.env.HOME,
+    qoder: process.env.QODER_CONFIG_DIR,
+    codebuddy: process.env.CODEBUDDY_CONFIG_DIR,
+    workbuddy: process.env.WORKBUDDY_CONFIG_DIR,
+  };
   delete process.env.CLAUDE_CONFIG_DIR;
   delete process.env.HOME;
+  delete process.env.QODER_CONFIG_DIR;
+  delete process.env.CODEBUDDY_CONFIG_DIR;
+  delete process.env.WORKBUDDY_CONFIG_DIR;
   try {
     expect(configDir()).toBe(os.homedir());
     expect(configDir()).not.toBe('/tmp');
@@ -266,6 +276,12 @@ test('configDir falls back to os.homedir(), never /tmp', () => {
     else process.env.CLAUDE_CONFIG_DIR = saved.cc;
     if (saved.home === undefined) delete process.env.HOME;
     else process.env.HOME = saved.home;
+    if (saved.qoder === undefined) delete process.env.QODER_CONFIG_DIR;
+    else process.env.QODER_CONFIG_DIR = saved.qoder;
+    if (saved.codebuddy === undefined) delete process.env.CODEBUDDY_CONFIG_DIR;
+    else process.env.CODEBUDDY_CONFIG_DIR = saved.codebuddy;
+    if (saved.workbuddy === undefined) delete process.env.WORKBUDDY_CONFIG_DIR;
+    else process.env.WORKBUDDY_CONFIG_DIR = saved.workbuddy;
   }
 });
 

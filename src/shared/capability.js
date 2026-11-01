@@ -39,7 +39,9 @@ const HINTS = {
 };
 
 function configDir(env) {
-  return env.CLAUDE_CONFIG_DIR || env.HOME || '/tmp';
+  // One resolution order, in src/shared/paths.js (#116): CLAUDE_CONFIG_DIR,
+  // then HOME, then the host's own config root, then os.homedir().
+  return require('./paths').configDirFrom(env);
 }
 
 function checkEnum(name) {
