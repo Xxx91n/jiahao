@@ -6,11 +6,69 @@ const os = require('os');
 const path = require('path');
 const { PREFIXES } = require('./prefix-vocab'); // prefix vocabulary fact source
 
+// Where jiahao keeps its own state. Resolution order, and why it is this one:
+//
+//   1. CLAUDE_CONFIG_DIR - the operator's explicit pin. Every host's docs tell
+//      an operator to use it, so it must keep winning everywhere.
+//   2. HOME - the location every host that already resolves today keeps
+//      resolving to. #116 requires that no host setting this variable moves,
+//      so a host's own root cannot outrank it. WorkBuddy's hook subprocess is
+//      the measured case: its PreToolUse guard had no CLAUDE_CONFIG_DIR and did
+//      have HOME, while the shell that ran the installer carried
+//      CLAUDE_CONFIG_DIR (owner's run, 2026-11-01, recorded in the ticket's
+//      comment rather than under docs/evidence/).
+//   3. The host's own config root, reported by the host to its hook
+//      subprocess. This is the #116 fix: Qoder Desktop hands a hook
+//      QODER_CONFIG_DIR and no CLAUDE_CONFIG_DIR / HOME, so before this step
+//      existed the resolution fell through to os.homedir() and the whole
+//      state - profile, evidence, sentinels - landed outside the directory
+//      the host itself names. Only these three names are listed because they
+//      are the ones a probe record shows a hook subprocess being handed; a
+//      host with no such variable falls to step 4 exactly as it did before.
+//   4. os.homedir() - the OS answer when no host marker exists at all. With
+//      process.env this is what USERPROFILE says, so the two agree; with an
+//      injected env, an explicit USERPROFILE is honoured first and this is
+//      only the last resort. Never '/tmp': on Windows that resolves against
+//      the current drive and is what #116 was filed about.
+//
+// A host that sets neither Claude variable and names no config root still
+// resolves to the OS home, which is where the previous order already sent a
+// hook that had HOME unset - so the only hosts whose location changes are the
+// ones that hand over a config root and neither Claude variable.
+const HOST_CONFIG_DIR_ENV = [
+  'QODER_CONFIG_DIR',
+  'CODEBUDDY_CONFIG_DIR',
+  'WORKBUDDY_CONFIG_DIR',
+];
+
+function hostConfigDir(env) {
+  for (const name of HOST_CONFIG_DIR_ENV) {
+    if (env[name]) return env[name];
+  }
+  return null;
+}
+
+// Same order, injectable environment: capability.js and detector.js resolve
+// the config dir from an env they may be handed rather than process.env, and
+// they must not grow a second copy of this order.
+//
+// USERPROFILE is step 4's input when the caller supplies an environment.
+// os.homedir() asks the OS, which is the right answer for process.env but the
+// wrong one for an injected env: a caller that hands over `{ USERPROFILE }`
+// and nothing else means that directory, and silently answering with the
+// process user's home made the injected value a lie (#116 ticket: "USERPROFILE
+// is what the host actually hands over").
+function configDirFrom(env) {
+  const e = env || process.env;
+  return e.CLAUDE_CONFIG_DIR
+    || e.HOME
+    || hostConfigDir(e)
+    || e.USERPROFILE
+    || os.homedir();
+}
+
 function configDir() {
-  // os.homedir() as the last resort, not /tmp: on Windows a hook process
-  // without HOME has USERPROFILE, and /tmp is neither the documented flag
-  // location nor guaranteed to exist (CodeRabbit #115 round 5).
-  return process.env.CLAUDE_CONFIG_DIR || process.env.HOME || os.homedir();
+  return configDirFrom(process.env);
 }
 
 function flagPath() {
@@ -86,4 +144,4 @@ function requireCorpus(name) {
   process.exit(1);
 }
 
-module.exports = { configDir, corpusDir, corpusPath, repoCorpusPath, requireCorpus, corpusMissingMessage, flagPath, evidencePath, evidenceKeysPath, profilePath, kappaBaselinePath, convictionLaneOffPath, convictionLaneEnforcePath };
+module.exports = { configDir, configDirFrom, HOST_CONFIG_DIR_ENV, flagPath, evidencePath, evidenceKeysPath, profilePath, kappaBaselinePath, convictionLaneOffPath, convictionLaneEnforcePath, corpusDir, corpusPath, repoCorpusPath, requireCorpus, corpusMissingMessage };

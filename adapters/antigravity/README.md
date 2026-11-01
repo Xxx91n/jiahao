@@ -19,16 +19,14 @@ host ended the turn without continuation. Evidence:
 1. `agy plugin install <path-to-adapters/antigravity>`
 2. `agy plugin list` to verify `jiahao` is imported and enabled.
 3. Activate the jiahao profile flag. In a POSIX shell:
-   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-/tmp}}"`
-   `mkdir -p "$CONFIG"`
+   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"; mkdir -p "$CONFIG"`
    `echo full > "$CONFIG/.jiahao-active"`
    `echo verifier > "$CONFIG/.jiahao-profile"`
    Start a new session after changing `.jiahao-profile`.
-   In PowerShell:
-   `$env:CLAUDE_CONFIG_DIR = Join-Path $HOME '.jiahao'`
-   `New-Item -ItemType Directory -Force -Path $env:CLAUDE_CONFIG_DIR | Out-Null`
-   `'full' | Set-Content (Join-Path $env:CLAUDE_CONFIG_DIR '.jiahao-active')`
-   `'verifier' | Set-Content (Join-Path $env:CLAUDE_CONFIG_DIR '.jiahao-profile')`
+   In PowerShell, resolve the same directory the hooks read and write there:
+   `$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1; New-Item -ItemType Directory -Force -Path $c | Out-Null`
+   `'full' | Set-Content (Join-Path $c '.jiahao-active')`
+   `'verifier' | Set-Content (Join-Path $c '.jiahao-profile')`
    Launch `agy` from that PowerShell session; start a new session after changing `.jiahao-profile`.
 
 Install, upgrade, and uninstall are the host's own plugin commands:
@@ -52,7 +50,10 @@ Timeouts stay inside the host budget (5/10/5s). Event names are the host's own P
 
 ## Write scope and network
 
-- Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else `$HOME`):
+- Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else `$HOME`;
+  a hook that gets neither takes a config root the host reports
+  (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`),
+  then the OS home):
   `.jiahao-active`, `.jiahao-profile`, `.jiahao-evidence/` (plus its sidecar
   and pairer shadow records), and the sentinel state and lock files. Nothing
   inside the repo or this plugin directory is written by a hook.

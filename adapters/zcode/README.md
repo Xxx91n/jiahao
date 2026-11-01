@@ -36,12 +36,15 @@ resolves `plugin@marketplace` names - a direct directory install is refused
    unsupported events of a Claude-shaped map silently, 7 events down to
    `hooks: 4`).
 5. Activate the jiahao profile flag, same as every host. Resolve the config
-   directory once (`CLAUDE_CONFIG_DIR`, else `$HOME`, else `/tmp`).
-   POSIX shell: `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-/tmp}}"`, then
+   directory once (`CLAUDE_CONFIG_DIR`, else `$HOME`; when a hook has neither,
+   it takes a config root the host reports (`QODER_CONFIG_DIR`,
+   `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`), then the OS home -
+   never `/tmp` (`src/shared/paths.js`).
+   POSIX shell: `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"; mkdir -p "$CONFIG"`, then
    `echo full > "$CONFIG/.jiahao-active"` and
    `echo verifier > "$CONFIG/.jiahao-profile"` for the blocking profile
    (`generator` for advisory-only). PowerShell:
-   `$c = If ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } Else { $HOME }`,
+   `$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1; New-Item -ItemType Directory -Force -Path $c | Out-Null`,
    then `Set-Content -NoNewline -Path "$c/.jiahao-active" -Value full` and
    `Set-Content -NoNewline -Path "$c/.jiahao-profile" -Value verifier`.
    Start a new session after changing `.jiahao-profile`.
@@ -120,7 +123,9 @@ gate. Commands and captured payloads live in
 ## Write scope and network
 
 - Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else
-  `$HOME`): `.jiahao-active`, `.jiahao-profile`, `.jiahao-evidence/`
+  `$HOME`; a hook that gets neither takes a config root the host reports
+  (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`),
+  then the OS home, never `/tmp`): `.jiahao-active`, `.jiahao-profile`, `.jiahao-evidence/`
   (plus its sidecar and pairer shadow records), `.jiahao-pretool.jsonl`, and
   the sentinel state and lock files. Nothing inside the repository or this
   plugin directory is written by a hook.

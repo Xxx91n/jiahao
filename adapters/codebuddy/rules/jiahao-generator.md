@@ -10,8 +10,9 @@ An agent cannot certify its own work; a completion claim needs a receipt from
 outside the author.
 
 Profile selection: the plugin version reads the `.jiahao-profile` flag file
-under `CLAUDE_CONFIG_DIR`, or `$HOME` when that variable is unset (`/tmp` is
-the code's last fallback), and enforces the selected profile with hooks;
+under `CLAUDE_CONFIG_DIR`, or `$HOME` when that variable is unset; when a hook
+gets neither it takes the host's own config root (a host that names one) and
+then the OS home - never `/tmp`, and enforces the selected profile with hooks;
 `verifier` is used when the file is absent. The rules version has no hook to
 read that file: it carries both profiles as instructions, the host takes what
 it needs, and hard blocking exists only in the plugin version.

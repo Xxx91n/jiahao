@@ -297,9 +297,14 @@ probe ran in the app's real config:
   (`command` + `args`), as #109's did; so does the host's own bundled plugin.
 - `SessionEnd`, `PreToolUse`, `PostToolUse`, `SubagentStop`, `Notification`, and
   the `prompt`/`agent` handler types on this build.
-- whether the shipped gate's evidence chain lands where it should: on this host
-  `configDir()` still falls through to `<drive>:\tmp` ([#116](https://github.com/Xxx91n/jiahao/issues/116)).
-  The block channel is what was measured.
+- whether the shipped gate's evidence chain lands where it should. At probe time
+  `configDir()` had no host-root step, so a Qoder hook read and wrote under
+  `<drive>:\tmp`; [#116](https://github.com/Xxx91n/jiahao/issues/116) has since
+  added `QODER_CONFIG_DIR` to the resolution, after `CLAUDE_CONFIG_DIR` and
+  `HOME`. That fix is **not** re-probed live on this variant here - its own
+  record says the in-app half is still pending - and the plugin path's
+  environment is unobserved, so this record only states what was measured: the
+  block channel.
 - the IDE/CLI line: no `qodercli` is on `PATH` and `~/.qoder/bin/` holds only
   `7zr.exe` and `qoder-computer-use/`.
 

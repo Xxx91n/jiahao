@@ -36,10 +36,10 @@ process.stdin.on('end', () => {
     process.exit(0);
   }
 
-  const configDir = process.env.CLAUDE_CONFIG_DIR || process.env.HOME || '/tmp';
-  const flagPath = configDir + '/.jiahao-active';
-  const mode = fs.existsSync(flagPath)
-    ? fs.readFileSync(flagPath, 'utf8').trim()
+  // Same resolution as the other hooks: src/shared/paths.js owns the order.
+  const activeFlag = require('../src/shared/paths').flagPath();
+  const mode = fs.existsSync(activeFlag)
+    ? fs.readFileSync(activeFlag, 'utf8').trim()
     : 'full';
 
   const skillPath = path.join(__dirname, '..', 'src', 'SKILL.md');

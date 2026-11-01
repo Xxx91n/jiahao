@@ -253,18 +253,21 @@ describe('tier disclosure', () => {
   });
 
   test('the settings-tier recipe is runnable as written', () => {
-    // Three ways the recipe failed a reader on PR #117: the copy step omitted
-    // src/, the flag went to $HOME while the hooks read CLAUDE_CONFIG_DIR, and
-    // the JSON path example had unescaped Windows separators. Each is pinned
-    // here so the prose cannot regress silently.
+    // Ways the recipe failed a reader before: the copy step omitted src/, the
+    // flag went to $HOME while the hooks read CLAUDE_CONFIG_DIR, and the JSON
+    // path example had unescaped Windows separators. Each is pinned here so the
+    // prose cannot regress silently.
     expect(readme).toContain('`hooks/`, `src/`, and\n   `src/SKILL.md` together');
     expect(readme).toContain('CLAUDE_CONFIG_DIR');
+    // #116: the recipe now says which variable outranks which, and it names the
+    // measured split between the desktop's hook environment and a shell that
+    // inherited another agent's CLAUDE_CONFIG_DIR.
+    expect(readme).toContain('WORKBUDDY_CONFIG_DIR');
+    expect(readme).toContain('env -u CLAUDE_CONFIG_DIR');
     // The recipe needs a shell the Windows desktop user actually has; both
-    // spellings are pinned, plus the `/tmp` -> `C:\tmp` fallback that bites when
-    // the desktop's environment resolves neither variable.
+    // spellings are pinned.
     expect(readme).toContain('Git Bash');
     expect(readme).toContain('Set-Content');
-    expect(readme).toContain('C:\\tmp');
     expect(readme).toContain('D:/Workbuddy.ai/jiahao');
     expect(readme).toMatch(/JSON string/);
     const update = readme.slice(readme.indexOf('## Update and uninstall'));

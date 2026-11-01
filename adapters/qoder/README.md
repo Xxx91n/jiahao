@@ -84,9 +84,10 @@ inheriting it:
   `USERPROFILE`, `TEMP` and `TMP`, but no `QODER_SESSION_ID`, no
   `CLAUDE_CONFIG_DIR` and no `HOME`. This was measured on a **project-scope
   `.qoder/settings.json` hook**; the plugin path has not been observed spawning a
-  hook, so whether it hands over the same environment is unproven. If it does,
-  #116's state-location defect applies to this build as well - see the
-  conditional wording in "Declared-unverified on this host".
+  hook, so whether it hands over the same environment is unproven. The state
+  location this env produced (state under `<drive>:\tmp`) is what #116
+  repaired in `src/shared/paths.js`; see the conditional wording in
+  "Declared-unverified on this host".
 
 Which messages got held: **5** blocks landed on "I completed and verified a
 read-only check" claims that were unfounded on their face (runs 1, 3, 4), and
@@ -154,22 +155,25 @@ unproven is this bundle blocking through the plugin path: see
 - **Whether a hook subprocess gets `QODER_SESSION_ID`.** It does not: the probe
   saw `QODER_PROJECT_DIR`, `QODER_CONFIG_DIR`, `USERPROFILE`, `TEMP` and `TMP`.
   That is why the hook map passes the platform name `qoder` on the command line.
-- **Where jiahao's own state lands on this host - measured on the settings path,
-  open on the plugin path.** The hook subprocess gets neither
-  `CLAUDE_CONFIG_DIR` nor `HOME`, and
-  `src/shared/paths.js` resolves its config directory as
-  `CLAUDE_CONFIG_DIR || HOME || '/tmp'`, so a hook spawned by Qoder reads and
-  writes `.jiahao-profile` and `.jiahao-evidence` under `<drive>:\tmp` instead of
-  the `QODER_CONFIG_DIR` the host does name (`~/.qoder-cn` on CN, `~/.qoder` on
-  international). **That measurement came from a project-scope
-  `.qoder/settings.json` hook.** Whether a plugin-path hook is spawned with the
-  same environment was not observed, so the plugin's state location is
-  **conditional on that**, not established: if the plugin hook also lacks both
-  variables it lands in the same place. The turn-end block above is unaffected -
-  it was measured through the hook's own stdout/stderr - but the shipped gate's
-  profile read and evidence chain are at stake on both paths. Repairing that is a
-  shared-path change reaching every host, tracked as #116 and deliberately not
-  made inside this exit.
+- **Where jiahao's own state lands on this host.** The hook subprocess gets
+  neither `CLAUDE_CONFIG_DIR` nor `HOME`, so before [#116](https://github.com/Xxx91n/jiahao/issues/116)
+  `src/shared/paths.js` fell through to its last resort and a hook spawned by
+  Qoder read and wrote `.jiahao-profile` and `.jiahao-evidence` under
+  `<drive>:\tmp` instead of the `QODER_CONFIG_DIR` (`~/.qoder-cn` on CN,
+  `~/.qoder` on international) the host does name. `paths.js` now takes that
+  host root after `CLAUDE_CONFIG_DIR` and `HOME`; a host that sets either one
+  does not move. The spawned-hook tests in `test/config-dir.test.js` run this
+  bundle's own hooks under the environment the #109 probe recorded (Qoder's two
+  variables, the two Claude ones absent) and read the directory back:
+  `SessionStart` creates `.jiahao-active` there, a reconciled sentinel appends
+  its evidence record under `<config>/.jiahao-evidence/`, and a spawned Stop
+  gate blocks out of the flag file it finds there. **That environment was
+  recorded on a project-scope `.qoder/settings.json` hook**; whether the
+  plugin path hands over the same variables was not observed, so on the plugin
+  path the fixed resolution is conditional on it. The live in-app half - a Qoder
+  session whose evidence chain is seen in `~/.qoder-cn` - is not yet in this
+  repository's records; the turn-end block above is unaffected either way,
+  because it was measured through the hook's own stdout/stderr.
 - **Which root registers hooks - now known for both builds.** Project-scope
   `.qoder/settings.json` fired and a `.qoder-cn/settings.json` placed beside it
   did not, on the CN build (#109) and again on the international one (#113).
