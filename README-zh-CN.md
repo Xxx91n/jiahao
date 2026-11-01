@@ -16,11 +16,16 @@
   核心唯一信念：<b>“凭证即一切”</b>。
 </p>
 
-AI Agent 普遍存在虚假完工综合征：不测就宣称搞定、报错找补借口自我安慰、思维链里脑补自嗨、长篇大论小作文挤占工具行动、自造黑话复合词装高大上。
+AI Agent 不测就宣称搞定、报错找借口自我安慰、长篇小作文挤占工具行动、自造黑话装高深。嘉豪装进去的是一份反制这些症状的行为契约；在支持钩子的宿主上，还会装上一道在回合结束前拦住无凭证声明的门。
 
-## 反自嗨五级行动阶梯
+## 装的是什么
 
-动作前置 · 探针锚定 · 红灯即停 · 目标核销 · 三行硬锁。完整行为契约见 [`src/SKILL.md`](src/SKILL.md)。
+反自嗨五级行动阶梯：动作前置、探针锚定、红灯即停、目标核销、三行硬锁。完整行为契约见 [`src/SKILL.md`](src/SKILL.md)，术语表在 [`GLOSSARY.md`](GLOSSARY.md)。
+
+两种发行形态共用一份内容源：
+
+- **规则版** —— `skills/jiahao/SKILL.md`，只有指令。没有钩子运行，不会拦截任何动作。
+- **插件版** —— `adapters/` 下八个自包含目录，各自接上宿主钩子，由 verifier 门禁在回合收尾拦住虚假完工。
 
 ## 安装
 
@@ -32,60 +37,64 @@ AI Agent 普遍存在虚假完工综合征：不测就宣称搞定、报错找�
 npx skills add Xxx91n/jiahao
 ```
 
-把 `skills/jiahao/SKILL.md` 装进读取标准 Agent Skills 目录的宿主。文件里两份纪律都在，宿主自行取用。没有钩子运行，因此不会拦截任何动作。6 个纯指令适配器目录（aider、cline、cursor、instruction-tier、opencode、windsurf）已退役；没有标准技能目录的宿主（例如 aider）在这个版本里没有打包适配器，但可以把生成的 `skills/jiahao/SKILL.md` 当普通文本复制过去。
+把 `skills/jiahao/SKILL.md` 装进读取标准 Agent Skills 目录的宿主。文件里两份纪律都在，宿主自行取用。
+
+6 个纯指令适配器目录（aider、cline、cursor、instruction-tier、opencode、windsurf）已退役。没有标准技能目录的宿主在本版本没有打包适配器，可以把生成的 `skills/jiahao/SKILL.md` 当普通文本复制过去。
 
 #### Qoder：Desktop 插件出口（两个 Desktop 变体都是 A 档）与 IDE/CLI 规则（C 档）
 
-Qoder 现在有两个产品，读的路径不同。**Qoder Desktop**（0.x 工作台）有两个出口。不要求强制的那个，是把规则版装进它的标准技能目录；Qoder CN 上，#106 在 Desktop 0.4.11 上检查到用户级规则路径未被加载：
+Qoder 有两个产品线，读的路径不同。**Qoder Desktop**（0.x 工作台）把规则版装进它的标准技能目录——Qoder CN Desktop 0.4.11 上，#106 探到 `~/.qoder` 下的用户级 `rules/` 目录未被加载（该次检查只测了这一条规则路径），所以 CN 安装走 CN 自己的技能目录：
 
 ```bash
-npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # Qoder CN → ~/.qoder-cn/skills/jiahao/SKILL.md
+npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # → ~/.qoder-cn/skills/jiahao/SKILL.md
 ```
 
-2026-10-31 的安装命令 exit 0，落地的 `SKILL.md` 与仓库里的 `skills/jiahao/SKILL.md` SHA-256 一致（Run A）。新开独立会话能看到该技能，这是 #106 另一次运行（Run B）的记录，本次未重跑（见[运行记录](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md)）。国际版别名是 `-a qoder`，其落地路径与加载本机尚未真机验证。这条路只加载规则，没有强制。
-
-要强制，就是第六个自包含目录 [`adapters/qoder/`](adapters/qoder/)，而 **Qoder CN Desktop 0.4.11 是 A 档宿主**：2026-10-31 的真机会话里（#109），`Stop` 钩子以 exit 0 返回 `{"decision":"block"}` 后，宿主把回合按住并续跑——其中 6 次拦的是拿不出任何凭证的「已完成并验证」声明，1 次拦的是同一句话包了层「这是探针载荷」限定语。同一个钩子改用 exit 2 + stderr 同样能阻断续跑（3 次），但那三条消息自己就写着「本轮未做任何验证」，所以那一轮证明的是通道成立，不是拦下了假完工。宿主在每次重入都把 `stop_hook_active` 置为 true，并连续接受 6 次阻断续跑，直到探针自带的上限放行才结束回合。这次阻断是用项目级 `.qoder/settings.json` 注册的钩子观察到的；把这个目录作为 Desktop 插件安装属于 declared-unverified。**国际版 Qoder Desktop 0.4.11 另行实测过**：2026-11-01（#113）在它自己的会话里，`Stop` 钩子同样两条通道都成立——exit 0 返回扁平 `{"decision":"block"}`，以及 exit 2 + stderr（宿主记 `success=false exit_code=2`，理由照样回注）；宿主每次重入都把 `stop_hook_active` 置 true，探针自带上限之前连续接受 3 次阻断；同时武装的 `.qoder-cn/settings.json` 一次都没触发，与 CN 的结论一致。它那 7 次阻断里，**5** 次拦的是拿不出凭证的「已完成并验证」声明（这 5 句由探针提示词指定原样输出，所以证明的是 block 会对自相矛盾的声明生效，不是模型自己编的），**2** 次拦的是自己声明「未做验证」的文本（exit 2 那一轮，以及被模型拒绝后以引用形式给出的那条——标记命中，不是假完工命中）。见 [qoder-intl-hook-probe-2026-11-01.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-hook-probe-2026-11-01.md)。随那个出口一起落地的实测缺陷已在 [#116](https://github.com/Xxx91n/jiahao/issues/116) 修掉：在**项目级 `.qoder/settings.json` 钩子**里，Qoder 给子进程的环境变量既没有 `CLAUDE_CONFIG_DIR` 也没有 `HOME`，当时的路径解析会让出厂 gate 的 `.jiahao-profile` 与 `.jiahao-evidence` 落到 `<盘>:\tmp`，而不是宿主自己点名的 `~/.qoder-cn`（国际版是 `~/.qoder`）。现在 `src/shared/paths.js` 在 `CLAUDE_CONFIG_DIR`、`HOME` 之后取宿主自己的配置根（`QODER_CONFIG_DIR`），所以 Qoder 的钩子落在自己的配置根里面；设了这两个 Claude 变量中任一个的宿主不会搬家。插件路径的钩子拿不拿到同一套环境没有观测过，那条通道上的修复以这一点为前提。档位结论从不依赖这个落点（阻断是从钩子自己的通道看到的），而「Qoder 会话的证据链在 `~/.qoder-cn` 里被看到」这一条真机观测，本仓库的记录里还没有。CN 的运行记录见 [qoder-hook-probe-2026-10-31.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md)。
-
+2026-10-31 的安装 exit 0，落地文件的 SHA-256 与 `skills/jiahao/SKILL.md` 一致（[运行记录](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md)）。CN 技能路径只加载规则，没有强制。国际版别名 `-a qoder` 写 `~/.qoder/skills/`，落地路径与加载未真机验证。要强制，是自包含目录 [`adapters/qoder/`](adapters/qoder/)，由 Desktop 的插件设置以本地压缩包安装。两个 Desktop 变体都 **A 档**，各自经项目级 `.qoder/settings.json` 的 `Stop` 钩子实测——Qoder CN Desktop 0.4.11 于 2026-10-31（[qoder-hook-probe-2026-10-31.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md)，#109），国际版 Desktop 0.4.11 于 2026-11-01（[qoder-intl-hook-probe-2026-11-01.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-hook-probe-2026-11-01.md)，#113）。两个版本上 `Stop` 钩子都在两条通道按住过真实回合收尾（exit 0 返回扁平 `{"decision":"block"}`，以及 exit 2 + stderr），每次重入 `stop_hook_active` 都置 true，连续按住数到探针自带上限为止。把 `adapters/qoder/` 当 Desktop 插件安装属 declared-unverified；#116 修的状态落点缺陷，在插件路径上以「同一套环境变量」为前提，那条路径没有观测过。分版本的完整记录见 [`adapters/qoder/README.md`](adapters/qoder/README.md)。
 
 **Qoder IDE/CLI** 读取项目级 `.qoder/rules/`。该目录里的 `rules/jiahao.md` 就是这个出口：规则文件与规则版同源，不注册任何东西。把它复制到 `.qoder/rules/`；这条路径的宿主加载行为属于 declared-unverified，尚未真机验证。三条路径与验证状态见该目录 README。
 
 ### 插件版 —— 宿主原生命令，带钩子
 
-CodeBuddy 是八个插件目录之一（另外七个是 Claude Code、GitHub Copilot CLI、Codex CLI、Google Antigravity、Qoder、ZCode 与 WorkBuddy，见下文）：
+八个自包含目录，各有自己的安装 README。**A 档**指在记录的宿主版本上真机拦下过回合收尾；细节与凭证在链接的 README 和 [`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/)。
 
-```bash
-codebuddy plugin install <path-to>/adapters/codebuddy
-```
+| 宿主 | 安装 | 档位 |
+| --- | --- | --- |
+| Claude Code | `claude plugin marketplace add Xxx91n/jiahao` 后 `claude plugin install jiahao@jiahao` | declared-unverified：真机回合拦截尚未实测（[`adapters/claude-code/`](adapters/claude-code/)） |
+| CodeBuddy | `codebuddy plugin install <路径>/adapters/codebuddy` | declared-unverified：CLI 安装路径未实测；已验证的回退是合并 `.codebuddy/settings.json`（[`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)） |
+| GitHub Copilot CLI | `copilot plugin install <路径>/adapters/copilot` | **A** —— Copilot CLI 1.0.105，2026-10-30（[`adapters/copilot/README.md`](adapters/copilot/README.md)） |
+| Codex CLI | `codex plugin marketplace add Xxx91n/jiahao` 后 `codex plugin add jiahao --marketplace jiahao` | **A** —— codex-cli 0.163.0，2026-10-30（[`adapters/codex/README.md`](adapters/codex/README.md)） |
+| Google Antigravity | `agy plugin install <路径>/adapters/antigravity` | **A** —— Antigravity 1.2.12，2026-10-31（[`adapters/antigravity/README.md`](adapters/antigravity/README.md)） |
+| Qoder Desktop | Desktop 插件设置里装本地压缩包 | 两个变体都 **A 档**：CN 0.4.11（#109）、国际版 0.4.11（#113）；插件安装路径本身 declared-unverified（[`adapters/qoder/README.md`](adapters/qoder/README.md)） |
+| ZCode | `zcode plugins marketplace add <路径>/adapters/zcode` 后 `zcode plugins install jiahao@jiahao-zcode` | **A** —— ZCode 3.16.2，2026-10-31；四个钩子面 2026-11-01 合并后实测（[`adapters/zcode/README.md`](adapters/zcode/README.md)） |
+| WorkBuddy | 自带 CLI 用 `codebuddy plugin add <路径>/adapters/workbuddy`，或把钩子表并进 `~/.workbuddy-ai/settings.json` / `~/.workbuddy/settings.json` | 两个变体都 **A 档**：WorkBuddy AI 5.9.4（#110）、国内版 5.9.3（#118）（[`adapters/workbuddy/README.md`](adapters/workbuddy/README.md)） |
 
-插件默认关闭（`defaultEnabled: false`），安装后需要显式启用。随后用安装器写入 profile（`node scripts/install.js init -y`），它会打印实际写入的值（见 Profile）。启用后 `hooks/hooks.json` 接上 verifier 纪律的强制拦截。插件同时带两份 `alwaysApply: true` 的规则文件；规则级 profile 选择属于待确认，强制层是钩子。CLI 插件安装路径已记录但属于待确认；现场验证过的回退路径是合并 `.codebuddy/settings.json`。完整安装步骤、钩子表，以及已验证 / 待确认边界见 [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)。Claude Code 是第二个插件目录：自包含插件在 [`adapters/claude-code/`](adapters/claude-code/)，用仓库根的 marketplace 安装——`claude plugin marketplace add Xxx91n/jiahao`、`claude plugin install jiahao@jiahao`。钩子表与尚未真机验证的部分见该目录的 README。
+MCP 服务端留在仓库 [`jiahao-mcp/`](https://github.com/Xxx91n/jiahao/tree/main/jiahao-mcp)，不是安装出口。
 
-mcp 目录不再作为安装出口；MCP 服务端本身保留在 [`jiahao-mcp/`](https://github.com/Xxx91n/jiahao/tree/main/jiahao-mcp)。GitHub Copilot CLI 是第三个自包含目录（`copilot plugin install <路径>/adapters/copilot`），档位是 **A 档**：2026-10-30 在 Copilot CLI 1.0.105 的真机会话里，假完工只在 `agentStop` 以 exit 0 返回 `{decision:"block"}` 后继续；exit 2 不阻断；连续 8 次阻断续跑后，第 9 次阻断时 CLI 结束回合。方言（驼峰事件名、bash / powershell 两支、决策字段阻断）、`.claude/settings.json` 实测与证据路径都写在它的 README 里。Codex CLI 是第四个自包含目录，用仓库里的 Codex marketplace（`.agents/plugins/marketplace.json`）安装——`codex plugin marketplace add Xxx91n/jiahao`、`codex plugin add jiahao --marketplace jiahao`；它的钩子命令要一次性信任（`/hooks`），Codex 0.163.0 默认就开着钩子（未信任插件的钩子在 `codex exec` 里被静默跳过，无人值守需持久化信任或 `--dangerously-bypass-hook-trust`）。Codex 同样是 **A 档**：2026-10-30 在 codex-cli 0.163.0 的真机会话里，回合只在 Stop 以 exit 0 返回 `{decision:"block"}` 后继续；exit 2 + stderr 不阻断。细节与证据路径见 [`adapters/codex/README.md`](adapters/codex/README.md) 与 [docs/evidence/v0.3.0/](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/)。Google Antigravity 是第五个自包含目录（`agy plugin install <路径>/adapters/antigravity`），档位是 **A 档**：2026-10-31 在 Google Antigravity 1.2.12 的真机会话里，假完工在 Stop 以 exit 0 返回 `{decision:"block"}` 后继续，理由作为 `<SYSTEM_MESSAGE>` 注入；exit 2 不阻断；连续 10 次阻断后达到 `MAX_FORCED_INVOCATIONS` 终止。细节与证据路径见 [`adapters/antigravity/README.md`](adapters/antigravity/README.md) 与 [docs/evidence/v0.3.0/](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/)。Qoder 是第六个自包含目录：本仓库没有 Qoder 的 marketplace，它由 Desktop 的插件设置以本地压缩包安装（用户级），方言只写在 `scripts/hosts/qoder.js` 一处——清单是 `.qoder-plugin/plugin.json`，钩子映射 `hooks/hooks.json` 由宿主自己发现，命令用 `${QODER_PLUGIN_ROOT}` 并在参数里带上平台名 `qoder`（宿主的钩子子进程拿不到 `QODER_SESSION_ID`）。A 档结论按变体各自实测，都走项目级 `.qoder/settings.json` 的钩子：Qoder CN Desktop 0.4.11 于 2026-10-31（#109），国际版 Desktop 0.4.11 于 2026-11-01（#113）；插件安装路径仍属 declared-unverified，见 [qoder-hook-probe-2026-10-31.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md) 与 [qoder-intl-hook-probe-2026-11-01.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-hook-probe-2026-11-01.md)。ZCode 是第七个自包含目录，用包内自带货架安装——`zcode plugins marketplace add <路径>/adapters/zcode` 后 `zcode plugins install jiahao@jiahao-zcode`（直接 `zcode plugins install <目录>` 会被宿主拒绝），档位是 **A 档**：2026-10-31 在 ZCode 3.16.2 的真机会话里，回合收尾被 Stop 以 exit 0 返回 `{decision:"block"}` 拦下，阻断原因作为下一回合的上下文回注。它的 README 写明七事件方言（没有 sweep 钩子：宿主不存在 `SessionEnd`）、载荷双拼写、config 目录兜底与证据路径。 WorkBuddy 是第八个自包含目录，装在 [`adapters/workbuddy/`](adapters/workbuddy/)（桌面自带的 CLI 用 `codebuddy plugin add <路径>`），或把它的钩子表并进 `~/.workbuddy-ai/settings.json`。它不是 CodeBuddy 的别名：两个变体分属两个产品名与两个配置根（国际版 WorkBuddy AI 5.9.4 用 `~/.workbuddy-ai`，国内版 WorkBuddy 5.9.3 用 `~/.workbuddy`）。国际版是 **A 档**：2026-10-31 在 5.9.4 的真机会话里，假完工只在 `Stop` 以 exit 0 返回 `{decision:"block"}` 后继续，原因以 `Stop hook feedback` 注入。`SubagentStop` 同样发出了决策，但子代理**没有**被续跑，所以只接回合结束这一个事件。国内版 5.9.3 是**在自己那一跑里拿到的 A 档**：2026-11-01 在国内版真机会话里（`D:\WorkBuddy`，配置根 `~/.workbuddy`），假完工只在 `Stop` 以 exit 0 返回 `{decision:"block"}` 后继续（exit 0 是探针按构造写死的，那一跑直接观测到的是宿主在读取决策后继续），原因以 `Stop hook feedback` 注入，重入时 `stop_hook_active` 为 `true`。两个变体共用一个 agent CLI，但两行各有各的观测，谁都不从对方推出来；两次观测都用探针钩子顶替发货的 gate，证明的是宿主的回合结束通道，不是 gate 判定在真机跑过。方言与「实测 / 未实测」清单见 [`adapters/workbuddy/README.md`](adapters/workbuddy/README.md)。
+## Profile
 
-
-### Profile
-
-插件版在没有 `.jiahao-profile` 时缺省为 `verifier`。标记文件位于 `CLAUDE_CONFIG_DIR`，未设置时取 `$HOME`；两者都没有时取宿主报出的配置根（`QODER_CONFIG_DIR`、`CODEBUDDY_CONFIG_DIR` 或 `WORKBUDDY_CONFIG_DIR`），再没有才退到操作系统给的家目录，不再退到 `/tmp`。在克隆里运行安装器；`-y` 接受缺省值并打印实际写入的值：
+插件版在没有 `.jiahao-profile` 时缺省为 `verifier`。标记文件位于 `CLAUDE_CONFIG_DIR`，未设置取 `$HOME`；两者都没有取宿主报出的配置根（`QODER_CONFIG_DIR`、`CODEBUDDY_CONFIG_DIR` 或 `WORKBUDDY_CONFIG_DIR`），再没有退到操作系统家目录，不退到 `/tmp`。用安装器写入；`-y` 接受缺省并打印实际写入值：
 
 ```bash
 node scripts/install.js init -y
 # Wrote "verifier" to <config-dir>/.jiahao-profile
 ```
 
-改完 profile 后要重开会话。标记文件由同一个配置目录下的所有 agent 共用；并发使用不同 profile 时，给每个 agent 单独的 `CLAUDE_CONFIG_DIR`。
+改完 profile 重开会话。标记文件由同一配置目录下的所有 agent 共用；并发用不同 profile 时给各自单独的 `CLAUDE_CONFIG_DIR`。规则版没有运行时 profile 切换。
 
-规则版没有运行时 profile 切换。
+## 升级
 
-### 升级
+版本号只在 `package.json` 里。规则版：重跑安装时那条 `npx skills add`，范围参数保持一致（项目级不带 `-g`，全局级带 `-g -a <host> -y --copy`）；`npx skills update jiahao -g -y` 只更新全局安装，skills 1.7.4 在本地路径源下项目级 `update` 报无匹配——该环境用重跑 `add` 升级。插件版（Claude Code）：`claude plugin marketplace update jiahao`，再 `claude plugin update jiahao@jiahao`。CodeBuddy 走自己的安装路径，或用新 bundle 重做已验证的 settings 合并。升级后重开会话。升级不改 `.jiahao-profile` 与 `.jiahao-active`。
 
-版本号只在 `package.json` 里。规则版：重跑安装时那条 `npx skills add`，范围参数保持一致——项目级不带 `-g`，全局级带 `-g -a <host> -y --copy`。`npx skills update jiahao -g -y` 只更新全局安装；skills 1.7.4 在本机（Windows、本地路径源）的项目级 `update` 报无匹配并 exit 127；在该环境下项目级用重跑 `add` 升级。插件版（Claude Code）：`claude plugin marketplace update jiahao`，再 `claude plugin update jiahao@jiahao`。CodeBuddy 用宿主自己的插件更新/安装路径（CLI 安装路径 declared-unverified，见 [`adapters/codebuddy/README.md`](adapters/codebuddy/README.md)），或用新的 bundle 重做已验证的 settings 合并。升级后重开会话。升级不改配置目录里的 `.jiahao-profile` 与 `.jiahao-active`。
+## 边界与限制（limitations）
 
-### 私有语料
-
-私有评测语料 `private/bench-corpus/` 是维护者/CI 资产：不在 npm 包里，也不在本仓库的跟踪文件里。`bench/` 下的冻结评测记录是跟踪的，不属于这份私有语料。门禁需要时，用 `JIAHAO_CORPUS_DIR` 指向本地副本。运行时钩子不依赖它。
+- 规则版只有指令；硬拦截只存在于插件版的钩子里。
+- 宿主没有钩子能力就没有驻留注入——回退方式是按需调用技能。
+- 嘉豪不替代单测或 CI，它是要你来跑单测和 CI 的纪律。目标是虚假完工综合征，不是通用提示词优化。
+- 档位是具名宿主版本在发布期的实测结论，不是永久属性。`declared-unverified` 指从宿主文件断言、没看着发生；标签定义见 [`docs/agents/evidence-review.md`](docs/agents/evidence-review.md)。
+- 私有评测语料 `private/bench-corpus/` 是维护者/CI 资产：不在 npm 包里，也不被本仓库跟踪。`bench/` 下的冻结记录是跟踪的，不属于这份语料。门禁需要时用 `JIAHAO_CORPUS_DIR` 指向本地副本。运行时钩子不依赖它。
+- 第二方审计若与生成方共用模型、上下文、数据，停下来声明 NOT VERIFIED——自证只是连贯性证据，不是独立性证据。
 
 ## 本地物理检验
-
-以下命令在磁盘上检查代码、生成产物与仓库状态：
 
 ```bash
 npm test                                # 全量 Jest 测试
@@ -95,10 +104,10 @@ npm run check:whitespace                # 行尾空白 / EOF 空行，未跟踪�
 npm run check:links                     # 包里 Markdown 的相对链接必须落在包内
 ```
 
-`git diff --check` 只看看 diff 带出来的行，没 `git add` 过的新文件和未跟踪文件末尾的空行都会漏掉；`npm run check:whitespace` 直接读全部已跟踪与未跟踪的文本文件。
+`git diff --check` 只看 diff 带的行，没 `git add` 的新文件、未跟踪文件末尾的空行都会漏；`npm run check:whitespace` 直接读全部已跟踪与未跟踪的文本文件。
 
-发布 tag 上还会多跑一条 `npm run release:gate -- --tag vX.Y.Z`：把上面的检查与 tag/版本一致、包内容断言、产物 SHA256、安装 dry-run、无网络外呼合并成一道门。门禁证明什么、包里有什么、安装会写哪里、怎么在干净检出上复跑，见 [`docs/release.md`](docs/release.md)。
+发布 tag 多跑一条 `npm run release:gate -- --tag vX.Y.Z`：上面的检查加 tag/版本一致、包内容断言、产物 SHA256、安装 dry-run、无网络外呼。门禁证明什么、怎么在干净检出复跑，见 [`docs/release.md`](docs/release.md)。
 
 ## 开源协议
 
-MIT
+MIT（[`package.json`](package.json)）；仓库里没有单独的 LICENSE 文件。

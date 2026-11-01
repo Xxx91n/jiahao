@@ -1,5 +1,7 @@
 # CodeBuddy Adapter (first Claude-Code-compatible path host)
 
+## What this is
+
 This directory is a **self-contained plugin bundle**: CodeBuddy recognizes
 `.claude-plugin/` and `${CLAUDE_PLUGIN_ROOT}` verbatim (official
 Claude-Code compatibility chapter; `${CODEBUDDY_PLUGIN_ROOT}` takes
@@ -36,9 +38,11 @@ server are vendored inside, so nothing resolves outside the bundle.
 
 Settings-tier alternative (CLI): merge the hook map into
 `.codebuddy/settings.json` and copy the rules into `.codebuddy/rules/`.
-The settings path is the one live-verified end to end (see tiering below).
+The settings path is the one live-verified at SessionStart, PreToolUse, and
+PostToolUse; turn-end blocking was not probed on this host (see
+"Verified and declared-unverified").
 
-## Hook behavior disclosure (read before enabling)
+## Hook map
 
 Plugin `hooks/hooks.json` entries are **exempt from the
 `allowUntrustedFrontmatterHooks` gate** - unlike skill/agent frontmatter
@@ -60,37 +64,57 @@ Timeouts stay within the 60s host budget (5/5/5/10/3/5/5s). Commands are
 Git-Bash-compatible `node` invocations (cmd/PowerShell unsupported by the
 host). Event matchers are case-sensitive - none are narrowed here.
 
+## Dialect
+
 **Rule-loading caveat.** The bundle ships both `rules/jiahao-verifier.md`
 and `rules/jiahao-generator.md` with `alwaysApply: true`. The hook injects
 the profile selected by `.jiahao-profile`, but if the host applies both
 always-apply rule files, the two instruction sets coexist. Rule-level profile
 selection is declared-unverified; the hook is the enforcement layer.
 
-## Injection-surface ruling - Verified vs Declared-unverified
+## Verified and declared-unverified
 
-### Verified (CodeBuddy Code CLI 2.151.0, live-probed)
+Measured on CodeBuddy Code CLI 2.151.0 (live-probed).
 
-| Point | Evidence |
-| --- | --- |
-| `.codebuddy/settings.json` hooks: SessionStart / PreToolUse / PostToolUse | hook_event_name + hookSpecificOutput envelope live-verified |
-| PreToolUse `permissionDecision: "deny"` envelope | verified deny shape on CLI |
-| MCP server registration via `.mcp.json` | stdio connect + tool list verified |
+**Verified:**
 
-### Declared-unverified (documented, not live-probed - pending-confirmation)
+- `.codebuddy/settings.json` hooks (SessionStart / PreToolUse / PostToolUse):
+  the `hook_event_name` + `hookSpecificOutput` envelope was live-verified.
+- PreToolUse `permissionDecision: "deny"` envelope: verified deny shape on
+  the CLI.
+- MCP server registration via `.mcp.json`: stdio connect + tool list
+  verified.
 
-| Point | Status |
-| --- | --- |
-| IDE-side hook parity, incl. `InstructionsLoaded` firing | pending-confirmation |
-| `rules/` non-`alwaysApply` load priority (both forms) | pending-confirmation |
-| `npx`-bundled install vs `codebuddy plugin install` coexistence | pending-confirmation |
-| Plugin-bundle path parity on CLI (documented compat, unprobed live) | pending-confirmation |
+**Declared-unverified / not probed** (the limitations of this record):
+
+- IDE-side hook parity, incl. `InstructionsLoaded` firing: pending-confirmation.
+- `rules/` non-`alwaysApply` load priority (both forms): pending-confirmation.
+- `npx`-bundled install vs `codebuddy plugin install` coexistence:
+  pending-confirmation.
+- Plugin-bundle path parity on CLI (documented compat, unprobed live):
+  pending-confirmation.
 
 Unverified means **registered, not assumed**: each row has a
-pending-confirmation entry in the taxonomy exception channel (
-schema) with an expiry and an owner ratify/revoke point. Windows note: the
-upstream `${CLAUDE_PLUGIN_ROOT}` hook expansion bug
-(anthropics/claude-code issues) may carry over - the settings-tier path is
-the verified fallback.
+pending-confirmation entry in the taxonomy exception channel (schema) with an
+expiry and an owner ratify/revoke point. Windows note: the upstream
+`${CLAUDE_PLUGIN_ROOT}` hook expansion bug (anthropics/claude-code issues)
+may carry over - the settings-tier path is the verified fallback.
+
+## Write scope and network
+
+- Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else
+  `$HOME`; a hook that gets neither takes a config root the host reports
+  (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`),
+  then the OS home, never `/tmp`): `.jiahao-active`, `.jiahao-profile`,
+  `.jiahao-evidence/` (plus its sidecar and pairer shadow records),
+  `.jiahao-pretool.jsonl`, `.jiahao-instructions.jsonl` (the
+  InstructionsLoaded telemetry log, which carries session IDs), and the
+  sentinel state and lock files. Nothing inside the repository or this plugin
+  directory is written by a hook.
+- No network calls: no hook fetches anything. The hook scripts have no
+  third-party runtime dependency; the vendored MCP server has its own
+  (`@modelcontextprotocol/sdk`, `zod`), installed with
+  `npm install --omit=dev` inside `jiahao-mcp/` as above.
 
 ## Trial boundary
 

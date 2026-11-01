@@ -1,17 +1,13 @@
 # ZCode Adapter (self-contained plugin, A tier, live-probed 2026-10-31)
 
+## What this is
+
 This directory is a **self-contained ZCode plugin**: the manifest
 (`.zcode-plugin/plugin.json`), the hook map (`hooks/hooks.json`), the hook
 scripts and their `require()` closure, `src/SKILL.md`, and the identity pin
 the gate loads are vendored inside; there is no third-party runtime
 dependency. Every hook command resolves through `${ZCODE_PLUGIN_ROOT}`, so
 nothing reads from the repository root.
-
-**Capability tier: A (verified 2026-10-31, ZCode 3.16.2, win32).** A live
-desktop session's turn end was blocked by the Stop hook answering
-`{decision:"block"}` on exit 0, and the block reason arrived back as the
-next turn's context. Evidence:
-[`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 ## Install (host-native commands)
 
@@ -62,7 +58,7 @@ Uninstall is `zcode plugins uninstall jiahao@jiahao-zcode --force`
 uninstall are the host's own plugin commands; the repository root is never a
 plugin entry.
 
-## Hook behavior disclosure (read before enabling)
+## Hook map
 
 ZCode's event set is exactly seven (`SessionStart`, `UserPromptSubmit`,
 `PreToolUse`, `PermissionRequest`, `PostToolUse`, `PostToolUseFailure`,
@@ -101,27 +97,84 @@ codes in `hooks/jiahao-runtime.js`.
   argv, so `detectHost()` falls back to the `ZCODE_SESSION_ID` environment
   marker.
 
-## Live probe (2026-10-31, ZCode 3.16.2, win32)
+## Verified and declared-unverified
 
-The probe ran in a real desktop session in this repository's workspace, with
-a throwaway workspace hook config and a logging wrapper standing in for the
-gate. Commands and captured payloads live in
+Capability tier: **A (verified 2026-10-31, ZCode 3.16.2, win32)**. A live
+desktop session's turn end was blocked by the Stop hook answering
+`{decision:"block"}` on exit 0, and the block reason arrived back as the
+next turn's context. Evidence:
 [`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
-| Point | Result |
-| --- | --- |
-| A real turn-end block (Stop + `decision:"block"`) | **Verified**: the real bundled gate blocked a session's turn end (verifier profile, empty evidence chain); the reason arrived as the next turn's context |
-| Exit 2 as the block channel | **Verified, refuted as the gate's channel**: exit 2 also blocked, but with the host's generic "Hook blocked execution" and no reason; the gate keeps exit 0 + the decision field, which carries the reason |
-| `stop_hook_active` on the continuation | **Verified**: `true` on every post-block Stop (both spellings); the gate's pass-through needs no change |
-| Consecutive-block cap | **Verified**: three consecutive block continuations were honored (fires #1-#4 in `zcode-stop-fires.jsonl`); the fourth consecutive block was followed by the turn ending without a further continuation (the session user was present at that boundary) |
-| Payload spellings | **Verified**: both snake_case and camelCase on every fire |
-| Hook config read at session start | **Verified**: mid-session config did not fire until restart |
-| `zcode plugins validate` on the bundle | **Verified**: exit 0, "Plugin manifest is valid" |
-| Install through the bundle's own marketplace shelf | **Verified**: `marketplace add <this dir>` + `plugins install jiahao@jiahao-zcode` installed the bundle `[enabled]`; `plugins list` reports `hooks: 4`; the cached hook map, manifest, and gate are byte-identical to the generated bundle |
-| Repository root as the marketplace | **Refuted for this bundle**: the host resolved `.claude-plugin/marketplace.json` and installed the Claude Code bundle |
-| Direct `zcode plugins install <dir>` | **Refuted**: refused with "Plugin not found in any marketplace" |
-| Plugin-path hooks in the operator's restarted session (2026-11-01, post-merge formal install) | **Verified**: all four registered events observed live - SessionStart injected the rules body, UserPromptSubmit injected the mode reminder, PreToolUse **denied** a tool call whose command text named the state/evidence files (bypass-attempt telemetry written per the deny envelope), and Stop **blocked** a jargon-wrapped no-evidence completion claim with the Case A reason verbatim before passing on `stop_hook_active` after rung-1 verification |
-| SessionStart `additionalContext` injection | **Verified**: the injected rules body arrived as the next turn's hook additional context in the restarted session |
+**Verified** (live probe 2026-10-31, ZCode 3.16.2, win32, in a real desktop
+session in this repository's workspace with a throwaway workspace hook config
+and a logging wrapper standing in for the gate; commands and captured payloads
+live in
+[`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/)):
+
+- A real turn-end block (Stop + `decision:"block"`): the real bundled gate
+  blocked a session's turn end (verifier profile, empty evidence chain); the
+  reason arrived as the next turn's context.
+- `stop_hook_active` on the continuation: `true` on every post-block Stop
+  (both spellings); the gate's pass-through needs no change.
+- Consecutive-block cap: three consecutive block continuations were honored
+  (fires #1-#4 in `zcode-stop-fires.jsonl`); the fourth consecutive block was
+  followed by the turn ending without a further continuation (the session user
+  was present at that boundary).
+- Payload spellings: both snake_case and camelCase on every fire.
+- Hook config read at session start: mid-session config did not fire until
+  restart.
+- `zcode plugins validate` on the bundle: exit 0, "Plugin manifest is valid".
+- Install through the bundle's own marketplace shelf:
+  `marketplace add <this dir>` + `plugins install jiahao@jiahao-zcode`
+  installed the bundle `[enabled]`; `plugins list` reports `hooks: 4`; the
+  cached hook map, manifest, and gate are byte-identical to the generated
+  bundle.
+- Plugin-path hooks in the operator's restarted session (2026-11-01,
+  post-merge formal install): all four registered events observed live -
+  SessionStart injected the rules body, UserPromptSubmit injected the mode
+  reminder, PreToolUse **denied** a tool call whose command text named the
+  state/evidence files (bypass-attempt telemetry written per the deny
+  envelope), and Stop **blocked** a jargon-wrapped no-evidence completion
+  claim with the Case A reason verbatim before passing on
+  `stop_hook_active` after rung-1 verification.
+- SessionStart `additionalContext` injection: the injected rules body arrived
+  as the next turn's hook additional context in the restarted session.
+- Offline, pinned by `test/plugin-bundles.test.js` (structure, run once per
+  host row) and `test/zcode-adapter.test.js` (the ZCode envelope and the
+  bundled Stop gate, spawned as a subprocess from a temp materialization of
+  the generator output): the manifest parses, its version and license come
+  from `package.json`, every referenced file is emitted (`--check` pins the
+  emitted set to disk), every hook command stays inside
+  `${ZCODE_PLUGIN_ROOT}`, and no vendored relative `require()` escapes the
+  bundle.
+- The hook's own exit code, stdin, and stdout are recorded by the probe
+  wrapper:
+  [`probes/zcode-stop-wrapper.js`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/zcode-stop-wrapper.js)
+  logs one JSON line per fire (payload and environment key names), and in
+  `realgate` mode spawns the real bundled gate, logs its exit/stdout/stderr,
+  then replays them. The raw fires live in
+  [`zcode-stop-fires.jsonl`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/zcode-stop-fires.jsonl);
+  the evidence layout is described in
+  [`docs/agents/evidence-review.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
+
+**Verified, refuted as the gate's channel** (negative results kept with their
+receipts):
+
+- Exit 2 as the block channel: exit 2 also blocked, but with the host's
+  generic "Hook blocked execution" and no reason; the gate keeps exit 0 + the
+  decision field, which carries the reason.
+- Repository root as the marketplace: refuted for this bundle - the host
+  resolved `.claude-plugin/marketplace.json` and installed the Claude Code
+  bundle.
+- Direct `zcode plugins install <dir>`: refused with "Plugin not found in
+  any marketplace".
+
+**Declared-unverified / not probed** (the limitations of this record):
+
+- Upgrade via `zcode plugins update`: the subcommand exists; not live-probed.
+- `SessionEnd` / sentinel sweep on this host: the event does not exist in
+  ZCode's set, so this bundle wires no sweep hook - a caveat of the host, not
+  of this adapter.
 
 ## Write scope and network
 
@@ -134,23 +187,3 @@ gate. Commands and captured payloads live in
   plugin directory is written by a hook.
 - No network calls: no hook fetches anything, and the bundle has no
   third-party runtime dependency to install.
-
-## Verification status (honest tiering)
-
-Pinned offline by `test/plugin-bundles.test.js` (structure, run once per host
-row) and `test/zcode-adapter.test.js` (the ZCode envelope and the bundled
-Stop gate, spawned as a subprocess from a temp materialization of the
-generator output): the manifest parses, its version and license come from
-`package.json`, every referenced file is emitted (`--check` pins the emitted
-set to disk), every hook command stays inside `${ZCODE_PLUGIN_ROOT}`, and no
-vendored relative `require()` escapes the bundle.
-
-The hook's own exit code, stdin, and stdout are recorded by the probe
-wrapper:
-[`probes/zcode-stop-wrapper.js`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/zcode-stop-wrapper.js)
-logs one JSON line per fire (payload and environment key names), and in
-`realgate` mode spawns the real bundled gate, logs its exit/stdout/stderr,
-then replays them. The raw fires live in
-[`zcode-stop-fires.jsonl`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/zcode-stop-fires.jsonl);
-the evidence layout is described in
-[`docs/agents/evidence-review.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).

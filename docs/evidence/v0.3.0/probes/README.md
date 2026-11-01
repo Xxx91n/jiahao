@@ -1,9 +1,19 @@
-# Probe scripts (#80, #108, #109)
+# Probe scripts (#80, #108–#111, #113, #116, #118)
 
-Throwaway hooks used for the v0.3.0 acceptance and the #109 Qoder probe. They
-are evidence artifacts, not part of any distributed bundle. Hook configs point
-at the absolute path of these files; paths inside the scripts are relative to
-this directory.
+Throwaway hooks used for the v0.3.0 acceptance and the follow-up host probes.
+They are evidence artifacts, not part of any distributed bundle. Hook configs
+point at the absolute path of these files; paths inside the scripts are
+relative to this directory.
+
+## Limitations
+
+- Raw probe logs are not committed when they could capture secrets: the
+  WorkBuddy hook environment carries service tokens, so
+  `workbuddy-hook-probe.js` writes outside the repository and
+  `qoder-state-probe.js` promotes a log into a record only when a run is
+  written up. The claims stand on the recorded observations, not on committed
+  transcripts.
+- This directory is not shipped in any bundle or npm pack file.
 
 ## Codex CLI 0.163.0
 
@@ -38,8 +48,9 @@ this directory.
   observe: whether a config-registered command hook fires on `Stop`, the payload
   it receives, whether the run continues after a block, and whether the host sets
   `stop_hook_active` on re-entry. It blocks only when the turn's
-  `last_assistant_message` contains `JIAHAO109-CLAIM-DONE`, and caps blocks per
-  session, so arming it in a live desktop app cannot loop an unrelated session.
+  `last_assistant_message` contains `JIAHAO109-CLAIM-DONE` — a content gate on
+  each turn, not a session identifier — and caps blocks per session, so a turn
+  without the marker is never blocked.
   Observed: `Stop` fired from the project scope (`.qoder-cn/settings.json` did
   not), both the exit-0 flat decision and exit 2 + stderr continued the turn, 6
   consecutive blocks were honored before the probe's own cap ended the run, and

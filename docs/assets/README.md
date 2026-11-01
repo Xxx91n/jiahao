@@ -1,8 +1,8 @@
 # Brand and visual assets
 
-Deterministic asset inventory for the jiahao front face. Everything under
-`docs/assets/` is committed source; the rasters are produced by the
-pipeline script, never hand-edited.
+Asset inventory for the jiahao front face. Everything under `docs/assets/` is
+committed source. The rasters are produced by a pipeline script, never
+hand-edited.
 
 ## Raster brand assets (`brand/`)
 
@@ -14,10 +14,23 @@ pipeline script, never hand-edited.
 | `brand/favicon.ico` | 16+32+48 | multi-size composite |
 | `brand/apple-touch-icon.png` | 180×180 | opaque white tile, safe padding (iOS) |
 | `brand/android-chrome-192x192.png` / `-512x512.png` | PNG | PWA manifest icons |
-| `brand/social-preview.png` | 1280×640 | GitHub social preview (see upload steps below) |
+| `brand/social-preview.png` | 1280×640 | GitHub social preview (upload steps below) |
 
 Source draft: user-side GPT Image generation (external channel, per
 grill-t23 D-005). The repo only ever runs deterministic processing.
+
+## Pure-SVG assets (`assets/`)
+
+| File | Content |
+| --- | --- |
+| `hero.svg` | dual-profile split + six-rung ladder + verdict rail motif strip |
+| `diagrams/dual-profile.svg` | install flow: `.jiahao-profile` → profiles → hooks → four verdicts |
+| `diagrams/verification-ladder.svg` | the six rungs verbatim from `src/SKILL.md` + the ESCALATE branch |
+| `badge-license.svg`, `badge-profiles.svg`, `badge-channel.svg`, `badge-verdict.svg` | self-contained shields-style badges (no external image service) |
+
+All SVGs: `viewBox`-sized, `<title>`/`<desc>` a11y, `prefers-color-scheme`
+dark adaptation, no scripts / `foreignObject` / external references.
+Gate: `node .scratch/grill-t23/check-svg-assets.cjs`.
 
 ## Packaging: these assets are not shipped to npm
 
@@ -42,25 +55,17 @@ raw while its `<source srcset>` stays `./logo-dark.svg` and 404s. Not verified:
 the rendering of *this* package's published page — it has not been published
 under this name.
 
-## Pure-SVG assets (`assets/`)
-
-| File | Content |
-| --- | --- |
-| `hero.svg` | dual-profile split + six-rung ladder + verdict rail motif strip |
-| `diagrams/dual-profile.svg` | install flow: `.jiahao-profile` → profiles → hooks → four verdicts |
-| `diagrams/verification-ladder.svg` | the six rungs verbatim from `src/SKILL.md` + the ESCALATE branch |
-| `badge-license.svg`, `badge-profiles.svg`, `badge-channel.svg`, `badge-verdict.svg` | self-contained shields-style badges (no external image service) |
-
-All SVGs: `viewBox`-sized, `<title>`/`<desc>` a11y, `prefers-color-scheme`
-dark adaptation, no scripts / `foreignObject` / external references.
-Gate: `node .scratch/grill-t23/check-svg-assets.cjs`.
-
-## Regenerate
+## Regenerate and limitations
 
 ```sh
 python .scratch/grill-t23/build-brand-assets.py   # rasters (needs Pillow; source: D:\NDM\generated-image.png)
 node .scratch/grill-t23/check-svg-assets.cjs      # SVG gate
 ```
+
+Known limitations: the pipeline scripts live under `.scratch/`, which is
+gitignored and maintainer-local — a fresh clone cannot regenerate the rasters
+or run the SVG gate. The source draft is likewise a local file path. The
+committed files themselves are complete; only the regeneration path is private.
 
 ## Social preview — manual upload
 
