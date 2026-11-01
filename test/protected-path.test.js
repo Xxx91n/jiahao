@@ -192,10 +192,11 @@ describe('protected path (state file binding, #88 item 4)', () => {
       const text = fs.readFileSync(file, 'utf8');
       // Single- or double-quoted string literals only (backticks excluded on
       // purpose: comments here wrap names in backticks, and prose is not
-      // something the agent can delete). The suffix class is deliberately
-      // WIDER than the fragment's alphabet (`\w` adds `_` and capitals): a
-      // state file spelled some other way has to turn this red.
-      for (const match of text.matchAll(/['"](\.jiahao-[A-Za-z0-9][\w.-]*)['"]/g)) found.add(match[1]);
+      // something the agent can delete). The suffix is NOT restricted to the
+      // fragment's alphabet - only quotes and whitespace end it - so a name
+      // spelled `.jiahao-_draft` or `.jiahao-draft+2` turns this red instead
+      // of disappearing from the census (CodeRabbit on PR #132).
+      for (const match of text.matchAll(/(['"])(\.jiahao-[^'"\s]+)\1/g)) found.add(match[2]);
     }
     // every literal spelling the census expects must really be in the tree
     for (const { literal } of STATE_SURFACE) {

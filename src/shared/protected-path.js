@@ -50,9 +50,9 @@ const path = require('path');
 // the evidence directory. The list is no longer a second hand-maintained copy
 // of `src/shared/paths.js`: test/protected-path.test.js reads every quoted
 // `.jiahao…` name out of the .js source under src/, hooks/ and jiahao-mcp/ and
-// requires each to be denied. The census scans a WIDER suffix alphabet than this fragment -
-// underscores and capitals included - so a state file spelled some other way
-// turns the suite red instead of escaping silently.
+// requires each to be denied. The census does not restrict the suffix to this
+// fragment's alphabet - only quotes and whitespace end a name - so a state file
+// spelled some other way turns the suite red instead of escaping silently.
 //
 // There is no exception table today. The whole prefix is reserved, so a user
 // project file that happens to start with `.jiahao-` is denied as collateral;
