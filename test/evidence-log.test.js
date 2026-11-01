@@ -190,3 +190,19 @@ test('human_verdict record appends and chain stays valid', () => {
   expect(chain[1].reviewer_id).toBe('alice');
   expect(verifyChain(chain).valid).toBe(true);
 });
+
+// #119 finding 4: 'null' is legal JSON, so both anchor readers dereferenced
+// the parsed value before judging its shape; the TypeError fell into the
+// outer catch and classified a present-but-wrong witness as
+// witness_unavailable (torn witness — the class that may fall back to the
+// last good seal) instead of unreadable (corruption). Shape must be judged
+// before any dereference.
+test('finding 4: a null witness file reads as unreadable, not witness_unavailable', () => {
+  const dir = path.join(TMP, 'null-anchor-' + process.pid + '-' + Date.now());
+  fs.mkdirSync(dir, { recursive: true });
+  const log = createEvidenceLog(dir);
+  fs.writeFileSync(log.headAnchorPath(), 'null', 'utf8');
+  expect(log.readTailAnchor(log.headAnchorPath()).status).toBe('unreadable');
+  fs.writeFileSync(log.genesisAnchorPath(), 'null', 'utf8');
+  expect(log.readGenesisAnchor(log.genesisAnchorPath()).status).toBe('unreadable');
+});
