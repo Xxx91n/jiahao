@@ -42,6 +42,15 @@ const PKG_REPOSITORY = PKG.repository.url.replace(/^git\+/, '').replace(/\.git$/
 // they point at.
 const GENERATED_DIRS = ['adapters/', 'skills/', '.claude-plugin/', '.agents/'];
 
+// The profile-flag recipe every README repeats. It has to resolve the same
+// directory `src/shared/paths.js` resolves, or the flag lands where no hook
+// looks (CodeRabbit #127). Written once here so eight rows cannot drift: the
+// list of host roots must stay in step with HOST_CONFIG_DIR_ENV there.
+const POSIX_CONFIG_SNIPPET =
+  'CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-$(node -p \'require("os").homedir()\')}}}}}"';
+const POWERSHELL_CONFIG_SNIPPET =
+  '$c = @($env:CLAUDE_CONFIG_DIR, $HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR) | Where-Object { $_ } | Select-Object -First 1';
+
 // ---- host table: the one place a plugin host is described ----
 //
 // A row says what a bundle is called, which capability tier it claims, where it
@@ -830,7 +839,7 @@ server are vendored inside, so nothing resolves outside the bundle.
    it takes a config root the host reports (\`QODER_CONFIG_DIR\`,
    \`CODEBUDDY_CONFIG_DIR\` or \`WORKBUDDY_CONFIG_DIR\`), then the OS home -
    never \`/tmp\` (\`src/shared/paths.js\`):
-   \`CONFIG="\${CLAUDE_CONFIG_DIR:-$HOME}"\`, then
+   \`${POSIX_CONFIG_SNIPPET}\`, then
    \`echo full > "$CONFIG/.jiahao-active"\` and
    \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
    (\`generator\` for advisory-only). Start a new session after changing
@@ -1256,7 +1265,7 @@ hook and did not block. Evidence:
    it takes a config root the host reports (\`QODER_CONFIG_DIR\`,
    \`CODEBUDDY_CONFIG_DIR\` or \`WORKBUDDY_CONFIG_DIR\`), then the OS home -
    never \`/tmp\` (\`src/shared/paths.js\`):
-   \`CONFIG="\${CLAUDE_CONFIG_DIR:-$HOME}"\`, then
+   \`${POSIX_CONFIG_SNIPPET}\`, then
    \`echo full > "$CONFIG/.jiahao-active"\` and
    \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
    (\`generator\` for advisory-only). Start a new session after changing
@@ -1377,7 +1386,7 @@ The repository root is also a Codex marketplace
    it takes a config root the host reports (\`QODER_CONFIG_DIR\`,
    \`CODEBUDDY_CONFIG_DIR\` or \`WORKBUDDY_CONFIG_DIR\`), then the OS home -
    never \`/tmp\` (\`src/shared/paths.js\`):
-   \`CONFIG="\${CLAUDE_CONFIG_DIR:-$HOME}"\`, then
+   \`${POSIX_CONFIG_SNIPPET}\`, then
    \`echo full > "$CONFIG/.jiahao-active"\` and
    \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
    (\`generator\` for advisory-only). Start a new session after changing
@@ -1738,16 +1747,16 @@ host ended the turn without continuation. Evidence:
 1. \`agy plugin install <path-to-adapters/antigravity>\`
 2. \`agy plugin list\` to verify \`jiahao\` is imported and enabled.
 3. Activate the jiahao profile flag. In a POSIX shell:
-   \`CONFIG="\${CLAUDE_CONFIG_DIR:-$HOME}"\`
+   \`${POSIX_CONFIG_SNIPPET}\`
    \`mkdir -p "$CONFIG"\`
    \`echo full > "$CONFIG/.jiahao-active"\`
    \`echo verifier > "$CONFIG/.jiahao-profile"\`
    Start a new session after changing \`.jiahao-profile\`.
-   In PowerShell:
-   \`$env:CLAUDE_CONFIG_DIR = Join-Path $HOME '.jiahao'\`
-   \`New-Item -ItemType Directory -Force -Path $env:CLAUDE_CONFIG_DIR | Out-Null\`
-   \`'full' | Set-Content (Join-Path $env:CLAUDE_CONFIG_DIR '.jiahao-active')\`
-   \`'verifier' | Set-Content (Join-Path $env:CLAUDE_CONFIG_DIR '.jiahao-profile')\`
+   In PowerShell, resolve the same directory the hooks read and write there:
+   \`${POWERSHELL_CONFIG_SNIPPET}\`
+   \`New-Item -ItemType Directory -Force -Path $c | Out-Null\`
+   \`'full' | Set-Content (Join-Path $c '.jiahao-active')\`
+   \`'verifier' | Set-Content (Join-Path $c '.jiahao-profile')\`
    Launch \`agy\` from that PowerShell session; start a new session after changing \`.jiahao-profile\`.
 
 Install, upgrade, and uninstall are the host's own plugin commands:
@@ -1857,11 +1866,11 @@ resolves \`plugin@marketplace\` names - a direct directory install is refused
    it takes a config root the host reports (\`QODER_CONFIG_DIR\`,
    \`CODEBUDDY_CONFIG_DIR\` or \`WORKBUDDY_CONFIG_DIR\`), then the OS home -
    never \`/tmp\` (\`src/shared/paths.js\`).
-   POSIX shell: \`CONFIG="\${CLAUDE_CONFIG_DIR:-$HOME}"\`, then
+   POSIX shell: \`${POSIX_CONFIG_SNIPPET}\`, then
    \`echo full > "$CONFIG/.jiahao-active"\` and
    \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
    (\`generator\` for advisory-only). PowerShell:
-   \`$c = If ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } Else { $HOME }\`,
+   \`${POWERSHELL_CONFIG_SNIPPET}\`,
    then \`Set-Content -NoNewline -Path "$c/.jiahao-active" -Value full\` and
    \`Set-Content -NoNewline -Path "$c/.jiahao-profile" -Value verifier\`.
    Start a new session after changing \`.jiahao-profile\`.
@@ -2164,4 +2173,5 @@ module.exports = {
   buildAdapters, unifiedDiff, checkAll, writeAll, auditTrackedSet, SKILL_DIR, SOURCE_NAME,
   HOSTS, RETIRED_HOSTS, MARKETPLACE_HOST, CODEX_MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
   dialectOf, hookEntryCommands, isRulesOnlyDirectory,
+  POSIX_CONFIG_SNIPPET, POWERSHELL_CONFIG_SNIPPET,
 };

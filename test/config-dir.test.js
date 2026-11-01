@@ -330,3 +330,53 @@ describe('spawned gate under a Qoder-shaped environment', () => {
     }
   }, 20000);
 });
+
+describe('the README recipes resolve the same directory as the hooks', () => {
+  // CodeRabbit #127: every adapter README tells the operator how to find the
+  // config dir, and those recipes spelled only the first two steps while the
+  // prose right above them described four. A recipe that finds a different
+  // directory than paths.js is the #116 failure all over again, so the two are
+  // compared mechanically instead of by reading.
+  const { HOSTS, POSIX_CONFIG_SNIPPET, POWERSHELL_CONFIG_SNIPPET } = require(
+    path.join(repoRoot, 'scripts', 'build-adapters'));
+  const generated = require(path.join(repoRoot, 'scripts', 'build-adapters')).buildAdapters();
+
+  test('every README that ships a recipe names every host root, in the resolver order', () => {
+    const readmes = Object.keys(generated)
+      .filter((rel) => rel.endsWith('/README.md') && rel.startsWith('adapters/'));
+    expect(readmes.length).toBeGreaterThanOrEqual(HOSTS.length);
+    let withRecipe = 0;
+    for (const rel of readmes) {
+      const text = generated[rel];
+      if (!text.includes(POSIX_CONFIG_SNIPPET)) continue;
+      withRecipe++;
+      // Order matters: a recipe that checked the host roots in another order
+      // would answer differently from the resolver on a host that sets two.
+      let cursor = -1;
+      for (const name of HOST_CONFIG_DIR_ENV) {
+        const at = POSIX_CONFIG_SNIPPET.indexOf(name);
+        expect(at).toBeGreaterThan(cursor);
+        cursor = at;
+      }
+      // And the same list must appear in the prose, so a reader skimming the
+      // sentence is told the same thing the command does.
+      for (const name of HOST_CONFIG_DIR_ENV) expect(text).toContain(name);
+    }
+    expect(withRecipe).toBeGreaterThan(0);
+  });
+
+  test('no README still ships the two-step recipe that stops at HOME', () => {
+    for (const rel of Object.keys(generated)) {
+      if (!rel.endsWith('/README.md')) continue;
+      expect(generated[rel]).not.toContain('CLAUDE_CONFIG_DIR:-$HOME}');
+    }
+  });
+
+  test('the PowerShell recipe checks the same variables', () => {
+    for (const name of HOST_CONFIG_DIR_ENV) {
+      expect(POWERSHELL_CONFIG_SNIPPET).toContain('$env:' + name);
+    }
+    expect(POWERSHELL_CONFIG_SNIPPET.indexOf('$env:CLAUDE_CONFIG_DIR'))
+      .toBeLessThan(POWERSHELL_CONFIG_SNIPPET.indexOf('$HOME'));
+  });
+});

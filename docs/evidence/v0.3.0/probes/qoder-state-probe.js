@@ -54,9 +54,21 @@ process.stdin.on('end', () => {
     evidencePath: paths.evidencePath(),
   };
 
-  const evidenceBefore = fs.existsSync(resolved.evidencePath)
-    ? fs.readdirSync(resolved.evidencePath)
-    : [];
+  // A name->size snapshot, not a name list: the gate appends to the active
+  // segment, so a turn that grows the chain usually leaves the file COUNT
+  // unchanged. Comparing counts reported a false negative for exactly the
+  // signal this probe exists to record (CodeRabbit #127).
+  function snapshot(dir) {
+    const out = {};
+    if (!fs.existsSync(dir)) return out;
+    for (const name of fs.readdirSync(dir)) {
+      try { out[name] = fs.statSync(path.join(dir, name)).size; }
+      catch (e) { out[name] = null; } // vanished mid-read: still a difference
+    }
+    return out;
+  }
+
+  const evidenceBefore = snapshot(resolved.evidencePath);
 
   const gate = spawnSync(process.execPath, [GATE, 'qoder'], {
     input: input,
@@ -65,10 +77,8 @@ process.stdin.on('end', () => {
     timeout: 10000,
   });
 
-  const evidenceAfter = fs.existsSync(resolved.evidencePath)
-    ? fs.readdirSync(resolved.evidencePath)
-    : [];
-  const grew = evidenceAfter.length > evidenceBefore.length;
+  const evidenceAfter = snapshot(resolved.evidencePath);
+  const grew = JSON.stringify(evidenceAfter) !== JSON.stringify(evidenceBefore);
 
   appendLine({
     at: new Date().toISOString(),

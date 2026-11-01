@@ -40,11 +40,11 @@ resolves `plugin@marketplace` names - a direct directory install is refused
    it takes a config root the host reports (`QODER_CONFIG_DIR`,
    `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`), then the OS home -
    never `/tmp` (`src/shared/paths.js`).
-   POSIX shell: `CONFIG="${CLAUDE_CONFIG_DIR:-$HOME}"`, then
+   POSIX shell: `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-$(node -p 'require("os").homedir()')}}}}}"`, then
    `echo full > "$CONFIG/.jiahao-active"` and
    `echo verifier > "$CONFIG/.jiahao-profile"` for the blocking profile
    (`generator` for advisory-only). PowerShell:
-   `$c = If ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } Else { $HOME }`,
+   `$c = @($env:CLAUDE_CONFIG_DIR, $HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR) | Where-Object { $_ } | Select-Object -First 1`,
    then `Set-Content -NoNewline -Path "$c/.jiahao-active" -Value full` and
    `Set-Content -NoNewline -Path "$c/.jiahao-profile" -Value verifier`.
    Start a new session after changing `.jiahao-profile`.

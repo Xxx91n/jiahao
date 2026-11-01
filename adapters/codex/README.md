@@ -32,7 +32,7 @@ The repository root is also a Codex marketplace
    it takes a config root the host reports (`QODER_CONFIG_DIR`,
    `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`), then the OS home -
    never `/tmp` (`src/shared/paths.js`):
-   `CONFIG="${CLAUDE_CONFIG_DIR:-$HOME}"`, then
+   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-$(node -p 'require("os").homedir()')}}}}}"`, then
    `echo full > "$CONFIG/.jiahao-active"` and
    `echo verifier > "$CONFIG/.jiahao-profile"` for the blocking profile
    (`generator` for advisory-only). Start a new session after changing
