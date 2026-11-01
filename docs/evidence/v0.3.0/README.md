@@ -1,4 +1,4 @@
-# v0.3.0 real-machine acceptance (#80, #109)
+# v0.3.0 real-machine acceptance (#80, #109, #111, #108)
 
 Date: 2026-10-30. Host: Windows 10.0.26100 (win32 x64). `node
 scripts/build-adapters.js` was run locally to produce the committed bundles;
@@ -11,7 +11,8 @@ records the acceptance for the v0.3.0 content. **Reconciled afterwards, so nobod
 has to infer it:** #81 landed and every committed manifest - `adapters/claude-code`,
 `adapters/codebuddy`, `adapters/copilot`, `adapters/codex` and, since #109,
 `adapters/qoder` - now reports `0.3.0`. The `0.2.0` above is a statement about the
-probed artifact on 2026-10-30, not about the tree you can check out today.
+probed artifact on 2026-10-30, not about the tree you can check out today. The ZCode artifacts (#108, 2026-10-31) ran on a tree already
+reporting `0.3.0`; the next release ticket owns the next bump.
 
 ## Codex CLI
 
@@ -87,6 +88,41 @@ probed artifact on 2026-10-30, not about the tree you can check out today.
 - SessionStart (**verified**): injects Jiahao instructions via `injectSteps` (`antigravity-blocked.txt`).
 - SessionEnd (**declared-unverified**): wired to `hooks/jiahao-sweep.js` per repository sentinel-reconciliation contract; live SessionEnd firing not probed.
 
+## ZCode (#108)
+
+- Host: ZCode Desktop 3.16.2 / CLI runtime 0.17.0 (win32), the operator's real
+  desktop session; the probe config was workspace-scope, the user-wide config
+  was untouched by the hook runs and restored after the plugin runs
+  (`zcode-version.txt`, `zcode-probe-notes.md`).
+- Stop channels: exit 0 + `{decision:"block"}` blocked a turn and returned the
+  reason as the next turn's context (fire #1); exit 2 also blocked, with the
+  host's generic message and no reason (fire #2). `stop_hook_active` was
+  `true` on every post-block continuation (fires #2-#4). Cap: three
+  consecutive block continuations, then the turn ended (fires #1-#4,
+  `zcode-stop-fires.jsonl`).
+- Real gate, real turn-end block: the bundled gate (argv `zcode`, verifier
+  profile, isolated config dir, empty chain) returned exit 0 +
+  `{decision:"block", reason: "Verification has no evidence: ..."}` with empty
+  stderr; the host blocked the turn and the reason arrived as the next turn's
+  context (fire #5). The continuation ran the verification ladder; the stop
+  that ended it was a wrapper pass-through (`json-once` mode), so a live
+  `stop_hook_active` pass by the real gate was not observed
+  (`zcode-stop-fires.jsonl`, `realgate-result` entry, `zcode-probe-notes.md`).
+- Payloads: both snake_case and camelCase spellings on every fire
+  (`session_id`/`sessionId`, `hook_event_name`/`hookEventName`,
+  `stop_hook_active`/`stopHookActive`, `transcript_path`/`transcriptPath`).
+- Hook configuration is read at session start: a mid-session workspace config
+  did not fire until a restart.
+- Install path: `plugins validate` exit 0; direct `plugins install <dir>`
+  refused (marketplace-only); the bundle's own shelf
+  (`marketplace.json`, `source: "."`) installs and enables
+  (`jiahao@jiahao-zcode`, `hooks: 4`; cached `hooks/hooks.json`,
+  `.zcode-plugin/plugin.json`, and `hooks/jiahao-verdict-gate.js`
+  byte-identical to the bundle - three-file diff in `zcode-install.txt`);
+  the repository root as marketplace resolves the Claude Code bundle instead
+  (`zcode-install.txt`). Plugin hooks firing in a restarted session:
+  declared-unverified.
+
 ## Reproduction
 
 The throwaway probe hooks and the instrumented wrapper are in `probes/`; each
@@ -117,8 +153,8 @@ this directory shows it, **declared-unverified** means it is asserted from files
 documentation and was not watched happen.
 
 **Verified - A tier**: Codex CLI 0.163.0 and GitHub Copilot CLI 1.0.105
-(2026-10-30, #80), Google Antigravity 1.2.12 (2026-10-31, #111), and Qoder CN
-Desktop 0.4.11 (2026-10-31, #109) each blocked a real turn end on the recorded
+(2026-10-30, #80), Google Antigravity 1.2.12 (2026-10-31, #111), Qoder CN
+Desktop 0.4.11 (2026-10-31, #109), and ZCode 3.16.2 (2026-10-31, #108) each blocked a real turn end on the recorded
 version and date. On Qoder it was a config-registered `Stop` hook on both channels
 (exit 0 + flat `{"decision":"block"}`, and exit 2 + stderr), with
 `stop_hook_active` set on every re-entry - which supersedes this file's earlier
@@ -128,6 +164,10 @@ line that Qoder remained C tier and that no probe had changed it.
 (`adapters/qoder/` installed as a Desktop plugin), `${QODER_PLUGIN_ROOT}` in a
 shell-form command, and the shipped gate's own verdict logic running under Qoder.
 All read out of the host's files; none watched happening.
+
+**Declared-unverified - ZCode**: the plugin-path hooks firing in a restarted
+session, the SessionStart `additionalContext` injection, and
+`zcode plugins update` (`zcode-probe-notes.md`).
 
 **Not probed**: the international Qoder Desktop 0.4.11, which keeps C tier rather
 than borrowing the CN result, and Qoder IDE/CLI, which keeps the rules-only exit.

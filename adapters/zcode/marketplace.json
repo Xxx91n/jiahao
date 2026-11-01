@@ -1,0 +1,13 @@
+{
+  "name": "jiahao-zcode",
+  "owner": {
+    "name": "Xxx91n"
+  },
+  "plugins": [
+    {
+      "name": "jiahao",
+      "source": ".",
+      "description": "Verification discipline for ZCode: profile injection at session start, verdict gate at turn end (A tier, live block verified 2026-10-31). Self-contained plugin."
+    }
+  ]
+}
