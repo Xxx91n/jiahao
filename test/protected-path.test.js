@@ -148,8 +148,8 @@ for (const plat of PLATFORMS) {
       // denied as collateral (#88 "一把抓 + 例外表"). Pinned so the widening is
       // a visible decision; an exception goes in protected-path.js.
       expect(check(plat, 'rm .jiahao-notes')).toBe(true);
-      // every legal filename character after the prefix counts, not only the
-      // ones today's state names happen to use (CodeRabbit on PR #132)
+      // an underscore is part of the reserved namespace too, not only the
+      // letters today's state names happen to use (CodeRabbit on PR #132)
       expect(check(plat, 'rm .jiahao-draft_1')).toBe(true);
     });
 

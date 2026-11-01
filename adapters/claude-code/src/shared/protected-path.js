@@ -47,8 +47,8 @@ const path = require('path');
 // `[a-z0-9._-]+` is the alphabet a state name may spell - dots, dashes and
 // underscores all legal in a filename (`.jiahao-evidence.keys`,
 // `.jiahao-evidence.lock`, `.jiahao-sentinel.<hook>`, `.jiahao-draft_1`) - and
-// `([\\/]|$)` also catches the files inside
-// the evidence directory. The list is no longer a second hand-maintained copy
+// `([\\/]|$)` also catches the files inside the evidence directory. The list
+// is no longer a second hand-maintained copy
 // of `src/shared/paths.js`: test/protected-path.test.js reads every quoted
 // `.jiahao…` name out of the .js source under src/, hooks/ and jiahao-mcp/ and
 // requires each to be denied. The census does not restrict the suffix to this
