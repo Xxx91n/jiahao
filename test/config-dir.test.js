@@ -372,11 +372,30 @@ describe('the README recipes resolve the same directory as the hooks', () => {
     }
   });
 
-  test('the PowerShell recipe checks the same variables', () => {
-    for (const name of HOST_CONFIG_DIR_ENV) {
-      expect(POWERSHELL_CONFIG_SNIPPET).toContain('$env:' + name);
+  test('the PowerShell recipe checks the same variables in the same order', () => {
+    // Positional assertion, not containment: the previous version only asked
+    // whether each name appeared, so a snippet that read PowerShell's `$HOME`
+    // (an automatic variable, always set) instead of the HOME *environment
+    // variable* passed while resolving to the OS home on a host that sets only
+    // QODER_CONFIG_DIR (CodeRabbit #127, measured on PS 5.1).
+    //
+    // The resolver order is CLAUDE_CONFIG_DIR, HOME, then the host roots, then
+    // the OS home. In PowerShell the first three of the command are the env
+    // vars ($env:HOME is what Node reads as HOME); `$HOME` may only appear
+    // after every host root.
+    const positions = ['$env:CLAUDE_CONFIG_DIR', '$env:HOME']
+      .concat(HOST_CONFIG_DIR_ENV.map((name) => '$env:' + name));
+    let cursor = -1;
+    for (const token of positions) {
+      const at = POWERSHELL_CONFIG_SNIPPET.indexOf(token);
+      expect(at).toBeGreaterThan(cursor);
+      cursor = at;
     }
-    expect(POWERSHELL_CONFIG_SNIPPET.indexOf('$env:CLAUDE_CONFIG_DIR'))
-      .toBeLessThan(POWERSHELL_CONFIG_SNIPPET.indexOf('$HOME'));
+    // The automatic variable is the fallback, never the HOME step.
+    const autoHome = POWERSHELL_CONFIG_SNIPPET.indexOf('$HOME');
+    expect(autoHome).toBeGreaterThan(cursor);
+    // And it must not sneak in earlier as a substring of `$env:HOME`.
+    expect(POWERSHELL_CONFIG_SNIPPET.indexOf('$HOME')).toBe(
+      POWERSHELL_CONFIG_SNIPPET.lastIndexOf('$HOME'));
   });
 });

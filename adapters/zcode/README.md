@@ -44,7 +44,7 @@ resolves `plugin@marketplace` names - a direct directory install is refused
    `echo full > "$CONFIG/.jiahao-active"` and
    `echo verifier > "$CONFIG/.jiahao-profile"` for the blocking profile
    (`generator` for advisory-only). PowerShell:
-   `$c = @($env:CLAUDE_CONFIG_DIR, $HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR) | Where-Object { $_ } | Select-Object -First 1`,
+   `$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $HOME) | Where-Object { $_ } | Select-Object -First 1`,
    then `Set-Content -NoNewline -Path "$c/.jiahao-active" -Value full` and
    `Set-Content -NoNewline -Path "$c/.jiahao-profile" -Value verifier`.
    Start a new session after changing `.jiahao-profile`.

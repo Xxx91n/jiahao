@@ -48,8 +48,15 @@ const GENERATED_DIRS = ['adapters/', 'skills/', '.claude-plugin/', '.agents/'];
 // list of host roots must stay in step with HOST_CONFIG_DIR_ENV there.
 const POSIX_CONFIG_SNIPPET =
   'CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-$(node -p \'require("os").homedir()\')}}}}}"';
+// `$env:HOME`, not `$HOME`: PowerShell's `$HOME` is an automatic variable built
+// from USERPROFILE and is always set, while `src/shared/paths.js` reads the
+// HOME *environment variable*. Using `$HOME` here resolved to the OS home on a
+// host that sets only QODER_CONFIG_DIR, so the flags landed where the hooks do
+// not read them (measured on PS 5.1, CodeRabbit #127). `$HOME` stays as the
+// last resort because a PS session without the env var still has to write
+// somewhere, and there the OS home is what the resolver's fallback answers.
 const POWERSHELL_CONFIG_SNIPPET =
-  '$c = @($env:CLAUDE_CONFIG_DIR, $HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR) | Where-Object { $_ } | Select-Object -First 1';
+  '$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $HOME) | Where-Object { $_ } | Select-Object -First 1';
 
 // ---- host table: the one place a plugin host is described ----
 //

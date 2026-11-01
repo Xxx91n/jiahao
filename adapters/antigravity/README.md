@@ -25,7 +25,7 @@ host ended the turn without continuation. Evidence:
    `echo verifier > "$CONFIG/.jiahao-profile"`
    Start a new session after changing `.jiahao-profile`.
    In PowerShell, resolve the same directory the hooks read and write there:
-   `$c = @($env:CLAUDE_CONFIG_DIR, $HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR) | Where-Object { $_ } | Select-Object -First 1`
+   `$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $HOME) | Where-Object { $_ } | Select-Object -First 1`
    `New-Item -ItemType Directory -Force -Path $c | Out-Null`
    `'full' | Set-Content (Join-Path $c '.jiahao-active')`
    `'verifier' | Set-Content (Join-Path $c '.jiahao-profile')`
