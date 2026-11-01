@@ -17,7 +17,9 @@ server are vendored inside, so nothing resolves outside the bundle.
    execute the moment the plugin is enabled.
 3. Activate the jiahao profile flag, same as every host. Resolve the config
    directory once (`CLAUDE_CONFIG_DIR`, else `$HOME`; when a hook has neither,
-   it takes the host's own config root, then the OS home - `src/shared/paths.js`):
+   it takes a config root the host reports (`QODER_CONFIG_DIR`,
+   `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`), then the OS home -
+   never `/tmp` (`src/shared/paths.js`):
    `CONFIG="${CLAUDE_CONFIG_DIR:-$HOME}"`, then
    `echo full > "$CONFIG/.jiahao-active"` and
    `echo verifier > "$CONFIG/.jiahao-profile"` for the blocking profile

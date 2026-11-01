@@ -80,9 +80,10 @@ describe('configDir resolution order', () => {
       expected: 'C:/home',
     },
     {
-      // WorkBuddy's hook subprocess carries both a HOME and its own root
-      // (docs/evidence/v0.3.0/workbuddy-*-probe-*.md). The ticket keeps HOME
-      // ahead of the host root so that installation does not move.
+      // WorkBuddy's hook subprocess carries both a HOME and its own root (the
+      // owner's 2026-11-01 run, written up in the #116 ticket comment - the
+      // workbuddy probe records under docs/evidence/ do not log HOME). The
+      // ticket keeps HOME ahead of the host root so no installation moves.
       name: 'WORKBUDDY_CONFIG_DIR does not outrank HOME',
       env: { HOME: 'C:/home', WORKBUDDY_CONFIG_DIR: 'C:/home/.workbuddy-ai' },
       expected: 'C:/home',

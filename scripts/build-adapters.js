@@ -827,7 +827,9 @@ server are vendored inside, so nothing resolves outside the bundle.
    execute the moment the plugin is enabled.
 3. Activate the jiahao profile flag, same as every host. Resolve the config
    directory once (\`CLAUDE_CONFIG_DIR\`, else \`$HOME\`; when a hook has neither,
-   it takes the host's own config root, then the OS home - \`src/shared/paths.js\`):
+   it takes a config root the host reports (\`QODER_CONFIG_DIR\`,
+   \`CODEBUDDY_CONFIG_DIR\` or \`WORKBUDDY_CONFIG_DIR\`), then the OS home -
+   never \`/tmp\` (\`src/shared/paths.js\`):
    \`CONFIG="\${CLAUDE_CONFIG_DIR:-$HOME}"\`, then
    \`echo full > "$CONFIG/.jiahao-active"\` and
    \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
@@ -1190,9 +1192,9 @@ directory for the host to load.
 ## Write scope and network
 
 - Hooks write only under the Claude config dir (\`$CLAUDE_CONFIG_DIR\`, else
-  \`$HOME\`; a hook that gets neither takes a config root its host reports
-  (Qoder's \`QODER_CONFIG_DIR\`, WorkBuddy's \`WORKBUDDY_CONFIG_DIR\`), then the
-  OS home - never \`/tmp\`): \`.jiahao-active\`, \`.jiahao-evidence/\` (plus the
+  \`$HOME\`; a hook that gets neither takes a config root the host reports
+  (\`QODER_CONFIG_DIR\`, \`CODEBUDDY_CONFIG_DIR\` or \`WORKBUDDY_CONFIG_DIR\`),
+  then the OS home, never \`/tmp\`): \`.jiahao-active\`, \`.jiahao-evidence/\` (plus the
   \`.jiahao-evidence.keys\` sidecar and \`pairer-instrument\` shadow records the
   Stop lane may append), \`.jiahao-pretool.jsonl\`, and the sentinel state and
   lock files \`.jiahao-sentinel.<hook>(.lock)\`. Nothing inside the repo or this
@@ -1251,7 +1253,9 @@ hook and did not block. Evidence:
    \`--trust-folder\`.
 3. Activate the jiahao profile flag, same as every host. Resolve the config
    directory once (\`CLAUDE_CONFIG_DIR\`, else \`$HOME\`; when a hook has neither,
-   it takes the host's own config root, then the OS home - \`src/shared/paths.js\`):
+   it takes a config root the host reports (\`QODER_CONFIG_DIR\`,
+   \`CODEBUDDY_CONFIG_DIR\` or \`WORKBUDDY_CONFIG_DIR\`), then the OS home -
+   never \`/tmp\` (\`src/shared/paths.js\`):
    \`CONFIG="\${CLAUDE_CONFIG_DIR:-$HOME}"\`, then
    \`echo full > "$CONFIG/.jiahao-active"\` and
    \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
@@ -1324,9 +1328,9 @@ captured output live in
 ## Write scope and network
 
 - Hooks write only under the Claude config dir (\`$CLAUDE_CONFIG_DIR\`, else
-  \`$HOME\`; a hook that gets neither takes a config root its host reports
-  (Qoder's \`QODER_CONFIG_DIR\`, WorkBuddy's \`WORKBUDDY_CONFIG_DIR\`), then the
-  OS home), the same flag and evidence files every host uses:
+  \`$HOME\`; a hook that gets neither takes a config root the host reports
+  (\`QODER_CONFIG_DIR\`, \`CODEBUDDY_CONFIG_DIR\` or \`WORKBUDDY_CONFIG_DIR\`),
+  then the OS home), the same flag and evidence files every host uses:
   \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\` (plus the
   \`.jiahao-evidence.keys\` sidecar and \`pairer-instrument\` shadow records),
   \`.jiahao-pretool.jsonl\`, and the sentinel state and lock files. Nothing
@@ -1370,7 +1374,9 @@ The repository root is also a Codex marketplace
    \`--dangerously-bypass-hook-trust\` after vetting the source.
 4. Activate the jiahao profile flag, same as every host. Resolve the config
    directory once (\`CLAUDE_CONFIG_DIR\`, else \`$HOME\`; when a hook has neither,
-   it takes the host's own config root, then the OS home - \`src/shared/paths.js\`):
+   it takes a config root the host reports (\`QODER_CONFIG_DIR\`,
+   \`CODEBUDDY_CONFIG_DIR\` or \`WORKBUDDY_CONFIG_DIR\`), then the OS home -
+   never \`/tmp\` (\`src/shared/paths.js\`):
    \`CONFIG="\${CLAUDE_CONFIG_DIR:-$HOME}"\`, then
    \`echo full > "$CONFIG/.jiahao-active"\` and
    \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
@@ -1411,9 +1417,9 @@ Timeouts stay inside the host budget (5/5/5/10/10/3s; Codex caps
 ## Write scope and network
 
 - Hooks write only under the config dir (\`$CLAUDE_CONFIG_DIR\`, else
-  \`$HOME\`; a hook that gets neither takes a config root its host reports
-  (Qoder's \`QODER_CONFIG_DIR\`, WorkBuddy's \`WORKBUDDY_CONFIG_DIR\`), then the
-  OS home - never \`/tmp\`): \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\` (plus
+  \`$HOME\`; a hook that gets neither takes a config root the host reports
+  (\`QODER_CONFIG_DIR\`, \`CODEBUDDY_CONFIG_DIR\` or \`WORKBUDDY_CONFIG_DIR\`),
+  then the OS home, never \`/tmp\`): \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\` (plus
   its sidecar and pairer shadow records), \`.jiahao-pretool.jsonl\`, and the
   sentinel state and lock files. Nothing inside the repo or this plugin
   directory is written by a hook.
@@ -1562,10 +1568,15 @@ project directory name: \`.codebuddy\`, not \`.workbuddy\`; a twin written to
    same \`HOME\`:
 
    Git Bash (WorkBuddy ships it at \`<configDir>/binaries/PortableGit\`), path
-   one - the desktop is pinned to one directory:
-   \`CONFIG="C:/Users/<you>/.jiahao"\`, \`mkdir -p "$CONFIG"\`,
+   one - the desktop is pinned to one directory. Set the *user* environment
+   variable first (Settings > System > Environment Variables, or
+   \`setx CLAUDE_CONFIG_DIR "C:\\Users\\<you>\\.jiahao"\`), restart the desktop,
+   then from a shell that was opened AFTER the change:
+   \`CONFIG="$CLAUDE_CONFIG_DIR"\`, \`mkdir -p "$CONFIG"\`,
    \`echo full > "$CONFIG/.jiahao-active"\`,
-   \`echo verifier > "$CONFIG/.jiahao-profile"\`.
+   \`echo verifier > "$CONFIG/.jiahao-profile"\`. The \`setx\` line is what makes
+   the hooks see the same value; without it the flags sit in a directory the
+   desktop never looks at.
 
    Git Bash, path two - no pin, both sides at \`HOME\`:
    \`env -u CLAUDE_CONFIG_DIR node scripts/install.js init -y\` (it prints the
@@ -1573,7 +1584,8 @@ project directory name: \`.codebuddy\`, not \`.workbuddy\`; a twin written to
    \`echo full > "$HOME/.jiahao-active"\` and
    \`echo verifier > "$HOME/.jiahao-profile"\`.
 
-   PowerShell, path one: \`$c = 'C:\\Users\\<you>\\.jiahao'\`, then
+   PowerShell, path one (after the \`setx\` above and a desktop restart, in a
+   shell opened after it): \`$c = $env:CLAUDE_CONFIG_DIR\`, then
    \`Set-Content "$c\\.jiahao-active" full\` and
    \`Set-Content "$c\\.jiahao-profile" verifier\`.
 
@@ -1667,8 +1679,9 @@ Commands, payloads, and the recorded environments are in
 ## Write scope and network
 
 - Hooks write only under the config dir (\`$CLAUDE_CONFIG_DIR\`, else \`$HOME\`;
-  a hook that gets neither takes a config root its host reports (Qoder's
-  \`QODER_CONFIG_DIR\`, WorkBuddy's \`WORKBUDDY_CONFIG_DIR\`), then the OS home):
+  a hook that gets neither takes a config root the host reports
+  (\`QODER_CONFIG_DIR\`, \`CODEBUDDY_CONFIG_DIR\` or \`WORKBUDDY_CONFIG_DIR\`),
+  then the OS home):
   \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\` (plus its sidecar
   and pairer shadow records), \`.jiahao-pretool.jsonl\`, and the sentinel state
   and lock files. Nothing inside the repository or this plugin directory is
@@ -1759,8 +1772,9 @@ Timeouts stay inside the host budget (5/10/5s). Event names are the host's own P
 ## Write scope and network
 
 - Hooks write only under the config dir (\`$CLAUDE_CONFIG_DIR\`, else \`$HOME\`;
-  a hook that gets neither takes a config root its host reports (Qoder's
-  \`QODER_CONFIG_DIR\`, WorkBuddy's \`WORKBUDDY_CONFIG_DIR\`), then the OS home):
+  a hook that gets neither takes a config root the host reports
+  (\`QODER_CONFIG_DIR\`, \`CODEBUDDY_CONFIG_DIR\` or \`WORKBUDDY_CONFIG_DIR\`),
+  then the OS home):
   \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\` (plus its sidecar
   and pairer shadow records), and the sentinel state and lock files. Nothing
   inside the repo or this plugin directory is written by a hook.
@@ -1840,7 +1854,9 @@ resolves \`plugin@marketplace\` names - a direct directory install is refused
    \`hooks: 4\`).
 5. Activate the jiahao profile flag, same as every host. Resolve the config
    directory once (\`CLAUDE_CONFIG_DIR\`, else \`$HOME\`; when a hook has neither,
-   it takes the host's own config root, then the OS home - \`src/shared/paths.js\`).
+   it takes a config root the host reports (\`QODER_CONFIG_DIR\`,
+   \`CODEBUDDY_CONFIG_DIR\` or \`WORKBUDDY_CONFIG_DIR\`), then the OS home -
+   never \`/tmp\` (\`src/shared/paths.js\`).
    POSIX shell: \`CONFIG="\${CLAUDE_CONFIG_DIR:-$HOME}"\`, then
    \`echo full > "$CONFIG/.jiahao-active"\` and
    \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
@@ -1924,9 +1940,9 @@ gate. Commands and captured payloads live in
 ## Write scope and network
 
 - Hooks write only under the config dir (\`$CLAUDE_CONFIG_DIR\`, else
-  \`$HOME\`; a hook that gets neither takes a config root its host reports
-  (Qoder's \`QODER_CONFIG_DIR\`, WorkBuddy's \`WORKBUDDY_CONFIG_DIR\`), then the
-  OS home - never \`/tmp\`): \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\`
+  \`$HOME\`; a hook that gets neither takes a config root the host reports
+  (\`QODER_CONFIG_DIR\`, \`CODEBUDDY_CONFIG_DIR\` or \`WORKBUDDY_CONFIG_DIR\`),
+  then the OS home, never \`/tmp\`): \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\`
   (plus its sidecar and pairer shadow records), \`.jiahao-pretool.jsonl\`, and
   the sentinel state and lock files. Nothing inside the repository or this
   plugin directory is written by a hook.

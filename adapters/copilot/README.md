@@ -27,7 +27,9 @@ hook and did not block. Evidence:
    `--trust-folder`.
 3. Activate the jiahao profile flag, same as every host. Resolve the config
    directory once (`CLAUDE_CONFIG_DIR`, else `$HOME`; when a hook has neither,
-   it takes the host's own config root, then the OS home - `src/shared/paths.js`):
+   it takes a config root the host reports (`QODER_CONFIG_DIR`,
+   `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`), then the OS home -
+   never `/tmp` (`src/shared/paths.js`):
    `CONFIG="${CLAUDE_CONFIG_DIR:-$HOME}"`, then
    `echo full > "$CONFIG/.jiahao-active"` and
    `echo verifier > "$CONFIG/.jiahao-profile"` for the blocking profile
@@ -100,9 +102,9 @@ captured output live in
 ## Write scope and network
 
 - Hooks write only under the Claude config dir (`$CLAUDE_CONFIG_DIR`, else
-  `$HOME`; a hook that gets neither takes a config root its host reports
-  (Qoder's `QODER_CONFIG_DIR`, WorkBuddy's `WORKBUDDY_CONFIG_DIR`), then the
-  OS home), the same flag and evidence files every host uses:
+  `$HOME`; a hook that gets neither takes a config root the host reports
+  (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`),
+  then the OS home), the same flag and evidence files every host uses:
   `.jiahao-active`, `.jiahao-profile`, `.jiahao-evidence/` (plus the
   `.jiahao-evidence.keys` sidecar and `pairer-instrument` shadow records),
   `.jiahao-pretool.jsonl`, and the sentinel state and lock files. Nothing

@@ -96,5 +96,8 @@ this directory.
     files under the resolved `.jiahao-evidence` before and after, so "the chain
     grew here" is read back from the directory instead of inferred from output.
   - It always exits 0: this probe observes, it never holds a turn.
-  - Raw fires: `../qoder-state-probe.jsonl` (written by the probe). The
-    directory this file sits in is *not* shipped in any bundle.
+  - Its log path comes from `JIAHAO_QODER_STATE_PROBE_LOG`; without that it
+    writes `../qoder-state-probe.jsonl` next to the probe. No such file is
+    committed: only a run with a recorded result is promoted into a probe
+    record, the same arrangement the WorkBuddy probe uses. The directory this
+    file sits in is *not* shipped in any bundle.
