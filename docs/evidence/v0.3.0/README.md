@@ -184,9 +184,11 @@ line that Qoder remained C tier and that no probe had changed it.
 shell-form command, and the shipped gate's own verdict logic running under Qoder.
 All read out of the host's files; none watched happening.
 
-**Declared-unverified - ZCode**: the plugin-path hooks firing in a restarted
-session, the SessionStart `additionalContext` injection, and
-`zcode plugins update` (`zcode-probe-notes.md`).
+**Declared-unverified - ZCode**: `zcode plugins update` only. The two items
+this entry used to list - plugin-path hooks firing in a restarted session and
+the SessionStart `additionalContext` injection - were verified post-merge on
+2026-11-01 in the operator's restarted session (ZCode section above and
+`zcode-probe-notes.md`).
 
 **Not probed**: the international Qoder Desktop 0.4.11, which keeps C tier rather
 than borrowing the CN result; Qoder IDE/CLI, which keeps the rules-only exit; and
