@@ -26,27 +26,27 @@ function makeRelease(ld) {
   };
 }
 
-// tryLockSync(target) -> release() | null | 'error'
-//   release()  : caller is the owner.
-//   null       : a FRESH lock is held — a live owner (or a very recent death).
-//   'error'    : filesystem refused (not merely held) — callers degrade to
-// ownership:'unchecked', never blocking.
+// tryLockSync(target) -> { ok:true, release() } | { fresh:true } | { error:true }
+//   ok      : caller is the owner; release() relinquishes.
+//   fresh   : a FRESH lock is held — a live owner (or a very recent death).
+//   error   : filesystem refused (not merely held) — callers degrade to
+//             ownership:'unchecked', never blocking.
 function tryLockSync(target) {
   const ld = lockDir(target);
   for (let attempt = 0; attempt < 2; attempt++) {
-    try { fs.mkdirSync(ld); return makeRelease(ld); }
+    try { fs.mkdirSync(ld); return { ok: true, release: makeRelease(ld) }; }
     catch (e) {
-      if (e.code !== 'EEXIST') return 'error';
+      if (e.code !== 'EEXIST') return { error: true };
       let st = null;
       try { st = fs.statSync(ld); } catch (e2) { continue; } // vanished — retry
       if (attempt === 0 && Date.now() - st.mtimeMs > STALE_MS) {
-        try { fs.rmdirSync(ld); } catch (e3) { return null; }
+        try { fs.rmdirSync(ld); } catch (e3) { return { fresh: true }; }
         continue; // stale takeover: dead owner, reclaim
       }
-      return null; // held and fresh — live owner
+      return { fresh: true }; // held and fresh — live owner
     }
   }
-  return null;
+  return { fresh: true };
 }
 
 // withLockSync(target, fn, opts) — blocking narrow critical section
@@ -75,6 +75,11 @@ function withLockSync(target, fn, opts) {
       throw e;
     }
   }
+  // Race paths above can exhaust the loop with acquired === false (lock dir
+  // vanished between mkdir and stat, or a stale takeover lost to a faster
+  // competitor). Callers own their degrade path — never run fn() unprotected,
+  // and never rmdir a lock that belongs to someone else.
+  if (!acquired) throw new Error('file lock not acquired: ' + ld);
   try { return fn(); } finally { try { fs.rmdirSync(ld); } catch (e) { /* taken over */ } }
 }
 

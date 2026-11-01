@@ -12,8 +12,10 @@ const { splitByProfile, validateGsrHeaders } = require('../hooks/jiahao-profile'
 const { listTrackedPaths } = require('../src/shared/tracked-surface');
 const copilotDialect = require('./hosts/copilot');
 const codexDialect = require('./hosts/codex');
+const zcodeDialect = require('./hosts/zcode');
 const qoderDialect = require('./hosts/qoder');
 const antigravityDialect = require('./hosts/antigravity');
+const workbuddyDialect = require('./hosts/workbuddy');
 const { PLATFORMS } = require('../hooks/jiahao-runtime');
 
 const root = path.join(__dirname, '..');
@@ -139,6 +141,50 @@ const HOSTS = [
       { file: 'jiahao-generator.md', profile: 'generator', description: 'Jiahao generator discipline (surface signals)' },
     ],
     readme: codebuddyReadme,
+  },
+  {
+    name: 'workbuddy',
+    label: 'WorkBuddy',
+    dir: 'adapters/workbuddy',
+    tier: 'A',
+    turnEnd: 'Stop',
+    // #110, 2026-10-31, WorkBuddy AI 5.9.4 (international, win32): a real turn
+    // whose last assistant message claimed "任务完成，已验证。" continued only
+    // after a Stop hook printed {decision:"block"} and exited 0; the host
+    // injected the reason as "Stop hook feedback: ..." and re-ran the turn. The
+    // same hook answered a SubagentStop with the same decision and the subagent
+    // was not continued, so only the turn-end event is wired. Both observations
+    // were settings-tier (project .codebuddy/settings.json); the plugin-bundle
+    // path was not watched firing.
+    //
+    // #118, 2026-11-01, WorkBuddy 5.9.3 (domestic, win32, D:\WorkBuddy,
+    // ~/.workbuddy): the same run repeated on the other build, from its own
+    // session and its own settings file - same block, same "Stop hook feedback"
+    // continuation, same stop_hook_active pass on re-entry, same ignored
+    // SubagentStop block. The two variants were probed separately; neither
+    // result stands in for the other, even though both bundle agent-cli 2.165.0.
+    provenance: 'WorkBuddy AI 5.9.4 international (2026-10-31, #110) and WorkBuddy 5.9.3 domestic (2026-11-01, #118), each on its own run: live Stop {decision:"block"} on exit 0 continued the turn with "Stop hook feedback" and the re-entry carried stop_hook_active:true; SubagentStop fired on both builds but its block was not continued; settings-tier hooks (project .codebuddy/settings.json) were the probed surface on both; plugin-bundle hooks unprobed on both',
+    // Product identity, config roots, the two manifest directories the loader
+    // accepts, and the platform name the template passes all live in
+    // scripts/hosts/workbuddy.js.
+    dialect: workbuddyDialect,
+    hooks: {
+      SessionStart: { script: 'jiahao-activate', timeout: 5 },
+      UserPromptSubmit: { script: 'jiahao-mode-tracker', timeout: 5 },
+      Stop: { script: 'jiahao-verdict-gate', timeout: 10 },
+      PreToolUse: { script: 'jiahao-pretool-guard', timeout: 5 },
+      SessionEnd: { script: 'jiahao-sweep', timeout: 3 },
+    },
+    manifest: {
+      description: 'Dual-profile verification discipline for WorkBuddy: profile injection on SessionStart, verdict gate on Stop. A tier on both builds - a live turn-end block on the international 5.9.4 (2026-10-31) and on the domestic 5.9.3 (2026-11-01), each probed on its own run.',
+    },
+    autoDiscovered: [],
+    mcp: null,
+    // No plugin-level rules: the desktop's plugin rule loading was not probed,
+    // and the SessionStart hook already injects the selected profile. Shipping
+    // rule files that may never load would be a claim without an observation.
+    rules: [],
+    readme: workbuddyReadme,
   },
   {
     name: 'copilot',
@@ -277,6 +323,40 @@ const HOSTS = [
       { file: 'jiahao.md', profile: 'both', description: 'Jiahao anti-false-completion discipline (Qoder IDE/CLI rule file)' },
     ],
     readme: qoderReadme,
+  },
+  {
+    name: 'zcode',
+    label: 'ZCode',
+    dir: 'adapters/zcode',
+    tier: 'A',
+    turnEnd: 'Stop',
+    // Live probe (#108, 2026-10-31, ZCode 3.16.2 desktop on win32): a real
+    // session's turn end was blocked by the Stop hook answering
+    // {decision:"block"} on exit 0, and the block reason arrived back as the
+    // next turn's context. Payloads carry both snake_case and camelCase
+    // spellings; hook configuration is read at session start only.
+    provenance: 'ZCode 3.16.2 / CLI 0.17.0 (2026-10-31, #108): live Stop block via exit 0 + {decision:"block"} (exit 2 also blocked, without a reason); stop_hook_active true on continuations; 3 block continuations then the turn ended; install via the bundle marketplace shelf verified (hooks:4, byte-identical cache); payload dual-spelling; hook config read at session start only; post-merge live verification (2026-11-01): plugin-path hooks fired in a restarted operator session, all four surfaces observed (SessionStart inject, UserPromptSubmit reminder, PreToolUse deny, Stop Case-A block)',
+    // ZCode's event vocabulary is PascalCase but holds exactly seven events;
+    // SubagentStart/SubagentStop/SessionEnd do not exist, so no sweep hook is
+    // wired (scripts/hosts/zcode.js sets sessionEndEvent: null).
+    dialect: zcodeDialect,
+    hooks: {
+      SessionStart: { script: 'jiahao-activate', timeout: 5 },
+      UserPromptSubmit: { script: 'jiahao-mode-tracker', timeout: 5 },
+      Stop: { script: 'jiahao-verdict-gate', timeout: 10 },
+      PreToolUse: { script: 'jiahao-pretool-guard', timeout: 5 },
+    },
+    // ZCode's manifest path, the ${ZCODE_PLUGIN_ROOT} spelling, the platform
+    // name the template passes, and the absent-by-rule defaultEnabled key all
+    // live in scripts/hosts/zcode.js.
+    manifest: {
+      description: 'Verification discipline for ZCode: profile injection at session start, verdict gate at turn end (A tier, live block verified 2026-10-31). Self-contained plugin.',
+      author: { name: 'Xxx91n' },
+    },
+    autoDiscovered: ['hooks/hooks.json'],
+    mcp: null,
+    rules: [],
+    readme: zcodeReadme,
   },
 ];
 
@@ -638,6 +718,13 @@ function buildAdapters() {
         adapters[prefix + dialect.hookMapPath] = dialect.emitHookMap
           ? dialect.emitHookMap(host)
           : emitHookMap(host);
+      }
+      if (dialect.marketplaceShelfPath) {
+        // A bundle-local marketplace shelf (ZCode): the install command only
+        // resolves plugin@marketplace names, and the shelf rides inside the
+        // bundle so `marketplace add <this dir>` resolves exactly these bytes.
+        adapters[prefix + dialect.marketplaceShelfPath] =
+          dialect.emitMarketplaceShelf((host.manifest || {}).description);
       }
       if (host.mcp) adapters[prefix + '.mcp.json'] = emitMcpJson(host.mcp);
     }
@@ -1426,6 +1513,231 @@ bundled gate is not unconditional - it passes when the host sends
 `;
 }
 
+// WorkBuddy install manual: one host row, two products. The identity facts, the
+// config roots, and the two install surfaces are stated per variant because
+// each build carries its own live probe - the international 5.9.4 run in #110
+// and the domestic 5.9.3 run in #118. Regenerated from this single source; edit
+// the string, never the emitted file.
+function workbuddyReadme() {
+  return `# WorkBuddy Adapter (self-contained plugin, A tier on both builds)
+
+This directory is a **self-contained plugin bundle for WorkBuddy**: the manifest
+(\`.workbuddy-plugin/plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook
+scripts and their \`require()\` closure, \`src/SKILL.md\`, and the identity pin
+the gate loads are vendored inside; there is no third-party runtime dependency.
+Every hook command resolves through \`\${CODEBUDDY_PLUGIN_ROOT}\`, the variable the
+shared loader sets for plugin hooks (read from the bundled CLI, not observed in
+a run), so nothing reads from the repository root.
+
+WorkBuddy is **not** a CodeBuddy alias, even though both bundle the same agent
+CLI (\`@genie/agent-cli 2.165.0\`). Two builds ship under two product names, two
+endpoints, and two config roots, and each was identified from its own
+\`product.json\`, not from documentation:
+
+| Variant | Product name | Build | Install dir | Config root | Endpoint |
+| --- | --- | --- | --- | --- | --- |
+| International | \`WorkBuddy AI\` (\`isOversea: true\`) | 5.9.4 | \`D:\\Workbuddy.ai\\WorkBuddyAI\` | \`~/.workbuddy-ai\` | \`https://www.workbuddy.ai\` |
+| Domestic | \`WorkBuddy\` | 5.9.3 | \`D:\\WorkBuddy\` | \`~/.workbuddy\` | \`https://www.workbuddy.cn\` |
+
+## Capability tier
+
+**A tier on both builds** - verified twice, once per variant, each on its own
+run and its own date:
+
+- **International** (2026-10-31, WorkBuddy AI 5.9.4): a real turn whose last
+  assistant message claimed \`任务完成，已验证。\` continued only after a \`Stop\`
+  hook printed \`{decision:"block"}\` and exited 0. The host injected the reason
+  as \`Stop hook feedback: ...\` and re-ran the turn.
+- **Domestic** (2026-11-01, WorkBuddy 5.9.3, \`D:\\WorkBuddy\`, config root
+  \`~/.workbuddy\`): the same shape on the other build - the false completion
+  continued only after the \`Stop\` hook printed \`{decision:"block"}\` and exited
+  0, the reason arrived as \`Stop hook feedback: ...\`, and the re-entry carried
+  \`stop_hook_active: true\`.
+
+These are two observations, not one inferred from the shared agent CLI
+(\`@genie/agent-cli 2.165.0\` on both). The domestic row came from its own
+session, its own settings file, and its own run; the international row was not
+substituted for it, and this document does not extend either result to a third
+build it has not run. Evidence:
+[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+
+One qualification belongs with the domestic row. The probe assigns exit 0 on
+every path by construction and records its decision before it writes stdout, so
+the exit status in the 5.9.3 run was **not captured by an independent wrapper**.
+What that run observed directly is the host continuing the turn after the logged
+block decision; "exit 0" above is the probe's own contract, not a captured
+return code. Re-running it inside a wrapper is the way to turn that into an
+artifact.
+
+## Install
+
+Two surfaces were identified; only the settings tier was watched blocking a
+turn.
+
+### Settings tier (the probed surface)
+
+WorkBuddy's desktop session reads \`hooks\` from \`<configDir>/settings.json\`
+(\`~/.workbuddy-ai/settings.json\` international, \`~/.workbuddy/settings.json\`
+domestic), and a **project-scope** \`.codebuddy/settings.json\` in the working
+directory is read too - that is the file the 2026-10-31 probe used. Note the
+project directory name: \`.codebuddy\`, not \`.workbuddy\`; a twin written to
+\`.workbuddy/settings.json\` at the same time did not fire.
+
+1. Copy the **whole bundle** to a stable path - \`hooks/\`, \`src/\`, and
+   \`src/SKILL.md\` together. The hook scripts require \`../src/*\` (the gate loads
+   the evidence log, calibration, sentinel, and pairer modules from there), so a
+   copy of \`hooks/\` alone fails before it can inject or decide anything.
+2. Merge the event map from \`hooks/hooks.json\` into the settings file,
+   replacing \`\${CODEBUDDY_PLUGIN_ROOT}\` with the path you copied to. That value
+   is a JSON string: on Windows write the separators as \`/\`
+   (\`D:/Workbuddy.ai/jiahao\`) or escape them (\`D:\\\\Workbuddy.ai\\\\jiahao\`),
+   otherwise the settings file stops parsing and no hook loads at all.
+3. Append the platform name to every command, as the shipped map does
+   (\`... jiahao-verdict-gate.js workbuddy\`). A settings-tier hook receives no
+   plugin root, and the environment carries both \`CODEBUDDY_*\` and
+   \`WORKBUDDY_*\` variables, so the argument is what identifies the host.
+4. Activate the jiahao profile flag **where the hooks read it**, and pin that
+   directory first. The hooks resolve it as \`CLAUDE_CONFIG_DIR\`, else \`HOME\`,
+   else \`/tmp\` (\`src/shared/paths.js\`). The probe recorded
+   \`CLAUDE_CONFIG_DIR\` as absent for the desktop's agent; whether the desktop
+   sets \`HOME\` was **not recorded**, and a shell supplies a \`HOME\` of its own.
+   Writing the flag from a shell can therefore land where no hook looks, and the
+   gate then finds no \`.jiahao-active\` and never arms.
+
+   The reliable recipe pins one directory for both sides: set
+   \`CLAUDE_CONFIG_DIR\` for the desktop process (a user environment variable
+   works on Windows), restart the desktop, then write the flags there from a
+   **freshly opened shell** - a shell started before the change keeps the old,
+   unset value.
+
+   Git Bash (WorkBuddy ships it at \`<configDir>/binaries/PortableGit\`):
+   \`echo full > "$CLAUDE_CONFIG_DIR/.jiahao-active"\` and
+   \`echo verifier > "$CLAUDE_CONFIG_DIR/.jiahao-profile"\`.
+
+   PowerShell:
+   \`Set-Content "$env:CLAUDE_CONFIG_DIR\\.jiahao-active" full\` and
+   \`Set-Content "$env:CLAUDE_CONFIG_DIR\\.jiahao-profile" verifier\`.
+
+   \`generator\` instead of \`verifier\` for advisory-only. With
+   \`CLAUDE_CONFIG_DIR\` left unset, the hooks fall back to \`HOME\` and then to
+   \`/tmp\` (\`C:\\tmp\` on Windows), so the flags would have to sit in whichever
+   of those the desktop's own environment resolves - check it rather than guess.
+5. Start a new session after changing settings. On 5.9.4 the hook map was
+   resolved per turn (an edit made during a turn applied at the next turn end),
+   and one turn end in three produced no invocation at all; the 5.9.3 run's own
+   timing is written down in its record rather than generalized here. Either
+   way, a mid-session edit is not something to rely on.
+
+### Plugin tier (declared-unverified)
+
+1. \`codebuddy plugin add <path-to-this-dir>\` using the CLI bundled with
+   WorkBuddy (\`<install dir>/resources/app.asar.unpacked/cli/bin/codebuddy\`),
+   or the desktop's plugin manager. The loader accepts \`.workbuddy-plugin\`,
+   \`.codebuddy-plugin\`, and \`.claude-plugin\`; this bundle uses the first.
+2. Enable the plugin. \`defaultEnabled: false\` is deliberate: enabling installs
+   five hook points at once.
+3. Activate the profile flag as above.
+
+The plugin path is read from the host's loader code, not from a watched run:
+no plugin-bundle hook was observed firing on 5.9.4. The settings tier above is
+the surface with evidence.
+
+## Hook behavior disclosure (read before enabling)
+
+| Event | Script | Behavior | Observed? |
+| --- | --- | --- | --- |
+| SessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext | no |
+| UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder | fired; its output was not read back |
+| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: prints \`{decision:"block", reason}\` and exits 0; the zero exit is the observed channel | **yes, the channel** on both builds - observed with the probe hook, not with this script; the gate's own judgment was not run live |
+| PreToolUse | hooks/jiahao-pretool-guard.js | emits \`permissionDecision: "deny"\` (verifier profile) for tool calls that target the hook map, the plugin manifest, \`jiahao-*\` hook files, any \`.mcp.json\`, or the jiahao state/evidence files - that is the script's output, **not** an observed host denial | fired; neither the deny output nor the host applying it was exercised |
+| SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep | no |
+
+Timeouts are 5/5/10/5/3s; the host's own per-hook cap was not measured. Event
+names are the host's own PascalCase set.
+
+\`SubagentStop\` is deliberately **not** wired. It fires with the same payload
+shape (it carries \`agent_id\`, \`agent_type\`, and \`last_assistant_message\`), but
+the 2026-10-31 probe answered it with \`{decision:"block"}\` on exit 0 and the
+subagent was **not** continued: one invocation, no \`stop_hook_active\` re-entry.
+The 2026-11-01 domestic run repeated that result on 5.9.3. A gate there would
+print a decision the host ignores, so the bundle stays on the event that was
+watched working on both builds.
+
+## Dialect: what differs from the Claude-shaped hosts
+
+Everything below lives in \`scripts/hosts/workbuddy.js\`; the judgment logic is
+the same \`hooks/jiahao-verdict-gate.js\` every host runs.
+
+- **Manifest path is \`.workbuddy-plugin/plugin.json\`** - the product-native
+  directory the shared loader scans.
+- **Commands expand \`\${CODEBUDDY_PLUGIN_ROOT}\`**, the variable the shared loader
+  sets for plugin hooks (read from the bundled CLI; not observed in a run), and
+  pass the platform name \`workbuddy\` as the first argument.
+- **The block channel is the decision field on a zero exit.** \`Stop\` honours
+  \`{decision:"block", reason}\` on stdout; the gate exits 0 for this host. Exit 2
+  was not probed here.
+- **\`CODEBUDDY_DISABLE_EXTENDED_PLUGIN_HOOKS=1\` is set by both desktop builds.**
+  It rejects \`prompt\` / \`agent\` / \`http\` hook types; \`command\` hooks - the
+  only kind this bundle ships - still load.
+
+## Live probe (international 2026-10-31, domestic 2026-11-01, win32)
+
+Both runs used a project-scope \`.codebuddy/settings.json\` in the workspace and
+the throwaway hook in \`docs/evidence/v0.3.0/probes/workbuddy-hook-probe.js\`.
+Commands, payloads, and the recorded environments are in
+[\`workbuddy-hook-probe-2026-10-31.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md)
+(international) and
+[\`workbuddy-cn-hook-probe-2026-11-01.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/workbuddy-cn-hook-probe-2026-11-01.md)
+(domestic). The probe hook stands in for the shipped gate in both runs; see
+[Verification status](#verification-status-honest-tiering).
+
+| Point | International 5.9.4 | Domestic 5.9.3 |
+| --- | --- | --- |
+| Project-scope \`.codebuddy/settings.json\` hooks are read by the desktop session | **Verified**: a \`PreToolUse\` probe logged every tool call | **Verified**: 4 invocations between 17:10:44Z and 17:11:13Z |
+| \`.workbuddy/settings.json\` project twin | **Did not fire**; the project directory name is \`.codebuddy\` | **Did not fire**; the probe's log file was never created |
+| A real turn-end block (\`Stop\` + \`decision:"block"\` on exit 0) | **Verified**: the claim continued only after the decision; the reason arrived as \`Stop hook feedback\` | **Verified**: same shape and same message text; the exit status itself was not captured on this build - the record says so |
+| \`stop_hook_active\` on re-entry | \`true\`, and the hook passed on it | \`true\` and passed on it, with the probe's marker deleted first |
+| \`SubagentStop\` block | **Refuted as an enforcement point**: fired once, decision ignored | **Same negative result**: fired once, no re-entry, subagent not continued |
+| Payload identity fields | \`hook_event_name\`, \`stop_hook_active\`, \`last_assistant_message\`, \`transcript_path\`, \`client:"WorkBuddy"\`, \`version:"5.9.4"\` | same keys, with \`version:"5.9.3"\` |
+| Hook environment | \`WORKBUDDY_APP_NAME\`, \`WORKBUDDY_APP_VERSION\`, \`WORKBUDDY_DATA_FOLDER_NAME\`, \`CODEBUDDY_HOST=workbuddy-desktop\`; no \`*_PLUGIN_ROOT\` | same shape: \`WorkBuddy\`, \`5.9.3\`, \`.workbuddy\`, config dir \`~/.workbuddy\` |
+| Exit 2 as a block channel | Not probed | Not probed |
+| Plugin-bundle hooks firing | Not probed; the loader code path was read | Not probed |
+
+## Write scope and network
+
+- Hooks write only under the config dir (\`$CLAUDE_CONFIG_DIR\`, else \`$HOME\`):
+  \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\` (plus its sidecar
+  and pairer shadow records), \`.jiahao-pretool.jsonl\`, and the sentinel state
+  and lock files. Nothing inside the repository or this plugin directory is
+  written by a hook.
+- No network calls: no hook fetches anything, and the bundle has no third-party
+  runtime dependency to install.
+
+## Update and uninstall
+
+- Settings tier: replace the **whole copied bundle** - \`hooks/\` and \`src/\`
+  together - keep the settings entries, and start a new session. Replacing only
+  \`hooks/\` leaves \`src/SKILL.md\` and the vendored modules at the old version,
+  which is the stale half the gate reads.
+- Plugin tier: the host's own plugin commands (\`codebuddy plugin remove jiahao\`
+  or the desktop plugin manager). Removing the bundle removes its hook map; the
+  settings-tier copy, if you also installed it, is removed by hand.
+
+## Verification status (honest tiering)
+
+Pinned offline by \`test/plugin-bundles.test.js\` (structure, run once per host
+row) and \`test/workbuddy-adapter.test.js\` (the \`workbuddy\` envelope, host
+detection, and the bundled Stop gate spawned as a subprocess from a temp
+materialization of the generator output): the manifest parses, its version and
+license come from \`package.json\`, every referenced file is emitted
+(\`--check\` pins the emitted set to disk), every hook command stays inside
+\`\${CODEBUDDY_PLUGIN_ROOT}\`, and no vendored relative \`require()\` escapes the
+bundle.
+
+The tier claim rests on the live probe above, not on these structural tests.
+`;
+}
+
 // Google Antigravity install manual + hook disclosure. Regenerated from this
 // single source; edit the string, never the emitted file.
 function antigravityReadme() {
@@ -1521,6 +1833,160 @@ at its forced-continuation limit (\`MAX_FORCED_INVOCATIONS\`).
 }
 
 // Minimal zero-dependency unified diff (LCS over lines, 3 lines of context).
+// ZCode install manual + hook disclosure. Regenerated from this single
+// source; edit the string, never the emitted file.
+function zcodeReadme() {
+  return `# ZCode Adapter (self-contained plugin, A tier, live-probed 2026-10-31)
+
+This directory is a **self-contained ZCode plugin**: the manifest
+(\`.zcode-plugin/plugin.json\`), the hook map (\`hooks/hooks.json\`), the hook
+scripts and their \`require()\` closure, \`src/SKILL.md\`, and the identity pin
+the gate loads are vendored inside; there is no third-party runtime
+dependency. Every hook command resolves through \`\${ZCODE_PLUGIN_ROOT}\`, so
+nothing reads from the repository root.
+
+**Capability tier: A (verified 2026-10-31, ZCode 3.16.2, win32).** A live
+desktop session's turn end was blocked by the Stop hook answering
+\`{decision:"block"}\` on exit 0, and the block reason arrived back as the
+next turn's context. Evidence:
+[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+
+## Install (host-native commands)
+
+The bundle carries its own marketplace shelf (\`marketplace.json\`, with
+\`source: "."\` pointing at itself), because ZCode's install command only
+resolves \`plugin@marketplace\` names - a direct directory install is refused
+("Plugin not found in any marketplace", CLI 0.17.0, probed 2026-10-31).
+
+1. \`zcode plugins marketplace add <path-to-this-dir>\` - the shelf inside the
+   bundle is the marketplace; exit 0 reports \`Added marketplace jiahao-zcode
+   (1 plugins)\`.
+2. \`zcode plugins install jiahao@jiahao-zcode\` - installs and enables in one
+   step; \`zcode plugins list\` reports \`hooks: 4\` (the host parses
+   \`hooks/hooks.json\` itself; the manifest carries no hooks pointer). The
+   cached hook map, manifest, and gate script are byte-identical to this
+   bundle (diff-verified 2026-10-31).
+3. \`zcode plugins validate <path-to-this-dir>\` is the host's own manifest
+   check; it accepts this bundle (exit 0).
+4. Do NOT point \`marketplace add\` at the repository root: the host then
+   resolves \`.claude-plugin/marketplace.json\` and installs the **Claude
+   Code** bundle instead (probed 2026-10-31 - and its parser drops the
+   unsupported events of a Claude-shaped map silently, 7 events down to
+   \`hooks: 4\`).
+5. Activate the jiahao profile flag, same as every host. Resolve the config
+   directory once (\`CLAUDE_CONFIG_DIR\`, else \`$HOME\`, else \`/tmp\`).
+   POSIX shell: \`CONFIG="\${CLAUDE_CONFIG_DIR:-\${HOME:-/tmp}}"\`, then
+   \`echo full > "$CONFIG/.jiahao-active"\` and
+   \`echo verifier > "$CONFIG/.jiahao-profile"\` for the blocking profile
+   (\`generator\` for advisory-only). PowerShell:
+   \`$c = If ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } Else { $HOME }\`,
+   then \`Set-Content -NoNewline -Path "$c/.jiahao-active" -Value full\` and
+   \`Set-Content -NoNewline -Path "$c/.jiahao-profile" -Value verifier\`.
+   Start a new session after changing \`.jiahao-profile\`.
+6. Restart or open a new session. Hook configuration — plugin or
+   config-file — is read at session start; a map added mid-session did not
+   fire until a restart (live probe, 2026-10-31).
+
+Upgrade is \`zcode plugins update\` (the subcommand exists; not live-probed).
+Uninstall is \`zcode plugins uninstall jiahao@jiahao-zcode --force\`
+(non-interactive shells need \`--force\`), then
+\`zcode plugins marketplace remove jiahao-zcode\`. Install, upgrade, and
+uninstall are the host's own plugin commands; the repository root is never a
+plugin entry.
+
+## Hook behavior disclosure (read before enabling)
+
+ZCode's event set is exactly seven (\`SessionStart\`, \`UserPromptSubmit\`,
+\`PreToolUse\`, \`PermissionRequest\`, \`PostToolUse\`, \`PostToolUseFailure\`,
+\`Stop\`). \`SubagentStart\`, \`SubagentStop\`, and \`SessionEnd\` do not exist,
+so this bundle wires no sweep hook: the sentinel reconcile sweep does not run
+on this host.
+
+| Event | Script | Behavior |
+| --- | --- | --- |
+| SessionStart | hooks/jiahao-activate.js | injects the profile section via hookSpecificOutput.additionalContext |
+| UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
+| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: exit 0 + {decision:"block"} on stdout; blocks an empty evidence chain (verifier profile) |
+| PreToolUse | hooks/jiahao-pretool-guard.js | denies (verifier profile) tool calls that target the hook map, the plugin manifest, \`jiahao-*\` hook files, any \`.mcp.json\`, or the jiahao state/evidence files; each hit is a bypass-attempt record |
+
+Timeouts stay within the host's default 60s budget (5/5/10/5s). Commands are
+\`node\` invocations in shell form; the platform name \`zcode\` is passed as the
+script's first argument, which is what selects this host's envelope and exit
+codes in \`hooks/jiahao-runtime.js\`.
+
+## Dialect: what differs from the Claude-shaped hosts
+
+- **\`\${ZCODE_PLUGIN_ROOT}\` is the plugin-root variable.** ZCode also
+  expands \`\${CLAUDE_PLUGIN_ROOT}\` for plugin hooks; the template uses the
+  native spelling so nothing depends on the compatibility name.
+- **Payloads carry both spellings.** \`session_id\`/\`sessionId\`,
+  \`hook_event_name\`/\`hookEventName\`, and
+  \`stop_hook_active\`/\`stopHookActive\` were all present on live fires; the
+  shared normalizer folds them into the Claude shape.
+- **The block channel is the decision field on a zero exit.** A live turn
+  continued only after Stop answered \`{decision:"block"}\` on exit 0. The
+  gate exits 0 for this host.
+- **Config-tier alternative.** Hooks can also be registered without a plugin
+  in the \`hooks\` block of \`~/.zcode/cli/config.json\` (requires
+  \`hooks.enabled: true\`) or a workspace \`.zcode/config.json\`.
+  Configuration hooks have no trust gate. A config-tier install carries no
+  argv, so \`detectHost()\` falls back to the \`ZCODE_SESSION_ID\` environment
+  marker.
+
+## Live probe (2026-10-31, ZCode 3.16.2, win32)
+
+The probe ran in a real desktop session in this repository's workspace, with
+a throwaway workspace hook config and a logging wrapper standing in for the
+gate. Commands and captured payloads live in
+[\`docs/evidence/v0.3.0/\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+
+| Point | Result |
+| --- | --- |
+| A real turn-end block (Stop + \`decision:"block"\`) | **Verified**: the real bundled gate blocked a session's turn end (verifier profile, empty evidence chain); the reason arrived as the next turn's context |
+| Exit 2 as the block channel | **Verified, refuted as the gate's channel**: exit 2 also blocked, but with the host's generic "Hook blocked execution" and no reason; the gate keeps exit 0 + the decision field, which carries the reason |
+| \`stop_hook_active\` on the continuation | **Verified**: \`true\` on every post-block Stop (both spellings); the gate's pass-through needs no change |
+| Consecutive-block cap | **Verified**: three consecutive block continuations were honored (fires #1-#4 in \`zcode-stop-fires.jsonl\`); the fourth consecutive block was followed by the turn ending without a further continuation (the session user was present at that boundary) |
+| Payload spellings | **Verified**: both snake_case and camelCase on every fire |
+| Hook config read at session start | **Verified**: mid-session config did not fire until restart |
+| \`zcode plugins validate\` on the bundle | **Verified**: exit 0, "Plugin manifest is valid" |
+| Install through the bundle's own marketplace shelf | **Verified**: \`marketplace add <this dir>\` + \`plugins install jiahao@jiahao-zcode\` installed the bundle \`[enabled]\`; \`plugins list\` reports \`hooks: 4\`; the cached hook map, manifest, and gate are byte-identical to the generated bundle |
+| Repository root as the marketplace | **Refuted for this bundle**: the host resolved \`.claude-plugin/marketplace.json\` and installed the Claude Code bundle |
+| Direct \`zcode plugins install <dir>\` | **Refuted**: refused with "Plugin not found in any marketplace" |
+| Plugin-path hooks in the operator's restarted session (2026-11-01, post-merge formal install) | **Verified**: all four registered events observed live - SessionStart injected the rules body, UserPromptSubmit injected the mode reminder, PreToolUse **denied** a tool call whose command text named the state/evidence files (bypass-attempt telemetry written per the deny envelope), and Stop **blocked** a jargon-wrapped no-evidence completion claim with the Case A reason verbatim before passing on \`stop_hook_active\` after rung-1 verification |
+| SessionStart \`additionalContext\` injection | **Verified**: the injected rules body arrived as the next turn's hook additional context in the restarted session |
+
+## Write scope and network
+
+- Hooks write only under the config dir (\`$CLAUDE_CONFIG_DIR\`, else
+  \`$HOME\`): \`.jiahao-active\`, \`.jiahao-profile\`, \`.jiahao-evidence/\`
+  (plus its sidecar and pairer shadow records), \`.jiahao-pretool.jsonl\`, and
+  the sentinel state and lock files. Nothing inside the repository or this
+  plugin directory is written by a hook.
+- No network calls: no hook fetches anything, and the bundle has no
+  third-party runtime dependency to install.
+
+## Verification status (honest tiering)
+
+Pinned offline by \`test/plugin-bundles.test.js\` (structure, run once per host
+row) and \`test/zcode-adapter.test.js\` (the ZCode envelope and the bundled
+Stop gate, spawned as a subprocess from a temp materialization of the
+generator output): the manifest parses, its version and license come from
+\`package.json\`, every referenced file is emitted (\`--check\` pins the emitted
+set to disk), every hook command stays inside \`\${ZCODE_PLUGIN_ROOT}\`, and no
+vendored relative \`require()\` escapes the bundle.
+
+The hook's own exit code, stdin, and stdout are recorded by the probe
+wrapper:
+[\`probes/zcode-stop-wrapper.js\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/zcode-stop-wrapper.js)
+logs one JSON line per fire (payload and environment key names), and in
+\`realgate\` mode spawns the real bundled gate, logs its exit/stdout/stderr,
+then replays them. The raw fires live in
+[\`zcode-stop-fires.jsonl\`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/zcode-stop-fires.jsonl);
+the evidence layout is described in
+[\`docs/agents/evidence-review.md\`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
+`;
+}
+
 function unifiedDiff(rel, oldText, newText) {
   const a = oldText.split('\n');
   const b = newText.split('\n');

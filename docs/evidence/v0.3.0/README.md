@@ -1,4 +1,4 @@
-# v0.3.0 real-machine acceptance (#80, #109, #113)
+# v0.3.0 real-machine acceptance (#80, #109, #111, #108, #113)
 
 Date: 2026-10-30. Host: Windows 10.0.26100 (win32 x64). `node
 scripts/build-adapters.js` was run locally to produce the committed bundles;
@@ -11,7 +11,8 @@ records the acceptance for the v0.3.0 content. **Reconciled afterwards, so nobod
 has to infer it:** #81 landed and every committed manifest - `adapters/claude-code`,
 `adapters/codebuddy`, `adapters/copilot`, `adapters/codex` and, since #109,
 `adapters/qoder` - now reports `0.3.0`. The `0.2.0` above is a statement about the
-probed artifact on 2026-10-30, not about the tree you can check out today.
+probed artifact on 2026-10-30, not about the tree you can check out today. The ZCode artifacts (#108, 2026-10-31) ran on a tree already
+reporting `0.3.0`; the next release ticket owns the next bump.
 
 ## Codex CLI
 
@@ -87,6 +88,51 @@ probed artifact on 2026-10-30, not about the tree you can check out today.
 - SessionStart (**verified**): injects Jiahao instructions via `injectSteps` (`antigravity-blocked.txt`).
 - SessionEnd (**declared-unverified**): wired to `hooks/jiahao-sweep.js` per repository sentinel-reconciliation contract; live SessionEnd firing not probed.
 
+## ZCode (#108)
+
+- Host: ZCode Desktop 3.16.2 / CLI runtime 0.17.0 (win32), the operator's real
+  desktop session; the probe config was workspace-scope, the user-wide config
+  was untouched by the hook runs and restored after the plugin runs
+  (`zcode-version.txt`, `zcode-probe-notes.md`).
+- Stop channels: exit 0 + `{decision:"block"}` blocked a turn and returned the
+  reason as the next turn's context (fire #1); exit 2 also blocked, with the
+  host's generic message and no reason (fire #2). `stop_hook_active` was
+  `true` on every post-block continuation (fires #2-#4). Cap: three
+  consecutive block continuations, then the turn ended (fires #1-#4,
+  `zcode-stop-fires.jsonl`).
+- Real gate, real turn-end block: the bundled gate (argv `zcode`, verifier
+  profile, isolated config dir, empty chain) returned exit 0 +
+  `{decision:"block", reason: "Verification has no evidence: ..."}` with empty
+  stderr; the host blocked the turn and the reason arrived as the next turn's
+  context (fire #5). The continuation ran the verification ladder; the stop
+  that ended it was a wrapper pass-through (`json-once` mode), so a live
+  `stop_hook_active` pass by the real gate was not observed
+  (`zcode-stop-fires.jsonl`, `realgate-result` entry, `zcode-probe-notes.md`).
+- Payloads: both snake_case and camelCase spellings on every fire
+  (`session_id`/`sessionId`, `hook_event_name`/`hookEventName`,
+  `stop_hook_active`/`stopHookActive`, `transcript_path`/`transcriptPath`).
+- Hook configuration is read at session start: a mid-session workspace config
+  did not fire until a restart.
+- Install path: `plugins validate` exit 0; direct `plugins install <dir>`
+  refused (marketplace-only); the bundle's own shelf
+  (`marketplace.json`, `source: "."`) installs and enables
+  (`jiahao@jiahao-zcode`, `hooks: 4`; cached `hooks/hooks.json`,
+  `.zcode-plugin/plugin.json`, and `hooks/jiahao-verdict-gate.js`
+  byte-identical to the bundle - three-file diff in `zcode-install.txt`);
+  the repository root as marketplace resolves the Claude Code bundle instead
+  (`zcode-install.txt`).
+- Post-merge live verification (2026-11-01, formal install from a clean
+  release checkout of the merged main, operator session after a restart):
+  **all four plugin-path surfaces observed live** - SessionStart injected the
+  rules body, UserPromptSubmit injected the mode reminder, PreToolUse denied
+  a tool call whose command text named the state/evidence files (bypass
+  attempt recorded per the deny envelope), and Stop blocked a jargon-wrapped
+  no-evidence completion claim with the Case A reason verbatim, passing on
+  `stop_hook_active` after rung-1 verification. Honest gap: the host's
+  hook-execution log location was not identified in this build, so the
+  observations are the host-delivered hook contexts and decisions quoted in
+  the session transcript (`zcode-probe-notes.md`).
+
 ## Reproduction
 
 The throwaway probe hooks and the instrumented wrapper are in `probes/`; each
@@ -113,6 +159,16 @@ bounded the loop with a per-session cap, and deleted both hook config files and
 the probe's temp state afterwards. `qoder-hook-probe-2026-10-31.md` and
 `qoder-intl-hook-probe-2026-11-01.md` record the isolation state per run.
 
+The WorkBuddy probes are also exceptions: that host refuses a headless turn
+without an interactive login, so both ran in the operator's live desktop session
+with a project-scope settings file - `workbuddy-hook-probe-2026-10-31.md` for the
+international 5.9.4 build (#110) and `workbuddy-cn-hook-probe-2026-11-01.md` for
+the domestic 5.9.3 build (#118). Each record states what it touched and how the
+workspace was restored; neither claims the isolation the sessions above had. The
+domestic run also states that the workspace it used is shared with other
+in-flight branches, so its `git status` line is a statement about the cleanup
+moment rather than a lasting property.
+
 ## Tier conclusion
 
 Labels follow `docs/agents/evidence-review.md` item 3: **verified** means a run in
@@ -121,14 +177,21 @@ documentation and was not watched happen.
 
 **Verified - A tier**: Codex CLI 0.163.0 and GitHub Copilot CLI 1.0.105
 (2026-10-30, #80), Google Antigravity 1.2.12 (2026-10-31, #111), Qoder CN
-Desktop 0.4.11 (2026-10-31, #109), and Qoder international Desktop 0.4.11
-(2026-11-01, #113) each blocked a real turn end on the recorded version and date.
-On Qoder it was a config-registered `Stop` hook on both channels (exit 0 + flat
-`{"decision":"block"}`, and exit 2 + stderr), with `stop_hook_active` set on
-every re-entry - which supersedes this file's earlier line that Qoder remained C
-tier and that no probe had changed it. The two Desktop builds were probed
-separately; the CN run's record is `qoder-hook-probe-2026-10-31.md` and the
-international one's is `qoder-intl-hook-probe-2026-11-01.md`.
+Desktop 0.4.11 (2026-10-31, #109), Qoder international Desktop 0.4.11
+(2026-11-01, #113), ZCode 3.16.2 (2026-10-31, #108), WorkBuddy AI 5.9.4
+international (2026-10-31, #110), and WorkBuddy 5.9.3 domestic (2026-11-01, #118)
+each blocked a real turn end on the recorded version and date. On WorkBuddy the
+block was a settings-tier `Stop` hook answering
+`{decision:"block"}` on exit 0, and `SubagentStop` was watched answering the same
+decision without a continuation. The two WorkBuddy variants were probed on their
+own runs; the domestic row is not inferred from the shared agent CLI, and both
+runs used the probe hook where the shipped gate would sit. On Qoder it was a config-registered `Stop` hook on both channels
+(exit 0 + flat `{"decision":"block"}`, and exit 2 + stderr), with
+`stop_hook_active` set on every re-entry - which supersedes this file's earlier
+line that Qoder remained C tier and that no probe had changed it. The two Qoder
+Desktop builds were probed separately; the CN run's record is
+`qoder-hook-probe-2026-10-31.md` and the international one's is
+`qoder-intl-hook-probe-2026-11-01.md`.
 
 **Declared-unverified - Qoder**: the bundle's own plugin registration path
 (`adapters/qoder/` installed as a Desktop plugin), `${QODER_PLUGIN_ROOT}` in a
@@ -142,4 +205,12 @@ the host run log (`qoder-intl-runlog-probe-hooks.txt`). That is an observation o
 the **host's** plugin, not of this bundle: no plugin-path hook was watched
 blocking.
 
-**Not probed**: Qoder IDE/CLI, which keeps the rules-only exit.
+**Declared-unverified - ZCode**: `zcode plugins update` only. The two items
+this entry used to list - plugin-path hooks firing in a restarted session and
+the SessionStart `additionalContext` injection - were verified post-merge on
+2026-11-01 in the operator's restarted session (ZCode section above and
+`zcode-probe-notes.md`).
+
+**Not probed**: Qoder IDE/CLI, which keeps the rules-only exit. (Both Qoder
+Desktop builds are verified above; the earlier line here that the international
+build "keeps C tier" is superseded by #113.)

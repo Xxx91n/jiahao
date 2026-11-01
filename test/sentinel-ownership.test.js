@@ -31,7 +31,9 @@ afterAll(() => {
 test('D1: fresh lock held by a live owner — reconcile skips, no record, file kept', () => {
   const file = path.join(DIR, PREFIX + 'live-hook');
   fs.writeFileSync(file, JSON.stringify({ hook: 'live-hook', phase: 'scan', started_at: 'x' }), 'utf8');
-  const release = tryLockSync(file); // same fd-lifetime semantics as begin()
+  const owned = tryLockSync(file); // same lock semantics as begin()
+  expect(owned.ok).toBe(true);
+  const release = owned.release;
   expect(typeof release).toBe('function');
   const healed = reconcile(DIR);
   expect(healed).toEqual([]);
@@ -148,6 +150,14 @@ test('D3: SessionEnd is registered wherever a hook map exists', () => {
     // the invariant about the end of the session, so a row that moves the sweep
     // to sessionStart cannot pass by having a sweep somewhere.
     const sweepEvent = dialect.sessionEndEvent;
+    if (sweepEvent === null) {
+      // ZCode has no session-end event at all (#108): a sweep cannot run
+      // there, and dead wiring would claim a cleanup that never fires. The
+      // null in the dialect is the test-visible statement of that absence.
+      expect(Object.values(host.hooks).some((hook) => hook.script === 'jiahao-sweep')).toBe(false);
+      wired++;
+      continue;
+    }
     expect(host.hooks[sweepEvent]).toBeDefined();
     expect(host.hooks[sweepEvent].script).toBe('jiahao-sweep');
     wired++;
