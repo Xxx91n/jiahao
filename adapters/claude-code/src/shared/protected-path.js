@@ -44,14 +44,15 @@ const path = require('path');
 // `.jiahao-kappa-baseline.json`, `.jiahao-evidence.lock` and
 // `.jiahao-calibration.jsonl` were missing, and the #110 review surfaced
 // `.jiahao-anchor.json` / `.jiahao-persistence.json` as two more.
-// `[a-z0-9._-]+` is the alphabet a state name may spell - dots, dashes and
-// underscores are all legal in a filename (`.jiahao-evidence.keys`,
-// `.jiahao-evidence.lock`, `.jiahao-sentinel.<hook>`, `.jiahao-draft_1`) - and
-// `([\\/]|$)` also catches the files inside the evidence directory. The list is
+// The suffix spans ONE path segment (`[^\\/\s]+`): every filename character
+// counts, rather than a whitelist that falls behind the namespace - dots,
+// dashes and underscores, but also `+` or `~` spellings such as
+// `.jiahao-draft+2`. `([\\/]|$)` also catches the files inside the evidence
+// directory. The list is
 // no longer a second hand-maintained copy of `src/shared/paths.js`:
 // test/protected-path.test.js reads every quoted `.jiahao…` name out of the
 // .js source under src/, hooks/ and jiahao-mcp/ and requires each to be denied.
-// The census does not restrict the suffix to this fragment's alphabet - only
+// The census does not restrict the suffix to a whitelist - only
 // quotes and whitespace end a name - so a state file spelled some other way
 // turns the suite red instead of escaping silently.
 //
@@ -62,7 +63,7 @@ const path = require('path');
 const PROTECTED_FRAGMENTS = [
   /(^|[\\/=])hooks[\\/]jiahao-[a-z0-9-]+\.js$/,
   /(^|[\\/=])rules[\\/]jiahao-(verifier|generator)\.md$/,
-  /(^|[\\/=])\.jiahao-[a-z0-9._-]+([\\/]|$)/,
+  /(^|[\\/=])\.jiahao-[^\\/\s]+([\\/]|$)/,
 ];
 
 // Windows resolves names case-insensitively, so `.JIAHAO-PROFILE` deletes the
