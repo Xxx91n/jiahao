@@ -270,3 +270,25 @@ test('#71: a mid-write throw repairs the tail anchor and dedup sidecar', () => {
   expect(keys).toContain('idem-partial');
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+// #71 (CodeRabbit on PR #133, round 2): the metadata repair must cover the
+// whole per-record batch. A rotation splice re-hashes the pending record; a
+// throw there happens after earlier records landed and outside the append call.
+test('#71: a rotation-time throw also repairs metadata before rethrowing', () => {
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'jiahao-evidence-rotate-repair-'));
+  const log = createEvidenceLog(dir, { rotateBytes: 1 }); // rotate before every follow-up write
+  const a = log.createRecord('gate-71f', 'deterministic', 'passed', 'first', null, null, {});
+  expect(log.commit(function () { return [a]; })).toBe(1);
+
+  const b = log.createRecord('gate-71g', 'deterministic', 'passed', 'second', null, a.event_hash, {});
+  b._idem = 'idem-rotation';
+  b.event_hash = recordHash(b);
+  const circular = { prev_hash: b.event_hash, event_hash: 'deadbeef' };
+  circular.self = circular; // rotation calls recordHash(circular) -> throws
+
+  expect(log.commit(function () { return [b, circular]; })).toBeGreaterThan(0);
+  const keys = fs.readFileSync(path.join(dir, '.jiahao-evidence.keys'), 'utf8');
+  expect(keys).toContain('idem-rotation');
+  expect(log.verifyTail().valid).toBe(true);
+  fs.rmSync(dir, { recursive: true, force: true });
+});

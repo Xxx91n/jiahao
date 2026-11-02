@@ -1490,82 +1490,89 @@ function createEvidenceLog(overrideConfigDir, opts) {
           _writeTailAnchorForChain(existing.concat(applied));
         }
       };
-      for (const rec of made) {
-        if (!rec) continue;
-        if (rec._idem && seen.has(rec._idem)) continue; // first-writer-wins
-        let tailIsAnchor = typeof tail === 'string' && tail.length > 0;
-        // A record chained onto a hash that was relocated by an earlier
-        // rotation splice in THIS commit gets re-linked transparently.
-        if (tailIsAnchor && typeof rec.prev_hash === 'string' &&
-          Object.prototype.hasOwnProperty.call(relink, rec.prev_hash)) {
-          rec.prev_hash = relink[rec.prev_hash];
-        }
-        if (tailIsAnchor && rec.prev_hash !== undefined && rec.prev_hash !== tail) {
-          note('skipping record ' + JSON.stringify(rec.gate_id) +
-            ' — prev_hash mismatch (expected ' + tail + ', got ' + rec.prev_hash + ')');
-          continue;
-        }
+      // CodeRabbit on PR #133 (round 2): the repair must cover the WHOLE
+      // per-record batch, not just appendFileSync. A rotation splice calls
+      // recordHash()/sha256File()/readSegment() and writes the anchor itself;
+      // any of those can throw after earlier records landed. The local
+      // fs.statSync catch below stays as is - it handles its own error.
+      try {
+        for (const rec of made) {
+          if (!rec) continue;
+          if (rec._idem && seen.has(rec._idem)) continue; // first-writer-wins
+          let tailIsAnchor = typeof tail === 'string' && tail.length > 0;
+          // A record chained onto a hash that was relocated by an earlier
+          // rotation splice in THIS commit gets re-linked transparently.
+          if (tailIsAnchor && typeof rec.prev_hash === 'string' &&
+            Object.prototype.hasOwnProperty.call(relink, rec.prev_hash)) {
+            rec.prev_hash = relink[rec.prev_hash];
+          }
+          if (tailIsAnchor && rec.prev_hash !== undefined && rec.prev_hash !== tail) {
+            note('skipping record ' + JSON.stringify(rec.gate_id) +
+              ' — prev_hash mismatch (expected ' + tail + ', got ' + rec.prev_hash + ')');
+            continue;
+          }
 
-        // byte-threshold rotation, evaluated before each write.
-        if (activePath && fs.existsSync(activePath)) {
-          let size = 0;
-          try { size = fs.statSync(activePath).size; } catch (e) { }
-          if (size >= rotateBytes && !(opts.skipRotation)) {
-            _fsyncFile(activePath);
-            const anchor = {
-              kind: 'segment_anchor',
-              segment_format_version: SEGMENT_VERSION,
-              seq_start: total,
-              prev_segment_hash: sha256File(activePath),
-              prev_segment_count: readSegment(activePath, true).length,
-              prev_segment_bytes: size,
-              created_at: new Date().toISOString(),
-              prev_hash: typeof tail === 'string' ? tail : null,
-              event_hash: null,
-            };
-            // Fail-closed carry-over: a `legacy_migration` marker means the
-            // pre-marker chain contains a verified break. Seal that fact on the
-            // anchor so verifyTail stays consistent with verifyChain/verifyFull
-            // after rotation — otherwise a rotation would silently flip a
-            // permanently-broken chain back to valid on the hot path.
-            const legacy = boundedAppend
-              ? _legacyBreakpointBounded(boundedState.segs, boundedState.recs)
-              : existing.find(function (r) { return r && r.kind === 'legacy_migration'; });
-            if (legacy) anchor.legacy_breakpoint = { broken_at: legacy.broken_at, reason: legacy.reason || null };
-            anchor.event_hash = recordHash(anchor);
-            activePath = path.join(ep, segmentName(total));
-            fs.writeFileSync(activePath, JSON.stringify(anchor) + '\n', 'utf8');
-            tail = anchor.event_hash;
-            total += 1;
-            applied.push(anchor);
-            writtenSoFar += 1;
-            tailIsAnchor = true;
-            // Splice the pending record onto the new segment's anchor so the
-            // concatenated chain stays valid across the boundary.
-            rec.prev_hash = anchor.event_hash;
-            if (Object.prototype.hasOwnProperty.call(rec, 'event_hash')) {
-              const oldHash = rec.event_hash;
-              rec.event_hash = recordHash(rec);
-              if (typeof oldHash === 'string') relink[oldHash] = rec.event_hash;
+          // byte-threshold rotation, evaluated before each write.
+          if (activePath && fs.existsSync(activePath)) {
+            let size = 0;
+            try { size = fs.statSync(activePath).size; } catch (e) { }
+            if (size >= rotateBytes && !(opts.skipRotation)) {
+              _fsyncFile(activePath);
+              const anchor = {
+                kind: 'segment_anchor',
+                segment_format_version: SEGMENT_VERSION,
+                seq_start: total,
+                prev_segment_hash: sha256File(activePath),
+                prev_segment_count: readSegment(activePath, true).length,
+                prev_segment_bytes: size,
+                created_at: new Date().toISOString(),
+                prev_hash: typeof tail === 'string' ? tail : null,
+                event_hash: null,
+              };
+              // Fail-closed carry-over: a `legacy_migration` marker means the
+              // pre-marker chain contains a verified break. Seal that fact on the
+              // anchor so verifyTail stays consistent with verifyChain/verifyFull
+              // after rotation — otherwise a rotation would silently flip a
+              // permanently-broken chain back to valid on the hot path.
+              const legacy = boundedAppend
+                ? _legacyBreakpointBounded(boundedState.segs, boundedState.recs)
+                : existing.find(function (r) { return r && r.kind === 'legacy_migration'; });
+              if (legacy) anchor.legacy_breakpoint = { broken_at: legacy.broken_at, reason: legacy.reason || null };
+              anchor.event_hash = recordHash(anchor);
+              activePath = path.join(ep, segmentName(total));
+              fs.writeFileSync(activePath, JSON.stringify(anchor) + '\n', 'utf8');
+              tail = anchor.event_hash;
+              total += 1;
+              applied.push(anchor);
+              writtenSoFar += 1;
+              tailIsAnchor = true;
+              // Splice the pending record onto the new segment's anchor so the
+              // concatenated chain stays valid across the boundary.
+              rec.prev_hash = anchor.event_hash;
+              if (Object.prototype.hasOwnProperty.call(rec, 'event_hash')) {
+                const oldHash = rec.event_hash;
+                rec.event_hash = recordHash(rec);
+                if (typeof oldHash === 'string') relink[oldHash] = rec.event_hash;
+              }
             }
           }
-        }
 
-        if (!activePath) {
-          fs.mkdirSync(ep, { recursive: true });
-          activePath = path.join(ep, segmentName(total)); // total === 0 on genesis
-        }
-        try {
+          if (!activePath) {
+            fs.mkdirSync(ep, { recursive: true });
+            activePath = path.join(ep, segmentName(total)); // total === 0 on genesis
+          }
           fs.appendFileSync(activePath, JSON.stringify(rec) + '\n', 'utf8');
-        } catch (appendError) {
-          try { persistMetadata(); } catch (metaError) { /* best effort; the append error wins */ }
-          throw appendError;
+          applied.push(rec);
+          writtenSoFar += 1;
+          if (rec._idem) seen.add(rec._idem);
+          tail = rec.event_hash;
+          total += 1;
         }
-        applied.push(rec);
-        writtenSoFar += 1;
-        if (rec._idem) seen.add(rec._idem);
-        tail = rec.event_hash;
-        total += 1;
+      } catch (batchError) {
+        // Same repair as the append path: metadata must describe what landed,
+        // and the batch must not be restarted (the landed records would double).
+        try { persistMetadata(); } catch (metaError) { /* best effort; the batch error wins */ }
+        throw batchError;
       }
       persistMetadata();
       return writtenSoFar; // one counter for both the success and throw paths
