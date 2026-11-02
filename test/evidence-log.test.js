@@ -247,3 +247,26 @@ test('#71: a mid-write throw reports the records that landed before it', () => {
   expect(written).toBe(1);
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+// #71 (CodeRabbit on PR #133): a batch that throws after one record landed must
+// leave the seal sidecar and tail anchor describing what is actually on disk.
+// Otherwise the next verifyTail sees an anchor that is behind the chain and
+// calls it corrupt.
+test('#71: a mid-write throw repairs the tail anchor and dedup sidecar', () => {
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'jiahao-evidence-repair-'));
+  const log = createEvidenceLog(dir);
+  const a = log.createRecord('gate-71d', 'deterministic', 'passed', 'first', null, null, {});
+  expect(log.commit(function () { return [a]; })).toBe(1);
+
+  const b = log.createRecord('gate-71e', 'deterministic', 'passed', 'second', null, a.event_hash, {});
+  b._idem = 'idem-partial';
+  b.event_hash = recordHash(b);
+  const circular = { prev_hash: b.event_hash };
+  circular.self = circular; // JSON.stringify throws after `b` is on disk
+  expect(log.commit(function () { return [b, circular]; })).toBe(1);
+
+  expect(log.verifyTail().valid).toBe(true);
+  const keys = fs.readFileSync(path.join(dir, '.jiahao-evidence.keys'), 'utf8');
+  expect(keys).toContain('idem-partial');
+  fs.rmSync(dir, { recursive: true, force: true });
+});

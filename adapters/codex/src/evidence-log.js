@@ -1467,6 +1467,29 @@ function createEvidenceLog(overrideConfigDir, opts) {
 
       const relink = {}; // old event_hash -> re-hashed value after a rotation splice
       const applied = [];
+      // Metadata repair path (#71, CodeRabbit on PR #133): if an append throws
+      // after earlier records landed, persist the same sidecar / tail state a
+      // successful run would have written, so the chain and its witnesses
+      // agree. It runs INSIDE the lock and never restarts the batch.
+      const persistMetadata = function () {
+        if (applied.length === 0) return;
+        if (activePath) _fsyncFile(activePath);
+        if (boundedAppend) {
+          if (bp) {
+            for (const rec of applied) {
+              if (rec && !rec.kind) postDetectionAppends += 1;
+            }
+          }
+          if (_writeBoundedTailAnchor(total, tail, bp, postDetectionAppends)) {
+            _updateSealSidecarPostCount(applied.length);
+          }
+        } else {
+          // Full-rewrite sidecar with the union set (bounded by unique turn keys).
+          const allKeys = existing.concat(applied).filter(r => r && r._idem).map(r => r._idem);
+          fs.writeFileSync(kp, allKeys.join('\n') + '\n', 'utf8');
+          _writeTailAnchorForChain(existing.concat(applied));
+        }
+      };
       for (const rec of made) {
         if (!rec) continue;
         if (rec._idem && seen.has(rec._idem)) continue; // first-writer-wins
@@ -1532,31 +1555,19 @@ function createEvidenceLog(overrideConfigDir, opts) {
           fs.mkdirSync(ep, { recursive: true });
           activePath = path.join(ep, segmentName(total)); // total === 0 on genesis
         }
-        fs.appendFileSync(activePath, JSON.stringify(rec) + '\n', 'utf8');
+        try {
+          fs.appendFileSync(activePath, JSON.stringify(rec) + '\n', 'utf8');
+        } catch (appendError) {
+          try { persistMetadata(); } catch (metaError) { /* best effort; the append error wins */ }
+          throw appendError;
+        }
         applied.push(rec);
         writtenSoFar += 1;
         if (rec._idem) seen.add(rec._idem);
         tail = rec.event_hash;
         total += 1;
       }
-      if (applied.length === 0) return;
-      if (activePath) _fsyncFile(activePath);
-
-      if (boundedAppend) {
-        if (bp) {
-          for (const rec of applied) {
-            if (rec && !rec.kind) postDetectionAppends += 1;
-          }
-        }
-        if (_writeBoundedTailAnchor(total, tail, bp, postDetectionAppends)) {
-          _updateSealSidecarPostCount(applied.length);
-        }
-      } else {
-        // Full-rewrite sidecar with the union set (bounded by unique turn keys).
-        const allKeys = existing.concat(applied).filter(r => r && r._idem).map(r => r._idem);
-        fs.writeFileSync(kp, allKeys.join('\n') + '\n', 'utf8');
-        _writeTailAnchorForChain(existing.concat(applied));
-      }
+      persistMetadata();
       return writtenSoFar; // one counter for both the success and throw paths
     };
     // Lock failure and a throw from run() itself are different events. The
