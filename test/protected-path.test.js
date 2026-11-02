@@ -10,18 +10,22 @@
 
 const path = require('path');
 const { isProtected } = require('../src/shared/protected-path');
+const { lockDir } = require('../src/file-lock');
 
 // #88 item 4 census: ONE table, two consumers. `name` is the file the guard has
 // to deny; `literal` is the quoted spelling the source actually contains, or
-// null when the name is derived rather than written (`file-lock` appends
-// `.lock`; the sentinel name is `PREFIX + hook`). Keeping both in one row means
-// the behaviour test and the binding scan cannot drift into separate lists.
+// null when the name is derived rather than written (the sentinel name is
+// `PREFIX + hook`). Keeping both in one row means the behaviour test and the
+// binding scan cannot drift into separate lists.
 const STATE_SURFACE = [
   { name: '.jiahao-active', literal: '.jiahao-active' },
   { name: '.jiahao-profile', literal: '.jiahao-profile' },
   { name: '.jiahao-evidence', literal: '.jiahao-evidence' },
   { name: '.jiahao-evidence.keys', literal: '.jiahao-evidence.keys' },
-  { name: '.jiahao-evidence.lock', literal: null }, // lockDir(target) = target + '.lock'
+  // Derived through the writer, not copied: if lockDir() ever moves the lock
+  // out of the reserved namespace, this row stops being protected and the
+  // state test turns red (CodeRabbit on PR #132).
+  { name: path.posix.basename(lockDir('/cfg/.jiahao-evidence')), literal: null },
   { name: '.jiahao-pretool.jsonl', literal: '.jiahao-pretool.jsonl' },
   { name: '.jiahao-instructions.jsonl', literal: '.jiahao-instructions.jsonl' },
   { name: '.jiahao-conviction-off', literal: '.jiahao-conviction-off' },
