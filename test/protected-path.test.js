@@ -10,6 +10,32 @@
 
 const path = require('path');
 const { isProtected } = require('../src/shared/protected-path');
+const { lockDir } = require('../src/file-lock');
+
+// #88 item 4 census: ONE table, two consumers. `name` is the file the guard has
+// to deny; `literal` is the quoted spelling the source actually contains, or
+// null when the name is derived rather than written (the sentinel name is
+// `PREFIX + hook`). Keeping both in one row means the behaviour test and the
+// binding scan cannot drift into separate lists.
+const STATE_SURFACE = [
+  { name: '.jiahao-active', literal: '.jiahao-active' },
+  { name: '.jiahao-profile', literal: '.jiahao-profile' },
+  { name: '.jiahao-evidence', literal: '.jiahao-evidence' },
+  { name: '.jiahao-evidence.keys', literal: '.jiahao-evidence.keys' },
+  // Derived through the writer, not copied: if lockDir() ever moves the lock
+  // out of the reserved namespace, this row stops being protected and the
+  // state test turns red (CodeRabbit on PR #132).
+  { name: path.posix.basename(lockDir('/cfg/.jiahao-evidence')), literal: null },
+  { name: '.jiahao-pretool.jsonl', literal: '.jiahao-pretool.jsonl' },
+  { name: '.jiahao-instructions.jsonl', literal: '.jiahao-instructions.jsonl' },
+  { name: '.jiahao-conviction-off', literal: '.jiahao-conviction-off' },
+  { name: '.jiahao-conviction-enforce', literal: '.jiahao-conviction-enforce' },
+  { name: '.jiahao-kappa-baseline.json', literal: '.jiahao-kappa-baseline.json' },
+  { name: '.jiahao-anchor.json', literal: '.jiahao-anchor.json' },
+  { name: '.jiahao-persistence.json', literal: '.jiahao-persistence.json' },
+  { name: '.jiahao-calibration.jsonl', literal: '.jiahao-calibration.jsonl' },
+  { name: '.jiahao-sentinel.jiahao-verdict-gate', literal: '.jiahao-sentinel.' }, // PREFIX + hook
+];
 
 const PLATFORMS = [
   {
@@ -104,8 +130,100 @@ for (const plat of PLATFORMS) {
       ];
       for (const text of shapes) expect(check(plat, text)).toBe(true);
     });
+
+    // #88 item 4: the state files the guard could not name before. The reserved
+    // `.jiahao-*` namespace makes this table a census, not the pattern's source
+    // of truth - the binding test below keeps the two from drifting again.
+    // Each one is a way for the agent to switch its own discipline off: the
+    // conviction kill switch, the evidence chain, its lock, and the anchor /
+    // persistence declarations.
+    test('every jiahao state file is protected wherever it appears', () => {
+      for (const { name } of STATE_SURFACE) {
+        expect(check(plat, 'rm ' + name)).toBe(true);
+        expect(check(plat, 'echo x > ' + outside(name))).toBe(true);
+      }
+      // files INSIDE the evidence directory are the chain itself
+      expect(check(plat, 'rm ' + outside('.jiahao-evidence', 'segments', '0001.jsonl'))).toBe(true);
+      // the namespace is a prefix, not a substring: a user name that merely
+      // contains `jiahao` is still none of the guard's business
+      expect(check(plat, 'rm my-jiahao-notes')).toBe(false);
+      expect(check(plat, 'rm user.jiahao-profile')).toBe(false);
+      // reserved wholesale: a user file that DOES start with `.jiahao-` is
+      // denied as collateral (#88 "一把抓 + 例外表"). Pinned so the widening is
+      // a visible decision; an exception goes in protected-path.js.
+      expect(check(plat, 'rm .jiahao-notes')).toBe(true);
+      // an underscore is part of the reserved namespace too, not only the
+      // letters today's state names happen to use (CodeRabbit on PR #132)
+      expect(check(plat, 'rm .jiahao-draft_1')).toBe(true);
+      // punctuation is not whitelisted away either: the suffix spans one path
+      // segment, so `+` and `~` names are the same reserved namespace
+      // (CodeRabbit on PR #132)
+      expect(check(plat, 'rm .jiahao-draft+2')).toBe(true);
+      expect(check(plat, 'rm .jiahao-draft~1')).toBe(true);
+      // whitespace is a filename character too; a quoted name stays one token
+      // and the whole segment is denied
+      expect(check(plat, 'rm ".jiahao-my notes"')).toBe(true);
+    });
+
+    // #88 item 6: jiahao-mcp/ is the vendored MCP server, i.e. the writer the
+    // evidence chain relies on. An agent that can rewrite it can rewrite the
+    // writer, so it joins the apparatus dirs.
+    test('the vendored MCP server directory is apparatus', () => {
+      expect(check(plat, 'rm ' + inRoot('jiahao-mcp', 'index.js'))).toBe(true);
+      expect(check(plat, 'sed -i s/a/b/ ' + inRoot('jiahao-mcp', 'package.json'))).toBe(true);
+      expect(check(plat, 'rm ' + outside('jiahao-mcp', 'index.js'))).toBe(false);
+    });
   });
 }
+
+// #88 item 4 acceptance: the fragment list must stop being a second
+// hand-maintained copy of the state names. The source is the list - every
+// quoted `.jiahao-…` name under src/, hooks/ or jiahao-mcp/ has to be denied -
+// with STATE_SURFACE pinning the census so an empty walk cannot pass. Adding a
+// state file without extending protection turns this red.
+describe('protected path (state file binding, #88 item 4)', () => {
+  const fs = require('fs');
+
+  function jsFiles(dir) {
+    const out = [];
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) out.push(...jsFiles(full));
+      else if (entry.name.endsWith('.js')) out.push(full);
+    }
+    return out;
+  }
+
+  test('every .jiahao name written by src/, hooks/ or jiahao-mcp/ is protected', () => {
+    const root = path.join(__dirname, '..');
+    const files = jsFiles(path.join(root, 'src'))
+      .concat(jsFiles(path.join(root, 'hooks')))
+      .concat(jsFiles(path.join(root, 'jiahao-mcp')));
+    // the list this must bind to lives in src/shared/paths.js: prove the walk
+    // actually reached it before trusting an empty `missed`
+    expect(files).toContain(path.join(root, 'src', 'shared', 'paths.js'));
+    const found = new Set();
+    for (const file of files) {
+      const text = fs.readFileSync(file, 'utf8');
+      // Single- or double-quoted string literals only (backticks excluded on
+      // purpose: comments here wrap names in backticks, and prose is not
+      // something the agent can delete). The suffix is not a whitelist: a
+      // name ends only at its closing quote or a line break, so
+      // `.jiahao-_draft` or `.jiahao-draft+2` shows up here instead of
+      // disappearing from the census (CodeRabbit on PR #132).
+      for (const match of text.matchAll(/(['"])(\.jiahao-[^'"\r\n]+)\1/g)) found.add(match[2]);
+    }
+    // every literal spelling the census expects must really be in the tree
+    for (const { literal } of STATE_SURFACE) {
+      if (literal) expect(found.has(literal)).toBe(true);
+    }
+    // and every name found must be denied on BOTH path implementations
+    const missed = [...found].filter((name) =>
+      !isProtected('rm ' + name, null, { pathImpl: path.posix }) ||
+      !isProtected('rm ' + name, null, { pathImpl: path.win32 }));
+    expect(missed).toEqual([]);
+  });
+});
 
 describe('protected path (shell spellings)', () => {
   // A Bash payload reaches the guard as text: `~`, `$HOME` and the host's own
@@ -357,5 +475,24 @@ describe('protected path (separator spellings)', () => {
   test('a case-shifted apparatus dir is the same dir on Windows', () => {
     expect(check(win32, 'rm C:\\Users\\u\\proj\\.codebuddy\\plugins\\JIAHAO\\SRC\\SKILL.md')).toBe(true);
     expect(check(win32, 'rm C:\\Users\\u\\other-project\\SRC\\SKILL.md')).toBe(false);
+  });
+
+  // The same filesystem rule applies to the state namespace: on Windows
+  // `.JIAHAO-PROFILE` deletes `.jiahao-profile`. On POSIX it is a different
+  // file and must stay allowed (#88 item 4 keeps the namespace case-sensitive
+  // everywhere the host is).
+  test('a case-shifted state name is the same file only on Windows', () => {
+    expect(check(win32, 'rm C:\\Users\\u\\.JIAHAO-PROFILE')).toBe(true);
+    expect(check(win32, 'rm .JIAHAO-EVIDENCE\\segments\\0001.jsonl')).toBe(true);
+    expect(check(win32, 'rm user.jiahao-profile')).toBe(false);
+    expect(check(posix, 'rm .JIAHAO-PROFILE')).toBe(false);
+  });
+
+  // The folded set covers the hooks/rules fragments too, not just the state
+  // namespace: `RULES\JIAHAO-VERIFIER.MD` is the same rule file on Windows.
+  test('a case-shifted rule or hook name is the same file on Windows', () => {
+    expect(check(win32, 'rm RULES\\JIAHAO-VERIFIER.MD')).toBe(true);
+    expect(check(win32, 'rm HOOKS\\JIAHAO-PRETOOL-GUARD.JS')).toBe(true);
+    expect(check(posix, 'rm RULES/JIAHAO-VERIFIER.MD')).toBe(false);
   });
 });

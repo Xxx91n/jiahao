@@ -8,9 +8,11 @@
 //
 // The guard protects jiahao's own apparatus. Two channels decide it:
 //   - PROTECTED_FRAGMENTS: the names jiahao owns outright - its hook scripts,
-//     its rule files, and the .jiahao-* state files enumerated below - matched
-//     at a candidate's end regardless of position in the argv
-//     (grill-t30 audit B-4);
+//     its rule files, and the reserved `.jiahao-*` state namespace - matched
+//     regardless of position in the argv (grill-t30 audit B-4). The state
+//     files are one prefix, not an enumerated list (#88 item 4); the matching
+//     detail and the missed names are in the note below the list, and the
+//     census lives in STATE_SURFACE in test/protected-path.test.js;
 //   - absolute containment under the plugin root: everything the bundle keeps
 //     in an apparatus directory, including names that are ordinary elsewhere
 //     (.mcp.json, hooks/hooks.json, .claude-plugin/plugin.json) and therefore
@@ -26,18 +28,55 @@
 const os = require('os');
 const path = require('path');
 
-// Distinctive fragments - fragments only cover paths whose names are
-// jiahao-owned, so a same-named user file elsewhere does not trip the deny.
-// Anchored at a candidate's END ($), so trailing args / flags cannot defeat it
-// (grill-t30 audit B-4). ^ alternation covers bare relative paths
+// Distinctive fragments. The hook/rule names below are jiahao-owned, so a
+// same-named user file elsewhere (an ordinary `hooks/` directory, a user's
+// `plugin.json`) does not trip the deny; the `.jiahao-*` namespace is reserved
+// wholesale below, so a user file that starts with that prefix does.
+// Hook and rule fragments are anchored at a candidate's END ($), so trailing
+// args / flags cannot defeat them (grill-t30 audit B-4). The state fragment
+// below also matches at a name boundary, so a file inside `.jiahao-evidence/`
+// counts. ^ alternation covers bare relative paths
 // ("rm rules/jiahao-verifier.md"). Both separator spellings are accepted inside
 // a fragment: a tool_input may carry either, and a fragment names a file, not a
 // path.
+// The `.jiahao-*` namespace is reserved wholesale (#88 item 4). An enumerated
+// list was the shape of the bug: `.jiahao-conviction-off` / `-enforce`,
+// `.jiahao-kappa-baseline.json`, `.jiahao-evidence.lock` and
+// `.jiahao-calibration.jsonl` were missing, and the #110 review surfaced
+// `.jiahao-anchor.json` / `.jiahao-persistence.json` as two more.
+// The suffix spans ONE path segment (`[^\\/]+`): everything between the
+// `.jiahao-` prefix and the next separator, with no whitelist to fall behind -
+// dots, dashes and underscores, but also `+` or `~` spellings such as
+// `.jiahao-draft+2`, and quoted names containing spaces. `([\\/]|$)` also
+// catches the files inside the evidence directory. The list is no longer a
+// second hand-maintained copy of `src/shared/paths.js`:
+// test/protected-path.test.js reads every quoted `.jiahao…` name out of the
+// .js source under src/, hooks/ and jiahao-mcp/ and requires each to be
+// denied. The census keeps the suffix open too - a name ends only at its
+// closing quote or a line break - so a state file spelled some other way turns
+// the suite red instead of escaping silently.
+//
+// There is no exception table today. The whole prefix is reserved, so a user
+// project file that happens to start with `.jiahao-` is denied as collateral;
+// a name that must stay writable gets an explicit exception HERE rather than a
+// narrower pattern (#88 lists the alternative as "一把抓 + 例外表").
 const PROTECTED_FRAGMENTS = [
   /(^|[\\/=])hooks[\\/]jiahao-[a-z0-9-]+\.js$/,
   /(^|[\\/=])rules[\\/]jiahao-(verifier|generator)\.md$/,
-  /(^|[\\/=])\.jiahao-(active|profile|evidence|evidence\.keys|instructions\.jsonl|pretool\.jsonl)([\\/]|$)/,
+  /(^|[\\/=])\.jiahao-[^\\/]+([\\/]|$)/,
 ];
+
+// Windows resolves names case-insensitively, so `.JIAHAO-PROFILE` deletes the
+// same file the lowercase spelling names - the Windows half of item 4, not a
+// new protection class. The fragments are compiled twice and the win32 reading
+// takes the folded set; a case-sensitive POSIX host keeps the two names
+// distinct. isProtected() derives one `caseInsensitive` flag from the
+// injected path implementation and hands it to both channels - the fragment set
+// here and apparatusName() below - so the rule cannot drift between them.
+// macOS reports POSIX separators but normally runs a case-insensitive
+// filesystem; that residual is documented in the not-covered block below.
+const PROTECTED_FRAGMENTS_FOLDED = PROTECTED_FRAGMENTS.map((re) => new RegExp(re.source, re.flags + 'i'));
+
 // Apparatus dirs under the resolved plugin root (absolute containment).
 // src/ is here because the bundle vendors the rule text and the runtime copies
 // the gate reads - rewriting either is the bypass the hook map alone cannot
@@ -46,14 +85,55 @@ const PROTECTED_FRAGMENTS = [
 // manifest the guard cannot defend, which is what the WorkBuddy row exposed
 // (#110). `.codex-plugin/`, `.workbuddy-plugin/`, `.zcode-plugin/`, and
 // `.qoder-plugin/` are bundle-local names, so listing them costs a project
-// nothing.
-const PROTECTED_DIRS = ['hooks', 'rules', 'src', '.claude-plugin', '.codex-plugin', '.workbuddy-plugin', '.zcode-plugin', '.qoder-plugin'];
+// nothing. `jiahao-mcp/` is the vendored MCP server - the writer behind the
+// evidence chain - so leaving it writable let an agent rewrite the writer
+// (#88 item 6).
+const PROTECTED_DIRS = ['hooks', 'rules', 'src', 'jiahao-mcp', '.claude-plugin', '.codex-plugin', '.workbuddy-plugin', '.zcode-plugin', '.qoder-plugin'];
 // Bundle-root files that are apparatus by position, not by name. `.mcp.json` is
 // the shared registration; `plugin.json` is the Copilot CLI / Antigravity
 // manifest and `hooks.json` the Antigravity hook map - both live at the bundle
 // root rather than inside a directory, which is why the directory list above
 // cannot cover them.
 const PROTECTED_ROOT_FILES = ['.mcp.json', 'plugin.json', 'hooks.json'];
+
+// ------------------------------------------------------------- not covered --
+// The residual shapes #88 registered, each with the decision that closed it.
+// These are decisions, not gaps someone forgot: read the reason before adding
+// a shape.
+//
+// item 1 - symlink / realpath alias of the plugin root:
+//   `rm /home/u/plugins/jiahao-alias/hooks/hooks.json` where jiahao-alias
+//   points at the real root. Ancestor realpath resolution conflicts with this
+//   hook's fail-soft contract (the target may not exist yet) and the alias
+//   spelling has to be known before the shell resolves it, so an alias root
+//   still passes. #88 accepted that cost (#88 comment, 2026-10-30).
+//
+// item 2 - the plugin root itself and its ancestors (`rm -rf <root>`): deferred
+//   to #71 item 3 (read-only tool calls are still denied). Denying `<root>`
+//   here would also deny `ls <root>` until that split lands.
+//
+// item 3 - `cd "$CLAUDE_PLUGIN_ROOT" && rm -f src/shared/protected-path.js`:
+//   relative targets resolve against the hook process cwd, never a candidate
+//   cwd. Treating the plugin root as a candidate cwd would also deny the same
+//   relative name inside a user project - exactly the false positive #75
+//   removed. Not modelled, on purpose.
+//
+// item 5 - brace expansion (`rm hooks/jiahao-verdict-gate.js{,.bak}`): nothing
+//   expands braces here, so the token keeps the `{,.bak}` suffix, the token is
+//   not split (braces are not WORD_SEPARATORS), and the end-anchored fragment
+//   never sees the `.js` ending. The 53f1a2e2 baseline misses the same shape;
+//   documented, not fixed.
+//
+// case folding on macOS: the folded fragment set is chosen by the injected path
+//   implementation's separator, so Windows folds and a POSIX reading does not.
+//   macOS ships case-insensitive APFS by default while reporting POSIX
+//   separators, so `.JIAHAO-CONVICTION-OFF` is not folded there. Detecting the
+//   filesystem's case-sensitivity would cost an fs probe per candidate and can
+//   fail on a missing path; the 53f1a2e2 baseline misses the same shape.
+//   Documented, not fixed (#88 item 4 reserves the namespace, not the disk).
+//
+// Command substitution, variables the host never exported, and glob expansion
+// are excluded for the reasons stated at expandedSpelling() below.
 
 // ---------------------------------------------------------------- candidates --
 
@@ -265,7 +345,7 @@ function belowRoot(ctx, abs) {
 // Windows compares paths case-insensitively, so `SRC` is `src`; on a POSIX host
 // they are different directories and the name is taken as written.
 function apparatusName(ctx, name) {
-  return ctx.P.sep === '\\' ? name.toLowerCase() : name;
+  return ctx.caseInsensitive ? name.toLowerCase() : name;
 }
 
 function isProtected(text, pluginRoot, opts) {
@@ -280,10 +360,15 @@ function isProtected(text, pluginRoot, opts) {
   // typed. os.homedir() asks the kernel instead of the environment.
   let home = env.HOME || env.USERPROFILE || null;
   if (!home) { try { home = (o.homedir || os.homedir)() || null; } catch (e) { home = null; } }
-  const ctx = { P: P, cwd: o.cwd || null, rootAbs: rootAbs, home: home, env: env };
+  // The injected path implementation's separator decides: win32 folds, POSIX
+  // does not. It is a proxy for the host's filesystem, not the filesystem
+  // itself - macOS is the documented residual above.
+  const caseInsensitive = P.sep === '\\';
+  const ctx = { P: P, cwd: o.cwd || null, rootAbs: rootAbs, home: home, env: env, caseInsensitive: caseInsensitive };
+  const fragments = caseInsensitive ? PROTECTED_FRAGMENTS_FOLDED : PROTECTED_FRAGMENTS;
 
-  for (const tok of tokens(text, P.sep === '/')) {
-    for (const re of PROTECTED_FRAGMENTS) if (re.test(tok)) return true;
+  for (const tok of tokens(text, !caseInsensitive)) {
+    for (const re of fragments) if (re.test(tok)) return true;
     if (!rootAbs) continue;
     for (const abs of readings(ctx, tok)) {
       const segments = belowRoot(ctx, abs);
