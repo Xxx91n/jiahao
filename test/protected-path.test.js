@@ -207,10 +207,10 @@ describe('protected path (state file binding, #88 item 4)', () => {
       const text = fs.readFileSync(file, 'utf8');
       // Single- or double-quoted string literals only (backticks excluded on
       // purpose: comments here wrap names in backticks, and prose is not
-      // something the agent can delete). The suffix is not a whitelist: only
-      // the closing quote ends a name, so `.jiahao-_draft` or
-      // `.jiahao-draft+2` shows up here instead of disappearing from the
-      // census (CodeRabbit on PR #132).
+      // something the agent can delete). The suffix is not a whitelist: a
+      // name ends only at its closing quote or a line break, so
+      // `.jiahao-_draft` or `.jiahao-draft+2` shows up here instead of
+      // disappearing from the census (CodeRabbit on PR #132).
       for (const match of text.matchAll(/(['"])(\.jiahao-[^'"\r\n]+)\1/g)) found.add(match[2]);
     }
     // every literal spelling the census expects must really be in the tree
