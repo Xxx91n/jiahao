@@ -160,6 +160,9 @@ for (const plat of PLATFORMS) {
       // (CodeRabbit on PR #132)
       expect(check(plat, 'rm .jiahao-draft+2')).toBe(true);
       expect(check(plat, 'rm .jiahao-draft~1')).toBe(true);
+      // whitespace is a filename character too; a quoted name stays one token
+      // and the whole segment is denied
+      expect(check(plat, 'rm ".jiahao-my notes"')).toBe(true);
     });
 
     // #88 item 6: jiahao-mcp/ is the vendored MCP server, i.e. the writer the
@@ -205,10 +208,10 @@ describe('protected path (state file binding, #88 item 4)', () => {
       // Single- or double-quoted string literals only (backticks excluded on
       // purpose: comments here wrap names in backticks, and prose is not
       // something the agent can delete). The suffix is not a whitelist: only
-      // quotes and whitespace end a name, so `.jiahao-_draft` or
+      // the closing quote ends a name, so `.jiahao-_draft` or
       // `.jiahao-draft+2` shows up here instead of disappearing from the
       // census (CodeRabbit on PR #132).
-      for (const match of text.matchAll(/(['"])(\.jiahao-[^'"\s]+)\1/g)) found.add(match[2]);
+      for (const match of text.matchAll(/(['"])(\.jiahao-[^'"\r\n]+)\1/g)) found.add(match[2]);
     }
     // every literal spelling the census expects must really be in the tree
     for (const { literal } of STATE_SURFACE) {

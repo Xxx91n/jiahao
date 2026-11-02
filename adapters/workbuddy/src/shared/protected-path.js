@@ -44,16 +44,16 @@ const path = require('path');
 // `.jiahao-kappa-baseline.json`, `.jiahao-evidence.lock` and
 // `.jiahao-calibration.jsonl` were missing, and the #110 review surfaced
 // `.jiahao-anchor.json` / `.jiahao-persistence.json` as two more.
-// The suffix spans ONE path segment (`[^\\/\s]+`): every filename character
-// counts, rather than a whitelist that falls behind the namespace - dots,
-// dashes and underscores, but also `+` or `~` spellings such as
-// `.jiahao-draft+2`. `([\\/]|$)` also catches the files inside the evidence
-// directory. The list is
-// no longer a second hand-maintained copy of `src/shared/paths.js`:
+// The suffix spans ONE path segment (`[^\\/]+`): every character a filename
+// may contain, rather than a whitelist that falls behind the namespace -
+// dots, dashes and underscores, but also `+` or `~` spellings such as
+// `.jiahao-draft+2`, and quoted names containing spaces. `([\\/]|$)` also
+// catches the files inside the evidence directory. The list is no longer a
+// second hand-maintained copy of `src/shared/paths.js`:
 // test/protected-path.test.js reads every quoted `.jiahao…` name out of the
-// .js source under src/, hooks/ and jiahao-mcp/ and requires each to be denied.
-// The census does not restrict the suffix to a whitelist - only
-// quotes and whitespace end a name - so a state file spelled some other way
+// .js source under src/, hooks/ and jiahao-mcp/ and requires each to be
+// denied. The census does not restrict the suffix at all - only the closing
+// quote ends a name - so a state file spelled some other way
 // turns the suite red instead of escaping silently.
 //
 // There is no exception table today. The whole prefix is reserved, so a user
@@ -63,7 +63,7 @@ const path = require('path');
 const PROTECTED_FRAGMENTS = [
   /(^|[\\/=])hooks[\\/]jiahao-[a-z0-9-]+\.js$/,
   /(^|[\\/=])rules[\\/]jiahao-(verifier|generator)\.md$/,
-  /(^|[\\/=])\.jiahao-[^\\/\s]+([\\/]|$)/,
+  /(^|[\\/=])\.jiahao-[^\\/]+([\\/]|$)/,
 ];
 
 // Windows resolves names case-insensitively, so `.JIAHAO-PROFILE` deletes the
