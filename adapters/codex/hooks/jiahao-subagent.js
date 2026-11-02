@@ -6,6 +6,8 @@
 const fs = require('fs');
 const path = require('path');
 const { writeHookOutput, normalizePayload } = require('./jiahao-runtime');
+const { flagPath } = require('../src/shared/paths');
+const { loadProfileSections, readProfile } = require('./jiahao-profile');
 const sentinel = require('../src/sentinel').begin('jiahao-subagent');
 
 // Read stdin (hook input JSON)
@@ -29,7 +31,8 @@ process.stdin.on('end', () => {
   const matcher = process.env.JIAHAO_SUBAGENT_MATCHER || 'verify|review|critic|check';
 
   // Fail-open: if we cannot determine agent type, inject anyway
-  const shouldInject = !agentType || new RegExp(matcher, 'i').test(agentType);
+  const isVerifierAgent = !!agentType && new RegExp(matcher, 'i').test(agentType);
+  const shouldInject = !agentType || isVerifierAgent;
 
   if (!shouldInject) {
     sentinel.end();
@@ -37,16 +40,20 @@ process.stdin.on('end', () => {
   }
 
   // Same resolution as the other hooks: src/shared/paths.js owns the order.
-  const activeFlag = require('../src/shared/paths').flagPath();
-  const mode = fs.existsSync(activeFlag)
-    ? fs.readFileSync(activeFlag, 'utf8').trim()
+  const mode = fs.existsSync(flagPath())
+    ? fs.readFileSync(flagPath(), 'utf8').trim()
     : 'full';
 
-  const skillPath = path.join(__dirname, '..', 'src', 'SKILL.md');
-  const skill = fs.readFileSync(skillPath, 'utf8');
-  const body = skill.replace(/^---[\s\S]*?---\n/, '');
+  // One ruleset, never both (#71 item 4): a subagent that matches the matcher
+  // is the second information boundary, so it gets the verifier section even
+  // when the parent runs generator; any other subagent inherits the parent's
+  // own profile. Injecting the whole SKILL.md handed both profiles' mutually
+  // exclusive rules to the same agent.
+  const profile = isVerifierAgent ? 'verifier' : readProfile();
+  const sections = loadProfileSections(path.join(__dirname, '..'));
+  const body = sections[profile === 'generator' ? 'generator' : 'verifier'];
 
-  const injection = body + '\n---\nJIAHAO MODE ACTIVE (subagent) — level: ' + mode + '\n';
+  const injection = body + '\n---\nJIAHAO MODE ACTIVE (subagent, ' + profile + ') — level: ' + mode + '\n';
 
   sentinel.set('write');
   writeHookOutput(injection, 'SubagentStart');

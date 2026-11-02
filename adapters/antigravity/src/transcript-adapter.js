@@ -22,6 +22,17 @@
 
 const fs = require('fs');
 
+// Host-injected text that rides a user-role line but is not the user's request:
+// Claude Code's <system-reminder>, <local-command-stdout> / <command-name>
+// slash-command lines, Codex's <environment_context> / <user_instructions>
+// preamble. It neither opens a turn nor becomes a task (#71 item 8: a preamble
+// that reset the turn would overwrite the real task).
+const MACHINE_TEXT_RE = /^\s*<(system-reminder|environment_context|user_instructions|local-command-stdout|command-name)\b/i;
+
+function isMachineText(text) {
+  return MACHINE_TEXT_RE.test(String(text || ''));
+}
+
 function textOf(content) {
   // tool_result / message content may be a string or a block list; flatten to
   // a single string. Unknown block types contribute nothing.
@@ -77,15 +88,85 @@ function adaptTranscriptText(text) {
     }
   });
 
-  const events = [];
+  // Turn scope (#71 item 8): the pairer pairs ONE task with ONE turn's events.
+  // The task used to be the first user text in the whole transcript while
+  // `events` accumulated every turn, so a multi-turn session compared the
+  // opening request against the last turn's tool results. A genuine user text
+  // message opens a new turn: reset the events and take the new task. Tool
+  // results are user-role lines too, but they carry no text block, so they
+  // never reset.
+  let events = [];
   const callNames = Object.create(null);   // tool_use_id -> tool name
   let task = null;
   let closing = '';
-
+  let toolResultCount = 0;
+  // One place opens a turn, so the Claude and Codex branches cannot drift.
+  // The closing text is the previous turn's "claim" side, so it resets with
+  // the events: otherwise turn 2's task pairs with turn 1's last answer.
+  function openTurn(text) { events = []; task = text; closing = ''; }
   entries.forEach(function (e, i) {
     const ts = typeof e.timestamp === 'string' ? e.timestamp : null;
     const msg = e.message && typeof e.message === 'object' ? e.message : {};
     const content = msg.content;
+
+    // Codex rollout shape (#71, PR #97 review): every conversation item is
+    // wrapped as {type:'response_item', payload:{...}} with prompt/completion
+    // style names, so the Claude-shaped branches below never matched and the
+    // conviction lane saw an empty transcript on Codex. Map the four shapes
+    // the rollout documents - message / function_call / function_call_output -
+    // onto the same events. reasoning, session_meta, turn_context and event_msg
+    // lines carry no tool or message content this adapter consumes.
+    if (e.type === 'response_item' && e.payload && typeof e.payload === 'object') {
+      const p = e.payload;
+      if (p.type === 'message') {
+        const isUser = p.role === 'user';
+        if (p.role !== 'user' && p.role !== 'assistant') return; // system/developer preamble
+        const texts = [];
+        for (const b of (Array.isArray(p.content) ? p.content : [])) {
+          if (b && typeof b === 'object' &&
+            (b.type === 'input_text' || b.type === 'output_text' || b.type === 'text') &&
+            typeof b.text === 'string' && b.text.trim() && !isMachineText(b.text)) texts.push(b.text);
+        }
+        if (texts.length === 0) return;
+        if (isUser) openTurn(texts[0]);
+        for (const t of texts) events.push({ type: 'message', ts: ts, text: t });
+        if (!isUser) closing = texts.join('\n');
+        return;
+      }
+      if (p.type === 'function_call' || p.type === 'custom_tool_call') {
+        const cid = typeof p.call_id === 'string' ? p.call_id : null;
+        const name = typeof p.name === 'string' ? p.name : null;
+        if (cid !== null && callNames[cid] === undefined) callNames[cid] = name;
+        let args = {};
+        if (typeof p.arguments === 'string') {
+          try {
+            const parsed = JSON.parse(p.arguments);
+            if (parsed && typeof parsed === 'object') args = parsed;
+          } catch (err) { args = { _raw: p.arguments }; }
+        } else if (p.arguments && typeof p.arguments === 'object') {
+          args = p.arguments;
+        }
+        events.push({ type: 'tool_call', ts: ts, call_id: cid, name: name, arguments: args });
+        return;
+      }
+      if (p.type === 'function_call_output' || p.type === 'custom_tool_call_output') {
+        const cid = typeof p.call_id === 'string' ? p.call_id : null;
+        const out = p.output;
+        const text = typeof out === 'string'
+          ? out
+          : (out == null ? '' : (Array.isArray(out) ? textOf(out) : JSON.stringify(out)));
+        events.push({
+          type: 'tool_result', ts: ts, call_id: cid,
+          name: (cid !== null ? callNames[cid] : null) || null,
+          is_error: p.is_error === true || (out && typeof out === 'object' && out.success === false),
+          truncated: false,
+          content: text,
+        });
+        toolResultCount += 1;
+        return;
+      }
+      return;
+    }
 
     if (e.type === 'assistant') {
       const id = typeof msg.id === 'string' ? msg.id : null;
@@ -122,6 +203,11 @@ function adaptTranscriptText(text) {
       const blocks = typeof content === 'string'
         ? [{ type: 'text', text: content }]
         : (Array.isArray(content) ? content : []);
+      const textBlocks = blocks.filter(function (b) {
+        return b && typeof b === 'object' && b.type === 'text' &&
+          typeof b.text === 'string' && b.text.trim() && !isMachineText(b.text);
+      });
+      if (textBlocks.length > 0) openTurn(textBlocks[0].text); // new turn: previous events do not pair with this task
       for (const b of blocks) {
         if (!b || typeof b !== 'object') continue;
         if (b.type === 'tool_result') {
@@ -135,9 +221,9 @@ function adaptTranscriptText(text) {
             truncated: false,
             content: textOf(b.content),
           });
-        } else if (b.type === 'text' && typeof b.text === 'string' && b.text.trim()) {
+          toolResultCount += 1;
+        } else if (b.type === 'text' && typeof b.text === 'string' && b.text.trim() && !isMachineText(b.text)) {
           events.push({ type: 'message', ts: ts, text: b.text });
-          if (task === null) task = b.text;
         }
       }
       return;
@@ -153,7 +239,9 @@ function adaptTranscriptText(text) {
       lines: lines.length,
       parsed: entries.length,
       skipped: skipped,
-      tool_results: events.filter(function (x) { return x.type === 'tool_result'; }).length,
+      // Whole-file count: the turn-scoped `events` array is what the pairer
+      // reads, but the stats describe the transcript that was parsed.
+      tool_results: toolResultCount,
     },
   };
 }

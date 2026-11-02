@@ -205,6 +205,36 @@ test('an undetermined enforce-mode pairer record does not satisfy the no-evidenc
   expect(parsed.reason).toMatch(/no evidence/i);
 });
 
+// #71 item 15 (adjudicated): an enforce-mode pairer record that DID determine
+// a state is verification evidence - it satisfies Case A. A shadow record with
+// the same state is still telemetry and leaves the chain "no evidence".
+test('a determined enforce-mode pairer record satisfies Case A, a shadow one does not', () => {
+  function runWith(shadow) {
+    const dir = freshDir('jiahao-hooks-test-');
+    fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+    const rec = createEvidence('pl-1', 'pairer-lane', 'observed',
+      'pairer-lane[' + (shadow ? 'shadow' : 'enforce') + '] consistent', null, null, {
+        detector: {
+          suspicious: false, matched_phrases: [], severity: null,
+          source: 'pairer-instrument', shadow: shadow,
+          pairer: { state: 'consistent' },
+        },
+      });
+    fs.writeFileSync(path.join(dir, '.jiahao-evidence'), JSON.stringify([rec]), 'utf8');
+    return runHook('jiahao-verdict-gate.js', {
+      dir: dir, stdin: JSON.stringify({ stop_hook_active: false }),
+    });
+  }
+
+  const enforce = runWith(false);
+  expectExit(enforce, 0);
+  expect(String(enforce.stdout)).not.toContain('no evidence');
+
+  const shadow = runWith(true);
+  expectExit(shadow, 2);
+  expect(parseJson(shadow).reason).toMatch(/no evidence/i);
+});
+
 // #108 audit (CodeRabbit round 2): readProfile() hardened at the source -
 // a directory (or unreadable file) at .jiahao-profile returns the documented
 // default instead of killing the hook at top level.
@@ -289,6 +319,109 @@ test('pretool-guard denies a protected target and exits 0 with an unreadable pro
   expect(parsed.hookSpecificOutput.permissionDecision).toBe('deny');
 });
 
+// #71 item 3: the guard is a modification guard. Reading the injected rules
+// is how a verifier works; only a call that can change the apparatus is a
+// bypass.
+test('pretool-guard lets a read-only tool read a protected target', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  const input = JSON.stringify({
+    tool_name: 'Read',
+    tool_input: { file_path: path.join(repoRoot, 'hooks', 'jiahao-verdict-gate.js') },
+  });
+  const res = runHook('jiahao-pretool-guard.js', { dir: dir, stdin: input });
+  expectExit(res, 0);
+  expect(String(res.stdout).trim()).toBe(''); // no deny envelope
+});
+
+test('pretool-guard lets a read-only tool reach a protected directory', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  const res = runHook('jiahao-pretool-guard.js', {
+    dir: dir,
+    stdin: JSON.stringify({ tool_name: 'Grep', tool_input: { path: path.join(repoRoot, 'hooks') } }),
+  });
+  expectExit(res, 0);
+  expect(String(res.stdout).trim()).toBe('');
+});
+
+test('pretool-guard still denies a shell command that writes a protected file', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  const res = runHook('jiahao-pretool-guard.js', {
+    dir: dir,
+    stdin: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'rm hooks/jiahao-verdict-gate.js' } }),
+  });
+  expectExit(res, 0);
+  expect(parseJson(res).hookSpecificOutput.permissionDecision).toBe('deny');
+});
+
+// #71 item 4: a subagent gets ONE ruleset. Injecting the whole SKILL.md handed
+// it both profiles' mutually exclusive rules.
+test('subagent injection carries only the verifier section for a verifier subagent', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'generator', 'utf8');
+  const res = runHook('jiahao-subagent.js', { dir: dir, stdin: JSON.stringify({ agent_type: 'review' }) });
+  expectExit(res, 0);
+  const ctx = parseJson(res).hookSpecificOutput.additionalContext;
+  expect(ctx).toContain('## Verifier Profile');
+  expect(ctx).not.toContain('## Generator Profile');
+});
+
+test('subagent injection inherits the parent profile when the agent type is unknown', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'generator', 'utf8');
+  // No agent_type: the hook fails open and injects, using the parent's profile.
+  const res = runHook('jiahao-subagent.js', { dir: dir, stdin: '{}' });
+  expectExit(res, 0);
+  const ctx = parseJson(res).hookSpecificOutput.additionalContext;
+  expect(ctx).toContain('## Generator Profile');
+  expect(ctx).not.toContain('## Verifier Profile');
+});
+
+// #71 item 12: a factory throw used to kill the hook before any judgment -
+// a silent fail-open gate. It must now reach the normal block envelope.
+test('verdict-gate blocks through the host envelope when the evidence log cannot initialize', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  const preload = path.join(__dirname, 'helpers', 'fail-evidence-log-init.js').split(path.sep).join('/');
+  // JSON.stringify quotes the path: NODE_OPTIONS is parsed as a shell-like
+  // string, so an unquoted checkout path with a space would split.
+  const env = Object.assign(hostEnv(dir), {
+    NODE_OPTIONS: [process.env.NODE_OPTIONS, '--require=' + JSON.stringify(preload)]
+      .filter(Boolean).join(' '),
+  });
+  const res = spawnHook(path.join(hooksDir, 'jiahao-verdict-gate.js'), {
+    stdin: JSON.stringify({ stop_hook_active: false }), env: env, cwd: repoRoot,
+  });
+  expectExit(res, 2);
+  const parsed = parseJson(res);
+  expect(parsed.decision).toBe('block');
+  expect(parsed.reason).toMatch(/could not initialize/);
+});
+
+test('verdict-gate init failure stays advisory in the generator profile (D2)', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'generator', 'utf8');
+  const preload = path.join(__dirname, 'helpers', 'fail-evidence-log-init.js').split(path.sep).join('/');
+  // JSON.stringify quotes the path: NODE_OPTIONS is parsed as a shell-like
+  // string, so an unquoted checkout path with a space would split.
+  const env = Object.assign(hostEnv(dir), {
+    NODE_OPTIONS: [process.env.NODE_OPTIONS, '--require=' + JSON.stringify(preload)]
+      .filter(Boolean).join(' '),
+  });
+  const res = spawnHook(path.join(hooksDir, 'jiahao-verdict-gate.js'), {
+    stdin: JSON.stringify({ stop_hook_active: false }), env: env, cwd: repoRoot,
+  });
+  expectExit(res, 0);
+  const parsed = parseJson(res);
+  expect(parsed.decision).toBeUndefined();
+  expect(parsed.systemMessage).toMatch(/could not initialize/);
+});
+
 test('shared paths module exports flagPath and evidencePath', () => {
   const { flagPath, evidencePath, evidenceKeysPath } = require(path.join(__dirname, '..', 'src', 'shared', 'paths.js'));
   expect(typeof flagPath).toBe('function');
@@ -369,7 +502,7 @@ test('D2: generator profile never blocks on high-severity suspicion (advisory on
   });
   expectExit(res, 0);
   const parsed = parseJson(res);
-  expect(parsed.decision).toBe('allow');
+  expect(parsed.decision).toBeUndefined(); // #71 item 5: allow = absent decision
   expect(parsed.systemMessage).toMatch(/JIAHAO ADVISORY \(high\)/);
 });
 
@@ -401,7 +534,7 @@ test('D2: verifier profile low-severity suspicion = advisory, not block', () => 
   });
   expectExit(res, 0);
   const parsed = parseJson(res);
-  expect(parsed.decision).toBe('allow');
+  expect(parsed.decision).toBeUndefined(); // #71 item 5: allow = absent decision
   expect(parsed.systemMessage).toMatch(/JIAHAO ADVISORY \(low\)/);
 });
 

@@ -207,3 +207,128 @@ test('finding 4: a null witness file reads as unreadable, not witness_unavailabl
   fs.writeFileSync(log.genesisAnchorPath(), 'null', 'utf8');
   expect(log.readGenesisAnchor(log.genesisAnchorPath()).status).toBe('unreadable');
 });
+
+// #71 (PR #97 review): lock failure and a throw from the commit body are
+// different events. The body used to be retried WITHOUT the lock after any
+// throw, so a make() that had already appended could append twice.
+test('#71: a make() throw inside the lock is not retried unlocked', () => {
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'jiahao-evidence-commit-'));
+  const log = createEvidenceLog(dir);
+  let calls = 0;
+  log.commit(function () {
+    calls += 1;
+    throw new Error('make failed');
+  });
+  expect(calls).toBe(1);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('#71: commit returns the count written; a deduped append returns 0', () => {
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'jiahao-evidence-count-'));
+  const log = createEvidenceLog(dir);
+  const mk = function () {
+    const r = log.createRecord('gate-71', 'deterministic', 'passed', 'ok', null, null, {});
+    r._idem = 'idem-71';
+    r.event_hash = recordHash(r);
+    return r;
+  };
+  expect(log.commit(function () { return [mk()]; })).toBe(1);
+  expect(log.commit(function () { return [mk()]; })).toBe(0);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('#71: a mid-write throw reports the records that landed before it', () => {
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'jiahao-evidence-partial-'));
+  const log = createEvidenceLog(dir);
+  const good = log.createRecord('gate-71c', 'deterministic', 'passed', 'ok', null, null, {});
+  const circular = { prev_hash: good.event_hash };
+  circular.self = circular; // JSON.stringify throws after `good` is on disk
+  const written = log.commit(function () { return [good, circular]; });
+  expect(written).toBe(1);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+// #71 (CodeRabbit on PR #133): a batch that throws after one record landed must
+// leave the seal sidecar and tail anchor describing what is actually on disk.
+// Otherwise the next verifyTail sees an anchor that is behind the chain and
+// calls it corrupt.
+test('#71: a mid-write throw repairs the tail anchor and dedup sidecar', () => {
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'jiahao-evidence-repair-'));
+  const log = createEvidenceLog(dir);
+  const a = log.createRecord('gate-71d', 'deterministic', 'passed', 'first', null, null, {});
+  expect(log.commit(function () { return [a]; })).toBe(1);
+
+  const b = log.createRecord('gate-71e', 'deterministic', 'passed', 'second', null, a.event_hash, {});
+  b._idem = 'idem-partial';
+  b.event_hash = recordHash(b);
+  const circular = { prev_hash: b.event_hash };
+  circular.self = circular; // JSON.stringify throws after `b` is on disk
+  expect(log.commit(function () { return [b, circular]; })).toBe(1);
+
+  expect(log.verifyTail().valid).toBe(true);
+  const keys = fs.readFileSync(path.join(dir, '.jiahao-evidence.keys'), 'utf8');
+  expect(keys).toContain('idem-partial');
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+// #71 (CodeRabbit on PR #133, round 2): the metadata repair must cover the
+// whole per-record batch. A rotation splice re-hashes the pending record; a
+// throw there happens after earlier records landed and outside the append call.
+test('#71: a rotation-time throw also repairs metadata before rethrowing', () => {
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'jiahao-evidence-rotate-repair-'));
+  const log = createEvidenceLog(dir, { rotateBytes: 1 }); // rotate before every follow-up write
+  const a = log.createRecord('gate-71f', 'deterministic', 'passed', 'first', null, null, {});
+  expect(log.commit(function () { return [a]; })).toBe(1);
+
+  const b = log.createRecord('gate-71g', 'deterministic', 'passed', 'second', null, a.event_hash, {});
+  b._idem = 'idem-rotation';
+  b.event_hash = recordHash(b);
+  const circular = { prev_hash: b.event_hash, event_hash: 'deadbeef' };
+  circular.self = circular; // rotation calls recordHash(circular) -> throws
+
+  expect(log.commit(function () { return [b, circular]; })).toBeGreaterThan(0);
+  const keys = fs.readFileSync(path.join(dir, '.jiahao-evidence.keys'), 'utf8');
+  expect(keys).toContain('idem-rotation');
+  expect(log.verifyTail().valid).toBe(true);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+// #71 (CodeRabbit on PR #133, round 3): a failed anchor write must not leave an
+// empty segment behind. The repair path fsyncs activePath with an 'a' open,
+// which creates the file; a later record written as its first line makes
+// verifyTail report segment_anchor_missing forever.
+test('#71: a failed segment-anchor write leaves no damaged segment behind', () => {
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'jiahao-evidence-anchor-fail-'));
+  const log = createEvidenceLog(dir, { rotateBytes: 1 });
+  const a = log.createRecord('gate-71h', 'deterministic', 'passed', 'first', null, null, {});
+  expect(log.commit(function () { return [a]; })).toBe(1);
+
+  const b = log.createRecord('gate-71i', 'deterministic', 'passed', 'second', null, a.event_hash, {});
+  const c = log.createRecord('gate-71j', 'deterministic', 'passed', 'third', null, b.event_hash, {});
+
+  const orig = fs.writeFileSync;
+  let anchorWrites = 0;
+  const spy = jest.spyOn(fs, 'writeFileSync').mockImplementation(function (p, data) {
+    // fs.appendFileSync delegates to writeFileSync, so match on the anchor line
+    // itself rather than on the segment extension.
+    if (typeof p === 'string' && p.endsWith('.jsonl') &&
+      typeof data === 'string' && data.indexOf('"kind":"segment_anchor"') !== -1) {
+      anchorWrites += 1;
+      if (anchorWrites === 2) {
+        const err = new Error('ENOSPC: no space left on device');
+        err.code = 'ENOSPC';
+        throw err;
+      }
+    }
+    return orig.apply(fs, arguments);
+  });
+  let written;
+  try { written = log.commit(function () { return [b, c]; }); } finally { spy.mockRestore(); }
+
+  expect(written).toBeGreaterThan(0); // b landed before the failed anchor write
+  const segDir = path.join(dir, '.jiahao-evidence');
+  const sizes = fs.readdirSync(segDir).map(function (f) { return fs.statSync(path.join(segDir, f)).size; });
+  expect(sizes.every(function (n) { return n > 0; })).toBe(true); // no empty/torn segment
+  expect(log.verifyTail().valid).toBe(true);
+  fs.rmSync(dir, { recursive: true, force: true });
+});

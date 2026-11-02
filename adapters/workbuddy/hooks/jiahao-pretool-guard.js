@@ -23,7 +23,7 @@ const path = require('path');
 const { flagPath, configDir } = require('../src/shared/paths');
 const { isProtected } = require('../src/shared/protected-path');
 const { readProfile } = require('./jiahao-profile');
-const { detectHost, normalizePayload } = require('./jiahao-runtime');
+const { detectHost, normalizePayload, isReadOnlyTool } = require('./jiahao-runtime');
 
 const LOG_NAME = '.jiahao-pretool.jsonl';
 
@@ -50,6 +50,7 @@ process.stdin.on('end', () => {
   try { parsed = JSON.parse(input); } catch (e) { /* fail-open */ }
   parsed = normalizePayload(parsed);
   const tool = (parsed && parsed.tool_name) || 'unknown';
+  if (isReadOnlyTool(tool)) process.exit(0);
   const text = candidateText(parsed);
   const pluginRoot = process.env.CODEBUDDY_PLUGIN_ROOT
     || process.env.CLAUDE_PLUGIN_ROOT

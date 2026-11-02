@@ -11,7 +11,7 @@ const os = require('os');
 const path = require('path');
 
 const repoRoot = path.join(__dirname, '..');
-const { run } = require(path.join(repoRoot, 'src', 'pairer-lane.js'));
+const { run, transcriptPathOf } = require(path.join(repoRoot, 'src', 'pairer-lane.js'));
 const { WITNESS_HARD_STOP_CODE } = require(path.join(repoRoot, 'src', 'evidence-log.js'));
 
 // A transcript path that does not exist: the adapter reports ok:false, the
@@ -53,4 +53,85 @@ test('a healthy commit appends and reports the recorded outcome', () => {
   expect(res.lane).toBe('recorded');
   expect(res.appended).toBe(true);
   expect(res.state).toBe('undetermined'); // unadaptable transcript classifies nothing
+});
+
+// #71 item 11: SubagentStop carries the subagent's own transcript in
+// agent_transcript_path; transcript_path stays the parent session. Reading only
+// transcript_path paired the parent conversation with the subagent's results.
+test('#71 item 11: SubagentStop reads the subagent transcript', () => {
+  expect(transcriptPathOf({
+    hook_event_name: 'SubagentStop',
+    transcript_path: '/parent.jsonl',
+    agent_transcript_path: '/agent.jsonl',
+  })).toBe('/agent.jsonl');
+});
+
+test('#71 item 11: SubagentStop falls back to transcript_path when the agent path is absent', () => {
+  expect(transcriptPathOf({
+    hook_event_name: 'SubagentStop',
+    transcript_path: '/parent.jsonl',
+  })).toBe('/parent.jsonl');
+});
+
+test('#71 item 11: Stop keeps the session transcript even when an agent path rides along', () => {
+  expect(transcriptPathOf({
+    hook_event_name: 'Stop',
+    transcript_path: '/parent.jsonl',
+    agent_transcript_path: '/agent.jsonl',
+  })).toBe('/parent.jsonl');
+});
+
+test('#71 item 11: camelCase hookEventName is honoured', () => {
+  expect(transcriptPathOf({
+    hookEventName: 'SubagentStop',
+    transcript_path: '/parent.jsonl',
+    agentTranscriptPath: '/agent.jsonl',
+  })).toBe('/agent.jsonl');
+});
+
+// #71 (PR #97 review): the commit result says whether anything was written.
+test('#71: a deduped zero-record commit does not report appended', () => {
+  const res = run(PAYLOAD, { dir: freshFlagDir(), evidenceLog: stubLog(function () { return 0; }) });
+  expect(res.lane).toBe('recorded');
+  expect(res.appended).toBe(false);
+});
+
+// #71 item 11: the selection is only useful if run() actually uses it.
+test('#71 item 11: run() reads the agent transcript for a SubagentStop payload', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-lane-agent-'));
+  const agentFile = path.join(dir, 'agent.jsonl');
+  fs.writeFileSync(agentFile, [
+    JSON.stringify({ type: 'user', message: { role: 'user', content: 'Subagent task.' } }),
+    JSON.stringify({ type: 'assistant', message: { id: 'a1', content: [{ type: 'text', text: 'Subagent done.' }] } }),
+  ].join('\n'), 'utf8');
+  const flagDir = freshFlagDir();
+
+  function capture(payload) {
+    let seen = null;
+    const log = {
+      createRecord: function (kind, source, status, detail, ref, prev, extras) { seen = extras; return {}; },
+      commit: function (make) { make([], null); return 1; },
+    };
+    const res = run(payload, { dir: flagDir, evidenceLog: log });
+    return { res: res, seen: seen };
+  }
+
+  const agent = capture({
+    hook_event_name: 'SubagentStop',
+    transcript_path: path.join(dir, 'missing-parent.jsonl'),
+    agent_transcript_path: agentFile,
+  });
+  expect(agent.res.lane).toBe('recorded');
+  expect(String(agent.seen.detector.pairer.reason || '')).not.toMatch(/^adapter:/);
+
+  // Control: the same payload as a plain Stop reads the (missing) parent, so
+  // the contrast is the event switch, not a coincidence.
+  const parent = capture({
+    hook_event_name: 'Stop',
+    transcript_path: path.join(dir, 'missing-parent.jsonl'),
+    agent_transcript_path: agentFile,
+  });
+  expect(String(parent.seen.detector.pairer.reason || '')).toMatch(/^adapter:/);
+
+  fs.rmSync(dir, { recursive: true, force: true });
 });

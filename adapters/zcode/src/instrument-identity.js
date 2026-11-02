@@ -534,21 +534,32 @@ function openExposures(history) {
   return open;
 }
 
-// Prior-interval sign-offs (identity signoff + record_signoff kinds) in the
-// same instrument history (history is always one instrument identity's log)
-// become 'affected/under-review' while a drift
+// Prior-interval sign-offs (identity signoff, conditional_signoff and
+// record_signoff kinds) in the same instrument history (history is always one
+// instrument identity's log) become 'affected/under-review' while a drift
 // exposure is open. Fail-closed: an open exposure marks them; they are never
 // valid by default until an oot_impact_assessment / reverse_traceability
 // disposition lands (ISO/IEC 17025:2017 7.10 nonconforming work).
+// A conditional_signoff is a sign-off on a narrower interval: it releases the
+// identity only until its expiry, so a later drift exposure reaches it exactly
+// as it reaches a full signoff (#71 item 14). Omitting it left this projection
+// incomplete: an affected conditional certification was invisible to every
+// consumer of the projection.
+const SIGNOFF_KINDS = ['signoff', 'conditional_signoff', 'record_signoff'];
+
 function affectedSignoffs(history) {
   const open = openExposures(history);
   if (!open.length) return [];
-  const oldestExposureSeq = open[0].seq;
+  // The LATEST open exposure is the cutoff (#71, CodeRabbit on PR #133): a
+  // sign-off that sits between an earlier exposure and a later one is still a
+  // prior-interval sign-off with respect to the later one, so it is affected
+  // too. The oldest-exposure cutoff skipped it.
+  const latestExposureSeq = open[open.length - 1].seq;
   const affected = [];
   for (const ev of history || []) {
     if (!ev) continue;
-    if (ev.kind !== 'signoff' && ev.kind !== 'record_signoff') continue;
-    if (ev.seq < oldestExposureSeq) {
+    if (SIGNOFF_KINDS.indexOf(ev.kind) === -1) continue;
+    if (ev.seq < latestExposureSeq) {
       affected.push({ seq: ev.seq, kind: ev.kind, status: 'affected/under-review' });
     }
   }

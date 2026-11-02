@@ -128,3 +128,22 @@ test('end-to-end: record -> fit -> calibrate -> derive thresholds', () => {
   const ece = computeECE(points, model);
   expect(typeof ece).toBe('number');
 });
+
+// #71 item 13 / PR #117 item 13: every derived boundary must invert the same
+// sigmoid calibrateScore applies. The floor boundary used ln(1/P - 1), which
+// is logit(1 - P): floorPrecision 0.7 landed at P = 0.3, so almost every score
+// blocked. The default 0.5 has logit 0 either way, which is why it hid.
+test('#71 item 13: floorPrecision inverts calibrateScore at the stated probability', () => {
+  const model = { a: 5, b: -2.5, n: 100 };
+  const band = deriveThresholds(model, 0.85, 0.7);
+  expect(calibrateScore(band.floor, model)).toBeCloseTo(0.7, 5);
+  expect(band.floor).toBeLessThan(band.target);
+  expect(band.floor).toBeGreaterThan(band.low);
+});
+
+test('#71 item 13: target and low boundaries also invert calibrateScore', () => {
+  const model = { a: 5, b: -2.5, n: 100 };
+  const band = deriveThresholds(model, 0.85);
+  expect(calibrateScore(band.target, model)).toBeCloseTo(0.85, 5);
+  expect(calibrateScore(band.low, model)).toBeCloseTo(0.15, 5);
+});

@@ -114,9 +114,12 @@ test('verdict-gate advisory mode for generator profile', () => {
   const res = spawnHook(path.join(root, 'hooks', 'jiahao-verdict-gate.js'), {
     stdin: JSON.stringify({ stop_hook_active: false }), env: hostEnv(dir), cwd: root,
   });
-  // Generator mode: allow, not block — verify explicit advisory output
+  // Generator mode: allow, not block — verify explicit advisory output.
+  // #71 item 5: an allow is an ABSENT decision (the host's decision field only
+  // defines "block"); the advisory rides systemMessage alone.
   expectExit(res, 0);
-  expect(res.stdout).toContain('"decision":"allow"');
+  const out = JSON.parse(res.stdout);
+  expect(out.decision).toBeUndefined();
   expect(res.stdout).toContain('JIAHAO ADVISORY');
   expect(res.stdout).not.toContain('"decision":"block"');
 });

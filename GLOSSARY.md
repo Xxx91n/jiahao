@@ -72,6 +72,10 @@ PreToolUse 守卫判断一次工具调用会不会改动 jiahao 自己的装置�
 `package.json` 的 `files` 白名单决定 tarball 里有什么，`npm pack` 打出来的清单就是「进包」的判据。仓库里存在不等于进包：`private/`、`bench/`、`docs/evidence/` 都不进包。所以仓库内的相对链接在包内可能死，指到未进包内容要用 GitHub 绝对地址。`npm run check:links` 只按包内清单判定，不读工作区。
 *避免*：用「本地能打开」证明「npm 读者能打开」、把进包路径和仓库路径混为一谈。
 
+**定罪通道（Conviction Lane）**：
+回合结束时由 `src/pairer-lane.js` 把宿主转写交给 `src/capa-pairer.js`，结果以 `detector.source:'pairer-instrument'` 记录落进证据链。两种模式：`shadow`（默认）是仪器遥测——不进严重度矩阵、不算 Case A 的「有证据」；`enforce`（`.jiahao-conviction-enforce`）是人提升过的通道，记录连同 claim / evidence 一起进矩阵，也算 Case A 的验证证据。裁决出处：`hooks/jiahao-verdict-gate.js` 的 Case A 注释（#71 item 15）。
+*避免*：把 shadow 记录当验证证据、把 enforce 记录当纯遥测、把提升开关说成自动判定。
+
 **证据评审（Evidence Review）**：
 对带真机验收证据的 PR 逐项核对：每个数字能在被引用的工件里找到、命令与钩子退出码与会话 id 来自同一次运行、没测过的部分明说成未探测。清单在 `docs/agents/evidence-review.md`。其中「可能循环的宿主 CLI 要用 `timeout` / Job Object 收住」是全局 AGENTS.md 的 owner action，不是本仓 CI 的检查项。
 *避免*：拿汇总文字代替工件、把不同 run 的日志拼成一次观测、把「宿主文档这么写」说成「实测如此」。

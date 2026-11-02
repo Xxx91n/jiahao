@@ -30,10 +30,27 @@ const { recordHash, WITNESS_HARD_STOP_CODE } = require('./evidence-log');
 const SOURCE = 'pairer-instrument';
 
 function transcriptPathOf(payload) {
-  // canonical field (Claude Code documented); camelCase alias kept for hosts
-  // whose stdin shape is only partially documented.
-  const p = payload && (payload.transcript_path || payload.transcriptPath);
-  return typeof p === 'string' && p ? p : null;
+  if (!payload) return null;
+  // #71 item 11: Claude Code documents SubagentStop as carrying the
+  // SUBAGENT's own transcript in agent_transcript_path, while transcript_path
+  // stays the parent session's transcript. Reading only transcript_path meant
+  // every subagent Stop paired the parent conversation's task with the
+  // subagent's (or the parent's) results. For a subagent stop the agent
+  // transcript wins and transcript_path is the fallback; every other event
+  // keeps transcript_path first, and still falls back to the agent path when
+  // the host omits the event name. Hosts spell the event hook_event_name
+  // (Claude Code) or hookEventName (camelCase hosts); normalizePayload keeps
+  // both on the payload.
+  const ev = payload.hook_event_name || payload.hookEventName;
+  const isSubagentStop = ev === 'SubagentStop' || ev === 'subagent_stop' || ev === 'subagentStop';
+  const order = isSubagentStop
+    ? ['agent_transcript_path', 'agentTranscriptPath', 'transcript_path', 'transcriptPath']
+    : ['transcript_path', 'transcriptPath', 'agent_transcript_path', 'agentTranscriptPath'];
+  for (const key of order) {
+    const p = payload[key];
+    if (typeof p === 'string' && p) return p;
+  }
+  return null;
 }
 
 // One lane record per observation; the idempotency key binds
@@ -84,8 +101,9 @@ function run(payload, opts) {
   let appended = false;
   if (evidenceLog && typeof evidenceLog.commit === 'function' && typeof evidenceLog.createRecord === 'function') {
     const obs = { r: r, mode: mode, adapted: adapted, latencyMs: latencyMs, sessionId: sessionId };
+    let written;
     try {
-      evidenceLog.commit(function (chain, prevHash) {
+      written = evidenceLog.commit(function (chain, prevHash) {
         const rec = evidenceLog.createRecord('pairer-lane', SOURCE,
           obs.r.state === 'flagged' ? 'suspect' : 'observed',
           detailOf(obs.mode, obs.r), null, prevHash, {
@@ -121,7 +139,9 @@ function run(payload, opts) {
       }
       throw e;
     }
-    appended = true;
+    // The commit result is the number of records actually written: a dedup
+    // (_idem already on the chain) or a degraded no-op is not an append.
+    appended = (typeof written === 'number' ? written > 0 : true);
   }
 
   return { lane: 'recorded', mode: mode, state: r.state, family: r.family, claim: r.claim, evidence: r.evidence, reason: r.reason, latency_ms: latencyMs, appended: appended };

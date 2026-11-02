@@ -144,3 +144,132 @@ test('finding 5: adaptTranscriptFile keeps every part of a split message on disk
   expect(r.transcript.events.filter(e => e.type === 'tool_call')).toHaveLength(1);
   expect(r.transcript.closing).toBe('Marker appended.\nexit code 0');
 });
+
+// ---- #71 item 8: one task per turn --------------------------------------
+test('#71 item 8: a later user text opens a new turn (task and events are not mixed)', () => {
+  const r = adaptTranscriptText([
+    userTextLine('First task: inspect A.'),
+    assistantLine('chatcmpl-t1', [{ type: 'tool_use', id: 'call_a', name: 'Read', input: { file_path: 'A' } }], 1),
+    userToolResultLine('call_a', 'A contents'),
+    assistantLine('chatcmpl-t1', [{ type: 'text', text: 'Read A.' }], 2),
+    userTextLine('Second task: inspect B.'),
+    assistantLine('chatcmpl-t2', [{ type: 'tool_use', id: 'call_b', name: 'Read', input: { file_path: 'B' } }], 3),
+    userToolResultLine('call_b', 'B contents'),
+    assistantLine('chatcmpl-t2', [{ type: 'text', text: 'Read B.' }], 4),
+  ].join('\n'));
+
+  expect(r.task).toBe('Second task: inspect B.');
+  const msgs = r.transcript.events.filter(e => e.type === 'message').map(e => e.text);
+  expect(msgs).toEqual(['Second task: inspect B.', 'Read B.']);
+  const calls = r.transcript.events.filter(e => e.type === 'tool_call');
+  expect(calls.map(e => e.call_id)).toEqual(['call_b']);
+  const results = r.transcript.events.filter(e => e.type === 'tool_result');
+  expect(results.map(e => e.call_id)).toEqual(['call_b']);
+  expect(r.transcript.closing).toBe('Read B.');
+});
+
+// ---- #71 / PR #97 review: Codex rollout shapes ---------------------------
+function codexLine(payload, seq) {
+  return JSON.stringify({
+    timestamp: '2026-11-01T10:00:0' + (seq % 10) + '.000Z',
+    type: 'response_item',
+    payload: payload,
+  });
+}
+
+test('#71: Codex rollout response_item shapes map onto the pairer event model', () => {
+  const r = adaptTranscriptText([
+    JSON.stringify({ timestamp: '2026-11-01T09:59:00.000Z', type: 'session_meta', payload: { id: 'codex-s1' } }),
+    codexLine({ type: 'message', role: 'user', content: [{ type: 'input_text', text: 'Run the tests and quote the exit code.' }] }, 1),
+    codexLine({ type: 'reasoning', summary: [], content: null }, 2),
+    codexLine({ type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'Running them.' }] }, 3),
+    codexLine({ type: 'function_call', name: 'shell', arguments: '{"command":["npm","test"]}', call_id: 'call_1' }, 4),
+    codexLine({ type: 'function_call_output', call_id: 'call_1', output: 'Tests: 10 passed' }, 5),
+    codexLine({ type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'Exit code 0.' }] }, 6),
+  ].join('\n'));
+
+  expect(r.ok).toBe(true);
+  expect(r.task).toBe('Run the tests and quote the exit code.');
+  const kinds = r.transcript.events.map(e => e.type);
+  expect(kinds).toEqual(['message', 'message', 'tool_call', 'tool_result', 'message']);
+  const call = r.transcript.events.filter(e => e.type === 'tool_call')[0];
+  expect(call.name).toBe('shell');
+  expect(call.call_id).toBe('call_1');
+  expect(call.arguments).toEqual({ command: ['npm', 'test'] });
+  const result = r.transcript.events.filter(e => e.type === 'tool_result')[0];
+  expect(result.name).toBe('shell'); // call-name mapping survives
+  expect(result.content).toBe('Tests: 10 passed');
+  expect(result.is_error).toBe(false);
+  expect(r.transcript.closing).toBe('Exit code 0.');
+  expect(r.stats.tool_results).toBe(1);
+});
+
+test('#71: Codex rollout keeps a non-JSON function_call argument readable', () => {
+  const r = adaptTranscriptText([
+    codexLine({ type: 'function_call', name: 'shell', arguments: 'ls -la', call_id: 'call_raw' }, 1),
+  ].join('\n'));
+  const call = r.transcript.events.filter(e => e.type === 'tool_call')[0];
+  expect(call.arguments).toEqual({ _raw: 'ls -la' });
+});
+
+test('#71 item 8: a system-reminder user line does not open a turn or become the task', () => {
+  const r = adaptTranscriptText([
+    userTextLine('Real task.'),
+    assistantLine('chatcmpl-r1', [{ type: 'text', text: 'Working.' }], 1),
+    userTextLine('<system-reminder>Context window is 60% full.</system-reminder>'),
+    assistantLine('chatcmpl-r2', [{ type: 'text', text: 'Still working.' }], 2),
+  ].join('\n'));
+  expect(r.task).toBe('Real task.');
+  const msgs = r.transcript.events.filter(e => e.type === 'message').map(e => e.text);
+  expect(msgs).toEqual(['Real task.', 'Working.', 'Still working.']);
+});
+
+test('#71: a Codex environment_context preamble does not become the task', () => {
+  const r = adaptTranscriptText([
+    JSON.stringify({ timestamp: '2026-11-01T09:59:00.000Z', type: 'session_meta', payload: { id: 'codex-s2' } }),
+    codexLine({ type: 'message', role: 'user', content: [{ type: 'input_text', text: '<environment_context>cwd=/repo</environment_context>' }] }, 1),
+    codexLine({ type: 'message', role: 'user', content: [{ type: 'input_text', text: 'Run the tests.' }] }, 2),
+    codexLine({ type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'ok' }] }, 3),
+  ].join('\n'));
+  expect(r.task).toBe('Run the tests.');
+  const msgs = r.transcript.events.filter(e => e.type === 'message').map(e => e.text);
+  expect(msgs).toEqual(['Run the tests.', 'ok']);
+});
+
+test('#71 item 8: a new turn clears the previous turn closing', () => {
+  const r = adaptTranscriptText([
+    userTextLine('First task.'),
+    assistantLine('chatcmpl-c1', [{ type: 'text', text: 'First answer.' }], 1),
+    userTextLine('Second task, not answered yet.'),
+  ].join('\n'));
+  expect(r.task).toBe('Second task, not answered yet.');
+  expect(r.transcript.closing).toBe('');
+});
+
+test('#71 item 8: every tolerated host wrapper tag is skipped, never treated as a task', () => {
+  const tags = ['system-reminder', 'environment_context', 'user_instructions', 'local-command-stdout', 'command-name'];
+  for (const tag of tags) {
+    // The wrapper comes AFTER the real task: if it opened a turn it would
+    // overwrite `task` and wipe the earlier event, so both assertions go red.
+    const r = adaptTranscriptText([
+      userTextLine('Real task.'),
+      userTextLine('<' + tag + '>injected</' + tag + '>'),
+    ].join('\n'));
+    expect(r.task).toBe('Real task.');
+    const msgs = r.transcript.events.filter(e => e.type === 'message').map(e => e.text);
+    expect(msgs).toEqual(['Real task.']);
+  }
+});
+
+test('#71 item 8: stats.tool_results counts the whole file, not just the last turn', () => {
+  const r = adaptTranscriptText([
+    userTextLine('First.'),
+    assistantLine('chatcmpl-s1', [{ type: 'tool_use', id: 'call_s1', name: 'Read', input: {} }], 1),
+    userToolResultLine('call_s1', 'one'),
+    userTextLine('Second.'),
+    assistantLine('chatcmpl-s2', [{ type: 'tool_use', id: 'call_s2', name: 'Read', input: {} }], 2),
+    userToolResultLine('call_s2', 'two'),
+  ].join('\n'));
+  expect(r.transcript.events.filter(e => e.type === 'tool_result')).toHaveLength(1); // turn-scoped
+  expect(r.stats.tool_results).toBe(2); // transcript-scoped
+});

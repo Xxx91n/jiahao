@@ -1387,8 +1387,13 @@ function createEvidenceLog(overrideConfigDir, opts) {
   // everything below runs inside ONE narrow lock (ep + '.lock').
   // make(chain, prevHash) receives the materialized concatenated records
   // (anchors included) plus the chain tail hash; it returns records to
-  // append ([] = no-op). Lock failure degrades to an unlocked write
-  // (best-effort invariant: hooks never block).
+  // append ([] = no-op).
+  // Returns the number of records this call appended (0 for a no-op, an
+  // idempotency dedup, or a dropped sink); after a mid-write throw it reports
+  // only what landed before the throw. Lock failure degrades to one unlocked
+  // write (best-effort invariant: hooks never block); a throw from make() or
+  // the append INSIDE the lock is not retried, because it may already have
+  // written records (#71).
   function commit(make, opts) {
     opts = opts || {};
     const boundedAppend = !!opts.boundedAppend;
@@ -1397,7 +1402,9 @@ function createEvidenceLog(overrideConfigDir, opts) {
     } else {
       _witnessPreCheck();
     }
+    let writtenSoFar = 0;
     const run = () => {
+      writtenSoFar = 0; // one attempt's view; a retried call restarts it
       if (legacyReadOnly) { note('read-only legacy mode — append dropped'); return; }
       if (!ensureSegmented()) return;
       let existing;
@@ -1460,97 +1467,144 @@ function createEvidenceLog(overrideConfigDir, opts) {
 
       const relink = {}; // old event_hash -> re-hashed value after a rotation splice
       const applied = [];
-      for (const rec of made) {
-        if (!rec) continue;
-        if (rec._idem && seen.has(rec._idem)) continue; // first-writer-wins
-        let tailIsAnchor = typeof tail === 'string' && tail.length > 0;
-        // A record chained onto a hash that was relocated by an earlier
-        // rotation splice in THIS commit gets re-linked transparently.
-        if (tailIsAnchor && typeof rec.prev_hash === 'string' &&
-          Object.prototype.hasOwnProperty.call(relink, rec.prev_hash)) {
-          rec.prev_hash = relink[rec.prev_hash];
-        }
-        if (tailIsAnchor && rec.prev_hash !== undefined && rec.prev_hash !== tail) {
-          note('skipping record ' + JSON.stringify(rec.gate_id) +
-            ' — prev_hash mismatch (expected ' + tail + ', got ' + rec.prev_hash + ')');
-          continue;
-        }
-
-        // byte-threshold rotation, evaluated before each write.
-        if (activePath && fs.existsSync(activePath)) {
-          let size = 0;
-          try { size = fs.statSync(activePath).size; } catch (e) { }
-          if (size >= rotateBytes && !(opts.skipRotation)) {
-            _fsyncFile(activePath);
-            const anchor = {
-              kind: 'segment_anchor',
-              segment_format_version: SEGMENT_VERSION,
-              seq_start: total,
-              prev_segment_hash: sha256File(activePath),
-              prev_segment_count: readSegment(activePath, true).length,
-              prev_segment_bytes: size,
-              created_at: new Date().toISOString(),
-              prev_hash: typeof tail === 'string' ? tail : null,
-              event_hash: null,
-            };
-            // Fail-closed carry-over: a `legacy_migration` marker means the
-            // pre-marker chain contains a verified break. Seal that fact on the
-            // anchor so verifyTail stays consistent with verifyChain/verifyFull
-            // after rotation — otherwise a rotation would silently flip a
-            // permanently-broken chain back to valid on the hot path.
-            const legacy = boundedAppend
-              ? _legacyBreakpointBounded(boundedState.segs, boundedState.recs)
-              : existing.find(function (r) { return r && r.kind === 'legacy_migration'; });
-            if (legacy) anchor.legacy_breakpoint = { broken_at: legacy.broken_at, reason: legacy.reason || null };
-            anchor.event_hash = recordHash(anchor);
-            activePath = path.join(ep, segmentName(total));
-            fs.writeFileSync(activePath, JSON.stringify(anchor) + '\n', 'utf8');
-            tail = anchor.event_hash;
-            total += 1;
-            applied.push(anchor);
-            tailIsAnchor = true;
-            // Splice the pending record onto the new segment's anchor so the
-            // concatenated chain stays valid across the boundary.
-            rec.prev_hash = anchor.event_hash;
-            if (Object.prototype.hasOwnProperty.call(rec, 'event_hash')) {
-              const oldHash = rec.event_hash;
-              rec.event_hash = recordHash(rec);
-              if (typeof oldHash === 'string') relink[oldHash] = rec.event_hash;
+      // Metadata repair path (#71, CodeRabbit on PR #133): if an append throws
+      // after earlier records landed, persist the same sidecar / tail state a
+      // successful run would have written, so the chain and its witnesses
+      // agree. It runs INSIDE the lock and never restarts the batch.
+      const persistMetadata = function () {
+        if (applied.length === 0) return;
+        if (activePath) _fsyncFile(activePath);
+        if (boundedAppend) {
+          if (bp) {
+            for (const rec of applied) {
+              if (rec && !rec.kind) postDetectionAppends += 1;
             }
           }
-        }
-
-        if (!activePath) {
-          fs.mkdirSync(ep, { recursive: true });
-          activePath = path.join(ep, segmentName(total)); // total === 0 on genesis
-        }
-        fs.appendFileSync(activePath, JSON.stringify(rec) + '\n', 'utf8');
-        applied.push(rec);
-        if (rec._idem) seen.add(rec._idem);
-        tail = rec.event_hash;
-        total += 1;
-      }
-      if (applied.length === 0) return;
-      if (activePath) _fsyncFile(activePath);
-
-      if (boundedAppend) {
-        if (bp) {
-          for (const rec of applied) {
-            if (rec && !rec.kind) postDetectionAppends += 1;
+          if (_writeBoundedTailAnchor(total, tail, bp, postDetectionAppends)) {
+            _updateSealSidecarPostCount(applied.length);
           }
+        } else {
+          // Full-rewrite sidecar with the union set (bounded by unique turn keys).
+          const allKeys = existing.concat(applied).filter(r => r && r._idem).map(r => r._idem);
+          fs.writeFileSync(kp, allKeys.join('\n') + '\n', 'utf8');
+          _writeTailAnchorForChain(existing.concat(applied));
         }
-        if (_writeBoundedTailAnchor(total, tail, bp, postDetectionAppends)) {
-          _updateSealSidecarPostCount(applied.length);
+      };
+      // CodeRabbit on PR #133 (round 2): the repair must cover the WHOLE
+      // per-record batch, not just appendFileSync. A rotation splice calls
+      // recordHash()/sha256File()/readSegment() and writes the anchor itself;
+      // any of those can throw after earlier records landed. The local
+      // fs.statSync catch below stays as is - it handles its own error.
+      try {
+        for (const rec of made) {
+          if (!rec) continue;
+          if (rec._idem && seen.has(rec._idem)) continue; // first-writer-wins
+          let tailIsAnchor = typeof tail === 'string' && tail.length > 0;
+          // A record chained onto a hash that was relocated by an earlier
+          // rotation splice in THIS commit gets re-linked transparently.
+          if (tailIsAnchor && typeof rec.prev_hash === 'string' &&
+            Object.prototype.hasOwnProperty.call(relink, rec.prev_hash)) {
+            rec.prev_hash = relink[rec.prev_hash];
+          }
+          if (tailIsAnchor && rec.prev_hash !== undefined && rec.prev_hash !== tail) {
+            note('skipping record ' + JSON.stringify(rec.gate_id) +
+              ' — prev_hash mismatch (expected ' + tail + ', got ' + rec.prev_hash + ')');
+            continue;
+          }
+
+          // byte-threshold rotation, evaluated before each write.
+          if (activePath && fs.existsSync(activePath)) {
+            let size = 0;
+            try { size = fs.statSync(activePath).size; } catch (e) { }
+            if (size >= rotateBytes && !(opts.skipRotation)) {
+              _fsyncFile(activePath);
+              const anchor = {
+                kind: 'segment_anchor',
+                segment_format_version: SEGMENT_VERSION,
+                seq_start: total,
+                prev_segment_hash: sha256File(activePath),
+                prev_segment_count: readSegment(activePath, true).length,
+                prev_segment_bytes: size,
+                created_at: new Date().toISOString(),
+                prev_hash: typeof tail === 'string' ? tail : null,
+                event_hash: null,
+              };
+              // Fail-closed carry-over: a `legacy_migration` marker means the
+              // pre-marker chain contains a verified break. Seal that fact on the
+              // anchor so verifyTail stays consistent with verifyChain/verifyFull
+              // after rotation — otherwise a rotation would silently flip a
+              // permanently-broken chain back to valid on the hot path.
+              const legacy = boundedAppend
+                ? _legacyBreakpointBounded(boundedState.segs, boundedState.recs)
+                : existing.find(function (r) { return r && r.kind === 'legacy_migration'; });
+              if (legacy) anchor.legacy_breakpoint = { broken_at: legacy.broken_at, reason: legacy.reason || null };
+              anchor.event_hash = recordHash(anchor);
+              // Create the new segment only after its anchor line is on disk
+              // (CodeRabbit on PR #133, round 3): assigning activePath first
+              // meant a failed write left — or persistMetadata's 'a' open
+              // created — an empty segment whose first line is not an anchor,
+              // which verifyTail then reports as missing forever.
+              const nextPath = path.join(ep, segmentName(total));
+              try {
+                fs.writeFileSync(nextPath, JSON.stringify(anchor) + '\n', 'utf8');
+              } catch (writeError) {
+                try { fs.unlinkSync(nextPath); } catch (e2) { /* never created */ }
+                throw writeError;
+              }
+              activePath = nextPath;
+              tail = anchor.event_hash;
+              total += 1;
+              applied.push(anchor);
+              writtenSoFar += 1;
+              tailIsAnchor = true;
+              // Splice the pending record onto the new segment's anchor so the
+              // concatenated chain stays valid across the boundary.
+              rec.prev_hash = anchor.event_hash;
+              if (Object.prototype.hasOwnProperty.call(rec, 'event_hash')) {
+                const oldHash = rec.event_hash;
+                rec.event_hash = recordHash(rec);
+                if (typeof oldHash === 'string') relink[oldHash] = rec.event_hash;
+              }
+            }
+          }
+
+          if (!activePath) {
+            fs.mkdirSync(ep, { recursive: true });
+            activePath = path.join(ep, segmentName(total)); // total === 0 on genesis
+          }
+          fs.appendFileSync(activePath, JSON.stringify(rec) + '\n', 'utf8');
+          applied.push(rec);
+          writtenSoFar += 1;
+          if (rec._idem) seen.add(rec._idem);
+          tail = rec.event_hash;
+          total += 1;
         }
-      } else {
-        // Full-rewrite sidecar with the union set (bounded by unique turn keys).
-        const allKeys = existing.concat(applied).filter(r => r && r._idem).map(r => r._idem);
-        fs.writeFileSync(kp, allKeys.join('\n') + '\n', 'utf8');
-        _writeTailAnchorForChain(existing.concat(applied));
+      } catch (batchError) {
+        // Same repair as the append path: metadata must describe what landed,
+        // and the batch must not be restarted (the landed records would double).
+        try { persistMetadata(); } catch (metaError) { /* best effort; the batch error wins */ }
+        throw batchError;
       }
+      persistMetadata();
+      return writtenSoFar; // one counter for both the success and throw paths
     };
-    try { withLockSync(ep, run, { retries: 40, retrySleepMs: 10 }); }
-    catch (e) { try { run(); } catch (e2) { /* sink broken — drop */ } }
+    // Lock failure and a throw from run() itself are different events. The
+    // first keeps the documented best-effort degrade (write unlocked); the
+    // second may already have appended records, and re-running it unlocked
+    // would duplicate them. `entered` separates the two (PR #97 review, #71).
+    let entered = false;
+    const guarded = function () { entered = true; return run(); };
+    let written = 0;
+    try { written = withLockSync(ep, guarded, { retries: 40, retrySleepMs: 10 }) || 0; }
+    catch (e) {
+      if (!entered) {
+        try { written = run() || 0; } catch (e2) { written = writtenSoFar; }
+      } else {
+        written = writtenSoFar; // report what landed before the throw
+        note('append failed inside the lock — stopped after ' + written + ' record(s): ' + ((e && e.message) || String(e)));
+      }
+    }
+    return written;
   }
 
   // Chain integrity over a materialized array (unchanged legacy contract).
