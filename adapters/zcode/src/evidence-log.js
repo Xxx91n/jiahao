@@ -1539,8 +1539,19 @@ function createEvidenceLog(overrideConfigDir, opts) {
                 : existing.find(function (r) { return r && r.kind === 'legacy_migration'; });
               if (legacy) anchor.legacy_breakpoint = { broken_at: legacy.broken_at, reason: legacy.reason || null };
               anchor.event_hash = recordHash(anchor);
-              activePath = path.join(ep, segmentName(total));
-              fs.writeFileSync(activePath, JSON.stringify(anchor) + '\n', 'utf8');
+              // Create the new segment only after its anchor line is on disk
+              // (CodeRabbit on PR #133, round 3): assigning activePath first
+              // meant a failed write left — or persistMetadata's 'a' open
+              // created — an empty segment whose first line is not an anchor,
+              // which verifyTail then reports as missing forever.
+              const nextPath = path.join(ep, segmentName(total));
+              try {
+                fs.writeFileSync(nextPath, JSON.stringify(anchor) + '\n', 'utf8');
+              } catch (writeError) {
+                try { fs.unlinkSync(nextPath); } catch (e2) { /* never created */ }
+                throw writeError;
+              }
+              activePath = nextPath;
               tail = anchor.event_hash;
               total += 1;
               applied.push(anchor);

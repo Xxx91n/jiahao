@@ -292,3 +292,43 @@ test('#71: a rotation-time throw also repairs metadata before rethrowing', () =>
   expect(log.verifyTail().valid).toBe(true);
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+// #71 (CodeRabbit on PR #133, round 3): a failed anchor write must not leave an
+// empty segment behind. The repair path fsyncs activePath with an 'a' open,
+// which creates the file; a later record written as its first line makes
+// verifyTail report segment_anchor_missing forever.
+test('#71: a failed segment-anchor write leaves no damaged segment behind', () => {
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'jiahao-evidence-anchor-fail-'));
+  const log = createEvidenceLog(dir, { rotateBytes: 1 });
+  const a = log.createRecord('gate-71h', 'deterministic', 'passed', 'first', null, null, {});
+  expect(log.commit(function () { return [a]; })).toBe(1);
+
+  const b = log.createRecord('gate-71i', 'deterministic', 'passed', 'second', null, a.event_hash, {});
+  const c = log.createRecord('gate-71j', 'deterministic', 'passed', 'third', null, b.event_hash, {});
+
+  const orig = fs.writeFileSync;
+  let anchorWrites = 0;
+  const spy = jest.spyOn(fs, 'writeFileSync').mockImplementation(function (p, data) {
+    // fs.appendFileSync delegates to writeFileSync, so match on the anchor line
+    // itself rather than on the segment extension.
+    if (typeof p === 'string' && p.endsWith('.jsonl') &&
+      typeof data === 'string' && data.indexOf('"kind":"segment_anchor"') !== -1) {
+      anchorWrites += 1;
+      if (anchorWrites === 2) {
+        const err = new Error('ENOSPC: no space left on device');
+        err.code = 'ENOSPC';
+        throw err;
+      }
+    }
+    return orig.apply(fs, arguments);
+  });
+  let written;
+  try { written = log.commit(function () { return [b, c]; }); } finally { spy.mockRestore(); }
+
+  expect(written).toBeGreaterThan(0); // b landed before the failed anchor write
+  const segDir = path.join(dir, '.jiahao-evidence');
+  const sizes = fs.readdirSync(segDir).map(function (f) { return fs.statSync(path.join(segDir, f)).size; });
+  expect(sizes.every(function (n) { return n > 0; })).toBe(true); // no empty/torn segment
+  expect(log.verifyTail().valid).toBe(true);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
