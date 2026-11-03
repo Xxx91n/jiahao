@@ -189,9 +189,12 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   // verifier's own Output section names the pattern it must not hide behind.
   const boundaries = content.slice(content.indexOf('## Boundaries'));
   expect(boundaries).toMatch(/Plain language is not generator-only/i);
-  expect(boundaries).toMatch(/states the result and the reason in plain words/i);
+  expect(boundaries).toMatch(/states the result and why it matters in plain words/i);
   expect(boundaries).toMatch(/the name never replaces the explanation/i);
   expect(boundaries).toMatch(/keep sentences short and direct/i);
+  // The cause stays optional here too; the unconditional wording was the
+  // remaining contradiction with R4 and the conclusion template.
+  expect(boundaries).not.toMatch(/and the reason in plain words/i);
   const verifier = content.slice(content.indexOf('## Verifier Profile'), content.indexOf('## Bias guards'));
   expect(verifier).toMatch(/name a file path, symbol, or shorthand only after saying what it is and why it matters/i);
   expect(verifier).toMatch(/not permission to skip that explanation/i);

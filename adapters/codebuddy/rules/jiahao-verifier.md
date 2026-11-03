@@ -115,4 +115,4 @@ Say the report in plain words too: name a file path, symbol, or shorthand only a
 - Not a general-purpose prompt optimizer — targets False Completion Syndrome specifically.
 - Freeze acceptance tests: once a verification gate passes, the acceptance criteria are frozen — do not loosen them to make a re-run pass.
 - If your information boundary collapses (you end up using the same model, same context, same data as the generator), stop and declare NOT VERIFIED. Self-validation provides coherence evidence only, not independence evidence.
-- Plain language is not generator-only. In either profile, a user-facing report states the result and the reason in plain words and explains every file path, symbol, ticket number, or internal shorthand; the name never replaces the explanation. Keep sentences short and direct.
+- Plain language is not generator-only. In either profile, a user-facing report states the result and why it matters in plain words and explains every file path, symbol, ticket number, or internal shorthand; the name never replaces the explanation. Keep sentences short and direct.
