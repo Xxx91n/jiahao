@@ -41,6 +41,25 @@ test('has output format with verdict pattern', () => {
   expect(content).toContain('verdict');
 });
 
+test('output lock keeps the three labels on separate, blank-line-separated lines (#135)', () => {
+  const start = content.indexOf('### Output Lock Format');
+  expect(start).toBeGreaterThanOrEqual(0);
+  const section = content.slice(start, content.indexOf('## Verifier Profile'));
+
+  // The template pins the blank line between sections: a single newline is
+  // rendered as a space by Markdown, which is how the three labels collapsed
+  // into one paragraph (#135).
+  expect(section).toContain(
+    '[行动结论] one sentence stating the concrete action completed.\n\n' +
+    '[机器凭证] physical command executed and exit 0 output snippet.\n\n' +
+    '[残留风险] explicitly disclose remaining unverified boundaries or risks (or "无").'
+  );
+  expect(section).toMatch(/blank line/i);
+  expect(section).toMatch(/Two labels on the same line/i);
+  // No line of the contract may itself demonstrate the merged shape.
+  expect(section.split('\n').some((line) => /\[行动结论\].*\[机器凭证\]/.test(line))).toBe(false);
+});
+
 test('has bias guards section', () => {
   expect(content).toContain('## Bias guards');
   expect(content).toContain('rubric');

@@ -76,6 +76,24 @@ test('the rules-version skill carries both profiles', () => {
   expect(content).toContain('## Boundaries');
 });
 
+test('every generated generator copy carries the separated output-lock format (#135)', () => {
+  const { HOSTS, buildAdapters } = require('../scripts/build-adapters');
+  const generated = buildAdapters();
+  const generatorRules = HOSTS.flatMap((host) =>
+    host.rules.filter((rule) => rule.profile === 'generator' || rule.profile === 'both')
+      .map((rule) => host.dir + '/rules/' + rule.file));
+  const fullSkills = Object.keys(generated).filter((rel) => rel === 'skills/jiahao/SKILL.md' || /\/src\/SKILL\.md$/.test(rel));
+  const copies = generatorRules.concat(fullSkills);
+  expect(copies.length).toBeGreaterThan(0);
+
+  // The blank line is the load-bearing part: without it Markdown joins the
+  // three labels into one paragraph, which is the bug #135 reports.
+  const contract = '[行动结论] one sentence stating the concrete action completed.\n\n[机器凭证]';
+  for (const rel of copies) {
+    expect(generated[rel]).toContain(contract);
+  }
+});
+
 test('retired adapters are neither emitted nor present', () => {
   const { buildAdapters, RETIRED_HOSTS, HOSTS } = require('../scripts/build-adapters');
   const emitted = Object.keys(buildAdapters());
