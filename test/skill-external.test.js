@@ -9,6 +9,9 @@
 // a unit suite that needs the network would go red for the wrong reasons and
 // teach everyone to ignore it.
 
+const path = require('path');
+const { spawnSync } = require('child_process');
+
 const {
   SKILLS_REF_VERSION,
   SKILLS_REF_COMMIT,
@@ -22,6 +25,18 @@ const {
   parseSkillsList,
   auditInstalledFiles,
 } = require('../scripts/check-skill-external');
+
+describe('subcommand dispatch', () => {
+  test('an unknown subcommand is a usage error (exit 2), never a silent pass', () => {
+    // The release gate invokes this script as `spec` / `install`; the dispatch
+    // itself gets one offline assertion so a typo'd step cannot exit 0.
+    const res = spawnSync(process.execPath,
+      [path.join(__dirname, '..', 'scripts', 'check-skill-external.js'), 'bogus'],
+      { encoding: 'utf8', timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'] });
+    expect(res.status).toBe(2);
+    expect(res.stderr).toContain('usage:');
+  });
+});
 
 describe('external tool pins', () => {
   test('both tools are pinned to one exact x.y.z, never a range or a tag', () => {
