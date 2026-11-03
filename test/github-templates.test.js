@@ -13,14 +13,16 @@
 // paths, link anchors, npm run scripts, frontmatter keys and labels those pages
 // name, and fail on the first one that does not land.
 //
-// Three checks are narrower than the defect, and are named instead of hidden:
-// whether a label exists on the tracker cannot be read offline, so labels are
+// Four things are narrower than the defect, and are named instead of hidden: a
+// label's existence on the tracker cannot be read offline, so labels are
 // matched against GitHub's default set plus the table in
 // docs/agents/triage-labels.md; `npm install` and `npm ci` are npm built-ins
-// rather than package scripts, so only `npm run <name>` is resolved; and a bare
-// file name without a slash is checked only when it is a root document or a
-// term on the RETIRED list, because `gates.json` on its own reads as ordinary
-// text and a blanket rule would flag half the English language.
+// rather than package scripts, so only `npm run <name>` is resolved; a path is
+// read as a citation only when it starts with a citable top level or carries a
+// source extension, so a bare `gates.json` or a coined `templates/anything`
+// passes unexamined; and the non-vacuity count is taken across the page set
+// rather than per page, so it proves the guard reads references, not that every
+// page cites one.
 
 const fs = require('fs');
 const path = require('path');
@@ -29,9 +31,10 @@ const { linksIn, resolveTarget } = require('../scripts/check-doc-links');
 const ROOT = path.resolve(__dirname, '..');
 const GITHUB = path.join(ROOT, '.github');
 
-// Top-level names a contribution page may cite. `private/` is left out on
-// purpose: AGENTS.md keeps the wordlist there out of any public output, so a
-// page naming it is wrong whatever the tree happens to contain.
+// Top-level names a contribution page may cite. `private/` is absent because a
+// public page must never name it (AGENTS.md keeps the wordlist there out of any
+// public output) — and that ban is enforced by its own case below, not by
+// leaving it out of this list and hoping the path case notices.
 const CITED_TOP = [
   'src', 'hooks', 'scripts', 'docs', 'test', 'adapters', 'skills', 'schemas',
   'jiahao-mcp', 'bench', '.github', '.claude-plugin', '.agents',
@@ -114,8 +117,8 @@ function fmKeys(lines) {
     .map((m) => m[1]);
 }
 
-// Both shapes GitHub accepts: `labels: bug`, `labels: [bug, docs]` and the
-// block form with `- bug` on the following lines.
+// The shapes GitHub accepts: `labels: bug`, `labels: [bug, docs]`, and a block
+// list under `labels:` — indented or flush with the key, both are valid YAML.
 function fmLabels(lines) {
   const i = lines.findIndex((l) => /^labels:/.test(l));
   if (i === -1) return [];
@@ -127,7 +130,7 @@ function fmLabels(lines) {
   }
   const out = [];
   for (const line of lines.slice(i + 1)) {
-    const item = /^\s+-\s*(.+)$/.exec(line);
+    const item = /^\s*-\s*(.+)$/.exec(line);
     if (item) out.push(clean(item[1]));
     else if (/^\S/.test(line)) break;
   }
@@ -171,21 +174,31 @@ function citedRepoPaths(text) {
 // A github.com reference to this repository. `kind` separates what this check
 // can resolve (a `blob|tree/main` path, or an anchor into README.md) from a
 // path it cannot (an issue, release or settings URL), so an unchecked url is
-// recorded rather than silently scored against README.md.
+// recorded rather than silently scored against README.md. Anchors are matched
+// in any script and percent-decoded, because README-zh-CN.md's headings are
+// Chinese and a browser-bound link can arrive as %E8%B6....
 function siteRefs(text) {
   const site = repoSite().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const re = new RegExp('https?://' + site
-    + '(?:/(?:blob|tree)/main/([^#?\\s)\\]]+)|(/[^#?\\s)\\]]*))?(?:#([A-Za-z0-9_-]+))?', 'gi');
+    + '(?:/(?:blob|tree)/main/([^#?\\s)\\]]+)|(/[^#?\\s)\\]]*))?(?:#([\\p{L}\\p{N}][\\p{L}\\p{N}_%-]*))?', 'gu');
   return [...text.matchAll(re)].map((m) => (
     m[2]
-      ? { url: m[0], kind: 'unresolved', file: null, anchor: m[3] || null }
+      ? { url: m[0], kind: 'unresolved', file: null, anchor: null }
       : {
         url: m[0],
         kind: 'resolved',
         file: m[1] ? m[1].replace(/\/+$/, '') : 'README.md',
-        anchor: m[3] || null,
+        anchor: m[3] ? decodeAnchor(m[3]) : null,
       }
   ));
+}
+
+function decodeAnchor(anchor) {
+  try {
+    return decodeURIComponent(anchor);
+  } catch {
+    return anchor;
+  }
 }
 
 // docs/agents/triage-labels.md carries five canonical roles. The count is
@@ -340,6 +353,17 @@ describe('.github contribution pages name things that exist', () => {
       for (const label of labels) if (!real.includes(label)) bad.push(rel + ' -> ' + label);
     }
     expect(bad).toEqual([]);
+  });
+
+  // AGENTS.md keeps the private wordlist out of any public output. The path
+  // case above cannot catch it, because private/ is not a citable top level —
+  // so the ban is asserted here instead of being claimed by a comment.
+  test('no page cites the private wordlist path', () => {
+    const found = [];
+    for (const rel of pages) {
+      for (const m of texts.get(rel).matchAll(/\bprivate\/[\w.@/-]*/gu)) found.push(rel + ' -> ' + m[0]);
+    }
+    expect(found).toEqual([]);
   });
 
   test('the retired private vocabulary stays out', () => {

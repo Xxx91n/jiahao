@@ -12,7 +12,7 @@ Read "Boundaries and limitations" in [the README](https://github.com/Xxx91n/jiah
 
 Two templates:
 
-- **Bug report** — the installer, a hook, the turn-end gate, or an adapter bundle does not do what the README says.
+- **Bug report** — the installer, a hook, the gate that blocks turn end, or an adapter bundle does not do what the README says.
 - **Reproduction does not match** — you ran something and got a different number or result than the one we published.
 
 A report we can act on has: the command pasted exactly, the real output pasted, the exit code, the host and its version, and which install path you used. Paraphrased output is not evidence. If you did not run it, write that instead of a guess.
@@ -33,7 +33,7 @@ A report we can act on has: the command pasted exactly, the real output pasted, 
    | `npm run check:links` | every relative link in the Markdown that ships in the npm package resolves inside that package |
 
 5. `README.md` and `README-zh-CN.md` are one document in two languages; change both in the same commit.
-6. Open the pull request against `main`, put `Closes #<n>` in the body, and paste the command output under Evidence. Merges are squashed, so `main` carries one commit per pull request.
+6. Open the pull request against `main`, put `Closes #<n>` in the body, and paste the command output under Evidence. A pull request is merged with squash, so it lands as one commit; `main` carries no merge commits.
 
 ## House rules, applied to ourselves
 

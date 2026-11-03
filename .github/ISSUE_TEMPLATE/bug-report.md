@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: The installer, a hook, the turn-end gate, or an adapter bundle does not do what the README says
+about: The installer, a hook, the gate that blocks turn end, or an adapter bundle does not do what the README says
 title: "[bug] "
 labels: bug
 ---
