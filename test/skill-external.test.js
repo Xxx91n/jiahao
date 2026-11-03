@@ -4,13 +4,15 @@
 //
 // Only the pure halves live here: the version pins, the `skills --list`
 // parser, and the installed-file audit. The halves that fetch skills-ref
-// from PyPI and skills from npm run in CI (branch job: npm run check:skill;
+// from its pinned upstream commit and skills from npm run in CI (branch job: npm run check:skill;
 // tag job: the gate's skill-spec / skill-install steps), not in this suite -
 // a unit suite that needs the network would go red for the wrong reasons and
 // teach everyone to ignore it.
 
 const {
   SKILLS_REF_VERSION,
+  SKILLS_REF_COMMIT,
+  SKILLS_REF_REQUIREMENT,
   SKILLS_CLI_VERSION,
   SKILLS_CLI_PACKAGE,
   EXPECTED_INSTALL_FILES,
@@ -28,6 +30,15 @@ describe('external tool pins', () => {
     // The package spec the gate hands to npm exec must be the same pin, or
     // "pinned" is a comment rather than a fact.
     expect(SKILLS_CLI_PACKAGE).toBe('skills@' + SKILLS_CLI_VERSION);
+  });
+
+  test('skills-ref comes from one pinned upstream commit, never a floating ref or PyPI', () => {
+    // agentskills/agentskills#355: the PyPI package of this name is not the
+    // maintainers' ("published by someone else and we have no control over
+    // it"), so source is part of the pin, and a branch name would float.
+    expect(SKILLS_REF_COMMIT).toMatch(/^[0-9a-f]{40}$/);
+    expect(SKILLS_REF_REQUIREMENT).toContain('git+https://github.com/agentskills/agentskills.git@' + SKILLS_REF_COMMIT);
+    expect(SKILLS_REF_REQUIREMENT).toContain('#subdirectory=skills-ref');
   });
 });
 

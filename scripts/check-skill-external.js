@@ -44,10 +44,19 @@ const SKILL_NAME = 'jiahao';
 
 // The pins are the reproducibility contract: bump them in one place, on
 // purpose, and let the tag gate re-prove the face against the new tool.
-// skills-ref 0.1.1 is the latest PyPI release of agentskills/agentskills'
-// reference validator; skills 1.7.4 is the CLI version the manual evidence
-// in #67 was produced with.
-const SKILLS_REF_VERSION = '0.1.1';
+// skills-ref is installed from a pinned commit of the upstream repo
+// (agentskills/agentskills, skills-ref/ subdirectory; pyproject version
+// 0.1.0 there) - deliberately NOT from PyPI: in agentskills/agentskills#355
+// the maintainers state the PyPI package of that name "was published by
+// someone else and we have no control over it", so a verdict from it would
+// not be the official validator's however well its version string matches.
+// Version AND source are pinned, as #67's acceptance requires. skills 1.7.4
+// is the CLI version the manual evidence in #67 was produced with.
+const SKILLS_REF_VERSION = '0.1.0';
+const SKILLS_REF_COMMIT = '69ef37e9424c0a7ea9dd2293b559e43ec8176379';
+const SKILLS_REF_REQUIREMENT =
+  'skills-ref @ git+https://github.com/agentskills/agentskills.git@' +
+  SKILLS_REF_COMMIT + '#subdirectory=skills-ref';
 const SKILLS_CLI_VERSION = '1.7.4';
 const SKILLS_CLI_PACKAGE = 'skills@' + SKILLS_CLI_VERSION;
 // skills@1.7.4 declares engines node >=22.20.0 (it imports fs/promises
@@ -203,11 +212,12 @@ function checkSpec() {
     const pylibs = path.join(tmp, 'pylibs');
     const pip = run(python,
       ['-m', 'pip', 'install', '--disable-pip-version-check', '--no-input', '--target', pylibs,
-        'skills-ref==' + SKILLS_REF_VERSION],
+        SKILLS_REF_REQUIREMENT],
       { timeout: 300000 });
     if (pip.status !== 0) {
-      throw new Error('installing the pinned skills-ref==' + SKILLS_REF_VERSION + ' from PyPI failed ' +
-        '(offline or PyPI unreachable?). Failing closed - the spec check does not skip.\n' +
+      throw new Error('installing the pinned skills-ref (agentskills/agentskills@' +
+        SKILLS_REF_COMMIT.slice(0, 12) + ') failed ' +
+        '(offline, no git, or GitHub unreachable?). Failing closed - the spec check does not skip.\n' +
         tail(pip.stderr || pip.stdout));
     }
     const env = Object.assign({}, process.env, {
@@ -237,7 +247,8 @@ function checkSpec() {
         '/ with ' + verdict.errors.length + ' error(s):\n' +
         verdict.errors.map(e => '  ' + e).join('\n'));
     }
-    return 'skills-ref ' + SKILLS_REF_VERSION + ' (PyPI, pinned): ' + SKILL_DIR_REL + '/ errors == 0';
+    return 'skills-ref ' + SKILLS_REF_VERSION + ' (agentskills/agentskills@' +
+      SKILLS_REF_COMMIT.slice(0, 12) + ', pinned source): ' + SKILL_DIR_REL + '/ errors == 0';
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
@@ -363,6 +374,8 @@ if (require.main === module) main();
 module.exports = {
   SKILL_DIR_REL,
   SKILLS_REF_VERSION,
+  SKILLS_REF_COMMIT,
+  SKILLS_REF_REQUIREMENT,
   SKILLS_CLI_VERSION,
   SKILLS_CLI_PACKAGE,
   EXPECTED_INSTALL_FILES,

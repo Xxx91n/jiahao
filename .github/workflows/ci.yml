@@ -76,7 +76,7 @@ jobs:
       # Same two external assertions the tag gate carries as skill-spec /
       # skill-install (#67), run here so spec drift in skills/jiahao/ turns a
       # PR red instead of waiting for the next tag. Both fetch pinned tools
-      # (PyPI skills-ref, npm skills) and fail closed if they cannot.
+      # (pinned upstream skills-ref, npm skills) and fail closed if they cannot.
       - run: npm run check:skill
       - run: npm test
 
