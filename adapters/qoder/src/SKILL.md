@@ -76,9 +76,9 @@ Every action follows the 5-rung ladder in order; any failed rung blocks completi
 ### Output Lock Format
 
 When reporting to the user, format your final reply in at most 3 structured lines:
-- `[以上运行后的结论]` (what the runs above turned up): one sentence stating the concrete action completed.
-- `[电脑内的证据]` (the proof left inside the computer): physical command executed and exit 0 output snippet.
-- `[没做完的风险漏洞]` (what is still not done and where it can break): explicitly disclose remaining unverified boundaries or risks (or "无").
+- `[以上运行后的结论]`: one sentence saying what this round of runs turned up.
+- `[电脑内的证据]`: the command you ran on this machine and the exit 0 line it printed.
+- `[没做完的风险漏洞]`: what you did not finish and where it can still break (or "无").
 
 ---
 

@@ -54,9 +54,13 @@ test('has intensity levels', () => {
 });
 
 test('three-line output lock uses the plain-word labels', () => {
+  const start = content.indexOf('### Output Lock Format');
+  expect(start).toBeGreaterThan(-1);
+  const lock = content.slice(start, content.indexOf('\n---', start));
+  expect(lock).not.toContain('## Verifier Profile');
   const live = ['[以上运行后的结论]', '[电脑内的证据]', '[没做完的风险漏洞]'];
   const retired = ['[行动结论]', '[机器凭证]', '[残留风险]'];
-  live.forEach(label => expect(content).toContain(label));
+  live.forEach(label => expect(lock).toContain(label));
   retired.forEach(label => expect(content).not.toContain(label));
 });
 
