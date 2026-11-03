@@ -135,18 +135,15 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   expect(ruleAt).toBeGreaterThan(0);
   const rule = lines[ruleAt];
 
-  // "any message you send" covers narration between tool calls without
-  // authorizing extra prose that rung 1 and R3 still forbid.
+  // "any message you send" covers narration between tool calls; the precedence
+  // clause keeps it from authorizing prose that rung 1 and R3 still forbid.
   expect(rule).toMatch(/any user-facing message you send/i);
-  // A name may never stand in for the plain-words meaning.
-  expect(rule).toMatch(/never let a file path, symbol, ticket number, or internal shorthand stand in for the plain-words meaning/i);
+  expect(rule).toMatch(/changes how you word a message, not whether you may send it/i);
+  // A name may never stand in for the plain-words explanation.
+  expect(rule).toMatch(/never let a file path, symbol, ticket number, or internal shorthand stand in for the plain-words explanation/i);
   expect(rule).toMatch(/a name is never the explanation/i);
-  // The conclusion leads with plain words; the evidence may lead with the
-  // command, but the explanation of what it proves must follow. This is the
-  // arbitration that keeps R4 from colliding with the required evidence shape.
-  expect(rule).toMatch(/state the result and the reason in ordinary words/i);
-  expect(rule).toMatch(/evidence segment may start with the command/i);
-  expect(rule).toMatch(/must then say what it proves/i);
+  // The result and why it matters are the content R4 demands.
+  expect(rule).toMatch(/state the result and why it matters in ordinary words/i);
   // "长难句" is a named symptom, not just obscure vocabulary.
   expect(rule).toMatch(/long, hard-to-follow sentences/i);
   // The old rule said to delete the explanation, which is the omission #138
@@ -162,6 +159,10 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   expect(lock).toMatch(/pass R4/i);
   expect(lock).toMatch(/reader who has not opened any file/i);
   expect(lock).toMatch(/what happened, what it means, and what is still at risk/i);
+  // The evidence segment may lead with the command, but the explanation of
+  // what it proves must follow; this is where the segment definition lives.
+  expect(lock).toMatch(/evidence segment may start with the command/i);
+  expect(lock).toMatch(/must then say what it proves in plain words/i);
   // "One line" is the segment shape, not a character limit; the clarification
   // is what lets the model use short sentences instead of a run-on line.
   expect(lock).toMatch(/not a character limit/i);
@@ -174,8 +175,7 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   const segments = TEMPLATE.split('\n\n');
   expect(segments).toHaveLength(3);
   expect(segments[0]).toMatch(/plain-words statement/i);
-  expect(segments[0]).toMatch(/what it means/i);
-  expect(segments[0]).toMatch(/the reason/i);
+  expect(segments[0]).toMatch(/what it means, and why it matters/i);
   expect(segments[0]).not.toMatch(/one sentence/i);
   expect(segments[1]).toMatch(/what that proves in plain words/i);
   expect(segments[2]).toMatch(/in plain words/i);
@@ -191,6 +191,11 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   const verifier = content.slice(content.indexOf('## Verifier Profile'), content.indexOf('## Bias guards'));
   expect(verifier).toMatch(/name a file path, symbol, or shorthand only after saying what it is and why it matters/i);
   expect(verifier).toMatch(/not permission to skip that explanation/i);
+
+  // The vocabulary entry must carry the same segment-shape allowance as the
+  // source; otherwise the root doc still reads as a one-line cap.
+  const glossary = fs.readFileSync(path.join(__dirname, '..', 'GLOSSARY.md'), 'utf8');
+  expect(glossary).toMatch(/两三句短句/);
 });
 
 test('has bias guards section', () => {
