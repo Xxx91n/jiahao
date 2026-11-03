@@ -82,7 +82,9 @@ function probe(name, opts) {
         || corpusTierPresent(path.join(configDir(env), 'private', 'bench-corpus'))
         || corpusTierPresent(path.join(root, 'private', 'bench-corpus'));
     case 'docs-adr':
-      return fs.existsSync(path.join(root, 'docs', 'adr'));
+      // The public repository has no docs/adr/ tree; keep this capability
+      // unavailable rather than treating a local directory as evidence.
+      return false;
     case 'ci-mode':
       return Boolean(env.GITHUB_ACTIONS || env.CI);
     case 'old-side-refs':
