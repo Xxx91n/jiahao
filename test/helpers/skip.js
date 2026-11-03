@@ -2,7 +2,7 @@
 
 // test/helpers/skip.js -- : a skip is a verdict and carries a
 // reason. Bare .skip without a reason is forbidden across test/ (enforced by
-// scripts/check-skip-reasons.js, same gate run). Every degradation path must
+// this helper). Every degradation path must
 // route through this helper so the skipped count stays visible and honest
 // (Skipped-Is-A-Verdict).
 
