@@ -1485,13 +1485,15 @@ function replayCheckV3(root) {
   return { errors: errors, rep: rep, recompute: recompute };
 }
 
+/** Run the selected snapshot's replay, validate, or run subcommand. */
 function main() {
   const args = parseCli(process.argv.slice(2));
   const snap = resolveSnapshotDir(args.snapVal);
   const spec = SNAPSHOTS[snap];
   const cmd = args.cmd;
   if (cmd === '--replay') {
-    if (snap === 'devin-corpus-v3') requireCapabilities('devin-oot-v3-replay'); else if (snap === 'devin-corpus-v2') requireCapabilities('devin-oot-v2-replay'); else requireCapabilities('devin-oot-replay');
+    const replayRequires = { requires: ['repo-tree'] };
+    if (snap === 'devin-corpus-v3') requireCapabilities('devin-oot-v3-replay', replayRequires); else if (snap === 'devin-corpus-v2') requireCapabilities('devin-oot-v2-replay', replayRequires); else requireCapabilities('devin-oot-replay', replayRequires);
     const r = replayCheck(ROOT, snap);
     for (const e of r.errors) console.error(PREFIXES.config + ' FAIL: ' + e);
     if (r.errors.length) process.exit(1);

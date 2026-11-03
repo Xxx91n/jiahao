@@ -155,8 +155,9 @@ module.exports = { computeBias, applyGates, expectedVerdict, pairEval };
 
 // ---- thin CLI ----
 
+/** Run the CLI: probe capabilities, score the corpus, print gate lines. */
 function main() {
-  requireCapabilities('judge-bias');
+  requireCapabilities('judge-bias', { requires: ['bench-corpus'] });
   const entries = fs.readFileSync(requireCorpus('judge-twins.jsonl'), 'utf8').split('\n').filter(x => x.trim()).map(JSON.parse);
   const cfg = JSON.parse(fs.readFileSync(CFG, 'utf8'));
   const { judgeItem } = require(path.join(__dirname, 'node-bridge.js'));

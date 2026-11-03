@@ -93,7 +93,7 @@ function checkCorpus(lines, floor, now) {
 module.exports = { checkCorpus, coverageFloor, LAW_RE, ROT_MS };
 
 if (require.main === module) {
-  requireCapabilities('probe-corpus');
+  requireCapabilities('probe-corpus', { requires: ['bench-corpus'] });
   const lines = fs.readFileSync(requireCorpus('probes.jsonl'), 'utf8').split('\n').filter(s => s.trim());
   const floor = coverageFloor(JSON.parse(fs.readFileSync(CFG, 'utf8')));
   const problems = checkCorpus(lines, floor);
