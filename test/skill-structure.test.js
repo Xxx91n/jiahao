@@ -123,6 +123,7 @@ test('a mid-task correction does not end the task (#134)', () => {
 // and a plain gloss for every name; the output format must say the labels are
 // not a substitute for that explanation.
 test('plain words explain machine names instead of replacing them (#138)', () => {
+  const { TEMPLATE } = require('./helpers/output-lock-contract');
   const start = content.indexOf('### Surface Signal Rules');
   const end = content.indexOf('### Intensity Levels');
   expect(start).toBeGreaterThanOrEqual(0);
@@ -133,9 +134,12 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   expect(ruleAt).toBeGreaterThan(0);
   const rule = lines[ruleAt];
 
+  // R4 governs the content, not the label the segment must still start with;
+  // "internal shorthand" keeps it from colliding with the three segment labels.
+  expect(rule).toMatch(/in the content of each segment/i);
   // The result and the reason come first; a name may follow only with a gloss.
   expect(rule).toMatch(/result and the reason in ordinary words/i);
-  expect(rule).toMatch(/file path, symbol, ticket number, or internal label/i);
+  expect(rule).toMatch(/file path, symbol, ticket number, or internal shorthand/i);
   expect(rule).toMatch(/what it is and why it matters/i);
   expect(rule).toMatch(/a name is never the explanation/i);
   // The old rule said to delete the explanation, which is the omission #138
@@ -148,9 +152,18 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   const lockEnd = content.indexOf('## Verifier Profile');
   const lock = content.slice(lockStart, lockEnd);
   expect(lock).toMatch(/not a substitute for explanation/i);
+  expect(lock).toMatch(/pass R4/i);
   expect(lock).toMatch(/reader who has not opened any file/i);
   expect(lock).toMatch(/what happened, what it means, and what is still at risk/i);
-  expect(lock).toMatch(/say in plain words what it is and why it matters/i);
+
+  // The template the model copies has to demand the plain-words meaning too,
+  // not just the command and its exit code - #138's failing evidence segment.
+  const segments = TEMPLATE.split('\n\n');
+  expect(segments).toHaveLength(3);
+  expect(segments[0]).toMatch(/in plain words/i);
+  expect(segments[0]).toMatch(/what it means/i);
+  expect(segments[1]).toMatch(/what that proves in plain words/i);
+  expect(segments[2]).toMatch(/in plain words/i);
 });
 
 test('has bias guards section', () => {

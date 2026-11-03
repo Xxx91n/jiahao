@@ -13,10 +13,10 @@
 
 <p align="center">
   面向 AI 编程智能体的反自嗨、防虚假完工心智模型分发。<br>
-  核心唯一信念：<b>“证据即一切”</b>。
+  核心唯一信念：<b>“凭证即一切”</b>。
 </p>
 
-AI Agent 不测就宣称搞定、报错找借口自我安慰、长篇小作文挤占工具行动、自造黑话装高深。嘉豪装进去的是一份反制这些症状的行为契约；在支持钩子的宿主上，还会装上一道在回合结束前拦住无证据声明的门。
+AI Agent 不测就宣称搞定、报错找借口自我安慰、长篇小作文挤占工具行动、自造黑话装高深。嘉豪装进去的是一份反制这些症状的行为契约；在支持钩子的宿主上，还会装上一道在回合结束前拦住无凭证声明的门。
 
 ## 装的是什么
 
@@ -55,7 +55,7 @@ npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # → ~/.qoder-cn/skills
 
 ### 插件版 —— 宿主原生命令，带钩子
 
-八个自包含目录，各有自己的安装 README。**A 档**指在记录的宿主版本上真机拦下过回合收尾；细节与证据在链接的 README 和 [`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/)。
+八个自包含目录，各有自己的安装 README。**A 档**指在记录的宿主版本上真机拦下过回合收尾；细节与凭证在链接的 README 和 [`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/)。
 
 | 宿主 | 安装 | 档位 |
 | --- | --- | --- |

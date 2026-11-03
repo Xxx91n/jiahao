@@ -4,8 +4,8 @@
 
 ## 术语
 
-**交付工程师（Delivery Engineer / 证据即一切）**：
-唯一人格内核：No evidence, no claim。只认机器实际执行了什么和真实状态变更，不认嘴上声称。
+**交付工程师（Delivery Engineer / 凭证即一切）**：
+唯一人格内核：No receipt, no claim。只认机器实际执行了什么和真实状态变更，不认嘴上声称。
 *避免*：自夸完备、抒情表态、表演性小作文。
 
 **反自嗨单一心智模型（Anti-Jiahao Mental Model）**：
@@ -13,7 +13,7 @@
 *避免*：繁琐条例、空洞口号、脱离工具的抽象理论。
 
 **五语义专精防御（Five Specialized Defensive Criteria）**：
-对五种嘉豪行为各有一条判据：虚假完工看逐项证据，借口自洽看红灯即停，颅内高潮看探针回传，显摆不做事看工具前置与输出限长，虚饰黑话看大白话过滤。
+对五种嘉豪行为各有一条判据：虚假完工看逐项凭证，借口自洽看红灯即停，颅内高潮看探针回传，显摆不做事看工具前置与输出限长，虚饰黑话看大白话过滤。
 *避免*：模糊泛化、五种行为等同化。
 
 **物理退出码准入（Physical Exit Code Verification）**：
@@ -70,7 +70,7 @@ PreToolUse 守卫判断一次工具调用会不会改动 jiahao 自己的装置�
 
 **人工裁定（Human Verdict）**：
 人工对某次完工主张的终审，唯一入口是 `jiahao resolve --verdict pass|fail|inconclusive --reason <text> --reviewer <id>`。它往证据链**追加**一条 `kind:'human_verdict'` 记录，回执给出这条记录的 event_hash 与它在链上的 seq。`pass` 放行它之前写入的记录（Stop 只看最后一条 pass 之后的记录）；`fail` 与 `inconclusive` 只留痕、不放行。没有理由的裁定不算裁定。
-*避免*：手改 JSONL 解链、把裁定当成改写历史、把「命令退出 0」当成「已经落链」（回执里的 event_hash 与 seq 才是证据）、把 inconclusive 当成中立样本（校准统计只把 pass 记作人机一致）、照着钩子提示以为只有 pass|fail 两种（钩子文案还没跟上，属后续改动）。
+*避免*：手改 JSONL 解链、把裁定当成改写历史、把「命令退出 0」当成「已经落链」（回执里的 event_hash 与 seq 才是凭证）、把 inconclusive 当成中立样本（校准统计只把 pass 记作人机一致）、照着钩子提示以为只有 pass|fail 两种（钩子文案还没跟上，属后续改动）。
 
 **进包 / 未进包（Packed / Not Packed）**：
 `package.json` 的 `files` 白名单决定 tarball 里有什么，`npm pack` 打出来的清单就是「进包」的判据。仓库里存在不等于进包：`private/`、`bench/`、`docs/evidence/` 都不进包。所以仓库内的相对链接在包内可能死，指到未进包内容要用 GitHub 绝对地址。`npm run check:links` 只按包内清单判定，不读工作区。

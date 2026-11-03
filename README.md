@@ -13,7 +13,7 @@
 
 <p align="center">
   Anti-false-completion discipline for LLM coding agents.<br>
-  Armed with the Delivery Engineer mindset: <b>"No evidence, no claim"</b>.
+  Armed with the Delivery Engineer mindset: <b>"No receipt, no claim"</b>.
 </p>
 
 LLM agents claim success without testing, rationalize red lights, displace tool calls with verbose explanations, and invent jargon to sound profound. Jiahao installs a behavior contract that counters these tells, plus — on hosts that support hooks — a gate that blocks turn end until the claim carries evidence.
@@ -55,7 +55,7 @@ The 2026-10-31 install exited 0 and the installed file's SHA-256 matched `skills
 
 ### Plugin version — host-native command, with hooks
 
-Eight self-contained bundles, each with its own install README. **A tier** means a live turn end was blocked by the gate on the recorded host build; details and evidence are in the linked README and [`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+Eight self-contained bundles, each with its own install README. **A tier** means a live turn end was blocked by the gate on the recorded host build; details and receipts are in the linked README and [`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
 
 | Host | Install | Tier |
 | --- | --- | --- |
