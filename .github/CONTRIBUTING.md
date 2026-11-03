@@ -1,6 +1,6 @@
 # Contributing
 
-jiahao is a behavior contract for coding agents. It holds a completion claim to physical evidence: an agent may not say "done" or "fixed" unless a command it ran says so. One maintainer, MIT license.
+jiahao is a behavior contract for coding agents. It holds a completion claim to physical evidence: an agent may not say "done" or "fixed" unless a command it ran says so. MIT licensed.
 
 The contract itself lives in [`src/SKILL.md`](../src/SKILL.md) and the vocabulary in [`GLOSSARY.md`](../GLOSSARY.md). You do not need to read either to contribute.
 
@@ -41,8 +41,7 @@ A report we can act on has: the command pasted exactly, the real output pasted, 
 - **Red means stop.** Report the failing command and its output. "This does not affect the main flow" is not a fix.
 - **Plain language.** If a sentence needs a word this project invented to land, rewrite the sentence.
 - **The author cannot certify the work.** A completion claim needs a check that runs outside the person or agent making the claim.
-- **No speculative branches.** Do not add a fallback for a case nobody has watched fail.
 
 ## What happens next
 
-One person reads these. A report with pasted output gets answered faster than a description of one, and a pull request without evidence waits.
+A report with the output pasted is actionable on its own. A description of an output usually gets one question back: run it and paste what it printed.

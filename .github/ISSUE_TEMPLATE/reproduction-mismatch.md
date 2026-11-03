@@ -29,8 +29,12 @@ Paste the output lines. Do not paraphrase.
 - How you got it — npm, `npx skills add Xxx91n/jiahao`, or a clone:
 - OS and Node.js version:
 
-## If a check skipped instead of running
+## If a check skipped or refused instead of running
 
-Some suites read a benchmark corpus. The private corpus under `private/bench-corpus/` is a maintainer and CI asset: it is not in the npm package and not tracked here, so a check that needs it skips with a reason instead of passing. The committed fixture under `test/fixtures/corpus/` is what a run from this repository gets.
+The benchmark corpus is a maintainer and CI asset: not in the npm package, not in a public clone. Running from this repository gets the committed fixture under `test/fixtures/corpus/`. A check that needs the real corpus does not pretend to pass; it degrades in one of three ways:
 
-A skip is not a pass. If a corpus-dependent check reported a pass on a machine that has no corpus, that is exactly the report this template exists for.
+- a test suite skips, with the reason in the test name;
+- a capability gate exits 2 and prints `UNVERIFIABLE`;
+- a script that needs the corpus exits 1 and prints a line containing `[corpus] missing`.
+
+If you hold the corpus, point `JIAHAO_CORPUS_DIR` at it. A corpus-dependent check that reported a pass while none of the three happened is exactly the report this template exists for.

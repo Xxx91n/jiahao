@@ -23,7 +23,7 @@ Paste the command exactly as you ran it and paste what it printed, exit code inc
 
 - Host and version (for example `codex-cli 0.163.0`, Copilot CLI 1.0.105, Qoder Desktop 0.4.11):
 - Install path — rules version (`npx skills add`, instructions only) or plugin version (one bundle under `adapters/`, with hooks):
-- Profile — `generator` or `verifier`. The plugin version reads a `.jiahao-profile` file; if you never wrote one the default is `verifier`. `node scripts/install.js init -y` prints the value it would write:
+- Profile — `generator` or `verifier`, and `verifier` is the default when no `.jiahao-profile` file exists:
 - Node.js version and OS:
 
 ## Before you file
