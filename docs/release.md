@@ -25,6 +25,8 @@ tag 推送时 CI 跑同一条命令（`.github/workflows/ci.yml` 的 `release-ga
 | `links` | `check-doc-links.js`：包里每份 Markdown 的相对链接都落到包内（文件或目录）；指到没进 `files` 的路径即红，外链不查 | 包内文档链接可达 |
 | `artifact` | 跑测试后先确认工作区仍然干净；再打两次 `npm pack`：必须包含 / 必须排除逐条核过，两次字节相同才算可复现，算 `sha256`，算各出口目录的树哈希 | 包内容正确、产物附 SHA256、可复现 |
 | `install` | `install.js init --dry-run` 退出 0、打印目标路径；临时配置目录和临时工作目录里都没有落文件 | 安装 dry-run |
+| `skill-spec` | `check-skill-external.js spec`：把官方 Agent Skills 参考校验器 `skills-ref` 按固定版本装到临时目录（不用机器上碰巧装的），校验 `skills/jiahao/` 的错误数组必须为空；只校分发面——`src/` 与各适配器的 `src/` 故意同名规则不合、带 `argument-hint`，不在校验范围。装不上（离线、无 Python）直接红并给出原因，绝不跳过 | #60 AC2 可复跑（#67） |
+| `skill-install` | `check-skill-external.js install`：用固定版本的标准 CLI `skills` 对本地仓库 `--list`，断言恰好发现 1 个技能 `jiahao`；再在临时目录真装一次，落地文件集合必须恰好是 `.claude/skills/jiahao/SKILL.md` 加 CLI 自己的 `skills-lock.json`（不得出现 `calibration.js` 等运行时文件），且与仓库 `skills/jiahao/SKILL.md` 逐字节相同。网络不可用直接红，不跳过 | #60 AC5 可复跑（#67） |
 | `egress` | 扫描会随安装跑起来的代码：没有 `http/http2/https/net/dns/tls/dgram` 的 require、没有 `fetch(` / `https.request`；`package.json` 没有安装生命周期脚本；七个插件的每条钩子命令都指向各自插件根，且平台名后缀按方言校验：`${CLAUDE_PLUGIN_ROOT}/hooks/*.js`（Claude Code / CodeBuddy），`$PLUGIN_ROOT` / `$env:PLUGIN_ROOT`（Copilot CLI），`${PLUGIN_ROOT}/hooks/*.js codex`（Codex），`node hooks/*.js antigravity`（Google Antigravity，相对插件根、无占位符），`${QODER_PLUGIN_ROOT}/hooks/*.js qoder`（Qoder Desktop），`${CODEBUDDY_PLUGIN_ROOT}/hooks/*.js workbuddy`（WorkBuddy） | 无网络外呼 |
 | `declarations` | 本文件带着「写入范围」「无网络外呼」两节；写入范围表的行里逐个出现代码会写的路径；README 链到这里 | 写入范围声明 |
 
@@ -119,6 +121,8 @@ git clone --depth 1 --branch v0.3.0 https://github.com/Xxx91n/jiahao.git /tmp/ji
 cd /tmp/jiahao-clean && npm ci
 npm run release:gate -- --tag v0.3.0
 ```
+
+复跑需要 `python3`（含 `pip`）在 `PATH` 上且能联网：`skill-spec` / `skill-install` 两步每次把固定版本的 `skills-ref`（PyPI）与 `skills`（npm）现装到临时目录再下结论，缺 Python 或离线都会红并说明原因，不会静默跳过（#67）。这两条在分支 CI 上也以 `npm run check:skill` 同一份代码跑，规范漂移在 PR 上就变红，不等到打 tag。
 
 对账点：`RELEASE GATE GREEN` 那行、`sha256`、各出口目录的 tree 哈希，应与发布时记录的值逐字相同。
 

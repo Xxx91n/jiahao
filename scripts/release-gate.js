@@ -13,9 +13,15 @@
 //   6 artifact      npm pack -> include/exclude audit, sha256, per-directory
 //                   tree hashes
 //   7 install       install.js init --dry-run exits 0 and writes nothing
-//   8 egress        code that runs after install makes no network call; no
+//   8 skill-spec    the official Agent Skills validator (skills-ref, pinned
+//                   in scripts/check-skill-external.js) reports errors == 0
+//                   for skills/jiahao/ (#67)
+//   9 skill-install the standard skills CLI (pinned) discovers exactly one
+//                   skill here and a temp install lands only SKILL.md,
+//                   byte-identical (#67)
+//  10 egress        code that runs after install makes no network call; no
 //                   install lifecycle scripts; hook commands stay in the bundle
-//   9 declarations  docs/release.md carries the write-scope and no-egress
+//  11 declarations  docs/release.md carries the write-scope and no-egress
 //                   statements this gate relies on
 //
 // Step order is not cosmetic: the generator gates run BEFORE npm test so a
@@ -382,6 +388,23 @@ step('install', 'installer dry-run writes nothing', () => {
     fs.rmSync(configDir, { recursive: true, force: true });
     fs.rmSync(cwd, { recursive: true, force: true });
   }
+});
+
+// The two external checks live in scripts/check-skill-external.js so branch
+// CI runs the identical code (npm run check:skill), the same arrangement as
+// generated/drift/links above. Both fetch their pinned tool fresh, so both
+// need the network - and fail closed with the tool's own output when it is
+// not there, never skip (#67).
+step('skill-spec', 'official Agent Skills validator on skills/jiahao (skills-ref, pinned)', () => {
+  const res = runCommand(process.execPath, [path.join('scripts', 'check-skill-external.js'), 'spec'], { timeout: 900000 });
+  if (res.status !== 0) throw new Error('official skill-spec validation failed:\n' + tailLines(res.stderr || res.stdout, '  '));
+  return res.stdout.trim();
+});
+
+step('skill-install', 'standard skills CLI discovers and installs exactly jiahao (pinned)', () => {
+  const res = runCommand(process.execPath, [path.join('scripts', 'check-skill-external.js'), 'install'], { timeout: 900000 });
+  if (res.status !== 0) throw new Error('standard-CLI install check failed:\n' + tailLines(res.stderr || res.stdout, '  '));
+  return res.stdout.trim();
 });
 
 step('egress', 'code that runs after install makes no network call', () => {

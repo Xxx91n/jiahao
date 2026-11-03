@@ -46,6 +46,11 @@ jobs:
         with:
           node-version: 20
           cache: npm
+      # check:skill runs the official skills-ref validator (a Python tool)
+      # under a pinned pip install; it fails closed without a python (#67).
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - run: npm install --ignore-scripts
       # The diff step above only sees changed lines; a file that was never
       # `git add`ed is invisible to it. This one reads every text file in the
@@ -60,6 +65,11 @@ jobs:
       # A relative link that points at something `files` does not pack renders
       # dead on npmjs while every local check stays green (#102).
       - run: npm run check:links
+      # Same two external assertions the tag gate carries as skill-spec /
+      # skill-install (#67), run here so spec drift in skills/jiahao/ turns a
+      # PR red instead of waiting for the next tag. Both fetch pinned tools
+      # (PyPI skills-ref, npm skills) and fail closed if they cannot.
+      - run: npm run check:skill
       - run: npm test
 
   # #63: a tag is a release attempt. One command decides whether it may be
@@ -78,6 +88,11 @@ jobs:
         with:
           node-version: 20
           cache: npm
+      # The gate's skill-spec step runs the pinned skills-ref validator; it
+      # fails closed when no python exists, so the tag job provides one (#67).
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       # The branch job skips tag refs, so the whitespace check it carries has to
       # exist here too. HEAD^1 rather than `git show --check`: on a merge commit
       # `git show` runs a combined diff and reports nothing, so a whitespace
