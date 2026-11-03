@@ -130,11 +130,12 @@ function exitUnverifiable(gate, cap) {
   process.exit(2);
 }
 
-// Probe declared requires. docs/gates.json was deleted by ADR-0105, so a gate
-// name no longer resolves through a registry: every caller passes its own
-// `requires` array. A bare name is a caller bug and says so, instead of an
-// ENOENT for a registry file the decision retired. Inline arrays are labelled
-// 'a+b' (comma-free) - a raw ',' would be a property separator.
+// Probe declared requires. docs/gates.json was deleted in de43cd7d (the
+// ADR-0105 purge), so a gate name no longer resolves through a registry:
+// every caller passes its own `requires` array. A bare name is a caller bug
+// and says so, instead of an ENOENT for a registry file the decision retired.
+// Inline arrays are labelled 'a+b' (comma-free) - a raw ',' would be a
+// property separator.
 function requireCapabilities(gate, opts) {
   const o = opts || {};
   const requires = Array.isArray(gate) ? gate : o.requires;

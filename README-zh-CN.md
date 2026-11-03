@@ -91,7 +91,7 @@ node scripts/install.js init -y
 - 宿主没有钩子能力就没有驻留注入——回退方式是按需调用技能。
 - 嘉豪不替代单测或 CI，它是要你来跑单测和 CI 的纪律。目标是虚假完工综合征，不是通用提示词优化。
 - 档位是具名宿主版本在发布期的实测结论，不是永久属性。`declared-unverified` 指从宿主文件断言、没看着发生；标签定义见 [`docs/agents/evidence-review.md`](docs/agents/evidence-review.md)。
-- 私有评测语料 `private/bench-corpus/` 是维护者/CI 资产：不在 npm 包里，也不被本仓库跟踪。`bench/` 下的冻结记录是跟踪的，不属于这份语料。门禁需要时用 `JIAHAO_CORPUS_DIR` 指向本地副本。既没有语料也没有覆盖时，先做能力检查的脚本以 exit 2 退出并在一行 UNVERIFIABLE 里点名 `bench-corpus`，直接读语料的脚本以 exit 1 打印 `[corpus] missing`，需要它的测试套件带理由跳过。运行时钩子不依赖它。
+- 私有评测语料 `private/bench-corpus/` 是维护者/CI 资产：不在 npm 包里，也不被本仓库跟踪。`bench/` 下的冻结记录是跟踪的，不属于这份语料。门禁需要时用 `JIAHAO_CORPUS_DIR` 指向本地副本。既没有语料也没有覆盖时，会探测语料的闸门脚本以 exit 2 退出并在一行 UNVERIFIABLE 里点名 `bench-corpus`，直接读语料的脚本以 exit 1 打印 `[corpus] missing`，需要它的测试套件带理由跳过。运行时钩子不依赖它。
 - 第二方审计若与生成方共用模型、上下文、数据，停下来声明 NOT VERIFIED——自证只是连贯性证据，不是独立性证据。
 
 ## 本地物理检验

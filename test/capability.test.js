@@ -1,12 +1,13 @@
 'use strict';
-// test/capability.test.js - #145: no gate may read docs/gates.json.
+// test/capability.test.js - #145: capability gates must not read docs/gates.json.
 //
-// ADR-0105 deleted that registry, but requireCapabilities still resolved every
-// gate name through it, so a public clone crashed with ENOENT before a
-// capability could be probed. The cases below pin the two behaviours that
-// replace the lookup: a declared requirement that is absent degrades through
-// the registered UNVERIFIABLE shape (exit 2, naming the capability), and a
-// caller that declares nothing gets a plain caller error, not a file error.
+// Commit de43cd7d (the ADR-0105 purge) deleted that registry, but
+// requireCapabilities still resolved every gate name through it, so a public
+// clone crashed with ENOENT before a capability could be probed. The cases
+// below pin the two behaviours that replace the lookup: a declared
+// requirement that is absent degrades through the registered UNVERIFIABLE
+// shape (exit 2, naming the capability), and a caller that declares nothing
+// gets a plain caller error, not a file error.
 
 const fs = require('fs');
 const os = require('os');
@@ -19,8 +20,14 @@ const capability = require(capabilityPath);
 
 describe('requireCapabilities declares requirements inline', () => {
   test('a satisfied requirement is returned and no registry is read', () => {
-    expect(capability.requireCapabilities('confirmatory-bench',
-      { requires: ['repo-tree'], root: repoRoot })).toEqual(['repo-tree']);
+    const tree = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-capa-tree-'));
+    try {
+      fs.mkdirSync(path.join(tree, '.git'));
+      expect(capability.requireCapabilities('confirmatory-bench',
+        { requires: ['repo-tree'], root: tree })).toEqual(['repo-tree']);
+    } finally {
+      fs.rmSync(tree, { recursive: true, force: true });
+    }
   });
 
   test('a bare gate name is a caller error, not an ENOENT', () => {
