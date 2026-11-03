@@ -1491,7 +1491,7 @@ function main() {
   const spec = SNAPSHOTS[snap];
   const cmd = args.cmd;
   if (cmd === '--replay') {
-    if (snap === 'devin-corpus-v3') requireCapabilities('devin-oot-v3-replay'); else if (snap === 'devin-corpus-v2') requireCapabilities('devin-oot-v2-replay'); else requireCapabilities('devin-oot-replay');
+    if (snap === 'devin-corpus-v3') requireCapabilities('devin-oot-v3-replay', { requires: ['repo-tree'] }); else if (snap === 'devin-corpus-v2') requireCapabilities('devin-oot-v2-replay', { requires: ['repo-tree'] }); else requireCapabilities('devin-oot-replay', { requires: ['repo-tree'] });
     const r = replayCheck(ROOT, snap);
     for (const e of r.errors) console.error(PREFIXES.config + ' FAIL: ' + e);
     if (r.errors.length) process.exit(1);

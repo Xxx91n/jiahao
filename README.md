@@ -91,7 +91,7 @@ The version comes from `package.json`. Rules version: re-run the same `npx skill
 - On a host without hook capability there is no resident injection — the fallback is on-demand skill invocation.
 - Jiahao is not a replacement for unit tests or CI; it is the discipline that demands them. It targets False Completion Syndrome specifically, not general prompt optimization.
 - Tier labels are release-period observations on named host builds, not permanent properties. `declared-unverified` means asserted from the host's files, not watched happening; [`docs/agents/evidence-review.md`](docs/agents/evidence-review.md) defines the labels.
-- The private benchmark corpus `private/bench-corpus/` is a maintainer/CI asset: not in the npm package, not tracked here. The frozen records under `bench/` are tracked and are not the corpus. When a gate needs it, point `JIAHAO_CORPUS_DIR` at a local copy. Runtime hooks do not depend on it.
+- The private benchmark corpus `private/bench-corpus/` is a maintainer/CI asset: not in the npm package, not tracked here. The frozen records under `bench/` are tracked and are not the corpus. When a gate needs it, point `JIAHAO_CORPUS_DIR` at a local copy. With no corpus and no override, a capability-gated script exits 2 and names `bench-corpus` on an UNVERIFIABLE line, a direct corpus reader exits 1 with `[corpus] missing`, and a suite that needs it skips with a reason. Runtime hooks do not depend on it.
 - If a second-party audit ends up sharing the generator's model, context, and data, stop and declare NOT VERIFIED — self-validation is coherence evidence, not independence evidence.
 
 ## Verification

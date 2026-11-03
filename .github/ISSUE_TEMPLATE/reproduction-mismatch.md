@@ -34,6 +34,6 @@ Paste the output lines and the exit code. Do not paraphrase.
 
 ## If a check skipped or refused instead of running
 
-The benchmark corpus is not in the npm package or a public clone; a run from a clone uses the committed fixture under `test/fixtures/corpus/`. A check that needs more says so instead of passing: either a test skips with the reason in its name, or a script exits 1 printing a line containing `[corpus] missing`. If you legitimately hold the corpus, point `JIAHAO_CORPUS_DIR` at it.
+The benchmark corpus is not in the npm package or a public clone; a run from a clone uses the committed fixture under `test/fixtures/corpus/`. A check that needs more says so instead of passing: a test skips with the reason in its name, a capability-gated script exits 2 with an `UNVERIFIABLE` line naming the missing capability, or another script exits 1 printing a line containing `[corpus] missing`. If you legitimately hold the corpus, point `JIAHAO_CORPUS_DIR` at it.
 
-A check that printed neither of those and still reported a pass is the report this template exists for.
+A check that printed none of those and still reported a pass is the report this template exists for.

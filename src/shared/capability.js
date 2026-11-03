@@ -25,7 +25,6 @@ const { execFileSync } = require('child_process');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..', '..');
-const REGISTRY_REL = path.join('docs', 'gates.json');
 
 const CAPABILITIES = ['repo-tree', 'bench-corpus', 'docs-adr', 'ci-mode', 'transcript-file', 'old-side-refs'];
 
@@ -103,13 +102,6 @@ function probe(name, opts) {
   }
 }
 
-function loadEntry(gateName, root) {
-  const reg = JSON.parse(fs.readFileSync(path.join(root || ROOT, REGISTRY_REL), 'utf8'));
-  const entry = (reg.entries || []).find(function (e) { return e.name === gateName; });
-  if (!entry) throw new Error('gate ' + JSON.stringify(gateName) + ' missing from docs/gates.json');
-  return entry;
-}
-
 // workflow-command escaping (order matters: % first).
 // Complete by construction, not by input charset: every property separator
 // (',' -> %2C, ':' -> %3A) is escaped alongside %/CR/LF, so no caller-supplied
@@ -138,15 +130,21 @@ function exitUnverifiable(gate, cap) {
   process.exit(2);
 }
 
-// Probe declared requires: a gate NAME resolves through the registry (single
-// source of truth), an ARRAY declares inline (non-registry consumer,
-// R8); each deterministic miss degrades honestly, then exit 2. Inline arrays
-// are labelled 'a+b' (comma-free) - a raw ',' would be a property separator.
-function requireCapabilities(gateName, opts) {
-  const requires = (Array.isArray(gateName) ? gateName : loadEntry(gateName, opts && opts.root).requires) || [];
-  const missing = requires.filter(function (c) { return !probe(c, opts); });
+// Probe declared requires. docs/gates.json was deleted by ADR-0105, so a gate
+// name no longer resolves through a registry: every caller passes its own
+// `requires` array. A bare name is a caller bug and says so, instead of an
+// ENOENT for a registry file the decision retired. Inline arrays are labelled
+// 'a+b' (comma-free) - a raw ',' would be a property separator.
+function requireCapabilities(gate, opts) {
+  const o = opts || {};
+  const requires = Array.isArray(gate) ? gate : o.requires;
+  if (!Array.isArray(requires)) {
+    throw new Error('gate ' + JSON.stringify(gate) + ' declares no capabilities — docs/gates.json is retired; pass { requires: [...] }');
+  }
+  const label = Array.isArray(gate) ? gate.join('+') : gate;
+  const missing = requires.filter(function (c) { return !probe(c, o); });
   for (const cap of missing) {
-    const lines = unverifiableLines(Array.isArray(gateName) ? gateName.join('+') : gateName, cap);
+    const lines = unverifiableLines(label, cap);
     process.stdout.write(lines[0] + '\n');
     process.stderr.write(lines[1] + '\n');
   }

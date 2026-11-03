@@ -345,7 +345,7 @@ function writeIfChanged(p, content) {
 function arg(argv, name) { const i = argv.indexOf('--' + name); return i >= 0 ? argv[i + 1] : null; }
 
 function main() {
-  requireCapabilities('confirmatory-bench');
+  requireCapabilities('confirmatory-bench', { requires: ['repo-tree'] });
   const argv = process.argv.slice(2);
   const o = { corpusDir: arg(argv, 'corpus-dir'), configId: arg(argv, 'config-id') };
   const mpath = arg(argv, 'manifest');
