@@ -76,18 +76,22 @@ test('the rules-version skill carries both profiles', () => {
   expect(content).toContain('## Boundaries');
 });
 
-test('every shipped generator-profile copy carries the separated output-lock format (#135)', () => {
+test('every shipped generator-rule and skill copy carries the separated output-lock format (#135)', () => {
   const { TEMPLATE } = require('./helpers/output-lock-contract');
   const { HOSTS, buildAdapters } = require('../scripts/build-adapters');
   const generated = buildAdapters();
-  const generatorRules = HOSTS.flatMap((host) =>
+  const declaredGeneratorRules = HOSTS.flatMap((host) =>
     host.rules.filter((rule) => rule.profile === 'generator' || rule.profile === 'both')
       .map((rule) => host.dir + '/rules/' + rule.file));
   const fullSkills = Object.keys(generated).filter((rel) => rel === 'skills/jiahao/SKILL.md' || /\/src\/SKILL\.md$/.test(rel));
   // Both halves are asserted separately: a profile rename that empties the
   // rule list must not hide behind the full-skill copies going green.
-  expect(generatorRules.length).toBeGreaterThan(0);
+  expect(declaredGeneratorRules.length).toBeGreaterThan(0);
   expect(fullSkills.length).toBeGreaterThan(0);
+  // Pair the declared rules with what the generator emitted by key, so a moved
+  // layout fails as "declared but not shipped", not as a type error on undefined.
+  const generatorRules = declaredGeneratorRules.filter((rel) => Object.prototype.hasOwnProperty.call(generated, rel));
+  expect(generatorRules).toHaveLength(declaredGeneratorRules.length);
 
   // The blank line is the load-bearing part: without it Markdown joins the
   // three labels into one paragraph, which is the bug #135 reports.

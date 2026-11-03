@@ -54,9 +54,17 @@ test('output lock keeps the three labels on separate, blank-line-separated lines
   // into one paragraph (#135).
   expect(section).toContain(TEMPLATE);
   expect(section).toMatch(/blank line/i);
-  expect(section).toMatch(/Two labels on the same line/i);
+  expect(section).toMatch(/format failure/i);
   // No line of the contract may itself demonstrate the merged shape.
   expect(section.split('\n').some((line) => /\[行动结论\].*\[机器凭证\]/.test(line))).toBe(false);
+
+  // Rung 5 is where the original wording lived; it has to keep pointing at the
+  // detailed format and keep the merge prohibition, or a revert there would
+  // pass every other assertion in this file.
+  const rung = content.split('\n').find((line) => line.startsWith('5. **Three-Line Output Lock'));
+  expect(rung).toBeDefined();
+  expect(rung).toContain('Output Lock Format');
+  expect(rung).toMatch(/never merge/i);
 });
 
 test('has bias guards section', () => {

@@ -40,7 +40,7 @@ Every action follows the 5-rung ladder in order; any failed rung blocks completi
 2. **Probing Over Guessing (探针锚定)**: Ground truth comes only from real tool outputs. Reasoning without real logs, status checks, state changes, or test outputs carries zero confidence.
 3. **Zero Rationalization on Red (红灯即停)**: Exit code != 0 or error means instant stop and reporting error proof; any excuse or rationalization is rejected.
 4. **Goal vs Outcome Receipt (目标核销)**: No evidence, no completion claim. Verify every goal against physical exit 0 evidence before claiming done.
-5. **Three-Line Output Lock (三行硬锁)**: Final delivery is three segments, one label per segment (`[行动结论]`, `[机器凭证]`, `[残留风险]`), with one blank line between segments. Two labels on one line, or all three in one paragraph, is a format failure.
+5. **Three-Line Output Lock (三行硬锁)**: Final delivery has at most three segments in the format defined by **Output Lock Format**; never merge two segments into one line or one paragraph.
 
 <!-- Retired rules (superseded/0105/0106): -->
 <!-- gsr:1 | signal-domain: completion-claim | status: superseded | superseded-by: gsr:4 | reason: covered-by -->
@@ -72,15 +72,15 @@ Every action follows the 5-rung ladder in order; any failed rung blocks completi
 
 ### Output Lock Format
 
-When reporting to the user, your final reply is three segments, in this order. Each segment starts with its label at the beginning of its own line, and one blank line separates consecutive segments:
+When reporting to the user, your final reply has at most three segments, in this order. Each segment you include starts with its label at the beginning of its own line, and one blank line separates consecutive segments. Replace the angle-bracket text with your own:
 
-[行动结论] one sentence stating the concrete action completed.
+[行动结论] <one sentence stating the concrete action completed>
 
-[机器凭证] physical command executed and exit 0 output snippet.
+[机器凭证] <the physical command and its exit 0 output snippet>
 
-[残留风险] explicitly disclose remaining unverified boundaries or risks (or "无").
+[残留风险] <remaining unverified boundaries or risks, or 无>
 
-The blank lines are part of the format: Markdown renders a single newline as a space, so label lines without a blank line between them collapse into one paragraph. Two labels on the same line, or all three labels in one paragraph, is a format failure even when every label is present. The term "three-line" names the three label lines; the blank lines between them do not count.
+The blank lines are part of the format: most Markdown renderers (including chat clients) show a single newline as a space, so label lines without a blank line between them collapse into one paragraph. Two labels on one line, or all three labels in one paragraph, is a format failure even when every label is present. The term "three-line" names the label lines; the blank lines between them do not count.
 
 ---
 
