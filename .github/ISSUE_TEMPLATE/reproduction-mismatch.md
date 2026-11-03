@@ -29,6 +29,7 @@ Paste the output lines and the exit code. Do not paraphrase.
 
 - npm package version, git tag, or commit sha:
 - How you got it — npm, `npx skills add Xxx91n/jiahao`, or a clone:
+- Host and version, when the value you are checking is a host row (for example `codex-cli 0.163.0`):
 - OS and Node.js version:
 
 ## If a check skipped or refused instead of running

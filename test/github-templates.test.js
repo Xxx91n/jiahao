@@ -9,8 +9,10 @@
 // Those pages grew references to things this repository does not have, twice:
 // #41 was the PR template naming `scripts/run-test-gate.js`, which is not in the
 // tree — it was deleted at de43cd7d (2026-10-20); #137 found a private
-// governance vocabulary plus a label, an anchor and three file names that
-// resolve nowhere. These cases read the
+// governance vocabulary, a label and an anchor that resolve nowhere, and the
+// names of maintainer-only bench artefacts — `anchors.json` is absent from the
+// tree, while `claim-template` and `devin-corpus` name things under `bench/`
+// that no reporter is asked to reproduce. These cases read the
 // paths, link anchors, npm run scripts, frontmatter keys and labels those pages
 // name, and fail on the first one that does not land.
 //
@@ -222,6 +224,13 @@ function packageScripts() {
   return Object.keys(JSON.parse(readRepo('package.json')).scripts);
 }
 
+// A citation of the private wordlist directory. Case-insensitive, and a
+// backslash counts as a separator because a Windows-shaped path is the form a
+// page is most likely to write by mistake.
+function privateMentions(text) {
+  return [...text.matchAll(/\bprivate[\\/][\w.@\\/-]*/gi)].map((m) => m[0]);
+}
+
 // Terms named in #137. Each is a pattern rather than a loose substring, so the
 // guard does not go red on ordinary English: `CAPA` is matched case sensitively
 // because `capability` is a word this repository uses. A governance round id
@@ -357,12 +366,14 @@ describe('.github contribution pages name things that exist', () => {
   });
 
   // AGENTS.md keeps the private wordlist out of any public output. The path
-  // case above catches only some shapes under private/; this one covers every
-  // shape, so the ban is asserted rather than claimed by a comment.
+  // case above catches only some shapes under private/; this one is
+  // case-insensitive and accepts a backslash separator as well as a slash. What
+  // it cannot catch is a page that names the directory without writing either
+  // separator, and that is stated rather than glossed.
   test('no page cites the private wordlist path', () => {
     const found = [];
     for (const rel of pages) {
-      for (const m of texts.get(rel).matchAll(/\bprivate\/[\w.@/-]*/gu)) found.push(rel + ' -> ' + m[0]);
+      for (const mention of privateMentions(texts.get(rel))) found.push(rel + ' -> ' + mention);
     }
     expect(found).toEqual([]);
   });
@@ -406,5 +417,18 @@ describe('the guard reads an anchor in every form a page can write it', () => {
   test('a path this check cannot resolve is marked, not scored against README', () => {
     const refs = siteRefs('see https://' + site + '/releases');
     expect(refs[0].kind).toBe('unresolved');
+  });
+
+  // The private ban is prose about a directory, so its own shapes are pinned:
+  // without these the comment can drift ahead of the pattern, which is the
+  // defect every round of this ticket has been fixing.
+  test('a private wordlist citation is found in each written shape', () => {
+    expect(privateMentions('copy from private/bench-corpus/ first')).toEqual(['private/bench-corpus/']);
+    expect(privateMentions('on Windows: private\\bench-corpus')).toEqual(['private\\bench-corpus']);
+    expect(privateMentions('Private/lexicon is the same directory')).toEqual(['Private/lexicon']);
+  });
+
+  test('a mention with no separator is not read as a citation', () => {
+    expect(privateMentions('the private corpus stays home')).toEqual([]);
   });
 });
