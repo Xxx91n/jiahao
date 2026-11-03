@@ -135,11 +135,9 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   expect(ruleAt).toBeGreaterThan(0);
   const rule = lines[ruleAt];
 
-  // The rule is not confined to the final report; narration between tool calls
-  // is where #138's longest jargon sentence lives. "you send" keeps it from
+  // "any message you send" covers narration between tool calls without
   // authorizing extra prose that rung 1 and R3 still forbid.
-  expect(rule).toMatch(/every user-facing message you send/i);
-  expect(rule).toMatch(/including narration between tool calls/i);
+  expect(rule).toMatch(/any user-facing message you send/i);
   // A name may never stand in for the plain-words meaning.
   expect(rule).toMatch(/never let a file path, symbol, ticket number, or internal shorthand stand in for the plain-words meaning/i);
   expect(rule).toMatch(/a name is never the explanation/i);
@@ -164,6 +162,10 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   expect(lock).toMatch(/pass R4/i);
   expect(lock).toMatch(/reader who has not opened any file/i);
   expect(lock).toMatch(/what happened, what it means, and what is still at risk/i);
+  // "One line" is the segment shape, not a character limit; the clarification
+  // is what lets the model use short sentences instead of a run-on line.
+  expect(lock).toMatch(/not a character limit/i);
+  expect(lock).toMatch(/two or three short sentences/i);
 
   // The template the model copies has to demand the plain-words meaning too,
   // not just the command and its exit code - #138's failing evidence segment.
@@ -183,7 +185,9 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   // verifier's own Output section names the pattern it must not hide behind.
   const boundaries = content.slice(content.indexOf('## Boundaries'));
   expect(boundaries).toMatch(/Plain language is not generator-only/i);
+  expect(boundaries).toMatch(/states the result and the reason in plain words/i);
   expect(boundaries).toMatch(/the name never replaces the explanation/i);
+  expect(boundaries).toMatch(/keep sentences short and direct/i);
   const verifier = content.slice(content.indexOf('## Verifier Profile'), content.indexOf('## Bias guards'));
   expect(verifier).toMatch(/name a file path, symbol, or shorthand only after saying what it is and why it matters/i);
   expect(verifier).toMatch(/not permission to skip that explanation/i);
