@@ -78,12 +78,12 @@ test('the rules-version skill carries both profiles', () => {
 
 test('every shipped generator-rule and skill copy carries the separated output-lock format (#135)', () => {
   const { TEMPLATE } = require('./helpers/output-lock-contract');
-  const { HOSTS, SKILL_DIR, buildAdapters } = require('../scripts/build-adapters');
+  const { HOSTS, SKILL_DIR, isRulesOnlyDirectory, buildAdapters } = require('../scripts/build-adapters');
   const generated = buildAdapters();
 
-  // Match emitted rule keys against the host table's declared file names, so
-  // the generator's directory layout is not re-derived here. A moved layout
-  // shows up as a count mismatch.
+  // Rule keys are matched by declared file name; the directory prefix stays
+  // whatever the generator emits. Counts are paired with the host table so a
+  // host that stops emitting a copy cannot shrink coverage silently.
   const declaredGeneratorRules = HOSTS.flatMap((host) =>
     host.rules.filter((rule) => rule.profile === 'generator' || rule.profile === 'both')
       .map((rule) => rule.file));
@@ -92,12 +92,15 @@ test('every shipped generator-rule and skill copy carries the separated output-l
     const match = /\/rules\/([^/]+\.md)$/.exec(rel);
     return match !== null && generatorRuleFiles.has(match[1]);
   });
-  const fullSkills = Object.keys(generated).filter((rel) => rel === SKILL_DIR + '/SKILL.md' || /\/src\/SKILL\.md$/.test(rel));
+  const expectedFullSkills = [SKILL_DIR + '/SKILL.md'].concat(
+    HOSTS.filter((host) => !isRulesOnlyDirectory(host)).map((host) => host.dir + '/src/SKILL.md'));
+  const fullSkills = Object.keys(generated).filter((rel) => expectedFullSkills.includes(rel));
   // Both halves are asserted separately: a profile rename that empties the
   // rule list must not hide behind the full-skill copies going green.
   expect(declaredGeneratorRules.length).toBeGreaterThan(0);
-  expect(fullSkills.length).toBeGreaterThan(0);
+  expect(expectedFullSkills.length).toBeGreaterThan(0);
   expect(shippedGeneratorRules).toHaveLength(declaredGeneratorRules.length);
+  expect(fullSkills).toHaveLength(expectedFullSkills.length);
 
   // The blank line is the load-bearing part: without it Markdown joins the
   // three labels into one paragraph, which is the bug #135 reports.

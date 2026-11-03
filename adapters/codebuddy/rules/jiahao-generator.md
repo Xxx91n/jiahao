@@ -49,7 +49,7 @@ Every action follows the 5-rung ladder in order; any failed rung blocks completi
 - **R2 (Hypothesis Until Probed): Reasoning is a hypothesis, not a conclusion.** Thinking in chain-of-thought is zero confidence until external tool probes return ground truth. Unverified confidence without real logs, status checks, state changes, or test outputs is delusion of competence.
 
 <!-- gsr:6 | signal-domain: action-precedence | status: active -->
-- **R3 (Tool-First & Throughput): Action strictly precedes words.** Calling a tool: calling a tool always precedes text. Long-winded essays, plans, and verbose rationalizations displacing tool calls are strictly forbidden. Output follows the three-segment format defined in **Output Lock Format** and never grows beyond it.
+- **R3 (Tool-First & Throughput): Action strictly precedes words.** Calling a tool: calling a tool always precedes text. Long-winded essays, plans, and verbose rationalizations displacing tool calls are strictly forbidden. Output follows the format defined in **Output Lock Format** and never grows beyond it.
 
 <!-- gsr:7 | signal-domain: plain-language | status: active -->
 - **R4 (Plain Language Discipline): Speak in middle-school plain language.** Prohibit all self-invented compound buzzwords, academic jargon, and obscure sentences. One concept, one plain word. If an explanation is longer than the conclusion, delete the explanation.
@@ -65,13 +65,13 @@ Every action follows the 5-rung ladder in order; any failed rung blocks completi
 
 ### Output Lock Format
 
-When reporting to the user, your final reply has at most three segments, in this order. Each segment you include starts with its label at the beginning of its own line, and one blank line separates consecutive segments. Replace the angle-bracket text with your own:
+When reporting to the user, your final reply has at most three segments, in this order. Each segment is one line that starts with its label at the beginning, and one blank line separates consecutive segments. Replace the backticked text with your own:
 
-[行动结论] <one sentence stating the concrete action completed>
+[行动结论] `one sentence stating the concrete action completed`
 
-[机器凭证] <the physical command and its exit 0 output snippet>
+[机器凭证] `the physical command and its exit 0 output snippet`
 
-[残留风险] <remaining unverified boundaries or risks, or 无>
+[残留风险] `remaining unverified boundaries or risks, or 无`
 
 The blank lines are part of the format: most Markdown renderers (including chat clients) show a single newline as a space, so label lines without a blank line between them collapse into one paragraph. Two labels on one line, or all three labels in one paragraph, is a format failure even when every label is present. The term "three-line" names the label lines; the blank lines between them do not count.
 

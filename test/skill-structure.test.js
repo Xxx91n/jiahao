@@ -55,6 +55,10 @@ test('output lock keeps the three labels on separate, blank-line-separated lines
   expect(section).toContain(TEMPLATE);
   expect(section).toMatch(/blank line/i);
   expect(section).toMatch(/format failure/i);
+  expect(section).toMatch(/Each segment is one line/i);
+  // Angle brackets are parsed as an HTML tag by GFM, which drops the segment
+  // body from the rendered example - the very failure #135 reports.
+  expect(TEMPLATE).not.toContain('<');
   // No line of the contract may itself demonstrate the merged shape: every
   // adjacent label pair is checked, not just the first one.
   const labels = ['[行动结论]', '[机器凭证]', '[残留风险]'];
