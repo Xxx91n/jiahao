@@ -73,6 +73,50 @@ test('output lock keeps the three labels on separate, blank-line-separated lines
   expect(rung).toMatch(/at most three segments/i);
 });
 
+// #134: a correction the user types while a turn is still running was being
+// treated as the end of the task - one receipt, then the turn closed. The rule
+// has to name the ways a turn may end early and require the model to
+// restate the opening task before stopping, because the observed failure was a
+// silently narrowed goal that then counted itself as done.
+test('a mid-task correction does not end the task (#134)', () => {
+  const start = content.indexOf('### Surface Signal Rules');
+  const end = content.indexOf('### Intensity Levels');
+  expect(start).toBeGreaterThanOrEqual(0);
+  expect(end).toBeGreaterThan(start);
+  const section = content.slice(start, end);
+  const lines = section.split('\n');
+
+  const ruleAt = lines.findIndex((line) => line.startsWith('- **R6 (Correction Mid-Task)'));
+  expect(ruleAt).toBeGreaterThan(0);
+
+  // The gsr header is the structural latch the generator validates; it has to
+  // sit above the bullet on the nearest non-blank line (hooks/jiahao-profile.js).
+  let headerAt = ruleAt - 1;
+  while (headerAt >= 0 && lines[headerAt].trim() === '') headerAt--;
+  expect(lines[headerAt]).toBe('<!-- gsr:9 | signal-domain: task-continuation | status: active -->');
+
+  const rule = lines[ruleAt];
+  // The correction is a change of plan, not the arrival of the goal.
+  expect(rule).toMatch(/does not end the task/i);
+  expect(rule).toMatch(/change to the plan/i);
+  // The legitimate early exits. R5 is one of them: a failed check stops the
+  // turn regardless of what the user's correction asked for.
+  expect(rule).toMatch(/only when the user cancels/i);
+  expect(rule).toMatch(/original goal is really done/i);
+  expect(rule).toMatch(/blocked on something only the user can clear/i);
+  expect(rule).toMatch(/R5 stops you on red/i);
+  // A model that narrowed the goal must say which task it started with and what
+  // is left before it stops - the receipt alone is what #134 shows going wrong.
+  expect(rule).toMatch(/restate the task you started with/i);
+  expect(rule).toMatch(/what is still left/i);
+  expect(rule).toMatch(/not just a receipt/i);
+
+  // The rule instructs the executing agent, so the audit profile must not carry
+  // it; the commit for #134 says the verifier section is unchanged.
+  const verifier = content.slice(content.indexOf('## Verifier Profile'), content.indexOf('## Boundaries'));
+  expect(verifier).not.toContain('Correction Mid-Task');
+});
+
 test('has bias guards section', () => {
   expect(content).toContain('## Bias guards');
   expect(content).toContain('rubric');
