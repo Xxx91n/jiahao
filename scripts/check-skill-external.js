@@ -189,7 +189,8 @@ function findPython() {
     if (!res.error && res.status === 0) return cmd;
   }
   throw new Error('no python3/python on PATH, so the pinned skills-ref validator cannot run. ' +
-    'Failing closed (#67: never skip silently) - install Python 3 (CI uses actions/setup-python) and re-run.');
+    'Failing closed (#67: never skip silently) - install Python >=3.11 (the pinned skills-ref\'s ' +
+    'requires-python; CI uses actions/setup-python) and re-run.');
 }
 
 // The validator runs as a library call and reports as JSON on the last
