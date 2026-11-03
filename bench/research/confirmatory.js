@@ -344,6 +344,7 @@ function writeIfChanged(p, content) {
 
 function arg(argv, name) { const i = argv.indexOf('--' + name); return i >= 0 ? argv[i + 1] : null; }
 
+/** Run the confirmatory CLI and exit with its verdict. */
 function main() {
   requireCapabilities('confirmatory-bench', { requires: ['repo-tree'] });
   const argv = process.argv.slice(2);

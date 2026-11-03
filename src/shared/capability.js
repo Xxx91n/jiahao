@@ -130,13 +130,22 @@ function exitUnverifiable(gate, cap) {
   process.exit(2);
 }
 
-// Probe declared requires. Commit de43cd7d deleted docs/gates.json, so a gate
-// name no longer resolves through a registry: every caller passes its own
-// `requires` array. A bare name is a caller bug and says so, instead of an
-// ENOENT for a registry file the decision retired. The gate label is only a
-// label: requirements are the contract, so a misspelt name cannot hide a
-// missing capability. Inline arrays are labelled 'a+b' (comma-free) - a raw
-// ',' would be a property separator.
+/**
+ * Probe the declared requirements and degrade through the registered
+ * UNVERIFIABLE pair when a deterministic probe is negative.
+ *
+ * Commit de43cd7d deleted docs/gates.json, so a gate name no longer resolves
+ * through a registry: every caller passes its own `requires` array. A bare
+ * name is a caller bug and says so, instead of an ENOENT for a registry file
+ * the decision retired. The gate label is only a label: requirements are the
+ * contract, so a misspelt name cannot hide a missing capability. Inline
+ * arrays are labelled 'a+b' (comma-free) - a raw ',' would be a property
+ * separator.
+ *
+ * @param {string|string[]} gate Gate label, or an inline capability array.
+ * @param {{requires?: string[], root?: string, env?: object}} [opts]
+ * @returns {string[]} The declared capabilities.
+ */
 function requireCapabilities(gate, opts) {
   const o = opts || {};
   const requires = Array.isArray(gate) ? gate : o.requires;

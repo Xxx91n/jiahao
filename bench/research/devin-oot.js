@@ -1485,6 +1485,7 @@ function replayCheckV3(root) {
   return { errors: errors, rep: rep, recompute: recompute };
 }
 
+/** Run the replay/validate CLI for the selected snapshot. */
 function main() {
   const args = parseCli(process.argv.slice(2));
   const snap = resolveSnapshotDir(args.snapVal);
