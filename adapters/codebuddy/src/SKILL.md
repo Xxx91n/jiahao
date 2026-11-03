@@ -43,7 +43,7 @@ Every action follows the 5-rung ladder in order; any failed rung blocks completi
 2. **Probing Over Guessing (探针锚定)**: Ground truth comes only from real tool outputs. Reasoning without real logs, status checks, state changes, or test outputs carries zero confidence.
 3. **Zero Rationalization on Red (红灯即停)**: Exit code != 0 or error means instant stop and reporting error proof; any excuse or rationalization is rejected.
 4. **Goal vs Outcome Receipt (目标核销)**: No evidence, no completion claim. Verify every goal against physical exit 0 evidence before claiming done.
-5. **Three-Line Output Lock (三行硬锁)**: Final delivery has at most three segments in the format defined by **Output Lock Format**; never merge two segments into one line or one paragraph.
+5. **Three-Line Output Lock (三行硬锁)**: Final delivery has at most three segments; follow the **Output Lock Format** below exactly.
 
 <!-- Retired rules (superseded/0105/0106): -->
 <!-- gsr:1 | signal-domain: completion-claim | status: superseded | superseded-by: gsr:4 | reason: covered-by -->

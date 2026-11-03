@@ -78,24 +78,30 @@ test('the rules-version skill carries both profiles', () => {
 
 test('every shipped generator-rule and skill copy carries the separated output-lock format (#135)', () => {
   const { TEMPLATE } = require('./helpers/output-lock-contract');
-  const { HOSTS, buildAdapters } = require('../scripts/build-adapters');
+  const { HOSTS, SKILL_DIR, buildAdapters } = require('../scripts/build-adapters');
   const generated = buildAdapters();
+
+  // Match emitted rule keys against the host table's declared file names, so
+  // the generator's directory layout is not re-derived here. A moved layout
+  // shows up as a count mismatch.
   const declaredGeneratorRules = HOSTS.flatMap((host) =>
     host.rules.filter((rule) => rule.profile === 'generator' || rule.profile === 'both')
-      .map((rule) => host.dir + '/rules/' + rule.file));
-  const fullSkills = Object.keys(generated).filter((rel) => rel === 'skills/jiahao/SKILL.md' || /\/src\/SKILL\.md$/.test(rel));
+      .map((rule) => rule.file));
+  const generatorRuleFiles = new Set(declaredGeneratorRules);
+  const shippedGeneratorRules = Object.keys(generated).filter((rel) => {
+    const match = /\/rules\/([^/]+\.md)$/.exec(rel);
+    return match !== null && generatorRuleFiles.has(match[1]);
+  });
+  const fullSkills = Object.keys(generated).filter((rel) => rel === SKILL_DIR + '/SKILL.md' || /\/src\/SKILL\.md$/.test(rel));
   // Both halves are asserted separately: a profile rename that empties the
   // rule list must not hide behind the full-skill copies going green.
   expect(declaredGeneratorRules.length).toBeGreaterThan(0);
   expect(fullSkills.length).toBeGreaterThan(0);
-  // Pair the declared rules with what the generator emitted by key, so a moved
-  // layout fails as "declared but not shipped", not as a type error on undefined.
-  const generatorRules = declaredGeneratorRules.filter((rel) => Object.prototype.hasOwnProperty.call(generated, rel));
-  expect(generatorRules).toHaveLength(declaredGeneratorRules.length);
+  expect(shippedGeneratorRules).toHaveLength(declaredGeneratorRules.length);
 
   // The blank line is the load-bearing part: without it Markdown joins the
   // three labels into one paragraph, which is the bug #135 reports.
-  for (const rel of generatorRules.concat(fullSkills)) {
+  for (const rel of shippedGeneratorRules.concat(fullSkills)) {
     expect(generated[rel]).toContain(TEMPLATE);
   }
 });
