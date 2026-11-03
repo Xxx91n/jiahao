@@ -7,9 +7,10 @@
 // CI machinery rather than a page a reporter reads, so it is out of scope here.
 //
 // Those pages grew references to things this repository does not have, twice:
-// #41 was the PR template naming `scripts/run-test-gate.js`, a file that was
-// never in the tree; #137 found a private governance vocabulary plus a label,
-// an anchor and three file names that resolve nowhere. These cases read the
+// #41 was the PR template naming `scripts/run-test-gate.js`, which is not in the
+// tree — it was deleted at de43cd7d (2026-10-20); #137 found a private
+// governance vocabulary plus a label, an anchor and three file names that
+// resolve nowhere. These cases read the
 // paths, link anchors, npm run scripts, frontmatter keys and labels those pages
 // name, and fail on the first one that does not land.
 //
@@ -356,9 +357,8 @@ describe('.github contribution pages name things that exist', () => {
   });
 
   // AGENTS.md keeps the private wordlist out of any public output. The path
-  // case above may catch some shapes under private/, but only when they carry a
-  // source extension — so the ban is asserted here for every shape instead of
-  // being claimed by a comment.
+  // case above catches only some shapes under private/; this one covers every
+  // shape, so the ban is asserted rather than claimed by a comment.
   test('no page cites the private wordlist path', () => {
     const found = [];
     for (const rel of pages) {

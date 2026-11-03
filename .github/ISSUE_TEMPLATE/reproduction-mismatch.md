@@ -15,13 +15,15 @@ Name the file and the place, for example "the Codex CLI row of the install table
 
 ## What you ran
 
+The command, pasted as you ran it:
+
 ```sh
 
 ```
 
 ## What it reported
 
-Paste the output lines. Do not paraphrase.
+Paste the output lines and the exit code. Do not paraphrase.
 
 ## What you checked out
 
@@ -33,4 +35,4 @@ Paste the output lines. Do not paraphrase.
 
 The benchmark corpus is not in the npm package or a public clone; a run from a clone uses the committed fixture under `test/fixtures/corpus/`. A check that needs more says so instead of passing: either a test skips with the reason in its name, or a script exits 1 printing a line containing `[corpus] missing`. If you legitimately hold the corpus, point `JIAHAO_CORPUS_DIR` at it.
 
-A check that reported a pass while neither happened is the report this template exists for.
+A check that printed neither of those and still reported a pass is the report this template exists for.
