@@ -37,7 +37,7 @@ A report we can act on has: the command pasted exactly, the real output pasted, 
 
 ## House rules, applied to ourselves
 
-- **No receipt, no claim.** A number in a description has to be in a file the reviewer can open.
+- **No evidence, no claim.** A number in a description has to be in a file the reviewer can open.
 - **Red means stop.** Report the failing command and its output. "This does not affect the main flow" is not a fix.
 - **Plain language.** If a sentence needs a word this project invented to land, rewrite the sentence.
 - **The author cannot certify the work.** A completion claim needs a check that runs outside the person or agent making the claim.

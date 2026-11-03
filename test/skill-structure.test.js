@@ -117,6 +117,42 @@ test('a mid-task correction does not end the task (#134)', () => {
   expect(verifier).not.toContain('Correction Mid-Task');
 });
 
+// #138: the model kept naming machine artifacts - file paths, symbols, ticket
+// numbers, internal labels - as if the name were the explanation, and the user
+// had to ask for plain words. R4 has to require the result and the reason first
+// and a plain gloss for every name; the output format must say the labels are
+// not a substitute for that explanation.
+test('plain words explain machine names instead of replacing them (#138)', () => {
+  const start = content.indexOf('### Surface Signal Rules');
+  const end = content.indexOf('### Intensity Levels');
+  expect(start).toBeGreaterThanOrEqual(0);
+  expect(end).toBeGreaterThan(start);
+  const lines = content.slice(start, end).split('\n');
+
+  const ruleAt = lines.findIndex((line) => line.startsWith('- **R4 (Plain Language Discipline)'));
+  expect(ruleAt).toBeGreaterThan(0);
+  const rule = lines[ruleAt];
+
+  // The result and the reason come first; a name may follow only with a gloss.
+  expect(rule).toMatch(/result and the reason in ordinary words/i);
+  expect(rule).toMatch(/file path, symbol, ticket number, or internal label/i);
+  expect(rule).toMatch(/what it is and why it matters/i);
+  expect(rule).toMatch(/a name is never the explanation/i);
+  // The old rule said to delete the explanation, which is the omission #138
+  // reports. Brevity must not be bought by dropping the explanation.
+  expect(rule).not.toMatch(/delete the explanation/i);
+  expect(rule).toMatch(/never by dropping the explanation/i);
+
+  // The three labels are a format, not a substitute for saying what happened.
+  const lockStart = content.indexOf('### Output Lock Format');
+  const lockEnd = content.indexOf('## Verifier Profile');
+  const lock = content.slice(lockStart, lockEnd);
+  expect(lock).toMatch(/not a substitute for explanation/i);
+  expect(lock).toMatch(/reader who has not opened any file/i);
+  expect(lock).toMatch(/what happened, what it means, and what is still at risk/i);
+  expect(lock).toMatch(/say in plain words what it is and why it matters/i);
+});
+
 test('has bias guards section', () => {
   expect(content).toContain('## Bias guards');
   expect(content).toContain('rubric');
