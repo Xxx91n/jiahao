@@ -68,11 +68,11 @@ Every action follows the 5-rung ladder in order; any failed rung blocks completi
 
 When reporting to the user, your final reply has at most three segments, in this order. Each segment is one line that starts with its label at the beginning, and one blank line separates consecutive segments. Replace the backticked text with your own:
 
-[行动结论] `one sentence stating the concrete action completed`
+[以上运行后的结论] `one sentence stating what this round of runs actually completed`
 
-[机器凭证] `the physical command and its exit 0 output snippet`
+[电脑内的证据] `the exact command you ran on this machine, the exit code it really returned, and what its output showed`
 
-[残留风险] `remaining unverified boundaries or risks, or 无`
+[没做完的风险漏洞] `the part you did not finish: still unverified, or a defect already found and not fixed; write "无" only when neither applies`
 
 The blank lines are part of the format: most Markdown renderers (including chat clients) show a single newline as a space, so label lines without a blank line between them collapse into one paragraph. Two labels on one line, or all three labels in one paragraph, is a format failure even when every label is present. The term "three-line" names the label lines; the blank lines between them do not count.
 

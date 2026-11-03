@@ -61,7 +61,7 @@ test('output lock keeps the three labels on separate, blank-line-separated lines
   expect(TEMPLATE).not.toContain('<');
   // No line of the contract may itself demonstrate the merged shape: every
   // adjacent label pair is checked, not just the first one.
-  const labels = ['[行动结论]', '[机器凭证]', '[残留风险]'];
+  const labels = ['[以上运行后的结论]', '[电脑内的证据]', '[没做完的风险漏洞]'];
   const labelsOn = (line) => labels.filter((label) => line.includes(label)).length;
   expect(section.split('\n').every((line) => labelsOn(line) < 2)).toBe(true);
 
@@ -83,6 +83,22 @@ test('has intensity levels', () => {
   expect(content).toContain('lite');
   expect(content).toContain('full');
   expect(content).toContain('ultra');
+});
+
+test('three-line output lock labels are the plain-word ones, in ticket order', () => {
+  const start = content.indexOf('### Output Lock Format');
+  const end = content.indexOf('\n## ', start + 1);
+  expect(start).toBeGreaterThan(-1);
+  expect(end).toBeGreaterThan(start);
+  const section = content.slice(start, end);
+  const live = ['[以上运行后的结论]', '[电脑内的证据]', '[没做完的风险漏洞]'];
+  const retired = ['[行动结论]', '[机器凭证]', '[残留风险]'];
+  // #135 把阶梯第 5 级改成指向本段的指针，标签只在格式段出现一处；
+  // 上一轮「两处都钉」的前提由那次重构取消，缺席断言仍管全文。
+  live.forEach(label => expect(section).toContain(label));
+  const at = live.map(label => section.indexOf(label));
+  expect(at).toEqual([...at].sort((a, b) => a - b));
+  retired.forEach(label => expect(content).not.toContain(label));
 });
 
 test('has boundaries section', () => {
