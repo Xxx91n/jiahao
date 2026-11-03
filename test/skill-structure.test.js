@@ -54,14 +54,18 @@ test('has intensity levels', () => {
 });
 
 test('three-line output lock uses the plain-word labels', () => {
-  const start = content.indexOf('### Output Lock Format');
-  const end = content.indexOf('\n## ', start + 1);
-  expect(start).toBeGreaterThan(-1);
-  expect(end).toBeGreaterThan(start);
-  const lock = content.slice(start, end);
+  const spots = [['### Output Lock Format', '\n## '], ['5. **Three-Line Output Lock', '\n']]
+    .map(([heading, stop]) => {
+      const start = content.indexOf(heading);
+      const end = content.indexOf(stop, start + 1);
+      expect(start).toBeGreaterThan(-1);
+      expect(end).toBeGreaterThan(start);
+      return content.slice(start, end);
+    });
   const live = ['[以上运行后的结论]', '[电脑内的证据]', '[没做完的风险漏洞]'];
   const retired = ['[行动结论]', '[机器凭证]', '[残留风险]'];
-  live.forEach(label => expect(lock).toContain(label));
+  // 标签在源里出现两处：阶梯第 5 级与格式段，只钉一处另一处可以随便写错。
+  spots.forEach(spot => live.forEach(label => expect(spot).toContain(label)));
   retired.forEach(label => expect(content).not.toContain(label));
 });
 
