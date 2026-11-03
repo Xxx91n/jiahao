@@ -1,33 +1,34 @@
 ---
 name: Bug report
-about: The installer, hooks, gate, or adapters behave wrongly
+about: The installer, a hook, the gate that blocks turn end, or an adapter bundle does not do what the README says
 title: "[bug] "
 labels: bug
 ---
 
-<!-- Added under the grill-t23 governance carve-out; disclosed in the round ledger. -->
+## What goes wrong
 
-## What happened
+One or two sentences. A location is worth more than a paragraph — name the file and line, the hook event, or the exit code you saw.
 
-<!-- one or two sentences; a location (file:line, hook event, exit code)
-     is worth more than a paragraph -->
+## How to see it
 
-## Evidence
+Paste the command exactly as you ran it and paste what it printed, exit code included. Do not summarize the output. If you have not run it, say so here instead of writing a guess.
 
 ```sh
-# the command or hook event that shows it, and its actual output/exit code
+
 ```
 
-## Expected
+## What you expected instead
 
-## Environment
+## Your setup
 
-- Host (rules version / codebuddy / claude-code / other):
-- Profile (generator / verifier) and install channel (`npx skills add` / host plugin command / source clone):
-- Node.js version:
+- Host and version (for example `codex-cli 0.163.0`):
+- Install path — rules version (`npx skills add`, instructions only) or plugin version (one bundle under `adapters/`, with hooks):
+- Profile (plugin version only) — `generator` or `verifier`; default `verifier` when no `.jiahao-profile` exists:
+- Node.js version and OS:
 
-## Known-limitation check
+## Before you file
 
-- [ ] I read the install section in the README — this is not a documented
-      limitation (rules version has no hooks; the plugin bundles are CodeBuddy
-      and Claude Code, and neither install path is live-verified here).
+- [ ] I searched the open issues for the same report.
+- [ ] I read "Boundaries and limitations" in the README (<https://github.com/Xxx91n/jiahao#boundaries-and-limitations>).
+
+If your report matches a limit listed there, file it anyway and say what you expected instead.
