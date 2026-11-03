@@ -42,18 +42,17 @@ test('has output format with verdict pattern', () => {
 });
 
 test('output lock keeps the three labels on separate, blank-line-separated lines (#135)', () => {
+  const { TEMPLATE } = require('./helpers/output-lock-contract');
   const start = content.indexOf('### Output Lock Format');
   expect(start).toBeGreaterThanOrEqual(0);
-  const section = content.slice(start, content.indexOf('## Verifier Profile'));
+  const end = content.indexOf('## Verifier Profile');
+  expect(end).toBeGreaterThan(start);
+  const section = content.slice(start, end);
 
   // The template pins the blank line between sections: a single newline is
   // rendered as a space by Markdown, which is how the three labels collapsed
   // into one paragraph (#135).
-  expect(section).toContain(
-    '[行动结论] one sentence stating the concrete action completed.\n\n' +
-    '[机器凭证] physical command executed and exit 0 output snippet.\n\n' +
-    '[残留风险] explicitly disclose remaining unverified boundaries or risks (or "无").'
-  );
+  expect(section).toContain(TEMPLATE);
   expect(section).toMatch(/blank line/i);
   expect(section).toMatch(/Two labels on the same line/i);
   // No line of the contract may itself demonstrate the merged shape.
