@@ -74,7 +74,7 @@ Every action follows the 5-rung ladder in order; any failed rung blocks completi
 
 When reporting to the user, format your final reply in at most 3 structured lines:
 - `[以上运行后的结论]`: one sentence stating what this round of runs actually completed.
-- `[电脑内的证据]`: the command you ran on this machine and the exit 0 line it printed.
+- `[电脑内的证据]`: the exact command you ran on this machine, the exit code it really returned, and what its output showed.
 - `[没做完的风险漏洞]`: name what is still unverified and where it can still break (or "无").
 
 ---
