@@ -180,7 +180,7 @@ function citedRepoPaths(text) {
 function siteRefs(text) {
   const site = repoSite().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const re = new RegExp('https?://' + site
-    + '(?:/(?:blob|tree)/main/([^#?\\s)\\]]+)|(/[^#?\\s)\\]]*))?(?:#([\\p{L}\\p{N}][\\p{L}\\p{N}_%-]*))?', 'gu');
+    + '(?:/(?:blob|tree)/main/([^#?\\s)\\]]+)|(/[^#?\\s)\\]]*))?(?:#([\\p{L}\\p{N}%][\\p{L}\\p{N}_%-]*))?', 'gu');
   return [...text.matchAll(re)].map((m) => (
     m[2]
       ? { url: m[0], kind: 'unresolved', file: null, anchor: null }
@@ -356,8 +356,9 @@ describe('.github contribution pages name things that exist', () => {
   });
 
   // AGENTS.md keeps the private wordlist out of any public output. The path
-  // case above cannot catch it, because private/ is not a citable top level —
-  // so the ban is asserted here instead of being claimed by a comment.
+  // case above may catch some shapes under private/, but only when they carry a
+  // source extension — so the ban is asserted here for every shape instead of
+  // being claimed by a comment.
   test('no page cites the private wordlist path', () => {
     const found = [];
     for (const rel of pages) {
@@ -374,5 +375,36 @@ describe('.github contribution pages name things that exist', () => {
       }
     }
     expect(found).toEqual([]);
+  });
+});
+
+// #137's own defect was a claim wider than the code, and this file caught it
+// twice in two rounds: first an ASCII-only anchor class while the header talked
+// about CJK, then a class that still dropped a `%E4%B8%8D…` anchor while the
+// comment named that very form. The capture is pinned here so the prose cannot
+// outrun the regex again.
+describe('the guard reads an anchor in every form a page can write it', () => {
+  const site = 'github.com/Xxx91n/jiahao';
+
+  test('a percent-encoded anchor is captured and decoded', () => {
+    const refs = siteRefs('see https://' + site + '/blob/main/README-zh-CN.md#%E8%BE%B9');
+    expect(refs).toHaveLength(1);
+    expect({ kind: refs[0].kind, file: refs[0].file, anchor: refs[0].anchor })
+      .toEqual({ kind: 'resolved', file: 'README-zh-CN.md', anchor: '边' });
+  });
+
+  test('an anchor of Chinese letters is captured', () => {
+    const refs = siteRefs('see https://' + site + '#边界与限制limitations');
+    expect(refs[0].anchor).toBe('边界与限制limitations');
+  });
+
+  test('a malformed escape is kept so it is reported rather than skipped', () => {
+    const refs = siteRefs('see https://' + site + '#%zz');
+    expect(refs[0].anchor).toBe('%zz');
+  });
+
+  test('a path this check cannot resolve is marked, not scored against README', () => {
+    const refs = siteRefs('see https://' + site + '/releases');
+    expect(refs[0].kind).toBe('unresolved');
   });
 });
