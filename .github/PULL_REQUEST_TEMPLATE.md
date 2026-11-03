@@ -20,4 +20,4 @@ Paste the command you ran and what it printed. A claim without a rerun is not a 
 
 ## Notes for the reviewer
 
-Contribution rules are in [CONTRIBUTING.md](https://github.com/Xxx91n/jiahao/blob/main/.github/CONTRIBUTING.md). Report the result as pass, fail, or NOT VERIFIED — the words the output actually used. "Should work" is not a result.
+Contribution rules are in [CONTRIBUTING.md](https://github.com/Xxx91n/jiahao/blob/main/.github/CONTRIBUTING.md). Say what the run showed: pass, fail, or NOT VERIFIED. "Should work" is not a result.

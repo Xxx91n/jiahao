@@ -2,18 +2,22 @@
 
 // test/github-templates.test.js — #137 guard.
 //
-// The pages under .github/ are what an outside reporter reads first. Twice
-// they grew references to things this repository does not have: #41 named a
-// script that was never here, #137 found a private governance vocabulary plus
-// a label, an anchor and three file names that resolve nowhere. These cases
-// read the paths, anchors, npm run scripts, frontmatter keys and labels the
-// contribution pages name, and fail on the first one that does not land.
+// Scope: the five reporter-facing pages under .github/ — the issue templates,
+// their config, CONTRIBUTING.md and the PR template. `.github/workflows/` is
+// CI machinery rather than a page a reporter reads, so it is out of scope here.
 //
-// Two things are checked indirectly, and said here rather than pretended
-// about: whether a label exists on the tracker cannot be read offline, so
-// labels are matched against GitHub's default set plus the table in
-// docs/agents/triage-labels.md; npm built-ins (npm install, npm ci) are not
-// package scripts, so only `npm run <name>` is resolved.
+// Those pages grew references to things this repository does not have, twice:
+// #41 was the PR template naming `scripts/run-test-gate.js`, a file that was
+// never in the tree; #137 found a private governance vocabulary plus a label,
+// an anchor and three file names that resolve nowhere. These cases read the
+// paths, link anchors, npm run scripts, frontmatter keys and labels those pages
+// name, and fail on the first one that does not land.
+//
+// Two checks are narrower than the defect, and are named instead of hidden:
+// whether a label exists on the tracker cannot be read offline, so labels are
+// matched against GitHub's default set plus the table in
+// docs/agents/triage-labels.md; `npm install` and `npm ci` are npm built-ins
+// rather than package scripts, so only `npm run <name>` is resolved.
 
 const fs = require('fs');
 const path = require('path');
@@ -22,9 +26,9 @@ const { linksIn, resolveTarget } = require('../scripts/check-doc-links');
 const ROOT = path.resolve(__dirname, '..');
 const GITHUB = path.join(ROOT, '.github');
 
-// Top-level names a contribution page is allowed to cite. `private/` is left
-// out on purpose: AGENTS.md keeps the wordlist there out of any public output,
-// so a page naming it is wrong whatever the tree happens to contain.
+// Top-level names a contribution page may cite. `private/` is left out on
+// purpose: AGENTS.md keeps the wordlist there out of any public output, so a
+// page naming it is wrong whatever the tree happens to contain.
 const CITED_TOP = [
   'src', 'hooks', 'scripts', 'docs', 'test', 'adapters', 'skills', 'schemas',
   'jiahao-mcp', 'bench', '.github', '.claude-plugin', '.agents',
@@ -55,6 +59,7 @@ function walk(dir, base) {
 function contribPages() {
   return walk(GITHUB, '.github')
     .filter((rel) => /\.(md|ya?ml)$/.test(rel))
+    .filter((rel) => !rel.startsWith('.github/workflows/'))
     .sort();
 }
 
@@ -130,46 +135,70 @@ function inlineCodeTokens(text) {
   return [...text.matchAll(/`([^`\n]+)`/g)].map((m) => m[1]);
 }
 
-// A cited repository path: an inline-code token or a bare mention that starts
-// with a top level this repository tracks, or names a root document outright.
+// A cited repository path: an inline-code token, a bare mention carrying a
+// slash (so the English words "test" and "docs" are not read as paths), or any
+// slashed path with a source extension — the last form is what catches a typo
+// like `scipts/build-adapters.js`, whose top level is not in CITED_TOP.
 function citedRepoPaths(text) {
-  const bare = new RegExp(
-    '(?:' + CITED_TOP.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')'
-    + '(?:/[\\w.@/-]*)?', 'g');
-  const tokens = inlineCodeTokens(text)
-    .concat(ROOT_DOCS.filter((d) => text.includes(d)));
-  // A bare mention only counts when it carries a slash, so the English words
-  // "test" and "docs" are not read as paths.
-  for (const m of text.matchAll(bare)) if (m[0].includes('/')) tokens.push(m[0]);
+  const top = CITED_TOP.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  // Urls are this repository's own siteRefs check, not a path check: a blob
+  // url read as a path would be scored against the wrong root.
+  const plain = text.replace(/https?:\/\/[^\s<>)\]]+/g, ' ');
+  const tokens = inlineCodeTokens(plain).concat(ROOT_DOCS.filter((d) => plain.includes(d)));
+  for (const m of plain.matchAll(new RegExp('(?:' + top + ')(?:/[\\w.@/-]*)?', 'g'))) {
+    if (m[0].includes('/')) tokens.push(m[0]);
+  }
+  for (const m of plain.matchAll(/[\w.@-]+(?:\/[\w.@-]+)+\.(?:md|js|json|ya?ml|ts|sh)/g)) {
+    tokens.push(m[0]);
+  }
   const unique = new Set();
   for (const token of tokens) {
     const clean = token.split('#')[0].replace(/[.,;:)\]}]+$/, '').replace(/\/+$/, '');
     if (!clean || /[<>`*|() ]/.test(clean)) continue;
-    const top = clean.split('/')[0];
-    if (CITED_TOP.includes(top) || ROOT_DOCS.includes(clean)) unique.add(clean);
+    // A `../` target belongs to the page it is written in; the relative-link
+    // case resolves those against that page, not against the repository root.
+    if (clean.startsWith('../') || clean.startsWith('./')) continue;
+    const hasExtension = /\.[a-z0-9]+$/i.test(clean);
+    if (CITED_TOP.includes(clean.split('/')[0]) || ROOT_DOCS.includes(clean)
+      || (clean.includes('/') && hasExtension)) unique.add(clean);
   }
   return [...unique].sort();
 }
 
+// A github.com reference to this repository. `kind` separates what this check
+// can resolve (a `blob|tree/main` path, or an anchor into README.md) from a
+// path it cannot (an issue, release or settings URL), so an unchecked url is
+// recorded rather than silently scored against README.md.
 function siteRefs(text) {
   const site = repoSite().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  // Closing brackets are excluded from the path group: a link written as
-  // `([text](https://…/file.md))` would otherwise capture the trailing `)`.
-  const re = new RegExp('https?://' + site + '(?:/(?:blob|tree)/main/([^#?\\s)\\]]+))?(?:#([A-Za-z0-9_-]+))?', 'g');
-  return [...text.matchAll(re)].map((m) => ({
-    url: m[0],
-    file: m[1] ? m[1].replace(/\/+$/, '') : 'README.md',
-    anchor: m[2] || null,
-  }));
+  const re = new RegExp('https?://' + site
+    + '(?:/(?:blob|tree)/main/([^#?\\s)\\]]+)|(/[^#?\\s)\\]]*))?(?:#([A-Za-z0-9_-]+))?', 'gi');
+  return [...text.matchAll(re)].map((m) => (
+    m[2]
+      ? { url: m[0], kind: 'unresolved', file: null, anchor: m[3] || null }
+      : {
+        url: m[0],
+        kind: 'resolved',
+        file: m[1] ? m[1].replace(/\/+$/, '') : 'README.md',
+        anchor: m[3] || null,
+      }
+  ));
 }
 
+// docs/agents/triage-labels.md carries five canonical roles. The count is
+// asserted where the table is read: a header reworded or a column moved would
+// otherwise change which labels this guard accepts, silently widening it.
 function triageLabels() {
-  return readRepo('docs/agents/triage-labels.md')
+  const cells = readRepo('docs/agents/triage-labels.md')
     .split(/\r?\n/)
     .filter((l) => l.trim().startsWith('|'))
     .map((l) => l.split('|').map((c) => c.trim().replace(/`/g, '')))
-    .map((cells) => cells[2])
-    .filter((v) => v && v !== 'Label in our tracker' && !/^[-:]+$/.test(v));
+    .map((row) => row[2])
+    .filter((v) => v && !/\s/.test(v) && !/^[-:]+$/.test(v));
+  if (cells.length !== 5) {
+    throw new Error('docs/agents/triage-labels.md: expected 5 label rows, read ' + cells.length);
+  }
+  return cells;
 }
 
 function packageScripts() {
@@ -178,14 +207,15 @@ function packageScripts() {
 
 // Terms named in #137. Each is a pattern rather than a loose substring, so the
 // guard does not go red on ordinary English: `CAPA` is matched case sensitively
-// because `capability` is a word this repository uses. grill-t<digits> stays a
-// banned shape even though the real tags adjudicated/grill-t25 and t26 exist —
-// a governance round id means nothing to a reporter and belongs on no public
-// page.
+// because `capability` is a word this repository uses. A governance round id
+// stays banned even though the tags adjudicated/grill-t25 and t26 are real —
+// neither means anything to a reporter, and belongs on no public page.
 const RETIRED = [
   { name: 'grill-t round id', re: /grill-t\d+/ },
   { name: 'round ledger', re: /round ledger/i },
   { name: 'carve-out', re: /carve-?out/i },
+  { name: 'decision id (D-007 shape)', re: /\bD-\d{3,}\b/ },
+  { name: 'adjudicated/ round tag', re: /adjudicated\// },
   { name: 'CAPA', re: /\bCAPA\b/ },
   { name: 'anchors.json', re: /anchors\.json/ },
   { name: 'measurement-record', re: /measurement-record/ },
@@ -199,18 +229,23 @@ const RETIRED = [
 describe('.github contribution pages name things that exist', () => {
   const pages = contribPages();
   const texts = new Map(pages.map((rel) => [rel, readRepo(rel)]));
+  const issueTemplates = pages.filter((p) => p.startsWith('.github/ISSUE_TEMPLATE/') && p.endsWith('.md'));
 
   // Non-vacuity: a guard that silently reads nothing would pass every case
-  // below, so the volume it is looking at is asserted first.
+  // below, so what it is looking at is asserted first. This names no file the
+  // ticket added — it only requires the guard to be pointed at real pages.
   test('the guard is reading the contribution pages and finds references', () => {
+    expect(pages.length).toBeGreaterThanOrEqual(3);
     expect(pages).toEqual(expect.arrayContaining([
       '.github/PULL_REQUEST_TEMPLATE.md',
       '.github/ISSUE_TEMPLATE/bug-report.md',
     ]));
+    expect(pages.filter((rel) => rel.includes('workflows'))).toEqual([]);
     const cited = pages.reduce((n, rel) => n + citedRepoPaths(texts.get(rel)).length, 0);
     const refs = pages.reduce((n, rel) => n + siteRefs(texts.get(rel)).length, 0);
     expect(cited).toBeGreaterThan(0);
     expect(refs).toBeGreaterThan(0);
+    expect(triageLabels().length).toBe(5);
   });
 
   test('every repository path it names is in the tree', () => {
@@ -231,9 +266,7 @@ describe('.github contribution pages name things that exist', () => {
         const target = link.target.replace(/^<|>$/g, '');
         if (/^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith('/')) continue;
         const [filePart, anchor] = target.split('#');
-        const resolvedRel = filePart
-          ? resolveTarget(rel, filePart)
-          : rel;
+        const resolvedRel = filePart ? resolveTarget(rel, filePart) : rel;
         if (!resolvedRel || !fs.existsSync(path.join(ROOT, resolvedRel))) {
           broken.push(rel + ':' + link.line + ' -> ' + target + ' (no such file)');
           continue;
@@ -250,6 +283,7 @@ describe('.github contribution pages name things that exist', () => {
     const broken = [];
     for (const rel of pages) {
       for (const ref of siteRefs(texts.get(rel))) {
+        if (ref.kind === 'unresolved') continue;
         if (!fs.existsSync(path.join(ROOT, ref.file))) {
           broken.push(rel + ' -> ' + ref.url + ' (no such file)');
           continue;
@@ -274,9 +308,8 @@ describe('.github contribution pages name things that exist', () => {
   });
 
   test('issue templates only use frontmatter keys GitHub reads', () => {
-    const templates = pages.filter((p) => p.startsWith('.github/ISSUE_TEMPLATE/') && p.endsWith('.md'));
-    expect(templates.length).toBeGreaterThanOrEqual(2);
-    for (const rel of templates) {
+    expect(issueTemplates.length).toBeGreaterThanOrEqual(2);
+    for (const rel of issueTemplates) {
       const lines = frontmatter(texts.get(rel));
       expect({ file: rel, frontmatter: lines === null ? 'missing' : 'present' })
         .toEqual({ file: rel, frontmatter: 'present' });
@@ -289,19 +322,18 @@ describe('.github contribution pages name things that exist', () => {
 
   test('issue templates only ask for labels this tracker has', () => {
     const real = GITHUB_DEFAULT_LABELS.concat(triageLabels());
-    const checked = [];
-    for (const rel of pages.filter((p) => p.startsWith('.github/ISSUE_TEMPLATE/') && p.endsWith('.md'))) {
+    const bad = [];
+    let parsed = 0;
+    for (const rel of issueTemplates) {
       const lines = frontmatter(texts.get(rel));
       if (!lines) continue;
-      for (const label of fmLabels(lines)) {
-        checked.push(rel);
-        expect({ file: rel, label: real.includes(label) ? label : label + ' (not a known label)' })
-          .toEqual({ file: rel, label: label });
-      }
+      const labels = fmLabels(lines);
+      parsed += labels.length;
+      for (const label of labels) if (!real.includes(label)) bad.push(rel + ' -> ' + label);
     }
-    // Both templates carry a label; if parsing ever regresses to none, this
-    // case has to go red instead of passing on an empty list.
-    expect(checked.length).toBeGreaterThanOrEqual(2);
+    // A parse that returns nothing would leave the loop above to pass empty.
+    expect(parsed).toBe(issueTemplates.length);
+    expect(bad).toEqual([]);
   });
 
   test('the retired private vocabulary stays out', () => {

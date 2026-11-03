@@ -31,10 +31,6 @@ Paste the output lines. Do not paraphrase.
 
 ## If a check skipped or refused instead of running
 
-The benchmark corpus is a maintainer and CI asset: not in the npm package, not in a public clone. Running from this repository gets the committed fixture under `test/fixtures/corpus/`. A check that needs the real corpus does not pretend to pass; it degrades in one of three ways:
+The benchmark corpus is a maintainer and CI asset: not in the npm package, not in a public clone. A run from a clone uses the committed fixture under `test/fixtures/corpus/` instead. A check that needs more than that says so rather than pretending to pass: a test skips with the reason in its name, or a script exits 1 printing a line containing `[corpus] missing`. If you legitimately hold the corpus, point `JIAHAO_CORPUS_DIR` at it.
 
-- a test suite skips, with the reason in the test name;
-- a capability gate exits 2 and prints `UNVERIFIABLE`;
-- a script that needs the corpus exits 1 and prints a line containing `[corpus] missing`.
-
-If you hold the corpus, point `JIAHAO_CORPUS_DIR` at it. A corpus-dependent check that reported a pass while none of the three happened is exactly the report this template exists for.
+A corpus-dependent check that reported a pass while neither of those happened is the report this template exists for.
