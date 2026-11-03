@@ -91,7 +91,8 @@ function repoSite() {
 // numbers a repeated heading `x`, `x-1`, `x-2`, so the same document can link
 // to the second one.
 function headings(md) {
-  const seen = new Map();
+  const assigned = new Set();
+  const counts = new Map();
   const found = [];
   let fenced = false;
   for (const line of md.split(/\r?\n/)) {
@@ -100,9 +101,19 @@ function headings(md) {
     const m = /^#{1,6}\s+(.*?)\s*#*\s*$/.exec(line);
     if (!m) continue;
     const base = slug(m[1]);
-    const count = seen.get(base) || 0;
-    seen.set(base, count + 1);
-    found.push(count === 0 ? base : base + '-' + count);
+    let count = counts.get(base) || 0;
+    let anchor = count === 0 ? base : base + '-' + count;
+    // Keep advancing until the anchor is free. A document that literally contains
+    // `## Setup-1` and two `## Setup` headings would otherwise be handed the same
+    // anchor twice. Whether github.com itself renumbers in that collision is not
+    // verified here; this is the property the check needs — one anchor per heading.
+    while (assigned.has(anchor)) {
+      count += 1;
+      anchor = base + '-' + count;
+    }
+    counts.set(base, count);
+    assigned.add(anchor);
+    found.push(anchor);
   }
   return found;
 }
@@ -458,5 +469,12 @@ describe('the guard reads an anchor in every form a page can write it', () => {
 
   test('a repeated heading is numbered the way GitHub numbers it', () => {
     expect(headings('# Setup\n\n## Usage\n\n## Setup')).toEqual(['setup', 'usage', 'setup-1']);
+  });
+
+  test('two headings in one document never share an anchor', () => {
+    // `## Setup-1` occupies the anchor a plain counter would hand to the third
+    // heading, so the suffix has to step past it.
+    expect(headings('# Setup-1\n\n# Setup\n\n# Setup')).toEqual(['setup-1', 'setup', 'setup-2']);
+    expect(new Set(headings('# A\n\n# A\n\n# A\n\n# A-1')).size).toBe(4);
   });
 });

@@ -21,7 +21,7 @@ A report we can act on has: the command pasted exactly, the real output pasted, 
 
 1. Open an issue first when the change alters behaviour, so we can agree on the target before you write it.
 2. Branch from `main`.
-3. Edit the source, never the generated output. `adapters/`, `skills/`, `.claude-plugin/` and `.agents/` are produced by the generator. When you change `src/`, `hooks/`, `jiahao-mcp/`, the host table in `scripts/build-adapters.js`, a file under `scripts/hosts/`, or the version and repository metadata in `package.json`, run `node scripts/build-adapters.js` and commit what it wrote. Unsure whether your edit reaches the generator's output — an emitter it calls, for instance? `npm run check:adapters` answers it: it reports any generated file that is stale, orphaned or hand-edited. `npm run check:drift` covers profile wording and retired-adapter references.
+3. Edit the source, never the generated output. `adapters/`, `skills/`, `.claude-plugin/` and `.agents/` are produced by the generator. When you change `src/`, `hooks/`, `jiahao-mcp/`, `scripts/build-adapters.js` in any way — its host table, an emitter it calls, a helper —, a file under `scripts/hosts/`, or the version and repository metadata in `package.json`, run `node scripts/build-adapters.js`, commit what it wrote, then run `npm run check:adapters` and `npm run check:drift`. `check:adapters` reports any generated file that is stale, orphaned or hand-edited; if running the generator changes nothing, your edit did not reach its output. `check:drift` covers profile wording and retired-adapter references.
 4. Install the dev dependencies once (`npm install` — jest is the only one), then run the checks that cover your change:
 
    | command | what it proves |
