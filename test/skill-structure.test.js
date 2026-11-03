@@ -117,6 +117,98 @@ test('a mid-task correction does not end the task (#134)', () => {
   expect(verifier).not.toContain('Correction Mid-Task');
 });
 
+// #138: the model kept naming machine artifacts - file paths, symbols, ticket
+// numbers, internal labels - as if the name were the explanation, and the user
+// had to ask for plain words. R4 has to cover every user-facing message, allow
+// the evidence segment to lead with its command, and still demand the
+// plain-words meaning; the output format and the verifier report must say the
+// names are not a substitute for that explanation.
+test('plain words explain machine names instead of replacing them (#138)', () => {
+  const { TEMPLATE } = require('./helpers/output-lock-contract');
+  const start = content.indexOf('### Surface Signal Rules');
+  const end = content.indexOf('### Intensity Levels');
+  expect(start).toBeGreaterThanOrEqual(0);
+  expect(end).toBeGreaterThan(start);
+  const lines = content.slice(start, end).split('\n');
+
+  const ruleAt = lines.findIndex((line) => line.startsWith('- **R4 (Plain Language Discipline)'));
+  expect(ruleAt).toBeGreaterThan(0);
+  const rule = lines[ruleAt];
+
+  // "any message you send" covers narration between tool calls; the precedence
+  // clause keeps it from authorizing prose that rung 1 and R3 still forbid.
+  expect(rule).toMatch(/any user-facing message you send/i);
+  expect(rule).toMatch(/changes how you word a message, not whether you may send it/i);
+  // A name may never stand in for the plain-words explanation.
+  expect(rule).toMatch(/never let a file path, symbol, ticket number, or internal shorthand stand in for the plain-words explanation/i);
+  expect(rule).toMatch(/a name is never the explanation/i);
+  // The result and why it matters are the content R4 demands.
+  expect(rule).toMatch(/state the result and why it matters in ordinary words/i);
+  // The ticket's "原理": ask for the cause when there is one, without forcing
+  // the model to invent a cause for a run that simply succeeded.
+  expect(rule).toMatch(/when the result has a cause worth knowing/i);
+  // "长难句" is a named symptom, not just obscure vocabulary.
+  expect(rule).toMatch(/long, hard-to-follow sentences/i);
+  expect(rule).toMatch(/prohibit all self-invented/i);
+  // The old rule said to delete the explanation, which is the omission #138
+  // reports. Brevity must not be bought by dropping the explanation.
+  expect(rule).not.toMatch(/delete the explanation/i);
+  expect(rule).toMatch(/never by dropping the explanation/i);
+
+  // The three labels are a format, not a substitute for saying what happened.
+  const lockStart = content.indexOf('### Output Lock Format');
+  const lockEnd = content.indexOf('## Verifier Profile');
+  const lock = content.slice(lockStart, lockEnd);
+  expect(lock).toMatch(/not a substitute for explanation/i);
+  expect(lock).toMatch(/pass R4/i);
+  expect(lock).toMatch(/reader who has not opened any file/i);
+  expect(lock).toMatch(/what happened, what it means, and what is still at risk/i);
+  // The evidence segment still starts with its label; the command may come
+  // first after the label, but the explanation of what it proves must follow.
+  expect(lock).toMatch(/command may come first after the label/i);
+  expect(lock).toMatch(/what it proves in plain words must follow/i);
+  // "One line" is the segment shape, not a character limit; the clarification
+  // is what lets the model use short sentences instead of a run-on line.
+  expect(lock).toMatch(/not a character limit/i);
+  expect(lock).toMatch(/two or three short sentences/i);
+
+  // The template the model copies has to demand the plain-words meaning too,
+  // not just the command and its exit code - #138's failing evidence segment.
+  // It must not say "one sentence": that wording is what produced the long,
+  // hard-to-follow sentences the ticket reports.
+  const segments = TEMPLATE.split('\n\n');
+  expect(segments).toHaveLength(3);
+  expect(segments[0]).toMatch(/plain-words statement/i);
+  expect(segments[0]).toMatch(/what it means, why it matters, and the cause when there is one/i);
+  expect(segments[0]).not.toMatch(/one sentence/i);
+  expect(segments[1]).toMatch(/what that proves in plain words/i);
+  expect(segments[2]).toMatch(/in plain words/i);
+
+  // R4 is in the generator profile; the verifier is the absent-file default,
+  // so the shared boundary carries the rule into both profiles, and the
+  // verifier's own Output section names the pattern it must not hide behind.
+  const boundaries = content.slice(content.indexOf('## Boundaries'));
+  expect(boundaries).toMatch(/Plain language is not generator-only/i);
+  expect(boundaries).toMatch(/states the result and why it matters in plain words/i);
+  expect(boundaries).toMatch(/the name never replaces the explanation/i);
+  expect(boundaries).toMatch(/keep sentences short and direct/i);
+  // The cause stays optional here too; the unconditional wording was the
+  // remaining contradiction with R4 and the conclusion template.
+  expect(boundaries).not.toMatch(/and the reason in plain words/i);
+  const verifier = content.slice(content.indexOf('## Verifier Profile'), content.indexOf('## Bias guards'));
+  expect(verifier).toMatch(/name a file path, symbol, or shorthand only after saying what it is and why it matters/i);
+  expect(verifier).toMatch(/not permission to skip that explanation/i);
+
+  // The vocabulary entry must carry the same segment-shape allowance as the
+  // source; otherwise the root doc still reads as a one-line cap.
+  const glossary = fs.readFileSync(path.join(__dirname, '..', 'GLOSSARY.md'), 'utf8');
+  expect(glossary).toMatch(/两三句短句/);
+  expect(glossary).toMatch(/「一行」/);
+  expect(glossary).toMatch(/标签之后先给命令/);
+  // The vocabulary mirrors R4's optional cause, not a per-round obligation.
+  expect(glossary).toMatch(/有值得知道的原因就说原因/);
+});
+
 test('has bias guards section', () => {
   expect(content).toContain('## Bias guards');
   expect(content).toContain('rubric');
