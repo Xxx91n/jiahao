@@ -87,24 +87,33 @@ function repoSite() {
 }
 
 // Headings are what an `#anchor` has to match. A fenced block is skipped:
-// README.md carries `# Wrote "verifier" to ...` inside a bash example.
+// README.md carries `# Wrote "verifier" to ...` inside a bash example. GitHub
+// numbers a repeated heading `x`, `x-1`, `x-2`, so the same document can link
+// to the second one.
 function headings(md) {
+  const seen = new Map();
   const found = [];
   let fenced = false;
   for (const line of md.split(/\r?\n/)) {
     if (/^[ \t]*(`{3,}|~{3,})/.test(line)) { fenced = !fenced; continue; }
     if (fenced) continue;
     const m = /^#{1,6}\s+(.*?)\s*#*\s*$/.exec(line);
-    if (m) found.push(slug(m[1]));
+    if (!m) continue;
+    const base = slug(m[1]);
+    const count = seen.get(base) || 0;
+    seen.set(base, count + 1);
+    found.push(count === 0 ? base : base + '-' + count);
   }
   return found;
 }
 
-// GitHub's anchor keeps letters and digits in any script, drops other
-// punctuation, and turns spaces into hyphens. \p{L} rather than \w so a heading
-// in README-zh-CN.md slugs instead of collapsing to an empty string.
+// Mirrors github-slugger@2 — `value.toLowerCase().replace(regex, '').replace(/
+// /g, '-')` — which is what renders anchors on github.com: letters, combining
+// marks, numbers, `-` and `_` survive (0x5F is not in the removal ranges),
+// other punctuation is dropped, and every single space becomes one hyphen, so
+// two spaces give two hyphens rather than collapsing into one.
 function slug(text) {
-  return text.toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu, '').replace(/\s+/g, '-');
+  return text.toLowerCase().replace(/[^\p{L}\p{M}\p{N} _-]/gu, '').replace(/ /g, '-');
 }
 
 function frontmatter(md) {
@@ -430,5 +439,24 @@ describe('the guard reads an anchor in every form a page can write it', () => {
 
   test('a mention with no separator is not read as a citation', () => {
     expect(privateMentions('the private corpus stays home')).toEqual([]);
+  });
+
+  // The slug is what decides an anchor case, so its edges are pinned against
+  // the renderer GitHub uses rather than left to a comment.
+  test('a heading slugs the way github.com renders its anchor', () => {
+    expect(slug('Boundaries and limitations')).toBe('boundaries-and-limitations');
+    expect(slug('Qoder: Desktop plugin (A tier on both Desktop builds) vs IDE/CLI rules (C tier)'))
+      .toBe('qoder-desktop-plugin-a-tier-on-both-desktop-builds-vs-idecli-rules-c-tier');
+    expect(slug('v0.3.0 numbers')).toBe('v030-numbers');
+    // 0x5F is outside github-slugger's removal ranges: it survives.
+    expect(slug('snake_case heading')).toBe('snake_case-heading');
+    // One hyphen per space; runs are not collapsed.
+    expect(slug('two  spaces')).toBe('two--spaces');
+    // Combining marks (\p{M}) are kept, so a decomposed accent does not vanish.
+    expect(slug('e\u0301 combining')).toBe('e\u0301-combining');
+  });
+
+  test('a repeated heading is numbered the way GitHub numbers it', () => {
+    expect(headings('# Setup\n\n## Usage\n\n## Setup')).toEqual(['setup', 'usage', 'setup-1']);
   });
 });
