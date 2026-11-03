@@ -15,7 +15,7 @@ Two templates:
 - **Bug report** — the installer, a hook, the gate that blocks turn end, or an adapter bundle does not do what the README says.
 - **Reproduction does not match** — you ran something and got a different number or result than the one we published.
 
-A report we can act on has: the command pasted exactly, the real output pasted, the exit code, the host and its version, and which install path you used. Paraphrased output is not evidence. If you did not run it, write that instead of a guess.
+A report we can act on has: the command pasted exactly, the real output pasted, the exit code, the install path you used, and the host and its version when the report is about a host. Paraphrased output is not evidence. If you did not run it, write that instead of a guess.
 
 ## Making a change
 

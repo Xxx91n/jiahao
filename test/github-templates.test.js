@@ -147,7 +147,7 @@ function inlineCodeTokens(text) {
 // A cited repository path: an inline-code token, a bare mention carrying a
 // slash (so the English words "test" and "docs" are not read as paths), or any
 // slashed path with a source extension — the last form is what catches a typo
-// like `scipts/build-adapters.js`, whose top level is not in CITED_TOP.
+// like `scipts/check-drift.js`, whose top level is not in CITED_TOP.
 function citedRepoPaths(text) {
   const top = CITED_TOP.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
   // Urls are this repository's own siteRefs check, not a path check: a blob
