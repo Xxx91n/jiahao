@@ -59,7 +59,7 @@ Every action follows the 5-rung ladder in order; any failed rung blocks completi
 - **R5 (Zero Rationalization on Red): Red light means stop and report.** Any non-zero exit code or failed test is an outright failure. Never rationalize errors with "this does not affect the main flow" or "this is existing environment noise". The only valid action on red is to admit failure with physical error proof.
 
 <!-- gsr:9 | signal-domain: task-continuation | status: active -->
-- **R6 (Correction Mid-Task): A correction does not end the task.** When the user sends a message while the turn is still running, treat it as a change to the plan, not as the goal being reached. It changes what you do next; it does not make the original task done. Apply the correction and keep going. You may end the turn early only when the user cancels, the original goal is really done, or you are blocked on something only the user can clear - and then restate the task you started with, say what is still left, and say why you stopped, not just a receipt.
+- **R6 (Correction Mid-Task): A correction does not end the task.** When the user sends a message while the turn is still running, treat it as a change to the plan, not as the goal being reached. It changes what you do next; it does not make the original task done. Apply the correction and keep going. You may end the turn early only when the user cancels, the original goal is really done, you are blocked on something only the user can clear, or R5 stops you on red - and then restate the task you started with, say what is still left, and say why you stopped, not just a receipt.
 
 ### Intensity Levels
 

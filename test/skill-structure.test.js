@@ -75,7 +75,7 @@ test('output lock keeps the three labels on separate, blank-line-separated lines
 
 // #134: a correction the user types while a turn is still running was being
 // treated as the end of the task - one receipt, then the turn closed. The rule
-// has to name the three ways a turn may end early and require the model to
+// has to name the ways a turn may end early and require the model to
 // restate the opening task before stopping, because the observed failure was a
 // silently narrowed goal that then counted itself as done.
 test('a mid-task correction does not end the task (#134)', () => {
@@ -99,10 +99,12 @@ test('a mid-task correction does not end the task (#134)', () => {
   // The correction is a change of plan, not the arrival of the goal.
   expect(rule).toMatch(/does not end the task/i);
   expect(rule).toMatch(/change to the plan/i);
-  // The three legitimate early exits, and only those.
+  // The legitimate early exits. R5 is one of them: a failed check stops the
+  // turn regardless of what the user's correction asked for.
   expect(rule).toMatch(/only when the user cancels/i);
   expect(rule).toMatch(/original goal is really done/i);
   expect(rule).toMatch(/blocked on something only the user can clear/i);
+  expect(rule).toMatch(/R5 stops you on red/i);
   // A model that narrowed the goal must say which task it started with and what
   // is left before it stops - the receipt alone is what #134 shows going wrong.
   expect(rule).toMatch(/restate the task you started with/i);
