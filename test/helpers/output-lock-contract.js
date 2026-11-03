@@ -7,6 +7,6 @@
 const TEMPLATE =
   '[以上运行后的结论] `one sentence stating what this round of runs actually completed`\n\n' +
   '[电脑内的证据] `the exact command you ran on this machine, the exit code it really returned, and what its output showed`\n\n' +
-  '[没做完的风险漏洞] `name what is still unverified and where it can still break, or 无`';
+  '[没做完的风险漏洞] `the part you did not finish: still unverified, or a defect already found and not fixed (or "无")`';
 
 module.exports = { TEMPLATE };
