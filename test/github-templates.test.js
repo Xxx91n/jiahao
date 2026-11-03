@@ -13,11 +13,14 @@
 // paths, link anchors, npm run scripts, frontmatter keys and labels those pages
 // name, and fail on the first one that does not land.
 //
-// Two checks are narrower than the defect, and are named instead of hidden:
+// Three checks are narrower than the defect, and are named instead of hidden:
 // whether a label exists on the tracker cannot be read offline, so labels are
 // matched against GitHub's default set plus the table in
 // docs/agents/triage-labels.md; `npm install` and `npm ci` are npm built-ins
-// rather than package scripts, so only `npm run <name>` is resolved.
+// rather than package scripts, so only `npm run <name>` is resolved; and a bare
+// file name without a slash is checked only when it is a root document or a
+// term on the RETIRED list, because `gates.json` on its own reads as ordinary
+// text and a blanket rule would flag half the English language.
 
 const fs = require('fs');
 const path = require('path');
@@ -242,7 +245,11 @@ describe('.github contribution pages name things that exist', () => {
     ]));
     expect(pages.filter((rel) => rel.includes('workflows'))).toEqual([]);
     const cited = pages.reduce((n, rel) => n + citedRepoPaths(texts.get(rel)).length, 0);
-    const refs = pages.reduce((n, rel) => n + siteRefs(texts.get(rel)).length, 0);
+    // Only refs this case can actually resolve: counting the unresolved ones
+    // would let a page full of /releases urls keep this assertion green while
+    // nothing downstream checks anything.
+    const refs = pages.reduce(
+      (n, rel) => n + siteRefs(texts.get(rel)).filter((r) => r.kind === 'resolved').length, 0);
     expect(cited).toBeGreaterThan(0);
     expect(refs).toBeGreaterThan(0);
     expect(triageLabels().length).toBe(5);
@@ -323,16 +330,15 @@ describe('.github contribution pages name things that exist', () => {
   test('issue templates only ask for labels this tracker has', () => {
     const real = GITHUB_DEFAULT_LABELS.concat(triageLabels());
     const bad = [];
-    let parsed = 0;
     for (const rel of issueTemplates) {
       const lines = frontmatter(texts.get(rel));
       if (!lines) continue;
       const labels = fmLabels(lines);
-      parsed += labels.length;
+      // Per template, not per sum: a parse that returns nothing for one
+      // template must not be masked by another declaring two labels.
+      if (!labels.length) bad.push(rel + ' -> no label parsed');
       for (const label of labels) if (!real.includes(label)) bad.push(rel + ' -> ' + label);
     }
-    // A parse that returns nothing would leave the loop above to pass empty.
-    expect(parsed).toBe(issueTemplates.length);
     expect(bad).toEqual([]);
   });
 
