@@ -14,6 +14,8 @@ const {
   SKILLS_CLI_VERSION,
   SKILLS_CLI_PACKAGE,
   EXPECTED_INSTALL_FILES,
+  SKILLS_CLI_MIN_NODE,
+  versionGte,
   stripAnsi,
   parseSkillsList,
   auditInstalledFiles,
@@ -26,6 +28,20 @@ describe('external tool pins', () => {
     // The package spec the gate hands to npm exec must be the same pin, or
     // "pinned" is a comment rather than a fact.
     expect(SKILLS_CLI_PACKAGE).toBe('skills@' + SKILLS_CLI_VERSION);
+  });
+});
+
+describe('node floor for the pinned CLI', () => {
+  test('skills@1.7.4 engines floor is a numeric comparison, not string order', () => {
+    expect(SKILLS_CLI_MIN_NODE).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(versionGte('22.20.0', SKILLS_CLI_MIN_NODE)).toBe(true);
+    expect(versionGte('v22.20.1', SKILLS_CLI_MIN_NODE)).toBe(true);
+    expect(versionGte('24.0.0', SKILLS_CLI_MIN_NODE)).toBe(true);
+    // String order would call 22.9 above 22.20; the whole point of the
+    // helper is that it must not.
+    expect(versionGte('22.9.0', SKILLS_CLI_MIN_NODE)).toBe(false);
+    expect(versionGte('20.20.2', SKILLS_CLI_MIN_NODE)).toBe(false);
+    expect(versionGte('not-a-version', SKILLS_CLI_MIN_NODE)).toBe(false);
   });
 });
 

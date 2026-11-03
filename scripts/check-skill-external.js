@@ -50,6 +50,12 @@ const SKILL_NAME = 'jiahao';
 const SKILLS_REF_VERSION = '0.1.1';
 const SKILLS_CLI_VERSION = '1.7.4';
 const SKILLS_CLI_PACKAGE = 'skills@' + SKILLS_CLI_VERSION;
+// skills@1.7.4 declares engines node >=22.20.0 (it imports fs/promises
+// glob), while this repo's own suite is proven on node 20. The install half
+// therefore runs under a >=22.20 node: the current one when it qualifies,
+// else the binary JIAHAO_SKILLS_NODE points at (CI installs node 22 first,
+// records its path, then lets node 20 win PATH), else it fails closed.
+const SKILLS_CLI_MIN_NODE = '22.20.0';
 
 // A project-level `skills add --agent claude-code --copy` leaves exactly the
 // skill file and the CLI's own lockfile (#67 evidence). Anything else in the
@@ -78,6 +84,22 @@ function parseSkillsList(text) {
     hasJiahao: new RegExp('\\b' + SKILL_NAME + '\\b').test(cleaned),
     cleaned: cleaned,
   };
+}
+
+// Numeric x.y.z comparison for the node floor above. Unparseable input is
+// "below" - the caller fails closed on a version it cannot read.
+function versionGte(version, min) {
+  const parse = (s) => {
+    const parts = String(s).replace(/^v/, '').split('.').map(p => Number(p));
+    return parts.length === 3 && parts.every(n => Number.isInteger(n) && n >= 0) ? parts : null;
+  };
+  const a = parse(version);
+  const b = parse(min);
+  if (!a || !b) return false;
+  for (let i = 0; i < 3; i++) {
+    if (a[i] !== b[i]) return a[i] > b[i];
+  }
+  return true;
 }
 
 // landed files (posix-relative, under the temp project) vs the contract.
@@ -228,7 +250,46 @@ function skillsCli(args, cwd) {
     { cwd: cwd, timeout: 300000 });
 }
 
+// Re-run only the install half under the node binary JIAHAO_SKILLS_NODE
+// names. The child's PATH starts with that binary's directory, so the
+// skills bin's `env node` shebang resolves to the same >=22.20 node, not
+// back to the outer one. The variable is cleared for the child: its node
+// already satisfies the floor, and a stale value must not loop.
+function rerunInstallUnderPinnedNode() {
+  const alt = process.env.JIAHAO_SKILLS_NODE;
+  if (!alt) {
+    throw new Error(SKILLS_CLI_PACKAGE + ' needs node >= ' + SKILLS_CLI_MIN_NODE +
+      ' (its engines; it imports fs/promises glob) but this check runs on node v' +
+      process.versions.node + '. Re-run under node >= ' + SKILLS_CLI_MIN_NODE +
+      ', or set JIAHAO_SKILLS_NODE to such a node binary and the install half re-runs under it. ' +
+      'Failing closed (#67: never skip silently).');
+  }
+  const probe = spawnSync(alt, ['--version'], { encoding: 'utf8', timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'] });
+  if (probe.error || probe.status !== 0) {
+    throw new Error('JIAHAO_SKILLS_NODE=' + alt + ' did not answer --version (' +
+      (probe.error ? probe.error.message : 'exit ' + probe.status) + '); failing closed.');
+  }
+  const altVersion = probe.stdout.trim().replace(/^v/, '');
+  if (!versionGte(altVersion, SKILLS_CLI_MIN_NODE)) {
+    throw new Error('JIAHAO_SKILLS_NODE=' + alt + ' is node v' + altVersion + ', below the >= ' +
+      SKILLS_CLI_MIN_NODE + ' that ' + SKILLS_CLI_PACKAGE + ' needs; failing closed.');
+  }
+  const env = Object.assign({}, process.env, {
+    PATH: path.dirname(alt) + path.delimiter + (process.env.PATH || ''),
+  });
+  delete env.JIAHAO_SKILLS_NODE;
+  const res = run(alt, [__filename, 'install'], { env: env, timeout: 600000 });
+  if (res.status !== 0) {
+    throw new Error('install half under node v' + altVersion + ' (' + alt + ') failed:\n' +
+      tail(res.stderr || res.stdout));
+  }
+  return res.stdout.trim();
+}
+
 function checkInstall() {
+  if (!versionGte(process.versions.node, SKILLS_CLI_MIN_NODE)) {
+    return rerunInstallUnderPinnedNode();
+  }
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-skills-install-'));
   try {
     const list = skillsCli(['add', root, '--list'], tmp);
@@ -305,6 +366,8 @@ module.exports = {
   SKILLS_CLI_VERSION,
   SKILLS_CLI_PACKAGE,
   EXPECTED_INSTALL_FILES,
+  SKILLS_CLI_MIN_NODE,
+  versionGte,
   stripAnsi,
   parseSkillsList,
   auditInstalledFiles,

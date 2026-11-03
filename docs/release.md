@@ -122,7 +122,7 @@ cd /tmp/jiahao-clean && npm ci
 npm run release:gate -- --tag v0.3.0
 ```
 
-复跑需要 `python3`（含 `pip`）在 `PATH` 上且能联网：`skill-spec` / `skill-install` 两步每次把固定版本的 `skills-ref`（PyPI）与 `skills`（npm）现装到临时目录再下结论，缺 Python 或离线都会红并说明原因，不会静默跳过（#67）。这两条在分支 CI 上也以 `npm run check:skill` 同一份代码跑，规范漂移在 PR 上就变红，不等到打 tag。
+复跑需要 `python3`（含 `pip`）在 `PATH` 上且能联网：`skill-spec` / `skill-install` 两步每次把固定版本的 `skills-ref`（PyPI）与 `skills`（npm）现装到临时目录再下结论，缺 Python 或离线都会红并说明原因，不会静默跳过（#67）。另注意 `skills@1.7.4` 本身要求 Node >= 22.20（engines），而本仓基线是 Node 20：`skill-install` 在 Node < 22.20 时会经环境变量 `JIAHAO_SKILLS_NODE` 指向的 Node 22+ 二进制重跑自己（CI 两个 job 都先装 Node 22 记路径、再装回 Node 20 给其余步骤），两者都没有则直接红并说明。这两条在分支 CI 上也以 `npm run check:skill` 同一份代码跑，规范漂移在 PR 上就变红，不等到打 tag。
 
 对账点：`RELEASE GATE GREEN` 那行、`sha256`、各出口目录的 tree 哈希，应与发布时记录的值逐字相同。
 
