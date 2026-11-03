@@ -1,7 +1,7 @@
 'use strict';
 // test/capability.test.js - #145: capability gates must not read docs/gates.json.
 //
-// Commit de43cd7d (the ADR-0105 purge) deleted that registry, but
+// Commit de43cd7d deleted that registry, but
 // requireCapabilities still resolved every gate name through it, so a public
 // clone crashed with ENOENT before a capability could be probed. The cases
 // below pin the two behaviours that replace the lookup: a declared
