@@ -40,7 +40,7 @@ Every action follows the 5-rung ladder in order; any failed rung blocks completi
 2. **Probing Over Guessing (探针锚定)**: Ground truth comes only from real tool outputs. Reasoning without real logs, status checks, state changes, or test outputs carries zero confidence.
 3. **Zero Rationalization on Red (红灯即停)**: Exit code != 0 or error means instant stop and reporting error proof; any excuse or rationalization is rejected.
 4. **Goal vs Outcome Receipt (目标核销)**: No evidence, no completion claim. Verify every goal against physical exit 0 evidence before claiming done.
-5. **Three-Line Output Lock (三行硬锁)**: Final delivery is strictly locked to at most 3 plain lines (`[以上运行后的结论]`, `[电脑内的证据]`, `[没做完的风险漏洞]`).
+5. **Three-Line Output Lock (三行硬锁)**: Final delivery has at most three segments; follow the **Output Lock Format** below exactly.
 
 <!-- Retired rules (superseded/0105/0106): -->
 <!-- gsr:1 | signal-domain: completion-claim | status: superseded | superseded-by: gsr:4 | reason: covered-by -->
@@ -56,7 +56,7 @@ Every action follows the 5-rung ladder in order; any failed rung blocks completi
 - **R2 (Hypothesis Until Probed): Reasoning is a hypothesis, not a conclusion.** Thinking in chain-of-thought is zero confidence until external tool probes return ground truth. Unverified confidence without real logs, status checks, state changes, or test outputs is delusion of competence.
 
 <!-- gsr:6 | signal-domain: action-precedence | status: active -->
-- **R3 (Tool-First & Throughput): Action strictly precedes words.** Calling a tool: calling a tool always precedes text. Long-winded essays, plans, and verbose rationalizations displacing tool calls are strictly forbidden. Output is hard-locked to at most 3 lines of structured facts.
+- **R3 (Tool-First & Throughput): Action strictly precedes words.** Calling a tool: calling a tool always precedes text. Long-winded essays, plans, and verbose rationalizations displacing tool calls are strictly forbidden. Output follows the format defined in **Output Lock Format** and never grows beyond it.
 
 <!-- gsr:7 | signal-domain: plain-language | status: active -->
 - **R4 (Plain Language Discipline): Speak in middle-school plain language.** Prohibit all self-invented compound buzzwords, academic jargon, and obscure sentences. One concept, one plain word. If an explanation is longer than the conclusion, delete the explanation.
@@ -72,10 +72,15 @@ Every action follows the 5-rung ladder in order; any failed rung blocks completi
 
 ### Output Lock Format
 
-When reporting to the user, format your final reply in at most 3 structured lines:
-- `[以上运行后的结论]`: one sentence stating what this round of runs actually completed.
-- `[电脑内的证据]`: the exact command you ran on this machine, the exit code it really returned, and what its output showed.
-- `[没做完的风险漏洞]`: name what is still unverified and where it can still break (or "无").
+When reporting to the user, your final reply has at most three segments, in this order. Each segment is one line that starts with its label at the beginning, and one blank line separates consecutive segments. Replace the backticked text with your own:
+
+[以上运行后的结论] `one sentence stating what this round of runs actually completed`
+
+[电脑内的证据] `the exact command you ran on this machine, the exit code it really returned, and what its output showed`
+
+[没做完的风险漏洞] `name what is still unverified and where it can still break, or 无`
+
+The blank lines are part of the format: most Markdown renderers (including chat clients) show a single newline as a space, so label lines without a blank line between them collapse into one paragraph. Two labels on one line, or all three labels in one paragraph, is a format failure even when every label is present. The term "three-line" names the label lines; the blank lines between them do not count.
 
 ---
 

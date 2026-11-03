@@ -76,6 +76,39 @@ test('the rules-version skill carries both profiles', () => {
   expect(content).toContain('## Boundaries');
 });
 
+test('every shipped generator-rule and skill copy carries the separated output-lock format (#135)', () => {
+  const { TEMPLATE } = require('./helpers/output-lock-contract');
+  const { HOSTS, SKILL_DIR, isRulesOnlyDirectory, buildAdapters } = require('../scripts/build-adapters');
+  const generated = buildAdapters();
+
+  // Rule keys are matched by declared file name; the directory prefix stays
+  // whatever the generator emits. Counts are paired with the host table so a
+  // host that stops emitting a copy cannot shrink coverage silently.
+  const declaredGeneratorRules = HOSTS.flatMap((host) =>
+    host.rules.filter((rule) => rule.profile === 'generator' || rule.profile === 'both')
+      .map((rule) => rule.file));
+  const generatorRuleFiles = new Set(declaredGeneratorRules);
+  const shippedGeneratorRules = Object.keys(generated).filter((rel) => {
+    const match = /\/rules\/([^/]+\.md)$/.exec(rel);
+    return match !== null && generatorRuleFiles.has(match[1]);
+  });
+  const expectedFullSkills = [SKILL_DIR + '/SKILL.md'].concat(
+    HOSTS.filter((host) => !isRulesOnlyDirectory(host)).map((host) => host.dir + '/src/SKILL.md'));
+  const fullSkills = Object.keys(generated).filter((rel) => expectedFullSkills.includes(rel));
+  // Both halves are asserted separately: a profile rename that empties the
+  // rule list must not hide behind the full-skill copies going green.
+  expect(declaredGeneratorRules.length).toBeGreaterThan(0);
+  expect(expectedFullSkills.length).toBeGreaterThan(0);
+  expect(shippedGeneratorRules).toHaveLength(declaredGeneratorRules.length);
+  expect(fullSkills).toHaveLength(expectedFullSkills.length);
+
+  // The blank line is the load-bearing part: without it Markdown joins the
+  // three labels into one paragraph, which is the bug #135 reports.
+  for (const rel of shippedGeneratorRules.concat(fullSkills)) {
+    expect(generated[rel]).toContain(TEMPLATE);
+  }
+});
+
 test('retired adapters are neither emitted nor present', () => {
   const { buildAdapters, RETIRED_HOSTS, HOSTS } = require('../scripts/build-adapters');
   const emitted = Object.keys(buildAdapters());

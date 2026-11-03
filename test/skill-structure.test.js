@@ -41,6 +41,38 @@ test('has output format with verdict pattern', () => {
   expect(content).toContain('verdict');
 });
 
+test('output lock keeps the three labels on separate, blank-line-separated lines (#135)', () => {
+  const { TEMPLATE } = require('./helpers/output-lock-contract');
+  const start = content.indexOf('### Output Lock Format');
+  expect(start).toBeGreaterThanOrEqual(0);
+  const end = content.indexOf('## Verifier Profile');
+  expect(end).toBeGreaterThan(start);
+  const section = content.slice(start, end);
+
+  // The template pins the blank line between sections: a single newline is
+  // rendered as a space by Markdown, which is how the three labels collapsed
+  // into one paragraph (#135).
+  expect(section).toContain(TEMPLATE);
+  expect(section).toMatch(/blank line/i);
+  expect(section).toMatch(/format failure/i);
+  expect(section).toMatch(/Each segment is one line/i);
+  // Angle brackets are parsed as an HTML tag by GFM, which drops the segment
+  // body from the rendered example - the very failure #135 reports.
+  expect(TEMPLATE).not.toContain('<');
+  // No line of the contract may itself demonstrate the merged shape: every
+  // adjacent label pair is checked, not just the first one.
+  const labels = ['[以上运行后的结论]', '[电脑内的证据]', '[没做完的风险漏洞]'];
+  const labelsOn = (line) => labels.filter((label) => line.includes(label)).length;
+  expect(section.split('\n').every((line) => labelsOn(line) < 2)).toBe(true);
+
+  // Rung 5 is where the original wording lived; it has to keep pointing at the
+  // detailed format and preserve the at-most-three ceiling.
+  const rung = content.split('\n').find((line) => line.startsWith('5. **Three-Line Output Lock'));
+  expect(rung).toBeDefined();
+  expect(rung).toContain('Output Lock Format');
+  expect(rung).toMatch(/at most three segments/i);
+});
+
 test('has bias guards section', () => {
   expect(content).toContain('## Bias guards');
   expect(content).toContain('rubric');
@@ -54,22 +86,18 @@ test('has intensity levels', () => {
 });
 
 test('three-line output lock labels are the plain-word ones, in ticket order', () => {
-  const spots = [['### Output Lock Format', '\n## '], ['5. **Three-Line Output Lock', '\n']]
-    .map(([heading, endMark]) => {
-      const start = content.indexOf(heading);
-      const end = content.indexOf(endMark, start + 1);
-      expect(start).toBeGreaterThan(-1);
-      expect(end).toBeGreaterThan(start);
-      return content.slice(start, end);
-    });
+  const start = content.indexOf('### Output Lock Format');
+  const end = content.indexOf('\n## ', start + 1);
+  expect(start).toBeGreaterThan(-1);
+  expect(end).toBeGreaterThan(start);
+  const section = content.slice(start, end);
   const live = ['[以上运行后的结论]', '[电脑内的证据]', '[没做完的风险漏洞]'];
   const retired = ['[行动结论]', '[机器凭证]', '[残留风险]'];
-  // 标签在源里出现两处：阶梯第 5 级与格式段，只钉一处另一处可以随便写错。
-  spots.forEach(spot => {
-    live.forEach(label => expect(spot).toContain(label));
-    const at = live.map(label => spot.indexOf(label));
-    expect(at).toEqual([...at].sort((a, b) => a - b));
-  });
+  // #135 把阶梯第 5 级改成指向本段的指针，标签只在格式段出现一处；
+  // 上一轮「两处都钉」的前提由那次重构取消，缺席断言仍管全文。
+  live.forEach(label => expect(section).toContain(label));
+  const at = live.map(label => section.indexOf(label));
+  expect(at).toEqual([...at].sort((a, b) => a - b));
   retired.forEach(label => expect(content).not.toContain(label));
 });
 
