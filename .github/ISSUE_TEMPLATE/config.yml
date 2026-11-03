@@ -1,10 +1,8 @@
-# Carve-out disclosure (grill-t23 D-007): this file is part of
-# the declared .github/ front-face carve-out — necessity: issue-template
-# contact links route reporters to the ADR index and the measurement record
-# instead of opening void issues; disclosure: this comment + the round
-# report's carve-out section + the trend row's governance_tooling_diff.
 blank_issues_enabled: true
 contact_links:
-  - name: Measurement record
-    url: https://github.com/Xxx91n/jiahao#measurement-record
-    about: The adjudicated verdicts and the reproduction invitation live in the README.
+  - name: Known limits
+    url: https://github.com/Xxx91n/jiahao#boundaries-and-limitations
+    about: What this project does not promise, written down before you file.
+  - name: What we call verified
+    url: https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md
+    about: The checklist a piece of evidence gets reviewed against.
