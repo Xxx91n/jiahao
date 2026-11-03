@@ -53,6 +53,13 @@ test('has intensity levels', () => {
   expect(content).toContain('ultra');
 });
 
+test('three-line output lock uses the plain-word labels', () => {
+  const live = ['[以上运行后的结论]', '[电脑内的证据]', '[没做完的风险漏洞]'];
+  const retired = ['[行动结论]', '[机器凭证]', '[残留风险]'];
+  live.forEach(label => expect(content).toContain(label));
+  retired.forEach(label => expect(content).not.toContain(label));
+});
+
 test('has boundaries section', () => {
   expect(content).toContain('## Boundaries');
   expect(content).toContain('Self-validation provides coherence evidence only, not independence evidence');

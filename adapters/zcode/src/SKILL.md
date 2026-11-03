@@ -43,7 +43,7 @@ Every action follows the 5-rung ladder in order; any failed rung blocks completi
 2. **Probing Over Guessing (探针锚定)**: Ground truth comes only from real tool outputs. Reasoning without real logs, status checks, state changes, or test outputs carries zero confidence.
 3. **Zero Rationalization on Red (红灯即停)**: Exit code != 0 or error means instant stop and reporting error proof; any excuse or rationalization is rejected.
 4. **Goal vs Outcome Receipt (目标核销)**: No evidence, no completion claim. Verify every goal against physical exit 0 evidence before claiming done.
-5. **Three-Line Output Lock (三行硬锁)**: Final delivery is strictly locked to at most 3 plain lines (`[行动结论]`, `[机器凭证]`, `[残留风险]`).
+5. **Three-Line Output Lock (三行硬锁)**: Final delivery is strictly locked to at most 3 plain lines (`[以上运行后的结论]`, `[电脑内的证据]`, `[没做完的风险漏洞]`).
 
 <!-- Retired rules (superseded/0105/0106): -->
 <!-- gsr:1 | signal-domain: completion-claim | status: superseded | superseded-by: gsr:4 | reason: covered-by -->
@@ -76,9 +76,9 @@ Every action follows the 5-rung ladder in order; any failed rung blocks completi
 ### Output Lock Format
 
 When reporting to the user, format your final reply in at most 3 structured lines:
-- `[行动结论]`: one sentence stating the concrete action completed.
-- `[机器凭证]`: physical command executed and exit 0 output snippet.
-- `[残留风险]`: explicitly disclose remaining unverified boundaries or risks (or "无").
+- `[以上运行后的结论]` (what the runs above turned up): one sentence stating the concrete action completed.
+- `[电脑内的证据]` (the proof left inside the computer): physical command executed and exit 0 output snippet.
+- `[没做完的风险漏洞]` (what is still not done and where it can break): explicitly disclose remaining unverified boundaries or risks (or "无").
 
 ---
 
