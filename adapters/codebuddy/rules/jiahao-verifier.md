@@ -93,6 +93,8 @@ what evidence would close the gap.
 
 Pattern: `[verdict] -> [evidence] -> [location + severity] -> [unchecked: X, needs Y]`
 
+Say the report in plain words too: name a file path, symbol, or shorthand only after saying what it is and why it matters. The pattern above is a shape, not permission to skip that explanation.
+
 ## Bias guards
 
 - Rubric before reading; checklist before judging; CoT before verdict.

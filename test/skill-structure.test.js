@@ -121,8 +121,8 @@ test('a mid-task correction does not end the task (#134)', () => {
 // numbers, internal labels - as if the name were the explanation, and the user
 // had to ask for plain words. R4 has to cover every user-facing message, allow
 // the evidence segment to lead with its command, and still demand the
-// plain-words meaning; the output format must say the labels are not a
-// substitute for that explanation.
+// plain-words meaning; the output format and the verifier report must say the
+// names are not a substitute for that explanation.
 test('plain words explain machine names instead of replacing them (#138)', () => {
   const { TEMPLATE } = require('./helpers/output-lock-contract');
   const start = content.indexOf('### Surface Signal Rules');
@@ -136,19 +136,19 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   const rule = lines[ruleAt];
 
   // The rule is not confined to the final report; narration between tool calls
-  // is where #138's longest jargon sentence lives.
-  expect(rule).toMatch(/every user-facing message/i);
+  // is where #138's longest jargon sentence lives. "you send" keeps it from
+  // authorizing extra prose that rung 1 and R3 still forbid.
+  expect(rule).toMatch(/every user-facing message you send/i);
   expect(rule).toMatch(/including narration between tool calls/i);
   // A name may never stand in for the plain-words meaning.
-  expect(rule).toMatch(/give the plain-words meaning of every name/i);
-  expect(rule).toMatch(/never let a file path, symbol, ticket number, or internal shorthand stand in for it/i);
+  expect(rule).toMatch(/never let a file path, symbol, ticket number, or internal shorthand stand in for the plain-words meaning/i);
   expect(rule).toMatch(/a name is never the explanation/i);
   // The conclusion leads with plain words; the evidence may lead with the
   // command, but the explanation of what it proves must follow. This is the
   // arbitration that keeps R4 from colliding with the required evidence shape.
-  expect(rule).toMatch(/conclusion states the result and the reason in ordinary words/i);
+  expect(rule).toMatch(/state the result and the reason in ordinary words/i);
   expect(rule).toMatch(/evidence segment may start with the command/i);
-  expect(rule).toMatch(/must then say what it proves in plain words/i);
+  expect(rule).toMatch(/must then say what it proves/i);
   // "长难句" is a named symptom, not just obscure vocabulary.
   expect(rule).toMatch(/long, hard-to-follow sentences/i);
   // The old rule said to delete the explanation, which is the omission #138
@@ -167,18 +167,26 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
 
   // The template the model copies has to demand the plain-words meaning too,
   // not just the command and its exit code - #138's failing evidence segment.
+  // It must not say "one sentence": that wording is what produced the long,
+  // hard-to-follow sentences the ticket reports.
   const segments = TEMPLATE.split('\n\n');
   expect(segments).toHaveLength(3);
-  expect(segments[0]).toMatch(/in plain words/i);
+  expect(segments[0]).toMatch(/plain-words statement/i);
   expect(segments[0]).toMatch(/what it means/i);
+  expect(segments[0]).toMatch(/the reason/i);
+  expect(segments[0]).not.toMatch(/one sentence/i);
   expect(segments[1]).toMatch(/what that proves in plain words/i);
   expect(segments[2]).toMatch(/in plain words/i);
 
   // R4 is in the generator profile; the verifier is the absent-file default,
-  // so the shared boundary has to carry the same rule into both profiles.
+  // so the shared boundary carries the rule into both profiles, and the
+  // verifier's own Output section names the pattern it must not hide behind.
   const boundaries = content.slice(content.indexOf('## Boundaries'));
   expect(boundaries).toMatch(/Plain language is not generator-only/i);
   expect(boundaries).toMatch(/the name never replaces the explanation/i);
+  const verifier = content.slice(content.indexOf('## Verifier Profile'), content.indexOf('## Bias guards'));
+  expect(verifier).toMatch(/name a file path, symbol, or shorthand only after saying what it is and why it matters/i);
+  expect(verifier).toMatch(/not permission to skip that explanation/i);
 });
 
 test('has bias guards section', () => {
