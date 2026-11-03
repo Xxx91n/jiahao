@@ -145,6 +145,7 @@ function exitUnverifiable(gate, cap) {
  * @param {string|string[]} gate Gate label, or an inline capability array.
  * @param {{requires?: string[], root?: string, env?: object}} [opts]
  * @returns {string[]} The declared capabilities.
+ * @throws {Error} When a bare gate name declares no requirements.
  */
 function requireCapabilities(gate, opts) {
   const o = opts || {};
