@@ -144,8 +144,12 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   expect(rule).toMatch(/a name is never the explanation/i);
   // The result and why it matters are the content R4 demands.
   expect(rule).toMatch(/state the result and why it matters in ordinary words/i);
+  // The ticket's "原理": ask for the cause when there is one, without forcing
+  // the model to invent a cause for a run that simply succeeded.
+  expect(rule).toMatch(/when the result has a cause worth knowing/i);
   // "长难句" is a named symptom, not just obscure vocabulary.
   expect(rule).toMatch(/long, hard-to-follow sentences/i);
+  expect(rule).toMatch(/prohibit all self-invented/i);
   // The old rule said to delete the explanation, which is the omission #138
   // reports. Brevity must not be bought by dropping the explanation.
   expect(rule).not.toMatch(/delete the explanation/i);
@@ -175,7 +179,7 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   const segments = TEMPLATE.split('\n\n');
   expect(segments).toHaveLength(3);
   expect(segments[0]).toMatch(/plain-words statement/i);
-  expect(segments[0]).toMatch(/what it means, and why it matters/i);
+  expect(segments[0]).toMatch(/what it means, why it matters, and the cause when there is one/i);
   expect(segments[0]).not.toMatch(/one sentence/i);
   expect(segments[1]).toMatch(/what that proves in plain words/i);
   expect(segments[2]).toMatch(/in plain words/i);
@@ -196,6 +200,8 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   // source; otherwise the root doc still reads as a one-line cap.
   const glossary = fs.readFileSync(path.join(__dirname, '..', 'GLOSSARY.md'), 'utf8');
   expect(glossary).toMatch(/两三句短句/);
+  expect(glossary).toMatch(/「一行」/);
+  expect(glossary).toMatch(/标签之后先给命令/);
 });
 
 test('has bias guards section', () => {
