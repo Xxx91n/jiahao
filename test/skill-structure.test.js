@@ -119,9 +119,10 @@ test('a mid-task correction does not end the task (#134)', () => {
 
 // #138: the model kept naming machine artifacts - file paths, symbols, ticket
 // numbers, internal labels - as if the name were the explanation, and the user
-// had to ask for plain words. R4 has to require the result and the reason first
-// and a plain gloss for every name; the output format must say the labels are
-// not a substitute for that explanation.
+// had to ask for plain words. R4 has to cover every user-facing message, allow
+// the evidence segment to lead with its command, and still demand the
+// plain-words meaning; the output format must say the labels are not a
+// substitute for that explanation.
 test('plain words explain machine names instead of replacing them (#138)', () => {
   const { TEMPLATE } = require('./helpers/output-lock-contract');
   const start = content.indexOf('### Surface Signal Rules');
@@ -134,14 +135,22 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   expect(ruleAt).toBeGreaterThan(0);
   const rule = lines[ruleAt];
 
-  // R4 governs the content, not the label the segment must still start with;
-  // "internal shorthand" keeps it from colliding with the three segment labels.
-  expect(rule).toMatch(/in the content of each segment/i);
-  // The result and the reason come first; a name may follow only with a gloss.
-  expect(rule).toMatch(/result and the reason in ordinary words/i);
-  expect(rule).toMatch(/file path, symbol, ticket number, or internal shorthand/i);
-  expect(rule).toMatch(/what it is and why it matters/i);
+  // The rule is not confined to the final report; narration between tool calls
+  // is where #138's longest jargon sentence lives.
+  expect(rule).toMatch(/every user-facing message/i);
+  expect(rule).toMatch(/including narration between tool calls/i);
+  // A name may never stand in for the plain-words meaning.
+  expect(rule).toMatch(/give the plain-words meaning of every name/i);
+  expect(rule).toMatch(/never let a file path, symbol, ticket number, or internal shorthand stand in for it/i);
   expect(rule).toMatch(/a name is never the explanation/i);
+  // The conclusion leads with plain words; the evidence may lead with the
+  // command, but the explanation of what it proves must follow. This is the
+  // arbitration that keeps R4 from colliding with the required evidence shape.
+  expect(rule).toMatch(/conclusion states the result and the reason in ordinary words/i);
+  expect(rule).toMatch(/evidence segment may start with the command/i);
+  expect(rule).toMatch(/must then say what it proves in plain words/i);
+  // "长难句" is a named symptom, not just obscure vocabulary.
+  expect(rule).toMatch(/long, hard-to-follow sentences/i);
   // The old rule said to delete the explanation, which is the omission #138
   // reports. Brevity must not be bought by dropping the explanation.
   expect(rule).not.toMatch(/delete the explanation/i);
@@ -164,6 +173,12 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   expect(segments[0]).toMatch(/what it means/i);
   expect(segments[1]).toMatch(/what that proves in plain words/i);
   expect(segments[2]).toMatch(/in plain words/i);
+
+  // R4 is in the generator profile; the verifier is the absent-file default,
+  // so the shared boundary has to carry the same rule into both profiles.
+  const boundaries = content.slice(content.indexOf('## Boundaries'));
+  expect(boundaries).toMatch(/Plain language is not generator-only/i);
+  expect(boundaries).toMatch(/the name never replaces the explanation/i);
 });
 
 test('has bias guards section', () => {

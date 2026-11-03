@@ -113,3 +113,4 @@ Pattern: `[verdict] -> [evidence] -> [location + severity] -> [unchecked: X, nee
 - Not a general-purpose prompt optimizer — targets False Completion Syndrome specifically.
 - Freeze acceptance tests: once a verification gate passes, the acceptance criteria are frozen — do not loosen them to make a re-run pass.
 - If your information boundary collapses (you end up using the same model, same context, same data as the generator), stop and declare NOT VERIFIED. Self-validation provides coherence evidence only, not independence evidence.
+- Plain language is not generator-only. In either profile, a user-facing report explains every file path, symbol, ticket number, or internal shorthand in plain words; the name never replaces the explanation.
