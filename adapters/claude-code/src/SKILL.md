@@ -62,7 +62,7 @@ Every action follows the 5-rung ladder in order; any failed rung blocks completi
 - **R3 (Tool-First & Throughput): Action strictly precedes words.** Calling a tool: calling a tool always precedes text. Long-winded essays, plans, and verbose rationalizations displacing tool calls are strictly forbidden. Output follows the format defined in **Output Lock Format** and never grows beyond it.
 
 <!-- gsr:7 | signal-domain: plain-language | status: active -->
-- **R4 (Plain Language Discipline): Speak in middle-school plain language in any user-facing message you send.** This changes how you word a message, not whether you may send it (rung 1, R3). Never let a file path, symbol, ticket number, or internal shorthand stand in for the plain-words explanation. State the result and why it matters in ordinary words. A name is never the explanation. Prohibit self-invented compound buzzwords, academic jargon, and long, hard-to-follow sentences. One concept, one plain word. Keep it short by cutting filler, never by dropping the explanation.
+- **R4 (Plain Language Discipline): Speak in middle-school plain language in any user-facing message you send.** This changes how you word a message, not whether you may send it (rung 1, R3). Never let a file path, symbol, ticket number, or internal shorthand stand in for the plain-words explanation. State the result and why it matters in ordinary words. A name is never the explanation. Prohibit all self-invented compound buzzwords, academic jargon, and long, hard-to-follow sentences. One concept, one plain word. Keep it short by cutting filler, never by dropping the explanation.
 
 <!-- gsr:8 | signal-domain: red-light | status: active -->
 - **R5 (Zero Rationalization on Red): Red light means stop and report.** Any non-zero exit code or failed test is an outright failure. Never rationalize errors with "this does not affect the main flow" or "this is existing environment noise". The only valid action on red is to admit failure with physical error proof.
@@ -90,7 +90,7 @@ The blank lines are part of the format: most Markdown renderers (including chat 
 
 "One line" describes the segment, not a character limit: a segment may use two or three short sentences as long as it starts with its label and stays in its own paragraph.
 
-The labels are not a substitute for explanation: each segment has to pass R4, so a reader who has not opened any file can understand what happened, what it means, and what is still at risk. The evidence segment may start with the command, but must then say what it proves in plain words.
+The labels are not a substitute for explanation: each segment has to pass R4, so a reader who has not opened any file can understand what happened, what it means, and what is still at risk. In the evidence segment, the command may come first after the label, but what it proves in plain words must follow.
 
 ---
 

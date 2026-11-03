@@ -159,10 +159,10 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   expect(lock).toMatch(/pass R4/i);
   expect(lock).toMatch(/reader who has not opened any file/i);
   expect(lock).toMatch(/what happened, what it means, and what is still at risk/i);
-  // The evidence segment may lead with the command, but the explanation of
-  // what it proves must follow; this is where the segment definition lives.
-  expect(lock).toMatch(/evidence segment may start with the command/i);
-  expect(lock).toMatch(/must then say what it proves in plain words/i);
+  // The evidence segment still starts with its label; the command may come
+  // first after the label, but the explanation of what it proves must follow.
+  expect(lock).toMatch(/command may come first after the label/i);
+  expect(lock).toMatch(/what it proves in plain words must follow/i);
   // "One line" is the segment shape, not a character limit; the clarification
   // is what lets the model use short sentences instead of a run-on line.
   expect(lock).toMatch(/not a character limit/i);
