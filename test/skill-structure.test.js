@@ -41,6 +41,38 @@ test('has output format with verdict pattern', () => {
   expect(content).toContain('verdict');
 });
 
+test('output lock keeps the three labels on separate, blank-line-separated lines (#135)', () => {
+  const { TEMPLATE } = require('./helpers/output-lock-contract');
+  const start = content.indexOf('### Output Lock Format');
+  expect(start).toBeGreaterThanOrEqual(0);
+  const end = content.indexOf('## Verifier Profile');
+  expect(end).toBeGreaterThan(start);
+  const section = content.slice(start, end);
+
+  // The template pins the blank line between sections: a single newline is
+  // rendered as a space by Markdown, which is how the three labels collapsed
+  // into one paragraph (#135).
+  expect(section).toContain(TEMPLATE);
+  expect(section).toMatch(/blank line/i);
+  expect(section).toMatch(/format failure/i);
+  expect(section).toMatch(/Each segment is one line/i);
+  // Angle brackets are parsed as an HTML tag by GFM, which drops the segment
+  // body from the rendered example - the very failure #135 reports.
+  expect(TEMPLATE).not.toContain('<');
+  // No line of the contract may itself demonstrate the merged shape: every
+  // adjacent label pair is checked, not just the first one.
+  const labels = ['[行动结论]', '[机器凭证]', '[残留风险]'];
+  const labelsOn = (line) => labels.filter((label) => line.includes(label)).length;
+  expect(section.split('\n').every((line) => labelsOn(line) < 2)).toBe(true);
+
+  // Rung 5 is where the original wording lived; it has to keep pointing at the
+  // detailed format and preserve the at-most-three ceiling.
+  const rung = content.split('\n').find((line) => line.startsWith('5. **Three-Line Output Lock'));
+  expect(rung).toBeDefined();
+  expect(rung).toContain('Output Lock Format');
+  expect(rung).toMatch(/at most three segments/i);
+});
+
 test('has bias guards section', () => {
   expect(content).toContain('## Bias guards');
   expect(content).toContain('rubric');
