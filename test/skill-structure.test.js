@@ -202,6 +202,8 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   expect(glossary).toMatch(/两三句短句/);
   expect(glossary).toMatch(/「一行」/);
   expect(glossary).toMatch(/标签之后先给命令/);
+  // The vocabulary mirrors R4's optional cause, not a per-round obligation.
+  expect(glossary).toMatch(/有值得知道的原因就说原因/);
 });
 
 test('has bias guards section', () => {
