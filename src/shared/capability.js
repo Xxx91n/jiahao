@@ -32,7 +32,7 @@ const CAPABILITIES = ['repo-tree', 'bench-corpus', 'docs-adr', 'ci-mode', 'trans
 const HINTS = {
   'repo-tree': 'a git worktree is expected (.git missing at the tree root); gates run from the repo or a full checkout, not from the npm tarball',
   'bench-corpus': 'the bench corpus is a maintainer/CI asset and is not distributed in the npm package or a public git clone; set JIAHAO_CORPUS_DIR if you legitimately hold it',
-  'docs-adr': 'docs/adr/ lives in the git tree and is deliberately absent from the npm tarball; run from a git checkout',
+  'docs-adr': 'docs/adr/ is not present in the public repository; this capability is unavailable in a public checkout',
   'ci-mode': 'a CI environment is expected (GITHUB_ACTIONS or CI env var non-empty)',
   'old-side-refs': 'the gb-local/* pre-rewrite refs exist only on the maintainer object store and never publish; on a public clone the clone-verifiable subset is node scripts/build-rewrite-map.js --published-only',
   'transcript-file': 'the host delivers a transcript file; for script-level consumers declare it explicitly via JIAHAO_TRANSCRIPT_FILE=<path-to-existing-file> — per-event hook delivery (transcript_path on the stop-family stdin) and per-host reachability are recorded in the host-contract registry',
@@ -82,7 +82,9 @@ function probe(name, opts) {
         || corpusTierPresent(path.join(configDir(env), 'private', 'bench-corpus'))
         || corpusTierPresent(path.join(root, 'private', 'bench-corpus'));
     case 'docs-adr':
-      return fs.existsSync(path.join(root, 'docs', 'adr'));
+      // The public repository has no docs/adr/ tree; keep this capability
+      // unavailable rather than treating a local directory as evidence.
+      return false;
     case 'ci-mode':
       return Boolean(env.GITHUB_ACTIONS || env.CI);
     case 'old-side-refs':
