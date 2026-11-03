@@ -53,7 +53,7 @@ test('has intensity levels', () => {
   expect(content).toContain('ultra');
 });
 
-test('three-line output lock uses the plain-word labels', () => {
+test('three-line output lock labels are the plain-word ones, in ticket order', () => {
   const spots = [['### Output Lock Format', '\n## '], ['5. **Three-Line Output Lock', '\n']]
     .map(([heading, endMark]) => {
       const start = content.indexOf(heading);
