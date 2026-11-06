@@ -776,12 +776,16 @@ test('#124: claimsCompletion arbitrates claims without under-blocking', () => {
     '任务完成，已验证，not flaky。', // unrelated negation does not suppress
     'All tests pass; this is not a flaky suite.',
     'The build is done — not blocked by the proxy.',
+    'The build is done - not blocked by the proxy.', // plain hyphen asides split too
     'The change is done but not tested.', // the claim side is still a claim
     'The fix works as expected.',
+    'Everything works as intended.',
     '全部验证通过',
     '测试通过',
     '测试已通过。',
     '测试已经通过。',
+    '验证均已通过。',
+    '检查都通过了。',
     '单测全部通过。',
     '回归测试已通过。',
     '构建已通过。',
@@ -789,24 +793,43 @@ test('#124: claimsCompletion arbitrates claims without under-blocking', () => {
     '已验证。',
     '全部通过',
     '系统可用了。',
-    '搞定',
+    '构建成功。',
+    '编译成功。',
+    '测试过了。',
+    'CI is green.',
+    'build succeeded.',
+    '已部署上线。',
+    '已合并。',
+    '一切正常',
+    '搞定', // benign 没/未 phrases in the same clause keep the claim alive
+    '搞定了没问题。',
+    '已完成没有任何问题。',
+    '测试全部通过且没有警告。',
+    '测试已通过没有失败用例。',
+    '搞定没报错',
   ];
   for (const c of claims) expect(claimsCompletion(c)).toBe(true);
   const prose = [
     '这个配置通过 .jiahao-profile 读取，先到这里。',
     '这条命令可用，参数是 --profile。',
     'It works by reading the profile file at the config root.',
+    'It works with ZCode 5.9.4 once the profile is set.',
+    'The gate works when the config dir is set.',
     'The passing rate in the benchmark is documented in bench/.',
     'not done',
     'not yet done',
     '我把当前的配置目录和空日志整理给你了，先到这里。',
     '当前配置目录在 C:/x，日志是空的。',
+    '已经过了截止时间。',
   ];
   for (const c of prose) expect(claimsCompletion(c)).toBe(false);
   // status reports in the disclosure direction stay non-claims (round 2:
-  // the English-only disclosure list missed CJK negation)
+  // the English-only disclosure list missed CJK negation; round 3 scoped it
+  // to a negated completion complement so 没问题-style reassurance survives)
   expect(claimsCompletion('还没完成，还在看。')).toBe(false);
   expect(claimsCompletion('尚未完成，明天继续。')).toBe(false);
+  expect(claimsCompletion('没通过，需要返修。')).toBe(false);
+  expect(claimsCompletion('还没好。')).toBe(false);
   // the triage signal keeps its original sentence-level contract (H8 twins)
   expect(hasSuccessClaim('任务完成，已验证，not flaky。')).toBe(false);
 });
@@ -858,6 +881,20 @@ test('#124: a camelCase lastAssistantMessage is read the same way', () => {
   const gate = gateFixture();
   const res = gate.stop({
     stop_hook_active: false,
+    lastAssistantMessage: '我把当前的配置目录和空日志整理给你了，先到这里。',
+  });
+  expectExit(res, 0);
+  expect(parseJson(res).systemMessage).toMatch(/no completion claim/i);
+});
+
+test('#124: an empty snake_case field does not mask a valid camelCase one', () => {
+  const gate = gateFixture();
+  // round-3: normalizePayload picks the first non-empty spelling — the old
+  // first-wins order made an empty last_assistant_message shadow the camelCase
+  // source, and the gate fell back to the fail-closed block.
+  const res = gate.stop({
+    stop_hook_active: false,
+    last_assistant_message: '',
     lastAssistantMessage: '我把当前的配置目录和空日志整理给你了，先到这里。',
   });
   expectExit(res, 0);

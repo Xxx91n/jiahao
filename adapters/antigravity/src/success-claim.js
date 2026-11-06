@@ -50,14 +50,21 @@ const STRONG_CLAIM_RE = /\b(all done|done|complete(?:d)?|fixed|verified|works no
 //            before it — adverbs allowed in between (已/都/均/全部, review
 //            round 2: "测试已通过", "单测全部通过") — or the aspect markers
 //            了 / 已(经) ("通过了", "已通过", "已验证", "全部通过").
-//            "这个配置通过 .jiahao-profile 读取" stays prose.
+//            "这个配置通过 .jiahao-profile 读取" stays prose (over-block
+//            residue: "配置已通过 env 读取", "该方案通过了初审" read as
+//            claims — the safe direction, disclosed in the PR).
 //   可用   — only with an aspect marker ("可用了", "已可用", "可以用了").
 //            "这条命令可用" as a status line stays prose.
-//   works  — not followed by the mechanism preposition by ("works by
-//            reading…" describes how, round 2: "works as expected" IS an
-//            announcement). "tests (are) passing" has its own subject form.
+//   works  — not followed by a preposition phrase describing mechanism or
+//            conditions (by/with/when/like/for: "it works by reading…",
+//            "it works with Node 18" are prose, review round 3), with an
+//            explicit positive for the announcement forms ("works as
+//            expected/intended/designed").
 //   passing — not followed by a graded noun ("the passing rate" is prose).
-const AMBIENT_CLAIM_RE = /(?:\u6d4b\u8bd5|\u9a8c\u8bc1|\u68c0\u67e5|\u6821\u9a8c|\u6784\u5efa|\u7f16\u8bd1|\u5355\u6d4b|\u56de\u5f52)\s*(?:\u5df2|\u5df2\u7ecf|\u90fd|\u5747|\u5168\u90e8)*\s*\u901a\u8fc7|\u901a\u8fc7\u4e86|\u5df2(?:\u7ecf)?(?:\u9a8c\u8bc1|\u901a\u8fc7)|\u5168\u90e8\u901a\u8fc7|\u90fd(?:\u5df2)?\u901a\u8fc7|\u5747(?:\u5df2)?\u901a\u8fc7|\u53ef\u7528\u4e86|\u5df2\u53ef\u7528|(?:\u53ef\u4ee5|\u80fd)\u7528\u4e86|\bworks\b(?!\s+by\b)|\btests?\s+pass(?:ed|ing)?\b|\bpassing\b(?!\s+(?:rate|grade|score|note)\b)/i;
+// Plus the compact success forms the reviews surfaced (round 3): subject +
+// 成功 / 过了, build succeeded, CI / everything green, 已部署/上线/合并/发布,
+// 一切正常 — all unambiguous completion announcements.
+const AMBIENT_CLAIM_RE = /(?:\u6d4b\u8bd5|\u9a8c\u8bc1|\u68c0\u67e5|\u6821\u9a8c|\u6784\u5efa|\u7f16\u8bd1|\u5355\u6d4b|\u56de\u5f52)\s*(?:\u5df2|\u5df2\u7ecf|\u90fd|\u5747|\u5168\u90e8)*\s*\u901a\u8fc7|\u901a\u8fc7\u4e86|\u5df2(?:\u7ecf)?(?:\u9a8c\u8bc1|\u901a\u8fc7)|\u5168\u90e8\u901a\u8fc7|\u90fd(?:\u5df2)?\u901a\u8fc7|\u5747(?:\u5df2)?\u901a\u8fc7|\u53ef\u7528\u4e86|\u5df2\u53ef\u7528|(?:\u53ef\u4ee5|\u80fd)\u7528\u4e86|(?:\u6784\u5efa|\u7f16\u8bd1|\u6d4b\u8bd5|\u90e8\u7f72|\u5b89\u88c5|\u8fc1\u79fb|\u5347\u7ea7|\u56de\u5f52)\s*(?:\u5df2|\u5df2\u7ecf|\u90fd|\u5747|\u5168\u90e8)*\u6210\u529f|(?:\u6d4b\u8bd5|\u9a8c\u8bc1|\u68c0\u67e5|\u5ba1\u6838|\u8bc4\u5ba1|\u6784\u5efa)\s*(?:\u5df2|\u90fd|\u5747|\u5168\u90e8)*\u8fc7\u4e86|\u5df2(?:\u90e8\u7f72|\u4e0a\u7ebf|\u5408\u5e76|\u53d1\u5e03)|\u4e00\u5207\u6b63\u5e38|\bbuild\s+succeeded\b|\ball\s+(?:tests?|checks?)\s+(?:pass(?:ed)?|green)\b|\bci\b[^.,;\n]{0,20}\bgreen\b|(?:everything|all)\s+is\s+green|\bworks\s+as\s+(?:expected|intended|designed)\b|\bworks\b(?!\s+(?:by|with|when|like|for)\b)|\btests?\s+pass(?:ed|ing)?\b|\bpassing\b(?!\s+(?:rate|grade|score|note)\b)/i;
 
 // Clause splitters: sentence punctuation, the clause punctuation that hosts'
 // CJK messages use for coordinate clauses (，、；), the dashes that carry
@@ -66,13 +73,16 @@ const AMBIENT_CLAIM_RE = /(?:\u6d4b\u8bd5|\u9a8c\u8bc1|\u68c0\u67e5|\u6821\u9a8c
 // (round 2: "done but not tested" — the claim side is still a claim; a
 // genuine "not yet done" survives because yet is not a splitter and the
 // negation stays in the claim's own clause).
-const CLAUSE_SPLIT_RE = /[\uff0c\u3001\uff1b\uff1a;:,]|\s+\u2014\s+|\s+\u2013\s+|\s+\b(?:but|though|although|however)\b\s+/i;
+const CLAUSE_SPLIT_RE = /[\uff0c\u3001\uff1b\uff1a;:,]|\s+\u2014\s+|\s+\u2013\s+|\s+-\s+|\s+\b(?:but|though|although|however)\b\s+/i;
 
 // Chinese negation/disclosure for the clause-level check (round 2: the
 // English-only FAILURE_DISCLOSURE_RE let "还没完成，还在看" style status
-// reports route to Case A). Per-clause, like its English counterpart: 没 /
-// 没有 / 未 / 尚未 / 还没 sitting in the claim word's own clause.
-const CJK_DISCLOSURE_RE = /\u6ca1|\u672a|\u5c1a\u672a|\u8fd8\u6ca1/;
+// reports route to Case A). Scoped to a negated COMPLETION complement —
+// round 3: bare 没/未 suppressed genuine claims sharing the clause with a
+// benign phrase ("搞定了没问题" was read as no claim). 没/未/没有 followed
+// by a completion verb discloses; "没问题" / "没有任何问题" / "没有警告"
+// / "没有失败" are reassurances that keep the claim alive.
+const CJK_DISCLOSURE_RE = /(?:\u6ca1\u6709|\u6ca1|\u672a)\s*(?:\u5b8c\u6210|\u505a\u5b8c|\u641e\u5b9a|\u4fee\u590d|\u6539\u597d|\u5f04\u597d|\u597d|\u901a\u8fc7|\u9a8c\u8bc1|\u6d4b\u8bd5|\u8dd1\u901a|\u8dd1|\u5c31\u7eea|\u63d0\u4ea4|\u4e0a\u7ebf|\u90e8\u7f72|\u53d1\u5e03|\u5408\u5e76|\u786e\u8ba4)/;
 
 function clauseClaims(clause) {
   if (FAILURE_DISCLOSURE_RE.test(clause) || CJK_DISCLOSURE_RE.test(clause)) return false;
