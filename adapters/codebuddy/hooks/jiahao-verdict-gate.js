@@ -264,24 +264,31 @@ process.stdin.on('end', () => {
   // WorkBuddy 5.9.4, 2026-11-01). The documented contract — "block the turn
   // that CLAIMS done without verification" — needs a claim check first.
   // Sources for this turn's own words, in payload order:
-  //   last_assistant_message — WorkBuddy / Qoder / ZCode carry it on every
-  //     Stop (docs/evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md,
-  //     zcode-probe-notes.md); camelCase spellings are folded in by
-  //     normalizePayload.
+  //   last_assistant_message — WorkBuddy / Qoder / ZCode carry it on their
+  //     Stop payloads (WorkBuddy/Qoder probed in
+  //     docs/evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md and
+  //     qoder-runtime-hook-schema.txt — Qoder attaches it when a message
+  //     exists; ZCode per zcode-probe-notes.md); camelCase spellings are
+  //     folded in by normalizePayload.
   //   laneResult.closing     — hosts that ride transcript_path instead
   //     (Claude Code, declared-unverified in-repo that it lacks the field);
   //     the conviction lane already adapted the transcript, so the closing
-  //     rides for free. Antigravity / Copilot hand a transcriptPath the
-  //     adapter cannot parse, so for them the claim state stays unknown.
+  //     rides for free.
   // Neither source present → claim state UNKNOWN: fall through to the
   // fail-closed behavior below (a host that hands the gate no words to read
-  // gets no new free pass). A present source that carries no completion
-  // claim → this turn declares nothing, so there is no declaration to
-  // verify: advisory allow, and ONLY out of Case A — when session evidence
-  // exists, Case B (high-severity / partial-coverage) still runs, so a
-  // claim-free message can never waive a pending severity or coverage block
-  // (#124 review round 1; CodeRabbit round 1). The allow stays an ABSENT
-  // decision (#71 item 5) — the advisory rides systemMessage.
+  // gets no new free pass). Known unknown-state cases, disclosed: hosts with
+  // neither field (Antigravity / Copilot hand a transcriptPath the adapter
+  // cannot parse), and hosts where the conviction lane is switched off
+  // (.jiahao-conviction-off) — the lane is also the transcript reader, so
+  // with it off the gate loses the closing route. Both keep the pre-#124
+  // blocking behavior; widening them is not this ticket's scope.
+  // A present source that carries no completion claim → this turn declares
+  // nothing, so there is no declaration to verify: advisory allow, and ONLY
+  // out of Case A — when session evidence exists, Case B (high-severity /
+  // partial-coverage) still runs, so a claim-free message can never waive a
+  // pending severity or coverage block (#124 review round 1; CodeRabbit
+  // round 1). The allow stays an ABSENT decision (#71 item 5) — the advisory
+  // rides systemMessage.
   let claimState = null; // null = unknown: this host handed the gate no words
   {
     const claimSources = [];
