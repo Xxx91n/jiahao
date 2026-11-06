@@ -67,7 +67,15 @@ function normalizePayload(parsed) {
   const sessionId = p.session_id || p.sessionId || p.conversationId || null;
   const agentType = p.agent_type || p.agentType || p.agentName || '';
   const stopHookActive = p.stop_hook_active === true || (typeof p.executionNum === 'number' && p.executionNum > 0);
-  return Object.assign({}, p, { session_id: sessionId, agent_type: agentType, stop_hook_active: stopHookActive });
+  // #124: the verdict gate's claim gate reads this turn's own words; hosts
+  // that spell the field camelCase (same dialect family as sessionId /
+  // agentName above) fold onto the snake_case name the gate reads.
+  const lastAssistantMessage = (typeof p.last_assistant_message === 'string' && p.last_assistant_message) ||
+    (typeof p.lastAssistantMessage === 'string' ? p.lastAssistantMessage : null) || null;
+  return Object.assign({}, p, {
+    session_id: sessionId, agent_type: agentType, stop_hook_active: stopHookActive,
+    last_assistant_message: p.last_assistant_message !== undefined ? p.last_assistant_message : lastAssistantMessage,
+  });
 }
 
 // Write hook output in the format the current host expects.

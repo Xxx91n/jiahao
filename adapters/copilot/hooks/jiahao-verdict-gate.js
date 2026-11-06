@@ -19,12 +19,14 @@ const { readProfile } = require('./jiahao-profile');
 const { normalizePayload, writeBlockOutput } = require('./jiahao-runtime');
 const { createEvidenceLog } = require('../src/evidence-log');
 const { kappaAdvisory, loadKappaBaseline } = require('../src/calibration');
-// #124: the claim gate reuses the detector's completion-claim vocabulary
-// (CLAIM_WORD_RE / FAILURE_DISCLOSURE_RE, the same claim side the pairer
-// parses) on this turn's own words. It comes from src/success-claim.js — the
-// vendored hook closure must stay free of third-party runtime dependencies,
-// and detector.js drags request-anchors (http-link-header) in.
-const { hasSuccessClaim } = require('../src/success-claim');
+// #124: the claim gate reuses the detector's completion-claim vocabulary —
+// the same claim side the pairer parses — on this turn's own words. It comes
+// from src/success-claim.js: the vendored hook closure must stay free of
+// third-party runtime dependencies, and detector.js drags request-anchors
+// (http-link-header) in. The gate arbitrates with claimsCompletion (negation
+// scoped to its clause; the ambiguous words 通过/可用/works/passing only
+// count with a completion context), not the triage-grade hasSuccessClaim.
+const { claimsCompletion } = require('../src/success-claim');
 // #71 item 12: a factory throw used to kill the hook at module load, before any
 // judgment — every host then read a silent Stop hook, which is a fail-open
 // gate. Hold the error and turn it into the normal block decision below, after
@@ -262,16 +264,23 @@ process.stdin.on('end', () => {
   // WorkBuddy 5.9.4, 2026-11-01). The documented contract — "block the turn
   // that CLAIMS done without verification" — needs a claim check first.
   // Sources for this turn's own words, in payload order:
-  //   last_assistant_message — WorkBuddy / Qoder carry it on every Stop
-  //     (docs/evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md);
+  //   last_assistant_message — WorkBuddy / Qoder / ZCode carry it on every
+  //     Stop (docs/evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md,
+  //     zcode-probe-notes.md); camelCase spellings are folded in by
+  //     normalizePayload.
   //   laneResult.closing     — hosts that ride transcript_path instead
-  //     (Claude Code has no last_assistant_message field); the conviction
-  //     lane already adapted the transcript, so the closing rides for free.
-  // Neither source present → claim state UNKNOWN: fall through to Case A and
-  // keep the pre-#124 fail-closed behavior (a host that hands the gate no
-  // words to read gets no new free pass). A present source that carries no
-  // completion claim → this turn declares nothing, so there is no declaration
-  // to verify: advisory allow, never Case A. The allow stays an ABSENT
+  //     (Claude Code, declared-unverified in-repo that it lacks the field);
+  //     the conviction lane already adapted the transcript, so the closing
+  //     rides for free. Antigravity / Copilot hand a transcriptPath the
+  //     adapter cannot parse, so for them the claim state stays unknown.
+  // Neither source present → claim state UNKNOWN: fall through to the
+  // fail-closed behavior below (a host that hands the gate no words to read
+  // gets no new free pass). A present source that carries no completion
+  // claim → this turn declares nothing, so there is no declaration to
+  // verify: advisory allow, and ONLY out of Case A — when session evidence
+  // exists, Case B (high-severity / partial-coverage) still runs, so a
+  // claim-free message can never waive a pending severity or coverage block
+  // (#124 review round 1; CodeRabbit round 1). The allow stays an ABSENT
   // decision (#71 item 5) — the advisory rides systemMessage.
   let claimState = null; // null = unknown: this host handed the gate no words
   {
@@ -286,8 +295,13 @@ process.stdin.on('end', () => {
       claimState = false;
       for (const s of claimSources) {
         try {
-          if (hasSuccessClaim(s)) { claimState = true; break; }
-        } catch (e) { /* a throwing detector reads as claim-absent for that source */ }
+          if (claimsCompletion(s)) { claimState = true; break; }
+        } catch (e) {
+          // an internal detector error is an inability to judge, not an
+          // observation of "no claim" — degrade to unknown (#71 item 12
+          // fail-closed doctrine), never to the allow path.
+          claimState = null;
+        }
       }
     }
     // The pairer's own parsed claim is direct declaration evidence: a closing
@@ -297,7 +311,7 @@ process.stdin.on('end', () => {
       claimState = true;
     }
   }
-  if (claimState === false) {
+  if (claimState === false && sessionEvidence.length === 0) {
     console.log(JSON.stringify({
       systemMessage: 'JIAHAO ADVISORY: no completion claim in this turn — ' +
         'the stop is allowed without a verification check.' + pendingText,

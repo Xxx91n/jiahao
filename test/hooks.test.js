@@ -749,7 +749,8 @@ test('#75: a passed human verdict releases a stale severity record, a failed one
 // chain, so a pure Q&A or read-only status report could not end without a
 // human `jiahao resolve`. The gate now reads this turn's own words first.
 // The red property is structural: reverting the gate to unconditional Case A
-// blocking turns the two allow tests below into exit-2 failures.
+// blocking turns the three allow assertions below (774, 806, 814) into
+// exit-2 failures.
 
 // A Claude-Code-shaped transcript: one user turn opener, one assistant
 // closing. The closing text is the lane's claim side for hosts that carry no
@@ -763,6 +764,36 @@ function transcriptFixture(closingText) {
   ].join('\n'), 'utf8');
   return file;
 }
+
+// the gate arbiter: negation scoped to its clause, ambiguous words need a
+// completion context. Unit-level here; the hook-level tests below cover the
+// decision wiring.
+test('#124: claimsCompletion arbitrates claims without under-blocking', () => {
+  const { claimsCompletion, hasSuccessClaim } = require(path.join(repoRoot, 'src', 'success-claim.js'));
+  const claims = [
+    '任务完成，已验证。',
+    '任务完成，已验证，not flaky。', // unrelated negation does not suppress
+    'All tests pass; this is not a flaky suite.',
+    'The build is done — not blocked by the proxy.',
+    '全部验证通过',
+    '测试通过',
+    '系统可用了',
+    '搞定',
+  ];
+  for (const c of claims) expect(claimsCompletion(c)).toBe(true);
+  const prose = [
+    '这个配置通过 .jiahao-profile 读取，先到这里。',
+    '这条命令可用，参数是 --profile。',
+    'It works by reading the profile file at the config root.',
+    'The passing rate in the benchmark is documented in bench/.',
+    'not done',
+    '我把当前的配置目录和空日志整理给你了，先到这里。',
+    '当前配置目录在 C:/x，日志是空的。',
+  ];
+  for (const c of prose) expect(claimsCompletion(c)).toBe(false);
+  // the triage signal keeps its original sentence-level contract (H8 twins)
+  expect(hasSuccessClaim('任务完成，已验证，not flaky。')).toBe(false);
+});
 
 test('#124: a no-claim turn in verifier profile is allowed with an advisory', () => {
   const gate = gateFixture();
@@ -807,19 +838,80 @@ test('#124: the claim rides the transcript when the host sends no last_assistant
   expect(parseJson(quiet).systemMessage).toMatch(/no completion claim/i);
 });
 
-test('#124: stop_hook_active reentry stays allowed after a no-claim advisory allow', () => {
+test('#124: a camelCase lastAssistantMessage is read the same way', () => {
   const gate = gateFixture();
-  const payload = { stop_hook_active: false, last_assistant_message: '现状报告：配置在 X，日志为空。' };
-  expectExit(gate.stop(payload), 0);
-  // the host forces one re-entry after the allow; the gate answers the same way
-  const reentry = gate.stop(Object.assign({}, payload, { stop_hook_active: true }));
-  expectExit(reentry, 0);
+  const res = gate.stop({
+    stop_hook_active: false,
+    lastAssistantMessage: '我把当前的配置目录和空日志整理给你了，先到这里。',
+  });
+  expectExit(res, 0);
+  expect(parseJson(res).systemMessage).toMatch(/no completion claim/i);
 });
 
-test('#124: a claim the host re-enters after a block passes on stop_hook_active', () => {
+test('#124: no claim source at all keeps the fail-closed Case A block', () => {
   const gate = gateFixture();
-  const payload = { stop_hook_active: false, last_assistant_message: '任务完成，已验证。' };
-  expectExit(gate.stop(payload), 2); // claim without evidence blocks
+  // No last_assistant_message (any spelling), no transcript: the gate cannot
+  // know whether the turn claimed something, so it must not hand out a pass.
+  const res = gate.stop({
+    stop_hook_active: false,
+    last_assistant_message: '   \n\t', // whitespace-only reads as absent
+  });
+  expectExit(res, 2);
+  expect(parseJson(res).reason).toMatch(/no evidence/i);
+});
+
+// Round-1 review (CodeRabbit + both review axes): the no-claim allow is a
+// CASE A decision only. With session evidence on the chain, Case B still
+// judges the turn — a claim-free message can never waive a pending
+// high-severity or partial-coverage block.
+test('#124: a no-claim message does not waive a high-severity block', () => {
+  const gate = gateFixture();
+  gate.chain([highSeverityRecord(null)]);
+  const res = gate.stop({
+    stop_hook_active: false,
+    last_assistant_message: '我把当前的配置目录和空日志整理给你了，先到这里。',
+  });
+  expectExit(res, 2);
+  expect(parseJson(res).reason).toMatch(/high severity/);
+});
+
+test('#124: a no-claim message does not waive a partial-coverage escalation', () => {
+  const gate = gateFixture();
+  gate.chain([partialCoverageRecord(null)]);
+  const res = gate.stop({
+    stop_hook_active: false,
+    last_assistant_message: '我把当前的配置目录和空日志整理给你了，先到这里。',
+  });
+  expectExit(res, 2);
+  expect(parseJson(res).reason).toMatch(/partial coverage/);
+});
+
+test('#124: generator profile gets the no-claim advisory and never blocks', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'generator', 'utf8');
+  const res = runHook('jiahao-verdict-gate.js', {
+    dir: dir,
+    stdin: JSON.stringify({ stop_hook_active: false, last_assistant_message: '现状报告：配置在 X，日志为空。' }),
+  });
+  expectExit(res, 0);
+  const parsed = parseJson(res);
+  expect(parsed.decision).toBeUndefined();
+  expect(parsed.systemMessage).toMatch(/no completion claim/i);
+});
+
+test('#124: stop_hook_active reentry after the new decisions', () => {
+  const gate = gateFixture();
+  const payload = { stop_hook_active: false, last_assistant_message: '现状报告：配置在 X，日志为空。' };
+  // First stop: judged by the claim gate and allowed. The re-entry assertion
+  // below pins the host's stop_hook_active early return (123-125), which sits
+  // before every judgment including the claim gate.
+  expectExit(gate.stop(payload), 0);
   const reentry = gate.stop(Object.assign({}, payload, { stop_hook_active: true }));
-  expectExit(reentry, 0); // host already forced pass once
+  expectExit(reentry, 0);
+
+  const claiming = { stop_hook_active: false, last_assistant_message: '任务完成，已验证。' };
+  expectExit(gate.stop(claiming), 2); // claim without evidence blocks
+  const claimedReentry = gate.stop(Object.assign({}, claiming, { stop_hook_active: true }));
+  expectExit(claimedReentry, 0); // host already forced pass once
 });
