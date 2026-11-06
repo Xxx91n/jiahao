@@ -796,11 +796,26 @@ test('#124: claimsCompletion arbitrates claims without under-blocking', () => {
     '构建成功。',
     '编译成功。',
     '测试过了。',
+    '测试已经过了。',
     'CI is green.',
     'build succeeded.',
     '已部署上线。',
+    '已部署。',
+    '已经部署。',
+    '已经上线了。',
+    '已经合并了。',
+    '已经发布。',
+    '上线成功。',
+    '发布成功。',
+    '合并成功。',
     '已合并。',
     '一切正常',
+    '一切就绪',
+    '修好了。',
+    '改好了。',
+    '成功了。',
+    '验证结果：通过。', // the CJK colon keeps label and verdict in one clause
+    '结果：通过。',
     '搞定', // benign 没/未 phrases in the same clause keep the claim alive
     '搞定了没问题。',
     '已完成没有任何问题。',
@@ -825,11 +840,17 @@ test('#124: claimsCompletion arbitrates claims without under-blocking', () => {
   for (const c of prose) expect(claimsCompletion(c)).toBe(false);
   // status reports in the disclosure direction stay non-claims (round 2:
   // the English-only disclosure list missed CJK negation; round 3 scoped it
-  // to a negated completion complement so 没问题-style reassurance survives)
+  // to a negated completion complement so 没问题-style reassurance survives;
+  // round 4 allows modifiers between negation and complement)
   expect(claimsCompletion('还没完成，还在看。')).toBe(false);
   expect(claimsCompletion('尚未完成，明天继续。')).toBe(false);
   expect(claimsCompletion('没通过，需要返修。')).toBe(false);
   expect(claimsCompletion('还没好。')).toBe(false);
+  expect(claimsCompletion('还没有全部完成。')).toBe(false);
+  expect(claimsCompletion('尚未能跑通。')).toBe(false);
+  expect(claimsCompletion('没有全部跑通。')).toBe(false);
+  expect(claimsCompletion('测试还没有全部通过。')).toBe(false);
+  expect(claimsCompletion('没来得及完成。')).toBe(false);
   // the triage signal keeps its original sentence-level contract (H8 twins)
   expect(hasSuccessClaim('任务完成，已验证，not flaky。')).toBe(false);
 });
