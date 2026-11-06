@@ -743,3 +743,83 @@ test('#75: a passed human verdict releases a stale severity record, a failed one
   gate.chain([stale, fail, pass]);
   expectExit(gate.stop({ stop_hook_active: false }), 0);
 });
+
+// ---- #124: the claim gate — Case A only tightens a turn that CLAIMS done ----
+// Case A used to block every verifier Stop with an empty session evidence
+// chain, so a pure Q&A or read-only status report could not end without a
+// human `jiahao resolve`. The gate now reads this turn's own words first.
+// The red property is structural: reverting the gate to unconditional Case A
+// blocking turns the two allow tests below into exit-2 failures.
+
+// A Claude-Code-shaped transcript: one user turn opener, one assistant
+// closing. The closing text is the lane's claim side for hosts that carry no
+// last_assistant_message field.
+function transcriptFixture(closingText) {
+  const dir = freshDir('jiahao-transcript-124-');
+  const file = path.join(dir, 'session.jsonl');
+  fs.writeFileSync(file, [
+    JSON.stringify({ type: 'user', message: { role: 'user', content: '看看当前的配置目录在哪' } }),
+    JSON.stringify({ type: 'assistant', message: { id: 'msg_124', role: 'assistant', content: [{ type: 'text', text: closingText }] } }),
+  ].join('\n'), 'utf8');
+  return file;
+}
+
+test('#124: a no-claim turn in verifier profile is allowed with an advisory', () => {
+  const gate = gateFixture();
+  const res = gate.stop({
+    stop_hook_active: false,
+    last_assistant_message: '我把当前的配置目录和空日志整理给你了，先到这里。',
+  });
+  expectExit(res, 0);
+  const parsed = parseJson(res);
+  expect(parsed.decision).toBeUndefined(); // #71 item 5: allow = absent decision
+  expect(parsed.systemMessage).toMatch(/no completion claim/i);
+});
+
+test('#124: a completion claim without evidence still blocks (no regression)', () => {
+  const gate = gateFixture();
+  const res = gate.stop({
+    stop_hook_active: false,
+    last_assistant_message: '任务完成，已验证。',
+  });
+  expectExit(res, 2);
+  const parsed = parseJson(res);
+  expect(parsed.decision).toBe('block');
+  expect(parsed.reason).toMatch(/no evidence/i);
+});
+
+test('#124: the claim rides the transcript when the host sends no last_assistant_message', () => {
+  const gate = gateFixture();
+  // Claude Code carries no last_assistant_message field; the lane's adapted
+  // closing is this turn's claim source instead.
+  const claiming = gate.stop({
+    stop_hook_active: false, session_id: 'session-124',
+    transcript_path: transcriptFixture('任务完成，已验证。'),
+  });
+  expectExit(claiming, 2);
+  expect(parseJson(claiming).decision).toBe('block');
+
+  const quiet = gate.stop({
+    stop_hook_active: false, session_id: 'session-124',
+    transcript_path: transcriptFixture('当前配置目录在 C:\\x，日志是空的。'),
+  });
+  expectExit(quiet, 0);
+  expect(parseJson(quiet).systemMessage).toMatch(/no completion claim/i);
+});
+
+test('#124: stop_hook_active reentry stays allowed after a no-claim advisory allow', () => {
+  const gate = gateFixture();
+  const payload = { stop_hook_active: false, last_assistant_message: '现状报告：配置在 X，日志为空。' };
+  expectExit(gate.stop(payload), 0);
+  // the host forces one re-entry after the allow; the gate answers the same way
+  const reentry = gate.stop(Object.assign({}, payload, { stop_hook_active: true }));
+  expectExit(reentry, 0);
+});
+
+test('#124: a claim the host re-enters after a block passes on stop_hook_active', () => {
+  const gate = gateFixture();
+  const payload = { stop_hook_active: false, last_assistant_message: '任务完成，已验证。' };
+  expectExit(gate.stop(payload), 2); // claim without evidence blocks
+  const reentry = gate.stop(Object.assign({}, payload, { stop_hook_active: true }));
+  expectExit(reentry, 0); // host already forced pass once
+});
