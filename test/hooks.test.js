@@ -822,6 +822,11 @@ test('#124: claimsCompletion arbitrates claims without under-blocking', () => {
     '测试全部通过且没有警告。',
     '测试已通过没有失败用例。',
     '搞定没报错',
+    '测试没通过。已修复。', // CJK sentence terminators split the pair
+    '我已经修复了这个 bug', // 已经修复 — the aspect adverb sits inside
+    'done and the log is not empty', // and separates claim from disclosure
+    'Finished the refactor, ready to merge.',
+    '已实现。',
   ];
   for (const c of claims) expect(claimsCompletion(c)).toBe(true);
   const prose = [
@@ -831,11 +836,22 @@ test('#124: claimsCompletion arbitrates claims without under-blocking', () => {
     'It works with ZCode 5.9.4 once the profile is set.',
     'The gate works when the config dir is set.',
     'The passing rate in the benchmark is documented in bench/.',
+    'fixed-width column', // compound adjective, not "it is fixed"
+    'what does verified mean?', // questions are not claims
+    'Here is how the cache works', // mechanism explanation
+    'passing a callback', // participle, not a report
+    '通过了解代码', // 通过 + 了解, not 通过了
+    '我做好了准备，先到这里。', // 做好了准备 is not 做好了
     'not done',
     'not yet done',
+    "The task isn't done yet", // isn't joins the disclosure list
+    '无法完成', // 无法 joins the CJK disclosure prefixes
     '我把当前的配置目录和空日志整理给你了，先到这里。',
     '当前配置目录在 C:/x，日志是空的。',
     '已经过了截止时间。',
+    '改好了吗？', // a question, even about the fix
+    '这个还没验证',
+    '结果还没出来',
   ];
   for (const c of prose) expect(claimsCompletion(c)).toBe(false);
   // status reports in the disclosure direction stay non-claims (round 2:
@@ -851,6 +867,7 @@ test('#124: claimsCompletion arbitrates claims without under-blocking', () => {
   expect(claimsCompletion('没有全部跑通。')).toBe(false);
   expect(claimsCompletion('测试还没有全部通过。')).toBe(false);
   expect(claimsCompletion('没来得及完成。')).toBe(false);
+  expect(claimsCompletion('无法验证，环境不可用。')).toBe(false);
   // the triage signal keeps its original sentence-level contract (H8 twins)
   expect(hasSuccessClaim('任务完成，已验证，not flaky。')).toBe(false);
 });
