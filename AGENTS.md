@@ -50,7 +50,7 @@
 - 证据链落在 `.jiahao-evidence/`。它是运行状态目录，路径由 `src/shared/paths.js` 定义；要改路径，`src/shared/paths.js` 和钩子那边必须一起改。
 - Windows 上查不出 inode 被换掉，`test/sentinel-ownership.test.js` 有一条用例在 Windows 跳过。
 - `src/SKILL.md` 的 frontmatter 有三处只该留在源文件里：`name: jiahao-source`、`metadata:` 下的 `internal: true`、`argument-hint:`。别从源里删，也别手改产物。原因写在 `scripts/build-adapters.js` 的 `toShippedSkill` 注释里：技能 CLI 按名字找会指到 `src/`，官方校验器又不认规范外的键。
-- 改常量的**意思**（不是拼写）时，把所有引用点都搜一遍，逐个确认测试测的还是它以为的东西。#76 把 `BUNDLE` 从「仓库里的绝对插件目录」改成生成表的键 `'adapters/codebuddy/'`，`path.join(BUNDLE, ...)` 和 `pluginRoot: BUNDLE` 就悄悄变成了相对路径；和 #75 合并时 `merge-tree` 说没有冲突，CI 连红三次才找到。现在这个前缀叫 `GENERATED_PREFIX`，`runBundleHook` 用 `assertAbsolutePluginRoot` 拒掉相对根。
+- 改常量的**意思**（不是拼写）时，把所有引用点都搜一遍，逐个确认测试测的还是它以为的东西。#76 把 `BUNDLE` 从「仓库里的绝对插件目录」改成生成表的键 `'adapters/codebuddy/'`，`path.join(BUNDLE, ...)` 和 `pluginRoot: BUNDLE` 就悄悄变成了相对路径；和 #75 合并时 `merge-tree` 说没有冲突，CI 连红三次才找到（#84 收尾改名）。现在这个前缀叫 `GENERATED_PREFIX`，`runBundleHook` 用 `assertAbsolutePluginRoot` 拒掉相对根。
 
 ## 给 Agent 的约定
 
