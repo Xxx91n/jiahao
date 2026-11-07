@@ -1,133 +1,142 @@
-# GitHub Copilot CLI Adapter (self-contained plugin)
+# GitHub Copilot CLI plugin
 
 ## What this is
 
-This directory is a **self-contained plugin for GitHub Copilot CLI**: the
-manifest (`plugin.json`), the hook map (`hooks/hooks.json`), the hook scripts
-and their `require()` closure, and `src/SKILL.md` (the rules body the
-sessionStart hook injects) are vendored inside. Every hook command resolves
-through `$PLUGIN_ROOT` - Copilot CLI hands plugin hooks `PLUGIN_ROOT` (and
-also `COPILOT_PLUGIN_ROOT` / `CLAUDE_PLUGIN_ROOT`) pointing at the installed
-plugin - so nothing reads from the repository root.
+This folder is a complete plugin for GitHub Copilot CLI. It holds `plugin.json`,
+`hooks/hooks.json`, every file the hooks load, and `src/SKILL.md` (the rules
+text the sessionStart hook injects). Every hook command uses `$PLUGIN_ROOT`,
+which Copilot CLI sets for plugin hooks (it also sets `COPILOT_PLUGIN_ROOT`
+and `CLAUDE_PLUGIN_ROOT`). Nothing reads from the repository root.
 
 ## Install
 
-1. `copilot plugin install <path-to-this-dir>` (native command; the
-   `/plugin install` slash command does the same inside a session). Live
-   probe: the install ran the bundled hooks. The CLI warns that direct
-   installs are deprecated in favour of marketplace installs.
-2. The plugin is enabled on install (`copilot plugin list --json` reports
+1. `copilot plugin install <path-to-this-dir>` (native command; `/plugin
+   install` inside a session does the same). The install ran the bundled
+   hooks in a real test. The CLI warns that direct installs are deprecated in
+   favor of marketplace installs.
+2. The plugin is on after install (`copilot plugin list --json` reports
    `enabled: true`); a direct install needed no `enabledPlugins` entry.
    Project-level settings hooks need folder trust in prompt mode:
-   `--trust-folder` (or `COPILOT_ALLOW_ALL=true`); the live probe used
+   `--trust-folder` (or `COPILOT_ALLOW_ALL=true`). The test used
    `--trust-folder`.
-3. Activate the jiahao profile flag, same as every host. Resolve the config
-   directory once (`CLAUDE_CONFIG_DIR`, else `$HOME`; when a hook has neither,
-   it takes a config root the host reports (`QODER_CONFIG_DIR`,
-   `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`), then the OS home -
-   never `/tmp` (`src/shared/paths.js`):
-   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"; mkdir -p "$CONFIG"`, then
-   `echo full > "$CONFIG/.jiahao-active"` and
-   `echo verifier > "$CONFIG/.jiahao-profile"` for the blocking profile
-   (`generator` for advisory-only). Start a new session after changing
-   `.jiahao-profile`.
-   An unreadable `.jiahao-profile` (a directory in its place, or unreadable
-   permissions) also resolves to the default `verifier`, with a `[config]:` note
-   on stderr.
 
-Install and upgrade are the host's own plugin commands; the repository root is
-never a plugin entry. The install path was live-probed with a local plugin
-directory on 1.0.105.
+## Set the profile
 
-## Hook map
+The hooks get the profile from one file, `.jiahao-profile`, in the config
+directory. Write `verifier` to block a completion claim with no evidence,
+`generator` to only remind. If the file is missing, the hooks use `verifier`.
 
-| Event | Script | Behavior |
+The config directory is the first one of these that the process has:
+`CLAUDE_CONFIG_DIR`, then `HOME`, then a root the host reports
+(`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`, `WORKBUDDY_CONFIG_DIR`), then
+`USERPROFILE`, then the OS home. It never falls back to `/tmp`.
+
+POSIX shell:
+
+```bash
+CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"; mkdir -p "$CONFIG"
+echo full > "$CONFIG/.jiahao-active"
+echo verifier > "$CONFIG/.jiahao-profile"
+```
+
+PowerShell:
+
+```powershell
+$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1; New-Item -ItemType Directory -Force -Path $c | Out-Null
+Set-Content -NoNewline -Path "$c/.jiahao-active" -Value full
+Set-Content -NoNewline -Path "$c/.jiahao-profile" -Value verifier
+```
+
+Use `generator` in place of `verifier` for reminders only. Start a new session
+after you change the file. All agents that use the same config directory share
+this file; give each one its own directory when they need different profiles.
+
+If `.jiahao-profile` cannot be read (a folder sits there, or the permissions
+are wrong), the hooks use `verifier` and print a `[config]:` note on stderr.
+
+
+## Check it works
+
+- `copilot plugin list --json` reports `enabled: true`.
+- With `verifier`, a claim of "done, verified" with nothing behind it gets
+  blocked. Tested on Copilot CLI 1.0.105 on 2026-10-30.
+- Limit on this host: the gate cannot read the closing message, so when there
+  is no evidence it can also block a Q&A turn that makes no completion claim.
+
+## Hooks
+
+| Event | Script | What it does |
 | --- | --- | --- |
-| sessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext |
-| subagentStart | hooks/jiahao-subagent.js | same injection on subagent spawn |
-| userPromptSubmitted | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
-| agentStop | hooks/jiahao-verdict-gate.js | verifier gate: prints `{decision:"block", reason}` and exits 0; the zero exit is required for the decision to be honored (exit 2 is non-blocking; the host logs it as failed) |
-| sessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
+| sessionStart | hooks/jiahao-activate.js | injects the selected profile text |
+| subagentStart | hooks/jiahao-subagent.js | injects the profile text when a subagent starts |
+| userPromptSubmitted | hooks/jiahao-mode-tracker.js | mode commands and a short reminder |
+| agentStop | hooks/jiahao-verdict-gate.js | prints `{"decision":"block","reason":"..."}` and exits 0; the zero exit is required for the host to honor it |
+| sessionEnd | hooks/jiahao-sweep.js | cleans up leftover state files |
 
-Timeouts stay within the host's default 30s budget (10/10/10/30/10s).
+Timeouts: 10/10/10/30/10s, inside the host's 30s limit.
 
-## Dialect: what differs from the Claude-shaped hosts
+## What is different on this host
 
-Two config-side differences live in `scripts/hosts/copilot.js` and in this
-config. The host's block channel is the decision field; the shared gate prints
-it and exits 0 for this host (see the dialect bullets below). The camelCase
-payload names (`sessionId`, `agentName`) are
-folded into the shared shape by `hooks/jiahao-runtime.js`, the hook-side
-adapter file that already owns `detectHost()` and the per-host envelopes. The
-judgment logic is the same `hooks/jiahao-verdict-gate.js` every host runs.
+- Event names are camelCase (`sessionStart`, `agentStop`), not
+  `SessionStart`/`Stop`. A copied PascalCase list is ignored.
+- Each entry has a `bash` branch and a `powershell` branch. The host picks
+  one by OS; `$PLUGIN_ROOT` and `$env:PLUGIN_ROOT` expand to the installed
+  folder. There is no `command` key.
+- The block channel is the decision field on a zero exit. `agentStop` honors
+  `{"decision":"block","reason":"..."}` on stdout. This folder wires
+  `agentStop` only.
+- Exit 2 is logged as a failed hook and ends the turn without a
+  continuation, even when the decision field is on stdout. That is why the
+  gate exits 0 for this host. Any other non-zero code does not block.
+- The host allows 8 block continuations in a row. The test saw 9 `agentStop`
+  calls and 9 assistant messages; the ninth block did not continue. The gate
+  lets `stop_hook_active` pass, so a normal turn blocks once and then ends.
 
-- **Event names are camelCase** (`sessionStart`, `agentStop`), not
-  `SessionStart` / `Stop`. A copied PascalCase map is a config this host
-  ignores.
-- **Each entry carries `bash` and `powershell` branches.** The host picks one
-  by operating system; `$PLUGIN_ROOT` and `$env:PLUGIN_ROOT` expand to the
-  installed plugin directory. There is no `command` key here.
-- **The block channel is the decision field on a zero exit.** `agentStop` and
-  `subagentStop` honor `{decision:"block", reason}` on stdout; this bundle
-  wires `agentStop` only. The live probe showed exit 2 is logged as a failed
-  hook and ends the turn without a continuation even when the decision field is
-  on stdout, so the gate exits 0 for this host. Any other non-zero code is
-  fail-open.
-- **The cap is 8 consecutive block continuations** (live-probed: 9
-  `agentStop` invocations and 9 assistant messages; the ninth block was not
-  continued and the CLI ended). `agentStop` receives `stop_hook_active`; the
-  gate lets that pass, so a normal block continues once and then finishes.
+## What was tested
 
-## Verified and declared-unverified
+Tested on 2026-10-30 with Copilot CLI 1.0.105 on win32, in a real prompt-mode
+session (`copilot -p ... --trust-folder`) with an isolated `COPILOT_HOME` and
+the installed folder. Commands and output: `docs/evidence/v0.3.0/`.
 
-Tier: **A (verified 2026-10-30, Copilot CLI 1.0.105)**. A live turn was
-blocked by `agentStop`: the false completion claim continued only after the
-gate printed `{decision:"block"}` on exit 0. Exit 2 was logged as a failed
-hook and did not block.
-
-**Verified** (2026-10-30, Copilot CLI 1.0.105, win32; the probe used an
-isolated `COPILOT_HOME`, a real prompt-mode session
-`copilot -p ... --trust-folder`, and the installed bundle; commands and
-captured output live in
-[`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/)):
-
-- A real turn-end block (`agentStop` + `decision:"block"`): the model's
-  `任务完成，已验证。` continued only after the gate's `decision:"block"`;
-  the block reason arrived as the next user message.
-- Native `copilot plugin install` reading `plugin.json` +
-  `hooks/hooks.json`: the install ran the bundled sessionStart/agentStop
-  hooks.
-- `.claude/settings.json` was read: both SessionStart and Stop entries ran;
-  a hand-written Claude-schema Stop block (exit 0) also continued the turn.
-  The jiahao bundle installs as a Copilot plugin, not through this file.
-- `COPILOT_PLUGIN_DATA` for plugin hooks was set: observed in the plugin hook
-  environment, so `detectHost()` selects the Copilot envelope.
-- camelCase payload (`sessionId`) observed in the plugin hook input;
+- A real turn-end block (`agentStop` + decision on exit 0): the claim
+  `任务完成，已验证。` continued only after the block; the reason arrived as
+  the next user message.
+- `copilot plugin install` read `plugin.json` and `hooks/hooks.json` and ran
+  the bundled sessionStart and agentStop hooks.
+- `.claude/settings.json` was read too: SessionStart and Stop entries ran; a
+  hand-written Claude-schema Stop block (exit 0) also continued the turn. The
+  jiahao plugin installs as a Copilot plugin, not through this file.
+- `COPILOT_PLUGIN_DATA` was set for plugin hooks, so `detectHost()` picks the
+  Copilot shape.
+- camelCase input (`sessionId`) was seen in the plugin hook input and
   normalized by `hooks/jiahao-runtime.js`.
-- 8 consecutive block continuations confirmed: 8 continuations, then the CLI
-  ended; the ninth block was not continued.
-- `sessionEnd` fires for plugin hooks: the final session's event log contains
-  `sessionEnd` hook events.
-- **Refuted**: exit 2 as the block channel ended the turn without a
-  continuation; the gate now exits 0 for Copilot.
+- 8 block continuations were honored, then the CLI ended; the ninth block
+  did not continue.
+- `sessionEnd` fires for plugin hooks: the last session's event log has
+  `sessionEnd` entries.
+- Exit 2 as the block channel: tested and it does not block. It ended the
+  turn without a continuation, so the gate exits 0 for Copilot.
 
-**Declared-unverified / not probed** (the limitations of this record):
+Not tested yet:
 
-- `userPromptSubmitted` output reaching the model: not probed here; the mode
-  reminder is advisory and does not gate.
-- `enabledPlugins` in `.github/copilot/settings.json` /
-  `~/.copilot/settings.json`: not needed for a direct install (enabled on
-  install); marketplace install not probed.
+- `userPromptSubmitted` output reaching the model. The mode reminder is
+  advisory and does not gate.
+- `enabledPlugins` in `.github/copilot/settings.json` or
+  `~/.copilot/settings.json`: not needed for a direct install (the plugin is
+  on after install); marketplace install was not tested.
 
-## Write scope and network
+## Files the hooks write, and network
 
-- Hooks write only under the Claude config dir (`$CLAUDE_CONFIG_DIR`, else
-  `$HOME`; a hook that gets neither takes a config root the host reports
-  (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`),
-  then the OS home), the same flag and evidence files every host uses:
-  `.jiahao-active`, `.jiahao-profile`, `.jiahao-evidence/` (plus the
-  `.jiahao-evidence.keys` sidecar and `pairer-instrument` shadow records),
-  `.jiahao-pretool.jsonl`, and the sentinel state and lock files. Nothing
-  inside the repository or this plugin directory is written by a hook.
-- No network calls: no hook fetches anything, and the bundle has no
-  third-party runtime dependency to install.
+Hooks write only inside the config directory: `.jiahao-active`,
+`.jiahao-profile`, `.jiahao-evidence/` (plus its `.jiahao-evidence.keys` file
+and the extra records the hooks keep), and the
+state and lock files used for cleanup. No hook writes inside the repository
+or this plugin folder.
+
+No hook calls the network. The plugin has no third-party runtime dependency to
+install.
+
+
+## Update
+
+Use the host's own plugin commands. The repository root is not a plugin entry.

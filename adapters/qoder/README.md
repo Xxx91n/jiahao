@@ -1,305 +1,253 @@
-# Qoder Adapter (self-contained plugin; A tier on both Desktop builds)
+# Qoder plugin and rules
 
 ## What this is
 
-This directory is a **self-contained Qoder Desktop plugin**: the manifest
-(`.qoder-plugin/plugin.json`), the hook map (`hooks/hooks.json`), the hook
-scripts and their `require()` closure, `src/SKILL.md`, and the identity pin
-the gate loads are vendored inside; nothing reads from the repository root and
-there is no third-party runtime dependency. The same directory also carries
-`rules/jiahao.md` for the **Qoder IDE/CLI** rules path: it travels in the
-archive because one directory holds both exits, and it registers nothing.
+This folder has two install paths:
 
-## Capability tier
+- A Qoder Desktop plugin: `.qoder-plugin/plugin.json`, `hooks/hooks.json`,
+  the hook scripts and the files they load, and `src/SKILL.md`. Everything it
+  needs is inside the folder.
+- `rules/jiahao.md` for the Qoder IDE/CLI rules path. It is a text file and
+  registers nothing.
 
-| Surface | Tier | Basis |
-|---|---|---|
-| Qoder CN Desktop 0.4.11 | A | turn-end block watched in a live session on 2026-10-31 (#109) |
-| Qoder international Desktop 0.4.11 | A | turn-end block watched in a live session on 2026-11-01 (#113), both channels |
-| Qoder IDE/CLI | C | rules text only; no hook was run for this exit |
+## Install the Desktop plugin
 
-A tier means the host can be stopped before a turn ends. **Each build has its
-own probe**: #109 measured the CN build, #113 measured the international one, and
-neither result was borrowed for the other. The IDE/CLI line stays C until its own
-probe reports, because no Qoder CLI is installed on the machine that ran both.
+1. Zip this folder so that `.qoder-plugin/` is at the archive root.
+2. In the Desktop app's plugin settings, install that archive at user scope.
+3. Start a new session. Hook configuration is read at session start; an open
+   session does not pick it up.
 
-This directory supersedes the #79 rule that no hook registration may appear in
-it. #79 shipped the Qoder exit as rules-only *because* the turn-end question was
-open; #109 answered it for Qoder CN Desktop, so the registration is now the
-point of the directory and the no-registration assertion was replaced (not
-deleted) by tests that pin exactly which events are wired.
+## Install the rules version (no hooks)
 
-## The hook map this bundle ships
-
-Wiring order, script, and per-event timeout, so a reader can compare the table
-with `hooks/hooks.json`: SessionStart runs `jiahao-activate.js` (5s),
-UserPromptSubmit runs `jiahao-mode-tracker.js` (5s), Stop runs
-`jiahao-verdict-gate.js` (10s), and SessionEnd runs `jiahao-sweep.js` (3s) -
-the timeouts are 5/5/10/3s. The sweep is wired for sentinel reclamation (leaked
-`<config>/.jiahao-sentinel.*` files have no other collector); its firing on this
-host was not observed.
-
-## What was observed on Qoder CN Desktop 0.4.11 (#109, 2026-10-31)
-
-A `Stop` hook registered in the project's `.qoder/settings.json` fired in a
-real session and continued the turn:
-
-- exit 0 with a flat `{"decision":"block","reason":"..."}` on stdout: the host
-  injected the reason as a meta user message and the model ran another turn;
-- exit 2 with the reason on stderr: same outcome;
-- the payload is Claude-shaped (`session_id`, `cwd`, `transcript_path`,
-  `hook_event_name`, `last_assistant_message`) and the host sets
-  `stop_hook_active: true` on every re-entry;
-- 6 consecutive blocks were honored before the probe's own cap ended the run, so
-  no host-side consecutive-block limit was reached.
-
-Which messages got held is stated in the record, because it is not all the same
-thing: **6** of the 10 blocks (exit-0 channel) landed on "I completed and verified
-a read-only check" claims that were unfounded on their face; **1** was the same
-assertion wrapped in a "this is probe payload" disclaimer; and **3** (exit-2
-channel) landed on literals that themselves said nothing had been verified. So the
-exit-2 run proves the host honors a block on that channel - it is not evidence of
-a false-completion catch.
-
-Raw calls are in
-[`qoder-hook-calls.jsonl`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-calls.jsonl)
-and the run record is
-[`qoder-hook-probe-2026-10-31.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md).
-
-## What was observed on international Desktop 0.4.11 (#113, 2026-11-01)
-
-The other build, probed on its own, reproduced the CN result rather than
-inheriting it:
-
-- `Stop` exists and fires; the payload has the same Claude-shaped fields, and
-  `transcript_path` lands under `~/.qoder/projects/<slug>/`;
-- **both channels block and continue**: exit 0 with a flat
-  `{"decision":"block","reason":"..."}` and exit 2 with the reason on stderr
-  (`success=false exit_code=2` in the host log, reason still fed back);
-- `stop_hook_active: true` is set on every re-entry turn;
-- 3 consecutive blocks were honored before the probe's own cap ended the run, so
-  no host-side consecutive-block limit was reached;
-- project-scope `.qoder/settings.json` registered the hook and a
-  `.qoder-cn/settings.json` armed beside it never fired - the same answer the CN
-  build gave, now measured rather than assumed;
-- the hook subprocess gets `QODER_PROJECT_DIR`, `QODER_CONFIG_DIR`,
-  `USERPROFILE`, `TEMP` and `TMP`, but no `QODER_SESSION_ID`, no
-  `CLAUDE_CONFIG_DIR` and no `HOME`. This was measured on a **project-scope
-  `.qoder/settings.json` hook**; the plugin path has not been observed spawning a
-  hook, so whether it hands over the same environment is unproven. The state
-  location this env produced (state under `<drive>:\tmp`) is what #116
-  repaired in `src/shared/paths.js`; see the conditional wording in
-  "Declared-unverified on this host".
-
-Which messages got held: **5** blocks landed on "I completed and verified a
-read-only check" claims that were unfounded on their face (runs 1, 3, 4), and
-**2** landed on literals that themselves said nothing had been verified (run 2's
-exit-2 channel, and run 5, where the model refused to assert it and quoted the
-line instead). The 5 were dictated by the probe prompt (the model was told to
-emit that sentence verbatim), so they prove the block fires on a
-self-contradictory claim, not that the model invented one. The exit-2 run proves
-the channel carries a block and a continuation, not a false-completion catch.
-
-Counts agree: 12 hook calls in
-[`qoder-intl-hook-calls.jsonl`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-hook-calls.jsonl)
-(7 blocking, 5 passing), 12 `hook.finished` lines with `source="project"` in
-[`qoder-intl-runlog-probe-hooks.txt`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-runlog-probe-hooks.txt),
-7 injected block-feedback records in
-[`qoder-intl-transcript-block-lines.jsonl`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-transcript-block-lines.jsonl),
-and 2 per-invocation stream records (stdin/stdout/stderr/exit) in
-[`qoder-intl-probe-io.jsonl`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-probe-io.jsonl).
-The run record is
-[`qoder-intl-hook-probe-2026-11-01.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-hook-probe-2026-11-01.md).
-
-### Plugin path on the international build (host's own plugin, not this bundle)
-
-The host's bundled `qoder-context` plugin shows the plugin path carries a
-`Stop` event on this build:
-
-- its `hooks.json` (version `1.0.84.f756706`) has four events -
-  `SessionStart` 2, `UserPromptSubmit` 2, `PostToolUse` 2, `Stop` 2 - read out
-  in [`qoder-intl-host-versions.txt`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-host-versions.txt);
-- its `Stop` hooks finished with `exit_code=0` in the host run log
-  (`source="plugins"`, `plugin_root="...\.qoder\plugins\cache\qoderapp-bundler\qoder-context\1.0.84.f756706"`),
-  appended to [`qoder-intl-runlog-probe-hooks.txt`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-intl-runlog-probe-hooks.txt);
-- `${QODER_PLUGIN_ROOT}` is the placeholder that plugin spells; it uses exec form
-  (`command` + `args`), and its hooks finished with `exit_code=0`, which is
-  consistent with the root being substituted - but the logged line fields keep
-  the literal, so this is not a direct observation of the substitution. Shell-form
-  expansion is unproven - see the placeholder bullet below.
-
-The CN build ships a different map at the same version string - `SessionStart` 1,
-`UserPromptSubmit` 2, no `Stop` - so this is a fact about the international
-build's bundled plugin, not about `hooks/hooks.json` in general. What remains
-unproven is this bundle blocking through the plugin path: see
-"Declared-unverified on this host".
-
-## Declared-unverified on this host
-
-Limitations of this record - the items below were read out of the host's files
-or schemas, not watched happening:
-
-- **The plugin registration surface, for this bundle.** The host's own bundled
-  plugin proves the plugin path carries a `Stop` event on the international build
-  (see "Plugin path on the international build" above), but a `Stop` hook
-  arriving through the *plugin* path has not been watched **blocking** a turn on
-  either build - every live block above came through the settings path.
-  Installing this directory as a plugin is expected to work, not proven to work.
-- **The shipped gate on this host.** Every block above was produced by the probe
-  script, not by `jiahao-verdict-gate.js`. What is verified is the host channel
-  (a `Stop` hook can block and continue a turn here), not this bundle's verdict
-  logic running under Qoder.
-- **Whether an `additionalContext` injection reaches the model on Qoder.** The
-  envelope is the shape the host's schema asks for; no injection was watched in
-  the #109 session.
-- **`SessionEnd` firing and its timeout budget.** Wired for reclamation, never
-  observed on this host.
-- **`${QODER_PLUGIN_ROOT}` in a shell-form command.** The host's own plugin uses
-  that placeholder, but the probe ran exec-form hooks (`command` + `args`), so
-  this exact spelling has not been watched resolving.
-- **Whether a hook subprocess gets `QODER_SESSION_ID`.** It does not: the probe
-  saw `QODER_PROJECT_DIR`, `QODER_CONFIG_DIR`, `USERPROFILE`, `TEMP` and `TMP`.
-  That is why the hook map passes the platform name `qoder` on the command line.
-- **Where jiahao's own state lands on this host.** The hook subprocess gets
-  neither `CLAUDE_CONFIG_DIR` nor `HOME`, so before [#116](https://github.com/Xxx91n/jiahao/issues/116)
-  `src/shared/paths.js` fell through to its last resort and a hook spawned by
-  Qoder read and wrote `.jiahao-profile` and `.jiahao-evidence` under
-  `<drive>:\tmp` instead of the `QODER_CONFIG_DIR` (`~/.qoder-cn` on CN,
-  `~/.qoder` on international) the host does name. `paths.js` now takes that
-  host root after `CLAUDE_CONFIG_DIR` and `HOME`; a host that sets either one
-  does not move. The spawned-hook tests in `test/config-dir.test.js` run this
-  bundle's own hooks under the environment the #109 probe recorded (Qoder's two
-  variables, the two Claude ones absent) and read the directory back:
-  `SessionStart` creates `.jiahao-active` there, a reconciled sentinel appends
-  its evidence record under `<config>/.jiahao-evidence/`, and a spawned Stop
-  gate blocks out of the flag file it finds there. **That environment was
-  recorded on a project-scope `.qoder/settings.json` hook**; whether the
-  plugin path hands over the same variables was not observed, so on the plugin
-  path the fixed resolution is conditional on it. The live in-app half - a Qoder
-  session whose evidence chain is seen in `~/.qoder-cn` - is not yet in this
-  repository's records; the turn-end block above is unaffected either way,
-  because it was measured through the hook's own stdout/stderr. An unreadable
-  `.jiahao-profile` (a directory in its place, or unreadable permissions) also
-  resolves to the default `verifier`, with a `[config]:` note on stderr.
-- **Which root registers hooks - now known for both builds.** Project-scope
-  `.qoder/settings.json` fired and a `.qoder-cn/settings.json` placed beside it
-  did not, on the CN build (#109) and again on the international one (#113).
-- **`PreToolUse` and `SubagentStop`.** Not wired here; neither was exercised on
-  either build.
-
-## Qoder Desktop - plugin (enforcement)
-
-Qoder Desktop installs a plugin from a local archive at user scope: package this
-directory into a `.zip` whose root holds `.qoder-plugin/`, and install it from
-the Desktop app's plugin settings. Then start a new session: hook configuration
-is read at session start, and a session already open does not pick it up.
-
-The event list, scripts, and timeouts are in "The hook map this bundle ships"
-above - stated once, so the two cannot drift apart. What is measured is the
-host's `Stop` channel (table above); what is not, is this bundle's own path to
-it (Declared-unverified) - so that section describes wiring, not a witnessed
-block by these scripts.
-
-## Qoder Desktop - rules version (no enforcement)
-
-For instructions only, with no hook, install the rules version's standard skill
-directory:
+For instructions only:
 
 ```bash
 npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy   # Qoder CN
-npx skills add Xxx91n/jiahao -g -a qoder -y --copy      # international alias (not live-probed here)
+npx skills add Xxx91n/jiahao -g -a qoder -y --copy      # international alias (not tested here)
 ```
 
-- Qoder CN lands `~/.qoder-cn/skills/jiahao/SKILL.md`. On 2026-10-31 the
-  documented command exited 0 and the installed file's SHA-256 matched
-  `skills/jiahao/SKILL.md` (Run A). A fresh session reported the skill visible
-  in #106's Run B, a separate run not re-probed here. The run record is
-  [qoder-desktop-install-2026-10-31.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md).
-- The international alias writes `~/.qoder/skills/jiahao/SKILL.md` according to
-  the skills CLI's host matrix; loading there was not live-probed here, so it
-  stays declared-unverified.
-- This path is plain text: no hook runs and nothing is enforced by it.
+- Qoder CN writes `~/.qoder-cn/skills/jiahao/SKILL.md`. On 2026-10-31 the
+  command exited 0 and the installed file's SHA-256 matched
+  `skills/jiahao/SKILL.md` (Run A). A fresh session showed the skill visible
+  in #106's Run B, a separate run not repeated here. Record:
+  `docs/evidence/v0.3.0/qoder-desktop-install-2026-10-31.md`.
+- The international alias is expected to write
+  `~/.qoder/skills/jiahao/SKILL.md` by the skills CLI's host table, but
+  loading there was not tested.
+- This path is plain text. No hook runs and nothing is blocked by it.
 
-Do not copy this directory's rule file into a Qoder Desktop rules path. Each
-Desktop build has its own config root: `~/.qoder-cn` for CN, `~/.qoder` for the
-international build (measured 2026-11-01: the hook subprocess on the
-international build reports `QODER_CONFIG_DIR=C:\Users\Administrator\.qoder`).
-#106's check found `~/.qoder/rules` unloaded, but that check ran from a **CN**
-session, whose root is `~/.qoder-cn`; it says nothing about whether the
-international build loads a rules directory of its own. That question is still
-unprobed, so no rules path is offered for either Desktop build.
+## Set the profile
 
-## Qoder IDE/CLI
+The hooks get the profile from one file, `.jiahao-profile`, in the config
+directory. Write `verifier` to block a completion claim with no evidence,
+`generator` to only remind. If the file is missing, the hooks use `verifier`.
 
-The IDE/CLI line reads project rules from `.qoder/rules/`
+The config directory is the first one of these that the process has:
+`CLAUDE_CONFIG_DIR`, then `HOME`, then a root the host reports
+(`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`, `WORKBUDDY_CONFIG_DIR`), then
+`USERPROFILE`, then the OS home. It never falls back to `/tmp`.
+
+POSIX shell:
+
+```bash
+CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"; mkdir -p "$CONFIG"
+echo full > "$CONFIG/.jiahao-active"
+echo verifier > "$CONFIG/.jiahao-profile"
+```
+
+PowerShell:
+
+```powershell
+$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1; New-Item -ItemType Directory -Force -Path $c | Out-Null
+Set-Content -NoNewline -Path "$c/.jiahao-active" -Value full
+Set-Content -NoNewline -Path "$c/.jiahao-profile" -Value verifier
+```
+
+Use `generator` in place of `verifier` for reminders only. Start a new session
+after you change the file. All agents that use the same config directory share
+this file; give each one its own directory when they need different profiles.
+
+If `.jiahao-profile` cannot be read (a folder sits there, or the permissions
+are wrong), the hooks use `verifier` and print a `[config]:` note on stderr.
+
+
+## Check it works
+
+- The Desktop plugin shows as installed and enabled in the app's plugin
+  settings, and a new session starts without a hook error.
+- On both Desktop builds, a Stop hook in `.qoder/settings.json` blocked a
+  false "done" claim and continued the turn. That was the test hook, not this
+  plugin's gate; the plugin path was not watched (see below).
+- The rules version: `~/.qoder-cn/skills/jiahao/SKILL.md` exists after the
+  `npx skills add` command.
+
+## Qoder IDE/CLI rules
+
+The IDE/CLI reads project rules from `.qoder/rules/`
 (https://docs.qoder.com/zh/user-guide/rules). `rules/jiahao.md` is that exit:
 
 1. Copy `rules/jiahao.md` into `.qoder/rules/` in the project.
-2. Keep `alwaysApply: true` in the frontmatter. Qoder's rules documentation
-   says rules without a `paths` or `trigger` selector load eagerly, and
-   `alwaysApply: true` is one of the always-on forms (reference:
-   https://docs.qoder.com/cli/memory; project-rules page:
-   https://docs.qoder.com/zh/user-guide/rules).
-3. Start a new Qoder session. The file is plain Markdown; no script runs and
-   nothing needs installing.
+2. Keep `alwaysApply: true` in the frontmatter. Qoder's rules docs say rules
+   without a `paths` or `trigger` selector load eagerly, and
+   `alwaysApply: true` is one of the always-on forms.
+3. Start a new Qoder session. The file is plain Markdown; no script runs.
 
 The rule file registers nothing: it is not a hook and it is not the Desktop
-plugin. The project-level path is the one Qoder's rules documentation names; a
-user-level rules directory is not documented there and is not offered here.
+plugin. The project path is the one Qoder documents. A user-level rules
+folder is not documented there and is not offered here.
 
-The rule body carries both profiles (generator and verifier), exactly like the
-rules version.
+Do not copy this folder's rule file into a Desktop rules path. Each Desktop
+build has its own config root: `~/.qoder-cn` for CN and `~/.qoder` for the
+international build (measured 2026-11-01: the international hook process
+reports `QODER_CONFIG_DIR=C:\Users\Administrator\.qoder`). #106 found
+`~/.qoder/rules` unloaded, but that check ran from a CN session, whose root
+is `~/.qoder-cn`; it says nothing about the international build. That
+question is still not tested, so no rules path is offered for either Desktop
+build.
 
-## Verification status
+## Hooks
 
-- Structural facts are pinned by tests: the bundle is self-contained, the
-  manifest and hook map come from this row, and `Stop` runs the verdict gate.
-- The turn-end block has **two** live observations, one per Desktop build:
-  Qoder CN Desktop 0.4.11 (#109, 2026-10-31) and international Desktop 0.4.11
-  (#113, 2026-11-01), both through a project-scope `.qoder/settings.json` hook.
-  Neither probe ran against an isolated config home (a Desktop worker is spawned
-  by the app and has no home override). Both gated every block on a marker
-  string with a per-session cap, and that guard is a **content gate, not a
-  session gate**: an unrelated turn whose text lacks the marker can never be
-  blocked, but another new turn in the armed project that happened to contain it
-  could be, up to the cap. No such turn occurred in either probe.
-- The scripts that recorded those calls are
-  [`probes/qoder-stop-probe.js`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/qoder-stop-probe.js)
-  (CN) and its log-path shim
-  [`probes/qoder-intl-probe-hook.js`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/qoder-intl-probe-hook.js)
-  (international), and the checklist both runs are reviewed against is
-  [`docs/agents/evidence-review.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
-- Not live-probed: this directory installed as a Desktop plugin, and Qoder
-  IDE/CLI rule loading. The IDE/CLI steps are quoted from Qoder's documentation,
-  not observed here.
+`hooks/hooks.json` wires four events. The platform name `qoder` is passed to
+each script; that tells the script which JSON shape to use.
 
-## What this exit does not do
+| Event | Script | What it does |
+| --- | --- | --- |
+| SessionStart | hooks/jiahao-activate.js | injects the selected profile text |
+| UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands and a short reminder |
+| Stop | hooks/jiahao-verdict-gate.js | blocks the turn when there is no proof |
+| SessionEnd | hooks/jiahao-sweep.js | cleans up leftover state files |
 
-- No installer command: the Desktop app installs the plugin from a local archive
-  through its own settings, and the IDE/CLI path is a file copy.
-- No claim about the IDE/CLI line beyond the tier table above. Both Desktop
-  builds carry their own probe; neither borrows the other's.
-- No MCP server registration in this bundle.
+Timeouts: 5/5/10/3s.
 
-## Write scope and network
+## What a real session showed on Qoder CN Desktop 0.4.11 (#109, 2026-10-31)
 
-- Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else `$HOME`;
-  a hook that gets neither takes a config root the host reports
-  (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`),
-  then the OS home): `.jiahao-active`, `.jiahao-profile`, `.jiahao-evidence/`
-  (plus its sidecar and pairer shadow records), and the sentinel state and
-  lock files. Nothing inside the repository or this plugin directory is
-  written by a hook.
-- No network calls: no hook fetches anything, and the bundle has no
-  third-party runtime dependency to install.
+A `Stop` hook in the project's `.qoder/settings.json` fired and continued the
+turn:
+
+- exit 0 with `{"decision":"block","reason":"..."}` on stdout: the host added
+  the reason as a user message and the model ran another turn;
+- exit 2 with the reason on stderr: same result;
+- the input data is Claude-shaped (`session_id`, `cwd`, `transcript_path`,
+  `hook_event_name`, `last_assistant_message`) and the host sets
+  `stop_hook_active: true` on every re-entry;
+- 6 blocks in a row were honored before the test's own cap ended the run. The
+  test cap, not a host limit, ended it; whether the host has a limit above six
+  is not known.
+
+Which messages were held: 6 of the 10 blocks (exit-0 channel) were on
+"completed and verified" claims with nothing behind them; 1 was the same
+claim wrapped in a "this is test data" note; 3 (exit-2 channel) were literals
+that said nothing had been verified. The exit-2 run shows the host honors a
+block on that channel; it is not proof that a false claim was caught.
+
+Raw calls: `docs/evidence/v0.3.0/qoder-hook-calls.jsonl`. Run record:
+`docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md`.
+
+## What a real session showed on Qoder international Desktop 0.4.11 (#113, 2026-11-01)
+
+The other build reproduced the CN result on its own run:
+
+- `Stop` exists and fires; the input has the same Claude-shaped fields, and
+  `transcript_path` lands under `~/.qoder/projects/<slug>/`;
+- both channels block and continue: exit 0 with the flat decision and exit 2
+  with the reason on stderr;
+- `stop_hook_active: true` on every re-entry;
+- 3 blocks in a row were honored before the test's cap ended the run;
+- project-level `.qoder/settings.json` registered the hook, and a
+  `.qoder-cn/settings.json` beside it never fired;
+- the hook process gets `QODER_PROJECT_DIR`, `QODER_CONFIG_DIR`,
+  `USERPROFILE`, `TEMP`, and `TMP`, but no `QODER_SESSION_ID`, no
+  `CLAUDE_CONFIG_DIR`, and no `HOME`. This was measured on a project-level
+  hook. The plugin path was not watched starting a hook, so whether it
+  passes the same variables is not proven.
+
+Messages held: 5 "completed and verified" claims with nothing behind them
+(runs 1, 3, 4), and 2 literals that said nothing was verified (run 2's
+exit-2 channel and run 5). The 5 were dictated by the test prompt, so they
+show the host honors a block on that channel, not that the model wrote the
+claim.
+
+Counts agree: 12 hook calls in `docs/evidence/v0.3.0/qoder-intl-hook-calls.jsonl`,
+12 `hook.finished` lines, 7 block-feedback records, and 2 per-call stream
+records. Run record:
+`docs/evidence/v0.3.0/qoder-intl-hook-probe-2026-11-01.md`.
+
+## Not tested yet
+
+- **Installing this folder as a Desktop plugin.** The host's own bundled
+  plugin shows the international build carries a Stop event, but a Stop
+  arriving through the plugin path was not watched blocking on either build.
+  Every live block above came through `.qoder/settings.json`.
+- **The shipped gate on this host.** Every block above came from the test
+  script, not from `jiahao-verdict-gate.js`. What is proven is the host
+  channel, not this plugin's judgment under Qoder.
+- **`additionalContext` reaching the model.** The reply has the shape the
+  host's schema asks for; no injection was watched in the #109 session.
+- **`SessionEnd` firing and its timeout.** Wired for cleanup, never observed.
+- **`${QODER_PLUGIN_ROOT}` in a shell-form command.** The host's own plugin
+  uses that name, but the test ran exec-form hooks, so this spelling was not
+  watched resolving.
+- **A `QODER_SESSION_ID` in the hook process.** It is absent, which is why
+  the hook list passes the platform name `qoder` on the command line.
+- **Where jiahao's state lands on this host.** The hook process gets neither
+  `CLAUDE_CONFIG_DIR` nor `HOME`, so before #116 `src/shared/paths.js` fell
+  to its last resort and a hook started by Qoder read and wrote
+  `.jiahao-profile` and `.jiahao-evidence` under `<drive>:\tmp` instead of
+  the `QODER_CONFIG_DIR` (`~/.qoder-cn` on CN, `~/.qoder` on international)
+  the host names. `paths.js` now takes that host root after
+  `CLAUDE_CONFIG_DIR` and `HOME`. The spawned-hook tests in
+  `test/config-dir.test.js` run the hooks under the environment the #109
+  test recorded and read the directory back. **That environment was recorded
+  on a project-level hook**; whether the plugin path passes the same
+  variables was not observed. The live half (a Qoder session whose evidence
+  chain is seen in `~/.qoder-cn`) is not in this repository's records.
+- **`PreToolUse` and `SubagentStop`.** Not wired here; neither was exercised.
+
+## Qoder Desktop plugin
+
+Install from the local archive as above. Reinstall a new archive to upgrade,
+then start a new session.
+
+## What this folder does not do
+
+- No installer command: the Desktop app installs the archive through its own
+  settings, and the IDE/CLI path is a file copy.
+- No claim about the IDE/CLI line beyond the text above. Both Desktop builds
+  carry their own test; neither borrows the other's.
+- No MCP server registration in this folder.
+
+## What we tested
+
+- The folder is complete and the hook list is generated from the same source;
+  `Stop` runs the completion check. Pinned by tests.
+- The turn-end block was watched twice in real sessions, one per Desktop
+  build, both through a project-level `.qoder/settings.json` hook.
+- The test scripts are `docs/evidence/v0.3.0/probes/qoder-stop-probe.js`
+  (CN) and `docs/evidence/v0.3.0/probes/qoder-intl-probe-hook.js`
+  (international). The checklist both runs are reviewed against is
+  `docs/agents/evidence-review.md`.
+- Not tested: this folder installed as a Desktop plugin, and Qoder IDE/CLI
+  rule loading.
 
 ## Update
 
-- Qoder Desktop plugin: reinstall the archive built from this directory, then
-  open a new session.
-- Qoder Desktop rules version: re-run the same `npx skills add` command, then
-  open a new session.
-- Qoder IDE/CLI: re-copy `rules/jiahao.md` after a release.
+- Desktop plugin: reinstall the archive built from this folder, then start a
+  new session.
+- Rules version: run the same `npx skills add` command, then start a new
+  session.
+- IDE/CLI: copy `rules/jiahao.md` again after a release.
+
+## Files the hooks write, and network
+
+Hooks write only inside the config directory: `.jiahao-active`,
+`.jiahao-profile`, `.jiahao-evidence/` (plus its `.jiahao-evidence.keys` file
+and the extra records the hooks keep), and the
+state and lock files used for cleanup. No hook writes inside the repository
+or this plugin folder.
+
+No hook calls the network. The plugin has no third-party runtime dependency to
+install.
+
 
 The body is generated from `src/SKILL.md`; `node scripts/build-adapters.js --check`
 keeps the committed copy identical to the generator output.

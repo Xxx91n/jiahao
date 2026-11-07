@@ -1,125 +1,143 @@
-# CodeBuddy Adapter (first Claude-Code-compatible path host)
+# CodeBuddy plugin
 
 ## What this is
 
-This directory is a **self-contained plugin bundle**: CodeBuddy recognizes
-`.claude-plugin/` and `${CLAUDE_PLUGIN_ROOT}` verbatim (official
-Claude-Code compatibility chapter; `${CODEBUDDY_PLUGIN_ROOT}` takes
-precedence when set). Copy the whole directory as the plugin root - the hook
-scripts, their require() closure, `src/SKILL.md`, and the `jiahao-mcp`
-server are vendored inside, so nothing resolves outside the bundle.
+This folder is a complete plugin. CodeBuddy reads `.claude-plugin/` and
+`${CLAUDE_PLUGIN_ROOT}` as they are; `${CODEBUDDY_PLUGIN_ROOT}` wins when it
+is set. Copy the whole folder as the plugin root. The hook scripts, the files
+they load, `src/SKILL.md`, and the `jiahao-mcp` server are all inside.
 
-## Install (plugin path)
+## Install
 
-1. Copy this directory to the CodeBuddy plugin location, e.g.
-   `codebuddy plugin install <path-to-this-dir>` (CLI) or the IDE plugin
+1. `codebuddy plugin install <path-to-this-dir>` (CLI), or use the IDE plugin
    manager.
-2. Enable the plugin explicitly - `defaultEnabled: false` is deliberate:
-   plugin hooks bypass the `allowUntrustedFrontmatterHooks` gate and
-   execute the moment the plugin is enabled.
-3. Activate the jiahao profile flag, same as every host. Resolve the config
-   directory once (`CLAUDE_CONFIG_DIR`, else `$HOME`; when a hook has neither,
-   it takes a config root the host reports (`QODER_CONFIG_DIR`,
-   `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`), then the OS home -
-   never `/tmp` (`src/shared/paths.js`):
-   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"; mkdir -p "$CONFIG"`, then
-   `echo full > "$CONFIG/.jiahao-active"` and
-   `echo verifier > "$CONFIG/.jiahao-profile"` for the blocking profile
-   (`generator` for advisory-only). Start a new session after changing
-   `.jiahao-profile`. The file is shared by all agents using the same config
-   directory; use separate config directories for concurrent profiles.
-   An unreadable `.jiahao-profile` (a directory in its place, or unreadable
-   permissions) also resolves to the default `verifier`, with a `[config]:` note
-   on stderr.
-4. MCP server: run `npm install --omit=dev` inside the bundle's
-   `jiahao-mcp/` once (the server source is vendored; dependencies are
-   not). The bundle's `.mcp.json` registers it via
+2. Turn the plugin on. `defaultEnabled: false` is on purpose: plugin hooks
+   skip the `allowUntrustedFrontmatterHooks` check and run as soon as the
+   plugin is on.
+3. Install the MCP server once: run `npm install --omit=dev` inside the
+   folder's `jiahao-mcp/`. The server source is inside the folder; its
+   packages are not. The folder's `.mcp.json` starts it at
    `${CLAUDE_PLUGIN_ROOT}/jiahao-mcp/index.js`.
 
-Settings-tier alternative (CLI): merge the hook map into
+Another way, through the CLI settings file: merge the hook list into
 `.codebuddy/settings.json` and copy the rules into `.codebuddy/rules/`.
-The settings path is the one live-verified at SessionStart, PreToolUse, and
-PostToolUse; turn-end blocking was not probed on this host (see
-"Verified and declared-unverified").
+SessionStart, PreToolUse, and PostToolUse were watched on the settings path.
+The turn end was not watched on this host; see "What was tested" below.
 
-## Hook map
+## Set the profile
 
-Plugin `hooks/hooks.json` entries are **exempt from the
-`allowUntrustedFrontmatterHooks` gate** - unlike skill/agent frontmatter
-(which is silently skipped unless trusted), plugin hooks execute as soon as
-the plugin is enabled. Nothing load-bearing lives in frontmatter here by
-design. Enabling this bundle installs seven hook points:
+The hooks get the profile from one file, `.jiahao-profile`, in the config
+directory. Write `verifier` to block a completion claim with no evidence,
+`generator` to only remind. If the file is missing, the hooks use `verifier`.
 
-| Event | Script | Behavior |
+The config directory is the first one of these that the process has:
+`CLAUDE_CONFIG_DIR`, then `HOME`, then a root the host reports
+(`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`, `WORKBUDDY_CONFIG_DIR`), then
+`USERPROFILE`, then the OS home. It never falls back to `/tmp`.
+
+POSIX shell:
+
+```bash
+CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"; mkdir -p "$CONFIG"
+echo full > "$CONFIG/.jiahao-active"
+echo verifier > "$CONFIG/.jiahao-profile"
+```
+
+PowerShell:
+
+```powershell
+$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1; New-Item -ItemType Directory -Force -Path $c | Out-Null
+Set-Content -NoNewline -Path "$c/.jiahao-active" -Value full
+Set-Content -NoNewline -Path "$c/.jiahao-profile" -Value verifier
+```
+
+Use `generator` in place of `verifier` for reminders only. Start a new session
+after you change the file. All agents that use the same config directory share
+this file; give each one its own directory when they need different profiles.
+
+If `.jiahao-profile` cannot be read (a folder sits there, or the permissions
+are wrong), the hooks use `verifier` and print a `[config]:` note on stderr.
+
+
+## Check it works
+
+- The plugin shows as enabled in CodeBuddy's plugin manager.
+- The `.mcp.json` server connects and lists its tools.
+- The hooks in `.codebuddy/settings.json` run at session start and around
+  tool calls.
+- A turn-end block has not been tested on this host.
+
+## Hooks
+
+Plugin hooks in `hooks/hooks.json` skip the trust check that skill and agent
+frontmatter go through: they run when the plugin is on. This plugin wires
+seven events.
+
+| Event | Script | What it does |
 | --- | --- | --- |
-| SessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext |
-| SubagentStart | hooks/jiahao-subagent.js | same injection on subagent spawn |
-| UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
-| Stop | hooks/jiahao-verdict-gate.js | verifier blocking: exit 2 + {decision:"block"} |
-| SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
-| InstructionsLoaded | hooks/jiahao-instructions-assert.js | integrity assertion: records both rules files' presence + sha256 to the telemetry log |
-| PreToolUse | hooks/jiahao-pretool-guard.js | enforcement-surface guard: emits permissionDecision:"deny" (verifier profile) when a tool call targets injected rules / hook map / manifest / jiahao state-evidence files; every hit is a bypass-attempt record |
+| SessionStart | hooks/jiahao-activate.js | injects the selected profile text |
+| SubagentStart | hooks/jiahao-subagent.js | injects the profile text when a subagent starts |
+| UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands and a short reminder |
+| Stop | hooks/jiahao-verdict-gate.js | blocks (exit 2 + `{"decision":"block"}`) when there is no proof |
+| SessionEnd | hooks/jiahao-sweep.js | cleans up leftover state files |
+| InstructionsLoaded | hooks/jiahao-instructions-assert.js | records that both rule files are present, with their sha256, in the log |
+| PreToolUse | hooks/jiahao-pretool-guard.js | denies (verifier profile) tool calls that target the hook list, the manifest, `jiahao-*` hook files, any `.mcp.json`, or jiahao state/evidence files; each hit is logged as a bypass attempt |
 
-Timeouts stay within the 60s host budget (5/5/5/10/3/5/5s). Commands are
-Git-Bash-compatible `node` invocations (cmd/PowerShell unsupported by the
-host). Event matchers are case-sensitive - none are narrowed here.
+Timeouts: 5/5/5/10/3/5/5s, inside the host's 60s per-hook limit. Commands are
+`node` calls that work in Git Bash; cmd and PowerShell are not supported by
+this host. Event names are case-sensitive.
 
-## Dialect
+## Two rule files load together
 
-**Rule-loading caveat.** The bundle ships both `rules/jiahao-verifier.md`
-and `rules/jiahao-generator.md` with `alwaysApply: true`. The hook injects
-the profile selected by `.jiahao-profile`, but if the host applies both
-always-apply rule files, the two instruction sets coexist. Rule-level profile
-selection is declared-unverified; the hook is the enforcement layer.
+The folder ships `rules/jiahao-verifier.md` and `rules/jiahao-generator.md`,
+both with `alwaysApply: true`. The hook injects the profile named in
+`.jiahao-profile`, but if the host loads both rule files, both sets of
+instructions are active. Which file wins at the rule level is not tested.
 
-## Verified and declared-unverified
+## What was tested
 
-Measured on CodeBuddy Code CLI 2.151.0 (live-probed).
+Tested on CodeBuddy Code CLI 2.151.0 in a real session:
 
-**Verified:**
+- `.codebuddy/settings.json` hooks at SessionStart, PreToolUse, and
+  PostToolUse ran; the `hook_event_name` + `hookSpecificOutput` JSON shape
+  was seen.
+- The PreToolUse `permissionDecision: "deny"` reply was seen.
+- `.mcp.json` registration worked: the server connected over stdio and
+  listed its tools.
 
-- `.codebuddy/settings.json` hooks (SessionStart / PreToolUse / PostToolUse):
-  the `hook_event_name` + `hookSpecificOutput` envelope was live-verified.
-- PreToolUse `permissionDecision: "deny"` envelope: verified deny shape on
-  the CLI.
-- MCP server registration via `.mcp.json`: stdio connect + tool list
-  verified.
+Not tested yet:
 
-**Declared-unverified / not probed** (the limitations of this record):
+- IDE-side hooks, including whether `InstructionsLoaded` fires.
+- Which of the two `alwaysApply` rule files wins, in either form.
+- An `npx` install next to a `codebuddy plugin install`.
+- The plugin path on the CLI. The docs say it is compatible; no run was
+  watched.
+- A turn-end block on this host. The live checks above cover session start
+  and tool calls, not the turn end.
 
-- IDE-side hook parity, incl. `InstructionsLoaded` firing: pending-confirmation.
-- `rules/` non-`alwaysApply` load priority (both forms): pending-confirmation.
-- `npx`-bundled install vs `codebuddy plugin install` coexistence:
-  pending-confirmation.
-- Plugin-bundle path parity on CLI (documented compat, unprobed live):
-  pending-confirmation.
+Windows note: the upstream `${CLAUDE_PLUGIN_ROOT}` expansion bug may also
+appear here. The settings path above is the one with evidence.
 
-Unverified means **registered, not assumed**: each row has a
-pending-confirmation entry in the taxonomy exception channel (schema) with an
-expiry and an owner ratify/revoke point. Windows note: the upstream
-`${CLAUDE_PLUGIN_ROOT}` hook expansion bug (anthropics/claude-code issues)
-may carry over - the settings-tier path is the verified fallback.
+## Files the hooks write, and network
 
-## Write scope and network
+Hooks write only inside the config directory: `.jiahao-active`,
+`.jiahao-profile`, `.jiahao-evidence/` (plus its `.jiahao-evidence.keys` file
+and the extra records the hooks keep), `.jiahao-pretool.jsonl`, and the
+state and lock files used for cleanup. No hook writes inside the repository
+or this plugin folder.
 
-- Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else
-  `$HOME`; a hook that gets neither takes a config root the host reports
-  (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`),
-  then the OS home, never `/tmp`): `.jiahao-active`, `.jiahao-profile`,
-  `.jiahao-evidence/` (plus its sidecar and pairer shadow records),
-  `.jiahao-pretool.jsonl`, `.jiahao-instructions.jsonl` (the
-  InstructionsLoaded telemetry log, which carries session IDs), and the
-  sentinel state and lock files. Nothing inside the repository or this plugin
-  directory is written by a hook.
-- No network calls: no hook fetches anything. The hook scripts have no
-  third-party runtime dependency; the vendored MCP server has its own
-  (`@modelcontextprotocol/sdk`, `zod`), installed with
-  `npm install --omit=dev` inside `jiahao-mcp/` as above.
+No hook calls the network. The hooks have no third-party runtime dependency.
+The MCP server has two: `@modelcontextprotocol/sdk` and `zod`; step 3 installs
+them.
 
-## Trial boundary
 
-The adapter is admitted; the external effectiveness trial (install +
-Phase 0/1/2 in a real CodeBuddy environment) is an **owner action**, never
-agent-executed. Protocol: `.scratch/grill-t30/protocol.md`; judgment lines:
-`bench/codebuddy-trial/judgment-lines.json` (preregistered, immutable -
-deviations ride errata records).
+This host also writes `.jiahao-instructions.jsonl`: the log from the
+InstructionsLoaded hook. It contains session IDs.
+
+## Before trusting it as a product
+
+The outside effectiveness trial (install + Phase 0/1/2 in a real CodeBuddy
+environment) is an owner action, not something an agent runs. Protocol:
+`.scratch/grill-t30/protocol.md`; judgment lines:
+`bench/codebuddy-trial/judgment-lines.json` (fixed in advance; changes go in
+errata records).

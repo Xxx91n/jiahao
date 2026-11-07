@@ -1,129 +1,143 @@
-# Codex CLI Adapter (self-contained plugin, A tier, live-probed 2026-10-30)
+# Codex CLI plugin
 
 ## What this is
 
-This directory is a **self-contained Codex CLI plugin**: the manifest
-(`.codex-plugin/plugin.json`), the hook map (`hooks/hooks.json`), the hook
-scripts and their `require()` closure, `src/SKILL.md`, and the identity pin
-the gate loads are vendored inside; there is no third-party runtime
-dependency. Every hook command resolves through `${PLUGIN_ROOT}`, so nothing
+This folder is a complete Codex CLI plugin. It holds
+`.codex-plugin/plugin.json`, `hooks/hooks.json`, every file the hooks load,
+`src/SKILL.md`, and the identity file the gate reads. It has no third-party
+runtime dependency. Every hook command uses `${PLUGIN_ROOT}`, so nothing
 reads from the repository root.
 
-## Install (host-native commands)
+## Install
 
-The repository root is also a Codex marketplace
-(`.agents/plugins/marketplace.json`, whose single `source.path` points at
-`./adapters/codex`).
+The repository root is also a Codex marketplace:
+`.agents/plugins/marketplace.json` points at `./adapters/codex`.
 
 1. `codex plugin marketplace add Xxx91n/jiahao`
 2. `codex plugin add jiahao --marketplace jiahao`
-3. Review and trust the plugin's hook commands once — Codex skips an untrusted
-   hook silently (`/hooks`). Live probe: an untrusted plugin's hooks did not
-   run in `codex exec`. Unattended automation either persists that trust (the
-   `/hooks` flow; source-verified, not step-by-step probed) or passes
-   `--dangerously-bypass-hook-trust` after vetting the source.
-4. Activate the jiahao profile flag, same as every host. Resolve the config
-   directory once (`CLAUDE_CONFIG_DIR`, else `$HOME`; when a hook has neither,
-   it takes a config root the host reports (`QODER_CONFIG_DIR`,
-   `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`), then the OS home -
-   never `/tmp` (`src/shared/paths.js`):
-   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"; mkdir -p "$CONFIG"`, then
-   `echo full > "$CONFIG/.jiahao-active"` and
-   `echo verifier > "$CONFIG/.jiahao-profile"` for the blocking profile
-   (`generator` for advisory-only). Start a new session after changing
-   `.jiahao-profile`.
-   An unreadable `.jiahao-profile` (a directory in its place, or unreadable
-   permissions) also resolves to the default `verifier`, with a `[config]:` note
-   on stderr.
+3. Trust the plugin's hook commands once, through `/hooks`. Codex skips an
+   untrusted hook without a message. In the test, an untrusted plugin's hooks
+   did not run in `codex exec`. For unattended automation, either keep that
+   trust (the `/hooks` flow; checked in the host's source, not step by step) or pass
+   `--dangerously-bypass-hook-trust` after checking the source.
 
-Codex 0.163.0 enables hooks by default: `codex features list` reports
+## Set the profile
+
+The hooks get the profile from one file, `.jiahao-profile`, in the config
+directory. Write `verifier` to block a completion claim with no evidence,
+`generator` to only remind. If the file is missing, the hooks use `verifier`.
+
+The config directory is the first one of these that the process has:
+`CLAUDE_CONFIG_DIR`, then `HOME`, then a root the host reports
+(`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`, `WORKBUDDY_CONFIG_DIR`), then
+`USERPROFILE`, then the OS home. It never falls back to `/tmp`.
+
+POSIX shell:
+
+```bash
+CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"; mkdir -p "$CONFIG"
+echo full > "$CONFIG/.jiahao-active"
+echo verifier > "$CONFIG/.jiahao-profile"
+```
+
+PowerShell:
+
+```powershell
+$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1; New-Item -ItemType Directory -Force -Path $c | Out-Null
+Set-Content -NoNewline -Path "$c/.jiahao-active" -Value full
+Set-Content -NoNewline -Path "$c/.jiahao-profile" -Value verifier
+```
+
+Use `generator` in place of `verifier` for reminders only. Start a new session
+after you change the file. All agents that use the same config directory share
+this file; give each one its own directory when they need different profiles.
+
+If `.jiahao-profile` cannot be read (a folder sits there, or the permissions
+are wrong), the hooks use `verifier` and print a `[config]:` note on stderr.
+
+
+Codex 0.163.0 has hooks on by default: `codex features list` reports
 `hooks stable true`, and a fresh `CODEX_HOME` with no `config.toml` ran the
-plugin's hooks. No `[features] hooks` switch is part of this recipe. The trust
-step above is separate and required: the probe saw untrusted hooks skipped
-silently in `codex exec`. If an older build refuses the plugin's hooks, look
-for a `[features] hooks` switch in `$CODEX_HOME/config.toml` rather than
-copying a flag block from here.
+plugin's hooks. This recipe needs no `[features] hooks` switch. The trust
+step is separate and required. If an older build refuses the hooks, look for
+that switch in `$CODEX_HOME/config.toml`; do not copy a flag block from here.
 
-Install, upgrade, and uninstall are the host's own plugin commands; the repo
-root is never a plugin entry.
+## Check it works
 
-## Hook map
+- `codex plugin add` exits 0, and the plugin's hooks run after you trust
+  them in `/hooks`.
+- With `verifier`, a false "done" claim gets blocked. Tested on
+  codex-cli 0.163.0 on 2026-10-30.
 
-`hooks/hooks.json` is the whole template. Each entry names the script to run
-and the platform name `codex` passed to it; there is no decision logic in the
-file. The platform name is what the hook uses to pick Codex's output envelope
-(the same branch `hooks/jiahao-runtime.js` already has), so the template does
-not re-implement host detection.
+## Hooks
 
-| Event | Script | Behavior |
+`hooks/hooks.json` is the whole template. Each entry names the script and
+passes the platform name `codex`; the script uses that name to pick the
+host's JSON shape.
+
+| Event | Script | What it does |
 | --- | --- | --- |
-| SessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext |
-| SubagentStart | hooks/jiahao-subagent.js | same injection on subagent spawn |
-| UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
-| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: exit 0 + {decision:"block"} on stdout, with the same reason on stderr for host logs; blocks an empty evidence chain (verifier profile). Exit 2 did not block in the 0.163.0 live probe |
-| SubagentStop | hooks/jiahao-verdict-gate.js | same gate on subagent finish (parity; Stop was live-probed, SubagentStop was not separately probed) |
-| SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
+| SessionStart | hooks/jiahao-activate.js | injects the selected profile text |
+| SubagentStart | hooks/jiahao-subagent.js | injects the profile text when a subagent starts |
+| UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands and a short reminder |
+| Stop | hooks/jiahao-verdict-gate.js | blocks the turn with exit 0 + `{"decision":"block"}` on stdout, and the same reason on stderr for host logs; blocks an empty evidence log (verifier profile) |
+| SubagentStop | hooks/jiahao-verdict-gate.js | the same check when a subagent finishes (wired for parity; not separately tested) |
+| SessionEnd | hooks/jiahao-sweep.js | cleans up leftover state files |
 
-Timeouts stay inside the host budget (5/5/5/10/10/3s; Codex caps
-`SessionEnd` at 3s). Event names are the host's own PascalCase set.
+Timeouts: 5/5/5/10/10/3s (Codex caps `SessionEnd` at 3s).
 
-## Verified and declared-unverified
+## What was tested
 
-Capability tier: **A (verified 2026-10-30, codex-cli 0.163.0)**. A live
-prompt-mode session continued a false completion claim only after `Stop`
-answered `{decision:"block"}` on exit 0. The exit-2 + stderr path documented
-by the host source ended the turn without a continuation in this build.
-Evidence:
-[`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+Tested on 2026-10-30 with codex-cli 0.163.0 on win32. A real prompt-mode
+session continued a false claim only after `Stop` answered
+`{"decision":"block"}` on exit 0. The documented exit-2 + stderr path ended
+the turn without a continuation on this build. Evidence:
+`docs/evidence/v0.3.0/`.
 
-**Verified:**
+- `codex plugin marketplace add <local path>` and
+  `codex plugin add jiahao --marketplace jiahao` installed the folder.
+- Without stored trust, hooks were skipped in `codex exec` and the false
+  claim passed. With `--dangerously-bypass-hook-trust`, the Stop gate
+  answered the block and the next model turn quoted the reason.
+- The hook's exit code, stdout, and stderr were recorded by a wrapper, not
+  read from the host log: `docs/evidence/v0.3.0/probes/codex-hook-wrapper.js`.
+  It runs the installed gate, appends one JSON line per call, then replays
+  the output and exits with the same code. Reuse it on a new build. The
+  evidence layout is in `docs/agents/evidence-review.md`.
+- A loop guard: an unconditional exit-0 block in a throwaway user Stop hook
+  continued for 785 runs (786 assistant messages, 33M input tokens) before
+  the host ended the turn. No small cap like Copilot's 8 appeared. The
+  bundled gate is not unconditional: it passes when the host sends
+  `stop_hook_active` on the continuation, so it blocks once per turn.
+- Offline checks in `test/plugin-bundles.test.js` and
+  `test/codex-adapter.test.js`: the manifest parses, the version and license
+  come from `package.json`, the marketplace `source.path` points at this
+  folder, every referenced file is generated, every hook command stays
+  inside `${PLUGIN_ROOT}`, and no relative `require()` points outside the
+  folder.
 
-- Offline, pinned by `test/plugin-bundles.test.js` (structure, run once per
-  host row) and `test/codex-adapter.test.js` (the Codex envelope and the
-  bundled Stop gate, spawned as a subprocess from a temp materialization of
-  the generator output): the manifest parses, its version and license come
-  from `package.json`, the marketplace `source.path` resolves to this
-  directory, every referenced file is emitted (`--check` pins the emitted
-  set to disk), every hook command stays inside `${PLUGIN_ROOT}`, and no
-  vendored relative `require()` escapes the bundle.
-- **Live probe (2026-10-30, codex-cli 0.163.0, win32)**: `codex plugin
-  marketplace add <local path>` and `codex plugin add jiahao --marketplace
-  jiahao` installed the bundle. Without persisted trust the hooks were
-  skipped in `codex exec` and the false claim passed; with
-  `--dangerously-bypass-hook-trust` the Stop gate answered
-  `{decision:"block"}` and the next model turn quoted the reason. Commands
-  and captured output live in
-  [`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
-- The hook's own exit code, stdout, and stderr were recorded by a wrapper, not
-  read from the host log:
-  [`probes/codex-hook-wrapper.js`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/codex-hook-wrapper.js)
-  runs the installed gate, appends one JSON line per invocation, then replays
-  the output and exits with the same code. Reuse it when probing a new build;
-  the surrounding evidence layout is described in
-  [`docs/agents/evidence-review.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
-- Loop guard: an unconditional exit-0 JSON block in a throwaway user Stop hook
-  continued for 785 runs (786 assistant messages, 33M input tokens) before the
-  host completed the turn; no small host cap like Copilot's 8 appeared. The
-  bundled gate is not unconditional - it passes when the host sends
-  `stop_hook_active` on the continuation - so the block happens once per turn.
+Tested and did not work:
 
-**Declared-unverified / not probed** (the limitations of this record):
+- Exit 2 as the block channel: on 0.163.0 it ended the turn without a
+  continuation, so it does not block.
 
-- The interactive `/hooks` trust-and-restart flow itself was not
-  step-by-step probed.
-- `SubagentStop` was not separately probed (wired for parity; `Stop` was
-  live-probed).
-- Exit 2 as the block channel: refuted on 0.163.0 - it ended the turn without
-  a continuation.
+Not tested yet:
 
-## Write scope and network
+- The interactive `/hooks` trust-and-restart flow, step by step.
+- `SubagentStop` on its own (wired for parity; `Stop` was tested).
 
-- Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else
-  `$HOME`; a hook that gets neither takes a config root the host reports
-  (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`),
-  then the OS home, never `/tmp`): `.jiahao-active`, `.jiahao-profile`, `.jiahao-evidence/` (plus
-  its sidecar and pairer shadow records), `.jiahao-pretool.jsonl`, and the
-  sentinel state and lock files. Nothing inside the repo or this plugin
-  directory is written by a hook.
-- No network calls: no hook fetches anything, and the bundle has no
-  third-party runtime dependency to install.
+## Files the hooks write, and network
+
+Hooks write only inside the config directory: `.jiahao-active`,
+`.jiahao-profile`, `.jiahao-evidence/` (plus its `.jiahao-evidence.keys` file
+and the extra records the hooks keep), and the
+state and lock files used for cleanup. No hook writes inside the repository
+or this plugin folder.
+
+No hook calls the network. The plugin has no third-party runtime dependency to
+install.
+
+
+## Update and uninstall
+
+Use the host's own plugin commands. The repository root is not a plugin entry.

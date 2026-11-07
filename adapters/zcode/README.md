@@ -1,189 +1,193 @@
-# ZCode Adapter (self-contained plugin, A tier, live-probed 2026-10-31)
+# ZCode plugin
 
 ## What this is
 
-This directory is a **self-contained ZCode plugin**: the manifest
-(`.zcode-plugin/plugin.json`), the hook map (`hooks/hooks.json`), the hook
-scripts and their `require()` closure, `src/SKILL.md`, and the identity pin
-the gate loads are vendored inside; there is no third-party runtime
-dependency. Every hook command resolves through `${ZCODE_PLUGIN_ROOT}`, so
-nothing reads from the repository root.
+This folder is a complete ZCode plugin. It holds `.zcode-plugin/plugin.json`,
+`hooks/hooks.json`, every file the hooks load, `src/SKILL.md`, and the
+identity file the gate reads. It has no third-party runtime dependency. Every
+hook command uses `${ZCODE_PLUGIN_ROOT}`, so nothing reads from the repository
+root.
 
-## Install (host-native commands)
+## Install
 
-The bundle carries its own marketplace shelf (`marketplace.json`, with
+The folder carries its own marketplace shelf (`marketplace.json`, with
 `source: "."` pointing at itself), because ZCode's install command only
-resolves `plugin@marketplace` names - a direct directory install is refused
-("Plugin not found in any marketplace", CLI 0.17.0, probed 2026-10-31).
+resolves `plugin@marketplace` names. A direct folder install is refused
+("Plugin not found in any marketplace", CLI 0.17.0, tested 2026-10-31).
 
 1. `zcode plugins marketplace add <path-to-this-dir>` - the shelf inside the
-   bundle is the marketplace; exit 0 reports `Added marketplace jiahao-zcode
-   (1 plugins)`.
-2. `zcode plugins install jiahao@jiahao-zcode` - installs and enables in one
-   step; `zcode plugins list` reports `hooks: 4` (the host parses
-   `hooks/hooks.json` itself; the manifest carries no hooks pointer). The
-   cached hook map, manifest, and gate script are byte-identical to this
-   bundle (diff-verified 2026-10-31).
+   folder is the marketplace; exit 0 reports `Added marketplace
+   jiahao-zcode (1 plugins)`.
+2. `zcode plugins install jiahao@jiahao-zcode` - installs and turns it on in
+   one step; `zcode plugins list` reports `hooks: 4` (the host parses
+   `hooks/hooks.json` itself; the manifest has no hooks pointer). The cached
+   hook list, manifest, and gate script are byte-identical to this folder
+   (checked 2026-10-31).
 3. `zcode plugins validate <path-to-this-dir>` is the host's own manifest
-   check; it accepts this bundle (exit 0).
+   check; it accepts this folder (exit 0).
 4. Do NOT point `marketplace add` at the repository root: the host then
    resolves `.claude-plugin/marketplace.json` and installs the **Claude
-   Code** bundle instead (probed 2026-10-31 - and its parser drops the
-   unsupported events of a Claude-shaped map silently, 7 events down to
-   `hooks: 4`).
-5. Activate the jiahao profile flag, same as every host. Resolve the config
-   directory once (`CLAUDE_CONFIG_DIR`, else `$HOME`; when a hook has neither,
-   it takes a config root the host reports (`QODER_CONFIG_DIR`,
-   `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`), then the OS home -
-   never `/tmp` (`src/shared/paths.js`).
-   POSIX shell: `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"; mkdir -p "$CONFIG"`, then
-   `echo full > "$CONFIG/.jiahao-active"` and
-   `echo verifier > "$CONFIG/.jiahao-profile"` for the blocking profile
-   (`generator` for advisory-only). PowerShell:
-   `$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1; New-Item -ItemType Directory -Force -Path $c | Out-Null`,
-   then `Set-Content -NoNewline -Path "$c/.jiahao-active" -Value full` and
-   `Set-Content -NoNewline -Path "$c/.jiahao-profile" -Value verifier`.
-   Start a new session after changing `.jiahao-profile`.
-   An unreadable `.jiahao-profile` (a directory in its place, or unreadable
-   permissions) also resolves to the default `verifier`, with a `[config]:` note
-   on stderr.
-6. Restart or open a new session. Hook configuration — plugin or
-   config-file — is read at session start; a map added mid-session did not
-   fire until a restart (live probe, 2026-10-31).
+   Code** folder instead (tested 2026-10-31 - and its parser silently drops
+   unsupported events of a Claude-shaped list, 7 events down to `hooks: 4`).
+5. Start a new session. Hook configuration - plugin or config file - is read
+   at session start; a list added mid-session did not fire until a restart
+   (tested 2026-10-31).
 
-Upgrade is `zcode plugins update` (the subcommand exists; not live-probed).
-Uninstall is `zcode plugins uninstall jiahao@jiahao-zcode --force`
-(non-interactive shells need `--force`), then
-`zcode plugins marketplace remove jiahao-zcode`. Install, upgrade, and
-uninstall are the host's own plugin commands; the repository root is never a
-plugin entry.
+## Set the profile
 
-## Hook map
+The hooks get the profile from one file, `.jiahao-profile`, in the config
+directory. Write `verifier` to block a completion claim with no evidence,
+`generator` to only remind. If the file is missing, the hooks use `verifier`.
 
-ZCode's event set is exactly seven (`SessionStart`, `UserPromptSubmit`,
-`PreToolUse`, `PermissionRequest`, `PostToolUse`, `PostToolUseFailure`,
-`Stop`). `SubagentStart`, `SubagentStop`, and `SessionEnd` do not exist,
-so this bundle wires no sweep hook: the sentinel reconcile sweep does not run
-on this host.
+The config directory is the first one of these that the process has:
+`CLAUDE_CONFIG_DIR`, then `HOME`, then a root the host reports
+(`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`, `WORKBUDDY_CONFIG_DIR`), then
+`USERPROFILE`, then the OS home. It never falls back to `/tmp`.
 
-| Event | Script | Behavior |
+POSIX shell:
+
+```bash
+CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"; mkdir -p "$CONFIG"
+echo full > "$CONFIG/.jiahao-active"
+echo verifier > "$CONFIG/.jiahao-profile"
+```
+
+PowerShell:
+
+```powershell
+$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1; New-Item -ItemType Directory -Force -Path $c | Out-Null
+Set-Content -NoNewline -Path "$c/.jiahao-active" -Value full
+Set-Content -NoNewline -Path "$c/.jiahao-profile" -Value verifier
+```
+
+Use `generator` in place of `verifier` for reminders only. Start a new session
+after you change the file. All agents that use the same config directory share
+this file; give each one its own directory when they need different profiles.
+
+If `.jiahao-profile` cannot be read (a folder sits there, or the permissions
+are wrong), the hooks use `verifier` and print a `[config]:` note on stderr.
+
+
+## Check it works
+
+- `zcode plugins list` reports `hooks: 4`.
+- With `verifier`, a false "done" claim gets blocked. Tested on ZCode 3.16.2
+  on 2026-10-31, and again on 2026-11-01 through the plugin path.
+
+## Hooks
+
+| Event | Script | What it does |
 | --- | --- | --- |
-| SessionStart | hooks/jiahao-activate.js | injects the profile section via hookSpecificOutput.additionalContext |
-| UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
-| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: exit 0 + {decision:"block"} on stdout; blocks an empty evidence chain (verifier profile) |
-| PreToolUse | hooks/jiahao-pretool-guard.js | denies (verifier profile) tool calls that target the hook map, the plugin manifest, `jiahao-*` hook files, any `.mcp.json`, or the jiahao state/evidence files; each hit is a bypass-attempt record |
+| SessionStart | hooks/jiahao-activate.js | injects the selected profile text |
+| UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands and a short reminder |
+| Stop | hooks/jiahao-verdict-gate.js | blocks the turn with exit 0 + `{"decision":"block"}`; blocks an empty evidence log (verifier profile) |
+| PreToolUse | hooks/jiahao-pretool-guard.js | denies (verifier profile) tool calls that target the hook list, the manifest, `jiahao-*` hook files, any `.mcp.json`, or jiahao state/evidence files; each hit is logged as a bypass attempt |
 
-Timeouts stay within the host's default 60s budget (5/5/10/5s). Commands are
-`node` invocations in shell form; the platform name `zcode` is passed as the
-script's first argument, which is what selects this host's envelope and exit
-codes in `hooks/jiahao-runtime.js`.
+Timeouts: 5/5/10/5s, inside the host's 60s limit. The platform name `zcode`
+is passed as the script's first argument; that picks this host's JSON shape
+and exit codes.
 
-## Dialect: what differs from the Claude-shaped hosts
+ZCode has exactly seven events (`SessionStart`, `UserPromptSubmit`,
+`PreToolUse`, `PermissionRequest`, `PostToolUse`, `PostToolUseFailure`,
+`Stop`). `SubagentStart`, `SubagentStop`, and `SessionEnd` do not exist, so
+this folder wires no cleanup hook; that cleanup does not run on this host.
 
-- **`${ZCODE_PLUGIN_ROOT}` is the plugin-root variable.** ZCode also
-  expands `${CLAUDE_PLUGIN_ROOT}` for plugin hooks; the template uses the
-  native spelling so nothing depends on the compatibility name.
-- **Payloads carry both spellings.** `session_id`/`sessionId`,
-  `hook_event_name`/`hookEventName`, and
-  `stop_hook_active`/`stopHookActive` were all present on live fires; the
-  shared normalizer folds them into the Claude shape.
-- **The block channel is the decision field on a zero exit.** A live turn
-  continued only after Stop answered `{decision:"block"}` on exit 0. The
+## What is different on this host
+
+- `${ZCODE_PLUGIN_ROOT}` is the plugin-root variable. ZCode also expands
+  `${CLAUDE_PLUGIN_ROOT}` for plugin hooks; this template uses the native
+  name so nothing depends on the compatibility name.
+- Input data carries both spellings: `session_id`/`sessionId`,
+  `hook_event_name`/`hookEventName`, and `stop_hook_active`/`stopHookActive`
+  were all present in real runs. The shared normalizer folds them into the
+  Claude shape.
+- The block channel is the decision field on a zero exit. A live turn
+  continued only after Stop answered `{"decision":"block"}` on exit 0. The
   gate exits 0 for this host.
-- **Config-tier alternative.** Hooks can also be registered without a plugin
-  in the `hooks` block of `~/.zcode/cli/config.json` (requires
-  `hooks.enabled: true`) or a workspace `.zcode/config.json`.
-  Configuration hooks have no trust gate. A config-tier install carries no
-  argv, so `detectHost()` falls back to the `ZCODE_SESSION_ID` environment
-  marker.
+- Config-file alternative: hooks can be registered without a plugin in the
+  `hooks` block of `~/.zcode/cli/config.json` (requires `hooks.enabled: true`)
+  or a workspace `.zcode/config.json`. Config hooks have no trust check. A
+  config-file install passes no argv, so `detectHost()` falls back to the
+  `ZCODE_SESSION_ID` environment marker.
 
-## Verified and declared-unverified
+## What was tested
 
-Capability tier: **A (verified 2026-10-31, ZCode 3.16.2, win32)**. A live
-desktop session's turn end was blocked by the Stop hook answering
-`{decision:"block"}` on exit 0, and the block reason arrived back as the
-next turn's context. Evidence:
-[`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+Tested on 2026-10-31 with ZCode 3.16.2 on win32, in a real desktop session in
+this repository's workspace, with a throwaway workspace hook config and a
+logging wrapper that runs the real gate. Evidence:
+`docs/evidence/v0.3.0/`.
 
-**Verified** (live probe 2026-10-31, ZCode 3.16.2, win32, in a real desktop
-session in this repository's workspace with a throwaway workspace hook config
-and a logging wrapper standing in for the gate; commands and captured payloads
-live in
-[`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/)):
-
-- A real turn-end block (Stop + `decision:"block"`): the real bundled gate
-  blocked a session's turn end (verifier profile, empty evidence chain); the
-  reason arrived as the next turn's context.
+- A real turn-end block (Stop + decision): the real bundled gate blocked a
+  session's turn end (verifier profile, empty evidence log); the reason
+  arrived as the next turn's context.
 - `stop_hook_active` on the continuation: `true` on every post-block Stop
   (both spellings); the gate's pass-through needs no change.
-- Consecutive-block cap: three consecutive block continuations were honored
-  (fires #1-#4 in `zcode-stop-fires.jsonl`); the fourth consecutive block was
-  followed by the turn ending without a further continuation (the session user
-  was present at that boundary).
-- Payload spellings: both snake_case and camelCase on every fire.
-- Hook config read at session start: mid-session config did not fire until
-  restart.
-- `zcode plugins validate` on the bundle: exit 0, "Plugin manifest is valid".
-- Install through the bundle's own marketplace shelf:
-  `marketplace add <this dir>` + `plugins install jiahao@jiahao-zcode`
-  installed the bundle `[enabled]`; `plugins list` reports `hooks: 4`; the
-  cached hook map, manifest, and gate are byte-identical to the generated
-  bundle.
+- Consecutive-block cap: three consecutive blocks were honored (fires #1-#4
+  in `docs/evidence/v0.3.0/zcode-stop-fires.jsonl`); the fourth block was
+  followed by the turn ending without a further continuation (the session
+  user was present at that boundary).
+- Input spellings: both snake_case and camelCase on every fire.
+- Hook config is read at session start: a mid-session config did not fire
+  until restart.
+- `zcode plugins validate` on the folder: exit 0, "Plugin manifest is valid".
+- Install through the folder's own marketplace shelf: `marketplace add
+  <this dir>` + `plugins install jiahao@jiahao-zcode` installed the folder
+  `[enabled]`; `plugins list` reports `hooks: 4`; the cached hook list,
+  manifest, and gate are byte-identical to the generated folder.
 - Plugin-path hooks in the operator's restarted session (2026-11-01,
-  post-merge formal install): all four registered events observed live -
-  SessionStart injected the rules body, UserPromptSubmit injected the mode
-  reminder, PreToolUse **denied** a tool call whose command text named the
-  state/evidence files (bypass-attempt telemetry written per the deny
-  envelope), and Stop **blocked** a jargon-wrapped no-evidence completion
-  claim with the Case A reason verbatim before passing on
-  `stop_hook_active` after rung-1 verification.
-- SessionStart `additionalContext` injection: the injected rules body arrived
-  as the next turn's hook additional context in the restarted session.
-- Offline, pinned by `test/plugin-bundles.test.js` (structure, run once per
-  host row) and `test/zcode-adapter.test.js` (the ZCode envelope and the
-  bundled Stop gate, spawned as a subprocess from a temp materialization of
-  the generator output): the manifest parses, its version and license come
-  from `package.json`, every referenced file is emitted (`--check` pins the
-  emitted set to disk), every hook command stays inside
-  `${ZCODE_PLUGIN_ROOT}`, and no vendored relative `require()` escapes the
-  bundle.
-- The hook's own exit code, stdin, and stdout are recorded by the probe
-  wrapper:
-  [`probes/zcode-stop-wrapper.js`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/zcode-stop-wrapper.js)
-  logs one JSON line per fire (payload and environment key names), and in
-  `realgate` mode spawns the real bundled gate, logs its exit/stdout/stderr,
-  then replays them. The raw fires live in
-  [`zcode-stop-fires.jsonl`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/zcode-stop-fires.jsonl);
-  the evidence layout is described in
-  [`docs/agents/evidence-review.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
+  post-merge formal install): all four events ran - SessionStart injected the
+  rules body, UserPromptSubmit injected the mode reminder, PreToolUse
+  **denied** a tool call whose command text named the state/evidence files
+  (the deny was logged as a bypass attempt), and Stop **blocked** a completion
+  claim with no evidence, quoting the reason; on the repeated turn it passed
+  once `stop_hook_active` was set after the first real check.
+- SessionStart `additionalContext` injection: the rules body arrived as the
+  next turn's additional context in the restarted session.
+- Offline checks in `test/plugin-bundles.test.js` and
+  `test/zcode-adapter.test.js`: the manifest parses, the version and license
+  come from `package.json`, every referenced file is generated, every hook
+  command stays inside `${ZCODE_PLUGIN_ROOT}`, and no relative `require()`
+  points outside the folder.
+- The hook's exit code, stdin, and stdout are recorded by the test wrapper:
+  `docs/evidence/v0.3.0/probes/zcode-stop-wrapper.js`. It logs one JSON line
+  per fire (input and environment key names), and in `realgate` mode runs the
+  real bundled gate, logs its exit/stdout/stderr, then replays them. Raw
+  fires: `docs/evidence/v0.3.0/zcode-stop-fires.jsonl`. The evidence layout
+  is in `docs/agents/evidence-review.md`.
 
-**Verified, refuted as the gate's channel** (negative results kept with their
-receipts):
+Tested and did not work as a channel (kept with the receipts):
 
 - Exit 2 as the block channel: exit 2 also blocked, but with the host's
   generic "Hook blocked execution" and no reason; the gate keeps exit 0 + the
   decision field, which carries the reason.
-- Repository root as the marketplace: refuted for this bundle - the host
-  resolved `.claude-plugin/marketplace.json` and installed the Claude Code
-  bundle.
+- Repository root as the marketplace: the host resolved
+  `.claude-plugin/marketplace.json` and installed the Claude Code folder.
 - Direct `zcode plugins install <dir>`: refused with "Plugin not found in
   any marketplace".
 
-**Declared-unverified / not probed** (the limitations of this record):
+Not tested yet:
 
-- Upgrade via `zcode plugins update`: the subcommand exists; not live-probed.
-- `SessionEnd` / sentinel sweep on this host: the event does not exist in
-  ZCode's set, so this bundle wires no sweep hook - a caveat of the host, not
-  of this adapter.
+- Upgrade through `zcode plugins update`: the subcommand exists; not tested.
+- `SessionEnd` / cleanup on this host: the event does not exist in ZCode's
+  list, so this folder wires no cleanup hook. That is a host limit, not a
+  plugin one.
 
-## Write scope and network
+## Files the hooks write, and network
 
-- Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else
-  `$HOME`; a hook that gets neither takes a config root the host reports
-  (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`),
-  then the OS home, never `/tmp`): `.jiahao-active`, `.jiahao-profile`, `.jiahao-evidence/`
-  (plus its sidecar and pairer shadow records), `.jiahao-pretool.jsonl`, and
-  the sentinel state and lock files. Nothing inside the repository or this
-  plugin directory is written by a hook.
-- No network calls: no hook fetches anything, and the bundle has no
-  third-party runtime dependency to install.
+Hooks write only inside the config directory: `.jiahao-active`,
+`.jiahao-profile`, `.jiahao-evidence/` (plus its `.jiahao-evidence.keys` file
+and the extra records the hooks keep), `.jiahao-pretool.jsonl`, and the
+state and lock files used for cleanup. No hook writes inside the repository
+or this plugin folder.
+
+No hook calls the network. The plugin has no third-party runtime dependency to
+install.
+
+
+## Update and uninstall
+
+- Upgrade: `zcode plugins update` (the subcommand exists; not tested).
+- Uninstall: `zcode plugins uninstall jiahao@jiahao-zcode --force`
+  (non-interactive shells need `--force`), then
+  `zcode plugins marketplace remove jiahao-zcode`. Use the host's own
+  commands; the repository root is never a plugin entry.
