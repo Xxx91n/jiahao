@@ -37,10 +37,11 @@ resolves `plugin@marketplace` names. A direct folder install is refused
 
 The hooks get the profile from one file, `.jiahao-profile`, in the config
 directory. Write `verifier` to block a completion claim when the turn has no
-evidence. Two limits: a record from an earlier turn in the same session also
-counts, and a record with no session id counts for every session, so an
-unsupported claim can pass. Write `generator` to only remind. If the file is
-missing, the hooks use `verifier`.
+evidence. Limits: a record from an earlier turn in the same session also
+counts; if the data the host sends when the turn stops has no session id,
+records from other sessions count too; and a record with no session id counts
+for every session. So an unsupported claim can pass. Write `generator` to only
+remind. If the file is missing, the hooks use `verifier`.
 
 The config directory is the first one of these that the process has:
 `CLAUDE_CONFIG_DIR`, then the `HOME` environment variable, then a root the

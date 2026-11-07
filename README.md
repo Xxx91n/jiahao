@@ -43,8 +43,9 @@ host reports (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`,
 `WORKBUDDY_CONFIG_DIR`), otherwise `USERPROFILE`, otherwise the OS home. It
 never falls back to `/tmp` on its own; if the selected variable points to
 `/tmp`, that is where the files go. Write `verifier` to block a completion
-claim with no evidence (a record from an earlier turn in the same session and
-a record with no session id can both let one pass), `generator` to only
+claim with no evidence: an earlier turn in the same session, a record with no
+session id, or stop data with no session id can all let one pass. Write
+`generator` to only
 remind; with no file, `verifier` is used. Write the file from the environment
 the hooks run in; if the host starts from another shell, set
 `CLAUDE_CONFIG_DIR` for both. Start a new session after changing it.
