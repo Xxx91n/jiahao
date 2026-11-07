@@ -31,8 +31,8 @@ remind. If the file is missing, the hooks use `verifier`.
 The config directory is the first one of these that the process has:
 `CLAUDE_CONFIG_DIR`, then `HOME`, then a root the host reports
 (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`, `WORKBUDDY_CONFIG_DIR`), then
-the OS home. It never falls back to `/tmp` on its own; if you point one of
-those variables at `/tmp`, that is where the files go.
+`USERPROFILE`, then the OS home. It never falls back to `/tmp` on its own;
+if you point one of those variables at `/tmp`, that is where the files go.
 
 POSIX shell:
 
@@ -131,8 +131,9 @@ Not tested yet:
 Hooks write only inside the config directory: `.jiahao-active`,
 `.jiahao-profile`, `.jiahao-evidence/` (plus its `.jiahao-evidence.keys` file
 and the extra records the hooks keep), and the
-state and lock files used for cleanup. No hook writes inside the repository
-or this plugin folder.
+state and lock files used for cleanup. Normally no hook writes inside the
+repository or this plugin folder; if you point the config directory at one of
+them, the files land there.
 
 No hook calls the network. The plugin has no third-party runtime dependency to
 install.

@@ -40,7 +40,7 @@ In `~/adapters/`, let the agent find its own doc. If it can't find it, open an i
 The profile comes from one file, `.jiahao-profile`, in the config dir: `CLAUDE_CONFIG_DIR`
 if it is set, otherwise `$HOME`, otherwise a dir the host reports
 (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`, `WORKBUDDY_CONFIG_DIR`), otherwise
-the OS home. It never falls back to `/tmp` on its own; if you point one of
+`USERPROFILE`, otherwise the OS home. It never falls back to `/tmp` on its own; if you point one of
 those variables at `/tmp`, that is where the files go. Write `verifier` to
 block a completion claim with no evidence (an older record with no session id
 can still let one pass), `generator` to only remind; with no file, `verifier`
