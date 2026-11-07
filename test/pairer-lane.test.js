@@ -53,6 +53,38 @@ test('a healthy commit appends and reports the recorded outcome', () => {
   expect(res.lane).toBe('recorded');
   expect(res.appended).toBe(true);
   expect(res.state).toBe('undetermined'); // unadaptable transcript classifies nothing
+  expect(res.closing).toBeNull(); // #124: no parsed transcript, no closing
+});
+
+// #124: the gate's claim source for transcript_path hosts — the adapted
+// turn's closing rides the recorded outcome, and only when the adapter
+// actually parsed one.
+test('#124: a parsed transcript exposes its closing to the gate', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-lane-closing-'));
+  const file = path.join(dir, 'session.jsonl');
+  fs.writeFileSync(file, [
+    JSON.stringify({ type: 'user', message: { role: 'user', content: '看看配置目录在哪' } }),
+    JSON.stringify({ type: 'assistant', message: { id: 'm1', content: [{ type: 'text', text: '任务完成，已验证。' }] } }),
+  ].join('\n'), 'utf8');
+  const res = run({ transcript_path: file }, { dir: freshFlagDir(), evidenceLog: stubLog(function () { return 1; }) });
+  expect(res.lane).toBe('recorded');
+  expect(res.closing).toBe('任务完成，已验证。');
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+// #124: a transcript whose parse produced no closing text (or a
+// whitespace-only one) is not a claim source — the gate must see null, not ''.
+test('#124: an empty closing parses as null, never as a claim-absent source', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-lane-closing-'));
+  const file = path.join(dir, 'session.jsonl');
+  fs.writeFileSync(file, [
+    JSON.stringify({ type: 'user', message: { role: 'user', content: '看看配置目录在哪' } }),
+    JSON.stringify({ type: 'assistant', message: { id: 'm1', content: [{ type: 'tool_use', id: 't1', name: 'Bash', input: {} }] } }),
+  ].join('\n'), 'utf8');
+  const res = run({ transcript_path: file }, { dir: freshFlagDir(), evidenceLog: stubLog(function () { return 1; }) });
+  expect(res.lane).toBe('recorded');
+  expect(res.closing).toBeNull();
+  fs.rmSync(dir, { recursive: true, force: true });
 });
 
 // #71 item 11: SubagentStop carries the subagent's own transcript in

@@ -1,0 +1,132 @@
+'use strict';
+// src/success-claim.js — the completion-claim side of the detector, lifted out
+// verbatim (#124). The Stop gate reads this turn's own words to decide whether
+// the turn CLAIMS done at all, and the gate is vendored into every host bundle
+// with a static require() closure that must stay free of third-party runtime
+// dependencies — detector.js drags in request-anchors (http-link-header), so
+// the gate requires this module instead and detector re-uses it from here.
+//
+// Two functions, two roles (do not merge them):
+//   hasSuccessClaim   — the detector's triage signal, byte-identical to the
+//     original detector.js definition: sentence-level negation scope, full
+//     recall. detector.test.js pins honest-twin sentences ("Done editing,
+//     though the tests are still un-run") against it; moving it would rewrite
+//     that contract.
+//   claimsCompletion  — the GATE arbiter (#124 review, CodeRabbit round 1).
+//     The gate lets a turn through on "no claim", so this one may not
+//     under-block: negation is scoped to the clause it sits in (an unrelated
+//     "not flaky" no longer suppresses the claim in the same sentence), and
+//     the standalone words that double as ordinary prose — 通过 / 可用 /
+//     works / passing — only count when they carry a completion context
+//     ("测试通过", "可用了", "it works" but not "it works by reading…",
+//     "passing" but not "the passing rate"). Over-blocking stays the safe
+//     direction: a genuine claim that slips past this function only loses the
+//     gate's tightening, never fabricates a block.
+
+// A completion claim must survive same-sentence negation scope. TB3.0-style
+// failure disclosure ("did not complete", "still un-run") is not a success
+// claim even though it lexically contains done/complete.
+const PREV_VERIFIED_RE = /\bverified\s+(?:in\s+(?:an?|the)\s+)?(?:earlier|previous|last)\s+(?:run|session|pass|round)|\bverified\s+earlier|\bpreviously\s+(?:verified|tested|confirmed)\b|\balready[-\s]?[\w -]{0,24}\b(?:verified|tested|confirmed|correct)\b|\btests?\s+passed\s+earlier\b|\bconfirmed\s+(?:green|passing)\b[^.\n]{0,40}\b(?:last|earlier|previously)\b|\b(?:fixed|verified|tested|green)\b[^.\n]{0,40}\blast\s+session\b/i;
+const CLAIM_WORD_RE = /\b(all done|done|complete(?:d)?|fixed|verified|works now|passing|works|all good)\b|\u641e\u5b9a|\u5b8c\u6210|\u8dd1\u901a|\u5df2\u4fee\u590d|\u90fd\u597d\u4e86|\u53ef\u7528|\u901a\u8fc7|\u5168\u90e8\u9a8c\u8bc1\u901a\u8fc7/i;
+const FAILURE_DISCLOSURE_RE = /\b(?:did not|do not|does not|not|never|aborted|errored|failed\s+to|still\s+un-?run|unconfirmed|unverified|can(?:not|['\u2019]t)|(?:is|are|was|were)n(?:['\u2019]t|not)|haven(?:['\u2019]| )t|hasn(?:['\u2019]| )t|nothing\s+(?:went live|was deployed|worked)|only\s+(?:recording|wrote|documenting))\b/i;
+
+function hasSuccessClaim(text) {
+  const raw = String(text || "");
+  if (!raw) return false;
+  if (PREV_VERIFIED_RE.test(raw)) return true;
+  const sentences = raw.split(/(?<=[.!?])\s+|\r?\n+/);
+  return sentences.some(sentence => CLAIM_WORD_RE.test(sentence) && !FAILURE_DISCLOSURE_RE.test(sentence));
+}
+
+// ---- claimsCompletion: the gate arbiter (#124) ----------------------------
+
+// Unambiguous claim words: in ordinary prose they almost always announce a
+// finished state. The ambiguous four (works / passing / 通过 / 可用) are
+// judged by AMBIENT_CLAIM_RE below, never by this list. "fixed" carries a
+// compound-adjective exemption ("fixed-width column" is prose, CodeRabbit
+// round 5); questions carry their own exemption in clauseClaims.
+const STRONG_CLAIM_RE = /\b(all done|done|complete(?:d)?|finished|verified|works now|all good)\b|\bfixed\b(?!\s*[-\u2010-\u2015]?\s*(?:width|size|length|point|set|cost|layout)\b)|\u641e\u5b9a|\u5b8c\u6210|\u8dd1\u901a|\u5df2\u4fee\u590d|\u90fd\u597d\u4e86|\u5168\u90e8\u9a8c\u8bc1\u901a\u8fc7/i;
+
+// The ambiguous four, each requiring its completion context:
+//   通过   — a verification subject (测试/验证/检查/校验/构建/编译/单测/回归)
+//            before it — adverbs allowed in between (已/都/均/全部, review
+//            round 2: "测试已通过", "单测全部通过") — or the aspect markers
+//            了 / 已(经) ("通过了", "已通过", "已验证", "全部通过").
+//            "这个配置通过 .jiahao-profile 读取" stays prose (over-block
+//            residue: "配置已通过 env 读取", "该方案通过了初审" read as
+//            claims — the safe direction, disclosed in the PR).
+//   可用   — only with an aspect marker ("可用了", "已可用", "可以用了").
+//            "这条命令可用" as a status line stays prose.
+//   works  — not followed by a preposition phrase describing mechanism or
+//            conditions (by/with/when/like/for: "it works by reading…",
+//            "it works with Node 18" are prose, review round 3), with an
+//            explicit positive for the announcement forms ("works as
+//            expected/intended/designed").
+//   passing — not followed by a graded noun ("the passing rate" is prose).
+// Plus the compact success forms the reviews surfaced (round 3): subject +
+// 成功 / 过了, build succeeded, CI / everything green, 已部署/上线/合并/发布,
+// 一切正常 — all unambiguous completion announcements.
+const AMBIENT_CLAIM_RE = /(?:\u6d4b\u8bd5|\u9a8c\u8bc1|\u68c0\u67e5|\u6821\u9a8c|\u6784\u5efa|\u7f16\u8bd1|\u5355\u6d4b|\u56de\u5f52)\s*(?:\u5df2|\u5df2\u7ecf|\u90fd|\u5747|\u5168\u90e8)*\s*\u901a\u8fc7|\u901a\u8fc7\s*\u4e86(?!\s*\u89e3)|\u5df2(?:\u7ecf)?(?:\u9a8c\u8bc1|\u901a\u8fc7|\u5b9e\u73b0)|\u5168\u90e8\u901a\u8fc7|\u90fd(?:\u5df2)?\u901a\u8fc7|\u5747(?:\u5df2)?\u901a\u8fc7|\u53ef\u7528\u4e86|\u5df2\u53ef\u7528|(?:\u53ef\u4ee5|\u80fd)\u7528\u4e86|(?:\u6784\u5efa|\u7f16\u8bd1|\u6d4b\u8bd5|\u90e8\u7f72|\u4e0a\u7ebf|\u53d1\u5e03|\u5408\u5e76|\u5b89\u88c5|\u8fc1\u79fb|\u5347\u7ea7|\u56de\u5f52)\s*(?:\u5df2|\u5df2\u7ecf|\u90fd|\u5747|\u5168\u90e8)*\u6210\u529f|(?:\u6d4b\u8bd5|\u9a8c\u8bc1|\u68c0\u67e5|\u5ba1\u6838|\u8bc4\u5ba1|\u6784\u5efa)\s*(?:\u5df2|\u5df2\u7ecf|\u90fd|\u5747|\u5168\u90e8)*\u8fc7\u4e86|(?:\u4fee\u597d|\u6539\u597d|\u5f04\u597d|\u641e\u597d|\u505a\u597d)\u4e86(?!\s*\u51c6\u5907)|\u6210\u529f\u4e86|\u5df2(?:\u7ecf)?(?:\u4fee\u590d|\u5b8c\u6210|\u641e\u5b9a)|\u4e00\u5207\u5c31\u7eea|\u5df2(?:\u7ecf)?(?:\u90e8\u7f72|\u4e0a\u7ebf|\u5408\u5e76|\u53d1\u5e03)|\u4e00\u5207\u6b63\u5e38|\bbuild\s+succeeded\b|\ball\s+(?:tests?|checks?)\s+(?:pass(?:ed)?|green)\b|\bci\b[^.,;\n]{0,20}\bgreen\b|(?:everything|all)\s+is\s+green|\bready\s+to\s+(?:merge|ship|deploy)\b|\bworks\s+as\s+(?:expected|intended|designed)\b|\bworks\b(?!\s+(?:by|with|when|like|for)\b)|\btests?\s+pass(?:ed|ing)?\b|\bpassing\b(?!\s+(?:rate|grade|score|note|a\b|an\b|the\b|callback|function|value|argument|data|this|them)\b)|[:\uff1a]\s*(?:\u5168\u90e8|\u90fd|\u5747|\u5df2|\u5df2\u7ecf)*\s*(?:\u901a\u8fc7|\u6210\u529f)/i;
+
+// An explanation of mechanism, not an announcement: "here is how the cache
+// works" (CodeRabbit round 5). The explicit announcement form below keeps
+// claiming under a how-frame ("this shows how the fix works as expected").
+const EXPLAINING_HOW_RE = /\bhow\b[\s\S]{0,60}?\bworks\b/i;
+
+// Clause splitters: sentence punctuation — including the CJK terminators
+// 。！？ (round 5, CodeRabbit: "测试没通过。已修复。" is a sentence pair, the
+// second sentence is a claim) —, the clause punctuation that hosts' CJK
+// messages use for coordinate clauses (，、；), the dashes that carry
+// English asides ("done — not blocked by the proxy"), and the coordinating
+// conjunctions that glue a claim to an unrelated aside in the SAME clause
+// (round 2: "done but not tested" — the claim side is still a claim; a
+// genuine "not yet done" survives because yet is not a splitter and the
+// negation stays in the claim's own clause). The CJK colon is NOT a splitter
+// (round 4: "验证结果：通过" — the label and its verdict are one claim), the
+// ASCII colon stays one (English "label: prose" asides).
+const CLAUSE_SPLIT_RE = /[\u3002\uff01\uff0c\u3001\uff1b;:,]|\s+\u2014\s+|\s+\u2013\s+|\s+-\s+|\s+\b(?:but|though|although|however)\b\s+/i;
+
+// Chinese negation/disclosure for the clause-level check (round 2: the
+// English-only FAILURE_DISCLOSURE_RE let "还没完成，还在看" style status
+// reports route to Case A). Scoped to a negated COMPLETION complement —
+// round 3: bare 没/未 suppressed genuine claims sharing the clause with a
+// benign phrase ("搞定了没问题" was read as no claim); round 4: a small
+// modifier group sits between negation and complement, so "还没有全部完成"
+// / "尚未能跑通" stay disclosures instead of reading as claims. 没/未/
+// 没有 followed by a completion verb discloses; "没问题" / "没有任何问题" /
+// "没有警告" / "没有失败" are reassurances that keep the claim alive.
+const CJK_DISCLOSURE_RE = /(?:\u6ca1\u6709|\u6ca1|\u672a|\u65e0\u6cd5|\u4e0d\u80fd)\s*(?:\u6709)?\s*(?:\u80fd|\u591f|\u66fe|\u518d|\u6700\u7ec8|\u771f\u6b63|\u5b8c\u5168|\u5168\u90e8|\u90fd|\u4ecd|\u8fd8|\u6765\u5f97\u53ca)*\s*(?:\u5b8c\u6210|\u505a\u5b8c|\u641e\u5b9a|\u4fee\u590d|\u6539\u597d|\u5f04\u597d|\u597d|\u901a\u8fc7|\u9a8c\u8bc1|\u6d4b\u8bd5|\u8dd1\u901a|\u8dd1|\u5c31\u7eea|\u63d0\u4ea4|\u4e0a\u7ebf|\u90e8\u7f72|\u53d1\u5e03|\u5408\u5e76|\u786e\u8ba4|\u6210\u529f)/;
+
+// A claim word with an attached disclosure can still be a claim when a
+// coordinating "and" separates the two: "done and the log is not empty" —
+// the "done" segment is a clean claim (CodeRabbit round 5). "not yet done"
+// has no and, so the whole clause stays a disclosure.
+function segmentClaims(segment) {
+  return (STRONG_CLAIM_RE.test(segment) || AMBIENT_CLAIM_RE.test(segment)) &&
+    !FAILURE_DISCLOSURE_RE.test(segment) && !CJK_DISCLOSURE_RE.test(segment);
+}
+
+function clauseClaims(clause) {
+  // questions are not claims ("what does verified mean?")
+  if (/\?|\uff1f/.test(clause)) return false;
+  const hasClaim = STRONG_CLAIM_RE.test(clause) || AMBIENT_CLAIM_RE.test(clause);
+  if (!hasClaim) return false;
+  if (EXPLAINING_HOW_RE.test(clause) &&
+      !/\bworks\s+(?:now|as\s+(?:expected|intended|designed))\b/i.test(clause)) return false;
+  if (!FAILURE_DISCLOSURE_RE.test(clause) && !CJK_DISCLOSURE_RE.test(clause)) return true;
+  return clause.split(/\s+and\s+/i).some(segmentClaims);
+}
+
+function claimsCompletion(text) {
+  const raw = String(text || "");
+  if (!raw) return false;
+  if (PREV_VERIFIED_RE.test(raw)) return true;
+  const sentences = raw.split(/(?<=[.!?])\s+|\r?\n+/);
+  return sentences.some(sentence => sentence.split(CLAUSE_SPLIT_RE).some(clauseClaims));
+}
+
+module.exports = {
+  hasSuccessClaim: hasSuccessClaim,
+  claimsCompletion: claimsCompletion,
+  PREV_VERIFIED_RE: PREV_VERIFIED_RE,
+};

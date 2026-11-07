@@ -144,7 +144,14 @@ function run(payload, opts) {
     appended = (typeof written === 'number' ? written > 0 : true);
   }
 
-  return { lane: 'recorded', mode: mode, state: r.state, family: r.family, claim: r.claim, evidence: r.evidence, reason: r.reason, latency_ms: latencyMs, appended: appended };
+  // closing (#124): the adapted turn's closing text is this turn's claim side.
+  // The verdict gate reads it to decide whether the turn CLAIMS completion at
+  // all — the same vocabulary hosts that ride transcript_path instead of a
+  // last_assistant_message field. Exposed only when the adapter parsed one.
+  const closing = (adapted && adapted.ok && adapted.transcript &&
+    typeof adapted.transcript.closing === 'string' && adapted.transcript.closing.trim())
+    ? adapted.transcript.closing : null;
+  return { lane: 'recorded', mode: mode, state: r.state, family: r.family, claim: r.claim, evidence: r.evidence, closing: closing, reason: r.reason, latency_ms: latencyMs, appended: appended };
 }
 
 module.exports = { SOURCE: SOURCE, run: run, transcriptPathOf: transcriptPathOf, laneIdem: laneIdem };

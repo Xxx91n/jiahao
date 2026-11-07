@@ -743,3 +743,266 @@ test('#75: a passed human verdict releases a stale severity record, a failed one
   gate.chain([stale, fail, pass]);
   expectExit(gate.stop({ stop_hook_active: false }), 0);
 });
+
+// ---- #124: the claim gate — Case A only tightens a turn that CLAIMS done ----
+// Case A used to block every verifier Stop with an empty session evidence
+// chain, so a pure Q&A or read-only status report could not end without a
+// human `jiahao resolve`. The gate now reads this turn's own words first.
+// The red property is structural: reverting the gate to unconditional Case A
+// blocking turns the allow assertions in the tests below (no-claim, the
+// transcript quiet close, the reentry first stop) into exit-2 failures.
+
+// A Claude-Code-shaped transcript: one user turn opener, one assistant
+// closing. The closing text is the lane's claim side for hosts that carry no
+// last_assistant_message field.
+function transcriptFixture(closingText) {
+  const dir = freshDir('jiahao-transcript-124-');
+  const file = path.join(dir, 'session.jsonl');
+  fs.writeFileSync(file, [
+    JSON.stringify({ type: 'user', message: { role: 'user', content: '看看当前的配置目录在哪' } }),
+    JSON.stringify({ type: 'assistant', message: { id: 'msg_124', role: 'assistant', content: [{ type: 'text', text: closingText }] } }),
+  ].join('\n'), 'utf8');
+  return file;
+}
+
+// the gate arbiter: negation scoped to its clause, ambiguous words need a
+// completion context. Unit-level here; the hook-level tests below cover the
+// decision wiring. The claims list is the no-under-block side (a miss here
+// lets an unverified completion through), the prose list the precision side.
+test('#124: claimsCompletion arbitrates claims without under-blocking', () => {
+  const { claimsCompletion, hasSuccessClaim } = require(path.join(repoRoot, 'src', 'success-claim.js'));
+  const claims = [
+    '任务完成，已验证。',
+    '任务完成，已验证，not flaky。', // unrelated negation does not suppress
+    'All tests pass; this is not a flaky suite.',
+    'The build is done — not blocked by the proxy.',
+    'The build is done - not blocked by the proxy.', // plain hyphen asides split too
+    'The change is done but not tested.', // the claim side is still a claim
+    'The fix works as expected.',
+    'Everything works as intended.',
+    '全部验证通过',
+    '测试通过',
+    '测试已通过。',
+    '测试已经通过。',
+    '验证均已通过。',
+    '检查都通过了。',
+    '单测全部通过。',
+    '回归测试已通过。',
+    '构建已通过。',
+    '已通过。',
+    '已验证。',
+    '全部通过',
+    '系统可用了。',
+    '构建成功。',
+    '编译成功。',
+    '测试过了。',
+    '测试已经过了。',
+    'CI is green.',
+    'build succeeded.',
+    '已部署上线。',
+    '已部署。',
+    '已经部署。',
+    '已经上线了。',
+    '已经合并了。',
+    '已经发布。',
+    '上线成功。',
+    '发布成功。',
+    '合并成功。',
+    '已合并。',
+    '一切正常',
+    '一切就绪',
+    '修好了。',
+    '改好了。',
+    '成功了。',
+    '验证结果：通过。', // the CJK colon keeps label and verdict in one clause
+    '结果：通过。',
+    '搞定', // benign 没/未 phrases in the same clause keep the claim alive
+    '搞定了没问题。',
+    '已完成没有任何问题。',
+    '测试全部通过且没有警告。',
+    '测试已通过没有失败用例。',
+    '搞定没报错',
+    '测试没通过。已修复。', // CJK sentence terminators split the pair
+    '我已经修复了这个 bug', // 已经修复 — the aspect adverb sits inside
+    'done and the log is not empty', // and separates claim from disclosure
+    'Finished the refactor, ready to merge.',
+    '已实现。',
+  ];
+  for (const c of claims) expect(claimsCompletion(c)).toBe(true);
+  const prose = [
+    '这个配置通过 .jiahao-profile 读取，先到这里。',
+    '这条命令可用，参数是 --profile。',
+    'It works by reading the profile file at the config root.',
+    'It works with ZCode 5.9.4 once the profile is set.',
+    'The gate works when the config dir is set.',
+    'The passing rate in the benchmark is documented in bench/.',
+    'fixed-width column', // compound adjective, not "it is fixed"
+    'what does verified mean?', // questions are not claims
+    'Here is how the cache works', // mechanism explanation
+    'passing a callback', // participle, not a report
+    '通过了解代码', // 通过 + 了解, not 通过了
+    '我做好了准备，先到这里。', // 做好了准备 is not 做好了
+    'not done',
+    'not yet done',
+    "The task isn't done yet", // isn't joins the disclosure list
+    '无法完成', // 无法 joins the CJK disclosure prefixes
+    '我把当前的配置目录和空日志整理给你了，先到这里。',
+    '当前配置目录在 C:/x，日志是空的。',
+    '已经过了截止时间。',
+    '改好了吗？', // a question, even about the fix
+    '这个还没验证',
+    '结果还没出来',
+  ];
+  for (const c of prose) expect(claimsCompletion(c)).toBe(false);
+  // status reports in the disclosure direction stay non-claims (round 2:
+  // the English-only disclosure list missed CJK negation; round 3 scoped it
+  // to a negated completion complement so 没问题-style reassurance survives;
+  // round 4 allows modifiers between negation and complement)
+  expect(claimsCompletion('还没完成，还在看。')).toBe(false);
+  expect(claimsCompletion('尚未完成，明天继续。')).toBe(false);
+  expect(claimsCompletion('没通过，需要返修。')).toBe(false);
+  expect(claimsCompletion('还没好。')).toBe(false);
+  expect(claimsCompletion('还没有全部完成。')).toBe(false);
+  expect(claimsCompletion('尚未能跑通。')).toBe(false);
+  expect(claimsCompletion('没有全部跑通。')).toBe(false);
+  expect(claimsCompletion('测试还没有全部通过。')).toBe(false);
+  expect(claimsCompletion('没来得及完成。')).toBe(false);
+  expect(claimsCompletion('无法验证，环境不可用。')).toBe(false);
+  // the triage signal keeps its original sentence-level contract (H8 twins)
+  expect(hasSuccessClaim('任务完成，已验证，not flaky。')).toBe(false);
+});
+
+test('#124: a no-claim turn in verifier profile is allowed with an advisory', () => {
+  const gate = gateFixture();
+  const res = gate.stop({
+    stop_hook_active: false,
+    last_assistant_message: '我把当前的配置目录和空日志整理给你了，先到这里。',
+  });
+  expectExit(res, 0);
+  const parsed = parseJson(res);
+  expect(parsed.decision).toBeUndefined(); // #71 item 5: allow = absent decision
+  expect(parsed.systemMessage).toMatch(/no completion claim/i);
+});
+
+test('#124: a completion claim without evidence still blocks (no regression)', () => {
+  const gate = gateFixture();
+  const res = gate.stop({
+    stop_hook_active: false,
+    last_assistant_message: '任务完成，已验证。',
+  });
+  expectExit(res, 2);
+  const parsed = parseJson(res);
+  expect(parsed.decision).toBe('block');
+  expect(parsed.reason).toMatch(/no evidence/i);
+});
+
+test('#124: the claim rides the transcript when the host sends no last_assistant_message', () => {
+  const gate = gateFixture();
+  // Claude Code carries no last_assistant_message field; the lane's adapted
+  // closing is this turn's claim source instead.
+  const claiming = gate.stop({
+    stop_hook_active: false, session_id: 'session-124',
+    transcript_path: transcriptFixture('任务完成，已验证。'),
+  });
+  expectExit(claiming, 2);
+  expect(parseJson(claiming).decision).toBe('block');
+
+  const quiet = gate.stop({
+    stop_hook_active: false, session_id: 'session-124',
+    transcript_path: transcriptFixture('当前配置目录在 C:\\x，日志是空的。'),
+  });
+  expectExit(quiet, 0);
+  expect(parseJson(quiet).systemMessage).toMatch(/no completion claim/i);
+});
+
+test('#124: a camelCase lastAssistantMessage is read the same way', () => {
+  const gate = gateFixture();
+  const res = gate.stop({
+    stop_hook_active: false,
+    lastAssistantMessage: '我把当前的配置目录和空日志整理给你了，先到这里。',
+  });
+  expectExit(res, 0);
+  expect(parseJson(res).systemMessage).toMatch(/no completion claim/i);
+});
+
+test('#124: an empty snake_case field does not mask a valid camelCase one', () => {
+  const gate = gateFixture();
+  // round-3: normalizePayload picks the first non-empty spelling — the old
+  // first-wins order made an empty last_assistant_message shadow the camelCase
+  // source, and the gate fell back to the fail-closed block.
+  const res = gate.stop({
+    stop_hook_active: false,
+    last_assistant_message: '',
+    lastAssistantMessage: '我把当前的配置目录和空日志整理给你了，先到这里。',
+  });
+  expectExit(res, 0);
+  expect(parseJson(res).systemMessage).toMatch(/no completion claim/i);
+});
+
+test('#124: no claim source at all keeps the fail-closed Case A block', () => {
+  const gate = gateFixture();
+  // No last_assistant_message (any spelling), no transcript: the gate cannot
+  // know whether the turn claimed something, so it must not hand out a pass.
+  const res = gate.stop({
+    stop_hook_active: false,
+    last_assistant_message: '   \n\t', // whitespace-only reads as absent
+  });
+  expectExit(res, 2);
+  expect(parseJson(res).reason).toMatch(/no evidence/i);
+});
+
+// Round-1 review (CodeRabbit + both review axes): the no-claim allow is a
+// CASE A decision only. With session evidence on the chain, Case B still
+// judges the turn — a claim-free message can never waive a pending
+// high-severity or partial-coverage block.
+test('#124: a no-claim message does not waive a high-severity block', () => {
+  const gate = gateFixture();
+  gate.chain([highSeverityRecord(null)]);
+  const res = gate.stop({
+    stop_hook_active: false,
+    last_assistant_message: '我把当前的配置目录和空日志整理给你了，先到这里。',
+  });
+  expectExit(res, 2);
+  expect(parseJson(res).reason).toMatch(/high severity/);
+});
+
+test('#124: a no-claim message does not waive a partial-coverage escalation', () => {
+  const gate = gateFixture();
+  gate.chain([partialCoverageRecord(null)]);
+  const res = gate.stop({
+    stop_hook_active: false,
+    last_assistant_message: '我把当前的配置目录和空日志整理给你了，先到这里。',
+  });
+  expectExit(res, 2);
+  expect(parseJson(res).reason).toMatch(/partial coverage/);
+});
+
+test('#124: generator profile gets the no-claim advisory and never blocks', () => {
+  const dir = freshDir('jiahao-hooks-test-');
+  fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+  fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'generator', 'utf8');
+  const res = runHook('jiahao-verdict-gate.js', {
+    dir: dir,
+    stdin: JSON.stringify({ stop_hook_active: false, last_assistant_message: '现状报告：配置在 X，日志为空。' }),
+  });
+  expectExit(res, 0);
+  const parsed = parseJson(res);
+  expect(parsed.decision).toBeUndefined();
+  expect(parsed.systemMessage).toMatch(/no completion claim/i);
+});
+
+test('#124: stop_hook_active reentry after the new decisions', () => {
+  const gate = gateFixture();
+  const payload = { stop_hook_active: false, last_assistant_message: '现状报告：配置在 X，日志为空。' };
+  // First stop: judged by the claim gate and allowed. The re-entry assertion
+  // below pins the host's stop_hook_active early return, which sits before
+  // every judgment including the claim gate.
+  expectExit(gate.stop(payload), 0);
+  const reentry = gate.stop(Object.assign({}, payload, { stop_hook_active: true }));
+  expectExit(reentry, 0);
+
+  const claiming = { stop_hook_active: false, last_assistant_message: '任务完成，已验证。' };
+  expectExit(gate.stop(claiming), 2); // claim without evidence blocks
+  const claimedReentry = gate.stop(Object.assign({}, claiming, { stop_hook_active: true }));
+  expectExit(claimedReentry, 0); // host already forced pass once
+});

@@ -67,7 +67,23 @@ function normalizePayload(parsed) {
   const sessionId = p.session_id || p.sessionId || p.conversationId || null;
   const agentType = p.agent_type || p.agentType || p.agentName || '';
   const stopHookActive = p.stop_hook_active === true || (typeof p.executionNum === 'number' && p.executionNum > 0);
-  return Object.assign({}, p, { session_id: sessionId, agent_type: agentType, stop_hook_active: stopHookActive });
+  // #124: the verdict gate's claim gate reads this turn's own words; hosts
+  // that spell the field camelCase (same dialect family as sessionId /
+  // agentName above) fold onto the snake_case name the gate reads. The first
+  // non-empty spelling wins (round 2: an empty snake_case field must not
+  // mask a valid camelCase one); an empty string is a claim source the gate
+  // skips anyway, so the fallback only ever widens what the gate can read.
+  let lastAssistantMessage = null;
+  for (const v of [p.last_assistant_message, p.lastAssistantMessage]) {
+    if (typeof v === 'string' && v.trim()) { lastAssistantMessage = v; break; }
+  }
+  if (lastAssistantMessage === null && typeof p.last_assistant_message === 'string') {
+    lastAssistantMessage = p.last_assistant_message; // preserve the raw field
+  }
+  return Object.assign({}, p, {
+    session_id: sessionId, agent_type: agentType, stop_hook_active: stopHookActive,
+    last_assistant_message: lastAssistantMessage,
+  });
 }
 
 // Write hook output in the format the current host expects.
