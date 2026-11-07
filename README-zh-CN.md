@@ -37,7 +37,7 @@ npx skills add Xxx91n/jiahao
 
 在 ~/adapters/ 里面，让 Agent 去找他自己的文档，找不到就来项目开 issue。
 
-装完后，profile 只看一个文件：配置目录里的 `.jiahao-profile`。配置目录按这个顺序找：设了 `CLAUDE_CONFIG_DIR` 就用它，没设用 `HOME` 环境变量，宿主自己报了目录（`QODER_CONFIG_DIR`、`CODEBUDDY_CONFIG_DIR`、`WORKBUDDY_CONFIG_DIR`）就用那个，再往后用 `USERPROFILE`，都没有才用系统家目录；不会自己退到 `/tmp`，选中的那个变量指到 `/tmp` 时才会写在那儿。写 `verifier` 就拦没有凭据的完工声明（同一会话早先的记录、没带 session id 的记录、或者停止时宿主没给 session id 的情况，都可能让它放过），写 `generator` 只提醒；没这个文件按 `verifier`。这个文件要在钩子运行的环境里写；宿主从另一个 shell 启动时，两边都设 `CLAUDE_CONFIG_DIR`。改完开个新会话。
+装完后，profile 只看一个文件：配置目录里的 `.jiahao-profile`。配置目录按这个顺序找：设了 `CLAUDE_CONFIG_DIR` 就用它，没设用 `HOME` 环境变量，宿主自己报了目录（`QODER_CONFIG_DIR`、`CODEBUDDY_CONFIG_DIR`、`WORKBUDDY_CONFIG_DIR`）就用那个，再往后用 `USERPROFILE`，都没有才用系统家目录；不会自己退到 `/tmp`，选中的那个变量指到 `/tmp` 时才会写在那儿。写 `verifier` 就拦没有凭据的完工声明（同一会话早先的记录、没带 session id 的记录、或者停止时宿主没给 session id 的情况，都可能让它放过），写 `generator` 只提醒；没这个文件按 `verifier`。在 Copilot 和 Antigravity 上，宿主不给可读的收尾消息，所以没有凭据时 `verifier` 也可能拦住没写完工声明的问答回合。这个文件要在钩子运行的环境里写；宿主从另一个 shell 启动时，两边都设 `CLAUDE_CONFIG_DIR`。改完开个新会话。
 
 ## 测试
 
