@@ -38,13 +38,16 @@ npx skills add Xxx91n/jiahao
 In `~/adapters/`, let the agent find its own doc. If it can't find it, open an issue in this repo.
 
 The profile comes from one file, `.jiahao-profile`, in the config dir: `CLAUDE_CONFIG_DIR`
-if it is set, otherwise `$HOME`, otherwise a dir the host reports
-(`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`, `WORKBUDDY_CONFIG_DIR`), otherwise
-`USERPROFILE`, otherwise the OS home. It never falls back to `/tmp` on its own; if you point one of
-those variables at `/tmp`, that is where the files go. Write `verifier` to
-block a completion claim with no evidence (an older record with no session id
-can still let one pass), `generator` to only remind; with no file, `verifier`
-is used. Start a new session after changing it.
+if it is set, otherwise the `HOME` environment variable, otherwise a dir the
+host reports (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`,
+`WORKBUDDY_CONFIG_DIR`), otherwise `USERPROFILE`, otherwise the OS home. It
+never falls back to `/tmp` on its own; if the selected variable points to
+`/tmp`, that is where the files go. Write `verifier` to block a completion
+claim with no evidence (a record from an earlier turn in the same session and
+a record with no session id can both let one pass), `generator` to only
+remind; with no file, `verifier` is used. Write the file from the environment
+the hooks run in; if the host starts from another shell, set
+`CLAUDE_CONFIG_DIR` for both. Start a new session after changing it.
 
 ## Testing
 

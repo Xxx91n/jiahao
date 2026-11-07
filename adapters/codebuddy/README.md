@@ -28,15 +28,20 @@ The turn end was not watched on this host; see "What was tested" below.
 
 The hooks get the profile from one file, `.jiahao-profile`, in the config
 directory. Write `verifier` to block a completion claim when the turn has no
-evidence. One limit: an older record with no session id counts for every
-session, so it can let an unsupported claim through. Write `generator` to only
-remind. If the file is missing, the hooks use `verifier`.
+evidence. Two limits: a record from an earlier turn in the same session also
+counts, and a record with no session id counts for every session, so an
+unsupported claim can pass. Write `generator` to only remind. If the file is
+missing, the hooks use `verifier`.
 
 The config directory is the first one of these that the process has:
-`CLAUDE_CONFIG_DIR`, then `HOME`, then a root the host reports
-(`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`, `WORKBUDDY_CONFIG_DIR`), then
-`USERPROFILE`, then the OS home. It never falls back to `/tmp` on its own;
-if you point one of those variables at `/tmp`, that is where the files go.
+`CLAUDE_CONFIG_DIR`, then the `HOME` environment variable, then a root the
+host reports (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`,
+`WORKBUDDY_CONFIG_DIR`), then `USERPROFILE`, then the OS home. It never falls
+back to `/tmp` on its own; if the selected variable points to `/tmp`, that is
+where the files go.
+
+Write the file from the environment the hooks run in. If the host starts from
+a different shell, set `CLAUDE_CONFIG_DIR` for both.
 
 POSIX shell:
 
