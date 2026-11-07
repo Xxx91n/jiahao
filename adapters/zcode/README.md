@@ -36,14 +36,16 @@ resolves `plugin@marketplace` names. A direct folder install is refused
 ## Set the profile
 
 The hooks get the profile from one file, `.jiahao-profile`, in the config
-directory. Write `verifier` to block a turn when the agent claims it is done
-without proof. Write `generator` to only remind. If the file is missing, the
-hooks use `verifier`.
+directory. Write `verifier` to block a completion claim when the turn has no
+evidence. One limit: an older record with no session id counts for every
+session, so it can let an unsupported claim through. Write `generator` to only
+remind. If the file is missing, the hooks use `verifier`.
 
 The config directory is the first one of these that the process has:
 `CLAUDE_CONFIG_DIR`, then `HOME`, then a root the host reports
 (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`, `WORKBUDDY_CONFIG_DIR`), then
-the OS home. It is never `/tmp`.
+the OS home. It never falls back to `/tmp` on its own; if you point one of
+those variables at `/tmp`, that is where the files go.
 
 POSIX shell:
 
@@ -177,9 +179,9 @@ Not tested yet:
 
 Hooks write only inside the config directory: `.jiahao-active`,
 `.jiahao-profile`, `.jiahao-evidence/` (plus its `.jiahao-evidence.keys` file
-and the extra records the hooks keep), `.jiahao-pretool.jsonl`, and the state
-and lock files used for cleanup. No hook writes inside the repository or this
-plugin folder.
+and the extra records the hooks keep), `.jiahao-pretool.jsonl`, and the
+state and lock files used for cleanup. No hook writes inside the repository
+or this plugin folder.
 
 No hook calls the network. The plugin has no third-party runtime dependency to
 install.

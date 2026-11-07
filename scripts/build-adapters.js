@@ -72,14 +72,16 @@ const POWERSHELL_CONFIG_SNIPPET =
 const PROFILE_SECTION = `## Set the profile
 
 The hooks get the profile from one file, \`.jiahao-profile\`, in the config
-directory. Write \`verifier\` to block a turn when the agent claims it is done
-without proof. Write \`generator\` to only remind. If the file is missing, the
-hooks use \`verifier\`.
+directory. Write \`verifier\` to block a completion claim when the turn has no
+evidence. One limit: an older record with no session id counts for every
+session, so it can let an unsupported claim through. Write \`generator\` to only
+remind. If the file is missing, the hooks use \`verifier\`.
 
 The config directory is the first one of these that the process has:
 \`CLAUDE_CONFIG_DIR\`, then \`HOME\`, then a root the host reports
 (\`QODER_CONFIG_DIR\`, \`CODEBUDDY_CONFIG_DIR\`, \`WORKBUDDY_CONFIG_DIR\`), then
-the OS home. It is never \`/tmp\`.
+the OS home. It never falls back to \`/tmp\` on its own; if you point one of
+those variables at \`/tmp\`, that is where the files go.
 
 POSIX shell:
 
@@ -105,29 +107,29 @@ If \`.jiahao-profile\` cannot be read (a folder sits there, or the permissions
 are wrong), the hooks use \`verifier\` and print a \`[config]:\` note on stderr.
 `;
 
-// The files a hook may write, and the network statement. Split in two so
-// a host with no PreToolUse hook does not claim a pretool log it never writes.
-const WRITE_SCOPE = `## Files the hooks write, and network
+// The files a hook may write, and the network statement. One builder so a host
+// with no PreToolUse hook does not claim a pretool log it never writes, and the
+// one host with an MCP server states its extra packages instead of inheriting
+// the hooks-only sentence.
+function writeScope(options) {
+  const guard = options && options.guard;
+  const mcp = options && options.mcp;
+  return `## Files the hooks write, and network
 
 Hooks write only inside the config directory: \`.jiahao-active\`,
 \`.jiahao-profile\`, \`.jiahao-evidence/\` (plus its \`.jiahao-evidence.keys\` file
-and the extra records the hooks keep), and the state and lock files used for
-cleanup. No hook writes inside the repository or this plugin folder.
+and the extra records the hooks keep)${guard ? ', `.jiahao-pretool.jsonl`' : ''}, and the
+state and lock files used for cleanup. No hook writes inside the repository
+or this plugin folder.
 
-No hook calls the network. The plugin has no third-party runtime dependency to
-install.
+No hook calls the network. ${mcp
+    ? 'The hooks have no third-party runtime dependency.\nThe MCP server has two: `@modelcontextprotocol/sdk` and `zod`; step 3 installs\nthem.'
+    : 'The plugin has no third-party runtime dependency to\ninstall.'}
 `;
-const WRITE_SCOPE_WITH_GUARD = `## Files the hooks write, and network
-
-Hooks write only inside the config directory: \`.jiahao-active\`,
-\`.jiahao-profile\`, \`.jiahao-evidence/\` (plus its \`.jiahao-evidence.keys\` file
-and the extra records the hooks keep), \`.jiahao-pretool.jsonl\`, and the state
-and lock files used for cleanup. No hook writes inside the repository or this
-plugin folder.
-
-No hook calls the network. The plugin has no third-party runtime dependency to
-install.
-`;
+}
+const WRITE_SCOPE = writeScope();
+const WRITE_SCOPE_WITH_GUARD = writeScope({ guard: true });
+const WRITE_SCOPE_WITH_GUARD_AND_MCP = writeScope({ guard: true, mcp: true });
 
 // ---- host table: the one place a plugin host is described ----
 //
@@ -985,7 +987,7 @@ Not tested yet:
 Windows note: the upstream \`\${CLAUDE_PLUGIN_ROOT}\` expansion bug may also
 appear here. The settings path above is the one with evidence.
 
-${WRITE_SCOPE_WITH_GUARD}
+${WRITE_SCOPE_WITH_GUARD_AND_MCP}
 
 This host also writes \`.jiahao-instructions.jsonl\`: the log from the
 InstructionsLoaded hook. It contains session IDs.
@@ -1108,7 +1110,8 @@ turn:
   \`hook_event_name\`, \`last_assistant_message\`) and the host sets
   \`stop_hook_active: true\` on every re-entry;
 - 6 blocks in a row were honored before the test's own cap ended the run. The
-  host has no small limit.
+  test cap, not a host limit, ended it; whether the host has a limit above six
+  is not known.
 
 Which messages were held: 6 of the 10 blocks (exit-0 channel) were on
 "completed and verified" claims with nothing behind them; 1 was the same
