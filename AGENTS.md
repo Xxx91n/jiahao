@@ -30,9 +30,13 @@
 生成器会覆盖整个目录，不只是抄源码。下面这些看着像手写文档，其实也是生成的，手改会在下一次 `--check` 时被抹掉：
 
 - 各出口的 `README.md`（`adapters/*/README.md`，文案来自 `scripts/build-adapters.js` 里每个宿主的 `*Readme()`）；
-- 插件清单和钩子表：`adapters/*/.claude-plugin/plugin.json`、`adapters/codex/.codex-plugin/plugin.json`、`adapters/copilot/plugin.json`、`adapters/*/hooks/hooks.json`、`adapters/codebuddy/.mcp.json`，以及两份插件市场清单（`.claude-plugin/marketplace.json`、`.agents/plugins/marketplace.json`）；
-- 规则和技能副本：`adapters/*/rules/*.md`、`adapters/*/src/**`、`skills/jiahao/SKILL.md`；
-- 出口里自带的钩子和服务端：`adapters/*/hooks/*.js`、`adapters/*/jiahao-mcp/**`。
+- 插件清单和钩子表，按宿主分：
+  - 清单：`adapters/claude-code/.claude-plugin/plugin.json`、`adapters/codebuddy/.claude-plugin/plugin.json`、`adapters/codex/.codex-plugin/plugin.json`、`adapters/copilot/plugin.json`、`adapters/antigravity/plugin.json`、`adapters/qoder/.qoder-plugin/plugin.json`、`adapters/workbuddy/.workbuddy-plugin/plugin.json`、`adapters/zcode/.zcode-plugin/plugin.json`；
+  - 钩子表：`adapters/*/hooks/hooks.json`，Antigravity 是 `adapters/antigravity/hooks.json`；
+  - 服务注册：`adapters/codebuddy/.mcp.json`；
+  - 两份插件市场清单：`.claude-plugin/marketplace.json`、`.agents/plugins/marketplace.json`。
+- 规则和技能副本：`adapters/codebuddy/rules/*.md`、`adapters/qoder/rules/*.md`、`adapters/*/src/**`、`skills/jiahao/SKILL.md`；
+- 出口里自带的钩子和服务端：`adapters/*/hooks/*.js`、`adapters/codebuddy/jiahao-mcp/**`。
 
 要改这些，就改生成器的输入：`src/`、`hooks/`、宿主表、`*Readme()` 模板、`scripts/hosts/*.js`，然后跑 `node scripts/build-adapters.js`。改得对不对，用 `node scripts/build-adapters.js --check` 看。
 
