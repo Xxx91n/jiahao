@@ -37,20 +37,6 @@ npx skills add Xxx91n/jiahao
 
 In `~/adapters/`, let the agent find its own doc. If it can't find it, open an issue in this repo.
 
-The profile comes from one file, `.jiahao-profile`, in the config dir: `CLAUDE_CONFIG_DIR`
-if it is set, otherwise the `HOME` environment variable, otherwise a dir the
-host reports (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`,
-`WORKBUDDY_CONFIG_DIR`), otherwise `USERPROFILE`, otherwise the OS home. It
-never falls back to `/tmp` on its own; if the selected variable points to
-`/tmp`, that is where the files go. Write `verifier` to block a completion
-claim with no evidence: an earlier turn in the same session, a record with no
-session id, or stop data with no session id can all let one pass. On Copilot
-and Antigravity the host sends no readable closing message, so with no evidence
-it can also block a Q&A turn that makes no claim. Write `generator` to only
-remind; with no file, `verifier` is used. Write the file from the environment
-the hooks run in; if the host starts from another shell, set
-`CLAUDE_CONFIG_DIR` for both. Start a new session after changing it.
-
 ## Testing
 
 ```bash

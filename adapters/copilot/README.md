@@ -23,22 +23,13 @@ and `CLAUDE_PLUGIN_ROOT`). Nothing reads from the repository root.
 ## Set the profile
 
 The hooks get the profile from one file, `.jiahao-profile`, in the config
-directory. Write `verifier` to block a completion claim when the turn has no
-evidence. Limits: a record from an earlier turn in the same session also
-counts; if the data the host sends when the turn stops has no session id,
-records from other sessions count too; and a record with no session id counts
-for every session. So an unsupported claim can pass. Write `generator` to only
-remind. If the file is missing, the hooks use `verifier`.
+directory. Write `verifier` to block a completion claim with no evidence,
+`generator` to only remind. If the file is missing, the hooks use `verifier`.
 
 The config directory is the first one of these that the process has:
-`CLAUDE_CONFIG_DIR`, then the `HOME` environment variable, then a root the
-host reports (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`,
-`WORKBUDDY_CONFIG_DIR`), then `USERPROFILE`, then the OS home. It never falls
-back to `/tmp` on its own; if the selected variable points to `/tmp`, that is
-where the files go.
-
-Write the file from the environment the hooks run in. If the host starts from
-a different shell, set `CLAUDE_CONFIG_DIR` for both.
+`CLAUDE_CONFIG_DIR`, then `HOME`, then a root the host reports
+(`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`, `WORKBUDDY_CONFIG_DIR`), then
+`USERPROFILE`, then the OS home. It never falls back to `/tmp`.
 
 POSIX shell:
 
@@ -139,9 +130,8 @@ Not tested yet:
 Hooks write only inside the config directory: `.jiahao-active`,
 `.jiahao-profile`, `.jiahao-evidence/` (plus its `.jiahao-evidence.keys` file
 and the extra records the hooks keep), and the
-state and lock files used for cleanup. Normally no hook writes inside the
-repository or this plugin folder; if you point the config directory at one of
-them, the files land there.
+state and lock files used for cleanup. No hook writes inside the repository
+or this plugin folder.
 
 No hook calls the network. The plugin has no third-party runtime dependency to
 install.
