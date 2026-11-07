@@ -6,7 +6,7 @@
 
 ## 装、跑、测
 
-- 先 `npm install`，再跑 `node scripts/install.js`。加 `--profile generator` 换成生成档。
+- 先 `npm install`，再跑 `node scripts/install.js init`。要生成档就写 `node scripts/install.js init --profile generator`。
 - 测试：`npm test`。
 - 改了这些地方，必须重跑 `node scripts/build-adapters.js`：
   - `src/SKILL.md` 或 `src/` 里的文件；
@@ -27,7 +27,7 @@
 
 `adapters/`、`skills/`、`.claude-plugin/`、`.agents/` 都是生成出来的。源头是 `src/`、`hooks/`、`jiahao-mcp/`，以及 `package.json` 里的版本和元数据。改源头，再跑生成器。
 
-生成器会覆盖整个目录，不只是抄源码。下面这些看着像手写文档，其实也是生成的，手改会在下一次 `--check` 时被抹掉：
+生成器会覆盖整个目录，不只是抄源码。下面这些看着像手写文档，其实也是生成的；手改会被 `node scripts/build-adapters.js --check` 报出来，下次跑不带 `--check` 的生成器时会被覆盖：
 
 - 各出口的 `README.md`（`adapters/*/README.md`，文案来自 `scripts/build-adapters.js` 里每个宿主的 `*Readme()`）；
 - 插件清单和钩子表，按宿主分：

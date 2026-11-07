@@ -79,7 +79,7 @@
 别：用「本地能打开」证明「npm 读者能打开」；把进包路径和仓库路径混成一回事。
 
 **定罪通道（Conviction Lane）**
-回合结束时，`src/pairer-lane.js` 把宿主转写交给 `src/capa-pairer.js`，结果以 `detector.source:'pairer-instrument'` 记进证据链。两种模式：`shadow`（默认）只记录、不判定，不进风险分级表，也不算 Case A（有完工声明、却没证据）的「有证据」；`enforce`（写 `.jiahao-conviction-enforce`）是人手动提升过的通道，记录连同完工声明和证据一起进表，也算 Case A 的验证证据。裁决出处是 `hooks/jiahao-verdict-gate.js` 的 Case A 注释（#71 item 15）。
+回合结束时，`src/pairer-lane.js` 把宿主转写交给 `src/capa-pairer.js`，结果以 `detector.source:'pairer-instrument'` 记进证据链。两种模式：`shadow`（默认）不进风险分级表，也不算 Case A（有完工声明、却没证据）的「有证据」；但它是钩子读转写的通道，解析出的结尾文字仍会参与「这句是不是在说完工」的判断，所以在没有别的消息或证据时，能影响回合放不放行。`enforce`（写 `.jiahao-conviction-enforce`）是人手动提升过的通道，记录连同完工声明和证据一起进表，也算 Case A 的验证证据。裁决出处是 `hooks/jiahao-verdict-gate.js` 的 Case A 注释（#71 item 15）。
 别：把 shadow 记录当验证证据；把 enforce 记录当纯遥测；把提升开关说成自动判定。
 
 **证据评审（Evidence Review）**
