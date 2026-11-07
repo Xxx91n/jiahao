@@ -221,40 +221,16 @@ describe('Qoder Desktop exit (#79 rules file, #109 turn-end gate)', () => {
     expect(runB).toMatch(/reported in Run B/i);
   });
 
-  test('the English README rates Desktop by build; the Chinese README points at the adapter docs', () => {
+  test('both READMEs point at the adapter docs', () => {
     const en = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
     const zh = fs.readFileSync(path.join(root, 'README-zh-CN.md'), 'utf8');
-    expect(en).toContain('adapters/qoder/');
-    expect(en).toMatch(/no enforcement/i);
-    expect(en).toMatch(/declared-unverified|not live-probed/i);
-    expect(en).not.toMatch(/codex, copilot, qoder/i);
-    // The Chinese README no longer repeats the per-host details; it points
-    // the reader at adapters/. The Qoder claims stay pinned in
-    // adapters/qoder/README.md by the test above.
+    // Neither README repeats the per-host details; they point the reader
+    // at adapters/. The Qoder claims stay pinned in adapters/qoder/README.md
+    // by the test above.
     expect(zh).toContain('~/adapters/');
     expect(zh).toContain('让 Agent 去找他自己的文档');
-    // The blocking-claim guard applies to the Qoder IDE/CLI path and to the
-    // international Desktop, not to the one Desktop build that was measured.
-    const enQoder = en.slice(en.indexOf('#### Qoder'), en.indexOf('### Plugin version'));
-    const blocking = /\bwill block\b|\bblocks?\b|\bstops?\b|\bprevents?\b|会拦|拦截/i;
-    // #106: the rules version's skill directory stays the no-hook recipe, and
-    // `~/.qoder/rules` was the specific wrong path from v0.3.0.
-    expect(enQoder).toContain('-a qoder-cn');
-    expect(enQoder).toContain('~/.qoder-cn/skills/jiahao/SKILL.md');
-    expect(enQoder).toContain('.qoder/rules/');
-    expect(enQoder).not.toContain('~/.qoder/rules');
-    const enSplit = enQoder.indexOf('**Qoder IDE/CLI**');
-    expect(enSplit).toBeGreaterThan(0);
-    expect(enQoder.slice(enSplit)).not.toMatch(blocking);
-    // #109: the Desktop half may say the gate blocks, but only with the run
-    // record named beside it and the untested build called out.
-    const enDesktop = enQoder.slice(0, enSplit);
-    expect(enDesktop).toContain('npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy');
-    expect(enDesktop).toContain('qoder-desktop-install-2026-10-31.md');
-    expect(enDesktop).toContain('qoder-hook-probe-2026-10-31.md');
-    expect(enDesktop).toMatch(/Qoder CN Desktop 0\.4\.11/i);
-    expect(enDesktop).toMatch(/international|国际版/i);
-    expect(enDesktop).toMatch(/not live-probed|declared-unverified|尚未真机验证/);
+    expect(en).toContain('~/adapters/');
+    expect(en).toContain('let the agent find its own doc');
   });
 
   test('the #109 numbers the README cites are in the artifacts, not just the prose', () => {

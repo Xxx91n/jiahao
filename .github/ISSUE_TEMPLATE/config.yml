@@ -1,7 +1,7 @@
 blank_issues_enabled: true
 contact_links:
   - name: Known limits
-    url: https://github.com/Xxx91n/jiahao#boundaries-and-limitations
+    url: https://github.com/Xxx91n/jiahao#what-it-installs
     about: What this project does not promise, written down before you file.
   - name: What we call verified
     url: https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md

@@ -49,4 +49,4 @@ npm run check:links                     # 包里 Markdown 的相对链接必须�
 
 ## 开源协议
 
-MIT
+[MIT](LICENSE)

@@ -6,7 +6,7 @@ The contract itself lives in [`src/SKILL.md`](../src/SKILL.md) and the vocabular
 
 ## Before you file anything
 
-Read "Boundaries and limitations" in [the README](https://github.com/Xxx91n/jiahao#boundaries-and-limitations). Several things that look like bugs are written-down limits — the rules version has no hooks, so nothing gets blocked there. Then search the open issues.
+Read "What it installs" in [the README](https://github.com/Xxx91n/jiahao#what-it-installs). Several things that look like bugs are written-down limits — the rules version has no hooks, so nothing gets blocked there. Then search the open issues.
 
 ## Reporting a problem
 

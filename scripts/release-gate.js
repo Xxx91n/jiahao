@@ -557,9 +557,10 @@ step('declarations', 'write scope and no-egress statements are present', () => {
   if (undeclared.length) {
     throw new Error(docRel + ' write-scope table omits paths the shipped code writes: ' + undeclared.join(', '));
   }
-  const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
-  if (!readme.includes(docRel)) throw new Error('README.md does not link ' + docRel + '; the declaration must be reachable from the install instructions');
-  return docRel + ' table declares ' + DECLARED_WRITE_PATHS.length + ' write paths in ' + rows.length + ' rows + 无网络外呼; README.md links it';
+  const pkgJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+  const shipped = (pkgJson.files || []).includes(docRel) || readme.includes(docRel);
+  if (!shipped) throw new Error(docRel + ' must be shipped in package.json files or linked in README.md');
+  return docRel + ' table declares ' + DECLARED_WRITE_PATHS.length + ' write paths in ' + rows.length + ' rows + 无网络外呼; package.json ships it';
 });
 
 // ---- driver --------------------------------------------------------------

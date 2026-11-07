@@ -29,6 +29,6 @@ Paste the command exactly as you ran it and paste what it printed, exit code inc
 ## Before you file
 
 - [ ] I searched the open issues for the same report.
-- [ ] I read "Boundaries and limitations" in the README (<https://github.com/Xxx91n/jiahao#boundaries-and-limitations>).
+- [ ] I read "What it installs" in the README (<https://github.com/Xxx91n/jiahao#what-it-installs>).
 
 If your report matches a limit listed there, file it anyway and say what you expected instead.
