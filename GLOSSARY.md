@@ -47,7 +47,7 @@
 别：手改生成出来的目录；说规则版会按 `.jiahao-profile` 选档；把「规则已加载」说成「拦截已生效」。
 
 **插件版（Plugin Version）**
-自包含的插件目录：`adapters/claude-code/`、`adapters/codebuddy/`、`adapters/copilot/`、`adapters/codex/`、`adapters/antigravity/`、`adapters/qoder/`、`adapters/zcode/`、`adapters/workbuddy/`。清单、宿主加载的钩子配置、钩子脚本和它运行时需要的文件、`src/` 副本、SKILL 正文都在目录里。按各宿主文档的原生命令安装：Claude Code 和 Codex 走仓库根的插件市场清单，CodeBuddy 和 Copilot CLI 直接装目录，Google Antigravity 用 `agy plugin install`，Qoder Desktop 用 app 的插件设置装本地压缩包，WorkBuddy 用桌面自带 CLI 的 `codebuddy plugin add`。只有插件版能硬拦，且按宿主档位说话：Copilot CLI 1.0.105 和 Codex CLI 0.163.0 在 2026-10-30 真机看到收尾阻断；Google Antigravity 1.2.12（#111）和 Qoder CN Desktop 0.4.11（#109）在 2026-10-31 看到；Qoder 国际版 Desktop 0.4.11（#113）和 WorkBuddy AI 5.9.4 国际版（#110）在 2026-11-01 看到；WorkBuddy 国内版 5.9.3 在 2026-11-01 自己那一跑也看到。都记 A 档。两次 WorkBuddy 观测都用探针钩子顶替发货的 gate，证明的是宿主的回合结束通道，不是 gate 自己的判定在真机上跑过。安装路径的真机验证状态见各适配器说明。
+自包含的插件目录：`adapters/claude-code/`、`adapters/codebuddy/`、`adapters/copilot/`、`adapters/codex/`、`adapters/antigravity/`、`adapters/qoder/`、`adapters/zcode/`、`adapters/workbuddy/`。清单、宿主加载的钩子配置、钩子脚本和它运行时需要的文件、`src/` 副本、SKILL 正文都在目录里。按各宿主文档的原生命令安装：Claude Code 和 Codex 走仓库根的插件市场清单；CodeBuddy 和 Copilot CLI 直接装目录；Google Antigravity 用 `agy plugin install`；Qoder Desktop 用 app 的插件设置装本地压缩包；WorkBuddy 用桌面自带 CLI 的 `codebuddy plugin add`。只有插件版能硬拦，且按宿主档位说话。Copilot CLI 1.0.105 和 Codex CLI 0.163.0 在 2026-10-30 真机看到收尾阻断；Google Antigravity 1.2.12（#111）和 Qoder CN Desktop 0.4.11（#109）在 2026-10-31 看到；Qoder 国际版 Desktop 0.4.11（#113）和 WorkBuddy AI 5.9.4 国际版（#110）在 2026-11-01 看到；WorkBuddy 国内版 5.9.3 在 2026-11-01 自己那一跑也看到。都记 A 档。两次 WorkBuddy 观测都用探针钩子顶替发货的 gate，证明的是宿主的回合结束通道，不是 gate 自己的判定在真机上跑过。安装路径的真机验证状态见各适配器说明。
 别：只登记钩子不带脚本；把插件目录说成「装上规则就生效」；把「装上」说成「真机已验证」。
 
 **出口（Exit）**
