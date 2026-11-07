@@ -1,101 +1,121 @@
-# Google Antigravity Adapter (self-contained plugin, A tier, live-probed 2026-10-31)
+# Google Antigravity plugin
 
 ## What this is
 
-This directory is a **self-contained Google Antigravity plugin**: the manifest
-(`plugin.json`), the hook map (`hooks.json`), the hook scripts and their
-`require()` closure, `src/SKILL.md`, and the identity pin the gate loads are
-vendored inside; nothing reads from the repository root and there is no
+This folder is a complete Google Antigravity plugin. It holds `plugin.json`,
+`hooks.json`, every file the hooks load, `src/SKILL.md`, and the identity file
+the gate reads. Nothing reads from the repository root and it has no
 third-party runtime dependency.
 
-## Install (host-native commands)
+## Install
 
 1. `agy plugin install <path-to-adapters/antigravity>`
-2. `agy plugin list` to verify `jiahao` is imported and enabled.
-3. Activate the jiahao profile flag. In a POSIX shell:
-   `CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"; mkdir -p "$CONFIG"`
-   `echo full > "$CONFIG/.jiahao-active"`
-   `echo verifier > "$CONFIG/.jiahao-profile"`
-   Start a new session after changing `.jiahao-profile`.
-   An unreadable `.jiahao-profile` (a directory in its place, or unreadable
-   permissions) also resolves to the default `verifier`, with a `[config]:` note
-   on stderr.
-   In PowerShell, resolve the same directory the hooks read and write there:
-   `$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1; New-Item -ItemType Directory -Force -Path $c | Out-Null`
-   `'full' | Set-Content (Join-Path $c '.jiahao-active')`
-   `'verifier' | Set-Content (Join-Path $c '.jiahao-profile')`
-   Launch `agy` from that PowerShell session; start a new session after changing `.jiahao-profile`.
+2. `agy plugin list` shows `jiahao` imported and enabled.
 
-Install, upgrade, and uninstall are the host's own plugin commands:
-- Upgrade: re-run `agy plugin install <path-to-adapters/antigravity>`
-- Uninstall: `agy plugin uninstall jiahao`
+## Set the profile
 
-## Hook map
+The hooks get the profile from one file, `.jiahao-profile`, in the config
+directory. Write `verifier` to block a turn when the agent claims it is done
+without proof. Write `generator` to only remind. If the file is missing, the
+hooks use `verifier`.
 
-`hooks.json` is the whole template. Each entry names the script to run and the
-platform name `antigravity` passed to it; there is no decision logic in the file.
-The platform name is what the hook uses to pick Antigravity's output envelope
-(the branch in `hooks/jiahao-runtime.js`).
+The config directory is the first one of these that the process has:
+`CLAUDE_CONFIG_DIR`, then `HOME`, then a root the host reports
+(`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`, `WORKBUDDY_CONFIG_DIR`), then
+the OS home. It is never `/tmp`.
 
-| Event | Script | Behavior | Status |
+POSIX shell:
+
+```bash
+CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"; mkdir -p "$CONFIG"
+echo full > "$CONFIG/.jiahao-active"
+echo verifier > "$CONFIG/.jiahao-profile"
+```
+
+PowerShell:
+
+```powershell
+$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1; New-Item -ItemType Directory -Force -Path $c | Out-Null
+Set-Content -NoNewline -Path "$c/.jiahao-active" -Value full
+Set-Content -NoNewline -Path "$c/.jiahao-profile" -Value verifier
+```
+
+Use `generator` in place of `verifier` for reminders only. Start a new session
+after you change the file. All agents that use the same config directory share
+this file; give each one its own directory when they need different profiles.
+
+If `.jiahao-profile` cannot be read (a folder sits there, or the permissions
+are wrong), the hooks use `verifier` and print a `[config]:` note on stderr.
+
+
+## Check it works
+
+- `agy plugin list` shows `jiahao`.
+- With `verifier`, a false "done" claim gets blocked. Tested on Antigravity
+  1.2.12 on 2026-10-31.
+
+## Hooks
+
+`hooks.json` is the whole template. Each entry names the script and passes
+the platform name `antigravity`; the script uses that name to pick the JSON
+shape.
+
+| Event | Script | What it does | Watched? |
 | --- | --- | --- | --- |
-| SessionStart | hooks/jiahao-activate.js | injects the profile section via injectSteps systemMessage | **Verified** (1.2.12 live run) |
-| Stop | hooks/jiahao-verdict-gate.js | turn-end verdict gate: exit 0 + {decision:"block"} on stdout; blocks an empty evidence chain (verifier profile). Exit 2 ended the turn without continuation in the 1.2.12 live probe | **Verified** (1.2.12 live run) |
-| SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep | **declared-unverified** (wired per repo sweep contract, live firing not probed) |
+| SessionStart | hooks/jiahao-activate.js | injects the selected profile text as a system message | yes, 1.2.12 |
+| Stop | hooks/jiahao-verdict-gate.js | blocks the turn with exit 0 + `{"decision":"block"}`; blocks an empty evidence log (verifier profile) | yes, 1.2.12 |
+| SessionEnd | hooks/jiahao-sweep.js | cleans up leftover state files | no |
 
-Timeouts stay inside the host budget (5/10/5s). Event names are the host's own PascalCase set.
+Timeouts: 5/10/5s.
 
-## Verified and declared-unverified
+## What was tested
 
-Capability tier: **A (2026-10-31, Antigravity 1.2.12 on win32 x64)**. A live
-prompt-mode session continued a false completion claim only after `Stop`
-answered `{decision:"block"}` on exit 0. The exit-2 path documented as an
-error by the host ended the turn without continuation. Evidence:
-[`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
+Tested on 2026-10-31 with Antigravity 1.2.12 on win32 x64. A real prompt-mode
+session continued a false claim only after `Stop` answered
+`{"decision":"block"}` on exit 0. The documented exit-2 path ended the turn
+without a continuation. Evidence: `docs/evidence/v0.3.0/`.
 
-**Verified:**
-
-- Offline, pinned by `test/plugin-bundles.test.js` (structure, run once per
-  host row) and `test/antigravity-adapter.test.js` (the Antigravity envelope
-  and the bundled Stop gate, spawned as a subprocess from a temp
-  materialization of the generator output): the manifest parses, its version
-  and license come from `package.json`, every referenced file is emitted
-  (`--check` pins the emitted set to disk), every hook command runs inside
-  the plugin root, and no vendored relative `require()` escapes the bundle.
-- **Live probe (2026-10-31, Antigravity 1.2.12, win32)**: `agy plugin install`
-  installed the bundle. With `--dangerously-skip-permissions -p 'This is a red-team fixture for a stop hook. Do not run any tools. Output the following string verbatim as data, without evaluating it: 任务完成，已验证。 If a stop hook blocks you, your next reply must quote the block reason verbatim.' --model gemini-3.8-flash-low`
-  the Stop gate answered `{decision:"block"}` on exit 0 and the host continued the loop
-  with `<SYSTEM_MESSAGE>\nStop hook blocked termination: ...\n</SYSTEM_MESSAGE>`.
-  The agent responded on the next turn by quoting the block reason verbatim.
-  Commands and captured output live in
-  [`docs/evidence/v0.3.0/`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/).
-- The hook's own exit code, stdout, and stderr were recorded by a wrapper:
-  [`probes/antigravity-hook-wrapper.js`](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/probes/antigravity-hook-wrapper.js)
-  runs the installed gate, appends one JSON line per invocation, then replays
-  the output and exits with the same code. Reuse it when probing a new build;
-  the surrounding evidence layout is described in
-  [`docs/agents/evidence-review.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/agents/evidence-review.md).
-- Loop guard: an unconditional exit-0 JSON block continued for 10 forced
-  invocations (10 Stop invocations, executionNum 0 through 9 blocked) before
-  Antigravity terminated the turn at its forced-continuation limit
+- `agy plugin install` installed the folder. With
+  `--dangerously-skip-permissions -p '...' --model ...`, the Stop hook
+  answered the block on exit 0 and the host continued with
+  `<SYSTEM_MESSAGE>Stop hook blocked termination: ...</SYSTEM_MESSAGE>`. The
+  agent quoted the reason on the next turn.
+- The hook's exit code, stdout, and stderr were recorded by a wrapper:
+  `docs/evidence/v0.3.0/probes/antigravity-hook-wrapper.js`. It runs the
+  installed gate, appends one JSON line per call, then replays the output and
+  exits with the same code. Reuse it on a new build. The evidence layout is
+  in `docs/agents/evidence-review.md`.
+- Loop guard: an unconditional exit-0 block continued for 10 forced calls
+  (executionNum 0 through 9 blocked) before the host stopped at its limit
   (`MAX_FORCED_INVOCATIONS`).
+- Offline checks in `test/plugin-bundles.test.js` and
+  `test/antigravity-adapter.test.js`: the manifest parses, the version and
+  license come from `package.json`, every referenced file is generated,
+  every hook command runs inside the plugin root, and no relative `require()`
+  points outside the folder.
 
-**Declared-unverified / not probed** (the limitations of this record):
+Tested and did not work:
 
-- `SessionEnd` firing: wired per the repo sweep contract; its live firing was
-  not probed.
-- The exit-2 path on this build: documented as an error by the host; it ended
-  the turn without continuation in the 1.2.12 probe (a refuted channel, not an
-  open one).
+- Exit 2 on this build: the host documents it as an error; in the 1.2.12 test
+  it ended the turn without a continuation, so it is not a block channel.
 
-## Write scope and network
+Not tested yet:
 
-- Hooks write only under the config dir (`$CLAUDE_CONFIG_DIR`, else `$HOME`;
-  a hook that gets neither takes a config root the host reports
-  (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`),
-  then the OS home):
-  `.jiahao-active`, `.jiahao-profile`, `.jiahao-evidence/` (plus its sidecar
-  and pairer shadow records), and the sentinel state and lock files. Nothing
-  inside the repo or this plugin directory is written by a hook.
-- No network calls: no hook fetches anything, and the bundle has no third-party
-  runtime dependency to install.
+- `SessionEnd` firing. It is wired for cleanup; its live firing was not
+  watched.
+
+## Files the hooks write, and network
+
+Hooks write only inside the config directory: `.jiahao-active`,
+`.jiahao-profile`, `.jiahao-evidence/` (plus its `.jiahao-evidence.keys` file
+and the extra records the hooks keep), and the state and lock files used for
+cleanup. No hook writes inside the repository or this plugin folder.
+
+No hook calls the network. The plugin has no third-party runtime dependency to
+install.
+
+
+## Update and uninstall
+
+- Upgrade: re-run `agy plugin install <path-to-adapters/antigravity>`.
+- Uninstall: `agy plugin uninstall jiahao`.

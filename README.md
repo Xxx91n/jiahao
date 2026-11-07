@@ -37,6 +37,12 @@ npx skills add Xxx91n/jiahao
 
 In `~/adapters/`, let the agent find its own doc. If it can't find it, open an issue in this repo.
 
+The profile comes from one file, `.jiahao-profile`, in the config dir: `CLAUDE_CONFIG_DIR`
+if it is set, otherwise `$HOME`, otherwise a dir the host reports
+(`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`, `WORKBUDDY_CONFIG_DIR`), otherwise
+the OS home; never `/tmp`. Write `verifier` to block, `generator` to only
+remind; with no file, `verifier` is used. Start a new session after changing it.
+
 ## Testing
 
 ```bash

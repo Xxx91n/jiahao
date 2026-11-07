@@ -245,8 +245,8 @@ describe('tier disclosure', () => {
 
   test('the README names the surface that was probed and the one that was not', () => {
     expect(readme).toContain('.codebuddy/settings.json');
-    expect(readme).toContain('declared-unverified');
-    expect(readme).toContain('not probed');
+    expect(readme).toContain('Not tested yet');
+    expect(readme).toContain('not tested');
     // The project directory name is the trap this ticket found: the twin under
     // .workbuddy/ did not fire.
     expect(readme).toMatch(/not `\.workbuddy`|\.codebuddy`, not `\.workbuddy`/);

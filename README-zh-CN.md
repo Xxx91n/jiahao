@@ -37,6 +37,8 @@ npx skills add Xxx91n/jiahao
 
 在 ~/adapters/ 里面，让 Agent 去找他自己的文档，找不到就来项目开 issue。
 
+装完后，profile 只看一个文件：配置目录里的 `.jiahao-profile`。配置目录按这个顺序找：设了 `CLAUDE_CONFIG_DIR` 就用它，没设用 `$HOME`，宿主自己报了目录（`QODER_CONFIG_DIR`、`CODEBUDDY_CONFIG_DIR`、`WORKBUDDY_CONFIG_DIR`）就用那个，都没有才用系统家目录，不会用 `/tmp`。写 `verifier` 就拦，写 `generator` 只提醒；没这个文件按 `verifier`。改完开个新会话。
+
 ## 测试
 
 ```bash

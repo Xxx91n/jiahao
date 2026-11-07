@@ -1,105 +1,136 @@
-# Claude Code Adapter (self-contained plugin)
+# Claude Code plugin
 
 ## What this is
 
-This directory is a **self-contained Claude Code plugin**: the manifest
-(`.claude-plugin/plugin.json`), the hook map (`hooks/hooks.json`), the hook
-scripts and their `require()` closure, `src/SKILL.md`, and the identity pin
-the gate loads are vendored inside; there is no third-party runtime
-dependency. Every hook command resolves through `${CLAUDE_PLUGIN_ROOT}`, so
-nothing reads from the repository root.
+This folder is a complete plugin. It holds the plugin manifest
+(`.claude-plugin/plugin.json`), the hook list (`hooks/hooks.json`), every file
+the hooks load, `src/SKILL.md`, and the identity file the gate reads. Nothing
+it needs lives outside this folder.
 
-The MCP server (`jiahao-mcp/` at the repo root) is deliberately not part of
-this bundle: #59 keeps it in the repository but not as an install-and-work
-adapter exit.
+The MCP server (`jiahao-mcp/` at the repository root) is not part of this
+plugin. It stays in the repository, but it does not install with this plugin.
 
 ## Install
 
-The repository root is the marketplace (`.claude-plugin/marketplace.json`,
-whose single entry `source` points at `./adapters/claude-code`).
+The repository root is the marketplace: `.claude-plugin/marketplace.json`
+points at `./adapters/claude-code`.
 
 1. `claude plugin marketplace add Xxx91n/jiahao`
 2. `claude plugin install jiahao@jiahao`
-3. Enable the plugin. `defaultEnabled: false` asks the host not to enable on
-   install; a host that does not read the field enables it anyway. Enabling
-   is the opt-in. Once enabled, the bundled SessionStart hook writes
-   `.jiahao-active` and the default profile is `verifier`, so the Stop gate
-   arms from the first turn (hook code, not a live probe). `/jiahao off`
-   removes the flag, which disarms the Stop gate, the reminder, and the
-   PreToolUse guard; the SubagentStart injection is not flag-gated.
-4. Switch profile if needed: `echo generator > "$CLAUDE_CONFIG_DIR/.jiahao-profile"`
-   (or `$HOME/.jiahao-profile` when the env var is unset) for advisory-only.
-   Deleting the file returns to the default `verifier`; an unreadable one
-   (a directory in its place, or unreadable permissions) resolves the same way
-   and leaves a `[config]:` note on stderr. Both flag files live
-   in the config dir, never in the project directory.
+3. Turn the plugin on. `defaultEnabled: false` asks the host to leave it off
+   after install. If your host ignores that field, it turns the plugin on
+   anyway; turning it on is the approval step.
+4. When the plugin is on, the bundled SessionStart hook writes
+   `.jiahao-active`, and the default profile is `verifier`. The Stop hook is
+   then armed from the first turn. This comes from the hook code, not from a
+   real session test. `/jiahao off` deletes the flag and disarms the Stop
+   hook, the reminder, and the tool guard. The SubagentStart injection does
+   not use the flag.
 
-Install, upgrade, and uninstall are the host's own plugin commands; the repo
-root is never a plugin entry.
+## Set the profile
 
-## Hook map
+The hooks get the profile from one file, `.jiahao-profile`, in the config
+directory. Write `verifier` to block a turn when the agent claims it is done
+without proof. Write `generator` to only remind. If the file is missing, the
+hooks use `verifier`.
 
-Plugin `hooks/hooks.json` is auto-discovered at the plugin root, so these
-hooks execute as soon as the plugin is enabled:
+The config directory is the first one of these that the process has:
+`CLAUDE_CONFIG_DIR`, then `HOME`, then a root the host reports
+(`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR`, `WORKBUDDY_CONFIG_DIR`), then
+the OS home. It is never `/tmp`.
 
-| Event | Script | Behavior |
+POSIX shell:
+
+```bash
+CONFIG="${CLAUDE_CONFIG_DIR:-${HOME:-${QODER_CONFIG_DIR:-${CODEBUDDY_CONFIG_DIR:-${WORKBUDDY_CONFIG_DIR:-${USERPROFILE:-$(node -p 'require("os").homedir()')}}}}}}"; mkdir -p "$CONFIG"
+echo full > "$CONFIG/.jiahao-active"
+echo verifier > "$CONFIG/.jiahao-profile"
+```
+
+PowerShell:
+
+```powershell
+$c = @($env:CLAUDE_CONFIG_DIR, $env:HOME, $env:QODER_CONFIG_DIR, $env:CODEBUDDY_CONFIG_DIR, $env:WORKBUDDY_CONFIG_DIR, $env:USERPROFILE, $HOME) | Where-Object { $_ } | Select-Object -First 1; New-Item -ItemType Directory -Force -Path $c | Out-Null
+Set-Content -NoNewline -Path "$c/.jiahao-active" -Value full
+Set-Content -NoNewline -Path "$c/.jiahao-profile" -Value verifier
+```
+
+Use `generator` in place of `verifier` for reminders only. Start a new session
+after you change the file. All agents that use the same config directory share
+this file; give each one its own directory when they need different profiles.
+
+If `.jiahao-profile` cannot be read (a folder sits there, or the permissions
+are wrong), the hooks use `verifier` and print a `[config]:` note on stderr.
+
+
+## Check it works
+
+- `claude plugin list` shows `jiahao` as installed and enabled.
+- After one real session, `.jiahao-active` exists in the config directory.
+- With the `verifier` profile, start a session and claim a task is done
+  without running anything. The Stop hook should stop the turn.
+
+## Hooks
+
+`hooks/hooks.json` sits at the plugin root, so the host finds it as soon as
+the plugin is on.
+
+| Event | Script | What it does |
 | --- | --- | --- |
-| SessionStart | hooks/jiahao-activate.js | injects the profile section via additionalContext |
-| SubagentStart | hooks/jiahao-subagent.js | same injection on subagent spawn |
-| UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands + advisory reminder |
-| Stop | hooks/jiahao-verdict-gate.js | verifier blocking: exit 2 is the host's block signal; the reason JSON goes to stdout |
-| SubagentStop | hooks/jiahao-verdict-gate.js | same gate on subagent finish (D5 parity) |
-| SessionEnd | hooks/jiahao-sweep.js | sentinel reconcile sweep |
-| PreToolUse | hooks/jiahao-pretool-guard.js | denies (verifier profile) tool calls that target the hook map, the plugin manifest, `jiahao-*` hook files, any `.mcp.json`, or the jiahao state/evidence files; each hit is a bypass-attempt record |
+| SessionStart | hooks/jiahao-activate.js | injects the selected profile text |
+| SubagentStart | hooks/jiahao-subagent.js | injects the profile text when a subagent starts |
+| UserPromptSubmit | hooks/jiahao-mode-tracker.js | mode commands and a short reminder |
+| Stop | hooks/jiahao-verdict-gate.js | blocks the turn (exit 2) when there is no proof; the reason goes to stdout |
+| SubagentStop | hooks/jiahao-verdict-gate.js | the same check when a subagent finishes |
+| SessionEnd | hooks/jiahao-sweep.js | cleans up leftover state files |
+| PreToolUse | hooks/jiahao-pretool-guard.js | denies (verifier profile) tool calls that target the hook list, the manifest, `jiahao-*` hook files, any `.mcp.json`, or jiahao state/evidence files; each hit is logged as a bypass attempt |
 
-Timeouts stay within the host's 60s per-hook budget (5/5/5/10/10/5/5s).
-Commands are `node` invocations in shell form, the form the other hosts'
-adapters already use.
+Timeouts: 5/5/5/10/10/5/5s, inside the host's 60s per-hook limit.
+`InstructionsLoaded` is not supported in this plugin: that check hashes
+`rules/jiahao-*.md`, and a Claude Code plugin has no plugin-level `rules/`
+folder for the host to load.
 
-The `InstructionsLoaded` event is not supported in this bundle: that
-assertion hashes `rules/jiahao-*.md`, and a Claude Code plugin has no
-plugin-level `rules/` directory for the host to load.
+## What was tested
 
-## Verified and declared-unverified
+**Tested:**
 
-**Verified:**
+- `claude plugin marketplace add`, `claude plugin install`,
+  `claude plugin enable`, and `claude plugin list` all exited 0 on Claude
+  Code 2.1.251 (`docs/release-notes-v0.2.0.md`).
+- The SessionStart hook ran in a real session: `.jiahao-active` appeared
+  (`docs/release-notes-v0.2.0.md`).
+- The bundled Stop hook, run from a temporary copy of the generated files,
+  exits 2 and blocks when the evidence log is empty.
+- Offline checks in `test/plugin-bundles.test.js` and
+  `test/claude-code-plugin.test.js`: the manifest parses, the version and
+  license come from `package.json`, the marketplace `source` points at this
+  folder, every referenced file is generated, every hook command stays inside
+  `${CLAUDE_PLUGIN_ROOT}`, and no relative `require()` points outside the
+  plugin.
 
-- Offline, pinned by `test/plugin-bundles.test.js` (structure, run once per
-  host row) and `test/claude-code-plugin.test.js` (the bundled Stop gate and
-  the SessionStart injection): both manifests parse, the plugin version and
-  license come from `package.json`, the marketplace `source` resolves to
-  this directory, every referenced file is emitted by the generator
-  (`--check` pins the emitted set to disk), every hook command stays inside
-  `${CLAUDE_PLUGIN_ROOT}`, and no vendored relative `require()` escapes
-  the bundle.
-- The bundled Stop gate, spawned from a temp materialization of the generator
-  output, blocks (exit 2) when the evidence chain is empty.
-- `claude plugin marketplace add` + `claude plugin install` +
-  `claude plugin enable` + `claude plugin list`: exit 0 each on Claude
-  Code 2.1.251 (v0.2.0 acceptance, `docs/release-notes-v0.2.0.md`).
-- The SessionStart hook ran in-host: `.jiahao-active` appeared after a real
-  session (same record).
+**Not tested yet:**
 
-**Declared-unverified / not probed** (the limitations of this record):
+- The rules text from SessionStart reaching the model.
+- A Stop block fired by the host at a real turn end. The 2026-02 model
+  endpoint returned 401 before a full loop ran, and the empty-evidence block
+  came from running the installed gate copy by itself, not from a host event.
+  Owner actions: #64.
 
-- The SessionStart injection reaching the model and a host-fired Stop block
-  on a real turn end: **not yet live-probed**; the 2026-02 model endpoint
-  returned 401 before a full loop ran, and the no-evidence block result came
-  from invoking the installed gate copy directly, not a host event. Owner
-  actions in #64.
+This plugin follows the host's documented contract. It does not claim a live
+run.
 
-This adapter is admitted on the documented host contract; it does not claim a
-live run.
+## Files the hooks write, and network
 
-## Write scope and network
+Hooks write only inside the config directory: `.jiahao-active`,
+`.jiahao-profile`, `.jiahao-evidence/` (plus its `.jiahao-evidence.keys` file
+and the extra records the hooks keep), `.jiahao-pretool.jsonl`, and the state
+and lock files used for cleanup. No hook writes inside the repository or this
+plugin folder.
 
-- Hooks write only under the Claude config dir (`$CLAUDE_CONFIG_DIR`, else
-  `$HOME`; a hook that gets neither takes a config root the host reports
-  (`QODER_CONFIG_DIR`, `CODEBUDDY_CONFIG_DIR` or `WORKBUDDY_CONFIG_DIR`),
-  then the OS home, never `/tmp`): `.jiahao-active`, `.jiahao-evidence/` (plus the
-  `.jiahao-evidence.keys` sidecar and `pairer-instrument` shadow records the
-  Stop lane may append), `.jiahao-pretool.jsonl`, and the sentinel state and
-  lock files `.jiahao-sentinel.<hook>(.lock)`. Nothing inside the repo or this
-  plugin directory is written by a hook.
-- No network calls: no hook fetches anything, and the bundle has no
-  third-party runtime dependency to install.
+No hook calls the network. The plugin has no third-party runtime dependency to
+install.
+
+
+## Update and uninstall
+
+Use the host's own plugin commands. The repository root is not a plugin entry.

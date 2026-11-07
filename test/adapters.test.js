@@ -144,6 +144,28 @@ test('the generator emits the rules-version skill file', () => {
   expect(Object.keys(buildAdapters())).toContain('skills/jiahao/SKILL.md');
 });
 
+test('the eight adapter READMEs share one profile section and no invented terms (#152)', () => {
+  const { HOSTS, buildAdapters } = require('../scripts/build-adapters');
+  const generated = buildAdapters();
+  const banned = ['self-contained', 'require() closure', 'identity pin', 'declared-unverified', 'envelope'];
+  const sections = new Set();
+  for (const host of HOSTS) {
+    const text = generated[host.dir + '/README.md'];
+    expect(text).toBeTruthy();
+    // The words the ticket names are gone from every exit, so a template edit
+    // cannot bring one back while the rest of the suite stays green.
+    for (const term of banned) expect(text).not.toContain(term);
+    // One profile paragraph, byte-identical in all eight. The slice ends at
+    // the shared paragraph's last sentence; WorkBuddy adds its own note after.
+    const start = text.indexOf('## Set the profile');
+    expect(start).toBeGreaterThanOrEqual(0);
+    const end = text.indexOf('on stderr.', start) + 'on stderr.'.length;
+    expect(end).toBeGreaterThan(start);
+    sections.add(text.slice(start, end));
+  }
+  expect(sections.size).toBe(1);
+});
+
 describe('Qoder Desktop exit (#79 rules file, #109 turn-end gate)', () => {
   const { buildAdapters } = require('../scripts/build-adapters');
   const generated = buildAdapters();
@@ -182,21 +204,21 @@ describe('Qoder Desktop exit (#79 rules file, #109 turn-end gate)', () => {
     expect(readme).toContain('Qoder international Desktop 0.4.11');
     expect(readme).toContain('Qoder IDE/CLI');
     // The block claim is allowed now, but only with its evidence beside it.
-    const desktopStart = readme.indexOf('## What was observed on Qoder CN Desktop');
+    const desktopStart = readme.indexOf('## What a real session showed on Qoder CN Desktop');
     expect(desktopStart).toBeGreaterThanOrEqual(0);
-    const observed = readme.slice(desktopStart, readme.indexOf('## Declared-unverified'));
+    const observed = readme.slice(desktopStart, readme.indexOf('## Not tested yet'));
     expect(observed).toContain('qoder-hook-calls.jsonl');
     expect(observed).toContain('stop_hook_active');
     // The unprobed surfaces keep the #79 discipline: a claim they were watched
     // firing would be the "会拦" mistake the tier contract forbids.
-    const unverified = readme.slice(readme.indexOf('## Declared-unverified'),
-      readme.indexOf('## Qoder Desktop - plugin'));
-    for (const phrase of ['plugin registration surface', 'QODER_PLUGIN_ROOT', 'QODER_SESSION_ID']) {
+    const unverified = readme.slice(readme.indexOf('## Not tested yet'),
+      readme.indexOf('## Qoder Desktop plugin'));
+    for (const phrase of ['Installing this folder as a Desktop plugin', 'QODER_PLUGIN_ROOT', 'QODER_SESSION_ID']) {
       expect(unverified).toContain(phrase);
     }
     // Neither the skill directory nor the IDE rule file may read as a hook.
     const ideStart = readme.indexOf('## Qoder IDE/CLI');
-    const rulesSection = readme.slice(ideStart, readme.indexOf('## Verification status'));
+    const rulesSection = readme.slice(ideStart, readme.indexOf('## Hooks'));
     expect(rulesSection).toContain('registers nothing');
     expect(rulesSection).not.toMatch(/Stop hook|verdict gate/i);
     expect(readme).toContain('npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy');
