@@ -68,6 +68,8 @@ are wrong), the hooks use `verifier` and print a `[config]:` note on stderr.
 - `copilot plugin list --json` reports `enabled: true`.
 - With `verifier`, a claim of "done, verified" with nothing behind it gets
   blocked. Tested on Copilot CLI 1.0.105 on 2026-10-30.
+- Limit on this host: the gate cannot read the closing message, so when there
+  is no evidence it can also block a Q&A turn that makes no completion claim.
 
 ## Hooks
 

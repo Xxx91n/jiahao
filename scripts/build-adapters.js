@@ -1359,6 +1359,8 @@ ${PROFILE_SECTION}
 - \`copilot plugin list --json\` reports \`enabled: true\`.
 - With \`verifier\`, a claim of "done, verified" with nothing behind it gets
   blocked. Tested on Copilot CLI 1.0.105 on 2026-10-30.
+- Limit on this host: the gate cannot read the closing message, so when there
+  is no evidence it can also block a Q&A turn that makes no completion claim.
 
 ## Hooks
 
@@ -1799,6 +1801,8 @@ ${PROFILE_SECTION}
 - \`agy plugin list\` shows \`jiahao\`.
 - With \`verifier\`, a false "done" claim gets blocked. Tested on Antigravity
   1.2.12 on 2026-10-31.
+- Limit on this host: the gate cannot read the closing message, so when there
+  is no evidence it can also block a Q&A turn that makes no completion claim.
 
 ## Hooks
 
