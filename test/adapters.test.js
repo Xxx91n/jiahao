@@ -221,54 +221,40 @@ describe('Qoder Desktop exit (#79 rules file, #109 turn-end gate)', () => {
     expect(runB).toMatch(/reported in Run B/i);
   });
 
-  test('both READMEs rate Desktop by build and keep the IDE rules path claim-free', () => {
+  test('the English README rates Desktop by build; the Chinese README points at the adapter docs', () => {
     const en = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
     const zh = fs.readFileSync(path.join(root, 'README-zh-CN.md'), 'utf8');
     expect(en).toContain('adapters/qoder/');
     expect(en).toMatch(/no enforcement/i);
     expect(en).toMatch(/declared-unverified|not live-probed/i);
     expect(en).not.toMatch(/codex, copilot, qoder/i);
-    expect(zh).toContain('adapters/qoder/');
-    expect(zh).toContain('只加载规则');
-    expect(zh).toContain('没有强制');
-    expect(zh).toMatch(/declared-unverified|尚未真机验证/i);
-    expect(zh).not.toMatch(/codex、copilot、qoder/i);
+    // The Chinese README no longer repeats the per-host details; it points
+    // the reader at adapters/. The Qoder claims stay pinned in
+    // adapters/qoder/README.md by the test above.
+    expect(zh).toContain('~/adapters/');
+    expect(zh).toContain('让 Agent 去找他自己的文档');
     // The blocking-claim guard applies to the Qoder IDE/CLI path and to the
     // international Desktop, not to the one Desktop build that was measured.
     const enQoder = en.slice(en.indexOf('#### Qoder'), en.indexOf('### Plugin version'));
-    const zhQoder = zh.slice(zh.indexOf('#### Qoder'), zh.indexOf('### 插件版'));
     const blocking = /\bwill block\b|\bblocks?\b|\bstops?\b|\bprevents?\b|会拦|拦截/i;
     // #106: the rules version's skill directory stays the no-hook recipe, and
     // `~/.qoder/rules` was the specific wrong path from v0.3.0.
-    for (const section of [enQoder, zhQoder]) {
-      expect(section).toContain('-a qoder-cn');
-      expect(section).toContain('~/.qoder-cn/skills/jiahao/SKILL.md');
-      expect(section).toContain('.qoder/rules/');
-      expect(section).not.toContain('~/.qoder/rules');
-    }
+    expect(enQoder).toContain('-a qoder-cn');
+    expect(enQoder).toContain('~/.qoder-cn/skills/jiahao/SKILL.md');
+    expect(enQoder).toContain('.qoder/rules/');
+    expect(enQoder).not.toContain('~/.qoder/rules');
     const enSplit = enQoder.indexOf('**Qoder IDE/CLI**');
-    const zhSplit = zhQoder.indexOf('**Qoder IDE/CLI**');
     expect(enSplit).toBeGreaterThan(0);
-    expect(zhSplit).toBeGreaterThan(0);
-    for (const section of [enQoder.slice(enSplit), zhQoder.slice(zhSplit)]) {
-      expect(section).not.toMatch(blocking);
-    }
+    expect(enQoder.slice(enSplit)).not.toMatch(blocking);
     // #109: the Desktop half may say the gate blocks, but only with the run
     // record named beside it and the untested build called out.
     const enDesktop = enQoder.slice(0, enSplit);
-    const zhDesktop = zhQoder.slice(0, zhSplit);
-    for (const [section, evidence] of [[enDesktop, 'qoder-hook-probe-2026-10-31.md'],
-      [zhDesktop, 'qoder-hook-probe-2026-10-31.md']]) {
-      expect(section).toContain('npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy');
-      expect(section).toContain('qoder-desktop-install-2026-10-31.md');
-      expect(section).toContain(evidence);
-    }
+    expect(enDesktop).toContain('npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy');
+    expect(enDesktop).toContain('qoder-desktop-install-2026-10-31.md');
+    expect(enDesktop).toContain('qoder-hook-probe-2026-10-31.md');
     expect(enDesktop).toMatch(/Qoder CN Desktop 0\.4\.11/i);
-    expect(zhDesktop).toMatch(/Qoder CN Desktop 0\.4\.11/i);
-    for (const section of [enDesktop, zhDesktop]) {
-      expect(section).toMatch(/international|国际版/i);
-      expect(section).toMatch(/not live-probed|declared-unverified|尚未真机验证/);
-    }
+    expect(enDesktop).toMatch(/international|国际版/i);
+    expect(enDesktop).toMatch(/not live-probed|declared-unverified|尚未真机验证/);
   });
 
   test('the #109 numbers the README cites are in the artifacts, not just the prose', () => {

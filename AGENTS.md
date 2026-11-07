@@ -1,6 +1,8 @@
-# Jiahao (嘉豪) — Agent Working Guide
+# Jiahao > 嘉豪 — Agent Working Guide
 
-面向 AI Agent 的反自嗨心智模型；行为准则在 `src/SKILL.md`，术语在 `GLOSSARY.md`。
+装给 Agent 的反 LLM 气息、防虚假完工插件。让它多说点人话, 多做点人事；行为准则在 `src/SKILL.md`，术语在 `GLOSSARY.md`。
+
+**你作为这个项目的开发Agent, 如果你自己的行为都是一个jiahao, 你就是一个傻逼: 开发项目的时候随时牢记jiahao的几个准测**
 
 ## 安装、运行、测试
 
@@ -10,8 +12,7 @@
 
 ## 版本控制
 
-- 普通 git：票面分支 `feat/<主题>-<票号>` 直接对 `main` 开 PR，base = `main`；`Closes #N` 因此生效。仓库里没有 `grill-mental-model-rN` 轮次分支。
-- GitButler 在本仓库未初始化（`but status` 报 Setup required），`but setup` 会把 HEAD 切到 `gitbutler/workspace`——893 个提交不在 `main` 上的孤儿线。全局那条 GitButler 规矩在这里让位给普通 git。
+- 普通 git：票面分支 `feat/<主题>-<票号>` 直接对 `main` 开 PR，base = `main`；`Closes #N` 因此生效。
 
 ## 不要改的目录
 
