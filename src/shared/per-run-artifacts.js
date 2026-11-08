@@ -27,13 +27,13 @@ function emitArtifact(opts) {
   return file;
 }
 
-// Newest artifact for a surface in a dir, by filename mtime. Used by the
+// Newest artifact for a scope in a dir, by filename mtime. Used by the
 // assert leg's re-derivation read.
-function newestArtifact(dir, subdir, prefix, surface) {
+function newestArtifact(dir, subdir, prefix, scope) {
   const sub = path.join(dir, subdir);
   let names;
   try { names = fs.readdirSync(sub); } catch (e) { return null; }
-  const head = prefix + '.' + surface + '.';
+  const head = prefix + '.' + scope + '.';
   const hits = names.filter(function (n) { return n.indexOf(head) === 0 && n.slice(-5) === '.json'; });
   if (!hits.length) return null;
   hits.sort(function (a, b) {

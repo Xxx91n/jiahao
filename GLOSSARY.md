@@ -132,7 +132,7 @@
 
 ### 读对话记录查完工
 
-**推荐怎么说**：说「读对话记录查完工」：回合结束时，`src/pairer-lane.js` 把宿主转写交给 `src/capa-pairer.js`，结果以 `detector.source:'pairer-instrument'` 记进证据链。两种模式：`shadow`（默认）不进风险分级表，也不算 Case A（有完工说法、却没证据）的「有证据」；但它是钩子读转写的通道，解析出的结尾文字仍会参与「这句是不是在说完工」的判断，所以在没有别的消息或者证据时，能影响回合放不放行。`enforce`（写 `.jiahao-conviction-enforce`）是人手动提升过的通道，记录连同完工说法和证据一起进表，也算 Case A 的验证证据。判定出处是 `hooks/jiahao-verdict-gate.js` 的 Case A 注释（#71 item 15）。
+**推荐怎么说**：说「读对话记录查完工」：回合结束时，`src/transcript-check.js` 把宿主转写交给 `src/claim-check.js`，结果以 `detector.source:'pairer-instrument'` 记进证据链。两种模式：`shadow`（默认）不进风险分级表，也不算 Case A（有完工说法、却没证据）的「有证据」；但它是钩子读转写的通道，解析出的结尾文字仍会参与「这句是不是在说完工」的判断，所以在没有别的消息或者证据时，能影响回合放不放行。`enforce`（写 `.jiahao-transcript-check-enforce`）是人手动提升过的通道（旧名 `.jiahao-conviction-off` / `-enforce` 不再生效，升级后要改成新名字），记录连同完工说法和证据一起进表，也算 Case A 的验证证据。判定出处是 `hooks/jiahao-verdict-gate.js` 的 Case A 注释（#71 item 15）。
 
 **别怎么说**：别说「定罪通道」；别把 shadow 记录当验证证据；别把 enforce 记录当纯遥测；别把提升开关说成自动判定。
 

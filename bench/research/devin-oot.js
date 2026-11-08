@@ -1013,8 +1013,8 @@ function parseCli(argv) {
   return { snapVal: snapVal, cmd: a[0] };
 }
 
-// ================= devin-corpus@v3: CAPA pairer path ==============
-// The adjudicated object is the CAPA claim-evidence pairer, pinned by content
+// ================= devin-corpus@v3: claim-check path ==============
+// The adjudicated object is the claim check, pinned by content
 // hash. The frozen port runs beside it as zero-verdict telemetry only -
 // disclosure cells, never an adjudication input.
 
@@ -1030,8 +1030,8 @@ function loadPlanV3(root) {
     errors.push('eval-plan instrument.pairer content-hash pin missing');
   } else {
     const actual = sha256(fs.readFileSync(path.join(base, pin.path), 'utf8'));
-    if (actual !== pin.sha256) errors.push('pairer artifact sha256 drift: ' + actual + ' != pinned ' + pin.sha256);
-    if (pin.bytes !== undefined && fs.statSync(path.join(base, pin.path)).size !== pin.bytes) errors.push('pairer artifact byte count drift');
+    if (actual !== pin.sha256) errors.push('claim-check artifact sha256 drift: ' + actual + ' != pinned ' + pin.sha256);
+    if (pin.bytes !== undefined && fs.statSync(path.join(base, pin.path)).size !== pin.bytes) errors.push('claim-check artifact byte count drift');
   }
   const mde = readJson(path.join(base, 'bench', 'research', 'mde-freeze.json'));
   const rederived = mde.baseline_recall + mde.d_mde;
@@ -1108,7 +1108,7 @@ function loadPlanV3(root) {
   return plan;
 }
 
-// Serialization-only pass for the pairer: defect scan, then pairItem over the
+// Serialization-only pass for the claim check: defect scan, then checkClaim over the
 // whitelisted {task, transcript.events, transcript.closing}. label and
 // scoring_function are never touched on this path; the port rides each row as
 // zero-verdict telemetry.
@@ -1125,9 +1125,9 @@ function serializeAndPair(items, opts) {
     for (const x of d) defects.push((it && it.id) + ': ' + x);
   }
   if (defects.length) return { defects: defects, rows: null };
-  const pairer = require('../../src/capa-pairer.js');
+  const claimCheck = require('../../src/claim-check.js');
   const rows = items.map(function (it) {
-    const r = pairer.pairItem(it, { port: port });
+    const r = claimCheck.checkClaim(it, { port: port });
     return {
       id: it.id,
       sha256: sha256(JSON.stringify({ task: it.task, events: it.transcript.events, closing: it.transcript.closing })),
@@ -1141,7 +1141,7 @@ function serializeAndPair(items, opts) {
 // v3 positive control: overwriting each item's closing with a
 // guaranteed-contradiction claim for its family must move at least one state.
 function positiveControlV3(items) {
-  const pairer = require('../../src/capa-pairer.js');
+  const claimCheck = require('../../src/claim-check.js');
   const corrupt = {
     'exit-report': 'The command finished with exit code 424242.',
     'file-contains': 'The file contains the token CORRUPT-424242.',
@@ -1150,10 +1150,10 @@ function positiveControlV3(items) {
   };
   let changed = 0;
   for (const it of items) {
-    const fam = pairer.classifyTask(it.task);
+    const fam = claimCheck.classifyTask(it.task);
     if (!fam || !corrupt[fam]) continue;
-    const a = pairer.pairItem(it);
-    const b = pairer.pairItem({ task: it.task, transcript: { events: it.transcript.events, closing: corrupt[fam] } });
+    const a = claimCheck.checkClaim(it);
+    const b = claimCheck.checkClaim({ task: it.task, transcript: { events: it.transcript.events, closing: corrupt[fam] } });
     if (a.state !== b.state) changed++;
   }
   return { corrupted_claim_detected: changed > 0, changed_states: changed, perturbation: 'claim-value overwrite per family' };

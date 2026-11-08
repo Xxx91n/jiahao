@@ -114,10 +114,10 @@ test('every-turn reminder carries the plain-language and incoming-material requi
 });
 
 // #71 item 9: a comment is not lazy metadata. splitByProfile kept the retired
-// gsr block, so SessionStart printed it straight into the host's context. The
-// retired block is gone; the active headers stay because the generator
-// validator reads them.
-test('generator SessionStart injection carries no retired gsr comments (#71 item 9)', () => {
+// rule header block, so SessionStart printed it straight into the host's
+// context. The retired block is gone; the active headers stay because the
+// generator validator reads them.
+test('generator SessionStart injection carries no retired rule headers (#71 item 9)', () => {
   const dir = freshDir('jiahao-hooks-test-');
   fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'generator', 'utf8');
   fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
@@ -129,7 +129,7 @@ test('generator SessionStart injection carries no retired gsr comments (#71 item
   expect(res.stdout).not.toContain('superseded-by');
   // Pin the three retired ids themselves: a future edit that changes the words
   // around a retired header must not make the injection visible again.
-  for (const retired of ['gsr:1 ', 'gsr:2 ', 'gsr:3 ']) {
+  for (const retired of ['rule:1 ', 'rule:2 ', 'rule:3 ']) {
     expect(res.stdout).not.toContain(retired);
   }
 });
@@ -217,12 +217,12 @@ test('verdict-gate blocks with plain text evidence (not JSON)', () => {
   expect(parseJson(res).decision).toBe('block');
 });
 
-// #108 audit (CodeRabbit round 2): an enforce-mode pairer record with an
-// undetermined state classifies nothing (adapter failure / pairItem
+// #108 audit (CodeRabbit round 2): an enforce-mode transcript-check record with an
+// undetermined state classifies nothing (adapter failure / checkClaim
 // exception), so it must not stand in for evidence the way a shadow record
 // never could - a chain holding only it means "no evidence" and the
 // verifier blocks.
-test('an undetermined enforce-mode pairer record does not satisfy the no-evidence check', () => {
+test('an undetermined enforce-mode transcript-check record does not satisfy the no-evidence check', () => {
   const dir = freshDir('jiahao-hooks-test-');
   fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
   const rec = createEvidence('pl-0', 'pairer-lane', 'observed',
@@ -243,10 +243,10 @@ test('an undetermined enforce-mode pairer record does not satisfy the no-evidenc
   expect(parsed.reason).toMatch(/no evidence/i);
 });
 
-// #71 item 15 (adjudicated): an enforce-mode pairer record that DID determine
+// #71 item 15 (adjudicated): an enforce-mode transcript-check record that DID determine
 // a state is verification evidence - it satisfies Case A. A shadow record with
 // the same state is still telemetry and leaves the chain "no evidence".
-test('a determined enforce-mode pairer record satisfies Case A, a shadow one does not', () => {
+test('a determined enforce-mode transcript-check record satisfies Case A, a shadow one does not', () => {
   function runWith(shadow) {
     const dir = freshDir('jiahao-hooks-test-');
     fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
@@ -644,7 +644,7 @@ test('verifier gate surfaces pending escalation count (advisory, exit 0)', () =>
 // ---- #75: the severity/coverage scan is a decision about THIS turn ----
 // Before this, the scan covered the whole append-only chain, so one stale
 // record - a killed hook's sentinel-reconcile coverage:partial, or an enforce
-// pairer-lane high severity - gated every later Stop, and human adjudication
+// transcript-check high severity - gated every later Stop, and human adjudication
 // could not release it.
 
 const { recordHash } = require(path.join(__dirname, '..', 'src', 'evidence-log.js'));
@@ -791,7 +791,7 @@ test('#75: a passed human verdict releases a stale severity record, a failed one
 // transcript quiet close, the reentry first stop) into exit-2 failures.
 
 // A Claude-Code-shaped transcript: one user turn opener, one assistant
-// closing. The closing text is the lane's claim side for hosts that carry no
+// closing. The closing text is the check's claim side for hosts that carry no
 // last_assistant_message field.
 function transcriptFixture(closingText) {
   const dir = freshDir('jiahao-transcript-124-');
@@ -936,7 +936,7 @@ test('#124: a completion claim without evidence still blocks (no regression)', (
 
 test('#124: the claim rides the transcript when the host sends no last_assistant_message', () => {
   const gate = gateFixture();
-  // Claude Code carries no last_assistant_message field; the lane's adapted
+  // Claude Code carries no last_assistant_message field; the check's adapted
   // closing is this turn's claim source instead.
   const claiming = gate.stop({
     stop_hook_active: false, session_id: 'session-124',

@@ -1,0 +1,166 @@
+'use strict';
+// src/transcript-check.js — the hook-side transcript check.
+//
+// run(payload, deps) rides the Stop/SubagentStop hook: transcript_path ->
+// transcript adapter -> src/claim-check.js checkClaim -> append-only record in
+// the evidence chain under the record source 'pairer-instrument' (the
+// on-disk marker explained below).
+//
+// Registered semantics:
+//   - flagged   -> suspicious:true + severity:'high' + the shadow bit
+//   - shadow records never enter the severity matrix (the gate skips them)
+//   - consistent/undetermined land as non-suspicious observed records
+//     (the telemetry substrate); they never flag and never block
+//   - a host that delivers no transcript_path leaves the check 'absent' -
+//     nothing is written and nothing escalates (never coverage:partial)
+//   - .jiahao-transcript-check-off makes the check inert (channel-level kill switch)
+//   - .jiahao-transcript-check-enforce is the registered promotion marker; it drops
+//     the shadow bit so flagged records enter the matrix
+//
+// The check is fail-open to the caller: any internal error is reported on
+// the returned object and never thrown across the hook boundary.
+
+const fs = require('fs');
+const crypto = require('crypto');
+const path = require('path');
+const { transcriptCheckOffPath, transcriptCheckEnforcePath } = require('./shared/paths');
+const { adaptTranscriptFile } = require('./transcript-adapter');
+const claimCheck = require('./claim-check');
+const { recordHash, WITNESS_HARD_STOP_CODE } = require('./evidence-log');
+
+// The on-disk record marker is 'pairer-instrument'. It is kept verbatim
+// because evidence chains written before this rename must be read the same
+// way; changing the value would hide old records from the Stop check.
+const RECORD_SOURCE = 'pairer-instrument';
+
+function transcriptPathOf(payload) {
+  if (!payload) return null;
+  // #71 item 11: Claude Code documents SubagentStop as carrying the
+  // SUBAGENT's own transcript in agent_transcript_path, while transcript_path
+  // stays the parent session's transcript. Reading only transcript_path meant
+  // every subagent Stop paired the parent conversation's task with the
+  // subagent's (or the parent's) results. For a subagent stop the agent
+  // transcript wins and transcript_path is the fallback; every other event
+  // keeps transcript_path first, and still falls back to the agent path when
+  // the host omits the event name. Hosts spell the event hook_event_name
+  // (Claude Code) or hookEventName (camelCase hosts); normalizePayload keeps
+  // both on the payload.
+  const ev = payload.hook_event_name || payload.hookEventName;
+  const isSubagentStop = ev === 'SubagentStop' || ev === 'subagent_stop' || ev === 'subagentStop';
+  const order = isSubagentStop
+    ? ['agent_transcript_path', 'agentTranscriptPath', 'transcript_path', 'transcriptPath']
+    : ['transcript_path', 'transcriptPath', 'agent_transcript_path', 'agentTranscriptPath'];
+  for (const key of order) {
+    const p = payload[key];
+    if (typeof p === 'string' && p) return p;
+  }
+  return null;
+}
+
+// One check record per observation; the idempotency key binds
+// (session, transcript content) so a re-fired Stop with identical transcript
+// content dedups and a new turn's content never does. The 'pairer-lane' prefix
+// is part of the on-disk key and stays so old and new records dedup together.
+function transcriptKey(sessionId, adapted) {
+  const inputHash = crypto.createHash('sha256')
+    .update(JSON.stringify({ task: adapted.task, transcript: adapted.transcript }))
+    .digest('hex');
+  return crypto.createHash('sha256')
+    .update('pairer-lane|' + String(sessionId || 'unknown') + '|' + inputHash)
+    .digest('hex');
+}
+
+function detailOf(mode, r) {
+  const base = 'transcript-check[' + mode + '] ' + r.state + (r.family ? ' ' + r.family : '');
+  const detail = base + ' — ' + String(r.reason || '').slice(0, 160);
+  return detail.slice(0, 240);
+}
+
+// opts: { evidenceLog, dir (flag-file dir override for tests), sessionId }
+// Returns a descriptive outcome; never throws.
+function run(payload, opts) {
+  const o = opts || {};
+  const evidenceLog = o.evidenceLog;
+  const dir = o.dir || null;
+  const off = dir ? path.join(dir, '.jiahao-transcript-check-off') : transcriptCheckOffPath();
+  const enforce = dir ? path.join(dir, '.jiahao-transcript-check-enforce') : transcriptCheckEnforcePath();
+
+  if (fs.existsSync(off)) return { outcome: 'disabled', state: null };
+
+  const tp = transcriptPathOf(payload);
+  if (!tp) return { outcome: 'absent', state: null };
+
+  const mode = fs.existsSync(enforce) ? 'enforce' : 'shadow';
+  const sessionId = (payload && typeof payload.session_id === 'string' ? payload.session_id : null) || o.sessionId || null;
+  const t0 = Date.now();
+  const adapted = adaptTranscriptFile(tp);
+  let r;
+  if (!adapted.ok) {
+    r = { family: null, state: 'undetermined', claim: null, evidence: null, reason: 'adapter: ' + (adapted.reason || 'transcript unadaptable') };
+  } else {
+    try { r = claimCheck.checkClaim({ task: adapted.task, transcript: adapted.transcript }); }
+    catch (e) { r = { family: null, state: 'undetermined', claim: null, evidence: null, reason: 'adapter: checkClaim threw: ' + e.message }; }
+  }
+  const latencyMs = Date.now() - t0;
+
+  let appended = false;
+  if (evidenceLog && typeof evidenceLog.commit === 'function' && typeof evidenceLog.createRecord === 'function') {
+    const obs = { r: r, mode: mode, adapted: adapted, latencyMs: latencyMs, sessionId: sessionId };
+    let written;
+    try {
+      written = evidenceLog.commit(function (chain, prevHash) {
+        // The gate id, record source and `detector.pairer` field below are
+        // on-disk evidence values. They keep their old spelling so records
+        // written by earlier versions still mean the same thing to the Stop
+        // check.
+        const rec = evidenceLog.createRecord('pairer-lane', RECORD_SOURCE,
+          obs.r.state === 'flagged' ? 'suspect' : 'observed',
+          detailOf(obs.mode, obs.r), null, prevHash, {
+            session_id: obs.sessionId,
+            detector: {
+              suspicious: obs.r.state === 'flagged',
+              matched_phrases: [],
+              severity: obs.r.state === 'flagged' ? 'high' : null,
+              source: RECORD_SOURCE,
+              shadow: obs.mode === 'shadow',
+              pairer: {
+                family: obs.r.family,
+                state: obs.r.state,
+                claim: obs.r.claim,
+                evidence: obs.r.evidence,
+                reason: obs.r.reason,
+                latency_ms: obs.latencyMs,
+              },
+            },
+          });
+        rec._idem = transcriptKey(obs.sessionId, obs.adapted);
+        rec.event_hash = recordHash(rec);
+        return [rec];
+      });
+    } catch (e) {
+      if (e && e.code === WITNESS_HARD_STOP_CODE) {
+        // The dead-man switch refused to record this Stop. That refusal is a
+        // real outcome, not noise: the gate turns it into a verifier
+        // block, because allowing the turn would let it pass on a chain that
+        // just refused its witness. A generic commit failure keeps
+        // propagating to the gate's fail-open catch.
+        return { outcome: 'hard-stop', mode: mode, state: null, reason: e.message };
+      }
+      throw e;
+    }
+    // The commit result is the number of records actually written: a dedup
+    // (_idem already on the chain) or a degraded no-op is not an append.
+    appended = (typeof written === 'number' ? written > 0 : true);
+  }
+
+  // closing (#124): the adapted turn's closing text is this turn's claim side.
+  // The verdict gate reads it to decide whether the turn CLAIMS completion at
+  // all — the same vocabulary hosts that ride transcript_path instead of a
+  // last_assistant_message field. Exposed only when the adapter parsed one.
+  const closing = (adapted && adapted.ok && adapted.transcript &&
+    typeof adapted.transcript.closing === 'string' && adapted.transcript.closing.trim())
+    ? adapted.transcript.closing : null;
+  return { outcome: 'recorded', mode: mode, state: r.state, family: r.family, claim: r.claim, evidence: r.evidence, closing: closing, reason: r.reason, latency_ms: latencyMs, appended: appended };
+}
+
+module.exports = { RECORD_SOURCE: RECORD_SOURCE, run: run, transcriptPathOf: transcriptPathOf, transcriptKey: transcriptKey };

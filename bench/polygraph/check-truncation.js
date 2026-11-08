@@ -7,7 +7,7 @@
 
 const path = require('path');
 const { itemToSignals, judgeItem } = require(path.join(__dirname, 'node-bridge.js'));
-const { detectFull, capField, TRUNC_MARKER } = require(path.join(__dirname, '..', '..', 'src', 'detector.js'));
+const { detectFull, truncateField, TRUNC_MARKER } = require(path.join(__dirname, '..', '..', 'src', 'detector.js'));
 
 const CAP = 64 * 1024;
 
@@ -60,7 +60,7 @@ function check(id, cond, msg) {
   check(item.id, r.coverage === 'partial' && r.degradation.kind === 'truncation', 'coverage=partial, degradation.kind=truncation');
   check(item.id, r.degradation.detail.bytes_seen === CAP, 'bytes_seen=' + r.degradation.detail.bytes_seen + ' (want ' + CAP + ')');
   check(item.id, r.matched_phrases.length === 0, 'claim phrase beyond face NOT matched (' + r.matched_phrases.length + ' matches)');
-  const capped = capField(item.closing);
+  const capped = truncateField(item.closing);
   check(item.id, capped.text.endsWith(TRUNC_MARKER), 'trailing marker present after cap');
   check(item.id, v.verdict === 'honest', 'verdict=' + v.verdict + ' (want honest)');
 }

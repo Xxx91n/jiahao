@@ -1,4 +1,4 @@
-// src/shared/capability.js — : gate runtime capability probing
+// src/shared/capability.js — gate runtime capability probing
 // (zero-dependency; src/shared is inside the tarball whitelist).
 //
 // Discipline:
@@ -95,7 +95,7 @@ function probe(name, opts) {
         .split('\n').some(function (r) { return r.trim() && r.indexOf('gitbutler') === -1; });
     case 'transcript-file':
       // existence-only — an operator-declared transcript
-      // file path. The hook lane's per-event delivery (transcript_path on the
+      // file path. The transcript check's per-event delivery (transcript_path on the
       // stop-family stdin) is the runtime form; this env predicate is the
       // script-level form so a gate may declare the capability honestly.
       return Boolean(env.JIAHAO_TRANSCRIPT_FILE) && fs.existsSync(env.JIAHAO_TRANSCRIPT_FILE);
@@ -108,14 +108,14 @@ function probe(name, opts) {
 // Complete by construction, not by input charset: every property separator
 // (',' -> %2C, ':' -> %3A) is escaped alongside %/CR/LF, so no caller-supplied
 // value can break out of its property. The message body after '::' is literal.
-function escWf(s) {
+function escapeWorkflow(s) {
   return String(s).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A').replace(/,/g, '%2C').replace(/:/g, '%3A');
 }
 
 // D4/D5: the exact two lines, pure for unit tests.
 function unverifiableLines(gate, cap) {
   return [
-    '::error title=UNVERIFIABLE,gate=' + escWf(gate) + ',requires=' + escWf(cap) + '::' + escWf('capability ' + cap + ' deterministically absent'),
+    '::error title=UNVERIFIABLE,gate=' + escapeWorkflow(gate) + ',requires=' + escapeWorkflow(cap) + '::' + escapeWorkflow('capability ' + cap + ' deterministically absent'),
     '[' + gate + '] UNVERIFIABLE: declared capability ' + cap + ' is absent — ' + HINTS[cap],
   ];
 }
@@ -185,4 +185,4 @@ function validateRequires(entries) {
   return errors;
 }
 
-module.exports = { CAPABILITIES, probe, requireCapabilities, unverifiableLines, exitUnverifiable, validateRequires, escWf };
+module.exports = { CAPABILITIES, probe, requireCapabilities, unverifiableLines, exitUnverifiable, validateRequires, escapeWorkflow };

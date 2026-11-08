@@ -94,7 +94,7 @@ test('has output format with verdict pattern', () => {
 });
 
 test('three-part reply keeps the three labels on separate, blank-line-separated lines (#135)', () => {
-  const { TEMPLATE } = require('./helpers/output-lock-contract');
+  const { TEMPLATE } = require('./helpers/three-part-reply');
   const start = content.indexOf('### Three-Part Reply Format');
   expect(start).toBeGreaterThanOrEqual(0);
   const end = content.indexOf('## Verifier Profile');
@@ -141,11 +141,11 @@ test('a mid-task correction does not end the task (#134)', () => {
   const ruleAt = lines.findIndex((line) => line.startsWith('- **R6 (Correction Mid-Task)'));
   expect(ruleAt).toBeGreaterThan(0);
 
-  // The gsr header is the structural latch the generator validates; it has to
+  // The rule header is the structural latch the generator validates; it has to
   // sit above the bullet on the nearest non-blank line (hooks/jiahao-profile.js).
   let headerAt = ruleAt - 1;
   while (headerAt >= 0 && lines[headerAt].trim() === '') headerAt--;
-  expect(lines[headerAt]).toBe('<!-- gsr:9 | signal-domain: task-continuation | status: active -->');
+  expect(lines[headerAt]).toBe('<!-- rule:9 | signal-domain: task-continuation | status: active -->');
 
   const rule = lines[ruleAt];
   // The correction is a change of plan, not the arrival of the goal.
@@ -176,7 +176,7 @@ test('a mid-task correction does not end the task (#134)', () => {
 // plain-words meaning; the output format and the verifier report must say the
 // names are not a substitute for that explanation.
 test('plain words explain machine names instead of replacing them (#138)', () => {
-  const { TEMPLATE } = require('./helpers/output-lock-contract');
+  const { TEMPLATE } = require('./helpers/three-part-reply');
   const start = content.indexOf('### Surface Signal Rules');
   const end = content.indexOf('### Intensity Levels');
   expect(start).toBeGreaterThanOrEqual(0);

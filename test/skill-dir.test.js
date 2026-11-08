@@ -35,7 +35,7 @@ function readFrontmatter(text, label) {
 }
 
 const { buildAdapters, SKILL_DIR, SOURCE_NAME, HOSTS, isRulesOnlyDirectory } = require('../scripts/build-adapters');
-const { listTrackedPaths } = require('../src/shared/tracked-surface');
+const { listTrackedPaths } = require('../src/shared/tracked-files');
 // The generated text, not the file on disk: another suite reruns the generator
 // while jest works, and a read landing in writeFileSync's truncate window gets a
 // partial file (measured: 38 truncated reads across 51 rebuilds). That the file

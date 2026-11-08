@@ -14,7 +14,7 @@
 const fs = require('fs');
 const path = require('path');
 const { configDir } = require('./shared/paths');
-const { loadPin } = require('./instrument-identity');
+const { loadPin } = require('./version-pin');
 
 // Default static band (from FutureAGI research)
 const STATIC_BAND = { low: 0.4, high: 0.7 };
@@ -161,14 +161,14 @@ function computeECE(points, model, nBins) {
 }
 
 
-// ---- : calibration flywheel (read path) ----
+// ---- calibration loop (read path) ----
 
 const crypto = require('crypto');
 
 // Judge version: bump when the critic prompt changes; kappa reports are
 // versioned per judge prompt hash (maf-evals: recalibrate after judge change).
 // moves the source of truth for the full identity into
-// src/instrument-identity.json while preserving this field for older callers.
+// src/version-pin.json while preserving this field for older callers.
 const JUDGE_VERSION = loadPin(path.join(__dirname, '..')).rules_version;
 
 // Fraction of eligible human-verdict points required before few-shot

@@ -62,28 +62,28 @@ function getProfileRoot(profile) {
 
 
 
-// parse inline gsr rule headers
+// parse inline rule headers
 // generator section of src/SKILL.md. Parser only - no renderer, no sibling
 // manifest. build-adapters.js validates at build time;
 // runtime hooks never run this on the hot path.
 const BS = String.fromCharCode(92); // backslash assembled at load: this file's write path strips literal backslashes
-const GSR_SP = BS + 's*';
-const GSR_BAR = GSR_SP + BS + '|' + GSR_SP;
-const GSR_REASONS = ['not-in-scope', 'incorrect', 'not-practical', 'insufficient-impact', 'merged', 'covered-by']; // ASVS-style
-const GSR_HEADER_RE = new RegExp(
-  '<!--' + GSR_SP + 'gsr:([0-9]+)' + GSR_BAR +
-  'signal-domain:' + GSR_SP + '([a-z0-9][a-z0-9-]*)' + GSR_BAR +
-  'status:' + GSR_SP + '(active|superseded|deprecated|attested|informational)' +
-  '(?:' + GSR_BAR + 'check:' + GSR_SP + '([A-Za-z0-9_.-]+))?' +
-  '(?:' + GSR_BAR + 'superseded-by:' + GSR_SP + 'gsr:([0-9]+))?' +
-  '(?:' + GSR_BAR + 'reason:' + GSR_SP + '(' + GSR_REASONS.join('|') + '))?' +
-  GSR_SP + '-->', 'g');
-const GSR_STATUSES = ['active', 'superseded', 'deprecated', 'attested', 'informational'];
-const GSR_ACTIVE_CAP = 8; // enforced-active cap 6-8; attested/informational excluded
+const RULE_SPACE = BS + 's*';
+const RULE_SEPARATOR = RULE_SPACE + BS + '|' + RULE_SPACE;
+const RULE_REASONS = ['not-in-scope', 'incorrect', 'not-practical', 'insufficient-impact', 'merged', 'covered-by']; // ASVS-style
+const RULE_HEADER_RE = new RegExp(
+  '<!--' + RULE_SPACE + 'rule:([0-9]+)' + RULE_SEPARATOR +
+  'signal-domain:' + RULE_SPACE + '([a-z0-9][a-z0-9-]*)' + RULE_SEPARATOR +
+  'status:' + RULE_SPACE + '(active|superseded|deprecated|attested|informational)' +
+  '(?:' + RULE_SEPARATOR + 'check:' + RULE_SPACE + '([A-Za-z0-9_.-]+))?' +
+  '(?:' + RULE_SEPARATOR + 'superseded-by:' + RULE_SPACE + 'rule:([0-9]+))?' +
+  '(?:' + RULE_SEPARATOR + 'reason:' + RULE_SPACE + '(' + RULE_REASONS.join('|') + '))?' +
+  RULE_SPACE + '-->', 'g');
+const RULE_STATUSES = ['active', 'superseded', 'deprecated', 'attested', 'informational'];
+const RULE_ACTIVE_CAP = 8; // enforced-active cap 6-8; attested/informational excluded
 
-function parseGsrHeaders(generatorText) {
+function parseRuleHeaders(generatorText) {
   const rules = [];
-  const re = new RegExp(GSR_HEADER_RE.source, 'g');
+  const re = new RegExp(RULE_HEADER_RE.source, 'g');
   let m;
   while ((m = re.exec(generatorText)) !== null) {
     if (m[0].length === 0) { re.lastIndex++; continue; } // zero-length guard
@@ -93,34 +93,34 @@ function parseGsrHeaders(generatorText) {
 }
 
 // Returns errors[] (empty = valid). Pure - safe for tests and build-adapters.
-function validateGsrHeaders(generatorText) {
+function validateRuleHeaders(generatorText) {
   const errors = [];
-  const headers = parseGsrHeaders(generatorText);
+  const headers = parseRuleHeaders(generatorText);
   if (headers.length === 0) {
-    errors.push('no gsr rule headers found in generator section');
+    errors.push('no rule headers found in generator section');
     return errors;
   }
   const ids = new Set();
   for (const r of headers) {
-    if (ids.has(r.id)) errors.push('duplicate gsr id: gsr:' + r.id);
+    if (ids.has(r.id)) errors.push('duplicate rule id: rule:' + r.id);
     ids.add(r.id);
     if (r.status === 'superseded') {
-      if (r.supersededBy === null) errors.push('gsr:' + r.id + ' superseded without superseded-by link');
-      else if (r.supersededBy === r.id) errors.push('gsr:' + r.id + ' supersedes itself');
+      if (r.supersededBy === null) errors.push('rule:' + r.id + ' superseded without superseded-by link');
+      else if (r.supersededBy === r.id) errors.push('rule:' + r.id + ' supersedes itself');
     } else if (r.supersededBy !== null) {
-      errors.push('gsr:' + r.id + ' carries superseded-by but status is ' + r.status);
+      errors.push('rule:' + r.id + ' carries superseded-by but status is ' + r.status);
     }
     const retired = r.status === 'superseded' || r.status === 'deprecated';
-    if (retired && r.reason === null) errors.push('gsr:' + r.id + ' retired without reason tag');
-    if (!retired && r.reason !== null) errors.push('gsr:' + r.id + ' carries reason but status is ' + r.status);
+    if (retired && r.reason === null) errors.push('rule:' + r.id + ' retired without reason tag');
+    if (!retired && r.reason !== null) errors.push('rule:' + r.id + ' carries reason but status is ' + r.status);
   }
   for (const r of headers) {
     if (r.supersededBy !== null && !ids.has(r.supersededBy)) {
-      errors.push('gsr:' + r.id + ' superseded-by gsr:' + r.supersededBy + ' does not resolve');
+      errors.push('rule:' + r.id + ' superseded-by rule:' + r.supersededBy + ' does not resolve');
     }
   }
   const active = headers.filter(h => h.status === 'active').length;
-  if (active > GSR_ACTIVE_CAP) errors.push('active rule cap exceeded: ' + active + ' > ' + GSR_ACTIVE_CAP + '');
+  if (active > RULE_ACTIVE_CAP) errors.push('active rule cap exceeded: ' + active + ' > ' + RULE_ACTIVE_CAP + '');
   const sec = generatorText.split('### Surface Signal Rules')[1];
   if (sec) {
     const lines = sec.split(String.fromCharCode(10)).map(l => l.replace(new RegExp(String.fromCharCode(13) + '$'), ''));
@@ -128,11 +128,11 @@ function validateGsrHeaders(generatorText) {
       if (!lines[i].startsWith('- **')) continue;
       let j = i - 1;
       while (j >= 0 && lines[j].trim() === '') j--;
-      if (j < 0 || !/^<!--[  ]*gsr:[0-9]+/.test(lines[j].trim())) {
-        errors.push('rule bullet without gsr header: ' + lines[i].slice(0, 60));
+      if (j < 0 || !/^<!--[  ]*rule:[0-9]+/.test(lines[j].trim())) {
+        errors.push('rule bullet without rule header: ' + lines[i].slice(0, 60));
       }
     }
   }
   return errors;
 }
-module.exports = { splitByProfile, loadProfileSections, readProfile, getProfileRoot, parseGsrHeaders, validateGsrHeaders, GSR_HEADER_RE, GSR_STATUSES, GSR_ACTIVE_CAP, GSR_REASONS };
+module.exports = { splitByProfile, loadProfileSections, readProfile, getProfileRoot, parseRuleHeaders, validateRuleHeaders, RULE_HEADER_RE, RULE_STATUSES, RULE_ACTIVE_CAP, RULE_REASONS };

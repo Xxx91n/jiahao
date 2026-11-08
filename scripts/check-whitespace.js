@@ -18,7 +18,7 @@ const { execFileSync } = require('child_process');
 
 // One enumeration base for the working-tree surface, shared with the generator
 // gate so "which files exist" cannot drift between them (#102).
-const { listWorkingTreePaths, listDeletedPaths } = require('../src/shared/tracked-surface');
+const { listWorkingTreePaths, listDeletedPaths } = require('../src/shared/tracked-files');
 
 // Frozen evaluation records keep the bytes they were captured with. Every entry
 // needs a reason, and an entry that stops matching a real violation is reported

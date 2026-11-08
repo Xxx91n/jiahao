@@ -89,16 +89,16 @@ function profilePath() {
   return path.join(configDir(), '.jiahao-profile');
 }
 
-// channel-level flags for the Stop/SubagentStop conviction
-// lane. Presence of the off file makes the lane inert (kill switch,
+// channel-level flags for the Stop/SubagentStop transcript check.
+// Presence of the off file makes the check inert (kill switch,
 // survives post-enforce); presence of the enforce file is the registered
 // promotion marker that drops the shadow bit so records enter the
 // severity matrix.
-function convictionLaneOffPath() {
-  return path.join(configDir(), '.jiahao-conviction-off');
+function transcriptCheckOffPath() {
+  return path.join(configDir(), '.jiahao-transcript-check-off');
 }
-function convictionLaneEnforcePath() {
-  return path.join(configDir(), '.jiahao-conviction-enforce');
+function transcriptCheckEnforcePath() {
+  return path.join(configDir(), '.jiahao-transcript-check-enforce');
 }
 
 // κ governance baseline (written manually via scripts/kappa.js
@@ -144,4 +144,4 @@ function requireCorpus(name) {
   process.exit(1);
 }
 
-module.exports = { configDir, configDirFrom, HOST_CONFIG_DIR_ENV, flagPath, evidencePath, evidenceKeysPath, profilePath, kappaBaselinePath, convictionLaneOffPath, convictionLaneEnforcePath, corpusDir, corpusPath, repoCorpusPath, requireCorpus, corpusMissingMessage };
+module.exports = { configDir, configDirFrom, HOST_CONFIG_DIR_ENV, flagPath, evidencePath, evidenceKeysPath, profilePath, kappaBaselinePath, transcriptCheckOffPath, transcriptCheckEnforcePath, corpusDir, corpusPath, repoCorpusPath, requireCorpus, corpusMissingMessage };

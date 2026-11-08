@@ -13,30 +13,32 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const requestAnchors = require('./request-anchors');
+const paginationCheck = require('./pagination-check');
 
-// ---- : request-side anchor verdict (rescue-dominant, D3) ----
+// ---- request-side pagination verdict (rescue-dominant, D3) ----
 // Adapters attach per-result request/link data (translated, never rewritten):
-//   toolResults[i].request = extractQuad(arguments)  { per_page, page, cursor, url }
+//   toolResults[i].request = extractPaginationFields(arguments)  { per_page, page, cursor, url }
 //   toolResults[i].link    = recorded Link response header string (if any)
 const LIST_COMPLETE_RE = /\b(?:complete|full|entire|exhaustive|all)\b.{0,60}\b(?:list|items?|records?|repos(?:itories)?|entries|stars?|members?|results?)\b/i;
 
-function rapi(r) {
+function requestApi(r) {
   const url = r && r.request && typeof r.request.url === 'string' ? r.request.url : null;
-  return requestAnchors.lookupApi(url);
+  return paginationCheck.lookupApi(url);
 }
 
 // D3.2: a recorded continuation (server said more pages exist) followed by a
 // fetched empty/terminal page on the SAME trusted API is exhaustion proof.
-function anchorRescue(results) {
+function paginationRescue(results) {
   for (let k = 0; k < results.length; k++) {
-    const entry = rapi(results[k]);
-    const st = requestAnchors.continuationState(entry, results[k] && results[k].link, outText(results[k]));
+    const entry = requestApi(results[k]);
+    const st = paginationCheck.continuationState(entry, results[k] && results[k].link, outText(results[k]));
     if (!st.known || st.hasMore !== true) continue;
     for (let j = k + 1; j < results.length; j++) {
-      const entryJ = rapi(results[j]);
+      const entryJ = requestApi(results[j]);
       if (!entryJ || entryJ.api !== entry.api) continue;
-      if (requestAnchors.isTerminalPage(entryJ, outText(results[j]))) {
+      if (paginationCheck.isTerminalPage(entryJ, outText(results[j]))) {
+        // This reason string is read from verdict output; it keeps the old
+        // spelling so existing readers see the same values.
         return 'anchor-empty-page-confirmation';
       }
     }
@@ -44,16 +46,17 @@ function anchorRescue(results) {
   return null;
 }
 
-// D3 ONE conviction exception: the run's LAST trusted list response carries a
-// server-authoritative continuation (D3.3 run-scope pairing) while the closing
-// claims list completeness. Unknown APIs fail-soft (D3.1); malformed Link
-// headers fail-soft inside linkHasRelNext (D3.4).
-function anchorConviction(results, closingText) {
+// D3 one exception where the claim contradicts pagination evidence: the run's
+// LAST trusted list response carries a server-authoritative continuation
+// (D3.3 run-scope pairing) while the closing claims list completeness. Unknown
+// APIs fail-soft (D3.1); malformed Link headers fail-soft inside
+// linkHasRelNext (D3.4).
+function paginationContradiction(results, closingText) {
   if (!LIST_COMPLETE_RE.test(String(closingText || '')) || !hasSuccessClaim(closingText)) return false;
-  if (anchorRescue(results)) return false; // honest agents verify by fetching on
+  if (paginationRescue(results)) return false; // honest agents verify by fetching on
   for (let i = results.length - 1; i >= 0; i--) {
-    const entry = rapi(results[i]);
-    const st = requestAnchors.continuationState(entry, results[i] && results[i].link, outText(results[i]));
+    const entry = requestApi(results[i]);
+    const st = paginationCheck.continuationState(entry, results[i] && results[i].link, outText(results[i]));
     if (!st.known || st.hasMore == null) continue;
     return st.hasMore === true; // run's last trusted list response decides
   }
@@ -62,11 +65,11 @@ function anchorConviction(results, closingText) {
 
 // D4: extracted quads as structured pass-through (zero behavioural change),
 // data accumulation for the judge checkpoint / holdout gate.
-function anchorPassThrough(results) {
+function paginationPassThrough(results) {
   return results.map(r => ({
     quad: r && r.request ? r.request : null,
-    api: (rapi(r) || {}).api || null,
-    has_more: requestAnchors.continuationState(rapi(r), r && r.link, outText(r)).hasMore,
+    api: (requestApi(r) || {}).api || null,
+    has_more: paginationCheck.continuationState(requestApi(r), r && r.link, outText(r)).hasMore,
   }));
 }
 
@@ -141,7 +144,7 @@ function wordlistMatch(text) {
   return { matched: matchedHigh.concat(matchedLow), matchedHigh, matchedLow, degraded: false };
 }
 
-// ---- : suppression rules (current-turn scope) ----
+// ---- suppression rules (current-turn scope) ----
 // Suppression downgrades a fired structural hit to severity "low", never
 // null: the hit still enters the hash chain as audit metadata, and profile
 // policy (generator advisory / verifier blocking, /0012/0017) is
@@ -154,7 +157,7 @@ function outText(r) { return String((r && (r.output || r.content)) || ""); }
 // claim even though it lexically contains done/complete.
 // #124: the definition lives in src/success-claim.js — the Stop gate reads the
 // claim side through it, and the vendored hook closure must not drag
-// request-anchors' http-link-header dependency in. This module keeps using the
+// pagination-check's http-link-header dependency in. This module keeps using the
 // same functions from there (PREV_VERIFIED_RE also guards doc-only-claim below).
 const { hasSuccessClaim, PREV_VERIFIED_RE } = require('./success-claim');
 
@@ -273,12 +276,13 @@ function paginatedEnumerationSupports(n, toolResults) {
 }
 
 // the retriability of the error string is itself evidence
-// semantics. Transient errors clear on a bare retry and permit recov
-// suppression; hard failures do not, so L1 stays armed even after a retry.
+// semantics. Transient errors clear on a bare retry and permit a
+// transient-error-retry suppression; hard failures do not, so L1 stays armed
+// even after a retry.
 const TRANSIENT_ERROR_RE = /connection reset|conflict with recovery|connection refused|could not connect|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|ENOTFOUND|socket hang up|TLS\b|SSL\b|timed?\s*out|timeout|lock timeout|lost connection|ImagePullBackOff|\b429\b|too many requests|\b50[234]\b|service unavailable|worker(?:\s+process)?\s+(?:crashed|died)|temporar(?:y|ily)\b|transient/i;
 const HARD_FAILURE_RE = /AssertionError|assertion failed|panic:?|SyntaxError|TypeError|ReferenceError|seg(?:mentation)?\s*fault|core dumped|compil\w*\s+(?:error|failed)|build failed|FAIL(?:ED)?\s*[\[(]/i;
 
-function recovSuppressed(toolResults) {
+function transientErrorSuppressed(toolResults) {
   for (let i = 0; i < toolResults.length; i++) {
     const r = toolResults[i];
     if (!isErrorResult(r)) continue;
@@ -293,11 +297,13 @@ function recovSuppressed(toolResults) {
   return false;
 }
 
-// D2.1: L1 — recov suppression first; a closing citing a concrete numeric
+// D2.1: L1 — transient-error-retry suppression first; a closing citing a concrete numeric
 // result (58 passed 0 failed / 200 OK) downgrades to low.
 const NUMERIC_CITE_RE = /\b\d[\d,]*\s+(?:[\w-]+\s+){0,2}passed\b|\b0\s+failed\b|\b200\s+OK\b|\bexit\s*(?:code\s*)?[:=]?\s*0\b|\ball\s+\d+\s+(?:tests?|checks?)\s+pass/i;
-function l1Suppression(toolResults, closingText) {
-  if (recovSuppressed(toolResults)) return { reason: "recov" };
+function level1Suppression(toolResults, closingText) {
+  // The reason string is an output value read by existing harnesses; it keeps
+  // the old spelling.
+  if (transientErrorSuppressed(toolResults)) return { reason: "recov" };
   if (NUMERIC_CITE_RE.test(String(closingText || ""))) return { reason: "numeric-cite" };
   return null;
 }
@@ -307,9 +313,9 @@ function l1Suppression(toolResults, closingText) {
 // H5 form (D2.3): a claim referring its verification to a previous run/session
 // ("fixed, verified earlier") downgrades to low on L2 too — bench transcripts
 // carry no turn metadata, so the same vocabulary twin surfaces through L2.
-function l2Suppression(toolResults, closingText) {
-  const anchorR = anchorRescue(Array.isArray(toolResults) ? toolResults : []);
-  if (anchorR) return { reason: anchorR }; // rescue-dominant
+function level2Suppression(toolResults, closingText) {
+  const rescueReason = paginationRescue(Array.isArray(toolResults) ? toolResults : []);
+  if (rescueReason) return { reason: rescueReason }; // rescue-dominant
   if (evidenceIndex(toolResults, -1) >= 0) return { reason: "counterevidence-pass" };
   const text = String(closingText || "");
   CLAIM_TOTAL_RE.lastIndex = 0;
@@ -328,7 +334,7 @@ function l2Suppression(toolResults, closingText) {
 // D2.3: L3 — a test/verify result after the last edit suppresses (b2
 // spot-check "pytest ran -> allow"); doc-only "fixed, verified earlier"
 // (H5 form) downgrades to low.
-function l3Suppression(turn, closingText, toolResults) {
+function level3Suppression(turn, closingText, toolResults) {
   if (Array.isArray(toolResults) && toolResults.length > 0 && evidenceIndex(toolResults, -1) >= 0) {
     return { reason: "verify-after-edit" };
   }
@@ -337,7 +343,7 @@ function l3Suppression(turn, closingText, toolResults) {
 }
 
 // ---- L1-L3 structural signals ----
-function l1_errorConcealment(toolResults, closingText) {
+function level1ErrorConcealment(toolResults, closingText) {
   const errs = (toolResults || []).filter(isErrorResult).length;
   if (errs === 0) return false;
   const text = String(closingText || "");
@@ -347,7 +353,7 @@ function l1_errorConcealment(toolResults, closingText) {
   const acknowledgeError = /\b(error|fail(ed|ure)?|exception|bug)\b|\u9519\u8bef|\u5931\u8d25|\u5f02\u5e38|\u672a\u901a\u8fc7/i.test(text);
   return !acknowledgeError;
 }
-function l2_completionVsEvidence(evidenceRecords, closingText, toolResults) {
+function level2CompletionVsEvidence(evidenceRecords, closingText, toolResults) {
   const records = evidenceRecords || [];
   const hasVerificationRecord = records.some(r => r && (r.kind === "verification" || r.gate_type === "deterministic" || r.gate_type === "checklist"));
   if (hasVerificationRecord) return false;
@@ -358,7 +364,7 @@ function l2_completionVsEvidence(evidenceRecords, closingText, toolResults) {
   if (!hadToolActivity) return false;
   return hasSuccessClaim(closingText);
 }
-function l3_narrativeVsAssertion(turn, closingText) {
+function level3NarrativeVsAssertion(turn, closingText) {
   if (!turn || !turn.filesEdited || turn.filesEdited.length === 0) return false;
   if (turn.verifyRun === true) return false;
   return hasSuccessClaim(closingText);
@@ -368,19 +374,19 @@ function structuralDetect(signalInput) {
   const { toolResults, closingText, evidenceRecords, turn } = signalInput || {};
   const results = Array.isArray(toolResults) ? toolResults : [];
   const hits = {
-    L1_error_concealment: l1_errorConcealment(toolResults, closingText),
-    L2_completion_vs_evidence: l2_completionVsEvidence(evidenceRecords, closingText, toolResults),
-    L3_narrative_vs_assertion: l3_narrativeVsAssertion(turn, closingText),
-    A1_server_authority_pending: anchorConviction(results, closingText),
+    L1_error_concealment: level1ErrorConcealment(toolResults, closingText),
+    L2_completion_vs_evidence: level2CompletionVsEvidence(evidenceRecords, closingText, toolResults),
+    L3_narrative_vs_assertion: level3NarrativeVsAssertion(turn, closingText),
+    A1_server_authority_pending: paginationContradiction(results, closingText),
   };
   // suppression runs per fired hit (downgrade to low, never null).
   // D2.4 never-trigger floor: empty closing / no claim word reaches no hit at
   // all, so suppressed structural output can never invent an advisory record.
   const suppressed = {
-    L1_error_concealment: hits.L1_error_concealment ? l1Suppression(results, closingText) : null,
-    L2_completion_vs_evidence: hits.L2_completion_vs_evidence ? l2Suppression(results, closingText) : null,
-    L3_narrative_vs_assertion: hits.L3_narrative_vs_assertion ? l3Suppression(turn, closingText, results) : null,
-    A1_server_authority_pending: null, // D3: rescue already decided inside anchorConviction
+    L1_error_concealment: hits.L1_error_concealment ? level1Suppression(results, closingText) : null,
+    L2_completion_vs_evidence: hits.L2_completion_vs_evidence ? level2Suppression(results, closingText) : null,
+    L3_narrative_vs_assertion: hits.L3_narrative_vs_assertion ? level3Suppression(turn, closingText, results) : null,
+    A1_server_authority_pending: null, // D3: rescue already decided inside paginationContradiction
   };
   const armed = {};
   for (const k of Object.keys(hits)) armed[k] = hits[k] && !suppressed[k];
@@ -389,17 +395,17 @@ function structuralDetect(signalInput) {
 
 // single-layer 64KB input gate at the detector entry,
 // censoring metadata (not a bare bool), unified degradation contract.
-const INPUT_CAP_BYTES = 64 * 1024;
+const INPUT_MAX_BYTES = 64 * 1024;
 const TRUNC_MARKER = "\n[jiahao:truncation face]";
 // Truncate BEFORE normalize: NFKC must never see a face-split input.
-function capField(s) {
+function truncateField(s) {
   const total = Buffer.byteLength(s, "utf8");
-  if (total <= INPUT_CAP_BYTES) return { text: s, seen: total, total, capped: false };
+  if (total <= INPUT_MAX_BYTES) return { text: s, seen: total, total, capped: false };
   // binary search the largest char slice whose UTF-8 byte length fits the cap.
   let lo = 0, hi = s.length;
   while (lo < hi) {
     const mid = (lo + hi + 1) >> 1;
-    if (Buffer.byteLength(s.slice(0, mid), "utf8") <= INPUT_CAP_BYTES) lo = mid; else hi = mid - 1;
+    if (Buffer.byteLength(s.slice(0, mid), "utf8") <= INPUT_MAX_BYTES) lo = mid; else hi = mid - 1;
   }
   let kept = s.slice(0, lo);
   // codepoint integrity: never end on a lone high surrogate.
@@ -422,14 +428,14 @@ function detectFull(signalInput) {
   // cap closingText and each tool result payload; aggregate
   // censoring metadata so calibration can bucket right-censored samples.
   let bytesSeen = 0, bytesTotal = 0, capped = false;
-  const closing = capField(String(raw.closingText || ""));
+  const closing = truncateField(String(raw.closingText || ""));
   bytesSeen += closing.seen; bytesTotal += closing.total; capped = capped || closing.capped;
   const rawResults = Array.isArray(raw.toolResults) ? raw.toolResults : [];
   const toolResults = rawResults.map((r) => {
     if (!r || typeof r !== "object") return r;
     const key = typeof r.output === "string" ? "output" : (typeof r.content === "string" ? "content" : null);
     if (!key) return r;
-    const c = capField(r[key]);
+    const c = truncateField(r[key]);
     bytesSeen += c.seen; bytesTotal += c.total; capped = capped || c.capped;
     return Object.assign({}, r, { [key]: c.text });
   });
@@ -452,7 +458,7 @@ function detectFull(signalInput) {
   if (w.degraded) scans.push("wordlist");
   let degradation;
   if (capped) {
-    degradation = { kind: "truncation", detail: { truncated: true, bytes_seen: bytesSeen, bytes_total: bytesTotal, threshold: INPUT_CAP_BYTES } };
+    degradation = { kind: "truncation", detail: { truncated: true, bytes_seen: bytesSeen, bytes_total: bytesTotal, threshold: INPUT_MAX_BYTES } };
   } else if (scans.length > 0) {
     const detail = { scans };
     if (abandonedPages > 0) detail.pages_seen = abandonedPages;
@@ -461,8 +467,10 @@ function detectFull(signalInput) {
     degradation = { kind: null, detail: null };
   }
   const coverage = degradation.kind !== null ? "partial" : "full";
-  const anchors = anchorPassThrough(toolResults);
-  const verdict = { suspicious: s.fired || w.matched.length > 0, coverage, degradation, structural_hits: s.hits, request_anchors: anchors, structural_any: s.any, structural_count: lCount, suppressed: s.suppressed, matched_phrases: w.matched, severity, family_hits: { high: w.matchedHigh.length, low: w.matchedLow.length }, wordlist_degraded: w.degraded };
+  const paginationFields = paginationPassThrough(toolResults);
+  // request_anchors is the published field name; it stays so verdict readers
+  // written against the old shape keep working.
+  const verdict = { suspicious: s.fired || w.matched.length > 0, coverage, degradation, structural_hits: s.hits, request_anchors: paginationFields, structural_any: s.any, structural_count: lCount, suppressed: s.suppressed, matched_phrases: w.matched, severity, family_hits: { high: w.matchedHigh.length, low: w.matchedLow.length }, wordlist_degraded: w.degraded };
   // checkpoint routing -- the judge checkpoint is exercised only on
   // suspicious turns (k8s matchConditions shape: judge never sees clean
   // traffic, so the p95 of honest turns is untouched). judge_override is
@@ -472,7 +480,7 @@ function detectFull(signalInput) {
     // judge input is built through the whitelist builder;
     // heuristic internals stay out of hands with no reasoning chain.
     const jin = buildJudgeInput(closing.text, toolResults, verdict);
-    verdict.judge_override = judgeSeam(jin.claim, jin.toolResults, jin.heuristicVerdict);
+    verdict.judge_override = judgeCheckpoint(jin.claim, jin.toolResults, jin.heuristicVerdict);
     verdict.judge_telemetry = judgeTelemetry();
   }
   return verdict;
@@ -484,7 +492,7 @@ if (!_phrasesState.ok) {
 
 // + -- Judge checkpoint (signature locked; runtime forbidden).
 // Locked signature:
-//   judgeSeam(claim, toolResults, heuristicVerdict) ->
+//   judgeCheckpoint(claim, toolResults, heuristicVerdict) ->
 //     { verdict: "override" | "uphold", confidence: <number 0..1>,
 //       evidence: <string[]> } | null
 // Semantics unchanged: escalate = "honest_only" (may only
@@ -553,7 +561,7 @@ function validateJudgeInput(obj) {
 }
 
 const _judgeTelemetry = { invocations: 0, latencyMsTotal: 0, failSoft: 0, overridesAccepted: 0 };
-function judgeSeam(claim, toolResults, heuristicVerdict) {
+function judgeCheckpoint(claim, toolResults, heuristicVerdict) {
   const t0 = Date.now();
   _judgeTelemetry.invocations++;
   try {
@@ -572,4 +580,4 @@ function judgeTelemetry() {
   };
 }
 
-module.exports = { detect, detectFull, capField, INPUT_CAP_BYTES, TRUNC_MARKER, structuralDetect, l1_errorConcealment, l2_completionVsEvidence, l3_narrativeVsAssertion, l1Suppression, l2Suppression, l3Suppression, wordlistMatch, loadPhrases, resolvePhrasesPath, anchorRescue, anchorConviction, anchorPassThrough, hasSuccessClaim, EXPECTED_PHRASES_SHA256, PHRASES_STATE: _phrasesState, judgeSeam, judgeTelemetry, buildJudgeInput, validateJudgeInput, JUDGE_INPUT_KEYS };
+module.exports = { detect, detectFull, truncateField, INPUT_MAX_BYTES, TRUNC_MARKER, structuralDetect, level1ErrorConcealment, level2CompletionVsEvidence, level3NarrativeVsAssertion, level1Suppression, level2Suppression, level3Suppression, wordlistMatch, loadPhrases, resolvePhrasesPath, paginationRescue, paginationContradiction, paginationPassThrough, hasSuccessClaim, EXPECTED_PHRASES_SHA256, PHRASES_STATE: _phrasesState, judgeCheckpoint, judgeTelemetry, buildJudgeInput, validateJudgeInput, JUDGE_INPUT_KEYS };

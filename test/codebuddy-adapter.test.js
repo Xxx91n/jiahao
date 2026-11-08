@@ -78,7 +78,7 @@ describe('hook behavior (bundle copies, live spawn)', () => {
   });
 
   // The bundle is what the host runs, so the Stop gate is spawned from it.
-  // Regression: calibration.js loads the instrument-identity pin at require()
+  // Regression: calibration.js loads the version-pin file at require()
   // time; a bundle missing that file crashed (exit 1) instead of gating.
   test('bundled Stop gate blocks an empty evidence chain (exit 2)', () => {
     const dir = mkConfigDir({ '.jiahao-profile': 'verifier' });

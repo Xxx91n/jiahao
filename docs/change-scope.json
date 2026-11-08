@@ -1,0 +1,50 @@
+{
+ "schema_version": 1,
+ "_doc": "change-scope.",
+ "source_adr": "change-control rules for the product",
+ "vocabulary": {
+  "tokens": [
+   "identity",
+   "corpus",
+   "threshold",
+   "schedule_gate",
+   "quarantine",
+   "rebaseline",
+   "criteria-change",
+   "record",
+   "certify",
+   "approve"
+  ]
+ },
+ "scopes": {
+  "identity": {
+   "response": "quarantine",
+   "revalidation": "npm run reverify && npm run judge:bias",
+   "attestations": [
+    "certify"
+   ]
+  },
+  "corpus": {
+   "response": "rebaseline",
+   "revalidation": "npm run reverify",
+   "attestations": [
+    "approve",
+    "certify"
+   ]
+  },
+  "threshold": {
+   "response": "criteria-change",
+   "revalidation": "criteria replay",
+   "attestations": [
+    "approve"
+   ]
+  },
+  "schedule_gate": {
+   "response": "record",
+   "revalidation": "record only",
+   "attestations": [
+    "approve"
+   ]
+  }
+ }
+}
