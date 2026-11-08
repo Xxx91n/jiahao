@@ -236,7 +236,7 @@ test('the glossary is the plain-language standard (#157)', () => {
     '三行输出硬锁', '平实人话纪律', '嘉豪式行为', '反自嗨五级行动阶梯',
     '动作前置', '探针锚定', '红灯即停', '目标核销', '三行硬锁',
     '插话纠正', '人工裁定', '受保护面', '定罪通道', '出口', '方言', '进包', '未进包',
-    '接缝',
+    '能力档位', '接缝',
   ];
   for (const term of retired) {
     expect(entries.some((heading) => heading.includes(term))).toBe(false);
