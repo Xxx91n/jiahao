@@ -75,7 +75,7 @@ describe('rescue-dominant + ONE contradiction exception', () => {
     expect(r.structural_hits.A1_server_authority_pending).toBe(true);
     expect(r.severity).toBe('high');
   });
-  test('rescue: rel=next followed by fetched empty page -> no conviction, L2 suppressed', () => {
+  test('rescue: rel=next followed by fetched empty page -> no contradiction, L2 suppressed', () => {
     const r = detectFull({
       toolResults: [
         ghResult('["a","b","c"]', NEXT_LINK, { url: 'https://api.github.com/user/starred?per_page=100' }),
@@ -99,7 +99,7 @@ describe('rescue-dominant + ONE contradiction exception', () => {
     });
     expect(r.structural_hits.A1_server_authority_pending).toBe(false);
   });
-  test('run-scope pairing: older rel=next with later terminal last page -> no conviction', () => {
+  test('run-scope pairing: older rel=next with later terminal last page -> no contradiction', () => {
     const r = detectFull({
       toolResults: [
         ghResult('["a"]', NEXT_LINK, { url: 'https://api.github.com/u?per_page=100' }),

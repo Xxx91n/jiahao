@@ -89,8 +89,8 @@ function profilePath() {
   return path.join(configDir(), '.jiahao-profile');
 }
 
-// channel-level flags for the Stop/SubagentStop conviction
-// lane. Presence of the off file makes the lane inert (kill switch,
+// channel-level flags for the Stop/SubagentStop transcript check.
+// Presence of the off file makes the check inert (kill switch,
 // survives post-enforce); presence of the enforce file is the registered
 // promotion marker that drops the shadow bit so records enter the
 // severity matrix.

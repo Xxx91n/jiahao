@@ -175,6 +175,8 @@ function stateEvent(seq, kind, identityDigest, prevHash, extra) {
   // not tamper-anchored. The conditional_signoff call site already supplies
   // both; this allowlist is the only thing that made them droppable (STD-1).
   if (extra && extra.expires_at !== undefined) ev.expires_at = extra.expires_at;
+  // capa_ref is the on-disk name for the capability reference; it stays
+  // because state files written by earlier versions carry that key.
   if (extra && extra.capa_ref !== undefined) ev.capa_ref = extra.capa_ref;
   if (extra && extra.record_seq !== undefined) ev.record_seq = extra.record_seq;
   if (extra && extra.before !== undefined) ev.before = JSON.parse(JSON.stringify(extra.before));

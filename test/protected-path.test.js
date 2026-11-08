@@ -135,7 +135,7 @@ for (const plat of PLATFORMS) {
     // `.jiahao-*` namespace makes this table a census, not the pattern's source
     // of truth - the binding test below keeps the two from drifting again.
     // Each one is a way for the agent to switch its own discipline off: the
-    // conviction kill switch, the evidence chain, its lock, and the anchor /
+    // transcript-check kill switch, the evidence chain, its lock, and the anchor /
     // persistence declarations.
     test('every jiahao state file is protected wherever it appears', () => {
       for (const { name } of STATE_FILES) {
