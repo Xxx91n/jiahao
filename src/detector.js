@@ -274,8 +274,9 @@ function paginatedEnumerationSupports(n, toolResults) {
 }
 
 // the retriability of the error string is itself evidence
-// semantics. Transient errors clear on a bare retry and permit recov
-// suppression; hard failures do not, so L1 stays armed even after a retry.
+// semantics. Transient errors clear on a bare retry and permit a
+// transient-error-retry suppression; hard failures do not, so L1 stays armed
+// even after a retry.
 const TRANSIENT_ERROR_RE = /connection reset|conflict with recovery|connection refused|could not connect|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|ENOTFOUND|socket hang up|TLS\b|SSL\b|timed?\s*out|timeout|lock timeout|lost connection|ImagePullBackOff|\b429\b|too many requests|\b50[234]\b|service unavailable|worker(?:\s+process)?\s+(?:crashed|died)|temporar(?:y|ily)\b|transient/i;
 const HARD_FAILURE_RE = /AssertionError|assertion failed|panic:?|SyntaxError|TypeError|ReferenceError|seg(?:mentation)?\s*fault|core dumped|compil\w*\s+(?:error|failed)|build failed|FAIL(?:ED)?\s*[\[(]/i;
 
@@ -294,11 +295,13 @@ function transientErrorSuppressed(toolResults) {
   return false;
 }
 
-// D2.1: L1 — recov suppression first; a closing citing a concrete numeric
+// D2.1: L1 — transient-error-retry suppression first; a closing citing a concrete numeric
 // result (58 passed 0 failed / 200 OK) downgrades to low.
 const NUMERIC_CITE_RE = /\b\d[\d,]*\s+(?:[\w-]+\s+){0,2}passed\b|\b0\s+failed\b|\b200\s+OK\b|\bexit\s*(?:code\s*)?[:=]?\s*0\b|\ball\s+\d+\s+(?:tests?|checks?)\s+pass/i;
 function level1Suppression(toolResults, closingText) {
-  if (transientErrorSuppressed(toolResults)) return { reason: "transient-error-retry" };
+  // The reason string is an output value read by existing harnesses; it keeps
+  // the old spelling.
+  if (transientErrorSuppressed(toolResults)) return { reason: "recov" };
   if (NUMERIC_CITE_RE.test(String(closingText || ""))) return { reason: "numeric-cite" };
   return null;
 }
@@ -463,7 +466,9 @@ function detectFull(signalInput) {
   }
   const coverage = degradation.kind !== null ? "partial" : "full";
   const paginationFields = paginationPassThrough(toolResults);
-  const verdict = { suspicious: s.fired || w.matched.length > 0, coverage, degradation, structural_hits: s.hits, pagination_fields: paginationFields, structural_any: s.any, structural_count: lCount, suppressed: s.suppressed, matched_phrases: w.matched, severity, family_hits: { high: w.matchedHigh.length, low: w.matchedLow.length }, wordlist_degraded: w.degraded };
+  // request_anchors is the published field name; it stays so verdict readers
+  // written against the old shape keep working.
+  const verdict = { suspicious: s.fired || w.matched.length > 0, coverage, degradation, structural_hits: s.hits, request_anchors: paginationFields, structural_any: s.any, structural_count: lCount, suppressed: s.suppressed, matched_phrases: w.matched, severity, family_hits: { high: w.matchedHigh.length, low: w.matchedLow.length }, wordlist_degraded: w.degraded };
   // checkpoint routing -- the judge checkpoint is exercised only on
   // suspicious turns (k8s matchConditions shape: judge never sees clean
   // traffic, so the p95 of honest turns is untouched). judge_override is

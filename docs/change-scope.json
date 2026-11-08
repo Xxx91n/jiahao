@@ -1,7 +1,7 @@
 {
  "schema_version": 1,
  "_doc": "change-scope.",
- "source_adr": "impact-tiered instrument change control",
+ "source_adr": "change-control rules for the product",
  "vocabulary": {
   "tokens": [
    "identity",

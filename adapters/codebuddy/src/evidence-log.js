@@ -1798,8 +1798,8 @@ function createRecord(gateId, gateType, status, detail, confidence, prevHash, ex
       // additive-optional transcript-check fields. `source` is the
       // append-only namespace marker ('pairer-instrument', a value written by
       // older versions and kept for compatibility); `shadow` excludes
-      // the record from the severity matrix; `pairer` carries the pairer
-      // output verbatim plus lane timing.
+      // the record from the severity matrix; `pairer` is the on-disk key for the
+      // claim-check output, kept verbatim plus timing.
       if (typeof d.source === 'string' && d.source.length > 0) record.detector.source = d.source;
       if (d.shadow === true || d.shadow === false) record.detector.shadow = d.shadow;
       if (d.pairer && typeof d.pairer === 'object') {

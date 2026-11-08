@@ -99,7 +99,7 @@ both fixable only by detector work in a separate round (not this one):
 Non-overfitting statement: no detector code was changed for this
 baseline. Numbers in `results/` are byte-frozen from the run above.
 
-Effectiveness of the calibration flywheel is measured against this
+Effectiveness of the calibration loop is measured against this
 baseline: rerun after each detector change; thresholds stay
 pre-registered.
 

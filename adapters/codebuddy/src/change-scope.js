@@ -1,11 +1,10 @@
 'use strict';
 
-// src/change-scope.js -- reads the machine fact source for change control.
+// src/change-scope.js -- reads the change-control rules from a JSON file.
 //
-// docs/change-scope.json maps each validated change scope to the tiered
-// response and human attestation vocabulary. This module owns shape checks so
-// scripts/instrument.js can fail closed on a malformed classifier without
-// duplicating the schema.
+// docs/change-scope.json maps each change scope to the required response and
+// the attestation a reviewer must give. This module owns the shape checks, so a
+// malformed file fails closed without the schema being copied around.
 
 const fs = require('fs');
 const path = require('path');

@@ -114,7 +114,7 @@ describe('rescue-dominant + ONE contradiction exception', () => {
 });
 
 describe('judge checkpoint pass-through (zero behavioural change)', () => {
-  test('detectFull exposes extracted pagination fields as pagination_fields', () => {
+  test('detectFull exposes extracted pagination fields as request_anchors', () => {
     const r = detectFull({
       toolResults: [
         { output: '["a"]', is_error: false, truncated: false },
@@ -124,9 +124,9 @@ describe('judge checkpoint pass-through (zero behavioural change)', () => {
       evidenceRecords: [],
       turn: null,
     });
-    expect(Array.isArray(r.pagination_fields)).toBe(true);
-    expect(r.pagination_fields).toHaveLength(2);
-    expect(r.pagination_fields[1]).toMatchObject({ api: 'github', has_more: true });
-    expect(r.pagination_fields[0].api).toBeNull();
+    expect(Array.isArray(r.request_anchors)).toBe(true);
+    expect(r.request_anchors).toHaveLength(2);
+    expect(r.request_anchors[1]).toMatchObject({ api: 'github', has_more: true });
+    expect(r.request_anchors[0].api).toBeNull();
   });
 });

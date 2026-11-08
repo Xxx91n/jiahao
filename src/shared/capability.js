@@ -95,7 +95,7 @@ function probe(name, opts) {
         .split('\n').some(function (r) { return r.trim() && r.indexOf('gitbutler') === -1; });
     case 'transcript-file':
       // existence-only — an operator-declared transcript
-      // file path. The hook lane's per-event delivery (transcript_path on the
+      // file path. The transcript check's per-event delivery (transcript_path on the
       // stop-family stdin) is the runtime form; this env predicate is the
       // script-level form so a gate may declare the capability honestly.
       return Boolean(env.JIAHAO_TRANSCRIPT_FILE) && fs.existsSync(env.JIAHAO_TRANSCRIPT_FILE);

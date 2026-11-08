@@ -1,6 +1,6 @@
 'use strict';
-// src/transcript-adapter.js — : the transcript check's channel
-// component. Adapts a host transcript file (Claude Code JSONL shape) into the
+// src/transcript-adapter.js — the transcript check's input reader.
+// Adapts a host transcript file (Claude Code JSONL shape) into the
 // claim check's input shape {task, transcript:{events, closing}}.
 //
 // This is NOT the adjudication instrument: it performs no pairing logic and is

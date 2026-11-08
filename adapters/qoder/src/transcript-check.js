@@ -1,5 +1,5 @@
 'use strict';
-// src/transcript-check.js — : the hook-side transcript check.
+// src/transcript-check.js — the hook-side transcript check.
 //
 // run(payload, deps) rides the Stop/SubagentStop hook: transcript_path ->
 // transcript adapter -> src/claim-check.js checkClaim -> append-only record in
@@ -71,7 +71,7 @@ function transcriptKey(sessionId, adapted) {
 }
 
 function detailOf(mode, r) {
-  const base = 'pairer-lane[' + mode + '] ' + r.state + (r.family ? ' ' + r.family : '');
+  const base = 'transcript-check[' + mode + '] ' + r.state + (r.family ? ' ' + r.family : '');
   const detail = base + ' — ' + String(r.reason || '').slice(0, 160);
   return detail.slice(0, 240);
 }

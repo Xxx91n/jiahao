@@ -22,7 +22,7 @@ const { kappaAdvisory, loadKappaBaseline } = require('../src/calibration');
 // #124: the claim gate reuses the detector's completion-claim vocabulary —
 // the same claim side the claim check parses — on this turn's own words. It comes
 // from src/success-claim.js: the vendored hook closure must stay free of
-// third-party runtime dependencies, and detector.js drags request-anchors
+// third-party runtime dependencies, and detector.js drags pagination-check
 // (http-link-header) in. The gate arbitrates with claimsCompletion (negation
 // scoped to its clause; the ambiguous words 通过/可用/works/passing only
 // count with a completion context), not the triage-grade hasSuccessClaim.

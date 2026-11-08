@@ -1,8 +1,8 @@
 'use strict';
 
-// src/version-pin.js -- P0
+// src/version-pin.js -- the version pin.
 //
-// Instrument identity is the immutable triple:
+// The pin is the immutable triple:
 //   { rulesVersion + promptHash, model checkpoint digest, inferenceConfigHash }
 // The pin lives in src/version-pin.json. Gate time resolves the
 // rules_alias to a content digest and compares it with the pin. The model axis
@@ -192,16 +192,16 @@ function stateEvent(seq, kind, identityDigest, prevHash, extra) {
 
 function verifyState(state) {
   if (!state || state.schema_version !== 1 || !Array.isArray(state.history) || state.history.length === 0) {
-    return { valid: false, reason: 'invalid instrument state shape' };
+    return { valid: false, reason: 'invalid version pin state shape' };
   }
   let expected = GENESIS;
   for (let i = 0; i < state.history.length; i++) {
     const ev = state.history[i];
     if (ev.seq !== i + 1 || ev.prev_hash !== expected) {
-      return { valid: false, reason: 'instrument state chain broken at seq ' + (i + 1) };
+      return { valid: false, reason: 'version pin state chain broken at seq ' + (i + 1) };
     }
     if (!ev.event_hash || ev.event_hash !== eventHash(ev)) {
-      return { valid: false, reason: 'instrument state event_hash mismatch at seq ' + (i + 1) };
+      return { valid: false, reason: 'version pin state event_hash mismatch at seq ' + (i + 1) };
     }
     expected = ev.event_hash;
   }
@@ -518,7 +518,7 @@ function transition(state, event, opts) {
     return next;
   }
 
-  throw new Error('unknown instrument state event: ' + event.type);
+  throw new Error('unknown version pin state event: ' + event.type);
 }
 
 // ---- : drift exposure look-back (projection, fail-closed) ----
@@ -538,7 +538,7 @@ function openExposures(history) {
 
 // Prior-interval sign-offs (identity signoff, conditional_signoff and
 // record_signoff kinds) in the same instrument history (history is always one
-// instrument identity's log) become 'affected/under-review' while a drift
+// version pin's log) become 'affected/under-review' while a drift
 // exposure is open. Fail-closed: an open exposure marks them; they are never
 // valid by default until an oot_impact_assessment / reverse_traceability
 // disposition lands (ISO/IEC 17025:2017 7.10 nonconforming work).
