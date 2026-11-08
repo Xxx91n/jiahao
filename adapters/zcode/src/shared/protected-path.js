@@ -12,7 +12,7 @@
 //     regardless of position in the argv (grill-t30 audit B-4). The state
 //     files are one prefix, not an enumerated list (#88 item 4); the matching
 //     detail and the missed names are in the note below the list, and the
-//     census lives in STATE_SURFACE in test/protected-path.test.js;
+//     census lives in STATE_FILES in test/protected-path.test.js;
 //   - absolute containment under the plugin root: everything the bundle keeps
 //     in an apparatus directory, including names that are ordinary elsewhere
 //     (.mcp.json, hooks/hooks.json, .claude-plugin/plugin.json) and therefore

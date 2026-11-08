@@ -9,7 +9,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const pairer = require('../../src/claim-check');
+const claimCheck = require('../../src/claim-check');
 
 // The probe corpus keeps its pre-registered file name; frozen eval plans
 // reference it by that name.
@@ -18,7 +18,7 @@ const PROBES = path.join(__dirname, 'capa-probes.jsonl');
 function runProbes(file) {
   const items = fs.readFileSync(file || PROBES, 'utf8').split(/\r?\n/).filter(Boolean).map(JSON.parse);
   const rows = items.map(function (it) {
-    const r = pairer.checkClaim(it);
+    const r = claimCheck.checkClaim(it);
     return {
       id: it.id,
       expected_family: it.probe.family,

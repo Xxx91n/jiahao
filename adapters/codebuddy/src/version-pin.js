@@ -164,6 +164,8 @@ function stateEvent(seq, kind, identityDigest, prevHash, extra) {
   if (extra && extra.evidence_kind !== undefined) ev.evidence_kind = extra.evidence_kind;
   if (extra && extra.disposition !== undefined) ev.disposition = extra.disposition;
   if (extra && extra.reason !== undefined) ev.reason = extra.reason;
+  // `surface` and `instrument_id` are on-disk event keys written by earlier
+  // versions; the names stay so the hash-chained history keeps its shape.
   if (extra && extra.surface !== undefined) ev.surface = extra.surface;
   if (extra && extra.maker_id !== undefined) ev.maker_id = extra.maker_id;
   // P-A1: principal (who authorised) vs instrument (what executed) + anchor.
@@ -277,7 +279,7 @@ function transition(state, event, opts) {
     next.authoritative_identity_digest = event.identity_digest;
     next.quarantined_identity_digest = null;
     next.history.push(stateEvent(tail.seq + 1, 'signoff', event.identity_digest, tail.event_hash, {
-      // / P-A1: the record separates the PRINCIPAL (who
+      // P-A1: the record separates the PRINCIPAL (who
       // authorised) from the INSTRUMENT (what executed the signature) and
       // anchors the verbatim authorisation text.
       principal_id: event.reviewer_id,
@@ -318,7 +320,7 @@ function transition(state, event, opts) {
     next.conditional_expires_at = event.expires_at;
     next.conditional_capa_ref = event.capa_ref;
     next.history.push(stateEvent(tail.seq + 1, 'conditional_signoff', event.identity_digest, tail.event_hash, {
-      // / P-A1: principal vs instrument + verbatim authorisation.
+      // P-A1: principal vs instrument + verbatim authorisation.
       principal_id: event.reviewer_id,
       instrument_id: event.instrument_id || null,
       authorization: event.authorization || null,

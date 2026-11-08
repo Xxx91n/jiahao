@@ -175,7 +175,7 @@ process.stdin.on('end', () => {
   // We never delete the log (D4); the chain has to survive SubagentStop
   // and any repeat fire of Stop.
   const rawChain = evidenceLog.readAll();
-  // shadow transcript-check records are instrument telemetry, not agent
+  // shadow transcript-check records are hook telemetry, not agent
   // verification evidence — a chain holding only shadow records still means
   // "no evidence" for the Case A check below. Enforce-mode records
   // (shadow:false) DO enter the matrix and stay visible here — except the

@@ -4,7 +4,7 @@
 // createEvidenceLog() throw without touching the real filesystem is the module
 // loader: hand the gate's require of '../src/evidence-log' a view whose
 // createEvidenceLog always throws. Every other require of the module (the
-// pairer lane's './evidence-log', sentinel's lazy one) keeps the real factory.
+// transcript check's './evidence-log', sentinel's lazy one) keeps the real factory.
 const Module = require('module');
 const origLoad = Module._load;
 
