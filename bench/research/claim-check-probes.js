@@ -11,6 +11,8 @@ const fs = require('fs');
 const path = require('path');
 const pairer = require('../../src/claim-check');
 
+// The probe corpus keeps its pre-registered file name; frozen eval plans
+// reference it by that name.
 const PROBES = path.join(__dirname, 'capa-probes.jsonl');
 
 function runProbes(file) {

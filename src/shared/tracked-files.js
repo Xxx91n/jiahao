@@ -1,6 +1,6 @@
 'use strict';
-// src/shared/tracked-files.js - (grill-t36 D-006): the
-// tracked-files snapshot, shared by the run-gates wrapper (D-4) and, per
+// src/shared/tracked-files.js - the tracked-files snapshot, shared by the
+// run-gates wrapper (D-4) and, per
 // D-1, the `git ls-files` (index) enumeration base. The M1 static scan
 // (trackedTextFiles in scripts/shared/tracked-text.js) uses index UNION tree;
 // this M2 runtime snapshot uses index only because it runs inside a gate

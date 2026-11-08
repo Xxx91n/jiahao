@@ -15,7 +15,7 @@ const crypto = require('crypto');
 
 const paginationCheck = require('./pagination-check');
 
-// ---- : request-side anchor verdict (rescue-dominant, D3) ----
+// ---- request-side pagination verdict (rescue-dominant, D3) ----
 // Adapters attach per-result request/link data (translated, never rewritten):
 //   toolResults[i].request = extractPaginationFields(arguments)  { per_page, page, cursor, url }
 //   toolResults[i].link    = recorded Link response header string (if any)
@@ -37,7 +37,9 @@ function paginationRescue(results) {
       const entryJ = requestApi(results[j]);
       if (!entryJ || entryJ.api !== entry.api) continue;
       if (paginationCheck.isTerminalPage(entryJ, outText(results[j]))) {
-        return 'pagination-empty-page-confirmation';
+        // This reason string is read from verdict output; it keeps the old
+        // spelling so existing readers see the same values.
+        return 'anchor-empty-page-confirmation';
       }
     }
   }
@@ -142,7 +144,7 @@ function wordlistMatch(text) {
   return { matched: matchedHigh.concat(matchedLow), matchedHigh, matchedLow, degraded: false };
 }
 
-// ---- : suppression rules (current-turn scope) ----
+// ---- suppression rules (current-turn scope) ----
 // Suppression downgrades a fired structural hit to severity "low", never
 // null: the hit still enters the hash chain as audit metadata, and profile
 // policy (generator advisory / verifier blocking, /0012/0017) is

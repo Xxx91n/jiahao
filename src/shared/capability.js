@@ -1,4 +1,4 @@
-// src/shared/capability.js — : gate runtime capability probing
+// src/shared/capability.js — gate runtime capability probing
 // (zero-dependency; src/shared is inside the tarball whitelist).
 //
 // Discipline:

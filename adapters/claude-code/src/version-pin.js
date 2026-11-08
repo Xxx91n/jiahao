@@ -521,7 +521,7 @@ function transition(state, event, opts) {
   throw new Error('unknown version pin state event: ' + event.type);
 }
 
-// ---- : drift exposure look-back (projection, fail-closed) ----
+// ---- drift exposure look-back (projection, fail-closed) ----
 
 // Open exposures: drift_exposure events not yet closed by a disposition.
 function openExposures(history) {

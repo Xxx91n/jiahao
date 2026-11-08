@@ -1,4 +1,4 @@
-// src/sentinel.js — : per-hook timeout sentinel + reconciliation.
+// src/sentinel.js — per-hook timeout sentinel + reconciliation.
 // ownership via file-lock arbitration (D1), reconcile hardening (D2),
 // SessionEnd sweep thin wrapper lives in hooks/jiahao-sweep.js (D3).
 //

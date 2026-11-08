@@ -87,7 +87,7 @@ describe('rescue-dominant + ONE contradiction exception', () => {
     });
     expect(r.structural_hits.A1_server_authority_pending).toBe(false);
     expect(r.suppressed.L2_completion_vs_evidence && r.suppressed.L2_completion_vs_evidence.reason)
-      .toBe('pagination-empty-page-confirmation');
+      .toBe('anchor-empty-page-confirmation');
     expect(r.severity).not.toBe('high');
   });
   test('unknown API never convicts even with rel=next and same closing', () => {

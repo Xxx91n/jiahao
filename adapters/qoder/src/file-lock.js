@@ -1,4 +1,4 @@
-// src/file-lock.js — : cross-platform sync file lock.
+// src/file-lock.js — cross-platform sync file lock.
 // proper-lockfile (the wheel evaluated in the ADR) is async-only; jiahao hooks
 // are a strict-sync contract (host stdin timeouts). We keep the SAME atomic
 // primitive proper-lockfile itself uses — mkdir(2) — behind a sync facade,
