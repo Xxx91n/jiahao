@@ -21,7 +21,7 @@ tree is the commit `dafb2ac6` above, not `--check`.
 
 ## Verdict per variant
 
-| Variant | Blocking level | Basis |
+| Variant | Tier | Basis |
 |---|---|---|
 | Qoder CN Desktop 0.4.11 | **A** | #109: a `Stop` hook blocked and continued a real turn twice, through two channels |
 | Qoder international Desktop 0.4.11 | **A** | this record: a `Stop` hook blocked and continued a real turn through both channels, and 3 consecutive blocks were honored before the probe's own cap |

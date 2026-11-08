@@ -22,7 +22,7 @@ establishes the host's turn-end channel - the thing spec #74 D2 admits a host on
 
 ## Verdict per variant
 
-| Variant | Blocking level | Basis |
+| Variant | Tier | Basis |
 |---|---|---|
 | WorkBuddy AI 5.9.4 (international) | **A** (unchanged) | #110's record; not re-run here |
 | WorkBuddy 5.9.3 (domestic) | **A** | this record: a `Stop` hook blocked a real turn-end claim, the host continued the turn with the reason, and the re-entry carried `stop_hook_active: true` |

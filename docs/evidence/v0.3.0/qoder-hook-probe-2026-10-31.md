@@ -15,7 +15,7 @@ ties the artifacts to a tree is the commit they land in.)
 
 ## Verdict per variant
 
-| Variant | Blocking level | Basis |
+| Variant | Tier | Basis |
 |---|---|---|
 | Qoder CN Desktop 0.4.11 | **A** | a `Stop` hook blocked and continued a real turn twice, through two channels (this record) |
 | Qoder international Desktop 0.4.11 | **A, by its own probe** | this record left it at C because no turn was watched blocking there; #113 probed that build separately on 2026-11-01 and watched the same two channels block and continue - see [qoder-intl-hook-probe-2026-11-01.md](qoder-intl-hook-probe-2026-11-01.md). That later record is the evidence; nothing below was borrowed from this one. |

@@ -26,7 +26,7 @@ WorkBuddy turn.
 
 ## Verdict per variant
 
-| Variant | Blocking level | Basis |
+| Variant | Tier | Basis |
 |---|---|---|
 | WorkBuddy AI 5.9.4 (international) | **A** | a `Stop` hook blocked a real turn-end claim, the host continued the turn with the reason, and the re-entry carried `stop_hook_active: true` (this record) |
 | WorkBuddy 5.9.3 (domestic) | **C, unchanged** | same agent CLI build and the same hook surface, but no turn was ever watched blocking there, so #110's own rule keeps it at C |
@@ -70,8 +70,8 @@ in reports `WORKBUDDY_APP_NAME=WorkBuddy AI`, `WORKBUDDY_APP_VERSION=5.9.4`,
 `CODEBUDDY_HOST=workbuddy-desktop`.
 
 Both builds ship the **same** agent CLI build, so the hook schema is shared. The
-products are still distinct: the CLI alone cannot tell them apart (a
-settings file hook receives `CODEBUDDY_*` and `WORKBUDDY_*` variables and no
+products are still distinct: the CLI alone cannot tell them apart (a hook
+registered in the settings file receives `CODEBUDDY_*` and `WORKBUDDY_*` variables and no
 plugin root), which is why the shipped hook map passes the platform name
 `workbuddy` as argv.
 
