@@ -218,7 +218,9 @@ test('the glossary is the plain-language standard (#157)', () => {
   expect(entries.length).toBeGreaterThan(0);
 
   for (const heading of entries) {
-    const start = glossary.indexOf('### ' + heading);
+    // Match the heading line exactly: a prefix search would read "### 证据"
+    // as "### 证据评审" and never check the shorter entry.
+    const start = glossary.indexOf('### ' + heading + '\n');
     const next = glossary.indexOf('\n### ', start + 1);
     const body = glossary.slice(start, next === -1 ? undefined : next);
     expect({ entry: heading, hasRecommended: /\*\*推荐怎么说\*\*/.test(body) })
