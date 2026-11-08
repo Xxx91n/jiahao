@@ -141,11 +141,11 @@ test('a mid-task correction does not end the task (#134)', () => {
   const ruleAt = lines.findIndex((line) => line.startsWith('- **R6 (Correction Mid-Task)'));
   expect(ruleAt).toBeGreaterThan(0);
 
-  // The gsr header is the structural latch the generator validates; it has to
+  // The rule header is the structural latch the generator validates; it has to
   // sit above the bullet on the nearest non-blank line (hooks/jiahao-profile.js).
   let headerAt = ruleAt - 1;
   while (headerAt >= 0 && lines[headerAt].trim() === '') headerAt--;
-  expect(lines[headerAt]).toBe('<!-- gsr:9 | signal-domain: task-continuation | status: active -->');
+  expect(lines[headerAt]).toBe('<!-- rule:9 | signal-domain: task-continuation | status: active -->');
 
   const rule = lines[ruleAt];
   // The correction is a change of plan, not the arrival of the goal.

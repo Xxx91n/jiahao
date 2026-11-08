@@ -114,10 +114,10 @@ test('every-turn reminder carries the plain-language and incoming-material requi
 });
 
 // #71 item 9: a comment is not lazy metadata. splitByProfile kept the retired
-// gsr block, so SessionStart printed it straight into the host's context. The
-// retired block is gone; the active headers stay because the generator
-// validator reads them.
-test('generator SessionStart injection carries no retired gsr comments (#71 item 9)', () => {
+// rule header block, so SessionStart printed it straight into the host's
+// context. The retired block is gone; the active headers stay because the
+// generator validator reads them.
+test('generator SessionStart injection carries no retired rule headers (#71 item 9)', () => {
   const dir = freshDir('jiahao-hooks-test-');
   fs.writeFileSync(path.join(dir, '.jiahao-profile'), 'generator', 'utf8');
   fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
@@ -129,7 +129,7 @@ test('generator SessionStart injection carries no retired gsr comments (#71 item
   expect(res.stdout).not.toContain('superseded-by');
   // Pin the three retired ids themselves: a future edit that changes the words
   // around a retired header must not make the injection visible again.
-  for (const retired of ['gsr:1 ', 'gsr:2 ', 'gsr:3 ']) {
+  for (const retired of ['rule:1 ', 'rule:2 ', 'rule:3 ']) {
     expect(res.stdout).not.toContain(retired);
   }
 });

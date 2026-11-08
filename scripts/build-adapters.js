@@ -8,7 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { splitByProfile, validateGsrHeaders } = require('../hooks/jiahao-profile');
+const { splitByProfile, validateRuleHeaders } = require('../hooks/jiahao-profile');
 const { listTrackedPaths } = require('../src/shared/tracked-surface');
 const copilotDialect = require('./hosts/copilot');
 const codexDialect = require('./hosts/codex');
@@ -765,11 +765,11 @@ function buildAdapters() {
     both: skill.replace(/^---[\s\S]*?---\n/, ''),
   });
 
-  // gsr rule headers are the structural latch for the generator
+  // rule headers are the structural latch for the generator
   // profile; fail the build (and the --check golden layer) on malformed rules.
-  const gsrErrors = validateGsrHeaders(profiles.generator);
-  if (gsrErrors.length > 0) {
-    throw new Error('gsr header validation failed:' + String.fromCharCode(10) + gsrErrors.map(e => '  - ' + e).join(String.fromCharCode(10)));
+  const ruleErrors = validateRuleHeaders(profiles.generator);
+  if (ruleErrors.length > 0) {
+    throw new Error('rule header validation failed:' + String.fromCharCode(10) + ruleErrors.map(e => '  - ' + e).join(String.fromCharCode(10)));
   }
 
   const shapeProblems = hostShapeProblems(HOSTS);
