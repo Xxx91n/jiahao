@@ -1,6 +1,6 @@
 'use strict';
 // test/capa-pairer.test.js - the claim-evidence pairing families' regression
-// seams added by the #108 audit (CodeRabbit round 2): a negated exit closing
+// checks added by the #108 audit (CodeRabbit round 2): a negated exit closing
 // is unparseable (not a claimed exit 0), and a claimed marker matches
 // evidence only as a complete token (TOK-4 inside TOK-42 is a different
 // token). Pure module - pairItem is called directly, no subprocess.

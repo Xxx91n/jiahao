@@ -101,7 +101,7 @@ const NETWORK_CALL = /(?:\bfetch\s*\(|XMLHttpRequest|https?\.(?:request|get)\s*\
 // Lifecycle scripts would turn `npm install` into "download and execute".
 const FORBIDDEN_LIFECYCLE = ['preinstall', 'install', 'postinstall', 'prepare', 'prepack', 'postpack'];
 // Plugin hook commands must resolve inside the bundle. The spelling of each
-// command field is the host row's dialect (scripts/hosts/*.js), not a second
+// command field is the host-config module (scripts/hosts/*.js), not a second
 // copy here: one pattern per field, and the capture names the path inside the
 // bundle so "the script it runs" can be checked to exist as well.
 
@@ -454,7 +454,7 @@ step('egress', 'code that runs after install makes no network call', () => {
   }
 
   for (const host of HOSTS) {
-    // A host with no hook map is not a plugin; skipping a C-tier (rules-only)
+    // A host with no hook map is not a plugin; skipping a host at blocking level C (rules-only)
     // row is deliberate, skipping one that declares events would let
     // `--only egress` report green over a bundle that has no commands.
     if (Object.keys(host.hooks || {}).length === 0) continue;

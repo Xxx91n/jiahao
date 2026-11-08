@@ -41,7 +41,7 @@ function materializeBundle(generated, generatedPrefix) {
   return dir;
 }
 
-// A rules-only exit must not register a hook anywhere: no file under hooks/,
+// A rules-only install form must not register a hook anywhere: no file under hooks/,
 // and no emitted JSON whose top level carries a hooks key. Paths only - prose
 // that mentions hooks is not a registration, and a parse failure is not a
 // registration either.

@@ -155,7 +155,7 @@ logging wrapper that runs the real gate. Evidence:
   fires: `docs/evidence/v0.3.0/zcode-stop-fires.jsonl`. The evidence layout
   is in `docs/agents/evidence-review.md`.
 
-Tested and did not work as a channel (kept with the receipts):
+Tested and did not work as a channel (kept as evidence):
 
 - Exit 2 as the block channel: exit 2 also blocked, but with the host's
   generic "Hook blocked execution" and no reason; the gate keeps exit 0 + the

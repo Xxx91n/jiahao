@@ -39,9 +39,9 @@ test('tarball carries the rules directory and every plugin bundle, and no privat
   expect(auditPackFiles(packed)).toEqual([]);
 });
 
-// Pin the contract itself: if REQUIRED_PACK_FILES lost an exit, the assertion
+// Pin the contract itself: if REQUIRED_PACK_FILES lost an install form, the assertion
 // above would still pass, because both sides would be equally wrong.
-test('the pack contract names the rules file, every plugin manifest and hook map, the Qoder rules exit, and both marketplaces', () => {
+test('the pack contract names the rules file, every plugin manifest and hook map, the Qoder rules install form, and both marketplaces', () => {
   for (const rel of [
     'skills/jiahao/SKILL.md',
     'adapters/codebuddy/.claude-plugin/plugin.json',
@@ -89,7 +89,7 @@ test('the pack contract names the rules file, every plugin manifest and hook map
   expect(FORBIDDEN_PACK_PREFIXES).toEqual(expect.arrayContaining(['private/', 'bench/', 'docs/research/']));
 });
 
-test('the Qoder exit ships its plugin bundle, the rule file, and nothing unplanned', () => {
+test('the Qoder install form ships its plugin bundle, the rule file, and nothing unplanned', () => {
   // Two directions, because adapters/ is whitelisted wholesale. The required
   // list is written here rather than read from the generator: a file dropped
   // from the emit set would otherwise shrink both sides of an equality and pass.

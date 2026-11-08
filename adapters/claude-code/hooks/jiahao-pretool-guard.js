@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// jiahao-pretool-guard.js - PreToolUse enforcement-surface deny wiring
+// jiahao-pretool-guard.js - PreToolUse protected-path deny wiring
 // (CodeBuddy/Claude-Code-compatible plugin event; grill-t30 D-002).
 //
 // Semantic: the verifier protects its own apparatus. A tool call that would
@@ -80,7 +80,7 @@ process.stdin.on('end', () => {
         hookEventName: 'PreToolUse',
         permissionDecision: 'deny',
         permissionDecisionReason:
-          'JIAHAO VERIFIER: tool call targets the verifier enforcement surface ' +
+          'JIAHAO VERIFIER: tool call targets the verifier protected paths ' +
           '(injected rules / hook map / plugin manifest / evidence chain). ' +
           'Recorded as a bypass attempt in .jiahao-pretool.jsonl.',
       },

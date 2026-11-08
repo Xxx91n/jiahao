@@ -1,5 +1,5 @@
 'use strict';
-// scripts/hosts/workbuddy.js - the one file where WorkBuddy's config dialect lives.
+// scripts/hosts/workbuddy.js - the one file where WorkBuddy's host config shape lives.
 //
 // WorkBuddy is not a CodeBuddy alias (#110). It is its own product - two builds
 // with their own names, endpoints, and config roots - that ships the same agent
@@ -15,14 +15,14 @@
 // 5.9.4 install (2026-10-31, #110):
 //
 //   - The plugin loader scans `.codebuddy-plugin`, `.workbuddy-plugin`, and
-//     `.claude-plugin`; this dialect takes the product-native one.
+//     `.claude-plugin`; this bundle takes the product-native one.
 //   - Hook commands expand both `${CLAUDE_PLUGIN_ROOT}` and
 //     `${CODEBUDDY_PLUGIN_ROOT}`; plugin hooks receive both variables.
-//   - Settings-tier hooks live under the `hooks` key of
+//   - Hooks registered in the settings file live under the `hooks` key of
 //     `<configDir>/settings.json`; the desktop spawns the CLI with
 //     `CODEBUDDY_DISABLE_EXTENDED_PLUGIN_HOOKS=1`, which only rejects non-command
 //     hook types (`prompt`/`agent`/`http`) - `command` hooks still load.
-//   - The platform name rides the command. A WorkBuddy settings-tier hook gets no
+//   - The platform name rides the command. A WorkBuddy hook registered in the settings file gets no
 //     plugin root and both `CODEBUDDY_*` and `WORKBUDDY_*` variables, so the
 //     environment alone cannot tell the two products apart; the template can.
 //

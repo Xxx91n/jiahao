@@ -7,7 +7,7 @@
 // shapes Copilot actually consumes: the sessionStart injection envelope and the
 // agentStop block decision.
 //
-// Copilot's dialect: `additionalContext` on stdout for sessionStart, and
+// Copilot's config shape: `additionalContext` on stdout for sessionStart, and
 // `{decision:"block", reason}` for agentStop - the decision field blocks, but
 // only on a zero exit: the live probe (#80) showed exit 2 is logged as a failed
 // hook and the turn ends anyway.

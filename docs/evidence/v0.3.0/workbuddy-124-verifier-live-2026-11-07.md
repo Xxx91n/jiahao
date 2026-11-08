@@ -10,7 +10,7 @@ verifier 档下能正常结束;有完工声明但无证据的回合仍被阻断�
 - WorkBuddy 5.9.3 国内版(桌面 37.10.3-43,agent CLI 2.165.0,
   `WORKBUDDY_APP_VERSION=5.9.3`,`CODEBUDDY_HOST=workbuddy-desktop`),
   与 #118 探针同一构建通道。
-- 安装方式:settings-tier(与 #110 探针同面)。`adapters/workbuddy`
+- 安装方式:settings 文件里的钩子（与 #110 探针同一注册位置）。`adapters/workbuddy`
   bundle 整目录复制到 `C:\Workbuddy.ai\jiahao`,事件表并入
   `~/.workbuddy/settings.json` 的 `hooks` 键(原文件先备份,验证后恢复),
   每条命令尾部加 `workbuddy` 平台参数,`${CODEBUDDY_PLUGIN_ROOT}` 替换为

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// scripts/install.js — Tier 1 installer ( §2)
+// scripts/install.js — guided installer (spec §2)
 // Writes ONLY .jiahao-profile. Does not copy SKILL.md/adapters
 // (build-adapters.js is the sole distributor — silent-drift guardrail).
 // also plants private/phrases.json into ~/.jiahao/private/ so the
@@ -36,7 +36,7 @@ function usage() {
     '       jiahao resolve --verdict ' + VERDICTS.join('|') + ' --reason <text> --reviewer <id>',
     '',
     'Writes ONLY ' + profilePath(),
-    'Tier 0 manual: echo "verifier" > ' + profilePath(),
+    'Manual: echo "verifier" > ' + profilePath(),
   ].join('\n');
 }
 
@@ -89,8 +89,8 @@ async function main() {
         name: 'profile',
         message: 'Which jiahao profile for this agent?',
         choices: [
-          { title: 'verifier (default)', value: 'verifier', description: 'second-party audit agent — 7 iron laws, blocking' },
-          { title: 'generator', value: 'generator', description: 'primary agent — 3 surface-signal rules, advisory' },
+          { title: 'verifier (default)', value: 'verifier', description: 'second-party audit agent — 7 verification rules, blocking' },
+          { title: 'generator', value: 'generator', description: 'primary agent — the five-step way of working, advisory' },
         ],
         initial: 0,
       });

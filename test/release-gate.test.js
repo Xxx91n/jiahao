@@ -53,7 +53,7 @@ describe('pack contract', () => {
     expect(auditPackFiles(complete)).toEqual([]);
   });
 
-  test('a missing exit is named, not silently ignored', () => {
+  test('a missing install form is named, not silently ignored', () => {
     const problems = auditPackFiles(complete.filter((p) => p !== 'adapters/claude-code/hooks/hooks.json'));
     expect(problems).toEqual([{ kind: 'missing', rel: 'adapters/claude-code/hooks/hooks.json' }]);
   });

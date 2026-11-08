@@ -107,7 +107,7 @@ describe('plugin manifest', () => {
   test('leaves the hook map to the host\'s own discovery', () => {
     // The host loads its bundled plugin's hooks/hooks.json without a manifest
     // key. Naming it here would register the same map a second time, and any
-    // other JSON under this exit carrying a `hooks` key is an unplanned
+    // other JSON under this install form carrying a `hooks` key is an unplanned
     // registration.
     expect(manifest.hooks).toBeUndefined();
     const registrations = hookRegistrationPaths(generated, GENERATED_PREFIX)
@@ -120,7 +120,7 @@ describe('plugin manifest', () => {
       .toEqual(['description', 'displayName', 'license', 'name', 'repository', 'version']);
     expect(manifest.name).toBe('jiahao');
     // `defaultEnabled` is a Claude-shaped key; Qoder's own manifest has no such
-    // field, so the dialect leaves it out rather than decorating.
+    // field, so the host-config module leaves it out rather than decorating.
     expect(manifest.defaultEnabled).toBeUndefined();
   });
 });

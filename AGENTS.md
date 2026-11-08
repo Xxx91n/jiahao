@@ -12,9 +12,9 @@
   - `src/SKILL.md` 或 `src/` 里的文件；
   - `hooks/` 或 `jiahao-mcp/`；
   - 生成器的宿主表（`scripts/build-adapters.js` 里的 `HOSTS`）；
-  - 宿主方言文件（`scripts/hosts/`）；
+  - 宿主配置写法文件（`scripts/hosts/`）；
   - `package.json` 里会被抄进产物的字段（`version`、`license`、`repository`）。
-- 改完用 `node scripts/build-adapters.js --check` 看产物跟没跟上，用 `node scripts/check-drift.js` 查 profile 和退役出口有没有漂移。
+- 改完用 `node scripts/build-adapters.js --check` 看产物跟没跟上，用 `node scripts/check-drift.js` 查 profile 和退役安装形态有没有漂移。
 - 提交前跑两个检查：
   - `npm run check:whitespace`：查行尾空格和文件末尾空行，没进 git 的文件也算。不能只靠 `git diff --check`，它只看 diff 里出现的行。
   - `npm run check:links`：包里 Markdown 的相对链接必须落在包内。
@@ -29,14 +29,14 @@
 
 生成器会覆盖整个目录，不只是抄源码。下面这些看着像手写文档，其实也是生成的；手改会被 `node scripts/build-adapters.js --check` 报出来，下次跑不带 `--check` 的生成器时会被覆盖：
 
-- 各出口的 `README.md`（`adapters/*/README.md`，文案来自 `scripts/build-adapters.js` 里每个宿主的 `*Readme()`）；
+- 各安装形态的 `README.md`（`adapters/*/README.md`，文案来自 `scripts/build-adapters.js` 里每个宿主的 `*Readme()`）；
 - 插件清单和钩子表，按宿主分：
   - 清单：`adapters/claude-code/.claude-plugin/plugin.json`、`adapters/codebuddy/.claude-plugin/plugin.json`、`adapters/codex/.codex-plugin/plugin.json`、`adapters/copilot/plugin.json`、`adapters/antigravity/plugin.json`、`adapters/qoder/.qoder-plugin/plugin.json`、`adapters/workbuddy/.workbuddy-plugin/plugin.json`、`adapters/zcode/.zcode-plugin/plugin.json`；
   - 钩子表：`adapters/*/hooks/hooks.json`，Antigravity 是 `adapters/antigravity/hooks.json`；
   - 服务注册：`adapters/codebuddy/.mcp.json`；
   - 两份插件市场清单：`.claude-plugin/marketplace.json`、`.agents/plugins/marketplace.json`。
 - 规则和技能副本：`adapters/codebuddy/rules/*.md`、`adapters/qoder/rules/*.md`、`adapters/*/src/**`、`skills/jiahao/SKILL.md`；
-- 出口里自带的钩子和服务端：`adapters/*/hooks/*.js`、`adapters/codebuddy/jiahao-mcp/**`。
+- 各安装形态里自带的钩子和服务端：`adapters/*/hooks/*.js`、`adapters/codebuddy/jiahao-mcp/**`。
 
 要改这些，就改生成器的输入：`src/`、`hooks/`、宿主表、`*Readme()` 模板、`scripts/hosts/*.js`，然后跑 `node scripts/build-adapters.js`。改得对不对，用 `node scripts/build-adapters.js --check` 看。
 

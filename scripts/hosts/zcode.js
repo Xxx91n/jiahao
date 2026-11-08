@@ -1,5 +1,5 @@
 'use strict';
-// scripts/hosts/zcode.js - the one file where ZCode's config dialect lives.
+// scripts/hosts/zcode.js - the one file where ZCode's host config shape lives.
 //
 // ZCode reads a plugin manifest at `.zcode-plugin/plugin.json` (the
 // compatibility names `.claude-plugin/` and `.codex-plugin/` are also

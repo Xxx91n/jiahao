@@ -1,5 +1,5 @@
 'use strict';
-// scripts/hosts/qoder.js - the one file where Qoder Desktop's config dialect
+// scripts/hosts/qoder.js - the one file where Qoder Desktop's host config shape
 // lives.
 //
 // The shape below is copied from the host's own bundled plugin: both Desktop
@@ -62,7 +62,7 @@ function emitHookMap(host) {
 // Qoder's own manifest shape comes from the host's bundled plugin: name,
 // displayName, description, version. `displayName` is a key this host reads and
 // Claude's does not; `defaultEnabled` is not a Qoder field, so it stays absent
-// (the dialect's `defaultEnabledFlag: false` is what keeps it out).
+// (the `defaultEnabledFlag: false` in this module is what keeps it out).
 // `license` and `repository` are package metadata every bundle carries, and a
 // key the host ignores is not a claim about the host.
 function emitManifest(ctx) {

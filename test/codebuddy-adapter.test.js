@@ -91,7 +91,7 @@ describe('hook behavior (bundle copies, live spawn)', () => {
     expect(out.decision).toBe('block');
   });
 
-  test('PreToolUse denies an enforcement-surface edit under verifier profile (envelope, exit 0)', () => {
+  test('PreToolUse denies a protected-path edit under verifier profile (envelope, exit 0)', () => {
     const dir = mkConfigDir({ '.jiahao-profile': 'verifier' });
     const res = runBundleHook('jiahao-pretool-guard.js', {
       configDir: dir, pluginRoot: bundleDir,
@@ -149,8 +149,8 @@ describe('hook behavior (bundle copies, live spawn)', () => {
   });
 
   // #75: `.mcp.json`, `hooks/hooks.json` and `.claude-plugin/plugin.json` are
-  // ordinary filenames in any user project. They belong to the enforcement
-  // surface only INSIDE the plugin root, so a bare or elsewhere-anchored
+  // ordinary filenames in any user project. They belong to the protected list
+  // only INSIDE the plugin root, so a bare or elsewhere-anchored
   // occurrence must pass silently and must not be counted as a bypass attempt.
   test('PreToolUse leaves a user project\'s own same-named files alone (#75)', () => {
     const dir = mkConfigDir({ '.jiahao-profile': 'verifier' });

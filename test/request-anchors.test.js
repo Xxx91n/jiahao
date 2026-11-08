@@ -113,7 +113,7 @@ describe('rescue-dominant + ONE conviction exception', () => {
   });
 });
 
-describe('judge-seam pass-through (zero behavioural change)', () => {
+describe('judge checkpoint pass-through (zero behavioural change)', () => {
   test('detectFull exposes extracted quads as request_anchors', () => {
     const r = detectFull({
       toolResults: [

@@ -4,7 +4,7 @@
 // moves detection authority from wordlist to L1-L3 structural
 // signals (agent-polygraph shape). Wordlist stays as low-confidence triage.
 // detector v2 adds suppression rules (downgrade fired hits to
-// "low", never null) plus a reserved judge seam (interface only, no runtime).
+// "low", never null) plus a reserved judge checkpoint (interface only, no runtime).
 // claimed-total enumeration support may span paginated tool
 // results (multi-page list accumulation, distinct id-lines union == claim,
 // plus pagination-exhaustion pairing: final page must come back short).
@@ -61,7 +61,7 @@ function anchorConviction(results, closingText) {
 }
 
 // D4: extracted quads as structured pass-through (zero behavioural change),
-// data accumulation for the judge seam / holdout gate.
+// data accumulation for the judge checkpoint / holdout gate.
 function anchorPassThrough(results) {
   return results.map(r => ({
     quad: r && r.request ? r.request : null,
@@ -184,7 +184,7 @@ function isPassish(r) {
 }
 
 // H9: a pass/count line inside a truncated result counts as
-// evidence only when a non-truncated confirming read follows the seam.
+// evidence only when a non-truncated confirming read comes after it.
 function evidenceIndex(toolResults, fromIdx) {
   for (let i = fromIdx + 1; i < toolResults.length; i++) {
     const r = toolResults[i];
@@ -228,7 +228,7 @@ function enumerationSupports(n, toolResults) {
 // a claimed total may enumerate across paginated responses.
 // Consecutive non-error, non-truncated list-shaped pages form a run; the run
 // supports the claim iff its distinct id-lines count == n. A truncated page,
-// an error, or any non-list result ends the run (conservative: H9 seam rule
+// an error, or any non-list result ends the run (conservative: H9 truncation rule
 // still governs single-page truncation; multi-page runs require full pages).
 // Pure JSON brackets are structural, not items.
 const PAG_BRACKET_ONLY_RE = /^[\[\]{},\s]*$/;
@@ -463,7 +463,7 @@ function detectFull(signalInput) {
   const coverage = degradation.kind !== null ? "partial" : "full";
   const anchors = anchorPassThrough(toolResults);
   const verdict = { suspicious: s.fired || w.matched.length > 0, coverage, degradation, structural_hits: s.hits, request_anchors: anchors, structural_any: s.any, structural_count: lCount, suppressed: s.suppressed, matched_phrases: w.matched, severity, family_hits: { high: w.matchedHigh.length, low: w.matchedLow.length }, wordlist_degraded: w.degraded };
-  // seam routing -- the seam is exercised only on
+  // checkpoint routing -- the judge checkpoint is exercised only on
   // suspicious turns (k8s matchConditions shape: judge never sees clean
   // traffic, so the p95 of honest turns is untouched). judge_override is
   // null until a scoring-mode verifier lands; the telemetry snapshot
@@ -482,7 +482,7 @@ if (!_phrasesState.ok) {
   try { process.stderr.write("jiahao detector: wordlist degraded (" + _phrasesState.error + "); L1-L3 structural detection remains active.\n"); } catch (e) {}
 }
 
-// + -- Judge seam (signature locked; runtime forbidden).
+// + -- Judge checkpoint (signature locked; runtime forbidden).
 // Locked signature:
 //   judgeSeam(claim, toolResults, heuristicVerdict) ->
 //     { verdict: "override" | "uphold", confidence: <number 0..1>,
@@ -498,7 +498,7 @@ if (!_phrasesState.ok) {
 // The internal-holdout FP gap <= 3pp gate must pass before any
 // runtime lands.
 //
-// Telemetry contract: four metrics live on this seam path --
+// Telemetry contract: four metrics live on this judge checkpoint --
 // invocations (suspicious-route rate numerator), latency total (ms),
 // fail_soft count, overrides_accepted -- exposed via judgeTelemetry() and
 // snapshotted into every suspicious detectFull record so observations ride

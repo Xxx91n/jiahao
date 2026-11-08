@@ -3,7 +3,7 @@
 Date: 2026-11-01 (local, UTC+8). Host: Windows 10.0.26100 (win32 x64).
 
 Ticket: #118 - the second variant of #110. Acceptance standard: spec #74 D2 (the
-A-tier admission rule) and D5 (real-machine verification), read through
+admission rule for blocking level A) and D5 (real-machine verification), read through
 `docs/agents/evidence-review.md`.
 
 Baseline: branch `feat/workbuddy-cn-probe-118`, stacked on
@@ -22,7 +22,7 @@ establishes the host's turn-end channel - the thing spec #74 D2 admits a host on
 
 ## Verdict per variant
 
-| Variant | Tier | Basis |
+| Variant | Blocking level | Basis |
 |---|---|---|
 | WorkBuddy AI 5.9.4 (international) | **A** (unchanged) | #110's record; not re-run here |
 | WorkBuddy 5.9.3 (domestic) | **A** | this record: a `Stop` hook blocked a real turn-end claim, the host continued the turn with the reason, and the re-entry carried `stop_hook_active: true` |
@@ -62,7 +62,7 @@ secrets stripped (see "What was removed before transcription").
 | `CODEBUDDY_CONFIG_DIR` | `C:\Users\Administrator\.workbuddy` |
 | `CODEBUDDY_HOST` | `workbuddy-desktop` |
 | `CODEBUDDY_SESSION_ID` / `CLAUDE_SESSION_ID` | same session id as the payload |
-| `CODEBUDDY_PLUGIN_ROOT` / `CLAUDE_PLUGIN_ROOT` | **unset** (settings-tier hook) |
+| `CODEBUDDY_PLUGIN_ROOT` / `CLAUDE_PLUGIN_ROOT` | **unset** (hook registered in the settings file) |
 
 Both desktop builds pass `CODEBUDDY_DISABLE_EXTENDED_PLUGIN_HOOKS=1`; the flag
 was present in this session too. It rejects hook types other than `command`, and
