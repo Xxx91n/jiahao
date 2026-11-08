@@ -791,7 +791,7 @@ test('#75: a passed human verdict releases a stale severity record, a failed one
 // transcript quiet close, the reentry first stop) into exit-2 failures.
 
 // A Claude-Code-shaped transcript: one user turn opener, one assistant
-// closing. The closing text is the lane's claim side for hosts that carry no
+// closing. The closing text is the check's claim side for hosts that carry no
 // last_assistant_message field.
 function transcriptFixture(closingText) {
   const dir = freshDir('jiahao-transcript-124-');
@@ -936,7 +936,7 @@ test('#124: a completion claim without evidence still blocks (no regression)', (
 
 test('#124: the claim rides the transcript when the host sends no last_assistant_message', () => {
   const gate = gateFixture();
-  // Claude Code carries no last_assistant_message field; the lane's adapted
+  // Claude Code carries no last_assistant_message field; the check's adapted
   // closing is this turn's claim source instead.
   const claiming = gate.stop({
     stop_hook_active: false, session_id: 'session-124',

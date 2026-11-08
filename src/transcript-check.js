@@ -11,13 +11,13 @@
 //   - shadow records never enter the severity matrix (the gate skips them)
 //   - consistent/undetermined land as non-suspicious observed records
 //     (the telemetry substrate); they never flag and never block
-//   - a host that delivers no transcript_path leaves the lane 'absent' -
+//   - a host that delivers no transcript_path leaves the check 'absent' -
 //     nothing is written and nothing escalates (never coverage:partial)
-//   - .jiahao-transcript-check-off makes the lane inert (channel-level kill switch)
+//   - .jiahao-transcript-check-off makes the check inert (channel-level kill switch)
 //   - .jiahao-transcript-check-enforce is the registered promotion marker; it drops
 //     the shadow bit so flagged records enter the matrix
 //
-// The lane is fail-open to the caller: any lane-internal error is reported on
+// The check is fail-open to the caller: any internal error is reported on
 // the returned object and never thrown across the hook boundary.
 
 const fs = require('fs');
@@ -77,7 +77,7 @@ function detailOf(mode, r) {
 }
 
 // opts: { evidenceLog, dir (flag-file dir override for tests), sessionId }
-// Returns a descriptive lane outcome; never throws.
+// Returns a descriptive outcome; never throws.
 function run(payload, opts) {
   const o = opts || {};
   const evidenceLog = o.evidenceLog;
@@ -85,10 +85,10 @@ function run(payload, opts) {
   const off = dir ? path.join(dir, '.jiahao-transcript-check-off') : transcriptCheckOffPath();
   const enforce = dir ? path.join(dir, '.jiahao-transcript-check-enforce') : transcriptCheckEnforcePath();
 
-  if (fs.existsSync(off)) return { lane: 'disabled', state: null };
+  if (fs.existsSync(off)) return { outcome: 'disabled', state: null };
 
   const tp = transcriptPathOf(payload);
-  if (!tp) return { lane: 'absent', state: null };
+  if (!tp) return { outcome: 'absent', state: null };
 
   const mode = fs.existsSync(enforce) ? 'enforce' : 'shadow';
   const sessionId = (payload && typeof payload.session_id === 'string' ? payload.session_id : null) || o.sessionId || null;
@@ -140,11 +140,11 @@ function run(payload, opts) {
     } catch (e) {
       if (e && e.code === WITNESS_HARD_STOP_CODE) {
         // The dead-man switch refused to record this Stop. That refusal is a
-        // lane OUTCOME, not lane noise: the gate turns it into a verifier
+        // real outcome, not noise: the gate turns it into a verifier
         // block, because allowing the turn would let it pass on a chain that
         // just refused its witness. A generic commit failure keeps
         // propagating to the gate's fail-open catch.
-        return { lane: 'hard-stop', mode: mode, state: null, reason: e.message };
+        return { outcome: 'hard-stop', mode: mode, state: null, reason: e.message };
       }
       throw e;
     }
@@ -160,7 +160,7 @@ function run(payload, opts) {
   const closing = (adapted && adapted.ok && adapted.transcript &&
     typeof adapted.transcript.closing === 'string' && adapted.transcript.closing.trim())
     ? adapted.transcript.closing : null;
-  return { lane: 'recorded', mode: mode, state: r.state, family: r.family, claim: r.claim, evidence: r.evidence, closing: closing, reason: r.reason, latency_ms: latencyMs, appended: appended };
+  return { outcome: 'recorded', mode: mode, state: r.state, family: r.family, claim: r.claim, evidence: r.evidence, closing: closing, reason: r.reason, latency_ms: latencyMs, appended: appended };
 }
 
 module.exports = { RECORD_SOURCE: RECORD_SOURCE, run: run, transcriptPathOf: transcriptPathOf, transcriptKey: transcriptKey };

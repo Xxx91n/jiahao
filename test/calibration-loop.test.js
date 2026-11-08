@@ -1,4 +1,4 @@
-// calibration flywheel — threshold band / few-shot selection / κ governance
+// calibration loop — threshold band / few-shot selection / κ governance
 const cal = require('../src/calibration');
 const { verify } = require('../src/gate');
 

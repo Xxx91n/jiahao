@@ -147,25 +147,25 @@ process.stdin.on('end', () => {
   // the transcript check rides this invocation — transcript_path
   // -> transcript adapter -> checkClaim -> source:pairer-instrument shadow
   // record. Shadow records are telemetry: they never enter the severity
-  // matrix below and never satisfy the no-evidence check. The lane is
-  // fail-open: a lane-internal error is a record reason, never a hook failure.
-  let laneResult = null;
-  try { laneResult = require('../src/transcript-check').run(parsed, { evidenceLog: evidenceLog }); } catch (e) { laneResult = null; }
-  let laneText = '';
-  if (laneResult && laneResult.lane === 'hard-stop') {
+  // matrix below and never satisfy the no-evidence check. The check is
+  // fail-open: an internal error is a record reason, never a hook failure.
+  let checkResult = null;
+  try { checkResult = require('../src/transcript-check').run(parsed, { evidenceLog: evidenceLog }); } catch (e) { checkResult = null; }
+  let checkText = '';
+  if (checkResult && checkResult.outcome === 'hard-stop') {
     // The dead-man switch refused to record this Stop (transcript-check surfaces
     // the typed refusal as an outcome). A turn may not be allowed on a chain
     // that just refused its witness: verifier blocks with the refusal reason;
     // generator stays advisory-fail-open (D2).
     if (!isGenerator) {
-      emitBlock(laneResult.reason || 'evidence log refused the stop record');
+      emitBlock(checkResult.reason || 'evidence log refused the stop record');
       return;
     }
-    laneText = ' ' + (laneResult.reason || 'evidence log refused the stop record');
-  } else if (laneResult && laneResult.lane === 'recorded' && laneResult.state === 'flagged') {
-    laneText = ' Transcript check (' + laneResult.mode + '): claim check flagged ' +
-      (laneResult.family || 'unsupported') + ' — claim ' + JSON.stringify(laneResult.claim) +
-      ' vs evidence ' + JSON.stringify(laneResult.evidence) +
+    checkText = ' ' + (checkResult.reason || 'evidence log refused the stop record');
+  } else if (checkResult && checkResult.outcome === 'recorded' && checkResult.state === 'flagged') {
+    checkText = ' Transcript check (' + checkResult.mode + '): claim check flagged ' +
+      (checkResult.family || 'unsupported') + ' — claim ' + JSON.stringify(checkResult.claim) +
+      ' vs evidence ' + JSON.stringify(checkResult.evidence) +
       ' (telemetry; resolve via jiahao resolve if wrong).';
   }
 
@@ -185,10 +185,10 @@ process.stdin.on('end', () => {
   // (CodeRabbit #115 round 2).
   // ADJUDICATED (#71 item 15): enforce-mode transcript-check records COUNT as Case A
   // evidence. Promotion out of shadow is a deliberate human act (the
-  // .jiahao-transcript-check-enforce marker is not written by the lane), and the
+  // .jiahao-transcript-check-enforce marker is not written by the check), and the
   // record carries the claim check's own claim/evidence pair, so it is a checked
   // observation rather than transport telemetry. Shadow records stay
-  // telemetry because nobody has accepted the lane's verdict yet. Keeping
+  // telemetry because nobody has accepted the check's verdict yet. Keeping
   // enforce records out of Case A would make the only evidence they carry
   // invisible to the check that decides "was anything verified" — the
   // opposite of what promotion means.
@@ -244,7 +244,7 @@ process.stdin.on('end', () => {
         ' (advisory — resolve via: jiahao resolve --verdict pass|fail --reason <text> --reviewer <id>).';
     }
   }
-  pendingText += laneText;
+  pendingText += checkText;
 
   // κ governance RE-ALIGN advisory (never changes exit codes).
   if (evidenceChain) {
@@ -270,7 +270,7 @@ process.stdin.on('end', () => {
   //     qoder-runtime-hook-schema.txt — Qoder attaches it when a message
   //     exists; ZCode per zcode-probe-notes.md); camelCase spellings are
   //     folded in by normalizePayload.
-  //   laneResult.closing     — hosts that ride transcript_path instead
+  //   checkResult.closing     — hosts that ride transcript_path instead
   //     (Claude Code, declared-unverified in-repo that it lacks the field);
   //     the transcript check already adapted the transcript, so the closing
   //     rides for free.
@@ -279,7 +279,7 @@ process.stdin.on('end', () => {
   // gets no new free pass). Known unknown-state cases, disclosed: hosts with
   // neither field (Antigravity / Copilot hand a transcriptPath the adapter
   // cannot parse), and hosts where the transcript check is switched off
-  // (.jiahao-transcript-check-off) — the lane is also the transcript reader, so
+  // (.jiahao-transcript-check-off) — the check is also the transcript reader, so
   // with it off the gate loses the closing route. Both keep the pre-#124
   // blocking behavior; widening them is not this ticket's scope.
   // A present source that carries no completion claim → this turn declares
@@ -295,8 +295,8 @@ process.stdin.on('end', () => {
     if (typeof parsed.last_assistant_message === 'string' && parsed.last_assistant_message.trim()) {
       claimSources.push(parsed.last_assistant_message);
     }
-    if (laneResult && laneResult.lane === 'recorded' && typeof laneResult.closing === 'string' && laneResult.closing.trim()) {
-      claimSources.push(laneResult.closing);
+    if (checkResult && checkResult.outcome === 'recorded' && typeof checkResult.closing === 'string' && checkResult.closing.trim()) {
+      claimSources.push(checkResult.closing);
     }
     if (claimSources.length > 0) {
       claimState = false;
@@ -314,7 +314,7 @@ process.stdin.on('end', () => {
     // The claim check's own parsed claim is direct declaration evidence: a closing
     // it could parse a claimed value out of claimed something, whatever the
     // sentence-level regex above decided.
-    if (claimState !== true && laneResult && laneResult.lane === 'recorded' && laneResult.claim != null) {
+    if (claimState !== true && checkResult && checkResult.outcome === 'recorded' && checkResult.claim != null) {
       claimState = true;
     }
   }

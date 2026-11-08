@@ -1,7 +1,7 @@
 'use strict';
 // test/transcript-check.test.js - the hook-side transcript check's commit boundary
 // (#108 audit, CodeRabbit round 2): the dead-man switch's typed refusal
-// (WITNESS_HARD_STOP_CODE) surfaces as a lane OUTCOME the gate can act on,
+// (WITNESS_HARD_STOP_CODE) surfaces as a real outcome the gate can act on,
 // while a generic commit failure keeps propagating to the gate's fail-open
 // catch. The evidenceLog is injected through opts - the established injection
 // point for this module (transcript-check takes deps, never reaches for
@@ -16,28 +16,28 @@ const { run, transcriptPathOf } = require(path.join(repoRoot, 'src', 'transcript
 const { WITNESS_HARD_STOP_CODE } = require(path.join(repoRoot, 'src', 'evidence-log.js'));
 
 // A transcript path that does not exist: the adapter reports ok:false, the
-// lane classifies undetermined, and the record commit is still attempted -
+// check classifies undetermined, and the record commit is still attempted -
 // which is exactly the path where the dead-man switch can refuse.
 const PAYLOAD = { transcript_path: 'Z:/no/such/transcript.jsonl' };
 
 // Hermetic flag-file directory: no .jiahao-transcript-check-off/-enforce leaks in
 // from the real config dir (#84: one fresh directory per test).
 function freshFlagDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-lane-test-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-check-test-'));
 }
 
 function stubLog(commitImpl) {
   return { commit: commitImpl, createRecord: function () { return {}; } };
 }
 
-test('a typed witness refusal surfaces as a hard-stop lane outcome', () => {
+test('a typed witness refusal surfaces as a hard-stop outcome', () => {
   const err = new Error('witness unavailable past the hard deadline (604800000ms) with 1 unverified post-detection append(s)');
   err.code = WITNESS_HARD_STOP_CODE;
   const res = run(PAYLOAD, {
     dir: freshFlagDir(),
     evidenceLog: stubLog(function () { throw err; }),
   });
-  expect(res.lane).toBe('hard-stop');
+  expect(res.outcome).toBe('hard-stop');
   expect(res.reason).toContain('witness unavailable');
   expect(res.state).toBeNull();
 });
@@ -51,7 +51,7 @@ test('a generic commit failure keeps propagating to the gate fail-open catch', (
 
 test('a healthy commit appends and reports the recorded outcome', () => {
   const res = run(PAYLOAD, { dir: freshFlagDir(), evidenceLog: stubLog(function () { /* append ok */ }) });
-  expect(res.lane).toBe('recorded');
+  expect(res.outcome).toBe('recorded');
   expect(res.appended).toBe(true);
   expect(res.state).toBe('undetermined'); // unadaptable transcript classifies nothing
   expect(res.closing).toBeNull(); // #124: no parsed transcript, no closing
@@ -61,14 +61,14 @@ test('a healthy commit appends and reports the recorded outcome', () => {
 // turn's closing rides the recorded outcome, and only when the adapter
 // actually parsed one.
 test('#124: a parsed transcript exposes its closing to the gate', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-lane-closing-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-check-closing-'));
   const file = path.join(dir, 'session.jsonl');
   fs.writeFileSync(file, [
     JSON.stringify({ type: 'user', message: { role: 'user', content: '看看配置目录在哪' } }),
     JSON.stringify({ type: 'assistant', message: { id: 'm1', content: [{ type: 'text', text: '任务完成，已验证。' }] } }),
   ].join('\n'), 'utf8');
   const res = run({ transcript_path: file }, { dir: freshFlagDir(), evidenceLog: stubLog(function () { return 1; }) });
-  expect(res.lane).toBe('recorded');
+  expect(res.outcome).toBe('recorded');
   expect(res.closing).toBe('任务完成，已验证。');
   fs.rmSync(dir, { recursive: true, force: true });
 });
@@ -76,14 +76,14 @@ test('#124: a parsed transcript exposes its closing to the gate', () => {
 // #124: a transcript whose parse produced no closing text (or a
 // whitespace-only one) is not a claim source — the gate must see null, not ''.
 test('#124: an empty closing parses as null, never as a claim-absent source', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-lane-closing-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-check-closing-'));
   const file = path.join(dir, 'session.jsonl');
   fs.writeFileSync(file, [
     JSON.stringify({ type: 'user', message: { role: 'user', content: '看看配置目录在哪' } }),
     JSON.stringify({ type: 'assistant', message: { id: 'm1', content: [{ type: 'tool_use', id: 't1', name: 'Bash', input: {} }] } }),
   ].join('\n'), 'utf8');
   const res = run({ transcript_path: file }, { dir: freshFlagDir(), evidenceLog: stubLog(function () { return 1; }) });
-  expect(res.lane).toBe('recorded');
+  expect(res.outcome).toBe('recorded');
   expect(res.closing).toBeNull();
   fs.rmSync(dir, { recursive: true, force: true });
 });
@@ -125,13 +125,13 @@ test('#71 item 11: camelCase hookEventName is honoured', () => {
 // #71 (PR #97 review): the commit result says whether anything was written.
 test('#71: a deduped zero-record commit does not report appended', () => {
   const res = run(PAYLOAD, { dir: freshFlagDir(), evidenceLog: stubLog(function () { return 0; }) });
-  expect(res.lane).toBe('recorded');
+  expect(res.outcome).toBe('recorded');
   expect(res.appended).toBe(false);
 });
 
 // #71 item 11: the selection is only useful if run() actually uses it.
 test('#71 item 11: run() reads the agent transcript for a SubagentStop payload', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-lane-agent-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-check-agent-'));
   const agentFile = path.join(dir, 'agent.jsonl');
   fs.writeFileSync(agentFile, [
     JSON.stringify({ type: 'user', message: { role: 'user', content: 'Subagent task.' } }),
@@ -154,7 +154,7 @@ test('#71 item 11: run() reads the agent transcript for a SubagentStop payload',
     transcript_path: path.join(dir, 'missing-parent.jsonl'),
     agent_transcript_path: agentFile,
   });
-  expect(agent.res.lane).toBe('recorded');
+  expect(agent.res.outcome).toBe('recorded');
   expect(String(agent.seen.detector.pairer.reason || '')).not.toMatch(/^adapter:/);
 
   // Control: the same payload as a plain Stop reads the (missing) parent, so

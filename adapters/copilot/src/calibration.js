@@ -161,7 +161,7 @@ function computeECE(points, model, nBins) {
 }
 
 
-// ---- : calibration flywheel (read path) ----
+// ---- calibration loop (read path) ----
 
 const crypto = require('crypto');
 

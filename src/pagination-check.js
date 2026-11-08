@@ -11,7 +11,7 @@
 //   stripe: body has_more === true
 //   slack:  body response_metadata.next_cursor non-empty
 // Unknown APIs fail-soft (no contradiction, no rescue on absence). Governance
-// of this table rides the calibration flywheel.
+// of this table rides the calibration loop.
 //
 // Link parsing uses http-link-header (RFC 8288, token + quoted-string rel
 // forms); malformed input throws there and is fail-soft here (D3.4).
