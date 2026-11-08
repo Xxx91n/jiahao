@@ -171,7 +171,7 @@ function stateEvent(seq, kind, identityDigest, prevHash, extra) {
   if (extra && extra.instrument_id !== undefined) ev.instrument_id = extra.instrument_id;
   if (extra && extra.authorization !== undefined) ev.authorization = extra.authorization;
   // the conditional axis must be self-evidencing on the chain
-  // event itself - an expiry and CAPA that live only in the top-level state are
+  // event itself - an expiry and capability that live only in the top-level state are
   // not tamper-anchored. The conditional_signoff call site already supplies
   // both; this allowlist is the only thing that made them droppable (STD-1).
   if (extra && extra.expires_at !== undefined) ev.expires_at = extra.expires_at;

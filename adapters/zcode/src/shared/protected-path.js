@@ -40,7 +40,7 @@ const path = require('path');
 // a fragment: a tool_input may carry either, and a fragment names a file, not a
 // path.
 // The `.jiahao-*` namespace is reserved wholesale (#88 item 4). An enumerated
-// list was the shape of the bug: `.jiahao-conviction-off` / `-enforce`,
+// list was the shape of the bug: `.jiahao-transcript-check-off` / `-enforce`,
 // `.jiahao-kappa-baseline.json`, `.jiahao-evidence.lock` and
 // `.jiahao-calibration.jsonl` were missing, and the #110 review surfaced
 // `.jiahao-anchor.json` / `.jiahao-persistence.json` as two more.
@@ -127,7 +127,7 @@ const PROTECTED_ROOT_FILES = ['.mcp.json', 'plugin.json', 'hooks.json'];
 // case folding on macOS: the folded fragment set is chosen by the injected path
 //   implementation's separator, so Windows folds and a POSIX reading does not.
 //   macOS ships case-insensitive APFS by default while reporting POSIX
-//   separators, so `.JIAHAO-CONVICTION-OFF` is not folded there. Detecting the
+//   separators, so `.JIAHAO-TRANSCRIPT-CHECK-OFF` is not folded there. Detecting the
 //   filesystem's case-sensitivity would cost an fs probe per candidate and can
 //   fail on a missing path; the 53f1a2e2 baseline misses the same shape.
 //   Documented, not fixed (#88 item 4 reserves the namespace, not the disk).

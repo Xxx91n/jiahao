@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
-// bench/research/capa-probes.js -- ledger T-2(b):
-// corpus-external probes for the CAPA pairer. capa-probes.jsonl carries
+// bench/research/claim-check-probes.js -- ledger T-2(b):
+// corpus-external probes for the claim check. capa-probes.jsonl carries
 // hand-authored synthetic transcripts (never drawn from devin-corpus@v1/@v2).
 // Output is CATEGORICAL ONLY: per-probe expected-vs-actual state agreement.
 // Probe results feed CAPA records and may never enter any verdict chain -
@@ -9,14 +9,14 @@
 
 const fs = require('fs');
 const path = require('path');
-const pairer = require('../../src/capa-pairer');
+const pairer = require('../../src/claim-check');
 
 const PROBES = path.join(__dirname, 'capa-probes.jsonl');
 
 function runProbes(file) {
   const items = fs.readFileSync(file || PROBES, 'utf8').split(/\r?\n/).filter(Boolean).map(JSON.parse);
   const rows = items.map(function (it) {
-    const r = pairer.pairItem(it);
+    const r = pairer.checkClaim(it);
     return {
       id: it.id,
       expected_family: it.probe.family,

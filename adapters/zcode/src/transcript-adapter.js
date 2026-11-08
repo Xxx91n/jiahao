@@ -1,7 +1,7 @@
 'use strict';
-// src/transcript-adapter.js — : the conviction lane's channel
+// src/transcript-adapter.js — : the transcript check's channel
 // component. Adapts a host transcript file (Claude Code JSONL shape) into the
-// pairer's input shape {task, transcript:{events, closing}}.
+// claim check's input shape {task, transcript:{events, closing}}.
 //
 // This is NOT the adjudication instrument: it performs no pairing logic and is
 // never part of the adjudication pin. Its contract is mechanical extraction
@@ -14,7 +14,7 @@
 //   - entry types other than user/assistant (system, summary, attachments,
 //     file-history snapshots, progress) are ignored by design
 //
-// Event shapes emitted (matching the devin-corpus@v3 item shape the pairer
+// Event shapes emitted (matching the devin-corpus@v3 item shape the claim check
 // consumes):
 //   {type:'message',     ts, text}
 //   {type:'tool_call',   ts, call_id, name, arguments:{...}}
@@ -88,7 +88,7 @@ function adaptTranscriptText(text) {
     }
   });
 
-  // Turn scope (#71 item 8): the pairer pairs ONE task with ONE turn's events.
+  // Turn scope (#71 item 8): the claim check compares ONE task with ONE turn's events.
   // The task used to be the first user text in the whole transcript while
   // `events` accumulated every turn, so a multi-turn session compared the
   // opening request against the last turn's tool results. A genuine user text
@@ -112,7 +112,7 @@ function adaptTranscriptText(text) {
     // Codex rollout shape (#71, PR #97 review): every conversation item is
     // wrapped as {type:'response_item', payload:{...}} with prompt/completion
     // style names, so the Claude-shaped branches below never matched and the
-    // conviction lane saw an empty transcript on Codex. Map the four shapes
+    // transcript check saw an empty transcript on Codex. Map the four shapes
     // the rollout documents - message / function_call / function_call_output -
     // onto the same events. reasoning, session_meta, turn_context and event_msg
     // lines carry no tool or message content this adapter consumes.
@@ -239,7 +239,7 @@ function adaptTranscriptText(text) {
       lines: lines.length,
       parsed: entries.length,
       skipped: skipped,
-      // Whole-file count: the turn-scoped `events` array is what the pairer
+      // Whole-file count: the turn-scoped `events` array is what the claim check
       // reads, but the stats describe the transcript that was parsed.
       tool_results: toolResultCount,
     },

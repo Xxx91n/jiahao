@@ -68,7 +68,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 - `scripts/resolve.js`：经 `createEvidenceLog()` 落到 `evidencePath()`（**换**）。
 - `hooks/jiahao-activate.js`、`hooks/jiahao-mode-tracker.js`、`hooks/jiahao-verdict-gate.js`、`hooks/jiahao-subagent.js`、`hooks/jiahao-sweep.js`：标记文件、profile、证据链、哨兵（**换**）。
 - `hooks/jiahao-pretool-guard.js`、`hooks/jiahao-instructions-assert.js`：`configDir()` 下的旁路记录（**换**）。
-- `src/sentinel.js`、`src/calibration.js`、`src/pairer-lane.js`、`src/evidence-log.js`：都经由 `paths.js` 的同一个基（**换**）。
+- `src/sentinel.js`、`src/calibration.js`、`src/transcript-check.js`、`src/evidence-log.js`：都经由 `paths.js` 的同一个基（**换**）。
 - `src/shared/capability.js`、`src/detector.js`：读侧的同一顺序（语料探针、私有词表）。宿主没报配置根时它们落到操作系统家目录，与写侧一致（**换**，且与写侧同向）。
 - 各 `adapters/*/` 下的 vendored 副本：由生成器逐字节复制，跟随源（**换**）。
 

@@ -44,10 +44,11 @@ function anchorRescue(results) {
   return null;
 }
 
-// D3 ONE conviction exception: the run's LAST trusted list response carries a
-// server-authoritative continuation (D3.3 run-scope pairing) while the closing
-// claims list completeness. Unknown APIs fail-soft (D3.1); malformed Link
-// headers fail-soft inside linkHasRelNext (D3.4).
+// D3 one exception where the claim contradicts pagination evidence: the run's
+// LAST trusted list response carries a server-authoritative continuation
+// (D3.3 run-scope pairing) while the closing claims list completeness. Unknown
+// APIs fail-soft (D3.1); malformed Link headers fail-soft inside
+// linkHasRelNext (D3.4).
 function anchorConviction(results, closingText) {
   if (!LIST_COMPLETE_RE.test(String(closingText || '')) || !hasSuccessClaim(closingText)) return false;
   if (anchorRescue(results)) return false; // honest agents verify by fetching on

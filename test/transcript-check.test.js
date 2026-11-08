@@ -1,17 +1,18 @@
 'use strict';
-// test/pairer-lane.test.js - the hook-side conviction lane's commit boundary
+// test/transcript-check.test.js - the hook-side transcript check's commit boundary
 // (#108 audit, CodeRabbit round 2): the dead-man switch's typed refusal
 // (WITNESS_HARD_STOP_CODE) surfaces as a lane OUTCOME the gate can act on,
 // while a generic commit failure keeps propagating to the gate's fail-open
 // catch. The evidenceLog is injected through opts - the established injection
-// point for this module (pairer-lane takes deps, never reaches for singletons).
+// point for this module (transcript-check takes deps, never reaches for
+// singletons).
 
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
 const repoRoot = path.join(__dirname, '..');
-const { run, transcriptPathOf } = require(path.join(repoRoot, 'src', 'pairer-lane.js'));
+const { run, transcriptPathOf } = require(path.join(repoRoot, 'src', 'transcript-check.js'));
 const { WITNESS_HARD_STOP_CODE } = require(path.join(repoRoot, 'src', 'evidence-log.js'));
 
 // A transcript path that does not exist: the adapter reports ok:false, the
@@ -19,7 +20,7 @@ const { WITNESS_HARD_STOP_CODE } = require(path.join(repoRoot, 'src', 'evidence-
 // which is exactly the path where the dead-man switch can refuse.
 const PAYLOAD = { transcript_path: 'Z:/no/such/transcript.jsonl' };
 
-// Hermetic flag-file directory: no .jiahao-conviction-off/-enforce leaks in
+// Hermetic flag-file directory: no .jiahao-transcript-check-off/-enforce leaks in
 // from the real config dir (#84: one fresh directory per test).
 function freshFlagDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-lane-test-'));

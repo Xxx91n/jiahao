@@ -159,7 +159,7 @@ describe('every state file follows the same base', () => {
       expect(paths.configDir()).toBe(root);
       for (const build of [paths.flagPath, paths.evidencePath,
         paths.evidenceKeysPath, paths.profilePath,
-        paths.convictionLaneOffPath, paths.convictionLaneEnforcePath,
+        paths.transcriptCheckOffPath, paths.transcriptCheckEnforcePath,
         paths.kappaBaselinePath]) {
         expect(path.dirname(build())).toBe(root);
       }
@@ -174,8 +174,8 @@ describe('capability and detector read the same order', () => {
   // does not use. Both are asserted through the behaviour a caller sees.
   test('the bench-corpus probe looks under the resolved config dir', () => {
     const capability = require(path.join(repoRoot, 'src', 'shared', 'capability'));
-    const planted = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-capa-'));
-    const emptyRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-capa-root-'));
+    const planted = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-cap-'));
+    const emptyRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-cap-root-'));
     try {
       fs.mkdirSync(path.join(planted, 'private', 'bench-corpus'), { recursive: true });
       fs.writeFileSync(path.join(planted, 'private', 'bench-corpus', 'probes.jsonl'), '{}\n', 'utf8');

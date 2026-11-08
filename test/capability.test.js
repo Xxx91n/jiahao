@@ -20,7 +20,7 @@ const capability = require(capabilityPath);
 
 describe('requireCapabilities declares requirements inline', () => {
   test('a satisfied requirement is returned and no registry is read', () => {
-    const tree = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-capa-tree-'));
+    const tree = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-cap-tree-'));
     try {
       fs.mkdirSync(path.join(tree, '.git'));
       expect(capability.requireCapabilities('confirmatory-bench',
@@ -36,7 +36,7 @@ describe('requireCapabilities declares requirements inline', () => {
   });
 
   test('an absent capability exits 2 and names it on both channels', () => {
-    const emptyRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-capa-empty-'));
+    const emptyRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'jiahao-cap-empty-'));
     try {
       const script = [
         'const cap = require(' + JSON.stringify(capabilityPath) + ');',

@@ -1,9 +1,10 @@
 'use strict';
-// src/pairer-lane.js — : the hook-side conviction lane.
+// src/transcript-check.js — : the hook-side transcript check.
 //
 // run(payload, deps) rides the Stop/SubagentStop hook: transcript_path ->
-// transcript adapter -> src/capa-pairer.js pairItem -> append-only record in
-// the evidence chain under source 'pairer-instrument'.
+// transcript adapter -> src/claim-check.js checkClaim -> append-only record in
+// the evidence chain under the record source 'pairer-instrument' (the
+// on-disk marker explained below).
 //
 // Registered semantics:
 //   - flagged   -> suspicious:true + severity:'high' + the shadow bit
@@ -12,8 +13,8 @@
 //     (the telemetry substrate); they never flag and never block
 //   - a host that delivers no transcript_path leaves the lane 'absent' -
 //     nothing is written and nothing escalates (never coverage:partial)
-//   - .jiahao-conviction-off makes the lane inert (channel-level kill switch)
-//   - .jiahao-conviction-enforce is the registered promotion marker; it drops
+//   - .jiahao-transcript-check-off makes the lane inert (channel-level kill switch)
+//   - .jiahao-transcript-check-enforce is the registered promotion marker; it drops
 //     the shadow bit so flagged records enter the matrix
 //
 // The lane is fail-open to the caller: any lane-internal error is reported on
@@ -22,12 +23,15 @@
 const fs = require('fs');
 const crypto = require('crypto');
 const path = require('path');
-const { convictionLaneOffPath, convictionLaneEnforcePath } = require('./shared/paths');
+const { transcriptCheckOffPath, transcriptCheckEnforcePath } = require('./shared/paths');
 const { adaptTranscriptFile } = require('./transcript-adapter');
-const pairer = require('./capa-pairer');
+const claimCheck = require('./claim-check');
 const { recordHash, WITNESS_HARD_STOP_CODE } = require('./evidence-log');
 
-const SOURCE = 'pairer-instrument';
+// The on-disk record marker is 'pairer-instrument'. It is kept verbatim
+// because evidence chains written before this rename must be read the same
+// way; changing the value would hide old records from the Stop check.
+const RECORD_SOURCE = 'pairer-instrument';
 
 function transcriptPathOf(payload) {
   if (!payload) return null;
@@ -53,10 +57,11 @@ function transcriptPathOf(payload) {
   return null;
 }
 
-// One lane record per observation; the idempotency key binds
+// One check record per observation; the idempotency key binds
 // (session, transcript content) so a re-fired Stop with identical transcript
-// content dedups and a new turn's content never does.
-function laneIdem(sessionId, adapted) {
+// content dedups and a new turn's content never does. The 'pairer-lane' prefix
+// is part of the on-disk key and stays so old and new records dedup together.
+function transcriptKey(sessionId, adapted) {
   const inputHash = crypto.createHash('sha256')
     .update(JSON.stringify({ task: adapted.task, transcript: adapted.transcript }))
     .digest('hex');
@@ -77,8 +82,8 @@ function run(payload, opts) {
   const o = opts || {};
   const evidenceLog = o.evidenceLog;
   const dir = o.dir || null;
-  const off = dir ? path.join(dir, '.jiahao-conviction-off') : convictionLaneOffPath();
-  const enforce = dir ? path.join(dir, '.jiahao-conviction-enforce') : convictionLaneEnforcePath();
+  const off = dir ? path.join(dir, '.jiahao-transcript-check-off') : transcriptCheckOffPath();
+  const enforce = dir ? path.join(dir, '.jiahao-transcript-check-enforce') : transcriptCheckEnforcePath();
 
   if (fs.existsSync(off)) return { lane: 'disabled', state: null };
 
@@ -93,8 +98,8 @@ function run(payload, opts) {
   if (!adapted.ok) {
     r = { family: null, state: 'undetermined', claim: null, evidence: null, reason: 'adapter: ' + (adapted.reason || 'transcript unadaptable') };
   } else {
-    try { r = pairer.pairItem({ task: adapted.task, transcript: adapted.transcript }); }
-    catch (e) { r = { family: null, state: 'undetermined', claim: null, evidence: null, reason: 'adapter: pairItem threw: ' + e.message }; }
+    try { r = claimCheck.checkClaim({ task: adapted.task, transcript: adapted.transcript }); }
+    catch (e) { r = { family: null, state: 'undetermined', claim: null, evidence: null, reason: 'adapter: checkClaim threw: ' + e.message }; }
   }
   const latencyMs = Date.now() - t0;
 
@@ -104,7 +109,11 @@ function run(payload, opts) {
     let written;
     try {
       written = evidenceLog.commit(function (chain, prevHash) {
-        const rec = evidenceLog.createRecord('pairer-lane', SOURCE,
+        // The gate id, record source and `detector.pairer` field below are
+        // on-disk evidence values. They keep their old spelling so records
+        // written by earlier versions still mean the same thing to the Stop
+        // check.
+        const rec = evidenceLog.createRecord('pairer-lane', RECORD_SOURCE,
           obs.r.state === 'flagged' ? 'suspect' : 'observed',
           detailOf(obs.mode, obs.r), null, prevHash, {
             session_id: obs.sessionId,
@@ -112,7 +121,7 @@ function run(payload, opts) {
               suspicious: obs.r.state === 'flagged',
               matched_phrases: [],
               severity: obs.r.state === 'flagged' ? 'high' : null,
-              source: SOURCE,
+              source: RECORD_SOURCE,
               shadow: obs.mode === 'shadow',
               pairer: {
                 family: obs.r.family,
@@ -124,7 +133,7 @@ function run(payload, opts) {
               },
             },
           });
-        rec._idem = laneIdem(obs.sessionId, obs.adapted);
+        rec._idem = transcriptKey(obs.sessionId, obs.adapted);
         rec.event_hash = recordHash(rec);
         return [rec];
       });
@@ -154,4 +163,4 @@ function run(payload, opts) {
   return { lane: 'recorded', mode: mode, state: r.state, family: r.family, claim: r.claim, evidence: r.evidence, closing: closing, reason: r.reason, latency_ms: latencyMs, appended: appended };
 }
 
-module.exports = { SOURCE: SOURCE, run: run, transcriptPathOf: transcriptPathOf, laneIdem: laneIdem };
+module.exports = { RECORD_SOURCE: RECORD_SOURCE, run: run, transcriptPathOf: transcriptPathOf, transcriptKey: transcriptKey };

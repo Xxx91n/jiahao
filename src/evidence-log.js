@@ -1795,8 +1795,9 @@ function createRecord(gateId, gateType, status, detail, confidence, prevHash, ex
           record.detector.degradation.detail.unrecognized_kind = g.kind;
         }
       }
-      // additive-optional conviction-lane fields. `source` is the
-      // append-only namespace marker ('pairer-instrument'); `shadow` excludes
+      // additive-optional transcript-check fields. `source` is the
+      // append-only namespace marker ('pairer-instrument', a value written by
+      // older versions and kept for compatibility); `shadow` excludes
       // the record from the severity matrix; `pairer` carries the pairer
       // output verbatim plus lane timing.
       if (typeof d.source === 'string' && d.source.length > 0) record.detector.source = d.source;
