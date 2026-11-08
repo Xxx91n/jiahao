@@ -105,7 +105,7 @@ test('the Qoder install form ships its plugin bundle, the rule file, and nothing
     'adapters/qoder/hooks/jiahao-verdict-gate.js',
     'adapters/qoder/hooks/jiahao-sweep.js',
     'adapters/qoder/src/SKILL.md',
-    'adapters/qoder/src/instrument-identity.json',
+    'adapters/qoder/src/version-pin.json',
   ];
   const qoder = packed.filter((p) => p.startsWith('adapters/qoder/'));
   for (const rel of required) expect(qoder).toContain(rel);

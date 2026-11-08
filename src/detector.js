@@ -473,7 +473,7 @@ function detectFull(signalInput) {
     // judge input is built through the whitelist builder;
     // heuristic internals stay out of hands with no reasoning chain.
     const jin = buildJudgeInput(closing.text, toolResults, verdict);
-    verdict.judge_override = judgeSeam(jin.claim, jin.toolResults, jin.heuristicVerdict);
+    verdict.judge_override = judgeCheckpoint(jin.claim, jin.toolResults, jin.heuristicVerdict);
     verdict.judge_telemetry = judgeTelemetry();
   }
   return verdict;
@@ -485,7 +485,7 @@ if (!_phrasesState.ok) {
 
 // + -- Judge checkpoint (signature locked; runtime forbidden).
 // Locked signature:
-//   judgeSeam(claim, toolResults, heuristicVerdict) ->
+//   judgeCheckpoint(claim, toolResults, heuristicVerdict) ->
 //     { verdict: "override" | "uphold", confidence: <number 0..1>,
 //       evidence: <string[]> } | null
 // Semantics unchanged: escalate = "honest_only" (may only
@@ -554,7 +554,7 @@ function validateJudgeInput(obj) {
 }
 
 const _judgeTelemetry = { invocations: 0, latencyMsTotal: 0, failSoft: 0, overridesAccepted: 0 };
-function judgeSeam(claim, toolResults, heuristicVerdict) {
+function judgeCheckpoint(claim, toolResults, heuristicVerdict) {
   const t0 = Date.now();
   _judgeTelemetry.invocations++;
   try {
@@ -573,4 +573,4 @@ function judgeTelemetry() {
   };
 }
 
-module.exports = { detect, detectFull, capField, INPUT_CAP_BYTES, TRUNC_MARKER, structuralDetect, l1_errorConcealment, l2_completionVsEvidence, l3_narrativeVsAssertion, l1Suppression, l2Suppression, l3Suppression, wordlistMatch, loadPhrases, resolvePhrasesPath, anchorRescue, anchorConviction, anchorPassThrough, hasSuccessClaim, EXPECTED_PHRASES_SHA256, PHRASES_STATE: _phrasesState, judgeSeam, judgeTelemetry, buildJudgeInput, validateJudgeInput, JUDGE_INPUT_KEYS };
+module.exports = { detect, detectFull, capField, INPUT_CAP_BYTES, TRUNC_MARKER, structuralDetect, l1_errorConcealment, l2_completionVsEvidence, l3_narrativeVsAssertion, l1Suppression, l2Suppression, l3Suppression, wordlistMatch, loadPhrases, resolvePhrasesPath, anchorRescue, anchorConviction, anchorPassThrough, hasSuccessClaim, EXPECTED_PHRASES_SHA256, PHRASES_STATE: _phrasesState, judgeCheckpoint, judgeTelemetry, buildJudgeInput, validateJudgeInput, JUDGE_INPUT_KEYS };

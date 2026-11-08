@@ -1,8 +1,8 @@
 {
  "schema_version": 1,
- "_doc": "change-surface.",
+ "_doc": "change-scope.",
  "source_adr": "impact-tiered instrument change control",
- "anchor": {
+ "vocabulary": {
   "tokens": [
    "identity",
    "corpus",
@@ -16,7 +16,7 @@
    "approve"
   ]
  },
- "surfaces": {
+ "scopes": {
   "identity": {
    "response": "quarantine",
    "revalidation": "npm run reverify && npm run judge:bias",

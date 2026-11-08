@@ -111,7 +111,7 @@ describe.each(HOSTS)('$label install form ($dir)', (host) => {
       const manifests = Object.keys(generated)
         .filter((rel) => rel.startsWith(P) && /(^|\/)plugin\.json$/.test(rel));
       expect(manifests).toEqual([manifestRel]);
-      for (const rel of [P + 'src/SKILL.md', P + 'src/instrument-identity.json', P + 'README.md']) {
+      for (const rel of [P + 'src/SKILL.md', P + 'src/version-pin.json', P + 'README.md']) {
         expect(typeof generated[rel]).toBe('string');
       }
     });
@@ -126,7 +126,7 @@ describe.each(HOSTS)('$label install form ($dir)', (host) => {
       const expected = new Set();
       if (!isRulesOnlyDirectory(host)) {
         expected.add('src/SKILL.md');
-        expected.add('src/instrument-identity.json');
+        expected.add('src/version-pin.json');
       }
       for (const rel of repoClosure(bundleSeeds(host))) expected.add(rel);
       for (const rel of (host.mcp ? host.mcp.files : [])) expected.add(rel);
@@ -146,7 +146,7 @@ describe.each(HOSTS)('$label install form ($dir)', (host) => {
       }
       if (!isRulesOnlyDirectory(host)) {
         expect(generated[P + 'src/SKILL.md']).toBe(readRepo('src/SKILL.md'));
-        expect(generated[P + 'src/instrument-identity.json']).toBe(readRepo('src/instrument-identity.json'));
+        expect(generated[P + 'src/version-pin.json']).toBe(readRepo('src/version-pin.json'));
       }
     });
   });
@@ -323,8 +323,8 @@ describe.each(HOSTS)('$label install form ($dir)', (host) => {
       if (generated[P + 'src/evidence-log.js'] !== undefined) {
         expect(edges.get(P + 'src/evidence-log.js -> ./shared/paths')).toBe(P + 'src/shared/paths.js');
       }
-      if (generated[P + 'src/instrument-identity.js'] !== undefined) {
-        expect(edges.get(P + 'src/instrument-identity.js -> ./evidence-log')).toBe(P + 'src/evidence-log.js');
+      if (generated[P + 'src/version-pin.js'] !== undefined) {
+        expect(edges.get(P + 'src/version-pin.js -> ./evidence-log')).toBe(P + 'src/evidence-log.js');
       }
     });
   });

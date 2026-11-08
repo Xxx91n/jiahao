@@ -9,7 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 const { splitByProfile, validateRuleHeaders } = require('../hooks/jiahao-profile');
-const { listTrackedPaths } = require('../src/shared/tracked-surface');
+const { listTrackedPaths } = require('../src/shared/tracked-files');
 const copilotFormat = require('./hosts/copilot');
 const codexFormat = require('./hosts/codex');
 const zcodeFormat = require('./hosts/zcode');
@@ -524,14 +524,14 @@ function bundleSeeds(host) {
 }
 
 // The non-JS tail every self-contained bundle carries: the require() closure,
-// the SKILL body, and the identity pin calibration.js loads at require() time.
+// the SKILL body, and the version pin calibration.js loads at require() time.
 // One helper, so a file added here cannot reach one bundle and miss another
 // (both were missing the pin before this ticket). `extraFiles` are the
 // host-specific runtime data files a bundle also ships.
 function emitBundle(adapters, prefix, seeds, skill, extraFiles) {
   for (const [rel, text] of vendorClosure(seeds)) adapters[prefix + rel] = text;
   adapters[prefix + 'src/SKILL.md'] = skill;
-  adapters[prefix + 'src/instrument-identity.json'] = readRepoFile('src/instrument-identity.json');
+  adapters[prefix + 'src/version-pin.json'] = readRepoFile('src/version-pin.json');
   for (const rel of extraFiles || []) adapters[prefix + rel] = readRepoFile(rel);
 }
 
@@ -2078,7 +2078,7 @@ const ORPHAN_ALLOWLIST = {
 
 // The generator knows only what it produces; the tracked set is the other
 // half of the comparison. Reuse the repo's index-only enumeration base
-// (src/shared/tracked-surface.js) so this check and the gates cannot drift
+// (src/shared/tracked-files.js) so this check and the gates cannot drift
 // apart on what "tracked" means - and so untracked install artifacts inside
 // the codebuddy bundle are never counted as generated files.
 function listTrackedGeneratedFiles() {

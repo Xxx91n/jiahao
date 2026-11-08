@@ -17,7 +17,7 @@ const { lockDir } = require('../src/file-lock');
 // null when the name is derived rather than written (the sentinel name is
 // `PREFIX + hook`). Keeping both in one row means the behaviour test and the
 // binding scan cannot drift into separate lists.
-const STATE_SURFACE = [
+const STATE_FILES = [
   { name: '.jiahao-active', literal: '.jiahao-active' },
   { name: '.jiahao-profile', literal: '.jiahao-profile' },
   { name: '.jiahao-evidence', literal: '.jiahao-evidence' },
@@ -138,7 +138,7 @@ for (const plat of PLATFORMS) {
     // conviction kill switch, the evidence chain, its lock, and the anchor /
     // persistence declarations.
     test('every jiahao state file is protected wherever it appears', () => {
-      for (const { name } of STATE_SURFACE) {
+      for (const { name } of STATE_FILES) {
         expect(check(plat, 'rm ' + name)).toBe(true);
         expect(check(plat, 'echo x > ' + outside(name))).toBe(true);
       }
@@ -179,7 +179,7 @@ for (const plat of PLATFORMS) {
 // #88 item 4 acceptance: the fragment list must stop being a second
 // hand-maintained copy of the state names. The source is the list - every
 // quoted `.jiahao-…` name under src/, hooks/ or jiahao-mcp/ has to be denied -
-// with STATE_SURFACE pinning the census so an empty walk cannot pass. Adding a
+// with STATE_FILES pinning the census so an empty walk cannot pass. Adding a
 // state file without extending protection turns this red.
 describe('protected path (state file binding, #88 item 4)', () => {
   const fs = require('fs');
@@ -214,7 +214,7 @@ describe('protected path (state file binding, #88 item 4)', () => {
       for (const match of text.matchAll(/(['"])(\.jiahao-[^'"\r\n]+)\1/g)) found.add(match[2]);
     }
     // every literal spelling the census expects must really be in the tree
-    for (const { literal } of STATE_SURFACE) {
+    for (const { literal } of STATE_FILES) {
       if (literal) expect(found.has(literal)).toBe(true);
     }
     // and every name found must be denied on BOTH path implementations

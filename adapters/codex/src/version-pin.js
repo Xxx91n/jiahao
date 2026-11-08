@@ -1,10 +1,10 @@
 'use strict';
 
-// src/instrument-identity.js -- P0
+// src/version-pin.js -- P0
 //
 // Instrument identity is the immutable triple:
 //   { rulesVersion + promptHash, model checkpoint digest, inferenceConfigHash }
-// The pin lives in src/instrument-identity.json. Gate time resolves the
+// The pin lives in src/version-pin.json. Gate time resolves the
 // rules_alias to a content digest and compares it with the pin. The model axis
 // is three-layer and may be UNRESOLVED until an immutable snapshot/weights are
 // supplied; the inference hash covers only authoritative decode fields.
@@ -17,10 +17,10 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { canonicalJSON, KNOWN_EVIDENCE_KINDS } = require('./evidence-log');
-const { SURFACE_ATTESTATIONS } = require('./change-surface');
+const { SCOPE_ATTESTATIONS } = require('./change-scope');
 
-const FACT_REL = path.join('src', 'instrument-identity.json');
-const STATE_REL = path.join('src', 'instrument-state.json');
+const PIN_FILE_REL = path.join('src', 'version-pin.json');
+const STATE_FILE_REL = path.join('src', 'version-pin-state.json');
 const GENESIS = 'GENESIS';
 const UNRESOLVED = 'UNRESOLVED';
 const ATTESTATIONS = ['certify', 'approve'];
@@ -50,41 +50,41 @@ function readJsonFile(file, label, readFile) {
 
 function loadPin(root, opts) {
   const o = opts || {};
-  return readJsonFile(path.join(root, FACT_REL), 'instrument identity', o.readFile);
+  return readJsonFile(path.join(root, PIN_FILE_REL), 'version pin', o.readFile);
 }
 
 function loadState(root, opts) {
   const o = opts || {};
-  return readJsonFile(path.join(root, STATE_REL), 'instrument state', o.readFile);
+  return readJsonFile(path.join(root, STATE_FILE_REL), 'version pin state', o.readFile);
 }
 
-// / : the judge identity axis hashes the JUDGE-BEHAVIORAL
+// The judge identity axis hashes the judge-behavioral
 // text surface of the rules file (the verifier-rules region), not the whole
 // file. Generator/product wording sits above the boundary, so product edits no
 // longer cascade into an identity re-pin, while any judge-rule edit still does.
 // Fail closed: a missing boundary heading is an error, never a silent
 // whole-file fallback (that would restore the dual-purpose hash by accident).
-const JUDGE_SURFACE_HEADING = '## Verifier Profile';
+const JUDGE_RULES_HEADING = '## Verifier Profile';
 
-function judgeSurfaceText(rulesText) {
+function judgeRulesText(rulesText) {
   const lines = String(rulesText).split('\n');
   const start = lines.findIndex(function (l) {
-    return l.replace(/[ \t]+$/, '') === JUDGE_SURFACE_HEADING;
+    return l.replace(/[ \t]+$/, '') === JUDGE_RULES_HEADING;
   });
   if (start === -1) {
-    throw new Error('judge surface heading "' + JUDGE_SURFACE_HEADING + '" not found in rules text: judge identity surface is unresolvable (fail-closed; no whole-file fallback)');
+    throw new Error('judge rules heading "' + JUDGE_RULES_HEADING + '" not found in rules text: the judge rules region is unresolvable (fail-closed; no whole-file fallback)');
   }
   return lines.slice(start).join('\n');
 }
 
-function resolveInstrumentIdentity(root, opts) {
+function resolveVersionPin(root, opts) {
   const o = opts || {};
   const read = o.readFile || fs.readFileSync;
   const pin = loadPin(root, o);
   const rulesPath = path.join(root, pin.rules_alias);
   const rulesText = read(rulesPath, 'utf8');
   // hash only the judge-behavioral surface (verifier rules).
-  const promptHash = sha256Text(judgeSurfaceText(rulesText));
+  const promptHash = sha256Text(judgeRulesText(rulesText));
   const resolved = {
     rules_version: pin.rules_version,
     prompt_hash: promptHash,
@@ -264,7 +264,7 @@ function transition(state, event, opts) {
     if (next.quarantined_identity_digest !== event.identity_digest) {
       throw new Error('signoff fingerprint does not match quarantined identity');
     }
-    if (!SURFACE_ATTESTATIONS.identity.includes(event.attestation_type)) {
+    if (!SCOPE_ATTESTATIONS.identity.includes(event.attestation_type)) {
       throw new Error('signoff requires attestation_type certify');
     }
     if (!event.reviewer_id || !isHex64(event.reverify_ledger_hash) || !isHex64(event.bias_probe_hash)) {
@@ -296,7 +296,7 @@ function transition(state, event, opts) {
     if (next.quarantined_identity_digest !== event.identity_digest) {
       throw new Error('conditional_signoff fingerprint does not match quarantined identity');
     }
-    if (!SURFACE_ATTESTATIONS.identity.includes(event.attestation_type)) {
+    if (!SCOPE_ATTESTATIONS.identity.includes(event.attestation_type)) {
       throw new Error('conditional_signoff requires attestation_type certify');
     }
     if (!event.reviewer_id || !isHex64(event.reverify_ledger_hash) || !isHex64(event.bias_probe_hash)) {
@@ -346,7 +346,7 @@ function transition(state, event, opts) {
     if (next.authoritative_identity_digest !== event.identity_digest) {
       throw new Error('corpus_rebaseline identity does not match authoritative identity');
     }
-    if (!SURFACE_ATTESTATIONS.corpus.includes(event.attestation_type) || !event.reviewer_id) {
+    if (!SCOPE_ATTESTATIONS.corpus.includes(event.attestation_type) || !event.reviewer_id) {
       throw new Error('corpus_rebaseline requires attestation_type and reviewer_id');
     }
     if (!event.corpus_ref || !event.previous_corpus_ref || !['pass', 'fail'].includes(event.outcome)) {
@@ -378,7 +378,7 @@ function transition(state, event, opts) {
     if (next.authoritative_identity_digest !== event.identity_digest) {
       throw new Error('criteria_change identity does not match authoritative identity');
     }
-    if (!SURFACE_ATTESTATIONS.threshold.includes(event.attestation_type) || !event.reviewer_id) {
+    if (!SCOPE_ATTESTATIONS.threshold.includes(event.attestation_type) || !event.reviewer_id) {
       throw new Error('criteria_change requires attestation_type and reviewer_id');
     }
     if (!event.criteria_version || !event.previous_criteria_version) {
@@ -447,7 +447,7 @@ function transition(state, event, opts) {
     const projection = projectRecordStatus(next.history);
     const current = projection.find(r => r.record_seq === event.record_seq);
     if (!current || current.status !== 'pending_signoff') throw new Error('record_signoff requires a pending_signoff record');
-    if (!SURFACE_ATTESTATIONS.schedule_gate.includes(event.attestation_type) || !event.reviewer_id || !event.reason) {
+    if (!SCOPE_ATTESTATIONS.schedule_gate.includes(event.attestation_type) || !event.reviewer_id || !event.reason) {
       throw new Error('record_signoff requires schedule_gate attestation, reviewer_id, and reason');
     }
     next.history.push(stateEvent(tail.seq + 1, 'record_signoff', event.identity_digest, tail.event_hash, {
@@ -578,18 +578,18 @@ function effectiveState(state, reverifyState, nowMs) {
 }
 
 module.exports = {
-  FACT_REL,
-  STATE_REL,
+  PIN_FILE_REL,
+  STATE_FILE_REL,
   GENESIS,
   UNRESOLVED,
   ATTESTATIONS,
   sha256Text,
   isHex64,
-  JUDGE_SURFACE_HEADING,
-  judgeSurfaceText,
+  JUDGE_RULES_HEADING,
+  judgeRulesText,
   loadPin,
   loadState,
-  resolveInstrumentIdentity,
+  resolveVersionPin,
   resolveModelIdentity,
   inferenceConfigHash,
   tripleHash,

@@ -1,11 +1,11 @@
 'use strict';
-// src/shared/tracked-surface.js - (grill-t36 D-006): the
-// tracked-surface snapshot, shared by the run-gates wrapper (D-4) and, per
+// src/shared/tracked-files.js - (grill-t36 D-006): the
+// tracked-files snapshot, shared by the run-gates wrapper (D-4) and, per
 // D-1, the `git ls-files` (index) enumeration base. The M1 static scan
 // (trackedTextFiles in scripts/shared/tracked-text.js) uses index UNION tree;
 // this M2 runtime snapshot uses index only because it runs inside a gate
 // execution where the working tree IS the index being mutated. One enumeration
-// base per surface; the ADR names both so neither side can silently narrow it.
+// base; the ADR names both so neither side can silently narrow it.
 //
 // WHAT THIS IS NOT, and why that is a finding rather than a caveat: it asserts
 // that nothing changed INSIDE the window in which it ran. It asserts nothing
@@ -20,8 +20,8 @@
 // D-1 names both bases so neither side can silently narrow it; this file's
 // comment must not conflate the two.
 //
-// The untracked surface is excluded by construction - that is the ignore
-// mechanism's existing division of labour, not a narrowing of this surface.
+// The untracked set is excluded by construction - that is the ignore
+// mechanism's existing division of labour, not a narrowing of this list.
 //
 // Cost is real and was measured, not guessed: ~1594 tracked files, ~80ms for
 // the enumeration and ~320ms for the content hashing on this tree, so a
@@ -42,7 +42,7 @@ function listTrackedPaths(root) {
   return out.split('\0').filter(Boolean);
 }
 
-// The working-tree surface: index UNION untracked-but-not-ignored (#102). It is
+// The working-tree list: index UNION untracked-but-not-ignored (#102). It is
 // a third named base, not a loosening of the two above - the local whitespace
 // check exists precisely because a file that was never `git add`ed is invisible
 // to both the index snapshot and `git diff --check`. Ignored paths stay out:
@@ -97,7 +97,7 @@ function changedPaths(before, after) {
 // The snapshot pair the wrapper drives: an entry zero point plus per-leg
 // checkpoints. Kept as a factory so a caller can inject a fake (tests, and the
 // stubbed-exec unit tests in test/adr-0034-wiring.test.js) without a git tree.
-function trackedSurface(opts) {
+function trackedFiles(opts) {
   const o = opts || {};
   const root = o.root;
   const list = o.list || listTrackedPaths;
@@ -105,7 +105,7 @@ function trackedSurface(opts) {
   let baseline = null;
   return {
     // Entry zero point: hash the CURRENT working tree, not "expect clean".
-    // A pre-existing dirty surface is registered verbatim as the zero point -
+    // A pre-existing dirty working tree is registered verbatim as the zero point -
     // neither penalised nor swallowed - which is what keeps this compatible
     // with the standing obligation never to discard blindly.
     begin: function () {
@@ -123,4 +123,4 @@ function trackedSurface(opts) {
   };
 }
 
-module.exports = { trackedSurface, listTrackedPaths, listWorkingTreePaths, listDeletedPaths, hashTrackedPaths, changedPaths, MISSING };
+module.exports = { trackedFiles, listTrackedPaths, listWorkingTreePaths, listDeletedPaths, hashTrackedPaths, changedPaths, MISSING };

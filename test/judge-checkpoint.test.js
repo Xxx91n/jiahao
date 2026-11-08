@@ -1,4 +1,4 @@
-// test/judge-seam.test.js -- acceptance closure.
+// test/judge-checkpoint.test.js -- acceptance closure.
 // D2: locked judge checkpoint signature returns a typed object or null.
 // D3: telemetry counters count judge checkpoint invocations (null result this round).
 // D3: corpus schema gate stays green.
@@ -11,9 +11,9 @@ const CORPUS_TIER = resolveCorpus().tier;
 const path = require("path");
 const detector = require("../src/detector");
 
-test("judgeSeam: no runtime judge -> null (the decision stands), counters increment", () => {
+test("judgeCheckpoint: no runtime judge -> null (the decision stands), counters increment", () => {
   const before = detector.judgeTelemetry().invocations;
-  const out = detector.judgeSeam("done", [], { suspicious: true });
+  const out = detector.judgeCheckpoint("done", [], { suspicious: true });
   expect(out).toBeNull();
   const after = detector.judgeTelemetry();
   expect(after.invocations).toBe(before + 1);

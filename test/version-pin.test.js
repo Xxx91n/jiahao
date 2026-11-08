@@ -1,5 +1,5 @@
 'use strict';
-// test/instrument-identity.test.js — the drift-exposure projection (#71 item 14).
+// test/version-pin.test.js — the drift-exposure projection (#71 item 14).
 // A prior-interval sign-off is affected by an open exposure; the project used
 // to recognise only `signoff` and `record_signoff`, so an earlier
 // `conditional_signoff` stayed silently valid across an open exposure.
@@ -7,7 +7,7 @@
 const path = require('path');
 
 const { affectedSignoffs, openExposures } = require(
-  path.join(__dirname, '..', 'src', 'instrument-identity.js'));
+  path.join(__dirname, '..', 'src', 'version-pin.js'));
 
 test('#71 item 14: a conditional_signoff before an open exposure is marked affected', () => {
   const history = [
