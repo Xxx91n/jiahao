@@ -1,4 +1,4 @@
-// test/install.test.js — §2 Tier 1 install CLI tests
+// test/install.test.js — §2 guided install CLI tests
 
 const fs = require('fs');
 const path = require('path');

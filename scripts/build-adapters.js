@@ -130,19 +130,19 @@ const WRITE_SCOPE_WITH_GUARD_AND_MCP = writeScope({ guard: true, mcp: true });
 
 // ---- host table: the one place a plugin host is described ----
 //
-// A row says what a bundle is called, which capability tier it claims, where it
-// ships, and which host events it wires. The generator emits from this table,
-// both gates read it, and the structure tests iterate it - adding a host is one
-// row, not a copy of claude-code's assertions plus edits to check-drift and
-// release-gate. A C-tier row sets `manifest: null`: that is the rules-only
+// A row says what a bundle is called, which blocking capability level it claims,
+// where it ships, and which host events it wires. The generator emits from this
+// table, both gates read it, and the structure tests iterate it - adding a host
+// is one row, not a copy of claude-code's assertions plus edits to check-drift
+// and release-gate. A C-level row sets `manifest: null`: that is the rules-only
 // shape (rule text + README, no plugin manifest, no src/ copy, no hooks).
 //
-// tier is spec #74 D2's vocabulary: A can block before the turn ends, B can
-// only block a tool call, C is rules-only and registers no hooks at all.
-// `turnEnd` names the host's own end-of-turn event and must run the verdict
+// The `tier` field is spec #74 D2's vocabulary: A can block before the turn
+// ends, B can only block a tool call, C is rules-only and registers no hooks at
+// all. `turnEnd` names the host's own end-of-turn event and must run the verdict
 // gate; only an A row may declare it. `provenance` is the evidence behind the
-// tier (host build + what was actually observed): a tier is a release-period
-// conclusion, not a permanent property. "A 档候选" is only for a
+// blocking level (host build + what was actually observed): a level is a
+// release-period conclusion, not a permanent property. "A 档候选" is only for a
 // documented-but-unwatched block; Codex and Copilot each had a live turn
 // blocked on 2026-10-30 (#80).
 const HOSTS = [
@@ -179,7 +179,8 @@ const HOSTS = [
     // Deliberately absent from this bundle: InstructionsLoaded (it hashes
     // rules/jiahao-*.md, and a Claude Code plugin has no plugin-level rules/
     // directory for the host to load) and jiahao-mcp + .mcp.json (#59 keeps the
-    // server in the repo but not as an install-and-work exit; auto-discovery
+    // The server stays in the repo but is not part of this install path;
+    // auto-discovery
     // would register a server whose SDK deps are not vendored). With those two
     // gone the bundle has no third-party runtime dependency.
     mcp: null,
@@ -192,12 +193,12 @@ const HOSTS = [
     dir: 'adapters/codebuddy',
     tier: 'A',
     turnEnd: 'Stop',
-    // Settings-tier hooks were probed live; the plugin-bundle path (and its
-    // Stop hook) is documented compat that nobody has watched fire in a real
-    // turn.
-    provenance: 'CodeBuddy Code CLI 2.151.0 (adapters/codebuddy/README.md): settings-tier SessionStart/PreToolUse/PostToolUse live-probed; plugin Stop gate pinned at script level only, no live turn-end block observed',
+    // Hooks registered in the settings file were probed live; the plugin-bundle
+    // path (and its Stop hook) is documented compat that nobody has watched fire
+    // in a real turn.
+    provenance: 'CodeBuddy Code CLI 2.151.0 (adapters/codebuddy/README.md): SessionStart/PreToolUse/PostToolUse hooks registered in the settings file live-probed; plugin Stop gate pinned at script level only, no live turn-end block observed',
     // Full event map: the migrated five-event set plus the InstructionsLoaded
-    // integrity assertion and the PreToolUse enforcement-surface deny wiring.
+    // integrity assertion and the PreToolUse protected-path deny wiring.
     // Plugin hook maps are exempt from the allowUntrustedFrontmatterHooks gate
     // and effective on enable, so assertion/enforcement lines live here, never
     // in skill/agent frontmatter (silently skipped by default). Timeouts stay
@@ -212,7 +213,7 @@ const HOSTS = [
       PreToolUse: { script: 'jiahao-pretool-guard', timeout: 5 },
     },
     manifest: {
-      description: 'Dual-profile verification discipline (generator advisory + verifier iron laws) - Claude-Code-compatible plugin surface for CodeBuddy.',
+      description: 'Dual-profile verification discipline (generator advisory + verifier iron laws) - Claude-Code-compatible plugin for CodeBuddy.',
       // CodeBuddy's documented compat path reads these two keys from the
       // manifest and does not auto-discover the files, so here they belong.
       hooks: 'hooks/hooks.json',
@@ -224,7 +225,7 @@ const HOSTS = [
     // a declared-unverified item (README).
     rules: [
       { file: 'jiahao-verifier.md', profile: 'verifier', description: 'Jiahao verifier discipline (blocking)' },
-      { file: 'jiahao-generator.md', profile: 'generator', description: 'Jiahao generator discipline (surface signals)' },
+      { file: 'jiahao-generator.md', profile: 'generator', description: 'Jiahao generator discipline (the five-step way of working and three-part reply)' },
     ],
     readme: codebuddyReadme,
   },
@@ -240,7 +241,7 @@ const HOSTS = [
     // injected the reason as "Stop hook feedback: ..." and re-ran the turn. The
     // same hook answered a SubagentStop with the same decision and the subagent
     // was not continued, so only the turn-end event is wired. Both observations
-    // were settings-tier (project .codebuddy/settings.json); the plugin-bundle
+    // were registered in the project .codebuddy/settings.json); the plugin-bundle
     // path was not watched firing.
     //
     // #118, 2026-11-01, WorkBuddy 5.9.3 (domestic, win32, D:\WorkBuddy,
@@ -249,7 +250,7 @@ const HOSTS = [
     // continuation, same stop_hook_active pass on re-entry, same ignored
     // SubagentStop block. The two variants were probed separately; neither
     // result stands in for the other, even though both bundle agent-cli 2.165.0.
-    provenance: 'WorkBuddy AI 5.9.4 international (2026-10-31, #110) and WorkBuddy 5.9.3 domestic (2026-11-01, #118), each on its own run: live Stop {decision:"block"} on exit 0 continued the turn with "Stop hook feedback" and the re-entry carried stop_hook_active:true; SubagentStop fired on both builds but its block was not continued; settings-tier hooks (project .codebuddy/settings.json) were the probed surface on both; plugin-bundle hooks unprobed on both',
+    provenance: 'WorkBuddy AI 5.9.4 international (2026-10-31, #110) and WorkBuddy 5.9.3 domestic (2026-11-01, #118), each on its own run: live Stop {decision:"block"} on exit 0 continued the turn with "Stop hook feedback" and the re-entry carried stop_hook_active:true; SubagentStop fired on both builds but its block was not continued; hooks registered in the project .codebuddy/settings.json were what was probed on both; plugin-bundle hooks unprobed on both',
     // Product identity, config roots, the two manifest directories the loader
     // accepts, and the platform name the template passes all live in
     // scripts/hosts/workbuddy.js.
@@ -262,7 +263,7 @@ const HOSTS = [
       SessionEnd: { script: 'jiahao-sweep', timeout: 3 },
     },
     manifest: {
-      description: 'Dual-profile verification discipline for WorkBuddy: profile injection on SessionStart, verdict gate on Stop. A tier on both builds - a live turn-end block on the international 5.9.4 (2026-10-31) and on the domestic 5.9.3 (2026-11-01), each probed on its own run.',
+      description: 'Dual-profile verification discipline for WorkBuddy: profile injection on SessionStart, verdict gate on Stop. Blocking level A on both builds - a live turn-end block on the international 5.9.4 (2026-10-31) and on the domestic 5.9.3 (2026-11-01), each probed on its own run.',
     },
     autoDiscovered: [],
     mcp: null,
@@ -284,9 +285,9 @@ const HOSTS = [
     // block continuations followed by a forced end matched the documented cap.
     provenance: 'GitHub Copilot CLI 1.0.105 (2026-10-30, #80): live agentStop {decision:"block"} on exit 0 continued the turn; exit 2 did not block; 8 consecutive continuations then the CLI ended; .claude/settings.json SessionStart/Stop hooks observed; COPILOT_PLUGIN_DATA set for plugin hooks',
     // camelCase event names and the bash/powershell pair are this host's
-    // dialect; they live in scripts/hosts/copilot.js alone, never in the hook
+    // config shape; they live in scripts/hosts/copilot.js alone, never in the hook
     // scripts. subagentStop is deliberately not wired: the ticket asks for the
-    // turn-end event, and a blocked subagent finish is an unprobed surface (#80).
+    // turn-end event, and a blocked subagent finish was not probed (#80).
     dialect: copilotDialect,
     hooks: {
       sessionStart: { script: 'jiahao-activate', timeout: 10 },
@@ -329,7 +330,7 @@ const HOSTS = [
     // scripts/hosts/codex.js.
     dialect: codexDialect,
     manifest: {
-      description: 'Verification discipline for Codex CLI: profile injection at session start, verdict gate at turn end (A tier, live block verified 2026-10-30). Self-contained plugin.',
+      description: 'Verification discipline for Codex CLI: profile injection at session start, verdict gate at turn end (blocking level A, live block verified 2026-10-30). Self-contained plugin.',
       author: { name: 'Xxx91n' },
     },
     autoDiscovered: [],
@@ -355,7 +356,7 @@ const HOSTS = [
       SessionEnd: { script: 'jiahao-sweep', timeout: 5 },
     },
     manifest: {
-      description: 'Verification discipline for Google Antigravity: profile injection at session start, verdict gate at turn end (A tier, live block verified 2026-10-31). Self-contained plugin.',
+      description: 'Verification discipline for Google Antigravity: profile injection at session start, verdict gate at turn end (blocking level A, live block verified 2026-10-31). Self-contained plugin.',
       author: { name: 'Xxx91n' },
     },
     autoDiscovered: [],
@@ -378,14 +379,14 @@ const HOSTS = [
     // reproduced all of it on the other build: both channels, stop_hook_active
     // on re-entry, 3 consecutive blocks before the probe's cap, and a
     // `.qoder-cn/settings.json` armed beside the `.qoder/` twin never fired.
-    // One claim stays open on both builds: the plugin registration surface is
+    // One claim stays open on both builds: the plugin registration is
     // read from the host's own bundled `qoder-context` plugin (its hooks.json
     // carries a Stop event and its Stop hooks were watched finishing with
     // exit_code=0), not watched blocking through this bundle. The IDE/CLI line
-    // keeps the rules exit below.
+    // keeps the rules install form below.
     provenance: 'Qoder CN Desktop 0.4.11 (2026-10-31, #109) and international Desktop 0.4.11 (2026-11-01, #113): live Stop block observed on both builds through a project-scope .qoder/settings.json hook - exit 0 + {decision:"block"} and exit 2 + stderr both blocked and continued, stop_hook_active set on re-entry, 6 (CN) and 3 (intl) consecutive continuations before the probe capped it; on each build a .qoder-cn/settings.json armed beside it never fired; Qoder IDE/CLI turn-end behavior unprobed, plugin-scope registration inferred from the host\'s own bundled plugin',
-    // PascalCase events and the Claude-shaped payload are this host's dialect;
-    // they live in scripts/hosts/qoder.js alone. PreToolUse and SubagentStop are
+    // PascalCase events and the Claude-shaped payload are this host's config
+    // shape; they live in scripts/hosts/qoder.js alone. PreToolUse and SubagentStop are
     // deliberately not wired: the deny channel and a blocked subagent finish were
     // never exercised on this host (#109). SessionEnd is wired even though its
     // firing was not observed either, because the sentinel-reclamation invariant
@@ -399,7 +400,7 @@ const HOSTS = [
       SessionEnd: { script: 'jiahao-sweep', timeout: 3 },
     },
     manifest: {
-      description: 'Verification discipline for Qoder Desktop: profile injection at session start, verdict gate at turn end (A tier on Qoder CN Desktop and international Desktop 0.4.11, live block 2026-10-31 and 2026-11-01). Self-contained plugin.',
+      description: 'Verification discipline for Qoder Desktop: profile injection at session start, verdict gate at turn end (blocking level A on Qoder CN Desktop and international Desktop 0.4.11, live block 2026-10-31 and 2026-11-01). Self-contained plugin.',
     },
     // The host loads `hooks/hooks.json` by itself, the way it loads its own
     // bundled plugin's map; naming it in the manifest would load it twice.
@@ -436,7 +437,7 @@ const HOSTS = [
     // name the template passes, and the absent-by-rule defaultEnabled key all
     // live in scripts/hosts/zcode.js.
     manifest: {
-      description: 'Verification discipline for ZCode: profile injection at session start, verdict gate at turn end (A tier, live block verified 2026-10-31). Self-contained plugin.',
+      description: 'Verification discipline for ZCode: profile injection at session start, verdict gate at turn end (blocking level A, live block verified 2026-10-31). Self-contained plugin.',
       author: { name: 'Xxx91n' },
     },
     autoDiscovered: ['hooks/hooks.json'],
@@ -465,15 +466,16 @@ const MARKETPLACE_HOST = HOSTS.find(host => host.name === 'claude-code');
 // self-contained bundles, qoder the rules-only shape with the no-registration
 // assertion at the time). #109 turned that qoder row into a self-contained
 // bundle as well; the rules-only shape it left behind survives as the row's
-// `rules/jiahao.md`, still the IDE/CLI exit.
+// `rules/jiahao.md`, still the IDE/CLI install form.
 const RETIRED_HOSTS = ['aider', 'cline', 'cursor',
   'instruction-tier', 'mcp', 'opencode', 'windsurf'];
 
-// A host row may name a dialect module (scripts/hosts/<name>.js) when its
-// config schema differs from the Claude-shaped default. The dialect owns the
-// manifest and hook-map paths, the command spelling, the timeout key, and any
-// extra generated files; vendoring, tier checks, and regen-diff stay shared, so
-// a second copy of the judgment logic cannot grow per host.
+// A host row may name a host-config module (the `dialect` field,
+// scripts/hosts/<name>.js) when its config schema differs from the
+// Claude-shaped default. That module owns the manifest and hook-map paths, the
+// command spelling, the timeout key, and any extra generated files; vendoring,
+// level checks, and regen-diff stay shared, so a second copy of the judgment
+// logic cannot grow per host.
 const CLAUDE_DIALECT = {
   manifestPath: '.claude-plugin/plugin.json',
   hookMapPath: 'hooks/hooks.json',
@@ -494,12 +496,12 @@ function dialectOf(host) {
 
 // Codex reads its own marketplace file (`.agents/plugins/marketplace.json`);
 // the entry points at the same bundle the row describes. Exactly one row may
-// own that file: two Codex-dialect rows would otherwise leave one silently
-// unshelved, and the build catches it instead.
+// own that file: two rows with a `codex` marketplace would otherwise leave one
+// silently unshelved, and the build catches it instead.
 const CODEX_DIALECT_HOSTS = HOSTS.filter(host => (host.dialect || {}).marketplace === 'codex');
 const CODEX_MARKETPLACE_HOST = CODEX_DIALECT_HOSTS.length === 1 ? CODEX_DIALECT_HOSTS[0] : null;
 
-// Claude-shaped maps nest their commands under `hooks`; a flat dialect's entry
+// Claude-shaped maps nest their commands under `hooks`; a flat config's entry
 // IS the command. One reader, so the gate and the suites cannot disagree about
 // the shape, and a new flat host does not copy the branch into three files.
 function hookEntryCommands(entry) {
@@ -569,7 +571,7 @@ function vendorClosure(seeds) {
   return files;
 }
 
-// Every way a row can contradict the tier contract or itself. Kept as a pure
+// Every way a row can contradict the rules for blocking levels or itself. Kept as a pure
 // function of the rows so the build fails closed on a bad table and a test can
 // prove each rule red without a real host shipping the mistake.
 const VERDICT_GATE = 'jiahao-verdict-gate';
@@ -595,22 +597,22 @@ function hostShapeProblems(hosts) {
     if (names.has(host.name)) problems.push(label + ': duplicate host name');
     names.add(host.name);
     if (host.dir !== 'adapters/' + host.name) problems.push(label + ': dir must be adapters/<name>, got ' + host.dir);
-    if (!['A', 'B', 'C'].includes(host.tier)) problems.push(label + ': unknown tier ' + host.tier);
-    if (!host.provenance || !String(host.provenance).trim()) problems.push(label + ': the tier needs provenance (host build + what was observed)');
+    if (!['A', 'B', 'C'].includes(host.tier)) problems.push(label + ': unknown blocking level ' + host.tier);
+    if (!host.provenance || !String(host.provenance).trim()) problems.push(label + ': the blocking level needs provenance (host build + what was observed)');
 
     const events = Object.keys(host.hooks || {});
     if (!host.hooks || typeof host.hooks !== 'object' || Array.isArray(host.hooks)) {
       problems.push(label + ': hooks must be an object (empty for a rules-only host)');
     }
     if (host.tier === 'A') {
-      if (!host.turnEnd) problems.push(label + ': an A-tier host must name its turn-end event (turnEnd)');
+      if (!host.turnEnd) problems.push(label + ': a host at blocking level A must name its turn-end event (turnEnd)');
       else if (!events.includes(host.turnEnd)) problems.push(label + ': turnEnd ' + host.turnEnd + ' is not a registered event');
       else if (host.hooks[host.turnEnd].script !== VERDICT_GATE) problems.push(label + ': turnEnd must run ' + VERDICT_GATE);
     } else if (host.turnEnd) {
-      problems.push(label + ': only an A-tier host may declare turnEnd');
+      problems.push(label + ': only a host at blocking level A may declare turnEnd');
     }
-    if (host.tier === 'C' && events.length) problems.push(label + ': a C-tier host is rules-only and must not register hooks');
-    if (host.tier !== 'C' && events.length === 0) problems.push(label + ': a tier-' + host.tier + ' host registers no hooks');
+    if (host.tier === 'C' && events.length) problems.push(label + ': a host at blocking level C is rules-only and must not register hooks');
+    if (host.tier !== 'C' && events.length === 0) problems.push(label + ': a host at blocking level ' + host.tier + ' registers no hooks');
     for (const [event, hook] of Object.entries(host.hooks || {})) {
       if (!/^[a-z0-9-]+$/.test(hook.script || '')) problems.push(label + ': ' + event + ' names no script');
       if (!(hook.timeout > 0 && hook.timeout <= 60)) problems.push(label + ': ' + event + ' timeout must be 1-60s');
@@ -625,19 +627,19 @@ function hostShapeProblems(hosts) {
     for (const rule of rules) {
       if (!['generator', 'verifier', 'both'].includes(rule.profile)) problems.push(label + ': rule ' + rule.file + ' has unknown profile ' + rule.profile);
     }
-    // A C-tier host exists to carry rules; an empty one is not an exit.
-    if (host.tier === 'C' && rules.length === 0) problems.push(label + ': a C-tier host is rules-only and must ship at least one rule');
+    // A C-level host exists to carry rules; an empty one is not an install form.
+    if (host.tier === 'C' && rules.length === 0) problems.push(label + ': a host at blocking level C is rules-only and must ship at least one rule');
     // manifest: null is the rules-only shape: no plugin manifest, no src/ copy,
-    // no hooks. It must be C tier and register nothing the host could load as a
+    // no hooks. It must be blocking level C and register nothing the host could load as a
     // component.
     const rulesOnly = isRulesOnlyDirectory(host);
     if (host.manifest === undefined || (!rulesOnly && (typeof host.manifest !== 'object' || Array.isArray(host.manifest)))) {
-      problems.push(label + ': manifest must be an object, or null for a rules-only exit');
+      problems.push(label + ': manifest must be an object, or null for a rules-only install form');
     }
     if (rulesOnly) {
-      if (host.tier !== 'C') problems.push(label + ': a manifest-less exit is rules-only (tier C)');
-      if (autoDiscovered.length) problems.push(label + ': a rules-only exit auto-discovers nothing');
-      if (host.mcp) problems.push(label + ': a rules-only exit has no MCP registration');
+      if (host.tier !== 'C') problems.push(label + ': a manifest-less install form is rules-only (blocking level C)');
+      if (autoDiscovered.length) problems.push(label + ': a rules-only install form auto-discovers nothing');
+      if (host.mcp) problems.push(label + ': a rules-only install form has no MCP registration');
     }
     for (const key of RESERVED_MANIFEST_KEYS) {
       if (Object.prototype.hasOwnProperty.call(host.manifest || {}, key)) {
@@ -652,30 +654,30 @@ function hostShapeProblems(hosts) {
       if (host.dialect.platform !== undefined && !PLATFORMS.includes(host.dialect.platform)) {
         // A config template may only pass a name the hook layer has a shape for;
         // a typo would silently fall back to the Claude branch at runtime.
-        problems.push(label + ': dialect platform "' + host.dialect.platform + '" is not one of ' + PLATFORMS.join('/'));
+        problems.push(label + ': host config platform "' + host.dialect.platform + '" is not one of ' + PLATFORMS.join('/'));
       }
       if (host.dialect.manifestPathPrefix !== undefined && !['', './'].includes(host.dialect.manifestPathPrefix)) {
-        problems.push(label + ': dialect manifestPathPrefix must be "" or "./"');
+        problems.push(label + ': host config manifestPathPrefix must be "" or "./"');
       }
       for (const key of ['manifestPath', 'hookMapPath']) {
         const rel = host.dialect[key];
         if (typeof rel !== 'string' || !rel.endsWith('.json') ||
             rel.startsWith('/') || rel.split('/').includes('..')) {
-          problems.push(label + ': dialect ' + key + ' must be a relative .json path inside the bundle');
+          problems.push(label + ': host config ' + key + ' must be a relative .json path inside the bundle');
         }
       }
       for (const fn of ['emitManifest', 'emitHookMap']) {
         if (host.dialect[fn] !== undefined && typeof host.dialect[fn] !== 'function') {
-          problems.push(label + ': dialect ' + fn + ' must be a function when present');
+          problems.push(label + ': host config ' + fn + ' must be a function when present');
         }
       }
       if (!Array.isArray(host.dialect.commandFields) || host.dialect.commandFields.length === 0) {
-        problems.push(label + ': dialect must name its command fields');
+        problems.push(label + ': the host config must name its command fields');
       }
       for (const field of host.dialect.commandFields || []) {
         const pattern = (host.dialect.commandPatterns || {})[field];
         if (!(pattern instanceof RegExp)) {
-          problems.push(label + ': dialect needs a command pattern for ' + field);
+          problems.push(label + ': the host config needs a command pattern for ' + field);
         }
       }
       // The shared emitter writes exactly the default `command` + `timeout`
@@ -788,7 +790,7 @@ function buildAdapters() {
     const prefix = host.dir + '/';
     const dialect = dialectOf(host);
     // A rules-only row has no plugin scaffold at all; a plugin row takes its
-    // manifest and hook-map paths (and command spelling) from its dialect.
+    // manifest and hook-map paths (and command spelling) from its host-config module.
     if (!isRulesOnlyDirectory(host)) {
       emitBundle(adapters, prefix, bundleSeeds(host), skill, host.mcp ? host.mcp.files : []);
 
@@ -842,7 +844,7 @@ function buildAdapters() {
   // from the marketplace root (the repo). The entry names the row's bundle and
   // carries no version: `.codex-plugin/plugin.json` is the authority.
   if (CODEX_DIALECT_HOSTS.length > 1) {
-    throw new Error('at most one Codex-dialect host may own .agents/plugins/marketplace.json (found ' +
+    throw new Error('at most one host with a codex marketplace may own .agents/plugins/marketplace.json (found ' +
       CODEX_DIALECT_HOSTS.length + ')');
   }
   if (CODEX_MARKETPLACE_HOST) {
@@ -892,9 +894,9 @@ function toShippedSkill(source) {
     .replace('argument-hint: "[lite|full|ultra]"\n', '');
 }
 
-// CodeBuddy install manual + injection-surface ruling (spec
+// CodeBuddy install manual + injection ruling (spec
 // section 5): the Verified / Declared-unverified tiering tables live here
-// (disclosure surface - push discipline applies). Regenerated
+// (disclosure note - push discipline applies). Regenerated
 // from this single source; edit the string, never the emitted file.
 function codebuddyReadme() {
   return `# CodeBuddy plugin
@@ -1000,10 +1002,11 @@ errata records).
 }
 
 
-// Qoder install manual. One directory, three surfaces with three different
-// claims: the Desktop plugin bundle (A tier on each Desktop build, each measured
-// by its own probe), the rules version's standard skill directory (#106, text
-// only), and the IDE/CLI rule file (text only). The wording keeps the surfaces
+// Qoder install manual. One directory, three install paths with three different
+// claims: the Desktop plugin bundle (blocking level A on each Desktop build, each
+// measured by its own probe), the rules version's standard skill directory (#106,
+// text only), and the IDE/CLI rule file (text only). The wording keeps the
+// install paths
 // apart so neither the skill directory nor `.qoder/rules/` reads as a hook, and
 // so the blocking claim names the build it was observed on.
 function qoderReadme() {
@@ -1060,7 +1063,7 @@ ${PROFILE_SECTION}
 ## Qoder IDE/CLI rules
 
 The IDE/CLI reads project rules from \`.qoder/rules/\`
-(https://docs.qoder.com/zh/user-guide/rules). \`rules/jiahao.md\` is that exit:
+(https://docs.qoder.com/zh/user-guide/rules). \`rules/jiahao.md\` is that install form:
 
 1. Copy \`rules/jiahao.md\` into \`.qoder/rules/\` in the project.
 2. Keep \`alwaysApply: true\` in the frontmatter. Qoder's rules docs say rules
@@ -1318,7 +1321,7 @@ Use the host's own plugin commands. The repository root is not a plugin entry.
 `;
 }
 
-// GitHub Copilot CLI install manual + dialect disclosure. Regenerated from this
+// GitHub Copilot CLI install manual + config disclosure. Regenerated from this
 // single source; edit the string, never the emitted file.
 function copilotCliReadme() {
   return `# GitHub Copilot CLI plugin
@@ -1530,7 +1533,7 @@ Use the host's own plugin commands. The repository root is not a plugin entry.
 }
 
 // WorkBuddy install manual: one host row, two products. The identity facts, the
-// config roots, and the two install surfaces are stated per variant because
+// config roots, and the two install paths are stated per variant because
 // each build carries its own live probe - the international 5.9.4 run in #110
 // and the domestic 5.9.3 run in #118. Regenerated from this single source; edit
 // the string, never the emitted file.
@@ -1982,7 +1985,7 @@ logging wrapper that runs the real gate. Evidence:
   fires: \`docs/evidence/v0.3.0/zcode-stop-fires.jsonl\`. The evidence layout
   is in \`docs/agents/evidence-review.md\`.
 
-Tested and did not work as a channel (kept with the receipts):
+Tested and did not work as a channel (kept as evidence):
 
 - Exit 2 as the block channel: exit 2 also blocked, but with the host's
   generic "Hook blocked execution" and no reason; the gate keeps exit 0 + the

@@ -2,7 +2,7 @@
 
 // src/shared/falsify.js -- : pure falsification core.
 // This module owns the five-tuple record and the first 12 claim-directed
-// twin pairs. No I/O here; scripts/check-falsify.js is the thin seam.
+// twin pairs. No I/O here; scripts/check-falsify.js is the thin wrapper.
 
 const CLAIM_TYPES = Object.freeze([
   'state-change',

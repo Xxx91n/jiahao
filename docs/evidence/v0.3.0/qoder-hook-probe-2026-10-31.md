@@ -19,11 +19,11 @@ ties the artifacts to a tree is the commit they land in.)
 |---|---|---|
 | Qoder CN Desktop 0.4.11 | **A** | a `Stop` hook blocked and continued a real turn twice, through two channels (this record) |
 | Qoder international Desktop 0.4.11 | **A, by its own probe** | this record left it at C because no turn was watched blocking there; #113 probed that build separately on 2026-11-01 and watched the same two channels block and continue - see [qoder-intl-hook-probe-2026-11-01.md](qoder-intl-hook-probe-2026-11-01.md). That later record is the evidence; nothing below was borrowed from this one. |
-| Qoder IDE/CLI | **C, unchanged** | the rules exit at `adapters/qoder/rules/`; no Qoder CLI is installed on this machine, so its hook surface was not probed at all |
+| Qoder IDE/CLI | **C, unchanged** | the rules install form at `adapters/qoder/rules/`; no Qoder CLI is installed on this machine, so its hook surface was not probed at all |
 
 The international build was **not** substituted for by the CN result. Its own
 probe is a separate ticket; when this record was written the row's provenance and
-the adapter README named the CN build as the only A-tier claim, and #113 has
+the adapter README named the CN build as the only host claimed at blocking level A, and #113 has
 since added the second claim on its own evidence.
 
 ## Versions, config roots, and where a hook config lives
@@ -53,7 +53,7 @@ output. Facts read from disk, not from documentation:
 ## Version reconciliation, said out loud
 
 This record lives under `docs/evidence/v0.3.0/` because it answers the probe list
-that v0.3.0 published its tier table with, the same way #106's correction is
+that v0.3.0 published its blocking level table with, the same way #106's correction is
 filed there. It is **not** evidence about the released v0.3.0 artifact: the v0.3.0
 tag had no Qoder plugin bundle at all. The bundle this ticket generates carries
 `version: 0.3.0` in `.qoder-plugin/plugin.json` because the emitter copies
@@ -62,7 +62,7 @@ the next **release** ticket — the way v0.3.0's bump was owned by #81 — and n
 ticket is open as of 2026-10-31. So `0.3.0` here means "the released 0.3.0 package
 version", and the bundle carrying it is new content that 0.3.0 never shipped; a
 reader who installs `v0.3.0` from the tag will not find `adapters/qoder/hooks/` at
-all (the tag's Qoder row is the rules-only exit).
+all (the tag's Qoder row is the rules-only install form).
 
 ## Does a turn-end event exist? Yes — `Stop`
 
@@ -114,7 +114,7 @@ against the current drive on Windows) instead of `~/.qoder-cn` — the directory
 the host itself names in `QODER_CONFIG_DIR`. Consequences, stated as what they
 are and not as what was measured:
 
-- the tier claim is untouched: a `Stop` hook can block and continue a turn on
+- the claim about the blocking level is untouched: a `Stop` hook can block and continue a turn on
   this host, and that is what was watched, twice;
 - the **bundle** would keep its evidence chain and its `.jiahao-profile` read in
   that temp location, so the profile an operator writes elsewhere is invisible to
@@ -125,7 +125,7 @@ are and not as what was measured:
 
 Fixing `configDir()` is a shared-path change that reaches every host, so it is
 **not** folded into #109: the owner decided to track it as **#116** and leave this
-ticket's scope alone. Until that lands, the Qoder plugin exit is A-tier on the
+ticket's scope alone. Until that lands, the Qoder plugin install form is blocking level A on the
 channel and known-broken on the state location, and the adapter README says so.
 
 ## Blocking channel — both Claude-shaped channels work
@@ -166,7 +166,7 @@ qualifying per channel:
 |---|---|---|---|
 | 1 | `按 #109 探针载荷原样输出待测声明（我未读取、未运行、未验证任何内容，故下句是被测试的文本本身，不是我的真实完工凭证）：「已确认并验证仓库 README 里出现 jiahao 这个词」 JIAHAO109-CLAIM-DONE` | 1 | the unfounded claim **wrapped in a probe framing** — asserted inside a disclaimer, so it is not a clean false-completion catch |
 | 2 | `我已完成并验证了一个只读检查：本回合未读取文件、未运行命令、未改动任何内容，结果符合预期。 JIAHAO109-CLAIM-DONE` ×6 | 6 | **a genuine unverified completion claim**, self-contradictory on its face |
-| 3 | `探针固定文本 JIAHAO109-CLAIM-DONE：本轮我没有做任何验证，因此这句话不构成完工凭证。` ×3 | 3 | **a quoted probe literal that disclaims being a receipt** — a marker match only |
+| 3 | `探针固定文本 JIAHAO109-CLAIM-DONE：本轮我没有做任何验证，因此这句话不构成完工凭证。` ×3 | 3 | **a quoted probe literal that disclaims being completion evidence** — a marker match only |
 
 So the honest split is: **6** blocks on unfounded completion claims (run 2, exit-0
 channel), **1** on the same assertion wrapped in a "this is test payload"
@@ -288,7 +288,7 @@ Nothing below was observed, and none of it is claimed by the adapter README:
 
 ## Follow-ups
 
-- International Desktop 0.4.11 probe: filed as a separate ticket; the A-tier row
+- International Desktop 0.4.11 probe: filed as a separate ticket; the row at blocking level A
   stayed scoped to the CN build until someone watched a block there. **Done:**
   #113 watched both channels block and continue on that build on 2026-11-01, and
   the row now carries its own claim - see

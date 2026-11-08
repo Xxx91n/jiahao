@@ -167,7 +167,7 @@ describe('ZCode output envelope (spawned hook, temp config dir)', () => {
   }, 20000);
 
   test('detectHost() picks ZCode from its environment marker without an argv platform', () => {
-    // A config-tier install carries no argv. The probe (#108) saw
+    // A config-file install carries no argv. The probe (#108) saw
     // ZCODE_SESSION_ID in the hook subprocess environment, next to the
     // CLAUDE_* compat vars; the Claude SessionStart branch would print the
     // plain body, so the JSON envelope below proves the env probe fired.

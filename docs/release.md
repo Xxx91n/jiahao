@@ -23,11 +23,11 @@ tag 推送时 CI 跑同一条命令（`.github/workflows/ci.yml` 的 `release-ga
 | `drift` | `check-drift.js`：两份 profile 片段在位，退役适配器目录没有复活 | 漂移检查 |
 | `tests` | `npm test`：全套用例，含 `test/packaging.test.js` 的打包断言 | 测试 + 打包断言 |
 | `links` | `check-doc-links.js`：包里每份 Markdown 的相对链接都落到包内（文件或目录）；指到没进 `files` 的路径即红，外链不查 | 包内文档链接可达 |
-| `artifact` | 跑测试后先确认工作区仍然干净；再打两次 `npm pack`：必须包含 / 必须排除逐条核过，两次字节相同才算可复现，算 `sha256`，算各出口目录的树哈希 | 包内容正确、产物附 SHA256、可复现 |
+| `artifact` | 跑测试后先确认工作区仍然干净；再打两次 `npm pack`：必须包含 / 必须排除逐条核过，两次字节相同才算可复现，算 `sha256`，算各安装形态目录的树哈希 | 包内容正确、产物附 SHA256、可复现 |
 | `install` | `install.js init --dry-run` 退出 0、打印目标路径；临时配置目录和临时工作目录里都没有落文件 | 安装 dry-run |
 | `skill-spec` | `check-skill-external.js spec`：把官方 Agent Skills 参考校验器 `skills-ref` 按上游仓库（agentskills/agentskills）的固定提交装到临时目录（不用机器上碰巧装的；不走 PyPI——上游维护者声明 PyPI 同名包非其发布、无控制权，agentskills/agentskills#355），校验 `skills/jiahao/` 的错误数组必须为空；只校分发面——`src/` 与各适配器的 `src/` 故意同名规则不合、带 `argument-hint`，不在校验范围。装不上（离线、无 Python）直接红并给出原因，绝不跳过 | #60 AC2 可复跑（#67） |
 | `skill-install` | `check-skill-external.js install`：用固定版本的标准 CLI `skills` 对本地仓库 `--list`，断言恰好发现 1 个技能 `jiahao`；再在临时目录真装一次，落地文件集合必须恰好是 `.claude/skills/jiahao/SKILL.md` 加 CLI 自己的 `skills-lock.json`（不得出现 `calibration.js` 等运行时文件），且与仓库 `skills/jiahao/SKILL.md` 逐字节相同。网络不可用直接红，不跳过 | #60 AC5 可复跑（#67） |
-| `egress` | 扫描会随安装跑起来的代码：没有 `http/http2/https/net/dns/tls/dgram` 的 require、没有 `fetch(` / `https.request`；`package.json` 没有安装生命周期脚本；七个插件的每条钩子命令都指向各自插件根，且平台名后缀按方言校验：`${CLAUDE_PLUGIN_ROOT}/hooks/*.js`（Claude Code / CodeBuddy），`$PLUGIN_ROOT` / `$env:PLUGIN_ROOT`（Copilot CLI），`${PLUGIN_ROOT}/hooks/*.js codex`（Codex），`node hooks/*.js antigravity`（Google Antigravity，相对插件根、无占位符），`${QODER_PLUGIN_ROOT}/hooks/*.js qoder`（Qoder Desktop），`${CODEBUDDY_PLUGIN_ROOT}/hooks/*.js workbuddy`（WorkBuddy） | 无网络外呼 |
+| `egress` | 扫描会随安装跑起来的代码：没有 `http/http2/https/net/dns/tls/dgram` 的 require、没有 `fetch(` / `https.request`；`package.json` 没有安装生命周期脚本；七个插件的每条钩子命令都指向各自插件根，且平台名后缀按宿主配置写法校验：`${CLAUDE_PLUGIN_ROOT}/hooks/*.js`（Claude Code / CodeBuddy），`$PLUGIN_ROOT` / `$env:PLUGIN_ROOT`（Copilot CLI），`${PLUGIN_ROOT}/hooks/*.js codex`（Codex），`node hooks/*.js antigravity`（Google Antigravity，相对插件根、无占位符），`${QODER_PLUGIN_ROOT}/hooks/*.js qoder`（Qoder Desktop），`${CODEBUDDY_PLUGIN_ROOT}/hooks/*.js workbuddy`（WorkBuddy） | 无网络外呼 |
 | `declarations` | 本文件带着「写入范围」「无网络外呼」两节；写入范围表的行里逐个出现代码会写的路径；README 链到这里 | 写入范围声明 |
 
 顺序是刻意的：生成检查排在 `npm test` 前面，过期或手改的产物在测试之前就被抓住。测试套件不再重跑生成器改写工作区（#76 收了 #66：生成类用例只写临时目录，产物内容从内存里的生成结果读；有一条哨兵用例会临时往产物里塞手改，跑完子进程里两个曾读工作区产物的套件后恢复，用来证明手改不会被抹掉），所以这个顺序是保险，而不是唯一的保障。`artifact` 仍在打包前再看一次 `git status`：万一有测试写脏了已跟踪文件，这棵树已经不是 tag 那棵树，不能拿来算哈希。
@@ -37,11 +37,11 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 ## 产物与 SHA256
 
 - 产物是 `npm pack` 打出的 `jiahao-<version>.tgz`。npm 固定了包内时间戳，同一棵树打两次字节相同——门禁真的打两次并比对 `sha256`，不同就是红，所以这个哈希才值得引用。
-- 门禁最后打印：tarball 大小、`sha256`、各出口目录的树哈希。树哈希 = 把目录里每个文件的 `sha256` 按路径排序拼起来再哈希一次，用来一眼看出是哪个出口（规则版 / CodeBuddy / Claude Code / Copilot CLI / Codex / Qoder IDE/CLI 规则出口）变了。
+- 门禁最后打印：tarball 大小、`sha256`、各安装形态目录的树哈希。树哈希 = 把目录里每个文件的 `sha256` 按路径排序拼起来再哈希一次，用来一眼看出是哪个安装形态（规则版 / CodeBuddy / Claude Code / Copilot CLI / Codex / Qoder IDE/CLI 规则安装形态）变了。
 - 带 `--artifact-dir` 时 tarball 被留下，并在旁边写 `jiahao-<version>.tgz.sha256`（`sha256sum -c` 直接可验）。带 `--evidence` 时同一批数字落进 JSON，CI 把两者都作为构建产物上传。
 - 包里为什么还有两份 marketplace 清单：`.claude-plugin/marketplace.json` 是 Claude Code 的入口（`source` 指向 `./adapters/claude-code`），`.agents/plugins/marketplace.json` 是 Codex 的入口（`source.path` 指向 `./adapters/codex`）。少了它们，tarball 只能是"插件目录的副本"，不能当对应宿主的 marketplace 根用。两份都进了 `files`，也进了必须包含清单。
 
-`v0.3.0` 的产物数字以 **GitHub Release 正文**为准。这份文件在 tarball 里，写自己的 `sha256` 会让记录指向另一棵树。tag 上跑出的 `artifact`、`sha256`、当时的各出口 tree 哈希，连真机验收记录一起记在该版本的发布说明与 Release 里（[`docs/release-notes-v0.2.0.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/release-notes-v0.2.0.md)、[`docs/release-notes-v0.3.0.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/release-notes-v0.3.0.md)）；那些说明不在包里，也不在各自版本的 tree 哈希范围内，所以不会改变被记录的那棵树。这里用 GitHub 绝对链接，因为 npm 包里没有这些说明。
+`v0.3.0` 的产物数字以 **GitHub Release 正文**为准。这份文件在 tarball 里，写自己的 `sha256` 会让记录指向另一棵树。tag 上跑出的 `artifact`、`sha256`、当时的各安装形态 tree 哈希，连真机验收记录一起记在该版本的发布说明与 Release 里（[`docs/release-notes-v0.2.0.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/release-notes-v0.2.0.md)、[`docs/release-notes-v0.3.0.md`](https://github.com/Xxx91n/jiahao/blob/main/docs/release-notes-v0.3.0.md)）；那些说明不在包里，也不在各自版本的 tree 哈希范围内，所以不会改变被记录的那棵树。这里用 GitHub 绝对链接，因为 npm 包里没有这些说明。
 
 ## 升级路径
 
@@ -50,7 +50,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 - 规则版：重跑安装时那条 `npx skills add`，范围参数保持一致——项目级不带 `-g`，全局级带 `-g -a <host> -y --copy`。`npx skills update jiahao -g -y` 只适合全局安装；skills 1.7.4 在本机（Windows、本地路径源）的项目级 `update` 报无匹配并 exit 127；该环境下项目级用重跑 `add`。装到的就是仓库当前版本；`1.0.0` 打出来后同一路径升到 `1.0.0`。
 - 插件版：Claude Code 用 `claude plugin marketplace update jiahao`，再 `claude plugin update jiahao@jiahao`；CodeBuddy 用宿主自己的插件更新/安装路径（CLI 安装路径 declared-unverified，见 `adapters/codebuddy/README.md`），或用新 bundle 重做已验证的 settings 合并；Copilot CLI 用宿主自己的插件命令重装目录（本地目录直装已在 1.0.105 实测，宿主提示该形态将废弃，见 `adapters/copilot/README.md`）；Codex 用 `codex plugin marketplace upgrade jiahao`，再 `codex plugin add jiahao --marketplace jiahao`（安装与未信任钩子的跳过行为已于 2026-10-30 在 0.163.0 真机验证；`/hooks` 持久化信任流程本身未逐步实测，无人值守可用 `--dangerously-bypass-hook-trust`）。ZCode 指向更新后的 bundle 重做货架安装——`zcode plugins marketplace add <包目录>` 再 `zcode plugins install jiahao@jiahao-zcode`（该流程已于 2026-10-31 在 3.16.2 真机验证；`zcode plugins update` 子命令存在但未真机验证，见 `adapters/zcode/README.md`）；按宿主提示重开会话；`1.0.0` 不换路径。 WorkBuddy：国际版（WorkBuddy AI 5.9.4，配置根 `~/.workbuddy-ai`）与国内版（WorkBuddy 5.9.3，配置根 `~/.workbuddy`）共用同一份 CLI 与同一份 bundle；插件路径用桌面自带 CLI 的 `codebuddy plugin add <路径>`，实测过的路径是把整个 bundle 拷到稳定位置、把 `hooks/hooks.json` 并进 `<config>/settings.json` 或项目级 `.codebuddy/settings.json`（项目目录名是 `.codebuddy`，写进 `.workbuddy/settings.json` 不会触发）。设置层钩子映射按回合读取，会话中的改动可在下一次回合结束时生效；改完仍建议开新会话。
 - Qoder Desktop（规则版，无强制）：重跑 `npx skills add Xxx91n/jiahao -g -a qoder-cn -y --copy`（国际版别名 `qoder`，未真机验证），再开新会话。装的是标准技能目录，没有 profile 文件要改。
-- Qoder Desktop（插件出口，A 档只在 Qoder CN Desktop 0.4.11 实测）：用 Desktop 的插件设置重装由 `adapters/qoder/` 打的本地压缩包（用户级安装），再开新会话——钩子配置在会话开始时读取，已开着的会话不会接管。本仓库没有 Qoder 的 marketplace，所以没有 `plugin update` 那条命令；安装路径本身尚未真机验证（见 [qoder-hook-probe-2026-10-31.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md)）。
+- Qoder Desktop（插件安装形态，A 档只在 Qoder CN Desktop 0.4.11 实测）：用 Desktop 的插件设置重装由 `adapters/qoder/` 打的本地压缩包（用户级安装），再开新会话——钩子配置在会话开始时读取，已开着的会话不会接管。本仓库没有 Qoder 的 marketplace，所以没有 `plugin update` 那条命令；安装路径本身尚未真机验证（见 [qoder-hook-probe-2026-10-31.md](https://github.com/Xxx91n/jiahao/blob/main/docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md)）。
 - Qoder IDE/CLI（C 档）：重新复制 `adapters/qoder/rules/jiahao.md` 到项目的 `.qoder/rules/`，再开新会话。
 - 升级只替换宿主目录里的插件/技能文件，不碰 `<config>` 下的 `.jiahao-profile` 和 `.jiahao-active`；profile 由人改，不由升级改。
 
@@ -72,7 +72,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 - `src/shared/capability.js`、`src/detector.js`：读侧的同一顺序（语料探针、私有词表）。宿主没报配置根时它们落到操作系统家目录，与写侧一致（**换**，且与写侧同向）。
 - 各 `adapters/*/` 下的 vendored 副本：由生成器逐字节复制，跟随源（**换**）。
 
-读侧失败行为（#119）：`.jiahao-profile` 读取失败时按 fail-open 回落默认档 `verifier`，按错误类分两档：文件不存在（`ENOENT`，含符号链接的目标已失效）是文档化的正常默认，不告警；其余非 `ENOENT` 的读取错误（权限拒绝、位置被目录占用、符号链接成环等）在 stderr 留一条 `[config]:` 凭证，让「读到了默认档」与「读坏了才走到兜底」可区分。证据链锚文件里「存在但形状或校验不对」的见证（含内容为合法 JSON `null` 的）归 `unreadable`（corruption 家族，验证直接 fatal）；可借 last_good_seal 降级的是 `witness_unavailable`，那一档涵盖读取错误（如权限拒绝）与 sealed 链上的见证缺失，不只撕毁（torn）一种。
+读侧失败行为（#119）：`.jiahao-profile` 读取失败时按 fail-open 回落默认档 `verifier`，按错误类分两档：文件不存在（`ENOENT`，含符号链接的目标已失效）是文档化的正常默认，不告警；其余非 `ENOENT` 的读取错误（权限拒绝、位置被目录占用、符号链接成环等）在 stderr 留一条 `[config]:` 提示，让「读到了默认档」与「读坏了才走到兜底」可区分。证据链锚文件里「存在但形状或校验不对」的见证（含内容为合法 JSON `null` 的）归 `unreadable`（corruption 家族，验证直接 fatal）；可借 last_good_seal 降级的是 `witness_unavailable`，那一档涵盖读取错误（如权限拒绝）与 sealed 链上的见证缺失，不只撕毁（torn）一种。
 
 | 谁写 | 写什么 | 什么时候 |
 | --- | --- | --- |
@@ -83,7 +83,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 | 同上 | `<config>/.jiahao-evidence/`、`<config>/.jiahao-evidence.keys` | 同上；首次安装没有证据时是空操作 |
 | 钩子 SessionStart | `<config>/.jiahao-active`（不存在时写 `full`） | 每个会话开始 |
 | 钩子 UserPromptSubmit | `<config>/.jiahao-active` | 模式命令（`lite\|full\|ultra`） |
-| `jiahao resolve` | `<config>/.jiahao-evidence/*.jsonl`、`.jiahao-evidence.keys`、`.jiahao-anchor.json`；同一次写入期间的 `.jiahao-evidence.lock/`；旧单文件链迁移时的 `.jiahao-evidence.legacy.bak*` | 手工执行人工裁定（只追加，不改写既有记录） |
+| `jiahao resolve` | `<config>/.jiahao-evidence/*.jsonl`、`.jiahao-evidence.keys`、`.jiahao-anchor.json`；同一次写入期间的 `.jiahao-evidence.lock/`；旧单文件链迁移时的 `.jiahao-evidence.legacy.bak*` | 手工执行人工判定（只追加，不改写既有记录） |
 | 钩子 Stop / SubagentStop | `<config>/.jiahao-evidence/*.jsonl`、`.jiahao-evidence.keys`、`.jiahao-anchor.json` | 每次判定 |
 | 同上 | `<config>/.jiahao-evidence.lock/` | 每次写证据期间的短锁，写完即删 |
 | 同上 | `<config>/.jiahao-evidence.legacy.bak*` | 只在本地存在旧的单文件证据链、需要迁移时写 |
@@ -92,13 +92,13 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 | 校准记录 | `<config>/.jiahao-calibration.jsonl` | 校准点被记录时（当前运行时没有调用点，写入方是 `src/calibration.js` 的导出函数） |
 | 宿主（插件版） | 宿主自己的插件目录或插件缓存；Qoder Desktop 是它的用户级插件安装位（由 Desktop 的插件设置写入，本仓库没有 Qoder marketplace） | `claude plugin install` / `codebuddy plugin install` / `copilot plugin install` / `codex plugin add`；Qoder 用 Desktop 的本地压缩包安装，该路径尚未真机验证；WorkBuddy 用桌面自带 CLI 的 `codebuddy plugin add`，或把整个 bundle 拷到稳定位置并把钩子表并进 `<config>/settings.json` / 项目级 `.codebuddy/settings.json` |
 | 宿主（规则版，含 Qoder Desktop） | 宿主自己的技能目录，落地 `<host>/skills/jiahao/SKILL.md`；Qoder CN 是 `~/.qoder-cn/skills/jiahao/SKILL.md`，国际版按 skills CLI 矩阵是 `~/.qoder/skills/jiahao/SKILL.md`（未真机验证） | `npx skills add`（Qoder 用 `-a qoder-cn` / `-a qoder`） |
-| 人（Qoder IDE/CLI 规则出口，C 档） | 复制到项目的 `.qoder/rules/jiahao.md` | 手工复制，没有安装命令 |
+| 人（Qoder IDE/CLI 规则安装形态，C 档） | 复制到项目的 `.qoder/rules/jiahao.md` | 手工复制，没有安装命令 |
 
 范围之外：不改系统设置，不写仓库以外的源码目录，不在当前工作目录落文件。所有运行时写入都落在 `<config>` 下。
 
 ## 无网络外呼
 
-「外呼」就是往外发网络请求。这一节声明：**装到用户机器上会跑起来的那部分 jiahao 代码不联网**——装完之后的钩子、运行时、安装器、人工裁定命令 `scripts/resolve.js`，以及 MCP 服务端的入口 `jiahao-mcp/index.js`，都不发起任何网络请求。安装也不下载、不执行远程脚本：`node scripts/install.js` 是仓库里的本地文件，七个插件目录是本地目录，复制即可。
+「外呼」就是往外发网络请求。这一节声明：**装到用户机器上会跑起来的那部分 jiahao 代码不联网**——装完之后的钩子、运行时、安装器、人工判定命令 `scripts/resolve.js`，以及 MCP 服务端的入口 `jiahao-mcp/index.js`，都不发起任何网络请求。安装也不下载、不执行远程脚本：`node scripts/install.js` 是仓库里的本地文件，七个插件目录是本地目录，复制即可。
 
 这条声明由门禁的 `egress` 步骤每次重跑，不是一次性的口头保证：
 
@@ -124,7 +124,7 @@ npm run release:gate -- --tag v0.3.0
 
 复跑需要 `python3`（>= 3.11，含 `pip`；固定的 `skills-ref` 要求）在 `PATH` 上且能联网：`skill-spec` / `skill-install` 两步每次把固定来源的 `skills-ref`（上游 GitHub 仓库固定提交）与固定版本的 `skills`（npm）现装到临时目录再下结论（前者需要 `git` 可用），缺 Python 或离线都会红并说明原因，不会静默跳过（#67）。另注意 `skills@1.7.4` 本身要求 Node >= 22.20（engines），而本仓基线是 Node 20：`skill-install` 在 Node < 22.20 时会经环境变量 `JIAHAO_SKILLS_NODE` 指向的 Node 22+ 二进制重跑自己（CI 两个 job 都先装 Node 22 记路径、再装回 Node 20 给其余步骤），两者都没有则直接红并说明。这两条在分支 CI 上也以 `npm run check:skill` 同一份代码跑，规范漂移在 PR 上就变红，不等到打 tag。
 
-对账点：`RELEASE GATE GREEN` 那行、`sha256`、各出口目录的 tree 哈希，应与发布时记录的值逐字相同。
+对账点：`RELEASE GATE GREEN` 那行、`sha256`、各安装形态目录的 tree 哈希，应与发布时记录的值逐字相同。
 
 复跑这件事的机器证据有三层：tag 的 CI job 本身就是一次全新检出；门禁对同一棵树连打两次包并比对 `sha256`；本命令让任何人在自己机器上再走一遍，比对上一步打印的数字。跨检出的比对只能靠人：`#64` 必须把 tag 上那次的 `sha256` 与 tree 哈希写进 Release 说明，别人才有东西可比。
 

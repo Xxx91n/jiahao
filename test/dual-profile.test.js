@@ -62,7 +62,7 @@ test('verifier profile contains all required terms', () => {
   expect(verSection).toContain('anti-false-completion');
 });
 
-test('the codebuddy generator rule has surface signal rules', () => {
+test('the codebuddy generator rule carries the generator rule text', () => {
   const genRule = generated['adapters/codebuddy/rules/jiahao-generator.md'];
   expect(genRule).toContain('No evidence, no completion claim');
   expect(genRule).toContain('state changes');

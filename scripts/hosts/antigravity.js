@@ -1,6 +1,6 @@
 'use strict';
-// scripts/hosts/antigravity.js - the one file where Google Antigravity's config
-// dialect lives.
+// scripts/hosts/antigravity.js - the one file where Google Antigravity's host config
+// shape lives.
 //
 // Antigravity reads a plugin manifest at `plugin.json` (at plugin root) and
 // `hooks.json` directly at the plugin root.

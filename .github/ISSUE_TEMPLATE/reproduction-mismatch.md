@@ -5,13 +5,13 @@ title: "[repro] "
 labels: needs-triage
 ---
 
-Use this when a published value does not reproduce — a tier label in the README install table, a test count, a number in a release note, or a value in a file under `docs/evidence/`.
+Use this when a published value does not reproduce — a blocking level label in the README install table, a test count, a number in a release note, or a value in a file under `docs/evidence/`.
 
 Fill in both sides: what we published, and what your run reported. If the install or a hook simply misbehaves, use the bug report template instead.
 
 ## What we published, and where
 
-Name the file and the place, for example "the Codex CLI row of the install table in `README.md`, tier A", and quote the value.
+Name the file and the place, for example "the Codex CLI row of the install table in `README.md`, blocking level A", and quote the value.
 
 ## What you ran
 

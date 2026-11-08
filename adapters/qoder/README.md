@@ -84,7 +84,7 @@ are wrong), the hooks use `verifier` and print a `[config]:` note on stderr.
 ## Qoder IDE/CLI rules
 
 The IDE/CLI reads project rules from `.qoder/rules/`
-(https://docs.qoder.com/zh/user-guide/rules). `rules/jiahao.md` is that exit:
+(https://docs.qoder.com/zh/user-guide/rules). `rules/jiahao.md` is that install form:
 
 1. Copy `rules/jiahao.md` into `.qoder/rules/` in the project.
 2. Keep `alwaysApply: true` in the frontmatter. Qoder's rules docs say rules

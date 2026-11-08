@@ -54,7 +54,7 @@ Stop payload also carries `responsePreview`/`responseText`,
 `transcript_path`. The hook subprocess environment carries both families
 (`CLAUDE_SESSION_ID`, `CLAUDE_PROJECT_DIR` alongside `ZCODE_SESSION_ID`,
 `ZCODE_PROJECT_DIR`, `ZCODE_APP_VERSION`, ...), which is what
-`detectHost()`'s `ZCODE_SESSION_ID` probe keys on for config-tier installs.
+`detectHost()`'s `ZCODE_SESSION_ID` probe keys on for config-file installs.
 
 ## Stop channels (fires #1-#4)
 
@@ -74,7 +74,7 @@ Stop payload also carries `responsePreview`/`responseText`,
   continuation. The session user was present at that boundary, so the
   observation is recorded as seen rather than as an unconditional host rule.
 
-## Real gate, real turn-end block (the tier-A observation)
+## Real gate, real turn-end block (the observation for blocking level A)
 
 With the wrapper in `realgate` mode, the turn end was judged by the real
 bundled gate - `node <bundle>/hooks/jiahao-verdict-gate.js zcode`, spawned by

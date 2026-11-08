@@ -45,7 +45,7 @@ const sentinel = require('../src/sentinel').begin('jiahao-verdict-gate');
 // print nothing stay exits.
 
 // The stdout JSON decision is shared; the exit code and the Codex stderr copy
-// are host dialect. Both live in hooks/jiahao-runtime.js (writeBlockOutput),
+// are host config differences. Both live in hooks/jiahao-runtime.js (writeBlockOutput),
 // next to the per-host output shapes, so this judgment script stays host-neutral.
 function emitBlock(reason) {
   writeBlockOutput(reason);
@@ -100,7 +100,7 @@ function gatingRecords(chain, sessionId) {
   return scopedToSession(chain.slice(releasedAt + 1), sessionId);
 }
 
-// dead-man switch (hook-tier hosts): the judge seam re-verification
+// dead-man switch (hosts whose hooks can block): the judge checkpoint re-verification
 // deadline is machine-readable. The state is DERIVED from the content-anchored
 // deadline constants + the append-only reverify ledger tail, never stored --
 // deleting a state file cannot silence it (missing ledger = degraded). When the

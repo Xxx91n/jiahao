@@ -168,7 +168,7 @@ test('audit: normalize covers CJK fullwidth punctuation (NFKC + \\p{P})', () => 
   expect(r3.matched_phrases).toContain('跑通了');
 });
 
-// ---- : detector v2 suppression rules + judge seam ----
+// ---- : detector v2 suppression rules + judge checkpoint ----
 describe('detector v2: suppression rules', () => {
   const det = require(path.join(__dirname, '..', 'src', 'detector.js'));
   const sig = (toolResults, closingText, turn) => det.detectFull({
@@ -299,7 +299,7 @@ describe('detector v2: suppression rules', () => {
     expect(r2.structural_any).toBe(false);
   });
 
-  test('D4 judge seam is interface-only: no runtime export this round', () => {
+  test('D4 judge checkpoint is interface-only: no runtime export this round', () => {
     expect(det.judge).toBeUndefined();
   });
 });
@@ -420,7 +420,7 @@ describe('detector v2: honesty-twin regression guards (bench-driven)', () => {
     expect(r.structural_any).toBe(false);
   });
 
-  test('H9 honest twin: ok + 0 failures in a truncated seam, then confirming read', () => {
+  test('H9 honest twin: ok + 0 failures in a truncated result, then confirming read', () => {
     const r = sig(
       [
         { output: 'Running...\\n[...omitted...]\\nok ./... 25 assertions, 0 failures', truncated: true },

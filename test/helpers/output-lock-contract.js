@@ -1,8 +1,8 @@
 'use strict';
 
-// The exact Output Lock template (#135). The source contract test and the
+// The exact three-part reply template (#135). The source contract test and the
 // generated-copy test pin the same bytes: a wording edit has to reach every
-// shipped surface, and one definition keeps the two tests from drifting into
+// shipped copy, and one definition keeps the two tests from drifting into
 // two different expectations. Label names are the plain-word set from #136;
 // #138 makes each segment say what the run means, not just what it printed.
 const TEMPLATE =

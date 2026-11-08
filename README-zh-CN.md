@@ -42,7 +42,7 @@ npx skills add Xxx91n/jiahao
 ```bash
 npm test                                # 全量 Jest 测试
 node scripts/build-adapters.js --check  # 生成产物一致性检查
-node scripts/check-drift.js             # Profile 与退役出口漂移检查
+node scripts/check-drift.js             # Profile 与退役安装形态漂移检查
 npm run check:whitespace                # 行尾空白 / EOF 空行，未跟踪文件也算
 npm run check:links                     # 包里 Markdown 的相对链接必须落在包内
 ```

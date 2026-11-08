@@ -33,7 +33,7 @@ function detectHost() {
   // codebuddy var, so precedence is safe (grill-t30).
   if (process.env.CODEBUDDY_PLUGIN_ROOT) return 'codebuddy';
   // ZCode sets both the CLAUDE_* compat vars and its own ZCODE_* family
-  // (#108 probe, 2026-10-31, ZCode 3.16.2): a config-tier install there
+  // (#108 probe, 2026-10-31, ZCode 3.16.2): an install driven by the config file there
   // carries no argv, so its own session id is the marker. Checked before the
   // claude default because a ZCode session also sets CLAUDE_SESSION_ID.
   if (process.env.ZCODE_SESSION_ID) return 'zcode';
@@ -42,7 +42,7 @@ function detectHost() {
 
 // Read-only tool names, per host family. The guard is a modification guard:
 // reading the injected rules is how a verifier works, not a bypass (#71 item 3).
-// The names are host dialect, so they live here with the payload/output shapes
+// The names are host-specific, so they live here with the payload/output shapes
 // rather than in the judgment script. Shell/exec tools are deliberately absent
 // even when their command happens to be read-only - only tools that cannot
 // write are listed.
@@ -68,7 +68,7 @@ function normalizePayload(parsed) {
   const agentType = p.agent_type || p.agentType || p.agentName || '';
   const stopHookActive = p.stop_hook_active === true || (typeof p.executionNum === 'number' && p.executionNum > 0);
   // #124: the verdict gate's claim gate reads this turn's own words; hosts
-  // that spell the field camelCase (same dialect family as sessionId /
+  // that spell the field camelCase (same config family as sessionId /
   // agentName above) fold onto the snake_case name the gate reads. The first
   // non-empty spelling wins (round 2: an empty snake_case field must not
   // mask a valid camelCase one); an empty string is a claim source the gate

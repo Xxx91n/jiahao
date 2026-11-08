@@ -30,13 +30,13 @@ tree is the commit `dafb2ac6` above, not `--check`.
 ## Version reconciliation, said out loud
 
 This record lives under `docs/evidence/v0.3.0/` because it answers the same probe
-list that v0.3.0 published its tier table with, and #109's record is filed the same
+list that v0.3.0 published its blocking level table with, and #109's record is filed the same
 way. It is **not** evidence about the released v0.3.0 artifact: the v0.3.0 tag had
 no Qoder plugin bundle at all. The bundle this ticket's docs describe carries
 `version: 0.3.0` in `.qoder-plugin/plugin.json` because the emitter copies
 `package.json`, and this PR does not bump it: the next version number belongs to
 the next **release** ticket, and no such ticket is open as of 2026-11-01. So
-`0.3.0` here means "the released 0.3.0 package version", and the A-tier bundle is
+`0.3.0` here means "the released 0.3.0 package version", and the bundle at blocking level A is
 new content that 0.3.0 never shipped.
 
 ## Host facts, read from disk
@@ -202,7 +202,7 @@ The gate is a marker, not a truth test. Per run:
 | Run | What the blocked last message was | counts as |
 |---|---|---|
 | 1 | `我已完成并验证了一个只读检查：本回合未读取文件、未运行命令、未改动任何内容，结果符合预期。 JIAHAO109-CLAIM-DONE` | an **unfounded completion claim**, self-contradictory on its face |
-| 2 | `探针固定文本 JIAHAO109-CLAIM-DONE：本轮我没有做任何验证，因此这句话不构成完工凭证。` | **a quoted probe literal that disclaims being a receipt** — a marker match only |
+| 2 | `探针固定文本 JIAHAO109-CLAIM-DONE：本轮我没有做任何验证，因此这句话不构成完工凭证。` | **a quoted probe literal that disclaims being completion evidence** — a marker match only |
 | 3 | same as run 1 | an unfounded completion claim |
 | 4 | same as run 1 ×3 | three unfounded completion claims |
 | 5 | the model **refused** to assert it and quoted the line inside a disclaimer instead | a quoted literal — a marker match only |

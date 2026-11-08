@@ -1,6 +1,6 @@
 'use strict';
 // test/plugin-bundles.test.js - #76: the structural contract of every host
-// exit, asserted once per row of the generator's host table. A row with a
+// install form, asserted once per row of the generator's host table. A row with a
 // manifest is a plugin bundle; a row with manifest: null is the rules-only
 // shape (rule text + README, no manifest, no hooks).
 //
@@ -9,7 +9,7 @@
 // are `--check`'s job, and the suites that spawn hooks materialize the same
 // output into a temp dir (test/helpers/generated-bundle.js).
 //
-// tier claims are falsifiable here: an A row must wire its turn-end event to
+// blocking level claims are falsifiable here: an A row must wire its turn-end event to
 // the verdict gate, a C row must not register hooks, and both rules are proven
 // red on synthetic rows below.
 
@@ -30,7 +30,7 @@ const pkgRepository = pkg.repository.url.replace(/^git\+/, '').replace(/\.git$/,
 
 // Bundle-local wiring the generator writes itself; everything else under a
 // bundle directory is vendored from the repository and must be byte-identical.
-// The manifest and hook-map paths come from the row's dialect, so a host with a
+// The manifest and hook-map paths come from the row's host-config module, so a host with a
 // different config schema does not have to pass a Claude-shaped path test.
 function isWiring(dialect, rel) {
   if (rel === dialect.manifestPath) return true;
@@ -90,7 +90,7 @@ function repoClosure(seeds) {
   return seen;
 }
 
-describe.each(HOSTS)('$label exit ($dir)', (host) => {
+describe.each(HOSTS)('$label install form ($dir)', (host) => {
   const P = host.dir + '/';
   const dialect = dialectOf(host);
   const events = Object.keys(host.hooks || {});
@@ -100,7 +100,7 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
   const manifest = isRulesOnlyDirectory(host) ? null : JSON.parse(readGenerated(manifestRel));
 
   describe('bundle shape', () => {
-    test('the exit ships exactly the files its shape declares', () => {
+    test('the install form ships exactly the files its shape declares', () => {
       if (isRulesOnlyDirectory(host)) {
         expect(generated[manifestRel]).toBeUndefined();
         expect(Object.keys(generated).filter((rel) => rel.startsWith(P + 'src/'))).toEqual([]);
@@ -153,7 +153,7 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
 
   describe('manifest', () => {
     if (isRulesOnlyDirectory(host)) {
-      test('a rules-only exit ships no plugin manifest at all', () => {
+      test('a rules-only install form ships no plugin manifest at all', () => {
         expect(generated[manifestRel]).toBeUndefined();
         expect(Object.keys(generated).filter((rel) => rel.startsWith(P) && rel.endsWith('plugin.json'))).toEqual([]);
       });
@@ -165,7 +165,7 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
       expect(manifest.version).toBe(pkg.version);
       expect(manifest.license).toBe(pkg.license);
       expect(manifest.repository).toBe(pkgRepository);
-      // The conservative opt-in flag is declared per dialect: a host that does
+      // The conservative opt-in flag is declared per host-config module: a host that does
       // not document the field must not be given a key it never reads.
       if (dialect.defaultEnabledFlag) {
         expect(manifest.defaultEnabled).toBe(false);
@@ -180,7 +180,7 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
       // in the manifest, or the file never loads - so the key is required, not
       // merely checked when present.
       // Component paths follow the host's rule: Codex requires './', the
-      // Claude-shaped hosts write them bare. The dialect carries the prefix so
+      // Claude-shaped hosts write them bare. The host-config module carries the prefix so
       // the assertion stays exact instead of accepting either spelling.
       const pathPrefix = dialect.manifestPathPrefix || '';
       if (events.length && !host.autoDiscovered.includes(dialect.hookMapPath)) {
@@ -208,7 +208,7 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
         expect(Object.keys(generated).filter((rel) => rel.startsWith(P + 'hooks/'))).toEqual([]);
       });
 
-      test('no emitted file in a rules-only exit carries a hook registration', () => {
+      test('no emitted file in a rules-only install form carries a hook registration', () => {
         expect(hookRegistrationPaths(generated, P)).toEqual([]);
       });
       return;
@@ -249,11 +249,11 @@ describe.each(HOSTS)('$label exit ($dir)', (host) => {
     const allEntries = events.flatMap((ev) => cfg.hooks[ev]);
     const flatEntries = allEntries.filter((entry) => !Array.isArray(entry.hooks));
     if (flatEntries.length) {
-      // A flat dialect's entry must carry exactly its command fields plus the
+      // A flat config's entry must carry exactly its command fields plus the
       // timeout key - a leftover `command` or `timeout` key is the other host's
-      // dialect and would be ignored here. A map mixing both shapes is a defect
+      // config shape and would be ignored here. A map mixing both shapes is a defect
       // of its own, so assert every entry is flat, not just the first event's.
-      test('every flat entry carries exactly the dialect command fields and timeout key', () => {
+      test('every flat entry carries exactly the host-config command fields and timeout key', () => {
         expect(flatEntries.length).toBe(allEntries.length);
         const allowed = ['type', dialect.timeoutField].concat(dialect.commandFields).sort();
         for (const entry of flatEntries) {
@@ -433,7 +433,7 @@ describe('marketplace manifest (Codex CLI)', () => {
 describe('manifest protection', () => {
   const { isProtected } = require('../src/shared/protected-path');
 
-  test('every bundle manifest and hook map resolves inside the protected surface', () => {
+  test('every bundle manifest and hook map resolves inside the protected paths', () => {
     const unprotected = [];
     const shapes = [
       { sep: '/', root: '/plugins/jiahao', P: path.posix },
@@ -462,7 +462,7 @@ describe('manifest protection', () => {
   });
 });
 
-describe('tier contract', () => {
+describe('blocking level checks', () => {
   const good = {
     name: 'probe-host',
     label: 'Probe',
@@ -478,7 +478,7 @@ describe('tier contract', () => {
     readme: () => '',
   };
 
-  test('every shipped row satisfies its own tier', () => {
+  test('every shipped row satisfies its own blocking level', () => {
     expect(hostShapeProblems(HOSTS)).toEqual([]);
     for (const host of HOSTS) expect(hostShapeProblems([host])).toEqual([]);
   });
@@ -498,7 +498,7 @@ describe('tier contract', () => {
     expect(hostShapeProblems([row]).join('\n')).toMatch(/rules-only/);
   });
 
-  test('a tier without provenance, and a row that repeats an auto-discovered file, are rejected', () => {
+  test('a blocking level without provenance, and a row that repeats an auto-discovered file, are rejected', () => {
     const noEvidence = Object.assign({}, good, { provenance: ' ' });
     expect(hostShapeProblems([noEvidence]).join('\n')).toMatch(/provenance/);
     const duplicated = Object.assign({}, good, {
@@ -520,7 +520,7 @@ describe('tier contract', () => {
     expect(hostShapeProblems([row]).join('\n')).toMatch(/must not set version/);
   });
 
-  test('a dialect that points its manifest or hook map outside the bundle is rejected', () => {
+  test('a host-config module that points its manifest or hook map outside the bundle is rejected', () => {
     const escaping = Object.assign({}, good, {
       dialect: {
         manifestPath: '../plugin.json', hookMapPath: 'hooks/hooks.json',
@@ -580,7 +580,7 @@ describe('tier contract', () => {
       .toMatch(/must ship at least one rule/);
     expect(hostShapeProblems([Object.assign({}, rulesOnly, {
       tier: 'A', turnEnd: 'Stop', hooks: { Stop: { script: 'jiahao-verdict-gate', timeout: 10 } },
-    })]).join('\n')).toMatch(/manifest-less exit is rules-only/);
+    })]).join('\n')).toMatch(/manifest-less install form is rules-only/);
     expect(hostShapeProblems([Object.assign({}, rulesOnly, {
       mcp: { entry: 'index.js', files: [] },
     })]).join('\n')).toMatch(/no MCP registration/);

@@ -247,7 +247,7 @@ function probePersistenceCapability(dir) {
     return PERSISTENCE_CAPABILITY.dir_sync_unsupported;
   }
 }
-// Resolution order: injected (test seam) > operator declaration > recorded
+// Resolution order: injected (test-only override) > operator declaration > recorded
 // probe > platform default.
 function resolvePersistenceCapability(injected, configDirPath) {
   if (_isPersistenceCapability(injected)) return injected;
@@ -550,7 +550,7 @@ function createEvidenceLog(overrideConfigDir, opts) {
     ? path.join(overrideConfigDir, '.jiahao-evidence.keys')
     : evidenceKeysPath();
   const stagingDir = ep + '.migrating';
-  // explicit configuration (test seam / operator declaration) is
+  // explicit configuration (test override / operator declaration) is
   // resolved once; otherwise the effective class is decided per anchor write
   // so a platform change mid-process keeps semantics.
   // Resolution of an explicit or declared class is captured once; when

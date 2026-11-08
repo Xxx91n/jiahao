@@ -169,7 +169,7 @@ function diffMemberSets(aRows, bRows) {
 }
 
 // classifyRefContext(facts) -> a REF_CONTEXT member. PURE: the runners own the
-// git seam and pass the probed facts; this is the ONE classification
+// git lookup and pass the probed facts; this is the ONE classification
 // implementation both runners share (D-M1: two call sites that each roll their
 // own classifier drift apart). Most specific member wins:
 //   HEAD sha == origin/main            -> 'origin/main'

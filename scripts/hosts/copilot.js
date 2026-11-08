@@ -1,6 +1,6 @@
 'use strict';
-// scripts/hosts/copilot.js - the one file where GitHub Copilot CLI's config
-// dialect lives.
+// scripts/hosts/copilot.js - the one file where GitHub Copilot CLI's host config
+// shape lives.
 //
 // Two config-side differences from the Claude-shaped hosts live here:
 //   1. event names are camelCase (sessionStart, agentStop), not PascalCase;
@@ -18,8 +18,8 @@
 // file that already owns detectHost() and the per-host envelopes (spec #74 D3).
 // Nothing about the verdict is duplicated here; this module only says which
 // event name runs which script and how the command is spelled on the two
-// shells, so a second dialect host edits this shape once instead of editing the
-// gate and the tests again.
+// shells, so a second host with its own config shape edits this once instead of
+// editing the gate and the tests again.
 //
 // Plugin layout (legacy Copilot format, documented): plugin.json at the plugin
 // root, hooks.json at the root or in hooks/. The rules body ships as the
@@ -55,7 +55,7 @@ function powershellCommand(script) {
 
 // Flat schema: {version: 1, hooks: {event: [{type, bash, powershell, timeoutSec}]}}.
 // No nested `hooks` array and no `command` key - those are the Claude-shaped
-// hosts' dialect, and a copy of them would be a config the host silently skips.
+// hosts' config shape, and a copy of them would be a config the host silently skips.
 function emitHookMap(host) {
   const hooks = {};
   for (const [event, hook] of Object.entries(host.hooks)) {

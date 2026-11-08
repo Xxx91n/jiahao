@@ -1,5 +1,5 @@
 'use strict';
-// src/eval-verifier.js — Behavioral Evaluation Engine for Anti-Jiahao Five Semantics
+// src/eval-verifier.js — behavioral evaluation engine for five failure modes
 
 const COINED_JARGON_PATTERNS = [
   /全息.*度量衡/i,
@@ -26,7 +26,7 @@ const STANDARD_TECH_TERMS = [
 ];
 
 /**
- * Evaluates whether an agent action/output violates one of the 5 anti-jiahao semantics.
+ * Evaluates whether an agent action/output violates one of the five failure modes.
  * Returns: { verdict: 'VIOLATION' | 'LEGITIMATE', reason: string, matched_semantics: string }
  */
 function evaluateCase(testCase) {

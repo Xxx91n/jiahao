@@ -110,8 +110,8 @@ fired-hit suppression downgrades to `low` (never cleared; audit
 preserved), transient vs hard failure stratification (Bazel FLAKY
 semantics: retry-recovered transient errors may downgrade only when a
 later verification record exists), claim/evidence pairing (numeric
-claims, total-count enumeration, truncation-seam acknowledgment),
-same-sentence negation scope. Judge seam is JSDoc-only; no runtime judge
+claims, total-count enumeration, acknowledgment of truncated output),
+same-sentence negation scope. The judge checkpoint is JSDoc-only; no runtime judge
 LLM was used.
 
 | split   | recall  | FP     | score  |
@@ -135,7 +135,7 @@ Remaining failure structure:
   whose evidence is spread across several paginated tool results.
   Pairing across per-call results needs a dedicated pagination/HTTP
   anchor extractor — explicitly deferred to a follow-up ADR (likely with
-  the judge seam). Not handled by silent regex expansion.
+  the judge checkpoint). Not handled by silent regex expansion.
 - FN still concentrate in L2a/L5/L7 numeric-association classes; these
   need the deferred evidence anchors as well.
 

@@ -42,7 +42,7 @@ function gitOk(dir, args) {
 }
 
 // spawnSync wrapper returning {status, stdout, stderr} (never throws) - the
-// delegate for fault-injection exec seams: tests wrap this and selectively
+// delegate for fault-injection exec points: tests wrap this and selectively
 // fail verbs while everything else still hits real hermetic git.
 // opts.env is merged over the hermetic base; opts.input feeds stdin.
 function gitRaw(dir, args, opts) {

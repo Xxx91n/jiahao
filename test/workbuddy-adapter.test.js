@@ -6,7 +6,7 @@
 // every row of the host table; this file pins the WorkBuddy-specific facts:
 //   1. the template uses the product's own manifest directory and the platform
 //      name that selects WorkBuddy's envelope,
-//   2. a settings-tier hook (no plugin root, both CODEBUDDY_* and WORKBUDDY_*
+//   2. a hook registered in the settings file (no plugin root, both CODEBUDDY_* and WORKBUDDY_*
 //      variables present) is still recognised as WorkBuddy, while a bare
 //      CodeBuddy environment is not,
 //   3. the turn-end entry reaches the bundled verdict gate with the exit code
@@ -216,7 +216,7 @@ describe('WorkBuddy output envelope (spawned hook, temp config dir)', () => {
   }, 20000);
 });
 
-describe('tier disclosure', () => {
+describe('blocking level disclosure', () => {
   const readme = generated[GENERATED_PREFIX + 'README.md'];
 
   test('the README separates the two variants and attributes the block to a run per build', () => {
@@ -252,7 +252,7 @@ describe('tier disclosure', () => {
     expect(readme).toMatch(/not `\.workbuddy`|\.codebuddy`, not `\.workbuddy`/);
   });
 
-  test('the settings-tier recipe is runnable as written', () => {
+  test('the settings-file recipe is runnable as written', () => {
     // Ways the recipe failed a reader before: the copy step omitted src/, the
     // flag went to $HOME while the hooks read CLAUDE_CONFIG_DIR, and the JSON
     // path example had unescaped Windows separators. Each is pinned here so the
@@ -317,7 +317,7 @@ describe('evidence record', () => {
     expect(sub).toHaveLength(1);
     expect(sub[0].decision).toBe('block');
     // One invocation: no re-entry with the flag set, which is what makes the
-    // event a non-enforcement surface.
+    // event a path the guard does not enforce.
     expect(sub.filter((r) => r.stop_hook_active === true)).toEqual([]);
   });
 });

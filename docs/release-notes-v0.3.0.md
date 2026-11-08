@@ -1,25 +1,25 @@
 # v0.3.0 发布说明与真机验收
 
-第二个内部版本。v0.2.0 只有两个宿主能在钩子层真正拦截；这个版本把它铺到四个，并给每个出口标了能力档位。
+第二个内部版本。v0.2.0 只有两个宿主能在钩子层真正拦截；这个版本把它铺到四个，并给每个安装形态标了拦截能力等级。
 
 - 版本号：`0.3.0`，五个插件清单由生成器从 `package.json` 抄写。
 - 内容验收：#80（真机），证据在 [`docs/evidence/v0.3.0/`](evidence/v0.3.0/)。
 - 本文与证据目录都不在 npm 包内，不参与 tree 哈希。
 - `v0.3.0` tag 指向 `587e4394`；tag 树里的这份文件是定稿前的上一版（门禁数字是在 tag 上跑出来后才补的），`main` 上的本文件与 GitHub Release 说明才是定稿。
 
-## 出口与档位
+## 安装形态与拦截能力等级
 
-档位是发布期结论，出处是宿主版本 + 实测日期。
+拦截能力等级是发布期结论，出处是宿主版本 + 实测日期。
 
-| 出口 | 档位 | 依据 |
+| 安装形态 | 拦截能力等级 | 依据 |
 | --- | --- | --- |
 | Claude Code | A 档候选（脚本级已验证，宿主级未验） | 宿主版本 Claude Code 2.1.251，2026-10-29 装过插件并跑过 SessionStart 与脚本级 Stop；**没有带日期的宿主级拦截结果**，原因是模型端点 401，见 [`docs/release-notes-v0.2.0.md`](release-notes-v0.2.0.md) |
 | CodeBuddy | A 档候选（脚本级已验证，宿主级未验） | 宿主版本 CodeBuddy Code CLI 2.151.0（`settings.json` 路径实测于 v0.2.0），**没有带日期的宿主级 Stop 拦截结果**；CLI 安装路径仍是 declared-unverified |
 | Codex CLI | A | 2026-10-30 实测，codex-cli 0.163.0 |
 | GitHub Copilot CLI | A | 2026-10-30 实测，Copilot CLI 1.0.105 |
 | Google Antigravity | A | 2026-10-31 实测，Google Antigravity 1.2.12 (#111) |
-| Qoder | C（v0.3.0 发出去的出口） | 只有规则，没有钩子；2026-10-31 重跑标准技能目录安装（Run A，exit 0，SHA 一致）；Qoder CN Desktop 0.4.11 的新会话可见性由 #106 的 Run B 记录，本窗口未重跑；Qoder IDE/CLI 规则加载仍 declared-unverified。**2026-10-31 #109 探针回填**：Qoder CN Desktop 0.4.11 的 `Stop` 钩子在真机会话里把回合拦下来并续跑，两条通道都成立：exit 0 + `{decision:"block"}` 拦下 6 次「已完成并验证」的空口完工声明（另 1 次是同一句包了「这是探针载荷」的限定语）；exit 2 + stderr 拦下 3 次带标记的消息，而那三条文本自己声明「本轮未做任何验证」，属于标记命中、不是假完工命中。该变体升 A 档；升档的插件出口不在 v0.3.0 里，随下一个版本发。**2026-11-01 #113 探针回填**：国际版 Qoder Desktop 0.4.11 单独实测，同样两条通道都成立（exit 0 + `{decision:"block"}`，exit 2 + stderr 由宿主记为 `success=false exit_code=2` 且理由照常回注），重入回合 `stop_hook_active` 为 true，连续 3 次阻断后由探针自带上限放行；同时武装的 `.qoder-cn/settings.json` 一次都没触发，与 CN 一致。它那 7 次阻断里 5 次是空口完工声明（由探针提示词指定原样输出）、2 次是自己声明未做验证的文本。该变体同样升 A 档；IDE/CLI 未被实测，档位不动。见 [`docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md`](evidence/v0.3.0/qoder-hook-probe-2026-10-31.md) 与 [`docs/evidence/v0.3.0/qoder-intl-hook-probe-2026-11-01.md`](evidence/v0.3.0/qoder-intl-hook-probe-2026-11-01.md) |
-| WorkBuddy（v0.3.0 未包含） | A：国际版（2026-10-31 实测）、国内版（2026-11-01 实测） | 两个变体各跑各的探针，各有一份证据。2026-10-31 #110：WorkBuddy AI 5.9.4 国际版的 `Stop` 钩子在真机会话里以 exit 0 + `{decision:"block"}` 拦下一次假完工，原因以 `Stop hook feedback` 注入，见 [`docs/evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md`](evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md)。2026-11-01 #118：WorkBuddy 5.9.3 国内版（`D:\WorkBuddy`、配置根 `~/.workbuddy`）在同一形状下重跑出同一结果——假完工被拦、原因以 `Stop hook feedback` 续跑、重入时 `stop_hook_active` 为 `true` 并据此放行、项目级注册面仍是 `.codebuddy/settings.json`（`.workbuddy/settings.json` 双胞胎不触发），见 [`docs/evidence/v0.3.0/workbuddy-cn-hook-probe-2026-11-01.md`](evidence/v0.3.0/workbuddy-cn-hook-probe-2026-11-01.md)。两个变体共用一个 agent CLI，但国内版这一行不是从国际版推出来的。`SubagentStop` 在两个构建上都发出同一决策、都不被续跑，因此只接回合结束事件。插件出口随下一个版本发。 |
+| Qoder | C（v0.3.0 发出去的安装形态） | 只有规则，没有钩子；2026-10-31 重跑标准技能目录安装（Run A，exit 0，SHA 一致）；Qoder CN Desktop 0.4.11 的新会话可见性由 #106 的 Run B 记录，本窗口未重跑；Qoder IDE/CLI 规则加载仍 declared-unverified。**2026-10-31 #109 探针回填**：Qoder CN Desktop 0.4.11 的 `Stop` 钩子在真机会话里把回合拦下来并续跑，两条通道都成立：exit 0 + `{decision:"block"}` 拦下 6 次「已完成并验证」的空口完工声明（另 1 次是同一句包了「这是探针载荷」的限定语）；exit 2 + stderr 拦下 3 次带标记的消息，而那三条文本自己声明「本轮未做任何验证」，属于标记命中、不是假完工命中。该变体升 A 档；升档的插件安装形态不在 v0.3.0 里，随下一个版本发。**2026-11-01 #113 探针回填**：国际版 Qoder Desktop 0.4.11 单独实测，同样两条通道都成立（exit 0 + `{decision:"block"}`，exit 2 + stderr 由宿主记为 `success=false exit_code=2` 且理由照常回注），重入回合 `stop_hook_active` 为 true，连续 3 次阻断后由探针自带上限放行；同时武装的 `.qoder-cn/settings.json` 一次都没触发，与 CN 一致。它那 7 次阻断里 5 次是空口完工声明（由探针提示词指定原样输出）、2 次是自己声明未做验证的文本。该变体同样升 A 档；IDE/CLI 未被实测，等级不动。见 [`docs/evidence/v0.3.0/qoder-hook-probe-2026-10-31.md`](evidence/v0.3.0/qoder-hook-probe-2026-10-31.md) 与 [`docs/evidence/v0.3.0/qoder-intl-hook-probe-2026-11-01.md`](evidence/v0.3.0/qoder-intl-hook-probe-2026-11-01.md) |
+| WorkBuddy（v0.3.0 未包含） | A：国际版（2026-10-31 实测）、国内版（2026-11-01 实测） | 两个变体各跑各的探针，各有一份证据。2026-10-31 #110：WorkBuddy AI 5.9.4 国际版的 `Stop` 钩子在真机会话里以 exit 0 + `{decision:"block"}` 拦下一次假完工，原因以 `Stop hook feedback` 注入，见 [`docs/evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md`](evidence/v0.3.0/workbuddy-hook-probe-2026-10-31.md)。2026-11-01 #118：WorkBuddy 5.9.3 国内版（`D:\WorkBuddy`、配置根 `~/.workbuddy`）在同一形状下重跑出同一结果——假完工被拦、原因以 `Stop hook feedback` 续跑、重入时 `stop_hook_active` 为 `true` 并据此放行、项目级注册文件仍是 `.codebuddy/settings.json`（`.workbuddy/settings.json` 双胞胎不触发），见 [`docs/evidence/v0.3.0/workbuddy-cn-hook-probe-2026-11-01.md`](evidence/v0.3.0/workbuddy-cn-hook-probe-2026-11-01.md)。两个变体共用一个 agent CLI，但国内版这一行不是从国际版推出来的。`SubagentStop` 在两个构建上都发出同一决策、都不被续跑，因此只接回合结束事件。插件安装形态随下一个版本发。 |
 
 | 规则版 | 不适用 | 只注入指令，任何宿主都没有强制 |
 
@@ -66,7 +66,7 @@ Claude Code 与 CodeBuddy 在 v0.2.0 就带着钩子发布，本版本没有改�
 ## 本版本修掉的三条拦截缺陷（#75）
 
 - 用户工程里的 `.mcp.json` / `hooks/hooks.json` / `.claude-plugin/plugin.json` 不再被误判成绕过尝试。
-- 路径按平台归一：POSIX 下绝对路径检查此前完全失效；规则文本与运行时副本目录进了保护面。
+- 路径按平台归一：POSIX 下绝对路径检查此前完全失效；规则文本与运行时副本目录进了受保护的东西。
 - Stop 判定不再扫全量历史：别的会话的记录既不拦本次收尾，也不替本次作证。
 
 **遗留一处，已由 #89 承载**：不带 `session_id`/`turn_id` 的存量记录仍对每个会话作证——收窄器筛掉的是「标明属于别的会话」的记录，不是「没标归属」的记录。
@@ -88,7 +88,7 @@ Claude Code 与 CodeBuddy 在 v0.2.0 就带着钩子发布，本版本没有改�
 
 ## 降级与卸载
 
-**先看一个事实**：v0.2.0 的 `adapters/` 里只有 `claude-code` 和 `codebuddy`。Codex、Copilot、Qoder、Antigravity 四个出口是本版本新增的，v0.2.0 里没有对应目录——对它们来说没有「降级」，只有「卸载」。
+**先看一个事实**：v0.2.0 的 `adapters/` 里只有 `claude-code` 和 `codebuddy`。Codex、Copilot、Qoder、Antigravity 四个安装形态是本版本新增的，v0.2.0 里没有对应目录——对它们来说没有「降级」，只有「卸载」。
 
 下面每条都标了实测状态；命令在本机隔离的 `CODEX_HOME` / `COPILOT_HOME` / `CLAUDE_CONFIG_DIR` 下跑过，不碰你日常的插件状态。
 
@@ -199,7 +199,7 @@ tree      adapters/qoder         c03886a993b4405638963ad47db7846ca159e0f4d1dcb23
 
 ## 不在本版本
 
-- Qoder 升 A 档：本版本不带它。两个 Desktop 变体的收尾钩子都已实测能拦——Qoder CN Desktop 0.4.11 于 2026-10-31（#109），国际版 0.4.11 于 2026-11-01（#113）——升档的插件出口随下一个版本发；Qoder IDE/CLI 的收尾钩子仍未实测，那个变体保持 C 档。
-- 人工裁定的凭据（#90）：被拦方仍能自己写一条 pass 把自己放行，这是 append-only 链的信任边界，v0.3.0 之后单独定。
+- Qoder 升 A 档：本版本不带它。两个 Desktop 变体的收尾钩子都已实测能拦——Qoder CN Desktop 0.4.11 于 2026-10-31（#109），国际版 0.4.11 于 2026-11-01（#113）——升档的插件安装形态随下一个版本发；Qoder IDE/CLI 的收尾钩子仍未实测，那个变体保持 C 档。
+- 人工判定的证据（#90）：被拦方仍能自己写一条 pass 把自己放行，这是 append-only 链的信任边界，v0.3.0 之后单独定。
 - 规则文本重写（#25）、profile 缺省值（#40）：都等 #23 的人工标注数据。
 - 发布到 npm；公开评测；签名体系。

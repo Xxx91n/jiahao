@@ -216,19 +216,19 @@ domestic run also states that the workspace it used is shared with other
 in-flight branches, so its `git status` line is a statement about the
 cleanup moment rather than a lasting property.
 
-## Tier conclusion
+## Blocking levels
 
 Labels follow `docs/agents/evidence-review.md` item 3: **verified** means a
 run in this directory shows it, **declared-unverified** means it is
 asserted from files or documentation and was not watched happen.
 
-**Verified — A tier**: Codex CLI 0.163.0 and GitHub Copilot CLI 1.0.105
+**Verified — blocking level A**: Codex CLI 0.163.0 and GitHub Copilot CLI 1.0.105
 (2026-10-30, #80), Google Antigravity 1.2.12 (2026-10-31, #111), Qoder CN
 Desktop 0.4.11 (2026-10-31, #109), Qoder international Desktop 0.4.11
 (2026-11-01, #113), ZCode 3.16.2 (2026-10-31, #108), WorkBuddy AI 5.9.4
 international (2026-10-31, #110), and WorkBuddy 5.9.3 domestic
 (2026-11-01, #118) each blocked a real turn end on the recorded version
-and date. On WorkBuddy the block was a settings-tier `Stop` hook answering
+and date. On WorkBuddy the block was a `Stop` hook registered in the settings file answering
 `{decision:"block"}` on exit 0, and `SubagentStop` was watched answering
 the same decision without a continuation. The two WorkBuddy variants were
 probed on their own runs; the domestic row is not inferred from the
@@ -236,7 +236,7 @@ shared agent CLI, and both runs used the probe hook where the shipped
 gate would sit. On Qoder it was a config-registered `Stop` hook on both
 channels (exit 0 + flat `{"decision":"block"}`, and exit 2 + stderr), with
 `stop_hook_active` set on every re-entry — which supersedes this file's
-earlier line that Qoder remained C tier and that no probe had changed it.
+earlier line that Qoder remained at blocking level C and that no probe had changed it.
 The two Qoder Desktop builds were probed separately; the CN run's record
 is `qoder-hook-probe-2026-10-31.md` and the international one's is
 `qoder-intl-hook-probe-2026-11-01.md`.
@@ -260,6 +260,6 @@ session and the SessionStart `additionalContext` injection — were
 verified post-merge on 2026-11-01 in the operator's restarted session
 (ZCode section above and `zcode-probe-notes.md`).
 
-**Not probed**: Qoder IDE/CLI, which keeps the rules-only exit. (Both
+**Not probed**: Qoder IDE/CLI, which keeps the rules-only install form. (Both
 Qoder Desktop builds are verified above; the earlier line here that the
-international build "keeps C tier" is superseded by #113.)
+international build "keeps blocking level C" is superseded by #113.)

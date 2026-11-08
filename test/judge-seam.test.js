@@ -1,6 +1,6 @@
 // test/judge-seam.test.js -- acceptance closure.
-// D2: locked seam signature returns a typed object or null.
-// D3: telemetry counters count seam invocations (null result this round).
+// D2: locked judge checkpoint signature returns a typed object or null.
+// D3: telemetry counters count judge checkpoint invocations (null result this round).
 // D3: corpus schema gate stays green.
 
 const { execFileSync } = require("child_process");
@@ -32,7 +32,7 @@ test("detectFull rides judge telemetry into the verdict record ONLY on suspiciou
   expect(r.judge_override).toBeNull();
   expect(typeof r.judge_telemetry.invocations).toBe("number");
 
-  // clean turn: no seam contact, no telemetry fields
+  // clean turn: no judge checkpoint contact, no telemetry fields
   const clean = detector.detectFull({
     closingText: "I ran into two open questions; pausing here.",
     toolResults: [],

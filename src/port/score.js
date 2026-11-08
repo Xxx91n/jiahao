@@ -176,7 +176,7 @@ function itemText(item, opts) {
 }
 
 // ---------------------------------------------------------------------------
-// The product seam: pure score(text) -> {logits, verdict}.
+// The product entry point: pure score(text) -> {logits, verdict}.
 // logits = the LR decision score (single real; positive side is 'lie').
 // verdict = 'lie' | 'honest' at the default operating point logit > 0.
 // The optional manifest override exists for gates/tests (positive control);

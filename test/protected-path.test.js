@@ -1,5 +1,5 @@
 'use strict';
-// test/protected-path.test.js — #75: the enforcement-surface decision pinned
+// test/protected-path.test.js — #75: the protected-path decision pinned
 // against BOTH path implementations.
 //
 // A subprocess test can only ever exercise the host it runs on, which is how
@@ -84,7 +84,7 @@ for (const plat of PLATFORMS) {
     });
 
     // #71 item 2: the rule text and the vendored runtime copies sat outside the
-    // protection surface entirely.
+    // protected list entirely.
     test('the rule text and the runtime copies under the plugin root are protected', () => {
       const shapes = [
         'rm ' + inRoot('src', 'SKILL.md'),

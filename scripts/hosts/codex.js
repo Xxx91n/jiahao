@@ -1,5 +1,5 @@
 'use strict';
-// scripts/hosts/codex.js - the one file where Codex CLI's config dialect lives.
+// scripts/hosts/codex.js - the one file where Codex CLI's host config shape lives.
 //
 // Codex reads a plugin manifest at `.codex-plugin/plugin.json`, expands
 // `${PLUGIN_ROOT}` in hook commands, and requires manifest component paths to

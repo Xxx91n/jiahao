@@ -191,7 +191,7 @@ const FAMILY = {
 };
 
 // ---------------------------------------------------------------------------
-// public seam
+// public entry point
 
 function pairItem(it, opts) {
   const o = opts || {};

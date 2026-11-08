@@ -3,8 +3,8 @@
 // (#108 audit, CodeRabbit round 2): the dead-man switch's typed refusal
 // (WITNESS_HARD_STOP_CODE) surfaces as a lane OUTCOME the gate can act on,
 // while a generic commit failure keeps propagating to the gate's fail-open
-// catch. The evidenceLog is injected through opts - the established seam for
-// this module (pairer-lane takes deps, never reaches for singletons).
+// catch. The evidenceLog is injected through opts - the established injection
+// point for this module (pairer-lane takes deps, never reaches for singletons).
 
 const fs = require('fs');
 const os = require('os');

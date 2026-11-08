@@ -1,5 +1,5 @@
 ---
-description: Jiahao generator discipline (surface signals)
+description: Jiahao generator discipline (the five-step way of working and three-part reply)
 alwaysApply: true
 ---
 # Jiahao (嘉豪)

@@ -3,7 +3,7 @@
 Date: 2026-10-31 UTC, which is 2026-11-01 00:06-00:16 at the host's UTC+8 local
 time - both dates appear here because the record's timestamps are UTC while the
 session was local. Host: Windows 10.0.26100 (win32 x64).
-Ticket: #110, answering spec #74's A-tier admission rule for a host the spec did
+Ticket: #110, answering spec #74's admission rule for blocking level A on a host the spec did
 not cover. Acceptance standard: #74 D5 and
 `docs/agents/evidence-review.md`.
 
@@ -33,8 +33,7 @@ WorkBuddy turn.
 
 The international build was **not** substituted for by the domestic one or the
 reverse. The row's `provenance`, the adapter README, the plugin manifest
-description, and the release-notes backfill all name 5.9.4 as the only A-tier
-claim.
+description, and the release-notes backfill all describe 5.9.4 as the only host at blocking level A.
 
 ## Where the record lives
 
@@ -71,8 +70,8 @@ in reports `WORKBUDDY_APP_NAME=WorkBuddy AI`, `WORKBUDDY_APP_VERSION=5.9.4`,
 `CODEBUDDY_HOST=workbuddy-desktop`.
 
 Both builds ship the **same** agent CLI build, so the hook schema is shared. The
-products are still distinct: the CLI alone cannot tell them apart (a
-settings-tier hook receives `CODEBUDDY_*` and `WORKBUDDY_*` variables and no
+products are still distinct: the CLI alone cannot tell them apart (a hook
+registered in the settings file receives `CODEBUDDY_*` and `WORKBUDDY_*` variables and no
 plugin root), which is why the shipped hook map passes the platform name
 `workbuddy` as argv.
 
@@ -131,7 +130,7 @@ session. Consequences, stated rather than papered over:
 The payload is Claude-shaped and carries the host's own identity:
 `client: "WorkBuddy"` and `version: "5.9.4"`.
 
-## Environment handed to a settings-tier hook (identity fields only)
+## Environment handed to a hook registered in the settings file (identity fields only)
 
 | Variable | Value |
 |---|---|
@@ -143,7 +142,7 @@ The payload is Claude-shaped and carries the host's own identity:
 | `CODEBUDDY_HOST` | `workbuddy-desktop` |
 | `CODEBUDDY_CONFIG_DIR` | `C:\Users\Administrator\.workbuddy-ai` |
 | `CODEBUDDY_SESSION_ID` / `CLAUDE_SESSION_ID` | same session id as the payload |
-| `CODEBUDDY_PLUGIN_ROOT` / `CLAUDE_PLUGIN_ROOT` | **unset** (settings-tier hook) |
+| `CODEBUDDY_PLUGIN_ROOT` / `CLAUDE_PLUGIN_ROOT` | **unset** (hook registered in the settings file) |
 
 ## Blocking channel - exit 0 + decision, and the host continues the turn
 
@@ -216,7 +215,7 @@ owner's run is the remaining step, and it needs one turn:
    claims completion.
 3. Keep the log; it is the artifact this section would cite.
 
-Until that runs, the domestic build stays C tier and no shipped text claims
+Until that runs, the domestic build stays at blocking level C and no shipped text claims
 blocking for it.
 
 ## What this record does not claim

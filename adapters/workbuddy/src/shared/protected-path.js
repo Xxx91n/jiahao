@@ -1,5 +1,5 @@
 'use strict';
-// src/shared/protected-path.js — the PreToolUse enforcement-surface decision.
+// src/shared/protected-path.js — the PreToolUse protected-path decision.
 //
 // Extracted from hooks/jiahao-pretool-guard.js (#75) because the decision is a
 // pure function of (candidate text, plugin root, path implementation): only the
@@ -23,7 +23,7 @@
 // tokens() and expandedSpelling().
 //
 // Fail-soft by contract: the caller decides what a hit means (deny or observe);
-// this module only answers "is this path on the enforcement surface".
+// this module only answers "is this path on the protected list".
 
 const os = require('os');
 const path = require('path');

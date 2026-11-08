@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 330" role="img" aria-labelledby="t d">
   <title id="t">Dual-profile install flow</title>
-  <desc id="d">One flag file .jiahao-profile selects the generator profile (3 surface-signal rules, advisory) installed in the primary agent, or the verifier profile (7 iron laws plus the 6-rung ladder, blocking) installed in a separate audit agent. The Stop gate emits PASS, FAIL, ESCALATE or NOT VERIFIED.</desc>
+  <desc id="d">One flag file .jiahao-profile selects the generator profile (the five-step way of working, advisory) installed in the primary agent, or the verifier profile (7 verifier rules plus the 6-rung ladder, blocking) installed in a separate audit agent. The Stop gate emits PASS, FAIL, ESCALATE or NOT VERIFIED.</desc>
   <style>
     .ink{fill:#24292f}.mut{fill:#57606a}.box{fill:#f6f8fa;stroke:#8c959f;stroke-width:1.5}
     .seam{stroke:#24292f;stroke-width:2}.acc{fill:#cf222e}.accT{fill:#cf222e;font-weight:600}
@@ -25,11 +25,11 @@
   <path d="M240 172 C 300 172 300 244 350 244" class="arr"/>
   <rect x="356" y="36" width="330" height="88" rx="10" class="box"/>
   <text x="521" y="62" text-anchor="middle" class="lbl">generator profile — advisory</text>
-  <text x="521" y="84" text-anchor="middle" class="sml">3 surface-signal rules · in the primary agent</text>
+  <text x="521" y="84" text-anchor="middle" class="sml">five-step way of working · in the primary agent</text>
   <text x="521" y="106" text-anchor="middle" class="sml">no evidence → no claim · never blocks</text>
   <rect x="356" y="200" width="330" height="88" rx="10" class="box"/>
   <text x="521" y="226" text-anchor="middle" class="lbl">verifier profile — blocking</text>
-  <text x="521" y="248" text-anchor="middle" class="sml">7 iron laws · 6-rung ladder · separate audit agent</text>
+  <text x="521" y="248" text-anchor="middle" class="sml">7 verifier rules · 6-rung ladder · separate audit agent</text>
   <text x="521" y="270" text-anchor="middle" class="sml">judge is never the author</text>
   <path d="M686 80 C 740 80 740 130 780 130" class="arr"/>
   <path d="M686 244 C 740 244 740 180 780 180" class="arr"/>

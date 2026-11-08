@@ -48,7 +48,7 @@ test('build-adapters generates the retained exits', () => {
       'adapters/qoder/README.md',
       'adapters/qoder/rules/jiahao.md',
       // #109: Qoder Desktop became a plugin row, so its two wiring files join
-      // the retained-exit list a dropped scaffold would disappear from.
+      // the retained-install-form list a dropped scaffold would disappear from.
       'adapters/qoder/.qoder-plugin/plugin.json',
       'adapters/qoder/hooks/hooks.json',
       'skills/jiahao/SKILL.md',
@@ -57,7 +57,7 @@ test('build-adapters generates the retained exits', () => {
       expect(fs.existsSync(path.join(dir, rel))).toBe(true);
     });
     // Everything the generator produced reached the target - not just the
-    // exits listed above - so a writeAll that skips a file is red here.
+    // not just the install forms listed above - so a writeAll that skips a file is red here.
     emitted.forEach(rel => {
       expect(fs.existsSync(path.join(dir, rel))).toBe(true);
     });
@@ -76,7 +76,7 @@ test('the rules-version skill carries both profiles', () => {
   expect(content).toContain('## Boundaries');
 });
 
-test('every shipped generator-rule and skill copy carries the separated output-lock format (#135)', () => {
+test('every shipped generator-rule and skill copy carries the separated three-part reply format (#135)', () => {
   const { TEMPLATE } = require('./helpers/output-lock-contract');
   const { HOSTS, SKILL_DIR, isRulesOnlyDirectory, buildAdapters } = require('../scripts/build-adapters');
   const generated = buildAdapters();
@@ -152,7 +152,7 @@ test('the eight adapter READMEs share one profile section and no invented terms 
   for (const host of HOSTS) {
     const text = generated[host.dir + '/README.md'];
     expect(text).toBeTruthy();
-    // The words the ticket names are gone from every exit, so a template edit
+    // The words the ticket names are gone from every install form, so a template edit
     // cannot bring one back while the rest of the suite stays green.
     for (const term of banned) expect(text).not.toContain(term);
     // One profile paragraph, byte-identical in all eight. The slice ends at
@@ -166,15 +166,15 @@ test('the eight adapter READMEs share one profile section and no invented terms 
   expect(sections.size).toBe(1);
 });
 
-describe('Qoder Desktop exit (#79 rules file, #109 turn-end gate)', () => {
+describe('Qoder Desktop install form (#79 rules file, #109 turn-end gate)', () => {
   const { buildAdapters } = require('../scripts/build-adapters');
   const generated = buildAdapters();
   const PREFIX = 'adapters/qoder/';
   const bodyOf = (text) => text.replace(/^---[\s\S]*?---\n/, '');
 
-  test('the Desktop plugin upgrade keeps the IDE/CLI rule exit in the same directory', () => {
-    // #109's DoD names both halves: an A-tier bundle for Desktop AND the
-    // preserved rules exit. The bundle's own shape is asserted by
+  test('the Desktop plugin upgrade keeps the IDE/CLI rule install form in the same directory', () => {
+    // #109's DoD names both halves: a bundle at blocking level A for Desktop AND the
+    // preserved rules install form. The bundle's own shape is asserted by
     // test/plugin-bundles.test.js and test/qoder-adapter.test.js; this pins the
     // half that could silently disappear when `manifest: null` became a manifest.
     const emitted = Object.keys(generated).filter((rel) => rel.startsWith(PREFIX));
@@ -209,8 +209,8 @@ describe('Qoder Desktop exit (#79 rules file, #109 turn-end gate)', () => {
     const observed = readme.slice(desktopStart, readme.indexOf('## Not tested yet'));
     expect(observed).toContain('qoder-hook-calls.jsonl');
     expect(observed).toContain('stop_hook_active');
-    // The unprobed surfaces keep the #79 discipline: a claim they were watched
-    // firing would be the "会拦" mistake the tier contract forbids.
+    // The parts that were not probed keep the #79 discipline: a claim they were
+    // watched firing would be the "会拦" mistake the rules for blocking levels forbid.
     const unverified = readme.slice(readme.indexOf('## Not tested yet'),
       readme.indexOf('## Qoder Desktop plugin'));
     for (const phrase of ['Installing this folder as a Desktop plugin', 'QODER_PLUGIN_ROOT', 'QODER_SESSION_ID']) {
