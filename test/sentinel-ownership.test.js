@@ -136,7 +136,7 @@ test('D3: SessionEnd is registered wherever a hook map exists', () => {
   // The repo-level map is hand-kept; a bundle's map is generated output, so it
   // comes from the in-memory generator (a disk read would be the truncation
   // hazard #66 measured).
-  const { buildAdapters, HOSTS, dialectOf, hookEntryCommands } = require('../scripts/build-adapters');
+  const { buildAdapters, HOSTS, hostFormatOf, hookEntryCommands } = require('../scripts/build-adapters');
   const generated = buildAdapters();
   const claude = JSON.parse(fs.readFileSync(path.join(REPO, 'hooks', 'jiahao-hooks.json'), 'utf8'));
   expect(claude.hooks.SessionEnd[0].hooks[0].command).toContain('jiahao-sweep.js');
@@ -144,12 +144,12 @@ test('D3: SessionEnd is registered wherever a hook map exists', () => {
   for (const host of HOSTS) {
     const events = Object.keys(host.hooks || {});
     if (events.length === 0) continue;
-    const dialect = dialectOf(host);
+    const format = hostFormatOf(host);
     // The host-config module names the host's own session-end event (Copilot: sessionEnd,
     // the Claude-shaped hosts: SessionEnd). Pinning the sweep to THAT event keeps
     // the invariant about the end of the session, so a row that moves the sweep
     // to sessionStart cannot pass by having a sweep somewhere.
-    const sweepEvent = dialect.sessionEndEvent;
+    const sweepEvent = format.sessionEndEvent;
     if (sweepEvent === null) {
       // ZCode has no session-end event at all (#108): a sweep cannot run
       // there, and dead wiring would claim a cleanup that never fires. The
@@ -161,9 +161,9 @@ test('D3: SessionEnd is registered wherever a hook map exists', () => {
     expect(host.hooks[sweepEvent]).toBeDefined();
     expect(host.hooks[sweepEvent].script).toBe('jiahao-sweep');
     wired++;
-    const map = JSON.parse(generated[host.dir + '/' + dialect.hookMapPath]);
+    const map = JSON.parse(generated[host.dir + '/' + format.hookMapPath]);
     const hook = hookEntryCommands(map.hooks[sweepEvent][0])[0];
-    const command = dialect.commandFields.map((field) => hook[field]).join(' ');
+    const command = format.commandFields.map((field) => hook[field]).join(' ');
     expect(command).toContain('jiahao-sweep.js');
   }
   // Every hook-bearing host sweeps: the count is the invariant, so dropping

@@ -10,12 +10,12 @@ const fs = require('fs');
 const path = require('path');
 const { splitByProfile, validateRuleHeaders } = require('../hooks/jiahao-profile');
 const { listTrackedPaths } = require('../src/shared/tracked-surface');
-const copilotDialect = require('./hosts/copilot');
-const codexDialect = require('./hosts/codex');
-const zcodeDialect = require('./hosts/zcode');
-const qoderDialect = require('./hosts/qoder');
-const antigravityDialect = require('./hosts/antigravity');
-const workbuddyDialect = require('./hosts/workbuddy');
+const copilotFormat = require('./hosts/copilot');
+const codexFormat = require('./hosts/codex');
+const zcodeFormat = require('./hosts/zcode');
+const qoderFormat = require('./hosts/qoder');
+const antigravityFormat = require('./hosts/antigravity');
+const workbuddyFormat = require('./hosts/workbuddy');
 const { PLATFORMS } = require('../hooks/jiahao-runtime');
 
 const root = path.join(__dirname, '..');
@@ -254,7 +254,7 @@ const HOSTS = [
     // Product identity, config roots, the two manifest directories the loader
     // accepts, and the platform name the template passes all live in
     // scripts/hosts/workbuddy.js.
-    dialect: workbuddyDialect,
+    format: workbuddyFormat,
     hooks: {
       SessionStart: { script: 'jiahao-activate', timeout: 5 },
       UserPromptSubmit: { script: 'jiahao-mode-tracker', timeout: 5 },
@@ -288,7 +288,7 @@ const HOSTS = [
     // config shape; they live in scripts/hosts/copilot.js alone, never in the hook
     // scripts. subagentStop is deliberately not wired: the ticket asks for the
     // turn-end event, and a blocked subagent finish was not probed (#80).
-    dialect: copilotDialect,
+    format: copilotFormat,
     hooks: {
       sessionStart: { script: 'jiahao-activate', timeout: 10 },
       subagentStart: { script: 'jiahao-subagent', timeout: 10 },
@@ -328,7 +328,7 @@ const HOSTS = [
     // Codex's manifest, hook-map path, ${PLUGIN_ROOT} spelling, './' component
     // paths, and the platform name the template passes all live in
     // scripts/hosts/codex.js.
-    dialect: codexDialect,
+    format: codexFormat,
     manifest: {
       description: 'Verification discipline for Codex CLI: profile injection at session start, verdict gate at turn end (blocking level A, live block verified 2026-10-30). Self-contained plugin.',
       author: { name: 'Xxx91n' },
@@ -349,7 +349,7 @@ const HOSTS = [
     // {decision:"block"} on exit 0. Exit 2 did not block. Ten consecutive
     // block continuations followed by a forced end at MAX_FORCED_INVOCATIONS.
     provenance: 'Google Antigravity 1.2.12 (2026-10-31, #111): live Stop block via exit 0 + {decision:"block"} continued the turn; exit 2 + stderr did not block; 10 forced continuations max before CLI terminated',
-    dialect: antigravityDialect,
+    format: antigravityFormat,
     hooks: {
       SessionStart: { script: 'jiahao-activate', timeout: 5 },
       Stop: { script: 'jiahao-verdict-gate', timeout: 10 },
@@ -392,7 +392,7 @@ const HOSTS = [
     // firing was not observed either, because the sentinel-reclamation invariant
     // (test/sentinel-ownership.test.js D3) requires the sweep in every hook map,
     // and an unwired sweep leaks `<config>/.jiahao-sentinel.*` files.
-    dialect: qoderDialect,
+    format: qoderFormat,
     hooks: {
       SessionStart: { script: 'jiahao-activate', timeout: 5 },
       UserPromptSubmit: { script: 'jiahao-mode-tracker', timeout: 5 },
@@ -426,7 +426,7 @@ const HOSTS = [
     // ZCode's event vocabulary is PascalCase but holds exactly seven events;
     // SubagentStart/SubagentStop/SessionEnd do not exist, so no sweep hook is
     // wired (scripts/hosts/zcode.js sets sessionEndEvent: null).
-    dialect: zcodeDialect,
+    format: zcodeFormat,
     hooks: {
       SessionStart: { script: 'jiahao-activate', timeout: 5 },
       UserPromptSubmit: { script: 'jiahao-mode-tracker', timeout: 5 },
@@ -470,13 +470,13 @@ const MARKETPLACE_HOST = HOSTS.find(host => host.name === 'claude-code');
 const RETIRED_HOSTS = ['aider', 'cline', 'cursor',
   'instruction-tier', 'mcp', 'opencode', 'windsurf'];
 
-// A host row may name a host-config module (the `dialect` field,
+// A host row may name a host-config module (the `format` field,
 // scripts/hosts/<name>.js) when its config schema differs from the
 // Claude-shaped default. That module owns the manifest and hook-map paths, the
 // command spelling, the timeout key, and any extra generated files; vendoring,
 // level checks, and regen-diff stay shared, so a second copy of the judgment
 // logic cannot grow per host.
-const CLAUDE_DIALECT = {
+const CLAUDE_FORMAT = {
   manifestPath: '.claude-plugin/plugin.json',
   hookMapPath: 'hooks/hooks.json',
   sessionEndEvent: 'SessionEnd',
@@ -490,16 +490,16 @@ const CLAUDE_DIALECT = {
   },
 };
 
-function dialectOf(host) {
-  return Object.assign({}, CLAUDE_DIALECT, host.dialect || {});
+function hostFormatOf(host) {
+  return Object.assign({}, CLAUDE_FORMAT, host.format || {});
 }
 
 // Codex reads its own marketplace file (`.agents/plugins/marketplace.json`);
 // the entry points at the same bundle the row describes. Exactly one row may
 // own that file: two rows with a `codex` marketplace would otherwise leave one
 // silently unshelved, and the build catches it instead.
-const CODEX_DIALECT_HOSTS = HOSTS.filter(host => (host.dialect || {}).marketplace === 'codex');
-const CODEX_MARKETPLACE_HOST = CODEX_DIALECT_HOSTS.length === 1 ? CODEX_DIALECT_HOSTS[0] : null;
+const CODEX_FORMAT_HOSTS = HOSTS.filter(host => (host.format || {}).marketplace === 'codex');
+const CODEX_MARKETPLACE_HOST = CODEX_FORMAT_HOSTS.length === 1 ? CODEX_FORMAT_HOSTS[0] : null;
 
 // Claude-shaped maps nest their commands under `hooks`; a flat config's entry
 // IS the command. One reader, so the gate and the suites cannot disagree about
@@ -650,32 +650,32 @@ function hostShapeProblems(hosts) {
       if (!host.mcp.entry) problems.push(label + ': the MCP server needs an entry file');
       if (!Array.isArray(host.mcp.files)) problems.push(label + ': the MCP server needs a files array (what else ships beside it)');
     }
-    if (host.dialect) {
-      if (host.dialect.platform !== undefined && !PLATFORMS.includes(host.dialect.platform)) {
+    if (host.format) {
+      if (host.format.platform !== undefined && !PLATFORMS.includes(host.format.platform)) {
         // A config template may only pass a name the hook layer has a shape for;
         // a typo would silently fall back to the Claude branch at runtime.
-        problems.push(label + ': host config platform "' + host.dialect.platform + '" is not one of ' + PLATFORMS.join('/'));
+        problems.push(label + ': host config platform "' + host.format.platform + '" is not one of ' + PLATFORMS.join('/'));
       }
-      if (host.dialect.manifestPathPrefix !== undefined && !['', './'].includes(host.dialect.manifestPathPrefix)) {
+      if (host.format.manifestPathPrefix !== undefined && !['', './'].includes(host.format.manifestPathPrefix)) {
         problems.push(label + ': host config manifestPathPrefix must be "" or "./"');
       }
       for (const key of ['manifestPath', 'hookMapPath']) {
-        const rel = host.dialect[key];
+        const rel = host.format[key];
         if (typeof rel !== 'string' || !rel.endsWith('.json') ||
             rel.startsWith('/') || rel.split('/').includes('..')) {
           problems.push(label + ': host config ' + key + ' must be a relative .json path inside the bundle');
         }
       }
       for (const fn of ['emitManifest', 'emitHookMap']) {
-        if (host.dialect[fn] !== undefined && typeof host.dialect[fn] !== 'function') {
+        if (host.format[fn] !== undefined && typeof host.format[fn] !== 'function') {
           problems.push(label + ': host config ' + fn + ' must be a function when present');
         }
       }
-      if (!Array.isArray(host.dialect.commandFields) || host.dialect.commandFields.length === 0) {
+      if (!Array.isArray(host.format.commandFields) || host.format.commandFields.length === 0) {
         problems.push(label + ': the host config must name its command fields');
       }
-      for (const field of host.dialect.commandFields || []) {
-        const pattern = (host.dialect.commandPatterns || {})[field];
+      for (const field of host.format.commandFields || []) {
+        const pattern = (host.format.commandPatterns || {})[field];
         if (!(pattern instanceof RegExp)) {
           problems.push(label + ': the host config needs a command pattern for ' + field);
         }
@@ -685,11 +685,11 @@ function hostShapeProblems(hosts) {
       // would ship a Claude-shaped map the host silently skips, so the shape and
       // the emitter must change together. Compared as a set, so reordering the
       // fields is not mistaken for a new shape.
-      const fields = host.dialect.commandFields || [];
-      const sameFields = fields.length === CLAUDE_DIALECT.commandFields.length &&
-        fields.every((field) => CLAUDE_DIALECT.commandFields.includes(field));
-      const customShape = !sameFields || host.dialect.timeoutField !== CLAUDE_DIALECT.timeoutField;
-      if (customShape && typeof host.dialect.emitHookMap !== 'function') {
+      const fields = host.format.commandFields || [];
+      const sameFields = fields.length === CLAUDE_FORMAT.commandFields.length &&
+        fields.every((field) => CLAUDE_FORMAT.commandFields.includes(field));
+      const customShape = !sameFields || host.format.timeoutField !== CLAUDE_FORMAT.timeoutField;
+      if (customShape && typeof host.format.emitHookMap !== 'function') {
         problems.push(label + ': a non-default command shape needs its own emitHookMap');
       }
     }
@@ -788,14 +788,14 @@ function buildAdapters() {
   // src/ copy, and by the shape check above, no hook map.
   for (const host of HOSTS) {
     const prefix = host.dir + '/';
-    const dialect = dialectOf(host);
+    const format = hostFormatOf(host);
     // A rules-only row has no plugin scaffold at all; a plugin row takes its
     // manifest and hook-map paths (and command spelling) from its host-config module.
     if (!isRulesOnlyDirectory(host)) {
       emitBundle(adapters, prefix, bundleSeeds(host), skill, host.mcp ? host.mcp.files : []);
 
-      adapters[prefix + dialect.manifestPath] = dialect.emitManifest
-        ? dialect.emitManifest({
+      adapters[prefix + format.manifestPath] = format.emitManifest
+        ? format.emitManifest({
           host: host,
           pkg: PKG,
           repository: PKG_REPOSITORY,
@@ -803,16 +803,16 @@ function buildAdapters() {
         })
         : emitPluginManifest(host);
       if (Object.keys(host.hooks).length) {
-        adapters[prefix + dialect.hookMapPath] = dialect.emitHookMap
-          ? dialect.emitHookMap(host)
+        adapters[prefix + format.hookMapPath] = format.emitHookMap
+          ? format.emitHookMap(host)
           : emitHookMap(host);
       }
-      if (dialect.marketplaceShelfPath) {
+      if (format.marketplaceShelfPath) {
         // A bundle-local marketplace shelf (ZCode): the install command only
         // resolves plugin@marketplace names, and the shelf rides inside the
         // bundle so `marketplace add <this dir>` resolves exactly these bytes.
-        adapters[prefix + dialect.marketplaceShelfPath] =
-          dialect.emitMarketplaceShelf((host.manifest || {}).description);
+        adapters[prefix + format.marketplaceShelfPath] =
+          format.emitMarketplaceShelf((host.manifest || {}).description);
       }
       if (host.mcp) adapters[prefix + '.mcp.json'] = emitMcpJson(host.mcp);
     }
@@ -843,9 +843,9 @@ function buildAdapters() {
   // Codex reads `.agents/plugins/marketplace.json`, whose `source.path` resolves
   // from the marketplace root (the repo). The entry names the row's bundle and
   // carries no version: `.codex-plugin/plugin.json` is the authority.
-  if (CODEX_DIALECT_HOSTS.length > 1) {
+  if (CODEX_FORMAT_HOSTS.length > 1) {
     throw new Error('at most one host with a codex marketplace may own .agents/plugins/marketplace.json (found ' +
-      CODEX_DIALECT_HOSTS.length + ')');
+      CODEX_FORMAT_HOSTS.length + ')');
   }
   if (CODEX_MARKETPLACE_HOST) {
     adapters['.agents/plugins/marketplace.json'] = JSON.stringify({
@@ -2206,6 +2206,6 @@ if (require.main === module) main();
 module.exports = {
   buildAdapters, unifiedDiff, checkAll, writeAll, auditTrackedSet, SKILL_DIR, SOURCE_NAME,
   HOSTS, RETIRED_HOSTS, MARKETPLACE_HOST, CODEX_MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
-  dialectOf, hookEntryCommands, isRulesOnlyDirectory,
+  hostFormatOf, hookEntryCommands, isRulesOnlyDirectory,
   POSIX_CONFIG_SNIPPET, POWERSHELL_CONFIG_SNIPPET,
 };

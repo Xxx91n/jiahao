@@ -44,7 +44,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { spawnSync } = require('child_process');
 
-const { HOSTS, CODEX_MARKETPLACE_HOST, dialectOf, hookEntryCommands, isRulesOnlyDirectory } = require('./build-adapters');
+const { HOSTS, CODEX_MARKETPLACE_HOST, hostFormatOf, hookEntryCommands, isRulesOnlyDirectory } = require('./build-adapters');
 
 const root = path.join(__dirname, '..');
 
@@ -64,14 +64,14 @@ const REQUIRED_PACK_FILES = [
   // machine.
   'scripts/resolve.js',
   'skills/jiahao/SKILL.md',
-  ...PLUGIN_HOSTS.map(host => host.dir + '/' + dialectOf(host).manifestPath),
+  ...PLUGIN_HOSTS.map(host => host.dir + '/' + hostFormatOf(host).manifestPath),
   ...HOSTS.map(host => host.dir + '/README.md'),
-  ...HOSTS.filter(host => Object.keys(host.hooks || {}).length > 0).map(host => host.dir + '/' + dialectOf(host).hookMapPath),
+  ...HOSTS.filter(host => Object.keys(host.hooks || {}).length > 0).map(host => host.dir + '/' + hostFormatOf(host).hookMapPath),
   ...HOSTS.flatMap(host => host.rules.map(rule => host.dir + '/rules/' + rule.file)),
   // A bundle-local marketplace shelf (ZCode, #108) rides inside the bundle the
   // user points marketplace add at; a tarball without it breaks the install.
   ...HOSTS.flatMap(host => {
-    const shelf = (host.dialect || {}).marketplaceShelfPath;
+    const shelf = (host.format || {}).marketplaceShelfPath;
     return shelf ? [host.dir + '/' + shelf] : [];
   }),
   '.claude-plugin/marketplace.json',
@@ -86,7 +86,7 @@ const FORBIDDEN_PACK_PREFIXES = ['private/', 'bench/', 'docs/research/'];
 // bundle is easier to name than a tarball diff.
 const HASHED_TREES = ['skills/jiahao', ...HOSTS.map(host => host.dir)];
 
-const PLUGIN_MANIFESTS = PLUGIN_HOSTS.map(host => host.dir + '/' + dialectOf(host).manifestPath);
+const PLUGIN_MANIFESTS = PLUGIN_HOSTS.map(host => host.dir + '/' + hostFormatOf(host).manifestPath);
 const MARKETPLACE_MANIFEST = '.claude-plugin/marketplace.json';
 
 // Files that run on a user's machine once jiahao is installed: the installer
@@ -458,11 +458,11 @@ step('egress', 'code that runs after install makes no network call', () => {
     // row is deliberate, skipping one that declares events would let
     // `--only egress` report green over a bundle that has no commands.
     if (Object.keys(host.hooks || {}).length === 0) continue;
-    const dialect = dialectOf(host);
-    const rel = host.dir + '/' + dialect.manifestPath;
+    const format = hostFormatOf(host);
+    const rel = host.dir + '/' + format.manifestPath;
     const hookMapPath = path.join(root,
-      host.dir.split('/').join(path.sep), dialect.hookMapPath.split('/').join(path.sep));
-    if (!fs.existsSync(hookMapPath)) throw new Error(rel + ' has no ' + dialect.hookMapPath + ' beside it');
+      host.dir.split('/').join(path.sep), format.hookMapPath.split('/').join(path.sep));
+    if (!fs.existsSync(hookMapPath)) throw new Error(rel + ' has no ' + format.hookMapPath + ' beside it');
     const map = JSON.parse(fs.readFileSync(hookMapPath, 'utf8'));
     let checked = 0;
     for (const [event, entries] of Object.entries(map.hooks || {})) {
@@ -476,9 +476,9 @@ step('egress', 'code that runs after install makes no network call', () => {
           // Each field is checked against its own pattern: a bash entry spelled
           // with the PowerShell variable is a command the host would run in the
           // wrong shell, not an acceptable variant.
-          for (const field of dialect.commandFields) {
+          for (const field of format.commandFields) {
             const cmd = String(hook[field] || '').trim();
-            const m = dialect.commandPatterns[field].exec(cmd);
+            const m = format.commandPatterns[field].exec(cmd);
             if (!m) {
               throw new Error(rel + ' hook ' + event + ' runs a ' + field + ' command outside the bundle: ' + cmd);
             }

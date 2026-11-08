@@ -19,7 +19,7 @@ const { isBuiltin } = require('module');
 
 const {
   buildAdapters, HOSTS, MARKETPLACE_HOST, CODEX_MARKETPLACE_HOST, hostShapeProblems, bundleSeeds,
-  dialectOf, hookEntryCommands, isRulesOnlyDirectory,
+  hostFormatOf, hookEntryCommands, isRulesOnlyDirectory,
 } = require('../scripts/build-adapters');
 const { hookRegistrationPaths } = require('./helpers/generated-bundle');
 
@@ -32,10 +32,10 @@ const pkgRepository = pkg.repository.url.replace(/^git\+/, '').replace(/\.git$/,
 // bundle directory is vendored from the repository and must be byte-identical.
 // The manifest and hook-map paths come from the row's host-config module, so a host with a
 // different config schema does not have to pass a Claude-shaped path test.
-function isWiring(dialect, rel) {
-  if (rel === dialect.manifestPath) return true;
-  if (rel === dialect.hookMapPath) return true;
-  if (rel === dialect.marketplaceShelfPath) return true;
+function isWiring(format, rel) {
+  if (rel === format.manifestPath) return true;
+  if (rel === format.hookMapPath) return true;
+  if (rel === format.marketplaceShelfPath) return true;
   return /^(rules\/|\.mcp\.json$|README\.md$)/.test(rel);
 }
 
@@ -92,9 +92,9 @@ function repoClosure(seeds) {
 
 describe.each(HOSTS)('$label install form ($dir)', (host) => {
   const P = host.dir + '/';
-  const dialect = dialectOf(host);
+  const format = hostFormatOf(host);
   const events = Object.keys(host.hooks || {});
-  const manifestRel = P + dialect.manifestPath;
+  const manifestRel = P + format.manifestPath;
   // A rules-only row has no plugin manifest to parse; the shape tests below
   // assert that absence instead.
   const manifest = isRulesOnlyDirectory(host) ? null : JSON.parse(readGenerated(manifestRel));
@@ -133,7 +133,7 @@ describe.each(HOSTS)('$label install form ($dir)', (host) => {
       const vendored = Object.keys(generated)
         .filter((rel) => rel.startsWith(P))
         .map((rel) => rel.slice(P.length))
-        .filter((rel) => !isWiring(dialect, rel));
+        .filter((rel) => !isWiring(format, rel));
       expect(vendored.sort()).toEqual(Array.from(expected).sort());
     });
 
@@ -167,7 +167,7 @@ describe.each(HOSTS)('$label install form ($dir)', (host) => {
       expect(manifest.repository).toBe(pkgRepository);
       // The conservative opt-in flag is declared per host-config module: a host that does
       // not document the field must not be given a key it never reads.
-      if (dialect.defaultEnabledFlag) {
+      if (format.defaultEnabledFlag) {
         expect(manifest.defaultEnabled).toBe(false);
       } else {
         expect(manifest.defaultEnabled).toBeUndefined();
@@ -182,9 +182,9 @@ describe.each(HOSTS)('$label install form ($dir)', (host) => {
       // Component paths follow the host's rule: Codex requires './', the
       // Claude-shaped hosts write them bare. The host-config module carries the prefix so
       // the assertion stays exact instead of accepting either spelling.
-      const pathPrefix = dialect.manifestPathPrefix || '';
-      if (events.length && !host.autoDiscovered.includes(dialect.hookMapPath)) {
-        expect(manifest.hooks).toBe(pathPrefix + dialect.hookMapPath);
+      const pathPrefix = format.manifestPathPrefix || '';
+      if (events.length && !host.autoDiscovered.includes(format.hookMapPath)) {
+        expect(manifest.hooks).toBe(pathPrefix + format.hookMapPath);
       }
       if (host.mcp && !host.autoDiscovered.includes('.mcp.json')) {
         expect(manifest.mcpServers).toBe(pathPrefix + '.mcp.json');
@@ -204,7 +204,7 @@ describe.each(HOSTS)('$label install form ($dir)', (host) => {
   describe('hook map', () => {
     if (events.length === 0) {
       test('a rules-only bundle registers no hooks at all', () => {
-        expect(generated[P + dialect.hookMapPath]).toBeUndefined();
+        expect(generated[P + format.hookMapPath]).toBeUndefined();
         expect(Object.keys(generated).filter((rel) => rel.startsWith(P + 'hooks/'))).toEqual([]);
       });
 
@@ -214,7 +214,7 @@ describe.each(HOSTS)('$label install form ($dir)', (host) => {
       return;
     }
 
-    const cfg = JSON.parse(readGenerated(P + dialect.hookMapPath));
+    const cfg = JSON.parse(readGenerated(P + format.hookMapPath));
 
     test('registers exactly the host table event set', () => {
       expect(Object.keys(cfg.hooks)).toEqual(events);
@@ -226,14 +226,14 @@ describe.each(HOSTS)('$label install form ($dir)', (host) => {
           const commands = hookEntryCommands(entry);
           for (const h of commands) {
             expect(h.type).toBe('command');
-            expect(h[dialect.timeoutField]).toBe(host.hooks[ev].timeout);
-            expect(h[dialect.timeoutField]).toBeLessThanOrEqual(60);
-            for (const field of dialect.commandFields) {
+            expect(h[format.timeoutField]).toBe(host.hooks[ev].timeout);
+            expect(h[format.timeoutField]).toBeLessThanOrEqual(60);
+            for (const field of format.commandFields) {
               // The row's own pattern for this field: a host spells a command
               // its own way, and one pattern per field keeps a wrong-shell
               // command from passing as a legal variant.
               const cmd = String(h[field]);
-              const pattern = dialect.commandPatterns[field];
+              const pattern = format.commandPatterns[field];
               expect(pattern instanceof RegExp).toBe(true);
               const m = pattern.exec(cmd);
               expect(m).not.toBeNull();
@@ -255,7 +255,7 @@ describe.each(HOSTS)('$label install form ($dir)', (host) => {
       // of its own, so assert every entry is flat, not just the first event's.
       test('every flat entry carries exactly the host-config command fields and timeout key', () => {
         expect(flatEntries.length).toBe(allEntries.length);
-        const allowed = ['type', dialect.timeoutField].concat(dialect.commandFields).sort();
+        const allowed = ['type', format.timeoutField].concat(format.commandFields).sort();
         for (const entry of flatEntries) {
           expect(Object.keys(entry).sort()).toEqual(allowed);
         }
@@ -268,7 +268,7 @@ describe.each(HOSTS)('$label install form ($dir)', (host) => {
       }
       if (host.turnEnd) {
         const h = hookEntryCommands(cfg.hooks[host.turnEnd][0])[0];
-        const command = dialect.commandFields.map((field) => h[field]).join(' ');
+        const command = format.commandFields.map((field) => h[field]).join(' ');
         expect(command).toContain('jiahao-verdict-gate.js');
       }
     });
@@ -416,11 +416,11 @@ describe('marketplace manifest (Codex CLI)', () => {
   });
 
   test('the entry name matches the Codex manifest, and the version lives in plugin.json only', () => {
-    const manifestRel = sourceHost.dir + '/' + dialectOf(sourceHost).manifestPath;
+    const manifestRel = sourceHost.dir + '/' + hostFormatOf(sourceHost).manifestPath;
     const m = JSON.parse(readGenerated(manifestRel));
     expect(marketplace.plugins[0].name).toBe(m.name);
     expect(marketplace.plugins[0].version).toBeUndefined();
-    expect(typeof generated[sourceHost.dir + '/' + dialectOf(sourceHost).hookMapPath]).toBe('string');
+    expect(typeof generated[sourceHost.dir + '/' + hostFormatOf(sourceHost).hookMapPath]).toBe('string');
   });
 });
 
@@ -441,8 +441,8 @@ describe('manifest protection', () => {
     ];
     for (const host of HOSTS) {
       if (isRulesOnlyDirectory(host)) continue;
-      const dialect = dialectOf(host);
-      for (const rel of [dialect.manifestPath, dialect.hookMapPath]) {
+      const format = hostFormatOf(host);
+      for (const rel of [format.manifestPath, format.hookMapPath]) {
         for (const shape of shapes) {
           const target = shape.root + shape.sep + rel.split('/').join(shape.sep);
           const ok = isProtected('rm ' + target, shape.root, { pathImpl: shape.P, cwd: shape.root });
@@ -522,7 +522,7 @@ describe('blocking level checks', () => {
 
   test('a host-config module that points its manifest or hook map outside the bundle is rejected', () => {
     const escaping = Object.assign({}, good, {
-      dialect: {
+      format: {
         manifestPath: '../plugin.json', hookMapPath: 'hooks/hooks.json',
         timeoutField: 'timeout', commandFields: ['command'],
         commandPatterns: { command: /^x$/ },
@@ -530,12 +530,12 @@ describe('blocking level checks', () => {
       },
     });
     expect(hostShapeProblems([escaping]).join('\n')).toMatch(/relative \.json path inside the bundle/);
-    const silent = Object.assign({}, good, { dialect: { commandFields: [] } });
+    const silent = Object.assign({}, good, { format: { commandFields: [] } });
     expect(hostShapeProblems([silent]).join('\n')).toMatch(/relative \.json path|must name its command fields/);
-    // A dialect may only rename paths: the emitters are optional, so a row is
+    // A format may only rename paths: the emitters are optional, so a row is
     // not forced to reimplement a manifest it does not change.
     const renameOnly = Object.assign({}, good, {
-      dialect: {
+      format: {
         manifestPath: 'plugin.json', hookMapPath: 'hooks/copilot-hooks.json',
         timeoutField: 'timeout', commandFields: ['command'],
         commandPatterns: { command: /^x$/ },
@@ -545,7 +545,7 @@ describe('blocking level checks', () => {
     // A renamed command shape without its own emitter would ship the shared
     // emitter's `command`/`timeout` map, which this host silently skips.
     const hollow = Object.assign({}, good, {
-      dialect: {
+      format: {
         manifestPath: '.claude-plugin/plugin.json', hookMapPath: 'hooks/hooks.json',
         timeoutField: 'timeoutSec', commandFields: ['bash', 'powershell'],
         commandPatterns: { bash: /^x$/, powershell: /^y$/ },
@@ -594,7 +594,7 @@ describe('blocking level checks', () => {
     // fall back to the Claude envelope. The generator rejects that at build
     // time; this pins the same invariant from the shipped rows.
     const { PLATFORMS } = require('../hooks/jiahao-runtime');
-    const passed = HOSTS.map((host) => (host.dialect || {}).platform).filter(Boolean);
+    const passed = HOSTS.map((host) => (host.format || {}).platform).filter(Boolean);
     expect(passed).toContain('codex');
     for (const platform of passed) expect(PLATFORMS).toContain(platform);
   });
