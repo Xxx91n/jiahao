@@ -202,11 +202,57 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   // The vocabulary entry must carry the same segment-shape allowance as the
   // source; otherwise the root doc still reads as a one-line cap.
   const glossary = fs.readFileSync(path.join(__dirname, '..', 'GLOSSARY.md'), 'utf8');
-  expect(glossary).toMatch(/两三句短句/);
-  expect(glossary).toMatch(/「一行」/);
-  expect(glossary).toMatch(/标签之后先给命令/);
+  expect(glossary).toMatch(/一段可以写两三句短句/);
+  expect(glossary).toMatch(/「一行」说的是段的形状/);
+  expect(glossary).toMatch(/证据段可以在标签之后先给命令/);
   // The vocabulary mirrors R4's optional cause, not a per-round obligation.
   expect(glossary).toMatch(/有值得知道的原因就说原因/);
+});
+
+// #157: the vocabulary is the plain-language standard for the whole repo.
+// Each entry has to say both how to phrase the thing and how not to; the old
+// coined names survive only as examples of what not to write; the concepts
+// other documents write against have to stay findable.
+test('the glossary is the plain-language standard (#157)', () => {
+  const glossary = fs.readFileSync(path.join(__dirname, '..', 'GLOSSARY.md'), 'utf8');
+
+  const entries = [...glossary.matchAll(/^### (.+)$/gm)].map((m) => m[1].trim());
+  expect(entries.length).toBeGreaterThan(0);
+
+  for (const heading of entries) {
+    const start = glossary.indexOf('### ' + heading);
+    const next = glossary.indexOf('\n### ', start + 1);
+    const body = glossary.slice(start, next === -1 ? undefined : next);
+    expect({ entry: heading, hasRecommended: /\*\*推荐怎么说\*\*/.test(body) })
+      .toEqual({ entry: heading, hasRecommended: true });
+    expect({ entry: heading, hasAvoided: /\*\*别怎么说\*\*/.test(body) })
+      .toEqual({ entry: heading, hasAvoided: true });
+  }
+
+  // Old coined names are examples of what not to write, never entry headings,
+  // and each one has to be present so a reader can look up the retired form.
+  const retired = [
+    '凭证即一切', '反自嗨单一心智模型', '五语义专精防御', '物理退出码准入',
+    '三行输出硬锁', '平实人话纪律', '嘉豪式行为', '反自嗨五级行动阶梯',
+    '插话纠正', '人工裁定', '受保护面', '定罪通道', '出口', '方言', '进包',
+  ];
+  for (const term of retired) {
+    expect(entries.some((heading) => heading.includes(term))).toBe(false);
+    const shown = glossary.split('\n').filter((line) => line.includes(term));
+    expect(shown.length).toBeGreaterThan(0);
+    expect(shown.every((line) => line.startsWith('**别怎么说**'))).toBe(true);
+  }
+
+  // The concepts the rest of the repository writes against stay findable.
+  for (const concept of ['generator', 'verifier', '规则版', '插件版', '证据', '受保护的东西', '宿主产物']) {
+    expect(glossary).toContain(concept);
+  }
+
+  // The word the user corrected this round: say checkpoint or verification
+  // point, not "seam".
+  const seam = glossary.slice(glossary.indexOf('### 接缝'));
+  expect(seam).toMatch(/检查点/);
+  expect(seam).toMatch(/验证位置/);
 });
 
 test('has bias guards section', () => {
