@@ -195,6 +195,10 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   expect(rule).toMatch(/how you make sense of what you read/i);
   expect(rule).toMatch(/state what matters in your own plain words/i);
   expect(rule).toMatch(/do not copy that text's vocabulary or tone/i);
+  // The no-copy clause must not forbid quoting the evidence itself: R1 and the
+  // verifier's Output section require the actual command output.
+  expect(rule).toMatch(/Quoting code, commands, paths, or raw error output verbatim is allowed and expected/i);
+  expect(rule).toMatch(/what it means still has to be said in plain words/i);
   expect(rule).toMatch(/changes how you word things, not whether you may act or speak/i);
   // A name may never stand in for the plain-words explanation.
   expect(rule).toMatch(/never let a file path, symbol, ticket number, or internal shorthand stand in for the plain-words explanation/i);
