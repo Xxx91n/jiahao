@@ -3,6 +3,7 @@ const path = require('path');
 
 const skillPath = path.join(__dirname, '..', 'src', 'SKILL.md');
 const content = fs.readFileSync(skillPath, 'utf8');
+const glossary = fs.readFileSync(path.join(__dirname, '..', 'GLOSSARY.md'), 'utf8');
 
 test('SKILL.md exists and is non-empty', () => {
   expect(content.length).toBeGreaterThan(500);
@@ -201,7 +202,6 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
 
   // The vocabulary entry must carry the same segment-shape allowance as the
   // source; otherwise the root doc still reads as a one-line cap.
-  const glossary = fs.readFileSync(path.join(__dirname, '..', 'GLOSSARY.md'), 'utf8');
   expect(glossary).toMatch(/一段可以写两三句短句/);
   expect(glossary).toMatch(/「一行」说的是段的形状/);
   expect(glossary).toMatch(/证据段可以在标签之后先给命令/);
@@ -214,8 +214,6 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
 // coined names survive only as examples of what not to write; the concepts
 // other documents write against have to stay findable.
 test('the glossary is the plain-language standard (#157)', () => {
-  const glossary = fs.readFileSync(path.join(__dirname, '..', 'GLOSSARY.md'), 'utf8');
-
   const entries = [...glossary.matchAll(/^### (.+)$/gm)].map((m) => m[1].trim());
   expect(entries.length).toBeGreaterThan(0);
 
@@ -232,9 +230,10 @@ test('the glossary is the plain-language standard (#157)', () => {
   // Old coined names are examples of what not to write, never entry headings,
   // and each one has to be present so a reader can look up the retired form.
   const retired = [
-    '凭证即一切', '反自嗨单一心智模型', '五语义专精防御', '物理退出码准入',
+    '凭证即一切', '凭证', '反自嗨单一心智模型', '五语义专精防御', '物理退出码准入',
     '三行输出硬锁', '平实人话纪律', '嘉豪式行为', '反自嗨五级行动阶梯',
-    '插话纠正', '人工裁定', '受保护面', '定罪通道', '出口', '方言', '进包',
+    '插话纠正', '人工裁定', '受保护面', '定罪通道', '出口', '方言', '进包', '未进包',
+    '接缝',
   ];
   for (const term of retired) {
     expect(entries.some((heading) => heading.includes(term))).toBe(false);
@@ -250,9 +249,9 @@ test('the glossary is the plain-language standard (#157)', () => {
 
   // The word the user corrected this round: say checkpoint or verification
   // point, not "seam".
-  const seam = glossary.slice(glossary.indexOf('### 接缝'));
-  expect(seam).toMatch(/检查点/);
-  expect(seam).toMatch(/验证位置/);
+  const example = glossary.slice(glossary.indexOf('## 用词示例'));
+  expect(example).toMatch(/检查点/);
+  expect(example).toMatch(/验证位置/);
 });
 
 test('has bias guards section', () => {
