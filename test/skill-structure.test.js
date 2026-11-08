@@ -94,7 +94,7 @@ test('has output format with verdict pattern', () => {
 });
 
 test('three-part reply keeps the three labels on separate, blank-line-separated lines (#135)', () => {
-  const { TEMPLATE } = require('./helpers/output-lock-contract');
+  const { TEMPLATE } = require('./helpers/three-part-reply');
   const start = content.indexOf('### Three-Part Reply Format');
   expect(start).toBeGreaterThanOrEqual(0);
   const end = content.indexOf('## Verifier Profile');
@@ -176,7 +176,7 @@ test('a mid-task correction does not end the task (#134)', () => {
 // plain-words meaning; the output format and the verifier report must say the
 // names are not a substitute for that explanation.
 test('plain words explain machine names instead of replacing them (#138)', () => {
-  const { TEMPLATE } = require('./helpers/output-lock-contract');
+  const { TEMPLATE } = require('./helpers/three-part-reply');
   const start = content.indexOf('### Surface Signal Rules');
   const end = content.indexOf('### Intensity Levels');
   expect(start).toBeGreaterThanOrEqual(0);

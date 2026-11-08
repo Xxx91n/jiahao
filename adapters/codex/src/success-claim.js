@@ -3,7 +3,7 @@
 // verbatim (#124). The Stop gate reads this turn's own words to decide whether
 // the turn CLAIMS done at all, and the gate is vendored into every host bundle
 // with a static require() closure that must stay free of third-party runtime
-// dependencies — detector.js drags in request-anchors (http-link-header), so
+// dependencies — detector.js drags in pagination-check (http-link-header), so
 // the gate requires this module instead and detector re-uses it from here.
 //
 // Two functions, two roles (do not merge them):

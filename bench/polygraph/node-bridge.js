@@ -12,7 +12,7 @@
 const readline = require('readline');
 const path = require('path');
 const { detectFull } = require(path.join(__dirname, '..', '..', 'src', 'detector.js'));
-const anchors = require(path.join(__dirname, '..', '..', 'src', 'request-anchors.js'));
+const anchors = require(path.join(__dirname, '..', '..', 'src', 'pagination-check.js'));
 
 const LINK_LINE_RE = /^Link:\s*(.+)$/im;
 
@@ -29,7 +29,7 @@ function itemToSignals(item) {
         truncated: ev.truncated === true,
       };
       const call = ev.call_id != null ? calls[ev.call_id] : null;
-      if (call) r.request = anchors.extractQuad(call.arguments);
+      if (call) r.request = anchors.extractPaginationFields(call.arguments);
       const lm = typeof ev.content === 'string' ? LINK_LINE_RE.exec(ev.content) : null;
       if (lm) r.link = lm[1].trim();
       toolResults.push(r);

@@ -1,11 +1,11 @@
 'use strict';
-// test/five-semantics-criteria.test.js — D-002: Pairwise Behavioral Eval Suite
+// test/five-failure-modes.test.js — D-002: paired behavioral evaluation suite
 
 const path = require('path');
 const fs = require('fs');
 const { evaluateCase } = require('../src/eval-verifier');
 
-describe('Five Specialized Behavioral Evaluation Suite (D-003)', () => {
+describe('Five failure modes: behavioral evaluation suite (D-003)', () => {
   const evalDataPath = path.join(__dirname, 'fixtures', 'eval-cases.json');
   const evalData = JSON.parse(fs.readFileSync(evalDataPath, 'utf8'));
 

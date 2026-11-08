@@ -77,7 +77,7 @@ test('the rules-version skill carries both profiles', () => {
 });
 
 test('every shipped generator-rule and skill copy carries the separated three-part reply format (#135)', () => {
-  const { TEMPLATE } = require('./helpers/output-lock-contract');
+  const { TEMPLATE } = require('./helpers/three-part-reply');
   const { HOSTS, SKILL_DIR, isRulesOnlyDirectory, buildAdapters } = require('../scripts/build-adapters');
   const generated = buildAdapters();
 

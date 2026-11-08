@@ -1,16 +1,16 @@
-// src/request-anchors.js — Request-side anchor extraction.
-// Closed extraction quad (D4): per_page, page/cursor, Link(rel). Unknown
+// src/pagination-check.js — reads the pagination fields of a request.
+// Closed field set (D4): per_page, page/cursor, Link(rel). Unknown
 // fields are ignored (fail-soft). Generic URL semantics are NOT inferred;
 // only the three named params are read, whether the adapter hands an
 // arguments object, a JSON string, or a URL (per-case narrowing: adapters
 // translate, never rewrite).
 //
-// Trust table (D3.1): conviction is enabled per-API only for publishers
-// contractually emitting a server-authoritative continuation signal:
+// Trust table (D3.1): a claim may be treated as contradicted only for APIs
+// that contractually send a server-authoritative continuation signal:
 //   github: Link header rel=next
 //   stripe: body has_more === true
 //   slack:  body response_metadata.next_cursor non-empty
-// Unknown APIs fail-soft (no conviction, no rescue on absence). Governance
+// Unknown APIs fail-soft (no contradiction, no rescue on absence). Governance
 // of this table rides the calibration flywheel.
 //
 // Link parsing uses http-link-header (RFC 8288, token + quoted-string rel
@@ -38,9 +38,9 @@ function lookupApi(url) {
 
 // Read ONLY the three named params from an arguments value (object, JSON
 // string, or a bare/nested URL). Everything else is ignored by design.
-function extractQuad(args) {
-  const quad = { per_page: null, page: null, cursor: null, url: null };
-  if (args == null) return quad;
+function extractPaginationFields(args) {
+  const fields = { per_page: null, page: null, cursor: null, url: null };
+  if (args == null) return fields;
   let obj = args;
   if (typeof obj === 'string') {
     const s = obj.trim();
@@ -49,23 +49,23 @@ function extractQuad(args) {
   let url = null;
   if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
     for (const k of PARAM_KEYS) {
-      if (obj[k] != null && typeof obj[k] !== 'object') quad[k] = String(obj[k]);
+      if (obj[k] != null && typeof obj[k] !== 'object') fields[k] = String(obj[k]);
     }
     if (typeof obj.url === 'string') url = obj.url;
   } else if (typeof obj === 'string' && /^(https?:)?\/\//.test(obj.trim())) {
     url = obj.trim();
   }
   if (url) {
-    quad.url = url;
+    fields.url = url;
     try {
       const u = new URL(url.startsWith('//') ? 'https:' + url : url);
       for (const k of PARAM_KEYS) {
         const v = u.searchParams.get(k);
-        if (v != null && quad[k] == null) quad[k] = v;
+        if (v != null && fields[k] == null) fields[k] = v;
       }
     } catch (e) { /* fail-soft: URL unparseable, keep named keys already found */ }
   }
-  return quad;
+  return fields;
 }
 
 // D3.4: both rel forms accepted; malformed/absent -> null (never convict).
@@ -116,4 +116,4 @@ function isTerminalPage(entry, content) {
   return false;
 }
 
-module.exports = { TRUST_TABLE, extractQuad, linkHasRelNext, lookupApi, continuationState, isTerminalPage };
+module.exports = { TRUST_TABLE, extractPaginationFields, linkHasRelNext, lookupApi, continuationState, isTerminalPage };
