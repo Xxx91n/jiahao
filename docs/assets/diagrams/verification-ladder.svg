@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" role="img" aria-labelledby="t d">
   <title id="t">The six-rung verification ladder</title>
-  <desc id="d">Climb from the cheapest mechanical check to the weakest independent critic; stop at the first rung that holds. If none holds, the honest verdict is NOT VERIFIED.</desc>
+  <desc id="d">Climb from the cheapest mechanical check to the weakest independent critic. Rungs 1-4 can decide a verdict; rung 5 only triages and cannot decide alone. If no rung 1-4 produces evidence, the honest verdict is NOT VERIFIED.</desc>
   <style>
     .ink{fill:#24292f}.mut{fill:#57606a}.box{fill:#f6f8fa;stroke:#8c959f;stroke-width:1.5}
     .seam{stroke:#24292f;stroke-width:2}.acc{fill:#cf222e}.accT{fill:#cf222e;font-weight:600}
@@ -18,7 +18,7 @@
     }
   </style>
   <defs><marker id="ah" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#57606a"/></marker></defs>
-  <text x="40" y="26" class="sml" font-size="13">climb in order — stop at the first rung that holds</text>
+  <text x="40" y="26" class="sml" font-size="13">climb in order — rungs 1-4 decide; rung 5 only triages</text>
   <g>
     <rect x="70" y="40" width="44" height="40" rx="8" class="rung"/>
     <text x="92" y="66" text-anchor="middle" class="lbl">1</text>
@@ -56,19 +56,19 @@
     <text x="92" y="274" text-anchor="middle" class="lbl">5</text>
     <rect x="128" y="248" width="700" height="40" rx="8" class="box"/>
     <text x="146" y="266" class="lbl" font-size="14">independent LLM critic</text>
-    <text x="146" y="282" class="sml" font-size="11.5">weakest rung — triage signal, never proof</text>
+    <text x="146" y="282" class="sml" font-size="11.5">weakest rung — triage only, never a verdict</text>
     <text x="850" y="272" class="accT" font-size="12">weakest</text>
   </g>
   <g>
     <rect x="70" y="300" width="44" height="40" rx="8" class="box"/>
     <text x="92" y="326" text-anchor="middle" class="lbl">6</text>
     <rect x="128" y="300" width="700" height="40" rx="8" class="box"/>
-    <text x="146" y="318" class="lbl" font-size="14">cannot be verified? say so</text>
+    <text x="146" y="318" class="lbl" font-size="14">no evidence from rungs 1-4? say so</text>
     <text x="146" y="334" class="sml" font-size="11.5">NOT VERIFIED is a complete verdict</text>
 
   </g>
   <path d="M880 60 L 930 330" stroke="#57606a" stroke-width="1.5" stroke-dasharray="5 5" fill="none"/>
-  <text x="940" y="40" class="accT" font-size="12.5">rung-5 indecisive → ESCALATE</text>
+  <text x="940" y="40" class="accT" font-size="12.5">runtime gate: rung-5 indecisive → ESCALATE</text>
   <text x="940" y="60" class="sml" font-size="12">→ human adjudication:</text>
   <text x="940" y="80" class="sml" font-size="12">jiahao resolve --verdict pass|fail</text>
 </svg>

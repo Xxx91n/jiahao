@@ -25,7 +25,7 @@ grill-t23 D-005). The repo only ever runs deterministic processing.
 | --- | --- |
 | `hero.svg` | dual-profile split + six-rung ladder + verdict rail motif strip |
 | `diagrams/dual-profile.svg` | install flow: `.jiahao-profile` → profiles → hooks → four verdicts |
-| `diagrams/verification-ladder.svg` | the six rungs verbatim from `src/SKILL.md` + the ESCALATE branch |
+| `diagrams/verification-ladder.svg` | the six rungs from `src/SKILL.md` (rungs 1-4 decide, rung 5 only triages) + the ESCALATE branch |
 | `badge-license.svg`, `badge-profiles.svg`, `badge-channel.svg`, `badge-verdict.svg` | self-contained shields-style badges (no external image service) |
 
 All SVGs: `viewBox`-sized, `<title>`/`<desc>` a11y, `prefers-color-scheme`
