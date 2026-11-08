@@ -206,7 +206,7 @@ test('plain words explain machine names instead of replacing them (#138)', () =>
   expect(glossary).toMatch(/「一行」说的是段的形状/);
   expect(glossary).toMatch(/证据段可以在标签之后先给命令/);
   // The vocabulary mirrors R4's optional cause, not a per-round obligation.
-  expect(glossary).toMatch(/有值得知道的原因就说原因/);
+  expect(glossary).toMatch(/先用大白话讲结果和为什么重要；有值得知道的原因就说原因/);
 });
 
 // #157: the vocabulary is the plain-language standard for the whole repo.
