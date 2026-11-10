@@ -35,26 +35,31 @@ CLAUDE_CONFIG_DIR="$TMPROOT/config" HOME="$TMPROOT/config" \
 
 ## 生成物、漂移、测试、空白和链接检查
 
-这几条都是可复跑的检查，标准结果以分支 CI 为准。本机跑的时候这几条都退出 0：
+这五条本机都跑过，都退出 0。下面引的是各命令的真实输出，不是改写过的摘要：
 
 ```text
 node scripts/build-adapters.js --check
-  所有 205 个已跟踪生成文件都对上了（205 generated + 0 allowlisted）
+All 205 tracked generated files accounted for: 205 generated + 0 allowlisted (regen-diff clean)
 
 node scripts/check-drift.js
-  8 个保留的宿主产物和 src/SKILL.md 同步
+Retained adapters in sync with src/SKILL.md
 
 npm test
-  41 个测试套件全过；716 条里 715 过、1 条跳过（Windows 上 inode 替换检测那条）
+Test Suites: 41 passed, 41 total
+Tests:       1 skipped, 715 passed, 716 total
 
 npm run check:whitespace
-  578 个文本文件扫过，没有行尾空白，也没有文件末尾空行
+578 text files scanned (tracked + untracked, 11 binary skipped): no trailing whitespace, no blank line at EOF (3 frozen record(s) allowlisted)
 
 npm run check:links
-  包里 30 份 Markdown 的相对链接全部落在包内
+30 packed Markdown files: every relative link resolves inside the package (272 files)
 ```
 
-以上是本机这一次运行的输出摘要，跑在提交前的 `7c075cc2..cb73a0d` 这段改动上，五条都退出 0。这些结果没有另存成文件，因为保存输出这件事本身会被 `check:whitespace` 扫到；命令和输出都能自己重跑一遍复现。权威结论以分支 CI 为准。
+说明三点：
+
+- 这些输出没有另存成文件。保存它们这件事本身会被 `check:whitespace` 扫到（文件末尾的换行会被判违反），所以这里只抄原文。
+- 跑的时候工作区停在 `cb73a0d` 之后、审查修正之前。修正只动 `docs/` 和 `package-lock.json`，不碰生成物、源文件和测试，所以上面这些结果仍然成立；但严格来说它们对应的不是最终 HEAD。
+- 分支 `feat/release-040-167` 还没有推上去，所以这些结果没有一份独立于作者的第二方记录。分支 CI 跑过之后才算有。在推上去之前，这五条只能算作者自述。
 
 ## 这些结果能证明什么、不能证明什么
 

@@ -54,16 +54,16 @@ tag 范围里动过 `hooks/` 或 `src/` 的提交（`git log v0.3.0..v0.3.1 --on
 20f69740 fix(#134): 中途插话纠正不再被当成任务结束 (#141)
 ef27f19c feat(#136): 三行硬锁的三个交付标签换成大白话 (#139)
 a065a680 fix(#135): 三行输出锁改为空行分隔的三段 (#140)
-24e48623 fix(#71): 共享钩子与运行时审计遗留收口 (#133)
-ecbe502c fix(#88): 守卫残余形状 (#132)
-d2c62316 fix(#119): profile 读失败凭证、anchor null 形状 (#129)
+24e48623 fix(#71): 共享钩子与运行时审计遗留收口（3/4/5/8/11/12/13/14 + Codex 形状） (#133)
+ecbe502c fix(#88): 守卫残余形状——状态文件改保留命名空间、补 jiahao-mcp 目录 (#132)
+d2c62316 fix(#119): profile 读失败凭证、anchor null 形状、transcript 同 id 分片并集合并 (#129)
 eeb3e352 fix(#116): 状态落点按宿主报出的配置根解析 (#127)
-554b706a fix(#122): sentinel begin() 先持锁后建文件 (#125)
-949b2f8a fix(#121): withLockSync 竞争路径抛错 (#126)
+554b706a fix(#122): sentinel begin() 先持锁后建文件，堵住 reconcile 误 heal 活跃钩子的窗口 (#125)
+949b2f8a fix(#121): withLockSync 竞争路径抛错而非无锁落空 (#126)
 d6aaa882 feat(#110): WorkBuddy 出口与收尾拦截探针（国际版 A 档） (#117)
 f8b16c93 feat(#108): ZCode 出口——A 档插件目录 + 收尾拦截探针 (#115)
-9f6e9ba0 feat(#109): Qoder CN Desktop 升 A 档 (#112)
-7ea451a7 feat(antigravity): A 档插件出口与收尾拦截探针 (#114)
+9f6e9ba0 feat(#109): Qoder CN Desktop 升 A 档（收尾钩子实测 + 插件出口） (#112)
+7ea451a7 feat(antigravity): A 档插件出口与收尾拦截探针 (#111) (#114)
 ```
 
 `git diff --stat v0.3.0..v0.3.1 -- hooks/ src/` 合计 19 个文件、+1114/−274 行。
