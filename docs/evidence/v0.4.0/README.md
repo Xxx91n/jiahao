@@ -24,7 +24,7 @@ CLAUDE_CONFIG_DIR="$TMPROOT/config" HOME="$TMPROOT/config" \
 - 钩子原样输出 9190 字节；存进仓库的是 9189 字节，因为存之前删掉了末尾多出的那一个空行（`check:whitespace` 不允许文件末尾有连续空行）。除了这一个换行，两边逐字节相同，重跑过一次比对确认。文件：[activate-output.txt](activate-output.txt)。那是 Claude Code 的 SessionStart 原样输出：整段规则文本，末尾一行 `JIAHAO MODE ACTIVE — level: full`。
 - 临时目录只做隔离用，跑完即可删；本次没有在用户配置目录里写任何东西。
 
-## generator 档跑出来是截断的（既有问题，不是这次改出来的）
+## generator 档跑出来是截断的（0.4.0 新引入的回归）
 
 在临时目录写 `.jiahao-profile` 为 `generator` 再跑同一个钩子，结果和 verifier 档不一样：
 
@@ -41,9 +41,20 @@ const trimmed = text.slice(0, 10000); // 10k char injection cap
 
 1 万字符是注入上限。generator 档整段是 10872 字符，超过上限 872 字符，正好把 Boundaries 末尾这段新规则截掉。
 
-**这不是 0.4.0 引入的。** 拿 `7c075cc2`（本票基线）的 `src/SKILL.md` 用同一个切分函数算，generator 档同样是 10872 字符，同样在 `**Lo` 处截断。也就是说 generator 档用户在这次改动之前就已经看不到那段内容。
+**这是 0.4.0 新引入的回归，不是老问题。** 用同一个切分函数量各版本的 `src/SKILL.md`：
 
-这条超出本票范围（票里写明不扩大范围），所以本票没有改上限。它需要单独开票处理，可选方向：调大上限、或者把长句规则挪到 generator 档 1 万字符以内、或者改成按段落截断而不是按字符硬切。
+```text
+v0.2.0     generator   5399 under
+v0.3.0     generator   5399 under
+v0.3.1     generator   8122 under
+34b513f8   generator   8747 under
+7c075cc2   generator  10872 OVER CAP
+HEAD       generator  10872 OVER CAP
+```
+
+`7c075cc2` 是 #166 那个合并提交，它在 `v0.3.1..HEAD` 之间，所以随 0.4.0 发出去。第一次超过 1 万的就是它。
+
+本票没有改上限：改上限是改代码行为，超出这张票「只准备发布材料」的范围。要修得单独开票。可选方向：调大上限、把长句规则挪到 generator 档 1 万字符以内、或者改成按段落截断而不是按字符硬切。
 
 **受影响的验收项**：本票要求「输出里有新的 Boundaries 长句和列表规则」。verifier 档满足（`activate-output.txt` 里两段都在）；generator 档不满足。这一项按档分开记，不能合成一个「通过」。
 
