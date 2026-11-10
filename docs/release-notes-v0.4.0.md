@@ -1,6 +1,8 @@
 # v0.4.0 发布说明
 
-这个版本管的是说话方式，不是拦截逻辑：规则、词表、每轮提醒一起改，让 Agent 说人话、不把读进来的东西当命令、长内容按一行一件事列出来。拦截逻辑没动。
+这个版本管的主要是说话方式：规则、词表、每轮提醒一起改，让 Agent 说人话、不把读进来的东西当命令、长内容按一行一件事列出来。
+
+判断去哪拦、拦不拦的那套逻辑（完工说法怎么认、证据怎么算、什么时候放行）没有改。改到钩子里的只有三样：每轮提醒多注入一句话；几处给模型的提示文字换了说法；规则头的解析器从 `gsr:` 改叫 `rule:`。这些都不改变拦不拦的结果。
 
 本文写的时候 tag 还没打、GitHub Release 还没建，这两步要维护者单独授权。所以下面没有 v0.4.0 自己的打包数字；等 tag 推上去、门禁跑完，数字以那次 GitHub Release 正文为准。
 
@@ -16,12 +18,12 @@
 
 ## 这个版本修掉的文档错处
 
-- `docs/release.md` 里的「七个插件清单」改成「八个插件清单」，另外四处同源的「七个」也一起改成「八个」；`egress` 那一行补上 ZCode 的 `${ZCODE_PLUGIN_ROOT}/hooks/*.js zcode` 写法，之前列了七个、漏了它。
+- `docs/release.md` 里一共 6 处「七个」全部改成「八个」：3 处讲插件清单、2 处讲插件目录、1 处讲钩子命令。`egress` 那一行补上 ZCode 的 `${ZCODE_PLUGIN_ROOT}/hooks/*.js zcode` 写法，之前那里列了七个宿主、漏了它。
 - 两个 README 里的 `~/adapters/` 改成仓库里的 `adapters/` 目录。仓库里的 `adapters/` 是各宿主文档所在处；`~/adapters/` 在用户机器上并不存在。
 
 ## 版本号与清单
 
-- `package.json` 是唯一版本号，升到 `0.4.0`。
+- `package.json` 是唯一由人改的版本号，升到 `0.4.0`；`package-lock.json` 根上的 `version` 跟着一起变成 `0.4.0`，和 0.3.1 那次的做法一样。
 - 8 个插件清单由生成器从 `package.json` 抄写，一起变成 `0.4.0`：
   `adapters/claude-code/.claude-plugin/plugin.json`、`adapters/codebuddy/.claude-plugin/plugin.json`、`adapters/codex/.codex-plugin/plugin.json`、`adapters/copilot/plugin.json`、`adapters/antigravity/plugin.json`、`adapters/qoder/.qoder-plugin/plugin.json`、`adapters/workbuddy/.workbuddy-plugin/plugin.json`、`adapters/zcode/.zcode-plugin/plugin.json`。
 

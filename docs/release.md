@@ -45,7 +45,7 @@ tag 的 CI job 在门禁之前还跑一条 `git diff --check HEAD^1 HEAD` 和一
 
 ## 升级路径
 
-版本号只有 `package.json` 一处，八个插件清单由生成器从它抄写，所以升级不需要换命令：
+版本号由人改的只有 `package.json` 一处；八个插件清单由生成器从它抄写，`package-lock.json` 根上的 `version` 跟着 npm 走（`npm install` 会同步它，所以升级时顺手看一眼），这些都不用换命令：
 
 - 规则版：重跑安装时那条 `npx skills add`，范围参数保持一致——项目级不带 `-g`，全局级带 `-g -a <host> -y --copy`。`npx skills update jiahao -g -y` 只适合全局安装；skills 1.7.4 在本机（Windows、本地路径源）的项目级 `update` 报无匹配并 exit 127；该环境下项目级用重跑 `add`。装到的就是仓库当前版本；`1.0.0` 打出来后同一路径升到 `1.0.0`。
 - 插件版：Claude Code 用 `claude plugin marketplace update jiahao`，再 `claude plugin update jiahao@jiahao`；CodeBuddy 用宿主自己的插件更新/安装路径（CLI 安装路径 declared-unverified，见 `adapters/codebuddy/README.md`），或用新 bundle 重做已验证的 settings 合并；Copilot CLI 用宿主自己的插件命令重装目录（本地目录直装已在 1.0.105 实测，宿主提示该形态将废弃，见 `adapters/copilot/README.md`）；Codex 用 `codex plugin marketplace upgrade jiahao`，再 `codex plugin add jiahao --marketplace jiahao`（安装与未信任钩子的跳过行为已于 2026-10-30 在 0.163.0 真机验证；`/hooks` 持久化信任流程本身未逐步实测，无人值守可用 `--dangerously-bypass-hook-trust`）。ZCode 指向更新后的 bundle 重做货架安装——`zcode plugins marketplace add <包目录>` 再 `zcode plugins install jiahao@jiahao-zcode`（该流程已于 2026-10-31 在 3.16.2 真机验证；`zcode plugins update` 子命令存在但未真机验证，见 `adapters/zcode/README.md`）；按宿主提示重开会话；`1.0.0` 不换路径。 WorkBuddy：国际版（WorkBuddy AI 5.9.4，配置根 `~/.workbuddy-ai`）与国内版（WorkBuddy 5.9.3，配置根 `~/.workbuddy`）共用同一份 CLI 与同一份 bundle；插件路径用桌面自带 CLI 的 `codebuddy plugin add <路径>`，实测过的路径是把整个 bundle 拷到稳定位置、把 `hooks/hooks.json` 并进 `<config>/settings.json` 或项目级 `.codebuddy/settings.json`（项目目录名是 `.codebuddy`，写进 `.workbuddy/settings.json` 不会触发）。设置层钩子映射按回合读取，会话中的改动可在下一次回合结束时生效；改完仍建议开新会话。
@@ -130,7 +130,7 @@ npm run release:gate -- --tag v0.3.0
 
 ## 已知限制
 
-- 版本号只有 `package.json` 一处，八个插件清单由生成器从它抄，不手改。
+- 版本号由人改的只有 `package.json` 一处，八个插件清单由生成器从它抄，不手改；`package-lock.json` 根上的版本号跟 npm 同步，升级时顺手看一眼。
 - 测试套件不再改写工作区生成物（#76 收了 #66）：生成类用例只写临时目录（哨兵用例会临时往一个产物里塞手改、跑完恢复，用来证明它不会被抹掉）。门禁仍把生成检查放在测试前，打包前再查一次工作区是否干净，作为兜底。
 - 不发布到 npm：tarball 是发布产物和复跑证据，不是分发渠道。规则版走 git tag，插件版走宿主原生命令。
 - 门禁不调用官方 Agent Skills 规范校验器，也不跑标准 CLI 的真实安装；那两条在 #67。
