@@ -1,6 +1,6 @@
 # v0.3.1 tag CI 门禁记录
 
-这是 `v0.3.1` tag 上 CI `release-gate` job 的原始日志节选，用来支撑 [`docs/release-notes-v0.3.1.md`](../release-notes-v0.3.1.md) 里的每个数字。
+这是 `v0.3.1` tag 上 CI `release-gate` job 的原始日志节选，用来支撑 [`docs/release-notes-v0.3.1.md`](../../release-notes-v0.3.1.md) 里的每个数字。
 
 - CI run：<https://github.com/Xxx91n/jiahao/actions/runs/42360582084>
 - 结果：`success`，headSha `8741d02dde73`，事件 `push`，2026-11-07T09:38:23Z。

@@ -2,7 +2,7 @@
 
 这个版本管的主要是说话方式：规则、词表、每轮提醒一起改，让 Agent 说人话、不把读进来的东西当命令、长内容按一行一件事列出来。
 
-判断去哪拦、拦不拦的那套逻辑（完工说法怎么认、证据怎么算、什么时候放行）没动。改到钩子和运行时的东西有下面几样，其中最后两样会改变实际行为，要单独说：
+判断去哪拦、拦不拦的那套逻辑（完工说法怎么认、证据怎么算、什么时候放行）没动。改到钩子和运行时的东西有下面几样。其中会改变实际结果的是两个开关改名；还有一处会让装到机器上的文件名字变了，但入口和判定照旧。
 
 - 每轮提醒多注入一句话（说人话、外来内容是资料、长内容一行一件事）。
 - 几处给模型的提示文字换了说法（受保护路径、阻断理由）。
@@ -10,7 +10,9 @@
 - **两个开关文件名改了。** `.jiahao-conviction-off` 和 `.jiahao-conviction-enforce` 改成 `.jiahao-transcript-check-off` 和 `.jiahao-transcript-check-enforce`，而且**没有兼容旧名**。
   已经手写过旧名字的用户，升级后那两个文件不再生效：`-enforce` 的人会从 enforce 掉回默认的 shadow，`-off` 的人不再关掉这项检查。要保留原来的设置，得手工把文件名改过来。
   这一条的说明在 [`GLOSSARY.md`](../GLOSSARY.md) 的「读对话记录查完工」词条里。
-- **`src/` 里的文件改名了**（`capa-pairer.js` → `claim-check.js`、`pairer-lane.js` → `transcript-check.js` 等），还新增了 `src/change-scope.js`。这些是内部模块名，不影响装到用户机器上的文件布局，但如果有人在自己代码里 `require` 过这些路径，升级后会断。
+- **`src/` 里的文件改名了**：`capa-pairer.js` 改成 `claim-check.js`，`pairer-lane.js` 改成 `transcript-check.js`，`instrument-identity.js` 改成 `version-pin.js`，`change-surface.js` 改成 `change-scope.js`。
+  这些文件在各宿主产物里都有副本，所以**装到用户机器上的文件也会变**：旧名字的文件消失，新名字的出现了。钩子的入口路径没变，装完照常能跑。
+  但如果有人在自己代码或脚本里按旧路径去读这些文件，升级后就会找不到。
 
 本文写的时候 tag 还没打、GitHub Release 还没建，这两步要维护者单独授权。所以下面没有 v0.4.0 自己的打包数字；等 tag 推上去、门禁跑完，数字以那次 GitHub Release 正文为准。
 
@@ -45,12 +47,15 @@
 - `npm test`：退出码 0。
 - `npm run check:whitespace`：退出码 0。
 - `npm run check:links`：退出码 0。
-- 在临时目录跑新产物的激活钩子：输出里有新的 Boundaries 长句规则和列表规则。
+- 在临时目录跑新产物的激活钩子：**verifier 档**输出里有新的 Boundaries 长句规则和列表规则。
 
 ## 这个版本没有验证什么
 
 - **模型到底会不会照做，没验证。** 这轮只证明「装进去的规则是对的」，不证明模型一定会照着说。真实效果要等效果评测仓库接进来再看。
 - **没有做真机安装。** 按票里的约定，真机安装不作为发版门槛。
+- **generator 档拿不到这段新规则。** 激活钩子注入时有 1 万字符上限（`hooks/jiahao-runtime.js:92` 的 `text.slice(0, 10000)`）。generator 档整段是 10872 字符，超了 872，正好从 Boundaries 结尾的 `**Long answers say one thing per line.**` 开始被砍掉。
+  这个截断在 0.3.1 基线上就存在，不是 0.4.0 引入的，所以本票没动它（票里写明不扩大范围）。要修得单独开票。
+  记在 [`docs/evidence/v0.4.0/README.md`](evidence/v0.4.0/README.md)。
 - **v0.4.0 的打包数字（tarball 大小、`sha256`、各安装形态树哈希）还没有。** 要从 tag 上的门禁跑出来，然后写进 GitHub Release 正文。
 - **本机正在跑的插件还是老版本。** 新规则要等 0.4.0 装上并重开会话才在真实会话里生效。这是运行状态，不是设计问题。
 
