@@ -250,12 +250,16 @@ describe('Qoder Desktop install form (#79 rules file, #109 turn-end gate)', () =
     const en = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
     const zh = fs.readFileSync(path.join(root, 'README-zh-CN.md'), 'utf8');
     // Neither README repeats the per-host details; they point the reader
-    // at adapters/. The Qoder claims stay pinned in adapters/qoder/README.md
-    // by the test above.
-    expect(zh).toContain('~/adapters/');
-    expect(zh).toContain('让 Agent 去找他自己的文档');
-    expect(en).toContain('~/adapters/');
+    // at the repo's adapters/ directory. The Qoder claims stay pinned in
+    // adapters/qoder/README.md by the test above. #167: they used to say
+    // `~/adapters/`, a home-directory path that does not exist on an
+    // installed machine; the docs live in the repository.
+    expect(zh).toContain('仓库里的 `adapters/` 目录');
+    expect(zh).toContain('让 Agent 自己去找');
+    expect(zh).not.toContain('~/adapters/');
+    expect(en).toContain("the repo's `adapters/` directory");
     expect(en).toContain('let the agent find its own doc');
+    expect(en).not.toContain('~/adapters/');
   });
 
   test('the #109 numbers the README cites are in the artifacts, not just the prose', () => {
