@@ -107,7 +107,7 @@ test('three-part reply keeps the three labels on separate, blank-line-separated 
   expect(section).toContain(TEMPLATE);
   expect(section).toMatch(/blank line/i);
   expect(section).toMatch(/format failure/i);
-  expect(section).toMatch(/Each segment is one line/i);
+  expect(section).toMatch(/Each segment starts with its label in its own paragraph/i);
   // Angle brackets are parsed as an HTML tag by GFM, which drops the segment
   // body from the rendered example - the very failure #135 reports.
   expect(TEMPLATE).not.toContain('<');
@@ -325,6 +325,8 @@ test('plain-speech examples, conflict priority and long-answer list rule (#166)'
   const lock = content.slice(content.indexOf('### Three-Part Reply Format'), content.indexOf('## Verifier Profile'));
   expect(lock).toContain(TEMPLATE);
   expect(lock).toContain(LIST_TEMPLATE);
+  expect(lock).toMatch(/Each segment starts with its label in its own paragraph/i);
+  expect(lock).not.toMatch(/Each segment is one line/i);
   expect(lock).toMatch(/When one segment has three or more items, put the label on its own line/i);
   expect(lock).toMatch(/carries one thing, and still makes sense when read alone/i);
   expect(lock).toMatch(/A segment with one or two items keeps the label and its content on the same line/i);
@@ -349,11 +351,11 @@ test('plain-speech examples, conflict priority and long-answer list rule (#166)'
     expect(body).toMatch(/\*\*推荐怎么说\*\*/);
     expect(body).toMatch(/\*\*别怎么说\*\*/);
   }
-  expect(glossary).toMatch(/照着英文句子的架子逐字搬成中文/i);
+  expect(glossary).toMatch(/照着英文句子结构逐字搬成中文/i);
   expect(glossary).toMatch(/每条占一行，一条只说一件事，单独拿出来也读得通/i);
   expect(glossary).toMatch(/英文 28 词、中文 50 字/i);
   expect(glossary).toMatch(/像平时说话，不像翻译过来的；短句能读完，就不用长句/i);
-  expect(glossary).toMatch(/一段有三件以上，就把标签单独放一行，下面一条一行，一条只说一件事/i);
+  expect(glossary).toMatch(/一段有三件以上时，就把标签单独放一行，下面一条一行，一条只说一件事/i);
 });
 
 // #157: the vocabulary is the plain-language standard for the whole repo.

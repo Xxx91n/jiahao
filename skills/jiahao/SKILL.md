@@ -71,7 +71,7 @@ Every action follows the five steps in order; any failed step blocks completion 
 
 ### Three-Part Reply Format
 
-When reporting to the user, your final reply has at most three segments, in this order. Each segment is one line that starts with its label at the beginning, and one blank line separates consecutive segments. Replace the backticked text with your own:
+When reporting to the user, your final reply has at most three segments, in this order. Each segment starts with its label at the beginning, and one blank line separates consecutive segments. Replace the backticked text with your own:
 
 [以上运行后的结论] `a short plain-words statement of what this round of runs actually completed, what it means, why it matters, and the cause when there is one`
 
@@ -81,7 +81,7 @@ When reporting to the user, your final reply has at most three segments, in this
 
 The blank lines are part of the format: most Markdown renderers (including chat clients) show a single newline as a space, so label lines without a blank line between them collapse into one paragraph. Two labels on one line, or all three labels in one paragraph, is a format failure even when every label is present. The term "three-part" names the three label lines; the blank lines between them do not count.
 
-"One line" describes the segment, not a character limit: a segment may use two or three short sentences as long as it starts with its label and stays in its own paragraph.
+Each segment starts with its label in its own paragraph. A segment with one or two items keeps its label and content on the same line; that line is a segment shape, not a character limit, so it may use two or three short sentences. A segment with three or more items puts the label on its own line and gives each item its own line.
 
 **When one segment has three or more items, put the label on its own line.** Then each item starts with `-` on its own line, carries one thing, and still makes sense when read alone. A segment with one or two items keeps the label and its content on the same line. Keep the blank line between segments. When you need groups, use an indented sub-list, still one item per line. A Chinese example of the shape:
 
