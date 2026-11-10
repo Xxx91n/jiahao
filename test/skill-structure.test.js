@@ -318,6 +318,10 @@ test('plain-speech examples, conflict priority and long-answer list rule (#166)'
   expect(boundaries).toMatch(/Other languages use the same three-part or three-fact test, with no word or character count/i);
   expect(boundaries).toMatch(/Never chop a sentence into pieces that no longer make sense alone/i);
   expect(boundaries).toMatch(/This is a writing rule, not a runtime check/i);
+  // Only labeled delivery reports force lists; ordinary chat just splits the
+  // sentence, so a casual reply is not pushed into bullets.
+  expect(boundaries).toMatch(/The list requirement applies to the labeled delivery reports and the audit report/i);
+  expect(boundaries).toMatch(/in ordinary chat, split a long sentence into two or three short sentences instead/i);
   // The old sentence described only a report-then-ask path; it is gone.
   expect(boundaries).not.toContain('say so and ask before acting');
 
@@ -327,6 +331,7 @@ test('plain-speech examples, conflict priority and long-answer list rule (#166)'
   expect(lock).toContain(LIST_TEMPLATE);
   expect(lock).toMatch(/Each segment starts with its label in its own paragraph/i);
   expect(lock).not.toMatch(/Each segment is one line/i);
+  expect(lock).toContain('three labeled segments');
   expect(lock).toMatch(/When one segment has three or more items, put the label on its own line/i);
   expect(lock).toMatch(/carries one thing, and still makes sense when read alone/i);
   expect(lock).toMatch(/A segment with one or two items keeps the label and its content on the same line/i);
