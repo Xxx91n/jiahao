@@ -88,7 +88,7 @@ Each segment starts with its label in its own paragraph. A segment with one or t
 [电脑内的证据]
 - `python tests/test_translate_contract.py`：11 项全过，退出码 0。
 - `python tests/test_check_readme.py`：原有 118 项全过。
-- `git diff --check`：退出码 0，工作区干净。
+- `git diff --check`：退出码 0，没有空白错误。
 - CodeRabbit 最近一轮审查通过，写明“没有可处理的评论”。
 - Semgrep 扫描通过。
 

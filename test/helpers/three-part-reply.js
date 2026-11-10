@@ -17,7 +17,7 @@ const LIST_TEMPLATE =
   '[电脑内的证据]\n' +
   '- `python tests/test_translate_contract.py`：11 项全过，退出码 0。\n' +
   '- `python tests/test_check_readme.py`：原有 118 项全过。\n' +
-  '- `git diff --check`：退出码 0，工作区干净。\n' +
+  '- `git diff --check`：退出码 0，没有空白错误。\n' +
   '- CodeRabbit 最近一轮审查通过，写明“没有可处理的评论”。\n' +
   '- Semgrep 扫描通过。';
 

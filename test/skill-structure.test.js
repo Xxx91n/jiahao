@@ -341,6 +341,12 @@ test('plain-speech examples, conflict priority and long-answer list rule (#166)'
   expect(listLines[0]).toBe('[电脑内的证据]');
   expect(listLines.slice(1).every((line) => line.startsWith('- '))).toBe(true);
   expect(listLines.length).toBeGreaterThanOrEqual(4);
+  // `git diff --check` exit 0 means the checked diff has no whitespace errors;
+  // it does not prove the working tree is clean. The example must not teach a
+  // claim the command cannot support.
+  expect(LIST_TEMPLATE).toContain('git diff --check');
+  expect(LIST_TEMPLATE).toContain('没有空白错误');
+  expect(LIST_TEMPLATE).not.toContain('工作区干净');
 
   // The audit report follows the same rule.
   const verifierOutput = content.slice(content.indexOf('### Output'), content.indexOf('## Bias guards'));
