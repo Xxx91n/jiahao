@@ -77,7 +77,7 @@ test('the rules-version skill carries both profiles', () => {
 });
 
 test('every shipped generator-rule and skill copy carries the separated three-part reply format (#135)', () => {
-  const { TEMPLATE } = require('./helpers/three-part-reply');
+  const { TEMPLATE, LIST_TEMPLATE } = require('./helpers/three-part-reply');
   const { HOSTS, SKILL_DIR, isRulesOnlyDirectory, buildAdapters } = require('../scripts/build-adapters');
   const generated = buildAdapters();
 
@@ -106,6 +106,9 @@ test('every shipped generator-rule and skill copy carries the separated three-pa
   // three labels into one paragraph, which is the bug #135 reports.
   for (const rel of shippedGeneratorRules.concat(fullSkills)) {
     expect(generated[rel]).toContain(TEMPLATE);
+    // #166: the list shape ships with the same text; a copy that kept only the
+    // paragraph template would have dropped the new reply format.
+    expect(generated[rel]).toContain(LIST_TEMPLATE);
   }
 });
 
