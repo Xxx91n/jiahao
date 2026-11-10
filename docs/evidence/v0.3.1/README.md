@@ -16,4 +16,6 @@ gh run view 42360582084 --repo Xxx91n/jiahao --log \
 
 这样拿到的是全文（约 418 行）。`gate.txt` 是同一份输出里挑出来的 29 行。
 
+注意：这条 sed 对大多数行有效，但有少数几条（比如 `Set up job`、`Run actions/checkout@v4` 这类步骤标题行）在时间戳前面夹了一个 BOM，匹配不上，前缀会留着。门禁各步的输出行不受影响，因为它们的行首没有 BOM。要彻底清干净可以再加一条 `s/^release-gate\t[^\t]*\t\xef\xbb\xbf?[^ ]+ //`。
+
 这份日志里能查到的关键数字：`481567 B`、`271 files`、`708 passed, 708 total`、`6d52ee86...`、九条 `tree` 哈希。发布说明里引用的就是这些。
