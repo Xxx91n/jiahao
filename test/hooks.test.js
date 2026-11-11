@@ -124,7 +124,10 @@ test('a line-break cut says it was a line break, not a sentence end (#170)', () 
   const out = captureSessionStartOutput(text);
   expect(out.length).toBeLessThanOrEqual(INJECTION_CAP);
   expect(out).toContain('at a line break;');
-  expect(out).not.toContain('send');
+  // No sentence-end claim, and no mid-word claim either: the only kind names in
+  // this output must be the line break that actually happened.
+  expect(out).not.toContain('at a sentence end');
+  expect(out).not.toContain('mid-word');
 });
 
 test('text under the cap is passed through untouched (#170)', () => {
