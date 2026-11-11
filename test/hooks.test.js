@@ -71,58 +71,74 @@ test('runtime detectHost returns a string', () => {
   expect(['claude', 'codex', 'copilot', 'qoder', 'codebuddy', 'zcode']).toContain(host);
 });
 
-// #170: the cap is jiahao's own choice, not a host limit, and a cut must never
-// end mid-sentence. The pairing matters: a bigger number alone would still let
-// the next rule edit get sliced through the middle of a word.
-test('runtime writeHookOutput respects the injection cap', () => {
-  const { writeHookOutput, INJECTION_CAP } = require(path.join(hooksDir, 'jiahao-runtime.js'));
-  const long = 'x'.repeat(20000);
+// #170: the injection cap is jiahao's own choice, not a host limit. These cases
+// read what the hook prints - the same bytes a host would receive - rather than
+// reaching into the cut helper, so a refactor of the cut stays free to change
+// shape as long as the output keeps its promises.
+function captureSessionStartOutput(text) {
+  const { writeHookOutput } = require(path.join(hooksDir, 'jiahao-runtime.js'));
   const orig = console.log;
   let captured = '';
-  console.log = (s) => { captured = s; };
-  writeHookOutput(long, 'SessionStart');
-  console.log = orig;
+  console.log = (s) => { captured = String(s); };
+  try {
+    writeHookOutput(text, 'SessionStart');
+  } finally {
+    console.log = orig;
+  }
+  return captured;
+}
+
+test('runtime writeHookOutput respects the injection cap', () => {
+  const { INJECTION_CAP } = require(path.join(hooksDir, 'jiahao-runtime.js'));
+  const captured = captureSessionStartOutput('x'.repeat(20000));
   expect(captured.length).toBeLessThanOrEqual(INJECTION_CAP);
 });
 
-test('a cut backs off to a line break and says how much it dropped (#170)', () => {
-  const { fitInjection, INJECTION_CAP } = require(path.join(hooksDir, 'jiahao-runtime.js'));
+test('an over-cap injection is cut at a paragraph break and says what it dropped (#170)', () => {
+  const { INJECTION_CAP } = require(path.join(hooksDir, 'jiahao-runtime.js'));
   // Two paragraphs; the break sits inside the write budget, the second
   // paragraph straddles the cap so a raw slice would land inside it.
   const first = 'a'.repeat(INJECTION_CAP - 300);
   const second = 'b'.repeat(500);
   const text = first + '\n\n' + second;
-  const fitted = fitInjection(text);
-  expect(fitted.length).toBeLessThanOrEqual(INJECTION_CAP);
+  const out = captureSessionStartOutput(text);
+  expect(out.length).toBeLessThanOrEqual(INJECTION_CAP);
   // The cut happened at the paragraph break, not inside the second paragraph.
-  expect(fitted.startsWith(first)).toBe(true);
-  expect(fitted).not.toContain('b');
+  expect(out.startsWith(first)).toBe(true);
+  expect(out).not.toContain('b');
   // The dropped amount is stated, so a short injection is not mistaken for the
   // whole ruleset.
-  expect(fitted).toContain('the injected rules were cut at the ' + INJECTION_CAP + '-character limit');
-  expect(fitted).toContain(String(text.length - first.length) + ' characters did not fit');
+  expect(out).toContain('the injected rules were cut at the ' + INJECTION_CAP + '-character limit');
+  expect(out).toContain(String(text.length - first.length) + ' characters did not fit');
   // It ends on a newline, never in the middle of a word.
-  expect(fitted.endsWith('\n')).toBe(true);
+  expect(out.endsWith('\n')).toBe(true);
 });
 
 test('text under the cap is passed through untouched (#170)', () => {
-  const { fitInjection } = require(path.join(hooksDir, 'jiahao-runtime.js'));
   const text = 'short rules\n';
-  expect(fitInjection(text)).toBe(text);
+  expect(captureSessionStartOutput(text)).toBe(text);
 });
 
-// A long paragraph with no line break in reach is the one case left: the cut
-// still has to land on a space, not inside a word.
-test('a cut inside a long paragraph backs off to a space (#170)', () => {
-  const { fitInjection, INJECTION_CAP } = require(path.join(hooksDir, 'jiahao-runtime.js'));
-  const words = (n) => ('word ').repeat(n); // no newline anywhere
-  const text = words(Math.ceil(INJECTION_CAP / 5) + 400);
-  const fitted = fitInjection(text);
-  expect(fitted.length).toBeLessThanOrEqual(INJECTION_CAP);
+// A long paragraph with no line break in reach is the case a paragraph-only cut
+// would get wrong: the cut still has to land on a space, not inside a word.
+test('an over-cap paragraph with no line break is cut at a space (#170)', () => {
+  const { INJECTION_CAP } = require(path.join(hooksDir, 'jiahao-runtime.js'));
+  const text = 'word '.repeat(Math.ceil(INJECTION_CAP / 5) + 400);
+  const out = captureSessionStartOutput(text);
+  expect(out.length).toBeLessThanOrEqual(INJECTION_CAP);
   // Everything kept is whole words: the kept part stops right before the space
   // the cut landed on, so no word is sliced.
-  const kept = fitted.slice(0, fitted.indexOf('\n[jiahao]'));
+  const kept = out.slice(0, out.indexOf('\n[jiahao]'));
   expect(kept.endsWith('word')).toBe(true);
+});
+
+// The one case where a clean cut is impossible: a single run with no break at
+// all. The output must admit it instead of pretending the cut was clean.
+test('an over-cap run with no break at all says the cut was mid-word (#170)', () => {
+  const { INJECTION_CAP } = require(path.join(hooksDir, 'jiahao-runtime.js'));
+  const out = captureSessionStartOutput('x'.repeat(20000));
+  expect(out.length).toBeLessThanOrEqual(INJECTION_CAP);
+  expect(out).toContain('mid-word (the text had no break to land on)');
 });
 
 test('activate script runs and outputs SKILL.md content', () => {

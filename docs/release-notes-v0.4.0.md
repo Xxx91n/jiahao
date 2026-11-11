@@ -48,7 +48,7 @@
 - `npm test`：退出码 0。
 - `npm run check:whitespace`：退出码 0。
 - `npm run check:links`：退出码 0。
-- 在临时目录跑新产物的激活钩子：generator 档和 verifier 档的输出里，新的 Boundaries 长句规则和列表规则都完整在。钩子原样输出分别是 10911 和 9160 字符，都在 12000 上限以内。原始输出存在 [`docs/evidence/v0.4.0/activate-output-generator.txt`](evidence/v0.4.0/activate-output-generator.txt) 和 [`activate-output.txt`](evidence/v0.4.0/activate-output.txt)；存进仓库的是 10910 和 9159 字符，因为删掉了 `console.log` 在末尾多吐的一个空行。
+- 在临时目录跑新产物的激活钩子：generator 档和 verifier 档的输出里，新的 Boundaries 长句规则和列表规则都完整在，两档都退出 0、stderr 为空。钩子原样输出分别是 10911 和 9160 字符，都在 12000 上限以内。原始输出存在 [`docs/evidence/v0.4.0/activate-output-generator.txt`](evidence/v0.4.0/activate-output-generator.txt) 和 [`activate-output.txt`](evidence/v0.4.0/activate-output.txt)；存进仓库的是 10910 和 9159 字符，因为删掉了 `console.log` 在末尾多吐的一个空行。数字可用 [`measure-injection.js`](evidence/v0.4.0/measure-injection.js) 重算。
 
 ## 这个版本没有验证什么
 
@@ -59,15 +59,15 @@
 
 ## 注入上限
 
-注入文本原来卡在 1 万字符（`hooks/jiahao-runtime.js` 的 `text.slice(0, 10000)`）。0.4.0 的新规则让 generator 档涨到 10910 字符，超了，从 `**Long` 中间被切开，模型拿到的是半句话而不是规则。这是 0.4.0 自己引入的回归。
+注入文本原来卡在 1 万字符（`hooks/jiahao-runtime.js` 的 `text.slice(0, 10000)`）。0.4.0 的新规则让 generator 档的规则文本涨到 10872 字符（加上状态行是 10910），超了，从 `**Long` 中间被切开，模型拿到的是半句话而不是规则。这是 0.4.0 自己引入的回归。
 
 发布前把这条修了，见 #170：
 
 - 上限提到 12000 字符。8 个宿主都没实测过这个字段的长度上限，所以 12000 是 jiahao 自己的取值，不是照着宿主限制定的。
-- 超过上限时不再按字符硬切，退到最近的段落、换行或空格边界再切，并在输出末尾写一行说明丢了多少字符。这样以后再超，模型看到的也是完整句子，不会拿到半句话。
-- 两档在 0.4.0 都装得下：generator 10910、verifier 9159 字符。
+- 超过上限时不再按字符硬切，退到最近的段落、换行或空格边界再切，并在输出末尾写一行说明丢了多少字符。这样以后再超，模型看到的也是完整句子，不会拿到半句话。整段文字里连一个换行和空格都没有时没有边界可退，那种情况末尾那行说明会明写切在了词中间。
+- 两档在 0.4.0 都装得下：generator 10910、verifier 9159 字符（钩子原样输出是 10911 和 9160，多出的是 `console.log` 末尾那个空行）。
 
-各版本 generator 档的长度（用 `hooks/jiahao-profile.js` 的切分函数量 `src/SKILL.md`）：
+各版本 generator 档的长度（用 `hooks/jiahao-profile.js` 的 `splitByProfile` 量 `src/SKILL.md`，可用 [`docs/evidence/v0.4.0/measure-injection.js`](evidence/v0.4.0/measure-injection.js) 重算，输出在该目录的 `measure-injection.txt`）：
 
 ```text
 v0.2.0     generator   5399 under

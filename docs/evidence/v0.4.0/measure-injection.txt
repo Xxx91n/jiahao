@@ -1,0 +1,24 @@
+cap: 12000 characters
+
+generator
+  exit: 0
+  stderr: ""
+  hook stdout: 10911 chars / 11305 bytes (console.log adds one trailing blank line)
+  stored form: 10910 chars / 11304 bytes (that blank line removed)
+  carries the long-answer rule: true
+  last line: "JIAHAO MODE ACTIVE — level: full"
+verifier
+  exit: 0
+  stderr: ""
+  hook stdout: 9160 chars / 9190 bytes (console.log adds one trailing blank line)
+  stored form: 9159 chars / 9189 bytes (that blank line removed)
+  carries the long-answer rule: true
+  last line: "JIAHAO MODE ACTIVE — level: full"
+
+per-version generator rules text (splitByProfile on src/SKILL.md):
+  v0.2.0     5399
+  v0.3.0     5399
+  v0.3.1     8122
+  34b513f8   8747
+  7c075cc2   10872
+  HEAD       10872
