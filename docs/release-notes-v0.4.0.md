@@ -45,7 +45,7 @@
 - `node scripts/build-adapters.js`：退出码 0，生成 205 个文件。
 - `node scripts/build-adapters.js --check`：退出码 0，205 个生成文件与生成器输出一致。
 - `node scripts/check-drift.js`：退出码 0，8 个宿主产物与 `src/SKILL.md` 同步。
-- `npm test`：退出码 0。
+- `npm test`：退出码 0，41 个测试套件全过，1 条跳过 / 723 总数（722 通过）。这几条是作者在本机跑的，还没有第二方记录；分支 CI 跑过之后才算有。
 - `npm run check:whitespace`：退出码 0。
 - `npm run check:links`：退出码 0。
 - 在临时目录跑新产物的激活钩子：generator 档和 verifier 档的输出里，新的 Boundaries 长句规则和列表规则都完整在，两档都退出 0、stderr 为空。钩子原样输出分别是 10911 和 9160 字符，都在 12000 上限以内。原始输出存在 [`docs/evidence/v0.4.0/activate-output-generator.txt`](evidence/v0.4.0/activate-output-generator.txt) 和 [`activate-output.txt`](evidence/v0.4.0/activate-output.txt)；存进仓库的是 10910 和 9159 字符，因为删掉了 `console.log` 在末尾多吐的一个空行。数字可用 [`measure-injection.js`](evidence/v0.4.0/measure-injection.js) 重算。
@@ -63,8 +63,9 @@
 
 发布前把这条修了，见 #170：
 
-- 上限提到 12000 字符。8 个宿主都没实测过这个字段的长度上限，所以 12000 是 jiahao 自己的取值，不是照着宿主限制定的。
-- 超过上限时不再按字符硬切，退到最近的段落、换行或空格边界再切，并在输出末尾写一行说明丢了多少字符。这样以后再超，模型看到的也是完整句子，不会拿到半句话。断点比预算早 1200 字符以上就不用它，免得为了躲开半句把后面整段都丢掉。预算前 1200 字符内一个断点都没有时只能按预算切，那种情况末尾那行说明会明写 `mid-word`。
+- 上限提到 12000 字符。8 个宿主都没实测过这个字段的长度上限，所以 12000 是 jiahao 自己的取值，不是照着宿主限制定的。票里要求的「先查清其他宿主有没有硬限制」这一步**没有做到**：仓库里没有八个宿主的注入长度实测记录。这是已知缺口，不是已完成的事项。
+- 超过上限时不再按字符硬切，退到最近的段落、换行、句末或词间空隙再切，并在输出末尾写一行说明丢了多少字符、切在哪一种位置上。断点比预算早 1200 字符以上就不用它，免得为了躲开半句把后面整段都丢掉。预算前 1200 字符内一个断点都没有时只能按预算切，那种情况末尾那行说明会明写 `mid-word`。
+  说得准确一点：退到句末时不会留半句；退到词间空隙时留下的是完整单词，但确实可能是半句话，这时末尾那行会写明 `at a word gap`。所以「不会再拿到半句话」只对段落、换行和句末三种位置成立，词间空隙不是。
 - 两档在 0.4.0 都装得下：generator 10910、verifier 9159 字符（钩子原样输出是 10911 和 9160，多出的是 `console.log` 末尾那个空行）。
 
 各版本 generator 档的长度（用 `hooks/jiahao-profile.js` 的 `splitByProfile` 量 `src/SKILL.md`，可用 [`docs/evidence/v0.4.0/measure-injection.js`](evidence/v0.4.0/measure-injection.js) 重算，输出在该目录的 `measure-injection.txt`）：

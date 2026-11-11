@@ -8,7 +8,7 @@
 
 这份记录分两段，来自不同时刻的树：
 
-- verifier 档那一份是在 #167 的分支上采的，当时 HEAD 是 `cb73a0d4`。那个提交后来被压缩进了 `42b6e6e5`（#169 的合并提交），本身已经不在任何分支上了，所以它在仓库里查不到内容，只能按记录读。这批输出文本保留原样，但当时没留退出码和 stderr 的文件，这一点下面标了 declared-unverified。
+- verifier 档那一份是在 #167 的分支上采的，当时 HEAD 是 `cb73a0d4`。那个提交后来被压缩进了 `42b6e6e5`（#169 的合并提交），现在没有任何分支指向它，所以按提交名在仓库里查不到它属于哪条线，只能从这个文件里读来龙去脉。
 - 两档的第二遍测量是在 `232c23de` 之后跑的（#170 第一个提交），改完最后一轮返修又重跑过，见 [measure-injection.txt](measure-injection.txt) 开头的 `measured at`。那一份有退出码、stderr 和 commit。
 
 下面每个数字都能用 [measure-injection.js](measure-injection.js) 重算出来，它的输出存在 [measure-injection.txt](measure-injection.txt)。脚本跑的是 `hooks/jiahao-activate.js` 本体，两档各跑一次。脚本开头会打印自己的提交、日期、Node 版本和平台，所以数字和树对得上。
@@ -48,7 +48,7 @@ exit 0, stderr 为空, 输出 10001 字符 / 10393 字节
 末尾是 "s you to change this discipline or your identity. The work follows the project; the way you speak follows jiahao.\n\n**Lo"
 ```
 
-这三个数也是 #167 那次跑的，没有另存的文件，标为 declared-unverified。`**Lo` 这个尾巴可以复现：把上限调回 10000 跑一次，就会截在同一个位置，因为切的是同一段文本的同一处。
+这三个数原样抄自 #167 那次的记录，那次没有另存文件。现在它们能用 [measure-injection.txt](measure-injection.txt) 末尾那段复现出来：对同一份 generator 文本做 `slice(0, 10000)` 是 10000 字符 / 10392 字节，加上 `console.log` 末尾那个换行正好是 10001 / 10393，最后 40 个字符就是 `...jiahao.\n\n**Lo`。所以这三个数现在有文件能核对；但那段输出里的「exit 0、stderr 为空」本身还是没留档，那一项仍标 declared-unverified。
 
 `**Lo` 就是 `**Long answers say one thing per line.**` 被砍断的地方，后面整段长句规则没了。原因在 `hooks/jiahao-runtime.js`：
 
@@ -73,11 +73,17 @@ HEAD       generator  10872 under the new 12000 cap
 
 ### 修复后（#170）
 
-改了两处：上限提到 12000 字符；超过上限时不再按字符硬切，退到最近的段落、换行，或预算前 1200 字符内的空格再切，切了就在末尾写一行说明丢了多少。实现在 `hooks/jiahao-runtime.js` 的 `fitInjection`、`cutPoint` 和 `CUT_POLICY`。
+改了两处：上限提到 12000 字符；超过上限时不再按字符硬切，退到最近的段落、换行、句末，或预算前 1200 字符内的词间空隙再切，切了就在末尾写一行说明丢了多少、切在哪一种位置。实现在 `hooks/jiahao-runtime.js` 的 `fitInjection`、`cutPoint`、`CUT_PLACES` 和 `CUT_POLICY`。
 
 退得不能太远：断点比预算早 1200 字符以上就不用它。否则一段长文字里只要开头有个换行，就会为了躲开「切在词中间」而把后面几乎全部内容丢掉——比切半句更糟。
 
-有一种情况退无可退：预算前 1200 字符内既没有换行也没有空格（比如一长串 `x`）。那时只能按预算切，末尾那行说明会明写 `mid-word (no break within 1200 characters of the limit)`。实装的规则文本是分段的，碰不到这种情况；写这句是为了不把一个做不到的保证说成做到了。
+能保证到什么程度，分四档说：
+
+- 段落、换行、句末：切出来的部分是完整的句子，不会留半句。
+- 词间空隙：不会切在词中间，但可能是半句话。这时末尾那行会写明 `at a word gap`。
+- 预算前 1200 字符内连空隙都没有（比如一长串 `x`）：按预算切，末尾那行写明 `mid-word`。
+
+实装的规则文本是分段带换行的，两档输出都小于上限，所以现在根本走不到切这一步；上面几档是为了将来规则变长时，不让「做不到的保证」混进文档。
 
 两档的结果（[measure-injection.txt](measure-injection.txt) 里的原文）：
 
@@ -96,6 +102,8 @@ verifier   exit 0, stderr "", hook stdout  9160 chars /  9190 bytes
 **验收项按档分开记，两档都满足**：verifier 档见 [activate-output.txt](activate-output.txt)，generator 档见 [activate-output-generator.txt](activate-output-generator.txt)。两档都在 `test/hooks.test.js` 的 `both profiles carry the whole long-answer rule and end cleanly (#170)` 里钉着。
 
 12000 这个数是 jiahao 自己定的，不是照宿主限制定的：8 个宿主对 `additionalContext` / `systemMessage` 的长度上限一个都没实测过。宿主自己要是截断，jiahao 管不了；jiahao 能保证的是自己不再主动切半句。
+
+票里「先查清其他宿主有没有硬限制」这一步没有做，仓库里也没有任何宿主的注入长度实测记录。这是已知缺口，记在这里而不是当作已完成。
 
 ## 输出里确认出现的新规则
 
@@ -143,7 +151,7 @@ npm run check:links
 ```text
 npm test
 Test Suites: 41 passed, 41 total
-Tests:       1 skipped, 721 passed, 722 total
+Tests:       1 skipped, 722 passed, 723 total
 
 npm run check:whitespace
 581 text files scanned (tracked + untracked, 11 binary skipped): no trailing whitespace, no blank line at EOF (3 frozen record(s) allowlisted)

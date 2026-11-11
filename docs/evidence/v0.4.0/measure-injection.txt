@@ -1,4 +1,4 @@
-measured at: 3eb308efb91a74253fc41baeac8b619e5e64dc70
+measured at: 455c8dcf54a62f6bd7e2bde6a4fc8c8189228d45
 working tree: dirty (results include uncommitted changes)
 date: 2026-11-11
 node: v24.22.1
@@ -27,3 +27,11 @@ per-version generator rules text (splitByProfile on src/SKILL.md):
   34b513f8   8747
   7c075cc2   10872
   HEAD       10872
+
+what the old 10000-character cap did to the generator injection
+(fitInjection with cap=10000 on the current generator text; this
+ reproduces the defect, it does not re-run the #167 session):
+  plain slice(0, 10000): 10000 chars / 10392 bytes
+  plus the newline console.log adds: 10001 chars / 10393 bytes
+  last 40 chars: " the way you speak follows jiahao.\n\n**Lo"
+  fitInjection(cap=10000) length: 9599

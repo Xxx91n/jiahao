@@ -102,44 +102,61 @@ function normalizePayload(parsed) {
 const INJECTION_CAP = 12000;
 
 // How a cut over the cap is placed. One object rather than loose constants:
-// these four values only make sense together.
+// these values only mean anything together.
 const CUT_POLICY = Object.freeze({
   // Room kept free so the notice cannot push the result back over the cap.
   noticeRoom: 200,
   // How far behind the budget a break may sit. Without a limit, one lone early
   // newline in an otherwise unbroken text would cut almost everything away.
   backoffReach: 1200,
-  // Breaks a cut can land on, best first. A space is handled apart because a
-  // paragraph break and a word gap mean different things to the reader.
-  breaks: ['\n\n', '\n'],
 });
 
-// Where to cut a text that is over budget, or -1 when nothing is close enough
-// to land on. A break further back than backoffReach is rejected: dropping that
-// much text to avoid a mid-word cut is the worse trade.
+// Where a cut can land, best first: a paragraph break, a line break, the end of
+// a sentence, then a gap between words. The kind is kept so the notice can say
+// which one happened - "cut at a word gap" is not "cut at a sentence end", and a
+// reader deciding whether to trust a shortened ruleset needs the difference.
+const CUT_PLACES = [
+  { kind: 'paragraph', find: (t, b) => t.lastIndexOf('\n\n', b) },
+  { kind: 'line', find: (t, b) => t.lastIndexOf('\n', b) },
+  { kind: 'sentence', find: (t, b) => {
+    let best = -1;
+    for (const mark of ['. ', '! ', '? ', '。', '.\n']) {
+      const at = t.lastIndexOf(mark, b);
+      if (at > best) best = at + mark.length - (mark.endsWith(' ') ? 1 : 0);
+    }
+    return best;
+  } },
+  { kind: 'word gap', find: (t, b) => t.lastIndexOf(' ', b) },
+];
+
+// Where to cut a text that is over budget: the best place within backoffReach
+// behind the budget, or null when nothing is close enough. A place further back
+// is rejected - dropping that much text to land cleanly is the worse trade.
 function cutPoint(text, budget) {
-  for (const brk of CUT_POLICY.breaks) {
-    const found = text.lastIndexOf(brk, budget);
-    if (found > 0 && budget - found <= CUT_POLICY.backoffReach) return found;
+  for (const place of CUT_PLACES) {
+    const at = place.find(text, budget);
+    if (at > 0 && budget - at <= CUT_POLICY.backoffReach) return { at, kind: place.kind };
   }
-  const space = text.lastIndexOf(' ', budget);
-  return space > 0 && budget - space <= CUT_POLICY.backoffReach ? space : -1;
+  return null;
 }
 
-// Fit an injection into the cap. A cut lands on a paragraph, line, or nearby
-// space so the model is not handed half a word; text with none of those near
-// enough is cut at the budget and the notice says so. The notice also states
-// how much was dropped, so a short injection is never mistaken for the whole
-// ruleset.
-function fitInjection(text) {
-  if (text.length <= INJECTION_CAP) return text;
-  const budget = INJECTION_CAP - CUT_POLICY.noticeRoom;
-  const at = cutPoint(text, budget);
-  const kept = at > 0 ? text.slice(0, at) : text.slice(0, budget);
-  const cutNote = at > 0 ? '' : ' mid-word (no break within '
-    + CUT_POLICY.backoffReach + ' characters of the limit)';
-  return kept + '\n[jiahao] the injected rules were cut at the '
-    + INJECTION_CAP + '-character limit' + cutNote + '; '
+// Fit an injection into the cap. The result is never longer than the cap, and
+// the notice says how much was dropped and where the cut landed, so a shortened
+// ruleset is never mistaken for the whole one and a mid-word cut is never
+// reported as a clean one. `cap` defaults to INJECTION_CAP; the evidence script
+// passes 10000 to reproduce what the old hard slice did.
+function fitInjection(text, cap) {
+  const limit = cap === undefined ? INJECTION_CAP : cap;
+  if (text.length <= limit) return text;
+  const budget = limit - CUT_POLICY.noticeRoom;
+  const cut = cutPoint(text, budget);
+  const kept = cut ? text.slice(0, cut.at) : text.slice(0, budget);
+  const where = cut && cut.kind !== 'paragraph' && cut.kind !== 'line'
+    ? ' at a ' + cut.kind
+    : (cut ? '' : ', mid-word: no break within '
+      + CUT_POLICY.backoffReach + ' characters of the limit');
+  return kept + '\n[jiahao] the injected rules were shortened to stay under '
+    + limit + ' characters' + where + '; '
     + (text.length - kept.length) + ' characters did not fit.\n';
 }
 
@@ -250,4 +267,4 @@ function writeBlockOutput(reason) {
   process.exitCode = BLOCK_EXIT_CODES[host] ?? 2;
 }
 
-module.exports = { detectHost, writeHookOutput, writeBlockOutput, normalizePayload, isReadOnlyTool, PLATFORMS, INJECTION_CAP };
+module.exports = { detectHost, writeHookOutput, writeBlockOutput, normalizePayload, isReadOnlyTool, PLATFORMS, INJECTION_CAP, fitInjection };
