@@ -86,10 +86,53 @@ function normalizePayload(parsed) {
   });
 }
 
+// Characters an injection may carry. The largest shipped profile is the
+// generator one: 10910 characters of rules plus the status line, as measured on
+// src/SKILL.md at 0.4.0 (#170). It has to fit whole - the old 10000 cap cut that
+// text in the middle of `**Long answers say one thing per line.**` and the model
+// received half a word instead of the rule. 12000 leaves about a tenth of
+// headroom for the next edit to the rules before a cut happens at all.
+//
+// No host-side limit was measured for additionalContext / systemMessage on any
+// of the eight hosts, so this number is jiahao's own choice, not a host
+// constraint (#170). A host that truncates on its own would still cut; what
+// this can control is that jiahao never cuts by itself.
+const INJECTION_CAP = 12000;
+
+// Room kept free for the cut notice so the notice itself cannot push the result
+// back over the cap.
+const CUT_NOTICE_ROOM = 200;
+
+// How far back a cut may look for a space when the text has no line break. A
+// space further back than this would drop far more than it needs to, so the raw
+// budget is better then.
+const WORD_BACKOFF_REACH = 200;
+
+// Fit the injection into the cap without ever ending mid-sentence. A cut backs
+// off to the nearest paragraph break, then to the nearest line break, then to
+// the nearest space, and only uses the raw budget when the text has none of
+// those within reach. The returned text says how much was dropped, so a short
+// injection is never mistaken for the whole ruleset.
+function fitInjection(text, cap) {
+  const limit = cap === undefined ? INJECTION_CAP : cap;
+  if (text.length <= limit) return text;
+  const budget = limit - CUT_NOTICE_ROOM;
+  let at = text.lastIndexOf('\n\n', budget);
+  if (at <= 0) at = text.lastIndexOf('\n', budget);
+  if (at <= 0) {
+    const space = text.lastIndexOf(' ', budget);
+    at = space > budget - WORD_BACKOFF_REACH ? space : budget;
+  }
+  if (at <= 0) at = budget;
+  return text.slice(0, at) + '\n[jiahao] the injected rules were cut at the '
+    + limit + '-character limit; ' + (text.length - at)
+    + ' characters did not fit.\n';
+}
+
 // Write hook output in the format the current host expects.
 function writeHookOutput(text, event) {
   const host = detectHost();
-  const trimmed = text.slice(0, 10000); // 10k char injection cap
+  const trimmed = fitInjection(text);
 
   if (host === 'codex') {
     console.log(JSON.stringify({
@@ -193,4 +236,4 @@ function writeBlockOutput(reason) {
   process.exitCode = BLOCK_EXIT_CODES[host] ?? 2;
 }
 
-module.exports = { detectHost, writeHookOutput, writeBlockOutput, normalizePayload, isReadOnlyTool, PLATFORMS };
+module.exports = { detectHost, writeHookOutput, writeBlockOutput, normalizePayload, isReadOnlyTool, PLATFORMS, fitInjection, INJECTION_CAP };

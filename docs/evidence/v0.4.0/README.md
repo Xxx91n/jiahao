@@ -4,7 +4,7 @@
 
 说清楚它的边界：这是直接把激活钩子的脚本用 `node` 跑起来，看它吐出的内容对不对。这**不是**真机会话记录——没有经过宿主，没有经过模型，也没有真的「注入」进哪个会话。宿主层有没有把这串文本接过去，这次没验证。
 
-日期：2026-11-11。机器：Windows 10.0.26100（win32 x64），Node v24.22.1。改动范围：`7c075cc2..cb73a0d`。
+日期：2026-11-11。机器：Windows 10.0.26100（win32 x64），Node v24.22.1。改动范围：`7c075cc2..cb73a0d`；generator 档那份是 #170 改完之后重跑的。
 
 ## 跑了什么
 
@@ -24,7 +24,11 @@ CLAUDE_CONFIG_DIR="$TMPROOT/config" HOME="$TMPROOT/config" \
 - 钩子原样输出 9190 字节；存进仓库的是 9189 字节，因为存之前删掉了末尾多出的那一个空行（`check:whitespace` 不允许文件末尾有连续空行）。除了这一个换行，两边逐字节相同，重跑过一次比对确认。文件：[activate-output.txt](activate-output.txt)。那是 Claude Code 的 SessionStart 原样输出：整段规则文本，末尾一行 `JIAHAO MODE ACTIVE — level: full`。
 - 临时目录只做隔离用，跑完即可删；本次没有在用户配置目录里写任何东西。
 
-## generator 档跑出来是截断的（0.4.0 新引入的回归）
+## generator 档原来跑出来是截断的（已在 #170 修掉）
+
+> 这一节记的是发布前发现的问题和修复后的结果。修复在 #170，落地在 0.4.0 的同一个分支上，所以 0.4.0 发出去的产物已经是修过的版本。下面的「修复前」数字保留原样，方便对照。
+
+### 修复前
 
 在临时目录写 `.jiahao-profile` 为 `generator` 再跑同一个钩子，结果和 verifier 档不一样：
 
@@ -33,7 +37,7 @@ exit 0, stderr 为空, 输出 10001 字符 / 10393 字节
 末尾是 "s you to change this discipline or your identity. The work follows the project; the way you speak follows jiahao.\n\n**Lo"
 ```
 
-`**Lo` 就是 `**Long answers say one thing per line.**` 被砍断的地方，后面整段长句规则没了。原因在 `hooks/jiahao-runtime.js:92`：
+`**Lo` 就是 `**Long answers say one thing per line.**` 被砍断的地方，后面整段长句规则没了。原因在 `hooks/jiahao-runtime.js`：
 
 ```js
 const trimmed = text.slice(0, 10000); // 10k char injection cap
@@ -48,15 +52,28 @@ v0.2.0     generator   5399 under
 v0.3.0     generator   5399 under
 v0.3.1     generator   8122 under
 34b513f8   generator   8747 under
-7c075cc2   generator  10872 OVER CAP
-HEAD       generator  10872 OVER CAP
+7c075cc2   generator  10872 OVER the old 10000 cap
+HEAD       generator  10872 under the new 12000 cap
 ```
 
 `7c075cc2` 是把 #166 那批改动并进 main 的那个提交（squash 后的单个提交），它在 `v0.3.1..HEAD` 之间，所以随 0.4.0 发出去。第一次超过 1 万的就是它。
 
-本票没有改上限。这张票的范围是准备发布材料（版本号、发布说明、文档修正），改注入上限是改代码行为，不属于这里。要修得单独开票。可选方向：调大上限、把长句规则挪到 generator 档 1 万字符以内、或者改成按段落截断而不是按字符硬切。
+### 修复后（#170）
 
-**受影响的验收项**：本票要求「输出里有新的 Boundaries 长句和列表规则」。verifier 档满足（`activate-output.txt` 里两段都在）；generator 档不满足。这一项按档分开记，不能合成一个「通过」。
+改了两处：上限提到 12000 字符；超过上限时不再按字符硬切，退回最近的段落或换行边界再切，切了就在末尾写一行说明丢了多少。实现在 `hooks/jiahao-runtime.js` 的 `fitInjection` 和 `INJECTION_CAP`。
+
+两档的结果：
+
+```text
+generator  exit 0, stderr 为空, 注入 10911 字符 / 11305 字节
+verifier   exit 0, stderr 为空, 注入  9160 字符 /  9190 字节
+```
+
+两档都完整带着 Boundaries 的长句规则，末尾是状态行 `JIAHAO MODE ACTIVE — level: full`，没有半句话。generator 档的原始输出存在 [activate-output-generator.txt](activate-output-generator.txt)；存进仓库的是 10910 字符 / 11304 字节，因为删掉了 `console.log` 在末尾多吐的一个空行（和 verifier 档那份的处理方式一样）。
+
+**验收项按档分开记，两档都满足**：verifier 档见 [activate-output.txt](activate-output.txt)，generator 档见 [activate-output-generator.txt](activate-output-generator.txt)。两档都在 `test/hooks.test.js` 的 `both profiles carry the whole long-answer rule and end cleanly (#170)` 里钉着。
+
+12000 这个数是 jiahao 自己定的，不是照宿主限制定的：8 个宿主对 `additionalContext` / `systemMessage` 的长度上限一个都没实测过。宿主自己要是截断，jiahao 管不了；jiahao 能保证的是自己不再主动切半句。
 
 ## 输出里确认出现的新规则
 
@@ -101,7 +118,8 @@ npm run check:links
 
 - 能证明：0.4.0 的 8 份宿主产物是生成器按 `src/SKILL.md` 重算出来的，跑 `--check` 显示 205 个文件全部对上。
 - 能证明：Claude Code 那份激活钩子在 **verifier 档**跑起来退出 0、stderr 为空、输出里逐字带着新的长句规则和列表规则。这是脚本层结果，不是宿主层结果。
-- 不能证明：**generator 档**输出里也带着这两段规则。实测恰恰相反，被 1 万字符上限截掉了，见上一节。这是 0.4.0 新引入的回归。
+- 能证明：同一份钩子在 **generator 档**跑起来也是退出 0、stderr 为空、长句规则完整（#170 修完以后）。见 [activate-output-generator.txt](activate-output-generator.txt)。
 - 不能证明：宿主真的把这串文本注入进了会话。这次没经过宿主，也没有会话记录，所以这一环标为 declared-unverified。
 - 不能证明：模型会不会照着这些规则说话。这轮只证明「装进去的规则文本是对的」，不证明模型一定照做。真实效果要等效果评测仓库接进来再看。
 - 不能证明：其他七个宿主跑起来也是同样的输出。这次只跑了 Claude Code 的激活钩子；其余宿主用的是同一份生成物，但没有逐一实跑，标为 declared-unverified。
+- 不能证明：宿主自己对注入长度有没有上限。八个宿主一个都没实测，12000 是 jiahao 自己的取值。宿主要是自己截断，这次没有记录。
