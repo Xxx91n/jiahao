@@ -112,7 +112,7 @@ test('an over-cap injection is cut at a paragraph break and says what it dropped
   expect(out).toContain('the injected rules were shortened to stay under ' + INJECTION_CAP + ' characters');
   expect(out).toContain('at a paragraph break;');
   expect(out).toContain(String(text.length - first.length) + ' characters did not fit');
-  // It ends on a newline, never in the middle of a word.
+  // Every notice ends with a newline, so the output's last character is one.
   expect(out.endsWith('\n')).toBe(true);
 });
 

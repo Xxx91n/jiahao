@@ -53,7 +53,8 @@ console.log('measured at: ' + head);
 console.log('working tree: ' + (dirty ? 'dirty (results include uncommitted changes)' : 'clean'));
 console.log('date: ' + new Date().toISOString().slice(0, 10));
 console.log('node: ' + process.version);
-console.log('platform: ' + process.platform + ' ' + process.arch);
+console.log('platform: ' + process.platform + ' ' + process.arch
+  + ' (kernel ' + os.release() + ')');
 console.log('cap: ' + INJECTION_CAP + ' characters');
 console.log('');
 

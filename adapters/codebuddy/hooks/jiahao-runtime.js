@@ -96,15 +96,16 @@ function normalizePayload(parsed) {
 //
 // No host-side limit was measured for additionalContext / systemMessage on any
 // of the eight hosts, so this number is jiahao's own choice, not a host
-// constraint (#170). A host that truncates on its own would still cut; what
-// this can control is that jiahao does not cut in the middle of a word.
+// constraint (#170). A host that truncates on its own would still cut; what this
+// can control is that jiahao never cuts silently - every cut states where it
+// landed and how much it dropped.
 //
 // #170 offered three ways to fix the truncation and said to pick one. Raising
 // the cap is this module's answer for today's text. The cut handling below is
-// not a second fix for the same defect - it is what keeps the "no half word"
-// promise from becoming false the next time the rules grow past the cap, which
-// the ticket also asked for as an assertion. The cap alone would restore the
-// old silent hard slice the moment the profile passes 12000 again.
+// not a second fix for the same defect - it is what keeps a future overflow
+// from going back to the old silent hard slice, which is the part the ticket
+// also asked for as an assertion. The cap alone would restore that behaviour the
+// moment the profile passes 12000 again.
 //
 // Exported because the tests and docs/evidence measure against it; nothing
 // outside this module changes it.
