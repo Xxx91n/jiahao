@@ -27,7 +27,7 @@ const { execFileSync } = require('child_process');
 
 const root = path.join(__dirname, '..', '..', '..');
 const { splitByProfile } = require(path.join(root, 'hooks', 'jiahao-profile'));
-const { INJECTION_CAP } = require(path.join(root, 'hooks', 'jiahao-runtime'));
+const { INJECTION_CAP, writeHookOutput } = require(path.join(root, 'hooks', 'jiahao-runtime'));
 const { spawnHook, hostEnv } = require(path.join(root, 'test', 'helpers', 'spawned-hook'));
 
 function run(profile) {
@@ -82,7 +82,24 @@ for (const ref of ['v0.2.0', 'v0.3.0', 'v0.3.1', '34b513f8', '7c075cc2', 'HEAD']
 }
 
 console.log('');
-console.log('what the old 10000-character cap did to the generator injection:');
+console.log('envelope length when the injection is at the cap');
+console.log('(the cap applies to the rule text; each host wraps it in JSON):');
+const atCap = 'x'.repeat(11990);
+for (const host of ['claude', 'codex', 'copilot', 'qoder', 'codebuddy', 'zcode', 'workbuddy', 'antigravity']) {
+  const saved = process.argv[2];
+  process.argv[2] = host;
+  let printed = '';
+  const origLog = console.log;
+  console.log = (s) => { printed = String(s); };
+  try {
+    writeHookOutput(atCap, host === 'antigravity' ? 'SessionStart' : 'SubagentStart');
+  } finally {
+    console.log = origLog;
+    process.argv[2] = saved;
+  }
+  console.log('  ' + host.padEnd(12) + ' stdout ' + Buffer.byteLength(printed) + ' bytes'
+    + ' (injected text ' + atCap.length + ' chars)');
+}
 console.log('  this is a reproduction, not a re-run of the #167 session. The old code');
 console.log('  hard-sliced, so this does the same slice; the defect is in the slice,');
 console.log('  and the point is that the figures quoted in the README are checkable.');

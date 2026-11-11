@@ -1,4 +1,4 @@
-measured at: a281a472d1f90223e2acc685b42c9ff81d78b52f
+measured at: 736750c04c84df712790e5253d5c7e6a8904cb5b
 working tree: dirty (results include uncommitted changes)
 date: 2026-11-11
 node: v24.22.1
@@ -28,7 +28,16 @@ per-version generator rules text (splitByProfile on src/SKILL.md):
   7c075cc2   10872
   HEAD       10872
 
-what the old 10000-character cap did to the generator injection:
+envelope length when the injection is at the cap
+(the cap applies to the rule text; each host wraps it in JSON):
+  claude       stdout 12069 bytes (injected text 11990 chars)
+  codex        stdout 12094 bytes (injected text 11990 chars)
+  copilot      stdout 12014 bytes (injected text 11990 chars)
+  qoder        stdout 12069 bytes (injected text 11990 chars)
+  codebuddy    stdout 12069 bytes (injected text 11990 chars)
+  zcode        stdout 12069 bytes (injected text 11990 chars)
+  workbuddy    stdout 12069 bytes (injected text 11990 chars)
+  antigravity  stdout 12046 bytes (injected text 11990 chars)
   this is a reproduction, not a re-run of the #167 session. The old code
   hard-sliced, so this does the same slice; the defect is in the slice,
   and the point is that the figures quoted in the README are checkable.

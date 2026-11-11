@@ -89,8 +89,10 @@ function normalizePayload(parsed) {
 // Characters an injection may carry. The largest shipped profile is the
 // generator one: 10872 characters of rules, 10910 once the status line is
 // appended, as measured on src/SKILL.md at 0.4.0 (#170). It has to fit whole -
-// the old 10000 cap cut that text in the middle of `**Long answers say one
-// thing per line.**` and the model received half a word instead of the rule.
+// the old 10000 cap sliced that text in the middle of `**Long answers say one
+// thing per line.**`, so the injected text stopped mid-word and the rule was
+// gone. Whether a host handed that text to a model was never probed; this
+// module only sees its own output.
 // 12000 leaves about a tenth of headroom before the next rules edit starts
 // cutting again.
 //
