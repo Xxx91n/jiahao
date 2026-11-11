@@ -35,7 +35,7 @@ npx skills add Xxx91n/jiahao
 
 ### 插件版
 
-在 ~/adapters/ 里面，让 Agent 去找他自己的文档，找不到就来项目开 issue。
+每个宿主的文档在仓库里的 `adapters/` 目录，让 Agent 自己去找，找不到就来项目开 issue。
 
 ## 测试
 

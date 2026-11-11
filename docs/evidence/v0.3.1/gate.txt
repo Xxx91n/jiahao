@@ -1,0 +1,29 @@
+PASS metadata     tag / version / checkout identity (69 ms)
+     tag v0.3.1 -> version 0.3.1, commit 8741d02dde73, tree clean
+PASS generated    committed generated output == generator (76 ms)
+     All 205 tracked generated files accounted for: 205 generated + 0 allowlisted (regen-diff clean)
+PASS drift        profile fragments and retired adapter exits (37 ms)
+PASS tests        full test suite (npm test) (11507 ms)
+     Tests:       708 passed, 708 total
+PASS links        relative Markdown links resolve inside the pack (805 ms)
+     30 packed Markdown files: every relative link resolves inside the package (271 files)
+PASS artifact     pack contents, sha256, per-tree hashes (1511 ms)
+     jiahao-0.3.1.tgz (481567 B, 271 files)
+       sha256  6d52ee868184f79738179321ef3ff6f5d04716fc51a858374a3b50f2a0df45db (identical on a second pack)
+PASS install      installer dry-run writes nothing (31 ms)
+PASS skill-spec   official Agent Skills validator on skills/jiahao (skills-ref, pinned) (5912 ms)
+PASS skill-install standard skills CLI discovers and installs exactly jiahao (pinned) (1587 ms)
+PASS egress       code that runs after install makes no network call (7 ms)
+PASS declarations write scope and no-egress statements are present (1 ms)
+RELEASE GATE GREEN — v0.3.1 (8741d02dde73)
+artifact  jiahao-0.3.1.tgz  481567 B
+sha256    6d52ee868184f79738179321ef3ff6f5d04716fc51a858374a3b50f2a0df45db
+tree      skills/jiahao  3be17adadbfadb4a660629d067972e03799f9e6ff6bd7de349b18016aee34ae8
+tree      adapters/claude-code  ef690dfcaae0fc6d8f1598600aa07d952f539c8a294573f0718e21798cf99272
+tree      adapters/codebuddy  413362af2037a6477ef215a23886f8e06756c06b18856ab8e3add1a39f85801d
+tree      adapters/workbuddy  39125928f004a9c6c0abd9668405dc9d7e11c319bf8175140de48cd6054a6856
+tree      adapters/copilot  1bf2764838505ec50fdc5000597f8db4b537ad5085f4a22933b6fb6dd8514f58
+tree      adapters/codex  ae557b28270244b17e73a535ccc00ebafa38a6f9f9ff6085968fa3a0ed57ccea
+tree      adapters/antigravity  7ff7b352e4569a04933d8ab27406c58c39eaac0fe728e13bf7fde45371ee4ec5
+tree      adapters/qoder  13e6578a537638dd34b3401e908544a6639a8acc7a6880828b6a3bc865f86ac6
+tree      adapters/zcode  ab777847ed62a8eaab8ff28998eab3845deec677c84085019ddba690a5f05f09

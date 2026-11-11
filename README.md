@@ -35,7 +35,7 @@ npx skills add Xxx91n/jiahao
 
 ### Plugin version
 
-In `~/adapters/`, let the agent find its own doc. If it can't find it, open an issue in this repo.
+Each host's docs are in the repo's `adapters/` directory; let the agent find its own doc. If it can't find it, open an issue in this repo.
 
 ## Testing
 
