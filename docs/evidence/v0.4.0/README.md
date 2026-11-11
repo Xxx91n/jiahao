@@ -56,7 +56,7 @@ exit 0, stderr 为空, 输出 10001 字符 / 10393 字节
 const trimmed = text.slice(0, 10000); // 10k char injection cap
 ```
 
-1 万字符是注入上限。generator 档整段是 10872 字符，超过上限 872 字符，正好把 Boundaries 末尾这段新规则截掉。
+1 万字符是注入上限。generator 档整段是 10872 字符，超出上限 872 字符（10872 减 10000，这个差值可以在 [measure-injection.txt](measure-injection.txt) 的 `10872` 和代码里的 `10000` 两处对上），正好把 Boundaries 末尾这段新规则截掉。
 
 **这是 0.4.0 新引入的回归，不是老问题。** 用同一个切分函数量各版本的 `src/SKILL.md`：
 
@@ -73,17 +73,20 @@ HEAD       generator  10872 under the new 12000 cap
 
 ### 修复后（#170）
 
-改了两处：上限提到 12000 字符；超过上限时不再按字符硬切，退到最近的段落、换行、句末，或预算前 1200 字符内的词间空隙再切，切了就在末尾写一行说明丢了多少、切在哪一种位置。实现在 `hooks/jiahao-runtime.js` 的 `fitInjection`、`cutPoint`、`CUT_PLACES` 和 `CUT_POLICY`。
+改了两处：上限提到 12000 字符；超过上限时不再按字符硬切，而是按下面的优先级找切点，切了就在末尾写一行说明丢了多少、切在哪一种位置。实现在 `hooks/jiahao-runtime.js` 的 `fitInjection`、`cutPoint`、`CUT_PLACES` 和 `CUT_POLICY`。
 
-退得不能太远：断点比预算早 1200 字符以上就不用它。否则一段长文字里只要开头有个换行，就会为了躲开「切在词中间」而把后面几乎全部内容丢掉——比切半句更糟。
+切点是按**种类优先**挑的，不是挑最近的那个：段落、换行、句末、词间空隙，依次找，某一种在预算前 1200 字符内有出现就用它。所以一个 1000 字符远的换行会赢过一个 200 字符近的句末——这就是为什么下面不能笼统说「切在最近的断点」。
 
-能保证到什么程度，分四档说：
+能保证到什么程度，按切点种类分别说：
 
-- 段落、换行、句末：切出来的部分是完整的句子，不会留半句。
-- 词间空隙：不会切在词中间，但可能是半句话。这时末尾那行会写明 `at a word gap`。
-- 预算前 1200 字符内连空隙都没有（比如一长串 `x`）：按预算切，末尾那行写明 `mid-word`。
+- **段落、换行**：切在断行处，前面是完整的行。但换行不等于句末：硬折行的文字里，一行的结尾可能是半句话。这时末尾那行写明 `at a line break` 或 `at a paragraph break`，不假装是句末。
+- **句末**：前面是完整的句子，不会留半句。末尾写明 `at a sentence end`。
+- **词间空隙**：不会切在词中间，但可能留半句。末尾写明 `at a word gap`。
+- **预算前 1200 字符内什么都没找到**（比如一长串 `x`）：按预算切，末尾写明 `mid-word`。
 
-实装的规则文本是分段带换行的，两档输出都小于上限，所以现在根本走不到切这一步；上面几档是为了将来规则变长时，不让「做不到的保证」混进文档。
+断点比预算早 1200 字符以上就不用它。否则一段长文字里只要开头有个换行，就会为了躲开「切在词中间」而把后面几乎全部内容丢掉——比切半句更糟。
+
+实装的规则文本是分段带换行的，两档输出都小于上限，所以现在根本走不到切这一步；上面这几档是为了将来规则变长时，不让「做不到的保证」混进文档。
 
 两档的结果（[measure-injection.txt](measure-injection.txt) 里的原文）：
 
@@ -151,7 +154,7 @@ npm run check:links
 ```text
 npm test
 Test Suites: 41 passed, 41 total
-Tests:       1 skipped, 722 passed, 723 total
+Tests:       1 skipped, 723 passed, 724 total
 
 npm run check:whitespace
 581 text files scanned (tracked + untracked, 11 binary skipped): no trailing whitespace, no blank line at EOF (3 frozen record(s) allowlisted)

@@ -15,10 +15,10 @@
 //
 // It also reproduces the pre-fix truncated output, so the "10001 chars / 10393
 // bytes ending in **Lo" figure quoted in the README has a file behind it instead
-// of resting on an unrecorded run: fitInjection is the same function the hook
-// calls, so passing the old cap of 10000 shows what that cap did to the same
-// text. That is a reproduction of the defect, not a measurement of the #167
-// run itself - the README says which is which.
+// of resting on an unrecorded run. The old code hard-sliced the text, so the
+// script hard-slices it the same way - calling today's cut helper with a smaller
+// cap would show a different path, not the defect. That is a reproduction, not a
+// measurement of the #167 run itself - the README says which is which.
 
 const fs = require('fs');
 const os = require('os');
@@ -27,7 +27,7 @@ const { execFileSync } = require('child_process');
 
 const root = path.join(__dirname, '..', '..', '..');
 const { splitByProfile } = require(path.join(root, 'hooks', 'jiahao-profile'));
-const { INJECTION_CAP, fitInjection } = require(path.join(root, 'hooks', 'jiahao-runtime'));
+const { INJECTION_CAP } = require(path.join(root, 'hooks', 'jiahao-runtime'));
 const { spawnHook, hostEnv } = require(path.join(root, 'test', 'helpers', 'spawned-hook'));
 
 function run(profile) {
@@ -81,14 +81,13 @@ for (const ref of ['v0.2.0', 'v0.3.0', 'v0.3.1', '34b513f8', '7c075cc2', 'HEAD']
 }
 
 console.log('');
-console.log('what the old 10000-character cap did to the generator injection');
-console.log('(fitInjection with cap=10000 on the current generator text; this');
-console.log(' reproduces the defect, it does not re-run the #167 session):');
+console.log('what the old 10000-character cap did to the generator injection:');
+console.log('  this is a reproduction, not a re-run of the #167 session. The old code');
+console.log('  hard-sliced, so this does the same slice; the defect is in the slice,');
+console.log('  and the point is that the figures quoted in the README are checkable.');
 const genText = splitByProfile(
   fs.readFileSync(path.join(root, 'src', 'SKILL.md'), 'utf8')).generator
   + '\n---\nJIAHAO MODE ACTIVE — level: full\n';
-// The old code hard-sliced at 10000 with no notice. Same slice here so the
-// stored figure can be checked against a file.
 const oldSlice = genText.slice(0, 10000);
 console.log('  plain slice(0, 10000): ' + oldSlice.length + ' chars / '
   + Buffer.byteLength(oldSlice) + ' bytes');
@@ -97,4 +96,3 @@ console.log('  plain slice(0, 10000): ' + oldSlice.length + ' chars / '
 console.log('  plus the newline console.log adds: ' + (oldSlice.length + 1) + ' chars / '
   + (Buffer.byteLength(oldSlice) + 1) + ' bytes');
 console.log('  last 40 chars: ' + JSON.stringify(oldSlice.slice(-40)));
-console.log('  fitInjection(cap=10000) length: ' + fitInjection(genText, 10000).length);
