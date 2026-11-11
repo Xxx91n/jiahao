@@ -1,0 +1,33 @@
+PASS metadata     tag / version / checkout identity (59 ms)
+     tag v0.4.0 -> version 0.4.0, commit e8bd895c4df1, tree clean
+PASS generated    committed generated output == generator (65 ms)
+     All 205 tracked generated files accounted for: 205 generated + 0 allowlisted (regen-diff clean)
+PASS drift        profile fragments and retired adapter exits (34 ms)
+     Retained adapters in sync with src/SKILL.md
+PASS tests        full test suite (npm test) (10365 ms)
+     Tests:       724 passed, 724 total
+PASS links        relative Markdown links resolve inside the pack (615 ms)
+     30 packed Markdown files: every relative link resolves inside the package (272 files)
+PASS artifact     pack contents, sha256, per-tree hashes (1167 ms)
+     jiahao-0.4.0.tgz (478337 B, 272 files)
+       sha256  d846d42bc80b825d7814dafebc0caae8bf53322c595c67244854ab0ee0659043 (identical on a second pack)
+       trees   skills/jiahao, adapters/claude-code, adapters/codebuddy, adapters/workbuddy, adapters/copilot, adapters/codex, adapters/antigravity, adapters/qoder, adapters/zcode
+       kept    /home/runner/work/jiahao/jiahao/release-artifacts/jiahao-0.4.0.tgz + .sha256
+PASS install      installer dry-run writes nothing (27 ms)
+PASS skill-spec   official Agent Skills validator on skills/jiahao (skills-ref, pinned) (2993 ms)
+PASS skill-install standard skills CLI discovers and installs exactly jiahao (pinned) (902 ms)
+PASS egress       code that runs after install makes no network call (6 ms)
+PASS declarations write scope and no-egress statements are present (1 ms)
+RELEASE GATE GREEN — v0.4.0 (e8bd895c4df1)
+artifact  jiahao-0.4.0.tgz  478337 B
+sha256    d846d42bc80b825d7814dafebc0caae8bf53322c595c67244854ab0ee0659043
+tree      skills/jiahao  16e1a20eaeddf3b461c9ea7a0065f045b46161331639b4aa29881f1b395be1ed
+tree      adapters/claude-code  b4d4a6a658201b63f0349421015eb487ea9f68a51d0ca14535203b70a56e86e4
+tree      adapters/codebuddy  0cc6a5c8c7274081e0a436377308e34260f07d4c68c6d6b2fd9f216cd9c52a53
+tree      adapters/workbuddy  92dbbabd26c6c8ff6e20e73c2c05b7d21b84f3f8d5af3cd717420e56ec420fec
+tree      adapters/copilot  2305cbfdddd85cd39aa20699edba83be3a6b5b3adf13e6528a2047c5c724c3cb
+tree      adapters/codex  1b9a1394245c2c209c8d24b0aee3536fea37a649f0889745650736955e472df9
+tree      adapters/antigravity  ecae8733977fc94995d92236a23f053a58259a421eedc05f222d64ccaa99566d
+tree      adapters/qoder  332abdedceff2f818cd18e1e1c08aa42550a5c78c2ee50dd8d3bd89c6f48708d
+tree      adapters/zcode  fab13454e4a2960337f912f449efdeec9af25c0f5810daba418145fea6fba03a
+evidence  release-artifacts/release-evidence.json
