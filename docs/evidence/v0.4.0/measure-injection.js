@@ -1,10 +1,16 @@
 'use strict';
 // Prints the measurements quoted in docs/evidence/v0.4.0/README.md and the
 // 0.4.0 release notes, so every number in the prose has a file it came from.
-// This is a record, not a test: it spawns the shipped activation hook twice,
-// once per profile, and reports what came back.
+//
+// This is a record, not a test, and it ships with nothing: it is not part of any
+// published package or adapter bundle, it is not registered in any host's hook
+// config, nothing spawns it, and it changes no state outside the throwaway
+// directory it makes. It runs the shipped activation hook, hooks/jiahao-activate.js,
+// which reads .jiahao-profile from the config dir it is handed - that is the only
+// input the hook needs here.
 //
 // Run from the repo root: node docs/evidence/v0.4.0/measure-injection.js
+// The header line records the commit and date the numbers below came from.
 
 const fs = require('fs');
 const os = require('os');
@@ -29,6 +35,17 @@ function run(profile) {
   }
 }
 
+const head = require('child_process')
+  .execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+const dirty = require('child_process')
+  .execFileSync('git', ['status', '--porcelain'], { cwd: root, encoding: 'utf8' }).trim();
+console.log('measured at: ' + head);
+// The tree the numbers came from may be ahead of HEAD: say so, or a reader takes
+// the commit above as the exact source.
+console.log('working tree: ' + (dirty ? 'dirty (results include uncommitted changes)' : 'clean'));
+console.log('date: ' + new Date().toISOString().slice(0, 10));
+console.log('node: ' + process.version);
+console.log('platform: ' + process.platform + ' ' + process.arch);
 console.log('cap: ' + INJECTION_CAP + ' characters');
 console.log('');
 

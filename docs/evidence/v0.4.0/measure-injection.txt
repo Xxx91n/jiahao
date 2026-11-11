@@ -1,3 +1,8 @@
+measured at: 3eb308efb91a74253fc41baeac8b619e5e64dc70
+working tree: dirty (results include uncommitted changes)
+date: 2026-11-11
+node: v24.22.1
+platform: win32 x64
 cap: 12000 characters
 
 generator

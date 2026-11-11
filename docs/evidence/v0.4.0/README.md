@@ -6,9 +6,12 @@
 
 日期：2026-11-11。机器：Windows 10.0.26100（win32 x64），Node v24.22.1。
 
-这份记录分两段：`7c075cc2..cb73a0d` 是 verifier 档那一份的原始采集（#167 时跑的）；`232c23de`（#170）改完之后，两档都用同一个脚本重跑过一遍，见「修复后」一节。
+这份记录分两段，来自不同时刻的树：
 
-下面每个数字都能用 [measure-injection.js](measure-injection.js) 重算出来，它的输出存在 [measure-injection.txt](measure-injection.txt)。脚本跑的是 `hooks/jiahao-activate.js` 本体，两档各跑一次。
+- verifier 档那一份是在 #167 的分支上采的，当时 HEAD 是 `cb73a0d4`。那个提交后来被压缩进了 `42b6e6e5`（#169 的合并提交），本身已经不在任何分支上了，所以它在仓库里查不到内容，只能按记录读。这批输出文本保留原样，但当时没留退出码和 stderr 的文件，这一点下面标了 declared-unverified。
+- 两档的第二遍测量是在 `232c23de` 之后跑的（#170 第一个提交），改完最后一轮返修又重跑过，见 [measure-injection.txt](measure-injection.txt) 开头的 `measured at`。那一份有退出码、stderr 和 commit。
+
+下面每个数字都能用 [measure-injection.js](measure-injection.js) 重算出来，它的输出存在 [measure-injection.txt](measure-injection.txt)。脚本跑的是 `hooks/jiahao-activate.js` 本体，两档各跑一次。脚本开头会打印自己的提交、日期、Node 版本和平台，所以数字和树对得上。
 
 ## 跑了什么
 
@@ -28,11 +31,13 @@ CLAUDE_CONFIG_DIR="$TMPROOT/config" HOME="$TMPROOT/config" \
 - 钩子原样输出 9190 字节；存进仓库的是 9189 字节，因为存之前删掉了末尾多出的那一个空行（`check:whitespace` 不允许文件末尾有连续空行）。除了这一个换行，两边逐字节相同，重跑过一次比对确认。文件：[activate-output.txt](activate-output.txt)。那是 Claude Code 的 SessionStart 原样输出：整段规则文本，末尾一行 `JIAHAO MODE ACTIVE — level: full`。
 - 临时目录只做隔离用，跑完即可删；本次没有在用户配置目录里写任何东西。
 
-这一节里的「退出码 0」「stderr 为空」是 #167 那次跑的记录，当时没有另存成文件。现在代码已经改过，重跑不会得到同一份字节，所以这两项标为 declared-unverified：文件里只留了输出文本，没有退出码和 stderr 的记录。字节数和字符数能直接查文件。`232c23de` 之后两档的退出码和 stderr 有记录，见 [measure-injection.txt](measure-injection.txt)。
+这一节里的「退出码 0」「stderr 为空」是 #167 那次跑的记录，当时没有另存成文件。现在 0.4.0 的钩子代码已经改过（#170），所以重跑只能复现输出文本，不能复现那次的退出码和 stderr 记录——那些没被存下来，标为 declared-unverified。字节数和字符数能直接查文件。`232c23de` 之后两档的退出码和 stderr 有记录，见 [measure-injection.txt](measure-injection.txt)。
+
+（顺带说明：verifier 档的输出文本本身重跑是逐字节相同的，9159 字符 / 9189 字节，实测过。差别只在退出码和 stderr 没有留档。）
 
 ## generator 档原来跑出来是截断的（已在 #170 修掉）
 
-> 这一节记的是发布前发现的问题和修复后的结果。修复在 #170，落地在 0.4.0 的同一个分支上，所以 0.4.0 发出去的产物已经是修过的版本。下面的「修复前」数字保留原样，方便对照。
+> 这一节记的是发布前发现的问题和修复后的结果。修复做在 #170 的分支 `feat/injection-cap-170` 上，合进 0.4.0 之后 0.4.0 发出去的产物才是修过的；在这条分支合并之前，main 上还是旧的上限。下面的「修复前」数字保留原样，方便对照。
 
 ### 修复前
 
@@ -43,7 +48,7 @@ exit 0, stderr 为空, 输出 10001 字符 / 10393 字节
 末尾是 "s you to change this discipline or your identity. The work follows the project; the way you speak follows jiahao.\n\n**Lo"
 ```
 
-这三个数也是 #167 那次跑的，没有另存的文件；代码改过，重跑复现不了，标为 declared-unverified。`**Lo` 这个尾巴是可复现的：把上限调回 10000 跑一次就能看到同样的截断位置。
+这三个数也是 #167 那次跑的，没有另存的文件，标为 declared-unverified。`**Lo` 这个尾巴可以复现：把上限调回 10000 跑一次，就会截在同一个位置，因为切的是同一段文本的同一处。
 
 `**Lo` 就是 `**Long answers say one thing per line.**` 被砍断的地方，后面整段长句规则没了。原因在 `hooks/jiahao-runtime.js`：
 
@@ -68,9 +73,11 @@ HEAD       generator  10872 under the new 12000 cap
 
 ### 修复后（#170）
 
-改了两处：上限提到 12000 字符；超过上限时不再按字符硬切，退到最近的段落、换行，或预算前 200 字符内的空格再切，切了就在末尾写一行说明丢了多少。实现在 `hooks/jiahao-runtime.js` 的 `fitInjection`、`cutPoint` 和 `INJECTION_CAP`。
+改了两处：上限提到 12000 字符；超过上限时不再按字符硬切，退到最近的段落、换行，或预算前 1200 字符内的空格再切，切了就在末尾写一行说明丢了多少。实现在 `hooks/jiahao-runtime.js` 的 `fitInjection`、`cutPoint` 和 `CUT_POLICY`。
 
-有一种情况退无可退：整段文字里一个换行、一个空格都没有（比如一长串 `x`）。那时只能按预算切，末尾那行说明会明写 `mid-word (the text had no break to land on)`。实装的规则文本是分段的，碰不到这种情况；写这句是为了不把一个做不到的保证说成做到了。
+退得不能太远：断点比预算早 1200 字符以上就不用它。否则一段长文字里只要开头有个换行，就会为了躲开「切在词中间」而把后面几乎全部内容丢掉——比切半句更糟。
+
+有一种情况退无可退：预算前 1200 字符内既没有换行也没有空格（比如一长串 `x`）。那时只能按预算切，末尾那行说明会明写 `mid-word (no break within 1200 characters of the limit)`。实装的规则文本是分段的，碰不到这种情况；写这句是为了不把一个做不到的保证说成做到了。
 
 两档的结果（[measure-injection.txt](measure-injection.txt) 里的原文）：
 
@@ -105,7 +112,9 @@ generator 档那份也是 2 次，但两处不同：第 47 行是 R4 末尾的�
 
 ## 生成物、漂移、测试、空白和链接检查
 
-这五条本机都跑过，都退出 0。下面引的是各命令的真实输出，不是改写过的摘要：
+### #167 当时跑的那一遍
+
+这五条本机都跑过，都退出 0。下面是各命令当时的真实输出，不是改写过的摘要：
 
 ```text
 node scripts/build-adapters.js --check
@@ -125,10 +134,27 @@ npm run check:links
 30 packed Markdown files: every relative link resolves inside the package (272 files)
 ```
 
+这一遍对应的是 #170 之前的树（当时 HEAD 是后来被压进 `42b6e6e5` 的 `cb73a0d4`）。分支当时还没推上去，所以没有一份独立于作者的第二方记录；CI 跑过之后才算有。
+
+### #170 之后重跑的那一遍
+
+`3eb308ef` 的返修提交之后，五条都重跑过，都退出 0。测试数和空白检查的文件数变了（加了 #170 的断言和三个证据文件），其余三项没变：
+
+```text
+npm test
+Test Suites: 41 passed, 41 total
+Tests:       1 skipped, 721 passed, 722 total
+
+npm run check:whitespace
+581 text files scanned (tracked + untracked, 11 binary skipped): no trailing whitespace, no blank line at EOF (3 frozen record(s) allowlisted)
+```
+
+`--check`、`check-drift`、`check:links` 的输出和上面那一段逐字相同。这一遍的最终数字以分支 CI 为准：本地跑的结果没有第二方记录。
+
 说明三点：
 
-- 上面这段是 #167 当时抄的原文，对应测试数 716 条。`npm test` 这一项现在已经变了：#170 加了几条断言，现在是 41 suites 全过、1 skipped / 721 总数（720 通过）。其余几项在 #170 之后没有变。所以看这一段时，别把 716 当成当前值。
-- 跑的时候工作区停在 `cb73a0d` 之后、审查修正之前。修正只动 `docs/` 和 `package-lock.json`，不碰生成物、源文件和测试；#170 改的是 `hooks/` 和 `test/`，所以这一段对应的是 #170 之前的树。
+- 上面那段是 #167 当时抄的原文，对应测试数 716 条。哪些项在 #170 之后变了，见「#170 之后重跑的那一遍」，别把 716 当成当前值。
+- 跑的时候工作区停在 `cb73a0d4` 之后、审查修正之前。修正只动 `docs/` 和 `package-lock.json`，不碰生成物、源文件和测试；#170 改的是 `hooks/` 和 `test/`，所以这一段对应的是 #170 之前的树。
 - 分支当时还没推上去，所以这些结果没有一份独立于作者的第二方记录。CI 跑过之后才算有。在推上去之前，这几条只能算作者自述。
 
 ## 这些结果能证明什么、不能证明什么

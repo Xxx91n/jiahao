@@ -91,48 +91,55 @@ function normalizePayload(parsed) {
 // appended, as measured on src/SKILL.md at 0.4.0 (#170). It has to fit whole -
 // the old 10000 cap cut that text in the middle of `**Long answers say one
 // thing per line.**` and the model received half a word instead of the rule.
-// 12000 leaves about a tenth of headroom before the next rules edit cuts.
 //
 // No host-side limit was measured for additionalContext / systemMessage on any
 // of the eight hosts, so this number is jiahao's own choice, not a host
 // constraint (#170). A host that truncates on its own would still cut; what
 // this can control is that jiahao does not cut in the middle of a word.
+//
+// Exported because the tests and docs/evidence measure against it; nothing
+// outside this module changes it.
 const INJECTION_CAP = 12000;
 
-// Room kept free for the cut notice so the notice itself cannot push the result
-// back over the cap.
-const CUT_NOTICE_ROOM = 200;
+// How a cut over the cap is placed. One object rather than loose constants:
+// these four values only make sense together.
+const CUT_POLICY = Object.freeze({
+  // Room kept free so the notice cannot push the result back over the cap.
+  noticeRoom: 200,
+  // How far behind the budget a break may sit. Without a limit, one lone early
+  // newline in an otherwise unbroken text would cut almost everything away.
+  backoffReach: 1200,
+  // Breaks a cut can land on, best first. A space is handled apart because a
+  // paragraph break and a word gap mean different things to the reader.
+  breaks: ['\n\n', '\n'],
+});
 
-// Breaks a cut can land on, best first: a paragraph, then a line. A space is
-// handled apart because one far behind the budget would drop far more text than
-// the cap requires, so only a nearby space counts.
-const CUT_BREAKS = ['\n\n', '\n'];
-const SPACE_BACKOFF_REACH = 200;
-
-// Where to cut a text that is over budget: the nearest of the breaks above,
-// preferring the bigger one; a space within reach; or -1 when the text has
-// nothing to land on.
+// Where to cut a text that is over budget, or -1 when nothing is close enough
+// to land on. A break further back than backoffReach is rejected: dropping that
+// much text to avoid a mid-word cut is the worse trade.
 function cutPoint(text, budget) {
-  for (const brk of CUT_BREAKS) {
+  for (const brk of CUT_POLICY.breaks) {
     const found = text.lastIndexOf(brk, budget);
-    if (found > 0) return found;
+    if (found > 0 && budget - found <= CUT_POLICY.backoffReach) return found;
   }
   const space = text.lastIndexOf(' ', budget);
-  return space > 0 && budget - space <= SPACE_BACKOFF_REACH ? space : -1;
+  return space > 0 && budget - space <= CUT_POLICY.backoffReach ? space : -1;
 }
 
 // Fit an injection into the cap. A cut lands on a paragraph, line, or nearby
-// space so the model is not handed half a word; text with none of those is cut
-// at the budget and the notice says so. The notice also states how much was
-// dropped, so a short injection is never mistaken for the whole ruleset.
+// space so the model is not handed half a word; text with none of those near
+// enough is cut at the budget and the notice says so. The notice also states
+// how much was dropped, so a short injection is never mistaken for the whole
+// ruleset.
 function fitInjection(text) {
   if (text.length <= INJECTION_CAP) return text;
-  const budget = INJECTION_CAP - CUT_NOTICE_ROOM;
+  const budget = INJECTION_CAP - CUT_POLICY.noticeRoom;
   const at = cutPoint(text, budget);
   const kept = at > 0 ? text.slice(0, at) : text.slice(0, budget);
-  const where = at > 0 ? '' : ' mid-word (the text had no break to land on)';
+  const cutNote = at > 0 ? '' : ' mid-word (no break within '
+    + CUT_POLICY.backoffReach + ' characters of the limit)';
   return kept + '\n[jiahao] the injected rules were cut at the '
-    + INJECTION_CAP + '-character limit' + where + '; '
+    + INJECTION_CAP + '-character limit' + cutNote + '; '
     + (text.length - kept.length) + ' characters did not fit.\n';
 }
 

@@ -132,13 +132,26 @@ test('an over-cap paragraph with no line break is cut at a space (#170)', () => 
   expect(kept.endsWith('word')).toBe(true);
 });
 
+// A break far behind the budget must not be used: cutting there would drop
+// nearly all the text just to avoid a mid-word cut.
+test('a break too far behind the budget is refused (#170)', () => {
+  const { INJECTION_CAP } = require(path.join(hooksDir, 'jiahao-runtime.js'));
+  const text = 'a'.repeat(10) + '\n' + 'b'.repeat(20000);
+  const out = captureSessionStartOutput(text);
+  expect(out.length).toBeLessThanOrEqual(INJECTION_CAP);
+  // The cut did not land on the lone newline ten characters in: most of the run
+  // survives instead of being dropped to avoid a mid-word cut.
+  expect((out.match(/b/g) || []).length).toBeGreaterThan(1000);
+  expect(out).toContain('mid-word (no break within 1200 characters of the limit)');
+});
+
 // The one case where a clean cut is impossible: a single run with no break at
 // all. The output must admit it instead of pretending the cut was clean.
 test('an over-cap run with no break at all says the cut was mid-word (#170)', () => {
   const { INJECTION_CAP } = require(path.join(hooksDir, 'jiahao-runtime.js'));
   const out = captureSessionStartOutput('x'.repeat(20000));
   expect(out.length).toBeLessThanOrEqual(INJECTION_CAP);
-  expect(out).toContain('mid-word (the text had no break to land on)');
+  expect(out).toContain('mid-word (no break within 1200 characters of the limit)');
 });
 
 test('activate script runs and outputs SKILL.md content', () => {
