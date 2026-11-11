@@ -71,15 +71,129 @@ test('runtime detectHost returns a string', () => {
   expect(['claude', 'codex', 'copilot', 'qoder', 'codebuddy', 'zcode']).toContain(host);
 });
 
-test('runtime writeHookOutput respects 10k cap', () => {
+// #170: the injection cap is jiahao's own choice, not a host limit. These cases
+// read what the hook prints - its stdout, not a parsed structure - rather than
+// reaching into the cut helper, so a refactor of the cut stays free to change
+// shape as long as the output keeps its promises. Whether a host delivers those
+// bytes to a model is outside this test's reach.
+//
+// The host is pinned to claude for the capture: detectHost() reads argv first
+// and then the environment, and a test process running under Codex or Copilot
+// carries PLUGIN_DATA / COPILOT_PLUGIN_DATA, which would switch the output to
+// JSON and turn every plain-text assertion below into a red herring (CodeRabbit
+// on PR #171). argv is the same channel a host config uses, so pinning it
+// exercises the documented path instead of reaching into the module's state.
+function captureSessionStartOutput(text) {
   const { writeHookOutput } = require(path.join(hooksDir, 'jiahao-runtime.js'));
-  const long = 'x'.repeat(20000);
   const orig = console.log;
+  const origArgv = process.argv;
   let captured = '';
-  console.log = (s) => { captured = s; };
-  writeHookOutput(long, 'SessionStart');
-  console.log = orig;
-  expect(captured.length).toBeLessThanOrEqual(10000);
+  console.log = (s) => { captured = String(s); };
+  try {
+    process.argv = origArgv.slice(0, 2);
+    process.argv[2] = 'claude';
+    writeHookOutput(text, 'SessionStart');
+  } finally {
+    process.argv = origArgv;
+    console.log = orig;
+  }
+  return captured;
+}
+
+test('runtime writeHookOutput respects the injection cap', () => {
+  const { INJECTION_CAP } = require(path.join(hooksDir, 'jiahao-runtime.js'));
+  const captured = captureSessionStartOutput('x'.repeat(20000));
+  expect(captured.length).toBeLessThanOrEqual(INJECTION_CAP);
+});
+
+test('an over-cap injection is cut at a paragraph break and says what it dropped (#170)', () => {
+  const { INJECTION_CAP } = require(path.join(hooksDir, 'jiahao-runtime.js'));
+  // Two paragraphs; the break sits inside the write budget, the second
+  // paragraph straddles the cap so a raw slice would land inside it.
+  const first = 'a'.repeat(INJECTION_CAP - 300);
+  const second = 'b'.repeat(500);
+  const text = first + '\n\n' + second;
+  const out = captureSessionStartOutput(text);
+  expect(out.length).toBeLessThanOrEqual(INJECTION_CAP);
+  // The cut happened at the paragraph break: nothing of the second paragraph
+  // survives above the notice.
+  const kept = out.slice(0, out.indexOf('\n[jiahao]'));
+  expect(kept).toBe(first);
+  // The dropped amount is stated, so a short injection is not mistaken for the
+  // whole ruleset.
+  expect(out).toContain('the injected rules were shortened to stay under ' + INJECTION_CAP + ' characters');
+  expect(out).toContain('at a paragraph break;');
+  expect(out).toContain(String(text.length - first.length) + ' characters did not fit');
+  // Every notice ends with a newline, so the output's last character is one.
+  expect(out.endsWith('\n')).toBe(true);
+});
+
+// A line break is not a sentence end, and the notice must not claim it is: in
+// hard-wrapped prose a line cut can leave half a sentence behind.
+test('a line-break cut says it was a line break, not a sentence end (#170)', () => {
+  const { INJECTION_CAP } = require(path.join(hooksDir, 'jiahao-runtime.js'));
+  const text = 'x'.repeat(INJECTION_CAP - 200) + '\n' + 'y'.repeat(1000);
+  const out = captureSessionStartOutput(text);
+  expect(out.length).toBeLessThanOrEqual(INJECTION_CAP);
+  expect(out).toContain('at a line break;');
+  // No sentence-end claim, and no mid-word claim either: the only kind names in
+  // this output must be the line break that actually happened.
+  expect(out).not.toContain('at a sentence end');
+  expect(out).not.toContain('mid-word');
+});
+
+test('text under the cap is passed through untouched (#170)', () => {
+  const text = 'short rules\n';
+  expect(captureSessionStartOutput(text)).toBe(text);
+});
+
+// Punctuation is not proof of a sentence end: `U.S. ` and `Dr. ` look the same
+// to a character search. This module does not offer a sentence-end kind at all,
+// so text that would tempt one is cut at a word gap and reported as such.
+test('a period inside an abbreviation is not treated as a sentence end (#170)', () => {
+  const { INJECTION_CAP } = require(path.join(hooksDir, 'jiahao-runtime.js'));
+  const text = 'a'.repeat(INJECTION_CAP - 1200) + 'U.S. ' + 'b'.repeat(3000);
+  const out = captureSessionStartOutput(text);
+  expect(out.length).toBeLessThanOrEqual(INJECTION_CAP);
+  expect(out).toContain('at a word gap;');
+  // The cut landed on the gap after the abbreviation: the text is kept whole up
+  // to `U.S.`, and the notice says word gap rather than claiming a sentence end.
+  const kept = out.slice(0, out.indexOf('\n[jiahao]'));
+  expect(kept.endsWith('U.S.')).toBe(true);
+});
+
+// Word gaps are the last resort before a mid-word cut. The notice has to say
+// that was the best it could do, not stay silent.
+test('an over-cap run with only word gaps says it was cut at a word gap (#170)', () => {
+  const { INJECTION_CAP } = require(path.join(hooksDir, 'jiahao-runtime.js'));
+  const text = 'word '.repeat(Math.ceil(INJECTION_CAP / 5) + 400);
+  const out = captureSessionStartOutput(text);
+  expect(out.length).toBeLessThanOrEqual(INJECTION_CAP);
+  const kept = out.slice(0, out.indexOf('\n[jiahao]'));
+  expect(kept.endsWith('word')).toBe(true);
+  expect(out).toContain(' at a word gap;');
+});
+
+// A break far behind the budget must not be used: cutting there would drop
+// nearly all the text just to avoid a mid-word cut.
+test('a break too far behind the budget is refused (#170)', () => {
+  const { INJECTION_CAP } = require(path.join(hooksDir, 'jiahao-runtime.js'));
+  const text = 'a'.repeat(10) + '\n' + 'b'.repeat(20000);
+  const out = captureSessionStartOutput(text);
+  expect(out.length).toBeLessThanOrEqual(INJECTION_CAP);
+  // The cut did not land on the lone newline ten characters in: most of the run
+  // survives instead of being dropped to avoid a mid-word cut.
+  expect((out.match(/b/g) || []).length).toBeGreaterThan(1000);
+  expect(out).toContain('mid-word: no break within');
+});
+
+// The one case where a clean cut is impossible: a single run with no break at
+// all. The output must admit it instead of pretending the cut was clean.
+test('an over-cap run with no break at all says the cut was mid-word (#170)', () => {
+  const { INJECTION_CAP } = require(path.join(hooksDir, 'jiahao-runtime.js'));
+  const out = captureSessionStartOutput('x'.repeat(20000));
+  expect(out.length).toBeLessThanOrEqual(INJECTION_CAP);
+  expect(out).toContain('mid-word: no break within');
 });
 
 test('activate script runs and outputs SKILL.md content', () => {
@@ -137,6 +251,41 @@ test('generator SessionStart injection carries no retired rule headers (#71 item
   // around a retired header must not make the injection visible again.
   for (const retired of ['rule:1 ', 'rule:2 ', 'rule:3 ']) {
     expect(res.stdout).not.toContain(retired);
+  }
+});
+
+// #170: the generator profile outgrew the 10k cap, so the long-answer rule
+// arrived as `**Lo` and the rest was gone. Both profiles have to carry the
+// whole rule, and neither injection may stop mid-sentence - a half word in the
+// context is worse than a missing rule, because it also reads as a broken rule.
+test('both profiles carry the whole long-answer rule and end cleanly (#170)', () => {
+  const withLongAnswer = [
+    '**Long answers say one thing per line.**',
+    'In English, 28 words or more is the warning line.',
+    'In Chinese, 50 characters or more is the warning line.',
+    'three or more parts that could each stand alone',
+    'Cut filler and repetition first, then split it into two or three short sentences',
+    'three or more parallel items into a list with one item per line',
+    'A long sentence that carries only one fact can stay.',
+    'Never chop a sentence into pieces that no longer make sense alone.',
+    'in ordinary chat, split a long sentence into two or three short sentences instead.',
+  ];
+  for (const profile of ['generator', 'verifier']) {
+    const dir = freshDir('jiahao-hooks-test-');
+    fs.writeFileSync(path.join(dir, '.jiahao-profile'), profile, 'utf8');
+    fs.writeFileSync(path.join(dir, '.jiahao-active'), 'full', 'utf8');
+    const res = runHook('jiahao-activate.js', { dir: dir });
+    expectExit(res, 0);
+    withLongAnswer.forEach((part) => expect(res.stdout).toContain(part));
+    // The status line is the first thing a cut would eat, so its presence says
+    // the injection ran to the end of what the hook builds.
+    expect(res.stdout.trimEnd().endsWith('JIAHAO MODE ACTIVE — level: full')).toBe(true);
+    // Not the truncated shape the 10k cap produced, and not a cut notice either:
+    // both profiles fit under the cap at 0.4.0, so a notice here means the rules
+    // grew past the new one and need a real fix. The copied phrase is this
+    // module's own notice text, so a reworded notice would not silently pass.
+    expect(res.stdout).not.toMatch(/\*\*Lo$/m);
+    expect(res.stdout).not.toContain('the injected rules were shortened to stay under');
   }
 });
 

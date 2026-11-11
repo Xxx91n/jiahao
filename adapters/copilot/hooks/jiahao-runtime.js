@@ -86,10 +86,96 @@ function normalizePayload(parsed) {
   });
 }
 
+// Characters an injection may carry. The largest shipped profile is the
+// generator one: 10872 characters of rules, 10910 once the status line is
+// appended, as measured on src/SKILL.md at 0.4.0 (#170). It has to fit whole -
+// the old 10000 cap sliced that text in the middle of `**Long answers say one
+// thing per line.**`, so the injected text stopped mid-word and the rule was
+// gone. Whether a host handed that text to a model was never probed; this
+// module only sees its own output.
+// 12000 leaves about a tenth of headroom before the next rules edit starts
+// cutting again.
+//
+// No host-side limit was measured for additionalContext / systemMessage on any
+// of the eight hosts, so this number is jiahao's own choice, not a host
+// constraint (#170). A host that truncates on its own would still cut; what this
+// can control is that jiahao never cuts silently - every cut states where it
+// landed and how much it dropped.
+//
+// #170 offered three ways to fix the truncation and said to pick one. Raising
+// the cap is this module's answer for today's text. The cut handling below is
+// not a second fix for the same defect - it is what keeps a future overflow
+// from going back to the old silent hard slice, which is the part the ticket
+// also asked for as an assertion. The cap alone would restore that behaviour the
+// moment the profile passes 12000 again.
+//
+// Exported because the tests and docs/evidence measure against it; nothing
+// outside this module changes it.
+const INJECTION_CAP = 12000;
+
+// How a cut over the cap is placed. One object rather than loose constants:
+// these values only mean anything together.
+const CUT_POLICY = Object.freeze({
+  // Room kept free so the notice cannot push the result back over the cap.
+  noticeRoom: 200,
+  // How far behind the budget a break may sit. Without a limit, one lone early
+  // newline in an otherwise unbroken text would cut almost everything away.
+  backoffReach: 1200,
+});
+
+// Where a cut can land, in preference order: a paragraph break, a line break,
+// then a gap between words. Preference, not distance: the first kind with an
+// occurrence inside the reach wins, so a line break can beat a nearer word gap.
+// The kind is kept so the notice can always name it.
+//
+// There is no sentence-end kind on purpose. `lastIndexOf('. ')` cannot tell a
+// sentence end from `U.S. ` or `Dr. `, and a cut placed there and reported as a
+// clean sentence end would be a false claim about the text produced here.
+// A guarantee this code cannot keep is not offered.
+const CUT_PLACES = [
+  { kind: 'paragraph break', find: (t, b) => t.lastIndexOf('\n\n', b) },
+  { kind: 'line break', find: (t, b) => t.lastIndexOf('\n', b) },
+  { kind: 'word gap', find: (t, b) => t.lastIndexOf(' ', b) },
+];
+
+// Where to cut a text that is over budget: the first place kind with an
+// occurrence within backoffReach behind the budget, or null when none is close
+// enough. A place further back is rejected - dropping that much text to land
+// cleanly is the worse trade.
+function cutPoint(text, budget) {
+  for (const place of CUT_PLACES) {
+    const at = place.find(text, budget);
+    if (at > 0 && budget - at <= CUT_POLICY.backoffReach) return { at, kind: place.kind };
+  }
+  return null;
+}
+
+// Fit an injection into the cap. The result is never longer than the cap, and
+// the notice always says where the cut landed and how much was dropped. Each
+// kind is a statement about lines, not about words: a paragraph break keeps
+// whole paragraphs, a line break keeps whole lines, a word gap keeps whole
+// words, and the fallback cuts inside one. A line break does not prove a word
+// ends there either - a word split across lines is cut by both - so nothing
+// here claims a word is never split, and none of it promises a whole sentence.
+// A line break in hard-wrapped prose can land mid-sentence too.
+function fitInjection(text) {
+  if (text.length <= INJECTION_CAP) return text;
+  const budget = INJECTION_CAP - CUT_POLICY.noticeRoom;
+  const cut = cutPoint(text, budget);
+  const kept = cut ? text.slice(0, cut.at) : text.slice(0, budget);
+  const where = cut
+    ? ' at a ' + cut.kind
+    : ', mid-word: no break within '
+      + CUT_POLICY.backoffReach + ' characters before the cut';
+  return kept + '\n[jiahao] the injected rules were shortened to stay under '
+    + INJECTION_CAP + ' characters' + where + '; '
+    + (text.length - kept.length) + ' characters did not fit.\n';
+}
+
 // Write hook output in the format the current host expects.
 function writeHookOutput(text, event) {
   const host = detectHost();
-  const trimmed = text.slice(0, 10000); // 10k char injection cap
+  const trimmed = fitInjection(text);
 
   if (host === 'codex') {
     console.log(JSON.stringify({
@@ -193,4 +279,4 @@ function writeBlockOutput(reason) {
   process.exitCode = BLOCK_EXIT_CODES[host] ?? 2;
 }
 
-module.exports = { detectHost, writeHookOutput, writeBlockOutput, normalizePayload, isReadOnlyTool, PLATFORMS };
+module.exports = { detectHost, writeHookOutput, writeBlockOutput, normalizePayload, isReadOnlyTool, PLATFORMS, INJECTION_CAP };

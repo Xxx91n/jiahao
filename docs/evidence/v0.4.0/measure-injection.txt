@@ -1,0 +1,46 @@
+measured at: 460abbcb7df93b0a36005844e1d7cb78d5e768b5
+working tree: dirty (results include uncommitted changes)
+date: 2026-11-11
+node: v24.22.1
+platform: win32 x64 (kernel 10.0.26100)
+cap: 12000 characters
+
+generator
+  exit: 0
+  stderr: ""
+  hook stdout: 10911 chars / 11305 bytes (console.log adds one trailing blank line)
+  stored form: 10910 chars / 11304 bytes (that blank line removed)
+  carries the long-answer rule: true
+  last line: "JIAHAO MODE ACTIVE — level: full"
+verifier
+  exit: 0
+  stderr: ""
+  hook stdout: 9160 chars / 9190 bytes (console.log adds one trailing blank line)
+  stored form: 9159 chars / 9189 bytes (that blank line removed)
+  carries the long-answer rule: true
+  last line: "JIAHAO MODE ACTIVE — level: full"
+
+per-version generator rules text (splitByProfile on src/SKILL.md):
+  v0.2.0     5399
+  v0.3.0     5399
+  v0.3.1     8122
+  34b513f8   8747
+  7c075cc2   10872
+  HEAD       10872
+
+envelope length with the injected text filled to the cap
+(the cap applies to the rule text; each host wraps it in JSON):
+  claude       stdout 12080 bytes (envelope 12079 bytes, injected text 12000 chars)
+  codex        stdout 12105 bytes (envelope 12104 bytes, injected text 12000 chars)
+  copilot      stdout 12025 bytes (envelope 12024 bytes, injected text 12000 chars)
+  qoder        stdout 12080 bytes (envelope 12079 bytes, injected text 12000 chars)
+  codebuddy    stdout 12080 bytes (envelope 12079 bytes, injected text 12000 chars)
+  zcode        stdout 12080 bytes (envelope 12079 bytes, injected text 12000 chars)
+  workbuddy    stdout 12080 bytes (envelope 12079 bytes, injected text 12000 chars)
+  antigravity  stdout 12057 bytes (envelope 12056 bytes, injected text 12000 chars)
+  this is a reproduction, not a re-run of the #167 session. The old code
+  hard-sliced, so this does the same slice; the defect is in the slice,
+  and the point is that the figures quoted in the README are checkable.
+  plain slice(0, 10000): 10000 chars / 10392 bytes
+  plus the newline console.log adds: 10001 chars / 10393 bytes
+  last 40 chars: " the way you speak follows jiahao.\n\n**Lo"
