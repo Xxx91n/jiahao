@@ -148,11 +148,13 @@ function cutPoint(text, budget) {
 }
 
 // Fit an injection into the cap. The result is never longer than the cap, and
-// the notice always says where the cut landed and how much was dropped. What
-// each kind promises: a paragraph or line break leaves whole lines, a word gap
-// leaves whole words, and no break at all is reported as a mid-word cut. None
-// of them promises a whole sentence - a line break in hard-wrapped prose can
-// land mid-sentence, so the notice names the cut instead of claiming more.
+// the notice always says where the cut landed and how much was dropped. Each
+// kind is a statement about lines, not about words: a paragraph break keeps
+// whole paragraphs, a line break keeps whole lines, a word gap keeps whole
+// words, and the fallback cuts inside one. A line break does not prove a word
+// ends there either - a word split across lines is cut by both - so nothing
+// here claims a word is never split, and none of it promises a whole sentence.
+// A line break in hard-wrapped prose can land mid-sentence too.
 function fitInjection(text) {
   if (text.length <= INJECTION_CAP) return text;
   const budget = INJECTION_CAP - CUT_POLICY.noticeRoom;
