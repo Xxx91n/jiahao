@@ -130,7 +130,7 @@ const CUT_POLICY = Object.freeze({
 //
 // There is no sentence-end kind on purpose. `lastIndexOf('. ')` cannot tell a
 // sentence end from `U.S. ` or `Dr. `, and a cut placed there and reported as a
-// clean sentence end would be a false claim about the text the model receives.
+// clean sentence end would be a false claim about the text produced here.
 // A guarantee this code cannot keep is not offered.
 const CUT_PLACES = [
   { kind: 'paragraph break', find: (t, b) => t.lastIndexOf('\n\n', b) },

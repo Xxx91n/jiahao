@@ -88,7 +88,16 @@ HEAD       generator  10872 under the new 12000 cap
 
 所以：不宣称「词不会被拆开」，也不宣称「句子完整」；每种切点只如实说它切在哪一种位置上。能无条件保证的是两条：注入的规则文本不超过 12000 字符，以及那行说明写了丢了多少、切在哪。
 
-注意上限管的是**规则文本本身**，不是最终的 JSON 外壳。钩子把这串文本装进各宿主的信封（`hookSpecificOutput.additionalContext`、Codex 的 `systemMessage`、Antigravity 的 `injectSteps`）之后，stdout 会比 12000 长：实测最长的 Codex 形状在 11990 字符输入下吐 12094 字节。宿主自己怎么处理信封长度不在这次测量范围内。
+注意上限管的是**规则文本本身**，不是最终的 JSON 外壳。钩子把这串文本装进各宿主的信封（`hookSpecificOutput.additionalContext`、Codex 的 `systemMessage`、Antigravity 的 `injectSteps`）之后，stdout 会比 12000 长。把注入文本填满到 12000 字符时，八个宿主的 stdout 是：
+
+```text
+codex       12105 bytes
+antigravity 12057 bytes
+copilot     12025 bytes
+claude / qoder / codebuddy / zcode / workbuddy  12080 bytes each
+```
+
+这些数字可以用 [measure-injection.txt](measure-injection.txt) 复算。宿主自己怎么处理信封长度不在这次测量范围内。
 
 断点比预算早 1200 字符以上就不用它。否则一段长文字里只要开头有个换行，就会为了躲开「切在词中间」而把后面几乎全部内容丢掉——比切半句更糟。
 

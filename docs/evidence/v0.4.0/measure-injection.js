@@ -82,9 +82,9 @@ for (const ref of ['v0.2.0', 'v0.3.0', 'v0.3.1', '34b513f8', '7c075cc2', 'HEAD']
 }
 
 console.log('');
-console.log('envelope length when the injection is at the cap');
+console.log('envelope length with the injected text filled to the cap');
 console.log('(the cap applies to the rule text; each host wraps it in JSON):');
-const atCap = 'x'.repeat(11990);
+const atCap = 'x'.repeat(INJECTION_CAP);
 for (const host of ['claude', 'codex', 'copilot', 'qoder', 'codebuddy', 'zcode', 'workbuddy', 'antigravity']) {
   const saved = process.argv[2];
   process.argv[2] = host;
@@ -97,8 +97,11 @@ for (const host of ['claude', 'codex', 'copilot', 'qoder', 'codebuddy', 'zcode',
     console.log = origLog;
     process.argv[2] = saved;
   }
-  console.log('  ' + host.padEnd(12) + ' stdout ' + Buffer.byteLength(printed) + ' bytes'
-    + ' (injected text ' + atCap.length + ' chars)');
+  // console.log adds one trailing newline, so stdout is one byte longer than
+  // the serialized envelope - the same +1 the sections above account for.
+  console.log('  ' + host.padEnd(12) + ' stdout ' + (Buffer.byteLength(printed) + 1) + ' bytes'
+    + ' (envelope ' + Buffer.byteLength(printed) + ' bytes, injected text '
+    + atCap.length + ' chars)');
 }
 console.log('  this is a reproduction, not a re-run of the #167 session. The old code');
 console.log('  hard-sliced, so this does the same slice; the defect is in the slice,');
