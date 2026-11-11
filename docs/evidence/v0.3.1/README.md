@@ -4,8 +4,8 @@
 
 - CI run：<https://github.com/Xxx91n/jiahao/actions/runs/42360582084>
 - 结果：`success`，headSha `8741d02dde73`，事件 `push`，2026-11-07T09:38:23Z。
-- 文件：[gate.txt](gate.txt)。它是**节选**，不是全文：完整日志约 418 行，这里只留了门禁各步的 `PASS`/`FAIL` 行、每步后面那行关键输出，以及最后的 `artifact`/`sha256`/`tree` 汇总。每保留的一行都是原样抄的，只删掉了行首的 job 名和时间戳。
-  没保留的是同一批输出里的其他明细行（比如 `Retained adapters in sync with src/SKILL.md`、`trees` 目录清单、`kept` 产物路径、dry-run、skills-ref、egress、declarations 的具体说明）。要查全文就按下面的命令重跑。
+- 文件：[gate.txt](gate.txt)。它是**节选**，不是全文：完整日志约 418 行，这里只留了 11 条 `PASS` 行、其中 5 步（`metadata`、`generated`、`tests`、`links`、`artifact`）后面那行关键输出，以及最后的 `artifact`/`sha256`/`tree` 汇总。每保留的一行都是原样抄的，只删掉了行首的 job 名和时间戳。
+  没保留的是同一批输出里的其他明细行，包括另外 6 步（`drift`、`install`、`skill-spec`、`skill-install`、`egress`、`declarations`）的输出行，以及 `trees` 目录清单、`kept` 产物路径等。要查全文就按下面的命令重跑。
 
 日志前缀清理方式（可复跑）：
 
