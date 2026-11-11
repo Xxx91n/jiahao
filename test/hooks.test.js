@@ -72,9 +72,10 @@ test('runtime detectHost returns a string', () => {
 });
 
 // #170: the injection cap is jiahao's own choice, not a host limit. These cases
-// read what the hook prints - the same bytes a host would receive - rather than
+// read what the hook prints - its stdout, not a parsed structure - rather than
 // reaching into the cut helper, so a refactor of the cut stays free to change
-// shape as long as the output keeps its promises.
+// shape as long as the output keeps its promises. Whether a host delivers those
+// bytes to a model is outside this test's reach.
 function captureSessionStartOutput(text) {
   const { writeHookOutput } = require(path.join(hooksDir, 'jiahao-runtime.js'));
   const orig = console.log;
