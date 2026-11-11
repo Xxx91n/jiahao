@@ -124,7 +124,7 @@ test('a line-break cut says it was a line break, not a sentence end (#170)', () 
   const out = captureSessionStartOutput(text);
   expect(out.length).toBeLessThanOrEqual(INJECTION_CAP);
   expect(out).toContain('at a line break;');
-  expect(out).not.toContain('at a sentence end;');
+  expect(out).not.toContain('send');
 });
 
 test('text under the cap is passed through untouched (#170)', () => {
@@ -132,17 +132,19 @@ test('text under the cap is passed through untouched (#170)', () => {
   expect(captureSessionStartOutput(text)).toBe(text);
 });
 
-// A long paragraph with no line break in reach is the case a paragraph-only cut
-// would get wrong. Whole words are the floor; whole sentences are preferred, and
-// the notice names which one happened so a half sentence is never sold as clean.
-test('an over-cap paragraph is cut at a sentence end, and says so (#170)', () => {
+// Punctuation is not proof of a sentence end: `U.S. ` and `Dr. ` look the same
+// to a character search. This module does not offer a sentence-end kind at all,
+// so text that would tempt one is cut at a word gap and reported as such.
+test('a period inside an abbreviation is not treated as a sentence end (#170)', () => {
   const { INJECTION_CAP } = require(path.join(hooksDir, 'jiahao-runtime.js'));
-  const text = 'Sentence one is here. '.repeat(700);
+  const text = 'a'.repeat(INJECTION_CAP - 1200) + 'U.S. ' + 'b'.repeat(3000);
   const out = captureSessionStartOutput(text);
   expect(out.length).toBeLessThanOrEqual(INJECTION_CAP);
+  expect(out).toContain('at a word gap;');
+  // The cut landed on the gap after the abbreviation: the text is kept whole up
+  // to `U.S.`, and the notice says word gap rather than claiming a sentence end.
   const kept = out.slice(0, out.indexOf('\n[jiahao]'));
-  expect(kept.endsWith('.')).toBe(true);
-  expect(out).toContain('at a sentence end;');
+  expect(kept.endsWith('U.S.')).toBe(true);
 });
 
 // Word gaps are the last resort before a mid-word cut. The notice has to say
