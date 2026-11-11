@@ -76,14 +76,25 @@ test('runtime detectHost returns a string', () => {
 // reaching into the cut helper, so a refactor of the cut stays free to change
 // shape as long as the output keeps its promises. Whether a host delivers those
 // bytes to a model is outside this test's reach.
+//
+// The host is pinned to claude for the capture: detectHost() reads argv first
+// and then the environment, and a test process running under Codex or Copilot
+// carries PLUGIN_DATA / COPILOT_PLUGIN_DATA, which would switch the output to
+// JSON and turn every plain-text assertion below into a red herring (CodeRabbit
+// on PR #171). argv is the same channel a host config uses, so pinning it
+// exercises the documented path instead of reaching into the module's state.
 function captureSessionStartOutput(text) {
   const { writeHookOutput } = require(path.join(hooksDir, 'jiahao-runtime.js'));
   const orig = console.log;
+  const origArgv = process.argv;
   let captured = '';
   console.log = (s) => { captured = String(s); };
   try {
+    process.argv = origArgv.slice(0, 2);
+    process.argv[2] = 'claude';
     writeHookOutput(text, 'SessionStart');
   } finally {
+    process.argv = origArgv;
     console.log = orig;
   }
   return captured;
